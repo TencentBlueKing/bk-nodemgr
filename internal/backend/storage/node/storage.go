@@ -17,7 +17,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
@@ -38,6 +37,19 @@ const StorageName = "node"
 
 const (
 	recentMonitoredTime = 5 * time.Minute
+
+	metricOperationGetNodeDeploymentNodeConf = "get_node_deployment_node_conf"
+	metricOperationGetNodeDeploymentInfo     = "get_node_deployment_info"
+	metricOperationListNodeDeployment        = "list_node_deployment"
+	metricOperationSetNodeDeploymentNodeConf = "set_node_deployment_node_conf"
+	metricOperationUpdateNodeDeploymentInfo  = "update_node_deployment_info"
+	metricOperationCreateNodeDeployment      = "create_node_deployment"
+	metricOperationListNodeWorkflow          = "list_node_workflow"
+	metricOperationCountNodeWorkflow         = "count_node_workflow"
+	metricOperationDistinctNodeWorkflow      = "distinct_node_workflow"
+	metricOperationGetNodeWorkflow           = "get_node_workflow"
+	metricOperationCreateNodeWorkflow        = "create_node_workflow"
+	metricOperationUpdateNodeWorkflowStatus  = "update_node_workflow_status"
 )
 
 // NewStorage creates a new node workflow storage handler.
@@ -292,39 +304,25 @@ func (s *Storage) check() error {
 	return nil
 }
 
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
-}
-
 // GetNodeDeploymentNodeConf get gse node conf.
 func (s *Storage) GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error) {
-	var (
-		nodeConf *types.NodeConf
-		err      error
-	)
-
-	// record metric.
-	metric := s.metric().Start("get_node_deployment_node_conf")
-	defer metric.End(err)
-
-	nodeConf, err = s.getNodeDeploymentNodeConf(nCtx, token)
-
+	var nodeConf *types.NodeConf
+	err := s.WrapFn(nCtx, metricOperationGetNodeDeploymentNodeConf, func(nCtx contextx.IContext) error {
+		var err error
+		nodeConf, err = s.getNodeDeploymentNodeConf(nCtx, token)
+		return err
+	})
 	return nodeConf, err
 }
 
 // GetNodeDeploymentInfo get node deployment info.
 func (s *Storage) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error) {
-	var (
-		deployInfo *types.DeploymentInfo
-		err        error
-	)
-
-	// record metric.
-	metric := s.metric().Start("get_node_deployment_info")
-	defer metric.End(err)
-
-	deployInfo, err = s.getNodeDeploymentInfo(nCtx, token)
-
+	var deployInfo *types.DeploymentInfo
+	err := s.WrapFn(nCtx, metricOperationGetNodeDeploymentInfo, func(nCtx contextx.IContext) error {
+		var err error
+		deployInfo, err = s.getNodeDeploymentInfo(nCtx, token)
+		return err
+	})
 	return deployInfo, err
 }
 
@@ -332,96 +330,59 @@ func (s *Storage) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*
 func (s *Storage) ListNodeDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
 	[]*types.NodeDeployment, int64, error) {
 
-	var (
-		nodeDeployments []*types.NodeDeployment
-		num             int64
-		err             error
-	)
-
-	// record metric.
-	metric := s.metric().Start("list_node_deployment")
-	defer metric.End(err)
-
-	nodeDeployments, num, err = s.listNodeDeployment(nCtx, page, conditions...)
-
+	var nodeDeployments []*types.NodeDeployment
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationListNodeDeployment, func(nCtx contextx.IContext) error {
+		var err error
+		nodeDeployments, num, err = s.listNodeDeployment(nCtx, page, conditions...)
+		return err
+	})
 	return nodeDeployments, num, err
 }
 
 // SetNodeDeploymentNodeConf set gse node conf.
 func (s *Storage) SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("set_node_deployment_node_conf")
-	defer metric.End(err)
-
-	err = s.seNodeDeploymenttNodeConf(nCtx, token, conf)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationSetNodeDeploymentNodeConf, func(nCtx contextx.IContext) error {
+		return s.seNodeDeploymenttNodeConf(nCtx, token, conf)
+	})
 }
 
 // UpdateNodeDeploymentInfo update node deployment info.
 func (s *Storage) UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("update_node_deployment_info")
-	defer metric.End(err)
-
-	err = s.updateNodeDeploymentInfo(nCtx, token, info)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationUpdateNodeDeploymentInfo, func(nCtx contextx.IContext) error {
+		return s.updateNodeDeploymentInfo(nCtx, token, info)
+	})
 }
 
 // CreateNodeDeployment createNodeDeployment a node deployment.
 func (s *Storage) CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("create_node_deployment")
-	defer metric.End(err)
-
-	err = s.createNodeDeployment(nCtx, nodeDeployment)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationCreateNodeDeployment, func(nCtx contextx.IContext) error {
+		return s.createNodeDeployment(nCtx, nodeDeployment)
+	})
 }
 
 // ListNodeWorkflow lists node workflow by page and conditions.
 func (s *Storage) ListNodeWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
-	var (
-		results []*types.NodeWorkflow
-		num     int64
-		err     error
-	)
-
-	// record metric.
-	metric := s.metric().Start("list_node_workflow")
-	defer metric.End(err)
-
-	results, num, err = s.listNodeWorkflow(nCtx, page, conditions...)
-
+	var results []*types.NodeWorkflow
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationListNodeWorkflow, func(nCtx contextx.IContext) error {
+		var err error
+		results, num, err = s.listNodeWorkflow(nCtx, page, conditions...)
+		return err
+	})
 	return results, num, err
 }
 
 // CountNodeWorkflow counts node workflow by conditions.
 func (s *Storage) CountNodeWorkflow(nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) (int64, error) {
 	var num int64
-	var err error
-
-	// record metric.
-	metric := s.metric().Start("count_node_workflow")
-	defer metric.End(err)
-
-	num, err = s.countNodeWorkflow(nCtx, conditions...)
-
+	err := s.WrapFn(nCtx, metricOperationCountNodeWorkflow, func(nCtx contextx.IContext) error {
+		var err error
+		num, err = s.countNodeWorkflow(nCtx, conditions...)
+		return err
+	})
 	return num, err
 }
 
@@ -430,62 +391,36 @@ func (s *Storage) DistinctNodeWorkflow(
 	nCtx contextx.IContext, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 
-	var (
-		result *types.NodeWorkflowDistinctResult
-		err    error
-	)
-
-	// record metric.
-	metric := s.metric().Start("distinct_node_workflow")
-	defer metric.End(err)
-
-	result, err = s.distinctNodeWorkflow(nCtx, request, conditions...)
-
+	var result *types.NodeWorkflowDistinctResult
+	err := s.WrapFn(nCtx, metricOperationDistinctNodeWorkflow, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.distinctNodeWorkflow(nCtx, request, conditions...)
+		return err
+	})
 	return result, err
 }
 
 // GetNodeWorkflow gets a node workflow by workflow-id.
 func (s *Storage) GetNodeWorkflow(nCtx contextx.IContext, workflowID string) (*types.NodeWorkflow, error) {
-	var (
-		nodeWorkflow *types.NodeWorkflow
-		err          error
-	)
-
-	// record metric.
-	metric := s.metric().Start("get_node_workflow")
-	defer metric.End(err)
-
-	nodeWorkflow, err = s.getNodeWorkflow(nCtx, workflowID)
-
+	var nodeWorkflow *types.NodeWorkflow
+	err := s.WrapFn(nCtx, metricOperationGetNodeWorkflow, func(nCtx contextx.IContext) error {
+		var err error
+		nodeWorkflow, err = s.getNodeWorkflow(nCtx, workflowID)
+		return err
+	})
 	return nodeWorkflow, err
 }
 
 // CreateNodeWorkflow creates a new node workflow.
 func (s *Storage) CreateNodeWorkflow(nCtx contextx.IContext, workflow *types.NodeWorkflow) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("create_node_workflow")
-	defer metric.End(err)
-
-	err = s.createNodeWorkflow(nCtx, workflow)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationCreateNodeWorkflow, func(nCtx contextx.IContext) error {
+		return s.createNodeWorkflow(nCtx, workflow)
+	})
 }
 
 // UpdateNodeWorkflowStatus updates the status of a node workflow.
 func (s *Storage) UpdateNodeWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("update_node_workflow_status")
-	defer metric.End(err)
-
-	err = s.updateNodeWorkflowStatus(nCtx, workflowID, status)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationUpdateNodeWorkflowStatus, func(nCtx contextx.IContext) error {
+		return s.updateNodeWorkflowStatus(nCtx, workflowID, status)
+	})
 }

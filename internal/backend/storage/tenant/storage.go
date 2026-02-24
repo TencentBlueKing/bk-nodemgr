@@ -13,7 +13,6 @@ package tenant
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/tenant"
@@ -24,6 +23,14 @@ import (
 
 // StorageName defines the storage name.
 const StorageName = "tenant"
+
+const (
+	metricOperationListAllEnabledTenants = "list_all_enabled_tenants"
+	metricOperationListAllTenants        = "list_all_tenants"
+	metricOperationCreateManyTenant      = "create_many_tenant"
+	metricOperationDeleteManyTenant      = "delete_many_tenant"
+	metricOperationUpdateManyTenant      = "update_many_tenant"
+)
 
 // NewStorage creates a new release storage.
 func NewStorage(client *mongo.Client, database string) (*Storage, error) {
@@ -72,66 +79,88 @@ func (s *Storage) check() error {
 	return nil
 }
 
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
-}
-
 // ListAllEnabledTenants list all enable tenants.
-// nolint: nonamedreturns
-func (s *Storage) ListAllEnabledTenants(nCtx contextx.IContext) (tenants []*types.Tenant, err error) {
-	// record metric.
-	metric := s.metric().Start("list_all_enabled_tenants")
-	defer metric.End(err)
+func (s *Storage) ListAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
+	var (
+		tenants []*types.Tenant
+		err     error
+	)
 
-	tenants, err = s.listAllEnabledTenants(nCtx)
+	err = s.WrapFn(nCtx, metricOperationListAllEnabledTenants, func(ctx contextx.IContext) error {
+		tenants, err = s.listAllEnabledTenants(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	return tenants, err
 }
 
 // ListAllTenants list all enable tenants.
-// nolint: nonamedreturns
-func (s *Storage) ListAllTenants(nCtx contextx.IContext) (tenants []*types.Tenant, err error) {
-	// record metric.
-	metric := s.metric().Start("list_all_tenants")
-	defer metric.End(err)
+func (s *Storage) ListAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
+	var (
+		tenants []*types.Tenant
+		err     error
+	)
 
-	tenants, err = s.listAllTenants(nCtx)
+	err = s.WrapFn(nCtx, metricOperationListAllTenants, func(ctx contextx.IContext) error {
+		tenants, err = s.listAllTenants(ctx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	return tenants, err
 }
 
 // CreateManyTenant create many tenant.
-// nolint: nonamedreturns
-func (s *Storage) CreateManyTenant(nCtx contextx.IContext, tenants ...*types.Tenant) (err error) {
-	// record metric.
-	metric := s.metric().Start("create_many_tenant")
-	defer metric.End(err)
+func (s *Storage) CreateManyTenant(nCtx contextx.IContext, tenants ...*types.Tenant) error {
+	var err error
 
-	err = s.createManyTenant(nCtx, tenants...)
+	err = s.WrapFn(nCtx, metricOperationCreateManyTenant, func(ctx contextx.IContext) error {
+		err = s.createManyTenant(ctx, tenants...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	return err
 }
 
 // DeleteManyTenant delete many tenant.
-// nolint: nonamedreturns
-func (s *Storage) DeleteManyTenant(nCtx contextx.IContext, tenantIDs []string) (err error) {
-	// record metric.
-	metric := s.metric().Start("delete_many_tenant")
-	defer metric.End(err)
+func (s *Storage) DeleteManyTenant(nCtx contextx.IContext, tenantIDs []string) error {
+	var err error
 
-	err = s.deleteManyTenant(nCtx, tenantIDs)
+	err = s.WrapFn(nCtx, metricOperationDeleteManyTenant, func(ctx contextx.IContext) error {
+		err = s.deleteManyTenant(ctx, tenantIDs)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	return err
 }
 
 // UpdateManyTenant update many tenant.
-// nolint: nonamedreturns
-func (s *Storage) UpdateManyTenant(nCtx contextx.IContext, tenantMap map[string]*types.Tenant) (err error) {
-	// record metric.
-	metric := s.metric().Start("update_many_tenant")
-	defer metric.End(err)
+func (s *Storage) UpdateManyTenant(nCtx contextx.IContext, tenantMap map[string]*types.Tenant) error {
+	var err error
 
-	err = s.updateManyTenant(nCtx, tenantMap)
+	err = s.WrapFn(nCtx, metricOperationUpdateManyTenant, func(ctx contextx.IContext) error {
+		err = s.updateManyTenant(ctx, tenantMap)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	return err
 }
