@@ -12,6 +12,7 @@
 package crypter
 
 import (
+	"encoding/base64"
 	"reflect"
 	"testing"
 )
@@ -77,6 +78,69 @@ func TestRSA_Crypter(t *testing.T) {
 
 			if !reflect.DeepEqual(decodeText, tt.args.plaintext) {
 				t.Errorf("Decrypt() got = %v, want %v", decodeText, tt.args.plaintext)
+			}
+		})
+	}
+}
+
+// TestDecryptRSABase64Ciphertext tests DecryptRSABase64Ciphertext with various scenarios.
+func TestDecryptRSABase64Ciphertext(t *testing.T) {
+	cry := testRSACrypter(t)
+
+	// Prepare valid base64 ciphertext for normal path
+	plaintext := []byte("secret-password")
+	ciphertext, err := cry.Encrypt(plaintext)
+	if err != nil {
+		t.Fatalf("Encrypt() error = %v", err)
+	}
+	validBase64 := base64.StdEncoding.EncodeToString(ciphertext)
+
+	tests := []struct {
+		name    string
+		cry     Crypter
+		input   string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "normal decryption path",
+			cry:     cry,
+			input:   validBase64,
+			want:    string(plaintext),
+			wantErr: false,
+		},
+		{
+			name:    "nil Crypter",
+			cry:     nil,
+			input:   validBase64,
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "invalid base64 input",
+			cry:     cry,
+			input:   "not-valid-base64",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "valid base64 but RSA decryption failed",
+			cry:     cry,
+			input:   base64.StdEncoding.EncodeToString([]byte{RSAVersion, 0x01, 0x02}),
+			want:    "",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := DecryptRSABase64Ciphertext(tt.cry, tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DecryptRSABase64Ciphertext() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("DecryptRSABase64Ciphertext() got = %q, want %q", got, tt.want)
 			}
 		})
 	}

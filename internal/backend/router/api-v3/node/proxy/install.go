@@ -22,6 +22,7 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -80,6 +81,7 @@ func (h *handler) generateInstallNodeDeployments(
 
 	// if this install is manual
 	isManual := req.GetIsManual()
+	reqHosts := req.GetHost()
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -92,13 +94,13 @@ func (h *handler) generateInstallNodeDeployments(
 
 	// build biz-id.
 	bizIDMap := make(map[int64]struct{})
-	for _, host := range req.GetHost() {
+	for _, host := range reqHosts {
 		bizIDMap[host.GetBkBizId()] = struct{}{}
 	}
 	bizIDs := conv.MapKeyToSlice(bizIDMap)
 
 	// fetch networkunit.
-	networkUnitMap, err := h.fetchNetworkunits(nCtx, req.GetHost())
+	networkUnitMap, err := h.fetchNetworkunits(nCtx, reqHosts)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch networkunits: %w", err)
 	}
@@ -106,17 +108,25 @@ func (h *handler) generateInstallNodeDeployments(
 	// fetch host.
 	existedHostMap := make(map[int64]*types.Host)
 	if !isManual {
-		existedHostMap, err = h.fetchExistedHosts(nCtx, req.GetHost())
+		existedHostMap, err = h.fetchExistedHosts(nCtx, reqHosts)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
 		}
 	}
 
+	var rsaCrypter crypter.Crypter
+	if !isManual {
+		rsaCrypter, err = h.initRSACrypter(nCtx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to init rsa crypter for password hosts: %w", err)
+		}
+	}
+
 	gp := gopool.NewPool()
-	nodeDeployments := make([]*types.NodeDeployment, len(req.GetHost()))
-	for i := range req.GetHost() {
+	nodeDeployments := make([]*types.NodeDeployment, len(reqHosts))
+	for i := range reqHosts {
 		idx := i
-		reqHost := req.GetHost()[idx]
+		reqHost := reqHosts[idx]
 
 		gp.Go(func() error {
 			networkUnit, ok := networkUnitMap[reqHost.GetBkNetworkunitId()]
@@ -183,10 +193,13 @@ func (h *handler) generateInstallNodeDeployments(
 				})
 
 			if !isManual {
-				err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host,
+				err = h.processHostCredit(
+					nCtx, &nodeDeployment.Info.Host,
 					reqHost.GetLoginPassword(),
 					reqHost.GetLoginKeyFile(),
-					reqHost.GetCreditExpiredIntervalSec())
+					reqHost.GetCreditExpiredIntervalSec(),
+					rsaCrypter,
+				)
 				if err != nil {
 					return fmt.Errorf("failed to process host credit: %w", err)
 				}
@@ -202,6 +215,24 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	return nodeDeployments, bizIDs, nil
+}
+
+func (h *handler) initRSACrypter(nCtx contextx.IContext) (crypter.Crypter, error) {
+	cipher, err := h.storageCipher.GetCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cipher: %w", err)
+	}
+
+	if cipher == nil || len(cipher.PrivateKey) == 0 {
+		return nil, fmt.Errorf("rsa private key is unavailable")
+	}
+
+	rsaCrypter, err := crypter.NewRSACrypterFromPrivateKey(cipher.PrivateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create rsa crypter: %w", err)
+	}
+
+	return rsaCrypter, nil
 }
 
 func (h *handler) fetchNetworkunits(ctx contextx.IContext, hosts []*protoBackend.NodeProxyInstallHost) (map[int64]*types.NetworkUnit, error) {
@@ -256,7 +287,14 @@ func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend
 	return existedHostMap, nil
 }
 
-func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string, creditExpiredIntervalSec int64) error {
+func (h *handler) processHostCredit(
+	nCtx contextx.IContext,
+	host *types.Host,
+	password, keyfile string,
+	creditExpiredIntervalSec int64,
+	rsaCrypter crypter.Crypter,
+) error {
+
 	var err error
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:
@@ -285,11 +323,12 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 			genCreditExpiredAt(creditExpiredIntervalSec),
 		)
 		if err != nil {
-			return fmt.Errorf("failed to gen node deployment: %w", err)
+			return fmt.Errorf("failed to create host credit: %w", err)
 		}
 
 		return nil
 
+	// NOTE: RSA decryption is only applied to LoginModePassword.
 	case types.LoginModePassword:
 		if password == "" {
 			if host.Dynamic.LoginCreditID == "" {
@@ -303,13 +342,19 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 			return nil
 		}
 
+		// decrypt password.
+		plainPassword, err := crypter.DecryptRSABase64Ciphertext(rsaCrypter, password)
+		if err != nil {
+			return fmt.Errorf("failed to decrypt password: %w", err)
+		}
+
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
 			nCtx,
-			[]byte(password),
+			[]byte(plainPassword),
 			genCreditExpiredAt(creditExpiredIntervalSec),
 		)
 		if err != nil {
-			return fmt.Errorf("failed to gen node deployment: %w", err)
+			return fmt.Errorf("failed to create host credit: %w", err)
 		}
 
 		return nil

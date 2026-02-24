@@ -16,6 +16,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -217,6 +218,26 @@ func generateRSAKeyPair(bits RSAKeySize) (*rsa.PrivateKey, error) {
 	}
 
 	return priv, nil
+}
+
+// DecryptRSABase64Ciphertext decrypts RSA ciphertext encoded with standard base64.
+// Expected format: base64(RSAVersion + raw RSA ciphertext).
+func DecryptRSABase64Ciphertext(cry Crypter, base64Ciphertext string) (string, error) {
+	if cry == nil {
+		return "", errors.New("nil crypter")
+	}
+
+	ciphertext, err := base64.StdEncoding.DecodeString(base64Ciphertext)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode base64 ciphertext: %w", err)
+	}
+
+	plaintext, err := cry.Decrypt(ciphertext)
+	if err != nil {
+		return "", fmt.Errorf("failed to decrypt ciphertext: %w", err)
+	}
+
+	return string(plaintext), nil
 }
 
 // GetRSAPublicKeyPEMByPrivateKeyPEM extracts the public key PEM from the given private key PEM.

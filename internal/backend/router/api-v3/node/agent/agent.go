@@ -14,6 +14,7 @@ package agent
 import (
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -27,6 +28,7 @@ type handler struct {
 	storageNetworkUnit topoStg.IStorageNetworkUnit
 	storageHost        topoStg.IStorageHost
 	storageHostCredit  credit.IStorageHostCredit
+	storageCipher      cipherStg.IStorage
 
 	domainNodeInstall topoStg.IDomainNodeInstall
 }
@@ -40,6 +42,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageNetworkUnit: capability.StorageTopo,
 		storageHost:        capability.StorageTopo,
 		storageHostCredit:  capability.StorageCredit,
+		storageCipher:      capability.StorageCipher,
 		domainNodeInstall:  capability.StorageTopo,
 	}
 }

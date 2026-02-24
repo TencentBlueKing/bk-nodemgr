@@ -14,6 +14,7 @@ package proxy
 import (
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -29,6 +30,7 @@ type handler struct {
 	storageNodeDeploymentDomainInit nodeStg.IDaoNodeDeployment
 	storageHostCredit               credit.IStorageHostCredit
 	storageHost                     topoStg.IStorageHost
+	storageCipher                   cipherStg.IStorage
 }
 
 // newHandler ...
@@ -41,6 +43,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageNodeDeploymentDomainInit: capability.StorageNode,
 		storageHostCredit:               capability.StorageCredit,
 		storageHost:                     capability.StorageTopo,
+		storageCipher:                   capability.StorageCipher,
 	}
 }
 
