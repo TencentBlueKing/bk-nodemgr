@@ -23,12 +23,19 @@ import (
 )
 
 const (
-	// DefaultNextHostID is the default next host id.
-	DefaultNextHostID = 1
+	// defaultNextHostID is the default next host id.
+	defaultNextHostID = 1
+
+	// defaultCursorCounter is the default cursor counter.
+	defaultCursorCounter = 1
 
 	taskIDPrefix             = "mock_task_"
 	cursorHostResourcePrefix = "mock_cursor_host_resource_"
 	cursorHostRelationPrefix = "mock_cursor_host_relation_"
+
+	// enum option field keys.
+	enumOptionIDKey   = "id"
+	enumOptionNameKey = "name"
 )
 
 // watchEvent represents a watch event for CMDB resources.
@@ -53,6 +60,9 @@ type storage struct {
 	hostBiz    map[int64]int64          // host id -> biz id.
 	nextHostID int64                    // next host id.
 
+	// object attributes map.
+	objectAttributes map[string][]*cmdb.ObjectAttributeInfo // bk_obj_id -> attributes.
+
 	// identifier task map.
 	identifierTasks map[string][]int64 // task id -> host ids.
 
@@ -69,11 +79,12 @@ func newStorage(conf *MockData) *storage {
 		cloudAreas:         make(map[int64]*cmdb.CloudArea),
 		hosts:              make(map[int64]*cmdb.HostInfo),
 		hostBiz:            make(map[int64]int64),
-		nextHostID:         DefaultNextHostID,
+		nextHostID:         defaultNextHostID,
+		objectAttributes:   make(map[string][]*cmdb.ObjectAttributeInfo),
 		identifierTasks:    make(map[string][]int64),
 		hostEvents:         make([]*watchEvent, 0),
 		hostRelationEvents: make([]*watchEvent, 0),
-		cursorCounter:      1,
+		cursorCounter:      defaultCursorCounter,
 	}
 
 	s.loadDataFromConfig(conf)
@@ -86,9 +97,10 @@ func (s *storage) loadDataFromConfig(conf *MockData) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.loadBusinessesLocked(conf)
-	s.loadCloudAreasLocked(conf)
-	s.loadHostsLocked(conf)
+	s.loadBusinesses(conf)
+	s.loadCloudAreas(conf)
+	s.loadHosts(conf)
+	s.loadObjectAttributes(conf)
 }
 
 // SearchBusiness searches businesses with pagination support.
@@ -343,8 +355,7 @@ func paginateSlice[T any](items []T, page cmdb.Page) []T {
 	return items[start:end]
 }
 
-// loadBusinessesLocked loads businesses from config.
-func (s *storage) loadBusinessesLocked(conf *MockData) {
+func (s *storage) loadBusinesses(conf *MockData) {
 	if conf == nil || len(conf.Businesses) == 0 {
 		return
 	}
@@ -359,8 +370,7 @@ func (s *storage) loadBusinessesLocked(conf *MockData) {
 	logger.G.Sys().With("count", len(s.businesses)).Info("loaded businesses")
 }
 
-// loadCloudAreasLocked loads cloud areas from config.
-func (s *storage) loadCloudAreasLocked(conf *MockData) {
+func (s *storage) loadCloudAreas(conf *MockData) {
 	if conf == nil || len(conf.Areas) == 0 {
 		return
 	}
@@ -375,8 +385,7 @@ func (s *storage) loadCloudAreasLocked(conf *MockData) {
 	logger.G.Sys().With("count", len(s.cloudAreas)).Info("loaded cloud areas")
 }
 
-// loadHostsLocked loads hosts from config.
-func (s *storage) loadHostsLocked(conf *MockData) {
+func (s *storage) loadHosts(conf *MockData) {
 	if conf == nil || len(conf.Hosts) == 0 {
 		return
 	}
@@ -400,4 +409,39 @@ func (s *storage) loadHostsLocked(conf *MockData) {
 	}
 
 	logger.G.Sys().With("count", len(s.hosts), "nextHostID", s.nextHostID).Info("loaded hosts")
+}
+
+// SearchObjectAttribute returns object attributes filtered by bk_obj_id.
+func (s *storage) SearchObjectAttribute(objID string) ([]*cmdb.ObjectAttributeInfo, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	attrs, ok := s.objectAttributes[objID]
+	if !ok {
+		return nil, fmt.Errorf("object not found, obj-id(%s)", objID)
+	}
+
+	return attrs, nil
+}
+
+func (s *storage) loadObjectAttributes(conf *MockData) {
+	if conf == nil || len(conf.ObjectAttributes) == 0 {
+		return
+	}
+
+	for _, attr := range conf.ObjectAttributes {
+		option := conv.SliceToSlice(attr.Option, func(opt EnumOptionConfig) map[string]any {
+			return map[string]any{
+				enumOptionIDKey:   opt.ID,
+				enumOptionNameKey: opt.Name,
+			}
+		})
+
+		s.objectAttributes[attr.BKObjID] = append(s.objectAttributes[attr.BKObjID], &cmdb.ObjectAttributeInfo{
+			BKPropertyID: attr.BKPropertyID,
+			Option:       option,
+		})
+	}
+
+	logger.G.Sys().With("count", len(conf.ObjectAttributes)).Info("loaded object attributes")
 }

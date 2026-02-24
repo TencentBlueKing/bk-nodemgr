@@ -83,6 +83,8 @@ type MockData struct {
 	Areas []CloudAreaConfig `yaml:"areas"`
 	// Hosts is the list of mock hosts.
 	Hosts []HostConfig `yaml:"hosts"`
+	// ObjectAttributes is the list of mock object attributes.
+	ObjectAttributes []ObjectAttributeConfig `yaml:"objectAttributes"`
 }
 
 // BusinessConfig holds the configuration for a single business.
@@ -161,6 +163,54 @@ func (hc *HostConfig) Validate() error {
 	return nil
 }
 
+// EnumOptionConfig holds the configuration for a single enum option.
+type EnumOptionConfig struct {
+	// ID is the enum option id.
+	ID string `yaml:"id"`
+	// Name is the enum option name.
+	Name string `yaml:"name"`
+}
+
+// ObjectAttributeConfig holds the configuration for a single object attribute.
+type ObjectAttributeConfig struct {
+	// BKObjID is the object id.
+	BKObjID string `yaml:"bk_obj_id"`
+	// BKPropertyID is the property id.
+	BKPropertyID string `yaml:"bk_property_id"`
+	// Option is the list of enum options.
+	Option []EnumOptionConfig `yaml:"option"`
+}
+
+// Validate validates the ObjectAttributeConfig.
+func (oac *ObjectAttributeConfig) Validate() error {
+	if oac.BKObjID == "" {
+		return fmt.Errorf("bk_obj_id cannot be empty")
+	}
+	if oac.BKPropertyID == "" {
+		return fmt.Errorf("bk_property_id cannot be empty")
+	}
+
+	for _, opt := range oac.Option {
+		if err := opt.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate validates the EnumOptionConfig.
+func (eoc *EnumOptionConfig) Validate() error {
+	if eoc.ID == "" {
+		return fmt.Errorf("id cannot be empty")
+	}
+	if eoc.Name == "" {
+		return fmt.Errorf("name cannot be empty")
+	}
+
+	return nil
+}
+
 // Validate validates the MockData.
 func (cfg *MockData) Validate() error {
 	for _, biz := range cfg.Businesses {
@@ -177,6 +227,12 @@ func (cfg *MockData) Validate() error {
 
 	for _, host := range cfg.Hosts {
 		if err := host.Validate(); err != nil {
+			return err
+		}
+	}
+
+	for _, attr := range cfg.ObjectAttributes {
+		if err := attr.Validate(); err != nil {
 			return err
 		}
 	}

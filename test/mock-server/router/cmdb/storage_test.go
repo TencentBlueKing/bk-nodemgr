@@ -36,6 +36,34 @@ func newTestStorage() *storage {
 			{BKHostID: 101, BKBizID: 1, BKCloudID: 1, BKInnerIP: "127.0.0.2", BKOSType: "linux"},
 			{BKHostID: 102, BKBizID: 2, BKCloudID: 0, BKInnerIP: "127.0.0.3", BKOSType: "windows"},
 		},
+		ObjectAttributes: []ObjectAttributeConfig{
+			{
+				BKObjID:      "plat",
+				BKPropertyID: "bk_cloud_vendor",
+				Option: []EnumOptionConfig{
+					{ID: "0", Name: "default"},
+					{ID: "1", Name: "tencent"},
+					{ID: "2", Name: "aliyun"},
+				},
+			},
+			{
+				BKObjID:      "host",
+				BKPropertyID: "bk_os_type",
+				Option: []EnumOptionConfig{
+					{ID: "1", Name: "linux"},
+					{ID: "2", Name: "windows"},
+				},
+			},
+			{
+				BKObjID:      "host",
+				BKPropertyID: "bk_cpu_architecture",
+				Option: []EnumOptionConfig{
+					{ID: "x86", Name: "x86"},
+					{ID: "x86_64", Name: "x86_64"},
+					{ID: "arm64", Name: "arm64"},
+				},
+			},
+		},
 	}
 	return newStorage(conf)
 }
@@ -522,6 +550,55 @@ func TestStorage_WatchResource(t *testing.T) {
 			}
 			if tt.checkFn != nil {
 				tt.checkFn(t, events)
+			}
+		})
+	}
+}
+
+// TestStorage_SearchObjectAttribute tests SearchObjectAttribute.
+func TestStorage_SearchObjectAttribute(t *testing.T) {
+	store := newTestStorage()
+
+	tests := []struct {
+		name    string
+		objID   string
+		wantLen int
+		wantErr bool
+		checkFn func(t *testing.T, attrs []*cmdb.ObjectAttributeInfo)
+	}{
+		{
+			name:    "normal_test_search_plat_attributes",
+			objID:   "plat",
+			wantLen: 1,
+			wantErr: false,
+			checkFn: func(t *testing.T, attrs []*cmdb.ObjectAttributeInfo) {
+				assert.Equal(t, 1, len(attrs))
+				assert.Equal(t, "bk_cloud_vendor", attrs[0].BKPropertyID)
+				options, ok := attrs[0].Option.([]map[string]any)
+				assert.True(t, ok, "option type should be []map[string]any")
+				assert.Equal(t, 3, len(options))
+			},
+		},
+		{
+			name:    "normal_test_search_non_existent_obj_id",
+			objID:   "non-existent",
+			wantLen: 0,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			attrs, err := store.SearchObjectAttribute(tt.objID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SearchObjectAttribute() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				assert.Equal(t, tt.wantLen, len(attrs))
+				if tt.checkFn != nil {
+					tt.checkFn(t, attrs)
+				}
 			}
 		})
 	}

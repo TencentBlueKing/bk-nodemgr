@@ -43,6 +43,9 @@ func Load(rg *gin.RouterGroup, _ *Config, mockData *MockData) {
 	// search businesses.
 	h.rg.POST("/biz/search/:supplier_account", h.SearchBusiness)
 
+	// search object attributes.
+	h.rg.POST("/find/objectattr", h.SearchObjectAttribute)
+
 	// search cloud areas.
 	h.rg.POST("/findmany/cloudarea", h.SearchCloudArea)
 

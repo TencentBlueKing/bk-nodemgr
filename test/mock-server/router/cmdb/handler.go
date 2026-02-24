@@ -55,6 +55,38 @@ func (h *handler) SearchBusiness(gCtx *gin.Context) {
 }
 
 //###############################################################################
+// Object Attribute API
+//###############################################################################
+
+// SearchObjectAttribute searches object attributes by object id.
+func (h *handler) SearchObjectAttribute(gCtx *gin.Context) {
+	var req cmdb.SearchObjectAttributeReq
+	if err := common.BindJSON(gCtx, &req); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to bind request")
+		respondError(gCtx, CodeInvalidParameter, fmt.Sprintf("invalid request body: %v", err))
+
+		return
+	}
+
+	if req.BKBizID != cmdb.CCNoBusinessID {
+		respondError(gCtx, CodeInvalidParameter,
+			fmt.Sprintf("failed to search object attribute, bk_biz_id(%d) is not supported", req.BKBizID))
+
+		return
+	}
+
+	attrs, err := h.store.SearchObjectAttribute(req.BKObjID)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to search object attribute")
+		respondError(gCtx, CodeServerError, fmt.Sprintf("failed to search object attribute: %v", err))
+
+		return
+	}
+
+	respondSuccess(gCtx, cmdb.SearchObjectAttributeResp(attrs))
+}
+
+//###############################################################################
 // Cloud Area API
 //###############################################################################
 
