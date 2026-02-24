@@ -18,6 +18,8 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -26,6 +28,8 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/test"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/cmdb"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -45,6 +49,9 @@ const (
 	testIPOctetMax  = 254
 	testPortMin     = 10000
 	testPortMax     = 60000
+
+	// cmdbMockDataFile is the name of the cmdb mock data file.
+	cmdbMockDataFile = "cmdb.yaml"
 )
 
 // Singleton pattern for test random generator.
@@ -111,6 +118,26 @@ func ParseResponse(t *testing.T, resp *http.Response, v interface{}) {
 		t.Fatalf("failed to unmarshal response: %v, status(%d), status-text(%s), body(%s)",
 			err, resp.StatusCode, resp.Status, string(body))
 	}
+}
+
+// LoadCMDBMockData loads and parses cmdb.yaml from the test data directory.
+func LoadCMDBMockData(dataDir string) (*cmdb.MockData, error) {
+	if dataDir == "" {
+		return nil, fmt.Errorf("data directory is empty")
+	}
+
+	path := filepath.Join(dataDir, cmdbMockDataFile)
+	data, err := os.ReadFile(path) // nolint:gosec
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file from %s: %w", path, err)
+	}
+
+	var mockData cmdb.MockData
+	if err := yaml.Unmarshal(data, &mockData); err != nil {
+		return nil, fmt.Errorf("failed to parse file: %w", err)
+	}
+
+	return &mockData, nil
 }
 
 // GenerateRandomSuffix generates a random suffix for test data.

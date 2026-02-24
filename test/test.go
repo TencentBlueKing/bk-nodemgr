@@ -22,6 +22,9 @@ var (
 	TestFlagApplicationServer string
 	// TestFlagFileServer file test flag.
 	TestFlagFileServer string
+
+	// TestFlagDataDir path to test data directory for precheck.
+	TestFlagDataDir string
 )
 
 // InitFlags initializes test command line flags.
@@ -29,4 +32,6 @@ func InitFlags() {
 	flag.StringVar(&TestFlagBackendServer, "backend", "127.0.0.1:28100", "backend host and port")
 	flag.StringVar(&TestFlagApplicationServer, "application", "127.0.0.1:28000", "application host and port")
 	flag.StringVar(&TestFlagFileServer, "file", "127.0.0.1:28200", "file host and port")
+
+	flag.StringVar(&TestFlagDataDir, "data-dir", "", "path to test data directory")
 }

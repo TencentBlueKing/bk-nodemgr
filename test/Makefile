@@ -1,5 +1,8 @@
 .PHONY: all clean test build pre mock-server
 
+# test group execution order: precheck runs first, others follow
+TEST_GROUPS = precheck backend application file
+
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
 GITTAG    := $(shell git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0")
@@ -8,6 +11,7 @@ VERSION   ?= ${GITTAG}-$(shell date +%y.%m.%d)
 
 # directories
 TEST_OUTPUT = build
+DATA_DIR    = $(CURDIR)/data
 
 # go version
 GO = go1.23.10
@@ -32,14 +36,15 @@ pre:
 build:
 	@$(RM) -rf $(TEST_OUTPUT)
 	@$(MKDIR) $(TEST_OUTPUT)
-	@for dir in $$(find ./cases -type d -name '*' | grep -v '^\./cases$$'); do \
-		[ -f "$$dir"/*_test.go ] 2>/dev/null || continue; \
-		rel=$${dir#./cases/}; \
-		service=$${rel%%/*}; \
-		rest=$${rel#*/}; \
-		out="$(TEST_OUTPUT)/$${service}/$$rest.test"; \
-		$(MKDIR) $$(dirname "$$out"); \
-		CGO_ENABLED=0 $(GO) test -v -c -o "$$out" "./$$dir" || exit 1; \
+	@for group in $(TEST_GROUPS); do \
+		for testfile in $$(find ./cases/$$group -name "*_test.go" 2>/dev/null | sort); do \
+			dir=$$(dirname "$$testfile"); \
+			rel=$${dir#./cases/}; \
+			test_name=$$(basename "$$testfile" _test.go); \
+			out="$(TEST_OUTPUT)/$$rel/$$test_name.test"; \
+			$(MKDIR) $$(dirname "$$out"); \
+			CGO_ENABLED=0 $(GO) test -v -c -o "$$out" "./$$dir" || exit 1; \
+		done; \
 	done
 
 mock-server: pre
@@ -52,11 +57,12 @@ all: pre build mock-server
 	@$(ECHO) "Built successfully test cases and mock-server"
 
 test:
-	@for testfile in $$(find $(TEST_OUTPUT) -type f -name "*.test" 2>/dev/null); do \
-		echo "RUN TESTCASE: $$testfile"; \
-		./$$testfile || exit 1; \
+	@for group in $(TEST_GROUPS); do \
+		for testfile in $$(find $(TEST_OUTPUT)/$$group -type f -name "*.test" 2>/dev/null | sort); do \
+			echo "RUN [$$group]: $$testfile"; \
+			./$$testfile -data-dir=$(DATA_DIR) || exit 1; \
+		done; \
 	done
 
 clean:
 	@$(RM) -rf $(TEST_OUTPUT)
-
