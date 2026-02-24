@@ -9,14 +9,12 @@
  */
 
 // Package release provides the release storage interface.
-// nolint: nonamedreturns
 package release
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoPackageEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent"
@@ -31,7 +29,52 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "release"
 
-	metricOperateionGetReleasePluginDefaultVersion = "get_release_plugin_default_version"
+	metricOperationListReleaseAgent               = "list_release_agent"
+	metricOperationCountReleaseAgent              = "count_release_agent"
+	metricOperationGetReleaseAgent                = "get_release_agent"
+	metricOperationDistinctReleaseAgent           = "distinct_release_agent"
+	metricOperationDeleteReleaseAgent             = "delete_release_agent"
+	metricOperationSetReleaseAgentLabelsMany      = "set_release_agent_labels_many"
+	metricOperationEnableReleaseAgent             = "enable_release_agent"
+	metricOperationDisableReleaseAgent            = "disable_release_agent"
+	metricOperationSetAsDefaultReleaseAgent       = "set_as_default_release_agent"
+	metricOperationCancelAsDefaultReleaseAgent    = "cancel_as_default_release_agent"
+	metricOperationListReleaseProxy               = "list_release_proxy"
+	metricOperationCountReleaseProxy              = "count_release_proxy"
+	metricOperationGetReleaseProxy                = "get_release_proxy"
+	metricOperationDistinctReleaseProxy           = "distinct_release_proxy"
+	metricOperationDeleteReleaseProxy             = "delete_release_proxy"
+	metricOperationSetReleaseProxyLabelsMany      = "set_release_proxy_labels_many"
+	metricOperationEnableReleaseProxy             = "enable_release_proxy"
+	metricOperationDisableReleaseProxy            = "disable_release_proxy"
+	metricOperationSetAsDefaultReleaseProxy       = "set_as_default_release_proxy"
+	metricOperationCancelAsDefaultReleaseProxy    = "cancel_as_default_release_proxy"
+	metricOperationListReleasePlugin              = "list_release_plugin"
+	metricOperationCountReleasePlugin             = "count_release_plugin"
+	metricOperationGetReleasePlugin               = "get_release_plugin"
+	metricOperationDeleteReleasePlugin            = "delete_release_plugin"
+	metricOperationEnableReleasePlugin            = "enable_release_plugin"
+	metricOperationDisableReleasePlugin           = "disable_release_plugin"
+	metricOperationSetAsDefaultReleasePlugin      = "set_as_default_release_plugin"
+	metricOperationCancelAsDefaultReleasePlugin   = "cancel_as_default_release_plugin"
+	metricOperationExistReleasePlugin             = "exist_release_plugin"
+	metricOperationGetReleasePluginDefaultVersion = "get_release_plugin_default_version"
+	metricOperationListReleaseCert                = "list_release_cert"
+	metricOperationCountReleaseCert               = "count_release_cert"
+	metricOperationGetReleaseCert                 = "get_release_cert"
+	metricOperationDeleteReleaseCert              = "delete_release_cert"
+	metricOperationListReleaseBinTool             = "list_release_bintool"
+	metricOperationCountReleaseBinTool            = "count_release_bintool"
+	metricOperationGetReleaseBinTool              = "get_release_bintool"
+	metricOperationDeleteReleaseBinTool           = "delete_release_bintool"
+	metricOperationListReleasePluginBinTool       = "list_release_plugin_bintool"
+	metricOperationCountReleasePluginBinTool      = "count_release_plugin_bintool"
+	metricOperationGetReleasePluginBinTool        = "get_release_plugin_bintool"
+	metricOperationDeleteReleasePluginBinTool     = "delete_release_plugin_bintool"
+	metricOperationCountPackageEvent              = "count_package_event"
+	metricOperationListPackageEvent               = "list_package_event"
+	metricOperationCreateManyPackageEvent         = "create_many_package_event"
+	metricOperationDistinctPackageEvent           = "distinct_package_event"
 )
 
 // NewStorage creates a new release storage.
@@ -87,10 +130,6 @@ func (s *Storage) check() error {
 	return nil
 }
 
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
-}
-
 // ==================== IAgent Methods ====================
 
 // ListReleaseAgent lists agent releases by page and conditions.
@@ -100,16 +139,19 @@ func (s *Storage) ListReleaseAgent(nCtx contextx.IContext, page types.Page,
 	var (
 		results []*types.ReleaseAgent
 		num     int64
-		err     error
 	)
 
-	// record metric.
-	metric := s.metric().Start("list_release_agent")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationListReleaseAgent, func(nCtx contextx.IContext) error {
+		var err error
+		if results, num, err = s.listReleaseAgent(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release agent")
+			return fmt.Errorf("failed to list release agent: %w", err)
+		}
 
-	if results, num, err = s.listReleaseAgent(nCtx, page, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list release agent")
-		return nil, 0, fmt.Errorf("failed to list release agent: %w", err)
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -117,38 +159,41 @@ func (s *Storage) ListReleaseAgent(nCtx contextx.IContext, page types.Page,
 
 // CountReleaseAgent counts agent releases by conditions.
 func (s *Storage) CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountReleaseAgent, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countRelease(nCtx, types.ReleaseTypeAgent, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to count release agent")
+			return fmt.Errorf("failed to count release agent: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("count_release_agent")
-	defer metric.End(err)
-
-	if num, err = s.countRelease(nCtx, types.ReleaseTypeAgent, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count release agent")
-		return 0, fmt.Errorf("failed to count release agent: %w", err)
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
-	return num, err
+	return num, nil
 }
 
 // GetReleaseAgent gets agent release.
 func (s *Storage) GetReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) (*types.ReleaseAgent, error) {
 	var (
 		releaseAgent *types.ReleaseAgent
-		err          error
 	)
 
-	// record metric.
-	metric := s.metric().Start("get_release_agent")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationGetReleaseAgent, func(nCtx contextx.IContext) error {
+		var err error
+		releaseAgent, err = s.getReleaseAgent(nCtx, key.Generation, key.Platform, key.Version)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release agent")
+			return fmt.Errorf("failed to get release agent: %w", err)
+		}
 
-	releaseAgent, err = s.getReleaseAgent(nCtx, key.Generation, key.Platform, key.Version)
+		return nil
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release agent")
-		return nil, fmt.Errorf("failed to get release agent: %w", err)
+		return nil, err
 	}
 
 	return releaseAgent, nil
@@ -157,19 +202,21 @@ func (s *Storage) GetReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgent
 // DistinctReleaseAgent gets agent releases distinct.
 func (s *Storage) DistinctReleaseAgent(nCtx contextx.IContext, fields types.ReleaseDistinctField,
 	conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
-
 	var (
 		data *types.ReleaseDistinctResult
-		err  error
 	)
 
-	// record metric.
-	metric := s.metric().Start("distinct_release_agent")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationDistinctReleaseAgent, func(nCtx contextx.IContext) error {
+		var err error
+		if data, err = s.distinctRelease(nCtx, types.ReleaseTypeAgent, fields, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to distinct release agent")
+			return fmt.Errorf("failed to distinct release agent: %w", err)
+		}
 
-	if data, err = s.distinctRelease(nCtx, types.ReleaseTypeAgent, fields, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to distinct release agent")
-		return nil, fmt.Errorf("failed to distinct release agent: %w", err)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
@@ -177,98 +224,74 @@ func (s *Storage) DistinctReleaseAgent(nCtx contextx.IContext, fields types.Rele
 
 // DeleteReleaseAgent deletes agent release.
 func (s *Storage) DeleteReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDeleteReleaseAgent, func(nCtx contextx.IContext) error {
+		if err := s.deleteRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release agent")
+			return fmt.Errorf("failed to delete release agent: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("delete_release_agent")
-	defer metric.End(err)
-
-	if err = s.deleteRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release agent")
-		return fmt.Errorf("failed to delete release agent: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // SetReleaseAgentLabelsMany sets many agent release labels.
 func (s *Storage) SetReleaseAgentLabelsMany(nCtx contextx.IContext, labels []string, conditions ...*types.ReleaseCondition) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationSetReleaseAgentLabelsMany, func(nCtx contextx.IContext) error {
+		if err := s.setReleaseLabelsMany(nCtx, types.ReleaseTypeAgent, labels, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to set many release agent labels")
+			return fmt.Errorf("failed to set many release agent labels: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("set_release_agent_labels_many")
-	defer metric.End(err)
-
-	if err = s.setReleaseLabelsMany(nCtx, types.ReleaseTypeAgent, labels, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to set many release agent labels")
-		return fmt.Errorf("failed to set many release agent labels: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // EnableReleaseAgent enables agent release active.
 func (s *Storage) EnableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationEnableReleaseAgent, func(nCtx contextx.IContext) error {
+		if err := s.enableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to enable release agent")
+			return fmt.Errorf("failed to enable release agent: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("enable_release_agent")
-	defer metric.End(err)
-
-	if err = s.enableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to enable release agent")
-		return fmt.Errorf("failed to enable release agent: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // DisableReleaseAgent disables agent release disactive.
 func (s *Storage) DisableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDisableReleaseAgent, func(nCtx contextx.IContext) error {
+		if err := s.disableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to disable release agent")
+			return fmt.Errorf("failed to disable release agent: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("disable_release_agent")
-	defer metric.End(err)
-
-	if err = s.disableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to disable release agent")
-		return fmt.Errorf("failed to disable release agent: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // SetAsDefaultReleaseAgent sets the agent release as default.
 func (s *Storage) SetAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleaseAgent, func(nCtx contextx.IContext) error {
+		if err := s.setAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to set release agent as default")
+			return fmt.Errorf("failed to set release agent as default: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("set_as_default_release_agent")
-	defer metric.End(err)
-
-	if err = s.setAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to set release agent as default")
-		return fmt.Errorf("failed to set release agent as default: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // CancelAsDefaultReleaseAgent cancels the agent release as default.
 func (s *Storage) CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleaseAgent, func(nCtx contextx.IContext) error {
+		if err := s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to cancel release agent as default")
+			return fmt.Errorf("failed to cancel release agent as default: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("cancel_as_default_release_agent")
-	defer metric.End(err)
-
-	if err = s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to cancel release agent as default")
-		return fmt.Errorf("failed to cancel release agent as default: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // ==================== IProxy Methods ====================
@@ -280,16 +303,19 @@ func (s *Storage) ListReleaseProxy(nCtx contextx.IContext, page types.Page,
 	var (
 		results []*types.ReleaseProxy
 		num     int64
-		err     error
 	)
 
-	// record metric.
-	metric := s.metric().Start("list_release_proxy")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationListReleaseProxy, func(nCtx contextx.IContext) error {
+		var err error
+		if results, num, err = s.listReleaseProxy(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release proxy")
+			return fmt.Errorf("failed to list release proxy: %w", err)
+		}
 
-	if results, num, err = s.listReleaseProxy(nCtx, page, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list release proxy")
-		return nil, 0, fmt.Errorf("failed to list release proxy: %w", err)
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -297,38 +323,41 @@ func (s *Storage) ListReleaseProxy(nCtx contextx.IContext, page types.Page,
 
 // CountReleaseProxy counts proxy releases by conditions.
 func (s *Storage) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountReleaseProxy, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countRelease(nCtx, types.ReleaseTypeProxy, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to count release proxy")
+			return fmt.Errorf("failed to count release proxy: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("count_release_proxy")
-	defer metric.End(err)
-
-	if num, err = s.countRelease(nCtx, types.ReleaseTypeProxy, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count release proxy")
-		return 0, fmt.Errorf("failed to count release proxy: %w", err)
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
-	return num, err
+	return num, nil
 }
 
 // GetReleaseProxy gets proxy release.
 func (s *Storage) GetReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) (*types.ReleaseProxy, error) {
 	var (
 		releaseProxy *types.ReleaseProxy
-		err          error
 	)
 
-	// record metric.
-	metric := s.metric().Start("get_release_proxy")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationGetReleaseProxy, func(nCtx contextx.IContext) error {
+		var err error
+		releaseProxy, err = s.getReleaseProxy(nCtx, key.Generation, key.Platform, key.Version)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release proxy")
+			return fmt.Errorf("failed to get release proxy: %w", err)
+		}
 
-	releaseProxy, err = s.getReleaseProxy(nCtx, key.Generation, key.Platform, key.Version)
+		return nil
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release proxy")
-		return nil, fmt.Errorf("failed to get release proxy: %w", err)
+		return nil, err
 	}
 
 	return releaseProxy, nil
@@ -337,19 +366,21 @@ func (s *Storage) GetReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxy
 // DistinctReleaseProxy gets proxy releases distinct.
 func (s *Storage) DistinctReleaseProxy(nCtx contextx.IContext, fields types.ReleaseDistinctField,
 	conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
-
 	var (
 		data *types.ReleaseDistinctResult
-		err  error
 	)
 
-	// record metric.
-	metric := s.metric().Start("distinct_release_proxy")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationDistinctReleaseProxy, func(nCtx contextx.IContext) error {
+		var err error
+		if data, err = s.distinctRelease(nCtx, types.ReleaseTypeProxy, fields, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to distinct release proxy")
+			return fmt.Errorf("failed to distinct release proxy: %w", err)
+		}
 
-	if data, err = s.distinctRelease(nCtx, types.ReleaseTypeProxy, fields, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to distinct release proxy")
-		return nil, fmt.Errorf("failed to distinct release proxy: %w", err)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
@@ -357,204 +388,181 @@ func (s *Storage) DistinctReleaseProxy(nCtx contextx.IContext, fields types.Rele
 
 // DeleteReleaseProxy deletes proxy release.
 func (s *Storage) DeleteReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDeleteReleaseProxy, func(nCtx contextx.IContext) error {
+		if err := s.deleteRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release proxy")
+			return fmt.Errorf("failed to delete release proxy: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("delete_release_proxy")
-	defer metric.End(err)
-
-	if err = s.deleteRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release proxy")
-		return fmt.Errorf("failed to delete release proxy: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // SetReleaseProxyLabelsMany sets many proxy releases labels.
 func (s *Storage) SetReleaseProxyLabelsMany(nCtx contextx.IContext, labels []string, conditions ...*types.ReleaseCondition) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationSetReleaseProxyLabelsMany, func(nCtx contextx.IContext) error {
+		if err := s.setReleaseLabelsMany(nCtx, types.ReleaseTypeProxy, labels, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to set many release proxy labels")
+			return fmt.Errorf("failed to set many release proxy labels: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("set_release_proxy_labels_many")
-	defer metric.End(err)
-
-	if err = s.setReleaseLabelsMany(nCtx, types.ReleaseTypeProxy, labels, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to set many release proxy labels")
-		return fmt.Errorf("failed to set many release proxy labels: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // EnableReleaseProxy enables proxy release active.
 func (s *Storage) EnableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationEnableReleaseProxy, func(nCtx contextx.IContext) error {
+		if err := s.enableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to enable release proxy")
+			return fmt.Errorf("failed to enable release proxy: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("enable_release_proxy")
-	defer metric.End(err)
-
-	if err = s.enableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to enable release proxy")
-		return fmt.Errorf("failed to enable release proxy: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // DisableReleaseProxy disables proxy release disactive.
 func (s *Storage) DisableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDisableReleaseProxy, func(nCtx contextx.IContext) error {
+		if err := s.disableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to disable release proxy")
+			return fmt.Errorf("failed to disable release proxy: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("disable_release_proxy")
-	defer metric.End(err)
-
-	if err = s.disableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to disable release proxy")
-		return fmt.Errorf("failed to disable release proxy: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // SetAsDefaultReleaseProxy sets the proxy release as default.
 func (s *Storage) SetAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleaseProxy, func(nCtx contextx.IContext) error {
+		if err := s.setAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to set release proxy as default")
+			return fmt.Errorf("failed to set release proxy as default: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("set_as_default_release_proxy")
-	defer metric.End(err)
-
-	if err = s.setAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to set release proxy as default")
-		return fmt.Errorf("failed to set release proxy as default: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // CancelAsDefaultReleaseProxy cancels the proxy release as default.
 func (s *Storage) CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleaseProxy, func(nCtx contextx.IContext) error {
+		if err := s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to cancel release proxy as default")
+			return fmt.Errorf("failed to cancel release proxy as default: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("cancel_as_default_release_proxy")
-	defer metric.End(err)
-
-	if err = s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to cancel release proxy as default")
-		return fmt.Errorf("failed to cancel release proxy as default: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // ==================== IPlugin Methods ====================
 
 // ListReleasePlugin lists plugin releases by page and conditions.
-func (s *Storage) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-	results []*types.ReleasePlugin, num int64, err error) {
+func (s *Storage) ListReleasePlugin(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("list_release_plugin")
-	defer metric.End(err)
+	var (
+		results []*types.ReleasePlugin
+		num     int64
+	)
 
-	results, num, err = s.listReleasePlugin(nCtx, page, conditions...)
+	err := s.WrapFn(nCtx, metricOperationListReleasePlugin, func(nCtx contextx.IContext) error {
+		var err error
+		results, num, err = s.listReleasePlugin(nCtx, page, conditions...)
 
-	return results, num, err
+		return err
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return results, num, nil
 }
 
 // CountReleasePlugin counts plugin release by conditions.
-func (s *Storage) CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (num int64, err error) {
-	// record metric.
-	metric := s.metric().Start("count_release_plugin")
-	defer metric.End(err)
+func (s *Storage) CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountReleasePlugin, func(nCtx contextx.IContext) error {
+		var err error
+		num, err = s.countRelease(nCtx, types.ReleaseTypePlugin, conditions...)
 
-	num, err = s.countRelease(nCtx, types.ReleaseTypePlugin, conditions...)
+		return err
+	})
+	if err != nil {
+		return 0, err
+	}
 
-	return num, err
+	return num, nil
 }
 
 // GetReleasePlugin gets plugin release.
-func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (
-	releasePlugin *types.ReleasePlugin, err error) {
+func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (*types.ReleasePlugin, error) {
+	var releasePlugin *types.ReleasePlugin
+	err := s.WrapFn(nCtx, metricOperationGetReleasePlugin, func(nCtx contextx.IContext) error {
+		var err error
+		releasePlugin, err = s.getReleasePlugin(nCtx, key.Name, key.Generation, key.Platform, key.Version)
 
-	// record metric.
-	metric := s.metric().Start("get_release_release_plugin")
-	defer metric.End(err)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	releasePlugin, err = s.getReleasePlugin(nCtx, key.Name, key.Generation, key.Platform, key.Version)
-
-	return releasePlugin, err
+	return releasePlugin, nil
 }
 
 // DeleteReleasePlugin deletes plugin release.
-func (s *Storage) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-	// record metric.
-	metric := s.metric().Start("delete_release_plugin")
-	defer metric.End(err)
-
-	err = s.deleteRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-	return err
+func (s *Storage) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.WrapFn(nCtx, metricOperationDeleteReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.deleteRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+	})
 }
 
 // EnableReleasePlugin enables plugin release active.
-func (s *Storage) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-	// record metric.
-	metric := s.metric().Start("enable_release_plugin")
-	defer metric.End(err)
-
-	err = s.enableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-	return err
+func (s *Storage) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.WrapFn(nCtx, metricOperationEnableReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.enableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+	})
 }
 
 // DisableReleasePlugin disables plugin release disactive.
-func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-	// record metric.
-	metric := s.metric().Start("disable_release_plugin")
-	defer metric.End(err)
-
-	err = s.disableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-	return err
+func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.WrapFn(nCtx, metricOperationDisableReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.disableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+	})
 }
 
 // SetAsDefaultReleasePlugin sets the plugin release as default.
-func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-	// record metric.
-	metric := s.metric().Start("set_as_default_release_plugin")
-	defer metric.End(err)
-
-	err = s.setAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-	return err
+func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.setAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+	})
 }
 
 // CancelAsDefaultReleasePlugin cancels the plugin release as default.
-func (s *Storage) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-	// record metric.
-	metric := s.metric().Start("cancel_as_default_release_plugin")
-	defer metric.End(err)
-
-	err = s.cancelAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-	return err
+func (s *Storage) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.cancelAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+	})
 }
 
 // ExistReleasePlugin exist plugin release.
-func (s *Storage) ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (
-	exist bool, err error) {
-	// record metric.
-	metric := s.metric().Start("exist_release_plugin")
-	defer metric.End(err)
+func (s *Storage) ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (bool, error) {
+	var exist bool
+	err := s.WrapFn(nCtx, metricOperationExistReleasePlugin, func(nCtx contextx.IContext) error {
+		var err error
+		exist, err = s.existRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
 
-	exist, err = s.existRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+		return err
+	})
+	if err != nil {
+		return false, err
+	}
 
-	return exist, err
+	return exist, nil
 }
 
 // GetReleasePluginDefaultVersion gets release plugin default version by name, generation and platform.
@@ -564,11 +572,7 @@ func (s *Storage) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name st
 		err     error
 	)
 
-	err = s.WrapFn(nCtx, metricOperateionGetReleasePluginDefaultVersion, func(nCtx contextx.IContext) error {
-		// record metric.
-		metric := s.metric().Start(metricOperateionGetReleasePluginDefaultVersion)
-		defer metric.End(err)
-
+	err = s.WrapFn(nCtx, metricOperationGetReleasePluginDefaultVersion, func(nCtx contextx.IContext) error {
 		version, err = s.getReleaseDefaultVersion(nCtx, types.ReleaseTypePlugin, gen, plat, name)
 		if err != nil {
 			return err
@@ -583,57 +587,35 @@ func (s *Storage) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name st
 	return version, nil
 }
 
-// DistinctNameReleasePlugin gets distinct plugin release names.
-func (s *Storage) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
-	var (
-		names []string
-		err   error
-	)
-
-	// record metric.
-	metric := s.metric().Start("distinct_name_release_plugin")
-	defer metric.End(err)
-
-	opts, err := convertReleaseConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
-	}
-
-	if names, err = s.daoRelease.DistinctName(nCtx, types.ReleaseTypePlugin, opts...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin")
-		return nil, fmt.Errorf("failed to distinct name release plugin: %w", err)
-	}
-
-	return names, nil
-}
-
 // ==================== ICert Methods ====================
 
 // ListReleaseCert lists cert releases by page and conditions.
 func (s *Storage) ListReleaseCert(nCtx contextx.IContext, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, int64, error) {
-
 	var (
 		results []*types.ReleaseCert
 		num     int64
-		err     error
 	)
 
-	// record metric.
-	metric := s.metric().Start("list_release_cert")
-	defer metric.End(err)
-
-	rls, num, err := s.listRelease(nCtx, types.ReleaseTypeCert, page, conditions...)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list release cert")
-		return nil, 0, fmt.Errorf("failed to list release cert: %w", err)
-	}
-
-	results = make([]*types.ReleaseCert, len(rls))
-	for idx, r := range rls {
-		results[idx] = &types.ReleaseCert{
-			Release: *r,
+	err := s.WrapFn(nCtx, metricOperationListReleaseCert, func(nCtx contextx.IContext) error {
+		rls, n, err := s.listRelease(nCtx, types.ReleaseTypeCert, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release cert")
+			return fmt.Errorf("failed to list release cert: %w", err)
 		}
+		num = n
+
+		results = make([]*types.ReleaseCert, len(rls))
+		for idx, r := range rls {
+			results[idx] = &types.ReleaseCert{
+				Release: *r,
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -641,18 +623,18 @@ func (s *Storage) ListReleaseCert(nCtx contextx.IContext, page types.Page,
 
 // CountReleaseCert counts cert release by conditions.
 func (s *Storage) CountReleaseCert(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountReleaseCert, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countRelease(nCtx, types.ReleaseTypeCert, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to count release cert")
+			return fmt.Errorf("failed to count release cert: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("count_release_cert")
-	defer metric.End(err)
-
-	if num, err = s.countRelease(nCtx, types.ReleaseTypeCert, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count release cert")
-		return 0, fmt.Errorf("failed to count release cert: %w", err)
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	return num, nil
@@ -660,23 +642,23 @@ func (s *Storage) CountReleaseCert(nCtx contextx.IContext, conditions ...*types.
 
 // GetReleaseCert gets cert release.
 func (s *Storage) GetReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKey) (*types.ReleaseCert, error) {
-	var (
-		releaseCert *types.ReleaseCert
-		err         error
-	)
+	var releaseCert *types.ReleaseCert
+	err := s.WrapFn(nCtx, metricOperationGetReleaseCert, func(nCtx contextx.IContext) error {
+		rls, err := s.getRelease(
+			nCtx, types.ReleaseTypeCert, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release cert")
+			return fmt.Errorf("failed to get release cert: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("get_release_cert")
-	defer metric.End(err)
+		releaseCert = &types.ReleaseCert{
+			Release: *rls,
+		}
 
-	rls, err := s.getRelease(nCtx, types.ReleaseTypeCert, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert)
+		return nil
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release cert")
-		return nil, fmt.Errorf("failed to get release cert: %w", err)
-	}
-
-	releaseCert = &types.ReleaseCert{
-		Release: *rls,
+		return nil, err
 	}
 
 	return releaseCert, nil
@@ -684,19 +666,15 @@ func (s *Storage) GetReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKe
 
 // DeleteReleaseCert deletes cert release.
 func (s *Storage) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDeleteReleaseCert, func(nCtx contextx.IContext) error {
+		if err := s.deleteRelease(
+			nCtx, types.ReleaseTypeCert, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release cert")
+			return fmt.Errorf("failed to delete release cert: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("delete_release_cert")
-	defer metric.End(err)
-
-	if err = s.deleteRelease(
-		nCtx, types.ReleaseTypeCert, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release cert")
-		return fmt.Errorf("failed to delete release cert: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // ==================== IBinTool Methods ====================
@@ -704,28 +682,30 @@ func (s *Storage) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCer
 // ListReleaseBinTool lists bintool releases by page and conditions.
 func (s *Storage) ListReleaseBinTool(nCtx contextx.IContext, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, int64, error) {
-
 	var (
 		results []*types.ReleaseBinTool
 		num     int64
-		err     error
 	)
 
-	// record metric.
-	metric := s.metric().Start("list_release_bintool")
-	defer metric.End(err)
-
-	rls, num, err := s.listRelease(nCtx, types.ReleaseTypeBinTool, page, conditions...)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list release bintool")
-		return nil, 0, fmt.Errorf("failed to list release bintool: %w", err)
-	}
-
-	results = make([]*types.ReleaseBinTool, len(rls))
-	for idx, r := range rls {
-		results[idx] = &types.ReleaseBinTool{
-			Release: *r,
+	err := s.WrapFn(nCtx, metricOperationListReleaseBinTool, func(nCtx contextx.IContext) error {
+		rls, n, err := s.listRelease(nCtx, types.ReleaseTypeBinTool, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release bintool")
+			return fmt.Errorf("failed to list release bintool: %w", err)
 		}
+		num = n
+
+		results = make([]*types.ReleaseBinTool, len(rls))
+		for idx, r := range rls {
+			results[idx] = &types.ReleaseBinTool{
+				Release: *r,
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -733,18 +713,18 @@ func (s *Storage) ListReleaseBinTool(nCtx contextx.IContext, page types.Page,
 
 // CountReleaseBinTool counts bintool release by conditions.
 func (s *Storage) CountReleaseBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountReleaseBinTool, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countRelease(nCtx, types.ReleaseTypeBinTool, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to count release bintool")
+			return fmt.Errorf("failed to count release bintool: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("count_release_bintool")
-	defer metric.End(err)
-
-	if num, err = s.countRelease(nCtx, types.ReleaseTypeBinTool, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count release bintool")
-		return 0, fmt.Errorf("failed to count release bintool: %w", err)
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	return num, nil
@@ -752,24 +732,23 @@ func (s *Storage) CountReleaseBinTool(nCtx contextx.IContext, conditions ...*typ
 
 // GetReleaseBinTool gets bintool release.
 func (s *Storage) GetReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBinToolKey) (*types.ReleaseBinTool, error) {
-	var (
-		releaseBinTool *types.ReleaseBinTool
-		err            error
-	)
+	var releaseBinTool *types.ReleaseBinTool
+	err := s.WrapFn(nCtx, metricOperationGetReleaseBinTool, func(nCtx contextx.IContext) error {
+		rls, err := s.getRelease(
+			nCtx, types.ReleaseTypeBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release bintool")
+			return fmt.Errorf("failed to get release bintool: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("get_release_bintool")
-	defer metric.End(err)
+		releaseBinTool = &types.ReleaseBinTool{
+			Release: *rls,
+		}
 
-	rls, err := s.getRelease(
-		nCtx, types.ReleaseTypeBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool)
+		return nil
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release bintool")
-		return nil, fmt.Errorf("failed to get release bintool: %w", err)
-	}
-
-	releaseBinTool = &types.ReleaseBinTool{
-		Release: *rls,
+		return nil, err
 	}
 
 	return releaseBinTool, nil
@@ -777,20 +756,16 @@ func (s *Storage) GetReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBin
 
 // DeleteReleaseBinTool deletes bintool release.
 func (s *Storage) DeleteReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBinToolKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDeleteReleaseBinTool, func(nCtx contextx.IContext) error {
+		if err := s.deleteRelease(
+			nCtx,
+			types.ReleaseTypeBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release bintool")
+			return fmt.Errorf("failed to delete release bintool: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("delete_release_bintool")
-	defer metric.End(err)
-
-	if err = s.deleteRelease(
-		nCtx,
-		types.ReleaseTypeBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release bintool")
-		return fmt.Errorf("failed to delete release bintool: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // ==================== IPluginBinTool Methods ====================
@@ -798,28 +773,30 @@ func (s *Storage) DeleteReleaseBinTool(nCtx contextx.IContext, key types.Release
 // ListReleasePluginBinTool lists plugin bintool release by page and conditions.
 func (s *Storage) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, int64, error) {
-
 	var (
 		results []*types.ReleasePluginBinTool
 		num     int64
-		err     error
 	)
 
-	// record metric.
-	metric := s.metric().Start("list_release_plugin_bintool")
-	defer metric.End(err)
-
-	rls, num, err := s.listRelease(nCtx, types.ReleaseTypePluginBinTool, page, conditions...)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list release plugin bintool")
-		return nil, 0, fmt.Errorf("failed to list release plugin bintool: %w", err)
-	}
-
-	results = make([]*types.ReleasePluginBinTool, len(rls))
-	for idx, r := range rls {
-		results[idx] = &types.ReleasePluginBinTool{
-			Release: *r,
+	err := s.WrapFn(nCtx, metricOperationListReleasePluginBinTool, func(nCtx contextx.IContext) error {
+		rls, n, err := s.listRelease(nCtx, types.ReleaseTypePluginBinTool, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release plugin bintool")
+			return fmt.Errorf("failed to list release plugin bintool: %w", err)
 		}
+		num = n
+
+		results = make([]*types.ReleasePluginBinTool, len(rls))
+		for idx, r := range rls {
+			results[idx] = &types.ReleasePluginBinTool{
+				Release: *r,
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -827,18 +804,18 @@ func (s *Storage) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Pa
 
 // CountReleasePluginBinTool counts plugin bintool release by conditions.
 func (s *Storage) CountReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountReleasePluginBinTool, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countRelease(nCtx, types.ReleaseTypePluginBinTool, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to count release plugin bintool")
+			return fmt.Errorf("failed to count release plugin bintool: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("count_release_plugin_bintool")
-	defer metric.End(err)
-
-	if num, err = s.countRelease(nCtx, types.ReleaseTypePluginBinTool, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count release plugin bintool")
-		return 0, fmt.Errorf("failed to count release plugin bintool: %w", err)
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	return num, nil
@@ -846,24 +823,23 @@ func (s *Storage) CountReleasePluginBinTool(nCtx contextx.IContext, conditions .
 
 // GetReleasePluginBinTool gets plugin bintool release.
 func (s *Storage) GetReleasePluginBinTool(nCtx contextx.IContext, key types.ReleasePluginBinToolKey) (*types.ReleasePluginBinTool, error) {
-	var (
-		releasePluginBinTool *types.ReleasePluginBinTool
-		err                  error
-	)
+	var releasePluginBinTool *types.ReleasePluginBinTool
+	err := s.WrapFn(nCtx, metricOperationGetReleasePluginBinTool, func(nCtx contextx.IContext) error {
+		rls, err := s.getRelease(
+			nCtx, types.ReleaseTypePluginBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release plugin bintool")
+			return fmt.Errorf("failed to get release plugin bintool: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("get_release_plugin_bintool")
-	defer metric.End(err)
+		releasePluginBinTool = &types.ReleasePluginBinTool{
+			Release: *rls,
+		}
 
-	rls, err := s.getRelease(
-		nCtx, types.ReleaseTypePluginBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name)
+		return nil
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release plugin bintool")
-		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
-	}
-
-	releasePluginBinTool = &types.ReleasePluginBinTool{
-		Release: *rls,
+		return nil, err
 	}
 
 	return releasePluginBinTool, nil
@@ -871,61 +847,33 @@ func (s *Storage) GetReleasePluginBinTool(nCtx contextx.IContext, key types.Rele
 
 // DeleteReleasePluginBinTool deletes plugin bintool release.
 func (s *Storage) DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.ReleasePluginBinToolKey) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationDeleteReleasePluginBinTool, func(nCtx contextx.IContext) error {
+		if err := s.deleteRelease(
+			nCtx, types.ReleaseTypePluginBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name); err != nil {
+			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release plugin bintool")
+			return fmt.Errorf("failed to delete release plugin bintool: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("delete_release_plugin_bintool")
-	defer metric.End(err)
-
-	if err = s.deleteRelease(
-		nCtx, types.ReleaseTypePluginBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name); err != nil {
-		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release plugin bintool")
-		return fmt.Errorf("failed to delete release plugin bintool: %w", err)
-	}
-
-	return nil
-}
-
-// DistinctNameReleasePluginBinTool gets distinct plugin bintool release names.
-func (s *Storage) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
-	var (
-		names []string
-		err   error
-	)
-
-	// record metric.
-	metric := s.metric().Start("distinct_name_release_plugin_bintool")
-	defer metric.End(err)
-
-	opts, err := convertReleaseConditionsToOptions(conditions...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
-	}
-
-	if names, err = s.daoRelease.DistinctName(nCtx, types.ReleaseTypePluginBinTool, opts...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin bintool")
-		return nil, fmt.Errorf("failed to distinct name release plugin bintool: %w", err)
-	}
-
-	return names, nil
+		return nil
+	})
 }
 
 // ==================== IPackageEvent Methods ====================
 
 // CountPackageEvent counts package events by conditions.
 func (s *Storage) CountPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
+	err := s.WrapFn(nCtx, metricOperationCountPackageEvent, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countPakcageEvent(nCtx, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to get count package event")
+			return fmt.Errorf("failed to count package event: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("count_package_event")
-	defer metric.End(err)
-
-	if num, err = s.countPakcageEvent(nCtx, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get count package event")
-		return 0, fmt.Errorf("failed to count package event: %w", err)
+		return nil
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	return num, nil
@@ -938,15 +886,18 @@ func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page, cond
 	var (
 		results []*types.PackageEvent
 		num     int64
-		err     error
 	)
-	// record metric.
-	metric := s.metric().Start("list_package_event")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationListPackageEvent, func(nCtx contextx.IContext) error {
+		var err error
+		if results, num, err = s.listPackageEvent(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list package event")
+			return fmt.Errorf("failed to list package event: %w", err)
+		}
 
-	if results, num, err = s.listPackageEvent(nCtx, page, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list package event")
-		return nil, 0, fmt.Errorf("failed to list package event: %w", err)
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -954,18 +905,14 @@ func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page, cond
 
 // CreateManyPackageEvent creates multiple package events.
 func (s *Storage) CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error {
-	var err error
+	return s.WrapFn(nCtx, metricOperationCreateManyPackageEvent, func(nCtx contextx.IContext) error {
+		if err := s.createManyPackageEvent(nCtx, events...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to create many package event")
+			return fmt.Errorf("failed to create many package event: %w", err)
+		}
 
-	// record metric.
-	metric := s.metric().Start("create_many_package_event")
-	defer metric.End(err)
-
-	if err = s.createManyPackageEvent(nCtx, events...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to create many package event")
-		return fmt.Errorf("failed to create many package event: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // DistinctPackageEvent distincts package event fields.
@@ -975,16 +922,19 @@ func (s *Storage) DistinctPackageEvent(
 
 	var (
 		data *types.PackageEventDistinctResult
-		err  error
 	)
 
-	// record metric.
-	metric := s.metric().Start("distinct_package_event")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationDistinctPackageEvent, func(nCtx contextx.IContext) error {
+		var err error
+		if data, err = s.distinctPackageEvent(nCtx, request, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to distinct package event")
+			return fmt.Errorf("failed to distinct package event: %w", err)
+		}
 
-	if data, err = s.distinctPackageEvent(nCtx, request, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to distinct package event")
-		return nil, fmt.Errorf("failed to distinct package event: %w", err)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
