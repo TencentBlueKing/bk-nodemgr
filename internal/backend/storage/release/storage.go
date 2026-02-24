@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoPackageEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -158,6 +157,7 @@ func (s *Storage) GetReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgent
 // DistinctReleaseAgent gets agent releases distinct.
 func (s *Storage) DistinctReleaseAgent(nCtx contextx.IContext, fields types.ReleaseDistinctField,
 	conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
+
 	var (
 		data *types.ReleaseDistinctResult
 		err  error
@@ -337,6 +337,7 @@ func (s *Storage) GetReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxy
 // DistinctReleaseProxy gets proxy releases distinct.
 func (s *Storage) DistinctReleaseProxy(nCtx contextx.IContext, fields types.ReleaseDistinctField,
 	conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
+
 	var (
 		data *types.ReleaseDistinctResult
 		err  error
@@ -491,7 +492,6 @@ func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePlug
 
 // DeleteReleasePlugin deletes plugin release.
 func (s *Storage) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-
 	// record metric.
 	metric := s.metric().Start("delete_release_plugin")
 	defer metric.End(err)
@@ -503,7 +503,6 @@ func (s *Storage) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleaseP
 
 // EnableReleasePlugin enables plugin release active.
 func (s *Storage) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-
 	// record metric.
 	metric := s.metric().Start("enable_release_plugin")
 	defer metric.End(err)
@@ -515,7 +514,6 @@ func (s *Storage) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleaseP
 
 // DisableReleasePlugin disables plugin release disactive.
 func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-
 	// record metric.
 	metric := s.metric().Start("disable_release_plugin")
 	defer metric.End(err)
@@ -527,7 +525,6 @@ func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.Release
 
 // SetAsDefaultReleasePlugin sets the plugin release as default.
 func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-
 	// record metric.
 	metric := s.metric().Start("set_as_default_release_plugin")
 	defer metric.End(err)
@@ -539,7 +536,6 @@ func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.Re
 
 // CancelAsDefaultReleasePlugin cancels the plugin release as default.
 func (s *Storage) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (err error) {
-
 	// record metric.
 	metric := s.metric().Start("cancel_as_default_release_plugin")
 	defer metric.End(err)
@@ -616,6 +612,7 @@ func (s *Storage) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions .
 // ListReleaseCert lists cert releases by page and conditions.
 func (s *Storage) ListReleaseCert(nCtx contextx.IContext, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, int64, error) {
+
 	var (
 		results []*types.ReleaseCert
 		num     int64
@@ -672,7 +669,7 @@ func (s *Storage) GetReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKe
 	metric := s.metric().Start("get_release_cert")
 	defer metric.End(err)
 
-	rls, err := s.getRelease(nCtx, types.ReleaseTypeCert, key.Generation, platform.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert)
+	rls, err := s.getRelease(nCtx, types.ReleaseTypeCert, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert)
 	if err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release cert")
 		return nil, fmt.Errorf("failed to get release cert: %w", err)
@@ -694,7 +691,7 @@ func (s *Storage) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCer
 	defer metric.End(err)
 
 	if err = s.deleteRelease(
-		nCtx, types.ReleaseTypeCert, key.Generation, platform.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert); err != nil {
+		nCtx, types.ReleaseTypeCert, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionCert, types.ReleaseNameCert); err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release cert")
 		return fmt.Errorf("failed to delete release cert: %w", err)
 	}
@@ -707,6 +704,7 @@ func (s *Storage) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCer
 // ListReleaseBinTool lists bintool releases by page and conditions.
 func (s *Storage) ListReleaseBinTool(nCtx contextx.IContext, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, int64, error) {
+
 	var (
 		results []*types.ReleaseBinTool
 		num     int64
@@ -764,7 +762,7 @@ func (s *Storage) GetReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBin
 	defer metric.End(err)
 
 	rls, err := s.getRelease(
-		nCtx, types.ReleaseTypeBinTool, key.Generation, platform.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool)
+		nCtx, types.ReleaseTypeBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool)
 	if err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release bintool")
 		return nil, fmt.Errorf("failed to get release bintool: %w", err)
@@ -787,7 +785,7 @@ func (s *Storage) DeleteReleaseBinTool(nCtx contextx.IContext, key types.Release
 
 	if err = s.deleteRelease(
 		nCtx,
-		types.ReleaseTypeBinTool, key.Generation, platform.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool); err != nil {
+		types.ReleaseTypeBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionBinTool, types.ReleaseNameBinTool); err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release bintool")
 		return fmt.Errorf("failed to delete release bintool: %w", err)
 	}
@@ -800,6 +798,7 @@ func (s *Storage) DeleteReleaseBinTool(nCtx contextx.IContext, key types.Release
 // ListReleasePluginBinTool lists plugin bintool release by page and conditions.
 func (s *Storage) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page,
 	conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, int64, error) {
+
 	var (
 		results []*types.ReleasePluginBinTool
 		num     int64
@@ -857,7 +856,7 @@ func (s *Storage) GetReleasePluginBinTool(nCtx contextx.IContext, key types.Rele
 	defer metric.End(err)
 
 	rls, err := s.getRelease(
-		nCtx, types.ReleaseTypePluginBinTool, key.Generation, platform.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name)
+		nCtx, types.ReleaseTypePluginBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name)
 	if err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Error("failed to get release plugin bintool")
 		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
@@ -879,7 +878,7 @@ func (s *Storage) DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.R
 	defer metric.End(err)
 
 	if err = s.deleteRelease(
-		nCtx, types.ReleaseTypePluginBinTool, key.Generation, platform.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name); err != nil {
+		nCtx, types.ReleaseTypePluginBinTool, key.Generation, platfmt.UnknownPlatform(), types.ReleaseVersionPluginBinTool, key.Name); err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release plugin bintool")
 		return fmt.Errorf("failed to delete release plugin bintool: %w", err)
 	}

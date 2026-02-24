@@ -103,6 +103,7 @@ func (p *PackageProvider) ListInstance(ctx contextx.IContext, req *Request[ListI
 		err := fmt.Errorf("invalid parent type: expected %s, got %s",
 			ResourceTypePackageType, req.Filter.Parent.Type)
 		logger.G.Biz(ctx).WithErr(err).Error("invalid parent type in package provider")
+
 		return nil, err
 	}
 
