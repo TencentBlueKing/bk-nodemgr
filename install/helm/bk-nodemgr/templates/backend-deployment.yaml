@@ -209,7 +209,10 @@ spec:
             check_args="-h {{ template "bk-nodemgr.fullname" . }}-redis-headless -p {{ .Values.redis.service.ports.redis }} -a {{ .Values.redis.auth.password }} --no-auth-warning -c ping"
             {{- else }}
             {{- $firstAddr := index .Values.externalRedis.addrs 0 }}
-            check_args="-u redis://:{{ .Values.externalRedis.password }}@{{ $firstAddr }} --no-auth-warning -c ping"
+            {{- $addrParts := splitList ":" $firstAddr }}
+            {{- $redisHost := first $addrParts }}
+            {{- $redisPort := last $addrParts }}
+            check_args="-h {{ $redisHost }} -p {{ $redisPort }} -a {{ .Values.externalRedis.password | quote }} --no-auth-warning -c ping"
             {{- end }}
 
             # check redis.
