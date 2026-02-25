@@ -130,7 +130,7 @@ import { Button, Cascader, Form, InfoBox, Input, Loading, Message, Sideslider } 
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -141,6 +141,7 @@ import SelectItemGroup from './components/select-item-group.vue';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
+import { encryptionTool } from '@/common/crypto';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 
@@ -354,7 +355,19 @@ const handleConfirm = async () => {
       key: 'login_key_file',
     };
     form.info.forEach((item: any) => {
-      item[modeMap[item.login_mode]] = item.credit;
+      // 获取对应的 key (login_password 或 login_key_file)
+      const targetKey = modeMap[item.login_mode];
+
+      if (item.credit) {
+        // 同步加密
+        const encryptedValue = encryptionTool.encryptSync(item.credit);
+
+        // 如果加密成功，使用密文；否则使用空字符串
+        item[targetKey] = encryptedValue !== false ? encryptedValue : '';
+      } else {
+        // 如果没有输入值，直接赋值
+        item[targetKey] = item.credit;
+      }
       Object.keys(item).forEach((key: string) => {
         if (proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
           item.proxy_tags.push(key);
@@ -525,5 +538,8 @@ watch(() => isShow.value, async () => {
     await getNetworkUnitList();
     originData.value = cloneDeep(form);
   }
+});
+onMounted(() => {
+  encryptionTool.initPublicKey();
 });
 </script>

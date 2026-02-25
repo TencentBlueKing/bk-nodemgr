@@ -335,6 +335,7 @@ import Preview from './preview.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
+import { encryptionTool } from '@/common/crypto';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
@@ -579,6 +580,7 @@ const getNetworkUnitList = async () => {
   networkUnitList.value = res.items;
   if (res.items.length === 1) {
     formData.bk_networkunit_id = String(res.items[0].bk_networkunit_id);
+    formData.bk_networkunit_name = String(res.items[0].bk_networkunit_name);
   }
 };
 
@@ -626,7 +628,21 @@ const handlePreview = async () => {
       key: 'login_key_file',
     };
     formData.info.forEach((item) => {
-      item[modeMap[item.login_mode]] = item.credit;
+      // 获取对应的 key (login_password 或 login_key_file)
+      const targetKey = modeMap[item.login_mode];
+
+      if (item.credit) {
+        // 同步加密
+        const encryptedValue = encryptionTool.encryptSync(item.credit);
+
+        // 如果加密成功，使用密文；否则使用空字符串
+        item[targetKey] = encryptedValue !== false ? encryptedValue : '';
+      } else {
+        // 如果没有输入值，直接赋值
+        item[targetKey] = item.credit;
+      }
+
+      // 清理不需要的字段
       delete item.bk_host_id;
     });
     if (isShow.value) {
@@ -725,6 +741,7 @@ watch(
   },
 );
 onMounted(async () => {
+  encryptionTool.initPublicKey();
   await getVersions();
   initCollectList();
   if (footerRef.value) {

@@ -390,10 +390,7 @@
             <ValidateCell :error="getError(rowIndex, 'login_port')">
               <Input
                 v-model.trim="row.login_port"
-                @change="() => {
-                  clearError(rowIndex, 'login_port')
-                  console.log(row.login_port)
-                }"
+                @change="() => clearError(rowIndex, 'login_port')"
                 @blur="handleFieldBlur(rowIndex, 'login_port', row.login_port)"
               ></Input>
             </ValidateCell>

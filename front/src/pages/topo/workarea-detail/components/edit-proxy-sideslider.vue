@@ -270,11 +270,12 @@
 import { Button, Checkbox, Form, InfoBox, Input, Message, Popover, Select, Sideslider, Switcher } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { VALIDATE_REGEX } from '@/common/const';
+import { encryptionTool } from '@/common/crypto';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 
 interface IValidate {
@@ -387,7 +388,8 @@ const handleSave = async () => {
     password: 'login_password',
     key: 'login_key_file',
   };
-  formData[modeMap[formData.login_mode]] = formData.credit;
+  const encryptedValue = encryptionTool.encryptSync(formData.credit);
+  formData[modeMap[formData.login_mode]] = encryptedValue !== false ? encryptedValue : '';
   formData.proxy_tags = [];
   proxyTags.forEach((key) => {
     formData[key] && formData.proxy_tags.push(key);
@@ -439,5 +441,8 @@ watch(() => isShow.value, () => {
     formData.relay_download_port = '';
     formData.relay_callback_port = '';
   }
+});
+onMounted(() => {
+  encryptionTool.initPublicKey();
 });
 </script>

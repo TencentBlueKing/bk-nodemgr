@@ -128,6 +128,7 @@ import Preview from './preview.vue';
 
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
 import { TopoService } from '@/api/modules/topo';
+import { encryptionTool } from '@/common/crypto';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
@@ -305,7 +306,19 @@ const handlePreview = async () => {
     };
     previewData.data = cloneDeep(formData);
     previewData.data.info.forEach((item) => {
-      item[modeMap[item.login_mode]] = item.credit;
+      // 获取对应的 key (login_password 或 login_key_file)
+      const targetKey = modeMap[item.login_mode];
+
+      if (item.credit) {
+        // 同步加密
+        const encryptedValue = encryptionTool.encryptSync(item.credit);
+
+        // 如果加密成功，使用密文；否则使用空字符串
+        item[targetKey] = encryptedValue !== false ? encryptedValue : '';
+      } else {
+        // 如果没有输入值，直接赋值
+        item[targetKey] = item.credit;
+      }
       item.bk_networkunit_id = Number(item.bk_networkunit_id);
     });
     if (isShow.value) {
@@ -349,6 +362,7 @@ watch(
   },
 );
 onMounted(async () => {
+  encryptionTool.initPublicKey();
   if (footerRef.value) {
     window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();
