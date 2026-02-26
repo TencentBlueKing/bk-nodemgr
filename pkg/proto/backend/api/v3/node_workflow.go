@@ -81,6 +81,8 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		item := newEmptyNodeWorkflow()
 		*item.WorkflowId = workflow.WorkflowID
 		item.BkBizId = workflow.BizIDs
+		item.BkNetworkareaId = workflow.NetworkAreaIDs
+		item.BkNetworkunitId = workflow.NetworkUnitIDs
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.TriggerId = workflow.TriggerID
@@ -108,15 +110,17 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsToTypes() ([]*types.NodeWorkf
 
 	for idx, item := range items {
 		workflow := &types.NodeWorkflow{
-			TenantID:    item.GetTenantId(),
-			WorkflowID:  item.GetWorkflowId(),
-			TriggerID:   item.GetTriggerId(),
-			Type:        types.NodeWorkflowType(item.GetType()),
-			Status:      types.NodeWorkflowStatus(item.GetStatus()),
-			BizIDs:      item.GetBkBizId(),
-			Operator:    item.GetOperator(),
-			OperateTime: time.UnixMilli(item.GetOperateTime()),
-			FinishTime:  time.UnixMilli(item.GetFinishTime()),
+			TenantID:       item.GetTenantId(),
+			WorkflowID:     item.GetWorkflowId(),
+			TriggerID:      item.GetTriggerId(),
+			Type:           types.NodeWorkflowType(item.GetType()),
+			Status:         types.NodeWorkflowStatus(item.GetStatus()),
+			BizIDs:         item.GetBkBizId(),
+			NetworkAreaIDs: item.GetBkNetworkareaId(),
+			NetworkUnitIDs: item.GetBkNetworkunitId(),
+			Operator:       item.GetOperator(),
+			OperateTime:    time.UnixMilli(item.GetOperateTime()),
+			FinishTime:     time.UnixMilli(item.GetFinishTime()),
 		}
 
 		result[idx] = workflow
@@ -913,14 +917,16 @@ func convertNodeWorkflowOperInstLifeCycleToTypes(data *WorkflowLifeCycle) *opera
 
 func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 	return &NodeWorkflowInfo{
-		WorkflowId:  new(string),
-		Type:        new(string),
-		TriggerId:   new(string),
-		BkBizId:     make([]int64, 0),
-		Operator:    new(string),
-		OperateTime: new(int64),
-		FinishTime:  new(int64),
-		Status:      new(string),
+		WorkflowId:      new(string),
+		Type:            new(string),
+		TriggerId:       new(string),
+		BkBizId:         make([]int64, 0),
+		BkNetworkareaId: make([]int64, 0),
+		BkNetworkunitId: make([]int64, 0),
+		Operator:        new(string),
+		OperateTime:     new(int64),
+		FinishTime:      new(int64),
+		Status:          new(string),
 	}
 }
 

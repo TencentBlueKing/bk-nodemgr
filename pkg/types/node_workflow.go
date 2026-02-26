@@ -23,8 +23,10 @@ type NodeWorkflow struct {
 	WorkflowID  string
 	TriggerID   string
 	Type        NodeWorkflowType
-	BizIDs      []int64
-	Operator    string
+	BizIDs         []int64
+	NetworkAreaIDs []int64
+	NetworkUnitIDs []int64
+	Operator       string
 	OperateTime time.Time
 	FinishTime  time.Time
 	Status      NodeWorkflowStatus

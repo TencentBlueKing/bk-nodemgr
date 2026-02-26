@@ -13,11 +13,13 @@ message NodeWorkflowInfo {
   optional string trigger_id = 2;
   optional string type = 3;
   repeated int64 bk_biz_id = 4;
-  optional string operator = 5;
-  optional int64 operate_time = 6;
-  optional int64 finish_time = 7;
-  optional string status = 8;
-  repeated string bk_biz_name = 9;
+  repeated int64 bk_networkarea_id = 5;
+  repeated int64 bk_networkunit_id = 6;
+  optional string operator = 7;
+  optional int64 operate_time = 8;
+  optional int64 finish_time = 9;
+  optional string status = 10;
+  repeated string bk_biz_name = 11;
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow

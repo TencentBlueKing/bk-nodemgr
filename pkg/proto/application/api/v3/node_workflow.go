@@ -69,6 +69,8 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		*item.WorkflowId = workflow.WorkflowID
 		*item.TriggerId = workflow.TriggerID
 		item.BkBizId = workflow.BizIDs
+		item.BkNetworkareaId = workflow.NetworkAreaIDs
+		item.BkNetworkunitId = workflow.NetworkUnitIDs
 
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
@@ -687,14 +689,16 @@ func convertNodeWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) *W
 // newEmptyNodeWorkflow creates a new empty NodeWorkflowInfo.
 func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 	return &NodeWorkflowInfo{
-		WorkflowId:  new(string),
-		TriggerId:   new(string),
-		Type:        new(string),
-		BkBizId:     make([]int64, 0),
-		Operator:    new(string),
-		OperateTime: new(int64),
-		FinishTime:  new(int64),
-		Status:      new(string),
+		WorkflowId:      new(string),
+		TriggerId:       new(string),
+		Type:            new(string),
+		BkBizId:         make([]int64, 0),
+		BkNetworkareaId: make([]int64, 0),
+		BkNetworkunitId: make([]int64, 0),
+		Operator:        new(string),
+		OperateTime:     new(int64),
+		FinishTime:      new(int64),
+		Status:          new(string),
 	}
 }
 
