@@ -30,6 +30,7 @@
                   :class="['text-14px', { 'active': pluginUploadType === item.id }]"
                   v-for="item in pluginUploadTypeList"
                   :key="item.id"
+                  v-bk-tooltips="{ content: t(item.tipKey), placement: 'right' }"
                   @click="triggerHandler(item.id)"
                 >
                   {{ item.name }}
@@ -43,6 +44,7 @@
     <template #default>
       <div class="px-[24px] pt-[28px]">
         <pkg-upload
+          :key="pluginUploadType"
           :plugin-type="pluginUploadType"
           @upload="handleUpload"
           @cancel="handleCancel"
@@ -106,16 +108,36 @@ const pluginUploadTypeList = computed(() => [
   {
     id: 'v2/plugin',
     name: t('pkgUpload.officialPlugin'),
+    tipKey: 'pkgUpload.officialPluginTip',
   },
   {
     id: 'v2/external_plugin',
     name: t('pkgUpload.externalPlugin'),
+    tipKey: 'pkgUpload.externalPluginTip',
   },
 ]);
 const triggerHandler = (id: string) => {
-  isShow.value = true;
-  pluginUploadType.value = id;
-  subTitle.value = pluginUploadTypeList.value.find(item => item.id === id)?.name || '';
+  const doSwitch = () => {
+    if (pluginUploadType.value === id) {
+      pluginUploadType.value = 'v3/plugin';
+      subTitle.value = '';
+    } else {
+      pluginUploadType.value = id;
+      subTitle.value = pluginUploadTypeList.value.find(item => item.id === id)?.name || '';
+    }
+    uploadData.value = null;
+    parseLoading.value = false;
+  };
+
+  if (uploadData.value) {
+    InfoBox({
+      title: t('dialog.confirmSwitchType'),
+      infoType: 'warning',
+      onConfirm: () => doSwitch(),
+    });
+    return;
+  }
+  doSwitch();
 };
 
 const handleBeforeClose = () => new Promise((resolve, reject) => {

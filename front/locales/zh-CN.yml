@@ -492,6 +492,7 @@ authenticationType:
   password_vault: 密码库
 dialog:
   confirmClose: 确认关闭?
+  confirmSwitchType: 切换类型将清空已上传数据, 是否继续?
 taskDetail:
   searchPlaceholder: 请选择 IP、管控区域、业务、目标版本、执行状态
   batchRetry: 批量重试
@@ -656,6 +657,8 @@ pkgUpload:
   title: 包上传
   officialPlugin: 2.0 官方插件包
   externalPlugin: 2.0 业务插件包
+  officialPluginTip: 兼容旧版 2.0 格式的官方插件包上传，仅在需要上传旧版官方插件包时使用
+  externalPluginTip: 兼容旧版 2.0 格式的业务自定义插件包上传，仅在需要上传旧版业务插件包时使用
   submit: 提交
   cancel: 取消
   uploadTip: 请先上传包文件

@@ -492,6 +492,7 @@ authenticationType:
   password_vault: Password Vault
 dialog:
   confirmClose: Confirm close?
+  confirmSwitchType: Switching type will clear uploaded data. Continue?
 taskDetail:
   searchPlaceholder: Select IP, Network Area, Business, Target Version, Status
   batchRetry: Batch Retry
@@ -656,6 +657,8 @@ pkgUpload:
   title: Upload Package
   officialPlugin: Official Plugin (2.0)
   externalPlugin: Business Plugin (2.0)
+  officialPluginTip: For uploading legacy 2.0 official plugin packages. Use only when compatibility with 2.0 format is required.
+  externalPluginTip: For uploading legacy 2.0 business plugin packages. Use only when compatibility with 2.0 format is required.
   submit: Submit
   cancel: Cancel
   uploadTip: Please upload a file first
