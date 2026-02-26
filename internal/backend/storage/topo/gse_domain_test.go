@@ -102,7 +102,7 @@ func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 			Static: &types.HostStatic{
 				BizID:         0,
 				NetworkAreaID: 0,
-				InnerIP:       "127.0.0.9,127.0.0.10",
+				InnerIPList:   []string{"127.0.0.9", "127.0.0.10"},
 			},
 			Dynamic: &types.HostDynamic{
 				NetworkUnitID:    gsePrepareNormalUnitID,
