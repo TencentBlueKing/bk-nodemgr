@@ -26,12 +26,9 @@ func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.To
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountTopoEvent, func(nCtx contextx.IContext) error {
-		var opts []topoevent.OptFn
-		if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
-			return err
-		}
-
+		opts := convertTopoEventConditionsToOptions(conditions...)
 		num, err = s.daoTopoEvent.Count(nCtx, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -52,12 +49,9 @@ func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListTopoEvent, func(nCtx contextx.IContext) error {
-		var opts []topoevent.OptFn
-		if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
-			return err
-		}
-
+		opts := convertTopoEventConditionsToOptions(conditions...)
 		results, num, err = s.daoTopoEvent.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -85,11 +79,7 @@ func (s *Storage) DistinctTopoEvent(
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDistinctTopoEvent, func(nCtx contextx.IContext) error {
-		var opts []topoevent.OptFn
-		if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
-			return err
-		}
-
+		opts := convertTopoEventConditionsToOptions(conditions...)
 		data = new(types.TopoEventDistinctResult)
 
 		gp := gopool.NewPool()
@@ -133,6 +123,7 @@ func (s *Storage) DistinctTopoEvent(
 				return err
 			})
 		}
+
 		return gp.Wait()
 	})
 	if err != nil {
@@ -142,7 +133,7 @@ func (s *Storage) DistinctTopoEvent(
 	return data, nil
 }
 
-func convertTopoEventConditionsToOptions(conditions ...*types.TopoEventCondition) ([]topoevent.OptFn, error) {
+func convertTopoEventConditionsToOptions(conditions ...*types.TopoEventCondition) []topoevent.OptFn {
 	opts := make([]topoevent.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -187,5 +178,5 @@ func convertTopoEventConditionsToOptions(conditions ...*types.TopoEventCondition
 		}
 	}
 
-	return opts, nil
+	return opts
 }

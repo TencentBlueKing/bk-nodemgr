@@ -38,6 +38,7 @@ func (s *Storage) GetV4AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 	err = s.WrapFn(nCtx, metricOperationGetV4AgentAccessEndpoints, func(nCtx contextx.IContext) error {
 		var err error
 		cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID)
+
 		return err
 	})
 	if err != nil {
@@ -61,6 +62,7 @@ func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 	err = s.WrapFn(nCtx, metricOperationGetV6AgentAccessEndpoints, func(nCtx contextx.IContext) error {
 		var err error
 		cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID)
+
 		return err
 	})
 	if err != nil {
@@ -156,59 +158,90 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(nCtx contextx.IContext, networ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProxyUpstreamAccessPoints, func(nCtx contextx.IContext) error {
-		var (
-			networkUnit *types.NetworkUnit
-			err         error
-		)
-		if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
-			return fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
-		}
-
-		// direct unit return direct endpoints.
-		if networkUnit.IsDirect {
-			return fmt.Errorf("networkunit-id(%d) is direct unit, can not have proxy", networkUnitID)
-		}
-
-		if networkUnit.Links.Cluster == nil || networkUnit.Links.File == nil || networkUnit.Links.Data == nil {
-			return fmt.Errorf("networkunit-id(%d) links is invalid, cluster or file or data have empty upstreams", networkUnitID)
-		}
-
-		var accesspoints []*types.AccessPoint
-		if accesspoints, _, err = s.daoAccessPoint.List(nCtx, types.UnlimitedPage(), accesspoint.WithAccessPointID(
-			networkUnit.Links.Cluster.AccessPointID,
-			networkUnit.Links.File.AccessPointID,
-			networkUnit.Links.Data.AccessPointID,
-		)); err != nil {
-			return fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d): %w", networkUnitID, err)
-		}
-
-		apList := types.AccessPointList(accesspoints)
-
-		if ap, ok := apList.Found(networkUnit.Links.Cluster.AccessPointID); ok {
-			clusterEndpoints = ap.Endpoints.Cluster
-		} else {
-			return fmt.Errorf("networkunit-id(%d) links cluster accesspoint not found", networkUnitID)
-		}
-
-		if ap, ok := apList.Found(networkUnit.Links.File.AccessPointID); ok {
-			fileEndpoints = ap.Endpoints.File
-		} else {
-			return fmt.Errorf("networkunit-id(%d) links cluster accesspoint not found", networkUnitID)
-		}
-
-		if ap, ok := apList.Found(networkUnit.Links.Data.AccessPointID); ok {
-			dataEndpoints = ap.Endpoints.Data
-		} else {
-			return fmt.Errorf("networkunit-id(%d) links cluster accesspoint not found", networkUnitID)
-		}
-
-		return nil
+		clusterEndpoints, fileEndpoints, dataEndpoints, err = s.getProxyUpstreamEndpoints(nCtx, networkUnitID)
+		return err
 	})
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
+}
+
+func (s *Storage) getProxyUpstreamEndpoints(nCtx contextx.IContext, networkUnitID int64) ([]string, []string, []string, error) {
+	clusterAPID, fileAPID, dataAPID, err := s.getProxyUpstreamAccessPointIDs(nCtx, networkUnitID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	accesspoints, _, err := s.daoAccessPoint.List(
+		nCtx, types.UnlimitedPage(), accesspoint.WithAccessPointID(clusterAPID, fileAPID, dataAPID))
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d): %w", networkUnitID, err)
+	}
+
+	return resolveProxyUpstreamEndpoints(types.AccessPointList(accesspoints), clusterAPID, fileAPID, dataAPID, networkUnitID)
+}
+
+func (s *Storage) getProxyUpstreamAccessPointIDs(nCtx contextx.IContext, networkUnitID int64) (int64, int64, int64, error) {
+	networkUnit, err := s.daoNetworkUnit.Get(nCtx, networkUnitID)
+	if err != nil {
+		return -1, -1, -1, fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
+	}
+
+	if networkUnit.IsDirect {
+		return -1, -1, -1, fmt.Errorf("networkunit-id(%d) is direct unit, can not have proxy", networkUnitID)
+	}
+
+	if networkUnit.Links.Cluster == nil || networkUnit.Links.File == nil || networkUnit.Links.Data == nil {
+		return -1, -1, -1, fmt.Errorf(
+			"networkunit-id(%d) links is invalid, cluster or file or data have empty upstreams", networkUnitID)
+	}
+
+	return networkUnit.Links.Cluster.AccessPointID,
+		networkUnit.Links.File.AccessPointID,
+		networkUnit.Links.Data.AccessPointID,
+		nil
+}
+
+func resolveProxyUpstreamEndpoints(
+	apList types.AccessPointList, clusterAPID, fileAPID, dataAPID, networkUnitID int64,
+) ([]string, []string, []string, error) {
+
+	clusterEndpoints, err := getProxyUpstreamEndpoint(apList, clusterAPID, networkUnitID, func(ap *types.AccessPoint) []string {
+		return ap.Endpoints.Cluster
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	fileEndpoints, err := getProxyUpstreamEndpoint(apList, fileAPID, networkUnitID, func(ap *types.AccessPoint) []string {
+		return ap.Endpoints.File
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	dataEndpoints, err := getProxyUpstreamEndpoint(apList, dataAPID, networkUnitID, func(ap *types.AccessPoint) []string {
+		return ap.Endpoints.Data
+	})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
+}
+
+func getProxyUpstreamEndpoint(
+	apList types.AccessPointList, accessPointID, networkUnitID int64, endpointSelector func(*types.AccessPoint) []string,
+) ([]string, error) {
+
+	ap, ok := apList.Found(accessPointID)
+	if !ok {
+		return nil, fmt.Errorf("networkunit-id(%d) links accesspoint-id(%d) not found", networkUnitID, accessPointID)
+	}
+
+	return endpointSelector(ap), nil
 }
 
 // NeedStaticAccess check host is need static access or not.
@@ -239,6 +272,7 @@ func (s *Storage) NeedStaticAccess(nCtx contextx.IContext, networkUnitID int64) 
 		}
 
 		result = need
+
 		return nil
 	})
 	if err != nil {

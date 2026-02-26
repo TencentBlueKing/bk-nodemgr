@@ -85,6 +85,7 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 		}
 
 		results, num, err = s.daoBusiness.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -140,6 +141,7 @@ func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, condi
 		}
 
 		results, num, err = s.daoNetworkArea.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -158,6 +160,7 @@ func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (*
 
 	err = s.WrapFn(nCtx, metricOperationGetNetworkArea, func(nCtx contextx.IContext) error {
 		data, err = s.daoNetworkArea.Get(nCtx, networkAreaID)
+
 		return err
 	})
 	if err != nil {
@@ -235,6 +238,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 		}
 
 		results, num, err = s.daoNetworkUnit.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -253,6 +257,7 @@ func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 
 	err = s.WrapFn(nCtx, metricOperationGetNetworkUnit, func(nCtx contextx.IContext) error {
 		data, err = s.daoNetworkUnit.Get(nCtx, networkUnitID)
+
 		return err
 	})
 	if err != nil {
@@ -356,6 +361,7 @@ func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 			}
 
 			data = &AccessPointResult{}
+
 			return nil
 		}
 
@@ -386,6 +392,7 @@ func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 		data = &AccessPointResult{
 			Created: accessPoints,
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -405,76 +412,114 @@ func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdateNetworkUnit, func(nCtx contextx.IContext) error {
-		if !networkUnit.IsDirect {
-			if err := s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
-				return err
-			}
-		}
-
-		if len(accessPoints) == 0 {
-			networkUnit.AccessPoints = nil
-
-			if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
-				return err
-			}
-
-			data = &AccessPointResult{}
-			return nil
-		}
-
-		// update old accesspoints, create new accesspoints.
-		accessPointIDs := make([]int64, 0)
-		oldAccessPoints := make([]*types.AccessPoint, 0)
-		newAccessPoints := make([]*types.AccessPoint, 0)
-		for _, accessPoint := range accessPoints {
-			if accessPoint.ID >= 0 {
-				accessPointIDs = append(accessPointIDs, accessPoint.ID)
-				oldAccessPoints = append(oldAccessPoints, accessPoint)
-
-				continue
-			}
-
-			newAccessPoints = append(newAccessPoints, accessPoint)
-		}
-
-		if len(oldAccessPoints) > 0 {
-			if err = s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...); err != nil {
-				logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to update accesspoint")
-
-				return err
-			}
-		}
-		if len(newAccessPoints) > 0 {
-			createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(nCtx, newAccessPoints...)
-			if err != nil {
-				logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to create accesspoint")
-
-				return err
-			}
-			accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
-
-			for idx, accessPointID := range createdAccessPointIDs {
-				newAccessPoints[idx].ID = accessPointID
-			}
-		}
-		networkUnit.AccessPoints = accessPointIDs
-
-		if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+		if err := s.prepareNetworkUnitUpdate(nCtx, networkUnit); err != nil {
 			return err
 		}
 
-		data = &AccessPointResult{
-			Created: newAccessPoints,
-			Updated: oldAccessPoints,
-			Deleted: nil,
+		if len(accessPoints) == 0 {
+			data, err = s.updateNetworkUnitWithoutAccessPoints(nCtx, networkUnit)
+			return err
 		}
-		return nil
+
+		data, err = s.updateNetworkUnitWithAccessPoints(nCtx, networkUnit, accessPoints...)
+
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return data, nil
+}
+
+func (s *Storage) prepareNetworkUnitUpdate(nCtx contextx.IContext, networkUnit *types.NetworkUnit) error {
+	if networkUnit.IsDirect {
+		return nil
+	}
+
+	return s.checkNetworkUnitLinks(nCtx, networkUnit)
+}
+
+func (s *Storage) updateNetworkUnitWithoutAccessPoints(
+	nCtx contextx.IContext, networkUnit *types.NetworkUnit,
+) (*AccessPointResult, error) {
+
+	networkUnit.AccessPoints = nil
+	if err := s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+		return nil, err
+	}
+
+	return &AccessPointResult{}, nil
+}
+
+func (s *Storage) updateNetworkUnitWithAccessPoints(
+	nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint,
+) (*AccessPointResult, error) {
+
+	accessPointIDs, oldAccessPoints, newAccessPoints := splitAccessPoints(accessPoints)
+
+	accessPointIDs, err := s.upsertNetworkUnitAccessPoints(nCtx, accessPointIDs, oldAccessPoints, newAccessPoints)
+	if err != nil {
+		return nil, err
+	}
+
+	networkUnit.AccessPoints = accessPointIDs
+	if err := s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+		return nil, err
+	}
+
+	return &AccessPointResult{
+		Created: newAccessPoints,
+		Updated: oldAccessPoints,
+		Deleted: nil,
+	}, nil
+}
+
+func splitAccessPoints(accessPoints []*types.AccessPoint) ([]int64, []*types.AccessPoint, []*types.AccessPoint) {
+	accessPointIDs := make([]int64, 0, len(accessPoints))
+	oldAccessPoints := make([]*types.AccessPoint, 0, len(accessPoints))
+	newAccessPoints := make([]*types.AccessPoint, 0, len(accessPoints))
+	for _, accessPoint := range accessPoints {
+		if accessPoint.ID >= 0 {
+			accessPointIDs = append(accessPointIDs, accessPoint.ID)
+			oldAccessPoints = append(oldAccessPoints, accessPoint)
+
+			continue
+		}
+
+		newAccessPoints = append(newAccessPoints, accessPoint)
+	}
+
+	return accessPointIDs, oldAccessPoints, newAccessPoints
+}
+
+func (s *Storage) upsertNetworkUnitAccessPoints(
+	nCtx contextx.IContext, accessPointIDs []int64, oldAccessPoints, newAccessPoints []*types.AccessPoint,
+) ([]int64, error) {
+
+	if len(oldAccessPoints) > 0 {
+		if err := s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to update accesspoint")
+			return nil, err
+		}
+	}
+
+	if len(newAccessPoints) == 0 {
+		return accessPointIDs, nil
+	}
+
+	createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(nCtx, newAccessPoints...)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to create accesspoint")
+		return nil, err
+	}
+
+	accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
+	for idx, accessPointID := range createdAccessPointIDs {
+		newAccessPoints[idx].ID = accessPointID
+	}
+
+	return accessPointIDs, nil
 }
 
 // DeleteManyNetworkUnit deletes networkunit.
@@ -514,6 +559,7 @@ func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.
 		}
 
 		num, err = s.daoAccessPoint.Count(nCtx, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -556,6 +602,7 @@ func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 		}
 
 		results, num, err = s.daoAccessPoint.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
@@ -583,6 +630,7 @@ func (s *Storage) GetHostDistributionByNodeRole(nCtx contextx.IContext, conditio
 
 	err = s.WrapFn(nCtx, metricOperationGetHostDistributionByNodeRole, func(nCtx contextx.IContext) error {
 		hostDistributionByNodeRole, err = s.getHostDistributionByNodeRole(nCtx, conditions...)
+
 		return err
 	})
 	if err != nil {
@@ -603,6 +651,7 @@ func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 
 	err = s.WrapFn(nCtx, metricOperationGetHostDistributionByNetworkAreaID, func(nCtx contextx.IContext) error {
 		hostDistributionByNetworkAreaID, err = s.getHostDistributionByNetworkAreaID(nCtx, conditions...)
+
 		return err
 	})
 	if err != nil {

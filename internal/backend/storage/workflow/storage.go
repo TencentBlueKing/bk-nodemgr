@@ -1049,6 +1049,7 @@ func (s *Storage) CountOperationInstanceByState(nCtx contextx.IContext, triggerI
 			return fmt.Errorf("failed to count operation instance, trigger-id(%s), states(%v): %w",
 				triggerID, states, err)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -1073,6 +1074,7 @@ func (s *Storage) ExistOperationInstanceByState(nCtx contextx.IContext, triggerI
 			return fmt.Errorf("failed to check whether operation instance exists, trigger-id(%s), states(%v): %w",
 				triggerID, states, err)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -1101,6 +1103,7 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
 
 			return fmt.Errorf("failed to list operation instance brief data by operation: %w", err)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -1128,6 +1131,7 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx context
 
 			return fmt.Errorf("failed to list operation instance brief data by trigger: %w", err)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -1148,6 +1152,7 @@ func (s *Storage) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx c
 
 	err = s.WrapFn(nCtx, metricOperationGetLatestOperationInstanceStatusDistribution, func(nCtx contextx.IContext) error {
 		distribution, err = s.getLatestOperationInstanceStatusDistributionByTriggerID(nCtx, triggerID...)
+
 		return err
 	})
 	if err != nil {

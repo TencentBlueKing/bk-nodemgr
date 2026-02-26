@@ -153,13 +153,12 @@ func (s *Storage) check() error {
 func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID int64, innerip string) (
 	[]*types.Host, error) {
 
-	var (
-		results []*types.Host
-		err     error
-	)
+	var results []*types.Host
 
-	err = s.WrapFn(nCtx, metricOperationGetHostsByAreaAndInnerIP, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationGetHostsByAreaAndInnerIP, func(nCtx contextx.IContext) error {
+		var err error
 		results, err = s.getHostsByAreaAndInnerIP(nCtx, networkAreaID, innerip)
+
 		return err
 	})
 	if err != nil {
@@ -173,13 +172,12 @@ func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID
 func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitIDs []int64) (
 	map[int64]bool, error) {
 
-	var (
-		exist map[int64]bool
-		err   error
-	)
+	var exist map[int64]bool
 
-	err = s.WrapFn(nCtx, metricOperationExistDedicatedInstallerProxyHost, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationExistDedicatedInstallerProxyHost, func(nCtx contextx.IContext) error {
+		var err error
 		exist, err = s.existDedicatedInstallerProxyHost(nCtx, networkUnitIDs)
+
 		return err
 	})
 	if err != nil {
@@ -193,13 +191,12 @@ func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, netwo
 func (s *Storage) GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) (
 	[]*types.NetworkUnit, error) {
 
-	var (
-		results []*types.NetworkUnit
-		err     error
-	)
+	var results []*types.NetworkUnit
 
-	err = s.WrapFn(nCtx, metricOperationGetNetworkUnitByIDs, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationGetNetworkUnitByIDs, func(nCtx contextx.IContext) error {
+		var err error
 		results, err = s.getNetworkUnitByIDs(nCtx, networkUnitIDs)
+
 		return err
 	})
 	if err != nil {
@@ -217,11 +214,12 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 	var (
 		results []*types.Host
 		num     int64
-		err     error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationListHostWithFields, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationListHostWithFields, func(nCtx contextx.IContext) error {
+		var err error
 		results, num, err = s.listHostWithFields(nCtx, page, selection, conditions...)
+
 		return err
 	})
 	if err != nil {
@@ -236,13 +234,12 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 func (s *Storage) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (
 	[]*types.RelayInfo, error) {
 
-	var (
-		results []*types.RelayInfo
-		err     error
-	)
+	var results []*types.RelayInfo
 
-	err = s.WrapFn(nCtx, metricOperationGetRelayInfosInNetworkUnit, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationGetRelayInfosInNetworkUnit, func(nCtx contextx.IContext) error {
+		var err error
 		results, err = s.getRelayInfosInNetworkUnit(nCtx, networkUnitID)
+
 		return err
 	})
 	if err != nil {

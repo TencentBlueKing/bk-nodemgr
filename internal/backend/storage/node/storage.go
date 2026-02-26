@@ -280,10 +280,13 @@ func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (ty
 	total := len(operationInsts)
 	switch {
 	case successCount == total:
+
 		return types.NodeWorkflowStatusSuccess, latestEndTime
 	case failedCount == total:
+
 		return types.NodeWorkflowStatusFailed, latestEndTime
 	default:
+
 		return types.NodeWorkflowStatusPartialFailed, latestEndTime
 	}
 }
@@ -310,8 +313,10 @@ func (s *Storage) GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string
 	err := s.WrapFn(nCtx, metricOperationGetNodeDeploymentNodeConf, func(nCtx contextx.IContext) error {
 		var err error
 		nodeConf, err = s.getNodeDeploymentNodeConf(nCtx, token)
+
 		return err
 	})
+
 	return nodeConf, err
 }
 
@@ -321,8 +326,10 @@ func (s *Storage) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*
 	err := s.WrapFn(nCtx, metricOperationGetNodeDeploymentInfo, func(nCtx contextx.IContext) error {
 		var err error
 		deployInfo, err = s.getNodeDeploymentInfo(nCtx, token)
+
 		return err
 	})
+
 	return deployInfo, err
 }
 
@@ -335,8 +342,10 @@ func (s *Storage) ListNodeDeployment(nCtx contextx.IContext, page types.Page, co
 	err := s.WrapFn(nCtx, metricOperationListNodeDeployment, func(nCtx contextx.IContext) error {
 		var err error
 		nodeDeployments, num, err = s.listNodeDeployment(nCtx, page, conditions...)
+
 		return err
 	})
+
 	return nodeDeployments, num, err
 }
 
@@ -370,8 +379,10 @@ func (s *Storage) ListNodeWorkflow(nCtx contextx.IContext, page types.Page, cond
 	err := s.WrapFn(nCtx, metricOperationListNodeWorkflow, func(nCtx contextx.IContext) error {
 		var err error
 		results, num, err = s.listNodeWorkflow(nCtx, page, conditions...)
+
 		return err
 	})
+
 	return results, num, err
 }
 
@@ -381,8 +392,10 @@ func (s *Storage) CountNodeWorkflow(nCtx contextx.IContext, conditions ...*types
 	err := s.WrapFn(nCtx, metricOperationCountNodeWorkflow, func(nCtx contextx.IContext) error {
 		var err error
 		num, err = s.countNodeWorkflow(nCtx, conditions...)
+
 		return err
 	})
+
 	return num, err
 }
 
@@ -395,8 +408,10 @@ func (s *Storage) DistinctNodeWorkflow(
 	err := s.WrapFn(nCtx, metricOperationDistinctNodeWorkflow, func(nCtx contextx.IContext) error {
 		var err error
 		result, err = s.distinctNodeWorkflow(nCtx, request, conditions...)
+
 		return err
 	})
+
 	return result, err
 }
 
@@ -406,8 +421,10 @@ func (s *Storage) GetNodeWorkflow(nCtx contextx.IContext, workflowID string) (*t
 	err := s.WrapFn(nCtx, metricOperationGetNodeWorkflow, func(nCtx contextx.IContext) error {
 		var err error
 		nodeWorkflow, err = s.getNodeWorkflow(nCtx, workflowID)
+
 		return err
 	})
+
 	return nodeWorkflow, err
 }
 

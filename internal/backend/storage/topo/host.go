@@ -46,11 +46,13 @@ func (s *Storage) GetHostByID(nCtx contextx.IContext, hostID int64) (*types.Host
 		}
 
 		data = hosts[0]
+
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
 }
 
@@ -68,6 +70,7 @@ func (s *Storage) UpsertManyHost(nCtx contextx.IContext, hosts ...*types.Host) e
 		if err := s.daoHost.UpsertMany(nCtx, hosts...); err != nil {
 			return fmt.Errorf("failed to upsert hosts: %w", err)
 		}
+
 		return nil
 	})
 }
@@ -86,6 +89,7 @@ func (s *Storage) UpsertManyHostStatic(nCtx contextx.IContext, hosts ...*types.H
 		if err := s.daoHost.UpsertStaticMany(nCtx, hosts...); err != nil {
 			return fmt.Errorf("failed to upsert host statics: %w", err)
 		}
+
 		return nil
 	})
 }
@@ -104,6 +108,7 @@ func (s *Storage) UpdateManyHostDynamic(nCtx contextx.IContext, hosts ...*types.
 		if err := s.daoHost.UpdateDynamicMany(nCtx, hosts...); err != nil {
 			return fmt.Errorf("failed to upsert host dynamics: %v", err)
 		}
+
 		return nil
 	})
 }
@@ -120,11 +125,13 @@ func (s *Storage) ListHost(nCtx contextx.IContext, page types.Page, conditions .
 		opts := convertHostConditionsToOptions(conditions...)
 		var err error
 		results, num, err = s.daoHost.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return results, num, nil
 }
 
@@ -142,11 +149,13 @@ func (s *Storage) ListHostOrderByUpdateTime(
 		opts := convertHostConditionsToOptions(conditions...)
 		var err error
 		results, num, err = s.daoHost.List(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return results, num, nil
 }
 
@@ -157,11 +166,13 @@ func (s *Storage) CountHost(nCtx contextx.IContext, conditions ...*types.HostCon
 		opts := convertHostConditionsToOptions(conditions...)
 		var err error
 		num, err = s.daoHost.Count(nCtx, opts...)
+
 		return err
 	})
 	if err != nil {
 		return 0, err
 	}
+
 	return num, nil
 }
 
@@ -178,92 +189,130 @@ func (s *Storage) DistinctHost(
 		data = new(types.HostDistinctResult)
 
 		gp := gopool.NewPool()
-		if request.BizID {
-			gp.Go(func() error {
-				var err error
-				data.BizID, err = s.daoHost.DistinctBizID(nCtx, opts...)
+		s.enqueueHostDistinctTasks(gp, s.buildHostDistinctTasks(nCtx, request, data, opts))
 
-				return err
-			})
-		}
-		if request.NodeRole {
-			gp.Go(func() error {
-				var err error
-				data.NodeRole, err = s.daoHost.DistinctNodeRole(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.NodeStatus {
-			gp.Go(func() error {
-				var err error
-				data.NodeStatus, err = s.daoHost.DistinctNodeStatus(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.NodeVersion {
-			gp.Go(func() error {
-				var err error
-				data.NodeVersion, err = s.daoHost.DistinctNodeVersion(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.DeptName {
-			gp.Go(func() error {
-				var err error
-				data.DeptName, err = s.daoHost.DistinctDeptName(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.OSType {
-			gp.Go(func() error {
-				var err error
-				data.OSType, err = s.daoHost.DistinctOSType(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.Arch {
-			gp.Go(func() error {
-				var err error
-				data.Arch, err = s.daoHost.DistinctArch(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.Addressing {
-			gp.Go(func() error {
-				var err error
-				data.Addressing, err = s.daoHost.DistinctAddressing(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.NetworkAreaID {
-			gp.Go(func() error {
-				var err error
-				data.NetworkAreaID, err = s.daoHost.DistinctNetworkAreaID(nCtx, opts...)
-
-				return err
-			})
-		}
-		if request.NetworkUnitID {
-			gp.Go(func() error {
-				var err error
-				data.NetworkUnitID, err = s.daoHost.DistinctNetworkUnitID(nCtx, opts...)
-
-				return err
-			})
-		}
 		return gp.Wait()
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
+}
+
+type hostDistinctTask struct {
+	enabled bool
+	run     func() error
+}
+
+func (s *Storage) buildHostDistinctTasks(
+	nCtx contextx.IContext, request types.HostDistinctRequest, data *types.HostDistinctResult, opts []host.OptFn,
+) []hostDistinctTask {
+
+	tasks := []hostDistinctTask{
+		{
+			enabled: request.BizID,
+			run: func() error {
+				var err error
+				data.BizID, err = s.daoHost.DistinctBizID(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.NodeRole,
+			run: func() error {
+				var err error
+				data.NodeRole, err = s.daoHost.DistinctNodeRole(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.NodeStatus,
+			run: func() error {
+				var err error
+				data.NodeStatus, err = s.daoHost.DistinctNodeStatus(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.NodeVersion,
+			run: func() error {
+				var err error
+				data.NodeVersion, err = s.daoHost.DistinctNodeVersion(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.DeptName,
+			run: func() error {
+				var err error
+				data.DeptName, err = s.daoHost.DistinctDeptName(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.OSType,
+			run: func() error {
+				var err error
+				data.OSType, err = s.daoHost.DistinctOSType(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.Arch,
+			run: func() error {
+				var err error
+				data.Arch, err = s.daoHost.DistinctArch(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.Addressing,
+			run: func() error {
+				var err error
+				data.Addressing, err = s.daoHost.DistinctAddressing(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.NetworkAreaID,
+			run: func() error {
+				var err error
+				data.NetworkAreaID, err = s.daoHost.DistinctNetworkAreaID(nCtx, opts...)
+
+				return err
+			},
+		},
+		{
+			enabled: request.NetworkUnitID,
+			run: func() error {
+				var err error
+				data.NetworkUnitID, err = s.daoHost.DistinctNetworkUnitID(nCtx, opts...)
+
+				return err
+			},
+		},
+	}
+
+	return tasks
+}
+
+func (s *Storage) enqueueHostDistinctTasks(gp gopool.Pool, tasks []hostDistinctTask) {
+	for _, task := range tasks {
+		if !task.enabled {
+			continue
+		}
+
+		gp.Go(task.run)
+	}
 }
 
 func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.OptFn {
@@ -374,11 +423,13 @@ func (s *Storage) FindHostWithDynamic(nCtx contextx.IContext, page types.Page, c
 		opts := convertHostConditionsToOptions(conditions...)
 		var err error
 		results, err = s.daoHost.FindWithDynamic(nCtx, page, opts...)
+
 		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	return results, nil
 }
 
@@ -392,6 +443,7 @@ func (s *Storage) UpdateHostDynamicFields(nCtx contextx.IContext, fields types.H
 		if err := s.daoHost.UpdateDynamicFields(nCtx, fields, hosts...); err != nil {
 			return fmt.Errorf("failed to update host dynamic fields: %w", err)
 		}
+
 		return nil
 	})
 }

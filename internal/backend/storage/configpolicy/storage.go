@@ -106,6 +106,7 @@ func (s *Storage) MatchConfigPolicyNode(nCtx contextx.IContext,
 	err := s.WrapFn(nCtx, metricOperationMatchConfigPolicyNode, func(nCtx contextx.IContext) error {
 		var err error
 		result, matched, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole)
+
 		return err
 	})
 
@@ -119,6 +120,7 @@ func (s *Storage) CountConfigPolicy(nCtx contextx.IContext, conditions ...*types
 	err := s.WrapFn(nCtx, metricOperationCountConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
 		count, err = s.countConfigPolicy(nCtx, conditions...)
+
 		return err
 	})
 
@@ -135,6 +137,7 @@ func (s *Storage) ListConfigPolicy(nCtx contextx.IContext, page types.Page, cond
 	err := s.WrapFn(nCtx, metricOperationListConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
 		result, total, err = s.listConfigPolicy(nCtx, page, conditions...)
+
 		return err
 	})
 
@@ -148,6 +151,7 @@ func (s *Storage) GetConfigPolicy(nCtx contextx.IContext, configPolicyID int64) 
 	err := s.WrapFn(nCtx, metricOperationGetConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
 		configPolicy, err = s.getConfigPolicy(nCtx, configPolicyID)
+
 		return err
 	})
 
@@ -161,6 +165,7 @@ func (s *Storage) CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types
 	err := s.WrapFn(nCtx, metricOperationCreateConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
 		configPolicyID, err = s.createConfigPolicy(nCtx, configPolicy)
+
 		return err
 	})
 
@@ -203,8 +208,10 @@ func (s *Storage) CountConfigPolicyEvent(nCtx contextx.IContext, conditions ...*
 		var err error
 		if num, err = s.countConfigPolicyEvent(nCtx, conditions...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to count config policy event")
+
 			return fmt.Errorf("failed to count config policy event: %w", err)
 		}
+
 		return nil
 	})
 
@@ -226,8 +233,10 @@ func (s *Storage) ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 		var err error
 		if results, num, err = s.listConfigPolicyEvent(nCtx, page, conditions...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to list config policy event")
+
 			return fmt.Errorf("failed to list config policy event: %w", err)
 		}
+
 		return nil
 	})
 
@@ -243,8 +252,10 @@ func (s *Storage) CreateManyConfigPolicyEvent(nCtx contextx.IContext, events ...
 	return s.WrapFn(nCtx, metricOperationCreateManyConfigPolicyEvent, func(nCtx contextx.IContext) error {
 		if err := s.createManyConfigPolicyEvent(nCtx, events...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to create many config policy event")
+
 			return fmt.Errorf("failed to create many config policy event: %w", err)
 		}
+
 		return nil
 	})
 }
@@ -260,8 +271,10 @@ func (s *Storage) DistinctConfigPolicyEvent(
 		var err error
 		if data, err = s.distinctConfigPolicyEvent(nCtx, request, conditions...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to distinct config policy event")
+
 			return fmt.Errorf("failed to distinct config policy event: %w", err)
 		}
+
 		return nil
 	})
 
