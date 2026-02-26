@@ -19,17 +19,17 @@ import (
 
 // NodeWorkflow represents the workflow of a node.
 type NodeWorkflow struct {
-	TenantID    string
-	WorkflowID  string
-	TriggerID   string
-	Type        NodeWorkflowType
+	TenantID       string
+	WorkflowID     string
+	TriggerID      string
+	Type           NodeWorkflowType
 	BizIDs         []int64
 	NetworkAreaIDs []int64
 	NetworkUnitIDs []int64
 	Operator       string
-	OperateTime time.Time
-	FinishTime  time.Time
-	Status      NodeWorkflowStatus
+	OperateTime    time.Time
+	FinishTime     time.Time
+	Status         NodeWorkflowStatus
 }
 
 // NodeWorkflowType represents the operation type of a node workflow.

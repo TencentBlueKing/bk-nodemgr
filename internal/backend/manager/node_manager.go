@@ -662,9 +662,6 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 }
 
 func collectDeploymentIDs(deployments []*types.NodeDeployment) ([]int64, []int64) {
-	areaSet := make(map[int64]struct{})
-	unitSet := make(map[int64]struct{})
-
 	var areaIDs, unitIDs []int64
 
 	for _, deploy := range deployments {
@@ -673,23 +670,13 @@ func collectDeploymentIDs(deployments []*types.NodeDeployment) ([]int64, []int64
 		}
 
 		if deploy.Info.Host.Static != nil {
-			areaID := deploy.Info.Host.Static.NetworkAreaID
-			if _, exists := areaSet[areaID]; !exists {
-				areaSet[areaID] = struct{}{}
-				areaIDs = append(areaIDs, areaID)
-			}
+			areaIDs = append(areaIDs, deploy.Info.Host.Static.NetworkAreaID)
 		}
 
 		if deploy.Info.Host.Dynamic != nil {
-			unitID := deploy.Info.Host.Dynamic.NetworkUnitID
-			if _, exists := unitSet[unitID]; exists {
-				continue
-			}
-
-			unitSet[unitID] = struct{}{}
-			unitIDs = append(unitIDs, unitID)
+			unitIDs = append(unitIDs, deploy.Info.Host.Dynamic.NetworkUnitID)
 		}
 	}
 
-	return areaIDs, unitIDs
+	return conv.SliceUnique(areaIDs), conv.SliceUnique(unitIDs)
 }
