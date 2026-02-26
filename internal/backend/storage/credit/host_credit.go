@@ -37,14 +37,14 @@ func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte, ex
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreateHostCredit, func(nCtx contextx.IContext) error {
-		var innerErr error
-		if encryptedCreditData, innerErr = s.crypter.Encrypt(creditData); innerErr != nil {
-			return innerErr
+		var err error
+		if encryptedCreditData, err = s.crypter.Encrypt(creditData); err != nil {
+			return err
 		}
 
 		creditID = generateHostCreditID()
-		if innerErr = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, expiredAt); innerErr != nil {
-			return innerErr
+		if err = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, expiredAt); err != nil {
+			return err
 		}
 
 		return nil
@@ -65,13 +65,13 @@ func (s *Storage) LoadHostCredit(nCtx contextx.IContext, creditID string) ([]byt
 	)
 
 	err = s.WrapFn(nCtx, metricOperationLoadHostCredit, func(nCtx contextx.IContext) error {
-		var innerErr error
-		if encryptedCreditData, innerErr = s.daoCredit.Get(nCtx, creditID); innerErr != nil {
-			return innerErr
+		var err error
+		if encryptedCreditData, err = s.daoCredit.Get(nCtx, creditID); err != nil {
+			return err
 		}
 
-		if creditData, innerErr = s.crypter.Decrypt(encryptedCreditData); innerErr != nil {
-			return innerErr
+		if creditData, err = s.crypter.Decrypt(encryptedCreditData); err != nil {
+			return err
 		}
 
 		return nil
@@ -91,9 +91,9 @@ func (s *Storage) CheckHostCreditValid(nCtx contextx.IContext, creditIDList ...s
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCheckHostCreditValid, func(nCtx contextx.IContext) error {
-		var innerErr error
-		if result, innerErr = s.daoCredit.CheckValid(nCtx, creditIDList...); innerErr != nil {
-			return innerErr
+		var err error
+		if result, err = s.daoCredit.CheckValid(nCtx, creditIDList...); err != nil {
+			return err
 		}
 
 		return nil

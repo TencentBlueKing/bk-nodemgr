@@ -154,6 +154,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(nCtx contextx.IContext, networ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProxyUpstreamAccessPoints, func(nCtx contextx.IContext) error {
+		var err error
 		var networkUnit *types.NetworkUnit
 		if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
 			return fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
