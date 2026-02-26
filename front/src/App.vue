@@ -1,5 +1,5 @@
 <template>
-  <div :class="['w-full', 'h-full', 'flex', 'flex-col', { 'notice-show': noticeShow }]">
+  <div v-if="i18nReady" :class="['w-full', 'h-full', 'flex', 'flex-col', { 'notice-show': noticeShow }]">
     <notice v-if="noticeShow" :api-url="apiUrl" @show-alert-change="showAlertChange" />
     <Navigation
       class="flex-1"
@@ -215,6 +215,7 @@ import Notice from '@/components/notice.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
+import { i18nReady } from '@/modules/i18n';
 import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 

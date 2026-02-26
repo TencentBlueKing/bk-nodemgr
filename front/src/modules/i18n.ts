@@ -1,8 +1,12 @@
+import { ref } from 'vue';
 import type { Locale } from 'vue-i18n';
 import { createI18n } from 'vue-i18n';
 
 import { parseCookies } from '@/common/util';
 import type { UserModule } from '@/types.ts';
+
+// i18n 语言包就绪状态，语言包加载完成前不渲染应用内容
+const i18nReady = ref(false);
 
 const i18n = createI18n({
   legacy: false,
@@ -58,11 +62,17 @@ const install: UserModule = async ({ app }) => {
   app.use(i18n);
   // 根据cookie中的语言设置加载对应语言
   const currentLang = getCurrentLanguage();
-  await loadLanguageAsync(currentLang);
+  try {
+    await loadLanguageAsync(currentLang);
+  } finally {
+    // 无论成功或失败，均标记就绪，防止永久白屏
+    i18nReady.value = true;
+  }
 };
 
 export {
   i18n,
+  i18nReady,
   availableLocales,
   loadLanguageAsync,
   install,
