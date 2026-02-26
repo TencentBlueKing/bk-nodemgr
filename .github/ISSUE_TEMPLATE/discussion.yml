@@ -1,0 +1,81 @@
+name: 建议与讨论 / Discussion & Proposal
+description: 提出新功能建议或项目改进方向的讨论 / Propose ideas or discuss project improvements
+title: "[IDEA] "
+labels: ["kind/need-discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎提出你的想法和建议！开放性的讨论有助于项目持续演进。
+        Welcome to share your ideas! Open discussions help the project evolve.
+
+        提交前请先搜索现有 issues，避免重复。
+        Please search existing issues before submitting to avoid duplicates.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查 / Pre-submission Checklist
+      options:
+        - label: 我已搜索现有 issues，此议题尚未被讨论 / I have searched existing issues and this topic has not been discussed
+          required: true
+
+  - type: dropdown
+    id: proposal_type
+    attributes:
+      label: 提案类型 / Proposal Type
+      description: 选择最符合的类型 / Select the most fitting type
+      multiple: true
+      options:
+        - 新功能建议 / New Feature
+        - 架构改进 / Architecture Improvement
+        - 性能优化 / Performance Optimization
+        - API 设计讨论 / API Design Discussion
+        - 工程实践改进 / Engineering Practice
+        - 其他讨论 / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景与动机 / Background & Motivation
+      description: 描述当前遇到的问题或局限性，以及为什么需要这个改进 / Describe the current problem or limitation and why this improvement is needed
+      placeholder: 目前存在的问题是... / The current problem is...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案描述 / Proposal Description
+      description: 详细描述你的想法、建议或讨论点 / Describe your idea, suggestion, or discussion point in detail
+      placeholder: 我的建议是... / My proposal is...
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: 预期收益 / Expected Benefits
+      description: 这个改变会带来什么好处？会解决什么问题？/ What benefits will this bring? What problems will it solve?
+      placeholder: |
+        - 提升...
+        - 解决...
+        - 改善...
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 可能的实现方式 / Possible Implementation
+      description: 如果有初步的实现思路，请描述（可选）/ If you have initial implementation ideas, please describe (optional)
+      placeholder: |
+        概念验证思路：
+        1. ...
+        2. ...
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 附加信息 / Additional Context
+      description: 补充其他上下文、参考资料或截图 / Add any other context, references, or screenshots

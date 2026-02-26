@@ -1,29 +1,93 @@
-name: Bug 报告
-description: 提交一个缺陷报告
+name: Bug 报告 / Bug Report
+description: 提交一个缺陷报告 / Submit a bug report
 title: "[Bug]: "
-labels: [ "bug" ]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
         感谢您花时间填写此缺陷报告！详细的问题描述有助于我们更快地定位和解决问题。
+        Thanks for taking the time to fill out this bug report! Detailed descriptions help us locate and fix issues faster.
+
+        提交前请先搜索现有 issues，避免重复。
+        Please search existing issues before submitting to avoid duplicates.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查 / Pre-submission Checklist
+      description: 提交前请确认以下内容 / Please confirm the following before submitting
+      options:
+        - label: 我已搜索现有 issues，此 Bug 尚未被报告 / I have searched existing issues and this bug has not been reported
+          required: true
+        - label: 我已阅读 [文档 / Documentation](https://github.com/TencentBlueKing/bk-nodemgr/blob/master/README.md)
+          required: true
+        - label: 我可以稳定复现此问题 / I can reliably reproduce this issue
+          required: true
+
   - type: textarea
     id: what-happened
     attributes:
-      label: 发生了什么？
-      description: 请详细描述您遇到的问题，以及您期望的正常行为是什么
-      placeholder: 请详细描述您看到的问题现象...
-      value: "请描述问题的重现步骤：\n1. 进入页面...\n2. 点击...\n3. 滚动到...\n4. 出现错误..."
+      label: 问题描述 / Problem Description
+      description: 请详细描述您遇到的问题现象 / Please describe the issue in detail
+      placeholder: |
+        重现步骤 / Steps to reproduce:
+        1. 进入页面... / Go to page...
+        2. 执行操作... / Perform action...
+        3. 出现错误... / Error occurs...
     validations:
       required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为 / Expected Behavior
+      description: 描述您期望发生的正常行为 / Describe what you expected to happen
+      placeholder: 正常情况下应该... / Normally it should...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 涉及组件 / Affected Component
+      description: 问题出现在哪个服务或模块？/ Which service or module is affected?
+      options:
+        - Backend Service / 后台服务 (cmd/backend)
+        - File Service / 文件服务 (cmd/file)
+        - Relay Service / 中继服务 (cmd/relay)
+        - Application CLI / 应用命令行 (cmd/application)
+        - Frontend / 前端 (front/)
+        - Agent / 节点 Agent
+        - API / 接口
+        - Installation / 安装部署
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息 / Environment
+      description: 请填写相关环境信息 / Please provide environment details
+      value: |
+        - bk-nodemgr 版本 / Version:
+        - 操作系统 / OS:
+        - Go 版本 / Go Version: (如适用 / if applicable)
+        - 浏览器 / Browser: (如适用 / if applicable)
+        - 蓝鲸平台版本 / BlueKing Platform Version:
+    validations:
+      required: true
+
   - type: textarea
     id: logs
     attributes:
-      label: 相关日志输出
-      description: 请复制粘贴任何相关的日志输出。这将自动格式化为代码，无需添加反引号。
+      label: 相关日志 / Relevant Logs
+      description: 请复制粘贴任何相关的日志输出，将自动格式化为代码块 / Paste any relevant log output, will be auto-formatted as code
       render: shell
+
   - type: textarea
     id: additional
     attributes:
-      label: 附加信息
-      description: 请提供任何可能有助于解决问题的其他信息，如截图、视频等（可直接拖拽文件到此处）
+      label: 附加信息 / Additional Context
+      description: 截图、视频或其他有助于定位问题的信息（可直接拖拽文件）/ Screenshots, videos, or other helpful context (drag & drop files here)

@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: GitHub Community Support
-    url: https://github.com/orgs/community/discussions
-    about: Please ask and answer questions here.
-  - name: GitHub Security Bug Bounty
-    url: https://bounty.github.com/
-    about: Please report security vulnerabilities here.
+  - name: 蓝鲸社区 / BlueKing Community
+    url: https://bk.tencent.com/s-mart/community
+    about: 在蓝鲸社区提问和交流 / Ask questions and discuss in the BlueKing community
+  - name: 项目文档 / Documentation
+    url: https://github.com/TencentBlueKing/bk-nodemgr/blob/master/README.md
+    about: 查阅项目文档 / Read the project documentation
+  - name: 安全漏洞 / Security Vulnerabilities
+    url: https://github.com/TencentBlueKing/bk-nodemgr/security/advisories/new
+    about: 请通过此渠道报告安全漏洞 / Please report security vulnerabilities here
