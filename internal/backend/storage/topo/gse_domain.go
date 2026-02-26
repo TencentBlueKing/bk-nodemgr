@@ -36,6 +36,7 @@ func (s *Storage) GetV4AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetV4AgentAccessEndpoints, func(nCtx contextx.IContext) error {
+		var err error
 		cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID)
 		return err
 	})
@@ -58,6 +59,7 @@ func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetV6AgentAccessEndpoints, func(nCtx contextx.IContext) error {
+		var err error
 		cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID)
 		return err
 	})
@@ -154,8 +156,10 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(nCtx contextx.IContext, networ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProxyUpstreamAccessPoints, func(nCtx contextx.IContext) error {
-		var err error
-		var networkUnit *types.NetworkUnit
+		var (
+			networkUnit *types.NetworkUnit
+			err         error
+		)
 		if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
 			return fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
 		}
@@ -223,6 +227,7 @@ func (s *Storage) NeedStaticAccess(nCtx contextx.IContext, networkUnitID int64) 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationNeedStaticAccess, func(nCtx contextx.IContext) error {
+		var err error
 		var networkUnit *types.NetworkUnit
 		if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
 			return fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
