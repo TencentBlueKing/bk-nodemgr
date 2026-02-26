@@ -18,8 +18,8 @@ platform:
       unassigned: 未分配
       confirmIsBatch: 请确认是否批量{type}
       confirmIsSingle: 请确认是否{type}
-      batchOperate: '{type} {firstIp} 等{num}个IP的Agent'
-      singleOperate: '{type} {firstIp} 的Agent'
+      batchOperate: "{type} {firstIp} 等{num}个IP的Agent"
+      singleOperate: "{type} {firstIp} 的Agent"
     proxyStatus:
       title: Proxy 状态
     installAgent: 安装 Agent
@@ -268,7 +268,7 @@ topoManager:
       success: 复制成功
       failed: 复制失败
     delete:
-      title: '确认要删除 {x}(管控区域) ？'
+      title: "确认要删除 {x}(管控区域) ？"
   workAreaDetail:
     workUnitCount: 管控单元数量
     proxyQuantity: Proxy 数量
@@ -316,7 +316,7 @@ topoManager:
       restart: 确认重启当前proxy？
     dialogTips:
       unload: 卸载后将无法恢复，请谨慎操作
-    dialogContent: 
+    dialogContent:
       ipv4: 内网 IPv4
   workUnit:
     title:
@@ -335,7 +335,7 @@ topoManager:
       accessPointName: 接入点名称
       createAccessPoint: 新增接入点
       deleteTips: 确认要删除该接入点？
-      input: 
+      input:
         placeholder: 请输入IP:端口
         validate: 格式错误，请输入IP:端口
     delete:
@@ -352,7 +352,7 @@ topoManager:
     toggle:
       expand: 展开
       close: 收起
-    tip: '不可选择当前管控单元作为上游接入点管控单元'
+    tip: "不可选择当前管控单元作为上游接入点管控单元"
   installProxy:
     title: 安装 Proxy
     reinstall: 重装 Proxy
@@ -370,7 +370,7 @@ topoManager:
       account: 登录账号
       business: 归属业务
       relayDownloadPort: 中转下载端口
-      relayCallbackPort:  中转回调端口
+      relayCallbackPort: 中转回调端口
       tip: 不能选择直连单元
     installMethodList:
       remote:
@@ -785,7 +785,7 @@ components:
     title: 按操作系统选定版本
     AgentVersion: Agent 版本
     DefaultVersion: 默认版本
-    versionInfoTitle: '{version} 的详细信息'
+    versionInfoTitle: "{version} 的详细信息"
     forceUpgrade: 强制升级
     gracefulUpgrade: 无损升级
   configTemplate:
@@ -864,7 +864,7 @@ components:
     medium: 中
     large: 大
   uploadExcel:
-    tip: '仅支持 .xlsx 类型文件，下载'
+    tip: "仅支持 .xlsx 类型文件，下载"
     templateFile: 模板文件
     error: 上传失败
 footer:
@@ -913,17 +913,36 @@ route:
   plugin: 插件
   taskHistory: 任务历史
   workarea: 管控区域
-  workareaSubtitle: 管控区域是互相之间能直接通信的一组服务器单元，如企业内的局域网、公有云VPC（虚拟私有网络）。
+  workareaSubtitle: 管控区域包含了在同一个IP池中的一组服务器单元，如企业内的局域网、公有云VPC（虚拟私有网络）
   workareaDetail: 管控区域详情
-  topo: 拓扑
-  topoSubtitle: 拓扑副标题
+  topo: 拓扑图
+  topoSubtitle: 拓扑图描述了管控单元之间的链路连接关系
   operationRecord: 操作记录
   agentStrategy: Agent策略
+  agentStrategySubtitle: Agent策略描述了Agent节点的配置信息
   proxyStrategy: Proxy策略
+  proxyStrategySubtitle: Proxy策略描述了Proxy节点的配置信息
   pluginStrategy: 插件策略
   agentPackage: Agent包管理
   proxyPackage: Proxy包管理
   certManage: 证书管理
   toolManage: 工具管理
   pluginToolManage: 插件工具管理
-
+  agentSubtitle: Agent节点是最基础的管控节点，通常是一个物理机、一个云服务器、一个富容器
+  proxyStatusSubtitle: Proxy节点是一组代理节点，用于收敛策略、桥接不同管控单元之间的Agent节点
+  pluginSubtitle: 插件是一组运行在节点上，由GSE Agent或GSE Proxy托管的进程服务
+  taskHistorySubtitle: 节点操作的任务历史
+  topoOperationRecordSubtitle: 拓扑操作的历史记录
+  strategyTaskHistorySubtitle: 策略操作的历史记录
+  agentPackageSubtitle: Agent包提供了Agent节点能覆盖的操作系统、架构和组件版本
+  proxyPackageSubtitle: Proxy包提供了Proxy节点能覆盖的操作系统、架构和组件版本
+  pluginPackageSubtitle: 插件包提供了节点能安装的插件种类，及其能覆盖的操作系统、架构和组件版本
+  certManageSubtitle: 证书提供对GSE组件之间的加密通信，GSE Agent和GSE Proxy使用同一套证书
+  toolManageSubtitle: 工具提供对GSE组件的运维操作支持，包括启动脚本、排障工具等
+  pluginToolManageSubtitle: 插件工具提供对插件统一的运维操作支持，包括启动脚本、排障工具等
+  pkgOperationRecordsSubtitle: 包管理操作的历史记录
+menu:
+  topoGroup: 拓扑
+  recordGroup: 记录
+  strategyGroup: 策略
+  pluginPackageMng: 插件包管理

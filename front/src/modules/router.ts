@@ -44,6 +44,7 @@ const routes = setupLayouts([
             path: 'agent',
             component: AgentManager,
             meta: {
+              subTitle: i18n.global.t('route.agentSubtitle'),
               mainMenu: 'nodeManager',
             },
           },
@@ -53,6 +54,7 @@ const routes = setupLayouts([
             component: proxyStatus,
             meta: {
               title: i18n.global.t('route.agentStatus'),
+              subTitle: i18n.global.t('route.proxyStatusSubtitle'),
               back: false,
               mainMenu: 'nodeManager',
             },
@@ -87,6 +89,7 @@ const routes = setupLayouts([
             meta: {
               mainMenu: 'nodeManager',
               title: i18n.global.t('route.plugin'),
+              subTitle: i18n.global.t('route.pluginSubtitle'),
               back: false,
             },
           },
@@ -96,6 +99,7 @@ const routes = setupLayouts([
             component: TaskHistory,
             meta: {
               title: i18n.global.t('route.taskHistory'),
+              subTitle: i18n.global.t('route.taskHistorySubtitle'),
               back: false,
               mainMenu: 'nodeManager',
             },
@@ -165,6 +169,7 @@ const routes = setupLayouts([
             component: OperationRecord,
             meta: {
               title: i18n.global.t('route.operationRecord'),
+              subTitle: i18n.global.t('route.topoOperationRecordSubtitle'),
               back: false,
               mainMenu: 'topoManager',
             },
@@ -184,6 +189,7 @@ const routes = setupLayouts([
             component: AgentStrategy,
             meta: {
               title: i18n.global.t('route.agentStrategy'),
+              subTitle: i18n.global.t('route.agentStrategySubtitle'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -195,6 +201,7 @@ const routes = setupLayouts([
             component: AgentStrategy,
             meta: {
               title: i18n.global.t('route.proxyStrategy'),
+              subTitle: i18n.global.t('route.proxyStrategySubtitle'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -215,6 +222,7 @@ const routes = setupLayouts([
             component: RulesRecord,
             meta: {
               title: i18n.global.t('route.operationRecord'),
+              subTitle: i18n.global.t('route.strategyTaskHistorySubtitle'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -233,6 +241,7 @@ const routes = setupLayouts([
             component: AgentPackageMng,
             meta: {
               title: i18n.global.t('route.agentPackage'),
+              subTitle: i18n.global.t('route.agentPackageSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -243,6 +252,7 @@ const routes = setupLayouts([
             component: AgentPackageMng,
             meta: {
               title: i18n.global.t('route.proxyPackage'),
+              subTitle: i18n.global.t('route.proxyPackageSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -253,6 +263,7 @@ const routes = setupLayouts([
             component: CertBintoolMng,
             meta: {
               title: i18n.global.t('route.certManage'),
+              subTitle: i18n.global.t('route.certManageSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -263,6 +274,7 @@ const routes = setupLayouts([
             component: CertBintoolMng,
             meta: {
               title: i18n.global.t('route.toolManage'),
+              subTitle: i18n.global.t('route.toolManageSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -273,6 +285,7 @@ const routes = setupLayouts([
             component: CertBintoolMng,
             meta: {
               title: i18n.global.t('route.pluginToolManage'),
+              subTitle: i18n.global.t('route.pluginToolManageSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -282,6 +295,7 @@ const routes = setupLayouts([
             path: 'pluginPackageMng',
             component: PluginPackageMng,
             meta: {
+              subTitle: i18n.global.t('route.pluginPackageSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -292,6 +306,7 @@ const routes = setupLayouts([
             component: OperationRecords,
             meta: {
               title: i18n.global.t('route.operationRecord'),
+              subTitle: i18n.global.t('route.pkgOperationRecordsSubtitle'),
               back: false,
               mainMenu: 'pkgManager',
             },

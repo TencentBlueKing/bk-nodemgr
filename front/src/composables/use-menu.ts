@@ -65,7 +65,7 @@ const navList = [
     title: i18n.global.t('platform.topoManagerName'),
     group: [
       {
-        title: i18n.global.t('拓扑'),
+        title: i18n.global.t('menu.topoGroup'),
         children: [
           {
             routeName: 'workarea',
@@ -75,17 +75,17 @@ const navList = [
           {
             routeName: 'topo',
             icon: 'nodeman-icon nc-topo',
-            title: i18n.global.t('拓扑图'),
+            title: i18n.global.t('route.topo'),
           },
         ],
       },
       {
-        title: i18n.global.t('记录'),
+        title: i18n.global.t('menu.recordGroup'),
         children: [
           {
             routeName: 'record',
             icon: 'nodeman-icon nc-record',
-            title: i18n.global.t('操作记录'),
+            title: i18n.global.t('route.operationRecord'),
           },
         ],
       },
@@ -96,32 +96,32 @@ const navList = [
     title: i18n.global.t('platform.ruleManagerName'),
     group: [
       {
-        title: i18n.global.t('策略'),
+        title: i18n.global.t('menu.strategyGroup'),
         children: [
           {
             routeName: 'agentStrategy',
             icon: 'nodeman-icon nc-agentcelve',
-            title: i18n.global.t('Agent 策略'),
+            title: i18n.global.t('route.agentStrategy'),
           },
           {
             routeName: 'proxyStrategy',
             icon: 'nodeman-icon nc-proxycelve',
-            title: i18n.global.t('Proxy 策略'),
+            title: i18n.global.t('route.proxyStrategy'),
           },
           // {
           //   routeName: 'pluginStrategy',
           //   icon: 'nodeman-icon nc-plug-in',
-          //   title: i18n.global.t('插件策略'),
+          //   title: i18n.global.t('route.pluginStrategy'),
           // },
         ],
       },
       {
-        title: i18n.global.t('历史'),
+        title: i18n.global.t('platform.nodeMan.history'),
         children: [
           {
             routeName: 'strategyTaskHistory',
             icon: 'nodeman-icon nc-history',
-            title: i18n.global.t('操作记录'),
+            title: i18n.global.t('route.operationRecord'),
           },
         ],
       },
@@ -132,52 +132,52 @@ const navList = [
     title: i18n.global.t('platform.pkgManagerName'),
     group: [
       {
-        title: i18n.global.t('节点'),
+        title: i18n.global.t('platform.nodeMan.node'),
         children: [
           {
             routeName: 'agentPackageMng',
             icon: 'nodeman-icon nc-package-agent-2',
-            title: i18n.global.t('Agent 包管理'),
+            title: i18n.global.t('route.agentPackage'),
           },
           {
             routeName: 'proxyPackageMng',
             icon: 'nodeman-icon nc-package-proxy',
-            title: i18n.global.t('Proxy 包管理'),
+            title: i18n.global.t('route.proxyPackage'),
           },
           {
             routeName: 'certPackageMng',
             icon: 'nodeman-icon nc-backstage',
-            title: i18n.global.t('证书管理'),
+            title: i18n.global.t('route.certManage'),
           },
           {
             routeName: 'bintoolPackageMng',
             icon: 'nodeman-icon nc-manual',
-            title: i18n.global.t('工具管理'),
+            title: i18n.global.t('route.toolManage'),
           },
         ],
       },
       {
-        title: i18n.global.t('插件'),
+        title: i18n.global.t('pluginManagement.pluginGroupName'),
         children: [
           {
             routeName: 'pluginPackageMng',
             icon: 'nodeman-icon nc-plug-in',
-            title: i18n.global.t('插件包管理'),
+            title: i18n.global.t('menu.pluginPackageMng'),
           },
           {
             routeName: 'plugin_bintoolPackageMng',
             icon: 'nodeman-icon nc-manual',
-            title: i18n.global.t('插件包工具管理'),
+            title: i18n.global.t('route.pluginToolManage'),
           },
         ],
       },
       {
-        title: i18n.global.t('记录'),
+        title: i18n.global.t('menu.recordGroup'),
         children: [
           {
             routeName: 'operationRecords',
             icon: 'nodeman-icon nc-record',
-            title: i18n.global.t('操作记录'),
+            title: i18n.global.t('route.operationRecord'),
           },
         ],
       },

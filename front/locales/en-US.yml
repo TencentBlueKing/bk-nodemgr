@@ -33,8 +33,8 @@ platform:
       tip2ThirdSlotText: Table Display Settings
       type: Installation Method
       installBusiness: Install to Business
-      cloud: Install to Cloud Area
-      cloud_unit: Install to Control Unit
+      cloud: Install to Network Area
+      cloud_unit: Install to Network Unit
       info: Installation Info
       version: Agent Version
       packageVersion: Package Version
@@ -94,13 +94,13 @@ platform:
     copy: Copy
     uninstall: Uninstall
     bussinessTopology: Business Topology
-    agentSearchPlaceholder: Select IP, Agent ID, Cloud Area, Control Unit...
+    agentSearchPlaceholder: Select IP, Agent ID, Network Area, Network Unit...
     inner_ip: Private IPv4
     inner_ipv6: Private IPv6
     agentId: Agent ID
     bk_biz_id: Business
-    bk_cloud_name: Cloud Area
-    bk_cloud_unit: Control Unit
+    bk_cloud_name: Network Area
+    bk_cloud_unit: Network Unit
     dept_name: Department
     os_type: OS
     cpu_arch: Arch
@@ -223,28 +223,28 @@ pluginManagement:
         unknown: Unknown
 topoManager:
   workArea:
-    title: Cloud Area
+    title: Network Area
     search:
-      placeholder: Select Cloud Area Name, Cloud Area ID, Cloud Provider
-      workareaName: Cloud Area Name
-      workareaId: Cloud Area ID
+      placeholder: Select Network Area Name, Network Area ID, Cloud Provider
+      workareaName: Network Area Name
+      workareaId: Network Area ID
       vendor: Cloud Provider
     form:
-      create: Create Cloud Area
-      edit: Edit Cloud Area
-      workareaName: Cloud Area Name
+      create: Create Network Area
+      edit: Edit Network Area
+      workareaName: Network Area Name
       vendor: Cloud Provider
-      tips: Proxy must be installed after creating a Cloud Area to function properly.
-      success: Cloud Area created successfully
-      failed: Failed to create Cloud Area
+      tips: Proxy must be installed after creating a Network Area to function properly.
+      success: Network Area created successfully
+      failed: Failed to create Network Area
     formRule:
-      workareaName: Cloud Area Name is required
+      workareaName: Network Area Name is required
       vendor: Cloud Provider is required
     table:
-      workareaName: Cloud Area Name
-      workareaId: Cloud Area ID
+      workareaName: Network Area Name
+      workareaId: Network Area ID
       vendor: Cloud Provider
-      workUnitsCount: Control Units
+      workUnitsCount: Network Units
       proxyCount: Proxies
       agentCount: Agents
     vendor:
@@ -262,15 +262,15 @@ topoManager:
       Capital: Capital Cloud
       TencentPrivate: Tencent Internal
     copy:
-      workarea: Cloud Area
+      workarea: Network Area
       select: Selected Proxy IPs
       selectAll: All Proxy IPs
       success: Copied successfully
       failed: Failed to copy
     delete:
-      title: 'Confirm deletion of Cloud Area: {x}?'
+      title: 'Confirm deletion of Network Area: {x}?'
   workAreaDetail:
-    workUnitCount: Control Units
+    workUnitCount: Network Units
     proxyQuantity: Proxies
     agentQuantity: Agents
     updatePerson: Updated By
@@ -320,14 +320,14 @@ topoManager:
       ipv4: Private IPv4
   workUnit:
     title:
-      create: Create Control Unit
-      edit: Edit Control Unit
+      create: Create Network Unit
+      edit: Edit Network Unit
       updateProxyInfo: Update Proxy Info
     form:
-      workUnitType: Control Unit Type
+      workUnitType: Network Unit Type
       notDirect: Non-direct
       direct: Direct
-      workUnitName: Control Unit Name
+      workUnitName: Network Unit Name
       upstream: Upstream
       downstream: Downstream
       directConfig: Direct Config
@@ -339,12 +339,12 @@ topoManager:
         placeholder: Enter IP:Port
         validate: Invalid format, please use IP:Port
     delete:
-      title: Confirm delete this Control Unit?
-      content: Control Unit
-      tips: After deletion, Proxies under this Control Unit will no longer be associated with it. Please proceed with caution!
-      directUnitTip: After deletion, this Direct-Connected Control Unit will be removed. Please proceed with caution!
-    empty: No Control Units
-    emptyTips: Create a new Control Unit to view data.
+      title: Confirm delete this Network Unit?
+      content: Network Unit
+      tips: After deletion, Proxies under this Network Unit will no longer be associated with it. Please proceed with caution!
+      directUnitTip: After deletion, this Direct-Connected Network Unit will be removed. Please proceed with caution!
+    empty: No Network Units
+    emptyTips: Create a new Network Unit to view data.
     accessPoints:
       upstream: Upstream Access Points
       downstream: Downstream Access Points
@@ -352,7 +352,7 @@ topoManager:
     toggle:
       expand: Expand
       close: Collapse
-    tip: Cannot select the current Control Unit as an upstream access point.
+    tip: Cannot select the current Network Unit as an upstream access point.
   installProxy:
     title: Install Proxy
     reinstall: Reinstall Proxy
@@ -424,27 +424,27 @@ topoManager:
     title: Operation Record
     searchPlaceholder:
       date: 'e.g., 2019-01-30 to 2019-01-30'
-      searchSelect: Select Cloud Area Name, Cloud Area ID, Control Unit, Action, Operator
+      searchSelect: Select Network Area Name, Network Area ID, Network Unit, Action, Operator
     table:
-      workareaName: Cloud Area Name
-      workareaId: Cloud Area ID
-      workUnit: Control Unit
+      workareaName: Network Area Name
+      workareaId: Network Area ID
+      workUnit: Network Unit
       type: Action
       operator: Operator
       operateTime: Operation Time
-      createNetworkarea: Create Cloud Area
-      updateNetworkarea: Update Cloud Area
-      deleteNetworkarea: Delete Cloud Area
-      createNetworkunit: Create Control Unit
-      updateNetworkunit: Update Control Unit
-      deleteNetworkunit: Delete Control Unit
+      createNetworkarea: Create Network Area
+      updateNetworkarea: Update Network Area
+      deleteNetworkarea: Delete Network Area
+      createNetworkunit: Create Network Unit
+      updateNetworkunit: Update Network Unit
+      deleteNetworkunit: Delete Network Unit
       createAccesspoint: Create Access Point
       updateAccesspoint: Update Access Point
       deleteAccesspoint: Delete Access Point
     searchItems:
-      workareaName: Cloud Area Name
-      workareaId: Cloud Area ID
-      workUnit: Control Unit
+      workareaName: Network Area Name
+      workareaId: Network Area ID
+      workUnit: Network Unit
       type: Action
       operator: Operator
 action:
@@ -493,7 +493,7 @@ authenticationType:
 dialog:
   confirmClose: Confirm close?
 taskDetail:
-  searchPlaceholder: Select IP, Cloud Area, Business, Target Version, Status
+  searchPlaceholder: Select IP, Network Area, Business, Target Version, Status
   batchRetry: Batch Retry
   batchTerminate: Batch Terminate
   title: Task Details
@@ -531,8 +531,8 @@ taskDetail:
     pluginName: Plugin Name
     ipv4: IPv4
     ipv6: IPv6
-    workarea: Cloud Area
-    workUnit: Control Unit
+    workarea: Network Area
+    workUnit: Network Unit
     business: Business
     targetVersion: Target Version
     costTime: Duration
@@ -550,8 +550,8 @@ taskDetail:
   search:
     ipv4: IPv4
     ipv6: IPv6
-    workarea: Cloud Area
-    workUnit: Control Unit
+    workarea: Network Area
+    workUnit: Network Unit
     business: Business
     targetVersion: Target Version
     status: Status
@@ -603,7 +603,7 @@ agentStrategy:
     config: Config
     selectBusiness: Select Business
     unlimited: Unlimited
-    workUnit: Control Unit
+    workUnit: Network Unit
     os: OS
     arch: Arch
     addScope: Add Scope
@@ -793,8 +793,8 @@ components:
     disabled: 'Off'
   copyIpDropdown:
     checkIp: Selected IPs
-    workareaAndIpv4: Cloud Area + IPv4
-    workareaAndIpv6: Cloud Area + IPv6
+    workareaAndIpv4: Network Area + IPv4
+    workareaAndIpv6: Network Area + IPv6
     allIps: All IPs
     empty: Nothing to copy
     success: Copied successfully
@@ -805,8 +805,8 @@ components:
     bizProperty: Business Property
     bkBizId: Business
     topoProperty: Topology Property
-    networkArea: Cloud Area
-    networkUnit: Control Unit
+    networkArea: Network Area
+    networkUnit: Network Unit
     hostIp: Host IP
     innerIPv4: Private IPv4
     innerIPv6: Private IPv6
@@ -912,11 +912,11 @@ route:
   installReinstallAgent: Install/Reinstall Agent
   plugin: Plugin
   taskHistory: Task History
-  workarea: Cloud Area
-  workareaSubtitle: Cloud Area is a group of servers that can communicate with each other, such as an enterprise's internal network or a public cloud VPC (Virtual Private Network).
-  workareaDetail: Cloud Area Details
+  workarea: Network Area
+  workareaSubtitle: Network Area is a group of servers that can communicate with each other, such as an enterprise's internal network or a public cloud VPC (Virtual Private Network).
+  workareaDetail: Network Area Details
   topo: Topology
-  topoSubtitle: Topology Subtitle
+  topoSubtitle: Topology describes the link connections between Network Units
   operationRecord: Operation Record
   agentStrategy: Agent Strategy
   proxyStrategy: Proxy Strategy
@@ -926,3 +926,23 @@ route:
   certManage: Certificate Management
   toolManage: Tool Management
   pluginToolManage: Plugin Tool Management
+  agentSubtitle: Agent nodes are the most fundamental control nodes, typically physical machines, cloud servers, or rich containers
+  proxyStatusSubtitle: Proxy nodes are a group of proxy nodes that converge policies and bridge Agent nodes across different Network Units
+  pluginSubtitle: Plugins are process services running on nodes, managed by GSE Agent or GSE Proxy
+  taskHistorySubtitle: Task history for node operations
+  topoOperationRecordSubtitle: Historical records of topology operations
+  strategyTaskHistorySubtitle: Historical records of strategy operations
+  agentStrategySubtitle: Agent strategy describes the configuration information for Agent nodes
+  proxyStrategySubtitle: Proxy strategy describes the configuration information for Proxy nodes
+  agentPackageSubtitle: Agent packages provide the operating system, architecture, and component version coverage for Agent nodes
+  proxyPackageSubtitle: Proxy packages provide the operating system, architecture, and component version coverage for Proxy nodes
+  pluginPackageSubtitle: Plugin packages provide the types of plugins that can be installed on nodes, and the operating system, architecture, and component version coverage
+  certManageSubtitle: Certificates provide encrypted communication between GSE components; GSE Agent and GSE Proxy share the same certificate set
+  toolManageSubtitle: Tools provide operational support for GSE components, including startup scripts and troubleshooting tools
+  pluginToolManageSubtitle: Plugin tools provide unified operational support for plugins, including startup scripts and troubleshooting tools
+  pkgOperationRecordsSubtitle: Historical records of package management operations
+menu:
+  topoGroup: Topology
+  recordGroup: Records
+  strategyGroup: Strategy
+  pluginPackageMng: Plugin Package
