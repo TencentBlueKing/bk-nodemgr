@@ -182,7 +182,7 @@ compress-binary:
 		$(ECHO) "Error: Binary file not found: $(BINARY)"; \
 		exit 1; \
 	fi
-	@if [ -z "$(UPX_ENABLED)" ]; then \
+	@if [ -n "$(UPX_ENABLED)" ]; then \
 		$(ECHO) "Compressing $(BINARY) with UPX..."; \
 		upx $(UPX_ARGS) "$(BINARY)"; \
 		$(ECHO) "Compression complete"; \
