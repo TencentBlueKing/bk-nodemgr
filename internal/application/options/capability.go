@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/notice"
@@ -45,6 +46,9 @@ type Capability struct {
 
 	// FrontSetting front setting
 	FrontSetting frontsetting.IFrontSetting
+
+	// BKLoginHandler the bklogin handler.
+	BKLoginHandler bksaasbklogin.IHandler
 }
 
 // Start starts all services in capability.

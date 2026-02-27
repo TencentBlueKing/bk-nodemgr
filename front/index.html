@@ -30,6 +30,7 @@
         const BK_USER_WEB_URL = '{{ .BK_USER_WEB_URL }}'                       // 用户中心地址
         const BK_TENANT = '{{ .BK_TENANT }}'                                   // 租户ID
         const ENABLE_NOTICE = '{{ .ENABLE_NOTICE }}'                             // 通知功能开关
+        const LOGIN_NAME = '{{ .LOGIN_NAME }}'                                   // 当前登录用户名
         return {
           BK_API_PREFIX,
           BK_SHARED_RES_BASE_JS_URL,
@@ -43,6 +44,7 @@
           BK_USER_WEB_URL,
           BK_TENANT,
           ENABLE_NOTICE,
+          LOGIN_NAME,
         }
       })()
     </script>

@@ -13,24 +13,29 @@ package web
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg           *gin.RouterGroup
-	frontSetting frontsetting.IFrontSetting
+	rg              *gin.RouterGroup
+	frontSetting    frontsetting.IFrontSetting
+	bkloginHandler  bksaasbklogin.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:           rg.Group(""),
-		frontSetting: capability.FrontSetting,
+		rg:             rg.Group(""),
+		frontSetting:   capability.FrontSetting,
+		bkloginHandler: capability.BKLoginHandler,
 	}
 }
 
@@ -58,6 +63,17 @@ func (h *handler) Index(ctx *gin.Context) {
 		}
 	}
 
+	// Get login name from bklogin API, fallback to empty string on any error.
+	loginName := ""
+	if h.bkloginHandler != nil {
+		token, cookieErr := ctx.Cookie(h.bkloginHandler.GetAuthType())
+		if cookieErr == nil && token != "" {
+			nCtx, cancel := contextx.WithTimeout(contextx.New(ctx.Request.Context()), 3*time.Second)
+			defer cancel()
+			_, _, loginName, _ = h.bkloginHandler.Verify(nCtx, token)
+		}
+	}
+
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"BK_LOGIN_URL":              h.frontSetting.BKLoginURL(),
 		"BK_REQUEST_ID_HEADER_KEY":  h.frontSetting.BKRequestIDHeaderKey(),
@@ -70,5 +86,6 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_DOCS_CENTER_URL":        h.frontSetting.BKDocsCenterURL(),
 		"BKAPP_NAV_OPEN_SOURCE_URL": h.frontSetting.BKAppNavOpenSourceURL(),
 		"ENABLE_NOTICE":             h.frontSetting.EnableNotice(),
+		"LOGIN_NAME":                loginName,
 	})
 }

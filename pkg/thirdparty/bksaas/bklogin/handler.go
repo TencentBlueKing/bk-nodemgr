@@ -29,13 +29,22 @@ type IHandler interface {
 
 	// GetAuthIdentity get the auth identity.
 	GetAuthIdentity() *AuthIdentity
+
+	// GetAuthType returns the auth type (cookie key name: bk_token or bk_ticket).
+	GetAuthType() string
 }
+
 
 // Handler the Handler of cmdb.
 type Handler struct {
 	cli *cli
 
 	conf *Config
+}
+
+// GetAuthType returns the auth type.
+func (h *Handler) GetAuthType() string {
+	return h.conf.AuthType
 }
 
 // Config the config of bkoa.
