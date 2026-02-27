@@ -8,6 +8,10 @@ interface ILoginData {
 // 获取登录地址
 const getLoginUrl = (url: string, cUrl: string, isFromLogout: boolean) => {
   const loginUrl = new URL(url);
+  // 这里需要判断登录地址尾部是否以/结尾,如果不是则需要添加/
+  if (!loginUrl.pathname.endsWith('/')) {
+    loginUrl.pathname += '/';
+  }
   if (isFromLogout) {
     loginUrl.searchParams.append('is_from_logout', '1');
   }

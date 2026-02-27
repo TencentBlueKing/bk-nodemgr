@@ -421,7 +421,7 @@ const agentInstallType = [
   { id: 'manual', name: '手动安装' },
 ];
 
-const statusMap = ref(new Map<string, string>([
+const statusMap = computed(() => new Map<string, string>([
   ['init', t('platform.nodeMan.agentStatus.init')],
   ['running', t('platform.nodeMan.agentStatus.running')],
   ['damaged', t('platform.nodeMan.agentStatus.damaged')],
@@ -436,8 +436,8 @@ const selection = computed(() => tableData.value.filter((item: any) => item.chec
 const total = computed(() => pagination.count);
 // eslint-disable-next-line max-len
 const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
-const networkAreaListMap = ref(new Map<number, string>([[-1, t('platform.nodeMan.agentStatus.unassigned')]]));
-const networkUnitListMap = ref(new Map<number, string>([[-1, t('platform.nodeMan.agentStatus.unassigned')]]));
+const networkAreaListMap = ref(new Map<number, string>([]));
+const networkUnitListMap = ref(new Map<number, string>([]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 const searchSelectData = computed(() => [
@@ -631,6 +631,7 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
     console.error('获取管控区域列表失败:', err);
     return { total: 0, items: [] };
   });
+  networkAreaListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
     networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
   });
@@ -646,6 +647,7 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) =>
     console.error('获取管控单元列表失败:', err);
     return { total: 0, items: [] };
   });
+  networkUnitListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
   res.items.forEach((item) => {
     networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
   });

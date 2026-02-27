@@ -1,6 +1,6 @@
 platform:
   name: Node Management
-  title: BK 
+  title: BK NodeMan
   logout: Logout
   nodeMan:
     node: Node

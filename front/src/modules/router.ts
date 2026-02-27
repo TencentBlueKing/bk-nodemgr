@@ -53,7 +53,7 @@ const routes = setupLayouts([
             path: 'proxy',
             component: proxyStatus,
             meta: {
-              title: i18n.global.t('route.agentStatus'),
+              title: i18n.global.t('platform.nodeMan.proxyStatus.title'),
               subTitle: i18n.global.t('route.proxyStatusSubtitle'),
               back: false,
               mainMenu: 'nodeManager',

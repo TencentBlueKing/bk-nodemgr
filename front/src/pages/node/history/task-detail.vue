@@ -24,7 +24,7 @@
         :key="item.name"
         class="leading-[30px] mr-[52px] text-[12px]"
       >
-        <div class="w-[50px]">{{ item.name }}</div>
+        <div>{{ item.name }}</div>
         <div>{{ item.value }}</div>
       </div>
     </div>
@@ -603,8 +603,10 @@ const radioGroup = computed(() => [
     count: statistics.value.terminated_count,
   },
 ]);
-// eslint-disable-next-line max-len
-const businessList = computed(() => mainStore.businessList);
+const bussinessMap = computed(() => mainStore.businessList.map(item => ({
+  id: item.bk_biz_id,
+  name: item.bk_biz_name,
+})));
 // eslint-disable-next-line max-len
 const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
 
@@ -680,7 +682,7 @@ const filterOptionConfig = (prop: string, textMap?: Record<string, any>) => {
 const getFilterList = (prop: string) => {
   switch (prop) {
     case 'bk_biz_id':
-      return Array.from(bizListMap.value, ([id, name]) => ({ value: String(id), text: name }));
+      return bussinessMap.value.map((item: any) => ({ value: String(item.id), text: item.name }));
     case 'bk_networkarea_id':
       return Array.from(networkAreaListMap.value, ([id, name]) => ({ value: String(id), text: name }));
     case 'bk_networkunit_id':
@@ -696,7 +698,7 @@ const filterOptionSource = reactive<Record<string, FilterOption>>({
   //   filterScope: 'all',
   // },
   bk_biz_id: {
-    list: getFilterList('bk_biz_id'),
+    list: [],
     checked: [],
     filterScope: 'all',
   },
@@ -737,7 +739,7 @@ const searchSelectData = computed(() => [
   {
     id: 'bk_biz_id',
     name: t('taskDetail.search.business'),
-    children: Array.from(bizListMap.value, ([id, name]) => ({ id: String(id), name })),
+    children: bussinessMap.value,
     multiple: true,
   },
   {
@@ -972,6 +974,9 @@ const handleFilter = ({
       values: checked.map((item: any) => {
         let name;
         switch (field) {
+          case 'bk_biz_id':
+            name = bizListMap.value.get(Number(item)) || item;
+            break;
           case 'bk_networkarea_id':
             name = networkAreaListMap.value.get(Number(item)) || item;
             break;
@@ -984,7 +989,7 @@ const handleFilter = ({
           default:
             break;
         }
-        const id = ['bk_networkarea_id', 'bk_networkunit_id'].includes(field) ? Number(item) : item;
+        const id = ['bk_biz_id', 'bk_networkarea_id', 'bk_networkunit_id'].includes(field) ? Number(item) : item;
         return {
           id,
           name,
@@ -1220,7 +1225,6 @@ const getOperateList = async () => {
     operations: [],
     total: 0,
   }));
-  console.log("🚀 ~ getOperateList ~ res:", res)
   pagination.count = res.total;
   const mapList = res.operations.map((item) => {
     const briefData = item.latest_oper_inst_brief_data;
@@ -1304,6 +1308,15 @@ const handleOperateGuide = (row: any) => {
     bk_host_innerip: row.bk_host_innerip,
   };
 };
+watch(
+  () => mainStore.businessList,
+  () => {
+    if (mainStore.businessList.length > 0) {
+      filterOptionSource.bk_biz_id.list = getFilterList('bk_biz_id');
+    }
+  },
+  { immediate: true }
+);
 watch(
   () => searchSelectValue,
   async () => {
