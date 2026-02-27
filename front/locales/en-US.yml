@@ -370,8 +370,8 @@ topoManager:
       port: Login Port
       account: Login Account
       business: Business
-      relayDownloadPort: Relay Download Port
-      relayCallbackPort: Relay Callback Port
+      relayDownloadPort: Download Port
+      relayCallbackPort: Callback Port
       tip: Cannot select direct-connected units.
     installMethodList:
       remote:

@@ -3,7 +3,7 @@
     class="mx-[24px] flex min-h-[56px] bg-[#F0F8FF] border border-[#C5DAFF] rounded-[2px] py-[6px] px-[9px] gap-[9px]"
   >
     <i class="nodeman-icon nc-tips pt-[2px] text-[#3A84FF]"></i>
-    <div class="text-[#4d4f56] text-[12px] leading-[20px] text-left">
+    <div class="text-[#4d4f56] text-[12px] leading-[20px] text-left whitespace-nowrap">
       <i18n-t keypath="platform.nodeMan.installAgentPage.tip1" tag="p">
         <span class="text-[#313238] font-bold">{{
           $t("platform.nodeMan.installAgentPage.tip1FirstSlotText")

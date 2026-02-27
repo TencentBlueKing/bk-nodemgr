@@ -108,7 +108,6 @@
         </Form.FormItem>
         <Form.FormItem
           property="relay_callback_port"
-          label-width="110"
           required
         >
           <template #label>
@@ -133,11 +132,10 @@
               </template>
             </Popover>
           </template>
-          <Input class="w-[488px]" v-model="formData.relay_callback_port" />
+          <Input v-model="formData.relay_callback_port" />
         </Form.FormItem>
         <Form.FormItem
           property="relay_download_port"
-          label-width="110"
           required
         >
           <template #label>
@@ -162,7 +160,7 @@
               </template>
             </Popover>
           </template>
-          <Input class="w-[488px]" v-model="formData.relay_download_port" />
+          <Input v-model="formData.relay_download_port" />
         </Form.FormItem>
         <div class="flex items-center">
           <div class="flex items-center w-1/4">
