@@ -174,7 +174,46 @@
       </VxeColgroup>
 
       <!-- 主机属性 -->
-      <VxeColgroup :title="$t('components.installTable.keyfile')" align="center">
+      <VxeColgroup :title="$t('components.installTable.hostAttr')" align="center">
+        <VxeColumn
+          field="export_ip"
+          :min-width="150"
+          :visible="settings.checked.includes('export_ip')"
+          v-if="releaseType === 'proxy'"
+        >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.exportIP') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.exportIPTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+            <span class="mx-[3px] text-[#FF5656]">*</span>
+          </template>
+          <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'export_ip')">
+              <Input
+                v-model.trim="row.export_ip"
+                @change="clearError(rowIndex, 'export_ip')"
+                @blur="handleFieldBlur(rowIndex, 'export_ip', row.export_ip)"
+              ></Input>
+            </ValidateCell>
+          </template>
+        </VxeColumn>
         <VxeColumn
           field="os_type"
           :title="$t('components.installTable.osType')"
@@ -221,32 +260,33 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          field="export_ip"
-          :min-width="150"
-          :visible="settings.checked.includes('export_ip')"
-          v-if="releaseType === 'proxy'"
-        >
-          <template #header>
-            <span class="mr-[5px]">{{ $t('components.installTable.exportIP') }}</span>
-            <span class="mx-[3px] text-[#FF5656]">*</span>
-          </template>
-          <template #default="{ row, rowIndex }">
-            <ValidateCell :error="getError(rowIndex, 'export_ip')">
-              <Input
-                v-model.trim="row.export_ip"
-                @change="clearError(rowIndex, 'export_ip')"
-                @blur="handleFieldBlur(rowIndex, 'export_ip', row.export_ip)"
-              ></Input>
-            </ValidateCell>
-          </template>
-        </VxeColumn>
-        <VxeColumn
           field="advertise_ip"
-          :title="$t('components.installTable.serviceIP')"
           :min-width="150"
           v-if="releaseType === 'proxy'"
           :visible="settings.checked.includes('advertise_ip')"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.serviceIP') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.serviceIPTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'advertise_ip')">
               <Input
@@ -270,7 +310,27 @@
           :visible="settings.checked.includes('login_ip')"
         >
           <template #header>
-            <span class="mr-[5px]">{{ $t('components.installTable.loginIP') }}</span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.loginIP') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.loginIPTooltipDesc') }}</p>
+                  <p class="mt-[8px]">{{ $t('components.installTable.loginIPTooltipSupport') }}</p>
+                </div>
+              </template>
+            </Popover>
             <span class="mx-[3px] text-[#FF5656]">*</span>
           </template>
           <template #default="{ row, rowIndex }">
@@ -291,14 +351,40 @@
           v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
-            <span class="mr-[5px]">{{ $t('components.installTable.port') }}</span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="240"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.port') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.portTooltipDesc') }}</p>
+                  <div class="mt-[8px]">
+                    <p>{{ $t('components.installTable.portTooltipLinuxLabel') }}<span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipLinuxPort') }}</span></p>
+                    <p class="mt-[2px]">{{ $t('components.installTable.portTooltipWindowsLabel') }}<span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipWindowsPort') }}</span></p>
+                  </div>
+                  <p
+                    class="text-[#3A84FF] mt-[8px] cursor-pointer"
+                    @click="handlePortBatchApplyDefault"
+                  >{{ $t('components.installTable.portBatchApply') }}</p>
+                </div>
+              </template>
+            </Popover>
             <span class="mx-[3px] text-[#FF5656]">*</span>
             <BatchEdit
               :title="$t('components.installTable.batchEditPort')"
               type="input"
               @confirm="(value) => handleBatchEdit('login_port', value)"
-            >
-            </BatchEdit>
+            />
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'login_port')">
@@ -445,9 +531,30 @@
         <VxeColumn
           :min-width="90"
           field="dedicated_installer"
-          :title="$t('components.installTable.installJump')"
           :visible="settings.checked.includes('dedicated_installer')"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.installJump') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.installJumpTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row }">
             <Switcher
               theme="primary"
@@ -458,9 +565,30 @@
         <VxeColumn
           :min-width="90"
           field="cluster_tunnel"
-          :title="$t('components.installTable.agentControl')"
           :visible="settings.checked.includes('cluster_tunnel')"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.agentControl') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.agentControlTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row }">
             <Switcher theme="primary" v-model="row.cluster_tunnel"></Switcher>
           </template>
@@ -468,9 +596,30 @@
         <VxeColumn
           :min-width="90"
           field="file_tunnel"
-          :title="$t('components.installTable.fileTransfer')"
           :visible="settings.checked.includes('file_tunnel')"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.fileTransfer') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.fileTransferTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row }">
             <Switcher theme="primary" v-model="row.file_tunnel"></Switcher>
           </template>
@@ -478,9 +627,30 @@
         <VxeColumn
           :min-width="90"
           field="data_tunnel"
-          :title="$t('components.installTable.dataReport')"
           :visible="settings.checked.includes('data_tunnel')"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.dataReport') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.dataReportTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row }">
             <Switcher theme="primary" v-model="row.data_tunnel"></Switcher>
           </template>
@@ -496,12 +666,7 @@
               @setting-change="settingChange"
             ></Settings>
           </Button>
-          <Button text v-if="isFullscreen" @click="switchFullScreen">
-            <i class="nodeman-icon nc-icon-un-full-screen"></i>
-          </Button>
-          <Button text v-else @click="switchFullScreen">
-            <i class="nodeman-icon nc-icon-full-screen"></i>
-          </Button>
+
         </template>
         <VxeColumn :min-width="80" field="action" title="操作">
           <template #default="{ rowIndex }">
@@ -529,7 +694,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Input, Message, Select, Switcher, Upload } from 'bkui-vue';
+import { Button, Input, Message, Popover, Select, Switcher, Upload } from 'bkui-vue';
 import { cloneDeep, groupBy } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -589,6 +754,15 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+
+const handlePortBatchApplyDefault = () => {
+  tableData.value?.forEach((item: any, index: number) => {
+    const port = item.os_type === 'windows' ? '445' : '36000';
+    item.login_port = port;
+    handleFieldBlur(index, 'login_port', port);
+  });
+};
+
 const initData = {
   bk_host_innerip: '',
   bk_host_innerip_v6: '',
@@ -633,7 +807,7 @@ const rules: ValidationRules = {
   credit: [{ validator: (val: string) => val, message: t('components.installTable.passwordKeyValidMessage') }],
 };
 
-const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
+const { contentRef } = useFullScreen();
 const xTableRef = ref();
 const mainStore = useMainStore();
 const businessList = computed(() => mainStore.businessList);
@@ -1076,7 +1250,12 @@ watch(() => type.value, () => {
 }, { immediate: true });
 </script>
 <style lang="postcss" scoped>
+::v-deep(.vxe-header--column) {
+  font-weight: normal !important;
+  font-size: 12px !important;
+}
 ::v-deep(.vxe-body--column) {
   height: 56px !important;
+  font-size: 12px !important;
 }
 </style>

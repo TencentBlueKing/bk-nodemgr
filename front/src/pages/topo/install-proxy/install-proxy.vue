@@ -72,11 +72,35 @@
           <Select class="w-[488px]" v-model="form.os_type" disabled></Select>
         </Form.FormItem>
         <Form.FormItem
-          :label="$t('topoManager.installProxy.form.port')"
           property="login_port"
           label-width="110"
           required
         >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="240"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.port') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.portTooltipDesc') }}</p>
+                  <div class="mt-[8px]">
+                    <p>{{ $t('components.installTable.portTooltipLinuxLabel') }}<span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipLinuxPort') }}</span></p>
+                  </div>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <Input class="w-[488px]" v-model="form.login_port" />
         </Form.FormItem>
         <Form.FormItem
@@ -88,44 +112,128 @@
           <Input class="w-[488px]" v-model="form.login_user" />
         </Form.FormItem>
         <Form.FormItem
-          :label="$t('topoManager.installProxy.form.business')"
           property="bk_biz_id"
           label-width="110"
           required
         >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.business') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('platform.nodeMan.installAgentPage.installBusinessTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <Select
             class="w-[488px]"
             v-model="form.bk_biz_id"
             auto-focus
             filterable
+            :filter-option="filterOption"
+            :show-selected-icon="false"
             :placeholder="t('installProxy.selectBusiness')"
+            @toggle="handleBizToggle"
           >
             <Select.Option
-              v-for="item in businessList"
+              v-for="item in sortedBusinessList"
               :key="item.bk_biz_id"
               :name="item.bk_biz_name"
               :id="item.bk_biz_id"
             >
-              [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+              <div class="w-full flex items-center biz-select-option overflow-hidden">
+                <Button
+                  class="mr-[8px] w-[18px] shrink-0"
+                  text
+                  @click.native.stop="handleCollect(item.bk_biz_id)"
+                >
+                  <i
+                    class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+                    v-if="collectList.includes(item.bk_biz_id)">
+                  </i>
+                  <i
+                    class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
+                    v-else>
+                  </i>
+                </Button>
+                <div class="truncate">
+                  [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+                </div>
+              </div>
             </Select.Option>
           </Select>
         </Form.FormItem>
         <Form.FormItem
           v-if="bk_networkunit_id === null"
-          :label="$t('platform.nodeMan.bk_cloud_name')"
           property="bk_networkarea_id"
           label-width="110"
           required
         >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="320"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('platform.nodeMan.bk_cloud_name') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('platform.nodeMan.installAgentPage.cloudTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <AreaSelector class="w-[488px]" :multiple="false" @change="handleSingleChange" />
         </Form.FormItem>
         <Form.FormItem
           v-if="bk_networkunit_id === null"
-          :label="$t('platform.nodeMan.bk_cloud_unit')"
           property="bk_networkunit_id"
           label-width="110"
           required
         >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="320"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('platform.nodeMan.bk_cloud_unit') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('platform.nodeMan.installAgentPage.cloudUnitTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <Select
             class="w-[488px]"
             v-model="form.bk_networkunit_id"
@@ -150,22 +258,7 @@
             </Select.Option>
           </Select>
         </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.relayDownloadPort')"
-          property="relay_download_port"
-          label-width="110"
-          required
-        >
-          <Input class="w-[488px]" v-model="form.relay_download_port" />
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.relayCallbackPort')"
-          property="relay_callback_port"
-          label-width="110"
-          required
-        >
-          <Input class="w-[488px]" v-model="form.relay_callback_port" />
-        </Form.FormItem>
+
         <Form.FormItem
           label-width="110">
           <Button
@@ -181,11 +274,35 @@
         </Form.FormItem>
         <Form.FormItem
           v-if="isTargetShow"
-          :label="t('installProxy.installSource')"
           property="proxy_install_origin"
           label-width="110"
           required
         >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="320"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('installProxy.installSource') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('installProxy.installSourceTooltipDesc') }}</p>
+                  <p class="mt-[8px]">{{ $t('installProxy.installSourceTooltipUpstream') }}</p>
+                  <p class="mt-[8px]">{{ $t('installProxy.installSourceTooltipCurrent') }}</p>
+                  <p class="mt-[8px]">{{ $t('installProxy.installSourceTooltipCustom') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <Cascader
             v-model="form.proxy_install_origin"
             :list="installOriginList"
@@ -193,7 +310,90 @@
             trigger="click"
           ></Cascader>
         </Form.FormItem>
-        <Form.FormItem :label="$t('installProxy.proxyVersion')" label-width="110" required v-if="isTargetShow">
+        <Form.FormItem
+          v-if="isTargetShow"
+          property="relay_callback_port"
+          label-width="110"
+          required
+        >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.relayCallbackPort') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('installProxy.relayCallbackPortTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <Input class="w-[488px]" v-model="form.relay_callback_port" />
+        </Form.FormItem>
+        <Form.FormItem
+          v-if="isTargetShow"
+          property="relay_download_port"
+          label-width="110"
+          required
+        >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.relayDownloadPort') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('installProxy.relayDownloadPortTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <Input class="w-[488px]" v-model="form.relay_download_port" />
+        </Form.FormItem>
+        <Form.FormItem label-width="110" required v-if="isTargetShow">
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('installProxy.proxyVersion') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('installProxy.proxyVersionTooltipDesc') }}</p>
+                  <p class="mt-[8px]">{{ $t('installProxy.proxyVersionTooltipDefault') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <div class="w-[488px]">
             <Table :data="systemData" :border="true" :empty-text="t('installProxy.noAvailableVersion')">
               <TableColumn
@@ -285,7 +485,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Popover, Radio, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
@@ -349,8 +549,8 @@ const form = reactive({
   bk_networkunit_id: '', // 管控单元
   target_version: [] as TargetVersion[],
   proxy_install_origin: [],
-  relay_download_port: '',
-  relay_callback_port: '',
+  relay_download_port: '28303',
+  relay_callback_port: '28302',
 });
 const settings = reactive({
   fields: [
@@ -379,6 +579,76 @@ const settings = reactive({
 });
 const isTargetShow = ref(false);
 const businessList = computed(() => mainStore.businessList);
+const collectList = ref<number[]>([]);
+const selectedBizIds = computed(() => {
+  if (!form.bk_biz_id) return [];
+  const value = Number(form.bk_biz_id);
+  return Number.isNaN(value) ? [] : [value];
+});
+const sortedBusinessList = computed(() => {
+  const selectedSet = new Set(selectedBizIds.value);
+  const list = [...businessList.value];
+  return list.sort((a, b) => {
+    const aIsCollected = collectList.value.includes(a.bk_biz_id);
+    const bIsCollected = collectList.value.includes(b.bk_biz_id);
+    const aIsSelected = selectedSet.has(a.bk_biz_id);
+    const bIsSelected = selectedSet.has(b.bk_biz_id);
+
+    if (aIsSelected && !bIsSelected) {
+      return -1;
+    }
+    if (!aIsSelected && bIsSelected) {
+      return 1;
+    }
+    if (aIsCollected && !bIsCollected) {
+      return -1;
+    }
+    if (!aIsCollected && bIsCollected) {
+      return 1;
+    }
+    return a.bk_biz_id - b.bk_biz_id;
+  });
+});
+const filterOption = (input: any, options: { id: number, name: string }) => {
+  const inputStr = String(input).trim();
+  if (!inputStr) return false;
+
+  const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
+  if (keywords.length === 0) return false;
+
+  const nameMatch = keywords.some(keyword => {
+    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nameRegex = new RegExp(safeKeyword, 'i');
+    return options.name?.match(nameRegex);
+  });
+  const idMatch = keywords.some(keyword => {
+    const keywordStr = String(keyword).trim();
+    return keywordStr === String(options.id);
+  });
+  return nameMatch || idMatch;
+};
+const handleBizToggle = () => {
+  // 侧边栏行为对齐：下拉展开/收起时重新计算排序
+  sortedBusinessList.value;
+};
+const handleCollect = (val: number) => {
+  const list = [...collectList.value];
+  if (list.includes(val)) {
+    collectList.value = list.filter(item => item !== val);
+  } else {
+    collectList.value = [...list, val];
+  }
+  localStorage.setItem('collect', JSON.stringify(collectList.value));
+};
+const initCollectList = () => {
+  const collectsJson = localStorage.getItem('collect');
+  if (collectsJson) {
+    const collects = JSON.parse(collectsJson) as unknown;
+    if (Array.isArray(collects)) {
+      collectList.value = collects.map(item => Number(item)).filter(item => Number.isFinite(item));
+    }
+  }
+};
 const systemData = ref([
   {
     displayName: 'linux/amd64',
@@ -633,6 +903,9 @@ const handleExcelImportCancel = () => {
 const handleUpload = (data: any) => {
   excelImportData.value = data.info;
 };
+onMounted(() => {
+  initCollectList();
+});
 
 const handleSetpBack = () => {
   form.info = [];
@@ -700,3 +973,12 @@ watch(
   },
 );
 </script>
+<style lang="postcss" scoped>
+.biz-select-option {
+  &:hover {
+    .nc-not-favorited {
+      display: inline;
+    }
+  }
+}
+</style>

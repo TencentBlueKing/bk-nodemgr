@@ -24,19 +24,20 @@ platform:
       title: Proxy 状态
     installAgent: 安装 Agent
     installAgentPage:
-      tip1: 对于外网 IP 等先前未在蓝鲸 CMDB 注册过的 {0}，执行 Agent 安装，将 {1} 主机记录到 CMDB 中；
+      tip1: 对于先前未在蓝鲸 CMDB 注册过的 {0}，执行 Agent 安装，将 {1} 主机记录到 CMDB 中
       tip1FirstSlotText: 全新主机
       tip1SecondSlotText: 自动导入
-      tip2: 安装 Agent 需要开启一定的 {0}，完成 Agent 信息后，请点击 {1} 查看相对应的安装指南；如需更高级的配置，请单击安装信息的 {2}。
-      tip2FirstSlotText: 网络访问策略
-      tip2SecondSlotText: 安装要求
-      tip2ThirdSlotText: 表格展示设置
       type: 安装方式
-      installBusiness: 安装到业务
-      cloud: 安装到管控区域
-      cloud_unit: 安装到管控单元
+      installBusiness: 归属业务
+      installBusinessTooltip: 全新主机在CMDB中将归属到该业务下
+      cloud: 管控区域
+      cloudTooltip: 「管控区域 + 内网IPv4」 或 「管控区域 + 内网IPv6」是主机节点的唯一标识
+      cloud_unit: 管控单元
+      cloudUnitTooltip: 「管控单元」决定了节点连接的GSE服务，聚合管理一组相同网络策略的节点
       info: 安装信息
       version: Agent 版本
+      versionTooltipDesc: 手动指定要安装的Agent版本，系统会根据目标机器实际的操作系统和架构安装指定的版本
+      versionTooltipDefault: 若无特殊要求可以不填写，将会匹配并安装默认版本
       packageVersion: 包版本
       AdvancedOptions: 高级选项
       placeholder:
@@ -817,12 +818,23 @@ components:
     batchEditOsType: 批量编辑操作系统
     port: 登录端口
     batchEditPort: 批量编辑登录端口
+    portTooltipDesc: 用于 SSH/WMI 登录目标主机的端口号
+    portTooltipLinuxLabel: "Linux 默认端口："
+    portTooltipLinuxPort: "36000"
+    portTooltipWindowsLabel: "Windows 默认端口："
+    portTooltipWindowsPort: "445"
+    portBatchApply: 批量应用默认端口
     account: 登录账号
     batchEditAccount: 批量编辑登录账号
     exportIP: 出口IP
+    exportIPTooltip: 用于与上游GSE服务的数据传输和策略验证，如果是公有云服务器，一般为公网IP或NAT IP，请根据实际情况填写
+    hostAttr: 主机属性
     serviceIP: 服务IP
+    serviceIPTooltip: 用于提供给下游GSE Agent连接的服务IP，默认不填写则为内网IP
     loginInfo: 登录信息
     loginIP: 登录IP
+    loginIPTooltipDesc: 目标主机的用于登录进行 Agent 安装的 IP 地址，区别于记录在 CMDB 中的 IP
+    loginIPTooltipSupport: 支持 IPv4、IPv6
     authMethod: 认证方式
     batchEditAuthMethod: 批量编辑认证方式
     passwordKey: 密码/密钥
@@ -832,6 +844,10 @@ components:
     agentControl: Agent控制
     fileTransfer: 文件传输
     dataReport: 数据上报
+    installJumpTooltip: 开启后该Proxy可以作为安装跳板，发起对其他Proxy或Agent的远程安装流程
+    agentControlTooltip: 开启后该Proxy将作为GSE Agent的控制链路中转节点
+    fileTransferTooltip: 开启后该Proxy将作为GSE Agent的文件传输中转节点
+    dataReportTooltip: 开启后该Proxy将作为GSE Agent的数据上报中转节点
     validationFailed: 有填写的信息未通过校验
     creditValid: 密码有效，点击修改
     inputPassword: 请输入密码
@@ -851,7 +867,9 @@ components:
     passwordVaultDisabled: 密码库功能未开启
   installType:
     remoteInstall: 远程安装
+    remoteInstallDesc: 线上表单填写，需要提供登录信息
     manualInstall: 手动安装
+    manualInstallDesc: 无需提供登录信息，自行在服务器上执行给定命令完成安装
   logVersion:
     current: 当前版本
   operateDialog:
@@ -877,7 +895,15 @@ installProxy:
   selectBusiness: 选择业务
   advancedOptions: 高级选项
   installSource: 安装源
+  installSourceTooltipDesc: 选择谁来远程安装这台Proxy节点
+  installSourceTooltipUpstream: "- 由上级管控单元的服务来发起安装，可能需要配置跨域或外网访问策略"
+  installSourceTooltipCurrent: "- 由当前管控单元的其他Proxy来发起安装，策略仅限于单元内部"
+  installSourceTooltipCustom: "- 由任意自定义的管控单元服务来发起安装"
   proxyVersion: Proxy 版本
+  proxyVersionTooltipDesc: 手动指定要安装的Proxy版本，系统会根据目标机器实际的操作系统和架构安装指定的版本
+  proxyVersionTooltipDefault: 若无特殊要求可以不填写，将会匹配并安装默认版本
+  relayDownloadPortTooltip: Proxy上提供给下属Agent下载安装包的服务端口
+  relayCallbackPortTooltip: Proxy上提供给下属Agent上报任务状态的服务端口
   noAvailableVersion: 当前无可用版本
   osArch: 操作系统/架构
   version: 版本
@@ -892,7 +918,9 @@ installProxy:
   port: 登录端口
   account: 登录账号
   exportIP: 出口IP
+  exportIPTooltip: 用于与上游GSE服务的数据传输和策略验证，如果是公有云服务器，一般为公网IP或NAT IP，请根据实际情况填写
   serviceIP: 服务IP
+  serviceIPTooltip: 用于提供给下游GSE Agent连接的服务IP，默认不填写则为内网IP
   loginIP: 登录 IP
   businessName: 所属业务
   proxyTags: proxy 服务
@@ -903,6 +931,10 @@ installProxy:
   agentControl: Agent控制
   fileTransfer: 文件传输
   dataReport: 数据上报
+  installJumpTooltip: 开启后该Proxy可以作为安装跳板，发起对其他Proxy或Agent的远程安装流程
+  agentControlTooltip: 开启后该Proxy将作为GSE Agent的控制链路中转节点
+  fileTransferTooltip: 开启后该Proxy将作为GSE Agent的文件传输中转节点
+  dataReportTooltip: 开启后该Proxy将作为GSE Agent的数据上报中转节点
   upstreamUnit: 上级管控单元
   currentUnit: 当前管控单元
   custom: 自定义

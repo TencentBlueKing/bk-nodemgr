@@ -24,19 +24,20 @@ platform:
       title: Proxy Status
     installAgent: Install Agent
     installAgentPage:
-      tip1: For {0} (such as public IPs) not previously registered in BK-CMDB, installing the Agent will automatically import the {1} host records into CMDB.
+      tip1: For {0} not previously registered in BK-CMDB, installing the Agent will {1} host records into CMDB
       tip1FirstSlotText: new hosts
       tip1SecondSlotText: auto-import
-      tip2: Installing the Agent requires specific {0}. After completing the Agent info, click {1} to view the installation guide. For advanced configurations, click {2} in the installation info.
-      tip2FirstSlotText: network access policies
-      tip2SecondSlotText: Installation Requirements
-      tip2ThirdSlotText: Table Display Settings
       type: Installation Method
-      installBusiness: Install to Business
-      cloud: Install to Network Area
-      cloud_unit: Install to Network Unit
+      installBusiness: Target Business
+      installBusinessTooltip: New hosts will be assigned to this business in CMDB
+      cloud: Network Area
+      cloudTooltip: "\"Network Area + Internal IPv4\" or \"Network Area + Internal IPv6\" uniquely identifies a host node"
+      cloud_unit: Network Unit
+      cloudUnitTooltip: "\"Network Unit\" determines the GSE service a node connects to, aggregating nodes with the same network policy"
       info: Installation Info
       version: Agent Version
+      versionTooltipDesc: Manually specify the Agent version to install. The system will install the specified version based on the target machine's OS and architecture
+      versionTooltipDefault: Leave blank if no specific requirement; the default version will be matched and installed
       packageVersion: Package Version
       AdvancedOptions: Advanced Options
       placeholder:
@@ -817,12 +818,23 @@ components:
     batchEditOsType: Batch Edit OS
     port: Login Port
     batchEditPort: Batch Edit Port
+    portTooltipDesc: Port used for SSH/WMI login to the target host
+    portTooltipLinuxLabel: "Linux default port: "
+    portTooltipLinuxPort: "36000"
+    portTooltipWindowsLabel: "Windows default port: "
+    portTooltipWindowsPort: "445"
+    portBatchApply: Batch apply default ports
     account: Login Account
     batchEditAccount: Batch Edit Account
     exportIP: Export IP
+    exportIPTooltip: Used for data transmission and policy verification with upstream GSE services. For public cloud servers, this is typically the public IP or NAT IP. Please fill in according to your actual setup
+    hostAttr: Host Attributes
     serviceIP: Service IP
+    serviceIPTooltip: Service IP for downstream GSE Agents to connect to. Defaults to the internal IP if left blank
     loginInfo: Login Info
     loginIP: Login IP
+    loginIPTooltipDesc: The IP address used to log in to the target host for Agent installation, distinct from the IP recorded in CMDB
+    loginIPTooltipSupport: Supports IPv4 and IPv6
     authMethod: Auth Method
     batchEditAuthMethod: Batch Edit Auth Method
     passwordKey: Password / Key
@@ -832,6 +844,10 @@ components:
     agentControl: Agent Control
     fileTransfer: File Transfer
     dataReport: Data Report
+    installJumpTooltip: When enabled, this Proxy can serve as an install jumper to initiate remote installation of other Proxies or Agents
+    agentControlTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent control links
+    fileTransferTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent file transfers
+    dataReportTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent data reporting
     validationFailed: Some info failed verification
     creditValid: Valid; click to modify
     inputPassword: Enter password
@@ -851,7 +867,9 @@ components:
     passwordVaultDisabled: Password Vault disabled
   installType:
     remoteInstall: Remote
+    remoteInstallDesc: Fill in the form online, login credentials required
     manualInstall: Manual
+    manualInstallDesc: No login credentials needed, run the given command on the server to complete installation
   logVersion:
     current: Current
   operateDialog:
@@ -877,7 +895,15 @@ installProxy:
   selectBusiness: Select Business
   advancedOptions: Advanced Options
   installSource: Source
+  installSourceTooltipDesc: Choose who will remotely install this Proxy node
+  installSourceTooltipUpstream: "- Initiated by the upstream network unit's service, may require cross-domain or public network access policies"
+  installSourceTooltipCurrent: "- Initiated by other Proxies in the current network unit, policies limited to within the unit"
+  installSourceTooltipCustom: "- Initiated by any custom network unit's service"
   proxyVersion: Proxy Version
+  proxyVersionTooltipDesc: Manually specify the Proxy version to install. The system will install the specified version based on the target machine's OS and architecture
+  proxyVersionTooltipDefault: Leave blank if no specific requirement; the default version will be matched and installed
+  relayDownloadPortTooltip: Service port on the Proxy for subordinate Agents to download installation packages
+  relayCallbackPortTooltip: Service port on the Proxy for subordinate Agents to report task status
   noAvailableVersion: No version available
   osArch: OS / Arch
   version: Version
@@ -892,7 +918,9 @@ installProxy:
   port: Port
   account: Account
   exportIP: Export IP
+  exportIPTooltip: Used for data transmission and policy verification with upstream GSE services. For public cloud servers, this is typically the public IP or NAT IP. Please fill in according to your actual setup
   serviceIP: Service IP
+  serviceIPTooltip: Service IP for downstream GSE Agents to connect to. Defaults to the internal IP if left blank
   loginIP: Login IP
   businessName: Business
   proxyTags: Proxy Services
@@ -903,6 +931,10 @@ installProxy:
   agentControl: Agent Control
   fileTransfer: File Transfer
   dataReport: Data Report
+  installJumpTooltip: When enabled, this Proxy can serve as an install jumper to initiate remote installation of other Proxies or Agents
+  agentControlTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent control links
+  fileTransferTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent file transfers
+  dataReportTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent data reporting
   upstreamUnit: Upstream Unit
   currentUnit: Current Unit
   custom: Custom

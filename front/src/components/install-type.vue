@@ -9,13 +9,25 @@
       <div class="prefix">
         <i :class="['text-[18px]', 'nodeman-icon', item.icon]"></i>
       </div>
-      <div
-        class="text-[12px] text-[#313238] leading-[19px] ml-[12px] content"
-        v-bk-tooltips="{
-          content: item.desc,
-        }">
-        {{ item.name }}
-      </div>
+      <Popover
+        theme="light"
+        trigger="hover"
+        placement="top"
+        :arrow="true"
+        :max-width="280"
+        :offset="8"
+        :popover-delay="[0, 100]"
+        :component-event-delay="0"
+      >
+        <div class="text-[12px] text-[#313238] leading-[19px] ml-[12px] content cursor-default">
+          {{ item.name }}
+        </div>
+        <template #content>
+          <div class="text-[12px] leading-[20px]">
+            <p>{{ item.desc }}</p>
+          </div>
+        </template>
+      </Popover>
       <div class="checked" v-show="activeType === item.type">
         <i class="nodeman-icon nc-check-small"></i>
       </div>
@@ -23,6 +35,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { Popover } from 'bkui-vue';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -46,7 +59,7 @@ const installTypeConfig = ref([
     type: 'setup',
     name: t('components.installType.remoteInstall'),
     icon: 'nc-monitor',
-    desc: '线上表单填写，需要提供登录信息',
+    desc: t('components.installType.remoteInstallDesc'),
   },
   // {
   //   type: 'import',
@@ -58,7 +71,7 @@ const installTypeConfig = ref([
     type: 'manual',
     name: t('components.installType.manualInstall'),
     icon: 'nc-manual',
-    desc: '无需提供登录信息，自行在服务器上执行给定命令完成安装',
+    desc: t('components.installType.manualInstallDesc'),
   },
 ]);
 const installTypeList = computed(() => installTypeConfig.value.filter(item => props.needTypeList.includes(item.type)));

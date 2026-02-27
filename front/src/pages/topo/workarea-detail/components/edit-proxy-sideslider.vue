@@ -14,10 +14,54 @@
         <Form.FormItem :label="$t('topoManager.installProxy.table.ipv6')" property="bk_host_innerip_v6">
           <Input v-model="formData.bk_host_innerip_v6" disabled />
         </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.export_ip')" property="export_ip" required>
+        <Form.FormItem property="export_ip" required>
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.table.export_ip') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.exportIPTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <Input v-model="formData.export_ip" />
         </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.advertise_ip')" property="advertise_ip">
+        <Form.FormItem property="advertise_ip">
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.table.advertise_ip') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.serviceIPTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <Input v-model="formData.advertise_ip" />
         </Form.FormItem>
         <Form.FormItem :label="$t('topoManager.installProxy.table.loginIp')" property="login_ip" required>
@@ -63,43 +107,155 @@
           <Input v-model="formData.login_user" />
         </Form.FormItem>
         <Form.FormItem
-          :label="$t('topoManager.installProxy.form.relayDownloadPort')"
-          property="relay_download_port"
+          property="relay_callback_port"
+          label-width="110"
           required
         >
-          <Input v-model="formData.relay_download_port" />
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.relayCallbackPort') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.relayCallbackPortTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <Input class="w-[488px]" v-model="formData.relay_callback_port" />
         </Form.FormItem>
         <Form.FormItem
-          :label="$t('topoManager.installProxy.form.relayCallbackPort')"
-          property="relay_callback_port"
+          property="relay_download_port"
+          label-width="110"
           required
         >
-          <Input v-model="formData.relay_callback_port" />
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.relayDownloadPort') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.relayDownloadPortTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <Input class="w-[488px]" v-model="formData.relay_download_port" />
         </Form.FormItem>
         <div class="flex items-center">
           <div class="flex items-center w-1/4">
             <Checkbox v-model="formData.dedicated_installer" theme="primary"></Checkbox>
-            <span class="text-[#63656e] text-[14px] ml-[6px]">
-              {{ $t('topoManager.installProxy.table.dedicated_installer') }}
-            </span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="text-[#63656e] text-[14px] ml-[6px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.table.dedicated_installer') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.installJumpTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
           </div>
           <div class="flex items-center w-1/4">
             <Checkbox v-model="formData.cluster_tunnel" theme="primary"></Checkbox>
-            <span class="ml-[6px] text-[#63656e] text-[14px]">
-              {{ $t('topoManager.installProxy.table.cluster_tunnel') }}
-            </span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="ml-[6px] text-[#63656e] text-[14px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.table.cluster_tunnel') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.agentControlTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
           </div>
           <div class="flex items-center w-1/4">
             <Checkbox v-model="formData.file_tunnel" theme="primary"></Checkbox>
-            <span class="ml-[6px] text-[#63656e] text-[14px]">
-              {{ $t('topoManager.installProxy.table.file_tunnel') }}
-            </span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="ml-[6px] text-[#63656e] text-[14px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.table.file_tunnel') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.fileTransferTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
           </div>
           <div class="flex items-center w-1/4">
             <Checkbox v-model="formData.data_tunnel" theme="primary"></Checkbox>
-            <span class="ml-[6px] text-[#63656e] text-[14px]">
-              {{ $t('topoManager.installProxy.table.data_tunnel') }}
-            </span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="ml-[6px] text-[#63656e] text-[14px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.table.data_tunnel') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.dataReportTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
           </div>
         </div>
       </Form>
@@ -113,7 +269,7 @@
   </Sideslider>
 </template>
 <script lang="ts" setup>
-import { Button, Checkbox, Form, InfoBox, Input, Message, Select, Sideslider, Switcher } from 'bkui-vue';
+import { Button, Checkbox, Form, InfoBox, Input, Message, Popover, Select, Sideslider, Switcher } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, reactive, ref, watch } from 'vue';
