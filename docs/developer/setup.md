@@ -30,6 +30,23 @@ go1.23.10 install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
 golangci-lint --version
 ```
 
+### UPX v5.1.0（可选，用于二进制压缩）
+
+构建 tools 时启用 `UPX_ENABLED=1` 需要安装 UPX。
+
+```bash
+curl -L https://github.com/upx/upx/releases/download/v5.1.0/upx-5.1.0-amd64_linux.tar.xz -o /tmp/upx-5.1.0-amd64_linux.tar.xz
+tar -xf /tmp/upx-5.1.0-amd64_linux.tar.xz -C /tmp
+cp /tmp/upx-5.1.0-amd64_linux/upx /usr/local/bin/upx
+upx --version
+```
+
+安装后，构建 tools 时会自动对 linux/windows 平台的二进制进行压缩（macOS/arm 平台不支持，会跳过）：
+
+```bash
+make tools   # 默认启用 UPX_ENABLED=1
+```
+
 ## LSP 服务器
 
 用于 Vibe Coding 等 IDE 的语言服务器安装。
