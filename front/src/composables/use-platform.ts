@@ -27,7 +27,7 @@ export default function usePlatform() {
       brandNameEn: 'Tencent BlueKing',
       productName: '蓝鲸节点管理',
       productNameEn: 'BK Nodemgr',
-      favicon: '/favicon.svg',
+      favicon: '/favicon.png',
       helperLink: 'wxwork://message?uin=8444252571319680',
       helperText: t('platform.onCall'),
       footerInfoHTML: '',

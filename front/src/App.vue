@@ -479,7 +479,7 @@ watch(appName, () => {
       {
         rel: 'icon',
         type: 'image/svg+xml',
-        href: () => '/favicon.svg',
+        href: () => '/favicon.png',
       },
     ],
   });
