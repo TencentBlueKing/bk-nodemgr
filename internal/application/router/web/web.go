@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 )
 
@@ -70,5 +71,6 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_DOCS_CENTER_URL":        h.frontSetting.BKDocsCenterURL(),
 		"BKAPP_NAV_OPEN_SOURCE_URL": h.frontSetting.BKAppNavOpenSourceURL(),
 		"ENABLE_NOTICE":             h.frontSetting.EnableNotice(),
+		"APP_VERSION":               version.VERSION,
 	})
 }
