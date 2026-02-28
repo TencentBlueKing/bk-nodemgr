@@ -6,21 +6,32 @@ import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/
 import { usePlatformConfigStore } from '@/stores/platform-config';
 export default function usePlatform() {
   const platformConfig = usePlatformConfigStore();
+
   async function getPlatformInfo() {
     const { t } = useI18n();
+
+    // 根据环境设置版本信息
+    const getVersionByEnv = () => {
+      const env = import.meta.env.BK_NODE_ENV;
+      if (env === 'production') {
+        return window.PROJECT_CONFIG.APP_VERSION;
+      }
+      return '';
+    };
+
     const defaults = {
       name: '节点管理',
-      nameEn: 'bk-nodeman',
-      appLogo: '',
+      nameEn: 'Nodemgr',
+      appLogo: '/nodeman.png',
       brandName: '蓝鲸智云',
       brandNameEn: 'Tencent BlueKing',
       productName: '蓝鲸节点管理',
-      productNameEn: 'bk-nodeman',
+      productNameEn: 'BK Nodemgr',
       favicon: '/favicon.svg',
       helperLink: 'wxwork://message?uin=8444252571319680',
-      helperText: t('blueking.onCall'),
+      helperText: t('platform.onCall'),
       footerInfoHTML: '',
-      version: '',
+      version: getVersionByEnv(),
       i18n: {
         footerInfoHTML: '',
       },

@@ -4,7 +4,7 @@ export const usePlatformConfigStore = defineStore('platform-config', {
   state: () => ({
     bkAppCode: '', // appcode
     name: '蓝鲸节点管理', // 站点的名称，通常显示在页面左上角，也会出现在网页title中
-    nameEn: 'bk-nodeman', // 站点的名称-英文
+    nameEn: 'bk-nodemgr', // 站点的名称-英文
     appLogo: '', // 站点logo
     favicon: '/static/images/favicon.icon', // 站点favicon
     helperText: '',
@@ -16,7 +16,7 @@ export const usePlatformConfigStore = defineStore('platform-config', {
     favIcon: '',
     brandNameEn: '', // 品牌名-英文
     productName: '蓝鲸节点管理',
-    productNameEn: 'bk-nodeman',
+    productNameEn: 'bk-nodemgr',
     footerInfo: '', // 页脚的内容，仅支持 a 的 markdown 内容格式
     footerInfoEn: '', // 页脚的内容-英文
     footerCopyright: '', // 版本信息，包含 version 变量，展示在页脚内容下方

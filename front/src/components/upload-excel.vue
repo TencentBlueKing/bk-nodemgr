@@ -14,7 +14,7 @@
     <template #tip>
       <div class="flex items-center gap-[3px]">
         <span>{{ $t('components.uploadExcel.tip') }}</span>
-        <a :href="downloadUrl" download="bk_nodeman_info.xlsx">
+        <a :href="downloadUrl" download="bk_nodemgr_info.xlsx">
           <Button text theme="primary">
             {{ $t('components.uploadExcel.templateFile') }}
           </Button>

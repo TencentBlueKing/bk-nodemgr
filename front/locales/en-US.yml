@@ -1,7 +1,8 @@
 platform:
   name: Node Management
-  title: BK NodeMan
+  title: BK Nodemgr
   logout: Logout
+  onCall: BK-helper
   nodeMan:
     node: Node
     agentStatus:

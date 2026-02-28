@@ -15,6 +15,7 @@ declare interface Window {
     BK_TENANT: string,
     BK_USER_WEB_URL: string,
     ENABLE_NOTICE: string,
+    APP_VERSION: string,
   }
   loginModal: Object
 }

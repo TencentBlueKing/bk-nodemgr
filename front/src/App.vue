@@ -9,14 +9,14 @@
     >
       <template #side-header>
         <img
-          src="/nodeman.png"
+          :src="platformConfig.appLogo"
           class="w-[28px] h-[28px] mr-[12px]"
           @click="handleGotoHome"
         />
         <span
           class="text-[16px] text-[#FAFBFD] cursor-pointer"
           @click="handleGotoHome"
-        >{{ t("platform.title") }}</span
+        >{{ platformConfig.i18n.productName || platformConfig.productName }}</span
         >
       </template>
       <template #header>
@@ -206,6 +206,7 @@ import { computed, onBeforeMount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
+import { setDocumentTitle, setShortcutIcon  } from '@blueking/platform-config';
 import { useHead } from '@vueuse/head';
 
 import { TopoService } from '@/api/modules/topo';
@@ -533,7 +534,13 @@ const handleCollect = (val: number) => {
 
 onBeforeMount(async () => {
   userStore.getUser();
-  getPlatformInfo();
+  // 获取平台配置信息
+  await getPlatformInfo();
+  // 设置文档标题
+  setDocumentTitle(platformConfig.i18n);
+  // 设置favicon
+  setShortcutIcon(platformConfig.favicon);
+
   if (isNeedBizSelect.value) {
     await getBusinessList();
   }

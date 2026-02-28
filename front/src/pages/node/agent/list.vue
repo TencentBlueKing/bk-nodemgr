@@ -311,6 +311,8 @@
       </Table>
     </Loading>
 
+    <bk-footer></bk-footer>
+
     <choose-version-dialog
       v-model:is-show="chooseVersionData.isShow"
       :title="chooseVersionData.title"
@@ -359,6 +361,7 @@ import { NodeAgentService } from '@/api/modules/node_agent';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
+import BkFooter from '@/pages/app/footer.vue';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
@@ -431,7 +434,7 @@ const statusMap = computed(() => new Map<string, string>([
 const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
 
 // ---------- 计算属性 ----------
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
+const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const total = computed(() => pagination.count);
 // eslint-disable-next-line max-len

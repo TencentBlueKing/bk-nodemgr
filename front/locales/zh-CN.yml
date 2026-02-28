@@ -2,6 +2,7 @@ platform:
   name: 节点管理
   title: 蓝鲸节点管理
   logout: 退出登录
+  onCall: 联系BK助手
   nodeMan:
     node: 节点
     agentStatus:
