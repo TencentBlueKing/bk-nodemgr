@@ -1,7 +1,7 @@
 <template>
   <div class="mb-[15px] relative">
     <Select
-      class="w-[240px]"
+      class="w-[260px]"
       v-model="selectedValue"
       multiple-mode="tag"
       collapse-tags
@@ -14,22 +14,20 @@
       <template #trigger>
         <Button theme="primary" text>
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
-          <span class="text-[14px]">{{ $t('添加配置项') }}</span>
+          <span class="text-[14px]">{{ $t('common.addConfigItem') }}</span>
         </Button>
       </template>
       <template #optionRender="{ item }">
-        <Tag v-if="item.pId === 'base_config'">{{ $t('基础') }}</Tag>
-        <Tag theme="success" v-else-if="item.pId === 'script_config'">{{ $t('脚本') }}</Tag>
-        <Tag theme="info" v-else-if="item.pId === 'data_config'">{{ $t('数据') }}</Tag>
-        <Tag theme="warning" v-else-if="item.pId === 'file_config'">{{ $t('文件') }}</Tag>
+        <Tag v-if="item.pId === 'base_config'">{{ $t('common.basic') }}</Tag>
+        <Tag theme="success" v-else-if="item.pId === 'script_config'">{{ $t('common.script') }}</Tag>
+        <Tag theme="info" v-else-if="item.pId === 'data_config'">{{ $t('common.data') }}</Tag>
+        <Tag theme="warning" v-else-if="item.pId === 'file_config'">{{ $t('common.file') }}</Tag>
         <span class="ml-[5px]">{{ item.name }}</span>
       </template>
     </Select>
-    <div class="flex items-center text-[#979BA5] absolute left-[120px] top-[2px]">
+    <div class="flex items-center text-[#979BA5] absolute left-[125px] top-[2px]">
       <i class="nodeman-icon nc-tips"></i>
-      <span class="ml-[9px] text-[12px]"
-      >如需修改默认配置，需打开开关后修改</span
-      >
+      <span class="ml-[5px] text-[12px]">{{ $t('common.tip') }}</span>
     </div>
   </div>
   <div v-for="(temp, index) in configTemplates" :key="index">
@@ -40,10 +38,10 @@
         class="flex gap-[15px] mb-[20px] h-[36px] items-center ml-[24px] hover:bg-[#F0F1F5] relative tempItem">
         <div class="text-[14px] w-[180px] text-right">{{ item.name_zh }}</div>
         <span>
-          <Tag v-if="temp.id === 'base_config'">{{ $t('基础') }}</Tag>
-          <Tag theme="success" v-else-if="temp.id === 'script_config'">{{ $t('脚本') }}</Tag>
-          <Tag theme="info" v-else-if="temp.id === 'data_config'">{{ $t('数据') }}</Tag>
-          <Tag theme="warning" v-else-if="temp.id === 'file_config'">{{ $t('文件') }}</Tag>
+          <Tag v-if="temp.id === 'base_config'">{{ $t('common.basic') }}</Tag>
+          <Tag theme="success" v-else-if="temp.id === 'script_config'">{{ $t('common.script') }}</Tag>
+          <Tag theme="info" v-else-if="temp.id === 'data_config'">{{ $t('common.data') }}</Tag>
+          <Tag theme="warning" v-else-if="temp.id === 'file_config'">{{ $t('common.file') }}</Tag>
         </span>
         <div class="w-[200px]">
           <Input

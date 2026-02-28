@@ -3,6 +3,10 @@ platform:
   title: BK Nodemgr
   logout: Logout
   onCall: BK-helper
+  productDoc: Documentation
+  releaseNotes: Release Notes
+  feedback: Feedback
+  openSource: Open Source
   nodeMan:
     node: Node
     agentStatus:
@@ -167,6 +171,7 @@ platform:
         partial_failed: Partial Failed
     log:
       executionLog: Execution Log
+      executionLogOf: 'Execution Log of {inner} {type}'
       searchNode: Select IP, Status
       searchPlugin: Select IP, Plugin, Status
       step: Step
@@ -982,3 +987,10 @@ menu:
   recordGroup: Records
   strategyGroup: Strategy
   pluginPackageMng: Plugin Package
+common:
+  addConfigItem: Add Config Item
+  basic: Basic
+  script: Script
+  data: Data
+  file: File
+  tip: To modify the default configuration, you need to enable the switch first, then make the changes

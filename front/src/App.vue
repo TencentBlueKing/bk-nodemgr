@@ -298,27 +298,27 @@ const navBizShrinkText = computed(() => {
   const text = len > 1 ? len : mainStore.selectedBusinessName[0]?.[0];
   return text;
 });
-const helpList = [
+const helpList = computed(() => [
   {
     id: 'DOC',
-    name: t('产品文档'),
+    name: t('platform.productDoc'),
     href: window.PROJECT_CONFIG.BK_DOCS_CENTER_URL,
   },
   {
     id: 'VERSION',
-    name: t('版本日志'),
+    name: t('platform.releaseNotes'),
   },
   {
     id: 'FAQ',
-    name: t('问题反馈'),
+    name: t('platform.feedback'),
     href: 'https://bk.tencent.com/s-mart/community',
   },
   {
     id: 'FAQ',
-    name: t('开源社区'),
+    name: t('platform.openSource'),
     href: window.PROJECT_CONFIG.BKAPP_NAV_OPEN_SOURCE_URL,
   },
-];
+]);
 /**
  * 系统外链
  */

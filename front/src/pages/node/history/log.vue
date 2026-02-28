@@ -349,7 +349,7 @@ const currentOperate = computed(() => operateList.value.find(item => isNode.valu
   ? item.bk_host_id === Number(route.params.hostId)
   : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`)));
 const isManual = computed(() => !!currentOperate.value?.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script'));
-const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} ${typeMap.value[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
+const title = computed(() => t('platform.nodeMan.log.executionLogOf', { inner: currentOperate.value?.bk_host_inner_list, type: typeMap.value[nodeManageStore.taskHistoryTableRowData.type] }));
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
@@ -453,6 +453,9 @@ const formatTimeToMS = (duration: number) => {
 // 获取状态去重列表
 const distinctStates = ref<string[]>([]);
 const getDistinctStates = async () => {
+  // 没有taskId，不请求distinctStates
+  if (!route.params.taskId) return;
+  
   try {
     const res = await serviceCaller.call('operationDistinct', {
       workflow_id: route.params.taskId,
@@ -554,6 +557,8 @@ const reTryType = [
 ];
 
 const handleRetry = async (row: any, type: string) => {
+  if (!route.params.taskId) return;
+  
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
@@ -572,6 +577,8 @@ const handleRetry = async (row: any, type: string) => {
 
 // 终止
 const handleTerminate = async () => {
+  if (!route.params.taskId) return;
+  
   const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
     operation_ids: [currentOperate.value.operation_id],
@@ -686,6 +693,9 @@ function getOrdinalSuffix(number: number) {
 // 获取任务列表
 const operateLoading = ref(false);
 const getOperateList = async () => {
+  // 没有taskId，不请求operationList
+  if (!route.params.taskId) return;
+  
   operateLoading.value = true;
   const res = await serviceCaller.call('operationList', {
     page: { limit: 500, offset: 0 },

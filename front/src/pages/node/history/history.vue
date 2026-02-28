@@ -576,14 +576,19 @@ const getTaskList = async () => {
         items: [],
       };
     });
-    statistics = await NodeWorkflowService.NodeWorkflowStatistics({
-      workflow_id: res.items.map(item => item.workflow_id),
-    }).catch((err) => {
-      console.log(err);
-      return {
-        items: [],
-      };
-    });
+    const workflowIds = res.items.map(item => item.workflow_id).filter(id => id);
+    if (workflowIds.length > 0) {
+      statistics = await NodeWorkflowService.NodeWorkflowStatistics({
+        workflow_id: workflowIds,
+      }).catch((err) => {
+        console.log(err);
+        return {
+          items: [],
+        };
+      });
+    } else {
+      statistics = { items: [] };
+    }
   } else {
     res = await PluginWorkflowService.PluginWorkflowList(getParams()).catch((err) => {
       console.log(err);
@@ -592,12 +597,17 @@ const getTaskList = async () => {
         items: [],
       };
     });
-    statistics = await PluginWorkflowService.PluginWorkflowStatistics({
-      workflow_id: res.items.map(item => item.workflow_id),
-    }).catch((err) => {
-      console.log(err);
-      return {};
-    });
+    const workflowIds = res.items.map(item => item.workflow_id).filter(id => id);
+    if (workflowIds.length > 0) {
+      statistics = await PluginWorkflowService.PluginWorkflowStatistics({
+        workflow_id: workflowIds,
+      }).catch((err) => {
+        console.log(err);
+        return {};
+      });
+    } else {
+      statistics = { items: [] };
+    }
   };
 
   pagination.count = res.total;

@@ -148,6 +148,9 @@ watch(() => props.isShow, async (val) => {
 }, { immediate: true });
 
 const fetchData = async () => {
+  // 确保workflow_id和operation_id都存在
+  if (!props.data.workflow_id || !props.data.operation_id) return;
+  
   isLoading.value = true;
   try {
     const res = await NodeWorkflowService.NodeWorkflowOperationManualSolutionGet({

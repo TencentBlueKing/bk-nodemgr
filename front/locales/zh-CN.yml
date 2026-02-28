@@ -3,6 +3,10 @@ platform:
   title: 蓝鲸节点管理
   logout: 退出登录
   onCall: 联系BK助手
+  productDoc: 产品文档
+  releaseNotes: 版本日志
+  feedback: 问题反馈
+  openSource: 开源社区
   nodeMan:
     node: 节点
     agentStatus:
@@ -167,6 +171,7 @@ platform:
         partial_failed: 部分失败
     log:
       executionLog: 执行日志
+      executionLogOf: '{inner} {type} 的执行日志'
       searchNode: 请选择 IP、执行状态
       searchPlugin: 请选择 IP、插件名、执行状态
       step: 步骤
@@ -982,3 +987,10 @@ menu:
   recordGroup: 记录
   strategyGroup: 策略
   pluginPackageMng: 插件包管理
+common:
+  addConfigItem: 添加配置项
+  basic: 基础
+  script: 脚本
+  data: 数据
+  file: 文件
+  tip: 如需修改默认配置，需打开开关后修改

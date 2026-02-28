@@ -612,6 +612,9 @@ const bizListMap = computed(() => new Map<number, string>(mainStore.businessList
 
 // 获取状态去重列表
 const getDistinctStates = async () => {
+  // 没有taskId，不请求distinctStates
+  if (!route.params.taskId) return;
+  
   try {
     const res = await serviceCaller.call('operationDistinct', {
       workflow_id: route.params.taskId,
@@ -1110,6 +1113,8 @@ const debouncedGetStatistics = debounce(getStatistics, 500);
 
 // 重试
 const handleRetry = async (row: any, type: string) => {
+  if (!route.params.taskId) return;
+  
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
@@ -1124,6 +1129,8 @@ const handleRetry = async (row: any, type: string) => {
   }
 };
 const handleFullRetry = async (type: string) => {
+  if (!route.params.taskId) return;
+  
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: failedSelection.value.map(item => item.operation_id),
@@ -1140,6 +1147,8 @@ const handleFullRetry = async (type: string) => {
 
 // 终止
 const handleTerminate = async (row: any) => {
+  if (!route.params.taskId) return;
+  
   const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
@@ -1154,6 +1163,8 @@ const handleTerminate = async (row: any) => {
 };
 // 批量终止
 const handleBatchTerminate = async () => {
+  if (!route.params.taskId) return;
+  
   const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
     operation_ids: runningSelection.value.map(item => item.operation_id),
@@ -1219,6 +1230,9 @@ const needInterval = computed(() => subTasksStatus.value?.includes('running')
     || subTasksStatus.value?.includes('empty_instance')
     || subTasksStatus.value?.includes('init'));
 const getOperateList = async () => {
+  // 没有taskId，不请求operationList
+  if (!route.params.taskId) return;
+  
   subTasksStatus.value = [];
   const searchParameters = getParams();
   const res = await serviceCaller.call('operationList', searchParameters).catch(() => ({
