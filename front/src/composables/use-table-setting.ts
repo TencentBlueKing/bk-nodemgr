@@ -17,12 +17,17 @@ export default function useTableSetting(
     checked?: string[];
     disabled?: string[];
     size?: string;
+    knownFields?: string[];
   } = savedSettingsStr ? JSON.parse(savedSettingsStr) : {};
 
   // 2. 初始化 settings，优先使用用户保存的值，其次使用传入的默认值
-  //    合并新增字段：传入的 checked 中有但缓存中没有的，自动加入（避免新列默认隐藏）
+  //    通过 knownFields 追踪用户已知字段，仅自动添加真正的新增字段
+  const savedKnownFields = savedSettings.knownFields ?? [];
+  const newFields = savedSettings.checked
+    ? checked.filter(field => !savedKnownFields.includes(field))
+    : [];
   const mergedChecked = savedSettings.checked
-    ? [...savedSettings.checked, ...checked.filter(field => !savedSettings.checked!.includes(field))]
+    ? [...savedSettings.checked, ...newFields]
     : checked;
   const settings = reactive({
     checked: mergedChecked,
@@ -53,6 +58,7 @@ export default function useTableSetting(
           checked: newVal.checked,
           disabled: newVal.disabled,
           size: newVal.size,
+          knownFields: [...new Set([...checked, ...newVal.checked])],
         }),
       );
     },
