@@ -143,10 +143,16 @@
 3. ✅ 最后完成"三、逻辑一致性检查"所有项（质量保证）
 
 ### 工具使用
-- **编译/静态分析**：使用 Shell 工具执行 `go build` 和 `go vet`
-- **Linter 检查**：使用 ReadLints 工具
-- **代码搜索**：使用 Grep 工具查找相似代码模式
-- **文件读取**：使用 Read 工具查看具体实现
+
+MCP 工具优先，传统工具作为降级方案：
+
+- **编译/静态分析**：使用 Shell 工具执行 `go build` 和 `go vet`（无可替代）
+- **Linter 检查**：使用 ReadLints 工具（无可替代）
+- **代码结构**：优先 `serena.get_symbols_overview`，降级使用 Read
+- **符号查找**：优先 `serena.find_symbol`，降级使用 Grep
+- **模式搜索**：优先 `serena.search_for_pattern`，降级使用 Grep
+- **依赖分析**：`serena.find_referencing_symbols`（无可替代）
+- **结构化思考**：`sequential-thinking`（规划策略和生成报告时必用）
 
 ### 问题优先级
 - **阻塞性问题**（语法检查未通过）：❌ 必须修复

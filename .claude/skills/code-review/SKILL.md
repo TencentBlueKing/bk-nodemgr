@@ -1,49 +1,51 @@
 ---
 name: code-review
-description: 审查代码和 commit，检查语法错误、逻辑一致性和代码质量。当用户说 review、检查错误、审查 commit 时使用。
-allowed-tools:
-  - sequential-thinking  # MCP 工具优先！
-  - mcp__serena__*       # serena 工具族
-  - context7             # 文档查询
-  - Shell                # 编译、测试
-  - Read                 # 降级方案
-  - Grep                 # 降级方案
-  - Glob                 # 文件查找
+description: Use when user asks to review code, check for errors, audit commits, or review a PR. Also use when reviewing Go changes for lint failures, inconsistent patterns, or logic bugs.
 ---
 
 # Code Review Skill
 
 高效审查 Go 代码，确保代码质量、规范一致性和功能正确性。
 
-## MCP 工具优先原则
+## When to Use
 
-本 Skill 优先使用 MCP 工具进行代码分析和审查：
+**使用场景：**
+- 用户要求审查代码、检查错误、审计提交或审查 PR
+- 审查 Go 代码中的 lint 失败、不一致模式或逻辑错误
+- 合并前的代码质量验证
 
-**核心 MCP 工具**：
-- **🧠 sequential-thinking**: 结构化思考和问题分析
-- **🔍 serena 工具族**: 精确的符号级代码分析（`get_symbols_overview`、`find_symbol`、`find_referencing_symbols`、`search_for_pattern`）
-- **📚 context7**: 文档查询和规范验证
+**不适用场景：**
+- 仅需理解代码含义（使用普通代码阅读，不启动完整审查流程）
+- 快速单行修复确认（无需创建 worktree 和生成报告）
 
-**传统工具作为补充**：Read/Grep/Glob 仅在 MCP 工具不可用或不适用时使用。
+## 工具优先级
 
-详细工具选择策略参见：[references/tools-usage.md](references/tools-usage.md) 和 [references/quick-reference.md](references/quick-reference.md)
+优先使用 MCP 工具进行代码分析：
+
+| 优先级 | 工具 | 用途 |
+|--------|------|------|
+| 1 | sequential-thinking | 结构化思考、问题分析 |
+| 2 | serena 工具族 | 符号级代码分析（`get_symbols_overview`、`find_symbol`、`find_referencing_symbols`、`search_for_pattern`） |
+| 3 | context7 | 文档查询、规范验证 |
+| 降级 | Read/Grep/Glob | 仅在 MCP 工具不可用时使用 |
+
+详细工具选择策略参见：[references/tools-usage.md](references/tools-usage.md)
 
 ## 快速开始
 
-### PR 审查（推荐）
+**隔离工作区**：审查代码前应创建独立 worktree，避免污染当前工作区。
 
-审查远程 PR 时，使用 [scripts/pr-worktree.sh](scripts/pr-worktree.sh) 创建独立工作区：
+**REQUIRED SUB-SKILL:** Use `using-git-worktrees` for worktree lifecycle (directory selection, gitignore verification, baseline tests).
+
+**PR 审查额外步骤**：先用 [scripts/pr-fetch.sh](scripts/pr-fetch.sh) 将 PR 分支 fetch 到本地（不切换当前分支），再按 `using-git-worktrees` 创建 worktree：
 
 ```bash
-# 根据 PR URL 自动创建 worktree
-.claude/skills/code-review/scripts/pr-worktree.sh <PR_URL>
-
-# 支持: GitHub、GitLab、腾讯工蜂、Gitee
+BRANCH=$(.claude/skills/code-review/scripts/pr-fetch.sh <PR_URL>)
+# 然后按 using-git-worktrees 流程创建 worktree
+git worktree add .worktrees/"$BRANCH" "$BRANCH"
 ```
 
-脚本自动解析 PR URL、fetch 分支、创建 worktree。创建后进入 worktree 目录进行审查。
-
-### 代码审查流程
+### 审查流程
 
 执行 6 步审查流程：
 
@@ -83,12 +85,6 @@ allowed-tools:
 
 **完整文件类型映射表**：参见 [references/file-type-mapping.md](references/file-type-mapping.md)
 
-## 工具使用策略
-
-优先使用 MCP 工具（sequential-thinking、serena 工具族、context7）进行代码分析，它们提供精确的符号级分析、语义级理解和结构化思考能力。传统工具（Read/Grep/Glob）仅在 MCP 工具不可用或不适用时使用。
-
-**详细工具选择指南**：参见 [references/tools-usage.md](references/tools-usage.md) 和 [references/quick-reference.md](references/quick-reference.md)
-
 ## 报告格式
 
 生成结构化的审查报告，按三级优先级分类问题：❌ 严重问题（必须修复）、⚠️ 重要问题（强烈建议修复）、💡 建议改进（可选）。
@@ -118,24 +114,24 @@ allowed-tools:
 
 **添加新 Pattern**：参见 [patterns/README.md](patterns/README.md) 和 [patterns/_TEMPLATE.md](patterns/_TEMPLATE.md)
 
-## 相关文档
+## Common Mistakes
 
-**Skill 核心文档**：
-- [references/workflow-guide.md](references/workflow-guide.md) - 详细工作流指南
-- [references/tools-usage.md](references/tools-usage.md) - 工具使用策略
-- [references/quick-reference.md](references/quick-reference.md) - 快速参考
-- [references/checklist.md](references/checklist.md) - 完整检查清单
-- [references/file-type-mapping.md](references/file-type-mapping.md) - 文件类型映射表
-- [references/report-template.md](references/report-template.md) - 报告模板
-- [references/go-standards.md](references/go-standards.md) - Go 规范速查
+| 错误 | 后果 | 修复 |
+|------|------|------|
+| 直接使用 Read/Grep 而跳过 serena | Token 浪费 4-5x，结构理解不准确 | 总是先尝试 `serena.get_symbols_overview` 或 `find_symbol` |
+| 不限制搜索路径 | 全库扫描，速度慢且结果噪声大 | 所有 serena/Grep 调用必须指定 `relative_path` |
+| 跳过 sequential-thinking 直接开始审查 | 遗漏重要检查项，审查不系统 | 审查开始和报告生成时必用 sequential-thinking |
+| 不先运行 lint/build 就深入逻辑审查 | 在有语法错误的代码上浪费时间 | 步骤 2（语法检查）必须先于其他所有步骤 |
+| 审查时不创建 worktree | 污染当前工作区 | 遵循 `using-git-worktrees` sub-skill |
 
-**模块规范**：
-- [patterns/README.md](patterns/README.md) - Pattern 系统说明
-- [patterns/dpmgr-executor.md](patterns/dpmgr-executor.md) - Deploy Policy Manager Executor 规范
+## 参考索引
 
-**项目规范**：
-- `AGENTS.md` - AI 协作规范
-- `CLAUDE.md` - 项目指令
-- `docs/api/API接口开发流程.md` - API 开发规范
-- `docs/developer/README.md` - 开发者指南
-- `.golangci.yml` - Linter 配置
+| 类别 | 文档 |
+|------|------|
+| 工作流 | [workflow-guide.md](references/workflow-guide.md)、[quick-reference.md](references/quick-reference.md) |
+| 工具 | [tools-usage.md](references/tools-usage.md) |
+| 检查 | [checklist.md](references/checklist.md)、[file-type-mapping.md](references/file-type-mapping.md) |
+| 报告 | [report-template.md](references/report-template.md) |
+| Go 规范 | [go-standards.md](references/go-standards.md) |
+| 模块 Pattern | [patterns/README.md](patterns/README.md)、[dpmgr-executor.md](patterns/dpmgr-executor.md) |
+| 项目规范 | `AGENTS.md`、`docs/api/API接口开发流程.md`、`.golangci.yml` |

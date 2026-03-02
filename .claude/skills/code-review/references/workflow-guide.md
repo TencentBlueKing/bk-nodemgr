@@ -74,8 +74,8 @@ go vet ./path/to/package/...
 - 数据结构构建是否符合模式
 
 **如何进行一致性检查：**
-1. 使用 Grep 查找相似函数
-2. 使用 SemanticSearch 查找相关模式
+1. 使用 `serena.find_symbol`（substring_matching=true）查找相似函数，降级时用 Grep
+2. 使用 `serena.search_for_pattern` 查找相关模式，降级时用 Grep
 3. 比对函数签名、错误处理、日志格式
 4. 检查数据结构构建模式
 
@@ -143,10 +143,16 @@ go vet ./path/to/package/...
 
 ### 高效使用工具
 
-- **Grep**: 快速查找相似函数、错误处理模式
-- **SemanticSearch**: 理解模块整体设计和代码模式
-- **ReadLints**: 优先检查 linter 错误，避免重复工作
-- **Shell**: 执行编译和静态检查，获取准确的错误信息
+MCP 工具优先，传统工具作为降级方案：
+
+- **sequential-thinking**: 规划审查策略、分析复杂问题、生成结构化报告（每次审查开始和结束必用）
+- **serena.get_symbols_overview**: 快速了解文件结构，替代全文 Read（节省 75% token）
+- **serena.find_symbol**: 精确查找函数/类/方法定义，替代 Grep
+- **serena.find_referencing_symbols**: 分析代码依赖和影响范围（无可替代）
+- **serena.search_for_pattern**: 语义级模式搜索，替代 Grep
+- **ReadLints**: 优先检查 linter 错误，无可替代
+- **Shell**: 编译检查和 Git 操作，无可替代
+- **Grep / Read**: 降级方案，仅在 serena 无法满足时使用
 
 ### 审查优先级
 
