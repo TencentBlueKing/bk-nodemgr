@@ -117,6 +117,28 @@
           </template>
         </TableColumn>
         <TableColumn
+          field="bk_networkarea_id"
+          :title="t('platform.nodeMan.bk_cloud_name')"
+          :filter="filterOptionSource.bk_networkarea_id"
+          :min-width="120"
+          show-overflow
+        >
+          <template #default="{ row }">
+            {{ row.bk_networkarea_name }}
+          </template>
+        </TableColumn>
+        <TableColumn
+          show-overflow
+          field="bk_networkunit_id"
+          :title="t('platform.nodeMan.bk_cloud_unit')"
+          :filter="filterOptionSource.bk_networkunit_id"
+          :min-width="120"
+        >
+          <template #default="{ row }">
+            {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
+          </template>
+        </TableColumn>
+        <TableColumn
           field="dept_name"
           :title="t('platform.nodeMan.dept_name')"
           :filter="filterOptionSource.dept_name"
@@ -293,6 +315,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'advertise_ip',
     'login_ip',
     'bk_biz_id',
+    'bk_networkarea_id',
+    'bk_networkunit_id',
     'dept_name',
     'bk_agent_id',
     'node_version',
@@ -394,6 +418,8 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
       name: field,
       values: checked.map((item: any) => {
         let name = item;
+        if (field === 'bk_networkarea_id') name = networkAreaListMap.value.get(Number(item)) || item;
+        if (field === 'bk_networkunit_id') name = networkUnitListMap.value.get(Number(item)) || item;
         if (field === 'node_status') name = statusMap.value.get(item) || item;
         return { id: item, name };
       }),
@@ -413,6 +439,8 @@ const statusMap = ref(new Map<string, string>([
 
 const searchSelectValue = computed(() => props.searchSelectValue);
 const filterOptionSource: Record<string, FilterOption> = reactive({
+  bk_networkarea_id: { list: [], checked: [], filterScope: 'all' },
+  bk_networkunit_id: { list: [], checked: [], filterScope: 'all' },
   dept_name: { list: [], checked: [], filterScope: 'all' },
   node_version: { list: [], checked: [], filterScope: 'all' },
   node_status: { list: [], checked: [], filterScope: 'all' },
@@ -513,6 +541,8 @@ const handleReinstall = (row: Host) => {
 /**
  * 获取主机筛选条件的唯一值
  */
+const networkAreaListMap = ref(new Map<number, string>([]));
+const networkUnitListMap = ref(new Map<number, string>([]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
   prop: K,
@@ -526,6 +556,33 @@ function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
       name: keyMap?.get(value) || String(value),
     }));
 }
+const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) => {
+  const res = await TopoService.NetworkAreaList({
+    page: { limit: 0 },
+    exact_include_conditions: { bk_networkarea_id: data?.bk_networkarea_id || [] },
+  }).catch((err: any) => {
+    console.error('获取管控区域列表失败:', err);
+    return { total: 0, items: [] };
+  });
+  networkAreaListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
+  res.items.forEach((item) => {
+    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
+  });
+};
+
+const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: { bk_networkunit_id: data?.bk_networkunit_id || [] },
+  }).catch((err: any) => {
+    console.error('获取管控单元列表失败:', err);
+    return { total: 0, items: [] };
+  });
+  networkUnitListMap.value.set(-1, t('platform.nodeMan.agentStatus.unassigned'));
+  res.items.forEach((item) => {
+    networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  });
+};
+
 const getHostDistinct = async () => {
   const params = {
     exact_include_conditions: {
@@ -537,6 +594,10 @@ const getHostDistinct = async () => {
     console.error('获取主机筛选条件唯一值失败:', err);
     return null;
   });
+  await Promise.all([
+    getNetworkAreaList(res),
+    getNetworkUnitList(res),
+  ]);
   if (res) {
     hostDistinct.value = res;
     Object.keys(res).forEach((key: any) => {
@@ -545,6 +606,8 @@ const getHostDistinct = async () => {
           .filter((item: any) => item !== '')
           .map((value: string | number) => {
             let text = value;
+            if (key === 'bk_networkarea_id') text = networkAreaListMap.value.get(Number(value)) || value;
+            if (key === 'bk_networkunit_id') text = networkUnitListMap.value.get(Number(value)) || value;
             if (key === 'node_status') text = statusMap.value.get(value as string) || value;
             return { text, value };
           });

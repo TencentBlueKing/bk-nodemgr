@@ -20,10 +20,14 @@ export default function useTableSetting(
   } = savedSettingsStr ? JSON.parse(savedSettingsStr) : {};
 
   // 2. 初始化 settings，优先使用用户保存的值，其次使用传入的默认值
+  //    合并新增字段：传入的 checked 中有但缓存中没有的，自动加入（避免新列默认隐藏）
+  const mergedChecked = savedSettings.checked
+    ? [...savedSettings.checked, ...checked.filter(field => !savedSettings.checked!.includes(field))]
+    : checked;
   const settings = reactive({
-    checked: savedSettings.checked ?? checked,     // 优先用用户保存的 checked
-    disabled: savedSettings.disabled ?? disabled,   // 优先用用户保存的 disabled
-    size: savedSettings.size ?? 'medium',          // 优先用用户保存的 size
+    checked: mergedChecked,
+    disabled: savedSettings.disabled ?? disabled,
+    size: savedSettings.size ?? 'medium',
   });
 
   const isShowSetting = ref(true);
