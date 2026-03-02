@@ -23,6 +23,8 @@
 # Note that when using the JetBrains backend, language servers are not used and this list is correspondingly ignored.
 languages:
 - go
+- typescript
+- vue
 
 # the encoding used by text files in the project
 # For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
@@ -33,7 +35,12 @@ ignore_all_files_in_gitignore: true
 
 # list of additional paths to ignore in all projects
 # same syntax as gitignore, so you can use * and **
-ignored_paths: []
+ignored_paths:
+  - "**/*.pb.go"              # generated protobuf, never edit manually
+  - "vendor/**"               # Go vendor dependencies
+  - "front/node_modules/**"   # frontend dependencies
+  - "front/dist/**"           # frontend build output
+  - ".serena/cache/**"        # Serena LSP cache
 
 # whether the project is in read-only mode
 # If set to true, all editing tools will be disabled and attempts to use them will result in an error
@@ -79,32 +86,38 @@ read_only: false
 #  * `think_about_task_adherence`: Thinking tool for determining whether the agent is still on track with the current task.
 #  * `think_about_whether_you_are_done`: Thinking tool for determining whether the task is truly completed.
 #  * `write_memory`: Writes a named memory (for future reference) to Serena's project-specific memory store.
-excluded_tools: []
+excluded_tools:
+  - activate_project          # single-project workspace, no switching needed
+  - remove_project            # destructive, not needed in daily dev
+  - prepare_for_new_conversation # IDE manages context automatically
+  - initial_instructions      # system prompt is set; this is only for clients without system prompt support
+  - get_current_config        # diagnostic only, not needed in normal workflow
+  - summarize_changes         # covered by Claude's native capability
+  - switch_modes              # no runtime mode switching needed
+  - think_about_collected_information  # replaced by mcp__sequential-thinking
+  - think_about_task_adherence         # replaced by mcp__sequential-thinking
+  - think_about_whether_you_are_done   # replaced by mcp__sequential-thinking
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
 initial_prompt: |
-  You are working on BlueKing Node Manager (bk-nodemgr), a Go-based microservices application for node management in the BlueKing platform.
+  Project: BlueKing Node Manager (bk-nodemgr).
+  Source of truth for conventions, structure, anti-patterns and commands: AGENTS.md (always read first).
 
-  **Project Structure Overview:**
-  - `cmd/` - Service entry points (backend, application, file, relay)
-  - `pkg/` - Shared libraries (dao, rest, workflow, thirdparty, logger, config)
-  - `internal/` - Service-specific business logic
-  - `proto/` - API definitions (Protocol Buffers)
-  - `docs/` - Project documentation
+  **Serena-specific guidance:**
+  - Prefer symbolic tools (find_symbol, get_symbols_overview) over reading full files
+  - Use search_for_pattern for cross-file pattern searches
+  - Restart language server if edits were made outside Serena tools
 
-  **Progressive Reading Guide:**
-  1. Read AGENTS.md for coding standards, conventions, and development workflow
-  2. Explore service directories in cmd/ to understand service boundaries
-  3. Review pkg/ packages to understand shared components and patterns
-  4. Check docs/ for API documentation, style guides, and concepts
-  5. Refer to Makefile for build commands and common operations
+  **Available memories (load on demand):**
+  - `project_overview`        — monorepo layout and service boundaries
+  - `code_style_conventions`  — Go/TS coding rules and anti-patterns
+  - `suggested_commands`      — build, lint, proto, frontend, test commands
+  - `task_completion_checklist` — post-change verification steps
 
-  **Key Context:**
-  - Language: Go 1.23.10
-  - Architecture: Microservices (backend, application, file, relay)
-  - Database: MongoDB, Cache: Redis
-  - Code quality: Follow .golangci.yml rules.
+  **Initialization check:**
+  If this is the first session or memories appear empty, call `check_onboarding_performed` first.
+  If onboarding has not been done, call `onboarding` to populate memories before proceeding.
 # the name by which the project can be referenced within Serena
 project_name: "bk-nodemgr"
 
@@ -129,3 +142,16 @@ default_modes:
 # fixed set of tools to use as the base tool set (if non-empty), replacing Serena's default set of tools.
 # This cannot be combined with non-empty excluded_tools or included_optional_tools.
 fixed_tools: []
+
+# time budget (seconds) per tool call for the retrieval of additional symbol information
+# such as docstrings or parameter information.
+# This overrides the corresponding setting in the global configuration; see the documentation there.
+# If null or missing, use the setting from the global configuration.
+symbol_info_budget: 5
+
+# The language backend to use for this project.
+# If not set, the global setting from serena_config.yml is used.
+# Valid values: LSP, JetBrains
+# Note: the backend is fixed at startup. If a project with a different backend
+# is activated post-init, an error will be returned.
+language_backend:
