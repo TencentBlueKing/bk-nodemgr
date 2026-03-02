@@ -45,16 +45,41 @@ BRANCH=$(.claude/skills/code-review/scripts/pr-fetch.sh <PR_URL>)
 git worktree add .worktrees/"$BRANCH" "$BRANCH"
 ```
 
+### 审查状态持久化（`.review/`）
+
+审查过程中在 worktree 下生成 `.review/` 文件夹，保存审查进度和已发现的问题，支持跨会话续审。
+
+**文件结构：**
+```
+.review/
+├── checklist.md        # 审查进度：各步骤 [x]/[ ] 状态 + 已发现问题摘要
+└── meta.json           # 元数据：审查目标（commit/branch）、开始时间、当前步骤
+```
+
+- **`checklist.md`**：实时记录审查进度和问题。每个步骤完成后更新，最终报告（步骤 7）从此文件的 Issues Found 汇总生成。门禁终止时，门禁步骤标记 `[x]` 并附注"⛔"，Issues Found 中记录发现的问题。
+- **`meta.json`**：记录 target branch、commit hash、startedAt、currentStep、totalSteps。
+
+**续审检测规则：**
+- `.review/` 不存在 → 从步骤 1 开始
+- branch 名不匹配 → 清空 `.review/` 重新开始
+- branch + commit 均匹配 → 提示用户"检测到上次审查进度，是否从步骤 N 继续？"
+- branch 匹配但 commit 变化 → 提示用户"commit 已变更，是否继续还是重新开始？"
+
+`.review/` 已加入 `.gitignore`，不会提交到 git。
+
+详细状态管理流程参见：[references/workflow-guide.md](references/workflow-guide.md)
+
 ### 审查流程
 
-执行 6 步审查流程：
+执行 7 步审查流程：
 
 1. **🔍 确定范围** - 使用 `🧠 sequential-thinking` 分析策略，用 `🔍 serena.get_symbols_overview` 识别文件和模块类型
-2. **⚠️ 语法检查** - 使用 `make lint`（最高优先级，阻塞性错误）
-3. **📋 规范检查** - 使用 `🔍 serena.find_symbol` 精确定位，用 `📚 context7` 查询规范（可选）
-4. **🔗 一致性检查** - 使用 `🔍 serena.find_symbol` 和 `find_referencing_symbols` 查找并对比相似代码
-5. **💡 质量检查** - 使用 `🧠 sequential-thinking` 分析质量问题，用 `🔍 serena.search_for_pattern` 查找特定模式
-6. **📄 生成报告** - 使用 `🧠 sequential-thinking` 分类问题，按优先级生成结构化报告
+2. **🏗️ Design 审查**（阻塞性门禁）- 使用 `🧠 sequential-thinking` 评估设计合理性，用 `🔍 serena.get_symbols_overview` 检查代码放置位置和模块依赖方向。发现设计问题时生成早期报告，提示用户是否终止
+3. **⚠️ 语法检查**（阻塞性门禁）- 使用 `make lint`（最高优先级，阻塞性错误）
+4. **📋 规范检查** - 使用 `🔍 serena.find_symbol` 精确定位，用 `📚 context7` 查询规范（可选）
+5. **🔗 一致性检查** - 使用 `🔍 serena.find_symbol` 和 `find_referencing_symbols` 查找并对比相似代码
+6. **💡 质量检查** - 使用 `🧠 sequential-thinking` 分析质量问题，用 `🔍 serena.search_for_pattern` 查找特定模式
+7. **📄 生成报告** - 使用 `🧠 sequential-thinking` 分类问题，按优先级生成结构化报告
 
 **详细流程和工具使用**：参见 [references/workflow-guide.md](references/workflow-guide.md)
 
@@ -98,6 +123,7 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 3. **保持一致** - 对比相似代码，确保实现模式一致
 4. **建设性** - 提供具体修复建议，而非仅指出问题
 5. **优先级明确** - 区分严重、重要和建议性问题
+6. **系统健康** - 评估变更对系统整体的影响，不接受降低代码健康度的变更。小复杂度会累积。
 
 ## 模块规范（Patterns）
 
@@ -121,7 +147,7 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 | 直接使用 Read/Grep 而跳过 serena | Token 浪费 4-5x，结构理解不准确 | 总是先尝试 `serena.get_symbols_overview` 或 `find_symbol` |
 | 不限制搜索路径 | 全库扫描，速度慢且结果噪声大 | 所有 serena/Grep 调用必须指定 `relative_path` |
 | 跳过 sequential-thinking 直接开始审查 | 遗漏重要检查项，审查不系统 | 审查开始和报告生成时必用 sequential-thinking |
-| 不先运行 lint/build 就深入逻辑审查 | 在有语法错误的代码上浪费时间 | 步骤 2（语法检查）必须先于其他所有步骤 |
+| 不先运行 lint/build 就深入逻辑审查 | 在有语法错误的代码上浪费时间 | 步骤 3（语法检查）必须先于后续所有步骤 |
 | 审查时不创建 worktree | 污染当前工作区 | 遵循 `using-git-worktrees` sub-skill |
 
 ## 参考索引
