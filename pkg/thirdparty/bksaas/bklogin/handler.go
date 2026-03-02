@@ -29,6 +29,12 @@ type IHandler interface {
 
 	// GetAuthIdentity get the auth identity.
 	GetAuthIdentity() *AuthIdentity
+
+	// GetAuthType returns the auth type (cookie key name: bk_token or bk_ticket).
+	GetAuthType() string
+
+	// GetWebUserInfo returns the unified web user info for the web login scenario.
+	GetWebUserInfo(nCtx contextx.IContext, token string) (*WebUserInfo, error)
 }
 
 // Handler the Handler of cmdb.
@@ -36,6 +42,11 @@ type Handler struct {
 	cli *cli
 
 	conf *Config
+}
+
+// GetAuthType returns the auth type.
+func (h *Handler) GetAuthType() string {
+	return h.conf.AuthType
 }
 
 // Config the config of bkoa.
@@ -124,4 +135,37 @@ func (h *Handler) GetAuthIdentity() *AuthIdentity {
 // GetLoginURL ...
 func (h *Handler) GetLoginURL() string {
 	return h.conf.LoginURL
+}
+
+// GetWebUserInfo returns the unified web user info for the web login scenario.
+// It abstracts the bk_ticket/bk_token branch and guarantees username is non-empty on success.
+func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*WebUserInfo, error) {
+	if nCtx == nil {
+		return nil, errors.New("failed to get web user info: invalid context")
+	}
+
+	var username string
+
+	switch h.conf.AuthType {
+	case CookieKeyBKTicket:
+		resp, err := h.cli.getUserInfoByBKTicket(nCtx, &GetUserInfoByBKTicketReq{BKTicket: token})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get web user info by bk_ticket: %w", err)
+		}
+		username = resp.Username
+	case CookieKeyBKToken:
+		resp, err := h.cli.getUserInfoByBKToken(nCtx, &GetUserInfoByBKTokenReq{BKToken: token})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get web user info by bk_token: %w", err)
+		}
+		username = resp.Username
+	default:
+		return nil, fmt.Errorf("failed to get web user info: unsupported auth type: %s", h.conf.AuthType)
+	}
+
+	if username == "" {
+		return nil, errors.New("failed to get web user info: username is empty")
+	}
+
+	return &WebUserInfo{Username: username}, nil
 }

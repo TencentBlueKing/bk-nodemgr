@@ -141,6 +141,7 @@ func (svc *Service) initialCapability() error {
 	if err != nil {
 		return fmt.Errorf("failed to create bklogin handler: %w", err)
 	}
+	svc.Cap.BKLoginHandler = svc.bkloginHandler
 
 	// initial backend handler.
 	svc.Cap.BackendHandler, err = svc.newBackendHandler()

@@ -13,25 +13,35 @@ package web
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	// webUserInfoTimeout is the timeout for getting web user info from bklogin API.
+	webUserInfoTimeout = 3 * time.Second
+)
+
 type handler struct {
-	rg           *gin.RouterGroup
-	frontSetting frontsetting.IFrontSetting
+	rg             *gin.RouterGroup
+	frontSetting   frontsetting.IFrontSetting
+	bkloginHandler bksaasbklogin.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:           rg.Group(""),
-		frontSetting: capability.FrontSetting,
+		rg:             rg.Group(""),
+		frontSetting:   capability.FrontSetting,
+		bkloginHandler: capability.BKLoginHandler,
 	}
 }
 
@@ -59,6 +69,19 @@ func (h *handler) Index(ctx *gin.Context) {
 		}
 	}
 
+	// Get login name from bklogin API for display purposes only.
+	// This is not used for actual authentication logic.
+	// Returns empty string if auth cookie is missing or GetWebUserInfo call fails.
+	loginName := ""
+	token, cookieErr := ctx.Cookie(h.bkloginHandler.GetAuthType())
+	if cookieErr == nil && token != "" {
+		nCtx, cancel := contextx.WithTimeout(contextx.New(ctx.Request.Context()), webUserInfoTimeout)
+		defer cancel()
+		if info, err := h.bkloginHandler.GetWebUserInfo(nCtx, token); err == nil {
+			loginName = info.Username
+		}
+	}
+
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
 		"BK_LOGIN_URL":              h.frontSetting.BKLoginURL(),
 		"BK_REQUEST_ID_HEADER_KEY":  h.frontSetting.BKRequestIDHeaderKey(),
@@ -72,5 +95,6 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BKAPP_NAV_OPEN_SOURCE_URL": h.frontSetting.BKAppNavOpenSourceURL(),
 		"ENABLE_NOTICE":             h.frontSetting.EnableNotice(),
 		"APP_VERSION":               version.VERSION,
+		"LOGIN_NAME":                loginName,
 	})
 }
