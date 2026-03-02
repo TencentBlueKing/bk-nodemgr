@@ -26,7 +26,7 @@ error () {
 
 BASE_CONFIG="$1"
 OUTPUT="$2"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(realpath "$(dirname "$0")")"
 DATA_DIR="${SCRIPT_DIR}/../data"
 CMDB_DATA="${DATA_DIR}/cmdb.yaml"
 
@@ -42,7 +42,11 @@ fi
 OUTPUT_DIR="$(dirname "$OUTPUT")"
 mkdir -p "$OUTPUT_DIR"
 
-cp "$BASE_CONFIG" "$OUTPUT"
+BASE_REAL="$(realpath "$BASE_CONFIG")"
+OUTPUT_REAL="$(realpath -m "$OUTPUT")"
+if [[ "$BASE_REAL" != "$OUTPUT_REAL" ]]; then
+    cp "$BASE_CONFIG" "$OUTPUT"
+fi
 
 # append mockData.cmdb section to the output file.
 echo "" >> "$OUTPUT"

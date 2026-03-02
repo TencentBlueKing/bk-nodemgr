@@ -17,6 +17,3 @@ log:
 # bkrepo mock storage settings.
 bkrepoConfig:
   baseDir: __MOCK_SERVER_BKREPO_BASE_DIR__
-
-# optional preset mock data.
-mockData: __MOCK_SERVER_MOCK_DATA__

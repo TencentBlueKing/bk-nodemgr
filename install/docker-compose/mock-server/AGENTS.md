@@ -21,12 +21,11 @@ mock-server/
 - `generate.sh` is shared at `../generate.sh`, do not duplicate.
 - Environment variable prefix: `MOCK_SERVER_` (not `BK_MOCK_SERVER_`).
 - Generate artifacts (`etc/mock-server.yml`, `mock-server.yml`) must not be committed.
-- `mockData` in env is single-line JSON, rendered as-is into YAML config.
 
 ## COMMANDS
 
 ```bash
-bash deploy.sh generate    # render templates only
+bash deploy.sh generate    # render templates only and merge mock data
 bash deploy.sh install     # generate + start container
 bash deploy.sh uninstall   # stop container
 bash deploy.sh clean       # stop + remove generated files

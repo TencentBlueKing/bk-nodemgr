@@ -8,6 +8,7 @@ CONFIG_PATH=./etc
 # env file.
 ENV_FILE=./mock-server.env
 GENERATE_TOOL=../generate.sh
+GEN_MOCK_CONFIG=../../../test/tools/gen-mock-config.sh
 
 # docker compose.
 DOCKER_COMPOSE_FILE=mock-server.yml
@@ -15,6 +16,7 @@ DOCKER_COMPOSE_TEMPLATE_PATH=./templates/service
 DOCKER_COMPOSE_TEMPLATE_FILE=mock-server.yml.tpl
 
 # config.
+CONFIG_FILE=$CONFIG_PATH/mock-server.yml
 CONFIG_TEMPLATE_PATH=./templates/config
 CONFIG_TEMPLATE_FILE=mock-server.yml.tpl
 
@@ -43,14 +45,19 @@ function generate() {
     fi
 
     # try to generate config.
-    bash $GENERATE_TOOL -e $ENV_FILE -t $CONFIG_TEMPLATE_PATH/$CONFIG_TEMPLATE_FILE > $CONFIG_PATH/mock-server.yml
+    bash $GENERATE_TOOL -e $ENV_FILE -t $CONFIG_TEMPLATE_PATH/$CONFIG_TEMPLATE_FILE > $CONFIG_FILE
 
     if [ $? -ne 0 ]; then
         echo "Failed to generate config for mock-server"
         exit 3
     fi
 
-    echo "Successfully generated config to $CONFIG_PATH/mock-server.yml"
+    echo "Successfully generated config to $CONFIG_FILE"
+
+    # merge mock data into config via gen-mock-config.sh.
+    [ -f "$GEN_MOCK_CONFIG" ] || { echo "Mock config tool not found: $GEN_MOCK_CONFIG"; exit 1; }
+    bash $GEN_MOCK_CONFIG $CONFIG_FILE $CONFIG_FILE
+    echo "Successfully merged mock data into config"
 
     # try to generate docker compose yml.
     bash $GENERATE_TOOL -e $ENV_FILE -t $DOCKER_COMPOSE_TEMPLATE_PATH/$DOCKER_COMPOSE_TEMPLATE_FILE > $DOCKER_COMPOSE_FILE
