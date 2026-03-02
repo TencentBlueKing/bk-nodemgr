@@ -109,11 +109,23 @@ initial_prompt: |
   - Use search_for_pattern for cross-file pattern searches
   - Restart language server if edits were made outside Serena tools
 
+  **Git worktree support:**
+  This project uses `.worktrees/` for isolated PR review and feature work.
+  All serena tools support worktree paths via `relative_path` — use them instead of grep/rg.
+  - Browse: `list_dir(relative_path=".worktrees")` to discover active worktrees
+  - Symbols: `get_symbols_overview(relative_path=".worktrees/pr-XXX/path/to/file.go")`
+  - Search:  `search_for_pattern(substring_pattern="...", relative_path=".worktrees/pr-XXX/...")`
+  - Find:    `find_symbol(name_path_pattern="Foo", relative_path=".worktrees/pr-XXX/...")`
+  - NEVER assume worktrees are invisible to serena — always use serena first, grep only for git ops.
+  - Note: `find_referencing_symbols` requires the symbol to exist in the LSP index; for deleted
+    symbols or cross-worktree references, fall back to `search_for_pattern`.
+
   **Available memories (load on demand):**
   - `project_overview`        — monorepo layout and service boundaries
   - `code_style_conventions`  — Go/TS coding rules and anti-patterns
   - `suggested_commands`      — build, lint, proto, frontend, test commands
   - `task_completion_checklist` — post-change verification steps
+  - `code_review/worktree_tool_strategy` — PR review tool selection rules
 
   **Initialization check:**
   If this is the first session or memories appear empty, call `check_onboarding_performed` first.
@@ -154,4 +166,4 @@ symbol_info_budget: 5
 # Valid values: LSP, JetBrains
 # Note: the backend is fixed at startup. If a project with a different backend
 # is activated post-init, an error will be returned.
-language_backend:
+language_backend: LSP
