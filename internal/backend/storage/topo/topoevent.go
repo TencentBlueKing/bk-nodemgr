@@ -26,6 +26,7 @@ func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.To
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountTopoEvent, func(nCtx contextx.IContext) error {
+		var err error
 		opts := convertTopoEventConditionsToOptions(conditions...)
 		num, err = s.daoTopoEvent.Count(nCtx, opts...)
 
@@ -49,6 +50,7 @@ func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListTopoEvent, func(nCtx contextx.IContext) error {
+		var err error
 		opts := convertTopoEventConditionsToOptions(conditions...)
 		results, num, err = s.daoTopoEvent.List(nCtx, page, opts...)
 

@@ -106,7 +106,7 @@ func (s *Storage) UpdateManyHostDynamic(nCtx contextx.IContext, hosts ...*types.
 
 	return s.WrapFn(nCtx, metricOperationUpdateManyHostDynamic, func(nCtx contextx.IContext) error {
 		if err := s.daoHost.UpdateDynamicMany(nCtx, hosts...); err != nil {
-			return fmt.Errorf("failed to upsert host dynamics: %v", err)
+			return fmt.Errorf("failed to upsert host dynamics: %w", err)
 		}
 
 		return nil

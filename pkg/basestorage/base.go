@@ -35,7 +35,7 @@ type Interface interface {
 const (
 	pingTimeoutDefault = 3 * time.Second
 	scopeNamePrefix    = "storage_"
-	SpanNamePrefix     = "storage"
+	spanNamePrefix     = "storage"
 )
 
 // Storage define the Storage basic interface.
@@ -226,15 +226,17 @@ func (s *Storage) Terminate() error {
 }
 
 // WrapFn wraps a function with tracing and metric recording.
-func (s *Storage) WrapFn(nCtx contextx.IContext, fnName string, fn func(contextx.IContext) error) (err error) {
+func (s *Storage) WrapFn(nCtx contextx.IContext, fnName string, fn func(contextx.IContext) error) error {
+	var err error
+
 	// Start metric recording
 	metric := Metric(s.Name).Start(MetricOperation(fnName))
-	defer metric.End(err)
+	defer func() { metric.End(err) }()
 
 	// Start tracing
 	parentSpan := trace.SpanFromContext(nCtx)
 	tracer := parentSpan.TracerProvider().Tracer(fmt.Sprintf("%s%s", scopeNamePrefix, s.Name))
-	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("%s %s", SpanNamePrefix, fnName))
+	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("%s %s", spanNamePrefix, fnName))
 	defer func() {
 		if err != nil {
 			span.RecordError(err)
@@ -245,5 +247,7 @@ func (s *Storage) WrapFn(nCtx contextx.IContext, fnName string, fn func(contextx
 
 	newCtx := contextx.FromContext(traceCtx)
 
-	return fn(newCtx)
+	err = fn(newCtx)
+
+	return err
 }

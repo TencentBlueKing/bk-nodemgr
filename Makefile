@@ -295,5 +295,5 @@ apigw-docs: | pre
 
 lint: | pre
 	@$(ECHO) "Linting..."
-	@$(CD) $(ROOT_DIR) && golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR)
+	@$(CD) $(ROOT_DIR) && GOGC=40 $(if $(strip $(GOMEMLIMIT)),GOMEMLIMIT=$(GOMEMLIMIT),) golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR)
 	@$(ECHO) "Linting completed"

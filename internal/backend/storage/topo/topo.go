@@ -35,7 +35,7 @@ func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Busin
 
 	return s.WrapFn(nCtx, metricOperationUpsertManyBusiness, func(nCtx contextx.IContext) error {
 		if err := s.daoBusiness.UpsertMany(nCtx, biz...); err != nil {
-			return fmt.Errorf("failed to upsert business: %v", err)
+			return fmt.Errorf("failed to upsert business: %w", err)
 		}
 
 		return nil
@@ -53,6 +53,7 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListBusiness, func(nCtx contextx.IContext) error {
+		var err error
 		opts := make([]business.OptFn, 0)
 		for _, condition := range conditions {
 			if condition == nil {
@@ -107,6 +108,7 @@ func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, condi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListNetworkArea, func(nCtx contextx.IContext) error {
+		var err error
 		opts := make([]networkarea.OptFn, 0)
 		for _, condition := range conditions {
 			if condition == nil {
@@ -159,6 +161,7 @@ func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (*
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetNetworkArea, func(nCtx contextx.IContext) error {
+		var err error
 		data, err = s.daoNetworkArea.Get(nCtx, networkAreaID)
 
 		return err
@@ -202,6 +205,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListNetworkUnit, func(nCtx contextx.IContext) error {
+		var err error
 		opts := make([]networkunit.OptFn, 0)
 		for _, condition := range conditions {
 			if condition == nil {
@@ -256,6 +260,7 @@ func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetNetworkUnit, func(nCtx contextx.IContext) error {
+		var err error
 		data, err = s.daoNetworkUnit.Get(nCtx, networkUnitID)
 
 		return err
@@ -346,6 +351,7 @@ func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreateNetworkUnit, func(nCtx contextx.IContext) error {
+		var err error
 		if !networkUnit.IsDirect {
 			if err = s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
 				return err
@@ -412,6 +418,7 @@ func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdateNetworkUnit, func(nCtx contextx.IContext) error {
+		var err error
 		if err := s.prepareNetworkUnitUpdate(nCtx, networkUnit); err != nil {
 			return err
 		}
@@ -537,6 +544,7 @@ func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountAccessPoint, func(nCtx contextx.IContext) error {
+		var err error
 		opts := make([]accesspoint.OptFn, 0)
 		for _, condition := range conditions {
 			if condition == nil {
@@ -580,6 +588,7 @@ func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListAccessPoint, func(nCtx contextx.IContext) error {
+		var err error
 		opts := make([]accesspoint.OptFn, 0)
 		for _, condition := range conditions {
 			if condition == nil {
@@ -629,6 +638,7 @@ func (s *Storage) GetHostDistributionByNodeRole(nCtx contextx.IContext, conditio
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetHostDistributionByNodeRole, func(nCtx contextx.IContext) error {
+		var err error
 		hostDistributionByNodeRole, err = s.getHostDistributionByNodeRole(nCtx, conditions...)
 
 		return err
@@ -650,6 +660,7 @@ func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetHostDistributionByNetworkAreaID, func(nCtx contextx.IContext) error {
+		var err error
 		hostDistributionByNetworkAreaID, err = s.getHostDistributionByNetworkAreaID(nCtx, conditions...)
 
 		return err

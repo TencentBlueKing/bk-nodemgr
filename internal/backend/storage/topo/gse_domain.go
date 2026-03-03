@@ -158,7 +158,9 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(nCtx contextx.IContext, networ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProxyUpstreamAccessPoints, func(nCtx contextx.IContext) error {
+		var err error
 		clusterEndpoints, fileEndpoints, dataEndpoints, err = s.getProxyUpstreamEndpoints(nCtx, networkUnitID)
+
 		return err
 	})
 	if err != nil {
