@@ -22,12 +22,14 @@ export default function useTableSetting(
 
   // 2. 初始化 settings，优先使用用户保存的值，其次使用传入的默认值
   //    通过 knownFields 追踪用户已知字段，仅自动添加真正的新增字段
-  const savedKnownFields = savedSettings.knownFields ?? [];
+  //    迁移兼容：旧格式无 knownFields 时，视当前默认字段为已知，避免重置用户偏好
+  const savedKnownFields = savedSettings.knownFields
+    ?? (savedSettings.checked ? checked : []);
   const newFields = savedSettings.checked
     ? checked.filter(field => !savedKnownFields.includes(field))
     : [];
   const mergedChecked = savedSettings.checked
-    ? [...savedSettings.checked, ...newFields]
+    ? [...new Set([...savedSettings.checked, ...newFields])]
     : checked;
   const settings = reactive({
     checked: mergedChecked,
