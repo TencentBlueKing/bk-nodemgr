@@ -1,102 +1,74 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
-### Requirement: 代码必须符合空行规范
-代码文件中不得包含不必要的前导空行。所有 storage 层文件必须通过 golangci-lint 的 whitespace 检查。
+### Requirement: WrapFn 闭包必须使用局部 err 变量（统一风格）
+所有 `internal/backend/storage/` 下**全部子包**的 `basestorage.WrapFn` 闭包参数中，当闭包需要处理 error 时，MUST 在闭包内部声明 `var err error` 遮蔽外部同名变量。MUST NOT 在闭包内直接赋值外部 `err` 变量。此规则不再仅限于 `topo` 和 `workflow`，而是覆盖所有 storage 子包。**包括单调用闭包也必须使用 `var err error; err = fn(...); return err` 模式，不允许简化为 `return fn(...)`。**
 
-#### Scenario: 检测到不必要的空行
-- **WHEN** 运行 `make lint` 命令
-- **THEN** 不应出现 "unnecessary leading newline" 错误
+#### Scenario: cipher 闭包使用局部 err
+- **WHEN** `cipher/` 下 3 个 WrapFn 闭包需要处理 error
+- **THEN** 每个闭包内必须声明 `var err error`，禁止直接赋值外部 `err`
 
-#### Scenario: 修复后通过检查
-- **WHEN** 移除所有不必要的前导空行后运行 lint
-- **THEN** whitespace linter 不报告任何错误
+#### Scenario: deploypolicy 闭包使用局部 err
+- **WHEN** `deploypolicy/` 下 8 个 WrapFn 闭包需要处理 error
+- **THEN** 每个闭包内必须声明 `var err error`，禁止直接赋值外部 `err`
 
-### Requirement: 函数认知复杂度必须不超过 20
-所有函数的认知复杂度必须控制在 20 以内，以保证代码可维护性和可读性。
+#### Scenario: plugin 闭包使用局部 err
+- **WHEN** `plugin/` 下 42 个 WrapFn 闭包需要处理 error
+- **THEN** 每个闭包内必须声明 `var err error`，禁止直接赋值外部 `err`
 
-#### Scenario: 高复杂度函数被拆分
-- **WHEN** 函数认知复杂度超过 20
-- **THEN** 必须将函数拆分为多个子函数或简化逻辑
+#### Scenario: workflow 残留闭包使用局部 err
+- **WHEN** `workflow/` 中残留的 2 处 WrapFn 闭包使用外层 `err` 变量
+- **THEN** 必须在闭包内添加 `var err error` 声明
 
-#### Scenario: 拆分后通过检查
-- **WHEN** 重构后运行 `make lint`
-- **THEN** gocognit linter 不报告任何复杂度超标错误
+#### Scenario: topo 残留闭包风格统一
+- **WHEN** `topo/host.go` 和 `topo/topo.go` 中存在 `if err :=` 风格的闭包
+- **THEN** 统一为 `var err error` 风格以保持全项目一致性
 
-#### Scenario: GetProxyUpstreamAccessEndpoints 复杂度降低
-- **WHEN** 重构 `GetProxyUpstreamAccessEndpoints` 函数
-- **THEN** 认知复杂度从 21 降低到 20 或以下
+### Requirement: 仅返回 error 的函数必须直接返回 WrapFn（闭包内统一 var err error）
+当外层函数签名仅返回 `error` 且闭包不需要捕获额外返回值时，MUST 使用 `return s.WrapFn(...)` 形式。**闭包内部仍须使用 `var err error; err = fn(...); return err` 模式，不允许简化为 `return fn(...)`。**此规则从 `topo`/`workflow` 扩展到所有 storage 子包。
 
-#### Scenario: DistinctHost 复杂度降低
-- **WHEN** 重构 `DistinctHost` 函数
-- **THEN** 认知复杂度从 21 降低到 20 或以下
+#### Scenario: cipher 消除冗余返回
+- **WHEN** `cipher/` 中 `CreateCipher` 等 error-only 方法使用冗余返回模式
+- **THEN** 改为 `return s.WrapFn(...)` 直接返回
 
-#### Scenario: UpdateNetworkUnit 复杂度降低
-- **WHEN** 重构 `UpdateNetworkUnit` 函数
-- **THEN** 认知复杂度从 31 降低到 20 或以下
+#### Scenario: deploypolicy 消除冗余返回
+- **WHEN** `deploypolicy/` 中 8 个 error-only 方法使用冗余返回模式
+- **THEN** 改为 `return s.WrapFn(...)` 直接返回
 
-### Requirement: 函数返回值必须被使用
-函数声明的返回值必须在实际使用中被调用方处理，不得存在始终返回固定值的返回值。
+#### Scenario: plugin 消除冗余返回
+- **WHEN** `plugin/` 中 42 个 error-only 方法使用冗余返回模式
+- **THEN** 改为 `return s.WrapFn(...)` 直接返回
 
-#### Scenario: 移除未使用的 error 返回值
-- **WHEN** `convertTopoEventConditionsToOptions` 函数的 error 返回值始终为 nil
-- **THEN** 必须移除该 error 返回值并更新所有调用方
+#### Scenario: release 消除冗余返回
+- **WHEN** `release/` 中 27 个 error-only 方法使用冗余返回模式
+- **THEN** 改为 `return s.WrapFn(...)` 直接返回
 
-#### Scenario: 修复后通过检查
-- **WHEN** 移除未使用的返回值后运行 lint
-- **THEN** unparam linter 不报告任何错误
+#### Scenario: tenant 消除冗余返回
+- **WHEN** `tenant/` 中 5 个 error-only 方法使用冗余返回模式
+- **THEN** 改为 `return s.WrapFn(...)` 直接返回
 
-### Requirement: WrapFn 闭包必须使用局部 err 变量
-所有 `basestorage.WrapFn` 的闭包参数中，当闭包需要处理 error 时，必须在闭包内部声明 `var err error` 遮蔽外部同名变量。禁止在闭包内直接赋值外部 `err` 变量。
+#### Scenario: configpolicy 消除冗余返回
+- **WHEN** `configpolicy/` 中 8 个 error-only 方法使用冗余返回模式
+- **THEN** 改为 `return s.WrapFn(...)` 直接返回
 
-#### Scenario: 闭包捕获多返回值时使用局部 err
-- **WHEN** WrapFn 闭包内调用返回 `(result, error)` 的函数
-- **THEN** 闭包内必须声明 `var err error`，通过 `result, err = fn()` 赋值，最终 `return err`
-
-#### Scenario: 仅返回 error 的函数直接返回 WrapFn
-- **WHEN** 外层函数签名仅返回 `error` 且闭包不需要捕获额外返回值
-- **THEN** 必须使用 `return s.WrapFn(...)` 形式，禁止使用 `var err error; err = s.WrapFn(...); if err != nil { return err }; return nil` 冗余模式
-
-#### Scenario: 检测到违规的外部 err 引用
-- **WHEN** 闭包内通过赋值（`err =` 或 `, err =`）修改外部函数声明的 `err` 变量
-- **THEN** 必须在闭包开头添加 `var err error` 声明
+#### Scenario: 多返回值函数保留现有模式
+- **WHEN** 函数返回 `(T, error)` 等多值
+- **THEN** 保留 `var err; err = WrapFn; return result, err` 模式，不视为冗余
 
 ### Requirement: 错误包装必须使用 %w 而非 %v
-所有 `fmt.Errorf` 中包装 error 类型的占位符必须使用 `%w`，禁止使用 `%v` 或 `%s`。
+所有 `internal/backend/storage/` 下**全部子包**的 `fmt.Errorf` 中包装 error 类型的占位符 MUST 使用 `%w`。此规则从 `topo`/`workflow` 扩展到所有 storage 子包。
 
-#### Scenario: storage 层 fmt.Errorf 使用 %w
-- **WHEN** `internal/backend/storage/` 下任意文件使用 `fmt.Errorf` 包装 error
-- **THEN** 必须使用 `%w` 占位符以保持错误链完整
+#### Scenario: plugin 中 %v 替换为 %w
+- **WHEN** `plugin/dao_plugin_workflow.go` 中 7 处和 `plugin/dao_plugin_deployment.go` 中 4 处使用 `%v` 包装 error
+- **THEN** 全部替换为 `%w`
 
-#### Scenario: 错误链可通过 errors.Is 追溯
-- **WHEN** 调用者对 storage 层返回的 error 使用 `errors.Is()` 或 `errors.As()`
-- **THEN** 能够正确匹配底层错误类型
+#### Scenario: workflow 残留 %v 替换为 %w
+- **WHEN** `workflow/domain_stop_oper_inst.go` 和 `workflow/dao_operation.go` 中各 1 处使用 `%v` 包装 error
+- **THEN** 替换为 `%w`
 
-### Requirement: WrapFn metric defer 必须正确捕获 error
-`basestorage.WrapFn` 中的 `defer metric.End(err)` 必须使用闭包形式以正确捕获 named return value。
+#### Scenario: node 中 %v 替换为 %w
+- **WHEN** `node/dao_node_deloyment.go` 中 2 处使用 `%v` 包装 error
+- **THEN** 替换为 `%w`
 
-#### Scenario: metric 记录真实错误状态
-- **WHEN** WrapFn 包装的函数返回 error
-- **THEN** `metric.End()` 接收到非 nil 的 error 参数
-
-#### Scenario: metric 记录成功状态
-- **WHEN** WrapFn 包装的函数返回 nil
-- **THEN** `metric.End()` 接收到 nil 的 error 参数
-
-#### Scenario: defer 使用闭包形式
-- **WHEN** 检查 `pkg/basestorage/base.go` 中 `WrapFn` 的 metric defer
-- **THEN** 代码形式为 `defer func() { metric.End(err) }()` 而非 `defer metric.End(err)`
-
-### Requirement: 修复不得影响外部行为
-所有 lint 修复必须保持代码的外部行为不变，仅改变内部实现。
-
-#### Scenario: API 接口保持不变
-- **WHEN** 完成所有 lint 修复
-- **THEN** 所有 public API 的签名和行为保持不变
-
-#### Scenario: 测试用例全部通过
-- **WHEN** 完成所有 lint 修复后运行测试
-- **THEN** 所有现有测试用例必须通过
-
-#### Scenario: Metric 行为变更已知且受控
-- **WHEN** 修复 WrapFn metric defer 后
-- **THEN** Prometheus `request_total` 指标中 error 标签将反映真实错误状态，此行为变更是预期的且已记录
+#### Scenario: 非错误类型的 %v 不受影响
+- **WHEN** `fmt.Errorf` 中 `%v` 用于格式化非 error 类型变量（如 string、int）
+- **THEN** 保持 `%v` 不变，仅 error 类型参数需使用 `%w`
