@@ -32,11 +32,8 @@ func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.To
 
 		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return num, nil
+	return num, err
 }
 
 // ListTopoEvent lists topo events.
@@ -56,17 +53,17 @@ func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditi
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // CreateManyTopoEvent creates topo events.
 func (s *Storage) CreateManyTopoEvent(nCtx contextx.IContext, events ...*types.TopoEvent) error {
 	return s.WrapFn(nCtx, metricOperationCreateManyTopoEvent, func(nCtx contextx.IContext) error {
-		return s.daoTopoEvent.CreateMany(nCtx, events...)
+		var err error
+		err = s.daoTopoEvent.CreateMany(nCtx, events...)
+
+		return err
 	})
 }
 
@@ -128,11 +125,8 @@ func (s *Storage) DistinctTopoEvent(
 
 		return gp.Wait()
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 func convertTopoEventConditionsToOptions(conditions ...*types.TopoEventCondition) []topoevent.OptFn {

@@ -41,11 +41,8 @@ func (s *Storage) GetV4AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 
 		return err
 	})
-	if err != nil {
-		return nil, nil, nil, err
-	}
 
-	return cluster, file, data, nil
+	return cluster, file, data, err
 }
 
 // GetV6AgentAccessEndpoints get v6 agent access endpoints by networkunit id.
@@ -65,11 +62,8 @@ func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 
 		return err
 	})
-	if err != nil {
-		return nil, nil, nil, err
-	}
 
-	return cluster, file, data, nil
+	return cluster, file, data, err
 }
 
 // nolint: nonamedreturns
@@ -163,11 +157,8 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(nCtx contextx.IContext, networ
 
 		return err
 	})
-	if err != nil {
-		return nil, nil, nil, err
-	}
 
-	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
+	return clusterEndpoints, fileEndpoints, dataEndpoints, err
 }
 
 func (s *Storage) getProxyUpstreamEndpoints(nCtx contextx.IContext, networkUnitID int64) ([]string, []string, []string, error) {
@@ -227,11 +218,8 @@ func resolveProxyUpstreamEndpoints(
 	dataEndpoints, err := getProxyUpstreamEndpoint(apList, dataAPID, networkUnitID, func(ap *types.AccessPoint) []string {
 		return ap.Endpoints.Data
 	})
-	if err != nil {
-		return nil, nil, nil, err
-	}
 
-	return clusterEndpoints, fileEndpoints, dataEndpoints, nil
+	return clusterEndpoints, fileEndpoints, dataEndpoints, err
 }
 
 func getProxyUpstreamEndpoint(

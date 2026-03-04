@@ -34,7 +34,9 @@ func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Busin
 	}
 
 	return s.WrapFn(nCtx, metricOperationUpsertManyBusiness, func(nCtx contextx.IContext) error {
-		if err := s.daoBusiness.UpsertMany(nCtx, biz...); err != nil {
+		var err error
+		err = s.daoBusiness.UpsertMany(nCtx, biz...)
+		if err != nil {
 			return fmt.Errorf("failed to upsert business: %w", err)
 		}
 
@@ -89,11 +91,8 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // ListNetworkArea lists networkarea by page and conditions.
@@ -146,11 +145,8 @@ func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, condi
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // GetNetworkArea gets networkarea by id.
@@ -166,31 +162,37 @@ func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (*
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 // UpsertManyNetworkArea updates or inserts networkarea.
 func (s *Storage) UpsertManyNetworkArea(nCtx contextx.IContext, networkAreas ...*types.NetworkArea) error {
 	return s.WrapFn(nCtx, metricOperationUpsertManyNetworkArea, func(nCtx contextx.IContext) error {
-		return s.daoNetworkArea.UpsertMany(nCtx, networkAreas...)
+		var err error
+		err = s.daoNetworkArea.UpsertMany(nCtx, networkAreas...)
+
+		return err
 	})
 }
 
 // UpdateManyNetworkArea updates networkarea.
 func (s *Storage) UpdateManyNetworkArea(nCtx contextx.IContext, networkArea ...*types.NetworkArea) error {
 	return s.WrapFn(nCtx, metricOperationUpdateManyNetworkArea, func(nCtx contextx.IContext) error {
-		return s.daoNetworkArea.UpdateMany(nCtx, networkArea...)
+		var err error
+		err = s.daoNetworkArea.UpdateMany(nCtx, networkArea...)
+
+		return err
 	})
 }
 
 // DeleteManyNetworkArea deletes networkarea.
 func (s *Storage) DeleteManyNetworkArea(nCtx contextx.IContext, networkAreaIDs ...int64) error {
 	return s.WrapFn(nCtx, metricOperationDeleteManyNetworkArea, func(nCtx contextx.IContext) error {
-		return s.daoNetworkArea.DeleteMany(nCtx, networkAreaIDs...)
+		var err error
+		err = s.daoNetworkArea.DeleteMany(nCtx, networkAreaIDs...)
+
+		return err
 	})
 }
 
@@ -245,11 +247,8 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // GetNetworkUnit gets networkunit by id.
@@ -265,11 +264,8 @@ func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 func (s *Storage) checkNetworkUnitLinks(nCtx contextx.IContext, networkUnit *types.NetworkUnit) error {
@@ -401,11 +397,8 @@ func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 
 		return nil
 	})
-	if err != nil {
-		return -1, nil, err
-	}
 
-	return networkUnitID, data, nil
+	return networkUnitID, data, err
 }
 
 // UpdateNetworkUnit updates networkunit.
@@ -419,7 +412,8 @@ func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 
 	err = s.WrapFn(nCtx, metricOperationUpdateNetworkUnit, func(nCtx contextx.IContext) error {
 		var err error
-		if err := s.prepareNetworkUnitUpdate(nCtx, networkUnit); err != nil {
+		err = s.prepareNetworkUnitUpdate(nCtx, networkUnit)
+		if err != nil {
 			return err
 		}
 
@@ -432,11 +426,8 @@ func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 func (s *Storage) prepareNetworkUnitUpdate(nCtx contextx.IContext, networkUnit *types.NetworkUnit) error {
@@ -505,7 +496,9 @@ func (s *Storage) upsertNetworkUnitAccessPoints(
 ) ([]int64, error) {
 
 	if len(oldAccessPoints) > 0 {
-		if err := s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...); err != nil {
+		var err error
+		err = s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...)
+		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to update accesspoint")
 			return nil, err
 		}
@@ -532,7 +525,10 @@ func (s *Storage) upsertNetworkUnitAccessPoints(
 // DeleteManyNetworkUnit deletes networkunit.
 func (s *Storage) DeleteManyNetworkUnit(nCtx contextx.IContext, networkUnitIDs ...int64) error {
 	return s.WrapFn(nCtx, metricOperationDeleteNetworkUnit, func(nCtx contextx.IContext) error {
-		return s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...)
+		var err error
+		err = s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...)
+
+		return err
 	})
 }
 
@@ -570,11 +566,8 @@ func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.
 
 		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return num, nil
+	return num, err
 }
 
 // ListAccessPoint lists accesspoint.
@@ -614,11 +607,8 @@ func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // AccessPointResult describes the accesspoint result in networkunit handlers.
@@ -643,11 +633,8 @@ func (s *Storage) GetHostDistributionByNodeRole(nCtx contextx.IContext, conditio
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return hostDistributionByNodeRole, nil
+	return hostDistributionByNodeRole, err
 }
 
 // GetHostDistributionByNetworkAreaID ...
@@ -665,9 +652,6 @@ func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return hostDistributionByNetworkAreaID, nil
+	return hostDistributionByNetworkAreaID, err
 }

@@ -161,11 +161,8 @@ func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return results, nil
+	return results, err
 }
 
 // ExistDedicatedInstallerProxyHost exists dedicated installer proxy host by network unit id.
@@ -180,11 +177,8 @@ func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, netwo
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // GetNetworkUnitByIDs list network unit by unit ids.
@@ -199,11 +193,8 @@ func (s *Storage) GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []i
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return results, nil
+	return results, err
 }
 
 // ListHostWithFields lists hosts with fields.
@@ -222,11 +213,8 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
@@ -242,9 +230,6 @@ func (s *Storage) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return results, nil
+	return results, err
 }
