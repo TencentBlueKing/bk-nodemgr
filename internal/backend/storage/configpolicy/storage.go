@@ -175,28 +175,40 @@ func (s *Storage) CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types
 // UpdateConfigPolicy updates the config policy.
 func (s *Storage) UpdateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) error {
 	return s.WrapFn(nCtx, metricOperationUpdateConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.updateConfigPolicy(nCtx, configPolicy)
+		var err error
+		err = s.updateConfigPolicy(nCtx, configPolicy)
+
+		return err
 	})
 }
 
 // DeleteManyConfigPolicy deletes the config policies.
 func (s *Storage) DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	return s.WrapFn(nCtx, metricOperationDeleteManyConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.deleteManyConfigPolicy(nCtx, configPolicyIDs...)
+		var err error
+		err = s.deleteManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
 	})
 }
 
 // EnableManyConfigPolicy enables the config policies.
 func (s *Storage) EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	return s.WrapFn(nCtx, metricOperationEnableManyConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.enableManyConfigPolicy(nCtx, configPolicyIDs...)
+		var err error
+		err = s.enableManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
 	})
 }
 
 // DisableManyConfigPolicy disables the config policies.
 func (s *Storage) DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	return s.WrapFn(nCtx, metricOperationDisableManyConfigPolicy, func(nCtx contextx.IContext) error {
-		return s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
+		var err error
+		err = s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
 	})
 }
 
@@ -215,11 +227,7 @@ func (s *Storage) CountConfigPolicyEvent(nCtx contextx.IContext, conditions ...*
 		return nil
 	})
 
-	if err != nil {
-		return 0, err
-	}
-
-	return num, nil
+	return num, err
 }
 
 // ListConfigPolicyEvent lists policy events.
@@ -240,17 +248,14 @@ func (s *Storage) ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 		return nil
 	})
 
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return results, num, nil
+	return results, num, err
 }
 
 // CreateManyConfigPolicyEvent creates policy events.
 func (s *Storage) CreateManyConfigPolicyEvent(nCtx contextx.IContext, events ...*types.ConfigPolicyEvent) error {
 	return s.WrapFn(nCtx, metricOperationCreateManyConfigPolicyEvent, func(nCtx contextx.IContext) error {
-		if err := s.createManyConfigPolicyEvent(nCtx, events...); err != nil {
+		var err error
+		if err = s.createManyConfigPolicyEvent(nCtx, events...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to create many config policy event")
 
 			return fmt.Errorf("failed to create many config policy event: %w", err)
@@ -278,9 +283,5 @@ func (s *Storage) DistinctConfigPolicyEvent(
 		return nil
 	})
 
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+	return data, err
 }
