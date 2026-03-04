@@ -226,11 +226,8 @@ func (s *Storage) GetTrigger(nCtx contextx.IContext, triggerID string) (*trigger
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 // ListActiveTrigger lists active triggers by given category.
@@ -250,11 +247,8 @@ func (s *Storage) ListActiveTrigger(nCtx contextx.IContext, category trigger.Cat
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return results, nil
+	return results, err
 }
 
 // ListTrigger lists triggers by given category.
@@ -275,11 +269,8 @@ func (s *Storage) ListTrigger(nCtx contextx.IContext, page types.Page, category 
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // DeleteTriggers deletes triggers by given trigger IDs.
@@ -313,11 +304,8 @@ func (s *Storage) ExistTrigger(nCtx contextx.IContext, triggerID string) (bool, 
 
 		return nil
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // ListScheduledWorkflow lists scheduled workflow by page and conditions.
@@ -341,11 +329,8 @@ func (s *Storage) ListScheduledWorkflow(
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // CountScheduledWorkflow counts scheduled workflow by conditions.
@@ -368,11 +353,8 @@ func (s *Storage) CountScheduledWorkflow(
 
 		return nil
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return num, nil
+	return num, err
 }
 
 // GetScheduledWorkflow gets a scheduled workflow by workflow-id.
@@ -392,11 +374,8 @@ func (s *Storage) GetScheduledWorkflow(nCtx contextx.IContext, workflowID string
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return workflow, nil
+	return workflow, err
 }
 
 // CreateScheduledWorkflow creates a new scheduled workflow.
@@ -444,7 +423,8 @@ func (s *Storage) UpdateScheduledWorkflowPrivateData(nCtx contextx.IContext, wor
 // SwitchScheduleWorkflow enables or disables a scheduled workflow.
 func (s *Storage) SwitchScheduleWorkflow(nCtx contextx.IContext, workflowID string, enable bool) error {
 	return s.WrapFn(nCtx, metricOperationSwitchScheduledWorkflow, func(nCtx contextx.IContext) error {
-		if err := s.switchScheduleWorkflow(nCtx, workflowID, enable); err != nil {
+		var err error
+		if err = s.switchScheduleWorkflow(nCtx, workflowID, enable); err != nil {
 			logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to switch scheduled workflow")
 
 			return err
@@ -470,11 +450,8 @@ func (s *Storage) GetOperation(nCtx contextx.IContext, operationID string) (*wor
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return oper, nil
+	return oper, err
 }
 
 // UpsertOperation upsert operation.
@@ -512,11 +489,8 @@ func (s *Storage) ListOperationByTriggerID(
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return opers, num, nil
+	return opers, num, err
 }
 
 // ListOperation lists operation by page and condition.
@@ -533,17 +507,11 @@ func (s *Storage) ListOperation(
 	err = s.WrapFn(nCtx, metricOperationListOperation, func(nCtx contextx.IContext) error {
 		var err error
 		opers, num, err = s.listOperation(nCtx, page, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return opers, num, nil
+	return opers, num, err
 }
 
 // CountOperation counts operation by condition.
@@ -558,17 +526,11 @@ func (s *Storage) CountOperation(
 	err = s.WrapFn(nCtx, metricOperationCountOperation, func(nCtx contextx.IContext) error {
 		var err error
 		num, err = s.countOperation(nCtx, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return num, nil
+	return num, err
 }
 
 // DistinctOperation distincts operation fields by conditions.
@@ -585,17 +547,11 @@ func (s *Storage) DistinctOperation(
 	err = s.WrapFn(nCtx, metricOperationDistinctOperation, func(nCtx contextx.IContext) error {
 		var err error
 		result, err = s.distinctOperation(nCtx, selector, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	return result, err
 }
 
 // ListOperationByOperationID lists operation by operation id.
@@ -619,11 +575,8 @@ func (s *Storage) ListOperationByOperationID(
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return opers, num, nil
+	return opers, num, err
 }
 
 // ListOperationByParentOperationID lists operation by parent operation ID.
@@ -646,11 +599,8 @@ func (s *Storage) ListOperationByParentOperationID(
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return opers, num, nil
+	return opers, num, err
 }
 
 // ListNeedInstantiateOperationByTriggerID lists operations need to be instantiated by trigger id.
@@ -673,11 +623,8 @@ func (s *Storage) ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return opers, num, nil
+	return opers, num, err
 }
 
 // ExistNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
@@ -697,11 +644,8 @@ func (s *Storage) ExistNeedInstantiateOperationByTriggerID(nCtx contextx.IContex
 
 		return nil
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // DeleteOperationsByTriggerID deletes operations by trigger ID.
@@ -789,11 +733,8 @@ func (s *Storage) GetActionInstanceData(
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 // GetActionInstanceLifecycle gets action instance lifecycle.
@@ -816,11 +757,8 @@ func (s *Storage) GetActionInstanceLifecycle(
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return lifecycle, nil
+	return lifecycle, err
 }
 
 // GetActionInstancePrivateData gets action instance private data.
@@ -843,11 +781,8 @@ func (s *Storage) GetActionInstancePrivateData(
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 // UpdateActionInstanceLifecycle updates action instance lifecycle.
@@ -903,11 +838,8 @@ func (s *Storage) GetOperationInstanceFullData(
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return data, nil
+	return data, err
 }
 
 // GetOperationInstanceBriefData gets brief operation instance data.
@@ -929,11 +861,8 @@ func (s *Storage) GetOperationInstanceBriefData(
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return briefData, nil
+	return briefData, err
 }
 
 // ListOperationInstanceBriefDataWithoutActionInst lists operation instance brief data. without action instance data.
@@ -958,11 +887,8 @@ func (s *Storage) ListOperationInstanceBriefDataWithoutActionInst(
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // CountOperationInstanceByState counts operation instance by state.
@@ -984,11 +910,8 @@ func (s *Storage) CountOperationInstanceByState(nCtx contextx.IContext, triggerI
 
 		return nil
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return num, nil
+	return num, err
 }
 
 // ExistOperationInstanceByState checks whether operation instance exists by state.
@@ -1010,11 +933,8 @@ func (s *Storage) ExistOperationInstanceByState(nCtx contextx.IContext, triggerI
 
 		return nil
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.
@@ -1040,11 +960,8 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // ListOperInstanceBriefWithoutActionInstByTriggerID lists operation instance brief data.
@@ -1069,11 +986,8 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx context
 
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger ID.
@@ -1091,11 +1005,8 @@ func (s *Storage) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx c
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return distribution, nil
+	return distribution, err
 }
 
 // UpsertOperationInstanceData upserts operation instance data.
@@ -1103,7 +1014,8 @@ func (s *Storage) UpsertOperationInstanceData(
 	nCtx contextx.IContext, operInstData *workoper.InstanceData) error {
 
 	return s.WrapFn(nCtx, metricOperationUpsertOperationInstanceData, func(nCtx contextx.IContext) error {
-		if err := s.upsertOperationInstanceData(nCtx, operInstData); err != nil {
+		var err error
+		if err = s.upsertOperationInstanceData(nCtx, operInstData); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst", operInstData).Error("failed to update operation instance data")
 
 			return fmt.Errorf("failed to update operation instance data, operation-inst(%v): %w", operInstData, err)
@@ -1118,7 +1030,8 @@ func (s *Storage) UpdateOperationInstanceLifecycle(
 	nCtx contextx.IContext, operInstID string, lifecycle *workoper.Lifecycle) error {
 
 	return s.WrapFn(nCtx, metricOperationUpdateOperationInstanceLifecycle, func(nCtx contextx.IContext) error {
-		if err := s.updateOperationInstanceLifecycle(nCtx, operInstID, lifecycle); err != nil {
+		var err error
+		if err = s.updateOperationInstanceLifecycle(nCtx, operInstID, lifecycle); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to update operation instance lifecycle")
 
 			return fmt.Errorf("failed to update operation instance lifecycle, oper-inst-id(%s): %w", operInstID, err)
@@ -1133,7 +1046,8 @@ func (s *Storage) UpdateOperationLatestActionInstBriefData(
 	ctx contextx.IContext, operationInstanceID string, briefData *action.InstanceBriefData) error {
 
 	return s.WrapFn(ctx, metricOperationUpdateOperationLatestActionInstBriefData, func(nCtx contextx.IContext) error {
-		if err := s.updateOperationLatestActionInstBriefData(nCtx, operationInstanceID, briefData); err != nil {
+		var err error
+		if err = s.updateOperationLatestActionInstBriefData(nCtx, operationInstanceID, briefData); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operationInstanceID).Error("failed to update operation latest action inst brief data")
 
 			return fmt.Errorf("failed to update operation latest action inst brief data, oper-inst-id(%s): %w", operationInstanceID, err)
@@ -1148,7 +1062,8 @@ func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
 	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {
 
 	return s.WrapFn(nCtx, metricOperationUpdateOperationInstanceExtraExecutionMessages, func(nCtx contextx.IContext) error {
-		if err := s.updateOperationInstanceExtraExecutionMessages(nCtx, operInstID, messages...); err != nil {
+		var err error
+		if err = s.updateOperationInstanceExtraExecutionMessages(nCtx, operInstID, messages...); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to update operation instance extra execution messages")
 
 			return fmt.Errorf("failed to update operation instance extra execution messages, oper-inst-id(%s): %w",
@@ -1167,7 +1082,8 @@ func (s *Storage) WatchOperInstStopping(nCtx contextx.IContext, operInstID strin
 // UpsertNeedStopOperInst upserts need stop operation instance.
 func (s *Storage) UpsertNeedStopOperInst(nCtx contextx.IContext, operInstID string) error {
 	return s.WrapFn(nCtx, metricOperationUpsertOperInstStop, func(nCtx contextx.IContext) error {
-		if err := s.upsertNeedStopOperInst(nCtx, operInstID); err != nil {
+		var err error
+		if err = s.upsertNeedStopOperInst(nCtx, operInstID); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to upsert operation instance stop record")
 
 			return fmt.Errorf("failed to upsert operation instance stop record, oper-inst-id(%s): %w", operInstID, err)
@@ -1182,7 +1098,8 @@ func (s *Storage) UpdateActionInstanceContent(
 	nCtx contextx.IContext, operInstID string, actionName string, content map[string]any) error {
 
 	return s.WrapFn(nCtx, metricOperationUpdateActionInstanceContent, func(nCtx contextx.IContext) error {
-		if err := s.updateActionInstanceContent(nCtx, operInstID, actionName, content); err != nil {
+		var err error
+		if err = s.updateActionInstanceContent(nCtx, operInstID, actionName, content); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to update action instance content")
 
 			return fmt.Errorf("failed to update action instance content, oper-inst-id(%s), action-name(%s): %w",
@@ -1198,7 +1115,8 @@ func (s *Storage) UpsertActionInstancePrivateData(
 	nCtx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error {
 
 	return s.WrapFn(nCtx, metricOperationUpsertActionInstancePrivateData, func(nCtx contextx.IContext) error {
-		if err := s.upsertActionInstancePrivateData(nCtx, operInstID, actionName, privateData); err != nil {
+		var err error
+		if err = s.upsertActionInstancePrivateData(nCtx, operInstID, actionName, privateData); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to update operation instance private data")
 
 			return fmt.Errorf(
@@ -1213,7 +1131,8 @@ func (s *Storage) UpsertActionInstancePrivateData(
 // DeleteOperationInstances deletes operation instances by given operation instance IDs.
 func (s *Storage) DeleteOperationInstances(nCtx contextx.IContext, operInstID ...string) error {
 	return s.WrapFn(nCtx, metricOperationDeleteOperationInstances, func(nCtx contextx.IContext) error {
-		if err := s.deleteOperationInstances(nCtx, operInstID...); err != nil {
+		var err error
+		if err = s.deleteOperationInstances(nCtx, operInstID...); err != nil {
 			logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to delete operation instances")
 
 			return fmt.Errorf("failed to delete operation instances, oper-inst-ids(%v): %w", operInstID, err)
@@ -1226,7 +1145,8 @@ func (s *Storage) DeleteOperationInstances(nCtx contextx.IContext, operInstID ..
 // DeleteOperationInstancesByTriggerID deletes operation instances by trigger ID.
 func (s *Storage) DeleteOperationInstancesByTriggerID(ctx contextx.IContext, triggerID ...string) error {
 	return s.WrapFn(ctx, metricOperationDeleteOperationInstancesByTriggerID, func(nCtx contextx.IContext) error {
-		if err := s.deleteOperationInstancesByTriggerID(nCtx, triggerID...); err != nil {
+		var err error
+		if err = s.deleteOperationInstancesByTriggerID(nCtx, triggerID...); err != nil {
 			logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to delete operation instances by trigger ID")
 
 			return fmt.Errorf("failed to delete operation instances by trigger ID, trigger-ids(%v): %w", triggerID, err)

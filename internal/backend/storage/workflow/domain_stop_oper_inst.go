@@ -93,7 +93,7 @@ func (s *Storage) watchOperInstStopping(nCtx contextx.IContext, operInstID strin
 func (s *Storage) syncStopOperInsts(nCtx contextx.IContext) error {
 	stopInstIDs, err := s.daoStopOperInst.FindAll(nCtx)
 	if err != nil {
-		return fmt.Errorf("failed to find all stopping operation instances: %v", err)
+		return fmt.Errorf("failed to find all stopping operation instances: %w", err)
 	}
 
 	stopInstMap := make(map[string]struct{}, len(stopInstIDs))

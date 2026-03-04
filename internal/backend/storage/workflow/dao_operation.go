@@ -186,7 +186,7 @@ func (s *Storage) getLatestOperationInstanceStatusDistributionByTriggerID(
 
 	distribution, err := s.daoOperation.GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx, triggerID...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get latest operation instance status distribution by trigger id: %v", err)
+		return nil, fmt.Errorf("failed to get latest operation instance status distribution by trigger id: %w", err)
 	}
 
 	return distribution, nil
