@@ -78,18 +78,13 @@ func (s *Storage) check() error {
 
 // GetCipher gets cipher by name and key-type.
 func (s *Storage) GetCipher(nCtx contextx.IContext, name string, keyType types.CipherKeyType) (*types.Cipher, error) {
-	var (
-		ae  *types.Cipher
-		err error
-	)
+	var ae *types.Cipher
 
-	err = s.WrapFn(nCtx, metricOperationGetCipher, func(contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationGetCipher, func(contextx.IContext) error {
+		var err error
 		ae, err = s.getCipher(nCtx, name, keyType)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
 
 	return ae, err
@@ -99,18 +94,13 @@ func (s *Storage) GetCipher(nCtx contextx.IContext, name string, keyType types.C
 func (s *Storage) ExistCipher(nCtx contextx.IContext, name string, keyType types.CipherKeyType) (
 	bool, error) {
 
-	var (
-		exist bool
-		err   error
-	)
+	var exist bool
 
-	err = s.WrapFn(nCtx, metricOperationExistCipher, func(contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationExistCipher, func(contextx.IContext) error {
+		var err error
 		exist, err = s.existCipher(nCtx, name, keyType)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
 
 	return exist, err
@@ -118,16 +108,10 @@ func (s *Storage) ExistCipher(nCtx contextx.IContext, name string, keyType types
 
 // CreateCipher creates cipher.
 func (s *Storage) CreateCipher(nCtx contextx.IContext, encryption ...*types.Cipher) error {
-	var err error
-
-	err = s.WrapFn(nCtx, metricOperationCreateCipher, func(contextx.IContext) error {
+	return s.WrapFn(nCtx, metricOperationCreateCipher, func(contextx.IContext) error {
+		var err error
 		err = s.createCipher(nCtx, encryption...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-
-	return err
 }
