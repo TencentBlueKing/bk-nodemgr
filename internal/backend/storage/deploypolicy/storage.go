@@ -87,21 +87,16 @@ const (
 
 // CreateDeployPolicy create deploy policy.
 func (s *Storage) CreateDeployPolicy(nCtx contextx.IContext, deployPolicy *types.DeployPolicy) (int64, error) {
-	var (
-		deployPolicyID int64
-		err            error
-	)
+	var deployPolicyID int64
 
-	err = s.WrapFn(nCtx, metricCreateDeployPolicy, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricCreateDeployPolicy, func(nCtx contextx.IContext) error {
+		var err error
 		deployPolicyID, err = s.createDeployPolicy(nCtx, deployPolicy)
 
 		return err
 	})
-	if err != nil {
-		return -1, err
-	}
 
-	return deployPolicyID, nil
+	return deployPolicyID, err
 }
 
 // ListDeployPolicies list deploy policies.
@@ -111,130 +106,90 @@ func (s *Storage) ListDeployPolicies(nCtx contextx.IContext, page types.Page, co
 	var (
 		deployPolicies []*types.DeployPolicy
 		total          int64
-		err            error
 	)
 
-	err = s.WrapFn(nCtx, metricListDeployPolicies, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricListDeployPolicies, func(nCtx contextx.IContext) error {
+		var err error
 		deployPolicies, total, err = s.listDeployPolicies(nCtx, page, condition)
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return deployPolicies, total, nil
+	return deployPolicies, total, err
 }
 
 // GetDeployPolicyByID get deploy policy by id.
 func (s *Storage) GetDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int64) (
 	*types.DeployPolicy, error) {
 
-	var (
-		deployPolicy *types.DeployPolicy
-		err          error
-	)
+	var deployPolicy *types.DeployPolicy
 
-	err = s.WrapFn(nCtx, metricGetDeployPolicyByID, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricGetDeployPolicyByID, func(nCtx contextx.IContext) error {
+		var err error
 		deployPolicy, err = s.getDeployPolicyByID(nCtx, deployPolicyID)
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return deployPolicy, nil
+	return deployPolicy, err
 }
 
 // UpdateDeployPolicyFields update deploy policy fields.
 func (s *Storage) UpdateDeployPolicyFields(nCtx contextx.IContext, fields types.DeployPolicyFields, deployPolicy ...*types.DeployPolicy) error {
-	var (
-		err error
-	)
+	return s.WrapFn(nCtx, metricUpdateDeployPolicyFields, func(nCtx contextx.IContext) error {
+		var err error
+		err = s.updateDeployPolicyFields(nCtx, fields, deployPolicy...)
 
-	err = s.WrapFn(nCtx, metricUpdateDeployPolicyFields, func(nCtx contextx.IContext) error {
-		return s.updateDeployPolicyFields(nCtx, fields, deployPolicy...)
-	})
-	if err != nil {
 		return err
-	}
-
-	return nil
+	})
 }
 
 // DeleteDeployPolicy delete deploy policy.
 func (s *Storage) DeleteDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricDeleteDeployPolicy, func(nCtx contextx.IContext) error {
+	return s.WrapFn(nCtx, metricDeleteDeployPolicy, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.deleteDeployPolicy(nCtx, deployPolicyID)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // ExistDeployPolicy check deploy policy exist.
 func (s *Storage) ExistDeployPolicy(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (bool, error) {
-	var (
-		exist bool
-		err   error
-	)
+	var exist bool
 
-	err = s.WrapFn(nCtx, metricExistDeployPolicy, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricExistDeployPolicy, func(nCtx contextx.IContext) error {
+		var err error
 		exist, err = s.existDeployPolicy(nCtx, condition)
 
 		return err
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // ==================== IDomainDeployPolicyMgr Functions ====================
 
 // DiscoverEnabledPoliciesBySpecifyPlugin discover enabled policies by specify plugin.
 func (s *Storage) DiscoverEnabledPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
-	var (
-		policies []*types.DeployPolicy
-		err      error
-	)
+	var policies []*types.DeployPolicy
 
-	err = s.WrapFn(nCtx, metricDiscoverEnabledPoliciesBySpecifyPlugin, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricDiscoverEnabledPoliciesBySpecifyPlugin, func(nCtx contextx.IContext) error {
+		var err error
 		policies, err = s.discoverEnabledPoliciesBySpecifyPlugin(nCtx, param)
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return policies, nil
+	return policies, err
 }
 
 // RefreshExecuteInfo refresh execute info.
 func (s *Storage) RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*types.DeployPolicy) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricRefreshExecuteInfo, func(nCtx contextx.IContext) error {
+	return s.WrapFn(nCtx, metricRefreshExecuteInfo, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.refreshExecuteInfo(nCtx, deployPolicy...)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
