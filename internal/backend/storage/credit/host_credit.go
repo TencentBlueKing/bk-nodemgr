@@ -49,11 +49,8 @@ func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte, ex
 
 		return nil
 	})
-	if err != nil {
-		return "", err
-	}
 
-	return creditID, nil
+	return creditID, err
 }
 
 // LoadHostCredit load host credit.
@@ -76,11 +73,8 @@ func (s *Storage) LoadHostCredit(nCtx contextx.IContext, creditID string) ([]byt
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return creditData, nil
+	return creditData, err
 }
 
 // CheckHostCreditValid check host credit valid.
@@ -98,9 +92,6 @@ func (s *Storage) CheckHostCreditValid(nCtx contextx.IContext, creditIDList ...s
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	return result, err
 }
