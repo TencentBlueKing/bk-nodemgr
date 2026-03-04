@@ -13,6 +13,7 @@ package crypter
 
 import (
 	"encoding/base64"
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -43,6 +44,7 @@ func TestRSA_Crypter(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		wantVer byte
 		want    []byte
 		wantErr bool
 	}{
@@ -51,7 +53,27 @@ func TestRSA_Crypter(t *testing.T) {
 			args: args{
 				plaintext: []byte("example_test"),
 			},
+			wantVer: RSAVersion,
 			want:    []byte("example_test"),
+			wantErr: false,
+		},
+		{
+			name: "hybrid_over_oaep_limit",
+			args: args{
+				// RSA-2048 OAEP-SHA256 max plaintext is 190 bytes, so 191 triggers hybrid.
+				plaintext: bytes.Repeat([]byte{'a'}, 191),
+			},
+			wantVer: RSAVersionHybrid,
+			want:    bytes.Repeat([]byte{'a'}, 191),
+			wantErr: false,
+		},
+		{
+			name: "hybrid_large_payload_like_ssh_key",
+			args: args{
+				plaintext: bytes.Repeat([]byte("ssh-private-key-material"), 300),
+			},
+			wantVer: RSAVersionHybrid,
+			want:    bytes.Repeat([]byte("ssh-private-key-material"), 300),
 			wantErr: false,
 		},
 	}
@@ -64,6 +86,13 @@ func TestRSA_Crypter(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Encrypt() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+
+			if len(ciphertext) == 0 {
+				t.Fatalf("Encrypt() returned empty ciphertext")
+			}
+			if tt.wantVer != 0 && ciphertext[0] != tt.wantVer {
+				t.Fatalf("Encrypt() version = %d, want %d", ciphertext[0], tt.wantVer)
 			}
 
 			decodeText, err := cry.Decrypt(ciphertext)
