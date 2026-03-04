@@ -81,19 +81,13 @@ func (s *Storage) check() error {
 
 // ListAllEnabledTenants list all enable tenants.
 func (s *Storage) ListAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
-	var (
-		tenants []*types.Tenant
-		err     error
-	)
+	var tenants []*types.Tenant
 
-	err = s.WrapFn(nCtx, metricOperationListAllEnabledTenants, func(ctx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationListAllEnabledTenants, func(ctx contextx.IContext) error {
 		var err error
 		tenants, err = s.listAllEnabledTenants(ctx)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
 
 	return tenants, err
@@ -101,19 +95,13 @@ func (s *Storage) ListAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant
 
 // ListAllTenants list all enable tenants.
 func (s *Storage) ListAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
-	var (
-		tenants []*types.Tenant
-		err     error
-	)
+	var tenants []*types.Tenant
 
-	err = s.WrapFn(nCtx, metricOperationListAllTenants, func(ctx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationListAllTenants, func(ctx contextx.IContext) error {
 		var err error
 		tenants, err = s.listAllTenants(ctx)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
 
 	return tenants, err
@@ -121,51 +109,30 @@ func (s *Storage) ListAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error
 
 // CreateManyTenant create many tenant.
 func (s *Storage) CreateManyTenant(nCtx contextx.IContext, tenants ...*types.Tenant) error {
-	var err error
-
-	err = s.WrapFn(nCtx, metricOperationCreateManyTenant, func(ctx contextx.IContext) error {
+	return s.WrapFn(nCtx, metricOperationCreateManyTenant, func(ctx contextx.IContext) error {
 		var err error
 		err = s.createManyTenant(ctx, tenants...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-
-	return err
 }
 
 // DeleteManyTenant delete many tenant.
 func (s *Storage) DeleteManyTenant(nCtx contextx.IContext, tenantIDs []string) error {
-	var err error
-
-	err = s.WrapFn(nCtx, metricOperationDeleteManyTenant, func(ctx contextx.IContext) error {
+	return s.WrapFn(nCtx, metricOperationDeleteManyTenant, func(ctx contextx.IContext) error {
 		var err error
 		err = s.deleteManyTenant(ctx, tenantIDs)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-
-	return err
 }
 
 // UpdateManyTenant update many tenant.
 func (s *Storage) UpdateManyTenant(nCtx contextx.IContext, tenantMap map[string]*types.Tenant) error {
-	var err error
-
-	err = s.WrapFn(nCtx, metricOperationUpdateManyTenant, func(ctx contextx.IContext) error {
+	return s.WrapFn(nCtx, metricOperationUpdateManyTenant, func(ctx contextx.IContext) error {
 		var err error
 		err = s.updateManyTenant(ctx, tenantMap)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-
-	return err
 }
