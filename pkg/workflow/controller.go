@@ -555,6 +555,23 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("send chain to machinery")
 
 	if _, err = ctl.mgr.server.SendChainWithContext(traceCtx, chain); err != nil {
+		ctl.operInstanceBriefData.Lifecycle.End(action.StateFailed)
+		if updateErr := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
+			nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); updateErr != nil {
+			logger.G.Sys().
+				WithErr(updateErr).
+				With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+				Error("failed to fail operation instance lifecycle after send chain failure")
+		}
+		if updateErr := ctl.mgr.stgOperation.UpdateOperationLatestInstBriefData(
+			nCtx, ctl.operInstanceBriefData.Metadata.OperationID, ctl.operInstanceBriefData); updateErr != nil {
+			logger.G.Sys().
+				WithErr(updateErr).
+				With("oper-id", ctl.operInstanceBriefData.Metadata.OperationID,
+					"oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+				Error("failed to update operation latest brief data after send chain failure")
+		}
+
 		return fmt.Errorf("failed to send chain to machinery: %w", err)
 	}
 

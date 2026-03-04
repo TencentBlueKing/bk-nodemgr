@@ -546,7 +546,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 			},
 			Hosts:          svc.conf.MongoDB.Hosts,
 			TLSConfig:      tlsConfig,
-			ReadPreference: readpref.SecondaryPreferred(),
+			ReadPreference: readpref.Primary(),
 			Monitor:        otelmongo.NewMonitor(otelmongo.WithTracerProvider(mongoSvc.TracerProvider())),
 		},
 	)

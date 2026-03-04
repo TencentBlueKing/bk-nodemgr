@@ -108,14 +108,32 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	nCtx := contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 
+	// get operation instance.
+	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, operationInstanceID)
+	if err != nil {
+		return fmt.Errorf("failed to get operation instance brief data. "+
+			"oper-inst-id(%s): %v", operationInstanceID, err)
+	}
+
 	// get action instance.
 	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, actionName)
 	if err != nil {
 		// record metric.
 		metric.ActionDataNotFound(actionName)
 
+		operInstBriefData.Lifecycle.End(action.StateFailed)
+		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
+			logger.G.Sys().WithErr(refreshErr).With(
+				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				Error("failed to refresh operation instance state after failed to get action instance data")
+
+			return fmt.Errorf("failed to get action instance data from operation instance. "+
+				"oper-inst-id(%s), action-name(%s): %w; additionally failed to refresh operation instance state: %v",
+				operationInstanceID, actionName, err, refreshErr)
+		}
+
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
-			"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, err)
+			"oper-inst-id(%s), action-name(%s): %w", operationInstanceID, actionName, err)
 	}
 
 	// record metric.
@@ -131,20 +149,17 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return err
 	}
 
-	// get operation instance.
-	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, operationInstanceID)
-	if err != nil {
-		return fmt.Errorf("failed to get operation instance brief data. "+
-			"oper-inst-id(%s): %v", operationInstanceID, err)
-	}
-
 	// handle extra execution before action executed. if retry happens, action maybe not first
 	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
 		operInstBriefData.Lifecycle.End(action.StateFailed)
-		err = mgr.refreshOperationInstanceState(nCtx, operInstBriefData)
-		if err != nil {
-			return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
-				err, execErr)
+		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
+			logger.G.Sys().WithErr(refreshErr).With(
+				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				Error("failed to refresh operation instance state after failed to do extra execution")
+
+			return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w; "+
+				"additionally failed to refresh operation instance state: %v",
+				operationInstanceID, execErr, refreshErr)
 		}
 
 		return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w", operationInstanceID, execErr)
@@ -153,8 +168,13 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// handle operation instance lifecycle.
 	if !operInstBriefData.Lifecycle.IsRunning() {
 		operInstBriefData.Lifecycle.Start()
-		if err = mgr.refreshOperationInstanceState(nCtx, operInstBriefData); err != nil {
-			return err
+		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
+			logger.G.Sys().WithErr(refreshErr).With(
+				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				Error("failed to refresh operation instance state after failed to start")
+
+			return fmt.Errorf("failed to start operation instance. "+
+				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, refreshErr)
 		}
 	}
 
@@ -211,9 +231,13 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		defer metric.OperationInstanceProcessed(operInstBriefData)
 
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
-		if err = mgr.refreshOperationInstanceState(nCtx, operInstBriefData); err != nil {
-			return fmt.Errorf("failed to update operation instance lifecycle. err: %v, execution-error(%v)",
-				err, executeErr)
+		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
+			logger.G.Sys().WithErr(refreshErr).With(
+				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				Error("failed to refresh operation instance state after failed to end")
+
+			return fmt.Errorf("failed to end operation instance. "+
+				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, refreshErr)
 		}
 
 		logger.G.Sys().With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
@@ -503,10 +527,10 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 				With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 				Error("failed to do action")
 
-		actionInstCtx.Data.Log().
-			Zh("步骤执行失败 [%s] (name=%s, retry=%d): %v", actionInstCtx.Data.DisplayNameZh, actionInstCtx.Data.Name, retryNum, doErr).
-			En("failed to do action [%s] (name=%s, retry=%d): %v", actionInstCtx.Data.DisplayNameEn, actionInstCtx.Data.Name, retryNum, doErr).
-			Warn()
+			actionInstCtx.Data.Log().
+				Zh("步骤执行失败 [%s] (name=%s, retry=%d): %v", actionInstCtx.Data.DisplayNameZh, actionInstCtx.Data.Name, retryNum, doErr).
+				En("failed to do action [%s] (name=%s, retry=%d): %v", actionInstCtx.Data.DisplayNameEn, actionInstCtx.Data.Name, retryNum, doErr).
+				Warn()
 
 			delayFn := actionDef.DelayFn()
 			if delayFn != nil {

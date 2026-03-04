@@ -287,7 +287,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				PasswordSet:   true,
 			},
 			Hosts:          svc.conf.MongoDB.Hosts,
-			ReadPreference: readpref.SecondaryPreferred(),
+			ReadPreference: readpref.Primary(),
 		},
 	)
 	if err != nil {
