@@ -32,7 +32,7 @@ func (s *Storage) getNodeDeploymentNodeConf(nCtx contextx.IContext, token string
 
 	nodeConf, err := s.daoNodeDeployment.GetNodeDeploymentNodeConf(nCtx, token)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get node conf: %v", err)
+		return nil, fmt.Errorf("failed to get node conf: %w", err)
 	}
 
 	return nodeConf, nil
@@ -130,7 +130,7 @@ func (s *Storage) createNodeDeployment(nCtx contextx.IContext, nodeDeployment *t
 	}
 
 	if err := s.daoNodeDeployment.CreateNodeDeployment(nCtx, nodeDeployment); err != nil {
-		return fmt.Errorf("failed to createNodeDeployment node deployment: %v", err)
+		return fmt.Errorf("failed to createNodeDeployment node deployment: %w", err)
 	}
 
 	return nil
