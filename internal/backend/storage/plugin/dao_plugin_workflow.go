@@ -33,7 +33,7 @@ func (s *Storage) createPluginWorkflow(nCtx contextx.IContext, workflow *types.P
 	}
 
 	if err := s.daoPluginWorkflow.Create(nCtx, workflow); err != nil {
-		return fmt.Errorf("failed to create plugin workflow: %v", err)
+		return fmt.Errorf("failed to create plugin workflow: %w", err)
 	}
 
 	return nil
@@ -51,7 +51,7 @@ func (s *Storage) getPluginWorkflow(nCtx contextx.IContext, workflowID string) (
 
 	pluginWorkflow, err := s.daoPluginWorkflow.Get(nCtx, workflowID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin workflow: %v", err)
+		return nil, fmt.Errorf("failed to get plugin workflow: %w", err)
 	}
 
 	return pluginWorkflow, nil
@@ -69,7 +69,7 @@ func (s *Storage) getPluginWorkflowStatus(nCtx contextx.IContext, workflowID str
 
 	status, err := s.daoPluginWorkflow.GetStatus(nCtx, workflowID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get plugin workflow status: %v", err)
+		return "", fmt.Errorf("failed to get plugin workflow status: %w", err)
 	}
 
 	return status, nil
@@ -86,12 +86,12 @@ func (s *Storage) updatePluginWorkflowStatus(nCtx contextx.IContext, workflowID 
 	}
 
 	if err := status.Validate(); err != nil {
-		return fmt.Errorf("status is invalid: %v", err)
+		return fmt.Errorf("status is invalid: %w", err)
 	}
 
 	err := s.daoPluginWorkflow.UpdateStatus(nCtx, workflowID, status)
 	if err != nil {
-		return fmt.Errorf("failed to update plugin workflow status: %v", err)
+		return fmt.Errorf("failed to update plugin workflow status: %w", err)
 	}
 
 	return nil
@@ -106,7 +106,7 @@ func (s *Storage) countPluginWorkflow(nCtx contextx.IContext, condition ...*type
 	opts := convertPluginWorkflowConditionsToOptions(condition...)
 	num, err := s.daoPluginWorkflow.Count(nCtx, opts...)
 	if err != nil {
-		return 0, fmt.Errorf("failed to count plugin workflow: %v", err)
+		return 0, fmt.Errorf("failed to count plugin workflow: %w", err)
 	}
 
 	return num, nil
@@ -124,7 +124,7 @@ func (s *Storage) listPluginWorkflow(nCtx contextx.IContext, page types.Page, co
 	opts := convertPluginWorkflowConditionsToOptions(condition...)
 	workflows, count, err := s.daoPluginWorkflow.List(nCtx, page, opts...)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to list plugin workflow: %v", err)
+		return nil, 0, fmt.Errorf("failed to list plugin workflow: %w", err)
 	}
 
 	return workflows, count, nil

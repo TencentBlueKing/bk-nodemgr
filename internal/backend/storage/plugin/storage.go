@@ -355,15 +355,13 @@ func (s *Storage) GetPluginDeploymentInfo(nCtx contextx.IContext, token string) 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetPluginDeploymentInfo, func(nCtx contextx.IContext) error {
+		var err error
 		info, err = s.getPluginDeploymentInfo(nCtx, token)
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return info, nil
+	return info, err
 }
 
 // CreatePluginDeployment plugin deployment.
@@ -373,15 +371,13 @@ func (s *Storage) CreatePluginDeployment(nCtx contextx.IContext, pluginDeploymen
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreatePluginDeployment, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.createPluginDeployment(nCtx, pluginDeployment)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // ListPluginDeployment list plugin deployment.
@@ -395,18 +391,13 @@ func (s *Storage) ListPluginDeployment(nCtx contextx.IContext, page types.Page, 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListPluginDeployment, func(nCtx contextx.IContext) error {
+		var err error
 		pluginDeployments, total, err = s.listPluginDeployment(nCtx, page, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return pluginDeployments, total, nil
+	return pluginDeployments, total, err
 }
 
 // UpdatePluginDeploymentInfo update a plugin deployment info.
@@ -416,15 +407,13 @@ func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token strin
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdatePluginDeploymentInfo, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.updatePluginDeploymentInfo(nCtx, token, pluginDeploymentInfo)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // GetPluginDeploymentPluginConf get plugin deployment plugin conf.
@@ -435,15 +424,13 @@ func (s *Storage) GetPluginDeploymentPluginConf(ctx contextx.IContext, token str
 	)
 
 	err = s.WrapFn(ctx, metricOperationGetPluginDeploymentPluginConf, func(ctx contextx.IContext) error {
+		var err error
 		pluginConf, err = s.getPluginDeploymentPluginConf(ctx, token)
 
 		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return pluginConf, nil
+	return pluginConf, err
 }
 
 // UpdatePluginDeploymentPluginConf set plugin deployment plugin conf.
@@ -453,15 +440,13 @@ func (s *Storage) UpdatePluginDeploymentPluginConf(ctx contextx.IContext, token 
 	)
 
 	err = s.WrapFn(ctx, metricOperationUpdatePluginDeploymentPluginConf, func(ctx contextx.IContext) error {
+		var err error
 		err = s.updatePluginDeploymentPluginConf(ctx, token, pluginConf)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // GetPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config files detail.
@@ -472,18 +457,13 @@ func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 	)
 
 	err = s.WrapFn(ctx, metricOperationGetPluginDeploymentPluginConfConfigFilesDetail, func(ctx contextx.IContext) error {
+		var err error
 		config, err = s.getPluginDeploymentPluginConfConfigFilesDetail(ctx, token)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return config, nil
+	return config, err
 }
 
 // UpsertPluginDeploymentPluginConfConfigFilesDetail update plugin deployment plugin conf config files detail.
@@ -495,15 +475,13 @@ func (s *Storage) UpsertPluginDeploymentPluginConfConfigFilesDetail(
 	)
 
 	err = s.WrapFn(ctx, metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail, func(ctx contextx.IContext) error {
+		var err error
 		err = s.upsertPluginDeploymentPluginConfConfigFilesDetail(ctx, token, configDetails...)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // ===============================================================================
@@ -518,18 +496,13 @@ func (s *Storage) GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetPluginWorkflow, func(nCtx contextx.IContext) error {
+		var err error
 		pluginWorkflow, err = s.getPluginWorkflow(nCtx, workflowID)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return pluginWorkflow, nil
+	return pluginWorkflow, err
 }
 
 // GetPluginWorkflowStatus get plugin workflow status.
@@ -540,18 +513,13 @@ func (s *Storage) GetPluginWorkflowStatus(nCtx contextx.IContext, workflowID str
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetPluginWorkflowStatus, func(nCtx contextx.IContext) error {
+		var err error
 		status, err = s.getPluginWorkflowStatus(nCtx, workflowID)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return "", err
-	}
 
-	return status, nil
+	return status, err
 }
 
 // CreatePluginWorkflow createPluginDeployment plugin workflow.
@@ -561,15 +529,13 @@ func (s *Storage) CreatePluginWorkflow(nCtx contextx.IContext, workflow *types.P
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreatePluginWorkflow, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.createPluginWorkflow(nCtx, workflow)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // UpdatePluginWorkflowStatus update plugin workflow status.
@@ -579,15 +545,13 @@ func (s *Storage) UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdatePluginWorkflowStatus, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.updatePluginWorkflowStatus(nCtx, workflowID, status)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // CountPluginWorkflow count plugin workflow.
@@ -598,18 +562,13 @@ func (s *Storage) CountPluginWorkflow(nCtx contextx.IContext, conditions ...*typ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountPluginWorkflow, func(nCtx contextx.IContext) error {
+		var err error
 		count, err = s.countPluginWorkflow(nCtx, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return count, nil
+	return count, err
 }
 
 // ListPluginWorkflow list plugin workflow.
@@ -623,18 +582,13 @@ func (s *Storage) ListPluginWorkflow(nCtx contextx.IContext, page types.Page, co
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListPluginWorkflow, func(nCtx contextx.IContext) error {
+		var err error
 		workflows, total, err = s.listPluginWorkflow(nCtx, page, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return workflows, total, nil
+	return workflows, total, err
 }
 
 // DistinctPluginWorkflow distinct plugin workflow fields.
@@ -648,18 +602,13 @@ func (s *Storage) DistinctPluginWorkflow(
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDistinctPluginWorkflow, func(nCtx contextx.IContext) error {
+		var err error
 		result, err = s.distinctPluginWorkflow(nCtx, request, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	return result, err
 }
 
 // ===============================================================================
@@ -674,18 +623,13 @@ func (s *Storage) GetPlugin(nCtx contextx.IContext, pluginName string) (*types.P
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetPlugin, func(nCtx contextx.IContext) error {
+		var err error
 		plugin, err = s.getPlugin(nCtx, pluginName)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return plugin, nil
+	return plugin, err
 }
 
 // CountPlugins count plugins.
@@ -696,18 +640,13 @@ func (s *Storage) CountPlugins(nCtx contextx.IContext, conditions ...*types.Plug
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountPlugins, func(nCtx contextx.IContext) error {
+		var err error
 		count, err = s.countPlugins(nCtx, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return count, nil
+	return count, err
 }
 
 // ListPlugins list plugins.
@@ -719,18 +658,13 @@ func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, condition
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListPlugins, func(nCtx contextx.IContext) error {
+		var err error
 		plugins, cnt, err = s.listPlugins(nCtx, page, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return plugins, cnt, nil
+	return plugins, cnt, err
 }
 
 // ExistPluginByPluginName check plugin exist by plugin name.
@@ -741,18 +675,13 @@ func (s *Storage) ExistPluginByPluginName(nCtx contextx.IContext, pluginName str
 	)
 
 	err = s.WrapFn(nCtx, metricOperationExistPluginByPluginName, func(nCtx contextx.IContext) error {
+		var err error
 		exist, err = s.existPluginByPluginName(nCtx, pluginName)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // ExistDefaultPluginByPluginPkgName check default plugin exist by plugin package name.
@@ -763,18 +692,13 @@ func (s *Storage) ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, plug
 	)
 
 	err = s.WrapFn(nCtx, metricOperationExistDefaultPluginByPluginPkgName, func(nCtx contextx.IContext) error {
+		var err error
 		exist, err = s.existPluginByPluginPkgName(nCtx, pluginPkgName)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // SetPluginMemo set plugin memo by plugin name.
@@ -784,15 +708,13 @@ func (s *Storage) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationSetPluginMemo, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.setPluginMemo(nCtx, pluginName, memo)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // CreatePlugin create plugin.
@@ -802,15 +724,13 @@ func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) err
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreatePlugin, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.createPlugin(nCtx, plugin)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // UpsertManyPlugins upsert many plugins.
@@ -820,14 +740,13 @@ func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Pl
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpsertManyPlugins, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.upsertManyPlugins(nCtx, plugins...)
+
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // ===============================================================================
@@ -842,18 +761,13 @@ func (s *Storage) CountProcesses(nCtx contextx.IContext, conditions ...*types.Pr
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountProcess, func(nCtx contextx.IContext) error {
+		var err error
 		count, err = s.countProcesses(nCtx, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return count, nil
+	return count, err
 }
 
 // ListProcesses list processes.
@@ -865,18 +779,13 @@ func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListProcess, func(nCtx contextx.IContext) error {
+		var err error
 		processes, total, err = s.listProcesses(nCtx, page, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return processes, total, nil
+	return processes, total, err
 }
 
 // CreateProcess create process.
@@ -886,15 +795,13 @@ func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreateProcess, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.createProcess(nCtx, process)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // UpdateProcess create process.
@@ -904,15 +811,13 @@ func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdateProcess, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.updateProcess(nCtx, process, hostID, pluginName)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // UpdateProcessInfo update process info.
@@ -922,15 +827,13 @@ func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, plugin
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdateProcessInfo, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.updateProcessInfo(nCtx, hostID, pluginName, processInfo)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // DeleteProcess delete process.
@@ -940,15 +843,13 @@ func (s *Storage) DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDeleteProcess, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.deleteProcess(nCtx, hostID, pluginName)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // ExistProcess exist process id.
@@ -959,18 +860,13 @@ func (s *Storage) ExistProcess(nCtx contextx.IContext, hostID int64, pluginName 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationExistProcess, func(nCtx contextx.IContext) error {
+		var err error
 		exist, err = s.existProcess(nCtx, hostID, pluginName)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // UpdateManyProcessInfo batch update process info by process ID.
@@ -980,15 +876,13 @@ func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDelta
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpdateManyProcessInfo, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // GetProcess get process.
@@ -999,18 +893,13 @@ func (s *Storage) GetProcess(nCtx contextx.IContext, hostID int64, pluginName st
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProcess, func(nCtx contextx.IContext) error {
+		var err error
 		process, err = s.getProcess(nCtx, hostID, pluginName)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return process, nil
+	return process, err
 }
 
 // GetProcessDistributionByHostID get process distribution by host id.
@@ -1021,18 +910,13 @@ func (s *Storage) GetProcessDistributionByHostID(nCtx contextx.IContext, conditi
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProcessDistributionByHostID, func(nCtx contextx.IContext) error {
+		var err error
 		dist, err = s.getProcessDistributionByHostID(nCtx, condition...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return dist, nil
+	return dist, err
 }
 
 // GetProcessDistributionByPluginName get process distribution by plugin name.
@@ -1043,18 +927,13 @@ func (s *Storage) GetProcessDistributionByPluginName(nCtx contextx.IContext, con
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProcessDistributionByPluginName, func(nCtx contextx.IContext) error {
+		var err error
 		dist, err = s.getProcessDistributionByPluginName(nCtx, condition...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return dist, nil
+	return dist, err
 }
 
 // DistinctProcess distinct process.
@@ -1067,18 +946,13 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDistinctProcess, func(nCtx contextx.IContext) error {
+		var err error
 		result, err = s.distinctProcess(nCtx, request, condition...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return result, nil
+	return result, err
 }
 
 // ===============================================================================
@@ -1093,18 +967,13 @@ func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProcessConfig, func(nCtx contextx.IContext) error {
+		var err error
 		processConfig, err = s.getProcessConfig(nCtx, processUniqueKey, name)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	return processConfig, nil
+	return processConfig, err
 }
 
 // CreateProcessConfig create process config.
@@ -1114,15 +983,13 @@ func (s *Storage) CreateProcessConfig(nCtx contextx.IContext, processConfig *typ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCreateProcessConfig, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.createProcessConfig(nCtx, processConfig)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // UpsertProcessConfigs upsert many process configs.
@@ -1132,15 +999,13 @@ func (s *Storage) UpsertProcessConfigs(nCtx contextx.IContext, processConfigs ..
 	)
 
 	err = s.WrapFn(nCtx, metricOperationUpsertManyProcessConfigs, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.upsertProcessConfigs(nCtx, processConfigs...)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // DeleteProcessConfigsByProcessUniqueKey delete process configs by process unique key.
@@ -1150,15 +1015,13 @@ func (s *Storage) DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessUniqueKey, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.deleteProcessConfigsByProcessUniqueKey(nCtx, processUniqueKeys...)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // DeleteProcessConfigs delete process configs.
@@ -1168,15 +1031,13 @@ func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey 
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
+		var err error
 		err = s.deleteProcessConfigs(nCtx, processUniqueKey, names...)
 
 		return err
 	})
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // ListProcessConfigs list process configs.
@@ -1190,18 +1051,13 @@ func (s *Storage) ListProcessConfigs(nCtx contextx.IContext, page types.Page, co
 	)
 
 	err = s.WrapFn(nCtx, metricOperationListProcessConfig, func(nCtx contextx.IContext) error {
+		var err error
 		processConfigs, total, err = s.listProcessConfigs(nCtx, page, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return processConfigs, total, nil
+	return processConfigs, total, err
 }
 
 // CountProcessConfigs count process configs.
@@ -1212,16 +1068,11 @@ func (s *Storage) CountProcessConfigs(nCtx contextx.IContext, conditions ...*typ
 	)
 
 	err = s.WrapFn(nCtx, metricOperationCountProcessConfig, func(nCtx contextx.IContext) error {
+		var err error
 		count, err = s.countProcessConfigs(nCtx, conditions...)
-		if err != nil {
-			return err
-		}
 
-		return nil
+		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return count, nil
+	return count, err
 }

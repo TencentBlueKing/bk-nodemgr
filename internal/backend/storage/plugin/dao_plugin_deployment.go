@@ -91,7 +91,7 @@ func (s *Storage) updatePluginDeploymentInfo(nCtx contextx.IContext, token strin
 	}
 
 	if err := s.daoPluginDeployment.UpdateInfo(nCtx, token, pluginDeploymentInfo); err != nil {
-		return fmt.Errorf("update plugin deployment info failed: %v", err)
+		return fmt.Errorf("update plugin deployment info failed: %w", err)
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (s *Storage) getPluginDeploymentPluginConf(ctx contextx.IContext, token str
 
 	pluginConf, err := s.daoPluginDeployment.GetPluginConf(ctx, token)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin deployment plugin conf: %v", err)
+		return nil, fmt.Errorf("failed to get plugin deployment plugin conf: %w", err)
 	}
 
 	return pluginConf, nil
@@ -148,7 +148,7 @@ func (s *Storage) getPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 
 	configs, err := s.daoPluginDeployment.GetPluginConfConfigFilesDetail(ctx, token)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin deployment config: %v", err)
+		return nil, fmt.Errorf("failed to get plugin deployment config: %w", err)
 	}
 
 	return configs, nil
@@ -171,7 +171,7 @@ func (s *Storage) upsertPluginDeploymentPluginConfConfigFilesDetail(
 	}
 
 	if err := s.daoPluginDeployment.UpsertPluginConfConfigFilesDetail(ctx, token, configDetails...); err != nil {
-		return fmt.Errorf("failed to upsert plugin deployment config details: %v", err)
+		return fmt.Errorf("failed to upsert plugin deployment config details: %w", err)
 	}
 
 	return nil
