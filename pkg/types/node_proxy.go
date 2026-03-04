@@ -10,7 +10,11 @@
 
 package types
 
-import "time"
+import (
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+)
 
 // NodeProxyInstallHost describes the node proxy install host.
 type NodeProxyInstallHost struct {
@@ -110,4 +114,87 @@ type NodeProxyUninstallHost struct {
 // NodeProxyUninstallParam describes the node proxy uninstall parameter.
 type NodeProxyUninstallParam struct {
 	Hosts []*NodeProxyUninstallHost
+}
+
+// NodeProxyInstallCheckParam describes the node proxy install check param.
+type NodeProxyInstallCheckParam struct {
+	BizID         int64
+	HostID        int64
+	NetworkUnitID int64
+	InnerIPList   []string
+	InnerIPV6List []string
+}
+
+// NodeProxyInstallCheckStatus describes the node proxy install check status.
+type NodeProxyInstallCheckStatus string
+
+const (
+	// NodeProxyInstallCheckStatusDuplicatedInnerIP indicates there is a duplicated inner IP.
+	NodeProxyInstallCheckStatusDuplicatedInnerIP NodeProxyInstallCheckStatus = "duplicated_inner_ip"
+
+	// NodeProxyInstallCheckStatusDuplicatedInnerIPV6 indicates there is a duplicated inner IPv6.
+	NodeProxyInstallCheckStatusDuplicatedInnerIPV6 NodeProxyInstallCheckStatus = "duplicated_inner_ipv6"
+
+	// NodeProxyInstallCheckStatusHostNotFound indicates the host is not found.
+	NodeProxyInstallCheckStatusHostNotFound NodeProxyInstallCheckStatus = "host_not_found"
+
+	// NodeProxyInstallCheckStatusNetworkUnitNotFound indicates the network unit is not found.
+	NodeProxyInstallCheckStatusNetworkUnitNotFound NodeProxyInstallCheckStatus = "networkunit_not_found"
+
+	// NodeProxyInstallCheckStatusMismatchedInnerIP indicates there is a mismatched inner IP.
+	NodeProxyInstallCheckStatusMismatchedInnerIP NodeProxyInstallCheckStatus = "mismatched_inner_ip"
+
+	// NodeProxyInstallCheckStatusMismatchedInnerIPV6 indicates there is a mismatched inner IPv6.
+	NodeProxyInstallCheckStatusMismatchedInnerIPV6 NodeProxyInstallCheckStatus = "mismatched_inner_ipv6"
+
+	// NodeProxyInstallCheckStatusMismatchedBizID indicates there is a mismatched biz ID.
+	NodeProxyInstallCheckStatusMismatchedBizID NodeProxyInstallCheckStatus = "mismatched_biz_id"
+
+	// NodeProxyInstallCheckStatusMismatchedNetworkAreaID indicates there is a mismatched networkarea ID.
+	NodeProxyInstallCheckStatusMismatchedNetworkAreaID NodeProxyInstallCheckStatus = "mismatched_networkarea_id"
+
+	// NodeProxyInstallCheckStatusInvalidNodeRole indicates there is an invalid node role.
+	NodeProxyInstallCheckStatusInvalidNodeRole NodeProxyInstallCheckStatus = "invalid_node_role"
+
+	// NodeProxyInstallCheckStatusNormalInstall indicates a normal node proxy install.
+	NodeProxyInstallCheckStatusNormalInstall NodeProxyInstallCheckStatus = "normal_install"
+
+	// NodeProxyInstallCheckStatusRegisterToCMDBAndInstall indicates the node proxy needs to register to CMDB and install.
+	NodeProxyInstallCheckStatusRegisterToCMDBAndInstall NodeProxyInstallCheckStatus = "register_to_cmdb_and_install"
+)
+
+// NodeProxyInstallCheckMatchedItem describes the node proxy install check matched item.
+type NodeProxyInstallCheckMatchedItem struct {
+	HostID        int64
+	BizID         int64
+	NetworkAreaID int64
+	NetworkUnitID int64
+	OsType        criteria.OSType
+	NodeRole      NodeRole
+	InnerIPList   []string
+	InnerIPV6List []string
+}
+
+// ConvertHostToNodeProxyInstallCheckMatchedItem converts host to node proxy install check matched item.
+func ConvertHostToNodeProxyInstallCheckMatchedItem(host *Host) *NodeProxyInstallCheckMatchedItem {
+	if host == nil {
+		return nil
+	}
+
+	return &NodeProxyInstallCheckMatchedItem{
+		HostID:        host.HostID,
+		BizID:         host.Static.BizID,
+		NetworkAreaID: host.Static.NetworkAreaID,
+		NetworkUnitID: host.Dynamic.NetworkUnitID,
+		OsType:        host.Dynamic.NodeOsType,
+		NodeRole:      host.Dynamic.NodeRole,
+		InnerIPList:   host.Static.InnerIPList,
+		InnerIPV6List: host.Static.InnerIPV6List,
+	}
+}
+
+// NodeProxyInstallCheckResult describes the node proxy install check result.
+type NodeProxyInstallCheckResult struct {
+	Status  NodeProxyInstallCheckStatus
+	Matched *NodeProxyInstallCheckMatchedItem
 }

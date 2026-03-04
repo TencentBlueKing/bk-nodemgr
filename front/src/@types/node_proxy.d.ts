@@ -179,3 +179,52 @@ export interface NodeProxyUpdateResp {
 export interface NodeProxyUpdateRespData {
 }
 
+// ProxyInstallCheckInfo describes the node proxy install check parameter.
+export interface ProxyInstallCheckInfo {
+  bk_biz_id: number;
+  bk_host_id: number;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
+  bk_networkunit_id: number;
+}
+
+// NodeProxyInstallCheckReq describes the node proxy install check request.
+export interface NodeProxyInstallCheckReq {
+  host: ProxyInstallCheckInfo[];
+}
+
+// NodeProxyInstallCheckResp describes the response for node proxy installation
+// check.
+export interface NodeProxyInstallCheckResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeProxyInstallCheckRespData;
+}
+
+export interface NodeProxyInstallCheckRespData {
+  results: NodeProxyInstallCheckResult[];
+}
+
+// NodeProxyInstallCheckMatchedItem describes the matched item for proxy node.
+export interface NodeProxyInstallCheckMatchedItem {
+  bk_host_id: number;
+  bk_biz_id: number;
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
+  os_type: string;
+  node_role: string;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
+}
+
+// NodeProxyInstallCheckResult describes the check result for node proxy
+// installation.
+export interface NodeProxyInstallCheckResult {
+  status: string;
+  matched: NodeProxyInstallCheckMatchedItem;
+  message_en: string;
+  message_zh: string;
+  category: string;
+}

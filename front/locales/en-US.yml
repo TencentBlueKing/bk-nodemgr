@@ -379,6 +379,8 @@ topoManager:
       relayDownloadPort: Download Port
       relayCallbackPort: Callback Port
       tip: Cannot select direct-connected units.
+    button:
+      install: Go Install
     installMethodList:
       remote:
         title: Standard Remote Installation

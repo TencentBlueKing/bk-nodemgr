@@ -167,6 +167,49 @@ message NodeProxyUpdateResp {
   Data data = 5;
 }
 
+// NodeProxyInstallCheckReq describes the node proxy install check request.
+message NodeProxyInstallCheckReq {
+  message Host {
+    optional int64 bk_biz_id = 1;
+    optional int64 bk_host_id = 2;
+    repeated string bk_host_innerip_list = 3;
+    repeated string bk_host_innerip_v6_list = 4;
+    optional int64 bk_networkunit_id = 5;
+  }
+  repeated Host host = 1;
+}
+
+// NodeProxyInstallCheckResp describes the response for node proxy installation
+// check.
+message NodeProxyInstallCheckResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated NodeProxyInstallCheckResult results = 1; }
+  Data data = 5;
+}
+
+// NodeProxyInstallCheckMatchedItem describes the matched item for proxy node.
+message NodeProxyInstallCheckMatchedItem {
+  optional int64 bk_host_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional int64 bk_networkarea_id = 3;
+  optional int64 bk_networkunit_id = 4;
+  string os_type = 5;
+  string node_role = 6;
+  repeated string bk_host_innerip_list = 7;
+  repeated string bk_host_innerip_v6_list = 8;
+}
+
+// NodeProxyInstallCheckResult describes the check result for node proxy
+// installation.
+message NodeProxyInstallCheckResult {
+  string status = 1;
+  NodeProxyInstallCheckMatchedItem matched = 2;
+}
+
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
@@ -213,6 +256,15 @@ service NodeProxy {
       returns (NodeProxyUninstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/uninstall"
+      body : "*"
+    };
+  }
+
+  // NodeProxyInstallCheck provides node proxy install check.
+  rpc NodeProxyInstallCheck(NodeProxyInstallCheckReq)
+      returns (NodeProxyInstallCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/install_check"
       body : "*"
     };
   }

@@ -438,7 +438,7 @@
             @click="handleConfirm"
           >
             <span>
-              {{ $t("action.install") }}
+              {{ $t("topoManager.installProxy.button.install") }}
             </span>
             <span
               class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
@@ -458,6 +458,11 @@
         </div>
       </Form>
     </div>
+    <proxy-preview
+      v-model:is-show="isShowPreview"
+      :data="previewData"
+      @close="isShow = false"
+    ></proxy-preview>
     <choose-version-dialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
@@ -495,6 +500,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import ProxyPreview from './preview.vue';
 import SelectItemGroup from './components/select-item-group.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
@@ -795,6 +801,8 @@ const systemValidate = async () => {
   const result = await Promise.all(validate);
   return result.every(item => item);
 };
+const isShowPreview = ref(false);
+const previewData = ref<any>({});
 const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
 const handleConfirm = async () => {
   const result = await Promise.all([
@@ -802,7 +810,6 @@ const handleConfirm = async () => {
     installTableRef.value?.tableValidate(),
     isTargetShow.value ? systemValidate() : true,
   ]);
-  // 合并多重Promise
   if (Array.isArray(result[2])) {
     result[2] = result[2].every(item => item);
   }
@@ -843,51 +850,36 @@ const handleConfirm = async () => {
     const proxy_install_origin_unit_id = form.proxy_install_origin[0] === 'custom'
       ? Number(form.proxy_install_origin[1])
       : installOriginList.value.find(item => item.id === form.proxy_install_origin[0])?.bk_networkunit_id;
-    const params = {
-      host: form.info.map((item: any) => {
-        const {
-          bk_host_id,
-          dedicated_installer,
-          cluster_tunnel,
-          file_tunnel,
-          data_tunnel,
-          ...rest
-        } = item;
-        return {
-          ...rest,
-          os_type: 'linux',
-          bk_biz_id: form.bk_biz_id,
-          login_user: form.login_user,
-          proxy_install_origin_unit_id,
-          credit_expired_interval_sec: form.saveTime * 24 * 3600,
-          login_port: Number(form.login_port),
-          relay_download_port: Number(form.relay_download_port),
-          relay_callback_port: Number(form.relay_callback_port),
-          bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
-          ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
-        };
-      }),
+    const hosts = form.info.map((item: any) => {
+      const {
+        bk_host_id,
+        dedicated_installer,
+        cluster_tunnel,
+        file_tunnel,
+        data_tunnel,
+        ...rest
+      } = item;
+      return {
+        ...rest,
+        os_type: 'linux',
+        bk_biz_id: form.bk_biz_id,
+        login_user: form.login_user,
+        proxy_install_origin_unit_id,
+        credit_expired_interval_sec: form.saveTime * 24 * 3600,
+        login_port: Number(form.login_port),
+        relay_download_port: Number(form.relay_download_port),
+        relay_callback_port: Number(form.relay_callback_port),
+        bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
+        bk_networkarea_name: form.bk_networkarea_name,
+        ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
+      };
+    });
+    previewData.value = {
+      hosts,
       target_version: form.target_version,
       is_manual: form.method === 'manual',
     };
-    const res = await NodeProxyService.NodeProxyInstall(params).catch((err) => {
-      console.log(err);
-    });
-    if (!res) return;
-    Message({
-      theme: 'success',
-      message: t('installProxy.installInitiated'),
-    });
-    isShow.value = false;
-    if (res.workflow_id) {
-      router.push({
-        name: 'taskDetail',
-        params: { taskId: res.workflow_id },
-        query: {
-          active: 'node',
-        },
-      });
-    }
+    isShowPreview.value = true;
   } else {
     scrollToFirstErrorByClassNames();
     Message({

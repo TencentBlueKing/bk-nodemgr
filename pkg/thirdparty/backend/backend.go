@@ -1555,6 +1555,38 @@ func (c *cli) uninstallNodeProxy(ctx contextx.IContext, req *protoBackend.NodePr
 	return resp, nil
 }
 
+func (c *cli) checkInstallProxy(ctx contextx.IContext, req *protoBackend.NodeProxyInstallCheckReq,
+) (*protoBackend.NodeProxyInstallCheckResp, error) {
+
+	resp := new(protoBackend.NodeProxyInstallCheckResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/proxy/install_check").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("check install proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("check install proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Package Release Related Interfaces
 // ===============================================================================

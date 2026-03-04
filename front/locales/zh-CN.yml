@@ -379,6 +379,8 @@ topoManager:
       relayDownloadPort: 中转下载端口
       relayCallbackPort: 中转回调端口
       tip: 不能选择直连单元
+    button:
+      install: 去安装
     installMethodList:
       remote:
         title: 普通远程安装

@@ -19,6 +19,7 @@ import (
 )
 
 // IHandlerNodeProxy defines the node proxy Handler.
+// nolint: interfacebloat
 type IHandlerNodeProxy interface {
 	// InstallProxy node proxy.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -55,6 +56,12 @@ type IHandlerNodeProxy interface {
 	// @param uninstallParam the uninstall param.
 	// @return the restarting workflow-ids and error.
 	UninstallProxy(nCtx contextx.IContext, uninstallParm *types.NodeProxyUninstallParam) (string, error)
+
+	// CheckInstallProxy node proxy.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param params the check param.
+	// @return the check result and error.
+	CheckInstallProxy(ctx contextx.IContext, params []*types.NodeProxyInstallCheckParam) ([]*types.NodeProxyInstallCheckResult, error)
 }
 
 // InstallProxy install node proxy.
@@ -133,4 +140,20 @@ func (h *Handler) UninstallProxy(nCtx contextx.IContext, uninstallParam *types.N
 	}
 
 	return resp.GetWorkflowID(), nil
+}
+
+// CheckInstallProxy check proxy install.
+func (h *Handler) CheckInstallProxy(ctx contextx.IContext, params []*types.NodeProxyInstallCheckParam) ([]*types.NodeProxyInstallCheckResult, error) {
+	req := &protoBackend.NodeProxyInstallCheckReq{}
+
+	req.ConvertParamFromTypes(params)
+
+	resp, err := h.cli.checkInstallProxy(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check install proxy: %w", err)
+	}
+
+	result := resp.ConvertResultToTypes()
+
+	return result, nil
 }

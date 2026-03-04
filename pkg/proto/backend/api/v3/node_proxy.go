@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -556,4 +557,149 @@ func (x *NodeProxyUninstallResp) GetWorkflowID() string {
 	}
 
 	return data.GetWorkflowId()
+}
+
+// Validate check body.
+func (x *NodeProxyInstallCheckReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+func (x *NodeProxyInstallCheckReq_Host) Validate() error {
+	if x.GetBkBizId() < 0 {
+		return errors.New("bk_biz_id is required")
+	}
+
+	if len(x.GetBkHostInneripList()) == 0 && len(x.GetBkHostInneripV6List()) == 0 {
+		return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
+	}
+
+	for _, ip := range x.GetBkHostInneripList() {
+		if ip == "" {
+			return errors.New("bk_host_innerip_list can not contain empty string")
+		}
+	}
+
+	for _, ipv6 := range x.GetBkHostInneripV6List() {
+		if ipv6 == "" {
+			return errors.New("bk_host_innerip_v6_list can not contain empty string")
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyInstallCheckReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyInstallCheckReq_Host) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
+
+	if x.BkBizId == nil {
+		x.BkBizId = new(int64)
+		*x.BkBizId = -1
+	}
+
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes convert host param from types.
+func (x *NodeProxyInstallCheckReq) ConvertParamFromTypes(checkParam []*types.NodeProxyInstallCheckParam) {
+	hostsParam := make([]*NodeProxyInstallCheckReq_Host, len(checkParam))
+	for idx, host := range checkParam {
+		hostsParam[idx] = &NodeProxyInstallCheckReq_Host{
+			BkHostId:            &host.HostID,
+			BkBizId:             &host.BizID,
+			BkNetworkunitId:     &host.NetworkUnitID,
+			BkHostInneripList:   host.InnerIPList,
+			BkHostInneripV6List: host.InnerIPV6List,
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeProxyInstallCheckResp) ConvertResultFromTypes(results []*types.NodeProxyInstallCheckResult) {
+	items := make([]*NodeProxyInstallCheckResult, len(results))
+	for idx, result := range results {
+		item := &NodeProxyInstallCheckResult{
+			Status: string(result.Status),
+		}
+
+		if result.Matched != nil {
+			item.Matched = &NodeProxyInstallCheckMatchedItem{
+				BkHostId:            &result.Matched.HostID,
+				BkBizId:             &result.Matched.BizID,
+				BkNetworkareaId:     &result.Matched.NetworkAreaID,
+				BkNetworkunitId:     &result.Matched.NetworkUnitID,
+				OsType:              string(result.Matched.OsType),
+				NodeRole:            string(result.Matched.NodeRole),
+				BkHostInneripList:   result.Matched.InnerIPList,
+				BkHostInneripV6List: result.Matched.InnerIPV6List,
+			}
+		}
+
+		items[idx] = item
+	}
+
+	x.Data = &NodeProxyInstallCheckResp_Data{
+		Results: items,
+	}
+}
+
+// ConvertResultToTypes convert result to types.
+func (x *NodeProxyInstallCheckResp) ConvertResultToTypes() []*types.NodeProxyInstallCheckResult {
+	if x.GetData() == nil {
+		return nil
+	}
+
+	data := x.GetData()
+
+	items := make([]*types.NodeProxyInstallCheckResult, len(data.GetResults()))
+	for idx, result := range data.GetResults() {
+		item := &types.NodeProxyInstallCheckResult{
+			Status: types.NodeProxyInstallCheckStatus(result.GetStatus()),
+		}
+
+		if matched := result.GetMatched(); matched != nil {
+			item.Matched = &types.NodeProxyInstallCheckMatchedItem{
+				HostID:        matched.GetBkHostId(),
+				BizID:         matched.GetBkBizId(),
+				NetworkAreaID: matched.GetBkNetworkareaId(),
+				NetworkUnitID: matched.GetBkNetworkunitId(),
+				OsType:        criteria.OSType(matched.GetOsType()),
+				NodeRole:      types.NodeRole(matched.GetNodeRole()),
+				InnerIPList:   matched.GetBkHostInneripList(),
+				InnerIPV6List: matched.GetBkHostInneripV6List(),
+			}
+		}
+
+		items[idx] = item
+	}
+
+	return items
 }

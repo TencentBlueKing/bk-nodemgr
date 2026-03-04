@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/node/proxy/install_check": {
+      "post": {
+        "summary": "NodeProxyInstallCheck provides node proxy install check.",
+        "operationId": "NodeProxy_NodeProxyInstallCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyInstallCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyInstallCheckReq describes the node proxy install check request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyInstallCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/reconfig": {
       "post": {
         "summary": "NodeProxyReconfig reconfigs node proxy.",
@@ -278,6 +312,134 @@
           }
         }
       }
+    },
+    "v3NodeProxyInstallCheckMatchedItem": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeProxyInstallCheckMatchedItem describes the matched item for proxy node."
+    },
+    "v3NodeProxyInstallCheckReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyInstallCheckReqHost"
+          }
+        }
+      },
+      "description": "NodeProxyInstallCheckReq describes the node proxy install check request."
+    },
+    "v3NodeProxyInstallCheckReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeProxyInstallCheckResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyInstallCheckRespData"
+        }
+      },
+      "description": "NodeProxyInstallCheckResp describes the response for node proxy installation\ncheck."
+    },
+    "v3NodeProxyInstallCheckRespData": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyInstallCheckResult"
+          }
+        }
+      }
+    },
+    "v3NodeProxyInstallCheckResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "matched": {
+          "$ref": "#/definitions/v3NodeProxyInstallCheckMatchedItem"
+        }
+      },
+      "description": "NodeProxyInstallCheckResult describes the check result for node proxy\ninstallation."
     },
     "v3NodeProxyInstallHost": {
       "type": "object",
