@@ -11,17 +11,18 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
   id = 'horizontal-hierarchy-layout';
 
   // --- 布局常量 ---
-  private readonly AREA_SPACING_HORIZONTAL = 300;
-  private readonly AREA_SPACING_VERTICAL = 150;
+  private readonly AREA_SPACING_HORIZONTAL = 50;
+  private readonly AREA_SPACING_VERTICAL = 50;
   private readonly AREA_PADDING = 20;
   private readonly UNIT_NODE_HEIGHT = 202;
-  private readonly AP_NODE_HEIGHT = 32;
-  private readonly NODE_SPACING_ROW = 60;
-  private readonly NODE_SPACING_COL = 40;
-  private readonly UNIT_COL_WIDTH = 290;
-  private readonly AP_COL_WIDTH = 270;
-  private readonly AREA_MIN_WIDTH = 300;
-  private readonly AREA_HEIGHT_EXTRA = 20;
+  private readonly AP_NODE_HEIGHT = 22; // 修正：与AccessPointNode.nodeHeight保持一致
+  private readonly NODE_SPACING_ROW = 8; // 接入点纵向间距保持8px
+  private readonly UNIT_SPACING_ROW = 60; // 单元纵向间距设为60px
+  private readonly NODE_SPACING_COL = 20;
+  private readonly UNIT_COL_WIDTH = 240;
+  private readonly AP_COL_WIDTH = 140;
+  private readonly AREA_MIN_WIDTH = 260;
+  private readonly AREA_HEIGHT_EXTRA = 50;
 
   private options: HorizontalHierarchyLayoutOptions = { collapsed: false };
 
@@ -336,10 +337,10 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
         const areaNode = areaNodes.find(n => n.id === areaId);
         const currentW = Number(areaNode?.style?.width || areaNode?.data?.width || 0);
         const currentH = Number(areaNode?.style?.height || areaNode?.data?.height || 0);
-        
+
         areaSize = {
           width: Math.max(areaSize.width, currentW),
-          height: Math.max(areaSize.height, currentH)
+          height: Math.max(areaSize.height, currentH),
         };
 
         // 2. 【核心修改】确定区域位置 (X, Y)
@@ -358,7 +359,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
         // 3. 传递 finalAreaX / finalAreaY 给背景绘制和子节点布局
         this.layoutAreaBackground(areaId, areaNodes, areaSize, finalAreaX, finalAreaY, allNodes);
-        
+
         this.layoutAreaChildNodes(
           areaId,
           columns,
@@ -451,12 +452,15 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
     const maxColHeight = columns.reduce((max, col) => {
       let totalHeight = 0;
+      let lastNodeType = NodeType.ACCESS_POINT; // 默认使用接入点类型
       col.nodes.forEach((node) => {
-        totalHeight += (node.type === NodeType.NET_WORK_UNIT ? this.UNIT_NODE_HEIGHT : this.AP_NODE_HEIGHT) + this.NODE_SPACING_ROW;
+        totalHeight += (node.type === NodeType.NET_WORK_UNIT ? this.UNIT_NODE_HEIGHT : this.AP_NODE_HEIGHT) + 
+                      (node.type === NodeType.NET_WORK_UNIT ? this.UNIT_SPACING_ROW : this.NODE_SPACING_ROW);
+        lastNodeType = node.type; // 记录最后一个节点类型
       });
-      return Math.max(max, totalHeight > 0 ? totalHeight - this.NODE_SPACING_ROW : 0);
+      return Math.max(max, totalHeight > 0 ? totalHeight - (lastNodeType === NodeType.NET_WORK_UNIT ? this.UNIT_SPACING_ROW : this.NODE_SPACING_ROW) : 0);
     }, 0);
-    const areaHeight = this.AREA_PADDING * 2 + maxColHeight + this.AREA_HEIGHT_EXTRA + 60;
+    const areaHeight = this.AREA_PADDING * 2 + maxColHeight + this.AREA_HEIGHT_EXTRA + 50;
 
     return { width: areaWidth, height: areaHeight };
   }
@@ -528,18 +532,19 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
   ) {
     // 算法计算出的子节点起始基准点
     const childStartX = areaX + this.AREA_PADDING;
-    const childStartY = areaY + this.AREA_PADDING + 60;
-    
+    const childStartY = areaY + this.AREA_PADDING + 50;
+
     let currentColX = childStartX;
 
     columns.forEach((col) => {
       const { nodes, width } = col;
       nodes.forEach((node, rowIndex) => {
         const nodeHeight = node.type === NodeType.NET_WORK_UNIT ? this.UNIT_NODE_HEIGHT : this.AP_NODE_HEIGHT;
-        
+
         // 算法计算出的理论位置
         const calculatedChildX = currentColX;
-        const calculatedChildY = childStartY + rowIndex * (nodeHeight + this.NODE_SPACING_ROW);
+        const calculatedChildY = childStartY + rowIndex * (nodeHeight + 
+          (node.type === NodeType.NET_WORK_UNIT ? this.UNIT_SPACING_ROW : this.NODE_SPACING_ROW));
 
         // 【核心修改】优先使用子节点现有的位置
         const existingChildX = node.style?.x;
@@ -630,12 +635,11 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     allNodes: NodeData[],
     nodeLayoutInfo: Map<string, { x: number; y: number; areaId: string; rowIndex: number }>,
   ) {
-    // 过滤掉不可见的节点
     const nodeIds = new Set(allNodes.filter(n => n.style?.visibility !== 'hidden').map(n => n.id));
     const apToUnitCount = new Map<string, number>();
 
+    // 预处理连线统计
     edges.forEach((edge) => {
-      if (!edge.source || !edge.target) return;
       const sId = edge.source as string;
       const tId = edge.target as string;
       if (sId.startsWith('accessPoint-') && tId.startsWith('workUnit-')) {
@@ -644,98 +648,158 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
 
-    return edges.filter((edge) => {
-      const sId = edge.source as string;
-      const tId = edge.target as string;
-      return nodeIds.has(sId) && nodeIds.has(tId);
-    }).map((edge) => {
-      const sId = edge.source as string;
-      const tId = edge.target as string;
-      const source = nodeLayoutInfo.get(sId);
-      const target = nodeLayoutInfo.get(tId);
+    return edges.filter(edge => nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string))
+      .map((edge) => {
+        const sId = edge.source as string;
+        const tId = edge.target as string;
+        const source = nodeLayoutInfo.get(sId);
+        const target = nodeLayoutInfo.get(tId);
 
-      if (!source || !target) {
-        return { ...edge, type: 'line' };
-      }
+        if (!source || !target) return { ...edge, type: 'line' };
 
-      const isUnitAP = sId.startsWith('workUnit-') && tId.startsWith('accessPoint-') || sId.startsWith('accessPoint-') && tId.startsWith('workUnit-');
+        // 识别节点类型
+        const isS_AP = sId.startsWith('accessPoint-');
+        const isT_AP = tId.startsWith('accessPoint-');
+        const isS_Unit = sId.startsWith('workUnit-');
+        const isT_Unit = tId.startsWith('workUnit-');
+        const isS_Area = sId.startsWith('area-');
+        const isT_Area = tId.startsWith('area-');
 
-      if (isUnitAP) {
-        const isAPToUnit = sId.startsWith('accessPoint-') && tId.startsWith('workUnit-');
-        const apNode = isAPToUnit ? source : target;
-        const horizontalY = apNode.y + (apNode.y === source.y ? this.AP_NODE_HEIGHT : this.UNIT_NODE_HEIGHT) / 2;
+        // 计算 AP 节点的水平中心 Y 坐标 (AP 高度 32, 中心点 +16)
+        const apCenterY = (isS_AP ? source.y : target.y) + this.AP_NODE_HEIGHT / 2;
 
-        if (isAPToUnit) {
+        // --- 情况 A: AccessPoint 连向 WorkUnit (期望水平直线) ---
+        if (isS_AP && isT_Unit) {
           const key = `${sId}-${tId}`;
           const count = apToUnitCount.get(key) || 0;
-          const offset = (count - 1) * 30;
-          const adjustedY = horizontalY + offset;
 
           if (count === 1) {
-            return {
+            const edgeWithStyle = {
               ...edge,
-              type: 'line',
+              type: 'custom-edge', // 使用自定义类
               style: {
-                stroke: '#666',
-                lineWidth: 2,
+                stroke: '#C4C6CC', // 修改：使用设计稿的颜色
+                lineWidth: 1, // 改细：从2改为1
                 endArrow: false,
-                strokeOpacity: 0.8,
-                startPoint: [source.x + (sId.startsWith('accessPoint-') ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH), adjustedY],
-                endPoint: [target.x, adjustedY],
+                startPoint: [source.x, apCenterY], // 从接入点左边缘开始
+                endPoint: [target.x, apCenterY], // 连接到工作单元左边缘
               },
+              // 同时在根级别也设置这些属性
+              startPoint: [source.x, apCenterY], // 修正：使用接入点左边缘
+              endPoint: [target.x, apCenterY],
             };
+
+            return edgeWithStyle;
           }
+
+          // 多条线走折线
+          const offset = (count - 1) * 30;
           const turnX = Math.max(source.x, target.x) + 50;
+          const startPoint = [source.x, apCenterY]; // 修正：从接入点左边缘开始
+          const endPoint = [target.x, target.y + 41 + offset];
+
           return {
             ...edge,
             type: 'polyline',
             style: {
-              stroke: '#666',
-              lineWidth: 2,
-              endArrow: false,
-              strokeOpacity: 0.8,
+              stroke: '#C4C6CC', // 修改：使用设计稿的颜色
+              lineWidth: 1, // 改细：从2改为1
               points: [
-                [source.x + (sId.startsWith('accessPoint-') ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH), adjustedY],
-                [turnX, adjustedY],
+                startPoint, // 修正：从接入点左边缘开始
+                [turnX, apCenterY],
                 [turnX, target.y + 41 + offset],
-                [target.x, target.y + 41 + offset],
+                endPoint,
               ],
-              lineJoin: 'round',
+            },
+            // 为 polyline 也设置根级别端点
+            startPoint: startPoint,
+            endPoint: endPoint,
+          };
+        }
+
+        // --- 情况 B: WorkUnit 连向 AccessPoint (从连接锚点出发) ---
+        if (isS_Unit && isT_AP) {
+          // 从原始数据中查找单元节点数据
+          const sourceUnitNode = allNodes.find(n => n.id === sId);
+          
+          // 获取单元类型和实际高度
+          const isDirectUnit = sourceUnitNode?.data?.is_direct ?? false;
+          const actualUnitHeight = isDirectUnit ? 160 : 212;
+          
+          return {
+            ...edge,
+            type: 'custom-edge',
+            style: {
+              stroke: '#C4C6CC',
+              lineWidth: 1,
+              endArrow: {
+                path: 'M 0,0 L 4,2 L 4,-2 Z',
+                fill: '#C4C6CC'
+              },
             },
           };
         }
-        const verticalOffset = 20;
+
+        // --- 情况 C: 涉及区域节点的连线 ---
+        if (isS_Area || isT_Area) {
+          // 计算区域节点的端点
+          const sourceY = isS_Area ? source.y + 20 : // 区域节点假设高度40，中心+20
+                         isS_AP ? source.y + this.AP_NODE_HEIGHT / 2 : 
+                         source.y + this.UNIT_NODE_HEIGHT / 2;
+          
+          const targetY = isT_Area ? target.y + 20 : // 区域节点假设高度40，中心+20
+                         isT_AP ? target.y + this.AP_NODE_HEIGHT / 2 : 
+                         target.y + this.UNIT_NODE_HEIGHT / 2;
+          
+          const sourceWidth = isS_Area ? 200 : // 区域节点假设宽度200
+                             isS_AP ? this.AP_COL_WIDTH : 
+                             this.UNIT_COL_WIDTH;
+          
+          const areaStartPoint = [source.x + sourceWidth, sourceY];
+          const areaEndPoint = [target.x, targetY];
+          
+          return {
+            ...edge,
+            type: 'custom-edge',
+            style: {
+              stroke: '#999',
+              lineWidth: 1,
+              strokeDasharray: [5, 5], // 虚线表示区域连接
+              startPoint: areaStartPoint,
+              endPoint: areaEndPoint,
+            },
+            startPoint: areaStartPoint,
+            endPoint: areaEndPoint,
+          };
+        }
+
+        // --- 情况 D: 默认其他连线 ---
+        // 计算默认端点，确保所有边缘都有自定义端点
+        const sourceY = source.y + (isS_AP ? this.AP_NODE_HEIGHT / 2 : this.UNIT_NODE_HEIGHT / 2);
+        const targetY = target.y + (isT_AP ? this.AP_NODE_HEIGHT / 2 : this.UNIT_NODE_HEIGHT / 2);
+        
+        const defaultStartPoint = [
+          source.x + (isS_AP ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH), 
+          sourceY
+        ];
+        const defaultEndPoint = [
+          target.x, 
+          targetY
+        ];
+
         return {
           ...edge,
-          type: 'cubic',
+          type: 'custom-edge',
           style: {
-            stroke: '#3182ce',
-            lineWidth: 2,
-            endArrow: { path: 'M 0,0 L 10,5 L 10,-5 Z', fill: '#3182ce' },
-            strokeOpacity: 0.8,
-            points: [
-              [source.x, source.y + this.UNIT_NODE_HEIGHT / 2],
-              [source.x - 50, source.y + this.UNIT_NODE_HEIGHT / 2],
-              [source.x - 50, target.y + this.AP_NODE_HEIGHT / 2 + verticalOffset],
-              [target.x, target.y + this.AP_NODE_HEIGHT / 2],
-            ],
+            stroke: '#C4C6CC', // 修改：使用设计稿的颜色
+            lineWidth: 1, // 改细：从2改为1
+            startPoint: defaultStartPoint,
+            endPoint: defaultEndPoint,
           },
+          // 同时在根级别也设置这些属性
+          startPoint: defaultStartPoint,
+          endPoint: defaultEndPoint,
         };
-      }
-
-      const targetMidY = target.y + (tId.startsWith('accessPoint-') ? this.AP_NODE_HEIGHT : this.UNIT_NODE_HEIGHT) / 2;
-      return {
-        ...edge,
-        type: 'line',
-        style: {
-          stroke: '#666',
-          lineWidth: 2,
-          endArrow: false,
-          strokeOpacity: 0.7,
-          startPoint: [source.x + (sId.startsWith('accessPoint-') ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH), targetMidY],
-          endPoint: [target.x, targetMidY],
-        },
-      };
-    });
+      });
   }
 }

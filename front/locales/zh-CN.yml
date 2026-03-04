@@ -427,6 +427,17 @@ topoManager:
     expand: 展开无单元区域
     collapse: 收起无单元区域
     accessPointName: 接入点名称
+    menu:
+      viewDetail: 查看详情
+      editUnit: 编辑单元
+      deleteUnit: 删除单元
+    node:
+      accessPoints: 接入点
+      count: 个
+      healthy: 健康
+      abnormal: 异常
+      quantity: 数量
+      delay: 延迟
   record:
     title: 操作记录
     searchPlaceholder:

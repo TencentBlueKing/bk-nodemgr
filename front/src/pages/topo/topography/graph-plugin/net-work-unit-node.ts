@@ -1,10 +1,17 @@
-import type { Group, RectStyleProps, TextStyleProps } from '@antv/g';
+import type { Group } from '@antv/g';
 // 引入需要的图形 Shape
-import { Circle, Line, Rect, Text } from '@antv/g';
+import { Circle as GCircle, Image as GImage, Line as GLine, Rect as GRect, Text as GText } from '@antv/g';
 import type { BaseNodeStyleProps } from '@antv/g6';
 import { BaseNode } from '@antv/g6';
 
-import type { UnitType } from './config';
+import JumpLink from '../../../../../public/images/jump-link.svg';
+import More from '../../../../../public/images/more.svg';
+import VectorDirect from '../../../../../public/images/vector-direct.svg';
+import VectorIndirect from '../../../../../public/images/vector-indirect.svg';
+import ConnectionPoint from '../../../../../public/images/connection-point.svg';
+import connectionPoint from '../../../../../public/images/connection-point.svg';
+import { textTooltip } from './text-tooltip.js';
+import { i18n } from '@/modules/i18n';
 
 export interface INodeData {
   name: string;
@@ -13,7 +20,6 @@ export interface INodeData {
   running_agent: number;
   total_agent: number;
   cycle_times: string[];
-  unitType: UnitType;
   is_healthy: Boolean;
   area?: string;
   is_direct?: boolean;
@@ -30,94 +36,57 @@ interface SplitTextConfig {
 
 export default class NetWorkUnitNode extends BaseNode {
   // --- 1. 尺寸配置 ---
-  static gridWidth = 135;   // 单个格子的宽度
   static gridHeight = 50;   // 单个格子的高度
-  static headerHeight = 36; // 标题栏高度
+  static headerHeight = 40; // 标题栏高度 (改为40px)
 
   // 容器内边距 (关键：让表格和Agent看起来在内部)
   static paddingX = 12;     // 左右内边距
   static paddingY = 12;     // 上下内边距
   static contentGap = 12;   // 表格和Agent之间的间距
 
-  static agentBarHeight = 50;
-  static badgeRadius = 8;
+  static agentWidth = 216;
+  static agentBarHeight = 32;
+  static badgeRadius = 2;
 
   // --- 颜色配置 ---
-  static greenColor = '#45E35F';
+  static directUnitHeaderBgColor = '#FDEED8';
+  static IndirectUnitHeaderBgColor = '#E1ECFF';
+  static agentBgColor = '#F5F7FA';
+  static linkColor = '#3A84FF';
+  static normalColor = '#4D4F56';
+  static titleColor = '#000000';
+  static greenColor = '#2DCB56';
+  static redColor = '#EA3636';
   static gray = '#979ba5';
   static warnColor = '#FFB848';
   static badgeColorP = '#3A84FF';
   static badgeColorA = '#8B5CF6';
   static borderColor = '#E1E4E8';
 
-  // --- 动态计算属性 ---
 
-  // 节点内容宽度 (表格宽度) = 2个格子宽
-  static get contentWidth(): number {
-    return this.gridWidth * 2;
-  }
-
-  // 节点总宽度 = 内容宽 + 左右内边距
-  static get nodeWidth(): number {
-    return this.contentWidth + (this.paddingX * 2);
-  }
-
-  // 获取表格部分的高度
-  static getTableHeight(isDirect: boolean): number {
-    return isDirect ? this.gridHeight : (this.gridHeight * 2);
-  }
-
-  // 获取节点总高度
-  static getNodeTotalHeight(isDirect: boolean): number {
-    const tableH = this.getTableHeight(isDirect);
-    // 总高度 = 标题栏 + 上内边距 + 表格高度 + 间距 + Agent高度 + 下内边距
-    return this.headerHeight + this.paddingY + tableH + this.contentGap + this.agentBarHeight + this.paddingY;
-  }
-
-  /**
-   * 【核心逻辑】自定义锚点
-   * 计算表格部分在整个节点高度中的相对位置 (0-1)
-   */
-  public getAnchorPoints() {
-    const isDirect = this.data.is_direct as boolean;
-
-    const totalHeight = NetWorkUnitNode.getNodeTotalHeight(isDirect);
-    const tableHeight = NetWorkUnitNode.getTableHeight(isDirect);
-
-    // 表格区域的起始 Y 坐标 (标题栏 + 上内边距)
-    const tableStartY = NetWorkUnitNode.headerHeight + NetWorkUnitNode.paddingY;
-
-    // 表格区域的中心 Y 坐标
-    const tableCenterY = tableStartY + (tableHeight / 2);
-
-    // 转换为相对比例 (0~1)
-    const ratio = tableCenterY / totalHeight;
-
-    return [
-      [0, ratio], // 左侧锚点
-      [1, ratio], // 右侧锚点
-    ];
-  }
+  // 节点总宽度
+  static nodeWidth = 240;
 
   // 获取节点数据
   get data(): INodeData {
     return this.context.model.getNodeLikeDatum(this.id)?.data as unknown as INodeData;
   }
 
-  // 主容器样式
+  // 主容器样式 - 整体背景块
   protected getKeyStyle(attr: Required<BaseNodeStyleProps>) {
     const { is_direct } = this.data;
     const width = NetWorkUnitNode.nodeWidth;
-    const height = NetWorkUnitNode.getNodeTotalHeight(is_direct as boolean);
+    // 直连：40 + 120 = 160px，非直连：40 + 172 = 212px
+    const height = is_direct ? 160 : 212;
 
     return {
       ...super.getKeyStyle(attr),
       width,
       height,
       fill: '#ffffff',
-      stroke: '#DCDEE5',
-      strokeWidth: 1,
-      radius: 6, // 整体大圆角
+      stroke: 'none',
+      strokeWidth: 0,
+      radius: 6,
       shadowColor: 'rgba(0, 0, 0, 0.06)',
       shadowBlur: 8,
       shadowOffsetY: 2,
@@ -129,244 +98,324 @@ export default class NetWorkUnitNode extends BaseNode {
     return this.upsert('key', 'rect', this.getKeyStyle(attr), container);
   }
 
-  // 绘制标题栏
-  private drawHeader(container: Group) {
+  // 绘制标题栏块
+  private drawHeaderBlock(container: Group) {
     const width = NetWorkUnitNode.nodeWidth;
     const height = NetWorkUnitNode.headerHeight;
-
-    // 标题背景 (带顶部圆角)
-    this.upsert('header-bg', 'rect', {
+    const { directUnitHeaderBgColor, IndirectUnitHeaderBgColor } = NetWorkUnitNode;
+    const { is_direct } = this.data;
+    
+    this.upsert('header-block', 'rect', {
       x: 0,
       y: 0,
       width,
       height,
-      fill: '#F0F1F5',
+      fill: is_direct ? directUnitHeaderBgColor : IndirectUnitHeaderBgColor,
       radius: [6, 6, 0, 0],
       cursor: 'move',
-      stroke: NetWorkUnitNode.borderColor,
-      strokeWidth: 1,
     }, container);
+  }
 
-    // 底部边框线 (确保标题栏和内容区分割)
-    this.upsert('header-border', 'line', {
-      x1: 0,
-      y1: height,
-      x2: width,
-      y2: height,
-      stroke: NetWorkUnitNode.borderColor,
-      strokeWidth: 1,
-      pointerEvents: 'none',
+  // 绘制内容块 - 白色圆角矩形
+  private drawContentBlock(container: Group) {
+    const { is_direct } = this.data;
+    const width = NetWorkUnitNode.nodeWidth;
+    // 直连内容区域：120px，非直连：172px
+    const contentHeight = is_direct ? 120 : 172;
+
+    this.upsert('content-block', 'rect', {
+      x: 0,
+      y: NetWorkUnitNode.headerHeight - 8, // 向上偏移8px与header重叠
+      width,
+      height: contentHeight + 8, // 补偿向上偏移的8px
+      fill: '#ffffff',
+      radius: 6, // 完整圆角
+      cursor: 'pointer',
     }, container);
   }
 
   private drawUnitLabel(container: Group) {
-    const h = NetWorkUnitNode.headerHeight;
-    // 标识
-    this.upsert('unit-tag-bg', 'rect', {
-      x: 12,
-      y: 6,
-      width: 36,
-      height: 20,
-      fill: '#E1ECFF',
-      radius: 2,
-      cursor: 'move',
-    }, container);
-
-    this.upsert('unit-tag-text', 'text', {
-      x: 12 + 18,
-      y: 6 + 10,
-      text: '单元',
-      fontSize: 10,
-      fill: '#3A84FF',
-      textAlign: 'center',
-      textBaseline: 'middle',
-      fontWeight: 'bold',
+    const { is_direct } = this.data;
+    // 标识图标
+    this.upsert('unit-icon-direct', GImage, {
+      x: 13,
+      y: 8,
+      src: is_direct ? VectorDirect : VectorIndirect,
       cursor: 'move',
     }, container);
   }
 
   private drawUnitName(container: Group) {
     const { name } = this.data;
-    const h = NetWorkUnitNode.headerHeight;
 
-    this.upsert('unit-name', 'text', {
-      x: 58,
-      y: h / 2,
+    // 计算可用宽度：节点宽度 - 左边距 - 图标宽度 - 间距 - 菜单图标区域宽度 - 额外间距
+    const maxWidth = NetWorkUnitNode.nodeWidth - 34 - 30 - 15; // 34是图标+间距，30是右侧菜单区域，15是额外间距
+
+    const textElement = this.upsert('unit-name', GText, {
+      x: 34,
+      y: 16,
       text: name,
       fontSize: 14,
       fill: '#313238',
       textBaseline: 'middle',
-      fontWeight: 600,
-      cursor: 'move',
-    }, container);
-  }
-
-  // --- 通用绘制方法 ---
-
-  // 绘制角标 (P 或 A) - 悬挂在左上角
-  private drawBadge(container: Group, startX: number, startY: number, text: string, color: string) {
-    const r = NetWorkUnitNode.badgeRadius;
-    // 圆心位置：稍微往外突出一点点，更有“角标”感
-    const cx = startX;
-    const cy = startY;
-
-    this.upsert(`badge-bg-${text}`, 'circle', {
-      cx,
-      cy,
-      r,
-      fill: color,
-      zIndex: 20,
-      stroke: '#fff', // 加个白边，分离感更好
-      strokeWidth: 1.5,
+      fontWeight: 700,
+      cursor: 'pointer',
+      wordWrap: true,
+      wordWrapWidth: maxWidth,
+      maxLines: 1,
+      textOverflow: 'ellipsis',
     }, container);
 
-    this.upsert(`badge-text-${text}`, 'text', {
-      x: cx,
-      y: cy,
-      text,
-      fontSize: 10,
-      fill: '#fff',
-      textAlign: 'center',
-      textBaseline: 'middle',
-      fontWeight: 'bold',
-      zIndex: 21,
-    }, container);
-  }
+    // 添加 hover 事件监听
+    if (textElement) {
+      textElement.addEventListener('mouseenter', (evt: any) => {
+        const mouseEvent = evt.client;
+        if (mouseEvent) {
+          // 获取文本元素的中心坐标
+          const bounds = textElement.getRenderBounds();
+          const centerY = (bounds.min[1] + bounds.max[1]) / 2;
+          textTooltip.show(name, centerY, mouseEvent.x, mouseEvent.y);
+        }
+      });
 
-  // 绘制格子
-  private drawGrid(
-    container: Group,
-    x: number,
-    y: number,
-    mainText: string,
-    subText: string,
-    mainColor: string,
-    split?: SplitTextConfig,
-    isLatency?: boolean,
-  ) {
-    // 格子背景框
-    this.upsert(`grid-rect-${x}-${y}`, 'rect', {
-      x,
-      y,
-      width: NetWorkUnitNode.gridWidth,
-      height: NetWorkUnitNode.gridHeight,
-      fill: '#fff',
-      stroke: NetWorkUnitNode.borderColor,
-      strokeWidth: 1,
-    }, container);
-
-    const cx = x + NetWorkUnitNode.gridWidth / 2;
-    const textY = y + NetWorkUnitNode.gridHeight / 2 - (subText ? 8 : 0);
-    const key = `grid-content-${x}-${y}`;
-
-    // 1. 绘制主文本
-    if (split) {
-      // 拆分文本 (e.g. 2/2)
-      const { prefix, suffix, prefixColor } = split;
-      const fullW = (prefix.length + suffix.length + 1) * 9; // 估算宽度
-      const startX = cx - fullW / 2;
-
-      this.upsert(`${key}-pre`, 'text', { x: cx - 5, y: textY, text: prefix, fill: prefixColor, fontSize: 16, fontWeight: 600, textAlign: 'right', textBaseline: 'middle' }, container);
-      this.upsert(`${key}-slash`, 'text', { x: cx, y: textY, text: '/', fill: '#979ba5', fontSize: 14, textAlign: 'center', textBaseline: 'middle' }, container);
-      this.upsert(`${key}-suf`, 'text', { x: cx + 5, y: textY, text: suffix, fill: '#979ba5', fontSize: 16, textAlign: 'left', textBaseline: 'middle' }, container);
-    } else if (isLatency && mainText) {
-      // 延迟文本 (带颜色)
-      const parts = mainText.replace('ms', '').split(',');
-      const offsetX = 0;
-      // 简单处理：直接画在中间
-      // 实际项目可能需要更精细的测量
-      this.upsert(`${key}-lat`, 'text', {
-        x: cx,
-        y: textY,
-        text: mainText, // 简单处理，暂不拆分颜色
-        fill: parseInt(parts[0]) > 100 ? NetWorkUnitNode.warnColor : NetWorkUnitNode.greenColor,
-        fontSize: 16,
-        textAlign: 'center',
-        textBaseline: 'middle',
-      }, container);
-    } else {
-      // 普通文本
-      this.upsert(`${key}-txt`, 'text', {
-        x: cx,
-        y: textY,
-        text: mainText,
-        fill: mainColor,
-        fontSize: 16,
-        fontWeight: 500,
-        textAlign: 'center',
-        textBaseline: 'middle',
-      }, container);
+      textElement.addEventListener('mouseleave', () => {
+        textTooltip.hide();
+      });
     }
 
-    // 2. 绘制副标题
-    if (subText) {
-      this.upsert(`${key}-sub`, 'text', {
-        x: cx,
-        y: y + 36, // 靠下
-        text: subText,
-        fill: '#979ba5',
-        fontSize: 12,
-        textAlign: 'center',
-        textBaseline: 'middle',
-      }, container);
-    }
+    return textElement;
   }
 
   // --- 内容块绘制 ---
 
   private drawProxyTable(container: Group) {
     const {
-      is_direct, direct_endpoints, accesspoints,
+      is_direct, accesspoints,
       running_proxy, total_proxy, cycle_times, is_healthy,
     } = this.data;
 
     // 计算表格起始位置 (在 Padding 内部)
     const startX = NetWorkUnitNode.paddingX;
     const startY = NetWorkUnitNode.headerHeight + NetWorkUnitNode.paddingY;
+    const isZh = i18n.global.locale.value === 'zh-CN';
+    
+    // 中文：label宽度54px (两个汉字+间距), 英文：label宽度95px (最长的"Access Points")
+    const labelWidth = isZh ? 54 : 95;
+    const valueX = startX + labelWidth; // 值统一从这个位置开始
 
     if (is_direct) {
-      // 直连：一行
-      this.drawGrid(container, startX, startY, 'Server', '', '#1768EF');
-      this.drawGrid(
-        container, startX + NetWorkUnitNode.gridWidth, startY,
-        `${accesspoints?.length || 0}`, '接入点数量', NetWorkUnitNode.greenColor,
-      );
-    } else {
-      // 非直连：两行
+      // 直连
       // Row 1
-      this.drawGrid(
-        container, startX, startY,
-        `${running_proxy}/${total_proxy}`, 'Proxy', '#333',
-        { prefix: `${running_proxy}`, suffix: `${total_proxy}`, prefixColor: NetWorkUnitNode.greenColor },
-      );
-      this.drawGrid(
-        container, startX + NetWorkUnitNode.gridWidth, startY,
-        `${accesspoints?.length || 0}`, '接入点数量', NetWorkUnitNode.greenColor,
-      );
+      this.upsert('Server', GText, {
+        x: startX,
+        y: startY + 5,
+        text: 'Server',
+        fontSize: 12,
+        fill: NetWorkUnitNode.titleColor,
+        textBaseline: 'middle',
+        fontWeight: 700,
+      }, container);
+
+      this.upsert('unit', GText, {
+        x: startX + NetWorkUnitNode.nodeWidth - 70,
+        y: startY + 5,
+        text: 'unit',
+        fontSize: 12,
+        fill: NetWorkUnitNode.linkColor,
+        textBaseline: 'middle',
+        fontWeight: 400,
+      }, container);
+
+      this.upsert('linkIcon-unit', GImage, {
+        x: startX + NetWorkUnitNode.nodeWidth - 43,
+        y: startY - 1,
+        width: 11,
+        height: 11,
+        src: JumpLink,
+      }, container);
+      // Row 2 - 使用统一对齐
+      const accessPointsText = i18n.global.t('topoManager.topo.node.accessPoints');
+      
+      this.upsert('accesspoints-title', GText, {
+        x: startX,
+        y: startY + 37.5,
+        text: `${accessPointsText} :`,
+        fontSize: 12,
+        fill: NetWorkUnitNode.normalColor,
+        textBaseline: 'middle',
+      }, container);
+      this.upsert('accesspoints', GText, {
+        x: valueX,
+        y: startY + 37.5,
+        text: `${accesspoints?.length || 0} ${i18n.global.t('topoManager.topo.node.count')}`,
+        fontSize: 12,
+        fontWeight: 700,
+        fill: NetWorkUnitNode.titleColor,
+        textBaseline: 'middle',
+      }, container);
+    } else {
+      // 非直连
+      // Row 1
+      this.upsert('Proxy', GText, {
+        x: startX,
+        y: startY + 5,
+        text: 'Proxy',
+        fontSize: 12,
+        fill: NetWorkUnitNode.titleColor,
+        textBaseline: 'middle',
+        fontWeight: 700,
+      }, container);
+
+      const stateWidth = isZh ? 32 : 60; // 中文32px，英文60px
+      this.upsert('state-bg', 'rect', {
+        x: startX + 42,
+        y: startY - 3,
+        width: stateWidth,
+        height: 16,
+        fill: is_healthy ? NetWorkUnitNode.greenColor : NetWorkUnitNode.redColor,
+        radius: NetWorkUnitNode.badgeRadius,
+      }, container);
+      this.upsert('state', GText, {
+        x: startX + 42 + stateWidth / 2, // 在状态框中居中显示
+        y: startY + 5,
+        text: is_healthy ? i18n.global.t('topoManager.topo.node.healthy') : i18n.global.t('topoManager.topo.node.abnormal'),
+        fontSize: 10,
+        fill: '#FFFFFF',
+        textAlign: 'center',
+        textBaseline: 'middle',
+        fontWeight: 400,
+      }, container);
+
+      this.upsert('unit', GText, {
+        x: startX + NetWorkUnitNode.nodeWidth - 70,
+        y: startY + 5,
+        text: 'unit',
+        fontSize: 12,
+        fill: NetWorkUnitNode.linkColor,
+        textBaseline: 'middle',
+        fontWeight: 400,
+      }, container);
+
+      this.upsert('linkIcon-unit-proxy', GImage, {
+        x: startX + NetWorkUnitNode.nodeWidth - 43,
+        y: startY - 1,
+        width: 11,
+        height: 11,
+        src: JumpLink,
+      }, container);
       // Row 2
-      const y2 = startY + NetWorkUnitNode.gridHeight;
-      const latencyStr = cycle_times.some(t => t !== '0') ? cycle_times.join(', ') : '-';
-      this.drawGrid(container, startX, y2, latencyStr, '延迟', '', undefined, true);
-
-      const statusColor = is_healthy ? NetWorkUnitNode.greenColor : '#EA3536';
-      const statusText = is_healthy ? '健康' : '异常';
-      this.drawGrid(container, startX + NetWorkUnitNode.gridWidth, y2, statusText, '状态', statusColor);
+      const quantityText = i18n.global.t('topoManager.topo.node.quantity');
+      
+      if (isZh) {
+        // 中文：分开显示 "数" 和 "量" 以对齐
+        this.upsert('proxy-count-prefix', GText, {
+          x: startX,
+          y: startY + 37.5,
+          text: '数',
+          fontSize: 12,
+          fill: NetWorkUnitNode.normalColor,
+          textBaseline: 'middle',
+        }, container);
+        this.upsert('proxy-count-suffix', GText, {
+          x: startX + 24,
+          y: startY + 37.5,
+          text: '量 :',
+          fontSize: 12,
+          fill: NetWorkUnitNode.normalColor,
+          textBaseline: 'middle',
+        }, container);
+      } else {
+        // 英文：完整显示
+        this.upsert('proxy-count-label', GText, {
+          x: startX,
+          y: startY + 37.5,
+          text: `${quantityText} :`,
+          fontSize: 12,
+          fill: NetWorkUnitNode.normalColor,
+          textBaseline: 'middle',
+        }, container);
+      }
+      
+      this.upsert('proxy-count', GText, {
+        x: valueX,
+        y: startY + 37.5,
+        text: `${running_proxy} / ${total_proxy}`,
+        fontSize: 12,
+        fontWeight: 700,
+        fill: NetWorkUnitNode.titleColor,
+        textBaseline: 'middle',
+      }, container);
+      // Row 3
+      const delayText = i18n.global.t('topoManager.topo.node.delay');
+      
+      if (isZh) {
+        // 中文：分开显示 "延" 和 "迟" 以对齐
+        this.upsert('proxy-cycle-prefix', GText, {
+          x: startX,
+          y: startY + 63.5,
+          text: '延',
+          fontSize: 12,
+          fill: NetWorkUnitNode.normalColor,
+          textBaseline: 'middle',
+        }, container);
+        this.upsert('proxy-cycle-suffix', GText, {
+          x: startX + 24,
+          y: startY + 63.5,
+          text: '迟 :',
+          fontSize: 12,
+          fill: NetWorkUnitNode.normalColor,
+          textBaseline: 'middle',
+        }, container);
+      } else {
+        // 英文：完整显示
+        this.upsert('proxy-cycle-label', GText, {
+          x: startX,
+          y: startY + 63.5,
+          text: `${delayText} :`,
+          fontSize: 12,
+          fill: NetWorkUnitNode.normalColor,
+          textBaseline: 'middle',
+        }, container);
+      }
+      
+      this.upsert('proxy-cycle', GText, {
+        x: valueX,
+        y: startY + 63.5,
+        text: `${cycle_times}`,
+        fontSize: 12,
+        fontWeight: 700,
+        fill: NetWorkUnitNode.titleColor,
+        textBaseline: 'middle',
+      }, container);
+      // Row 4
+      this.upsert('accesspoints-title', GText, {
+        x: startX,
+        y: startY + 89.5,
+        text: `${i18n.global.t('topoManager.topo.node.accessPoints')} :`,
+        fontSize: 12,
+        fill: NetWorkUnitNode.normalColor,
+        textBaseline: 'middle',
+      }, container);
+      this.upsert('accesspoints', GText, {
+        x: valueX,
+        y: startY + 89.5,
+        text: `${accesspoints?.length || 0} ${i18n.global.t('topoManager.topo.node.count')}`,
+        fontSize: 12,
+        fontWeight: 700,
+        fill: NetWorkUnitNode.titleColor,
+        textBaseline: 'middle',
+      }, container);
     }
-
-    // 绘制 Proxy 角标 "P" (在表格左上角)
-    this.drawBadge(container, startX, startY, is_direct ? 'S' : 'P', NetWorkUnitNode.badgeColorP);
   }
 
   private drawAgentBlock(container: Group) {
     const { is_direct, running_agent, total_agent } = this.data;
 
     // 计算 Agent 块位置
-    // Y = 标题 + 上Pad + 表格高 + 间距
-    const tableH = NetWorkUnitNode.getTableHeight(is_direct as boolean);
-    const startY = NetWorkUnitNode.headerHeight + NetWorkUnitNode.paddingY + tableH + NetWorkUnitNode.contentGap;
+    const startY = NetWorkUnitNode.headerHeight + (is_direct ? 67.5 : 127);
     const startX = NetWorkUnitNode.paddingX;
-    const width = NetWorkUnitNode.contentWidth; // 270
-    const height = NetWorkUnitNode.agentBarHeight; // 50
+    const width = NetWorkUnitNode.agentWidth;
+    const height = NetWorkUnitNode.agentBarHeight;
 
     // 背景框
     this.upsert('agent-bg', 'rect', {
@@ -374,59 +423,38 @@ export default class NetWorkUnitNode extends BaseNode {
       y: startY,
       width,
       height,
-      fill: '#FAFBFD',
-      stroke: NetWorkUnitNode.borderColor,
+      fill: NetWorkUnitNode.agentBgColor,
       strokeWidth: 1,
-      radius: 4,
+      radius: NetWorkUnitNode.badgeRadius,
     }, container);
 
-    // 绘制 Agent 角标 "A" (在块的左上角)
-    this.drawBadge(container, startX, startY, 'A', NetWorkUnitNode.badgeColorA);
-
     // 内容文本 (居中)
-    const centerX = startX + width / 2;
     const centerY = startY + height / 2;
-
+    // Label
+    this.upsert('agent-lbl', GText, {
+      x: startX + 12,
+      y: centerY,
+      text: 'Agent  :',
+      fontSize: 12,
+      fill: NetWorkUnitNode.normalColor,
+      textBaseline: 'middle',
+      fontWeight: 400,
+    }, container);
     // 数量
     const prefix = `${running_agent}`;
     const suffix = `${total_agent}`;
-    const textColor = running_agent > 0 ? NetWorkUnitNode.greenColor : '#979ba5';
+    const textColor = running_agent > 0 ? NetWorkUnitNode.greenColor : NetWorkUnitNode.normalColor;
 
-    this.upsert('agent-val-pre', 'text', { x: centerX - 5, y: centerY - 6, text: prefix, fill: textColor, fontSize: 16, fontWeight: 600, textAlign: 'right', textBaseline: 'middle' }, container);
-    this.upsert('agent-val-slash', 'text', { x: centerX, y: centerY - 6, text: '/', fill: '#979ba5', fontSize: 14, textAlign: 'center', textBaseline: 'middle' }, container);
-    this.upsert('agent-val-suf', 'text', { x: centerX + 5, y: centerY - 6, text: suffix, fill: '#979ba5', fontSize: 16, textAlign: 'left', textBaseline: 'middle' }, container);
+    this.upsert('agent-val-pre', GText, { x: startX + 66, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle' }, container);
+    this.upsert('agent-val-slash', GText, { x: startX + 74, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle' }, container);
+    this.upsert('agent-val-suf', GText, { x: startX + 80, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle' }, container);
 
-    // Label
-    this.upsert('agent-lbl', 'text', {
-      x: centerX,
-      y: centerY + 10,
-      text: 'Agent',
-      fontSize: 12,
-      fill: '#979ba5',
-      textAlign: 'center',
-      textBaseline: 'middle',
-    }, container);
-  }
-
-  // 绘制连接线 (表格 -> Agent)
-  private drawConnectLine(container: Group) {
-    const { is_direct } = this.data;
-    const tableH = NetWorkUnitNode.getTableHeight(is_direct as boolean);
-
-    // 线条起点：表格底部中心
-    const startX = NetWorkUnitNode.nodeWidth / 2;
-    const startY = NetWorkUnitNode.headerHeight + NetWorkUnitNode.paddingY + tableH;
-
-    // 线条终点：Agent 顶部
-    const endY = startY + NetWorkUnitNode.contentGap;
-
-    this.upsert('connect-line', 'line', {
-      x1: startX,
-      y1: startY,
-      x2: startX,
-      y2: endY,
-      stroke: '#3182ce',
-      strokeWidth: 1,
+    this.upsert('linkIcon-agent', GImage, {
+      x: startX + 102,
+      y: centerY - 5,
+      width: 11,
+      height: 11,
+      src: JumpLink,
     }, container);
   }
 
@@ -445,16 +473,47 @@ export default class NetWorkUnitNode extends BaseNode {
       className: 'menu-hit-area', // 关键：用于事件识别
     }, container);
 
-    // 三个点
-    [-1, 0, 1].forEach((i) => {
-      this.upsert(`menu-dot-${i}`, 'circle', {
-        cx: iconX + i * 5,
-        cy: iconY,
-        r: 2,
-        fill: '#979ba5',
-        pointerEvents: 'none',
-      }, container);
-    });
+    this.upsert('menu-icon', GImage, {
+      x: iconX,
+      y: iconY - 8.5,
+      src: More,
+      cursor: 'pointer',
+      zIndex: 50,
+    }, container);
+  }
+
+  // 绘制连接点图标
+  private drawConnectionPoint(container: Group) {
+    const { is_direct } = this.data;
+    const iconSize = 18; // 图标大小
+    const totalHeight = is_direct ? 160 : 212;
+    
+    // 计算位置：底部中间
+    const iconX = (NetWorkUnitNode.nodeWidth - iconSize) / 2; // 水平居中
+    const iconY = totalHeight - iconSize / 2; // Y位置
+
+    // 白色背景圆形
+    const bgRadius = iconSize / 2 - 1; // 背景半径比图标大一点
+    const centerX = NetWorkUnitNode.nodeWidth / 2; // 圆心X
+    const centerY = totalHeight - iconSize / 2 + iconSize / 2; // 圆心Y
+
+    this.upsert('connection-point-bg', GCircle, {
+      cx: centerX,
+      cy: centerY,
+      r: bgRadius,
+      fill: '#ffffff',
+      stroke: 'none',
+      strokeWidth: 0,
+    }, container);
+
+    this.upsert('connection-point', GImage, {
+      x: iconX,
+      y: iconY,
+      width: iconSize,
+      height: iconSize,
+      src: ConnectionPoint,
+      cursor: 'pointer',
+    }, container);
   }
 
   // 主渲染函数
@@ -462,17 +521,20 @@ export default class NetWorkUnitNode extends BaseNode {
   public render(attr: Required<BaseNodeStyleProps>, container: Group) {
     super.render(attr, container);
 
-    // 1. 绘制框架
-    this.drawHeader(container);
+    // 1. 绘制两个基础块（按层级顺序）
+    this.drawHeaderBlock(container);      // 标题块
+    this.drawContentBlock(container);     // 内容块（白色圆角矩形）
+    
+    // 2. 绘制标题内容
     this.drawUnitLabel(container);
     this.drawUnitName(container);
     this.drawMenuIcon(container);
 
-    // 2. 绘制内容模块
+    // 3. 绘制内容模块
     this.drawProxyTable(container);
     this.drawAgentBlock(container);
-
-    // 3. 绘制内部连接线
-    this.drawConnectLine(container);
+    
+    // 4. 绘制连接点图标
+    this.drawConnectionPoint(container);
   }
 }

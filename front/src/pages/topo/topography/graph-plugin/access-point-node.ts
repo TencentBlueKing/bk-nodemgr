@@ -1,10 +1,10 @@
 import type { Group, RectStyleProps, TextStyleProps } from '@antv/g';
 // 确保引入了 Rect 和 Text
-import { Rect, Text } from '@antv/g';
+import { Image as GImage, Rect as GRect, Text as GText } from '@antv/g';
 import type { BaseNodeStyleProps } from '@antv/g6';
 import { BaseNode } from '@antv/g6';
 
-import { NodeType } from './config';
+import Downstream from '../../../../../public/images/downstream.svg';
 
 export interface IAccessPointData {
   name: string;
@@ -15,13 +15,11 @@ export interface IAccessPointData {
 }
 
 export default class AccessPointNode extends BaseNode {
-  static nodeWidth = 140;
-  static nodeHeight = 40;
+  static nodeWidth = 120;
+  static nodeHeight = 22;
 
   // 默认外层节点属性
   static defaultNodeStyle: RectStyleProps = {
-    stroke: '#c4c6cc',
-    strokeWidth: 1,
     shadowColor: '#dee0e5',
     shadowBlur: 4,
     shadowOffsetX: 0,
@@ -31,30 +29,20 @@ export default class AccessPointNode extends BaseNode {
     fillOpacity: 1,
     width: AccessPointNode.nodeWidth,
     height: AccessPointNode.nodeHeight,
-    radius: 4,
+    radius: 99,
   };
 
   // 顶部栏样式（与节点高度一致）
   static defaultHeaderStyle: Partial<RectStyleProps> = {
-    fill: '#f0f1f5',
+    fill: '#FFFFFF',
     height: AccessPointNode.nodeHeight,
-    radius: [4, 4, 4, 4], // 全圆角
-    stroke: '#c4c6cc',
-    strokeWidth: 1,
-  };
-
-  // 接入点标识样式（替换AP为“接入点+内网/外网”）
-  static defaultAPLabelStyle: Partial<RectStyleProps> = {
-    width: 40,
-    height: 20,
-    fill: '#8B5CF6', // 原有紫色
-    radius: 3,
+    radius: 99, // 全圆角
   };
 
   // 默认文案样式
   static defaultTextStyle: Partial<TextStyleProps> = {
     fontSize: 12,
-    fill: '#313238',
+    fill: '#4D4F56',
     textBaseline: 'middle',
   };
 
@@ -62,54 +50,66 @@ export default class AccessPointNode extends BaseNode {
     return this.context.model.getNodeLikeDatum(this.id)?.data as unknown as IAccessPointData;
   }
 
+  get estimateTextWidth() {
+    const text = this.data.name;
+    if (!text) return 0;
+    const chineseRegex = /[\u4e00-\u9fa5]/g;
+    const chineseChars = text.match(chineseRegex) || [];
+    const chineseCount = chineseChars.length;
+    const totalLength = text.length;
+    const nonChineseCount = totalLength - chineseCount;
+    return Math.round(chineseCount * 13 + nonChineseCount * 7);
+  };
+
+  get getCalculatedWidth() {
+    const minWidth = 80;
+    const maxWidth = 160;
+    const contentWidth = this.estimateTextWidth;
+
+    // 计算自适应宽度
+    let calculatedWidth = contentWidth;
+    if (contentWidth < minWidth) {
+      calculatedWidth = minWidth;
+    } else if (contentWidth > maxWidth) {
+      calculatedWidth = maxWidth;
+    }
+    return calculatedWidth;
+  }
+
   protected getKeyStyle(attr: Required<BaseNodeStyleProps>) {
     return {
       ...super.getKeyStyle(attr),
       ...AccessPointNode.defaultNodeStyle,
+      width: this.getCalculatedWidth,
     };
   }
 
   protected drawKeyShape(attr: Required<BaseNodeStyleProps>, container: Group) {
-    return this.upsert('key', 'rect', this.getKeyStyle(attr), container);
+    return this.upsert('key', GRect, this.getKeyStyle(attr), container);
   }
 
-  // 绘制顶部栏
-  private drawHeader(container: Group) {
-    const width = AccessPointNode.nodeWidth;
+  // 绘制容器
+  private drawContainer(container: Group) {
     const height = AccessPointNode.nodeHeight;
+    const calculatedWidth = this.getCalculatedWidth;
 
-    return this.upsert('header', 'rect', {
+    return this.upsert('ap-container', GRect, {
       ...AccessPointNode.defaultHeaderStyle,
-      width,
+      width: calculatedWidth,
       height,
       y: 0,
       cursor: 'move',
     }, container);
   }
 
+  // 接入点标识图标
   private drawAPLabel(container: Group) {
     const height = AccessPointNode.nodeHeight;
-    const labelStyle = AccessPointNode.defaultAPLabelStyle;
-    // const { type } = this.data;
 
-    // 标识背景矩形
-    this.upsert('ap-label-bg', 'rect', {
-      ...labelStyle,
+    this.upsert('downstream-ap', GImage, {
       x: 10,
-      y: (height - (labelStyle.height as number)) / 2,
-      cursor: 'move',
-    }, container);
-
-    // “接入点 内网/外网”文字
-    this.upsert('ap-label-text', 'text', {
-      x: 10 + (labelStyle.width as number) / 2,
-      y: height / 2,
-      text: '接入点',
-      fontSize: 10,
-      fill: '#ffffff',
-      fontWeight: 'bold',
-      textAlign: 'center',
-      textBaseline: 'middle',
+      y: (height - 10) / 2, // 10是图标的高度
+      src: Downstream,
       cursor: 'move',
     }, container);
 
@@ -119,20 +119,20 @@ export default class AccessPointNode extends BaseNode {
   // 绘制接入点名称 (修改部分)
   private drawAccessPointName(container: Group) {
     const height = AccessPointNode.nodeHeight;
-    const width = AccessPointNode.nodeWidth;
+    const width = this.getCalculatedWidth;
     const { name } = this.data;
 
     // 计算文字起始位置和可用宽度
-    const textStartX = 60;
-    const paddingRight = 8; // 右侧留一点空隙
+    const textStartX = 26;
+    const paddingRight = 12; // 右侧留一点空隙
     const availableWidth = width - textStartX - paddingRight - 12; // 140 - 60 - 8 = 72px
 
-    return this.upsert('access-point-name', 'text', {
+    return this.upsert('access-point-name', GText, {
       x: textStartX, // 跟在标识后面
       y: height / 2,
       text: name,
       ...AccessPointNode.defaultTextStyle,
-      fontWeight: 600,
+      fontWeight: 400,
       textAlign: 'left', // 确保左对齐
 
       // --- 截断配置 Start ---
@@ -146,7 +146,7 @@ export default class AccessPointNode extends BaseNode {
 
   // 【新增】绘制信息图标 (i)
   private drawInfoIcon(container: Group) {
-    const width = AccessPointNode.nodeWidth;
+    const width = this.getCalculatedWidth;
     const height = AccessPointNode.nodeHeight;
 
     // 放在右侧，垂直居中
@@ -154,7 +154,7 @@ export default class AccessPointNode extends BaseNode {
     const iconY = height / 2;
 
     // 1. 扩大鼠标感应区 (透明矩形)
-    this.upsert('info-hit-area', 'rect', {
+    this.upsert('info-hit-area', GRect, {
       x: width - 25,
       y: 0,
       width: 25,
@@ -170,18 +170,18 @@ export default class AccessPointNode extends BaseNode {
     this.upsert('info-circle', 'circle', {
       cx: iconX,
       cy: iconY,
-      r: 7,
+      r: 6,
       stroke: '#979ba5', // 边框颜色
       lineWidth: 1.5,     // 边框粗细
       fill: '#979ba5',    // 圆圈内部填充白色，盖住下面的线或背景
       pointerEvents: 'none', // 让事件穿透到上面的 hit-area
     }, container);
 
-    this.upsert('info-text', 'text', {
+    this.upsert('info-text', GText, {
       x: iconX,
       y: iconY,
       text: 'i',
-      fontSize: 14,
+      fontSize: 12,
       fill: '#ffff', // 红色
       fontWeight: 'bold',
       fontFamily: 'serif', // 衬线体看起来像图标
@@ -196,7 +196,7 @@ export default class AccessPointNode extends BaseNode {
     super.render(attr, container);
 
     // 绘制顶部栏、标识、名称
-    this.drawHeader(container);
+    this.drawContainer(container);
     this.drawAPLabel(container);
     this.drawAccessPointName(container);
     this.drawInfoIcon(container);

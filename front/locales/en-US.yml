@@ -427,6 +427,17 @@ topoManager:
     expand: Expand areas without units
     collapse: Collapse areas without units
     accessPointName: Access Point Name
+    menu:
+      viewDetail: View Details
+      editUnit: Edit Unit
+      deleteUnit: Delete Unit
+    node:
+      accessPoints: Access Points
+      count: count
+      healthy: Healthy
+      abnormal: Abnormal
+      quantity: Quantity
+      delay: Delay
   record:
     title: Operation Record
     searchPlaceholder:

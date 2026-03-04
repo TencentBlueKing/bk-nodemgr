@@ -211,11 +211,12 @@ import { Table, TableColumn } from '@blueking/table';
 import AccessPointNode from './graph-plugin/access-point-node';
 import { NodeStatus, NodeType, UnitType } from './graph-plugin/config';
 import CustomToolbar from './graph-plugin/custom-toolbar.vue';
+
 import HorizontalHierarchyLayout from './graph-plugin/HorizontalHierarchyLayout';
+import CustomEdge from './graph-plugin/customEdge';
 import NetworkAreaNode from './graph-plugin/net-work-area-node';
 import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 
-import type { TopoGraphNodeCountRespNodeInfo } from '@/@types/topo';
 import useMinLengthRef from '@/composables/use-min-length-ref';
 import { useMainStore } from '@/stores/main';
 import { useTopoStore } from '@/stores/topo';
@@ -339,7 +340,13 @@ function handleInitTopo() {
     autoResize: true,
     data: graphData,
     node: {},
-    edge: {},
+    edge: {
+      type: 'custom-edge',
+      style: {
+        stroke: '#C4C6CC', // 默认线条颜色
+        lineWidth: 1, // 修改：从2改为1，与布局算法保持一致
+      },
+    },
     behaviors: [
       'scroll-canvas', 'drag-canvas', 'zoom-canvas',
       {
@@ -469,28 +476,21 @@ function closeMenu() {
 function handleMenuAction(action: string) {
   const { currentNodeId, nodeData } = menuState;
 
-  // 打印看看，应该就是你发的那串 JSON
-  // console.log('当前操作节点:', currentNodeId);
-  // console.log('节点数据:', nodeData);
-
   switch (action) {
     case 'detail':
-      // console.log(`查看详情: ${nodeData.name}`);
       // 这里的 nodeData.name 就是 "default-test-1"
       break;
 
     case 'edit':
-      // console.log('编辑单元');
+      // 编辑单元
       // 如果你需要 ID，可以从 currentNodeId 解析，或者看看 nodeData 里有没有存 ID
       // 你的数据里好像只有 bk_networkunit_id 在 links 里或者需要从 nodeId 解析
       break;
 
     case 'delete':
       // 你的数据里有 "area": "workArea-0"
-      // console.log(`从区域 ${nodeData.area} 删除单元`);
 
       // 执行删除逻辑...
-      // deleteUnit(currentNodeId);
       break;
   }
 
@@ -616,9 +616,9 @@ const execUpdateArea = (areaId: string) => {
     let height = 0;
 
     if (node.type === NodeType.NET_WORK_UNIT) {
-      width = NetWorkUnitNode.gridWidth * 2;
       const isDirect = node.data.is_direct as boolean;
-      height = NetWorkUnitNode.getNodeTotalHeight(isDirect);
+      width = 240;
+      height = isDirect ? 162 : 214;
     } else if (node.type === NodeType.ACCESS_POINT) {
       width = AccessPointNode.nodeWidth;
       height = AccessPointNode.nodeHeight;
@@ -928,8 +928,8 @@ function filterAreaNodes() {
         name: item.bk_networkarea_name,
         bk_networkarea_id: item.bk_networkarea_id,
         bk_networkarea_name: item.bk_networkarea_name,
-        width: 600,
-        height: 400,
+        width: 260,
+        height: 300,
       },
       type: NodeType.NET_WORK_AREA,
     }));
@@ -1011,6 +1011,7 @@ function handleRegistryCategory() {
   register(ExtensionCategory.NODE, NodeType.NET_WORK_AREA, NetworkAreaNode);
   register(ExtensionCategory.NODE, NodeType.NET_WORK_UNIT, NetWorkUnitNode);
   register(ExtensionCategory.NODE, NodeType.ACCESS_POINT, AccessPointNode);
+  register(ExtensionCategory.EDGE, 'custom-edge', CustomEdge);
   register(ExtensionCategory.LAYOUT, 'horizontal-hierarchy-layout', HorizontalHierarchyLayout);
 }
 

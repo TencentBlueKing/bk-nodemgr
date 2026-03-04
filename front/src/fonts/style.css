@@ -413,3 +413,12 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-proxy-jiedian:before {
 	content: "\e18f";
 }
+.nc-vector:before {
+	content: "\e1b6";
+}
+.nc-downstream:before {
+	content: "\e1b7";
+}
+.nc-area:before {
+	content: "\e1b8";
+}
