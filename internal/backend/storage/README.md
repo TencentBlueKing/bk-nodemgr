@@ -51,7 +51,7 @@ return nil
 }
 
 if err := s.daoHost.UpsertMany(nCtx, hosts); err != nil {
-return fmt.Errorf("failed to upsert hosts: %v", err)
+return fmt.Errorf("failed to upsert hosts: %w", err)
 }
 
 return nil

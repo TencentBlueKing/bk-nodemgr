@@ -202,7 +202,7 @@ func (s *Storage) CheckHealthz() error {
 	defer cancel()
 
 	if err := s.Database.Client().Ping(ctx, nil); err != nil {
-		return fmt.Errorf("failed to ping mongo client: %v", err)
+		return fmt.Errorf("failed to ping mongo client: %w", err)
 	}
 
 	if err := s.checkFunc(); err != nil {
