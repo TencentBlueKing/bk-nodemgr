@@ -373,7 +373,7 @@ func generateRSAKeyPair(bits RSAKeySize) (*rsa.PrivateKey, error) {
 }
 
 // DecryptRSABase64Ciphertext decrypts RSA ciphertext encoded with standard base64.
-// Expected format: base64(RSAVersion + raw RSA ciphertext).
+// Expected format: base64(RSAVersion + raw RSA ciphertext) for v1, or base64(RSAVersionHybrid + wrappedKey + nonce + gcmCiphertext) for v2.
 func DecryptRSABase64Ciphertext(cry Crypter, base64Ciphertext string) (string, error) {
 	if cry == nil {
 		return "", errors.New("nil crypter")
