@@ -95,11 +95,8 @@ func (s *Storage) ListGlobalSettings(nCtx contextx.IContext, page types.Page, co
 
 		return err
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	return results, num, nil
+	return results, num, err
 }
 
 // CountGlobalSettings counts global settings by condition.
@@ -112,11 +109,8 @@ func (s *Storage) CountGlobalSettings(nCtx contextx.IContext, condition *types.G
 
 		return err
 	})
-	if err != nil {
-		return 0, err
-	}
 
-	return num, nil
+	return num, err
 }
 
 // ExistGlobalSettings checks if global settings exist by condition.
@@ -129,11 +123,8 @@ func (s *Storage) ExistGlobalSettings(nCtx contextx.IContext, key string) (bool,
 
 		return err
 	})
-	if err != nil {
-		return false, err
-	}
 
-	return exist, nil
+	return exist, err
 }
 
 // GetGlobalSetting gets a global settings by setting name.
