@@ -141,7 +141,6 @@ import { useI18n } from 'vue-i18n';
 import { Table, TableColumn } from '@blueking/table';
 
 import ProxyPreview from './preview.vue';
-import SelectItemGroup from './components/select-item-group.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';

@@ -1216,13 +1216,8 @@ const getNetworkUnitsByAreaId = (bkNetworkAreaId: number) => {
   return networkUnitGroupMap.value[bkNetworkAreaId] || [];
 };
 
-// 获取所有可用的网络区域ID列表
-const getNetworkAreaIds = () => {
-  return Object.keys(networkUnitGroupMap.value).map(id => Number(id));
-};
-
 // 处理管控单元变更，获取对应的名称
-const handleNetworkUnitChange = (val: string, row: any, rowIndex: number) => {
+const handleNetworkUnitChange = (val: string, row: any, _rowIndex: number) => {
   if (!val) return;
 
   // 在所有网络单元中查找对应的名称
