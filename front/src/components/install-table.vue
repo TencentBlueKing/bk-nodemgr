@@ -1005,7 +1005,8 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
     'login_mode',
     'export_ip',
   ];
-  if (props.isReinstall) requiredFields.push('bk_biz_id', 'bk_networkunit_id');
+  requiredFields.push('bk_networkunit_id');
+  if (props.isReinstall) requiredFields.push('bk_biz_id');
 
   if (requiredFields.includes(field) && !value && value !== 0) {
     setError(rowIndex, field,  t('validate.required'));
@@ -1063,10 +1064,7 @@ const tableValidate = async () => {
       setError(i, 'bk_biz_id',  t('validate.required'));
       rowValid = false;
     }
-    if (
-      props.isReinstall
-      && !row.bk_networkunit_id
-    ) {
+    if (!row.bk_networkunit_id) {
       setError(i, 'bk_networkunit_id', t('validate.required'));
       rowValid = false;
     }
