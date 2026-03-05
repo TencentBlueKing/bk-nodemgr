@@ -165,6 +165,8 @@ const { t } = useI18n();
 const settings = reactive({
   fields: [
     { field: 'bk_biz_id', title: t('installProxy.business') },
+    { field: 'bk_networkarea_name', title: t('platform.nodeMan.bk_cloud_name') },
+    { field: 'bk_networkunit_id', title: t('platform.nodeMan.bk_cloud_unit') },
     { field: 'bk_host_innerip', title: t('installProxy.innerIPv4') },
     { field: 'bk_host_innerip_v6', title: t('installProxy.innerIPv6') },
     { field: 'os_type', title: t('installProxy.os') },
@@ -182,6 +184,8 @@ const settings = reactive({
   ],
   checked: [
     'bk_biz_id',
+    'bk_networkarea_name',
+    'bk_networkunit_id',
     'bk_host_innerip',
     'bk_host_innerip_v6',
     'os_type',
@@ -191,7 +195,7 @@ const settings = reactive({
     'login_mode',
     'credit',
   ],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit', 'bk_networkunit_id'],
   size: 'medium',
 });
 const initData = {
@@ -200,7 +204,10 @@ const initData = {
   bk_host_id: '',
   bk_host_innerip: '',
   bk_host_innerip_v6: '',
+  bk_networkarea_id: '',
+  bk_networkarea_name: '',
   bk_networkunit_id: '',
+  bk_networkunit_name: '',
   export_ip: '',
   advertise_ip: '',
   login_ip: '',
@@ -393,11 +400,13 @@ const handleConfirm = async () => {
           data_tunnel,
           ...rest
         } = item;
+        const bkNetworkUnitId = Number(rest.bk_networkunit_id);
         return {
           ...rest,
+          bk_networkunit_id: bkNetworkUnitId,
           os_type: 'linux',
           login_port: Number(rest.login_port),
-          proxy_install_origin_unit_id: getinstallOriginUnitId(rest.bk_networkunit_id),
+          proxy_install_origin_unit_id: getinstallOriginUnitId(bkNetworkUnitId),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
       }),
@@ -447,6 +456,11 @@ const assign = (data1: any, data2: any, data3?: any) => {
   Object.keys(data1).forEach((key) => {
     data1[key] = data2[key] ?? data3?.[key] ?? data1[key];
   });
+};
+
+const normalizeNetworkUnitId = (id: unknown) => {
+  if (id === '' || id === null || id === undefined) return '';
+  return Number(id) === -1 ? '' : String(id);
 };
 
 const handleChange = (value: string) => {
@@ -522,6 +536,7 @@ watch(() => isShow.value, async () => {
         ...host.state,
         ...host.info,
         ...host,
+        bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
         bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
       }));
@@ -531,6 +546,7 @@ watch(() => isShow.value, async () => {
       form.info = props.data.map((item: Host) => {
         const data = cloneDeep(initData);
         assign(data, item, item.info);
+        data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
         return data;
       });
     }

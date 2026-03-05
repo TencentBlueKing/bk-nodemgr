@@ -82,6 +82,10 @@
           :min-width="150"
           :visible="settings.checked.includes('bk_networkunit_id')"
         >
+          <template #header>
+            <span class="mr-[5px]">{{ $t('components.installTable.networkUnit') }}</span>
+            <span class="mx-[3px] text-[#FF5656]">*</span>
+          </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <Select
@@ -105,6 +109,13 @@
                   :key="option.bk_networkunit_id"
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
+                  :disabled="option.is_direct"
+                  v-bk-tooltips="{
+                    content: $t('topoManager.installProxy.form.tip'),
+                    disabled: !option.is_direct,
+                    boundary: 'parent',
+                    placement: 'left',
+                  }"
                 >
                   [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
                 </Select.Option>
@@ -992,7 +1003,7 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
     'login_mode',
     'export_ip',
   ];
-  if (props.isReinstall) requiredFields.push('bk_biz_id');
+  if (props.isReinstall) requiredFields.push('bk_biz_id', 'bk_networkunit_id');
 
   if (requiredFields.includes(field) && !value && value !== 0) {
     setError(rowIndex, field,  t('validate.required'));
@@ -1048,6 +1059,13 @@ const tableValidate = async () => {
       && !row.bk_biz_id
     ) {
       setError(i, 'bk_biz_id',  t('validate.required'));
+      rowValid = false;
+    }
+    if (
+      props.isReinstall
+      && !row.bk_networkunit_id
+    ) {
+      setError(i, 'bk_networkunit_id', t('validate.required'));
       rowValid = false;
     }
     // 2.2 IP

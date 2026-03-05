@@ -222,9 +222,14 @@ const tableSetting = reactive({
     'login_mode',
     'credit',
   ],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit', 'bk_networkunit_id'],
   size: 'medium',
 });
+
+const normalizeNetworkUnitId = (id: unknown) => {
+  if (id === '' || id === null || id === undefined) return '';
+  return Number(id) === -1 ? '' : String(id);
+};
 
 const loading = ref(false);
 // 显示侧边栏安装策略
@@ -402,7 +407,7 @@ onMounted(async () => {
       ...host.state,
       ...host.info,
       ...host,
-      bk_networkunit_id: String(host.info.bk_networkunit_id),
+      bk_networkunit_id: normalizeNetworkUnitId(host.info.bk_networkunit_id),
       bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
     }));
@@ -412,7 +417,7 @@ onMounted(async () => {
     formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
       target_version: state?.node_version,
       ...rest,
-      bk_networkunit_id: String(info.bk_networkunit_id),
+      bk_networkunit_id: normalizeNetworkUnitId(info.bk_networkunit_id),
       bk_host_innerip: info.bk_host_innerip_list?.[0],
       bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
     }));
