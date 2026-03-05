@@ -103,7 +103,7 @@
           @click="handleConfirm"
         >
           <span>
-            {{ $t("action.reinstallProxy") }}
+            {{ $t("topoManager.installProxy.button.install") }}
           </span>
           <span
             class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
@@ -116,6 +116,11 @@
         </Button>
       </div>
     </template>
+    <proxy-preview
+      v-model:is-show="isShowPreview"
+      :data="previewData"
+      @close="isShow = false"
+    ></proxy-preview>
     <choose-version-dialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
@@ -126,19 +131,18 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Cascader, Form, InfoBox, Input, Loading, Message, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Form, InfoBox, Input, Loading, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import ProxyPreview from './preview.vue';
 import SelectItemGroup from './components/select-item-group.vue';
 
-import { NodeProxyService } from '@/api/modules/node_proxy';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import { encryptionTool } from '@/common/crypto';
@@ -160,7 +164,6 @@ const props = defineProps({
     default: () => ({}),
   },
 });
-const router = useRouter();
 const { t } = useI18n();
 const settings = reactive({
   fields: [
@@ -345,6 +348,8 @@ const systemValidate = async () => {
   const result = await Promise.all(validate);
   return result.every(item => item);
 };
+const isShowPreview = ref(false);
+const previewData = ref<any>({});
 const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
 const handleConfirm = async () => {
   const result = await Promise.all([
@@ -390,8 +395,7 @@ const handleConfirm = async () => {
           version: item.version,
         }));
     }
-    const params = {
-      host: form.info.map((item: any) => {
+    const hosts = form.info.map((item: any) => {
         const {
           bk_host_id,
           dedicated_installer,
@@ -409,28 +413,13 @@ const handleConfirm = async () => {
           proxy_install_origin_unit_id: getinstallOriginUnitId(bkNetworkUnitId),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
-      }),
+    });
+    previewData.value = {
+      hosts,
       target_version: form.target_version,
       is_manual: form.method === 'manual',
     };
-    const res = await NodeProxyService.NodeProxyInstall(params).catch((err) => {
-      console.log(err);
-    });
-    if (!res) return;
-    Message({
-      theme: 'success',
-      message: t('installProxy.reinstallInitiated'),
-    });
-    isShow.value = false;
-    if (res.workflow_id) {
-      router.push({
-        name: 'taskDetail',
-        params: { taskId: res.workflow_id },
-        query: {
-          active: 'node',
-        },
-      });
-    }
+    isShowPreview.value = true;
   } else {
     scrollToFirstErrorByClassNames();
   }
