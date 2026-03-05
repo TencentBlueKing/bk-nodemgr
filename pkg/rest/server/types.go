@@ -54,12 +54,34 @@ type Detail struct {
 type Permission struct {
 	System     string   `json:"system"`
 	SystemName string   `json:"system_name"`
+	ApplyURL   string   `json:"apply_url,omitempty"`
 	Actions    []Action `json:"actions"`
 }
 
-// Action defines the action struct.
+// Action defines the action struct for IAM permission apply response.
 type Action struct {
-	// TODO: 支持 IAM 权限
+	// ID is the IAM action ID.
+	ID string `json:"id"`
+	// Name is the display name of the action.
+	Name string `json:"name"`
+	// RelatedResourceTypes lists the resource types this action operates on.
+	RelatedResourceTypes []RelatedResourceType `json:"related_resource_types"`
+}
+
+// RelatedResourceType describes a resource type associated with an IAM action.
+type RelatedResourceType struct {
+	// SystemID is the IAM system that owns this resource type.
+	SystemID string `json:"system_id"`
+	// Type is the resource type identifier.
+	Type string `json:"type"`
+	// TypeName is the display name of the resource type.
+	TypeName string `json:"type_name"`
+}
+
+// PermissionProvider is implemented by errors that carry IAM permission-apply data.
+type PermissionProvider interface {
+	// PermissionData returns the Permission payload to embed in the response.
+	PermissionData() Permission
 }
 
 // FileResponse file response.

@@ -12,6 +12,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -194,18 +195,30 @@ func (r *Request) AbortWithJSONError(code resterrf.Code, errs []error) {
 }
 
 // AbortWithJSONPermDenied provides handler process permission denied response.
-func (r *Request) AbortWithJSONPermDenied(code resterrf.Code, _ []error) {
-	result := Response{
-		Code: code,
-		Permission: &Permission{
-			System:     system.Code,
-			SystemName: system.Name,
-			Actions:    nil,
-		},
-		RequestID: r.data.requestID,
+func (r *Request) AbortWithJSONPermDenied(code resterrf.Code, unwrapErrs []error) {
+	perm := Permission{
+		System:     system.Code,
+		SystemName: system.Name,
 	}
 
-	// TODO: 参考 errf.ErrUnwrap 的写法实现 permission 的解析。
+	for _, e := range unwrapErrs {
+		var provider PermissionProvider
+		if errors.As(e, &provider) {
+			data := provider.PermissionData()
+			perm.System = data.System
+			perm.SystemName = data.SystemName
+			perm.ApplyURL = data.ApplyURL
+			perm.Actions = data.Actions
+
+			break
+		}
+	}
+
+	result := Response{
+		Code:       code,
+		Permission: &perm,
+		RequestID:  r.data.requestID,
+	}
 
 	r.gCtx.AbortWithStatusJSON(code.HttpStatusCode(), result)
 }
