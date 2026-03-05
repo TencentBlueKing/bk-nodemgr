@@ -25,7 +25,7 @@ adminServer:
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
 
   # defines the authentication mode, currently only rest-server and none is supported.
-  authIdentity: rest-server
+  authIdentity: __BK_NODEMGR_BACKEND_ADMIN_AUTH_IDENTITY__
   traceServiceName: "backend-server-admin"
   traceSampleRate: 0
 
@@ -46,7 +46,7 @@ basicServer:
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
 
   # defines the authentication mode, currently only api-gateway and none is supported.
-  authIdentity: api-gateway
+  authIdentity: __BK_NODEMGR_BACKEND_BASIC_AUTH_IDENTITY__
   traceServiceName: "backend-server-basic"
   traceSampleRate: 0
 

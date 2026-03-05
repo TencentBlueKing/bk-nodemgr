@@ -36,7 +36,7 @@ adminServer:
   port: __BK_NODEMGR_APPLICATION_ADMIN_PORT__
 
   # defines the authentication mode, currently only rest-server and none is supported.
-  authIdentity: rest-server
+  authIdentity: __BK_NODEMGR_APPLICATION_ADMIN_AUTH_IDENTITY__
   traceServiceName: "application-server-admin"
   traceSampleRate: 0
 

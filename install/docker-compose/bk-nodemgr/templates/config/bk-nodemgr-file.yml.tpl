@@ -27,7 +27,7 @@ adminServer:
   traceSampleRate: 0
 
   # defines the authentication mode, currently only rest-server and none is supported.
-  authIdentity: rest-server
+  authIdentity: __BK_NODEMGR_FILE_ADMIN_AUTH_IDENTITY__
 
   # defines the JWT server configuration for authentication
   jwtServerConfig:
@@ -52,7 +52,7 @@ basicServer:
   traceSampleRate: 0
 
   # defines the authentication mode, currently only rest-server and none is supported.
-  authIdentity: rest-server
+  authIdentity: __BK_NODEMGR_FILE_BASIC_AUTH_IDENTITY__
 
   # defines the JWT server configuration for authentication
   jwtServerConfig:
