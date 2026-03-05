@@ -18,30 +18,40 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/iam-go-sdk/expression"
 	"github.com/mitchellh/mapstructure"
 )
 
-// IHandler the Handler of IAM v3.
+// IHandler is the handler interface for IAM v3 permission checks and token management.
 type IHandler interface {
-	// Permission checks
+	// IsAllowed checks if a user is allowed to perform an action on resources.
+	IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (bool, error)
 
-	IsAllowed(ctx contextx.IContext, request Request) (bool, error)
-	IsAllowedWithCache(ctx contextx.IContext, request Request, ttl time.Duration) (bool, error)
-	BatchIsAllowed(ctx contextx.IContext, request Request, resourcesList []Resources) (map[string]bool, error)
+	// IsAllowedWithCache checks if a user is allowed to perform an action on resources with caching.
+	IsAllowedWithCache(ctx contextx.IContext, req types.IAMCheckRequest, ttl time.Duration) (bool, error)
 
-	// Multi-action permission checks
-	ResourceMultiActionsAllowed(ctx contextx.IContext, request MultiActionRequest) (map[string]bool, error)
-	BatchResourceMultiActionsAllowed(ctx contextx.IContext, request MultiActionRequest,
-		resourcesList []Resources) (map[string]map[string]bool, error)
+	// BatchIsAllowed checks if a user is allowed to perform an action on multiple resource sets.
+	BatchIsAllowed(ctx contextx.IContext, req types.IAMCheckRequest, resourcesList [][]types.IAMResource) (map[string]bool, error)
 
-	// Token and authentication
+	// ResourceMultiActionsAllowed checks if a user is allowed to perform multiple actions on resources.
+	ResourceMultiActionsAllowed(ctx contextx.IContext, req types.IAMMultiActionCheckRequest) (map[string]bool, error)
+
+	// BatchResourceMultiActionsAllowed checks if a user is allowed to perform multiple actions on multiple resource sets.
+	BatchResourceMultiActionsAllowed(
+		ctx contextx.IContext,
+		req types.IAMMultiActionCheckRequest,
+		resourcesList [][]types.IAMResource,
+	) (map[string]map[string]bool, error)
+
+	// GetToken retrieves the IAM token for the current context.
 	GetToken(ctx contextx.IContext) (string, error)
+
+	// IsBasicAuthAllowed checks if basic authentication credentials are valid.
 	IsBasicAuthAllowed(ctx contextx.IContext, username, password string) error
 
-	// Apply URL
-	GetApplyURL(ctx contextx.IContext, application Application) (string, error)
-	GenPermissionApplyData(a ApplicationActionListForApply) (map[string]interface{}, error)
+	// GetApplyURL generates a permission apply URL for the given request.
+	GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error)
 }
 
 // Handler the Handler of IAM v3.
@@ -68,8 +78,35 @@ func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 	return h, nil
 }
 
+func toWireResources(resources []types.IAMResource) Resources {
+	wireResources := make(Resources, 0, len(resources))
+	for _, resource := range resources {
+		wireResources = append(wireResources, ResourceNode{
+			System:    resource.SystemID,
+			Type:      resource.Type,
+			ID:        resource.ID,
+			Attribute: resource.Attributes,
+		})
+	}
+
+	return wireResources
+}
+
+func toWireRequest(req types.IAMCheckRequest) Request {
+	return Request{
+		System: req.System,
+		Subject: Subject{
+			Type: "user",
+			ID:   req.Username,
+		},
+		Action:    Action{ID: req.ActionID},
+		Resources: toWireResources(req.Resources),
+	}
+}
+
 // IsAllowed checks if the user has permission for the given action.
-func (h *Handler) IsAllowed(ctx contextx.IContext, request Request) (bool, error) {
+func (h *Handler) IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (bool, error) {
+	request := toWireRequest(req)
 	if err := request.Validate(); err != nil {
 		return false, err
 	}
@@ -106,12 +143,13 @@ func (h *Handler) IsAllowed(ctx contextx.IContext, request Request) (bool, error
 }
 
 // IsAllowedWithCache checks permission with caching support.
-func (h *Handler) IsAllowedWithCache(ctx contextx.IContext, request Request, ttl time.Duration) (bool, error) {
+func (h *Handler) IsAllowedWithCache(ctx contextx.IContext, req types.IAMCheckRequest, ttl time.Duration) (bool, error) {
 	// Generate cache key
-	cacheKey, err := request.CacheKey()
+	wireReq := toWireRequest(req)
+	cacheKey, err := wireReq.CacheKey()
 	if err != nil {
 		// If cache key generation fails, fall back to non-cached check
-		return h.IsAllowed(ctx, request)
+		return h.IsAllowed(ctx, req)
 	}
 
 	// Check cache first
@@ -120,7 +158,7 @@ func (h *Handler) IsAllowedWithCache(ctx contextx.IContext, request Request, ttl
 	}
 
 	// Not in cache, perform actual check
-	result, err := h.IsAllowed(ctx, request)
+	result, err := h.IsAllowed(ctx, req)
 	if err != nil {
 		return false, err
 	}
@@ -132,8 +170,10 @@ func (h *Handler) IsAllowedWithCache(ctx contextx.IContext, request Request, ttl
 }
 
 // BatchIsAllowed checks permissions for multiple resource sets.
-func (h *Handler) BatchIsAllowed(ctx contextx.IContext, request Request,
-	resourcesList []Resources) (map[string]bool, error) {
+func (h *Handler) BatchIsAllowed(ctx contextx.IContext, req types.IAMCheckRequest,
+	resourcesList [][]types.IAMResource) (map[string]bool, error) {
+
+	request := toWireRequest(req)
 
 	if err := request.Validate(); err != nil {
 		return nil, err
@@ -158,7 +198,8 @@ func (h *Handler) BatchIsAllowed(ctx contextx.IContext, request Request,
 	// If no policy data, deny all
 	if policyData == nil {
 		for _, resources := range resourcesList {
-			key := buildResourceID(resources)
+			wireResources := toWireResources(resources)
+			key := buildResourceID(wireResources)
 			results[key] = false
 		}
 
@@ -173,8 +214,9 @@ func (h *Handler) BatchIsAllowed(ctx contextx.IContext, request Request,
 
 	// Evaluate for each resource set
 	for _, resources := range resourcesList {
-		objSet := NewObjectSet(resources)
-		key := buildResourceID(resources)
+		wireResources := toWireResources(resources)
+		objSet := NewObjectSet(wireResources)
+		key := buildResourceID(wireResources)
 		results[key] = expr.Eval(objSet)
 	}
 
@@ -183,7 +225,24 @@ func (h *Handler) BatchIsAllowed(ctx contextx.IContext, request Request,
 
 // ResourceMultiActionsAllowed checks multiple actions for a single resource.
 func (h *Handler) ResourceMultiActionsAllowed(ctx contextx.IContext,
-	request MultiActionRequest) (map[string]bool, error) {
+	req types.IAMMultiActionCheckRequest) (map[string]bool, error) {
+
+	request := MultiActionRequest{
+		System: req.System,
+		Subject: Subject{
+			Type: "user",
+			ID:   req.Username,
+		},
+		Actions: func() []Action {
+			actions := make([]Action, 0, len(req.ActionIDs))
+			for _, id := range req.ActionIDs {
+				actions = append(actions, Action{ID: id})
+			}
+
+			return actions
+		}(),
+		Resources: toWireResources(req.Resources),
+	}
 
 	if err := request.Validate(); err != nil {
 		return nil, err
@@ -224,7 +283,23 @@ func (h *Handler) ResourceMultiActionsAllowed(ctx contextx.IContext,
 
 // BatchResourceMultiActionsAllowed checks multiple actions for multiple resources.
 func (h *Handler) BatchResourceMultiActionsAllowed(ctx contextx.IContext,
-	request MultiActionRequest, resourcesList []Resources) (map[string]map[string]bool, error) {
+	req types.IAMMultiActionCheckRequest, resourcesList [][]types.IAMResource) (map[string]map[string]bool, error) {
+
+	request := MultiActionRequest{
+		System: req.System,
+		Subject: Subject{
+			Type: "user",
+			ID:   req.Username,
+		},
+		Actions: func() []Action {
+			actions := make([]Action, 0, len(req.ActionIDs))
+			for _, id := range req.ActionIDs {
+				actions = append(actions, Action{ID: id})
+			}
+
+			return actions
+		}(),
+	}
 
 	if err := request.Validate(); err != nil {
 		return nil, err
@@ -254,9 +329,10 @@ func (h *Handler) BatchResourceMultiActionsAllowed(ctx contextx.IContext,
 
 	// Evaluate for each resource set
 	for _, resources := range resourcesList {
-		resourceKey := buildResourceID(resources)
+		wireResources := toWireResources(resources)
+		resourceKey := buildResourceID(wireResources)
 		actionResults := make(map[string]bool, len(request.Actions))
-		objSet := NewObjectSet(resources)
+		objSet := NewObjectSet(wireResources)
 
 		for _, actionPolicy := range actionPolicies {
 			actionResults[actionPolicy.Action.ID] = actionPolicy.Condition.Eval(objSet)
@@ -274,7 +350,7 @@ func (h *Handler) GetToken(ctx contextx.IContext) (string, error) {
 }
 
 // IsBasicAuthAllowed validates basic auth credentials against IAM system token.
-func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password string) error {
+func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, _ string, password string) error {
 	// Get system token
 	token, err := h.GetToken(ctx)
 	if err != nil {
@@ -290,7 +366,28 @@ func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password s
 }
 
 // GetApplyURL retrieves the permission apply URL from IAM.
-func (h *Handler) GetApplyURL(ctx contextx.IContext, application Application) (string, error) {
+func (h *Handler) GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error) {
+	actions := make([]ApplicationAction, 0, len(req.Actions))
+	for _, action := range req.Actions {
+		relatedResourceTypes := make([]ApplicationRelatedResourceType, 0, len(action.RelatedResourceTypes))
+		for _, related := range action.RelatedResourceTypes {
+			relatedResourceTypes = append(relatedResourceTypes, ApplicationRelatedResourceType{
+				SystemID:  related.SystemID,
+				Type:      related.Type,
+				Instances: nil,
+			})
+		}
+
+		actions = append(actions, ApplicationAction{
+			ID:                   action.ID,
+			RelatedResourceTypes: relatedResourceTypes,
+		})
+	}
+
+	application := Application{
+		SystemID: req.SystemID,
+		Actions:  actions,
+	}
 	if err := application.Validate(); err != nil {
 		return "", err
 	}

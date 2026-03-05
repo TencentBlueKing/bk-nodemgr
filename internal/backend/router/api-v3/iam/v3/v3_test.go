@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,35 +33,37 @@ type mockIAMHandler struct {
 	allowedPassword string
 }
 
+var _ iamv3.IHandler = (*mockIAMHandler)(nil)
+
 func (m *mockIAMHandler) IsBasicAuthAllowed(_ contextx.IContext, username, password string) error {
 	if username == m.allowedUsername && password == m.allowedPassword {
 		return nil
 	}
 
-	return fmt.Errorf("invalid credentials")
+	return fmt.Errorf("invalid credentials: got %s/%s, expected %s/%s", username, password, m.allowedUsername, m.allowedPassword)
 }
 
 // Implement other IHandler methods as no-ops for the mock.
-func (m *mockIAMHandler) IsAllowed(_ contextx.IContext, _ iamv3.Request) (bool, error) {
+func (m *mockIAMHandler) IsAllowed(_ contextx.IContext, _ types.IAMCheckRequest) (bool, error) {
 	return false, nil
 }
 
-func (m *mockIAMHandler) IsAllowedWithCache(_ contextx.IContext, _ iamv3.Request, _ time.Duration) (bool, error) {
+func (m *mockIAMHandler) IsAllowedWithCache(_ contextx.IContext, _ types.IAMCheckRequest, _ time.Duration) (bool, error) {
 	return false, nil
 }
 
-func (m *mockIAMHandler) BatchIsAllowed(_ contextx.IContext, _ iamv3.Request,
-	_ []iamv3.Resources) (map[string]bool, error) {
+func (m *mockIAMHandler) BatchIsAllowed(_ contextx.IContext, _ types.IAMCheckRequest,
+	_ [][]types.IAMResource) (map[string]bool, error) {
 	return nil, nil
 }
 
 func (m *mockIAMHandler) ResourceMultiActionsAllowed(_ contextx.IContext,
-	_ iamv3.MultiActionRequest) (map[string]bool, error) {
+	_ types.IAMMultiActionCheckRequest) (map[string]bool, error) {
 	return nil, nil
 }
 
 func (m *mockIAMHandler) BatchResourceMultiActionsAllowed(_ contextx.IContext,
-	_ iamv3.MultiActionRequest, _ []iamv3.Resources) (map[string]map[string]bool, error) {
+	_ types.IAMMultiActionCheckRequest, _ [][]types.IAMResource) (map[string]map[string]bool, error) {
 	return nil, nil
 }
 
@@ -68,12 +71,8 @@ func (m *mockIAMHandler) GetToken(_ contextx.IContext) (string, error) {
 	return m.allowedPassword, nil
 }
 
-func (m *mockIAMHandler) GetApplyURL(_ contextx.IContext, _ iamv3.Application) (string, error) {
+func (m *mockIAMHandler) GetApplyURL(_ contextx.IContext, _ types.IAMApplyRequest) (string, error) {
 	return "", nil
-}
-
-func (m *mockIAMHandler) GenPermissionApplyData(_ iamv3.ApplicationActionListForApply) (map[string]interface{}, error) {
-	return nil, nil
 }
 
 func setupTestRouter(mockHandler *mockIAMHandler) *gin.Engine {
@@ -182,7 +181,7 @@ func TestBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 
 	// Should not be 401 (auth succeeded, but request body is invalid)
 	if w.Code == http.StatusUnauthorized {
-		t.Errorf("Expected authentication to succeed with valid credentials, got 401")
+		t.Errorf("Expected authentication to succeed with valid credentials, got 401. Body: %s", w.Body.String())
 	}
 }
 

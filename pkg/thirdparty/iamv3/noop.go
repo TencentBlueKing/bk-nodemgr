@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // NoOpHandler implements IHandler with no-op behavior.
@@ -34,29 +35,28 @@ func NewNoOpHandler() IHandler {
 }
 
 // IsAllowed always returns true for no-op handler.
-func (h *NoOpHandler) IsAllowed(_ contextx.IContext, _ Request) (bool, error) {
+func (h *NoOpHandler) IsAllowed(_ contextx.IContext, _ types.IAMCheckRequest) (bool, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping IsAllowed")
 	return true, nil
 }
 
 // IsAllowedWithCache always returns true for no-op handler.
-func (h *NoOpHandler) IsAllowedWithCache(_ contextx.IContext, _ Request, _ time.Duration) (bool, error) {
+func (h *NoOpHandler) IsAllowedWithCache(_ contextx.IContext, _ types.IAMCheckRequest, _ time.Duration) (bool, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping IsAllowedWithCache")
 	return true, nil
 }
 
 // BatchIsAllowed returns all true for no-op handler.
-func (h *NoOpHandler) BatchIsAllowed(_ contextx.IContext, _ Request,
-	resourcesList []Resources,
+func (h *NoOpHandler) BatchIsAllowed(_ contextx.IContext, _ types.IAMCheckRequest,
+	resourcesList [][]types.IAMResource,
 ) (map[string]bool, error) {
 
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping BatchIsAllowed")
 	results := make(map[string]bool, len(resourcesList))
 
 	for _, resources := range resourcesList {
-		if len(resources) > 0 {
-			results[resources[0].ID] = true
-		}
+		key := buildResourceID(toWireResources(resources))
+		results[key] = true
 	}
 
 	return results, nil
@@ -64,14 +64,14 @@ func (h *NoOpHandler) BatchIsAllowed(_ contextx.IContext, _ Request,
 
 // ResourceMultiActionsAllowed returns all true for no-op handler.
 func (h *NoOpHandler) ResourceMultiActionsAllowed(
-	_ contextx.IContext, request MultiActionRequest,
+	_ contextx.IContext, request types.IAMMultiActionCheckRequest,
 ) (map[string]bool, error) {
 
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping ResourceMultiActionsAllowed")
-	results := make(map[string]bool, len(request.Actions))
+	results := make(map[string]bool, len(request.ActionIDs))
 
-	for _, action := range request.Actions {
-		results[action.ID] = true
+	for _, actionID := range request.ActionIDs {
+		results[actionID] = true
 	}
 
 	return results, nil
@@ -79,19 +79,16 @@ func (h *NoOpHandler) ResourceMultiActionsAllowed(
 
 // BatchResourceMultiActionsAllowed returns all true for no-op handler.
 func (h *NoOpHandler) BatchResourceMultiActionsAllowed(
-	_ contextx.IContext, request MultiActionRequest, resourcesList []Resources,
+	_ contextx.IContext, request types.IAMMultiActionCheckRequest, resourcesList [][]types.IAMResource,
 ) (map[string]map[string]bool, error) {
 
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping BatchResourceMultiActionsAllowed")
 	results := make(map[string]map[string]bool, len(resourcesList))
 	for _, resources := range resourcesList {
-		resourceKey := ""
-		if len(resources) > 0 {
-			resourceKey = resources[0].ID
-		}
-		actionResults := make(map[string]bool, len(request.Actions))
-		for _, action := range request.Actions {
-			actionResults[action.ID] = true
+		resourceKey := buildResourceID(toWireResources(resources))
+		actionResults := make(map[string]bool, len(request.ActionIDs))
+		for _, actionID := range request.ActionIDs {
+			actionResults[actionID] = true
 		}
 		results[resourceKey] = actionResults
 	}
@@ -112,13 +109,7 @@ func (h *NoOpHandler) IsBasicAuthAllowed(_ contextx.IContext, _, _ string) error
 }
 
 // GetApplyURL returns empty string for no-op handler.
-func (h *NoOpHandler) GetApplyURL(_ contextx.IContext, _ Application) (string, error) {
+func (h *NoOpHandler) GetApplyURL(_ contextx.IContext, _ types.IAMApplyRequest) (string, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping GetApplyURL")
 	return "", nil
-}
-
-// GenPermissionApplyData returns empty map for no-op handler.
-func (h *NoOpHandler) GenPermissionApplyData(_ ApplicationActionListForApply) (map[string]interface{}, error) {
-	logger.G.Sys().Debug("IAM v3 no-op handler: skipping GenPermissionApplyData")
-	return map[string]interface{}{}, nil
 }
