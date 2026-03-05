@@ -20,6 +20,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
@@ -303,6 +304,9 @@ func (svc *Service) initialCapability() error {
 		StgWorkflow:      svc.Cap.StorageWorkflow,
 	})
 
+	// initial authorizer.
+	svc.Cap.Authorizer = svc.newAuthorizer()
+
 	return nil
 }
 
@@ -415,6 +419,14 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 	}
 
 	return gseHandler, nil
+}
+
+func (svc *Service) newAuthorizer() auth.IAuthorizer {
+	if !svc.conf.IAMV3.Enable {
+		return auth.NewNoOpAuthorizer()
+	}
+
+	return auth.NewIAMV3Authorizer(svc.conf.IAMV3.SystemID, svc.Cap.IAMV3Handler)
 }
 
 // newIAMV3Handler creates a new IAM v3 handler.

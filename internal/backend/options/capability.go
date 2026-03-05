@@ -12,6 +12,7 @@
 package options
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
@@ -101,6 +102,9 @@ type Capability struct {
 
 	// IAMV3Handler the IAM v3 handler.
 	IAMV3Handler iamv3.IHandler
+
+	// Authorizer is the IAM authorization handler for permission checks.
+	Authorizer auth.IAuthorizer
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

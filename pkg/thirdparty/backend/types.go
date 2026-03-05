@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -51,7 +52,7 @@ func (err *backendPermissionError) PermissionData() resterrf.Permission {
 	}
 
 	return resterrf.Permission{
-		System:     "",
+		System:     auth.SystemIDNodeMgr,
 		SystemName: "",
 		ApplyURL:   "",
 		Actions:    nil,
