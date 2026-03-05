@@ -89,6 +89,7 @@
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <Select
+                v-if="!networkUnitLoading"
                 v-model="row.bk_networkunit_id"
                 auto-focus
                 filterable
@@ -120,6 +121,7 @@
                   [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
                 </Select.Option>
               </Select>
+              <div v-else class="h-[32px] w-full rounded-[2px] bg-[#F5F7FA]"></div>
             </ValidateCell>
           </template>
         </VxeColumn>
@@ -1192,23 +1194,29 @@ const tableValidate = async () => {
 const networkUnitList = ref<any[]>([]);
 // 分组映射：{bk_networkarea_id: [网络单元对象数组]}
 const networkUnitGroupMap = ref<Record<number, any[]>>({});
+const networkUnitLoading = ref(false);
 
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({
-    exact_include_conditions: {
-      bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
-    },
-  }).catch((err: any) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
-  });
-  networkUnitList.value = res.items;
+  networkUnitLoading.value = true;
+  try {
+    const res = await TopoService.NetworkUnitList({
+      exact_include_conditions: {
+        bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
+      },
+    }).catch((err: any) => {
+      console.log(err);
+      return {
+        total: 0,
+        items: [],
+      };
+    });
+    networkUnitList.value = res.items;
 
-  // 使用Lodash的groupBy函数进行分组
-  networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
+    // 使用Lodash的groupBy函数进行分组
+    networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
+  } finally {
+    networkUnitLoading.value = false;
+  }
 };
 
 // 根据网络区域ID获取对应的网络单元列表
@@ -1250,10 +1258,21 @@ defineExpose({ tableValidate, showSetting });
 
 onMounted(async () => {
   await getHostDistinct();
-  if (props.isReinstall) {
-    await getNetworkUnitList();
-  }
 });
+
+watch(
+  () => tableData.value?.map((item: any) => Number(item.bk_networkarea_id)).join(',') || '',
+  async (val: string) => {
+    if (!props.isReinstall) return;
+    if (!val) {
+      networkUnitList.value = [];
+      networkUnitGroupMap.value = {};
+      return;
+    }
+    await getNetworkUnitList();
+  },
+  { immediate: true },
+);
 
 watch(() => type.value, () => {
   clearAllErrors();

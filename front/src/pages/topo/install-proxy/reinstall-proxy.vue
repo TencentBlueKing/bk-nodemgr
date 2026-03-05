@@ -491,56 +491,61 @@ const loading = ref(false);
 
 watch(() => isShow.value, async () => {
   if (isShow.value && props.data.length) {
-    // 使用TopoService.HostList接口进行切片查询获取数据
-    if (props.isCrossPageSelection) {
-      // 跨页全选模式：使用HostList接口分页获取所有数据
-      const allHosts = [];
-      const pageSize = 1000; // 每页大小
-      let offset = 0;
-      let hasMore = true;
-      loading.value = true;
+    loading.value = true;
+    try {
+      // 先拉取网络单元，避免 Select 在无选项时回显原始 unit-id
+      await getNetworkUnitList();
 
-      while (hasMore) {
-        const hostListData = await TopoService.HostList({
-          page: { offset, limit: pageSize },
-          only_count: false,
-          ...props.params,
-        }).catch(() => ({ total: 0, items: [] }));
+      // 使用TopoService.HostList接口进行切片查询获取数据
+      if (props.isCrossPageSelection) {
+        // 跨页全选模式：使用HostList接口分页获取所有数据
+        const allHosts = [];
+        const pageSize = 1000; // 每页大小
+        let offset = 0;
+        let hasMore = true;
 
-        if (hostListData.items && hostListData.items.length > 0) {
-          allHosts.push(...hostListData.items);
-          offset += pageSize;
+        while (hasMore) {
+          const hostListData = await TopoService.HostList({
+            page: { offset, limit: pageSize },
+            only_count: false,
+            ...props.params,
+          }).catch(() => ({ total: 0, items: [] }));
 
-          // 如果返回的数据少于pageSize，说明没有更多数据了
-          if (hostListData.items.length < pageSize) {
+          if (hostListData.items && hostListData.items.length > 0) {
+            allHosts.push(...hostListData.items);
+            offset += pageSize;
+
+            // 如果返回的数据少于pageSize，说明没有更多数据了
+            if (hostListData.items.length < pageSize) {
+              hasMore = false;
+            }
+          } else {
             hasMore = false;
           }
-        } else {
-          hasMore = false;
         }
-      }
 
-      form.info = allHosts.map((host: any) => ({
-        ...host.state,
-        ...host.info,
-        ...host,
-        bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
-        bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
-        bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
-      }));
+        form.info = allHosts.map((host: any) => ({
+          ...host.state,
+          ...host.info,
+          ...host,
+          bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
+          bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
+          bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
+        }));
+      } else {
+        // 本页选择模式：使用原有数据
+        form.info = props.data.map((item: Host) => {
+          const data = cloneDeep(initData);
+          assign(data, item, item.info);
+          data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
+          return data;
+        });
+      }
+      await getVersions();
+      originData.value = cloneDeep(form);
+    } finally {
       loading.value = false;
-    } else {
-      // 本页选择模式：使用原有数据
-      form.info = props.data.map((item: Host) => {
-        const data = cloneDeep(initData);
-        assign(data, item, item.info);
-        data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
-        return data;
-      });
     }
-    await getVersions();
-    await getNetworkUnitList();
-    originData.value = cloneDeep(form);
   }
 });
 onMounted(() => {
