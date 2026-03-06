@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -40,7 +41,7 @@ const (
 	DefaultTenantID = tenant.SingleModeTenantID
 
 	// DefaultHTTPTimeout is the timeout for test HTTP requests.
-	DefaultHTTPTimeout = 30 * time.Second
+	DefaultHTTPTimeout = 1 * time.Minute
 
 	// Random number generation bounds.
 	randomSuffixMin = 1000
@@ -61,19 +62,24 @@ var (
 	randGen  *rand.Rand
 )
 
-// GetBackendBaseURL get backend base URL.
-func GetBackendBaseURL() string {
-	return fmt.Sprintf("http://%s/api/v3", test.TestFlagBackendServer)
+// GetBackendBasicURL returns the backend service basic URL.
+func GetBackendBasicURL() string {
+	return fmt.Sprintf("http://%s/api/v3", test.Env.Servers.BackendBasicEndpoint)
 }
 
-// GetApplicationBaseURL get application base URL.
-func GetApplicationBaseURL() string {
-	return fmt.Sprintf("http://%s/api/v3", test.TestFlagApplicationServer)
+// GetApplicationBasicURL returns the application service basic URL.
+func GetApplicationBasicURL() string {
+	return fmt.Sprintf("http://%s/api/v3", test.Env.Servers.ApplicationBasicEndpoint)
 }
 
-// GetFileBaseURL get file base URL.
-func GetFileBaseURL() string {
-	return fmt.Sprintf("http://%s/api/v3", test.TestFlagFileServer)
+// GetFileBasicURL returns the file service basic URL.
+func GetFileBasicURL() string {
+	return fmt.Sprintf("http://%s/api/v3", test.Env.Servers.FileBasicEndpoint)
+}
+
+// GetFileDownloadURL returns the file download service URL.
+func GetFileDownloadURL() string {
+	return fmt.Sprintf("http://%s/api/v3", test.Env.Servers.FileDownloadEndpoint)
 }
 
 // SendHTTPRequest sends HTTP request.
@@ -89,6 +95,55 @@ func SendHTTPRequest(t *testing.T, method, url string, body []byte) *http.Respon
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("failed to send request: %v, method(%s), url(%s)", err, method, url)
+	}
+
+	return resp
+}
+
+// SendUploadHTTPRequest sends a multipart upload request with file and metadata.
+func SendUploadHTTPRequest(t *testing.T, url, filePath string, metadata []byte) *http.Response {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	if err := writer.WriteField("metadata", string(metadata)); err != nil {
+		t.Fatalf("failed to write metadata field: %v", err)
+	}
+
+	filename := filepath.Base(filePath)
+	if err := writer.WriteField("filename", filename); err != nil {
+		t.Fatalf("failed to write filename field: %v", err)
+	}
+
+	filePart, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		t.Fatalf("failed to create form file: %v", err)
+	}
+
+	// nolint:gosec
+	f, err := os.Open(filePath)
+	if err != nil {
+		t.Fatalf("failed to open file %s: %v", filePath, err)
+	}
+	defer func() { _ = f.Close() }()
+
+	if _, err := io.Copy(filePart, f); err != nil {
+		t.Fatalf("failed to copy file content: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("failed to close multipart writer: %v", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		t.Fatalf("failed to create upload request: %v, url(%s)", err, url)
+	}
+	req.Header.Set(ContentTypeKey, writer.FormDataContentType())
+	req.Header.Set(restheader.BKTenantIDKey, DefaultTenantID)
+
+	client := &http.Client{Timeout: DefaultHTTPTimeout}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("failed to send upload request: %v, url(%s)", err, url)
 	}
 
 	return resp

@@ -13,7 +13,6 @@ package cmdb
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -38,26 +37,25 @@ var presetData *cmdbMock.MockData
 
 // getBusinessListURL returns the business list API URL.
 func getBusinessListURL() string {
-	return helper.GetBackendBaseURL() + "/topo/business/list"
+	return helper.GetBackendBasicURL() + "/topo/business/list"
 }
 
 // getNetworkAreaListURL returns the network area list API URL.
 func getNetworkAreaListURL() string {
-	return helper.GetBackendBaseURL() + "/topo/networkarea/list"
+	return helper.GetBackendBasicURL() + "/topo/networkarea/list"
 }
 
 // getHostListURL returns the host list API URL.
 func getHostListURL() string {
-	return helper.GetBackendBaseURL() + "/topo/host/list"
+	return helper.GetBackendBasicURL() + "/topo/host/list"
 }
 
 // TestMain parses flags and validates required flags before running tests.
 func TestMain(m *testing.M) {
-	test.InitFlags()
-	flag.Parse()
+	test.ParseFlagsAndLoadEnv()
 
 	// load cmdb mock data.
-	mockData, err := helper.LoadCMDBMockData(test.TestFlagDataDir)
+	mockData, err := helper.LoadCMDBMockData(test.Env.DataDir)
 	if err != nil {
 		fmt.Printf("failed to load cmdb mock data: %v\n", err)
 		os.Exit(1)
@@ -123,9 +121,9 @@ func TestSyncCMDBBusiness(t *testing.T) {
 			resp := helper.SendHTTPRequest(t, http.MethodPost, getBusinessListURL(), reqBody)
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-			var result protoBackend.TopoBusinessListResp
-			helper.ParseResponse(t, resp, &result)
-			tt.checkResp(t, &result)
+			var listResp protoBackend.TopoBusinessListResp
+			helper.ParseResponse(t, resp, &listResp)
+			tt.checkResp(t, &listResp)
 		})
 	}
 }
@@ -157,9 +155,9 @@ func TestSyncCMDBNetworkArea(t *testing.T) {
 			resp := helper.SendHTTPRequest(t, http.MethodPost, getNetworkAreaListURL(), reqBody)
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-			var result protoBackend.TopoNetworkAreaListResp
-			helper.ParseResponse(t, resp, &result)
-			tt.checkResp(t, &result)
+			var listResp protoBackend.TopoNetworkAreaListResp
+			helper.ParseResponse(t, resp, &listResp)
+			tt.checkResp(t, &listResp)
 		})
 	}
 }
@@ -191,9 +189,9 @@ func TestSyncCMDBHost(t *testing.T) {
 			resp := helper.SendHTTPRequest(t, http.MethodPost, getHostListURL(), reqBody)
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 
-			var result protoBackend.TopoHostListResp
-			helper.ParseResponse(t, resp, &result)
-			tt.checkResp(t, &result)
+			var listResp protoBackend.TopoHostListResp
+			helper.ParseResponse(t, resp, &listResp)
+			tt.checkResp(t, &listResp)
 		})
 	}
 }

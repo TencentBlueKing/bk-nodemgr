@@ -18,7 +18,7 @@ test/
 |- mock-server/         # mock service used by test flows
 |- helper/              # shared test helpers
 |- Makefile             # build/test/clean targets with group ordering
-`- test.go              # test flags and endpoint configuration
+`- config.go            # test flags and environment configuration
 ```
 
 ## WHERE TO LOOK
@@ -29,8 +29,10 @@ test/
 | Preset test data | `test/data/cmdb.yaml` | Shared by mock-server and precheck tests |
 | Mock server config generation | `test/tools/gen-mock-config.sh` | Merges base config with `data/cmdb.yaml` into mock-server config |
 | Mock integration behavior | `test/mock-server/**` | CMDB/BKRepo simulation endpoints |
-| Test startup flags | `test/test.go` | Backend/application/file endpoint flags + `--data-dir` |
+| Test startup flags | `test/config.go` | Environment configuration through `--env-file` (`env.yaml` by default) |
 | Test execution commands | `test/Makefile`, `test/README.md` | `TEST_GROUPS` controls execution order |
+
+> Test execution requires pre-existing `env.yaml` ; repository does not ship this file.
 
 ## CONVENTIONS
 

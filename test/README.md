@@ -9,8 +9,9 @@
 ```
 test/
 ├── cases/              # 测试用例
-│   ├── precheck/       # 预检查（最先执行，验证数据同步，按域组织）
-│   │   ├── cmdb/       # CMDB 数据同步检查
+│   ├── precheck/       # 环境初始化 + 验证（最先执行，确保测试环境就绪，按域组织）
+│   │   ├── cmdb/       # CMDB 数据同步验证
+│   │   ├── file/       # 初始化包上传与发布
 │   │   └── ...
 │   ├── backend/        # backend 服务测试
 │   │   └── topo/       # topo 模块（按路由层级组织）
@@ -32,7 +33,7 @@ test/
 ├── tools/              # CI 辅助脚本
 │   └── gen-mock-config.sh
 ├── helper/             # 测试辅助函数
-├── test.go             # 测试入口和配置
+├── config.go           # 环境配置结构体和加载逻辑（flag 注册和配置加载）
 ├── Makefile            # 构建脚本
 └── build/              # 编译后的测试二进制（.gitignore）
     ├── precheck/
@@ -45,7 +46,7 @@ test/
 
 1. 此目录负责：
    - API 接口的功能性测试
-   - 数据同步正确性预检查
+   - 测试环境初始化（precheck 阶段完成，包括初始化包上传、数据同步验证等）
    - 数据正确性验证
    - 错误场景覆盖
    - 测试数据的准备(MOCK)
@@ -59,7 +60,7 @@ test/
 ```bash
 # 在 test/ 目录下构建所有测试用例
 cd test/
-make build
+make 
 
 # 或在项目根目录构建（会触发 test 目标）
 make all
@@ -78,21 +79,10 @@ make clean
 
 ## 测试配置
 
-测试配置通过命令行参数或环境变量传入：
+测试环境必须先准备 `env.yaml`，当前仓库不提供该文件，需手动填充并放置在测试机器上
+环境配置统一在 `env.yaml` 中管理，所有字段和默认值见 `config.go` 中的 `EnvConfig` 结构体。
 
-```go
-// test.go
-flag.StringVar(&TestFlagBackendServer, "backend", "127.0.0.1:28100", "backend host and port")
-flag.StringVar(&TestFlagApplicationServer, "application", "127.0.0.1:28000", "application host and port")
-flag.StringVar(&TestFlagFileServer, "file", "127.0.0.1:28200", "file host and port")
-flag.StringVar(&TestFlagDataDir, "data-dir", "", "path to test data directory")
-```
-
-运行时指定配置：
-```bash
-cd build/backend/topo
-./networkunit.test -backend=ip:port -data-dir=../../data
-```
+添加新参数：在 `config.go` 加结构体字段和默认值，测试中通过 `test.Env.XXX` 读取。
 
 ## 注意事项
 
@@ -100,7 +90,7 @@ cd build/backend/topo
 2. 测试数据应使用随机后缀避免冲突
 3. 测试失败时应输出清晰的错误信息
 4. 避免硬编码，使用配置或生成器
-5. 预设数据统一维护在 `data/cmdb.yaml`，不要在测试代码中硬编码
+5. 预设数据统一维护在 `data/` 目录，不要在测试代码中硬编码
 6. 预设数据采用增量策略：不删除、不修改已有条目，只追加新条目（修 bug 除外）
 7. 新增测试组需要在 `Makefile` 的 `TEST_GROUPS` 中注册
 

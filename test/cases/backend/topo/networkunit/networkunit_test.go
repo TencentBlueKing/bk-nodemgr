@@ -13,7 +13,6 @@ package networkunit
 
 import (
 	"encoding/json"
-	"flag"
 	"net/http"
 	"os"
 	"testing"
@@ -33,19 +32,17 @@ const defaultNetworkAreaID = 0
 
 // getNetworkUnitCreateURL get create network unit URL.
 func getNetworkUnitCreateURL() string {
-	return helper.GetBackendBaseURL() + "/topo/networkunit/create"
+	return helper.GetBackendBasicURL() + "/topo/networkunit/create"
 }
 
 // getNetworkUnitListURL get list network unit URL.
 func getNetworkUnitListURL() string {
-	return helper.GetBackendBaseURL() + "/topo/networkunit/list"
+	return helper.GetBackendBasicURL() + "/topo/networkunit/list"
 }
 
 // TestMain parses flags before running tests.
 func TestMain(m *testing.M) {
-	test.InitFlags()
-	flag.Parse()
-
+	test.ParseFlagsAndLoadEnv()
 	os.Exit(m.Run())
 }
 

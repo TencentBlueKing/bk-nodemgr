@@ -11,7 +11,6 @@ VERSION   ?= ${GITTAG}-$(shell date +%y.%m.%d)
 
 # directories
 TEST_OUTPUT = build
-DATA_DIR    = $(CURDIR)/data
 
 # go version
 GO = go1.23.10
@@ -19,7 +18,8 @@ GO = go1.23.10
 # ldflags
 LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${VERSION} \
 	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.BUILDTIME=${BUILDTIME} \
-	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.GITHASH=${GITHASH} "
+	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.GITHASH=${GITHASH} \
+	-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore"
 
 # cmd
 MKDIR = mkdir -p
@@ -43,7 +43,7 @@ build:
 			test_name=$$(basename "$$testfile" _test.go); \
 			out="$(TEST_OUTPUT)/$$rel/$$test_name.test"; \
 			$(MKDIR) $$(dirname "$$out"); \
-			CGO_ENABLED=0 $(GO) test -v -c -o "$$out" "./$$dir" || exit 1; \
+			CGO_ENABLED=0 $(GO) test -v -c -ldflags ${LDVersionFLAG} -o "$$out" "./$$dir" || exit 1; \
 		done; \
 	done
 
@@ -60,7 +60,7 @@ test:
 	@for group in $(TEST_GROUPS); do \
 		for testfile in $$(find $(TEST_OUTPUT)/$$group -type f -name "*.test" 2>/dev/null | sort); do \
 			echo "RUN [$$group]: $$testfile"; \
-			./$$testfile -data-dir=$(DATA_DIR) || exit 1; \
+			./$$testfile || exit 1; \
 		done; \
 	done
 
