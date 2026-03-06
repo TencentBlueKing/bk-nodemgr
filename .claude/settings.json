@@ -7,6 +7,7 @@
       "Bash(ls:*)",
       "Bash(cat:*)",
       "Bash(grep:*)",
+      "Bash(openspec:*)",
       "mcp__sequential-thinking__*",
       "mcp__serena__*"
     ]
