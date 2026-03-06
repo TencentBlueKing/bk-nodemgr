@@ -116,6 +116,10 @@ func (r *RSA) oaepMaxPlaintextSize() int {
 }
 
 func (r *RSA) encryptHybrid(plaintext []byte) ([]byte, error) {
+	if r.pub == nil {
+		return nil, errors.New("rsa public key is not set")
+	}
+
 	// Generate random symmetric key and nonce.
 	aesKey := make([]byte, rsaHybridKeySize)
 	if _, err := rand.Read(aesKey); err != nil {
