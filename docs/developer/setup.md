@@ -35,11 +35,9 @@ golangci-lint --version
 
 用于编译 `.proto` 文件生成 Go 代码和 Swagger 文档。
 
-**Linux 安装：**
-
 ```bash
 # 下载 protoc
-PROTOC_VERSION=30.2
+PROTOC_VERSION=5.29.3
 curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 unzip protoc-${PROTOC_VERSION}-linux-x86_64.zip -d /tmp/protoc
 sudo cp /tmp/protoc/bin/protoc /usr/local/bin/
@@ -47,13 +45,6 @@ sudo cp -r /tmp/protoc/include/* /usr/local/include/
 rm -rf /tmp/protoc protoc-${PROTOC_VERSION}-linux-x86_64.zip
 
 # 验证安装
-protoc --version
-```
-
-**macOS 安装：**
-
-```bash
-brew install protobuf
 protoc --version
 ```
 
