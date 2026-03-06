@@ -202,9 +202,9 @@ func (r *Request) AbortWithJSONPermDenied(code resterrf.Code, unwrapErrs []error
 	}
 
 	for _, e := range unwrapErrs {
-		var provider PermissionProvider
-		if errors.As(e, &provider) {
-			data := provider.PermissionData()
+		var permErr PermissionError
+		if errors.As(e, &permErr) {
+			data := permErr.PermissionData()
 			perm.System = data.System
 			perm.SystemName = data.SystemName
 			perm.ApplyURL = data.ApplyURL

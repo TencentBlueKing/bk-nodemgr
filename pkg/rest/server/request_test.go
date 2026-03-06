@@ -13,6 +13,7 @@ package server_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,9 +22,10 @@ import (
 
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 )
 
-// fakePermProvider implements server.PermissionProvider for testing.
+// fakePermProvider implements server.PermissionError for testing.
 type fakePermProvider struct {
 	system     string
 	systemName string
@@ -41,9 +43,9 @@ func (f fakePermProvider) PermissionData() server.Permission {
 	}
 }
 
-// Ensure fakePermProvider satisfies both error and PermissionProvider.
+// Ensure fakePermProvider satisfies both error and PermissionError.
 var _ error = fakePermProvider{}
-var _ server.PermissionProvider = fakePermProvider{}
+var _ server.PermissionError = fakePermProvider{}
 
 func newTestRequest(t *testing.T) (*server.Request, *httptest.ResponseRecorder) {
 	t.Helper()
@@ -125,8 +127,8 @@ func TestAbortWithJSONPermDenied_WithoutPermissionProvider(t *testing.T) {
 	if resp.Permission.ApplyURL != "" {
 		t.Errorf("expected empty apply_url, got %q", resp.Permission.ApplyURL)
 	}
-	if len(resp.Permission.Actions) != 0 {
-		t.Errorf("expected 0 actions, got %d", len(resp.Permission.Actions))
+	if resp.Permission.Actions != nil {
+		t.Errorf("expected nil actions, got %+v", resp.Permission.Actions)
 	}
 }
 
@@ -170,5 +172,80 @@ func TestAbortWithJSONPermDenied_EmptyErrs(t *testing.T) {
 
 	if resp.Permission == nil {
 		t.Fatal("expected permission field, got nil")
+	}
+}
+
+func TestAbortWithJSONPermDenied_WrappedErrorChain(t *testing.T) {
+	req, w := newTestRequest(t)
+
+	inner := fakePermProvider{
+		system:     "bk_nodeman",
+		systemName: "节点管理",
+		applyURL:   "https://iam.example.com/apply",
+		actions:    []server.Action{{ID: "wrapped_action", Name: "Wrapped Action"}},
+	}
+	wrapped := fmt.Errorf("outer context: %w", inner)
+
+	req.AbortWithJSONPermDenied(resterrf.PermissionDenied, []error{wrapped})
+
+	if w.Code != http.StatusForbidden {
+		t.Fatalf("expected status 403, got %d", w.Code)
+	}
+
+	var resp server.Response
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if resp.Permission == nil {
+		t.Fatal("expected permission field in response, got nil")
+	}
+	if resp.Permission.System != "bk_nodeman" {
+		t.Errorf("expected system %q, got %q", "bk_nodeman", resp.Permission.System)
+	}
+	if resp.Permission.ApplyURL != "https://iam.example.com/apply" {
+		t.Errorf("expected apply_url %q, got %q", "https://iam.example.com/apply", resp.Permission.ApplyURL)
+	}
+	if len(resp.Permission.Actions) != 1 || resp.Permission.Actions[0].ID != "wrapped_action" {
+		t.Errorf("expected wrapped provider's actions, got %+v", resp.Permission.Actions)
+	}
+}
+
+func TestAbortWithJSONPermDenied_EmptySystemRetainsDefaults(t *testing.T) {
+	req, w := newTestRequest(t)
+
+	// Provider returns empty system/systemName — defaults should be preserved.
+	provider := fakePermProvider{
+		system:     "",
+		systemName: "",
+		applyURL:   "https://iam.example.com/apply",
+		actions:    []server.Action{{ID: "some_action"}},
+	}
+
+	req.AbortWithJSONPermDenied(resterrf.PermissionDenied, []error{provider})
+
+	if w.Code != http.StatusForbidden {
+		t.Fatalf("expected status 403, got %d", w.Code)
+	}
+
+	var resp server.Response
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if resp.Permission == nil {
+		t.Fatal("expected permission field in response, got nil")
+	}
+	if resp.Permission.System != system.Code {
+		t.Errorf("expected default system %q, got %q", system.Code, resp.Permission.System)
+	}
+	if resp.Permission.SystemName != system.Name {
+		t.Errorf("expected default system_name %q, got %q", system.Name, resp.Permission.SystemName)
+	}
+	if resp.Permission.ApplyURL != "https://iam.example.com/apply" {
+		t.Errorf("expected apply_url %q, got %q", "https://iam.example.com/apply", resp.Permission.ApplyURL)
+	}
+	if len(resp.Permission.Actions) != 1 || resp.Permission.Actions[0].ID != "some_action" {
+		t.Errorf("expected provider's actions, got %+v", resp.Permission.Actions)
 	}
 }

@@ -55,7 +55,7 @@ type Permission struct {
 	System     string   `json:"system"`
 	SystemName string   `json:"system_name"`
 	ApplyURL   string   `json:"apply_url,omitempty"`
-	Actions    []Action `json:"actions"`
+	Actions    []Action `json:"actions,omitempty"`
 }
 
 // Action defines the action struct for IAM permission apply response.
@@ -78,8 +78,9 @@ type RelatedResourceType struct {
 	TypeName string `json:"type_name"`
 }
 
-// PermissionProvider is implemented by errors that carry IAM permission-apply data.
-type PermissionProvider interface {
+// PermissionError is implemented by errors that carry IAM permission-apply data.
+type PermissionError interface {
+	error
 	// PermissionData returns the Permission payload to embed in the response.
 	PermissionData() Permission
 }
