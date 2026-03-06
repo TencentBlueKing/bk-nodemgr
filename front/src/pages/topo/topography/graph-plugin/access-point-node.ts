@@ -5,6 +5,7 @@ import type { BaseNodeStyleProps } from '@antv/g6';
 import { BaseNode } from '@antv/g6';
 
 import Downstream from '../../../../../public/images/downstream.svg';
+import { tableTooltip } from './table-tooltip';
 
 export interface IAccessPointData {
   name: string;
@@ -12,6 +13,8 @@ export interface IAccessPointData {
   type: 'internal' | 'external'; // 内网/外网标识
   area?: string;
   bk_networkunit_id?: number;
+  endpoints?: any;
+  endpointsData?: any[];
 }
 
 export default class AccessPointNode extends BaseNode {
@@ -98,7 +101,8 @@ export default class AccessPointNode extends BaseNode {
       width: calculatedWidth,
       height,
       y: 0,
-      cursor: 'move',
+      // cursor: 'move',// 暂时把拖动功能注释
+      cursor: 'text',
     }, container);
   }
 
@@ -110,7 +114,8 @@ export default class AccessPointNode extends BaseNode {
       x: 10,
       y: (height - 10) / 2, // 10是图标的高度
       src: Downstream,
-      cursor: 'move',
+      // cursor: 'move',// 暂时把拖动功能注释
+      cursor: 'text',
     }, container);
 
     return container;
@@ -140,7 +145,8 @@ export default class AccessPointNode extends BaseNode {
       wordWrapWidth: availableWidth, // 设置最大宽度
       maxLines: 1,                // 限制最大行数为 1
       textOverflow: 'ellipsis',   // 超出部分显示省略号 '...'
-      cursor: 'move',
+      // cursor: 'move', // 暂时把拖动功能注释
+      cursor: 'text',
     }, container);
   }
 
@@ -154,27 +160,24 @@ export default class AccessPointNode extends BaseNode {
     const iconY = height / 2;
 
     // 1. 扩大鼠标感应区 (透明矩形)
-    this.upsert('info-hit-area', GRect, {
+    const hitAreaElement = this.upsert('info-hit-area', GRect, {
       x: width - 25,
       y: 0,
       width: 25,
       height,
       fill: 'transparent',
       cursor: 'pointer',
-      className: 'ap-info-icon', // 关键标识：用于 topo.vue 识别 Hover
     }, container);
 
-    // 2. 绘制图标 (这里简单画个红色的 i，或者用图片/Iconfont)
-    // 也可以画个圆圈+文字
-
+    // 2. 绘制图标圆圈 + 文字
     this.upsert('info-circle', 'circle', {
       cx: iconX,
       cy: iconY,
       r: 6,
-      stroke: '#979ba5', // 边框颜色
-      lineWidth: 1.5,     // 边框粗细
-      fill: '#979ba5',    // 圆圈内部填充白色，盖住下面的线或背景
-      pointerEvents: 'none', // 让事件穿透到上面的 hit-area
+      stroke: '#979ba5',
+      lineWidth: 1.5,
+      fill: '#979ba5',
+      pointerEvents: 'none',
     }, container);
 
     this.upsert('info-text', GText, {
@@ -182,13 +185,39 @@ export default class AccessPointNode extends BaseNode {
       y: iconY,
       text: 'i',
       fontSize: 12,
-      fill: '#ffff', // 红色
+      fill: '#ffff',
       fontWeight: 'bold',
-      fontFamily: 'serif', // 衬线体看起来像图标
+      fontFamily: 'serif',
       textAlign: 'center',
       textBaseline: 'middle',
-      pointerEvents: 'none', // 让事件穿透到 hit-area
+      pointerEvents: 'none',
     }, container);
+
+    // 3. 直接在感应区上绑定 mouseenter/mouseleave（学习单元跳转图标的方式）
+    const infoCircle = this.shapeMap['info-circle'];
+    if (hitAreaElement) {
+      const { endpointsData } = this.data;
+
+      hitAreaElement.addEventListener('mouseenter', (event: any) => {
+        if (!endpointsData || endpointsData.length === 0) return;
+        // 用 info-circle 的 bounds 定位，让箭头精确指向图标
+        const target = infoCircle || hitAreaElement;
+        const bounds = target.getRenderBounds();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        const targetWidth = bounds.max[0] - bounds.min[0];
+        const targetHeight = bounds.max[1] - bounds.min[1];
+        const targetX = mouseX - targetWidth / 2;
+        const targetY = mouseY - targetHeight / 2;
+
+        tableTooltip.show(endpointsData, targetX, targetY, targetWidth, targetHeight);
+      });
+
+      hitAreaElement.addEventListener('mouseleave', () => {
+        tableTooltip.hide();
+      });
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/member-ordering

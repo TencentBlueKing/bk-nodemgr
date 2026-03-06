@@ -103,14 +103,17 @@ export default class NetworkAreaNode extends BaseNode {
 
     // 添加 hover 事件监听
     if (textElement) {
-      textElement.addEventListener('mouseenter', (evt: any) => {
-        const mouseEvent = evt.client;
-        if (mouseEvent) {
-          // 获取文本元素的中心坐标
-          const bounds = textElement.getRenderBounds();
-          const centerY = (bounds.min[1] + bounds.max[1]) / 2;
-          textTooltip.show(areaText, centerY, mouseEvent.x, mouseEvent.y);
-        }
+      textElement.addEventListener('mouseenter', (event: any) => {
+        const bounds = textElement.getRenderBounds();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        const targetWidth = bounds.max[0] - bounds.min[0];
+        const targetHeight = bounds.max[1] - bounds.min[1];
+        const targetX = mouseX - targetWidth / 2;
+        const targetY = mouseY - targetHeight / 2;
+        
+        textTooltip.show(areaText, targetX, targetY, targetWidth, targetHeight);
       });
 
       textElement.addEventListener('mouseleave', () => {

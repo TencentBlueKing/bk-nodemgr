@@ -1042,17 +1042,11 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
 
 // ---------- 监听与生命周期 ----------
 
-// 【修复点1】添加统一的加载状态控制
-const isLoading = ref(false);
-
-// 【修复点2】优化路由参数处理，避免重复触发
-watch(() => route.query, (newQuery, oldQuery) => {
-  // 只有当路由参数实际发生变化时才处理
+watch(() => route.query, async (newQuery, oldQuery) => {
   if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) return;
 
-  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id } = newQuery;
+  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id, bk_networkunit_name } = newQuery;
 
-  // 处理操作系统、架构、版本的筛选
   if (os_type && cpu_arch && node_version) {
     searchSelectValue.value = [
       ...searchSelectValue.value.filter(item => !['os_type', 'cpu_arch', 'node_version'].includes(item.id)),
@@ -1063,58 +1057,55 @@ watch(() => route.query, (newQuery, oldQuery) => {
   } else if (bk_networkarea_id !== undefined && bk_networkunit_id !== undefined) {
     const areaId = Number(bk_networkarea_id);
     const unitId = Number(bk_networkunit_id);
-    searchSelectValue.value = [
-      ...searchSelectValue.value.filter(item => !['bk_networkarea_id', 'bk_networkunit_id'].includes(item.id)),
-      {
-        id: 'bk_networkarea_id',
-        name: t('platform.nodeMan.bk_cloud_name'),
-        values: [{ id: areaId, name: networkAreaListMap.value.get(areaId) || areaId }],
-      },
-      {
-        id: 'bk_networkunit_id',
-        name: t('platform.nodeMan.bk_cloud_unit'),
-        values: [{ id: unitId, name: networkUnitListMap.value.get(unitId) || unitId }],
-      },
-    ];
+    
+    // 等待基础数据加载完成
+    const setSearchValue = () => {
+      searchSelectValue.value = [
+        ...searchSelectValue.value.filter(item => !['bk_networkarea_id', 'bk_networkunit_id'].includes(item.id)),
+        {
+          id: 'bk_networkarea_id',
+          name: t('platform.nodeMan.bk_cloud_name'),
+          values: [{ id: areaId, name: networkAreaListMap.value.get(areaId) || areaId }],
+        },
+        {
+          id: 'bk_networkunit_id',
+          name: t('platform.nodeMan.bk_cloud_unit'),
+          values: [{ id: unitId, name: bk_networkunit_name || networkUnitListMap.value.get(unitId) }],
+        },
+      ];
+    };
+    
+    // 如果数据已加载，直接设置；否则等待
+    if (isInitialDataLoaded.value) {
+      setSearchValue();
+    } else {
+      const unwatch = watch(isInitialDataLoaded, (loaded) => {
+        if (loaded) {
+          setSearchValue();
+          unwatch();
+        }
+      });
+    }
   } else {
     searchSelectValue.value = [];
   }
 }, { immediate: true });
 
-// 【修复点3】统一初始化逻辑，避免重复调用
-const initializePage = async () => {
-  if (isLoading.value) return;
-
-  isLoading.value = true;
-  try {
-    // 重置状态
-    isInitialDataLoaded.value = false;
-    tableData.value = [];
-    pagination.count = 0;
-    pagination.current = 1;
-
-    // 重新加载基础数据
-    await loadInitialData();
-
-    // 基础数据加载完成后，加载Agent列表
-    if (isInitialDataLoaded.value) {
-      await getAgentList();
-    }
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// 【修复点4】优化业务ID监听，使用防抖避免重复初始化
-const debouncedInitialize = debounce(initializePage, 100);
-
-watch(() => mainStore.selectedBusinessId, (newId, oldId) => {
-  if (newId && newId !== oldId) {
-    debouncedInitialize();
+watch(() => mainStore.selectedBusinessId, async (newId, oldId) => {
+  if (!newId || newId === oldId) return;
+  
+  // 业务 ID 变化，重置并重新加载
+  isInitialDataLoaded.value = false;
+  tableData.value = [];
+  pagination.count = 0;
+  pagination.current = 1;
+  
+  await loadInitialData();
+  if (isInitialDataLoaded.value) {
+    await getAgentList();
   }
 }, { immediate: true });
 
-// 【修复点5】优化搜索条件监听，避免与初始化冲突
 watch(
   searchSelectValue,
   () => {
@@ -1126,10 +1117,8 @@ watch(
   { deep: true },
 );
 
-// 清理防抖函数
 onUnmounted(() => {
   debouncedGetAgentList.cancel();
-  debouncedInitialize.cancel();
 });
 
 </script>

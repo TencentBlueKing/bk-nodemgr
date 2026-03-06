@@ -9,7 +9,6 @@ import More from '../../../../../public/images/more.svg';
 import VectorDirect from '../../../../../public/images/vector-direct.svg';
 import VectorIndirect from '../../../../../public/images/vector-indirect.svg';
 import ConnectionPoint from '../../../../../public/images/connection-point.svg';
-import connectionPoint from '../../../../../public/images/connection-point.svg';
 import { textTooltip } from './text-tooltip.js';
 import { i18n } from '@/modules/i18n';
 
@@ -90,7 +89,7 @@ export default class NetWorkUnitNode extends BaseNode {
       shadowColor: 'rgba(0, 0, 0, 0.06)',
       shadowBlur: 8,
       shadowOffsetY: 2,
-      cursor: 'pointer',
+      cursor: 'text',
     };
   }
 
@@ -112,7 +111,8 @@ export default class NetWorkUnitNode extends BaseNode {
       height,
       fill: is_direct ? directUnitHeaderBgColor : IndirectUnitHeaderBgColor,
       radius: [6, 6, 0, 0],
-      cursor: 'move',
+      // cursor: 'move', // 暂时把拖动功能注释
+      cursor: 'text',
     }, container);
   }
 
@@ -130,7 +130,7 @@ export default class NetWorkUnitNode extends BaseNode {
       height: contentHeight + 8, // 补偿向上偏移的8px
       fill: '#ffffff',
       radius: 6, // 完整圆角
-      cursor: 'pointer',
+      cursor: 'text',
     }, container);
   }
 
@@ -141,7 +141,7 @@ export default class NetWorkUnitNode extends BaseNode {
       x: 13,
       y: 8,
       src: is_direct ? VectorDirect : VectorIndirect,
-      cursor: 'move',
+      // cursor: 'move', // 暂时把拖动功能注释
     }, container);
   }
 
@@ -168,14 +168,21 @@ export default class NetWorkUnitNode extends BaseNode {
 
     // 添加 hover 事件监听
     if (textElement) {
-      textElement.addEventListener('mouseenter', (evt: any) => {
-        const mouseEvent = evt.client;
-        if (mouseEvent) {
-          // 获取文本元素的中心坐标
-          const bounds = textElement.getRenderBounds();
-          const centerY = (bounds.min[1] + bounds.max[1]) / 2;
-          textTooltip.show(name, centerY, mouseEvent.x, mouseEvent.y);
-        }
+      textElement.addEventListener('mouseenter', (event: any) => {
+        const bounds = textElement.getRenderBounds();
+        // 使用鼠标事件坐标作为基准
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        // 计算元素的宽高
+        const targetWidth = bounds.max[0] - bounds.min[0];
+        const targetHeight = bounds.max[1] - bounds.min[1];
+        
+        // 使用鼠标位置作为目标中心点，计算目标的起始位置
+        const targetX = mouseX - targetWidth / 2;
+        const targetY = mouseY - targetHeight / 2;
+        
+        textTooltip.show(name, targetX, targetY, targetWidth, targetHeight);
       });
 
       textElement.addEventListener('mouseleave', () => {
@@ -214,25 +221,37 @@ export default class NetWorkUnitNode extends BaseNode {
         fill: NetWorkUnitNode.titleColor,
         textBaseline: 'middle',
         fontWeight: 700,
+        cursor: 'text',
       }, container);
 
-      this.upsert('unit', GText, {
-        x: startX + NetWorkUnitNode.nodeWidth - 70,
-        y: startY + 5,
-        text: 'unit',
-        fontSize: 12,
-        fill: NetWorkUnitNode.linkColor,
-        textBaseline: 'middle',
-        fontWeight: 400,
-      }, container);
-
-      this.upsert('linkIcon-unit', GImage, {
+      const linkIconUnitElement = this.upsert('linkIcon-unit-direct', GImage, {
         x: startX + NetWorkUnitNode.nodeWidth - 43,
         y: startY - 1,
         width: 11,
         height: 11,
         src: JumpLink,
+        cursor: 'pointer',
       }, container);
+
+      // 添加 hover 事件监听
+      if (linkIconUnitElement) {
+        linkIconUnitElement.addEventListener('mouseenter', (event: any) => {
+          const bounds = linkIconUnitElement.getRenderBounds();
+          const mouseX = event.clientX;
+          const mouseY = event.clientY;
+          
+          const targetWidth = bounds.max[0] - bounds.min[0];
+          const targetHeight = bounds.max[1] - bounds.min[1];
+          const targetX = mouseX - targetWidth / 2;
+          const targetY = mouseY - targetHeight / 2;
+          
+          textTooltip.show('unit', targetX, targetY, targetWidth, targetHeight, 30);
+        });
+
+        linkIconUnitElement.addEventListener('mouseleave', () => {
+          textTooltip.hide();
+        });
+      }
       // Row 2 - 使用统一对齐
       const accessPointsText = i18n.global.t('topoManager.topo.node.accessPoints');
       
@@ -243,6 +262,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fontSize: 12,
         fill: NetWorkUnitNode.normalColor,
         textBaseline: 'middle',
+        cursor: 'text',
       }, container);
       this.upsert('accesspoints', GText, {
         x: valueX,
@@ -252,6 +272,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
         textBaseline: 'middle',
+        cursor: 'text',
       }, container);
     } else {
       // 非直连
@@ -264,6 +285,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fill: NetWorkUnitNode.titleColor,
         textBaseline: 'middle',
         fontWeight: 700,
+        cursor: 'text',
       }, container);
 
       const stateWidth = isZh ? 32 : 60; // 中文32px，英文60px
@@ -274,6 +296,7 @@ export default class NetWorkUnitNode extends BaseNode {
         height: 16,
         fill: is_healthy ? NetWorkUnitNode.greenColor : NetWorkUnitNode.redColor,
         radius: NetWorkUnitNode.badgeRadius,
+        cursor: 'text',
       }, container);
       this.upsert('state', GText, {
         x: startX + 42 + stateWidth / 2, // 在状态框中居中显示
@@ -284,25 +307,37 @@ export default class NetWorkUnitNode extends BaseNode {
         textAlign: 'center',
         textBaseline: 'middle',
         fontWeight: 400,
+        cursor: 'text',
       }, container);
 
-      this.upsert('unit', GText, {
-        x: startX + NetWorkUnitNode.nodeWidth - 70,
-        y: startY + 5,
-        text: 'unit',
-        fontSize: 12,
-        fill: NetWorkUnitNode.linkColor,
-        textBaseline: 'middle',
-        fontWeight: 400,
-      }, container);
-
-      this.upsert('linkIcon-unit-proxy', GImage, {
+      const linkIconElement = this.upsert('linkIcon-unit-proxy', GImage, {
         x: startX + NetWorkUnitNode.nodeWidth - 43,
         y: startY - 1,
         width: 11,
         height: 11,
         src: JumpLink,
+        cursor: 'pointer',
       }, container);
+
+      // 添加 hover 事件监听
+      if (linkIconElement) {
+        linkIconElement.addEventListener('mouseenter', (event: any) => {
+          const bounds = linkIconElement.getRenderBounds();
+          const mouseX = event.clientX;
+          const mouseY = event.clientY;
+          
+          const targetWidth = bounds.max[0] - bounds.min[0];
+          const targetHeight = bounds.max[1] - bounds.min[1];
+          const targetX = mouseX - targetWidth / 2;
+          const targetY = mouseY - targetHeight / 2;
+          
+          textTooltip.show('unit', targetX, targetY, targetWidth, targetHeight, 30);
+        });
+
+        linkIconElement.addEventListener('mouseleave', () => {
+          textTooltip.hide();
+        });
+      }
       // Row 2
       const quantityText = i18n.global.t('topoManager.topo.node.quantity');
       
@@ -315,6 +350,7 @@ export default class NetWorkUnitNode extends BaseNode {
           fontSize: 12,
           fill: NetWorkUnitNode.normalColor,
           textBaseline: 'middle',
+          cursor: 'text',
         }, container);
         this.upsert('proxy-count-suffix', GText, {
           x: startX + 24,
@@ -323,6 +359,7 @@ export default class NetWorkUnitNode extends BaseNode {
           fontSize: 12,
           fill: NetWorkUnitNode.normalColor,
           textBaseline: 'middle',
+          cursor: 'text',
         }, container);
       } else {
         // 英文：完整显示
@@ -333,6 +370,7 @@ export default class NetWorkUnitNode extends BaseNode {
           fontSize: 12,
           fill: NetWorkUnitNode.normalColor,
           textBaseline: 'middle',
+          cursor: 'text',
         }, container);
       }
       
@@ -344,6 +382,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
         textBaseline: 'middle',
+        cursor: 'text',
       }, container);
       // Row 3
       const delayText = i18n.global.t('topoManager.topo.node.delay');
@@ -357,6 +396,7 @@ export default class NetWorkUnitNode extends BaseNode {
           fontSize: 12,
           fill: NetWorkUnitNode.normalColor,
           textBaseline: 'middle',
+          cursor: 'text',
         }, container);
         this.upsert('proxy-cycle-suffix', GText, {
           x: startX + 24,
@@ -365,6 +405,7 @@ export default class NetWorkUnitNode extends BaseNode {
           fontSize: 12,
           fill: NetWorkUnitNode.normalColor,
           textBaseline: 'middle',
+          cursor: 'text',
         }, container);
       } else {
         // 英文：完整显示
@@ -375,6 +416,7 @@ export default class NetWorkUnitNode extends BaseNode {
           fontSize: 12,
           fill: NetWorkUnitNode.normalColor,
           textBaseline: 'middle',
+          cursor: 'text',
         }, container);
       }
       
@@ -386,6 +428,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
         textBaseline: 'middle',
+        cursor: 'text',
       }, container);
       // Row 4
       this.upsert('accesspoints-title', GText, {
@@ -395,6 +438,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fontSize: 12,
         fill: NetWorkUnitNode.normalColor,
         textBaseline: 'middle',
+        cursor: 'text',
       }, container);
       this.upsert('accesspoints', GText, {
         x: valueX,
@@ -404,6 +448,7 @@ export default class NetWorkUnitNode extends BaseNode {
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
         textBaseline: 'middle',
+        cursor: 'text',
       }, container);
     }
   }
@@ -426,6 +471,7 @@ export default class NetWorkUnitNode extends BaseNode {
       fill: NetWorkUnitNode.agentBgColor,
       strokeWidth: 1,
       radius: NetWorkUnitNode.badgeRadius,
+      cursor: 'text',
     }, container);
 
     // 内容文本 (居中)
@@ -439,23 +485,45 @@ export default class NetWorkUnitNode extends BaseNode {
       fill: NetWorkUnitNode.normalColor,
       textBaseline: 'middle',
       fontWeight: 400,
+      cursor: 'text',
     }, container);
     // 数量
     const prefix = `${running_agent}`;
     const suffix = `${total_agent}`;
     const textColor = running_agent > 0 ? NetWorkUnitNode.greenColor : NetWorkUnitNode.normalColor;
 
-    this.upsert('agent-val-pre', GText, { x: startX + 66, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle' }, container);
-    this.upsert('agent-val-slash', GText, { x: startX + 74, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle' }, container);
-    this.upsert('agent-val-suf', GText, { x: startX + 80, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle' }, container);
+    this.upsert('agent-val-pre', GText, { x: startX + 66, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
+    this.upsert('agent-val-slash', GText, { x: startX + 74, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
+    this.upsert('agent-val-suf', GText, { x: startX + 80, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
 
-    this.upsert('linkIcon-agent', GImage, {
-      x: startX + 102,
+    const linkIconAgentElement = this.upsert('linkIcon-agent', GImage, {
+      x: startX + NetWorkUnitNode.nodeWidth - 43,
       y: centerY - 5,
       width: 11,
       height: 11,
       src: JumpLink,
+      cursor: 'pointer',
     }, container);
+
+    // 添加 hover 事件监听
+    if (linkIconAgentElement) {
+      linkIconAgentElement.addEventListener('mouseenter', (event: any) => {
+        const bounds = linkIconAgentElement.getRenderBounds();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        const targetWidth = bounds.max[0] - bounds.min[0];
+        const targetHeight = bounds.max[1] - bounds.min[1];
+        const targetX = mouseX - targetWidth / 2;
+        const targetY = mouseY - targetHeight / 2;
+        
+        textTooltip.show('agent', targetX, targetY, targetWidth, targetHeight, 30);
+      });
+
+      linkIconAgentElement.addEventListener('mouseleave', () => {
+        textTooltip.hide();
+      });
+    }
   }
 
   private drawMenuIcon(container: Group) {
@@ -512,7 +580,7 @@ export default class NetWorkUnitNode extends BaseNode {
       width: iconSize,
       height: iconSize,
       src: ConnectionPoint,
-      cursor: 'pointer',
+      cursor: 'default',
     }, container);
   }
 

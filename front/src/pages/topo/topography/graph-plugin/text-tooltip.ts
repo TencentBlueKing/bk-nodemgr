@@ -6,6 +6,7 @@
 class TextTooltip {
   private tooltipElement: HTMLDivElement | null = null;
   private hideTimer: number | null = null;
+  private showTimer: number | null = null;
 
   constructor() {
     this.createTooltipElement();
@@ -77,82 +78,100 @@ class TextTooltip {
   /**
    * 显示 tooltip
    * @param content 提示内容
-   * @param elementCenterY 文本元素中心点 Y 坐标
-   * @param mouseX 鼠标 X 坐标
-   * @param mouseY 鼠标 Y 坐标
+   * @param targetX 目标元素起始 X 坐标
+   * @param targetY 目标元素起始 Y 坐标
+   * @param targetWidth 目标元素宽度
+   * @param targetHeight 目标元素高度
+   * @param minWidth tooltip 最小宽度，默认 200px
    */
-  show(content: string, elementCenterY: number, mouseX: number, mouseY: number) {
+  show(content: string, targetX: number, targetY: number, targetWidth: number, targetHeight: number, minWidth = 200) {
     if (!this.tooltipElement || !content) return;
 
-    // 清除隐藏定时器
+    // 清除之前的定时器
     if (this.hideTimer) {
       clearTimeout(this.hideTimer);
       this.hideTimer = null;
     }
+    if (this.showTimer) {
+      clearTimeout(this.showTimer);
+      this.showTimer = null;
+    }
 
-    // 设置内容
-    const textNode = document.createTextNode(content);
-    this.tooltipElement.childNodes.forEach((node, index) => {
-      if (index === 0 || node.nodeType === Node.TEXT_NODE) {
-        this.tooltipElement?.removeChild(node);
-      }
-    });
-    this.tooltipElement.insertBefore(textNode, this.tooltipElement.firstChild);
-
-    // 显示并计算位置
-    this.tooltipElement.style.display = 'block';
-    this.tooltipElement.style.opacity = '0';
-
-    // 等待一帧后计算位置和显示
-    requestAnimationFrame(() => {
+    // 延迟显示，避免快速划过时频繁触发
+    this.showTimer = window.setTimeout(() => {
       if (!this.tooltipElement) return;
 
-      const rect = this.tooltipElement.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      
-      // 箭头高度
-      const arrowHeight = 6;
-      // tooltip 与文本的间距
-      const gap = 8;
+      // 设置最小宽度
+      this.tooltipElement.style.minWidth = `${minWidth}px`;
 
-      let adjustedX = mouseX - rect.width / 2;
-      
-      // 统一显示在上方，包含箭头高度和间距
-      const adjustedY = mouseY - rect.height - arrowHeight - gap;
-      
-      // 获取箭头元素，设置为朝下
-      const arrow = this.tooltipElement.querySelector('.tooltip-arrow') as HTMLDivElement;
-      const arrowBorder = this.tooltipElement.querySelector('.tooltip-arrow-border') as HTMLDivElement;
-      
-      if (arrow && arrowBorder) {
-        // 箭头边框（外层，灰色）
-        arrowBorder.style.bottom = '-6px';
-        arrowBorder.style.top = 'auto';
-        arrowBorder.style.borderTop = '6px solid #dcdee5';
-        arrowBorder.style.borderBottom = 'none';
-        arrowBorder.style.borderLeft = '6px solid transparent';
-        arrowBorder.style.borderRight = '6px solid transparent';
+      // 设置内容
+      const textNode = document.createTextNode(content);
+      this.tooltipElement.childNodes.forEach((node, index) => {
+        if (index === 0 || node.nodeType === Node.TEXT_NODE) {
+          this.tooltipElement?.removeChild(node);
+        }
+      });
+      this.tooltipElement.insertBefore(textNode, this.tooltipElement.firstChild);
+
+      // 显示并计算位置
+      this.tooltipElement.style.display = 'block';
+      this.tooltipElement.style.opacity = '0';
+
+      // 等待一帧后计算位置和显示
+      requestAnimationFrame(() => {
+        if (!this.tooltipElement) return;
+
+        const rect = this.tooltipElement.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
         
-        // 箭头（内层，白色）
-        arrow.style.bottom = '-5px';
-        arrow.style.top = 'auto';
-        arrow.style.borderTop = '5px solid #fff';
-        arrow.style.borderBottom = 'none';
-        arrow.style.borderLeft = '5px solid transparent';
-        arrow.style.borderRight = '5px solid transparent';
-      }
+        // 箭头高度
+        const arrowHeight = 6;
+        // tooltip 与目标元素的间距
+        const gap = 16;
 
-      // 水平方向边界检查
-      if (adjustedX < 10) {
-        adjustedX = 10;
-      } else if (adjustedX + rect.width > viewportWidth - 10) {
-        adjustedX = viewportWidth - rect.width - 10;
-      }
+        // 计算目标元素的中心点 X 坐标
+        const targetCenterX = targetX + targetWidth / 2;
+        
+        // tooltip 水平居中对齐目标元素
+        let adjustedX = targetCenterX - rect.width / 2;
+        
+        // 显示在目标元素上方，包含箭头高度和间距
+        const adjustedY = targetY - rect.height - arrowHeight - gap;
+        
+        // 获取箭头元素，设置为朝下
+        const arrow = this.tooltipElement.querySelector('.tooltip-arrow') as HTMLDivElement;
+        const arrowBorder = this.tooltipElement.querySelector('.tooltip-arrow-border') as HTMLDivElement;
+        
+        if (arrow && arrowBorder) {
+          // 箭头边框（外层，灰色）
+          arrowBorder.style.bottom = '-6px';
+          arrowBorder.style.top = 'auto';
+          arrowBorder.style.borderTop = '6px solid #dcdee5';
+          arrowBorder.style.borderBottom = 'none';
+          arrowBorder.style.borderLeft = '6px solid transparent';
+          arrowBorder.style.borderRight = '6px solid transparent';
+          
+          // 箭头（内层，白色）
+          arrow.style.bottom = '-5px';
+          arrow.style.top = 'auto';
+          arrow.style.borderTop = '5px solid #fff';
+          arrow.style.borderBottom = 'none';
+          arrow.style.borderLeft = '5px solid transparent';
+          arrow.style.borderRight = '5px solid transparent';
+        }
 
-      this.tooltipElement.style.left = `${adjustedX}px`;
-      this.tooltipElement.style.top = `${adjustedY}px`;
-      this.tooltipElement.style.opacity = '0.9';
-    });
+        // 水平方向边界检查
+        if (adjustedX < 10) {
+          adjustedX = 10;
+        } else if (adjustedX + rect.width > viewportWidth - 10) {
+          adjustedX = viewportWidth - rect.width - 10;
+        }
+
+        this.tooltipElement.style.left = `${adjustedX}px`;
+        this.tooltipElement.style.top = `${adjustedY}px`;
+        this.tooltipElement.style.opacity = '0.9';
+      });
+    }, 300); // 延迟 300ms 显示
   }
 
   /**
@@ -161,6 +180,12 @@ class TextTooltip {
    */
   hide(immediate = false) {
     if (!this.tooltipElement) return;
+
+    // 清除显示定时器
+    if (this.showTimer) {
+      clearTimeout(this.showTimer);
+      this.showTimer = null;
+    }
 
     if (immediate) {
       this.tooltipElement.style.opacity = '0';
@@ -178,7 +203,7 @@ class TextTooltip {
           }
         }, 200);
       }
-    }, 100);
+    }, 300);
   }
 
   /**
@@ -187,6 +212,9 @@ class TextTooltip {
   destroy() {
     if (this.hideTimer) {
       clearTimeout(this.hideTimer);
+    }
+    if (this.showTimer) {
+      clearTimeout(this.showTimer);
     }
     if (this.tooltipElement && this.tooltipElement.parentNode) {
       this.tooltipElement.parentNode.removeChild(this.tooltipElement);

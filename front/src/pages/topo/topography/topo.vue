@@ -131,62 +131,7 @@
         </Popover>
       </div> -->
 
-      <!-- =========== 新增：接入点详情气泡 (Hover) =========== -->
-      <div
-        v-show="detailState.visible"
-        :style="{
-          position: 'absolute',
-          left: `${detailState.x}px`,
-          top: `${detailState.y}px`,
-          width: '1px',
-          height: '1px',
-          zIndex: 1000,
-          pointerEvents: 'none'
-        }"
-      >
-        <Popover
-          :is-show="detailState.showPopover"
-          trigger="manual"
-          theme="light"
-          placement="right"
-          :arrow="true"
-        >
-          <!-- 锚点 -->
-          <div style="width: 1px; height: 1px"></div>
-
-          <template #content>
-            <Table
-              :data="detailState.data.endpointsData"
-              :min-width="600"
-              :max-height="800"
-              auto-resize
-              :show-overflow="false"
-              :row-config="{ isHover: true, height: 'auto' }"
-            >
-              <TableColumn field="accesspoint_name" :title="$t('topoManager.topo.accessPointName')" :min-width="180">
-                <template #default="{ row }">
-                  {{ row.name }}
-                </template>
-              </TableColumn>
-              <TableColumn field="cluster" title="cluster" :min-width="200">
-                <template #default="{ row }">
-                  <span style="white-space: pre-line;">{{ row.endpoints.cluster.join('\n') }}</span>
-                </template>
-              </TableColumn>
-              <TableColumn field="file" title="file" :min-width="200">
-                <template #default="{ row }">
-                  {{ row.endpoints.file.join('\n') }}
-                </template>
-              </TableColumn>
-              <TableColumn field="data" title="data" :min-width="200">
-                <template #default="{ row }">
-                  {{ row.endpoints.data.join('\n') }}
-                </template>
-              </TableColumn>
-            </Table>
-          </template>
-        </Popover>
-      </div>
+      <!-- =========== 接入点详情：已改为使用 tableTooltip（纯 DOM），无需 Popover =========== -->
     </div>
   </Loading>
 </template>
@@ -206,11 +151,11 @@ import {
   NodeEvent,
   register,
 } from '@antv/g6';
-import { Table, TableColumn } from '@blueking/table';
 
 import AccessPointNode from './graph-plugin/access-point-node';
 import { NodeStatus, NodeType, UnitType } from './graph-plugin/config';
 import CustomToolbar from './graph-plugin/custom-toolbar.vue';
+import { textTooltip } from './graph-plugin/text-tooltip';
 
 import HorizontalHierarchyLayout from './graph-plugin/HorizontalHierarchyLayout';
 import CustomEdge from './graph-plugin/customEdge';
@@ -363,24 +308,25 @@ function handleInitTopo() {
         shadowLineDash: [4, 4],
         // 允许拖拽的元素类型：节点+边
         enable: (event: IElementDragEvent) => {
-          if (!['node', 'edge'].includes(event.targetType) || event.target.id.includes('workArea')) return false;
+          // if (!['node', 'edge'].includes(event.targetType) || event.target.id.includes('workArea')) return false;
 
-          const nodeId = event.target.id;
+          // const nodeId = event.target.id;
 
-          // 单元节点：通过计算鼠标是否在顶部 36px 范围内
-          if (String(nodeId).includes('workUnit')) {
-            const { y: mouseY } = event.canvas;
-            const bounds = event.target.getRenderBounds();
-            const nodeTopY = bounds.min[1];
-            const headerHeight = 36;
+          // // 单元节点：通过计算鼠标是否在顶部 36px 范围内
+          // if (String(nodeId).includes('workUnit')) {
+          //   const { y: mouseY } = event.canvas;
+          //   const bounds = event.target.getRenderBounds();
+          //   const nodeTopY = bounds.min[1];
+          //   const headerHeight = 36;
 
-            // 纯数学比对，瞬间返回 true/false，不需要 await
-            if (mouseY >= nodeTopY && mouseY <= nodeTopY + headerHeight + 2) {
-              return true;
-            }
-            return false;
-          }
-          return true;
+          //   // 纯数学比对，瞬间返回 true/false，不需要 await
+          //   if (mouseY >= nodeTopY && mouseY <= nodeTopY + headerHeight + 2) {
+          //     return true;
+          //   }
+          //   return false;
+          // }
+          // return true;
+          return false;
         },
         // 拖拽时鼠标样式
         cursor: {
@@ -412,9 +358,6 @@ function handleInitTopo() {
   graph.on(EdgeEvent.POINTER_OVER, handleHoverEdge);
   graph.on(EdgeEvent.POINTER_OUT, handleLeaveEdge);
 
-  // 监听节点的移入移出 (显示详情)
-  graph.on(NodeEvent.POINTER_OVER, handleNodeEnter);
-  graph.on(NodeEvent.POINTER_OUT, handleNodeLeave);
   // 【修改】使用新的整合函数
   graph.on(NodeEvent.CLICK, handleNodeClick);
 }
@@ -506,64 +449,6 @@ function initGlobalListeners() {
   // 拖拽或缩放画布时关闭，防止菜单位置错乱
   graph.on('drag', closeMenu);
   graph.on('zoom', closeMenu);
-}
-
-// ------------------ 3. 详情弹窗状态 (Hover) ------------------
-const detailState = reactive({
-  visible: false,     // 锚点是否存在
-  showPopover: false, // Popover 是否显示
-  x: 0,
-  y: 0,
-  data: null as any,  // 存储接入点数据
-  timer: null as any,  // 防抖定时器
-});
-
-// 鼠标移入节点 (显示详情)
-function handleNodeEnter(evt: any) {
-  const { path, canvas, target } = evt;
-  if (!canvas) return;
-
-  // 1. 校验类名 (保持不变)
-  const shapeClass = target.className || target.attributes?.class || path[0]?.config?.className;
-  if (shapeClass !== 'ap-info-icon' && shapeClass !== 'info-hit-area') return;
-
-  // 2. 获取 ID (保持不变)
-  let nodeId = evt.id;
-  if (!nodeId && path) {
-    const nodeObj = path.find((p: any) => p.id && String(p.id).includes('accessPoint-'));
-    nodeId = nodeObj?.id;
-  }
-
-  if (nodeId && nodeId.startsWith('accessPoint-')) {
-    const nodeData = graph.getNodeData(nodeId);
-
-    // --- 【简化】坐标计算：改为右侧 ---
-    const bbox = target.getRenderBounds();
-
-    // 取图标的【最右侧】X 坐标
-    const rightX = bbox.max[0];
-    // 取图标的【垂直中心】Y 坐标
-    const centerY = (bbox.min[1] + bbox.max[1]) / 2;
-
-    // 转为屏幕坐标
-    const viewportPoint = graph.getViewportByCanvas([rightX, centerY]);
-
-    // x: 图标右边缘 + 10px 间距
-    detailState.x = viewportPoint[0];
-    // y: 垂直居中
-    detailState.y = viewportPoint[1];
-
-    detailState.data = nodeData?.data || {};
-    detailState.visible = true;
-    detailState.showPopover = true;
-  }
-}
-
-// 鼠标移出节点 (隐藏详情)
-function handleNodeLeave(evt: any) {
-  // 目前没有但是之后要设计：移到pop上时候pop可以不消失
-  detailState.showPopover = false;
-  detailState.visible = false;
 }
 
 // ---------------------- 节点拖拽逻辑 (保持原样) ----------------------
@@ -809,6 +694,7 @@ function handleNodeClick(evt: any) {
   }
 
   // ==================== 页面跳转逻辑 ====================
+  // 只有点击跳转图标时才允许跳转
   if (nodeId && nodeId.includes(workUnitPrefix)) {
     const nodeData = graph.getNodeData(nodeId);
     if (!nodeData) return;
@@ -817,27 +703,34 @@ function handleNodeClick(evt: any) {
     const workareaId = Number(String(nodeData.data.area).replace(workAreaPrefix, ''));
     const workUnitId = Number(nodeId.replace(workUnitPrefix, ''));
 
-    // 特殊跳转逻辑：Agent
-    // 注意：检查 path[0] 是否存在及其 config 属性
-    if (path?.[0]?.config?.className?.includes('agent')) {
+    // 跳转到 Agent 页面（点击 Agent 跳转图标）
+    if (className === 'linkIcon-agent') {
+      textTooltip.hide(true); // 立即隐藏提示气泡
       router.push({
         name: 'agent',
         query: {
           bk_networkarea_id: workareaId,
           bk_networkunit_id: workUnitId,
+          bk_networkunit_name: nodeData.data?.name as string,
         },
       });
       return;
     }
 
-    // 默认跳转：区域详情
-    router.push({
-      name: 'workareaDetail',
-      params: {
-        workarea: workareaId,
-        workUnit: workUnitId,
-      },
-    });
+    // 跳转到单元详情页（点击单元跳转图标）
+    if (className === 'linkIcon-unit-direct' || className === 'linkIcon-unit-proxy') {
+      textTooltip.hide(true); // 立即隐藏提示气泡
+      router.push({
+        name: 'workareaDetail',
+        params: {
+          workarea: workareaId,
+          workUnit: workUnitId,
+        },
+      });
+      return;
+    }
+
+    // 如果不是点击跳转图标，不做任何跳转
   }
 }
 // 连接关系生成函数

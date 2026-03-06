@@ -15,6 +15,7 @@
       "vitest",
       "vite/client",
       "vite-plugin-vue-layouts/client",
+      "node-forge",
       "./src/@types/*"
     ],
     "allowJs": true,
