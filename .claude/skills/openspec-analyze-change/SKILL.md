@@ -1,15 +1,13 @@
 ---
-name: "OPSX: Analyze"
-description: Interactive Q&A to analyze and confirm an OpenSpec proposal before implementation.
-category: OpenSpec
-tags: [openspec, analyze, interactive]
+name: openspec-analyze-change
+description: Use when the user wants to review, question, or validate an OpenSpec proposal before implementation. Use when artifacts exist but have not been confirmed, or when the user says "analyze", "review proposal", or "check before implementing".
 ---
 
 Interactive multi-round Q&A to analyze and confirm an OpenSpec proposal before implementation.
 
 **Core principle:** Analyze in phases, confirm each phase, never dump everything at once.
 
-**Input**: The argument after `/opsx:analyze` is the change name (e.g., `/opsx:analyze add-auth`). If omitted, prompt for selection from available changes.
+**Input**: Optionally specify a change name. If omitted, prompt for selection from available changes.
 
 **Steps**
 
@@ -120,7 +118,7 @@ Maintain a running tracker across rounds. Display at each phase transition:
 - **Phase gates are mandatory.** Do NOT skip phases or combine multiple phases in one round.
 - **Track everything.** Update the progress tracker at every phase transition.
 
-**Red Flags — STOP and re-read this command**
+**Red Flags — STOP and re-read this skill**
 
 - You're about to output more than ~30 lines in a single analysis round
 - You're asking 4+ questions at once
@@ -133,4 +131,4 @@ Maintain a running tracker across rounds. Display at each phase transition:
 After all phases confirmed:
 - Summary of confirmed decisions and open items
 - List of artifact updates made
-- Readiness assessment: "Ready for `/opsx:apply`" or "N items still need resolution"
+- Readiness assessment: "Ready for `/openspec-apply`" or "N items still need resolution"
