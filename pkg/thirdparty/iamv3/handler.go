@@ -94,7 +94,7 @@ func toWireResources(resources []types.IAMResource) Resources {
 
 func toWireRequest(req types.IAMCheckRequest) Request {
 	return Request{
-		System: req.System,
+		System: req.SystemID,
 		Subject: Subject{
 			Type: "user",
 			ID:   req.Username,
@@ -228,7 +228,7 @@ func (h *Handler) ResourceMultiActionsAllowed(ctx contextx.IContext,
 	req types.IAMMultiActionCheckRequest) (map[string]bool, error) {
 
 	request := MultiActionRequest{
-		System: req.System,
+		System: req.SystemID,
 		Subject: Subject{
 			Type: "user",
 			ID:   req.Username,
@@ -286,7 +286,7 @@ func (h *Handler) BatchResourceMultiActionsAllowed(ctx contextx.IContext,
 	req types.IAMMultiActionCheckRequest, resourcesList [][]types.IAMResource) (map[string]map[string]bool, error) {
 
 	request := MultiActionRequest{
-		System: req.System,
+		System: req.SystemID,
 		Subject: Subject{
 			Type: "user",
 			ID:   req.Username,
@@ -349,17 +349,22 @@ func (h *Handler) GetToken(ctx contextx.IContext) (string, error) {
 	return h.cli.getToken(ctx, h.cli.config.SystemID)
 }
 
-// IsBasicAuthAllowed validates basic auth credentials against IAM system token.
-func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, _ string, password string) error {
-	// Get system token
+// IsBasicAuthAllowed validates basic auth credentials per the upstream iam-go-sdk
+// convention: username must equal "bk_iam" and password must match the IAM system
+// token. Both comparisons use constant-time operations to mitigate timing
+// side-channel attacks.
+func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password string) error {
+	if subtle.ConstantTimeCompare([]byte(username), []byte("bk_iam")) != 1 {
+		return fmt.Errorf("invalid credentials")
+	}
+
 	token, err := h.GetToken(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get token: %w", err)
 	}
 
-	// Validate password matches token using constant-time comparison
 	if subtle.ConstantTimeCompare([]byte(password), []byte(token)) != 1 {
-		return fmt.Errorf("invalid password")
+		return fmt.Errorf("invalid credentials")
 	}
 
 	return nil

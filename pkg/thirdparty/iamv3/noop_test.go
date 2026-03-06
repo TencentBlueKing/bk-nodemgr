@@ -8,30 +8,171 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package iamv3_test
+package iamv3
 
 import (
+	"context"
 	"testing"
+	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func TestNewNoOpHandler(t *testing.T) {
-	handler := iamv3.NewNoOpHandler()
+func TestNoOpHandler_IsAllowed(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
 
-	// Verify non-nil handler is returned
-	if handler == nil {
-		t.Fatal("NewNoOpHandler should return non-nil handler")
+	allowed, err := h.IsAllowed(ctx, types.IAMCheckRequest{
+		SystemID: "bk_nodemgr",
+		Username: "admin",
+		ActionID: "host_view",
+	})
+	if err != nil {
+		t.Fatalf("IsAllowed() unexpected error: %v", err)
 	}
-
-	// Verify type assertion to *NoOpHandler succeeds
-	if _, ok := handler.(*iamv3.NoOpHandler); !ok {
-		t.Errorf("Expected *iamv3.NoOpHandler, got %T", handler)
+	if !allowed {
+		t.Error("IsAllowed() = false, want true (bypass)")
 	}
 }
 
-// Note: When business methods are added to IHandler interface,
-// add corresponding tests here to verify NoOpHandler implementation:
-// - Test that methods return success
-// - Test that methods don't panic
-// - Verify debug logging (if testing framework supports it)
+func TestNoOpHandler_IsAllowedWithCache(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	allowed, err := h.IsAllowedWithCache(ctx, types.IAMCheckRequest{
+		SystemID: "bk_nodemgr",
+		Username: "admin",
+		ActionID: "host_view",
+	}, 5*time.Minute)
+	if err != nil {
+		t.Fatalf("IsAllowedWithCache() unexpected error: %v", err)
+	}
+	if !allowed {
+		t.Error("IsAllowedWithCache() = false, want true (bypass)")
+	}
+}
+
+func TestNoOpHandler_BatchIsAllowed(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	resourcesList := [][]types.IAMResource{
+		{{SystemID: "bk_cmdb", Type: "host", ID: "host-1"}},
+		{{SystemID: "bk_cmdb", Type: "host", ID: "host-2"}},
+	}
+
+	results, err := h.BatchIsAllowed(ctx, types.IAMCheckRequest{
+		SystemID: "bk_nodemgr",
+		Username: "admin",
+		ActionID: "host_view",
+	}, resourcesList)
+	if err != nil {
+		t.Fatalf("BatchIsAllowed() unexpected error: %v", err)
+	}
+
+	if len(results) != len(resourcesList) {
+		t.Fatalf("BatchIsAllowed() returned %d results, want %d", len(results), len(resourcesList))
+	}
+
+	for key, val := range results {
+		if !val {
+			t.Errorf("BatchIsAllowed()[%q] = false, want true (bypass)", key)
+		}
+	}
+}
+
+func TestNoOpHandler_ResourceMultiActionsAllowed(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	results, err := h.ResourceMultiActionsAllowed(ctx, types.IAMMultiActionCheckRequest{
+		SystemID:  "bk_nodemgr",
+		Username:  "admin",
+		ActionIDs: []string{"host_view", "host_edit"},
+	})
+	if err != nil {
+		t.Fatalf("ResourceMultiActionsAllowed() unexpected error: %v", err)
+	}
+
+	for _, actionID := range []string{"host_view", "host_edit"} {
+		if !results[actionID] {
+			t.Errorf("ResourceMultiActionsAllowed()[%q] = false, want true (bypass)", actionID)
+		}
+	}
+}
+
+func TestNoOpHandler_BatchResourceMultiActionsAllowed(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	resourcesList := [][]types.IAMResource{
+		{{SystemID: "bk_cmdb", Type: "host", ID: "host-1"}},
+	}
+	actionIDs := []string{"host_view", "host_edit"}
+
+	results, err := h.BatchResourceMultiActionsAllowed(ctx, types.IAMMultiActionCheckRequest{
+		SystemID:  "bk_nodemgr",
+		Username:  "admin",
+		ActionIDs: actionIDs,
+	}, resourcesList)
+	if err != nil {
+		t.Fatalf("BatchResourceMultiActionsAllowed() unexpected error: %v", err)
+	}
+
+	if len(results) != len(resourcesList) {
+		t.Fatalf("BatchResourceMultiActionsAllowed() returned %d resource groups, want %d",
+			len(results), len(resourcesList))
+	}
+
+	for resKey, actionMap := range results {
+		for _, actionID := range actionIDs {
+			if !actionMap[actionID] {
+				t.Errorf("BatchResourceMultiActionsAllowed()[%q][%q] = false, want true (bypass)",
+					resKey, actionID)
+			}
+		}
+	}
+}
+
+func TestNoOpHandler_GetToken(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	token, err := h.GetToken(ctx)
+	if err != nil {
+		t.Fatalf("GetToken() unexpected error: %v", err)
+	}
+	if token != "" {
+		t.Errorf("GetToken() = %q, want empty string (bypass)", token)
+	}
+}
+
+func TestNoOpHandler_IsBasicAuthAllowed(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	if err := h.IsBasicAuthAllowed(ctx, "anyone", "anything"); err != nil {
+		t.Errorf("IsBasicAuthAllowed() = %v, want nil (bypass)", err)
+	}
+}
+
+func TestNoOpHandler_GetApplyURL(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	url, err := h.GetApplyURL(ctx, types.IAMApplyRequest{
+		SystemID: "bk_nodemgr",
+		Actions: []types.IAMApplyAction{
+			{ID: "host_view", RelatedResourceTypes: []types.IAMApplyResourceType{
+				{SystemID: "bk_cmdb", Type: "host"},
+			}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetApplyURL() unexpected error: %v", err)
+	}
+	if url != "" {
+		t.Errorf("GetApplyURL() = %q, want empty string (bypass)", url)
+	}
+}

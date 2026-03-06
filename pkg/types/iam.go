@@ -10,7 +10,16 @@
 
 package types
 
-// IAMResource represents a resource for IAM permission checks.
+// IAMResource represents a single resource for IAM permission checks. It maps
+// to the IAM v3 wire type ResourceNode as follows:
+//
+//	SystemID   → ResourceNode.System    (the system that owns this resource)
+//	Type       → ResourceNode.Type
+//	ID         → ResourceNode.ID
+//	Attributes → ResourceNode.Attribute
+//
+// Note: SystemID here identifies the resource-owning system, which may differ
+// from the request-level SystemID (e.g. NodeMgr checking CMDB host permissions).
 type IAMResource struct {
 	SystemID   string
 	Type       string
@@ -18,41 +27,46 @@ type IAMResource struct {
 	Attributes map[string]interface{}
 }
 
-// IAMCheckRequest is the business-semantic request for a single-action permission check.
-// It describes the subject, the action, and the resources to check against.
+// IAMCheckRequest is the business-semantic request for a single-action
+// permission check. SystemID is the target IAM system ID (the same concept as
+// iamv3.Config.SystemID and IAMApplyRequest.SystemID).
 type IAMCheckRequest struct {
-	System    string
+	SystemID  string
 	Username  string
 	ActionID  string
 	Resources []IAMResource
 }
 
-// IAMMultiActionCheckRequest is the business-semantic request for multi-action permission check.
-// It allows checking multiple actions against the same set of resources in a single call.
+// IAMMultiActionCheckRequest is the business-semantic request for a
+// multi-action permission check. SystemID carries the same target IAM system ID
+// semantics as IAMCheckRequest.SystemID.
 type IAMMultiActionCheckRequest struct {
-	System    string
+	SystemID  string
 	Username  string
 	ActionIDs []string
 	Resources []IAMResource
 }
 
-// IAMApplyResourceType is a deduplicated resource type for apply URL generation.
-// It identifies a resource type within a specific system.
+// IAMApplyResourceType identifies a resource type within a specific system for
+// apply URL generation. SystemID is the resource-owning system, matching the
+// convention used in IAMResource.SystemID.
 type IAMApplyResourceType struct {
 	SystemID string
 	Type     string
 }
 
-// IAMApplyAction is a single action with its related resource types for apply URL generation.
-// RelatedResourceTypes lists the resource types that the action operates on.
+// IAMApplyAction describes a single action and its related resource types for
+// apply URL generation. RelatedResourceTypes lists the resource types the
+// action operates on.
 type IAMApplyAction struct {
 	ID                   string
 	RelatedResourceTypes []IAMApplyResourceType
 }
 
-// IAMApplyRequest is the business-semantic request for getting a permission apply URL.
-// Supports multiple actions to avoid capability regression vs the current Application wire type,
-// which also carries a slice of actions (Application.Actions []ApplicationAction).
+// IAMApplyRequest is the business-semantic input for obtaining a permission
+// apply URL from IAM. SystemID is the target IAM system ID (same concept as
+// IAMCheckRequest.SystemID and iamv3.Config.SystemID). Actions may contain
+// multiple entries to request permissions for several actions at once.
 type IAMApplyRequest struct {
 	SystemID string
 	Actions  []IAMApplyAction

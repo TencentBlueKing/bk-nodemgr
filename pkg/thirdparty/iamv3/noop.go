@@ -19,34 +19,37 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// NoOpHandler implements IHandler with no-op behavior.
-type NoOpHandler struct {
-	// No fields needed for no-op implementation
-}
+// NoOpHandler is a full bypass implementation of IHandler used when IAM v3 is
+// disabled. Every permission check returns "allowed", GetToken and GetApplyURL
+// return empty strings, and no IAM service is ever contacted. Callers that
+// instantiate NoOpHandler accept that all authorization decisions are bypassed;
+// this is NOT a degraded or partial IAM mode.
+type NoOpHandler struct{}
 
 // Verify that NoOpHandler implements IHandler interface.
 var _ IHandler = (*NoOpHandler)(nil)
 
-// NewNoOpHandler creates a new no-op handler.
-// It logs a warning message indicating that IAM v3 is disabled.
+// NewNoOpHandler returns an IHandler that bypasses all IAM authorization. It
+// logs a warning at construction time so operators are aware that permission
+// enforcement is completely disabled for this process.
 func NewNoOpHandler() IHandler {
 	logger.G.Sys().Warn("IAM v3 is disabled, all permission checks will be skipped")
 	return &NoOpHandler{}
 }
 
-// IsAllowed always returns true for no-op handler.
+// IsAllowed unconditionally returns true (bypass).
 func (h *NoOpHandler) IsAllowed(_ contextx.IContext, _ types.IAMCheckRequest) (bool, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping IsAllowed")
 	return true, nil
 }
 
-// IsAllowedWithCache always returns true for no-op handler.
+// IsAllowedWithCache unconditionally returns true (bypass); the ttl is ignored.
 func (h *NoOpHandler) IsAllowedWithCache(_ contextx.IContext, _ types.IAMCheckRequest, _ time.Duration) (bool, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping IsAllowedWithCache")
 	return true, nil
 }
 
-// BatchIsAllowed returns all true for no-op handler.
+// BatchIsAllowed returns true for every resource set (bypass).
 func (h *NoOpHandler) BatchIsAllowed(_ contextx.IContext, _ types.IAMCheckRequest,
 	resourcesList [][]types.IAMResource,
 ) (map[string]bool, error) {
@@ -62,7 +65,7 @@ func (h *NoOpHandler) BatchIsAllowed(_ contextx.IContext, _ types.IAMCheckReques
 	return results, nil
 }
 
-// ResourceMultiActionsAllowed returns all true for no-op handler.
+// ResourceMultiActionsAllowed returns true for every action (bypass).
 func (h *NoOpHandler) ResourceMultiActionsAllowed(
 	_ contextx.IContext, request types.IAMMultiActionCheckRequest,
 ) (map[string]bool, error) {
@@ -77,7 +80,8 @@ func (h *NoOpHandler) ResourceMultiActionsAllowed(
 	return results, nil
 }
 
-// BatchResourceMultiActionsAllowed returns all true for no-op handler.
+// BatchResourceMultiActionsAllowed returns true for every action on every
+// resource set (bypass).
 func (h *NoOpHandler) BatchResourceMultiActionsAllowed(
 	_ contextx.IContext, request types.IAMMultiActionCheckRequest, resourcesList [][]types.IAMResource,
 ) (map[string]map[string]bool, error) {
@@ -96,19 +100,19 @@ func (h *NoOpHandler) BatchResourceMultiActionsAllowed(
 	return results, nil
 }
 
-// GetToken returns empty string for no-op handler.
+// GetToken returns an empty string; no IAM service is contacted in bypass mode.
 func (h *NoOpHandler) GetToken(_ contextx.IContext) (string, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping GetToken")
 	return "", nil
 }
 
-// IsBasicAuthAllowed always returns nil (success) for no-op handler.
+// IsBasicAuthAllowed unconditionally succeeds (bypass).
 func (h *NoOpHandler) IsBasicAuthAllowed(_ contextx.IContext, _, _ string) error {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping IsBasicAuthAllowed")
 	return nil
 }
 
-// GetApplyURL returns empty string for no-op handler.
+// GetApplyURL returns an empty string; no IAM service is contacted in bypass mode.
 func (h *NoOpHandler) GetApplyURL(_ contextx.IContext, _ types.IAMApplyRequest) (string, error) {
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping GetApplyURL")
 	return "", nil

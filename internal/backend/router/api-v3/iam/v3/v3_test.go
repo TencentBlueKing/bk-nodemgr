@@ -28,19 +28,24 @@ import (
 )
 
 // mockIAMHandler is a mock implementation of iamv3.IHandler for testing.
+// It mirrors the real Handler's IsBasicAuthAllowed semantics: username must be
+// "bk_iam" and password must match the system token, per iam-go-sdk convention.
 type mockIAMHandler struct {
-	allowedUsername string
-	allowedPassword string
+	token string
 }
 
 var _ iamv3.IHandler = (*mockIAMHandler)(nil)
 
 func (m *mockIAMHandler) IsBasicAuthAllowed(_ contextx.IContext, username, password string) error {
-	if username == m.allowedUsername && password == m.allowedPassword {
-		return nil
+	if username != "bk_iam" {
+		return fmt.Errorf("invalid credentials")
 	}
 
-	return fmt.Errorf("invalid credentials: got %s/%s, expected %s/%s", username, password, m.allowedUsername, m.allowedPassword)
+	if password != m.token {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	return nil
 }
 
 // Implement other IHandler methods as no-ops for the mock.
@@ -68,7 +73,7 @@ func (m *mockIAMHandler) BatchResourceMultiActionsAllowed(_ contextx.IContext,
 }
 
 func (m *mockIAMHandler) GetToken(_ contextx.IContext) (string, error) {
-	return m.allowedPassword, nil
+	return m.token, nil
 }
 
 func (m *mockIAMHandler) GetApplyURL(_ contextx.IContext, _ types.IAMApplyRequest) (string, error) {
@@ -98,14 +103,13 @@ func basicAuth(username, password string) string {
 // TestRouteRegistration verifies that the IAM routes are registered correctly.
 func TestRouteRegistration(t *testing.T) {
 	mockHandler := &mockIAMHandler{
-		allowedUsername: "test_system",
-		allowedPassword: "test_token",
+		token: "test_token",
 	}
 	router := setupTestRouter(mockHandler)
 
 	// Check that the route exists by making a request (authentication will be checked separately)
 	req := httptest.NewRequest(http.MethodPost, "/api/v3/iam/v3/resource", nil)
-	req.Header.Set("Authorization", basicAuth("test_system", "test_token"))
+	req.Header.Set("Authorization", basicAuth("bk_iam", "test_token"))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -121,8 +125,7 @@ func TestRouteRegistration(t *testing.T) {
 // TestBasicAuthMiddleware_NoCredentials tests that requests without credentials are rejected.
 func TestBasicAuthMiddleware_NoCredentials(t *testing.T) {
 	mockHandler := &mockIAMHandler{
-		allowedUsername: "test_system",
-		allowedPassword: "test_token",
+		token: "test_token",
 	}
 	router := setupTestRouter(mockHandler)
 
@@ -145,8 +148,7 @@ func TestBasicAuthMiddleware_NoCredentials(t *testing.T) {
 // TestBasicAuthMiddleware_InvalidCredentials tests that invalid credentials are rejected.
 func TestBasicAuthMiddleware_InvalidCredentials(t *testing.T) {
 	mockHandler := &mockIAMHandler{
-		allowedUsername: "test_system",
-		allowedPassword: "test_token",
+		token: "test_token",
 	}
 	router := setupTestRouter(mockHandler)
 
@@ -165,15 +167,14 @@ func TestBasicAuthMiddleware_InvalidCredentials(t *testing.T) {
 // TestBasicAuthMiddleware_ValidCredentials tests that valid credentials are accepted.
 func TestBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 	mockHandler := &mockIAMHandler{
-		allowedUsername: "test_system",
-		allowedPassword: "test_token",
+		token: "test_token",
 	}
 	router := setupTestRouter(mockHandler)
 
 	// Make a request with valid credentials but empty body
 	// The dispatcher will return 400 for bad request, but not 401
 	req := httptest.NewRequest(http.MethodPost, "/api/v3/iam/v3/resource", nil)
-	req.Header.Set("Authorization", basicAuth("test_system", "test_token"))
+	req.Header.Set("Authorization", basicAuth("bk_iam", "test_token"))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -188,15 +189,14 @@ func TestBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 // TestResourceCallback_UnregisteredProvider tests that unregistered resource types return 404.
 func TestResourceCallback_UnregisteredProvider(t *testing.T) {
 	mockHandler := &mockIAMHandler{
-		allowedUsername: "test_system",
-		allowedPassword: "test_token",
+		token: "test_token",
 	}
 	router := setupTestRouter(mockHandler)
 
 	// Send a valid callback request for an unregistered resource type
 	body := `{"type": "unregistered_type", "method": "list_instance"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v3/iam/v3/resource", strings.NewReader(body))
-	req.Header.Set("Authorization", basicAuth("test_system", "test_token"))
+	req.Header.Set("Authorization", basicAuth("bk_iam", "test_token"))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 

@@ -123,7 +123,7 @@ func TestNew(t *testing.T) {
 // This guarantees cache key stability across the business→wire conversion boundary.
 func TestCacheKeyEquivalence(t *testing.T) {
 	checkReq := types.IAMCheckRequest{
-		System:   "bk_nodemgr",
+		SystemID: "bk_nodemgr",
 		Username: "admin",
 		ActionID: "host_view",
 		Resources: []types.IAMResource{
