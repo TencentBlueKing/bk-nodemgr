@@ -376,10 +376,22 @@ func (h *Handler) GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) 
 	for _, action := range req.Actions {
 		relatedResourceTypes := make([]ApplicationRelatedResourceType, 0, len(action.RelatedResourceTypes))
 		for _, related := range action.RelatedResourceTypes {
+			instances := make([]ApplicationResourceInstance, 0, len(related.Instances))
+			for _, instance := range related.Instances {
+				nodes := make(ApplicationResourceInstance, 0, len(instance))
+				for _, node := range instance {
+					nodes = append(nodes, ApplicationResourceNode{
+						Type: node.Type,
+						ID:   node.ID,
+					})
+				}
+				instances = append(instances, nodes)
+			}
+
 			relatedResourceTypes = append(relatedResourceTypes, ApplicationRelatedResourceType{
 				SystemID:  related.SystemID,
 				Type:      related.Type,
-				Instances: nil,
+				Instances: instances,
 			})
 		}
 

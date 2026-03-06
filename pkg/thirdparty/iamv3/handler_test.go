@@ -12,6 +12,7 @@ package iamv3
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -362,5 +363,81 @@ func TestBatchResourceIDKey(t *testing.T) {
 				t.Errorf("buildResourceID() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestGetApplyURL_PreservesInstances(t *testing.T) {
+	var gotApplication Application
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodPost {
+			rw.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		if req.URL.Path != "/api/v1/open/application/" {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		if err := json.NewDecoder(req.Body).Decode(&gotApplication); err != nil {
+			rw.WriteHeader(http.StatusBadRequest)
+			_, _ = rw.Write([]byte(`{"code":1,"message":"bad request","data":{}}`))
+			return
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"code":0,"message":"ok","data":{"url":"https://example.com/apply"}}`))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	url, err := h.GetApplyURL(contextx.New(context.Background()), types.IAMApplyRequest{
+		SystemID: "bk_nodemgr",
+		Actions: []types.IAMApplyAction{
+			{
+				ID: "host_view",
+				RelatedResourceTypes: []types.IAMApplyResourceType{
+					{
+						SystemID: "bk_cmdb",
+						Type:     "host",
+						Instances: []types.IAMApplyResourceInstance{
+							{
+								{Type: "biz", ID: "biz-1"},
+								{Type: "host", ID: "host-1"},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetApplyURL() unexpected error: %v", err)
+	}
+	if url != "https://example.com/apply" {
+		t.Fatalf("GetApplyURL() = %q, want %q", url, "https://example.com/apply")
+	}
+
+	if gotApplication.SystemID != "bk_nodemgr" {
+		t.Fatalf("application.system_id = %q, want %q", gotApplication.SystemID, "bk_nodemgr")
+	}
+	if len(gotApplication.Actions) != 1 {
+		t.Fatalf("application.actions length = %d, want 1", len(gotApplication.Actions))
+	}
+	if len(gotApplication.Actions[0].RelatedResourceTypes) != 1 {
+		t.Fatalf("related_resource_types length = %d, want 1", len(gotApplication.Actions[0].RelatedResourceTypes))
+	}
+
+	rt := gotApplication.Actions[0].RelatedResourceTypes[0]
+	if len(rt.Instances) != 1 {
+		t.Fatalf("instances length = %d, want 1", len(rt.Instances))
+	}
+	if len(rt.Instances[0]) != 2 {
+		t.Fatalf("instance path length = %d, want 2", len(rt.Instances[0]))
+	}
+	if rt.Instances[0][0].Type != "biz" || rt.Instances[0][0].ID != "biz-1" {
+		t.Fatalf("first instance node = %+v, want biz/biz-1", rt.Instances[0][0])
+	}
+	if rt.Instances[0][1].Type != "host" || rt.Instances[0][1].ID != "host-1" {
+		t.Fatalf("second instance node = %+v, want host/host-1", rt.Instances[0][1])
 	}
 }

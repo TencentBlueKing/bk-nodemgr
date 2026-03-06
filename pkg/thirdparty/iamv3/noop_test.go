@@ -58,8 +58,12 @@ func TestNoOpHandler_BatchIsAllowed(t *testing.T) {
 	ctx := contextx.New(context.Background())
 
 	resourcesList := [][]types.IAMResource{
+		{},
 		{{SystemID: "bk_cmdb", Type: "host", ID: "host-1"}},
-		{{SystemID: "bk_cmdb", Type: "host", ID: "host-2"}},
+		{
+			{SystemID: "bk_cmdb", Type: "host", ID: "host-2"},
+			{SystemID: "bk_cmdb", Type: "module", ID: "mod-2"},
+		},
 	}
 
 	results, err := h.BatchIsAllowed(ctx, types.IAMCheckRequest{
@@ -75,7 +79,12 @@ func TestNoOpHandler_BatchIsAllowed(t *testing.T) {
 		t.Fatalf("BatchIsAllowed() returned %d results, want %d", len(results), len(resourcesList))
 	}
 
-	for key, val := range results {
+	expectedKeys := []string{"", "host-1", "host,host-2/module,mod-2"}
+	for _, key := range expectedKeys {
+		val, ok := results[key]
+		if !ok {
+			t.Fatalf("BatchIsAllowed() missing key %q", key)
+		}
 		if !val {
 			t.Errorf("BatchIsAllowed()[%q] = false, want true (bypass)", key)
 		}
@@ -107,7 +116,12 @@ func TestNoOpHandler_BatchResourceMultiActionsAllowed(t *testing.T) {
 	ctx := contextx.New(context.Background())
 
 	resourcesList := [][]types.IAMResource{
+		{},
 		{{SystemID: "bk_cmdb", Type: "host", ID: "host-1"}},
+		{
+			{SystemID: "bk_cmdb", Type: "host", ID: "host-2"},
+			{SystemID: "bk_cmdb", Type: "module", ID: "mod-2"},
+		},
 	}
 	actionIDs := []string{"host_view", "host_edit"}
 
@@ -125,7 +139,12 @@ func TestNoOpHandler_BatchResourceMultiActionsAllowed(t *testing.T) {
 			len(results), len(resourcesList))
 	}
 
-	for resKey, actionMap := range results {
+	expectedKeys := []string{"", "host-1", "host,host-2/module,mod-2"}
+	for _, resKey := range expectedKeys {
+		actionMap, ok := results[resKey]
+		if !ok {
+			t.Fatalf("BatchResourceMultiActionsAllowed() missing key %q", resKey)
+		}
 		for _, actionID := range actionIDs {
 			if !actionMap[actionID] {
 				t.Errorf("BatchResourceMultiActionsAllowed()[%q][%q] = false, want true (bypass)",

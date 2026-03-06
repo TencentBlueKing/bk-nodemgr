@@ -51,9 +51,22 @@ type IAMMultiActionCheckRequest struct {
 // apply URL generation. SystemID is the resource-owning system, matching the
 // convention used in IAMResource.SystemID.
 type IAMApplyResourceType struct {
-	SystemID string
-	Type     string
+	SystemID  string
+	Type      string
+	Instances []IAMApplyResourceInstance
 }
+
+// IAMApplyResourceNode identifies one node on a resource instance path used in
+// IAM apply URL generation.
+type IAMApplyResourceNode struct {
+	Type string
+	ID   string
+}
+
+// IAMApplyResourceInstance represents one resource instance path. For
+// topology-style resources, this may contain multiple nodes ordered by the
+// instance view chain.
+type IAMApplyResourceInstance []IAMApplyResourceNode
 
 // IAMApplyAction describes a single action and its related resource types for
 // apply URL generation. RelatedResourceTypes lists the resource types the
