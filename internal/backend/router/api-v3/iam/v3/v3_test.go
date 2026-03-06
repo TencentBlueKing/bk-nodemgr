@@ -169,20 +169,25 @@ func TestBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 	mockHandler := &mockIAMHandler{
 		token: "test_token",
 	}
-	router := setupTestRouter(mockHandler)
 
-	// Make a request with valid credentials but empty body
-	// The dispatcher will return 400 for bad request, but not 401
-	req := httptest.NewRequest(http.MethodPost, "/api/v3/iam/v3/resource", nil)
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	h := &handler{
+		capability: &options.Capability{IAMV3Handler: mockHandler},
+	}
+	router.Use(h.basicAuthMiddleware())
+	router.POST("/ping", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/ping", nil)
 	req.Header.Set("Authorization", basicAuth("bk_iam", "test_token"))
-	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)
 
-	// Should not be 401 (auth succeeded, but request body is invalid)
-	if w.Code == http.StatusUnauthorized {
-		t.Errorf("Expected authentication to succeed with valid credentials, got 401. Body: %s", w.Body.String())
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200 OK for valid credentials, got %d. Body: %s", w.Code, w.Body.String())
 	}
 }
 
