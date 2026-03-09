@@ -382,14 +382,24 @@ func (r *Result) RawData() ([]byte, error) {
 	return bodyData, nil
 }
 
+// maxErrBodySize limits how many bytes are read from error responses to include in the error message.
+const maxErrBodySize = 1024
+
 // RawStream get raw stream.
 func (r *Result) RawStream() (io.ReadCloser, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
 
-	if r.StatusCode >= http.StatusInternalServerError {
-		return nil, fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, r.Body)
+	if r.Body == nil {
+		return nil, fmt.Errorf("response body is nil")
+	}
+
+	if r.StatusCode >= http.StatusBadRequest {
+		snippet, _ := io.ReadAll(io.LimitReader(r.Body, maxErrBodySize))
+		_ = r.Body.Close()
+
+		return nil, fmt.Errorf("http request failed, url(%s), status(%d), body(%s)", r.FullURL, r.StatusCode, snippet)
 	}
 
 	return r.Body, nil
