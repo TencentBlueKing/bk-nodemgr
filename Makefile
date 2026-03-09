@@ -99,7 +99,7 @@ front: | pre
 
 tools: | pre
 	@$(ECHO) "Building tools..."
-	@$(MAKE) -j -C $(ROOT_DIR)/tools platform-builds -e UPX_ENABLED=1
+	@$(MAKE) -j -C $(ROOT_DIR)/tools platform-builds VERSION="$(VERSION)" -e UPX_ENABLED=1
 
 	$(MKDIR) $(OUTPUT_DIR)/tools
 	@$(CP) -r $(ROOT_DIR)/tools/build/$(VERSION)/* $(OUTPUT_DIR)/tools
@@ -110,11 +110,11 @@ bintools: | pre
 	@$(MKDIR) $(OUTPUT_DIR)/bintools/
 
 	@$(ECHO) "Building gsectl bintool..."
-	@$(MAKE) -C $(ROOT_DIR)/script_tools/gsectl
+	@$(MAKE) -C $(ROOT_DIR)/script_tools/gsectl VERSION="$(VERSION)"
 	@$(CP) -r $(ROOT_DIR)/script_tools/gsectl/build/$(VERSION)/bintool.tgz $(OUTPUT_DIR)/bintools/
 
 	@$(ECHO) "Building plugin bintool..."
-	@$(MAKE) -C $(ROOT_DIR)/script_tools/plugin_scripts
+	@$(MAKE) -C $(ROOT_DIR)/script_tools/plugin_scripts VERSION="$(VERSION)"
 	@$(CP) -r $(ROOT_DIR)/script_tools/plugin_scripts/build/$(VERSION)/plugin_bintool.tgz $(OUTPUT_DIR)/bintools/
 
 	@$(ECHO) "Built successfully $(OUTPUT_DIR)/bintools/bintool.tgz"
