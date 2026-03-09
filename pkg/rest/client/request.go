@@ -396,6 +396,8 @@ func (r *Result) RawStream() (io.ReadCloser, error) {
 	}
 
 	if r.StatusCode >= http.StatusBadRequest {
+		// note: we cap the body read to avoid large responses (e.g. HTML pages, XML) consuming excessive memory;
+		// truncation at a multi-byte boundary may produce garbled output.
 		snippet, _ := io.ReadAll(io.LimitReader(r.Body, maxErrBodySize))
 		_ = r.Body.Close()
 
