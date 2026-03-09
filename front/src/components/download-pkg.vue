@@ -13,6 +13,8 @@ import { Button } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, ref } from 'vue';
 
+import { PACKAGE_GENERATION } from '@/common/const';
+
 const props = defineProps({
   url: {
     type: String,
@@ -48,7 +50,7 @@ const handleDownload = async () => {
     downloadLoading.value = true;
 
     // 构建下载参数
-    const params: DownloadParams = { generation: 2 };
+    const params: DownloadParams = { generation: PACKAGE_GENERATION };
 
     // 根据类型设置不同参数
     switch (props.currentType) {

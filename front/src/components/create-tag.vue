@@ -48,6 +48,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { PackageService } from '@/api/modules/pkg';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { usePackageStore } from '@/stores/package';
 
 const props = defineProps({
@@ -105,7 +106,7 @@ const handleBlur = async () => {
 
   // 标签输入框更新标签
   await serviceMethod({
-    generation: 2,
+    generation: PACKAGE_GENERATION,
     exact_include_conditions: {
       platform: [props.data.platform],
       version: [props.data.version],

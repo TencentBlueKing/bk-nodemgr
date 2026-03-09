@@ -714,9 +714,10 @@ import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 // 引入轻量级组件 ValidateCell
 import ValidateCell from './validateCell.vue';
 
-import type { TopoHostDistinctRespData } from '@/@types/topo.d';
+import type { PackageReleaseDistinctData } from '@/@types/pkg.d';
+import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
-import { VALIDATE_REGEX } from '@/common/const';
+import { PACKAGE_GENERATION, VALIDATE_REGEX } from '@/common/const';
 import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import { useMainStore } from '@/stores/main';
@@ -893,7 +894,7 @@ const authenticationTypes = ref([
     ]
     : []),
 ]);
-const hostDistinct = ref<TopoHostDistinctRespData | null>();
+const hostDistinct = ref<PackageReleaseDistinctData | null>();
 
 // --- 业务逻辑 ---
 const handleChangeMode = (val: string, row: any, rowIndex: number) => {
@@ -915,13 +916,25 @@ const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
     handleFieldBlur(rowIndex, 'login_user', 'root');
   }
   if (val === 'windows') {
+    row.login_port = '445';
     row.login_user = 'administrator';
+    handleFieldBlur(rowIndex, 'login_port', '445');
     handleFieldBlur(rowIndex, 'login_user', 'administrator');
   }
 };
 
 const getHostDistinct = async () => {
-  const res = await TopoService.HostDistinct({}).catch(() => null);
+  const distinctParams = {
+    generation: PACKAGE_GENERATION,
+    exact_include_conditions: {
+      enabled: [true],
+    },
+    distinct_field: { os_type: true, cpu_arch: false },
+  };
+  const service = props.releaseType === 'proxy'
+    ? PackageService.DistinctReleaseProxy(distinctParams as any)
+    : PackageService.DistinctReleaseAgent(distinctParams as any);
+  const res = await service.catch(() => null);
   if (res) {
     hostDistinct.value = res;
     datasourceList.value = res.os_type.map(item => ({
@@ -954,7 +967,9 @@ const handleBatchEdit = (field: string, value: any) => {
         handleFieldBlur(index, 'login_port', '36000');
         handleFieldBlur(index, 'login_user', 'root');
       } else if (value === 'windows') {
+        item.login_port = '445';
         item.login_user = 'administrator';
+        handleFieldBlur(index, 'login_port', '445');
         handleFieldBlur(index, 'login_user', 'administrator');
       }
     }

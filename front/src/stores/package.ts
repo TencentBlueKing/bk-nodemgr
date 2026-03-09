@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { PackageService } from '@/api/modules/pkg';
+import { PACKAGE_GENERATION } from '@/common/const';
 
 export const usePackageStore = defineStore('package', () => {
   const route = useRoute();
@@ -17,7 +18,7 @@ export const usePackageStore = defineStore('package', () => {
     if (currentType.value === 'agent') {
       res = await PackageService.ListReleaseAgent({
         page: { limit: 500, offset: 0 },
-        generation: 2,
+        generation: PACKAGE_GENERATION,
         exact_include_conditions: {},
       }).catch(() => ({
         total: 0,
@@ -26,7 +27,7 @@ export const usePackageStore = defineStore('package', () => {
     } else {
       res = await PackageService.ListReleaseProxy({
         page: { limit: 500, offset: 0 },
-        generation: 2,
+        generation: PACKAGE_GENERATION,
         exact_include_conditions: {},
       }).catch(() => ({
         total: 0,

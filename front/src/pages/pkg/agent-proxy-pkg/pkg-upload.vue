@@ -96,6 +96,7 @@ import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
+import { PACKAGE_GENERATION } from '@/common/const';
 import { bytesToMegabytes, capitalizeFirstLetter } from '@/common/util';
 
 const { t } = useI18n();
@@ -157,7 +158,7 @@ const handleUpload = () => {
   const formData = new FormData();
 
   // 添加元数据
-  const metadata = JSON.stringify({ generation: 2, overwrite: true });
+  const metadata = JSON.stringify({ generation: PACKAGE_GENERATION, overwrite: true });
   formData.append('metadata', metadata);
   curFile.status = '';
   curFile.progress = 0;

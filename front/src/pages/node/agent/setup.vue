@@ -336,6 +336,7 @@ import Preview from './preview.vue';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import { encryptionTool } from '@/common/crypto';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
@@ -675,7 +676,7 @@ const handleCancel = () => {
 const getVersions = async () => {
   const res = await PackageService.ListReleaseAgent({
     page: { limit: 500, offset: 0 },
-    generation: 2,
+    generation: PACKAGE_GENERATION,
     exact_include_conditions: {
       release_type: ['agent'],
     },

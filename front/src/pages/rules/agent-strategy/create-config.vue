@@ -194,6 +194,7 @@ import { useI18n } from 'vue-i18n';
 import type { NetworkArea, NetworkUnit } from '@/@types/topo';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import { TopoService } from '@/api/modules/topo';
+import { PACKAGE_GENERATION } from '@/common/const';
 // 导入config-template组件
 import ConfigTemplate from '@/components/config-template.vue';
 import { useMainStore } from '@/stores/main';
@@ -434,7 +435,7 @@ const cpuArchList = ref<{ value: string; label: string }[]>();
 const getPlatform = async () => {
   const res = await ConfigPolicyAPIService.ConfigPolicyListPlatform({
     configpolicy_type: props.configpolicyType,
-    generation: 2,
+    generation: PACKAGE_GENERATION,
   }).catch(() => ({
     os_type: [],
     cpu_arch: [],

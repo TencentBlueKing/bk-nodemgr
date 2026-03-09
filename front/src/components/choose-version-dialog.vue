@@ -127,6 +127,7 @@ import type { VxeTablePropTypes } from 'vxe-table';
 import { Table, TableColumn } from '@blueking/table';
 
 import { PackageService } from '@/api/modules/pkg';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions } from '@/common/util';
 import { useMainStore } from '@/stores/main';
 
@@ -243,7 +244,7 @@ const getVersions = async () => {
   if (props.releaseType === 'agent') {
     res = await PackageService.ListReleaseAgent({
       page: { limit: 500, offset: 0 },
-      generation: 2,
+      generation: PACKAGE_GENERATION,
       exact_include_conditions: {
         release_type: [props.releaseType],
         enabled: [true],
@@ -255,7 +256,7 @@ const getVersions = async () => {
   } else {
     res = await PackageService.ListReleaseProxy({
       page: { limit: 500, offset: 0 },
-      generation: 2,
+      generation: PACKAGE_GENERATION,
       exact_include_conditions: {
         release_type: [props.releaseType],
         enabled: [true],

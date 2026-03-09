@@ -348,6 +348,7 @@ import PkgUploadSideslider from './pkg-upload-sideslider.vue';
 
 import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions, formatTimestamp  } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
@@ -753,7 +754,7 @@ const batchUpdateTag = async () => {
       platform: packageList.value.map(item => item.platform),
       version: packageList.value.map(item => item.version),
     },
-    generation: 2,
+    generation: PACKAGE_GENERATION,
     labels: [...Array.from(new Set(selectTag.value))],
   });
   await getPackages();
@@ -841,7 +842,7 @@ const getPackages = async () => {
     // 先获取列表数据
     const listData = await listApi({
       page: { limit: 500, offset: 0 },
-      generation: 2,
+      generation: PACKAGE_GENERATION,
       exact_include_conditions: {},
     }).catch(() => ({ total: 0, items: [] }));
 

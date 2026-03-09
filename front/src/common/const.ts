@@ -1,3 +1,4 @@
+export const PACKAGE_GENERATION = 2;
 export const STORAGE_VERSION = '0.0.1';
 export const STORAGE_KEY = '_pinia_storage';
 export const VALIDATE_REGEX = {

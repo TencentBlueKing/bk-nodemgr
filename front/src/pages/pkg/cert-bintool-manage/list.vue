@@ -123,6 +123,7 @@ import PkgUploadSideslider from '../agent-proxy-pkg/pkg-upload-sideslider.vue';
 
 import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { formatTimestamp } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
@@ -302,7 +303,7 @@ const getPackages = async () => {
 
   try {
     const serviceMethod = getListServiceMethod();
-    const res = await serviceMethod({ generation: 2 });
+    const res = await serviceMethod({ generation: PACKAGE_GENERATION });
     const list = res.items.map(item => ({
       ...item.release,
     }));
