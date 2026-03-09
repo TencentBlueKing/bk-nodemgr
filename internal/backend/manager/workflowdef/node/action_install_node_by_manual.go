@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -44,7 +43,6 @@ const (
 // NewActionInstallNodeByManual get a new action.
 func NewActionInstallNodeByManual(capability *Capability) action.Definition {
 	return &actionInstallNodeByManual{
-		installerGroup:        capability.InstallerFileGroup,
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
@@ -75,8 +73,6 @@ type InstallParamsManual struct {
 }
 
 type actionInstallNodeByManual struct {
-	installerGroup fileiface.FileGroup
-
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost

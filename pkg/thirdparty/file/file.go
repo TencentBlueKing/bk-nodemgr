@@ -514,6 +514,32 @@ func (c *cli) downloadReleasePluginBinTool(nCtx contextx.IContext, tenantID stri
 	}, nil
 }
 
+func (c *cli) downloadInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadInstallerReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/installer").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
+}
+
 func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseProxyReq) (
 	*protoFile.PublishReleaseProxyResp_Data, error) {
 

@@ -24,14 +24,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -45,7 +44,7 @@ const (
 // NewActionInstallNodeByWMI get a new action.
 func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 	return &actionInstallNodeByWMI{
-		installerGroup:        capability.InstallerFileGroup,
+		fileHandler:           capability.FileHandler,
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
@@ -75,7 +74,7 @@ type InstallParamsWin struct {
 }
 
 type actionInstallNodeByWMI struct {
-	installerGroup        fileiface.FileGroup
+	fileHandler           file.IHandler
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -232,13 +231,34 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 		return "", fmt.Errorf("failed to format installer tool name: %w", err)
 	}
 
-	toolFile, err := act.installerGroup.GetFile(std.Context(), toolName)
+	toolFile, err := act.fileHandler.DownloadInstaller(
+		std.Context(), std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		return "", fmt.Errorf("failed to get installer tool file from local: %w", err)
+		return "", fmt.Errorf("failed to download installer from file service: %w", err)
 	}
+	defer func() {
+		if closeErr := toolFile.Data.Close(); closeErr != nil {
+			std.InstanceData().Log().
+				Zh("关闭installer流失败: %v", closeErr).
+				En("failed to close installer stream: %v", closeErr).
+				Error()
+		}
+	}()
 
-	tmpInstallFilePath := local.GetLocalFileAbsFilePath(toolFile)
-	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallFilePath, std.DeployInfo().InstallerWorkDir)
+	tmpInstallerFile, err := tmp.NewTempFileWithSpecialName(toolFile.Data, toolName)
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file for installer: %w", err)
+	}
+	defer func() {
+		if cleanErr := tmpInstallerFile.CleanUp(); cleanErr != nil {
+			std.InstanceData().Log().
+				Zh("清理临时文件失败: %v", cleanErr).
+				En("failed to clean temp file: %v", cleanErr).
+				Error()
+		}
+	}()
+
+	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallerFile.Path(), std.DeployInfo().InstallerWorkDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host, stdout(%s), stderr(%s): %w",
 			stdout, stderr, err)

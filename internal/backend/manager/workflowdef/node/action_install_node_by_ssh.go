@@ -24,12 +24,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -42,7 +42,7 @@ const (
 // NewActionInstallNodeBySSH get a new action.
 func NewActionInstallNodeBySSH(capability *Capability) action.Definition {
 	return &actionInstallNodeBySSH{
-		installerGroup:        capability.InstallerFileGroup,
+		fileHandler:           capability.FileHandler,
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
@@ -72,7 +72,7 @@ type InstallParams struct {
 }
 
 type actionInstallNodeBySSH struct {
-	installerGroup fileiface.FileGroup
+	fileHandler file.IHandler
 
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
@@ -229,18 +229,22 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 		return "", fmt.Errorf("failed to format installer tool name: %w", err)
 	}
 
-	toolFile, err := act.installerGroup.GetFile(std.Context(), toolName)
+	toolFile, err := act.fileHandler.DownloadInstaller(
+		std.Context(), std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		return "", fmt.Errorf("failed to get installer tool file from local: %w", err)
+		return "", fmt.Errorf("failed to download installer from file service: %w", err)
 	}
-
-	reader, err := toolFile.Content(std.Context())
-	if err != nil {
-		return "", fmt.Errorf("failed to get installer tool file content: %w", err)
-	}
+	defer func() {
+		if closeErr := toolFile.Data.Close(); closeErr != nil {
+			std.InstanceData().Log().
+				Zh("关闭installer流失败: %v", closeErr).
+				En("failed to close installer stream: %v", closeErr).
+				Error()
+		}
+	}()
 
 	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
-	if err = client.TransferFile(reader, installerPath); err != nil {
+	if err = client.TransferFile(toolFile.Data, installerPath); err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host: %w", err)
 	}
 	std.InstanceData().Log().

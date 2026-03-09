@@ -153,6 +153,9 @@ type IPkgDownloadHandler interface {
 
 	// DownloadReleasePluginBinTool download release plugin bintool.
 	DownloadReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*restserver.StreamResponse, error)
+
+	// DownloadInstaller download installer.
+	DownloadInstaller(nCtx contextx.IContext, osType criteria.OSType, cpuArch criteria.CPUArch) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -474,6 +477,27 @@ func (h *handler) DownloadReleasePluginBinTool(nCtx contextx.IContext, gen types
 	resp, err := h.cli.downloadReleasePluginBinTool(nCtx, tenantID, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release plugin bintool: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DownloadInstaller download installer.
+func (h *handler) DownloadInstaller(nCtx contextx.IContext, osType criteria.OSType, cpuArch criteria.CPUArch) (
+	*restserver.StreamResponse, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.DownloadInstallerReq{
+		OsType:  string(osType),
+		CpuArch: string(cpuArch),
+	}
+	resp, err := h.cli.downloadInstaller(nCtx, tenantID, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download installer: %w", err)
 	}
 
 	return resp, nil
