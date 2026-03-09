@@ -1079,7 +1079,7 @@ const tableValidate = async () => {
       setError(i, 'bk_biz_id',  t('validate.required'));
       rowValid = false;
     }
-    if (!row.bk_networkunit_id) {
+    if (props.isReinstall && !row.bk_networkunit_id) {
       setError(i, 'bk_networkunit_id', t('validate.required'));
       rowValid = false;
     }
