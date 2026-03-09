@@ -1,19 +1,19 @@
 openapi: 3.0.1
 servers:
-  - url: /
+- url: /
 info:
-  version: "2.0"
+  version: '2.0'
   title: API Gateway Resources
-  description: ""
+  description: ''
 paths:
   /api/v3/topo/accesspoint/list:
     post:
       operationId: Topo_AccessPointList
       description: AccessPointList provides access-point listing.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -96,7 +96,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -158,9 +158,9 @@ paths:
       operationId: Topo_BusinessList
       description: BusinessList provides business listing.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -224,7 +224,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -288,9 +288,9 @@ paths:
       operationId: Topo_ConstantGet
       description: ConstantGet provides getting a constant.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -346,7 +346,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -387,9 +387,9 @@ paths:
       operationId: Topo_EventDistinct
       description: EventDistinct provides event distincting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -460,7 +460,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -546,9 +546,9 @@ paths:
       operationId: Topo_EventList
       description: EventList provides event listing.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -629,7 +629,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -727,9 +727,9 @@ paths:
       operationId: Topo_TopoGraphNodeGetReq
       description: TopoGraphNodeGetReq provides graph node getting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -803,7 +803,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -869,7 +869,7 @@ paths:
                 request_id:
                   type: string
         required: true
-        description: ""
+        description: ''
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -892,9 +892,9 @@ paths:
       operationId: Topo_HostDistinct
       description: HostDistinct provides host distincting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -985,7 +985,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -1103,9 +1103,9 @@ paths:
       operationId: Topo_GetHostDistributionByNetworkAreaID
       description: GetHostDistributionByNetworkAreaIDReq uest provides getting host\ndistribution by node role.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -1155,7 +1155,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -1273,9 +1273,9 @@ paths:
       operationId: Topo_GetHostDistributionByNodeRole
       description: GetHostDistributionByNodeRoleReq uest provides getting host\ndistribution by node role.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -1325,7 +1325,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -1443,9 +1443,9 @@ paths:
       operationId: Topo_HostList
       description: HostList provides host listing.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -1590,7 +1590,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -1720,9 +1720,9 @@ paths:
       operationId: Topo_HostSelectHostID
       description: HostSelectHostID provides host id selecting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -1775,7 +1775,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -1946,9 +1946,9 @@ paths:
       operationId: Topo_HostSelectInnerIP
       description: HostSelectInnerIP provides host inner ip selecting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -2000,7 +2000,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -2171,9 +2171,9 @@ paths:
       operationId: Topo_HostSelectInnerIPV6
       description: HostSelectInnerIPV6 provides host inner ipv6 selecting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -2225,7 +2225,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -2396,9 +2396,9 @@ paths:
       operationId: Topo_HostSelectNetWorkareaIDAndInnerIP
       description: HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip\nselecting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -2450,7 +2450,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -2621,9 +2621,9 @@ paths:
       operationId: Topo_HostSelectNetWorkareaIDAndInnerIPV6
       description: HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner\nipv6 selecting.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -2675,7 +2675,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -2846,9 +2846,9 @@ paths:
       operationId: Topo_NetworkAreaCreate
       description: NetworkAreaCreate provides creating a new network-area.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -2899,7 +2899,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -2940,9 +2940,9 @@ paths:
       operationId: Topo_NetworkAreaDelete
       description: NetworkAreaDelete provides deleting an existing network-area by id.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -2993,7 +2993,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3033,9 +3033,9 @@ paths:
       operationId: Topo_NetworkAreaGet
       description: NetworkAreaGet provides getting an existing network-area by id.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3093,7 +3093,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3133,9 +3133,9 @@ paths:
       operationId: Topo_NetworkAreaList
       description: NetworkAreaList provides network-area listing.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3201,7 +3201,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3269,9 +3269,9 @@ paths:
       operationId: Topo_NetworkAreaUpdate
       description: NetworkAreaUpdate provides updating an existing network-area by id.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3322,7 +3322,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3366,9 +3366,9 @@ paths:
       operationId: Topo_NetworkUnitCreate
       description: NetworkUnitCreate provides creating a new network-unit.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3419,7 +3419,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3554,9 +3554,9 @@ paths:
       operationId: Topo_NetworkUnitDelete
       description: NetworkUnitDelete provides deleting an existing network-unit by id.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3607,7 +3607,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3647,9 +3647,9 @@ paths:
       operationId: Topo_NetworkUnitGet
       description: NetworkUnitGet provides getting an existing network-unit by id.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3801,7 +3801,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -3841,9 +3841,9 @@ paths:
       operationId: Topo_NetworkUnitList
       description: NetworkUnitList provides network-unit listing.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -3976,7 +3976,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -4042,9 +4042,9 @@ paths:
       operationId: Topo_NetworkUnitUpdate
       description: NetworkUnitUpdate provides updating an existing network-unit by id.
       tags:
-        - Topo
+      - Topo
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -4095,7 +4095,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -4233,9 +4233,9 @@ paths:
       operationId: Process_ProcessDistinct
       description: ProcessDistinct describes the process distinct request.
       tags:
-        - Process
+      - Process
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -4311,7 +4311,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -4421,9 +4421,9 @@ paths:
       operationId: Process_GetProcessDistributionByHostID
       description: GetProcessDistributionByHostID describes the process statistics request.
       tags:
-        - Process
+      - Process
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -4473,7 +4473,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -4565,9 +4565,9 @@ paths:
       operationId: Process_GetProcessDistributionByPluginName
       description: GetProcessDistributionByPluginName describes the process statistics\nrequest.
       tags:
-        - Process
+      - Process
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -4617,7 +4617,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -4709,9 +4709,9 @@ paths:
       operationId: Process_ListProcesses
       description: ListProcesses lists the processes.
       tags:
-        - Process
+      - Process
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -4863,7 +4863,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -4967,9 +4967,9 @@ paths:
       operationId: Plugin_ApplyPluginSubConfig
       description: ApplyPluginSubConfig apply sub-configuration for a plugin on specified\nhosts.
       tags:
-        - Plugin
+      - Plugin
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5019,7 +5019,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5074,9 +5074,9 @@ paths:
       operationId: Plugin_InstallPlugin
       description: InstallPlugin installs a plugin on specified hosts.
       tags:
-        - Plugin
+      - Plugin
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5126,7 +5126,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5181,9 +5181,9 @@ paths:
       operationId: Plugin_ListPlugins
       description: ListPlugins lists plugins based on the given conditions.
       tags:
-        - Plugin
+      - Plugin
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5249,7 +5249,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5320,9 +5320,9 @@ paths:
       operationId: Plugin_SetPluginMemo
       description: SetPluginMemo sets the memo for a plugin.
       tags:
-        - Plugin
+      - Plugin
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5367,7 +5367,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5408,9 +5408,9 @@ paths:
       operationId: Plugin_UpgradePlugin
       description: UpgradePlugin upgrades a plugin on specified hosts.
       tags:
-        - Plugin
+      - Plugin
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5460,7 +5460,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5515,9 +5515,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowDistinct
       description: PluginWorkflowDistinct provides plugin workflow distinct.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5582,7 +5582,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5647,9 +5647,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowList
       description: PluginWorkflowList provides plugin workflow list.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5729,7 +5729,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5816,9 +5816,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
       description: PluginWorkflowOperationInstanceList provides plugin workflow operation\ninstance list.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -5917,7 +5917,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -5960,9 +5960,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceLogGet
       description: PluginWorkflowOperationInstanceLogGet provides plugin operation instance\nlog get.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6053,7 +6053,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6092,9 +6092,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList
       description: PluginWorkflowOperationInstanceStatusDistribution provides latest operation\ninstance status distribution.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6155,7 +6155,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6196,9 +6196,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationList
       description: PluginWorkflowOperationList provides plugin workflow operation list.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6323,7 +6323,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6396,9 +6396,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationRetry
       description: PluginWorkflowOperationRetry provides plugin operation retry.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6445,7 +6445,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6490,9 +6490,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationTerminate
       description: PluginWorkflowOperationTerminate provides plugin operation terminate.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6539,7 +6539,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6582,9 +6582,9 @@ paths:
       operationId: Package_PackageEventDistinct
       description: PackageEventDistinct provides package event distincting.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6656,7 +6656,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6739,9 +6739,9 @@ paths:
       operationId: Package_PackageEventList
       description: PackageEventList provides package event listing.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6818,7 +6818,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -6913,9 +6913,9 @@ paths:
       operationId: Package_CancelAsDefaultReleaseAgent
       description: CancelAsDefaultReleaseAgent cancels agent release as default.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -6962,7 +6962,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7014,9 +7014,9 @@ paths:
       operationId: Package_DeleteReleaseAgent
       description: DeleteReleaseAgent deletes agent release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7063,7 +7063,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7115,9 +7115,9 @@ paths:
       operationId: Package_DisableReleaseAgent
       description: DisableReleaseAgent disables agent release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7164,7 +7164,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7216,9 +7216,9 @@ paths:
       operationId: Package_DistinctReleaseAgent
       description: DistinctReleaseAgent distincts agent releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7275,7 +7275,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7357,9 +7357,9 @@ paths:
       operationId: Package_EnableReleaseAgent
       description: EnableReleaseAgent enables agent release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7406,7 +7406,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7458,9 +7458,9 @@ paths:
       operationId: Package_ListReleaseAgent
       description: ListReleaseAgent lists agent releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7555,7 +7555,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7641,9 +7641,9 @@ paths:
       operationId: Package_SetAsDefaultReleaseAgent
       description: SetAsDefaultReleaseAgent sets agent release as default.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7690,7 +7690,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7742,9 +7742,9 @@ paths:
       operationId: Package_SetReleaseAgentLabelsMany
       description: SetReleaseAgentLabelsMany sets many agent releases labels.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7791,7 +7791,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7869,9 +7869,9 @@ paths:
       operationId: Package_DeleteReleaseBinTool
       description: DeleteReleaseBinTool deletes bintool release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -7918,7 +7918,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -7958,9 +7958,9 @@ paths:
       operationId: Package_ListReleaseBinTool
       description: ListReleaseBinTool lists bintool releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8051,7 +8051,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8091,9 +8091,9 @@ paths:
       operationId: Package_DeleteReleaseCert
       description: DeleteReleaseCert deletes cert release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8140,7 +8140,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8180,9 +8180,9 @@ paths:
       operationId: Package_ListReleaseCert
       description: ListReleaseCert lists cert releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8273,7 +8273,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8313,9 +8313,9 @@ paths:
       operationId: Package_CancelAsDefaultReleasePlugin
       description: CancelAsDefaultReleasePlugin cancels plugin release as default.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8362,7 +8362,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8414,9 +8414,9 @@ paths:
       operationId: Package_DeleteReleasePlugin
       description: DeleteReleasePlugin deletes plugin release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8463,7 +8463,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8515,9 +8515,9 @@ paths:
       operationId: Package_DisableReleasePlugin
       description: DisableReleasePlugin disables plugin release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8564,7 +8564,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8616,9 +8616,9 @@ paths:
       operationId: Package_EnableReleasePlugin
       description: EnableReleasePlugin enables plugin release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8665,7 +8665,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8717,9 +8717,9 @@ paths:
       operationId: Package_ListReleasePlugin
       description: ListReleasePlugin lists plugin releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8810,7 +8810,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8896,9 +8896,9 @@ paths:
       operationId: Package_SetAsDefaultReleasePlugin
       description: SetAsDefaultReleasePlugin sets plugin release as default.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -8945,7 +8945,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -8997,9 +8997,9 @@ paths:
       operationId: Package_DeleteReleasePluginBinTool
       description: DeleteReleasePluginBinTool deletes plugin-bintool release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9046,7 +9046,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9088,9 +9088,9 @@ paths:
       operationId: Package_ListReleasePluginBinTool
       description: ListReleasePluginBinTool lists plugin-bintool releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9181,7 +9181,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9221,9 +9221,9 @@ paths:
       operationId: Package_CancelAsDefaultReleaseProxy
       description: CancelAsDefaultReleaseProxy cancels proxy release as default.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9270,7 +9270,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9322,9 +9322,9 @@ paths:
       operationId: Package_DeleteReleaseProxy
       description: DeleteReleaseProxy deletes proxy release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9371,7 +9371,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9423,9 +9423,9 @@ paths:
       operationId: Package_DisableReleaseProxy
       description: DisableReleaseProxy disables proxy release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9472,7 +9472,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9524,9 +9524,9 @@ paths:
       operationId: Package_DistinctReleaseProxy
       description: DistinctReleaseProxy distincts proxy releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9583,7 +9583,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9665,9 +9665,9 @@ paths:
       operationId: Package_EnableReleaseProxy
       description: EnableReleaseProxy enables proxy release.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9714,7 +9714,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9766,9 +9766,9 @@ paths:
       operationId: Package_ListReleaseProxy
       description: ListReleaseProxy lists proxy releases.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9863,7 +9863,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -9949,9 +9949,9 @@ paths:
       operationId: Package_SetAsDefaultReleaseProxy
       description: SetAsDefaultReleaseProxy sets proxy release as default.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -9998,7 +9998,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10050,9 +10050,9 @@ paths:
       operationId: Package_SetReleaseProxyLabelsMany
       description: SetReleaseProxyLabelsMany sets many proxy releases labels.
       tags:
-        - Package
+      - Package
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10099,7 +10099,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10177,9 +10177,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowDistinct
       description: NodeWorkflowDistinct provides node workflow distinct.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10244,7 +10244,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10309,9 +10309,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowList
       description: NodeWorkflowList provides node workflow list.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10391,7 +10391,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10478,9 +10478,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
       description: NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10579,7 +10579,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10626,9 +10626,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
       description: NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10716,7 +10716,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10755,9 +10755,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList
       description: NodeWorkflowOperationInstanceStatusDistribution provides latest operation\ninstance status distribution.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10818,7 +10818,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -10859,9 +10859,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationList
       description: NodeWorkflowOperationList provides node workflow operation list.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -10984,7 +10984,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11071,9 +11071,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationManualInfoGet
       description: NodeWorkflowOperationManualInfoGet provides node operation manual info get.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11190,7 +11190,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11208,7 +11208,7 @@ paths:
                 operation_id:
                   type: string
         required: true
-        description: ""
+        description: ''
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -11231,9 +11231,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
       description: NodeWorkflowOperationRetry provides node operation retry.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11280,7 +11280,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11302,7 +11302,7 @@ paths:
                   items:
                     type: string
         required: true
-        description: ""
+        description: ''
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -11325,9 +11325,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationTerminate
       description: NodeWorkflowOperationTerminate provides node operation terminate.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11374,7 +11374,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11394,7 +11394,7 @@ paths:
                   items:
                     type: string
         required: true
-        description: ""
+        description: ''
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -11417,9 +11417,9 @@ paths:
       operationId: NodeProxy_NodeProxyInstall
       description: NodeProxyInstall installs node proxy.
       tags:
-        - NodeProxy
+      - NodeProxy
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11469,7 +11469,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11500,7 +11500,7 @@ paths:
                         format: int64
                       login_mode:
                         type: string
-                        title: "support: password_vault, password, keyfile"
+                        title: 'support: password_vault, password, keyfile'
                       login_port:
                         type: integer
                         format: int64
@@ -11577,9 +11577,9 @@ paths:
       operationId: NodeProxy_NodeProxyReconfig
       description: NodeProxyReconfig reconfigs node proxy.
       tags:
-        - NodeProxy
+      - NodeProxy
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11629,7 +11629,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11679,9 +11679,9 @@ paths:
       operationId: NodeProxy_NodeProxyRestart
       description: NodeProxyRestart restarts node proxy.
       tags:
-        - NodeProxy
+      - NodeProxy
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11731,7 +11731,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11781,9 +11781,9 @@ paths:
       operationId: NodeProxy_NodeProxyUninstall
       description: NodeProxyUninstall uninstalls node proxy.
       tags:
-        - NodeProxy
+      - NodeProxy
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11833,7 +11833,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11878,9 +11878,9 @@ paths:
       operationId: NodeProxy_NodeProxyUpdate
       description: NodeProxyUpdate updates node proxy.
       tags:
-        - NodeProxy
+      - NodeProxy
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -11927,7 +11927,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -11953,7 +11953,7 @@ paths:
                         format: int64
                       login_mode:
                         type: string
-                        title: "support: password_vault, password, keyfile"
+                        title: 'support: password_vault, password, keyfile'
                       login_port:
                         type: integer
                         format: int64
@@ -11999,9 +11999,9 @@ paths:
       operationId: NodeProxy_NodeProxyUpgrade
       description: NodeProxyUpgrade upgrades node proxy.
       tags:
-        - NodeProxy
+      - NodeProxy
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12051,7 +12051,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12112,9 +12112,9 @@ paths:
       operationId: NodeAgent_NodeAgentInstall
       description: NodeAgentInstall installs node agent.
       tags:
-        - NodeAgent
+      - NodeAgent
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12164,7 +12164,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12193,7 +12193,7 @@ paths:
                         format: int64
                       login_mode:
                         type: string
-                        title: "support: password_vault, password, keyfile"
+                        title: 'support: password_vault, password, keyfile'
                       login_port:
                         type: integer
                         format: int64
@@ -12252,9 +12252,9 @@ paths:
       operationId: NodeAgent_NodeAgentInstallCheck
       description: NodeAgentInstallCheck provides node agent install check.
       tags:
-        - NodeAgent
+      - NodeAgent
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12338,7 +12338,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12397,9 +12397,9 @@ paths:
       operationId: NodeAgent_NodeAgentReconfig
       description: NodeAgentReconfig reconfigs node agent.
       tags:
-        - NodeAgent
+      - NodeAgent
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12449,7 +12449,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12499,9 +12499,9 @@ paths:
       operationId: NodeAgent_NodeAgentRestart
       description: NodeAgentRestart restarts node agent.
       tags:
-        - NodeAgent
+      - NodeAgent
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12551,7 +12551,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12601,9 +12601,9 @@ paths:
       operationId: NodeAgent_NodeAgentUninstall
       description: NodeAgentUninstall uninstalls node agent.
       tags:
-        - NodeAgent
+      - NodeAgent
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12653,7 +12653,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12698,9 +12698,9 @@ paths:
       operationId: NodeAgent_NodeAgentUpgrade
       description: NodeAgentUpgrade upgrades node agent.
       tags:
-        - NodeAgent
+      - NodeAgent
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12750,7 +12750,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12802,9 +12802,9 @@ paths:
       operationId: DeployPolicySvc_Create
       description: Create creates deploy policy.
       tags:
-        - DeployPolicySvc
+      - DeployPolicySvc
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12855,7 +12855,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -12920,9 +12920,9 @@ paths:
       operationId: DeployPolicySvc_Execute
       description: Execute executes deploy policy.
       tags:
-        - DeployPolicySvc
+      - DeployPolicySvc
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -12972,7 +12972,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13012,9 +13012,9 @@ paths:
       operationId: DeployPolicySvc_List
       description: List lists deploy policy.
       tags:
-        - DeployPolicySvc
+      - DeployPolicySvc
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13111,7 +13111,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13246,9 +13246,9 @@ paths:
       operationId: DeployPolicySvc_Update
       description: Update updates deploy policy.
       tags:
-        - DeployPolicySvc
+      - DeployPolicySvc
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13299,7 +13299,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13394,9 +13394,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyCreate
       description: CreateConfigPolicy creates config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13447,7 +13447,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13526,9 +13526,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyDelete
       description: DeleteConfigPolicy deletes config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13575,7 +13575,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13617,9 +13617,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyDisable
       description: DisableConfigPolicy disables config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13666,7 +13666,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13708,9 +13708,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyEnable
       description: EnableConfigPolicy enables config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13757,7 +13757,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13799,9 +13799,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyEventDistinct
       description: ConfigPolicyEventDistinct provides policy event distincting.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -13875,7 +13875,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -13956,9 +13956,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyEventList
       description: ConfigPolicyEventList provides policy event listing.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14034,7 +14034,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14127,9 +14127,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyGet
       description: GetConfigPolicy gets config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14233,7 +14233,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14273,9 +14273,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyList
       description: ListConfigPolicy lists config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14387,7 +14387,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14470,9 +14470,9 @@ paths:
       operationId: ConfigPolicyAPI_ConfigPolicyUpdate
       description: UpdateConfigPolicy updates config policy.
       tags:
-        - ConfigPolicyAPI
+      - ConfigPolicyAPI
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14523,7 +14523,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14607,9 +14607,9 @@ paths:
       operationId: Cipher_GetRSAPublicKey
       description: GetRSAPublicKey get rsa public key.
       tags:
-        - Cipher
+      - Cipher
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14659,7 +14659,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14695,9 +14695,9 @@ paths:
       operationId: NodeWorkflow_NodeWorkflowOperationDistinct
       description: NodeWorkflowOperationDistinct provides node workflow operation distinct.
       tags:
-        - NodeWorkflow
+      - NodeWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14749,7 +14749,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14794,9 +14794,9 @@ paths:
       operationId: PluginWorkflow_PluginWorkflowOperationDistinct
       description: PluginWorkflowOperationDistinct provides plugin workflow operation\ndistinct.
       tags:
-        - PluginWorkflow
+      - PluginWorkflow
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
@@ -14848,7 +14848,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        "@type":
+                        '@type':
                           type: string
                       additionalProperties: {}
                   message:
@@ -14880,6 +14880,151 @@ paths:
           name: default
           method: post
           path: /api/v3/plugin/workflow/operation/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: false
+        descriptionEn:
+  /api/v3/node/proxy/install_check:
+    post:
+      operationId: NodeProxy_NodeProxyInstallCheck
+      description: NodeProxyInstallCheck provides node proxy install check.
+      tags:
+      - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            status:
+                              type: string
+                            matched:
+                              type: object
+                              properties:
+                                os_type:
+                                  type: string
+                                bk_biz_id:
+                                  type: integer
+                                  format: int64
+                                node_role:
+                                  type: string
+                                bk_host_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkarea_id:
+                                  type: integer
+                                  format: int64
+                                bk_networkunit_id:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_innerip_v6_list:
+                                  type: array
+                                  items:
+                                    type: string
+                              description: NodeProxyInstallCheckMatchedItem describes the matched item for proxy node.
+                          description: NodeProxyInstallCheckResult describes the check result for node proxy\ninstallation.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeProxyInstallCheckResp describes the response for node proxy installation\ncheck.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_biz_id:
+                        type: integer
+                        format: int64
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+                      bk_host_innerip_list:
+                        type: array
+                        items:
+                          type: string
+                      bk_host_innerip_v6_list:
+                        type: array
+                        items:
+                          type: string
+              description: NodeProxyInstallCheckReq describes the node proxy install check request.
+        required: true
+        description: NodeProxyInstallCheckReq describes the node proxy install check request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/install_check
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
