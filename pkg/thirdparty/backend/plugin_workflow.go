@@ -213,7 +213,7 @@ func (h *Handler) CountPluginWorkflowOperation(nCtx contextx.IContext, workflowI
 		return 0, err
 	}
 
-	return resp.GetData().GetTotalCount(), nil
+	return resp.GetData().GetTotal(), nil
 }
 
 // DistinctPluginWorkflowOperation distincts plugin workflow operation fields by conditions.

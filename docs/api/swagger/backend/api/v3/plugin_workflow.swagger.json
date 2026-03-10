@@ -995,7 +995,7 @@
             "$ref": "#/definitions/PluginWorkflowOperationListRespPluginWorkflowOperation"
           }
         },
-        "total_count": {
+        "total": {
           "type": "integer",
           "format": "int64"
         }

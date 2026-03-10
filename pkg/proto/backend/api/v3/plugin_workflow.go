@@ -381,7 +381,7 @@ func (x *PluginWorkflowOperationListResp) ConvertResultFromTypes(total int64, re
 	}
 
 	x.Data = &PluginWorkflowOperationListResp_Data{
-		TotalCount: total,
+		Total:      total,
 		Operations: items,
 	}
 }
@@ -451,7 +451,7 @@ func (x *PluginWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*
 		result[idx] = operResult
 	}
 
-	return result, data.GetTotalCount()
+	return result, data.GetTotal()
 }
 
 func convertPluginWorkflowOperInstLifeCycleToTypes(data *WorkflowLifeCycle) *operation.Lifecycle {

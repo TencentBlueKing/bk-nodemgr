@@ -165,7 +165,7 @@ message PluginWorkflowOperationListResp {
 
   message Data {
     repeated PluginWorkflowOperation operations = 1;
-    int64 total_count = 2;
+    int64 total = 2;
   }
   Data data = 5;
 }

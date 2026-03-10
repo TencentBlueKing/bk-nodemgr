@@ -915,7 +915,7 @@
             "$ref": "#/definitions/v3PluginWorkflowOperation"
           }
         },
-        "total_count": {
+        "total": {
           "type": "integer",
           "format": "int64"
         }
