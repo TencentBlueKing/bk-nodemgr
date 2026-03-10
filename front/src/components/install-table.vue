@@ -110,10 +110,10 @@
                   :key="option.bk_networkunit_id"
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
-                  :disabled="option.is_direct"
+                  :disabled="releaseType === 'proxy' && option.is_direct"
                   v-bk-tooltips="{
                     content: $t('topoManager.installProxy.form.tip'),
-                    disabled: !option.is_direct,
+                    disabled: !(releaseType === 'proxy' && option.is_direct),
                     boundary: 'parent',
                     placement: 'left',
                   }"
