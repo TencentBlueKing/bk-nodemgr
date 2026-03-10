@@ -304,18 +304,13 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 // It returns download URLs and callback URLs in comma-separated format: "http://ip1:port1,http://ip2:port2,...".
 // Returns: (downloadURLs, callbackURLs, error).
 func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
-	relayInfos, err := std.GetRelayInfos()
+	callbackEndpoints, downloadEndpoints, err := std.GetRelayEndpoints()
 	if err != nil {
-		return "", "", fmt.Errorf("failed to get relay infos: %w", err)
-	}
-	if len(relayInfos) == 0 {
-		return "", "", fmt.Errorf("no relay info selected")
+		return "", "", fmt.Errorf("failed to get relay endpoints: %w", err)
 	}
 
-	downloadSvrAddr, callbackSvrAddr, err := std.BuildServiceURLByRelayInfo(relayInfos)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to build relay service urls: %w", err)
-	}
+	downloadSvrAddr := nodeUtils.BuildServerURLs(downloadEndpoints...)
+	callbackSvrAddr := nodeUtils.BuildServerURLs(callbackEndpoints...)
 
 	std.InstanceData().Log().
 		Zh("relay 下载服务地址(%s)，回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).

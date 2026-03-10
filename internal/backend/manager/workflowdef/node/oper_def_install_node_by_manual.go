@@ -57,6 +57,7 @@ func (oper *operInstallNodeByManual) ActionDefNames() []string {
 		ActionNameBindAgentHostRel,
 		ActionNamePushHostIdentifier,
 		ActionNameUpdateHost,
+		ActionNameInstallPreOrderedPlugins,
 	}
 }
 
@@ -78,6 +79,7 @@ func (oper *operInstallNodeByManual) DefaultParameters() operation.Param {
 			ActionNameBindAgentHostRel:          true,
 			ActionNamePushHostIdentifier:        true,
 			ActionNameUpdateHost:                true,
+			ActionNameInstallPreOrderedPlugins:  true,
 		},
 	}
 }

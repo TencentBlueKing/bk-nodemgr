@@ -12,6 +12,7 @@
 package utils
 
 import (
+	"math/rand/v2"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -23,24 +24,21 @@ const (
 	DefaultEndpointSelectionCount = 3
 )
 
-// BuildServerURLs builds a comma-separated string of multiple addresses in the format: http://addr1,http://addr2,http://addr3.
-// The installer already supports this format and will use utils.SplitServerAddrs() to split and process it.
-// If endpoints is empty, returns an empty string.
-func BuildServerURLs(endpoints ...discover.Endpoint) string {
+func buildServerURL(needV4, needV6 bool, endpoints ...discover.Endpoint) []string {
 	if len(endpoints) == 0 {
-		return ""
+		return nil
 	}
 
 	addrs := make([]string, 0, len(endpoints))
 	for _, ep := range endpoints {
-		if ep.IPV4 != "" {
+		if needV4 && ep.IPV4 != "" {
 			addr := ep.GetIPV4Address()
 			if addr != "" {
 				addrs = append(addrs, "http://"+addr)
 			}
 		}
 
-		if ep.IPV6 != "" {
+		if needV6 && ep.IPV6 != "" {
 			addr := ep.GetIPV6Address()
 			if addr != "" {
 				addrs = append(addrs, "http://"+addr)
@@ -48,5 +46,45 @@ func BuildServerURLs(endpoints ...discover.Endpoint) string {
 		}
 	}
 
+	if len(addrs) == 0 {
+		return nil
+	}
+
+	rand.Shuffle(len(addrs), func(i, j int) {
+		addrs[i], addrs[j] = addrs[j], addrs[i]
+	})
+
+	return addrs
+}
+
+// BuildServerURLs builds a comma-separated string of multiple addresses in the format: http://addr1,http://addr2,http://addr3.
+// The installer already supports this format and will use utils.SplitServerAddrs() to split and process it.
+// If endpoints is empty, returns an empty string.
+func BuildServerURLs(endpoints ...discover.Endpoint) string {
+	addrs := buildServerURL(true, true, endpoints...)
+	if len(addrs) == 0 {
+		return ""
+	}
+
 	return strings.Join(addrs, installer.ServerAddrSeparator)
+}
+
+// SelectOneServerV4URL selects one ipv4 address from the given endpoints.
+func SelectOneServerV4URL(endpoints []discover.Endpoint) string {
+	addrs := buildServerURL(true, false, endpoints...)
+	if len(addrs) == 0 {
+		return ""
+	}
+
+	return addrs[0]
+}
+
+// SelectOneServerV6URL selects one ipv6 address from the given endpoints.
+func SelectOneServerV6URL(endpoints []discover.Endpoint) string {
+	addrs := buildServerURL(false, true, endpoints...)
+	if len(addrs) == 0 {
+		return ""
+	}
+
+	return addrs[0]
 }

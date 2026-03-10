@@ -168,10 +168,9 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	// get relay service URLs for install command
-	downloadURLs, callbackURLs, err := std.BuildServiceURLByRelayInfo(relayInfos)
-	if err != nil {
-		return fmt.Errorf("failed to get relay service URLs: %w", err)
-	}
+	callbackEndpoints, downloadEndpoints := nodeUtils.RelayInfosToEndpoints(relayInfos)
+	downloadURLs := nodeUtils.BuildServerURLs(downloadEndpoints...)
+	callbackURLs := nodeUtils.BuildServerURLs(callbackEndpoints...)
 
 	// build install command.
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)

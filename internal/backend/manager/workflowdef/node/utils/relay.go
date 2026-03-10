@@ -80,21 +80,28 @@ func (std *NodeActionStandarder) GetRelayInfos() ([]*types.RelayInfo, error) {
 	return validRelayInfos, nil
 }
 
-// BuildServiceURLByRelayInfo queries Relay hosts and returns download and callback service URLs.
-func (std *NodeActionStandarder) BuildServiceURLByRelayInfo(relayInfos []*types.RelayInfo) (string, string, error) {
-	// Build download URLs
-	downloadEndpoints := make([]discover.Endpoint, 0, len(relayInfos))
-	for _, relayInfo := range relayInfos {
-		downloadEndpoints = append(downloadEndpoints, relayInfoToEndpoint(relayInfo, relayInfo.DownloadSvcPort))
+// RelayInfosToEndpoints converts relay infos to callback and download endpoint slices.
+// nolint: nonamedreturns
+func RelayInfosToEndpoints(infos []*types.RelayInfo) (callbacks []discover.Endpoint, downloads []discover.Endpoint) {
+	callbacks = make([]discover.Endpoint, len(infos))
+	downloads = make([]discover.Endpoint, len(infos))
+	for i, info := range infos {
+		callbacks[i] = relayInfoToEndpoint(info, info.CallbackSvcPort)
+		downloads[i] = relayInfoToEndpoint(info, info.DownloadSvcPort)
 	}
-	downloadURLs := BuildServerURLs(downloadEndpoints...)
 
-	// Build callback URLs
-	callbackEndpoints := make([]discover.Endpoint, 0, len(relayInfos))
-	for _, relayInfo := range relayInfos {
-		callbackEndpoints = append(callbackEndpoints, relayInfoToEndpoint(relayInfo, relayInfo.CallbackSvcPort))
+	return callbacks, downloads
+}
+
+// GetRelayEndpoints queries Relay hosts and returns Endpoint list, callback and download endpoints.
+// Returns: (callback endpoints, download endpoints, error).
+func (std *NodeActionStandarder) GetRelayEndpoints() ([]discover.Endpoint, []discover.Endpoint, error) {
+	infos, err := std.GetRelayInfos()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get relay infos: %w", err)
 	}
-	callbackURLs := BuildServerURLs(callbackEndpoints...)
 
-	return downloadURLs, callbackURLs, nil
+	callbacks, downloads := RelayInfosToEndpoints(infos)
+
+	return callbacks, downloads, nil
 }

@@ -278,20 +278,12 @@ func (act *actionInstallNodeByManual) buildCMD(param *InstallParamsManual, osTyp
 // Returns: (callbackURLs, downloadURLs, error).
 func (act *actionInstallNodeByManual) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
 	if !std.DeployInfo().InstallOptions.DirectInstall {
-		relayInfos, err := std.GetRelayInfos()
+		callbackEndpoints, downloadEndpoints, err := std.GetRelayEndpoints()
 		if err != nil {
-			return "", "", fmt.Errorf("failed to get relay infos: %w", err)
-		}
-		if len(relayInfos) == 0 {
-			return "", "", fmt.Errorf("no relay info selected")
+			return "", "", fmt.Errorf("failed to get relay endpoints: %w", err)
 		}
 
-		downloadURLs, callbackURLs, err := std.BuildServiceURLByRelayInfo(relayInfos)
-		if err != nil {
-			return "", "", fmt.Errorf("failed to build relay service urls: %w", err)
-		}
-
-		return callbackURLs, downloadURLs, nil
+		return nodeUtils.BuildServerURLs(callbackEndpoints...), nodeUtils.BuildServerURLs(downloadEndpoints...), nil
 	}
 
 	randSelector := discover.NewRandomSelector()
