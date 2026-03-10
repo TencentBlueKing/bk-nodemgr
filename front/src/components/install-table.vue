@@ -18,6 +18,28 @@
           :visible="settings.checked.includes('bk_biz_id')"
           :min-width="150"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.bkBizId') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('platform.nodeMan.installAgentPage.installBusinessTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_biz_id')">
               <Select
@@ -54,6 +76,28 @@
           :visible="settings.checked.includes('bk_networkarea_name')"
           :min-width="150"
         >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="320"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.networkArea') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('platform.nodeMan.installAgentPage.cloudTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkarea_name')">
               <Input
@@ -83,7 +127,26 @@
           :visible="settings.checked.includes('bk_networkunit_id')"
         >
           <template #header>
-            <span class="mr-[5px]">{{ $t('components.installTable.networkUnit') }}</span>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="320"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="mr-[5px] cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.networkUnit') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('platform.nodeMan.installAgentPage.cloudUnitTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
             <span class="mx-[3px] text-[#FF5656]">*</span>
           </template>
           <template #default="{ row, rowIndex }">
