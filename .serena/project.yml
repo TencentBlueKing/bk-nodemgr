@@ -159,7 +159,7 @@ fixed_tools: []
 # such as docstrings or parameter information.
 # This overrides the corresponding setting in the global configuration; see the documentation there.
 # If null or missing, use the setting from the global configuration.
-symbol_info_budget: 5
+symbol_info_budget: 5.0
 
 # The language backend to use for this project.
 # If not set, the global setting from serena_config.yml is used.
@@ -167,3 +167,12 @@ symbol_info_budget: 5
 # Note: the backend is fixed at startup. If a project with a different backend
 # is activated post-init, an error will be returned.
 language_backend: LSP
+
+# line ending convention to use when writing source files.
+# Possible values: unset (use global setting), "lf", "crlf", or "native" (platform default)
+# This does not affect Serena's own files (e.g. memories and configuration files), which always use native line endings.
+line_ending:
+
+# list of regex patterns which, when matched, mark a memory entry as read‑only.
+# Extends the list from the global configuration, merging the two lists.
+read_only_memory_patterns: []
