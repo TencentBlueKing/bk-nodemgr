@@ -112,14 +112,15 @@ POST /api/v3/deploy_policy/list
         "deploy_policy_id": 1001,
         "dsu_id": 2001,
         "meta": {
-          "name": "生产环境Agent升级策略",
-          "description": "用于生产环境Agent版本统一升级"
+          "name": "生产环境监控插件部署策略",
+          "description": "用于生产环境统一部署监控采集插件"
         },
         "specs": [
           {
-            "type": "specify_agent",
+            "type": "specify_plugin",
             "param": {
-              "node_version": "2.1.5"
+              "plugin_name": "bkmonitorbeat",
+              "version": "3.60.3066"
             }
           }
         ],
@@ -189,20 +190,8 @@ POST /api/v3/deploy_policy/list
 
 | 参数名称 | 参数类型 | 描述 |
 |---------|----------|------|
-| type | string | 规范类型（枚举值：specify_agent、specify_proxy、specify_plugin、specify_plugin_pkg、specify_plugin_sub_config） |
+| type | string | 规范类型（枚举值：specify_plugin、specify_plugin_pkg、specify_plugin_sub_config） |
 | param | object | 规范参数，结构根据type字段而定 |
-
-**type 为 specify_agent 时，param 结构：**
-
-| 参数名称 | 参数类型 | 描述 |
-|---------|----------|------|
-| node_version | string | Agent版本号 |
-
-**type 为 specify_proxy 时，param 结构：**
-
-| 参数名称 | 参数类型 | 描述 |
-|---------|----------|------|
-| node_version | string | Proxy版本号 |
 
 **type 为 specify_plugin 时，param 结构：**
 

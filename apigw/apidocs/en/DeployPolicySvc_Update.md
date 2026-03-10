@@ -40,7 +40,7 @@ Deploy specifications define the desired final state. For structure details, ref
 
 | Parameter | Type | Required | Description |
 |---------|----------|------|------|
-| type | string | Yes | Spec type (enum: specify_agent, specify_proxy, specify_plugin, specify_plugin_pkg, specify_plugin_sub_config) |
+| type | string | Yes | Spec type (enum: specify_plugin, specify_plugin_pkg, specify_plugin_sub_config) |
 | param | object | Yes | Spec parameters, structure depends on type field |
 
 #### deploy_policies[n].scopes[n]
@@ -73,8 +73,8 @@ Specify which fields to update. Only fields set to true will be updated.
     {
       "deploy_policy_id": 1001,
       "meta": {
-        "name": "Production Agent Upgrade Policy v2",
-        "description": "Unified agent version upgrade to 2.1.6 for production environment"
+        "name": "Production Monitor Plugin Deploy Policy v2",
+        "description": "Unified deployment of bkmonitorbeat 3.60.3066 for production environment"
       }
     }
   ],
@@ -115,9 +115,10 @@ Specify which fields to update. Only fields set to true will be updated.
       "deploy_policy_id": 1001,
       "specs": [
         {
-          "type": "specify_agent",
+          "type": "specify_plugin",
           "param": {
-            "node_version": "2.1.6"
+            "plugin_name": "bkmonitorbeat",
+            "version": "3.60.3066"
           }
         }
       ]

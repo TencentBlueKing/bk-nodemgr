@@ -142,20 +142,23 @@ Specify target range by dynamic group. Note: dynamic_group type only supports ho
 | filter            | object       | No       | Target filter                            |
 | dynamic_group_ids | string array | Yes      | Dynamic group ID list                    |
 
-### Request Example
+### Request Examples
 
-Create a deploy policy to upgrade agents in the production environment to version 2.1.5.
+#### Example 1: Using topology path (topo) to specify scope
+
+Create a deploy policy to deploy monitoring collector plugin on all hosts in the entire business.
 
 ```json
 {
-  "name": "Production Agent Upgrade Policy",
-  "description": "Unified agent version upgrade for production environment",
+  "name": "Production Monitor Plugin Deploy Policy",
+  "description": "Unified deployment of monitoring collector plugin for production environment",
   "enabled": true,
   "specs": [
     {
-      "type": "specify_agent",
+      "type": "specify_plugin",
       "param": {
-        "node_version": "2.1.5"
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
       }
     }
   ],
@@ -172,6 +175,134 @@ Create a deploy policy to upgrade agents in the production environment to versio
             "topo_inst_id": 100
           }
         ]
+      }
+    }
+  ]
+}
+```
+
+#### Example 2: Using service template to specify scope
+
+Create a deploy policy to deploy plugin on all service instances under specified service templates.
+
+```json
+{
+  "name": "Web Service Monitor Plugin Deploy Policy",
+  "description": "Deploy monitoring plugin for all service instances under web service templates",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "service_template",
+      "scope": {
+        "granularity": "service_instance",
+        "bk_biz_id": 100,
+        "filter": {},
+        "service_template_ids": [1001, 1002]
+      }
+    }
+  ]
+}
+```
+
+#### Example 3: Using set template to specify scope
+
+Create a deploy policy to deploy plugin on all hosts under specified set templates.
+
+```json
+{
+  "name": "Test Cluster Monitor Plugin Deploy Policy",
+  "description": "Deploy monitoring plugin for all hosts under test cluster templates",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "set_template",
+      "scope": {
+        "granularity": "host",
+        "bk_biz_id": 100,
+        "filter": {},
+        "set_template_ids": [2001, 2002]
+      }
+    }
+  ]
+}
+```
+
+#### Example 4: Using instance IDs to directly specify scope
+
+Create a deploy policy to deploy plugin on a specified list of hosts.
+
+```json
+{
+  "name": "Specific Hosts Monitor Plugin Deploy Policy",
+  "description": "Deploy monitoring plugin for specified host list",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "instance",
+      "scope": {
+        "granularity": "host",
+        "bk_biz_id": 100,
+        "filter": {},
+        "instance_ids": [10001, 10002, 10003]
+      }
+    }
+  ]
+}
+```
+
+#### Example 5: Using dynamic group to specify scope
+
+Create a deploy policy to deploy plugin on all hosts in dynamic groups.
+
+```json
+{
+  "name": "Dynamic Group Monitor Plugin Deploy Policy",
+  "description": "Deploy monitoring plugin for hosts in dynamic groups",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "dynamic_group",
+      "scope": {
+        "granularity": "host",
+        "bk_biz_id": 100,
+        "filter": {},
+        "dynamic_group_ids": ["group-abc123", "group-def456"]
       }
     }
   ]

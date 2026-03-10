@@ -40,7 +40,7 @@ POST /api/v3/deploy_policy/update
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| type | string | 是 | 规范类型（枚举值：specify_agent、specify_proxy、specify_plugin、specify_plugin_pkg、specify_plugin_sub_config） |
+| type | string | 是 | 规范类型（枚举值：specify_plugin、specify_plugin_pkg、specify_plugin_sub_config） |
 | param | object | 是 | 规范参数，结构根据type字段而定 |
 
 #### deploy_policies[n].scopes[n]
@@ -73,8 +73,8 @@ POST /api/v3/deploy_policy/update
     {
       "deploy_policy_id": 1001,
       "meta": {
-        "name": "生产环境Agent升级策略v2",
-        "description": "用于生产环境Agent版本统一升级到2.1.6"
+        "name": "生产环境监控插件部署策略v2",
+        "description": "用于生产环境统一部署 bkmonitorbeat 3.60.3066"
       }
     }
   ],
@@ -115,9 +115,10 @@ POST /api/v3/deploy_policy/update
       "deploy_policy_id": 1001,
       "specs": [
         {
-          "type": "specify_agent",
+          "type": "specify_plugin",
           "param": {
-            "node_version": "2.1.6"
+            "plugin_name": "bkmonitorbeat",
+            "version": "3.60.3066"
           }
         }
       ]

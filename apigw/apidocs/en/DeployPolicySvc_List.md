@@ -112,14 +112,15 @@ Query enabled deploy policies, sorted by creation time in descending order.
         "deploy_policy_id": 1001,
         "dsu_id": 2001,
         "meta": {
-          "name": "Production Agent Upgrade Policy",
-          "description": "Unified agent version upgrade for production environment"
+          "name": "Production Monitor Plugin Deploy Policy",
+          "description": "Unified deployment of monitoring collector plugin for production environment"
         },
         "specs": [
           {
-            "type": "specify_agent",
+            "type": "specify_plugin",
             "param": {
-              "node_version": "2.1.5"
+              "plugin_name": "bkmonitorbeat",
+              "version": "3.60.3066"
             }
           }
         ],
@@ -189,20 +190,8 @@ Deploy specifications define the desired final state.
 
 | Parameter | Type | Description |
 |---------|----------|------|
-| type | string | Spec type (enum: specify_agent, specify_proxy, specify_plugin, specify_plugin_pkg, specify_plugin_sub_config) |
+| type | string | Spec type (enum:  specify_plugin, specify_plugin_pkg, specify_plugin_sub_config) |
 | param | object | Spec parameters, structure depends on type field |
-
-**When type is specify_agent, param structure:**
-
-| Parameter | Type | Description |
-|---------|----------|------|
-| node_version | string | Agent version |
-
-**When type is specify_proxy, param structure:**
-
-| Parameter | Type | Description |
-|---------|----------|------|
-| node_version | string | Proxy version |
 
 **When type is specify_plugin, param structure:**
 

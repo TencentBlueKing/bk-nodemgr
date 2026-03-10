@@ -140,18 +140,21 @@ POST /api/v3/deploy_policy/create
 
 ### 调用示例
 
-创建一个部署策略，用于将生产环境的Agent升级到2.1.5版本。
+#### 示例1：使用拓扑路径（topo）指定范围
+
+创建一个部署策略，用于在整个业务的所有主机上部署监控采集插件。
 
 ```json
 {
-  "name": "生产环境Agent升级策略",
-  "description": "用于生产环境Agent版本统一升级",
+  "name": "生产环境监控插件部署策略",
+  "description": "用于生产环境统一部署监控采集插件",
   "enabled": true,
   "specs": [
     {
-      "type": "specify_agent",
+      "type": "specify_plugin",
       "param": {
-        "node_version": "2.1.5"
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
       }
     }
   ],
@@ -168,6 +171,134 @@ POST /api/v3/deploy_policy/create
             "topo_inst_id": 100
           }
         ]
+      }
+    }
+  ]
+}
+```
+
+#### 示例2：使用服务模板（service_template）指定范围
+
+创建一个部署策略，用于在指定服务模板下的所有服务实例上部署插件。
+
+```json
+{
+  "name": "Web服务监控插件部署策略",
+  "description": "针对Web服务模板下的所有服务实例部署监控插件",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "service_template",
+      "scope": {
+        "granularity": "service_instance",
+        "bk_biz_id": 100,
+        "filter": {},
+        "service_template_ids": [1001, 1002]
+      }
+    }
+  ]
+}
+```
+
+#### 示例3：使用集群模板（set_template）指定范围
+
+创建一个部署策略，用于在指定集群模板下的所有主机上部署插件。
+
+```json
+{
+  "name": "测试集群监控插件部署策略",
+  "description": "针对测试集群模板下的所有主机部署监控插件",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "set_template",
+      "scope": {
+        "granularity": "host",
+        "bk_biz_id": 100,
+        "filter": {},
+        "set_template_ids": [2001, 2002]
+      }
+    }
+  ]
+}
+```
+
+#### 示例4：使用实例ID（instance）直接指定范围
+
+创建一个部署策略，用于在指定的主机列表上部署插件。
+
+```json
+{
+  "name": "特定主机监控插件部署策略",
+  "description": "针对指定主机列表部署监控插件",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "instance",
+      "scope": {
+        "granularity": "host",
+        "bk_biz_id": 100,
+        "filter": {},
+        "instance_ids": [10001, 10002, 10003]
+      }
+    }
+  ]
+}
+```
+
+#### 示例5：使用动态分组（dynamic_group）指定范围
+
+创建一个部署策略，用于在动态分组中的所有主机上部署插件。
+
+```json
+{
+  "name": "动态分组监控插件部署策略",
+  "description": "针对动态分组中的主机部署监控插件",
+  "enabled": true,
+  "specs": [
+    {
+      "type": "specify_plugin",
+      "param": {
+        "plugin_name": "bkmonitorbeat",
+        "version": "3.60.3066"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "type": "dynamic_group",
+      "scope": {
+        "granularity": "host",
+        "bk_biz_id": 100,
+        "filter": {},
+        "dynamic_group_ids": ["group-abc123", "group-def456"]
       }
     }
   ]
