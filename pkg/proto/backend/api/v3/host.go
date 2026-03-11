@@ -97,6 +97,8 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 				*item.Info.LoginCreditValid = true
 			}
 		}
+		*item.Info.RelayCallbackPort = host.Dynamic.RelayCallbackPort
+		*item.Info.RelayDownloadPort = host.Dynamic.RelayDownloadPort
 
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
@@ -149,24 +151,26 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			OSType:        info.GetOsType(),
 		}
 		host.Dynamic = &types.HostDynamic{
-			AgentID:          state.GetBkAgentId(),
-			NodeRole:         types.NodeRole(state.GetNodeRole()),
-			NodeStatus:       types.NodeStatus(state.GetNodeStatus()),
-			NodeVersion:      state.GetNodeVersion(),
-			NodeGeneration:   types.Generation(state.GetNodeGeneration()),
-			NetworkUnitID:    info.GetBkNetworkunitId(),
-			NodeOsType:       criteria.OSType(info.GetOsType()),
-			NodeCPUArch:      criteria.CPUArch(info.GetCpuArch()),
-			ProxyTags:        types.StringListToProxyTagList(state.GetProxyTags()),
-			LoginIP:          info.GetLoginIp(),
-			LoginPort:        info.GetLoginPort(),
-			LoginUser:        info.GetLoginUser(),
-			LoginMode:        types.LoginMode(info.GetLoginMode()),
-			LoginCreditValid: info.GetLoginCreditValid(),
-			ExportIP:         info.GetExportIp(),
-			ExportIPV6:       info.GetExportIpV6(),
-			AdvertiseIP:      info.GetAdvertiseIp(),
-			AdvertiseIPV6:    info.GetAdvertiseIpV6(),
+			AgentID:           state.GetBkAgentId(),
+			NodeRole:          types.NodeRole(state.GetNodeRole()),
+			NodeStatus:        types.NodeStatus(state.GetNodeStatus()),
+			NodeVersion:       state.GetNodeVersion(),
+			NodeGeneration:    types.Generation(state.GetNodeGeneration()),
+			NetworkUnitID:     info.GetBkNetworkunitId(),
+			NodeOsType:        criteria.OSType(info.GetOsType()),
+			NodeCPUArch:       criteria.CPUArch(info.GetCpuArch()),
+			ProxyTags:         types.StringListToProxyTagList(state.GetProxyTags()),
+			LoginIP:           info.GetLoginIp(),
+			LoginPort:         info.GetLoginPort(),
+			LoginUser:         info.GetLoginUser(),
+			LoginMode:         types.LoginMode(info.GetLoginMode()),
+			LoginCreditValid:  info.GetLoginCreditValid(),
+			ExportIP:          info.GetExportIp(),
+			ExportIPV6:        info.GetExportIpV6(),
+			AdvertiseIP:       info.GetAdvertiseIp(),
+			AdvertiseIPV6:     info.GetAdvertiseIpV6(),
+			RelayCallbackPort: info.GetRelayCallbackPort(),
+			RelayDownloadPort: info.GetRelayDownloadPort(),
 		}
 
 		result[idx] = host
@@ -588,6 +592,8 @@ func newEmptyHost() *Host {
 			ExportIpV6:          new(string),
 			AdvertiseIp:         new(string),
 			AdvertiseIpV6:       new(string),
+			RelayCallbackPort:   new(int64),
+			RelayDownloadPort:   new(int64),
 		},
 		State: &HostState{
 			NodeRole:       new(string),

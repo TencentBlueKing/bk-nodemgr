@@ -116,6 +116,8 @@ message HostInfo {
   optional string export_ip_v6 = 21;
   optional string advertise_ip = 22;
   optional string advertise_ip_v6 = 23;
+  optional int64 relay_callback_port = 24;
+  optional int64 relay_download_port = 25;
 }
 
 // Host describes the host informations.
