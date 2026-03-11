@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
@@ -56,6 +57,9 @@ const (
 	clientNameBKLogin = "bklogin"
 	clientNameFile    = "file"
 	clientNameNotice  = "notice"
+
+	mongoMaxPoolSize     = uint64(500)
+	mongoMaxConnIdleTime = 3 * time.Minute
 )
 
 // Service defines a apigwserver that provides application services.
@@ -275,6 +279,8 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 }
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
+	maxConnIdleTime := mongoMaxConnIdleTime
+	maxPoolSize := mongoMaxPoolSize
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -286,8 +292,10 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				Password:      svc.conf.MongoDB.Password,
 				PasswordSet:   true,
 			},
-			Hosts:          svc.conf.MongoDB.Hosts,
-			ReadPreference: readpref.Primary(),
+			Hosts:           svc.conf.MongoDB.Hosts,
+			ReadPreference:  readpref.Primary(),
+			MaxConnIdleTime: &maxConnIdleTime,
+			MaxPoolSize:     &maxPoolSize,
 		},
 	)
 	if err != nil {

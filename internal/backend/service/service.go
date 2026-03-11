@@ -86,6 +86,9 @@ const (
 	clientNameIEGTJJ      = "iegtjj"
 	clientNameFile        = "file"
 	clientNameIAM         = "iam-v3"
+
+	mongoMaxPoolSize     = uint64(500)
+	mongoMaxConnIdleTime = 3 * time.Minute
 )
 
 // Service defines a apigwserver that provides backend services.
@@ -533,6 +536,8 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 		}
 	}
 
+	maxConnIdleTime := mongoMaxConnIdleTime
+	maxPoolSize := mongoMaxPoolSize
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -544,10 +549,12 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				Password:      svc.conf.MongoDB.Password,
 				PasswordSet:   true,
 			},
-			Hosts:          svc.conf.MongoDB.Hosts,
-			TLSConfig:      tlsConfig,
-			ReadPreference: readpref.Primary(),
-			Monitor:        otelmongo.NewMonitor(otelmongo.WithTracerProvider(mongoSvc.TracerProvider())),
+			Hosts:           svc.conf.MongoDB.Hosts,
+			TLSConfig:       tlsConfig,
+			ReadPreference:  readpref.Primary(),
+			Monitor:         otelmongo.NewMonitor(otelmongo.WithTracerProvider(mongoSvc.TracerProvider())),
+			MaxConnIdleTime: &maxConnIdleTime,
+			MaxPoolSize:     &maxPoolSize,
 		},
 	)
 	if err != nil {

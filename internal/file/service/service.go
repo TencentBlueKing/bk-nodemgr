@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
@@ -55,6 +56,9 @@ import (
 const (
 	clientNameRepo = "bkrepo"
 	clientNameGse  = "gse"
+
+	mongoMaxPoolSize     = uint64(500)
+	mongoMaxConnIdleTime = 3 * time.Minute
 )
 
 // Service defines a server that provides file services.
@@ -231,6 +235,8 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 		}
 	}
 
+	maxConnIdleTime := mongoMaxConnIdleTime
+	maxPoolSize := mongoMaxPoolSize
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -242,9 +248,11 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				Password:      svc.conf.MongoDB.Password,
 				PasswordSet:   true,
 			},
-			Hosts:          svc.conf.MongoDB.Hosts,
-			ReadPreference: readpref.Primary(),
-			TLSConfig:      tlsConfig,
+			Hosts:           svc.conf.MongoDB.Hosts,
+			ReadPreference:  readpref.Primary(),
+			TLSConfig:       tlsConfig,
+			MaxConnIdleTime: &maxConnIdleTime,
+			MaxPoolSize:     &maxPoolSize,
 		},
 	)
 	if err != nil {

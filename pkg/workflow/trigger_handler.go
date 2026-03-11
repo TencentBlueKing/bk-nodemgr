@@ -64,6 +64,11 @@ func (ct *cachedTriggers) get() []*trigger.Trigger {
 const (
 	triggerHandlerGoAsyncPoolNum         = 10000
 	triggerHandlerGoAsyncPoolPerPoolSize = 10000
+
+	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
+	instantiateOperationConcurrency = 20
+	// launchOperationInstanceConcurrency limits concurrent MongoDB writes when launching operation instances.
+	launchOperationInstanceConcurrency = 20
 )
 
 func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*triggerHandler, error) {
@@ -380,6 +385,7 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("instantiate operation")
 
 	gp := gopool.NewPool()
+	gp.SetLimit(instantiateOperationConcurrency)
 	for _, operCtl := range operList {
 		ctl := operCtl
 		gp.Go(func() error {
@@ -404,8 +410,14 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 	return gp.Wait()
 }
 
+const (
+	// onceTriggerBatchSize limits the number of operations instantiated and launched per cycle
+	// to avoid overwhelming MongoDB with too many concurrent writes when a trigger has a large backlog.
+	onceTriggerBatchSize = 200
+)
+
 func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
-	if err := handler.instantiateOperation(nCtx, trigCtl, types.UnlimitedPage()); err != nil {
+	if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: onceTriggerBatchSize}); err != nil {
 		logger.G.Sys().
 			WithErr(err).
 			With("trigger-id", trigCtl.GetTriggerID()).
@@ -542,6 +554,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 
 func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl, instanceCtls []IOperationInstanceCtl) error {
 	gp := gopool.NewPool()
+	gp.SetLimit(launchOperationInstanceConcurrency)
 	for _, instanceCtl := range instanceCtls {
 		ctl := instanceCtl
 		gp.Go(func() error {
