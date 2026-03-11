@@ -295,78 +295,103 @@ func (h *handler) processHostCredit(
 	rsaCrypter crypter.Crypter,
 ) error {
 
-	var err error
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:
-		if keyfile == "" {
-			if host.Dynamic.LoginCreditID == "" {
-				err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
-				logger.G.Biz(nCtx).WithErr(err).With("host-id", host.HostID, "inner-ip", host.Static.InnerIPList).Error("failed to process host credit")
+		return h.processKeyFileCredit(nCtx, host, keyfile, creditExpiredIntervalSec, rsaCrypter)
 
-				return err
-			}
-
-			// use old credit id.
-			return nil
-		}
-
-		loginKeyFile, err := base64.StdEncoding.DecodeString(keyfile)
-		if err != nil {
-			logger.G.Biz(nCtx).WithErr(err).Error("use base64 decode key file failed")
-
-			return fmt.Errorf("failed to decode key file: %w", err)
-		}
-
-		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			nCtx,
-			loginKeyFile,
-			genCreditExpiredAt(creditExpiredIntervalSec),
-		)
-		if err != nil {
-			return fmt.Errorf("failed to create host credit: %w", err)
-		}
-
-		return nil
-
-	// NOTE: RSA decryption is only applied to LoginModePassword.
 	case types.LoginModePassword:
-		if password == "" {
-			if host.Dynamic.LoginCreditID == "" {
-				err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
-				logger.G.Biz(nCtx).WithErr(err).With("host-id", host.HostID, "inner-ip", host.Static.InnerIPList).Error("failed to process host credit")
-
-				return err
-			}
-
-			// use old credit id.
-			return nil
-		}
-
-		// decrypt password.
-		plainPassword, err := crypter.DecryptRSABase64Ciphertext(rsaCrypter, password)
-		if err != nil {
-			return fmt.Errorf("failed to decrypt password: %w", err)
-		}
-
-		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			nCtx,
-			[]byte(plainPassword),
-			genCreditExpiredAt(creditExpiredIntervalSec),
-		)
-		if err != nil {
-			return fmt.Errorf("failed to create host credit: %w", err)
-		}
-
-		return nil
+		return h.processPasswordCredit(nCtx, host, password, creditExpiredIntervalSec, rsaCrypter)
 
 	case types.LoginModePasswordVault:
 		// notice: password vault don't need to store password.
 		return nil
 
 	default:
-		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", host.Dynamic.LoginMode)
+		err := fmt.Errorf("unsupported this login mode. login-mode(%s)", host.Dynamic.LoginMode)
 		logger.G.Biz(nCtx).WithErr(err).With("login-mode", host.Dynamic.LoginMode).Error("unsupported login mode")
 
 		return err
 	}
+}
+
+func (h *handler) processKeyFileCredit(
+	nCtx contextx.IContext,
+	host *types.Host,
+	keyfile string,
+	creditExpiredIntervalSec int64,
+	rsaCrypter crypter.Crypter,
+) error {
+
+	if keyfile == "" {
+		if host.Dynamic.LoginCreditID == "" {
+			err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
+			logger.G.Biz(nCtx).WithErr(err).With("host-id", host.HostID, "inner-ip", host.Static.InnerIPList).Error("failed to process host credit")
+
+			return err
+		}
+
+		// use old credit id.
+		return nil
+	}
+
+	plainKeyFile, err := crypter.DecryptRSABase64Ciphertext(rsaCrypter, keyfile)
+	if err != nil {
+		return fmt.Errorf("failed to decrypt key file: %w", err)
+	}
+
+	loginKeyFile, err := base64.StdEncoding.DecodeString(plainKeyFile)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("use base64 decode key file failed")
+
+		return fmt.Errorf("failed to decode key file: %w", err)
+	}
+
+	host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
+		nCtx,
+		loginKeyFile,
+		genCreditExpiredAt(creditExpiredIntervalSec),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create host credit: %w", err)
+	}
+
+	return nil
+}
+
+func (h *handler) processPasswordCredit(
+	nCtx contextx.IContext,
+	host *types.Host,
+	password string,
+	creditExpiredIntervalSec int64,
+	rsaCrypter crypter.Crypter,
+) error {
+
+	if password == "" {
+		if host.Dynamic.LoginCreditID == "" {
+			err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
+			logger.G.Biz(nCtx).WithErr(err).With("host-id", host.HostID, "inner-ip", host.Static.InnerIPList).Error("failed to process host credit")
+
+			return err
+		}
+
+		// use old credit id.
+		return nil
+	}
+
+	// decrypt password.
+	plainPassword, err := crypter.DecryptRSABase64Ciphertext(rsaCrypter, password)
+	if err != nil {
+		return fmt.Errorf("failed to decrypt password: %w", err)
+	}
+
+	host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
+		nCtx,
+		[]byte(plainPassword),
+		genCreditExpiredAt(creditExpiredIntervalSec),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create host credit: %w", err)
+	}
+
+	return nil
 }
