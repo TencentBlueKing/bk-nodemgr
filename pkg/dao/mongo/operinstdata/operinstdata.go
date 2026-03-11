@@ -12,7 +12,8 @@
 package operinstdata
 
 import (
-	"log"
+	"context"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -196,17 +197,21 @@ func (d *dao) listALLLastOperInst(nCtx contextx.IContext, filter bson.D) ([]*Ope
 	opts := mongoOptions.Aggregate().SetAllowDiskUse(true)
 	cursor, err := d.client.Aggregate(nCtx, pipeline, opts)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("aggregate last oper inst failed: %w", err)
 	}
-	defer func(cursor *mongo.Cursor, nCtx contextx.IContext) {
-		err := cursor.Close(nCtx)
-		if err != nil {
+
+	// Use a background context for cursor iteration and close to avoid the cursor
+	// being interrupted when the caller's context deadline expires mid-stream.
+	// The aggregate query itself is already bound to nCtx above.
+	cursorCtx := context.Background()
+	defer func() {
+		if err := cursor.Close(cursorCtx); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to close cursor")
 		}
-	}(cursor, nCtx)
+	}()
 
 	datas := make([]*OperInstData, 0)
-	for cursor.Next(nCtx) {
+	for cursor.Next(cursorCtx) {
 		table := &TableOperInstData{}
 		if err := cursor.Decode(table); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to decode table")
