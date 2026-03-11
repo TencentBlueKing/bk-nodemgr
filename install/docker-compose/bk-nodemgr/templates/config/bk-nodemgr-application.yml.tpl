@@ -17,6 +17,10 @@ front:
   bkDocsCenterURL: "__BK_NODEMGR_APPLICATION_DOCS_CENTER_URL__"
   # bk app nav open source url.
   bkAppNavOpenSourceURL: "__BK_NODEMGR_APPLICATION_NAV_OPEN_SOURCE_URL__"
+  # default port for Windows WMI connection.
+  windowsWMIPortDefault: __BK_NODEMGR_APPLICATION_WINDOWS_WMI_PORT_DEFAULT__
+  # default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
+  unixSSHPortDefault: __BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT__
 
 # infoServer defines self info http server settings.
 infoServer:

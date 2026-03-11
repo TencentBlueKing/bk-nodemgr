@@ -33,6 +33,8 @@ const (
 	defaultApplicationFrontPasswordVaultSwitch   = false
 	defaultApplicationFrontPasswordVaultName     = "password_vault"
 	defaultApplicationFrontBKAppNavOpenSourceURL = "https://github.com/TencentBlueKing/bk-nodemgr"
+	defaultApplicationFrontWindowsWMIPortDefault = 135
+	defaultApplicationFrontUnixSSHPortDefault    = 22
 
 	defaultApplicationBackendTraceServiceName = "application-client-backend"
 	defaultApplicationFileTraceServiceName    = "application-client-file"
@@ -132,6 +134,8 @@ func NewApplicationService() *ApplicationService {
 			PasswordVaultSwitch:   defaultApplicationFrontPasswordVaultSwitch,
 			PasswordVaultName:     defaultApplicationFrontPasswordVaultName,
 			BKAppNavOpenSourceURL: defaultApplicationFrontBKAppNavOpenSourceURL,
+			WindowsWMIPortDefault: defaultApplicationFrontWindowsWMIPortDefault,
+			UnixSSHPortDefault:    defaultApplicationFrontUnixSSHPortDefault,
 		},
 		Backend: Backend{
 			APIGatewayClient: APIGatewayClient{
@@ -366,6 +370,12 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	_ = envx.LoadString("BK_NODEMGR_APPLICATION_DOMAIN", &svc.Front.BKDomain)
 	_ = envx.LoadString("BK_NODEMGR_APPLICATION_DOCS_CENTER_URL", &svc.Front.BKDocsCenterURL)
 	_ = envx.LoadString("BK_NODEMGR_APPLICATION_NAV_OPEN_SOURCE_URL", &svc.Front.BKAppNavOpenSourceURL)
+	if _, err := envx.LoadInt("BK_NODEMGR_APPLICATION_WINDOWS_WMI_PORT_DEFAULT", &svc.Front.WindowsWMIPortDefault); err != nil {
+		return err
+	}
+	if _, err := envx.LoadInt("BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT", &svc.Front.UnixSSHPortDefault); err != nil {
+		return err
+	}
 
 	return nil
 }

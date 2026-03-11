@@ -666,6 +666,12 @@ type Front struct {
 
 	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
 	BKAppNavOpenSourceURL string `yaml:"bkAppNavOpenSourceURL" usage:"bk app nav open source url"`
+
+	// WindowsWMIPortDefault is the default port for Windows WMI connection.
+	WindowsWMIPortDefault int `yaml:"windowsWMIPortDefault" usage:"default port for Windows WMI connection"`
+
+	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
+	UnixSSHPortDefault int `yaml:"unixSSHPortDefault" usage:"default port for Unix-like OS SSH connection"`
 }
 
 // Validate validates the config.

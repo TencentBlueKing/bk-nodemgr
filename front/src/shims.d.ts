@@ -17,6 +17,8 @@ declare interface Window {
     ENABLE_NOTICE: string,
     APP_VERSION: string,
     LOGIN_NAME: string,
+    WINDOWS_WMI_PORT_DEFAULT: string,
+    UNIX_SSH_PORT_DEFAULT: string,
   }
   loginModal: Object
 }

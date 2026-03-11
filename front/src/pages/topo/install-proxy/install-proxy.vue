@@ -549,7 +549,7 @@ const form = reactive({
   info: [cloneDeep(initData)], // 安装信息
   saveTime: 1, // 密钥/密码保存时间
   os_type: 'linux', // 操作系统
-  login_port: '36000', // 登录端口
+  login_port: window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT, // 登录端口
   login_user: 'root', // 登录账号
   bk_biz_id: '', // 归属业务
   bk_networkarea_id: '', // 管控区域
@@ -959,7 +959,7 @@ watch(() => isShow.value, async () => {
       info: [cloneDeep(initData)], // 安装信息
       saveTime: 1, // 密钥/密码保存时间
       os_type: 'linux', // 操作系统
-      login_port: '36000', // 登录端口
+      login_port: window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT, // 登录端口
       login_user: 'root', // 登录账号
       bk_biz_id: '', // 归属业务
       bk_networkarea_id: '', // 管控区域

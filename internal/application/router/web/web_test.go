@@ -25,16 +25,18 @@ import (
 
 type testFrontSetting struct{}
 
-func (testFrontSetting) BKLoginURL() string { return "https://bklogin.example.com" }
-func (testFrontSetting) BKRequestIDHeaderKey() string { return "X-Request-Id" }
+func (testFrontSetting) BKLoginURL() string                   { return "https://bklogin.example.com" }
+func (testFrontSetting) BKRequestIDHeaderKey() string         { return "X-Request-Id" }
 func (testFrontSetting) BKPassAnalyticsScript() template.HTML { return "" }
-func (testFrontSetting) PasswordVaultSwitch() bool { return false }
-func (testFrontSetting) PasswordVaultName() string { return "" }
-func (testFrontSetting) BKUserWebURL() string { return "https://bkuser.example.com" }
-func (testFrontSetting) BKDomain() string { return "example.com" }
-func (testFrontSetting) BKDocsCenterURL() string { return "https://docs.example.com" }
-func (testFrontSetting) BKAppNavOpenSourceURL() string { return "https://nav.example.com" }
-func (testFrontSetting) EnableNotice() bool { return false }
+func (testFrontSetting) PasswordVaultSwitch() bool            { return false }
+func (testFrontSetting) PasswordVaultName() string            { return "" }
+func (testFrontSetting) BKUserWebURL() string                 { return "https://bkuser.example.com" }
+func (testFrontSetting) BKDomain() string                     { return "example.com" }
+func (testFrontSetting) BKDocsCenterURL() string              { return "https://docs.example.com" }
+func (testFrontSetting) BKAppNavOpenSourceURL() string        { return "https://nav.example.com" }
+func (testFrontSetting) WindowsWMIPortDefault() int           { return 445 }
+func (testFrontSetting) UnixSSHPortDefault() int              { return 36000 }
+func (testFrontSetting) EnableNotice() bool                   { return false }
 
 var _ frontsetting.IFrontSetting = testFrontSetting{}
 
@@ -52,7 +54,7 @@ func (h *testBKLoginHandler) Verify(_ contextx.IContext, _ string) (string, stri
 	return "", "", "", nil
 }
 func (h *testBKLoginHandler) GetAuthIdentity() *bksaasbklogin.AuthIdentity { return nil }
-func (h *testBKLoginHandler) GetAuthType() string { return h.authType }
+func (h *testBKLoginHandler) GetAuthType() string                          { return h.authType }
 func (h *testBKLoginHandler) GetWebUserInfo(_ contextx.IContext, token string) (*bksaasbklogin.WebUserInfo, error) {
 	h.gotToken = token
 

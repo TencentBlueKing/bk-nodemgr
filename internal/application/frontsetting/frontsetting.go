@@ -57,6 +57,12 @@ type IFrontSetting interface {
 	// BKAppNavOpenSourceURL the front setting field.
 	BKAppNavOpenSourceURL() string
 
+	// WindowsWMIPortDefault the front setting field.
+	WindowsWMIPortDefault() int
+
+	// UnixSSHPortDefault the front setting field.
+	UnixSSHPortDefault() int
+
 	// EnableNotice the front setting field.
 	EnableNotice() bool
 }
@@ -77,6 +83,9 @@ type FrontSetting struct {
 	bkDomain              string
 	bkDocsCenterURL       string
 	bkAppNavOpenSourceURL string
+
+	windowsWMIPortDefault int
+	unixSSHPortDefault    int
 
 	enableNotice bool
 }
@@ -102,6 +111,12 @@ type Option struct {
 
 	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
 	BKAppNavOpenSourceURL string
+
+	// WindowsWMIPortDefault is the default port for Windows WMI connection.
+	WindowsWMIPortDefault int
+
+	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
+	UnixSSHPortDefault int
 
 	// EnableNotice controls whether the notice feature is enabled.
 	EnableNotice bool
@@ -136,6 +151,8 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkDomain:              normalizeFrontValue(opt.BKDomain, frontValueKindHost),
 		bkDocsCenterURL:       normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
 		bkAppNavOpenSourceURL: normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
+		windowsWMIPortDefault: opt.WindowsWMIPortDefault,
+		unixSSHPortDefault:    opt.UnixSSHPortDefault,
 		enableNotice:          opt.EnableNotice,
 	}, nil
 }
@@ -241,4 +258,14 @@ func (setting *FrontSetting) BKAppNavOpenSourceURL() string {
 // EnableNotice get enable notice.
 func (setting *FrontSetting) EnableNotice() bool {
 	return setting.enableNotice
+}
+
+// WindowsWMIPortDefault get windows WMI port default.
+func (setting *FrontSetting) WindowsWMIPortDefault() int {
+	return setting.windowsWMIPortDefault
+}
+
+// UnixSSHPortDefault get Unix-like OS SSH port default.
+func (setting *FrontSetting) UnixSSHPortDefault() int {
+	return setting.unixSSHPortDefault
 }

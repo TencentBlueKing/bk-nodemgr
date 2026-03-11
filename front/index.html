@@ -32,6 +32,8 @@
         const ENABLE_NOTICE = '{{ .ENABLE_NOTICE }}'                           // 通知功能开关
         const APP_VERSION = '{{ .APP_VERSION }}'                               // 版本
         const LOGIN_NAME = '{{ .LOGIN_NAME }}'                                   // 当前登录用户名
+        const WINDOWS_WMI_PORT_DEFAULT = '{{ .WINDOWS_WMI_PORT_DEFAULT }}'     // Windows WMI 默认端口
+        const UNIX_SSH_PORT_DEFAULT = '{{ .UNIX_SSH_PORT_DEFAULT }}'           // Unix SSH 默认端口
         return {
           BK_API_PREFIX,
           BK_SHARED_RES_BASE_JS_URL,
@@ -47,6 +49,8 @@
           ENABLE_NOTICE,
           APP_VERSION,
           LOGIN_NAME,
+          WINDOWS_WMI_PORT_DEFAULT,
+          UNIX_SSH_PORT_DEFAULT,
         }
       })()
     </script>

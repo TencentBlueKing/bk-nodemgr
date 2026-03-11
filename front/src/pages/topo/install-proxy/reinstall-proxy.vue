@@ -220,7 +220,7 @@ const initData = {
   bk_addressing: 'static',
   bk_biz_id: '',
   os_type: '',
-  login_port: '36000',
+  login_port: window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT,
   login_user: 'root',
   dedicated_installer: true,
   cluster_tunnel: true,

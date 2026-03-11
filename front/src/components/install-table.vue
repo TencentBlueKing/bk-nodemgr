@@ -831,7 +831,9 @@ const { t } = useI18n();
 
 const handlePortBatchApplyDefault = () => {
   tableData.value?.forEach((item: any, index: number) => {
-    const port = item.os_type === 'windows' ? '445' : '36000';
+    const port = item.os_type === 'windows'
+      ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
+      : window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
     item.login_port = port;
     handleFieldBlur(index, 'login_port', port);
   });
@@ -973,15 +975,15 @@ const handleChangeIPv4 = (val: string, row: any, rowIndex: number) => {
 };
 const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
   if (val === 'linux') {
-    row.login_port = '36000';
+    row.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
     row.login_user = 'root';
-    handleFieldBlur(rowIndex, 'login_port', '36000');
+    handleFieldBlur(rowIndex, 'login_port', window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT);
     handleFieldBlur(rowIndex, 'login_user', 'root');
   }
   if (val === 'windows') {
-    row.login_port = '445';
+    row.login_port = window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT;
     row.login_user = 'administrator';
-    handleFieldBlur(rowIndex, 'login_port', '445');
+    handleFieldBlur(rowIndex, 'login_port', window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT);
     handleFieldBlur(rowIndex, 'login_user', 'administrator');
   }
 };
@@ -1025,14 +1027,14 @@ const handleBatchEdit = (field: string, value: any) => {
     if (field === 'os_type') {
       // 复用之前的联动逻辑
       if (value === 'linux') {
-        item.login_port = '36000';
+        item.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
         item.login_user = 'root';
-        handleFieldBlur(index, 'login_port', '36000');
+        handleFieldBlur(index, 'login_port', window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT);
         handleFieldBlur(index, 'login_user', 'root');
       } else if (value === 'windows') {
-        item.login_port = '445';
+        item.login_port = window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT;
         item.login_user = 'administrator';
-        handleFieldBlur(index, 'login_port', '445');
+        handleFieldBlur(index, 'login_port', window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT);
         handleFieldBlur(index, 'login_user', 'administrator');
       }
     }

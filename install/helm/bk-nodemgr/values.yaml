@@ -693,6 +693,10 @@ application:
       bkDocsCenterURL: ""
       ## bk app nav open source url, default is empty.
       bkAppNavOpenSourceURL: ""
+      ## windowsWMIPortDefault is the default port for Windows WMI connection, default is 445.
+      windowsWMIPortDefault: 445
+      ## unixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection, default is 36000.
+      unixSSHPortDefault: 36000
 
     # defines the nodemgr backend (BK API gateway) related settings.
     backend:
