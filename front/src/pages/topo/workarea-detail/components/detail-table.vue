@@ -519,8 +519,8 @@ const getProxyList = async () => {
       ...item.state,
       ...item.info,
       ...item,
-      bk_host_innerip: item.info.bk_host_innerip_list.join(','),
-      bk_host_innerip_v6: item.info.bk_host_innerip_v6_list.join(','),
+      bk_host_innerip: item.info.bk_host_innerip_list?.join(',') || '',
+      bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(',') || '',
       pluginNum: pluginNumMap[item.bk_host_id] || 0,
       checked: isChecked,
     };

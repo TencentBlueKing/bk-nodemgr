@@ -73,7 +73,7 @@
       </Tab>
       <UpsertWorkUnit
         v-model:is-show="isShow"
-        :work-unit-id="active"
+        :work-unit-id="active ?? -1"
         :is-create="isCreate"
         @save="handleWorkUnitSave"
       />

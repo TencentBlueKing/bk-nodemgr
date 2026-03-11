@@ -100,9 +100,9 @@ const SelectOptions = computed(() => workareaStore.vendorList.map((item: string)
   const curItem = vendorMap[item];
   return {
     id: item,
-    icon: curItem.icon,
-    class: curItem?.class,
-    label: t(curItem?.label),
+    icon: curItem?.icon ?? '',
+    class: curItem?.class ?? '',
+    label: curItem?.label ? t(curItem.label) : item,
   };
 }));
 

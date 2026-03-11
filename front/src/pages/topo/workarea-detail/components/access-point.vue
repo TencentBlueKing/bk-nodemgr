@@ -36,17 +36,17 @@
               </TableColumn>
               <TableColumn field="cluster" title="cluster" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.cluster.join('\n') }}</span>
+                  <span>{{ directEndpoints.cluster?.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="file" title="file" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.file.join('\n') }}</span>
+                  <span>{{ directEndpoints.file?.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="data" title="data" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.data.join('\n') }}</span>
+                  <span>{{ directEndpoints.data?.join('\n') }}</span>
                 </template>
               </TableColumn>
             </Table>
@@ -208,17 +208,17 @@
               </TableColumn>
               <TableColumn field="cluster" title="cluster" :min-width="200">
                 <template #default="{ row }">
-                  <span style="white-space: pre-line;">{{ row.endpoints.cluster.join('\n') }}</span>
+                  <span style="white-space: pre-line;">{{ row.endpoints.cluster?.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="file" title="file" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.file.join('\n') }}
+                  {{ row.endpoints.file?.join('\n') }}
                 </template>
               </TableColumn>
               <TableColumn field="data" title="data" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.data.join('\n') }}
+                  {{ row.endpoints.data?.join('\n') }}
                 </template>
               </TableColumn>
             </Table>

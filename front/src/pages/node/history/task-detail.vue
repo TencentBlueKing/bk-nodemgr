@@ -212,7 +212,15 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="route.query.active !== 'plugin'"
           field="node_version"
+          :title="$t('taskDetail.table.targetVersion')"
+          min-width="150"
+        >
+        </TableColumn>
+        <TableColumn
+          v-else
+          field="plugin_version"
           :title="$t('taskDetail.table.targetVersion')"
           min-width="150"
         >
