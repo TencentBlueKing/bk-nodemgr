@@ -160,7 +160,9 @@ spec:
               if not any_set:
                 raise SystemExit(0)
 
-              os.makedirs(cert_dir, exist_ok=True)
+              # Create cert directory if it doesn't exist
+              cert_save_dir = os.path.join(cert_dir, "cert")
+              os.makedirs(cert_save_dir, exist_ok=True)
 
               for env_name, filename, mode in mappings:
                 b64 = (os.environ.get(env_name) or "").strip()
@@ -171,7 +173,7 @@ spec:
                 except Exception as e:
                   raise SystemExit(f"invalid base64 for {env_name}: {e}")
 
-                target = os.path.join(cert_dir, filename)
+                target = os.path.join(cert_save_dir, filename)
                 with open(target, "wb") as f:
                   f.write(data)
                 os.chmod(target, mode)
@@ -184,7 +186,7 @@ spec:
               all_exist=true
 
               for file in $CERT_FILES; do
-                  if [ ! -f "${CERT_DIR}/${file}" ]; then
+                  if [ ! -f "${CERT_DIR}/cert/${file}" ]; then
                       echo "Missing cert file: ${file}"
                       all_exist=false
                   fi
@@ -192,7 +194,7 @@ spec:
 
               if [ "$all_exist" = "true" ]; then
                   echo "All cert files found, creating cert.tgz..."
-                  tar -czf "${CERT_TGZ}" -C "${CERT_DIR}" $CERT_FILES
+                  tar -C "${CERT_DIR}" -czf "${CERT_TGZ}" cert
                   echo "cert.tgz created: ${CERT_TGZ}"
                   UPLOAD_ARGS="${UPLOAD_ARGS} --init-cert ${CERT_TGZ}"
               else

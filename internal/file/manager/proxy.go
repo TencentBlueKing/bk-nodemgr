@@ -147,10 +147,11 @@ func (m *Manager) UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadClose
 }
 
 // checkGSE2OriginProxyPkg check origin proxy package.
-// nolint:funlen,gocognit,gocyclo,cyclop,lll
+// nolint:funlen,gocognit,gocyclo,cyclop,lll,maintidx
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	platSet := make(map[string]struct{})
+	envContent := make(map[string]map[string]any)
 	var seenFile, seenData, seenAgent bool
 	detail := types.NewOriginPkgDetail()
 	if err := checkTgz(file, []tgzReadRule{
@@ -279,7 +280,20 @@ func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 					return fmt.Errorf("failed to read gse_proxy.env file: %w", err)
 				}
 
-				detail.ConfigEnviron = environ
+				envContent[originalProxyFileNameProxyEnv] = environ
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameEnv), buildFullMatchRegex(originalProxyFileNameAgentEnv)},
+			callback: func(_ []string, r io.Reader) error {
+				environ, err := parseEnvFile(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_agent.env file: %w", err)
+				}
+
+				envContent[originalProxyFileNameAgentEnv] = environ
 
 				return nil
 			},
@@ -345,6 +359,24 @@ func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 	if !seenFile || !seenData || !seenAgent || len(platSet) != 1 || detail.Version == "" {
 		return nil, fmt.Errorf("invalid origin proxy package. gse-file(%t) gse-data(%t) gse-agent(%t) version(%s) platform(%v) platform-set-size(%d)",
 			seenFile, seenData, seenAgent, detail.Version, detail.Platforms, len(platSet))
+	}
+
+	proxyEnv, ok := envContent[originalProxyFileNameProxyEnv]
+	if !ok {
+		return nil, fmt.Errorf("missing gse_proxy.env file in origin proxy package")
+	}
+
+	detail.ConfigEnviron = proxyEnv
+
+	agentEnv, ok := envContent[originalProxyFileNameAgentEnv]
+	if !ok {
+		return nil, fmt.Errorf("missing gse_agent.env file in origin proxy package")
+	}
+
+	for key, value := range agentEnv {
+		if _, exist := detail.ConfigEnviron[key]; !exist {
+			detail.ConfigEnviron[key] = value
+		}
 	}
 
 	return detail, nil
@@ -518,6 +550,7 @@ const (
 	originalProxyFileNameDescription   = "DESCRIPTION"
 	originalProxyFileNameDescriptionEN = "DESCRIPTION_EN"
 	originalProxyFileNameProxyEnv      = "gse_proxy.env"
+	originalProxyFileNameAgentEnv      = "gse_agent.env"
 
 	originalProxyFileNameAgent                    = "gse_agent"
 	originalProxyFileNameConfTemplateAgentTypeOne = "#etc#gse#gse_agent.conf"
