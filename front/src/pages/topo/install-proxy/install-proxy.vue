@@ -40,6 +40,7 @@
           </install-table>
         </Form.FormItem>
         <Form.FormItem
+          v-if="form.method !== 'manual'"
           :label="$t('topoManager.installProxy.form.password')"
           property="saveTime"
           label-width="110"
@@ -72,6 +73,7 @@
           <Select class="w-[488px]" v-model="form.os_type" disabled></Select>
         </Form.FormItem>
         <Form.FormItem
+          v-if="form.method !== 'manual'"
           property="login_port"
           label-width="110"
           required
@@ -104,6 +106,7 @@
           <Input class="w-[488px]" v-model="form.login_port" />
         </Form.FormItem>
         <Form.FormItem
+          v-if="form.method !== 'manual'"
           :label="$t('topoManager.installProxy.form.account')"
           property="login_user"
           label-width="110"
@@ -864,15 +867,17 @@ const handleConfirm = async () => {
         ...rest,
         os_type: 'linux',
         bk_biz_id: form.bk_biz_id,
-        login_user: form.login_user,
         proxy_install_origin_unit_id,
-        credit_expired_interval_sec: form.saveTime * 24 * 3600,
-        login_port: Number(form.login_port),
         relay_download_port: Number(form.relay_download_port),
         relay_callback_port: Number(form.relay_callback_port),
         bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
         bk_networkarea_name: form.bk_networkarea_name,
         ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
+        ...(form.method !== 'manual' ? {
+          login_user: form.login_user,
+          login_port: Number(form.login_port),
+          credit_expired_interval_sec: form.saveTime * 24 * 3600,
+        } : {}),
       };
     });
     previewData.value = {

@@ -445,8 +445,14 @@
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.portTooltipDesc') }}</p>
                   <div class="mt-[8px]">
-                    <p>{{ $t('components.installTable.portTooltipLinuxLabel') }}<span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipLinuxPort') }}</span></p>
-                    <p class="mt-[2px]">{{ $t('components.installTable.portTooltipWindowsLabel') }}<span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipWindowsPort') }}</span></p>
+                    <p>
+                      {{ $t('components.installTable.portTooltipLinuxLabel') }}
+                      <span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipLinuxPort') }}</span>
+                    </p>
+                    <p class="mt-[2px]">
+                      {{ $t('components.installTable.portTooltipWindowsLabel') }}
+                      <span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipWindowsPort') }}</span>
+                    </p>
                   </div>
                   <p
                     class="text-[#3A84FF] mt-[8px] cursor-pointer"
@@ -583,9 +589,9 @@
               <Input
                 v-else
                 v-model.trim="row.credit"
-                :placeholder="
-                  row.login_credit_valid ? $t('components.installTable.creditValid') : $t('components.installTable.inputPassword')
-                "
+                :placeholder="row.login_credit_valid
+                  ? $t('components.installTable.creditValid')
+                  : $t('components.installTable.inputPassword')"
                 type="password"
                 @change="clearError(rowIndex, 'credit')"
                 @blur="handleFieldBlur(rowIndex, 'credit', row.credit)"
@@ -887,7 +893,9 @@ const { contentRef } = useFullScreen();
 const xTableRef = ref();
 const mainStore = useMainStore();
 const businessList = computed(() => mainStore.businessList);
-const type = computed(() => mainStore.agentSetupType);
+const type = computed(() => (props.releaseType === 'proxy'
+  ? mainStore.proxySetupType
+  : mainStore.agentSetupType));
 
 // --- 错误状态管理 ---
 const errorMap = reactive<Record<number, Record<string, string>>>({});
@@ -1097,9 +1105,9 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
   if (field === 'credit') {
     const row = tableData.value![rowIndex];
     if (
-      row.login_mode !== 'password_vault' &&
-      !row.login_credit_valid &&
-      !value
+      row.login_mode !== 'password_vault'
+      && !row.login_credit_valid
+      && !value
     ) {
       setError(rowIndex, field,  t('validate.required'));
       return;
@@ -1319,8 +1327,6 @@ const handleNetworkUnitChange = (val: string, row: any, _rowIndex: number) => {
 const settingRef = ref();
 const showSetting = () => settingRef.value?.showSetting();
 
-defineExpose({ tableValidate, showSetting });
-
 // 监听mainStore的变化来更新settings
 // watch(() => mainStore.agentSetupType, (newType: string) => {
 //   if (newType === 'manual') {
@@ -1355,6 +1361,8 @@ watch(
 watch(() => type.value, () => {
   clearAllErrors();
 }, { immediate: true });
+
+defineExpose({ tableValidate, showSetting });
 </script>
 <style lang="postcss" scoped>
 ::v-deep(.vxe-header--column) {
