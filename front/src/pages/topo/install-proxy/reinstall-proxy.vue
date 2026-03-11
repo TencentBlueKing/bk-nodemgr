@@ -275,6 +275,66 @@ const getNetworkUnitList = async () => {
   });
 };
 
+// 查询各单元是否有 proxy（一次查询所有去重单元）
+const unitHasProxyMap = ref<Map<number, boolean>>(new Map());
+const checkUnitsHasProxy = async (unitIds: number[]) => {
+  const uniqueIds = [...new Set(unitIds)].filter(id => !!id);
+  if (uniqueIds.length === 0) return;
+  const map = new Map<number, boolean>();
+  uniqueIds.forEach(id => map.set(id, false));
+  try {
+    const res = await TopoService.HostList({
+      page: { offset: 0, limit: 500 },
+      only_count: false,
+      exact_include_conditions: {
+        bk_networkunit_id: uniqueIds,
+        node_role: ['proxy'],
+        node_status: ['running']
+      },
+      fuzzy_include_conditions: {},
+    });
+    // 从返回的 proxy 主机中提取有 proxy 的单元 ID
+    const unitsWithProxy = new Set((res.items ?? []).map((item: any) => Number(item.info.bk_networkunit_id)));
+    unitsWithProxy.forEach((unitId) => {
+      map.set(unitId, true);
+    });
+  } catch {
+    // 请求失败时所有单元保持无 proxy
+  }
+  unitHasProxyMap.value = map;
+};
+
+// 根据单元是否有 proxy 设置安装源默认值
+const setDefaultInstallOrigin = () => {
+  // 取第一条数据的单元来决定默认值（批量重装时以第一条为准显示）
+  const firstUnitId = Number(form.info[0]?.bk_networkunit_id);
+  if (!firstUnitId) return;
+  const hasProxy = unitHasProxyMap.value.get(firstUnitId) ?? false;
+  const upstreamUnitId = networkUnitListMap.get(firstUnitId);
+  const hasUpstream = upstreamUnitId !== null && upstreamUnitId !== undefined;
+  if (hasProxy) {
+    form.proxy_install_origin = ['current'];
+  } else if (hasUpstream) {
+    form.proxy_install_origin = ['upstream'];
+  } else {
+    isTargetShow.value = true;
+  }
+};
+
+// 获取指定单元的默认安装源（不展开时按每行数据单独判断）
+const getDefaultOriginForUnit = (unitId: number): string => {
+  const hasProxy = unitHasProxyMap.value.get(unitId) ?? false;
+  const upstreamUnitId = networkUnitListMap.get(unitId);
+  const hasUpstream = upstreamUnitId !== null && upstreamUnitId !== undefined;
+  if (hasProxy) {
+    return 'current';
+  }
+  if (hasUpstream) {
+    return 'upstream';
+  }
+  return 'current';
+};
+
 // 安装源
 const installOriginList = computed(() => ([
   {
@@ -424,9 +484,13 @@ const handleConfirm = async () => {
     scrollToFirstErrorByClassNames();
   }
 };
-function getinstallOriginUnitId(unit_id: Number) {
+function getinstallOriginUnitId(unit_id: number) {
+  // 如果没有展开高级选项（proxy_install_origin 为空），按每行数据的单元自动判断
+  const origin = form.proxy_install_origin.length > 0
+    ? form.proxy_install_origin[0]
+    : getDefaultOriginForUnit(unit_id);
   let id;
-  switch (form.proxy_install_origin[0]) {
+  switch (origin) {
     case 'upstream':
       id = networkUnitListMap.get(unit_id);
       break;
@@ -435,6 +499,7 @@ function getinstallOriginUnitId(unit_id: Number) {
       break;
     case 'custom':
       id = Number(form.proxy_install_origin[1]);
+      break;
     default:
       break;
   }
@@ -542,6 +607,11 @@ watch(() => isShow.value, async () => {
           return data;
         });
       }
+      // 查询各单元是否有 proxy，并设置安装源默认值
+      const unitIds = form.info.map((item: any) => Number(item.bk_networkunit_id)).filter(Boolean);
+      await checkUnitsHasProxy(unitIds);
+      setDefaultInstallOrigin();
+
       await getVersions();
       originData.value = cloneDeep(form);
     } finally {

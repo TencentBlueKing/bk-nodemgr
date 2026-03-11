@@ -703,6 +703,48 @@ const getNetworkUnitList = async () => {
 
 // eslint-disable-next-line max-len
 const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) => [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)));
+
+// 查询指定单元是否有 proxy
+const currentUnitHasProxy = ref(false);
+const checkUnitHasProxy = async (unitId: number) => {
+  if (!unitId) {
+    currentUnitHasProxy.value = false;
+    return;
+  }
+  try {
+    const res = await TopoService.HostList({
+      page: { offset: 0, limit: 1 },
+      only_count: true,
+      exact_include_conditions: {
+        bk_networkunit_id: [unitId],
+        node_role: ['proxy'],
+        node_status: ['running'],
+      },
+      fuzzy_include_conditions: {},
+    });
+    currentUnitHasProxy.value = (res.total ?? 0) > 0;
+  } catch {
+    currentUnitHasProxy.value = false;
+  }
+};
+
+// 根据当前单元是否有 proxy 设置安装源默认值
+const setDefaultInstallOrigin = async () => {
+  const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+  if (!unitId) return;
+  await checkUnitHasProxy(unitId);
+  // eslint-disable-next-line max-len
+  const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
+  const hasUpstream = unit?.links?.cluster?.bk_networkunit_id !== null && unit?.links?.cluster?.bk_networkunit_id !== undefined;
+  if (currentUnitHasProxy.value) {
+    form.proxy_install_origin = ['current'];
+  } else if (hasUpstream) {
+    form.proxy_install_origin = ['upstream'];
+  } else {
+    isTargetShow.value = true;
+  }
+};
+
 // 安装源
 const installOriginList = computed(() => {
   // eslint-disable-next-line max-len
@@ -956,6 +998,10 @@ const getVersions = async () => {
 watch(() => isShow.value, async () => {
   if (isShow.value) {
     await getVersions();
+    // 如果从 props 传入了单元 id，初始化时设置安装源默认值
+    if (props.bk_networkunit_id) {
+      await setDefaultInstallOrigin();
+    }
   } else {
     formRef.value?.clearValidate();
     // 重置数据
@@ -981,6 +1027,15 @@ watch(
   async () => {
     form.bk_networkunit_id = '';
     await getNetworkUnitList();
+  },
+);
+// 当用户选择管控单元变化时，重新设置安装源默认值
+watch(
+  () => form.bk_networkunit_id,
+  async (newVal) => {
+    if (newVal) {
+      await setDefaultInstallOrigin();
+    }
   },
 );
 onMounted(() => {
