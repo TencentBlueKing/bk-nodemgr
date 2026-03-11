@@ -705,6 +705,8 @@ pkgUpload:
   configFile: "Config: {file}"
   configFormat: "Format: {format}"
   launchNode: "Node Type: {node}"
+  proxyPkgTypeOriginServer: "Package Type: origin_server"
+  proxyPkgTypeOriginProxy: "Package Type: origin_proxy"
 certBintool:
   upload: Upload
   searchPlaceholder: Filename, User

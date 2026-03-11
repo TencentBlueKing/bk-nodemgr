@@ -105,7 +105,11 @@ const props = defineProps({
     type: String,
     default: '',
   },
-});
+  proxyType: {
+    type: String,
+    default: 'origin_proxy',
+  },
+  });
 
 const emit = defineEmits(['upload', 'cancel', 'loading']);
 const route = useRoute();
@@ -120,7 +124,7 @@ const url = computed(() => {
   let type;
   switch (currentType.value) {
     case 'proxy':
-      type = 'server';
+      type = props.proxyType === 'origin_proxy' ? 'proxy' : 'server';
       break;
     case 'plugin':
       type = props.pluginType;

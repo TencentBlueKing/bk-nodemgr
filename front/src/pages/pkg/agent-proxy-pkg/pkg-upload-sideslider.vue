@@ -39,13 +39,43 @@
             </template>
           </Dropdown>
         </template>
+        <template v-if="route.name === 'proxyPackageMng'">
+          <Dropdown
+            theme="light"
+            trigger="click"
+            placement="bottom-start"
+            :popover-options="{
+              clickContentAutoHide: true,
+            }"
+          >
+            <Button
+              class="mr-[24px]"
+              text
+            >
+              <i class="nodeman-icon nc-setting"></i>
+            </Button>
+            <template #content>
+              <Dropdown.DropdownMenu ext-cls="dropDown-menu">
+                <Dropdown.DropdownItem
+                  :class="['text-14px', { 'active': proxyUploadType === item.id }]"
+                  v-for="item in proxyUploadTypeList"
+                  :key="item.id"
+                  @click="proxyTriggerHandler(item.id)"
+                >
+                  {{ item.name }}
+                </Dropdown.DropdownItem>
+              </Dropdown.DropdownMenu>
+            </template>
+          </Dropdown>
+        </template>
       </div>
     </template>
     <template #default>
       <div class="px-[24px] pt-[28px]">
         <pkg-upload
-          :key="pluginUploadType"
+          :key="`${pluginUploadType}_${proxyUploadType}`"
           :plugin-type="pluginUploadType"
+          :proxy-type="proxyUploadType"
           @upload="handleUpload"
           @cancel="handleCancel"
           @loading="handleLoading"
@@ -103,6 +133,8 @@ const packageStore = usePackageStore();
 
 // 插件上传类型
 const pluginUploadType = ref('v3/plugin');
+// Proxy上传来源包类型
+const proxyUploadType = ref<string>('origin_proxy');
 const subTitle = ref('');
 const pluginUploadTypeList = computed(() => [
   {
@@ -116,6 +148,16 @@ const pluginUploadTypeList = computed(() => [
     tipKey: 'pkgUpload.externalPluginTip',
   },
 ]);
+const proxyUploadTypeList = computed(() => [
+  {
+    id: 'origin_proxy',
+    name: t('pkgUpload.proxyPkgTypeOriginProxy'),
+  },
+  {
+    id: 'origin_server',
+    name: t('pkgUpload.proxyPkgTypeOriginServer'),
+  },
+]);
 const triggerHandler = (id: string) => {
   const doSwitch = () => {
     if (pluginUploadType.value === id) {
@@ -125,6 +167,24 @@ const triggerHandler = (id: string) => {
       pluginUploadType.value = id;
       subTitle.value = pluginUploadTypeList.value.find(item => item.id === id)?.name || '';
     }
+    uploadData.value = null;
+    parseLoading.value = false;
+  };
+
+  if (uploadData.value) {
+    InfoBox({
+      title: t('dialog.confirmSwitchType'),
+      infoType: 'warning',
+      onConfirm: () => doSwitch(),
+    });
+    return;
+  }
+  doSwitch();
+};
+const proxyTriggerHandler = (id: string) => {
+  const doSwitch = () => {
+    proxyUploadType.value = id;
+    subTitle.value = proxyUploadTypeList.value.find(item => item.id === id)?.name || '';
     uploadData.value = null;
     parseLoading.value = false;
   };
@@ -174,7 +234,7 @@ const submit = async () => {
     loading.value = true;
 
     // 创建一个从路由名称到服务方法的映射
-    const serviceMap: Record<string, (args: { upload_id: string }) => Promise<void>> = {
+    const serviceMap: Record<string, (args: Record<string, string>) => Promise<void>> = {
       agentPackageMng: PackageService.PublishReleaseAgent,
       proxyPackageMng: PackageService.PublishReleaseProxy,
       certPackageMng: PackageService.PublishReleaseCert,
@@ -185,13 +245,18 @@ const submit = async () => {
       plugin_bintoolPackageMng: PackageService.PublishReleasePluginBinTool,
     };
 
-    const key = route.name === 'pluginPackageMng' ? `pluginPackageMng_${pluginUploadType.value}` : route.name;
+    const key = route.name === 'pluginPackageMng' ? `pluginPackageMng_${pluginUploadType.value}` : route.name as string;
     // 获取映射中的服务方法
     const serviceMethod = route.name ? serviceMap[key] : undefined;
 
     // 如果有对应的服务方法，调用它
     if (serviceMethod && uploadData.value?.upload_id) {
-      await serviceMethod({ upload_id: uploadData.value.upload_id });
+      const params: Record<string, string> = { upload_id: uploadData.value.upload_id };
+      // Proxy发布需要额外传 upload_origin_pkg_type
+      if (route.name === 'proxyPackageMng') {
+        params.upload_origin_pkg_type = proxyUploadType.value;
+      }
+      await serviceMethod(params);
     }
     Message({
       theme: 'success',
@@ -210,6 +275,8 @@ watch(() => isShow.value, async () => {
   if (isShow.value) {
     // await packageStore.getPackages();
     uploadData.value = null;
+    proxyUploadType.value = 'origin_proxy';
+    subTitle.value = route.name === 'proxyPackageMng' ? t('pkgUpload.proxyPkgTypeOriginProxy') : '';
   }
 }, { immediate: true });
 </script>

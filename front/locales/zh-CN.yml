@@ -705,6 +705,8 @@ pkgUpload:
   configFile: "配置文件：{file}"
   configFormat: "配置格式：{format}"
   launchNode: "运行节点类型：{node}"
+  proxyPkgTypeOriginServer: "包类型：origin_server"
+  proxyPkgTypeOriginProxy: "包类型：origin_proxy"
 certBintool:
   upload: 包上传
   searchPlaceholder: 包文件名、上传用户
