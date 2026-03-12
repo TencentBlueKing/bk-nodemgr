@@ -158,7 +158,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 	}
 
 	// send detect info request to relay.
-	if err := act.notifyRelayTodetect(std, cKey); err != nil {
+	if err := act.notifyRelayToDetect(std, cKey); err != nil {
 		return err
 	}
 
@@ -237,7 +237,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
+func (act *actionPagentDetectInfoByWMI) notifyRelayToDetect(
 	std *nodeUtils.NodeActionStandarder, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoByWMIReq{
