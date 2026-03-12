@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 
@@ -26,6 +27,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -35,6 +38,8 @@ const (
 	defaultListTickTime    = 10 * time.Second
 
 	metaKeyLeaseID = "etcd-lease-id"
+
+	etcdEntryBaseKeyValueCapacity = 8
 )
 
 // ProviderEtcd implements discover.Provider.
@@ -92,6 +97,124 @@ func WithDiscoverPathPrefix(prefix string) OptionFn {
 	}
 }
 
+type etcdLogFunc func(level logger.Level, msg string, kvs ...interface{})
+
+type etcdLoggerCore struct {
+	log    etcdLogFunc
+	fields []zapcore.Field
+}
+
+func (core *etcdLoggerCore) Enabled(zapcore.Level) bool {
+	return true
+}
+
+func (core *etcdLoggerCore) With(fields []zapcore.Field) zapcore.Core {
+	clonedFields := append(append([]zapcore.Field{}, core.fields...), fields...)
+
+	return &etcdLoggerCore{
+		log:    core.log,
+		fields: clonedFields,
+	}
+}
+
+func (core *etcdLoggerCore) Check(entry zapcore.Entry, checked *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+	if !core.Enabled(entry.Level) {
+		return checked
+	}
+
+	return checked.AddCore(entry, core)
+}
+
+func (core *etcdLoggerCore) Write(entry zapcore.Entry, fields []zapcore.Field) error {
+	if core.log == nil {
+		return nil
+	}
+
+	allFields := append(append([]zapcore.Field{}, core.fields...), fields...)
+	core.log(mapEtcdLogLevel(entry.Level), entry.Message, etcdEntryKeyValues(entry, allFields)...)
+
+	return nil
+}
+
+func (core *etcdLoggerCore) Sync() error {
+	return nil
+}
+
+func newEtcdClientConfig(conf *config.Etcd, tlsConf *tls.Config) clientv3.Config {
+	return clientv3.Config{
+		Endpoints:   conf.Endpoints,
+		Username:    conf.Username,
+		Password:    conf.Password,
+		DialTimeout: defaultEtcdDialTimeout,
+		TLS:         tlsConf,
+		Logger:      newEtcdLogger(),
+	}
+}
+
+func newEtcdLogger() *zap.Logger {
+	return zap.New(&etcdLoggerCore{log: writeEtcdLog}, zap.AddCaller())
+}
+
+func writeEtcdLog(level logger.Level, msg string, kvs ...interface{}) {
+	logOption := logger.G.Sys().With(kvs...)
+
+	switch level {
+	case logger.LevelDebug:
+		logOption.Debug(msg)
+	case logger.LevelInfo:
+		logOption.Info(msg)
+	case logger.LevelWarn:
+		logOption.Warn(msg)
+	default:
+		logOption.Error(msg)
+	}
+}
+
+func mapEtcdLogLevel(level zapcore.Level) logger.Level {
+	switch level {
+	case zapcore.DebugLevel:
+		return logger.LevelDebug
+	case zapcore.InfoLevel:
+		return logger.LevelInfo
+	case zapcore.WarnLevel:
+		return logger.LevelWarn
+	default:
+		return logger.LevelError
+	}
+}
+
+func etcdEntryKeyValues(entry zapcore.Entry, fields []zapcore.Field) []interface{} {
+	kvs := make([]interface{}, 0, len(fields)*2+etcdEntryBaseKeyValueCapacity)
+	kvs = append(kvs, "level", entry.Level.String())
+
+	if entry.Caller.Defined {
+		kvs = append(kvs, "caller", entry.Caller.TrimmedPath())
+	}
+	if entry.LoggerName != "" {
+		kvs = append(kvs, "logger", entry.LoggerName)
+	}
+	if entry.Stack != "" {
+		kvs = append(kvs, "stack", entry.Stack)
+	}
+
+	encoder := zapcore.NewMapObjectEncoder()
+	for _, field := range fields {
+		field.AddTo(encoder)
+	}
+
+	keys := make([]string, 0, len(encoder.Fields))
+	for key := range encoder.Fields {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		kvs = append(kvs, key, encoder.Fields[key])
+	}
+
+	return kvs
+}
+
 // Start starts the provider.
 func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	tlsConf, err := provider.initTLS()
@@ -99,13 +222,7 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 		return err
 	}
 
-	provider.etcdClient, err = clientv3.New(clientv3.Config{
-		Endpoints:   provider.config.Endpoints,
-		Username:    provider.config.Username,
-		Password:    provider.config.Password,
-		DialTimeout: defaultEtcdDialTimeout,
-		TLS:         tlsConf,
-	})
+	provider.etcdClient, err = clientv3.New(newEtcdClientConfig(provider.config, tlsConf))
 	if err != nil {
 		return err
 	}
