@@ -59,6 +59,7 @@ const (
 	clientNameNotice  = "notice"
 
 	mongoMaxPoolSize     = uint64(500)
+	mongoMinPoolSize     = uint64(5)
 	mongoMaxConnIdleTime = 3 * time.Minute
 )
 
@@ -283,6 +284,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	maxConnIdleTime := mongoMaxConnIdleTime
 	maxPoolSize := mongoMaxPoolSize
+	minPoolSize := mongoMinPoolSize
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -298,6 +300,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 			ReadPreference:  readpref.Primary(),
 			MaxConnIdleTime: &maxConnIdleTime,
 			MaxPoolSize:     &maxPoolSize,
+			MinPoolSize:     &minPoolSize,
 		},
 	)
 	if err != nil {
