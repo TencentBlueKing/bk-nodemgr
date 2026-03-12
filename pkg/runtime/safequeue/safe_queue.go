@@ -39,12 +39,15 @@ func (queue *SafeQueue[T]) Enqueue(v T) {
 func (queue *SafeQueue[T]) Dequeue() (T, bool) {
 	queue.mu.Lock()
 	defer queue.mu.Unlock()
+
+	var zero T
+
 	if len(queue.items) == 0 {
-		var zero T
 		return zero, false
 	}
 
 	v := queue.items[0]
+	queue.items[0] = zero
 	queue.items = queue.items[1:]
 
 	return v, true
@@ -66,6 +69,7 @@ func (queue *SafeQueue[T]) Peek() (T, bool) {
 func (queue *SafeQueue[T]) Len() int {
 	queue.mu.Lock()
 	defer queue.mu.Unlock()
+
 	return len(queue.items)
 }
 

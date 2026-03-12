@@ -131,7 +131,7 @@ func (act *actionWatchAndApplyCMDBResource) Do(ctx *action.InstanceContext) erro
 	})
 
 	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("watch host resource failed: %w", err)
+		return fmt.Errorf("watch cmdb resource failed: %w", err)
 	}
 
 	if err = act.applyHostEvent(std); err != nil {
@@ -203,8 +203,9 @@ func (act *actionWatchAndApplyCMDBResource) watchHostRelationResource(ctx contex
 			events[i+1].Detail.HostID == events[i].Detail.HostID &&
 			events[i+1].EventType == types.EventTypeCreate {
 
-			events[i+1].EventType = types.EventTypeUpdate
-			act.pendingProcessEvents.Enqueue(events[i+1])
+			merged := *events[i+1]
+			merged.EventType = types.EventTypeUpdate
+			act.pendingProcessEvents.Enqueue(&merged)
 			i += 2
 
 			continue
