@@ -36,7 +36,7 @@ func LoadCallbackAPIs(rg *gin.RouterGroup, capability *options.Capability, middl
 	// enable middlewares.
 	h.rg.Use(middlewares...)
 
-	callback.Load(rg, capability)
+	callback.Load(h.rg, capability)
 }
 
 // LoadDownloadAPIs register the download apis.
