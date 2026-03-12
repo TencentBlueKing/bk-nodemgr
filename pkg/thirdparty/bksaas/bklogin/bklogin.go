@@ -51,7 +51,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 func (c *cli) getUserInfoByBKTicket(
 	nCtx contextx.IContext, req *GetUserInfoByBKTicketReq) (*GetUserInfoByBKTicketResp, error) {
 
-	resp := new(BaseBroker[*GetUserInfoByBKTicketResp])
+	resp := new(BKTicketBroker[*GetUserInfoByBKTicketResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (c *cli) getUserInfoByBKTicket(
 func (c *cli) getUserInfoByBKToken(
 	nCtx contextx.IContext, req *GetUserInfoByBKTokenReq) (*GetUserInfoByBKTokenResp, error) {
 
-	resp := new(BaseBroker[*GetUserInfoByBKTokenResp])
+	resp := new(BKTokenBroker[*GetUserInfoByBKTokenResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
 		return nil, err

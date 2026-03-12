@@ -14,28 +14,43 @@ import (
 	"fmt"
 )
 
-// RespCommon describe the common part of response data.
-type RespCommon struct {
+// BKTicketBroker is the response envelope for bk_ticket-based APIs (e.g. /user/get_info/).
+// Success is indicated by ret=0; error message is in msg.
+type BKTicketBroker[T any] struct {
 	Ret     int64  `json:"ret"`
 	Message string `json:"msg"`
+	Data    T      `json:"data"`
 }
 
-// BaseBroker describe the base broker.
-type BaseBroker[T any] struct {
-	RespCommon
-	Data T `json:"data"`
-}
-
-// CodeOK define the success code.
-const CodeOK = 0
+const bkTicketSuccess = 0
 
 // IsFailed check the response is ok.
-func (resp *BaseBroker[T]) IsFailed() error {
-	if resp.Ret != CodeOK {
-		return fmt.Errorf("resp ret no equal 0, ret(%d)", resp.Ret)
+func (resp *BKTicketBroker[T]) IsFailed() error {
+	if resp.Ret != bkTicketSuccess {
+		return fmt.Errorf("bklogin returned failure: ret=%d, message=%s", resp.Ret, resp.Message)
 	}
 
 	return nil
+}
+
+// BKTokenBroker is the response envelope for bk_token-based APIs (e.g. /accounts/get_user/).
+// Success is indicated by result=true and code=0; error detail is in code and message.
+type BKTokenBroker[T any] struct {
+	Result  bool   `json:"result"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Data    T      `json:"data"`
+}
+
+const bkTokenSuccess = "00"
+
+// IsFailed check the response is ok.
+func (resp *BKTokenBroker[T]) IsFailed() error {
+	if resp.Result && resp.Code == bkTokenSuccess {
+		return nil
+	}
+
+	return fmt.Errorf("bklogin returned failure: code=%s, message=%s", resp.Code, resp.Message)
 }
 
 // GetUserInfoByBKTicketReq describe the get user info bk_ticket request.
