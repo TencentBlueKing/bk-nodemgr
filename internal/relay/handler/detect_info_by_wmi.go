@@ -54,7 +54,7 @@ func (h *handler) DetectInfoByWMI(nCtx contextx.IContext, payload []byte) {
 		return
 	}
 
-	client, err := generateWMIClient(nCtx, event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode))
+	client, err := generateWMIClient(event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode))
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to generate wmi client")
 

@@ -30,7 +30,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -151,13 +150,13 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 
 	// get ssh credit.
 	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
-	cMethod, cKey, err := credit.GetSSHCredit(std)
+	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
 	}
 
 	// send detect info request to relay.
-	if err := act.notifyRelayToDetect(std, cMethod, cKey); err != nil {
+	if err := act.notifyRelayToDetect(std, cKey); err != nil {
 		return err
 	}
 
@@ -245,7 +244,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
-	std *nodeUtils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
+	std *nodeUtils.NodeActionStandarder, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
 		ActionName: std.InstanceData().Name,
@@ -253,7 +252,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:       std.DeployInfo().Host.Dynamic.LoginPort,
 		User:       std.DeployInfo().Host.Dynamic.LoginUser,
-		LoginMode:  string(cMethod),
+		LoginMode:  string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:   cKey,
 	}
 

@@ -54,7 +54,7 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 	}
 
 	// connect to host.
-	client, err := generateWMIClient(nCtx, event.IP, int(event.Port), event.User, event.Password,
+	client, err := generateWMIClient(event.IP, int(event.Port), event.User, event.Password,
 		types.LoginMode(event.LoginMode))
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to generate wmi client")

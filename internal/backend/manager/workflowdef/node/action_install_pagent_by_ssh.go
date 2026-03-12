@@ -32,7 +32,6 @@ import (
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -148,7 +147,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 
 	// get ssh credit.
 	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
-	cMethod, cKey, err := credit.GetSSHCredit(std)
+	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
 	}
@@ -176,7 +175,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
 
 	// notify relay to install pagent by ssh.
-	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd, relayInfos); err != nil {
+	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfos); err != nil {
 		return err
 	}
 
@@ -196,7 +195,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeActionStandarder,
-	cMethod sshx.AuthMethod, cKey, toolsName, installCmd string,
+	cKey, toolsName, installCmd string,
 	relayInfos []*types.RelayInfo) error {
 
 	event := protoRelay.InstallPagentBySSHReq{
@@ -205,7 +204,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeAct
 		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:             std.DeployInfo().Host.Dynamic.LoginPort,
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
-		LoginMode:        string(cMethod),
+		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:         cKey,
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,

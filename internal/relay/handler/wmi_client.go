@@ -12,7 +12,6 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -20,9 +19,8 @@ import (
 )
 
 func generateWMIClient(
-	_ context.Context,
 	ip string, port int, user string,
-	password string,
+	credential string,
 	loginMode types.LoginMode,
 ) (*wmix.Client, error) {
 
@@ -33,16 +31,10 @@ func generateWMIClient(
 	}
 
 	switch loginMode {
-	case types.LoginModePassword:
-
+	case types.LoginModePassword, types.LoginModePasswordVault:
 		wmiConf.AuthMethod = wmix.AuthMethodPassword
-		wmiConf.Password = password
+		wmiConf.Password = credential
 
-	case types.LoginModeKeyFile:
-	// todo implement
-	case types.LoginModePasswordVault:
-		wmiConf.AuthMethod = wmix.AuthMethodPassword
-		wmiConf.Password = password
 	default:
 		return nil, fmt.Errorf("unsupported login mode, mode(%s)", loginMode)
 	}

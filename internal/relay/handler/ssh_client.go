@@ -22,7 +22,7 @@ import (
 func generateSSHClient(
 	ctx context.Context,
 	ip string, port int, user string,
-	password string,
+	credential string,
 	loginMode types.LoginMode,
 ) (*sshx.Client, error) {
 
@@ -34,17 +34,14 @@ func generateSSHClient(
 	}
 
 	switch loginMode {
-	case types.LoginModePassword:
+	case types.LoginModePassword, types.LoginModePasswordVault:
 		sshConf.AuthMethod = sshx.AuthMethodPassword
-		sshConf.Password = password
+		sshConf.Password = credential
 
 	case types.LoginModeKeyFile:
-		sshConf.AuthMethod = sshx.AuthMethodPassword
-		sshConf.Password = password
+		sshConf.AuthMethod = sshx.AuthMethodPrivateKey
+		sshConf.PrivateKey = []byte(credential)
 
-	case types.LoginModePasswordVault:
-		sshConf.AuthMethod = sshx.AuthMethodPassword
-		sshConf.Password = password
 	default:
 		return nil, fmt.Errorf("unsupported login mode, mode(%s)", loginMode)
 	}

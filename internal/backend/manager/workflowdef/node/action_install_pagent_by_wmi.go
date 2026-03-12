@@ -34,7 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -146,11 +146,11 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
-	// get ssh credit.
+	// get wmi credit.
 	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
-	cMethod, cKey, err := credit.GetWMICredit(std)
+	_, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
-		return fmt.Errorf("failed to get ssh credit: %w", err)
+		return fmt.Errorf("failed to get wmi credit: %w", err)
 	}
 
 	// select matching tools, and use sftp to transfer it.
@@ -176,7 +176,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
 
 	// notify relay to install.
-	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd, relayInfos); err != nil {
+	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfos); err != nil {
 		return err
 	}
 
@@ -222,7 +222,6 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeA
 
 func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	std *nodeUtils.NodeActionStandarder,
-	cMethod wmix.AuthMethod,
 	cKey string,
 	toolsName string,
 	installCmd string,
@@ -234,7 +233,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:             std.DeployInfo().Host.Dynamic.LoginPort,
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
-		LoginMode:        string(cMethod),
+		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:         cKey,
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		ToolsName:        toolsName,
