@@ -43,10 +43,6 @@ const (
 	// queryClientTimeoutWMI defines the query client timeout for WMI action.
 	queryClientTimeoutWMI = 30 * time.Second
 
-	// relayInfoCountForRetryWMI defines the count of relay info for retry in WMI action.
-	// Default is 3 for high availability. Adjust based on business requirements.
-	relayInfoCountForRetryWMI = 3
-
 	// waitForRelayReportTimeoutWMI defines the timeout for waiting relay report in WMI action.
 	waitForRelayReportTimeoutWMI = 30 * time.Second
 
