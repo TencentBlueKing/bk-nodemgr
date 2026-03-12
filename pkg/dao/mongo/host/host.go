@@ -59,6 +59,16 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		{
 			Keys: bson.D{{Key: FieldKeyStaticInnerIPV6List, Value: 1}},
 		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyStaticBizID, Value: 1},
+				{Key: FieldKeyDynamicNodeRole, Value: 1},
+				{Key: base.FieldKeyUpdatedAt, Value: -1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
 	}
 }
 
