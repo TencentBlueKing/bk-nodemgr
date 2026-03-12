@@ -14,7 +14,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -22,6 +21,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/safequeue"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -41,10 +42,6 @@ func NewActionWatchCMDBResource(capability *Capability) action.Definition {
 		cache:       capability.Cache,
 		cmdbHandler: capability.CMDBHandler,
 		storageTopo: capability.StorageTopo,
-
-		mu:                         sync.Mutex{},
-		pendingProcessEvents:       make([]*types.HostEvent, 0),
-		waitingCompleteDataHostMap: make(map[int64]*types.Host),
 	}
 }
 
@@ -59,9 +56,8 @@ type actionWatchAndApplyCMDBResource struct {
 	cmdbHandler cmdb.IHandler
 	storageTopo topoStg.IStorage
 
-	mu                         sync.Mutex
-	pendingProcessEvents       []*types.HostEvent
-	waitingCompleteDataHostMap map[int64]*types.Host
+	pendingProcessEvents *safequeue.SafeQueue[*types.HostEvent]
+	waitingCreateHostMap map[int64]*types.Host
 }
 
 // Name returns the name of the action.
@@ -114,18 +110,31 @@ func (act *actionWatchAndApplyCMDBResource) Do(ctx *action.InstanceContext) erro
 		return err
 	}
 
-	err = act.watchHostResource(std.Context())
-	if err != nil {
+	act.pendingProcessEvents = safequeue.NewSafeQueue[*types.HostEvent]()
+	act.waitingCreateHostMap = make(map[int64]*types.Host)
+
+	gp := gopool.NewPool()
+	gp.Go(func() error {
+		if err := act.watchHostResource(std.Context()); err != nil {
+			return fmt.Errorf("watch host resource failed: %w", err)
+		}
+
+		return nil
+	})
+
+	gp.Go(func() error {
+		if err := act.watchHostRelationResource(std.Context()); err != nil {
+			return fmt.Errorf("watch host relation resource failed: %w", err)
+		}
+
+		return nil
+	})
+
+	if err := gp.Wait(); err != nil {
 		return fmt.Errorf("watch host resource failed: %w", err)
 	}
 
-	err = act.watchHostRelationResource(std.Context())
-	if err != nil {
-		return fmt.Errorf("watch host relation resource failed: %w", err)
-	}
-
-	err = act.applyHostEvent(std.Context())
-	if err != nil {
+	if err = act.applyHostEvent(std); err != nil {
 		return fmt.Errorf("apply host event failed: %w", err)
 	}
 
@@ -148,7 +157,13 @@ func (act *actionWatchAndApplyCMDBResource) watchHostResource(ctx contextx.ICont
 		return nil
 	}
 
-	act.pendingProcessEvents = append(act.pendingProcessEvents, events...)
+	for _, event := range events {
+		if event.Detail == nil {
+			continue
+		}
+
+		act.pendingProcessEvents.Enqueue(event)
+	}
 
 	if err := act.setCursor(ctx, types.HostEventCursor, events[len(events)-1].Cursor); err != nil {
 		return fmt.Errorf("set host event cursor failed: %w", err)
@@ -169,35 +184,37 @@ func (act *actionWatchAndApplyCMDBResource) watchHostRelationResource(ctx contex
 		return fmt.Errorf("watch host relation resource event failed: %w", err)
 	}
 
-	if len(events) == 0 {
+	eventSize := len(events)
+	if eventSize == 0 {
 		return nil
 	}
 
-	pendingProcess := make(map[int64]*types.HostEvent, 0)
-	for _, event := range events {
-		if event.Detail == nil {
+	for i := 0; i < eventSize; {
+		if events[i].Detail == nil {
+			i++
 			continue
 		}
 
-		ev, ok := pendingProcess[event.Detail.HostID]
-		if !ok {
-			pendingProcess[event.Detail.HostID] = event
+		// when the host relation event is delete followed by create, it means the host has been moved to another business
+		// we can treat it as update and only process the create event to avoid redundant processing of delete and create.
+		if events[i].EventType == types.EventTypeDelete &&
+			i+1 < eventSize &&
+			events[i+1].Detail != nil &&
+			events[i+1].Detail.HostID == events[i].Detail.HostID &&
+			events[i+1].EventType == types.EventTypeCreate {
+
+			events[i+1].EventType = types.EventTypeUpdate
+			act.pendingProcessEvents.Enqueue(events[i+1])
+			i += 2
+
 			continue
 		}
 
-		if ev.EventType == types.EventTypeDelete && event.EventType == types.EventTypeCreate {
-			event.EventType = types.EventTypeUpdate
-			pendingProcess[event.Detail.HostID] = event
-
-			continue
-		}
+		act.pendingProcessEvents.Enqueue(events[i])
+		i++
 	}
 
-	for _, ev := range pendingProcess {
-		act.pendingProcessEvents = append(act.pendingProcessEvents, ev)
-	}
-
-	if err := act.setCursor(ctx, types.HostRelationEventCursor, events[len(events)-1].Cursor); err != nil {
+	if err := act.setCursor(ctx, types.HostRelationEventCursor, events[eventSize-1].Cursor); err != nil {
 		return fmt.Errorf("set host relation event cursor failed: %w", err)
 	}
 
@@ -205,17 +222,18 @@ func (act *actionWatchAndApplyCMDBResource) watchHostRelationResource(ctx contex
 }
 
 // applyHostEvent applies the host event to the watcher.
-func (act *actionWatchAndApplyCMDBResource) applyHostEvent(nCtx contextx.IContext) error {
-	for _, event := range act.pendingProcessEvents {
+func (act *actionWatchAndApplyCMDBResource) applyHostEvent(std *syncDataUtils.SyncDataActionStandarder) error {
+	for !act.pendingProcessEvents.IsEmpty() {
+		event, ok := act.pendingProcessEvents.Dequeue()
+		if !ok {
+			break
+		}
+
 		switch event.Resource {
 		case types.ResourceTypeHost:
-			if err := act.handleHostResource(nCtx, event); err != nil {
-				return err
-			}
+			act.handleHostResource(std, event)
 		case types.ResourceTypeHostRelation:
-			if err := act.handleHostRelationResource(nCtx, event); err != nil {
-				return err
-			}
+			act.handleHostRelationResource(std, event)
 		default:
 			return fmt.Errorf("unknown resource type: %s", event.Resource)
 		}
@@ -225,106 +243,120 @@ func (act *actionWatchAndApplyCMDBResource) applyHostEvent(nCtx contextx.IContex
 }
 
 // handleHostResource this func defines how to handle the host resource event.
-func (act *actionWatchAndApplyCMDBResource) handleHostResource(nCtx contextx.IContext, event *types.HostEvent) error {
+func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
-		host, ok := act.waitingCompleteDataHostMap[event.Detail.HostID]
+		host, ok := act.waitingCreateHostMap[event.Detail.HostID]
 		if !ok {
-			act.mu.Lock()
-			defer act.mu.Unlock()
 			// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
 			event.Detail.Dynamic.AgentID = event.Detail.Static.SyncedAgentID
-			act.waitingCompleteDataHostMap[event.Detail.HostID] = event.Detail
+			act.waitingCreateHostMap[event.Detail.HostID] = event.Detail
 
-			return nil
+			return
 		}
 
 		event.Detail.Static.BizID = host.Static.BizID
-		err := act.storageTopo.UpsertManyHost(nCtx, event.Detail)
-		if err != nil {
-			return fmt.Errorf("UpsertManyHost failed: %w", err)
+		if err := act.storageTopo.UpsertManyHost(std.Context(), event.Detail); err != nil {
+			std.InstanceData().Log().
+				Zh("创建主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to create host, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
 		}
 
-		act.mu.Lock()
-		defer act.mu.Unlock()
-		delete(act.waitingCompleteDataHostMap, event.Detail.HostID)
+		delete(act.waitingCreateHostMap, event.Detail.HostID)
 
-		return nil
+		return
 	case types.EventTypeUpdate:
-		dbHost, err := act.storageTopo.GetHostByID(nCtx, event.Detail.HostID)
+		dbHost, err := act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
 		if err != nil {
-			return fmt.Errorf("GetHostByID failed: %w", err)
+			std.InstanceData().Log().
+				Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
 		}
 
 		event.Detail.Static.BizID = dbHost.Static.BizID
-		err = act.storageTopo.UpsertManyHostStatic(nCtx, event.Detail)
-		if err != nil {
-			return fmt.Errorf("UpsertManyHostStatic failed: %w", err)
+		if err := act.storageTopo.UpsertManyHostStatic(std.Context(), event.Detail); err != nil {
+			std.InstanceData().Log().
+				Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
 		}
 
-		return nil
+		return
 	case types.EventTypeDelete:
-		err := act.storageTopo.DeleteManyHost(nCtx, event.Detail.HostID)
-		if err != nil {
-			return fmt.Errorf("DeleteManyHost failed: %w", err)
+		if err := act.storageTopo.DeleteManyHost(std.Context(), event.Detail.HostID); err != nil {
+			std.InstanceData().Log().
+				Zh("删除主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to delete host, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
 		}
 
-		return nil
-	case types.EventTypeBlank:
-		return nil
+		return
 	default:
-		return fmt.Errorf("unknown event type: %s", event.EventType)
+		return
 	}
 }
 
 // handleHostRelationResource this func defines how to handle the host relation resource event.
-func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(nCtx contextx.IContext, event *types.HostEvent) error {
+// if the host relation is deleted, it means the host is need deleted
+// host event will handle the delete logic, so we can ignore the delete event of host relation.
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
-		host, ok := act.waitingCompleteDataHostMap[event.Detail.HostID]
+		host, ok := act.waitingCreateHostMap[event.Detail.HostID]
 		if !ok {
-			act.mu.Lock()
-			defer act.mu.Unlock()
-			act.waitingCompleteDataHostMap[event.Detail.HostID] = event.Detail
+			act.waitingCreateHostMap[event.Detail.HostID] = event.Detail
 
-			return nil
+			return
 		}
 
 		host.Static.BizID = event.Detail.Static.BizID
-		err := act.storageTopo.UpsertManyHost(nCtx, host)
-		if err != nil {
-			return fmt.Errorf("UpsertManyHost failed: %w", err)
+		if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
+			std.InstanceData().Log().
+				Zh("创建主机失败, 主机id: %d, 错误: %v", host.HostID, err).
+				En("failed to create host, host id: %d, error: %v", host.HostID, err).
+				Error()
+
+			return
 		}
 
-		act.mu.Lock()
-		defer act.mu.Unlock()
-		delete(act.waitingCompleteDataHostMap, event.Detail.HostID)
+		delete(act.waitingCreateHostMap, event.Detail.HostID)
 
-		return nil
+		return
 	case types.EventTypeUpdate:
-		dbHost, err := act.storageTopo.GetHostByID(nCtx, event.Detail.HostID)
+		dbHost, err := act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
 		if err != nil {
-			return fmt.Errorf("GetHostByID failed: %w", err)
+			std.InstanceData().Log().
+				Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
 		}
 
 		dbHost.Static.BizID = event.Detail.Static.BizID
-		err = act.storageTopo.UpsertManyHostStatic(nCtx, dbHost)
+		err = act.storageTopo.UpsertManyHostStatic(std.Context(), dbHost)
 		if err != nil {
-			return fmt.Errorf("UpsertManyHostStatic failed: %w", err)
+			std.InstanceData().Log().
+				Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
 		}
 
-		return nil
-	case types.EventTypeDelete:
-		err := act.storageTopo.DeleteManyHost(nCtx, event.Detail.HostID)
-		if err != nil {
-			return fmt.Errorf("DeleteManyHost failed: %w", err)
-		}
-
-		return nil
-	case types.EventTypeBlank:
-		return nil
+		return
 	default:
-		return fmt.Errorf("unknown event type: %s", event.EventType)
+		return
 	}
 }
 
@@ -367,7 +399,11 @@ func (act *actionWatchAndApplyCMDBResource) setCursor(ctx context.Context, key, 
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionWatchAndApplyCMDBResource) DisplayNameZh() string { return "监听并应用 CMDB 资源变更" }
+func (act *actionWatchAndApplyCMDBResource) DisplayNameZh() string {
+	return "监听并应用 CMDB 资源变更"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionWatchAndApplyCMDBResource) DisplayNameEn() string { return "Watch and Apply CMDB Resource" }
+func (act *actionWatchAndApplyCMDBResource) DisplayNameEn() string {
+	return "Watch and Apply CMDB Resource"
+}
