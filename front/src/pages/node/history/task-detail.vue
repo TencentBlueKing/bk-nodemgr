@@ -303,6 +303,7 @@
                       :key="item.id"
                       v-bk-tooltips="{
                         content: item.tooltip,
+                        placement: 'left',
                       }"
                       @click="handleRetry(row, item.id)"
                     >

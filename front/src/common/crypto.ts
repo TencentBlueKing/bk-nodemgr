@@ -14,6 +14,8 @@ const AES_TAG_BYTES = 16; // GCM authentication tag length
 let cachedPublicKey = '';
 /** RSA-OAEP with SHA-256 单块可加密的最大明文长度（字节） */
 let maxRsaPlainBytes = 0;
+/** 防止并发调用 initPublicKey 时重复请求 */
+let pendingPromise: Promise<boolean> | null = null;
 
 /**
  * 根据 RSA 公钥位数计算 RSA-OAEP/SHA-256 单块最大明文长度
@@ -100,27 +102,40 @@ export const encryptionTool = {
    * 负责请求 API 并格式化 PEM 字符串，同时计算 RSA 最大明文长度
    */
   async initPublicKey() {
-    try {
-      const res = await CipherService.GetRSAPublicKey({});
-      const pk = res?.public_key;
-      if (pk) {
-        // 彻底清洗并格式化为 node-forge 喜欢的每行 64 字符
-        const pureBase64 = pk
-          .replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/gi, '')
-          .replace(/\s+/g, '');
-        const matched = pureBase64.match(/.{1,64}/g);
-        cachedPublicKey = `-----BEGIN PUBLIC KEY-----\n${matched?.join('\n')}\n-----END PUBLIC KEY-----`;
-
-        // 预计算单块 RSA 最大可加密明文长度
-        const pubKey = forge.pki.publicKeyFromPem(cachedPublicKey);
-        maxRsaPlainBytes = calcMaxPlainBytes(pubKey as forge.pki.rsa.PublicKey);
-
-        return true;
-      }
-    } catch (error) {
-      console.error('获取公钥失败:', error);
+    // Already initialized — skip network request
+    if (cachedPublicKey) {
+      return true;
     }
-    return false;
+    // If a request is already in-flight, reuse it
+    if (pendingPromise) {
+      return pendingPromise;
+    }
+    pendingPromise = (async () => {
+      try {
+        const res = await CipherService.GetRSAPublicKey({});
+        const pk = res?.public_key;
+        if (pk) {
+          // 彻底清洗并格式化为 node-forge 喜欢的每行 64 字符
+          const pureBase64 = pk
+            .replace(/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----/gi, '')
+            .replace(/\s+/g, '');
+          const matched = pureBase64.match(/.{1,64}/g);
+          cachedPublicKey = `-----BEGIN PUBLIC KEY-----\n${matched?.join('\n')}\n-----END PUBLIC KEY-----`;
+
+          // 预计算单块 RSA 最大可加密明文长度
+          const pubKey = forge.pki.publicKeyFromPem(cachedPublicKey);
+          maxRsaPlainBytes = calcMaxPlainBytes(pubKey as forge.pki.rsa.PublicKey);
+
+          return true;
+        }
+      } catch (error) {
+        console.error('获取公钥失败:', error);
+      }
+      return false;
+    })().finally(() => {
+      pendingPromise = null;
+    });
+    return pendingPromise;
   },
 
   /**

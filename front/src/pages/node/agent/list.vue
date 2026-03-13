@@ -707,15 +707,8 @@ const openSidebar = async (agent) => {
  * 获取Agent列表
  */
 const getAgentList = async () => {
-  // 【修复点】如果基础数据未加载完成，延迟执行而不是直接返回
-  if (!isInitialDataLoaded.value) {
-    console.log('基础数据尚未加载完成，延迟执行getAgentList...');
-    // 延迟100ms后重试，确保基础数据已加载
-    setTimeout(() => {
-      if (isInitialDataLoaded.value) {
-        getAgentList();
-      }
-    }, 100);
+  // Guard: skip if business not selected or initial data not ready
+  if (!mainStore.selectedBusinessId?.length || !isInitialDataLoaded.value) {
     return;
   }
 
@@ -768,7 +761,7 @@ const debouncedGetAgentList = debounce(getAgentList, 300);
  * 加载所有初始化数据（区域、单元、筛选条件）
  */
 const loadInitialData = async () => {
-  if (!mainStore.selectedBusinessId || isInitialDataLoaded.value) {
+  if (!mainStore.selectedBusinessId?.length || isInitialDataLoaded.value) {
     return;
   }
 
@@ -1092,8 +1085,10 @@ watch(() => route.query, async (newQuery, oldQuery) => {
 }, { immediate: true });
 
 watch(() => mainStore.selectedBusinessId, async (newId, oldId) => {
-  if (!newId || newId === oldId) return;
-  
+  // selectedBusinessId is number[] — empty array is truthy, must check .length
+  if (!newId?.length) return;
+  if (JSON.stringify(newId) === JSON.stringify(oldId)) return;
+
   // 业务 ID 变化，重置并重新加载
   isInitialDataLoaded.value = false;
   tableData.value = [];

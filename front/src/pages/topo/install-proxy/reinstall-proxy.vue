@@ -227,6 +227,8 @@ const initData = {
   file_tunnel: true,
   data_tunnel: true,
   proxy_tags: [] as string[],
+  relay_download_port: '',
+  relay_callback_port: '',
 };
 const form = reactive({
   method: 'setup', // 安装方式
@@ -275,13 +277,22 @@ const getNetworkUnitList = async () => {
   });
 };
 
-// 查询各单元是否有 proxy（一次查询所有去重单元）
+// 查询各单元是否有 proxy（一次查询所有去重单元，排除正在重装的 proxy）
 const unitHasProxyMap = ref<Map<number, boolean>>(new Map());
 const checkUnitsHasProxy = async (unitIds: number[]) => {
   const uniqueIds = [...new Set(unitIds)].filter(id => !!id);
   if (uniqueIds.length === 0) return;
   const map = new Map<number, boolean>();
   uniqueIds.forEach(id => map.set(id, false));
+
+  // Collect bk_host_id of hosts being reinstalled to exclude from proxy count
+  const reinstallHostIds = new Set(
+    form.info
+      .map((item: any) => item.bk_host_id)
+      .filter((id: any) => id !== '' && id !== null && id !== undefined)
+      .map((id: any) => Number(id)),
+  );
+
   try {
     const res = await TopoService.HostList({
       page: { offset: 0, limit: 500 },
@@ -289,12 +300,15 @@ const checkUnitsHasProxy = async (unitIds: number[]) => {
       exact_include_conditions: {
         bk_networkunit_id: uniqueIds,
         node_role: ['proxy'],
-        node_status: ['running']
+        node_status: ['running'],
       },
       fuzzy_include_conditions: {},
     });
-    // 从返回的 proxy 主机中提取有 proxy 的单元 ID
-    const unitsWithProxy = new Set((res.items ?? []).map((item: any) => Number(item.info.bk_networkunit_id)));
+    // Filter out proxies being reinstalled — they should not count as available
+    const filteredItems = (res.items ?? []).filter(
+      (item: any) => !reinstallHostIds.has(Number(item.bk_host_id)),
+    );
+    const unitsWithProxy = new Set(filteredItems.map((item: any) => Number(item.info.bk_networkunit_id)));
     unitsWithProxy.forEach((unitId) => {
       map.set(unitId, true);
     });
@@ -445,8 +459,8 @@ const handleConfirm = async () => {
         item[targetKey] = item.credit;
       }
       Object.keys(item).forEach((key: string) => {
-        if (proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
-          item.proxy_tags.push(key);
+        if (proxy_tags.includes(key) && item[key] && !item.proxy_tags?.includes(key)) {
+          item.proxy_tags?.push(key);
         }
       });
       delete item.credit;
@@ -470,14 +484,17 @@ const handleConfirm = async () => {
           ...rest
         } = item;
         const bkNetworkUnitId = Number(rest.bk_networkunit_id);
-        return {
+        const host = {
           ...rest,
           bk_networkunit_id: bkNetworkUnitId,
           os_type: 'linux',
           login_port: Number(rest.login_port),
+          relay_download_port: Number(rest.relay_download_port),
+          relay_callback_port: Number(rest.relay_callback_port),
           proxy_install_origin_unit_id: getinstallOriginUnitId(bkNetworkUnitId),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
+        return host;
     });
     previewData.value = {
       hosts,

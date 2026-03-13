@@ -67,7 +67,8 @@
                 v-for="item in reTryType"
                 :key="item.id"
                 v-bk-tooltips="{
-                  content: item.tooltip
+                  content: item.tooltip,
+                  placement: 'right',
                 }"
                 @click="handleRetry(currentOperate, item.id)">
                 <Button
