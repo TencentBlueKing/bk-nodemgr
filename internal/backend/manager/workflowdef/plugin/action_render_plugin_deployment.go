@@ -31,6 +31,9 @@ import (
 const (
 	// ActionNameRenderPluginDeployment defines the action name.
 	ActionNameRenderPluginDeployment = "render_plugin_deployment"
+
+	// systemUser in gse system user mean use current login user to operate process.
+	systemUser = "system"
 )
 
 // NewActionRenderPluginDeployment ...
@@ -220,6 +223,11 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		ConfigPath: mainConfigPath,
 		LogPath:    logDirPath,
 		User:       host.Dynamic.LoginUser,
+	}
+
+	// windows use user direct need provide password, so we use system user to operate the process.
+	if host.Dynamic.NodeOsType == criteria.OSWindows {
+		std.DeployInfo().Process.Identity.User = systemUser
 	}
 
 	// TODO: 接入配置管理
