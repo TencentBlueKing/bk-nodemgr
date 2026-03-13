@@ -940,8 +940,8 @@ func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 	fields := []string{
 		FieldKeyHostID,
 		FieldKeyDynamicAgentID,
-		FieldKeyStaticInnerIPList,
-		FieldKeyStaticInnerIPV6List,
+		FieldKeyDynamicAdvertiseIP,
+		FieldKeyDynamicAdvertiseIPV6,
 		FieldKeyDynamicRelayDownloadPort,
 		FieldKeyDynamicRelayCallbackPort,
 	}
@@ -961,15 +961,8 @@ func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 			relayInfo.AgentID = host.Dynamic.AgentID
 			relayInfo.DownloadSvcPort = host.Dynamic.RelayDownloadPort
 			relayInfo.CallbackSvcPort = host.Dynamic.RelayCallbackPort
-		}
-
-		if host.Static != nil {
-			if len(host.Static.InnerIPList) > 0 {
-				relayInfo.InnerIP = host.Static.InnerIPList[0]
-			}
-			if len(host.Static.InnerIPV6List) > 0 {
-				relayInfo.InnerIPV6 = host.Static.InnerIPV6List[0]
-			}
+			relayInfo.InnerIP = host.Dynamic.AdvertiseIP
+			relayInfo.InnerIPV6 = host.Dynamic.AdvertiseIPV6
 		}
 
 		relayInfos = append(relayInfos, relayInfo)

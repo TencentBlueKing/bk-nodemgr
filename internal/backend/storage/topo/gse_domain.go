@@ -37,28 +37,7 @@ func (s *Storage) GetV4AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 
 	err = s.WrapFn(nCtx, metricOperationGetV4AgentAccessEndpoints, func(nCtx contextx.IContext) error {
 		var err error
-		cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID)
-
-		return err
-	})
-
-	return cluster, file, data, err
-}
-
-// GetV6AgentAccessEndpoints get v6 agent access endpoints by networkunit id.
-func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitID int64) (
-	[]string, []string, []string, error) {
-
-	var (
-		cluster []string
-		file    []string
-		data    []string
-		err     error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationGetV6AgentAccessEndpoints, func(nCtx contextx.IContext) error {
-		var err error
-		cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID)
+		cluster, file, data, err = s.getV4AgentAccessEndpoints(nCtx, networkUnitID)
 
 		return err
 	})
@@ -67,7 +46,7 @@ func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 }
 
 // nolint: nonamedreturns
-func (s *Storage) getAgentAccessEndpoints(
+func (s *Storage) getV4AgentAccessEndpoints(
 	nCtx contextx.IContext, networkUnitID int64) (
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
@@ -114,18 +93,101 @@ func (s *Storage) getAgentAccessEndpoints(
 	fileMap := make(map[string]struct{})
 	dataMap := make(map[string]struct{})
 	for _, host := range hosts {
-		for _, ip := range host.Static.InnerIPList {
-			if host.Dynamic.ProxySupportCluster() {
-				clusterMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyClusterPort)] = struct{}{}
-			}
+		if host.Dynamic.ProxySupportCluster() {
+			clusterMap[fmt.Sprintf("%s:%d", host.Dynamic.AdvertiseIP, host.Dynamic.ProxyClusterPort)] = struct{}{}
+		}
 
-			if host.Dynamic.ProxySupportFile() {
-				fileMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyFilePort)] = struct{}{}
-			}
+		if host.Dynamic.ProxySupportFile() {
+			fileMap[fmt.Sprintf("%s:%d", host.Dynamic.AdvertiseIP, host.Dynamic.ProxyFilePort)] = struct{}{}
+		}
 
-			if host.Dynamic.ProxySupportData() {
-				dataMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyDataPort)] = struct{}{}
-			}
+		if host.Dynamic.ProxySupportData() {
+			dataMap[fmt.Sprintf("%s:%d", host.Dynamic.AdvertiseIP, host.Dynamic.ProxyDataPort)] = struct{}{}
+		}
+	}
+
+	return conv.MapKeyToSlice(clusterMap), conv.MapKeyToSlice(fileMap), conv.MapKeyToSlice(dataMap), nil
+}
+
+// GetV6AgentAccessEndpoints get v6 agent access endpoints by networkunit id.
+func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitID int64) (
+	[]string, []string, []string, error) {
+
+	var (
+		cluster []string
+		file    []string
+		data    []string
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetV6AgentAccessEndpoints, func(nCtx contextx.IContext) error {
+		var err error
+		cluster, file, data, err = s.getV6AgentAccessEndpoints(nCtx, networkUnitID)
+
+		return err
+	})
+
+	return cluster, file, data, err
+}
+
+// nolint: nonamedreturns
+func (s *Storage) getV6AgentAccessEndpoints(
+	nCtx contextx.IContext, networkUnitID int64) (
+	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
+
+	if nCtx == nil {
+		return nil, nil, nil, basestorage.ErrNilContent()
+	}
+
+	if networkUnitID < 0 {
+		return nil, nil, nil, errors.New("unit id should be equal or greater than 0")
+	}
+
+	networkUnit, err := s.daoNetworkUnit.Get(nCtx, networkUnitID)
+	if err != nil {
+		return nil, nil, nil,
+			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
+	}
+
+	// direct unit return direct endpoints.
+	if networkUnit.IsDirect {
+		if networkUnit.DirectEndpoints == nil {
+			return nil, nil, nil,
+				fmt.Errorf("networkunit-id(%d) is direct unit, but direct endpoints is nil", networkUnitID)
+		}
+
+		return networkUnit.DirectEndpoints.Cluster, networkUnit.DirectEndpoints.File, networkUnit.DirectEndpoints.Data, nil
+	}
+
+	hosts, count, err := s.daoHost.List(nCtx, types.UnlimitedPage(),
+		host.WithDynamicNetworkUnitID(networkUnitID),
+		host.WithDynamicNodeRole(types.NodeRoleProxy),
+		host.WithDynamicNodeStatus(types.NodeStatusRunning),
+		host.WithDynamicProxyAccessDisabled(false),
+	)
+	if err != nil {
+		return nil, nil, nil,
+			fmt.Errorf("failed to get host by networkunit id, networkunit-id(%d): %w", networkUnitID, err)
+	}
+	if count == 0 {
+		return nil, nil, nil,
+			fmt.Errorf("failed to get host by networkunit id, result count is 0, networkunit-id(%d)", networkUnitID)
+	}
+
+	clusterMap := make(map[string]struct{})
+	fileMap := make(map[string]struct{})
+	dataMap := make(map[string]struct{})
+	for _, host := range hosts {
+		if host.Dynamic.ProxySupportCluster() {
+			clusterMap[fmt.Sprintf("%s:%d", host.Dynamic.AdvertiseIPV6, host.Dynamic.ProxyClusterPort)] = struct{}{}
+		}
+
+		if host.Dynamic.ProxySupportFile() {
+			fileMap[fmt.Sprintf("%s:%d", host.Dynamic.AdvertiseIPV6, host.Dynamic.ProxyFilePort)] = struct{}{}
+		}
+
+		if host.Dynamic.ProxySupportData() {
+			dataMap[fmt.Sprintf("%s:%d", host.Dynamic.AdvertiseIPV6, host.Dynamic.ProxyDataPort)] = struct{}{}
 		}
 	}
 
