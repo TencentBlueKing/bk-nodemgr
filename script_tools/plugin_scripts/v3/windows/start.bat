@@ -3,6 +3,8 @@ setlocal EnableDelayedExpansion
 set prog_name=%1
 set cu_date=%date:~0,4%-%date:~5,2%-%date:~8,2%
 set cu_time=%time:~0,8%
+set script_dir=%~dp0
+cd /d %script_dir%
 
 rem 判断进程是否已经启动
 tasklist|findstr /i "!prog_name!.exe" >nul 2>&1
