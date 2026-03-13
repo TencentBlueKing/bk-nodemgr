@@ -167,7 +167,7 @@ export interface PluginWorkflowOperationListResp {
 
 export interface PluginWorkflowOperationListRespData {
   operations: PluginWorkflowOperation[];
-  total_count: number;
+  total: number;
 }
 
 // PluginWorkflowOperationInstanceListReq describes the node operation instance

@@ -344,7 +344,7 @@
 import { Button, Checkbox, Dropdown, InfoBox, Loading, SearchSelect } from 'bkui-vue';
 // 引入lodash的debounce来处理防抖，解决重复请求问题
 import { debounce } from 'lodash';
-import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -707,8 +707,8 @@ const openSidebar = async (agent) => {
  * 获取Agent列表
  */
 const getAgentList = async () => {
-  // Guard: skip if business not selected or initial data not ready
-  if (!mainStore.selectedBusinessId?.length || !isInitialDataLoaded.value) {
+  // Guard: skip if initial data not ready
+  if (!isInitialDataLoaded.value) {
     return;
   }
 
@@ -761,7 +761,7 @@ const debouncedGetAgentList = debounce(getAgentList, 300);
  * 加载所有初始化数据（区域、单元、筛选条件）
  */
 const loadInitialData = async () => {
-  if (!mainStore.selectedBusinessId?.length || isInitialDataLoaded.value) {
+  if (isInitialDataLoaded.value) {
     return;
   }
 
@@ -1079,32 +1079,39 @@ watch(() => route.query, async (newQuery, oldQuery) => {
         }
       });
     }
-  } else {
+  } else if (searchSelectValue.value.length) {
     searchSelectValue.value = [];
   }
 }, { immediate: true });
 
-watch(() => mainStore.selectedBusinessId, async (newId, oldId) => {
-  // selectedBusinessId is number[] — empty array is truthy, must check .length
-  if (!newId?.length) return;
-  if (JSON.stringify(newId) === JSON.stringify(oldId)) return;
+// 等业务初始化完成后再触发请求，避免 selectedBusinessId 从 [] 变为实际值时重复请求
+const isInitialLoading = ref(false);
+watch(
+  [() => mainStore.isBusinessReady, () => mainStore.selectedBusinessId],
+  async ([ready]) => {
+    if (!ready) return;
 
-  // 业务 ID 变化，重置并重新加载
-  isInitialDataLoaded.value = false;
-  tableData.value = [];
-  pagination.count = 0;
-  pagination.current = 1;
-  
-  await loadInitialData();
-  if (isInitialDataLoaded.value) {
-    await getAgentList();
-  }
-}, { immediate: true });
+    isInitialLoading.value = true;
+    isInitialDataLoaded.value = false;
+    tableData.value = [];
+    pagination.count = 0;
+    pagination.current = 1;
+
+    await loadInitialData();
+    if (isInitialDataLoaded.value) {
+      // 等待 pending watchers flush（如 route.query 注册的 watch(isInitialDataLoaded) 设置 searchSelectValue）
+      await nextTick();
+      await getAgentList();
+    }
+    isInitialLoading.value = false;
+  },
+  { immediate: true },
+);
 
 watch(
   searchSelectValue,
   () => {
-    if (isInitialDataLoaded.value) {
+    if (isInitialDataLoaded.value && !isInitialLoading.value) {
       pagination.current = 1;
       debouncedGetAgentList();
     }

@@ -228,3 +228,4 @@ export interface NodeProxyInstallCheckResult {
   message_zh: string;
   category: string;
 }
+

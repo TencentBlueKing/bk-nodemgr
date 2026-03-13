@@ -5,6 +5,8 @@ export interface NodeWorkflowInfo {
   trigger_id: string;
   type: string;
   bk_biz_id: number[];
+  bk_networkarea_id: number[];
+  bk_networkunit_id: number[];
   operator: string;
   operate_time: number;
   finish_time: number;

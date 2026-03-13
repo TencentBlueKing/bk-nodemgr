@@ -15,12 +15,14 @@ export const useMainStore = defineStore('mainStore', {
     isLogRetry: Boolean,
     isLogTerminate: Boolean,
     noticeShow: Boolean,
+    isBusinessReady: boolean,
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
     businessList: [] as Business[], // 业务列表
     selectedBusinessId: [] as number[], // 当前业务id
     selectedBusinessName: [] as string[], // 当前业务名称
+    isBusinessReady: false, // 业务初始化是否完成
     agentSetupType: 'setup', // 代理安装方式
     proxySetupType: 'setup',
     configEditData: null,
@@ -71,6 +73,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateNoticeShow(isShow: boolean) {
       this.noticeShow = isShow;
+    },
+    setBusinessReady() {
+      this.isBusinessReady = true;
     },
   },
 });

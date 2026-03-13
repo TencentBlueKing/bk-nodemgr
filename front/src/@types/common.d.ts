@@ -112,6 +112,8 @@ interface HostInfo {
   export_ip_v6: string;
   advertise_ip: string;
   advertise_ip_v6: string;
+  relay_callback_port: number;
+  relay_download_port: number;
 }
 
 // Host describes the host informations.

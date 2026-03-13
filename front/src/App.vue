@@ -556,6 +556,7 @@ onBeforeMount(async () => {
     const collects = JSON.parse(collectsJson);
     collectList.value = collects;
   }
+  mainStore.setBusinessReady();
 });
 onMounted(async () => {
   mainStore.updateWindowInnerHeight(window.innerHeight);
