@@ -21,7 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
+	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -93,7 +93,7 @@ type Storage struct {
 	// dao
 	daoNodeDeployment daoNodeDeployment.IHandler
 	daoNodeWorkflow   daoNodeWorkflow.IHandler
-	daoOperInstData   operinstdata.IHandler
+	daoOperation daoOperation.IHandler
 
 	monitoredWorkflows      map[string]*types.NodeWorkflow
 	monitoredWorkflowsMutex sync.RWMutex
@@ -101,7 +101,7 @@ type Storage struct {
 
 func (s *Storage) initDao() error {
 	s.daoNodeWorkflow = daoNodeWorkflow.New(s.Database)
-	s.daoOperInstData = operinstdata.New(s.Database)
+	s.daoOperation = daoOperation.New(s.Database)
 	s.daoNodeDeployment = daoNodeDeployment.New(s.Database)
 
 	return nil
@@ -140,11 +140,15 @@ func (s *Storage) registerScheduler() error {
 func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 	tenantIDs := tenant.GetAllTenantIDs()
 
-	runningWorkflowMap := map[string]*types.NodeWorkflow{}
-	recentFinishedWorkflowMap := map[string]*types.NodeWorkflow{}
+	type tenantResult struct {
+		running        []*types.NodeWorkflow
+		recentFinished []*types.NodeWorkflow
+	}
+	results := make([]tenantResult, len(tenantIDs))
 
 	gp := gopool.NewPool()
-	for _, tenantID := range tenantIDs {
+	for i, tenantID := range tenantIDs {
+		slot := &results[i]
 		tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 		fn := func() error {
 			runningWorkflows, _, err := s.daoNodeWorkflow.List(
@@ -165,14 +169,8 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 				return fmt.Errorf("query recent finished workflows failed: %w", err)
 			}
 
-			// we can sure that the workflow id is unique, so we can use map in concurrency.
-			for _, workflow := range runningWorkflows {
-				runningWorkflowMap[workflow.WorkflowID] = workflow
-			}
-
-			for _, workflow := range recentFinishedWorkflows {
-				recentFinishedWorkflowMap[workflow.WorkflowID] = workflow
-			}
+			slot.running = runningWorkflows
+			slot.recentFinished = recentFinishedWorkflows
 
 			return nil
 		}
@@ -186,15 +184,18 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 
 	s.monitoredWorkflowsMutex.Lock()
 
-	s.monitoredWorkflows = make(map[string]*types.NodeWorkflow, len(s.monitoredWorkflows))
-	for _, workflow := range runningWorkflowMap {
-		s.monitoredWorkflows[workflow.TriggerID] = workflow
+	s.monitoredWorkflows = make(map[string]*types.NodeWorkflow)
+	for i := range results {
+		for _, workflow := range results[i].running {
+			s.monitoredWorkflows[workflow.TriggerID] = workflow
+		}
 	}
 
-	// notice: When these maps intersect,
-	// you need to ensure that the workflow in the recentFinishedWorkflowMap has a higher priority
-	for _, workflow := range recentFinishedWorkflowMap {
-		s.monitoredWorkflows[workflow.TriggerID] = workflow
+	// recentFinished has higher priority and overwrites running entries
+	for i := range results {
+		for _, workflow := range results[i].recentFinished {
+			s.monitoredWorkflows[workflow.TriggerID] = workflow
+		}
 	}
 
 	s.monitoredWorkflowsMutex.Unlock()
@@ -202,73 +203,109 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 	return nil
 }
 
+// nolint: gocognit
 func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
+	// Phase 1: RLock → deep copy snapshot → RUnlock
 	s.monitoredWorkflowsMutex.RLock()
-	defer s.monitoredWorkflowsMutex.RUnlock()
-
 	if len(s.monitoredWorkflows) == 0 {
+		s.monitoredWorkflowsMutex.RUnlock()
 		return nil
 	}
+	snapshot := make(map[string]*types.NodeWorkflow, len(s.monitoredWorkflows))
+	for k, v := range s.monitoredWorkflows {
+		snapshot[k] = v
+	}
+	s.monitoredWorkflowsMutex.RUnlock()
 
-	operInst, err := s.daoOperInstData.ListAllLastOperInst(nCtx,
-		operinstdata.WithTriggerID(conv.MapKeyToSlice(s.monitoredWorkflows)...))
+	// Phase 2: work with snapshot, no lock held
+	operations, _, err := s.daoOperation.List(nCtx,
+		types.UnlimitedPage(),
+		daoOperation.WithTriggerID(conv.MapKeyToSlice(snapshot)...))
 	if err != nil {
-		return fmt.Errorf("query last operation instance failed: %w", err)
+		return fmt.Errorf("query operations failed: %w", err)
 	}
 
-	unfinishedTriggerMap := make(map[string]struct{}, len(operInst))
-	for _, inst := range operInst {
-		if !operation.CheckStateFinished(inst.Lifecycle.State) {
-			unfinishedTriggerMap[inst.Metadata.TriggerID] = struct{}{}
+	unfinishedTriggerMap := make(map[string]struct{})
+	triggerOpers := make(map[string][]*operation.Operation)
+	for _, oper := range operations {
+		triggerOpers[oper.TriggerID] = append(triggerOpers[oper.TriggerID], oper)
+		if oper.LatestInstBriefData == nil ||
+			!operation.CheckStateFinished(oper.LatestInstBriefData.Lifecycle.State) {
+			unfinishedTriggerMap[oper.TriggerID] = struct{}{}
 		}
 	}
 
-	finishedTriggerOperInstsMap := make(map[string][]*operation.InstanceBriefData, len(operInst))
-	for _, inst := range operInst {
-		if _, ok := unfinishedTriggerMap[inst.Metadata.TriggerID]; !ok {
-			finishedTriggerOperInstsMap[inst.Metadata.TriggerID] =
-				append(finishedTriggerOperInstsMap[inst.Metadata.TriggerID], inst)
+	triggersToDelete := make([]string, 0)
+	for triggerID, opers := range triggerOpers {
+		if _, unfinished := unfinishedTriggerMap[triggerID]; unfinished {
+			continue
 		}
-	}
+		status, finishTime, zeroEndTime := calWorkflowStatusAndTime(opers)
+		if zeroEndTime {
+			logger.G.Sys().With("trigger-id", triggerID).
+				Warn("all operation instances have zero end time, using current time as fallback")
+		}
 
-	for triggerID, operInsts := range finishedTriggerOperInstsMap {
-		status, finishTime := calWorkflowStatusAndTime(operInsts)
-
-		nodeWorkflow, ok := s.monitoredWorkflows[triggerID]
+		nodeWorkflow, ok := snapshot[triggerID]
 		if !ok {
 			continue
 		}
 
-		tenantNCtx := contextx.From(nCtx, contextx.WithTenantID(nodeWorkflow.TenantID))
+		updateCtx, cancel := contextx.WithTimeout(
+			contextx.From(contextx.Background(), contextx.WithTenantID(nodeWorkflow.TenantID)),
+			30*time.Second, // nolint: mnd
+		)
 
-		err = s.daoNodeWorkflow.UpdateStatus(tenantNCtx, nodeWorkflow.WorkflowID, status)
+		err = s.daoNodeWorkflow.UpdateStatus(updateCtx, nodeWorkflow.WorkflowID, status)
 		if err != nil {
-			return fmt.Errorf("update node workflow status failed: %w", err)
+			cancel()
+			logger.G.Sys().WithErr(err).
+				With("trigger-id", triggerID, "workflow-id", nodeWorkflow.WorkflowID).
+				Error("failed to update node workflow status")
+
+			continue
 		}
 
-		err = s.daoNodeWorkflow.UpdateFinishTime(
-			tenantNCtx, nodeWorkflow.WorkflowID, finishTime)
+		err = s.daoNodeWorkflow.UpdateFinishTime(updateCtx, nodeWorkflow.WorkflowID, finishTime)
+		cancel()
 		if err != nil {
-			return fmt.Errorf("update node workflow finish time failed: %w", err)
+			logger.G.Sys().WithErr(err).
+				With("trigger-id", triggerID, "workflow-id", nodeWorkflow.WorkflowID).
+				Error("failed to update node workflow finish time")
+
+			continue
 		}
 
-		delete(s.monitoredWorkflows, triggerID)
+		triggersToDelete = append(triggersToDelete, triggerID)
+	}
+
+	// Phase 3: Lock → batch delete → Unlock (only if needed)
+	if len(triggersToDelete) > 0 {
+		s.monitoredWorkflowsMutex.Lock()
+		for _, triggerID := range triggersToDelete {
+			delete(s.monitoredWorkflows, triggerID)
+		}
+		s.monitoredWorkflowsMutex.Unlock()
 	}
 
 	return nil
 }
 
-func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (types.NodeWorkflowStatus, time.Time) {
+func calWorkflowStatusAndTime(opers []*operation.Operation) (types.NodeWorkflowStatus, time.Time, bool) {
 	successCount := 0
 	failedCount := 0
 	var latestEndTime time.Time
 
-	for _, inst := range operationInsts {
-		if inst.Lifecycle.EndedAt.After(latestEndTime) {
-			latestEndTime = inst.Lifecycle.EndedAt
+	for _, oper := range opers {
+		if oper.LatestInstBriefData == nil || oper.LatestInstBriefData.Lifecycle == nil {
+			continue
+		}
+		lc := oper.LatestInstBriefData.Lifecycle
+		if lc.EndedAt.After(latestEndTime) {
+			latestEndTime = lc.EndedAt
 		}
 
-		switch inst.Lifecycle.State {
+		switch lc.State {
 		case operation.StateSuccess:
 			successCount++
 		case operation.StateFailed, operation.StateTimeout:
@@ -277,17 +314,19 @@ func calWorkflowStatusAndTime(operationInsts []*operation.InstanceBriefData) (ty
 		}
 	}
 
-	total := len(operationInsts)
+	zeroEndTime := latestEndTime.IsZero()
+	if zeroEndTime {
+		latestEndTime = time.Now()
+	}
+
+	total := len(opers)
 	switch {
 	case successCount == total:
-
-		return types.NodeWorkflowStatusSuccess, latestEndTime
+		return types.NodeWorkflowStatusSuccess, latestEndTime, zeroEndTime
 	case failedCount == total:
-
-		return types.NodeWorkflowStatusFailed, latestEndTime
+		return types.NodeWorkflowStatusFailed, latestEndTime, zeroEndTime
 	default:
-
-		return types.NodeWorkflowStatusPartialFailed, latestEndTime
+		return types.NodeWorkflowStatusPartialFailed, latestEndTime, zeroEndTime
 	}
 }
 
@@ -300,8 +339,8 @@ func (s *Storage) check() error {
 		return errors.New("dao node deployment is nil")
 	}
 
-	if s.daoOperInstData == nil {
-		return errors.New("dao operation instance data is nil")
+	if s.daoOperation == nil {
+		return errors.New("dao operation is nil")
 	}
 
 	return nil

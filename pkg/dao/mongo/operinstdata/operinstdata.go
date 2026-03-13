@@ -12,9 +12,6 @@
 package operinstdata
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -175,53 +172,6 @@ func (d *dao) pushField(nCtx contextx.IContext, filter bson.D, field string, val
 
 func (d *dao) get(nCtx contextx.IContext, filter bson.D, fields ...string) (*OperInstData, error) {
 	return d.Get(nCtx, filter, fields...)
-}
-
-// listALLLastOperInst lists all last operation instances base on operation id.
-func (d *dao) listALLLastOperInst(nCtx contextx.IContext, filter bson.D) ([]*OperInstData, error) {
-	pipeline := mongo.Pipeline{
-		bson.D{{Key: "$match", Value: filter}},
-		bson.D{{Key: "$sort", Value: bson.D{{Key: base.FieldKeyCreatedAt, Value: -1}}}},
-		bson.D{
-			{
-				Key: "$group",
-				Value: bson.D{
-					{Key: "_id", Value: "$" + FieldKeyOperationID},
-					{Key: "doc", Value: bson.D{{Key: "$first", Value: "$$ROOT"}}},
-				},
-			},
-		},
-		bson.D{{Key: "$replaceRoot", Value: bson.D{{Key: "newRoot", Value: "$doc"}}}},
-	}
-
-	opts := mongoOptions.Aggregate().SetAllowDiskUse(true)
-	cursor, err := d.client.Aggregate(nCtx, pipeline, opts)
-	if err != nil {
-		return nil, fmt.Errorf("aggregate last oper inst failed: %w", err)
-	}
-
-	// Use a background context for cursor iteration and close to avoid the cursor
-	// being interrupted when the caller's context deadline expires mid-stream.
-	// The aggregate query itself is already bound to nCtx above.
-	cursorCtx := context.Background()
-	defer func() {
-		if err := cursor.Close(cursorCtx); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to close cursor")
-		}
-	}()
-
-	datas := make([]*OperInstData, 0)
-	for cursor.Next(cursorCtx) {
-		table := &TableOperInstData{}
-		if err := cursor.Decode(table); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to decode table")
-
-			continue
-		}
-		datas = append(datas, table.Data)
-	}
-
-	return datas, nil
 }
 
 // delete deletes operinstdata by given operInstIDs.

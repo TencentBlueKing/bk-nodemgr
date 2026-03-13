@@ -56,9 +56,6 @@ type IOperationInstData interface {
 	// UpdateExtraExecutionMessages updates operation instance extra execution messages.
 	UpdateExtraExecutionMessages(nCtx contextx.IContext, operInstID string, messages ...common.Message) error
 
-	// ListAllLastOperInst find all last OperInstData in their operation.
-	ListAllLastOperInst(nCtx contextx.IContext, opts ...OptFn) ([]*operation.InstanceBriefData, error)
-
 	// Delete deletes operation instance data by given operation instance IDs.
 	Delete(nCtx contextx.IContext, operInstIDs ...string) error
 
@@ -413,34 +410,6 @@ func (h *Handler) UpdateExtraExecutionMessages(
 	}
 
 	return nil
-}
-
-// ListAllLastOperInst find all last OperInstData in their operation.
-func (h *Handler) ListAllLastOperInst(nCtx contextx.IContext, opts ...OptFn) (
-	[]*operation.InstanceBriefData, error) {
-
-	if nCtx == nil {
-		return nil, errors.New("nCtx is nil")
-	}
-
-	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
-	operaInstDatas, err := h.dao.listALLLastOperInst(nCtx, filter)
-	if err != nil {
-		return nil, err
-	}
-	data := make([]*operation.InstanceBriefData, len(operaInstDatas))
-	for idx, opera := range operaInstDatas {
-		data[idx], err = ConvOpeInstBriefDataFromDB(opera)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return data, nil
 }
 
 // Delete deletes operation instance data by given operation instance IDs.

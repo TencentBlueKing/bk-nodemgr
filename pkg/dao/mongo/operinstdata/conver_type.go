@@ -253,12 +253,12 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 	}
 
 	if len(opear.InitContent) == 0 {
-		return nil, errors.New("invalid init content")
-	}
-
-	err := json.Unmarshal([]byte(opear.InitContent), &data.Metadata.InitContent)
-	if err != nil {
-		return nil, err
+		data.Metadata.InitContent = map[string]any{}
+	} else {
+		err := json.Unmarshal([]byte(opear.InitContent), &data.Metadata.InitContent)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return data, nil
