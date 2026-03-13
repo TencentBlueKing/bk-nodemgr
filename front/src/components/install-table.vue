@@ -1023,7 +1023,6 @@ const handleBatchEdit = (field: string, value: any) => {
       if (item.login_mode === 'password') item.credit = value.password;
       else {
         item.credit = value.key;
-        item.file = value.file;
       }
     } else {
       item[field] = value;
@@ -1051,11 +1050,18 @@ const handleBatchEdit = (field: string, value: any) => {
 
 const url = location.href;
 const handleBeforeUpload = (file: File, row: any) => {
-  row.file = file;
   const reader = new FileReader();
   reader.onload = (e) => {
     const res = e.target?.result as string;
-    if (res) row.credit = res.split(',')[1];
+    if (res) {
+      // readAsDataURL 返回 data:<MIME>;base64,<Base64内容>
+      // 取逗号后的 Base64 部分，后端解密后会再做一次 base64.DecodeString 还原原始密钥
+      if (res.startsWith('data:')) {
+        row.credit = res.split(',')[1];
+      } else {
+        row.credit = res;
+      }
+    }
   };
   reader.readAsDataURL(file);
   return true;

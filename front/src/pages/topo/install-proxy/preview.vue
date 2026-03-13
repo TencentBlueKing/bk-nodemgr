@@ -174,7 +174,7 @@
                           color: categoryMap[row.category]?.iconColor,
                         }"
                       ></i>
-                      <p>{{ isZh ? row.message_zh : row.message_en }}</p>
+                      <OverflowTitle type="tips" class="flex-1 min-w-0">{{ isZh ? row.message_zh : row.message_en }}</OverflowTitle>
                     </div>
                   </template>
                 </TableColumn>
@@ -229,6 +229,7 @@
 import {
   Button,
   InfoBox,
+  OverflowTitle,
   SearchSelect,
   Sideslider,
   Tab,

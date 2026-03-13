@@ -386,9 +386,12 @@ const handleSave = async () => {
   loading.value = true;
   const modeMap = {
     password: 'login_password',
-    key: 'login_key_file',
+    keyfile: 'login_key_file',
   };
-  const encryptedValue = encryptionTool.encryptSync(formData.credit);
+  // 密码用 V1 加密，密钥用 V2 加密
+  const encryptedValue = formData.login_mode === 'keyfile'
+    ? encryptionTool.encryptV2Sync(formData.credit)
+    : encryptionTool.encryptV1Sync(formData.credit);
   formData[modeMap[formData.login_mode]] = encryptedValue !== false ? encryptedValue : '';
   formData.proxy_tags = [];
   proxyTags.forEach((key) => {

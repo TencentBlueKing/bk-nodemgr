@@ -307,16 +307,18 @@ const handlePreview = async () => {
     previewData.isShow = true;
     const modeMap = {
       password: 'login_password',
-      key: 'login_key_file',
+      keyfile: 'login_key_file',
     };
     previewData.data = cloneDeep(formData);
-    previewData.data.info.forEach((item) => {
+    previewData.data.info.forEach((item: any) => {
       // 获取对应的 key (login_password 或 login_key_file)
       const targetKey = modeMap[item.login_mode];
 
       if (item.credit) {
-        // 同步加密
-        const encryptedValue = encryptionTool.encryptSync(item.credit);
+        // 密码用 V1 加密，密钥用 V2 加密
+        const encryptedValue = item.login_mode === 'keyfile'
+          ? encryptionTool.encryptV2Sync(item.credit)
+          : encryptionTool.encryptV1Sync(item.credit);
 
         // 如果加密成功，使用密文；否则使用空字符串
         item[targetKey] = encryptedValue !== false ? encryptedValue : '';
@@ -328,6 +330,7 @@ const handlePreview = async () => {
       item.bk_networkunit_id = item.bk_networkunit_id === ''
         ? -1
         : Number(item.bk_networkunit_id);
+      delete item.credit;
     });
     if (isShow.value) {
       previewData.data.target_version = systemData.value

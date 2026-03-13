@@ -175,26 +175,38 @@
                   field="status"
                   :title="$t('platform.nodeMan.preview.status')"
                   min-width="400"
+                  max-width="600"
+                  show-overflow-tooltip
                 >
                   <template #default="{ row }">
                     <Spinner v-if="installCheckLoading" class="mr-[8px]" />
-                    <div class="flex items-center gap-[4px]" v-else>
+                    <div class="flex items-center gap-[4px] w-full" v-else>
                       <close
                         v-if="categoryMap[row.category]?.icon === 'wrong'"
                         width="14px"
                         height="14px"
                         :fill="categoryMap[row.category]?.iconColor"
+                        class="flex-shrink-0"
                       />
                       <i
                         v-else
                         :class="`nodeman-icon nc-${
                           categoryMap[row.category]?.icon
-                        } text-[14px]`"
+                        } text-[14px] flex-shrink-0`"
                         :style="{
                           color: categoryMap[row.category]?.iconColor,
                         }"
                       ></i>
-                      <p>{{ isZh ? row.message_zh : row.message_en }}</p>
+                      <OverflowTitle type="tips" class="flex-1 min-w-0">{{ isZh ? row.message_zh : row.message_en }}</OverflowTitle>
+                      <Button
+                        v-show="row.category === 'need_confirm'"
+                        theme="primary"
+                        text
+                        @click="deel(row)"
+                        class="flex-shrink-0"
+                      >
+                        确认
+                      </Button>
                     </div>
                   </template>
                 </TableColumn>
@@ -250,6 +262,7 @@ import {
   Button,
   Dropdown,
   InfoBox,
+  OverflowTitle,
   PopConfirm,
   Radio,
   SearchSelect,

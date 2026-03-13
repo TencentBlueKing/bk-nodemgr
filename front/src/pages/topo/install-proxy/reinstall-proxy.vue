@@ -424,15 +424,19 @@ const handleConfirm = async () => {
   if (result.every(item => item)) {
     const modeMap = {
       password: 'login_password',
-      key: 'login_key_file',
+      keyfile: 'login_key_file',
     };
-    form.info.forEach((item: any) => {
+    // Deep clone to avoid mutating original form.info — preserve credit on API failure
+    const clonedInfo = cloneDeep(form.info);
+    clonedInfo.forEach((item: any) => {
       // 获取对应的 key (login_password 或 login_key_file)
       const targetKey = modeMap[item.login_mode];
 
       if (item.credit) {
-        // 同步加密
-        const encryptedValue = encryptionTool.encryptSync(item.credit);
+        // 密码用 V1 加密，密钥用 V2 加密
+        const encryptedValue = item.login_mode === 'keyfile'
+          ? encryptionTool.encryptV2Sync(item.credit)
+          : encryptionTool.encryptV1Sync(item.credit);
 
         // 如果加密成功，使用密文；否则使用空字符串
         item[targetKey] = encryptedValue !== false ? encryptedValue : '';
@@ -445,6 +449,7 @@ const handleConfirm = async () => {
           item.proxy_tags.push(key);
         }
       });
+      delete item.credit;
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
@@ -455,7 +460,7 @@ const handleConfirm = async () => {
           version: item.version,
         }));
     }
-    const hosts = form.info.map((item: any) => {
+    const hosts = clonedInfo.map((item: any) => {
         const {
           bk_host_id,
           dedicated_installer,

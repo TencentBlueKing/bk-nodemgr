@@ -69,14 +69,12 @@ const props = defineProps<IProps>();
 const emit = defineEmits(['confirm']);
 
 const batchValue = ref();
-const keyFile = ref();
 const keyBase64 = ref();
 const handleBatchEdit = () => {
   if (props.type === 'credit') {
     emit('confirm', {
       password: batchValue.value,
       key: keyBase64.value,
-      file: keyFile.value,
     });
     return;
   }
@@ -87,12 +85,17 @@ const batchEditRef = ref();
 // 上传密钥
 const url = location.href;
 const handleBeforeUpload = (file: File) => {
-  keyFile.value = file;
   const reader = new FileReader();
   reader.onload = (event) => {
     const result = event.target?.result as string;
     if (result) {
-      keyBase64.value = result.split(',')[1];
+      // 检查是否是Data URL格式
+      if (result.startsWith('data:')) {
+        keyBase64.value = result.split(',')[1];
+      } else {
+        keyBase64.value = result;
+      }
+      
     }
   };
   reader.readAsDataURL(file);
