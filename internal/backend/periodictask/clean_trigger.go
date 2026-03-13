@@ -85,14 +85,19 @@ func lastResortOnceCleanPolicy() trigger.MetadataCleanPolicy {
 func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[string](triggerListMaxPage, 1*time.Hour)
 
+	var deletedCount int
+
 	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
 		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryOnce)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list triggers: %w", err)
 		}
 
+		allTriggerIDs := make([]string, 0, len(triggers))
 		needDeletingTriggerIDs := make([]string, 0)
 		for _, trig := range triggers {
+			allTriggerIDs = append(allTriggerIDs, trig.TriggerID)
+
 			if trig.Active {
 				continue
 			}
@@ -120,32 +125,30 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 				logger.G.Sys().WithErr(err).With("trigger-count", len(needDeletingTriggerIDs)).
 					Warn("failed to delete operation instances of once triggers")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
 			if err = pt.conf.StgWorkflow.DeleteOperationsByTriggerID(nCtx, needDeletingTriggerIDs...); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-count", len(needDeletingTriggerIDs)).
 					Warn("failed to delete operations of once triggers")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
 			if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, needDeletingTriggerIDs...); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-count", len(needDeletingTriggerIDs)).
 					Warn("failed to delete once triggers")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
+			deletedCount += len(needDeletingTriggerIDs)
 			logger.G.Sys().
 				With("trigger-count", len(needDeletingTriggerIDs)).
 				Info("successfully deleted once triggers, operations and operation instances")
 		}
 
-		return needDeletingTriggerIDs, nil
+		return allTriggerIDs, nil
 	}
 
 	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
@@ -153,7 +156,9 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 		return fmt.Errorf("failed to clean once trigger: %w", err)
 	}
 
-	logger.G.Sys().With("total-deleted-trigger-count", result.Total).Info("successfully cleaned once triggers")
+	logger.G.Sys().With("total-scanned-trigger-count", result.Total).
+		With("total-deleted-trigger-count", deletedCount).
+		Info("successfully cleaned once triggers")
 
 	return nil
 }
@@ -169,14 +174,19 @@ func lastResortOrderedCleanPolicy() trigger.MetadataCleanPolicy {
 func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[string](triggerListMaxPage, 1*time.Hour)
 
+	var deletedCount int
+
 	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
 		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryOrdered)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list triggers: %w", err)
 		}
 
+		allTriggerIDs := make([]string, 0, len(triggers))
 		needDeletingTriggerIDs := make([]string, 0)
 		for _, trig := range triggers {
+			allTriggerIDs = append(allTriggerIDs, trig.TriggerID)
+
 			if trig.Active {
 				continue
 			}
@@ -204,32 +214,30 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 				logger.G.Sys().WithErr(err).With("trigger-count", len(needDeletingTriggerIDs)).
 					Warn("failed to delete operation instances of ordered triggers")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
 			if err = pt.conf.StgWorkflow.DeleteOperationsByTriggerID(nCtx, needDeletingTriggerIDs...); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-count", len(needDeletingTriggerIDs)).
 					Warn("failed to delete operations of ordered triggers")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
 			if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, needDeletingTriggerIDs...); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-count", len(needDeletingTriggerIDs)).
 					Warn("failed to delete ordered triggers")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
+			deletedCount += len(needDeletingTriggerIDs)
 			logger.G.Sys().
 				With("trigger-count", len(needDeletingTriggerIDs)).
 				Info("successfully deleted ordered triggers, operations and operation instances")
 		}
 
-		return needDeletingTriggerIDs, nil
+		return allTriggerIDs, nil
 	}
 
 	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
@@ -237,7 +245,9 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 		return fmt.Errorf("failed to clean ordered trigger: %w", err)
 	}
 
-	logger.G.Sys().With("total-deleted-trigger-count", result.Total).Info("successfully cleaned ordered triggers")
+	logger.G.Sys().With("total-scanned-trigger-count", result.Total).
+		With("total-deleted-trigger-count", deletedCount).
+		Info("successfully cleaned ordered triggers")
 
 	return nil
 }
@@ -246,14 +256,19 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[string](triggerListMaxPage, 1*time.Hour)
 
+	var deletedOperInstCount int
+
 	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
 		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryPeriodic)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list triggers: %w", err)
 		}
 
+		allTriggerIDs := make([]string, 0, len(triggers))
 		needDeletingOperInstIDs := make([]string, 0)
 		for _, trig := range triggers {
+			allTriggerIDs = append(allTriggerIDs, trig.TriggerID)
+
 			meta, ok := trig.Metadata.(*trigger.MetadataPeriodic)
 			if !ok || meta == nil {
 				continue
@@ -285,16 +300,16 @@ func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 					With("oper-inst-count", len(needDeletingOperInstIDs)).
 					Warn("failed to delete overflow operation instances in periodic trigger")
 
-				// Log error but continue processing subsequent pages, return empty list to let PageExecutor continue
-				return []string{}, nil
+				return allTriggerIDs, nil
 			}
 
+			deletedOperInstCount += len(needDeletingOperInstIDs)
 			logger.G.Sys().
 				With("oper-inst-count", len(needDeletingOperInstIDs)).
 				Info("successfully deleted overflow operation instances in periodic trigger")
 		}
 
-		return needDeletingOperInstIDs, nil
+		return allTriggerIDs, nil
 	}
 
 	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
@@ -302,7 +317,8 @@ func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 		return fmt.Errorf("failed to clean periodic trigger: %w", err)
 	}
 
-	logger.G.Sys().With("total-deleted-oper-inst-count", result.Total).
+	logger.G.Sys().With("total-scanned-trigger-count", result.Total).
+		With("total-deleted-oper-inst-count", deletedOperInstCount).
 		Info("successfully cleaned periodic triggers")
 
 	return nil

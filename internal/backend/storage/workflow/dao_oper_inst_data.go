@@ -438,7 +438,7 @@ func (s *Storage) deleteOperationInstancesByTriggerID(nCtx contextx.IContext, tr
 		return nil
 	}
 
-	return s.daoOperInstData.Delete(nCtx, triggerID...)
+	return s.daoOperInstData.DeleteByTriggerID(nCtx, triggerID...)
 }
 
 // convertOperInstDataConditionsToOptions converts OperInstDataCondition to OptFn.
