@@ -780,6 +780,8 @@ linters-settings:
         alias: daoNodeWorkflow
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment
         alias: daoNodeDeployment
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation
+        alias: daoOperation
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant
         alias: tenantStg
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release

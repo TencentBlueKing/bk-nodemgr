@@ -93,7 +93,7 @@ type Storage struct {
 	// dao
 	daoNodeDeployment daoNodeDeployment.IHandler
 	daoNodeWorkflow   daoNodeWorkflow.IHandler
-	daoOperation daoOperation.IHandler
+	daoOperation      daoOperation.IHandler
 
 	monitoredWorkflows      map[string]*types.NodeWorkflow
 	monitoredWorkflowsMutex sync.RWMutex
@@ -229,8 +229,7 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	triggerOpers := make(map[string][]*operation.Operation)
 	for _, oper := range operations {
 		triggerOpers[oper.TriggerID] = append(triggerOpers[oper.TriggerID], oper)
-		if oper.LatestInstBriefData == nil ||
-			!operation.CheckStateFinished(oper.LatestInstBriefData.Lifecycle.State) {
+		if oper.LatestInstBriefData == nil || !operation.CheckStateFinished(oper.LatestInstBriefData.Lifecycle.State) {
 			unfinishedTriggerMap[oper.TriggerID] = struct{}{}
 		}
 	}
