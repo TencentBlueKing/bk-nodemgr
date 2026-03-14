@@ -832,6 +832,8 @@ components:
     topoProperty: Topology Property
     networkArea: Network Area
     networkUnit: Network Unit
+    batchEditNetworkUnit: Batch Edit Network Unit
+    batchEditNetworkUnitDisabledTip: Hosts in this batch belong to different network areas, batch editing is not available
     hostIp: Host IP
     innerIPv4: Private IPv4
     innerIPv6: Private IPv6
@@ -884,6 +886,8 @@ components:
     password: Password
     keyfile: Key
     minimum: Keep at least one row
+    confirmDeleteRow: Confirm to delete this host?
+    confirmDeleteRowSub: Host {ip} will not be reinstalled after deletion
     either: Required (IPv4 or IPv6)
     passwordVaultDisabled: Password Vault disabled
   installType:

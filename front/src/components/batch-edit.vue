@@ -1,5 +1,6 @@
 <template>
   <PopConfirm
+    v-if="!disabled"
     ref="batchEditRef"
     width="280"
     trigger="click"
@@ -45,10 +46,19 @@
       </div>
     </template>
   </PopConfirm>
+  <Popover
+    v-else
+    theme="dark"
+    trigger="click"
+    placement="top"
+    :content="disabledTip"
+  >
+    <i class="nodeman-icon nc-edit text-[18px] cursor-not-allowed text-[#C4C6CC]"></i>
+  </Popover>
 </template>
 
 <script lang="ts" setup>
-import { Input, PopConfirm, Select, Switcher, Upload } from 'bkui-vue';
+import { Input, PopConfirm, Popover, Select, Switcher, Upload } from 'bkui-vue';
 import { ref, watch } from 'vue';
 
 type batchEditType = 'input' | 'credit' | 'switcher' | 'select';
@@ -62,9 +72,14 @@ interface IProps {
   type: batchEditType
   options?: IOptions[]
   title: string
+  disabled?: boolean
+  disabledTip?: string
 }
 
-const props = defineProps<IProps>();
+const props = withDefaults(defineProps<IProps>(), {
+  disabled: false,
+  disabledTip: '',
+});
 
 const emit = defineEmits(['confirm']);
 

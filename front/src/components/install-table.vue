@@ -148,6 +148,15 @@
               </template>
             </Popover>
             <span class="mx-[3px] text-[#FF5656]">*</span>
+            <BatchEdit
+              v-if="isReinstall"
+              :title="$t('components.installTable.batchEditNetworkUnit')"
+              type="select"
+              :options="networkUnitBatchOptions"
+              :disabled="!isSameNetworkArea || networkUnitLoading"
+              :disabled-tip="$t('components.installTable.batchEditNetworkUnitDisabledTip')"
+              @confirm="(value) => handleBatchEdit('bk_networkunit_id', value)"
+            />
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
@@ -757,7 +766,7 @@
             </Button>
             <Button
               text
-              :disabled="isReinstall"
+              :disabled="tableData?.length <= 1"
               @click="handleDelRow(rowIndex)"
               style="margin-left: 8px"
             ><i class="nodeman-icon nc-minus"></i
@@ -773,7 +782,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Input, Message, Popover, Select, Switcher, Upload } from 'bkui-vue';
+import { Button, InfoBox, Input, Message, Popover, Select, Switcher, Upload } from 'bkui-vue';
 import { cloneDeep, groupBy } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -941,11 +950,25 @@ const handleAddRow = (index: number) => {
   shiftErrors(index, 1);
 };
 
-const handleDelRow = (index: number) => {
+const doDelRow = (index: number) => {
   if (!Array.isArray(tableData.value)) return;
   if (tableData.value.length === 1) return Message({ theme: 'warning', message: t('components.installTable.minimum') });
   tableData.value.splice(index, 1);
   shiftErrors(index, -1);
+};
+
+const handleDelRow = (index: number) => {
+  if (props.isReinstall) {
+    const row = tableData.value?.[index];
+    const ip = row?.bk_host_innerip || row?.bk_host_innerip_v6 || '';
+    InfoBox({
+      title: t('components.installTable.confirmDeleteRow'),
+      subTitle: t('components.installTable.confirmDeleteRowSub', { ip }),
+      onConfirm: () => doDelRow(index),
+    });
+    return;
+  }
+  doDelRow(index);
 };
 
 const settings = reactive(cloneDeep(props.currentSettings));
@@ -1032,7 +1055,6 @@ const handleBatchEdit = (field: string, value: any) => {
 
     // 如果存在联动（例如修改 OS 会影响 Port），可以在这里加特判
     if (field === 'os_type') {
-      // 复用之前的联动逻辑
       if (value === 'linux') {
         item.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
         item.login_user = 'root';
@@ -1044,6 +1066,14 @@ const handleBatchEdit = (field: string, value: any) => {
         handleFieldBlur(index, 'login_port', window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT);
         handleFieldBlur(index, 'login_user', 'administrator');
       }
+    }
+
+    if (field === 'bk_networkunit_id') {
+      const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === value);
+      if (networkUnit) {
+        item.bk_networkunit_name = networkUnit.bk_networkunit_name;
+      }
+      clearError(index, 'bk_networkunit_id');
     }
   });
 };
@@ -1315,6 +1345,21 @@ const getNetworkUnitList = async () => {
 const getNetworkUnitsByAreaId = (bkNetworkAreaId: number) => {
   return networkUnitGroupMap.value[bkNetworkAreaId] || [];
 };
+
+const isSameNetworkArea = computed(() => {
+  if (!tableData.value?.length) return false;
+  const firstAreaId = Number(tableData.value[0].bk_networkarea_id);
+  return tableData.value.every((item: any) => Number(item.bk_networkarea_id) === firstAreaId);
+});
+
+const networkUnitBatchOptions = computed(() => {
+  if (!isSameNetworkArea.value || !tableData.value?.length) return [];
+  const areaId = Number(tableData.value[0].bk_networkarea_id);
+  return getNetworkUnitsByAreaId(areaId).map((unit: any) => ({
+    id: String(unit.bk_networkunit_id),
+    name: `[${unit.bk_networkunit_id}] ${unit.bk_networkunit_name}`,
+  }));
+});
 
 // 处理管控单元变更，获取对应的名称
 const handleNetworkUnitChange = (val: string, row: any, _rowIndex: number) => {

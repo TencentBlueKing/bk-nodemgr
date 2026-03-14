@@ -222,7 +222,7 @@ const tableSetting = reactive({
     'login_mode',
     'credit',
   ],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit', 'bk_networkunit_id'],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
   size: 'medium',
 });
 
