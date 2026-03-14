@@ -426,6 +426,7 @@ onMounted(async () => {
       bk_networkunit_id: normalizeNetworkUnitId(info.bk_networkunit_id),
       bk_host_innerip: info.bk_host_innerip_list?.[0],
       bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
+      login_ip: info?.login_ip,
     }));
   }
 });

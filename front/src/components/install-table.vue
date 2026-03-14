@@ -1391,6 +1391,32 @@ const showSetting = () => settingRef.value?.showSetting();
 //   }
 // }, { immediate: true });
 
+const autoFillDefaults = () => {
+  if (!tableData.value?.length) return;
+  const firstIp = (val: string) => val?.split(',')[0] || '';
+  tableData.value.forEach((row: any) => {
+    if (!row.login_ip) {
+      if (props.releaseType === 'proxy') {
+        row.login_ip = firstIp(row.export_ip) || firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6);
+      } else {
+        row.login_ip = firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6);
+      }
+    }
+    if (row.os_type && (!row.login_port || Number(row.login_port) === 0)) {
+      row.login_port = row.os_type === 'windows'
+        ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
+        : window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+    }
+    if (row.os_type && !row.login_user) {
+      row.login_user = row.os_type === 'windows' ? 'administrator' : 'root';
+    }
+  });
+};
+
+watch(tableData, () => {
+  autoFillDefaults();
+});
+
 onMounted(async () => {
   await getHostDistinct();
 });
