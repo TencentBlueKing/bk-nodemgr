@@ -126,6 +126,7 @@ scripts: | pre
 	@$(MKDIR) $(OUTPUT_DIR)/scripts
 
 	@$(CP) -R $(ROOT_DIR)/script_tools/manual $(OUTPUT_DIR)/scripts/
+	@$(CP) -R $(ROOT_DIR)/script_tools/ops $(OUTPUT_DIR)/scripts/
 
 support-files: | pre
 	@$(ECHO) "Building support-files..."

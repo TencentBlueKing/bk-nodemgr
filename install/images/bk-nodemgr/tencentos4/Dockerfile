@@ -26,6 +26,7 @@ RUN set -eux; \
         jq \
         vim-minimal \
         redis \
+        etcd \
         busybox \
         python3-pip \
         ${rpm_url} \
@@ -33,6 +34,7 @@ RUN set -eux; \
     dnf -y clean all; \
     rm -rf /var/cache/dnf; \
     command -v mongo >/dev/null 2>&1; \
+    command -v etcdctl >/dev/null 2>&1; \
     ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime || true
 
 RUN pip3 install requests
@@ -58,6 +60,7 @@ COPY bk-nodemgr-application /bk-nodemgr/bin/
 COPY bk-nodemgr-file /bk-nodemgr/bin/
 COPY serviced.sh /bk-nodemgr/bin/
 COPY scripts/manual/ /bk-nodemgr/script/manual
+COPY scripts/ops/ /bk-nodemgr/script/ops
 COPY tools/ /bk-nodemgr/file/tools
 COPY bintools/ /bk-nodemgr/file/packages/bintool
 COPY dist/ /bk-nodemgr/static/
