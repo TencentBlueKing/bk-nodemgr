@@ -452,15 +452,15 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
 };
 
 const handleAllConfirm = async () => {
-  const findItem = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
-  if (findItem) {
-    findItem.forEach((item: any) => {
+  const duplicatedItems = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
+  if (duplicatedItems.length) {
+    duplicatedItems.forEach((item: any) => {
       item.bk_host_id = item.matched.bk_host_id;
     });
     await installCheck();
   }
   tableData.value.forEach((item: any) => {
-    if (['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status)) {
+    if (item.category === 'need_confirm') {
       item.category = 'normal_install';
     }
   });

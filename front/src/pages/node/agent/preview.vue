@@ -198,15 +198,6 @@
                         }"
                       ></i>
                       <OverflowTitle type="tips" class="flex-1 min-w-0">{{ isZh ? row.message_zh : row.message_en }}</OverflowTitle>
-                      <Button
-                        v-show="row.category === 'need_confirm'"
-                        theme="primary"
-                        text
-                        @click="deel(row)"
-                        class="flex-shrink-0"
-                      >
-                        确认
-                      </Button>
                     </div>
                   </template>
                 </TableColumn>
@@ -263,8 +254,6 @@ import {
   Dropdown,
   InfoBox,
   OverflowTitle,
-  PopConfirm,
-  Radio,
   SearchSelect,
   Sideslider,
   Tab,
@@ -579,15 +568,15 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
   tableData.value.forEach((item: any) => (item.checked = checked));
 };
 const handleAllConfirm = async () => {
-  const findItem = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
-  if (findItem) {
-    findItem.forEach((item: any) => {
+  const duplicatedItems = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
+  if (duplicatedItems.length) {
+    duplicatedItems.forEach((item: any) => {
       item.bk_host_id = item.matched.bk_host_id;
     });
     await installCheck();
   }
   tableData.value.forEach((item: any) => {
-    if (['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status)) {
+    if (item.category === 'need_confirm') {
       item.category = 'normal_install';
     }
   });
