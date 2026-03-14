@@ -70,7 +70,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.table.authenticationMethod')"
           property="credit"
-          :required="!formData.login_credit_valid">
+          :required="false">
           <div class="flex w-full gap-[8px]">
             <Select
               v-model="formData.login_mode"
@@ -91,6 +91,19 @@
               :value="'自动拉取'"
               disabled
             ></Input>
+            <Upload
+              v-else-if="formData.login_mode === 'keyfile'"
+              ref="uploader"
+              type="formdata"
+              :url="uploadUrl"
+              :size="100"
+              :multiple="false"
+              :limit="1"
+              theme="button"
+              :before-upload="handleBeforeUpload"
+              :custom-request="() => {}"
+              class="flex-1"
+            ></Upload>
             <Input
               v-else
               v-model="formData.credit"
@@ -267,7 +280,7 @@
   </Sideslider>
 </template>
 <script lang="ts" setup>
-import { Button, Checkbox, Form, InfoBox, Input, Message, Popover, Select, Sideslider, Switcher } from 'bkui-vue';
+import { Button, Checkbox, Form, InfoBox, Input, Message, Popover, Select, Sideslider, Switcher, Upload } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -350,11 +363,30 @@ const authenticationTypes = ref([
     : []),
 ]);
 const formData = reactive(cloneDeep(initData));
+const originalLoginMode = ref('');
+const uploader = ref(null);
+const uploadUrl = location.href;
 
 // 切换认证方式
 const handleChangeMode = (newValue: string) => {
   formData.login_mode = newValue;
   formData.credit = newValue === 'password_vault' ? '自动拉取' : '';
+};
+
+const handleBeforeUpload = (file: File) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const res = e.target?.result as string;
+    if (res) {
+      if (res.startsWith('data:')) {
+        formData.credit = res.split(',')[1];
+      } else {
+        formData.credit = res;
+      }
+    }
+  };
+  reader.readAsDataURL(file);
+  return true;
 };
 
 const originData = ref<any>();
@@ -384,33 +416,37 @@ const handleSave = async () => {
     return;
   };
   loading.value = true;
-  const modeMap = {
-    password: 'login_password',
-    keyfile: 'login_key_file',
-  };
-  // 密码用 V1 加密，密钥用 V2 加密
-  const encryptedValue = formData.login_mode === 'keyfile'
-    ? encryptionTool.encryptV2Sync(formData.credit)
-    : encryptionTool.encryptV1Sync(formData.credit);
-  formData[modeMap[formData.login_mode]] = encryptedValue !== false ? encryptedValue : '';
+  const authChanged = formData.login_mode !== originalLoginMode.value || formData.credit !== '';
+  if (authChanged && formData.login_mode !== 'password_vault') {
+    const modeMap: Record<string, string> = {
+      password: 'login_password',
+      keyfile: 'login_key_file',
+    };
+    const encryptedValue = formData.login_mode === 'keyfile'
+      ? encryptionTool.encryptV2Sync(formData.credit)
+      : encryptionTool.encryptV1Sync(formData.credit);
+    formData[modeMap[formData.login_mode]] = encryptedValue !== false ? encryptedValue : '';
+  }
   formData.proxy_tags = [];
   proxyTags.forEach((key) => {
     formData[key] && formData.proxy_tags.push(key);
   });
-  const params = {
+  const params: Record<string, any> = {
     bk_host_id: formData.bk_host_id,
     login_ip: formData.login_ip,
     login_user: formData.login_user,
-    login_mode: formData.login_mode,
-    login_password: formData.login_password,
-    login_key_file: formData.login_key_file,
     proxy_tags: formData.proxy_tags,
     login_port: Number(formData.login_port),
     relay_download_port: Number(formData.relay_download_port),
     relay_callback_port: Number(formData.relay_callback_port),
-    export_ip: formData.export_ip || '', // 或者提供一个合适默认值
+    export_ip: formData.export_ip || '',
     advertise_ip: formData.advertise_ip || '',
   };
+  if (authChanged) {
+    params.login_mode = formData.login_mode;
+    params.login_password = formData.login_password;
+    params.login_key_file = formData.login_key_file;
+  }
   const res = await NodeProxyService.NodeProxyUpdate({ host: [params] }).catch(err => false);
   if (res === false) return;
   loading.value = false;
@@ -428,6 +464,7 @@ watch(() => isShow.value, () => {
       formData[key] = props.data?.proxy_tags.includes(key);
     });
     formData.credit = formData.login_mode === 'password_vault' ? '自动拉取' : '';
+    originalLoginMode.value = formData.login_mode;
     originData.value = cloneDeep(formData);
   }
   if (!isShow.value) {

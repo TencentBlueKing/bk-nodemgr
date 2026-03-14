@@ -450,11 +450,19 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 
 // ConvertHostFieldsToTypes convert host dynamic fields to types.
 func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields {
+	hasLoginMode := false
+	for _, host := range x.GetHost() {
+		if host.GetLoginMode() != "" {
+			hasLoginMode = true
+			break
+		}
+	}
+
 	return types.HostDynamicFields{
 		LoginIP:           true,
 		LoginPort:         true,
 		LoginUser:         true,
-		LoginMode:         true,
+		LoginMode:         hasLoginMode,
 		ExportIP:          true,
 		ExportIPV6:        true,
 		AdvertiseIP:       true,
@@ -492,8 +500,10 @@ func (x *NodeProxyUpdateHost) Validate() error {
 		return errors.New("relay_download_port must be >= 0")
 	}
 
-	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
-		return err
+	if x.GetLoginMode() != "" {
+		if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil

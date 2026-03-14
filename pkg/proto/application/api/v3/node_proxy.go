@@ -470,8 +470,10 @@ func (x *NodeProxyUpdateHost) Validate() error {
 		return errors.New("relay_download_port must be >= 0")
 	}
 
-	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
-		return err
+	if x.GetLoginMode() != "" {
+		if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
+			return err
+		}
 	}
 
 	return nil
