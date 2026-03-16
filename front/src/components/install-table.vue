@@ -796,6 +796,7 @@ import type { PackageReleaseDistinctData } from '@/@types/pkg.d';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import { PACKAGE_GENERATION, VALIDATE_REGEX } from '@/common/const';
+import { getDefaultLoginMode } from '@/common/util';
 import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import { useMainStore } from '@/stores/main';
@@ -861,7 +862,7 @@ const initData = {
   login_ip: '',
   login_port: '',
   login_user: '',
-  login_mode: 'password',
+  login_mode: getDefaultLoginMode(),
   login_password: '',
   login_key_file: '',
   bk_addressing: 'static',

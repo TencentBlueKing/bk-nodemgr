@@ -138,6 +138,16 @@ export function parseCookies() {
   return cookies;
 };
 
+export function getDefaultLoginMode(): string {
+  return window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
+    ? 'password_vault'
+    : 'password';
+}
+
+export function resolveLoginMode(mode: string | undefined): string {
+  return mode || getDefaultLoginMode();
+}
+
 /**
  * 滚动到页面中第一个出现校验错误标红的元素
  * 优先查找类名为 .bk-form-error 的元素，如果没有则查找 .error-tip

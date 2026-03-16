@@ -289,7 +289,7 @@ import { useI18n } from 'vue-i18n';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { VALIDATE_REGEX } from '@/common/const';
 import { encryptionTool } from '@/common/crypto';
-import { scrollToFirstErrorByClassNames } from '@/common/util';
+import { getDefaultLoginMode, resolveLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 
 interface IValidate {
   validator: Function | RegExp | string;
@@ -332,7 +332,7 @@ const initData = {
   bk_host_innerip_v6: '',
   login_port: '',
   login_user: '',
-  login_mode: 'password',
+  login_mode: getDefaultLoginMode(),
   login_password: '',
   login_key_file: '',
   credit: '',
@@ -460,6 +460,7 @@ const handleSave = async () => {
 watch(() => isShow.value, () => {
   if (isShow.value && props.data) {
     Object.assign(formData, props.data);
+    formData.login_mode = resolveLoginMode(formData.login_mode);
     proxyTags.forEach((key) => {
       formData[key] = props.data?.proxy_tags.includes(key);
     });

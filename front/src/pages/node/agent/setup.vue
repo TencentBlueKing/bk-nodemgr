@@ -337,7 +337,7 @@ import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import { encryptionTool } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
-import { scrollToFirstErrorByClassNames } from '@/common/util';
+import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 
@@ -351,7 +351,7 @@ const initData = {
   login_ip: '',
   login_port: '',
   login_user: '',
-  login_mode: 'password',
+  login_mode: getDefaultLoginMode(),
   login_password: '',
   login_key_file: '',
   bk_networkunit_id: '',

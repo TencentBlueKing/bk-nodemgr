@@ -129,7 +129,7 @@ import Preview from './preview.vue';
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
 import { TopoService } from '@/api/modules/topo';
 import { encryptionTool } from '@/common/crypto';
-import { scrollToFirstErrorByClassNames } from '@/common/util';
+import { getDefaultLoginMode, resolveLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -148,7 +148,7 @@ const initData = {
   login_ip: '',
   login_port: '',
   login_user: '',
-  login_mode: 'password',
+  login_mode: getDefaultLoginMode(),
   login_password: '',
   login_key_file: '',
   bk_networkarea_id: '',
@@ -416,6 +416,7 @@ onMounted(async () => {
       bk_networkunit_id: normalizeNetworkUnitId(host.info.bk_networkunit_id),
       bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
+      login_mode: resolveLoginMode(host.info?.login_mode),
     }));
     loading.value = false;
   } else {
@@ -427,6 +428,7 @@ onMounted(async () => {
       bk_host_innerip: info.bk_host_innerip_list?.[0],
       bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
       login_ip: info?.login_ip,
+      login_mode: resolveLoginMode(rest.login_mode || info?.login_mode),
     }));
   }
 });

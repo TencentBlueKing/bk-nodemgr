@@ -146,7 +146,7 @@ import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import { encryptionTool } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
-import { scrollToFirstErrorByClassNames } from '@/common/util';
+import { getDefaultLoginMode, resolveLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
@@ -214,7 +214,7 @@ const initData = {
   export_ip: '',
   advertise_ip: '',
   login_ip: '',
-  login_mode: 'password',
+  login_mode: getDefaultLoginMode(),
   login_password: '',
   login_key_file: '',
   bk_addressing: 'static',
@@ -619,6 +619,7 @@ watch(() => isShow.value, async () => {
           bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
           bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
           bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
+          login_mode: resolveLoginMode(host.info?.login_mode),
         }));
       } else {
         // 本页选择模式：使用原有数据
@@ -626,6 +627,7 @@ watch(() => isShow.value, async () => {
           const data = cloneDeep(initData);
           assign(data, item, item.info);
           data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
+          data.login_mode = resolveLoginMode(data.login_mode);
           return data;
         });
       }
