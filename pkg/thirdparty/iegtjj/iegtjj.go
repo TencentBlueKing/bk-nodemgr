@@ -52,13 +52,18 @@ func (c *cli) getDevicePassword(nCtx contextx.IContext, req *GetDevicePasswordRe
 		return nil, err
 	}
 
-	err = c.client.Post().
+	result := c.client.Post().
 		SubResourcef("/pwd/getDevicePassword").
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		Do().Into(resp)
-	if err != nil {
+		Do()
+
+	if result.StatusCode != 0 && (result.StatusCode < 200 || result.StatusCode >= 300) {
+		return nil, fmt.Errorf("iegtjj api returned non-2xx status. status(%d)", result.StatusCode)
+	}
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 

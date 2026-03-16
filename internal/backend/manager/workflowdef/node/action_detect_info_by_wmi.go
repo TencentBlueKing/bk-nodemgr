@@ -141,6 +141,11 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get wmi credit: %w", err)
 	}
 
+	std.InstanceData().Log().
+		Zh("凭证获取成功，认证方式(%s)，凭证长度(%d)", cMethod, len(cKey)).
+		En("credit loaded, auth-method(%s), credential-length(%d)", cMethod, len(cKey)).
+		Info()
+
 	// generate the wmi client.
 	client, err := wmix.NewClient(&wmix.Config{
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,

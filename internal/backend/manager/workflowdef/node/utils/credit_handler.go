@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
@@ -58,6 +59,13 @@ func (c *CreditHandler) GetSSHCredit(std *NodeActionStandarder) (sshx.AuthMethod
 		return sshx.AuthMethodPrivateKey, string(privateKey), nil
 
 	case types.LoginModePasswordVault:
+		logger.G.Biz(std.Context()).With(
+			"operator", std.Operator(),
+			"network_area_id", std.DeployInfo().Host.Static.NetworkAreaID,
+			"login_ip", std.DeployInfo().Host.Dynamic.LoginIP,
+			"login_user", std.DeployInfo().Host.Dynamic.LoginUser,
+		).Info("loading password from password vault")
+
 		passwd, err := c.passwordVault.LoadPassword(
 			std.Context(),
 			std.Operator(),
@@ -67,6 +75,16 @@ func (c *CreditHandler) GetSSHCredit(std *NodeActionStandarder) (sshx.AuthMethod
 		if err != nil {
 			return sshx.AuthMethodNone, "", fmt.Errorf("failed to load password from password vault: %w", err)
 		}
+
+		if len(passwd) == 0 {
+			return sshx.AuthMethodNone, "", fmt.Errorf("password vault returned empty password. ip(%s), user(%s)",
+				std.DeployInfo().Host.Dynamic.LoginIP, std.DeployInfo().Host.Dynamic.LoginUser)
+		}
+
+		logger.G.Biz(std.Context()).With(
+			"login_ip", std.DeployInfo().Host.Dynamic.LoginIP,
+			"password_length", len(passwd),
+		).Info("password vault loaded successfully")
 
 		return sshx.AuthMethodPassword, passwd, nil
 
@@ -89,6 +107,13 @@ func (c *CreditHandler) GetWMICredit(std *NodeActionStandarder) (wmix.AuthMethod
 		return wmix.AuthMethodPassword, string(passwd), nil
 
 	case types.LoginModePasswordVault:
+		logger.G.Biz(std.Context()).With(
+			"operator", std.Operator(),
+			"network_area_id", std.DeployInfo().Host.Static.NetworkAreaID,
+			"login_ip", std.DeployInfo().Host.Dynamic.LoginIP,
+			"login_user", std.DeployInfo().Host.Dynamic.LoginUser,
+		).Info("loading password from password vault (wmi)")
+
 		passwd, err := c.passwordVault.LoadPassword(
 			std.Context(),
 			std.Operator(),
@@ -98,6 +123,16 @@ func (c *CreditHandler) GetWMICredit(std *NodeActionStandarder) (wmix.AuthMethod
 		if err != nil {
 			return wmix.AuthMethodNone, "", fmt.Errorf("failed to load password from password vault: %w", err)
 		}
+
+		if len(passwd) == 0 {
+			return wmix.AuthMethodNone, "", fmt.Errorf("password vault returned empty password. ip(%s), user(%s)",
+				std.DeployInfo().Host.Dynamic.LoginIP, std.DeployInfo().Host.Dynamic.LoginUser)
+		}
+
+		logger.G.Biz(std.Context()).With(
+			"login_ip", std.DeployInfo().Host.Dynamic.LoginIP,
+			"password_length", len(passwd),
+		).Info("password vault loaded successfully (wmi)")
 
 		return wmix.AuthMethodPassword, passwd, nil
 

@@ -137,6 +137,11 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
 	}
 
+	std.InstanceData().Log().
+		Zh("凭证获取成功，认证方式(%s)，凭证长度(%d)", cMethod, len(cKey)).
+		En("credit loaded, auth-method(%s), credential-length(%d)", cMethod, len(cKey)).
+		Info()
+
 	// generate the ssh client.
 	client, err := sshx.NewClient(std.Context(), &sshx.Config{
 		Network:    sshx.NetworkTCP,
