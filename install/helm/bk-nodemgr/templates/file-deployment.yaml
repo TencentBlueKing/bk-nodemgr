@@ -52,7 +52,7 @@ spec:
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       # yamllint enable rule:indentation
       {{- end }}
-      {{- if .Values.nodeSelector }}
+      {{- if or .Values.nodeSelector .Values.file.nodeSelector }}
       nodeSelector: {{- include "common.tplvalues.render" (dict "value" (merge .Values.file.nodeSelector .Values.nodeSelector) "context" $) | nindent 8 }}
       {{- end }}
       {{- if .Values.tolerations }}
