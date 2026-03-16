@@ -163,10 +163,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	downloadURLs, callbackURLs, err := std.BuildRelayServerURLs()
-	if err != nil {
-		return fmt.Errorf("failed to build relay server url: %w", err)
-	}
+	downloadURLs, callbackURLs := std.BuildRelayServerURLs(relayInfo)
 
 	// build install command.
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
@@ -209,18 +206,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeAct
 	}
 	data, err := json.Marshal(event)
 	if err != nil {
-		return fmt.Errorf("marshal event failed: %w", err)
-	}
-
-	return act.notifyRelayToInstallSingle(std, data, relayInfo)
-}
-
-// notifyRelayToInstallSingle sends install request to a single relay.
-func (act *actionInstallPagentBySSH) notifyRelayToInstallSingle(
-	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
-
-	if relayInfo == nil || relayInfo.AgentID == "" {
-		return fmt.Errorf("relay info has no agent id")
+		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
 	errCh := act.proxyMessager.PushToClient(std.Context(),
@@ -228,7 +214,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstallSingle(
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("notify relay to install failed. agent-id(%s): %w", relayInfo.AgentID, err)
+			return fmt.Errorf("failed to notify relay to install. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
 
 		return nil

@@ -257,18 +257,7 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetect(
 
 	relayInfo, err := std.GetSelectedRelay()
 	if err != nil {
-		return err
-	}
-
-	return act.notifyRelayToDetectSingle(std, data, relayInfo)
-}
-
-// notifyRelayToDetectSingle sends detect info to a single relay.
-func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectSingle(
-	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
-
-	if relayInfo == nil || relayInfo.AgentID == "" {
-		return fmt.Errorf("relay info has no agent id")
+		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
 	errCh := act.proxyMessager.PushToClient(std.Context(),
@@ -276,7 +265,7 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectSingle(
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("detect info by wmi failed. agent-id(%s): %w", relayInfo.AgentID, err)
+			return fmt.Errorf("failed to detect info by wmi. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
 
 		return nil

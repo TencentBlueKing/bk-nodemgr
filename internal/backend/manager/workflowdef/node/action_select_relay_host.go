@@ -167,10 +167,12 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 						Zh("专用安装主机缺少 relay 配置信息，已忽略。host-id(%d): %v", host.HostID, err).
 						En("dedicated installer host missing relay config and skipped. host-id(%d): %v", host.HostID, err).
 						Warn()
+
 					break
 				}
 
 				dedicatedHosts = append(dedicatedHosts, host)
+
 				break
 			}
 		}
@@ -188,15 +190,6 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	// this just is a simple random selector.
 	// nolint: gosec
 	relayHost := dedicatedHosts[rand.Intn(len(dedicatedHosts))]
-
-	if relayHost.Dynamic.AdvertiseIP == "" && relayHost.Dynamic.AdvertiseIPV6 == "" {
-		std.InstanceData().Log().
-			Zh("代理主机的服务IP与服务IPv6为空").
-			En("proxy host advertise ip and advertise ipv6 are both empty").
-			Error()
-
-		return types.RelayInfo{}, errors.New("proxy host advertise ip and advertise ipv6 are both empty")
-	}
 
 	return types.RelayInfo{
 		HostID:          relayHost.HostID,
@@ -217,8 +210,16 @@ func (act *actionSelectRelayHost) validateRelayHost(host *types.Host) error {
 		return errors.New("agent-id is required")
 	}
 
-	if host.Dynamic.RelayDownloadPort <= 0 || host.Dynamic.RelayCallbackPort <= 0 {
-		return errors.New("relay service port is required")
+	if host.Dynamic.RelayDownloadPort <= 0 {
+		return errors.New("relay download service port is required")
+	}
+
+	if host.Dynamic.RelayCallbackPort <= 0 {
+		return errors.New("relay callback service port is required")
+	}
+
+	if host.Dynamic.AdvertiseIP == "" || host.Dynamic.AdvertiseIPV6 == "" {
+		return errors.New("advertise ip or ipv6 is required")
 	}
 
 	return nil

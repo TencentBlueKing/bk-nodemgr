@@ -263,18 +263,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
 
 	relayInfo, err := std.GetSelectedRelay()
 	if err != nil {
-		return err
-	}
-
-	return act.notifyRelayToDetectSingle(std, data, relayInfo)
-}
-
-// notifyRelayToDetectSingle sends detect info to a single relay.
-func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectSingle(
-	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
-
-	if relayInfo == nil || relayInfo.AgentID == "" {
-		return fmt.Errorf("relay info has no agent id")
+		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
 	errCh := act.proxyMessager.PushToClient(std.Context(),
@@ -282,7 +271,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectSingle(
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("detect info by ssh failed. agent-id(%s): %w", relayInfo.AgentID, err)
+			return fmt.Errorf("failed to detect info by ssh. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
 
 		return nil
