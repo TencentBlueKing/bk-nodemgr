@@ -19,10 +19,10 @@ type RelayInfo struct {
 	// PackageDestDir is the package dest dir.
 	PackageDestDir string
 
-	// InnerIP is the inner ip.
-	InnerIP string
-	// InnerIPV6 is the inner ipv6.
-	InnerIPV6 string
+	// AdvertiseIP is the advertise ip.
+	AdvertiseIP string
+	// AdvertiseIPV6 is the advertise ipv6.
+	AdvertiseIPV6 string
 	// DownloadSvcPort is the file service port.
 	DownloadSvcPort int64
 	// CallbackSvcPort is the callback service port.

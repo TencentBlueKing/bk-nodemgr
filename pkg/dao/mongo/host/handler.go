@@ -961,8 +961,8 @@ func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 			relayInfo.AgentID = host.Dynamic.AgentID
 			relayInfo.DownloadSvcPort = host.Dynamic.RelayDownloadPort
 			relayInfo.CallbackSvcPort = host.Dynamic.RelayCallbackPort
-			relayInfo.InnerIP = host.Dynamic.AdvertiseIP
-			relayInfo.InnerIPV6 = host.Dynamic.AdvertiseIPV6
+			relayInfo.AdvertiseIP = host.Dynamic.AdvertiseIP
+			relayInfo.AdvertiseIPV6 = host.Dynamic.AdvertiseIPV6
 		}
 
 		relayInfos = append(relayInfos, relayInfo)
