@@ -319,7 +319,7 @@
             field="download"
             :title="t('agentProxyPkg.download')"
             fixed="right"
-            :min-width="60"
+            :width="downloadLabelWidth"
           >
             <template #default="{ row }">
               <download-pkg :data="row" :url="downloadUrl">
@@ -384,6 +384,7 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const packageStore = usePackageStore();
+const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314 - (mainStore.noticeShow ? 40 : 0));
 const currentType = computed(() => (route.name === 'agentPackageMng' ? 'agent' : 'proxy'));

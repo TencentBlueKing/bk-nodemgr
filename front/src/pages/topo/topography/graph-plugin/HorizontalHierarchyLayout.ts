@@ -87,7 +87,15 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       });
     }
 
-    const edgesWithStyle = this.optimizeEdgeStyle(edges, allNodes, nodeLayoutInfo);
+    const { edges: edgesWithStyle, apColorMap } = this.optimizeEdgeStyle(edges, allNodes, nodeLayoutInfo);
+
+    // 将接入点节点的边框颜色设置为与其边颜色一致
+    allNodes.forEach((node) => {
+      if (node.id?.startsWith('accessPoint-') && apColorMap.has(node.id)) {
+        const color = apColorMap.get(node.id)!;
+        node.style = { ...node.style, stroke: color, lineWidth: 1.5 };
+      }
+    });
 
     return { nodes: allNodes, edges: edgesWithStyle };
   }
@@ -648,7 +656,241 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
 
-    return edges.filter(edge => nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string))
+    // 预处理：为 Unit→AP 的边按 source unit 的 x 坐标分 bucket，同 bucket 内分配序号
+    // 这样同一列 unit 出发的所有垂直线都归入同一组，不会被分成两部分
+    const unitToApEdgeIndexMap = new Map<string, number>();
+    const visibleEdges = edges.filter(edge => nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string));
+    
+    // 按 source unit 的 x 坐标分 bucket
+    const xBuckets = new Map<number, EdgeData[]>();
+    visibleEdges.forEach((edge) => {
+      const sId = edge.source as string;
+      const tId = edge.target as string;
+      if (sId.startsWith('workUnit-') && tId.startsWith('accessPoint-')) {
+        const sourceInfo = nodeLayoutInfo.get(sId);
+        if (sourceInfo) {
+          // 以 source unit 的 x 坐标作为 bucket key（同一列 unit 的 x 相同）
+          const bucketKey = sourceInfo.x;
+          if (!xBuckets.has(bucketKey)) {
+            xBuckets.set(bucketKey, []);
+          }
+          xBuckets.get(bucketKey)!.push(edge);
+        }
+      }
+    });
+    
+    // 同一 bucket 内按序号分配 edgeIndex
+    xBuckets.forEach((bucketEdges) => {
+      bucketEdges.forEach((edge, idx) => {
+        unitToApEdgeIndexMap.set(edge.id as string, idx);
+      });
+    });
+
+    // 按接入点 ID 全局分配颜色：同一接入点的所有边颜色一致
+    // 分层策略：数量少时高对比好分辨，数量多时逐渐降低区分度但仍可辨
+    // 第一梯队(1-30)：手工精选高对比色
+    const TIER1_COLORS = [
+      '#3A84FF', '#FF9C01', '#2DCB8D', '#8B5CF6', '#F36DB9',
+      '#14B8A6', '#E97F0A', '#6366F1', '#0EA5E9', '#D97706',
+      '#10B981', '#A855F7', '#EC4899', '#0891B2', '#7C3AED',
+      '#059669', '#EF4444', '#F59E0B', '#06B6D4', '#8B5E3C',
+      '#DC2626', '#84CC16', '#E879F9', '#FB923C', '#22D3EE',
+      '#A3E635', '#F43F5E', '#818CF8', '#34D399', '#FBBF24',
+    ];
+    // 第二梯队(31-100)：HSL色环均匀分布，高饱和高亮度，还好分辨
+    // 第三梯队(101+)：HSL色环更细分，饱和度和亮度微调，能分辨一点
+    const hslToHex = (h: number, s: number, l: number): string => {
+      h = ((h % 360) + 360) % 360;
+      s = Math.max(0, Math.min(100, s)) / 100;
+      l = Math.max(0, Math.min(100, l)) / 100;
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = l - c / 2;
+      let r = 0; let g = 0; let b = 0;
+      if (h < 60) { r = c; g = x; b = 0; }
+      else if (h < 120) { r = x; g = c; b = 0; }
+      else if (h < 180) { r = 0; g = c; b = x; }
+      else if (h < 240) { r = 0; g = x; b = c; }
+      else if (h < 300) { r = x; g = 0; b = c; }
+      else { r = c; g = 0; b = x; }
+      const toHex = (v: number) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    };
+    // 使用黄金角度偏移避免相邻颜色太接近
+    const GOLDEN_ANGLE = 137.508;
+    const generateColor = (index: number, total: number): string => {
+      if (index < TIER1_COLORS.length) {
+        return TIER1_COLORS[index];
+      }
+      // 超出手工精选范围，用算法生成
+      const algoIndex = index - TIER1_COLORS.length;
+      // 色相：黄金角度均匀分布，起始偏移避开手工色
+      const hue = (algoIndex * GOLDEN_ANGLE + 15) % 360;
+      if (total <= 100) {
+        // 第二梯队：高饱和(70-85%)、中高亮度(45-55%)，交替变化增加区分
+        const saturation = 70 + (algoIndex % 3) * 7;
+        const lightness = 45 + (algoIndex % 4) * 4;
+        return hslToHex(hue, saturation, lightness);
+      }
+      // 第三梯队：饱和度和亮度有更大波动，尽可能区分
+      const saturation = 55 + (algoIndex % 5) * 8;
+      const lightness = 38 + (algoIndex % 6) * 5;
+      return hslToHex(hue, saturation, lightness);
+    };
+
+    // 收集所有不同的接入点 ID，按出现顺序分配颜色
+    const apIds: string[] = [];
+    visibleEdges.forEach((edge) => {
+      const sId = edge.source as string;
+      const tId = edge.target as string;
+      let apId = '';
+      if (sId.startsWith('accessPoint-')) apId = sId;
+      else if (tId.startsWith('accessPoint-')) apId = tId;
+      if (apId && !apIds.includes(apId)) {
+        apIds.push(apId);
+      }
+    });
+    const totalAps = apIds.length;
+    const apColorMap = new Map<string, string>(); // apId -> color
+    apIds.forEach((apId, idx) => {
+      apColorMap.set(apId, generateColor(idx, totalAps));
+    });
+    const edgeColorMap = new Map<string, string>(); // edgeId -> color
+    visibleEdges.forEach((edge) => {
+      const sId = edge.source as string;
+      const tId = edge.target as string;
+      let apId = '';
+      if (sId.startsWith('accessPoint-')) apId = sId;
+      else if (tId.startsWith('accessPoint-')) apId = tId;
+      if (apId) {
+        edgeColorMap.set(edge.id as string, apColorMap.get(apId)!);
+      }
+    });
+
+    // 弹性间距：用和 customEdge.ts 相同的公式计算每条垂直线的真实 midX
+    // midX = apX + 80 + 40 + edgeIndex * 5 + (isCrossArea ? 15 : 0)
+    // 然后确保最大 midX 到右侧最近 unit 有足够间距
+    const MIN_GAP = 30; // 最后一条垂直线到右侧 unit 的最小间距
+    const nodeShifts = new Map<string, number>();
+
+    // 收集所有 Unit→AP 边的 source area 信息，用于判断跨区域
+    const nodeAreaMap = new Map<string, string>();
+    allNodes.forEach((node) => {
+      if (node.data?.area) {
+        nodeAreaMap.set(node.id, String(node.data.area));
+      }
+    });
+
+    // 按垂直线实际经过的 x 范围找到影响区域
+    // 关键：垂直线的 x 取决于 target AP 的 x，不是 source unit 的 x
+    // 所以需要找到所有垂直线中，midX 最大且右侧有 unit 的情况
+    
+    // 收集所有 unit 的 x 坐标（用于判断哪些 unit 在垂直线右边）
+    const unitXPositions = new Map<string, number>(); // unitId -> x
+    allNodes.forEach((node) => {
+      if (node.id?.startsWith('workUnit-') && node.style?.visibility !== 'hidden') {
+        unitXPositions.set(node.id, Number(node.style?.x ?? 0));
+      }
+    });
+
+    // 按"垂直线经过的 x 区间"影响的右侧 unit 列来计算需要的右移
+    // 对于每个 unique 的 unit x 坐标（每列 unit），检查是否有垂直线太靠近
+    const unitXSet = new Set(unitXPositions.values());
+    const sortedUnitXs = Array.from(unitXSet).sort((a, b) => a - b);
+
+    // 构建区域边界信息 map: areaId -> { x, width, right }
+    const areaBoundsMap = new Map<string, { x: number; width: number; right: number }>();
+    allNodes.forEach((node) => {
+      if (node.id?.startsWith('area-') && node.style?.visibility !== 'hidden') {
+        const ax = Number(node.style?.x ?? 0);
+        const aw = Number(node.style?.width ?? node.data?.width ?? 260);
+        areaBoundsMap.set(node.id, { x: ax, width: aw, right: ax + aw });
+      }
+    });
+
+    // 计算所有垂直线的实际 midX
+    const allVertLineMidXs: { midX: number; edgeId: string }[] = [];
+    xBuckets.forEach((bucketEdges) => {
+      bucketEdges.forEach((edge, idx) => {
+        const tId = edge.target as string;
+        const sId = edge.source as string;
+        const targetInfo = nodeLayoutInfo.get(tId);
+        const sourceInfo = nodeLayoutInfo.get(sId);
+        if (targetInfo) {
+          const apX = targetInfo.x;
+          const sourceArea = nodeAreaMap.get(sId) ?? '';
+          const targetArea = nodeAreaMap.get(tId) ?? '';
+          const isCrossArea = sourceArea !== targetArea && sourceArea !== '' && targetArea !== '';
+          
+          let isOnAreaBorder = false;
+          if (isCrossArea) {
+            const targetAreaBounds = areaBoundsMap.get(targetArea);
+            const sourceAreaBounds = areaBoundsMap.get(sourceArea);
+            if (targetAreaBounds && sourceAreaBounds && sourceInfo) {
+              const apRight = apX + 140;
+              const isApNearAreaRight = targetAreaBounds.right - apRight < 60;
+              const isUnitNearAreaLeft = sourceInfo.x - sourceAreaBounds.x < 60;
+              isOnAreaBorder = isApNearAreaRight && isUnitNearAreaLeft;
+            }
+          }
+          
+          // 跨区域时增加额外间距（两种情况独立处理）
+          // 1. 普通跨区域：+15
+          // 2. 跨区域且在区域边界上：+50
+          const crossAreaOffset = isCrossArea ? (isOnAreaBorder ? 50 : 15) : 0;
+          const midX = apX + 80 + 40 + idx * 5 + crossAreaOffset;
+          allVertLineMidXs.push({ midX, edgeId: edge.id as string });
+        }
+      });
+    });
+
+    // 对每列 unit，找到所有 midX < unitX 且距离不够 MIN_GAP 的垂直线
+    // 取最靠近该列 unit 的垂直线的 midX，计算需要的右移量
+    sortedUnitXs.forEach((unitX) => {
+      // 找所有 midX < unitX 的垂直线中最大的 midX
+      let maxMidXBeforeUnit = -Infinity;
+      allVertLineMidXs.forEach(({ midX }) => {
+        if (midX < unitX && midX > maxMidXBeforeUnit) {
+          maxMidXBeforeUnit = midX;
+        }
+      });
+
+      if (maxMidXBeforeUnit > -Infinity) {
+        const currentGap = unitX + (nodeShifts.get('__unitX_' + unitX) ?? 0) - maxMidXBeforeUnit;
+        if (currentGap < MIN_GAP) {
+          const needed = MIN_GAP - currentGap;
+          // 将该列及其右边所有 unit/node 右移
+          allNodes.forEach((node) => {
+            if (node.style?.visibility === 'hidden') return;
+            const nodeX = Number(node.style?.x ?? 0);
+            if (nodeX >= unitX) {
+              const currentShift = nodeShifts.get(node.id) ?? 0;
+              nodeShifts.set(node.id, currentShift + needed);
+            }
+          });
+        }
+      }
+    });
+
+    // 应用右移
+    allNodes.forEach((node) => {
+      const shift = nodeShifts.get(node.id);
+      if (shift && shift > 0) {
+        const currentX = Number(node.style?.x ?? 0);
+        node.style = { ...node.style, x: currentX + shift };
+        const info = nodeLayoutInfo.get(node.id);
+        if (info) {
+          info.x = currentX + shift;
+        }
+      }
+    });
+
+
+
+
+
+
+    const styledEdges = edges.filter(edge => nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string))
       .map((edge) => {
         const sId = edge.source as string;
         const tId = edge.target as string;
@@ -670,22 +912,22 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
         // --- 情况 A: AccessPoint 连向 WorkUnit (期望水平直线) ---
         if (isS_AP && isT_Unit) {
+          const edgeColor = edgeColorMap.get(edge.id as string) ?? '#C4C6CC';
           const key = `${sId}-${tId}`;
           const count = apToUnitCount.get(key) || 0;
 
           if (count === 1) {
             const edgeWithStyle = {
               ...edge,
-              type: 'custom-edge', // 使用自定义类
+              type: 'custom-edge',
               style: {
-                stroke: '#C4C6CC', // 修改：使用设计稿的颜色
-                lineWidth: 1, // 改细：从2改为1
+                stroke: edgeColor,
+                lineWidth: 1,
                 endArrow: false,
-                startPoint: [source.x, apCenterY], // 从接入点左边缘开始
-                endPoint: [target.x, apCenterY], // 连接到工作单元左边缘
+                startPoint: [source.x, apCenterY],
+                endPoint: [target.x, apCenterY],
               },
-              // 同时在根级别也设置这些属性
-              startPoint: [source.x, apCenterY], // 修正：使用接入点左边缘
+              startPoint: [source.x, apCenterY],
               endPoint: [target.x, apCenterY],
             };
 
@@ -695,23 +937,22 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           // 多条线走折线
           const offset = (count - 1) * 30;
           const turnX = Math.max(source.x, target.x) + 50;
-          const startPoint = [source.x, apCenterY]; // 修正：从接入点左边缘开始
+          const startPoint = [source.x, apCenterY];
           const endPoint = [target.x, target.y + 41 + offset];
 
           return {
             ...edge,
             type: 'polyline',
             style: {
-              stroke: '#C4C6CC', // 修改：使用设计稿的颜色
-              lineWidth: 1, // 改细：从2改为1
+              stroke: edgeColor,
+              lineWidth: 1,
               points: [
-                startPoint, // 修正：从接入点左边缘开始
+                startPoint,
                 [turnX, apCenterY],
                 [turnX, target.y + 41 + offset],
                 endPoint,
               ],
             },
-            // 为 polyline 也设置根级别端点
             startPoint: startPoint,
             endPoint: endPoint,
           };
@@ -719,23 +960,18 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
         // --- 情况 B: WorkUnit 连向 AccessPoint (从连接锚点出发) ---
         if (isS_Unit && isT_AP) {
-          // 从原始数据中查找单元节点数据
-          const sourceUnitNode = allNodes.find(n => n.id === sId);
-          
-          // 获取单元类型和实际高度
-          const isDirectUnit = sourceUnitNode?.data?.is_direct ?? false;
-          const actualUnitHeight = isDirectUnit ? 160 : 212;
-          
+          const edgeColor = edgeColorMap.get(edge.id as string) ?? '#C4C6CC';
           return {
             ...edge,
             type: 'custom-edge',
             style: {
-              stroke: '#C4C6CC',
+              stroke: edgeColor,
               lineWidth: 1,
               endArrow: {
                 path: 'M 0,0 L 4,2 L 4,-2 Z',
-                fill: '#C4C6CC'
+                fill: edgeColor
               },
+              edgeIndex: unitToApEdgeIndexMap.get(edge.id as string) ?? 0,
             },
           };
         }
@@ -801,5 +1037,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           endPoint: defaultEndPoint,
         };
       });
+
+    return { edges: styledEdges, apColorMap };
   }
 }

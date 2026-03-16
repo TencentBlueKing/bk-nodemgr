@@ -10,6 +10,17 @@ export default class CustomEdge extends Polyline {
     return defaultEndpoints;
   }
 
+  protected getKeyStyle(attributes: any) {
+    const style = super.getKeyStyle(attributes);
+    // 从布局阶段设置的 edge data style 中读取 stroke 颜色
+    const edgeData = this.context?.graph?.getEdgeData(this.id);
+    const dataStroke = edgeData?.style?.stroke as string;
+    if (dataStroke) {
+      return { ...style, stroke: dataStroke };
+    }
+    return style;
+  }
+
   protected getKeyPath(attributes: any) {
     const keyPathStyle = super.getKeyPath(attributes) as any;
     
@@ -54,30 +65,36 @@ export default class CustomEdge extends Polyline {
         const targetX = apX + 80;
         const targetY = apY + apHeight / 2 - 5;
         
-        // 计算边的偏移量，按同一单元的接入点顺序累计
-        let edgeOffset = 0;
-        let yOffset = 0;
-        
-        // 获取节点编号
-        const unitMatch = sourceNodeId.match(/workUnit-(\d+)/);
-        const apMatch = targetNodeId.match(/accessPoint-(\d+)/);
-        
-        if (unitMatch && apMatch) {
-          const unitNum = parseInt(unitMatch[1]);
-          const apNum = parseInt(apMatch[1]);
-          
-          // 按接入点编号作为该单元的第几条边来累计偏移
-          edgeOffset = apNum * 3; // 第1个接入点+0，第2个+3，第3个+6...
-          yOffset = apNum * 3;    // 垂直偏移也按接入点顺序累计
-        }
+        // 从布局阶段传入的 edgeIndex 计算偏移，同一 x 范围内的边依次错开 5px
+        const edgeIndex = this.parsedAttributes.edgeIndex ?? 0;
+        const edgeOffset = edgeIndex * 5;
+        const yOffset = edgeIndex * 5;
         
         // 检查是否跨区域连接
         const sourceArea = sourceNodeData.data?.area;
         const targetArea = targetNodeData.data?.area;
         const isCrossArea = sourceArea !== targetArea;
         
-        // 跨区域时增加额外间距，避免垂直线重合
-        const crossAreaOffset = isCrossArea ? 15 : 0; // 跨区域时额外增加15px间距
+        // 判断是否在两个区域的边上：接入点靠近其区域右边界，且源单元靠近其区域左边界
+        let isOnAreaBorder = false;
+        if (isCrossArea && this.context.graph) {
+          const targetAreaNode = this.context.graph.getNodeData(`${targetArea}`);
+          const sourceAreaNode = this.context.graph.getNodeData(`${sourceArea}`);
+          if (targetAreaNode && sourceAreaNode) {
+            const targetAreaRight = Number(targetAreaNode.style?.x || 0) + Number(targetAreaNode.style?.width || targetAreaNode.data?.width || 260);
+            const sourceAreaLeft = Number(sourceAreaNode.style?.x || 0);
+            // 接入点右边缘（apX + AP宽度140）接近区域右边界，且源单元在其区域左侧
+            const apRight = apX + 140;
+            const isApNearAreaRight = targetAreaRight - apRight < 60;
+            const isUnitNearAreaLeft = unitX - sourceAreaLeft < 60;
+            isOnAreaBorder = isApNearAreaRight && isUnitNearAreaLeft;
+          }
+        }
+        
+        // 跨区域时增加额外间距（两种情况独立处理）
+        // 1. 普通跨区域：+15，避免垂直线与其他区域的元素重叠
+        // 2. 跨区域且在区域边界上：+50，垂直线需要绕过区域边界
+        const crossAreaOffset = isCrossArea ? (isOnAreaBorder ? 50 : 15) : 0;
         
         // 统一垂直线X坐标：接入点targetX + 40 + 偏移量 + 跨区域偏移
         const midX = targetX + 40 + edgeOffset + crossAreaOffset;

@@ -94,7 +94,7 @@
           field="download"
           :title="t('certBintool.download')"
           fixed="right"
-          :min-width="60"
+          :width="downloadLabelWidth"
         >
           <template #default="{ row }">
             <download-pkg :data="row" :url="downloadUrl" :current-type="currentType">
@@ -114,7 +114,7 @@ import { AngleDown, AngleRight, EditLine } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import type { VxeTablePropTypes } from 'vxe-table';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -128,7 +128,6 @@ import { formatTimestamp } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
-type PkgType = 'gse_agent' | 'gse_proxy';
 type filterProp = 'file_name' | 'operator';
 interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
@@ -139,8 +138,8 @@ interface IFilterOption {
 
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 const mainStore = useMainStore();
+const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentType = computed(() => {
   const routeName = route.name?.toString() || '';

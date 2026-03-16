@@ -262,7 +262,7 @@
             field="download"
             :title="$t('pluginPackage.download')"
             fixed="right"
-            :min-width="60"
+            :width="downloadLabelWidth"
           >
             <template #default="{ row }">
               <download-pkg :data="row" :url="downloadUrl">
@@ -323,8 +323,8 @@ type PkgOrderType = 'version' | '-version';
 
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 const mainStore = useMainStore();
+const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314 - (mainStore.noticeShow ? 40 : 0));
 const downloadUrl = computed(() => `${location.origin}/api/v3/package/release/plugin/download`);

@@ -57,6 +57,11 @@ function fetch<T, C extends Config>(input: RequestInfo | URL, init: Partial<C>) 
         removeQueue(init?.id || requestID);
       })
       .catch((err) => {
+        // 请求被取消（AbortError）时静默处理，不触发错误拦截器和 reject
+        if (err?.name === 'AbortError') {
+          removeQueue(init?.id || requestID);
+          return;
+        }
         interceptorsResError.forEach((fn) => {
           err = fn(err, init);
         });

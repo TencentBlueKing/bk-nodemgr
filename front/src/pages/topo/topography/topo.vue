@@ -613,8 +613,14 @@ const throttledUpdateArea = throttle((areaId: string) => {
   execUpdateArea(areaId);
 }, 16);
 
+// 控制节点拖拽是否启用（与 drag-element behavior 的 enable 保持一致）
+const isDragElementEnabled = false;
+
 // 3. 拖拽中
 function handleNodeDrag(e: any) {
+  // drag-element 禁用时，G6 仍会冒泡 node:drag 事件，但不应执行任何副作用
+  if (!isDragElementEnabled) return;
+
   const targetNode = e.target;
   // 注意：G6 5.0 中 e.target 是 Group，ID 就在上面
   if (!targetNode || (targetNode.id && targetNode.id.startsWith('edge-'))) return;
@@ -631,6 +637,9 @@ function handleNodeDrag(e: any) {
 
 // 拖拽结束事件回调
 function handleNodeDragEnd(e: any) {
+  // drag-element 禁用时，G6 仍会冒泡 node:dragend 事件，但不应执行任何副作用
+  if (!isDragElementEnabled) return;
+
   const targetNode = e.target;
   if (!targetNode || (targetNode.id && targetNode.id.startsWith('edge-'))) return;
 
@@ -643,7 +652,7 @@ function handleNodeDragEnd(e: any) {
     throttledUpdateArea.cancel();
 
     // 2. 使用 setTimeout(0) 将其推到下一个事件循环
-    // 这就是“模拟第二次拖拽”的效果：等待 G6 内部把拖拽后的最终坐标写入数据模型后，
+    // 这就是"模拟第二次拖拽"的效果：等待 G6 内部把拖拽后的最终坐标写入数据模型后，
     // 我们立即执行一次计算，把区域框校准到最新位置。
     setTimeout(() => {
       execUpdateArea(areaId as string);

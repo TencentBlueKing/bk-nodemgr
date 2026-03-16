@@ -170,16 +170,17 @@ export const useTopoStore = defineStore('topo', () => {
     workUnitByArea.value.forEach((unit) => {
       allAreaIds.add(unit.bk_networkarea_id);
 
-      // 收集该单元的所有接入点对应的区域ID
+      // 收集该单元提供的接入点对应的区域ID
       unit.accesspoints?.forEach((ap) => {
         accessPointToArea.set(ap.accesspoint_id, unit.bk_networkarea_id);
       });
     });
 
-    // 第二步：根据单元的链接关系建立区域间连接
-    const areaConnections = new Map<number, Set<number>>();
+    // 第二步：建立单向上游依赖关系（当前区域 -> 上游区域）
+    // 当前区域的单元通过 links 引用上游区域的接入点，所以上游区域是被引用的那个区域
+    const upstreamConnections = new Map<number, Set<number>>();
     allAreaIds.forEach((areaId) => {
-      areaConnections.set(areaId, new Set([areaId])); // 每个区域都包含自身
+      upstreamConnections.set(areaId, new Set([areaId])); // 每个区域都包含自身
     });
 
     workUnitByArea.value.forEach((unit) => {
@@ -190,36 +191,35 @@ export const useTopoStore = defineStore('topo', () => {
       linkTypes.forEach((type) => {
         const link = unit.links[type];
         if (link?.accesspoint_id !== undefined) {
-          // 通过接入点ID找到对应的区域ID
-          const linkedAreaId = accessPointToArea.get(link.accesspoint_id);
-          if (linkedAreaId !== undefined && linkedAreaId !== currentAreaId) {
-            // 建立双向连接关系
-            areaConnections.get(currentAreaId)!.add(linkedAreaId);
-            areaConnections.get(linkedAreaId)!.add(currentAreaId);
+          // 通过接入点ID找到对应的上游区域ID
+          const upstreamAreaId = accessPointToArea.get(link.accesspoint_id);
+          if (upstreamAreaId !== undefined && upstreamAreaId !== currentAreaId) {
+            // 只建立单向关系：当前区域依赖上游区域
+            upstreamConnections.get(currentAreaId)!.add(upstreamAreaId);
           }
         }
       });
     });
 
-    // 第三步：为每个区域构建完整的依赖关系
+    // 第三步：为每个区域递归收集所有上游区域（传递性上游）
     allAreaIds.forEach((areaId) => {
-      const relatedAreas = new Set<number>();
+      const upstreamAreas = new Set<number>();
       const visited = new Set<number>();
 
-      const collectRelatedAreas = (currentAreaId: number) => {
+      const collectUpstream = (currentAreaId: number) => {
         if (visited.has(currentAreaId)) return;
         visited.add(currentAreaId);
-        relatedAreas.add(currentAreaId);
+        upstreamAreas.add(currentAreaId);
 
-        areaConnections.get(currentAreaId)?.forEach((connectedAreaId) => {
-          if (!visited.has(connectedAreaId)) {
-            collectRelatedAreas(connectedAreaId);
+        upstreamConnections.get(currentAreaId)?.forEach((upstreamId) => {
+          if (!visited.has(upstreamId)) {
+            collectUpstream(upstreamId);
           }
         });
       };
 
-      collectRelatedAreas(areaId);
-      resultMap.set(areaId, Array.from(relatedAreas));
+      collectUpstream(areaId);
+      resultMap.set(areaId, Array.from(upstreamAreas));
     });
 
     return resultMap;

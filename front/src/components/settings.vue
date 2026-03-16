@@ -2,7 +2,7 @@
   <Popover
     ref="settingRef"
     placement="bottom"
-    width="240"
+    width="390"
     theme="light"
     trigger="click"
     @after-hidden="afterHidden"
@@ -13,70 +13,43 @@
       <i class="nodeman-icon nc-setting"></i>
     </Button>
     <template #content>
-      <div class="m-[-12px]">
-        <div class="flex h-[42px] text-[14px] text-[#63656e] bg-[#f0f1f5]">
-          <div
-            :class="[
-              'flex items-center justify-center w-[120px] cursor-pointer transition-all duration-100',
-              { 'text-[#3a84ff] bg-[#fff]': activeSetting === 'field' },
-            ]"
-            @click="activeSetting = 'field'"
-          >
-            {{ $t('components.setting.field') }}
+      <div class="setting-panel">
+        <div class="setting-title">表格设置</div>
+        <div class="setting-field-section">
+          <div class="setting-field-header">
+            <span class="setting-field-label">字段显示设置</span>
+            <Checkbox
+              v-model="isSelectAll"
+              :indeterminate="isIndeterminate"
+              @change="handleSelectAll"
+              class="setting-select-all"
+            >
+              全选
+            </Checkbox>
           </div>
-          <!-- <div
-            :class="[
-              'flex items-center justify-center w-[120px] cursor-pointer transition-all duration-100',
-              { 'text-[#3a84ff] bg-[#fff]': activeSetting === 'advance' },
-            ]"
-            @click="activeSetting = 'advance'"
-          >
-            高级设置
-          </div> -->
-        </div>
-        <div
-          class="bg-[#fff] px-[16px] my-[8px] overflow-y-auto"
-          v-show="activeSetting === 'field'"
-        >
           <Checkbox.Group
             v-model="checkboxGroupValue"
             @change="handleChange"
-            class="flex flex-col justify-center"
+            class="setting-checkbox-group"
           >
             <Checkbox
               v-for="item in settings.fields"
               :key="item.field"
               :label="item.field"
               :disabled="settings.disabled.includes(item.field)"
-              class="text-[14px] h-[32px]"
+              class="setting-checkbox-item"
             >
               {{ item.title }}
             </Checkbox>
           </Checkbox.Group>
-        </div>
-        <div
-          class="bg-[#fff] px-[16px] overflow-y-auto my-[16px]"
-          v-show="activeSetting === 'advance'"
-        >
-          <div class="text-[14px] mb-[8px]">{{ $t('components.setting.size') }}</div>
-          <Radio.Group
-            v-model="size"
-            class="flex justify-center"
-            type="card"
-            @change="handleSizeChange"
-          >
-            <Radio.Button label="small">{{ $t('components.setting.small') }}</Radio.Button>
-            <Radio.Button label="medium">{{ $t('components.setting.medium') }}</Radio.Button>
-            <Radio.Button label="large">{{ $t('components.setting.large') }}</Radio.Button>
-          </Radio.Group>
         </div>
       </div>
     </template>
   </Popover>
 </template>
 <script lang="ts" setup>
-import { Button, Checkbox, Popover, Radio } from 'bkui-vue';
-import { ref } from 'vue';
+import { Button, Checkbox, Popover } from 'bkui-vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
   settings: {
@@ -91,14 +64,36 @@ const props = defineProps({
 });
 const emit = defineEmits(['setting-change']);
 
-const activeSetting = ref('field');
 const checkboxGroupValue = ref(props.settings.checked);
 const size = ref(props.settings.size);
+
+// 全选相关逻辑
+const enabledFields = computed(() =>
+  props.settings.fields
+    .filter((item: any) => !props.settings.disabled.includes(item.field))
+    .map((item: any) => item.field),
+);
+const isSelectAll = computed(() =>
+  enabledFields.value.every((field: string) => checkboxGroupValue.value.includes(field)),
+);
+const isIndeterminate = computed(() => {
+  const checkedCount = enabledFields.value.filter((field: string) => checkboxGroupValue.value.includes(field)).length;
+  return checkedCount > 0 && checkedCount < enabledFields.value.length;
+});
+
+const handleSelectAll = (val: boolean) => {
+  if (val) {
+    // 全选：合并 disabled 中已选 + 所有 enabled
+    const disabledChecked = checkboxGroupValue.value.filter((f: string) => props.settings.disabled.includes(f));
+    checkboxGroupValue.value = [...new Set([...disabledChecked, ...enabledFields.value])];
+  } else {
+    // 取消全选：只保留 disabled 中已选
+    checkboxGroupValue.value = checkboxGroupValue.value.filter((f: string) => props.settings.disabled.includes(f));
+  }
+};
+
 const handleChange = (value: string[]) => {
   checkboxGroupValue.value = value;
-};
-const handleSizeChange = (value: string[]) => {
-  size.value = value;
 };
 
 const afterHidden = () => {
@@ -116,6 +111,59 @@ defineExpose({
 });
 </script>
 <style lang="postcss" scoped>
+.setting-panel {
+  margin: -12px;
+}
+
+.setting-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #313238;
+  line-height: 24px;
+  padding: 25px 24px 0;
+}
+
+.setting-field-section {
+  padding: 0 24px;
+  margin-top: 16px;
+  padding-bottom: 8px;
+}
+
+.setting-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.setting-field-label {
+  font-size: 14px;
+  font-weight: normal;
+  color: #63656e;
+  line-height: 20px;
+}
+
+.setting-select-all {
+  font-size: 14px;
+}
+
+.setting-checkbox-group {
+  display: flex !important;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.setting-checkbox-item {
+  height: 36px;
+  box-sizing: border-box;
+  &:nth-child(odd) {
+    width: 55%;
+  }
+  &:nth-child(even) {
+    width: 45%;
+  }
+}
+
 .bk-checkbox ~ .bk-checkbox {
   margin-left: 0;
 }

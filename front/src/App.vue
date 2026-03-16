@@ -614,6 +614,73 @@ body {
 .bk-vxe-table .vxe-table--filter-body {
   min-height: 80px;
 }
+
+/* ====== 表格设置弹窗 - 旧版蓝鲸样式覆盖 ====== */
+.tippy-box[data-theme~='bk-vxe-table-setting-column-theme'] {
+  min-width: 390px !important;
+  max-width: 390px !important;
+  .tippy-content {
+    padding: 0 !important;
+  }
+  /* 设置菜单容器 - 添加标题 */
+  .bk-vxe-table-setting-menu {
+    padding-bottom: 8px;
+    &::before {
+      content: '表格设置';
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      color: #313238;
+      line-height: 24px;
+      padding: 25px 24px 0;
+    }
+  }
+  /* 隐藏 Tab 栏 */
+  .action-tab-wrapper {
+    display: none !important;
+  }
+  /* 字段列表区 - 双列 flex 布局 */
+  .field-list-wrapper {
+    max-height: 400px !important;
+    padding: 0 24px !important;
+    margin: 16px 0 0 !important;
+    position: relative;
+    /* "字段显示设置"小标题 */
+    &::before {
+      content: '字段显示设置';
+      display: block;
+      font-size: 14px;
+      font-weight: normal;
+      color: #63656e;
+      margin-bottom: 8px;
+      line-height: 20px;
+      width: 100%;
+    }
+    /* 全选 checkbox - 移到右上角（与小标题同行） */
+    > span:first-child {
+      position: absolute;
+      top: 0;
+      right: 24px;
+      font-size: 14px;
+    }
+    /* checkbox group 双列 flex-wrap 布局，固定宽度 390px */
+    .bk-checkbox-group {
+      display: flex !important;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .field-list-item {
+      height: 36px;
+      box-sizing: border-box;
+      &:nth-child(odd) {
+        width: 55%;
+      }
+      &:nth-child(even) {
+        width: 45%;
+      }
+    }
+  }
+}
 .bk-loading-mask, .bk-loading-indicator {
   z-index: 10 !important;
 }

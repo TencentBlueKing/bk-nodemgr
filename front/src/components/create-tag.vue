@@ -1,18 +1,8 @@
 <template>
   <div
-    class="w-full h-full min-w-[100px] min-h-[22px] flex  items-center gap-[8px]"
+    class="w-full h-full min-w-[100px] min-h-[22px] cursor-pointer"
     v-if="!isEditing" @click="handleEdit">
-    <Tag
-      v-for="tag in localTags?.slice(0, 2)"
-      :key="tag"
-    >{{ tag }}
-    </Tag
-    >
-    <Tag
-      v-if="localTags?.length > 2"
-      v-bk-tooltips="localTags?.join(', ')"
-    >+{{ localTags?.length - 2 }}
-    </Tag>
+    <AutoFitTags :tags="localTags ?? []" />
   </div>
   <div class="w-full edit-tag" v-else>
     <TagInput
@@ -43,9 +33,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Tag, TagInput } from 'bkui-vue';
+import { TagInput } from 'bkui-vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+
+import AutoFitTags from '@/components/auto-fit-tags.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';

@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AreaSelector: typeof import('./components/areaSelector.vue')['default']
+    AutoFitTags: typeof import('./components/auto-fit-tags.vue')['default']
     BatchEdit: typeof import('./components/batch-edit.vue')['default']
     ChooseVersionDialog: typeof import('./components/choose-version-dialog.vue')['default']
     ConfigTemplate: typeof import('./components/config-template.vue')['default']
