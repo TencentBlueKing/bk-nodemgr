@@ -166,6 +166,14 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 	case AuthMethodPassword:
 		sshConf.Auth = []ssh.AuthMethod{
 			ssh.Password(config.Password),
+			ssh.KeyboardInteractive(func(_, _ string, questions []string, _ []bool) ([]string, error) {
+				answers := make([]string, len(questions))
+				for i := range questions {
+					answers[i] = config.Password
+				}
+
+				return answers, nil
+			}),
 		}
 	case AuthMethodPrivateKey:
 		signer, err := ssh.ParsePrivateKey(config.PrivateKey)
