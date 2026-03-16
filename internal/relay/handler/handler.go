@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package handler ...
+// Package handler provides the handler for the relay client.
 package handler
 
 import (
@@ -24,13 +24,14 @@ import (
 const (
 	// ReportPrivateDataTimeout defines the report private data timeout.
 	ReportPrivateDataTimeout = 3 * time.Second
+	storageTmpDirName        = "transfer-file"
 )
 
 // IHandler defines a relay client handler.
 type IHandler interface {
-	// ReportPrivateData reports the private data.
+	// CheckPkgStats checks the package stats.
 	CheckPkgStats(nCtx contextx.IContext, payload []byte)
-	// StorePkg stores the package.
+	// StoragePkg stores the package.
 	StoragePkg(nCtx contextx.IContext, payload []byte)
 	// DetectInfoBySSH detects the node info by ssh.
 	DetectInfoBySSH(nCtx contextx.IContext, payload []byte)
@@ -48,15 +49,9 @@ type handler struct {
 
 	fileManager file.IFileManager
 	client      relayhandler.IClientMessager
-
-	callbackSvcIP   string
-	callbackSvcPort int
-
-	downloadSvcIP   string
-	downloadSvcPort int
 }
 
-// NewClientHandler creates a new file handler.
+// NewClientHandler creates a new client handler.
 func NewClientHandler(
 	fm file.IFileManager,
 	client relayhandler.IClientMessager,
@@ -64,12 +59,8 @@ func NewClientHandler(
 ) IHandler {
 
 	return &handler{
-		fileManager:     fm,
-		client:          client,
-		storageTmpDir:   filepath.Join(conf.RelayWorkspaceFileGroup.FullPath, "transfer-file"),
-		callbackSvcIP:   conf.CallbackServer.AdvertiseIPV4,
-		callbackSvcPort: conf.CallbackServer.Port,
-		downloadSvcIP:   conf.DownloadServer.AdvertiseIPV4,
-		downloadSvcPort: conf.DownloadServer.Port,
+		fileManager:   fm,
+		client:        client,
+		storageTmpDir: filepath.Join(conf.RelayWorkspaceFileGroup.FullPath, storageTmpDirName),
 	}
 }

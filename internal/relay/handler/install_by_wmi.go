@@ -13,7 +13,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"strings"
 
@@ -88,7 +87,7 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 			AssignWhenLogging(&errMsg).
 			WithErr(err).
 			With("filename", event.ToolsName, "dest-dir", installerPath).
-			Error("failed to tranfser file")
+			Error("failed to transfer file")
 
 		return
 	}
@@ -99,7 +98,7 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 
 	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(event.InstallerCmd)), event.InstallerBatName)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to create temp file: %v", err)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to create temp file")
 		return
 	}
 	defer func() {
@@ -113,7 +112,12 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 	// transfer install bat file
 	stdOut, stdErr, err = client.UploadFile(nCtx, tmpInstallBat.Path(), event.InstallerWorkDir)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to transfer file: %v", err)
+		logger.G.Biz(nCtx).
+			AssignWhenLogging(&errMsg).
+			WithErr(err).
+			With("filename", event.InstallerBatName, "dest-dir", event.InstallerWorkDir).
+			Error("failed to transfer install bat file")
+
 		return
 	}
 	outStr += buildLogOutput("upload", event.InstallerBatName, stdOut, stdErr)
@@ -125,7 +129,11 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 	installCMD := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.InstallerBatName))
 	stdOut, stdErr, err = client.RunSilentCommand(nCtx, installCMD)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to run install node: %v", err)
+		logger.G.Biz(nCtx).
+			AssignWhenLogging(&errMsg).
+			WithErr(err).
+			With("cmd", installCMD).
+			Error("failed to run install command")
 
 		return
 	}

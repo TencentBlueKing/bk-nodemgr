@@ -95,7 +95,7 @@ func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
 			AssignWhenLogging(&errMsg).
 			WithErr(err).
 			With("filename", event.ToolsName, "dest-dir", installerPath).
-			Error("failed to tranfser file")
+			Error("failed to transfer file")
 
 		return
 	}
