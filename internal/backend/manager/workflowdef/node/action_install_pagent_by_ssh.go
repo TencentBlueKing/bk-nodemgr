@@ -158,24 +158,21 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	relayInfos, err := std.GetRelayInfos()
+	relayInfo, err := std.GetSelectedRelay()
 	if err != nil {
-		return fmt.Errorf("failed to get relay infos: %w", err)
-	}
-	if len(relayInfos) == 0 {
-		return fmt.Errorf("no relay info selected")
+		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	// get relay service URLs for install command
-	callbackEndpoints, downloadEndpoints := nodeUtils.RelayInfosToEndpoints(relayInfos)
-	downloadURLs := nodeUtils.BuildServerURLs(downloadEndpoints...)
-	callbackURLs := nodeUtils.BuildServerURLs(callbackEndpoints...)
+	downloadURLs, callbackURLs, err := std.BuildRelayServerURLs()
+	if err != nil {
+		return fmt.Errorf("failed to build relay server url: %w", err)
+	}
 
 	// build install command.
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
 
 	// notify relay to install pagent by ssh.
-	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfos); err != nil {
+	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfo); err != nil {
 		return err
 	}
 
@@ -196,7 +193,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 
 func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeActionStandarder,
 	cKey, toolsName, installCmd string,
-	relayInfos []*types.RelayInfo) error {
+	relayInfo *types.RelayInfo) error {
 
 	event := protoRelay.InstallPagentBySSHReq{
 		ActionName:       std.InstanceData().Name,
@@ -215,8 +212,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(std *nodeUtils.NodeAct
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
 
-	// Try each relay sequentially until one succeeds
-	return act.notifyRelayToInstallMultiRelay(std, data, relayInfos)
+	return act.notifyRelayToInstallSingle(std, data, relayInfo)
 }
 
 // notifyRelayToInstallSingle sends install request to a single relay.
@@ -241,47 +237,6 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstallSingle(
 	case <-time.After(queryClientTimeout):
 		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
 	}
-}
-
-// notifyRelayToInstallMultiRelay tries each relay sequentially until one succeeds.
-func (act *actionInstallPagentBySSH) notifyRelayToInstallMultiRelay(
-	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
-
-	var lastErr error
-	for i, relayInfo := range relayInfos {
-		if relayInfo == nil || relayInfo.AgentID == "" {
-			std.InstanceData().Log().
-				Zh("索引 %d 的 relay 信息没有 agent id，尝试下一个", i).
-				En("relay info at index %d has no agent id, trying next", i).
-				Warn()
-
-			continue
-		}
-
-		std.InstanceData().Log().
-			Zh("正在尝试向 relay 发送安装请求，索引(%d/%d)，agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
-			En("attempting to send install request to relay, index(%d/%d), agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
-			Info()
-
-		err := act.notifyRelayToInstallSingle(std, data, relayInfo)
-		if err == nil {
-			std.InstanceData().Log().
-				Zh("通知 relay 安装 pagent 成功，agent-id(%s)", relayInfo.AgentID).
-				En("notify relay to install pagent successfully, agent-id(%s)", relayInfo.AgentID).
-				Info()
-
-			return nil
-		}
-
-		std.InstanceData().Log().
-			Zh("向 relay 发送安装请求失败，索引(%d/%d)，agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
-			En("failed to send install request to relay, index(%d/%d), agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
-			Warn()
-		lastErr = err
-	}
-
-	// All relays failed
-	return fmt.Errorf("failed to send install request to all relay(s). count(%d): %w", len(relayInfos), lastErr)
 }
 
 // nolint: gocognit

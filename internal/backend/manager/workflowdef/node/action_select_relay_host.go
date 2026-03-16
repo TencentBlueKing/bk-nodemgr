@@ -162,6 +162,14 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	for _, host := range hosts {
 		for _, tag := range host.Dynamic.ProxyTags {
 			if tag == types.ProxyTagDedicatedInstaller {
+				if err := act.validateRelayHost(host); err != nil {
+					std.InstanceData().Log().
+						Zh("专用安装主机缺少 relay 配置信息，已忽略。host-id(%d): %v", host.HostID, err).
+						En("dedicated installer host missing relay config and skipped. host-id(%d): %v", host.HostID, err).
+						Warn()
+					break
+				}
+
 				dedicatedHosts = append(dedicatedHosts, host)
 				break
 			}
@@ -198,4 +206,20 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 		DownloadSvcPort: relayHost.Dynamic.RelayDownloadPort,
 		CallbackSvcPort: relayHost.Dynamic.RelayCallbackPort,
 	}, nil
+}
+
+func (act *actionSelectRelayHost) validateRelayHost(host *types.Host) error {
+	if host == nil {
+		return errors.New("host is nil")
+	}
+
+	if host.Dynamic.AgentID == "" {
+		return errors.New("agent-id is required")
+	}
+
+	if host.Dynamic.RelayDownloadPort <= 0 || host.Dynamic.RelayCallbackPort <= 0 {
+		return errors.New("relay service port is required")
+	}
+
+	return nil
 }

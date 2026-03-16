@@ -93,6 +93,33 @@ func RelayInfosToEndpoints(infos []*types.RelayInfo) (callbacks []discover.Endpo
 	return callbacks, downloads
 }
 
+// GetSelectedRelay returns the relay that was selected by SelectRelayHost action.
+func (std *NodeActionStandarder) GetSelectedRelay() (*types.RelayInfo, error) {
+	relay := &std.DeployInfo().RelayInfo
+	if relay.HostID <= 0 {
+		return nil, fmt.Errorf("host id is required")
+	}
+
+	if relay.AgentID == "" {
+		return nil, fmt.Errorf("agent id is required")
+	}
+
+	return relay, nil
+}
+
+// BuildRelayServerURLs builds download and callback URL strings directly from the selected relay.
+func (std *NodeActionStandarder) BuildRelayServerURLs() (string, string, error) {
+	relay, err := std.GetSelectedRelay()
+	if err != nil {
+		return "", "", err
+	}
+
+	downloadURL := BuildServerURLs(relayInfoToEndpoint(relay, relay.DownloadSvcPort))
+	callbackURL := BuildServerURLs(relayInfoToEndpoint(relay, relay.CallbackSvcPort))
+
+	return downloadURL, callbackURL, nil
+}
+
 // GetRelayEndpoints queries Relay hosts and returns Endpoint list, callback and download endpoints.
 // Returns: (callback endpoints, download endpoints, error).
 func (std *NodeActionStandarder) GetRelayEndpoints() ([]discover.Endpoint, []discover.Endpoint, error) {

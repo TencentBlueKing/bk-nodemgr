@@ -255,17 +255,12 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetect(
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos()
+	relayInfo, err := std.GetSelectedRelay()
 	if err != nil {
 		return err
 	}
-	if len(relayInfos) == 0 {
-		return fmt.Errorf("no relay info selected")
-	}
 
-	// Try each relay sequentially until one succeeds
-	return act.notifyRelayToDetectMultiRelay(std, data, relayInfos)
+	return act.notifyRelayToDetectSingle(std, data, relayInfo)
 }
 
 // notifyRelayToDetectSingle sends detect info to a single relay.
@@ -290,47 +285,6 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectSingle(
 	case <-time.After(queryClientTimeoutWMI):
 		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
 	}
-}
-
-// notifyRelayToDetectMultiRelay tries each relay sequentially until one succeeds.
-func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectMultiRelay(
-	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
-
-	var lastErr error
-	for i, relayInfo := range relayInfos {
-		if relayInfo == nil || relayInfo.AgentID == "" {
-			std.InstanceData().Log().
-				Zh("索引 %d 的 relay 信息没有 agent id，尝试下一个", i).
-				En("relay info at index %d has no agent id, trying next", i).
-				Warn()
-
-			continue
-		}
-
-		std.InstanceData().Log().
-			Zh("正在尝试向 relay 发送探测信息，索引(%d/%d)，agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
-			En("attempting to send detect info to relay, index(%d/%d), agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
-			Info()
-
-		err := act.notifyRelayToDetectSingle(std, data, relayInfo)
-		if err == nil {
-			std.InstanceData().Log().
-				Zh("WMI 探测信息已成功发送到 relay，agent-id(%s)", relayInfo.AgentID).
-				En("detect info by wmi sent to relay successfully, agent-id(%s)", relayInfo.AgentID).
-				Info()
-
-			return nil
-		}
-
-		std.InstanceData().Log().
-			Zh("向 relay 发送探测信息失败，索引(%d/%d)，agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
-			En("failed to send detect info to relay, index(%d/%d), agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
-			Warn()
-		lastErr = err
-	}
-
-	// All relays failed
-	return fmt.Errorf("failed to send detect info to all relay(s). count(%d): %w", len(relayInfos), lastErr)
 }
 
 // waitForRelayReportDetect wait for relay to report the detect result.
