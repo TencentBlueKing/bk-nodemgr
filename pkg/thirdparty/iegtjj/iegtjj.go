@@ -12,7 +12,10 @@
 package iegtjj
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -43,7 +46,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 }
 
 func (c *cli) getDevicePassword(nCtx contextx.IContext, req *GetDevicePasswordReq) (*GetDevicePasswordResp, error) {
-	resp := new(BaseBroker[*GetDevicePasswordResp])
+	resp := new(BaseBroker[json.RawMessage])
 	header, err := c.getCommonHeader()
 	if err != nil {
 		return nil, err
@@ -59,5 +62,35 @@ func (c *cli) getDevicePassword(nCtx contextx.IContext, req *GetDevicePasswordRe
 		return nil, err
 	}
 
-	return resp.Data, nil
+	if resp.HasError {
+		return nil, fmt.Errorf("iegtjj api error (requestId: %s): %s",
+			resp.RequestID, extractErrorMessage(resp.Message, resp.Data))
+	}
+
+	var data GetDevicePasswordResp
+	if err := json.Unmarshal(resp.Data, &data); err != nil {
+		return nil, fmt.Errorf("failed to parse device password response: %w", err)
+	}
+
+	return &data, nil
+}
+
+// extractErrorMessage extracts human-readable error messages from TJJ error responses.
+// When HasError is true, ResponseItems is typically map[string]string (e.g. {"4": "调用IP未被授权"}).
+func extractErrorMessage(message string, rawItems json.RawMessage) string {
+	var errItems map[string]string
+	if err := json.Unmarshal(rawItems, &errItems); err == nil && len(errItems) > 0 {
+		msgs := make([]string, 0, len(errItems))
+		for _, msg := range errItems {
+			msgs = append(msgs, msg)
+		}
+
+		return strings.Join(msgs, "; ")
+	}
+
+	if message != "" {
+		return message
+	}
+
+	return string(rawItems)
 }

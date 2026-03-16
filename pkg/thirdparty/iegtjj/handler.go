@@ -105,15 +105,25 @@ func (h *Handler) LoadPassword(
 		return "", fmt.Errorf("failed to get device password: %w", err)
 	}
 
-	if len(resp.IPList) > 1 || len(resp.IPList) == 0 {
-		return "", fmt.Errorf("iplist length is not 1, ip(%v), resp(%v)", ip, resp)
+	if len(resp.IPList) != 1 {
+		return "", fmt.Errorf("unexpected iplist length from iegtjj: expected 1, got %d, ip(%s)", len(resp.IPList), ip)
 	}
 
-	if resp.IPList[ip].Password == "" {
-		return "", fmt.Errorf("failed to get device password, message(%v)", resp.IPList[ip].Message)
+	item, ok := resp.IPList[ip]
+	if !ok {
+		for k, v := range resp.IPList {
+			return "", fmt.Errorf("iegtjj returned mismatched ip key: requested %s, got %s, message: %s", ip, k, v.Message)
+		}
+	}
+	if item.Code != 0 {
+		return "", fmt.Errorf("iegtjj device password error for ip(%s): %s (code: %d)", ip, item.Message, item.Code)
 	}
 
-	passwd, err := h.decryptor.Decrypt(resp.IPList[ip].Password)
+	if item.Password == "" {
+		return "", fmt.Errorf("iegtjj returned empty password for ip(%s), message: %s", ip, item.Message)
+	}
+
+	passwd, err := h.decryptor.Decrypt(item.Password)
 	if err != nil {
 		return "", fmt.Errorf("failed to decrypt device password: %w", err)
 	}
