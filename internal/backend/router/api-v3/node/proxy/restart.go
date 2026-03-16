@@ -32,7 +32,18 @@ func (h *handler) Restart(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generatesRestartNodeDeployments(rCtx, req)
+	hosts, err := h.getRestartNodeHosts(rCtx, req.GetHost())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart proxy, failed to get host list")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if err := validateHostNetworkUnit(hosts); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart proxy, invalid network unit")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	nodeDeployments, bizIDs, err := h.generatesRestartNodeDeployments(rCtx, req, hosts)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart proxy, failed to generate node deployments")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -88,13 +99,9 @@ func (h *handler) getRestartNodeHosts(
 	return result, err
 }
 
-func (h *handler) generatesRestartNodeDeployments(nCtx contextx.IContext, req *protoBackend.NodeProxyRestartReq) (
-	[]*types.NodeDeployment, []int64, error) {
-
-	typeHosts, err := h.getRestartNodeHosts(nCtx, req.GetHost())
-	if err != nil {
-		return nil, nil, err
-	}
+func (h *handler) generatesRestartNodeDeployments(
+	nCtx contextx.IContext, req *protoBackend.NodeProxyRestartReq, typeHosts map[int64]*types.Host,
+) ([]*types.NodeDeployment, []int64, error) {
 
 	// build biz id list.
 	bizIDMap := make(map[int64]struct{})

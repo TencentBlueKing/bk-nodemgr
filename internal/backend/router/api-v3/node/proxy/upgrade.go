@@ -33,7 +33,18 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generatesUpgradeNodeDeployments(rCtx, req)
+	hosts, err := h.getUpgradeNodeHosts(rCtx, req.GetHost())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, failed to get host list")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if err := validateHostNetworkUnit(hosts); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, invalid network unit")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	nodeDeployments, bizIDs, err := h.generatesUpgradeNodeDeployments(rCtx, req, hosts)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, failed to generate node deployments")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -91,7 +102,8 @@ func (h *handler) getUpgradeNodeHosts(
 
 // generatesUpgradeNodeDeployments generates upgrade node deployments and get biz id list.
 func (h *handler) generatesUpgradeNodeDeployments(
-	nCtx contextx.IContext, req *protoBackend.NodeProxyUpgradeReq) ([]*types.NodeDeployment, []int64, error) {
+	nCtx contextx.IContext, req *protoBackend.NodeProxyUpgradeReq, typeHosts map[int64]*types.Host,
+) ([]*types.NodeDeployment, []int64, error) {
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -100,11 +112,6 @@ func (h *handler) generatesUpgradeNodeDeployments(
 			CPUArch: criteria.CPUArch(version.GetCpuArch()),
 			Version: version.GetVersion(),
 		}
-	}
-
-	typeHosts, err := h.getUpgradeNodeHosts(nCtx, req.GetHost())
-	if err != nil {
-		return nil, nil, err
 	}
 
 	// build biz id list.

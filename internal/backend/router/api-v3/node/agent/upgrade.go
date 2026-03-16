@@ -39,6 +39,11 @@ func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if err := validateHostNetworkUnit(hosts); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, invalid network unit")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	unitsMap, err := h.generatesUnitDirectLink(rCtx, hosts)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to get network unit info")
