@@ -63,13 +63,13 @@ func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
 
 	// ensure the workspace dir
-	result, err := client.RunCommand("mkdir -p " + event.InstallerWorkDir)
+	stdoutResult, stderrResult, err := client.RunCommand("mkdir -p " + event.InstallerWorkDir)
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("dir", event.InstallerWorkDir).Error("failed to make dir")
 
 		return
 	}
-	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, result, "")
+	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, stdoutResult, stderrResult)
 	logger.G.Biz(nCtx).With("dir", event.InstallerWorkDir).Info("mkdir successfully")
 
 	// get the tool file
@@ -102,25 +102,25 @@ func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).With("filename", event.ToolsName, "dest-dir", installerPath).Info("transfer file successfully")
 
 	// ensure tool is executable
-	result, err = client.RunCommand("chmod +x " + installerPath)
+	stdoutResult, stderrResult, err = client.RunCommand("chmod +x " + installerPath)
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", installerPath).Error("failed to chmod file")
 
 		return
 	}
-	outStr += buildLogOutput("chmod", installerPath, result, "")
+	outStr += buildLogOutput("chmod", installerPath, stdoutResult, stderrResult)
 	logger.G.Biz(nCtx).With("filename", installerPath).Info("run command chmod successfully")
 
 	// execute install command
 	logger.G.Biz(nCtx).With("cmd", event.InstallerCmd).Info("try to run install command")
 
-	result, err = client.RunCommand(event.InstallerCmd)
+	stdoutResult, stderrResult, err = client.RunCommand(event.InstallerCmd)
 	if err != nil {
 		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("cmd", event.InstallerCmd).Error("failed to run install cmd")
 
 		return
 	}
-	outStr += buildLogOutput("install", "install.sh", result, "")
+	outStr += buildLogOutput("install", "install.sh", stdoutResult, stderrResult)
 
 	logger.G.Biz(nCtx).With("stdout", outStr, "ip", event.IP, "port", event.Port, "user", event.User).Info("install pagent by ssh successfully")
 }

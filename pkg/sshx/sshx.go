@@ -12,6 +12,7 @@
 package sshx
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -224,8 +225,8 @@ type Client struct {
 	sshClient *ssh.Client
 }
 
-// RunCommand run command.
-func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
+// RunCommand run command, returning stdout and stderr separately.
+func (cli *Client) RunCommand(cmd string) (stdout, stderr string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("failed to run command, cmd(%s): %v", cmd, r)
@@ -236,18 +237,21 @@ func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
 
 	session, err := cli.sshClient.NewSession()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer session.Close()
 
-	output, err := session.CombinedOutput(cmd)
-	if err != nil {
-		err = fmt.Errorf("failed to run command, cmd(%s), output(%s): %w", cmd, string(output), err)
+	var stdoutBuf, stderrBuf bytes.Buffer
+	session.Stdout = &stdoutBuf
+	session.Stderr = &stderrBuf
 
-		return "", err
+	if err := session.Run(cmd); err != nil {
+		return stdoutBuf.String(), stderrBuf.String(),
+			fmt.Errorf("failed to run command, cmd(%s), stdout(%s), stderr(%s): %w",
+				cmd, stdoutBuf.String(), stderrBuf.String(), err)
 	}
 
-	return string(output), nil
+	return stdoutBuf.String(), stderrBuf.String(), nil
 }
 
 // Close close the ssh client.

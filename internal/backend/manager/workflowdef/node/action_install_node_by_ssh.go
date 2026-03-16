@@ -213,8 +213,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
-	if result, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerWorkDir); err != nil {
-		err = fmt.Errorf("failed to run command. command(mkdir -p %s), result(%s): %w", std.DeployInfo().InstallerWorkDir, result, err)
+	if _, stderr, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerWorkDir); err != nil {
+		err = fmt.Errorf("failed to run command. command(mkdir -p %s), stderr(%s): %w", std.DeployInfo().InstallerWorkDir, stderr, err)
 
 		return err
 	}
@@ -253,8 +253,8 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 		Info()
 
 	// make sure tool is executable
-	if result, err := client.RunCommand("chmod +x " + installerPath); err != nil {
-		return "", fmt.Errorf("failed to run command. command(chmod +x %s), result(%s): %w", installerPath, result, err)
+	if _, stderr, err := client.RunCommand("chmod +x " + installerPath); err != nil {
+		return "", fmt.Errorf("failed to run command. command(chmod +x %s), stderr(%s): %w", installerPath, stderr, err)
 	}
 
 	return installerPath, nil
@@ -310,7 +310,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		Info()
 
 	// exec install command.
-	outStr, err := client.RunCommand(fmt.Sprintf(
+	outStr, _, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
 		std.DeployInfo().InstallerWorkDir,
 		std.DeployInfo().InstallerWorkDir,

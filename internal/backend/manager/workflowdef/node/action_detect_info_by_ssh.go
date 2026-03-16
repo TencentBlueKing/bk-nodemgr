@@ -254,9 +254,9 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 	osType criteria.OSType, cpuArch criteria.CPUArch, connectedDir string, err error) {
 
 	// 1. detect target system
-	osTypeStr, err := client.RunCommand("uname -s")
+	osTypeStr, _, err := client.RunCommand("uname -s")
 	if err != nil {
-		err = fmt.Errorf("failed to run uname -a: %w", err)
+		err = fmt.Errorf("failed to run uname -s: %w", err)
 
 		return "", "", "", err
 	}
@@ -281,7 +281,7 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 		Info()
 
 	// 2. detect target cpu arch
-	cpuArchStr, err := client.RunCommand("uname -m")
+	cpuArchStr, _, err := client.RunCommand("uname -m")
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to run uname -m: %w", err)
 	}
@@ -299,7 +299,7 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 		Info()
 
 	// 3. detect target dir
-	connectedDir, err = client.RunCommand("pwd")
+	connectedDir, _, err = client.RunCommand("pwd")
 	if err != nil {
 		err = fmt.Errorf("failed to run pwd: %w", err)
 
