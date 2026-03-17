@@ -212,35 +212,48 @@ func (group *LocalDir) writeDataToFile(nCtx contextx.IContext, lfile afero.File,
 		}
 	}()
 
-	// read file content.
 	buf := make([]byte, defaultBufferSize)
 
 	for {
-		select {
-		case <-nCtx.Done():
-			return nCtx.Err()
-		default:
-			n, err := reader.Read(buf)
-			if err != nil {
-				if err == io.EOF {
-					if n > 0 {
-						if _, writeErr := writer.Write(buf[:n]); writeErr != nil {
-							return fmt.Errorf("write final buffer failed: %w", writeErr)
-						}
-					}
+		if err := nCtx.Err(); err != nil {
+			return err
+		}
 
-					return nil
-				}
+		done, err := writeChunk(writer, buf, reader)
+		if err != nil {
+			return err
+		}
 
-				return fmt.Errorf("read content failed: %w", err)
-			}
-
-			_, err = writer.Write(buf[:n])
-			if err != nil {
-				return fmt.Errorf("failed to write file content: %w", err)
-			}
+		if done {
+			return nil
 		}
 	}
+}
+
+// writeChunk reads one buffer-sized chunk from reader and writes it to writer.
+// It returns (true, nil) on EOF, (false, nil) after a successful partial write,
+// and (false, err) on any read or write error.
+func writeChunk(writer *bufio.Writer, buf []byte, reader io.Reader) (bool, error) {
+	n, err := reader.Read(buf)
+	if err != nil {
+		if err != io.EOF {
+			return false, fmt.Errorf("read content failed: %w", err)
+		}
+
+		if n > 0 {
+			if _, writeErr := writer.Write(buf[:n]); writeErr != nil {
+				return false, fmt.Errorf("write final buffer failed: %w", writeErr)
+			}
+		}
+
+		return true, nil
+	}
+
+	if _, writeErr := writer.Write(buf[:n]); writeErr != nil {
+		return false, fmt.Errorf("failed to write file content: %w", writeErr)
+	}
+
+	return false, nil
 }
 
 // AbsDirs the func will return the abs dirs of file group.

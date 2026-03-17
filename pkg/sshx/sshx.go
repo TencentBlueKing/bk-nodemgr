@@ -226,7 +226,7 @@ type Client struct {
 }
 
 // RunCommand run command, returning stdout and stderr separately.
-func (cli *Client) RunCommand(cmd string) (stdout, stderr string, err error) {
+func (cli *Client) RunCommand(cmd string) (_, _ string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("failed to run command, cmd(%s): %v", cmd, r)
@@ -239,7 +239,7 @@ func (cli *Client) RunCommand(cmd string) (stdout, stderr string, err error) {
 	if err != nil {
 		return "", "", err
 	}
-	defer session.Close()
+	defer func() { _ = session.Close() }()
 
 	var stdoutBuf, stderrBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
