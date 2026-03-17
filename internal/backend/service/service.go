@@ -44,6 +44,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
@@ -216,6 +217,16 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(svc.conf.InstallerFileGroup.FullPath)
 	if err != nil {
 		return fmt.Errorf("failed to create installer file group: %w", err)
+	}
+
+	// initial local file cache.
+	svc.Cap.FileCache, err = filecache.New(svc.ctx, svc.conf.FileCache.Dir, filecache.Options{
+		ExpirationTime: time.Duration(svc.conf.FileCache.ExpirationHours) * time.Hour,
+		GCInterval:     time.Duration(svc.conf.FileCache.GCIntervalHours) * time.Hour,
+		RestoreOnStart: svc.conf.FileCache.RestoreOnStart,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create file cache: %w", err)
 	}
 
 	// initial AES crypter with given key.
@@ -679,6 +690,7 @@ func (svc *Service) initialManager() error {
 		UserManagerHandler:  svc.Cap.UserManagerHandler,
 		Provider:            svc.Cap.DiscoverProvider,
 		InstallerFileGroup:  svc.Cap.InstallerFileGroup,
+		FileCache:           svc.Cap.FileCache,
 		LockerFactory:       svc.Cap.LockerFactory,
 		StorageTopo:         svc.Cap.StorageTopo,
 		StorageRelease:      svc.Cap.StorageRelease,

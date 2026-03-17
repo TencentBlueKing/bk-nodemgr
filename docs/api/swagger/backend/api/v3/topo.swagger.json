@@ -1129,6 +1129,14 @@
         },
         "advertise_ip_v6": {
           "type": "string"
+        },
+        "relay_callback_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "relay_download_port": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."

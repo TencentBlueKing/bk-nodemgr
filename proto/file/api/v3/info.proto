@@ -1,0 +1,82 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api/v3";
+
+import "google/api/annotations.proto";
+import "download.proto";
+
+// FileInfoResp is the shared response for all info endpoints.
+message FileInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  // Data holds the file metadata.
+  message Data {
+    string name = 1;
+    int64 size = 2;
+    string md5 = 3;
+  }
+
+  Data data = 4;
+}
+
+// Info service provides file metadata queries without transferring file
+// content.
+service Info {
+  // InfoAgent returns file info for the agent package.
+  rpc InfoAgent(DownloadAgentReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/agent"
+      body : "*"
+    };
+  }
+
+  // InfoProxy returns file info for the proxy package.
+  rpc InfoProxy(DownloadProxyReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/proxy"
+      body : "*"
+    };
+  }
+
+  // InfoPlugin returns file info for the plugin package.
+  rpc InfoPlugin(DownloadPluginReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/plugin"
+      body : "*"
+    };
+  }
+
+  // InfoInstaller returns file info for the installer.
+  rpc InfoInstaller(DownloadInstallerReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/installer"
+      body : "*"
+    };
+  }
+
+  // InfoCert returns file info for the cert package.
+  rpc InfoCert(DownloadCertReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/cert"
+      body : "*"
+    };
+  }
+
+  // InfoBinTool returns file info for the bintool package.
+  rpc InfoBinTool(DownloadBinToolReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/bintool"
+      body : "*"
+    };
+  }
+
+  // InfoPluginBinTool returns file info for the plugin bintool package.
+  rpc InfoPluginBinTool(DownloadPluginBinToolReq) returns (FileInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/info/plugin_bintool"
+      body : "*"
+    };
+  }
+}

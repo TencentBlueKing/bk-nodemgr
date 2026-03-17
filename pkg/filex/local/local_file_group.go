@@ -203,11 +203,13 @@ func (group *LocalDir) Store(nCtx contextx.IContext, info fileiface.FileInfo, re
 }
 
 // writeDataToFile write data to local file.
-func (group *LocalDir) writeDataToFile(nCtx contextx.IContext, lfile afero.File, reader io.ReadCloser) error {
+func (group *LocalDir) writeDataToFile(nCtx contextx.IContext, lfile afero.File, reader io.ReadCloser) (retErr error) {
 	// use bufio.NewWriter to improve performance.
 	writer := bufio.NewWriter(lfile)
 	defer func() {
-		_ = writer.Flush()
+		if flushErr := writer.Flush(); flushErr != nil && retErr == nil {
+			retErr = fmt.Errorf("flush buffer failed: %w", flushErr)
+		}
 	}()
 
 	// read file content.
@@ -222,9 +224,9 @@ func (group *LocalDir) writeDataToFile(nCtx contextx.IContext, lfile afero.File,
 			if err != nil {
 				if err == io.EOF {
 					if n > 0 {
-						_, err = writer.Write(buf[:n])
-
-						return fmt.Errorf("write final buffer failed: %w", err)
+						if _, writeErr := writer.Write(buf[:n]); writeErr != nil {
+							return fmt.Errorf("write final buffer failed: %w", writeErr)
+						}
 					}
 
 					return nil

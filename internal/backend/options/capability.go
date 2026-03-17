@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
@@ -109,6 +110,9 @@ type Capability struct {
 
 	// InstallerFileGroup tool file group.
 	InstallerFileGroup fileiface.FileGroup
+
+	// FileCache is the local artifact file cache for SSH install flows.
+	FileCache filecache.IFileCache
 
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
@@ -192,6 +196,12 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 func (capability *Capability) GracefulShutdown() error {
 	if err := capability.Manager.GracefulShutdown(); err != nil {
 		return err
+	}
+
+	if capability.FileCache != nil {
+		if err := capability.FileCache.Close(); err != nil {
+			return err
+		}
 	}
 
 	if err := tracing.G().ShutdownAll(contextx.Background()); err != nil {

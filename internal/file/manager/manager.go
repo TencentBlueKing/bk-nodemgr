@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -94,11 +95,7 @@ type IManager interface {
 
 // New returns a new file manager.
 func New(opts ...OptionFn) *Manager {
-	manager := &Manager{
-		localFilePool: &localFilePool{
-			files: map[string]*localFile{},
-		},
-	}
+	manager := &Manager{}
 
 	for _, opt := range opts {
 		opt(manager)
@@ -229,10 +226,10 @@ func WithInstallerFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	}
 }
 
-// WithCacheFileGroup sets the cache file group.
-func WithCacheFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithFileCache sets the IFileCache instance used by ensureReleaseToLocal.
+func WithFileCache(fc filecache.IFileCache) OptionFn {
 	return func(manager *Manager) {
-		manager.cacheFileGroup = fileGroup
+		manager.fileCache = fc
 	}
 }
 
@@ -314,17 +311,14 @@ type Manager struct {
 	upstreamReleasePluginBinTool   fileiface.FileGroup
 	upstreamReleasePlugin          fileiface.FileGroup
 
-	// cache file group.
-	cacheFileGroup fileiface.FileGroup
-
 	// installter file group.
 	installerFileGroup fileiface.FileGroup
 
 	// temp file group is regarded as the file temp.
 	tempFileGroup fileiface.FileGroup
 
-	// local file pool.
-	localFilePool *localFilePool
+	// fileCache is the generic local file cache used by ensureReleaseToLocal.
+	fileCache filecache.IFileCache
 
 	// host inner ip.
 	hostAdvertiseIPV4 string
@@ -423,10 +417,6 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid storage event")
 	}
 
-	if m.cacheFileGroup == nil {
-		return errors.New("invalid cache file group")
-	}
-
 	if m.installerFileGroup == nil {
 		return errors.New("invalid installer file group")
 	}
@@ -435,8 +425,8 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid temp file group")
 	}
 
-	if m.localFilePool == nil {
-		return errors.New("invalid local file pool")
+	if m.fileCache == nil {
+		return errors.New("invalid file cache")
 	}
 
 	if m.gseHandler == nil {

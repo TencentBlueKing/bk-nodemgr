@@ -139,6 +139,10 @@ data:
       traceServiceName: {{ .Values.backend.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.backend.config.mongodb.traceSampleRate }}
 
+    installerFileGroup: {{ .Values.backend.config.installerFileGroup | toYaml | nindent 6 }}
+
+    fileCache: {{ .Values.backend.config.fileCache | toYaml | nindent 6 }}
+
     gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
 
     access: {{ .Values.backend.config.access | toYaml | nindent 6 }}

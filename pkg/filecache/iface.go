@@ -1,0 +1,36 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package filecache provides a generic local file cache with MD5-based deduplication,
+// atomic writes, startup restore, and background GC.
+package filecache
+
+import (
+	"io"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+)
+
+// IFileCache is the interface for local file caching with MD5-based deduplication.
+type IFileCache interface {
+	// GetOrFetch returns a cached file matching filename and expectedMD5.
+	// If the cache does not have a matching entry, fetchFn is called to download the file.
+	// The downloaded file is written to an isolated MD5-named subdirectory so in-use references
+	// to older versions remain valid. Filename is sanitized with filepath.Base before use.
+	GetOrFetch(nCtx contextx.IContext, filename string, expectedMD5 string,
+		fetchFn func(nCtx contextx.IContext) (io.ReadCloser, error)) (fileiface.File, string, error)
+
+	// FileExists reports whether a file with the given filename and MD5 is present in the cache.
+	FileExists(filename string, expectedMD5 string) bool
+
+	// Close stops the background GC goroutine and releases resources.
+	Close() error
+}

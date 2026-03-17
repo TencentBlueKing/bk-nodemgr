@@ -33,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -371,13 +372,22 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to init temp file group: %w", err)
 	}
+
 	installerFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "installer"))
 	if err != nil {
 		return fmt.Errorf("failed to init installer file group: %w", err)
 	}
-	cacheFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "cache"))
+
+	// filecache.New creates the cache directory if it does not exist.
+	cacheDir := filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "cache")
+
+	fc, err := filecache.New(nCtx, cacheDir, filecache.Options{
+		ExpirationTime: time.Duration(svc.conf.FileCache.ExpirationHours) * time.Hour,
+		GCInterval:     time.Duration(svc.conf.FileCache.GCIntervalHours) * time.Hour,
+		RestoreOnStart: svc.conf.FileCache.RestoreOnStart,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to init cache file group: %w", err)
+		return fmt.Errorf("failed to init file cache: %w", err)
 	}
 
 	svc.Cap.Manager = manager.New(
@@ -394,7 +404,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
 		manager.WithTempFileGroup(tempFG),
 		manager.WithInstallerFileGroup(installerFG),
-		manager.WithCacheFileGroup(cacheFG),
+		manager.WithFileCache(fc),
 		manager.WithStorageUpload(svc.Cap.StorageUpload),
 		manager.WithStorageRelease(svc.Cap.StorageRelease),
 		manager.WithStorageTopo(svc.Cap.StorageTopo),

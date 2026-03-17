@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
@@ -50,6 +51,9 @@ type Config struct {
 
 	// file group.
 	InstallerFileGroup fileiface.FileGroup
+
+	// FileCache is the local artifact file cache.
+	FileCache filecache.IFileCache
 
 	// workflow locker.
 	LockerFactory locker.MutexFactory

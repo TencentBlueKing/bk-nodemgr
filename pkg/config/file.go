@@ -60,6 +60,10 @@ const (
 
 	defaultFileWorkspaceGroupFullPath = "/bk-nodeman/file/"
 
+	defaultFileCacheExpirationHours = 72
+	defaultFileCacheGCIntervalHours = 1
+	defaultFileCacheRestoreOnStart  = false
+
 	defaultFileTracingExporterType = "stdout"
 
 	defaultFileGSETraceServiceName  = "file-client-gse"
@@ -135,6 +139,11 @@ func NewFileService() *FileService {
 		WorkspaceFileGroup: FileGroup{
 			FullPath: defaultFileWorkspaceGroupFullPath,
 		},
+		FileCache: FileServiceFileCache{
+			ExpirationHours: defaultFileCacheExpirationHours,
+			GCIntervalHours: defaultFileCacheGCIntervalHours,
+			RestoreOnStart:  defaultFileCacheRestoreOnStart,
+		},
 		Log: Log{
 			Dir:       defaultFileLogDir,
 			MaxSizeMB: defaultFileLogMaxSizeMB,
@@ -153,22 +162,39 @@ func NewFileService() *FileService {
 	}
 }
 
+// FileServiceFileCache configures the local file cache used by the file service.
+// The cache directory is derived from WorkspaceFileGroup.FullPath and is not separately configurable.
+type FileServiceFileCache struct {
+	// ExpirationHours is the number of hours after which an unused cache entry is evicted by GC.
+	// Defaults to 72 hours.
+	ExpirationHours int `yaml:"expirationHours" usage:"number of hours an unused cache entry is retained"`
+
+	// GCIntervalHours is the number of hours between garbage collection runs.
+	// Defaults to 1 hour.
+	GCIntervalHours int `yaml:"gcIntervalHours" usage:"number of hours between garbage collection runs"`
+
+	// RestoreOnStart controls whether existing cache entries on disk are loaded into
+	// the in-memory index at startup. Defaults to false (cache starts empty).
+	RestoreOnStart bool `yaml:"restoreOnStart" usage:"restore cache entries from disk on startup"`
+}
+
 // FileService the config of file service.
 type FileService struct {
-	RunMode            RunMode     `yaml:"runMode" usage:"run mode of service"`
-	TenantMode         tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
-	Etcd               Etcd        `yaml:"etcd" usage:"etcd config of file service"`
-	GSE                GSE         `yaml:"gse" usage:"gse config of file service"`
-	InfoServer         HTTPServer  `yaml:"infoServer" usage:"info server config of file service"`
-	AdminServer        HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
-	BasicServer        HTTPServer  `yaml:"basicServer" usage:"basic server config of file service"`
-	DownloadServer     HTTPServer  `yaml:"downloadServer" usage:"download server config of file service"`
-	WorkspaceFileGroup FileGroup   `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
-	MountHostDir       string      `yaml:"mountHostDir" usage:"mount host dir of file service"`
-	Repo               Repo        `yaml:"repo" usage:"repo config of file service"`
-	MongoDB            MongoDB     `yaml:"mongodb" usage:"mongodb config of file service"`
-	Log                Log         `yaml:"log" usage:"log config of file service"`
-	Tracing            Tracing     `yaml:"tracing" usage:"tracing config of file service"`
+	RunMode            RunMode              `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode          `yaml:"tenantMode" usage:"tenant mode of service"`
+	Etcd               Etcd                 `yaml:"etcd" usage:"etcd config of file service"`
+	GSE                GSE                  `yaml:"gse" usage:"gse config of file service"`
+	InfoServer         HTTPServer           `yaml:"infoServer" usage:"info server config of file service"`
+	AdminServer        HTTPServer           `yaml:"adminServer" usage:"admin server config of file service"`
+	BasicServer        HTTPServer           `yaml:"basicServer" usage:"basic server config of file service"`
+	DownloadServer     HTTPServer           `yaml:"downloadServer" usage:"download server config of file service"`
+	WorkspaceFileGroup FileGroup            `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
+	FileCache          FileServiceFileCache `yaml:"fileCache" usage:"local file cache config of file service"`
+	MountHostDir       string               `yaml:"mountHostDir" usage:"mount host dir of file service"`
+	Repo               Repo                 `yaml:"repo" usage:"repo config of file service"`
+	MongoDB            MongoDB              `yaml:"mongodb" usage:"mongodb config of file service"`
+	Log                Log                  `yaml:"log" usage:"log config of file service"`
+	Tracing            Tracing              `yaml:"tracing" usage:"tracing config of file service"`
 }
 
 // LoadFromFile loads config from file.

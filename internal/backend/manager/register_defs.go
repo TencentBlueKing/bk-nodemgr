@@ -63,6 +63,7 @@ func (mgr *Manager) registerDefNode() error {
 		HostPasswordVault:   mgr.conf.HostPasswordVault,
 		Cache:               mgr.conf.Cache,
 		InstallerFileGroup:  mgr.conf.InstallerFileGroup,
+		FileCache:           mgr.conf.FileCache,
 		ProxyMessager:       mgr.conf.ProxyMessager,
 		PluginIface:         mgr,
 	}

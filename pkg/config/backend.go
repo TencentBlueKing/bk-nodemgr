@@ -90,6 +90,11 @@ const (
 
 	defaultAccessVirtualUser = "bk-nodemgr"
 
+	defaultBackendFileCacheDir             = "/bk-nodemgr/filecache"
+	defaultBackendFileCacheExpirationHours = 72
+	defaultBackendFileCacheGCIntervalHours = 1
+	defaultBackendFileCacheRestoreOnStart  = false
+
 	defaultBackendFileTraceServiceName        = "backend-client-file"
 	defaultBackendCMDBTraceServiceName        = "backend-client-cmdb"
 	defaultBackendGSETraceServiceName         = "backend-client-gse"
@@ -121,9 +126,29 @@ type BackendService struct {
 	EncryptKey         string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
 	GSEDeployConfs     []GSEDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
 	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	FileCache          BackendFileCache `yaml:"fileCache" usage:"local file cache config of backend service"`
 	CreditVault        CreditVault     `yaml:"creditVault" usage:"credit vault config of backend service"`
 	Access             Access          `yaml:"access" usage:"access config of backend service"`
 	Tracing            Tracing         `yaml:"tracing" usage:"tracing config of backend service"`
+}
+
+// BackendFileCache configures the local artifact file cache used by backend SSH install flows.
+type BackendFileCache struct {
+	// Dir is the absolute path for the local file cache directory.
+	// Defaults to /bk-nodemgr/filecache when empty.
+	Dir string `yaml:"dir" usage:"absolute path for the local file cache directory"`
+
+	// ExpirationHours is the number of hours after which an unused cache entry is evicted by GC.
+	// Defaults to 72 hours.
+	ExpirationHours int `yaml:"expirationHours" usage:"number of hours an unused cache entry is retained"`
+
+	// GCIntervalHours is the number of hours between garbage collection runs.
+	// Defaults to 1 hour.
+	GCIntervalHours int `yaml:"gcIntervalHours" usage:"number of hours between garbage collection runs"`
+
+	// RestoreOnStart controls whether existing cache entries on disk are loaded into
+	// the in-memory index at startup. Defaults to false (cache starts empty).
+	RestoreOnStart bool `yaml:"restoreOnStart" usage:"restore cache entries from disk on startup"`
 }
 
 // IAMV3 the config of IAM v3 gateway config.
@@ -279,6 +304,12 @@ func NewBackendService() *BackendService {
 		},
 		InstallerFileGroup: FileGroup{
 			FullPath: defaultInstallerFileGroup,
+		},
+		FileCache: BackendFileCache{
+			Dir:             defaultBackendFileCacheDir,
+			ExpirationHours: defaultBackendFileCacheExpirationHours,
+			GCIntervalHours: defaultBackendFileCacheGCIntervalHours,
+			RestoreOnStart:  defaultBackendFileCacheRestoreOnStart,
 		},
 		CreditVault: CreditVault{
 			HostCreditVault: HostCreditVault{

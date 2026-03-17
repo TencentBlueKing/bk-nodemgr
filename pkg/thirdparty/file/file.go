@@ -1031,3 +1031,227 @@ func (c *cli) publishReleasePluginBinTool(nCtx contextx.IContext, tenantID strin
 
 	return resp.GetData(), nil
 }
+
+func (c *cli) infoReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/agent").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get release agent info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get release agent info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) infoReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/proxy").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get release proxy info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get release proxy info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) infoReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/plugin").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get release plugin info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get release plugin info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) infoReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadCertReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/cert").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get release cert info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get release cert info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) infoReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadBinToolReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/bintool").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get release bintool info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get release bintool info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) infoReleasePluginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginBinToolReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/plugin_bintool").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get release plugin bintool info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get release plugin bintool info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) infoInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadInstallerReq) (
+	*protoFile.FileInfoResp_Data, error) {
+
+	resp := new(protoFile.FileInfoResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.client.Post().
+		SubResourcef("/info/installer").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp); err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get installer info. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to get installer info, empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}

@@ -1,0 +1,424 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "info.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Info"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/info/agent": {
+      "post": {
+        "summary": "InfoAgent returns file info for the agent package.",
+        "operationId": "Info_InfoAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadAgentReq is the request for download agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    },
+    "/api/v3/info/bintool": {
+      "post": {
+        "summary": "InfoBinTool returns file info for the bintool package.",
+        "operationId": "Info_InfoBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadBinToolReq is the request for download bintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    },
+    "/api/v3/info/cert": {
+      "post": {
+        "summary": "InfoCert returns file info for the cert package.",
+        "operationId": "Info_InfoCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadCertReq is the request for download cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadCertReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    },
+    "/api/v3/info/installer": {
+      "post": {
+        "summary": "InfoInstaller returns file info for the installer.",
+        "operationId": "Info_InfoInstaller",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadInstallerReq is the request for download installer.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadInstallerReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    },
+    "/api/v3/info/plugin": {
+      "post": {
+        "summary": "InfoPlugin returns file info for the plugin package.",
+        "operationId": "Info_InfoPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadPluginReq is the request for download plugin.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    },
+    "/api/v3/info/plugin_bintool": {
+      "post": {
+        "summary": "InfoPluginBinTool returns file info for the plugin bintool package.",
+        "operationId": "Info_InfoPluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadPluginBinToolReq is the request for download plugin bintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadPluginBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    },
+    "/api/v3/info/proxy": {
+      "post": {
+        "summary": "InfoProxy returns file info for the proxy package.",
+        "operationId": "Info_InfoProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileInfoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadProxyReq is the request for download proxy pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Info"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "FileInfoRespData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        }
+      },
+      "description": "Data holds the file metadata."
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3DownloadAgentReq": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadAgentReq is the request for download agent pkg."
+    },
+    "v3DownloadBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "DownloadBinToolReq is the request for download bintool pkg."
+    },
+    "v3DownloadCertReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "DownloadCertReq is the request for download cert pkg."
+    },
+    "v3DownloadInstallerReq": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadInstallerReq is the request for download installer."
+    },
+    "v3DownloadPluginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadPluginBinToolReq is the request for download plugin bintool pkg."
+    },
+    "v3DownloadPluginReq": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadPluginReq is the request for download plugin."
+    },
+    "v3DownloadProxyReq": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadProxyReq is the request for download proxy pkg."
+    },
+    "v3FileInfoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/FileInfoRespData"
+        }
+      },
+      "description": "FileInfoResp is the shared response for all info endpoints."
+    }
+  }
+}

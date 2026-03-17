@@ -928,6 +928,18 @@ backend:
     installerFileGroup:
       fullPath: /bk-nodemgr/file/tools
 
+    ## defines the local file cache used by backend SSH install flows.
+    fileCache:
+      # dir is the absolute path for the local file cache directory.
+      dir: /bk-nodemgr/filecache
+      # expirationHours is the number of hours after which an unused cache entry is evicted by GC.
+      expirationHours: 72
+      # gcIntervalHours is the number of hours between garbage collection runs.
+      gcIntervalHours: 1
+      # restoreOnStart controls whether existing cache entries on disk are loaded into
+      # the in-memory index at startup. Defaults to false (cache starts empty).
+      restoreOnStart: false
+
     ## encryptKey: define the key used to encrypt the sensitive data.
     encryptKey: "1234567890abcdef"
 
@@ -1407,6 +1419,17 @@ file:
 
     workspaceFileGroup:
       fullPath: "/bk-nodemgr/workspace/"
+
+    ## defines the local file cache used by the file service.
+    ## The cache directory is derived from workspaceFileGroup.fullPath and is not separately configurable.
+    fileCache:
+      # expirationHours is the number of hours after which an unused cache entry is evicted by GC.
+      expirationHours: 72
+      # gcIntervalHours is the number of hours between garbage collection runs.
+      gcIntervalHours: 1
+      # restoreOnStart controls whether existing cache entries on disk are loaded into
+      # the in-memory index at startup. Defaults to false (cache starts empty).
+      restoreOnStart: false
 
     mountHostDir: "/data/bk-nodemgr-file-mount/"
 

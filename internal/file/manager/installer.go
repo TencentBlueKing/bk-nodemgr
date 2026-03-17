@@ -24,6 +24,10 @@ type IInstaller interface {
 }
 
 // GetInstaller get installer.
+// The installer binary is a locally pre-built artifact that is present on disk at startup
+// (via installerFileGroup, which maps to a local directory path). It does not pass through
+// the filecache because it is already stored locally and does not require remote fetching
+// or MD5-based deduplication.
 func (m *Manager) GetInstaller(nCtx contextx.IContext, osType criteria.OSType, cpuArch criteria.CPUArch) (fileiface.File, error) {
 	toolName, err := tool.FormatInstallerName(osType, cpuArch)
 	if err != nil {

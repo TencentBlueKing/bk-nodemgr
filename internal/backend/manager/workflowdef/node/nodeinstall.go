@@ -22,6 +22,7 @@ import (
 	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
@@ -57,6 +58,9 @@ type Capability struct {
 
 	// file group.
 	InstallerFileGroup fileiface.FileGroup
+
+	// FileCache is the local artifact file cache.
+	FileCache filecache.IFileCache
 
 	// relay handler.
 	ProxyMessager relayhandler.IServerMessager
