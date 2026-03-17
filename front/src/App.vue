@@ -566,8 +566,10 @@ onMounted(async () => {
       mainStore.updateWindowInnerHeight(window.innerHeight);
     }, 300),
   );
-  // 初始化收藏管控区域
-  localStorage.setItem('collect_workarea', JSON.stringify([0]));
+  // 初始化收藏管控区域（仅首次使用时设置默认值，避免刷新后覆盖用户的收藏）
+  if (!localStorage.getItem('collect_workarea')) {
+    localStorage.setItem('collect_workarea', JSON.stringify([0]));
+  }
 });
 </script>
 <style lang="postcss" scoped>

@@ -156,6 +156,7 @@ import AccessPointNode from './graph-plugin/access-point-node';
 import { NodeStatus, NodeType, UnitType } from './graph-plugin/config';
 import CustomToolbar from './graph-plugin/custom-toolbar.vue';
 import { textTooltip } from './graph-plugin/text-tooltip';
+import { edgeTooltip } from './graph-plugin/edge-tooltip';
 
 import HorizontalHierarchyLayout from './graph-plugin/HorizontalHierarchyLayout';
 import CustomEdge from './graph-plugin/customEdge';
@@ -385,14 +386,48 @@ function handleClickTool(code: string, value?: number) {
   }
 }
 
-function handleHoverEdge(evt: Event) {
-  const { target } = evt;
+function handleHoverEdge(evt: any) {
+  const { target, client } = evt;
   graph.setElementState(target?.id, 'highlight');
+
+  // hover 边时使用手型光标
+  const canvas = graph.getCanvas()?.getContextService?.()?.getDomElement?.();
+  if (canvas) canvas.style.cursor = 'pointer';
+
+  // 获取边数据，构建 tooltip 内容
+  if (target?.id && graph) {
+    const edgeData = graph.getEdgeData(target.id);
+    const linkTypes = (edgeData?.data as any)?.linkTypes as string[] | undefined;
+    const unitName = (edgeData?.data as any)?.unitName;
+    const apName = (edgeData?.data as any)?.apName;
+    const apUnitName = (edgeData?.data as any)?.apUnitName;
+
+    if (linkTypes && linkTypes.length > 0 && linkTypes[0] !== 'downstream') {
+      // Unit→AP 的上游边
+      edgeTooltip.show({
+        linkTypes,
+        sourceName: unitName,
+        targetName: `${apUnitName}/${apName}`,
+      }, client?.x ?? 0, client?.y ?? 0);
+    } else if (linkTypes && linkTypes[0] === 'downstream') {
+      // AP→Unit 的下游边
+      edgeTooltip.show({
+        linkTypes,
+        sourceName: `${apUnitName}/${apName}`,
+        targetName: unitName,
+      }, client?.x ?? 0, client?.y ?? 0);
+    }
+  }
 }
 
-function handleLeaveEdge(evt: Event) {
+function handleLeaveEdge(evt: any) {
   const { target } = evt;
   graph.setElementState(target?.id, '');
+  edgeTooltip.hide();
+
+  // 恢复默认光标
+  const canvas = graph.getCanvas()?.getContextService?.()?.getDomElement?.();
+  if (canvas) canvas.style.cursor = 'default';
 }
 
 // ------------------ 菜单状态与辅助函数 ------------------
@@ -744,7 +779,12 @@ function handleNodeClick(evt: any) {
 }
 // 连接关系生成函数
 const generateEdgesFromUnitData = () => {
-  const edges = [];
+  const edges: Array<{
+    id: string;
+    target: string;
+    source: string;
+    data?: Record<string, any>;
+  }> = [];
 
   // 构建接入点映射
   const accessPointMap = new Map();
@@ -752,18 +792,90 @@ const generateEdgesFromUnitData = () => {
     accessPointMap.set(ap.bk_accesspoint_id, ap);
   });
 
+  // 构建单元名映射（unitId -> unitName），用于查询接入点所属单元的名字
+  const unitNameMap = new Map<number, string>();
+  topoStore.workUnitByArea.forEach((u) => {
+    unitNameMap.set(u.bk_networkunit_id, u.bk_networkunit_name);
+  });
+
   topoStore.workUnitByArea.forEach((unit) => {
     const unitId = `workUnit-${unit.bk_networkunit_id}`;
 
     if (!unit.is_direct) {
       // 非直连单元：连接到上游接入点
-      if (unit.links?.cluster?.accesspoint_id !== null) {
-        const apId = `accessPoint-${unit.links.cluster.accesspoint_id}`;
-        edges.push({
-          id: `edge-${apId}-${unitId}`,
-          target: apId,
-          source: unitId,
+      // 检查 cluster/file/data 三个 link 的 accesspoint_id 是否完全一样
+      const clusterApId = unit.links?.cluster?.accesspoint_id;
+      const fileApId = unit.links?.file?.accesspoint_id;
+      const dataApId = unit.links?.data?.accesspoint_id;
+
+      if (clusterApId != null || fileApId != null || dataApId != null) {
+        // 收集所有不同的 accesspoint_id 及其对应的 link 类型
+        const apTypeMap = new Map<number, string[]>(); // apId -> [linkTypes]
+        const linkEntries: Array<[string, number | undefined | null]> = [
+          ['cluster', clusterApId],
+          ['file', fileApId],
+          ['data', dataApId],
+        ];
+        linkEntries.forEach(([type, apId]) => {
+          if (apId != null) {
+            if (!apTypeMap.has(apId)) {
+              apTypeMap.set(apId, []);
+            }
+            apTypeMap.get(apId)!.push(type);
+          }
         });
+
+        if (apTypeMap.size === 1) {
+          // 所有 link 指向同一个接入点 → 生成1条边
+          const [apIdNum, types] = [...apTypeMap.entries()][0];
+          const apId = `accessPoint-${apIdNum}`;
+          const apInfo = accessPointMap.get(apIdNum);
+          const apUnitName = apInfo?.bk_networkunit_id != null
+            ? unitNameMap.get(apInfo.bk_networkunit_id) || ''
+            : '';
+          edges.push({
+            id: `edge-${apId}-${unitId}`,
+            target: apId,
+            source: unitId,
+            data: {
+              linkTypes: types, // e.g. ['cluster', 'file', 'data']
+              unitName: unit.bk_networkunit_name,
+              unitNum: unit.bk_networkunit_id,
+              apName: apInfo?.name || `ap_${apIdNum}`,
+              apUnitName,
+              apNum: apIdNum,
+              subIndex: 0,
+              totalSubEdges: 1,
+            },
+          });
+        } else {
+          // 不同的 link 指向不同接入点 → 生成多条边
+          let subIndex = 0;
+          const totalSubEdges = apTypeMap.size;
+          apTypeMap.forEach((types, apIdNum) => {
+            const apId = `accessPoint-${apIdNum}`;
+            const apInfo = accessPointMap.get(apIdNum);
+            const apUnitName = apInfo?.bk_networkunit_id != null
+              ? unitNameMap.get(apInfo.bk_networkunit_id) || ''
+              : '';
+            edges.push({
+              id: `edge-${apId}-${unitId}-${types.join('_')}`,
+              target: apId,
+              source: unitId,
+              data: {
+                linkTypes: types, // e.g. ['cluster'] or ['file', 'data']
+                unitName: unit.bk_networkunit_name,
+                unitNum: unit.bk_networkunit_id,
+                apName: apInfo?.name || `ap_${apIdNum}`,
+                apUnitName,
+                apNum: apIdNum,
+                subIndex,
+                totalSubEdges,
+              },
+            });
+            subIndex++;
+          });
+        }
       }
     }
 
@@ -771,10 +883,21 @@ const generateEdgesFromUnitData = () => {
     if (unit.accesspoints && unit.accesspoints.length > 0) {
       unit.accesspoints.forEach((apInfo) => {
         const apId = `accessPoint-${apInfo.accesspoint_id}`;
+        const ap = accessPointMap.get(apInfo.accesspoint_id);
         edges.push({
           id: `edge-${unitId}-${apId}`,
           target: unitId,
           source: apId,
+          data: {
+            linkTypes: ['downstream'], // AP→Unit 下游连接
+            unitName: unit.bk_networkunit_name,
+            unitNum: unit.bk_networkunit_id,
+            apName: ap?.name || `ap_${apInfo.accesspoint_id}`,
+            apUnitName: unit.bk_networkunit_name, // AP所属单元就是当前单元
+            apNum: apInfo.accesspoint_id,
+            subIndex: 0,
+            totalSubEdges: 1,
+          },
         });
       });
     }
