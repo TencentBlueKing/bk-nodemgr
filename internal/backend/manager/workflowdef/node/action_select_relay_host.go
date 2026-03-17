@@ -160,21 +160,17 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 
 	dedicatedHosts := make([]*types.Host, 0, num)
 	for _, host := range hosts {
-		for _, tag := range host.Dynamic.ProxyTags {
-			if tag == types.ProxyTagDedicatedInstaller {
-				if err := act.validateRelayHost(host); err != nil {
-					std.InstanceData().Log().
-						Zh("专用安装主机缺少 relay 配置信息，已忽略。host-id(%d): %v", host.HostID, err).
-						En("dedicated installer host missing relay config and skipped. host-id(%d): %v", host.HostID, err).
-						Warn()
+		if host.Dynamic.ProxySupportInstaller() {
+			if err := act.validateRelayHost(host); err != nil {
+				std.InstanceData().Log().
+					Zh("专用安装主机缺少 relay 配置信息，已忽略。host-id(%d): %v", host.HostID, err).
+					En("dedicated installer host missing relay config and skipped. host-id(%d): %v", host.HostID, err).
+					Warn()
 
-					break
-				}
-
-				dedicatedHosts = append(dedicatedHosts, host)
-
-				break
+				continue
 			}
+
+			dedicatedHosts = append(dedicatedHosts, host)
 		}
 	}
 
