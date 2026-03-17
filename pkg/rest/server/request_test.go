@@ -25,17 +25,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 )
 
-// fakePermProvider implements server.PermissionError for testing.
+// fakePermProvider implements resterrf.PermissionError for testing.
 type fakePermProvider struct {
 	system     string
 	systemName string
 	applyURL   string
-	actions    []server.Action
+	actions    []resterrf.Action
 }
 
 func (f fakePermProvider) Error() string { return "permission denied" }
-func (f fakePermProvider) PermissionData() server.Permission {
-	return server.Permission{
+func (f fakePermProvider) PermissionData() resterrf.Permission {
+	return resterrf.Permission{
 		System:     f.system,
 		SystemName: f.systemName,
 		ApplyURL:   f.applyURL,
@@ -45,7 +45,7 @@ func (f fakePermProvider) PermissionData() server.Permission {
 
 // Ensure fakePermProvider satisfies both error and PermissionError.
 var _ error = fakePermProvider{}
-var _ server.PermissionError = fakePermProvider{}
+var _ resterrf.PermissionError = fakePermProvider{}
 
 func newTestRequest(t *testing.T) (*server.Request, *httptest.ResponseRecorder) {
 	t.Helper()
@@ -64,11 +64,11 @@ func TestAbortWithJSONPermDenied_WithPermissionProvider(t *testing.T) {
 		system:     "bk_nodeman",
 		systemName: "节点管理",
 		applyURL:   "https://iam.example.com/apply",
-		actions: []server.Action{
+		actions: []resterrf.Action{
 			{
 				ID:   "agent_operate",
 				Name: "Agent 操作",
-				RelatedResourceTypes: []server.RelatedResourceType{
+				RelatedResourceTypes: []resterrf.RelatedResourceType{
 					{SystemID: "bk_cmdb", Type: "biz", TypeName: "业务"},
 				},
 			},
@@ -135,8 +135,8 @@ func TestAbortWithJSONPermDenied_WithoutPermissionProvider(t *testing.T) {
 func TestAbortWithJSONPermDenied_TakesFirstProvider(t *testing.T) {
 	req, w := newTestRequest(t)
 
-	first := fakePermProvider{system: "bk_nodeman", systemName: "节点管理", applyURL: "https://first.example.com/apply", actions: []server.Action{{ID: "first_action"}}}
-	second := fakePermProvider{system: "bk_other", systemName: "其他系统", applyURL: "https://second.example.com/apply", actions: []server.Action{{ID: "second_action"}}}
+	first := fakePermProvider{system: "bk_nodeman", systemName: "节点管理", applyURL: "https://first.example.com/apply", actions: []resterrf.Action{{ID: "first_action"}}}
+	second := fakePermProvider{system: "bk_other", systemName: "其他系统", applyURL: "https://second.example.com/apply", actions: []resterrf.Action{{ID: "second_action"}}}
 
 	req.AbortWithJSONPermDenied(resterrf.PermissionDenied, []error{first, second})
 
@@ -182,7 +182,7 @@ func TestAbortWithJSONPermDenied_WrappedErrorChain(t *testing.T) {
 		system:     "bk_nodeman",
 		systemName: "节点管理",
 		applyURL:   "https://iam.example.com/apply",
-		actions:    []server.Action{{ID: "wrapped_action", Name: "Wrapped Action"}},
+		actions:    []resterrf.Action{{ID: "wrapped_action", Name: "Wrapped Action"}},
 	}
 	wrapped := fmt.Errorf("outer context: %w", inner)
 
@@ -219,7 +219,7 @@ func TestAbortWithJSONPermDenied_EmptySystemRetainsDefaults(t *testing.T) {
 		system:     "",
 		systemName: "",
 		applyURL:   "https://iam.example.com/apply",
-		actions:    []server.Action{{ID: "some_action"}},
+		actions:    []resterrf.Action{{ID: "some_action"}},
 	}
 
 	req.AbortWithJSONPermDenied(resterrf.PermissionDenied, []error{provider})
@@ -247,5 +247,44 @@ func TestAbortWithJSONPermDenied_EmptySystemRetainsDefaults(t *testing.T) {
 	}
 	if len(resp.Permission.Actions) != 1 || resp.Permission.Actions[0].ID != "some_action" {
 		t.Errorf("expected provider's actions, got %+v", resp.Permission.Actions)
+	}
+}
+
+func TestHandler_ThirdpartyWrappedPermissionErrorRoutesToPermDenied(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(func(c *gin.Context) {
+		c.Set("rest_request", server.NewRequest(c))
+		c.Next()
+	})
+	engine.GET("/permission", server.Handler(func(rCtx server.IContext) (interface{}, error) {
+		provider := fakePermProvider{
+			system:     "bk_nodeman",
+			systemName: "节点管理",
+			applyURL:   "https://iam.example.com/apply",
+			actions:    []resterrf.Action{{ID: "agent_operate"}},
+		}
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, provider)
+	}))
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/permission", nil)
+	engine.ServeHTTP(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Fatalf("expected status 403, got %d", w.Code)
+	}
+
+	var resp server.Response
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if resp.Permission == nil {
+		t.Fatal("expected permission field in response, got nil")
+	}
+	if resp.Permission.ApplyURL != "https://iam.example.com/apply" {
+		t.Errorf("expected apply_url %q, got %q", "https://iam.example.com/apply", resp.Permission.ApplyURL)
 	}
 }

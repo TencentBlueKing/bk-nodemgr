@@ -13,55 +13,67 @@ package errf
 
 import (
 	"errors"
+	"sync"
 )
 
-var instance = struct {
+type errMapping struct {
+	once sync.Once
+
 	codeErrMap map[Code]error
 	errCodeMap map[error]Code
-}{}
+}
 
-func init() {
-	errorMaps := map[Code]error{
-		// retain status code.
-		Unknown:          errors.New("unknown error"),
-		PermissionDenied: errors.New("permission denied"),
-		MaxErrCode:       errors.New("max err code"),
+// nolint: gochecknoglobals
+var errMaps errMapping
 
-		// custom status code.
-		InvalidParameter:        errors.New("invalid parameter"),
-		TooManyRequest:          errors.New("too many request"),
-		RecordNotFound:          errors.New("record not found"),
-		DecodeRequestFailed:     errors.New("decode request failed"),
-		UnHealthy:               errors.New("unhealthy"),
-		Aborted:                 errors.New("aborted"),
-		Unauthorized:            errors.New("unauthorized"),
-		PartialFailed:           errors.New("partial failed"),
-		DBExecCmdFailed:         errors.New("db exec cmd failed"),
-		InvalidCache:            errors.New("invalid cache"),
-		InvalidFileResource:     errors.New("invalid file resource"),
-		ThirdpartyRequestFailed: errors.New("thirdparty request failed"),
-		BackendOperateFailed:    errors.New("backend operate failed"),
-		ResourceScanTooLarge:    errors.New("resource scan too large"),
-		InvalidKeyword:          errors.New("invalid keyword"),
-	}
+// nolint: varnamelen
+func (m *errMapping) ensureInit() {
+	m.once.Do(func() {
+		errorMaps := map[Code]error{
+			// retain status code.
+			Unknown:          errors.New("unknown error"),
+			PermissionDenied: errors.New("permission denied"),
+			MaxErrCode:       errors.New("max err code"),
 
-	instance.codeErrMap = make(map[Code]error)
-	instance.errCodeMap = make(map[error]Code)
+			// custom status code.
+			InvalidParameter:        errors.New("invalid parameter"),
+			TooManyRequest:          errors.New("too many request"),
+			RecordNotFound:          errors.New("record not found"),
+			DecodeRequestFailed:     errors.New("decode request failed"),
+			UnHealthy:               errors.New("unhealthy"),
+			Aborted:                 errors.New("aborted"),
+			Unauthorized:            errors.New("unauthorized"),
+			PartialFailed:           errors.New("partial failed"),
+			DBExecCmdFailed:         errors.New("db exec cmd failed"),
+			InvalidCache:            errors.New("invalid cache"),
+			InvalidFileResource:     errors.New("invalid file resource"),
+			ThirdpartyRequestFailed: errors.New("thirdparty request failed"),
+			BackendOperateFailed:    errors.New("backend operate failed"),
+			ResourceScanTooLarge:    errors.New("resource scan too large"),
+			InvalidKeyword:          errors.New("invalid keyword"),
+		}
 
-	for code, err := range errorMaps {
-		instance.codeErrMap[code] = err
-		instance.errCodeMap[err] = code
-	}
+		m.codeErrMap = make(map[Code]error, len(errorMaps))
+		m.errCodeMap = make(map[error]Code, len(errorMaps))
+
+		for code, err := range errorMaps {
+			m.codeErrMap[code] = err
+			m.errCodeMap[err] = code
+		}
+	})
 }
 
 // CodeErrMap ...
 func CodeErrMap(code Code) error {
-	return instance.codeErrMap[code]
+	errMaps.ensureInit()
+
+	return errMaps.codeErrMap[code]
 }
 
 // ErrCodeMap ...
 func ErrCodeMap(err error) Code {
-	code, ok := instance.errCodeMap[err]
+	errMaps.ensureInit()
+	code, ok := errMaps.errCodeMap[err]
 	if !ok {
 		return Unknown
 	}
@@ -87,15 +99,26 @@ func ErrUnwrap(err error) (Code, []error) {
 		return OK, nil
 	}
 
-	u, ok := err.(interface {
+	unwrapper, ok := err.(interface {
 		Unwrap() []error
 	})
 	if !ok {
 		return ErrCodeMap(err), nil
 	}
 
-	errs := u.Unwrap()
+	errs := unwrapper.Unwrap()
 	baseErr, unwrappedErr := errs[0], errs[1:]
 
-	return ErrCodeMap(baseErr), unwrappedErr
+	code := ErrCodeMap(baseErr)
+	if code != OK && code != PermissionDenied {
+		for _, unwrapped := range unwrappedErr {
+			var permErr PermissionError
+			if errors.As(unwrapped, &permErr) {
+				code = PermissionDenied
+				break
+			}
+		}
+	}
+
+	return code, unwrappedErr
 }

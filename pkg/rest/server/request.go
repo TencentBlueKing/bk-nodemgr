@@ -196,17 +196,21 @@ func (r *Request) AbortWithJSONError(code resterrf.Code, errs []error) {
 
 // AbortWithJSONPermDenied provides handler process permission denied response.
 func (r *Request) AbortWithJSONPermDenied(code resterrf.Code, unwrapErrs []error) {
-	perm := Permission{
+	perm := resterrf.Permission{
 		System:     system.Code,
 		SystemName: system.Name,
 	}
 
 	for _, e := range unwrapErrs {
-		var permErr PermissionError
+		var permErr resterrf.PermissionError
 		if errors.As(e, &permErr) {
 			data := permErr.PermissionData()
-			perm.System = data.System
-			perm.SystemName = data.SystemName
+			if data.System != "" {
+				perm.System = data.System
+			}
+			if data.SystemName != "" {
+				perm.SystemName = data.SystemName
+			}
 			perm.ApplyURL = data.ApplyURL
 			perm.Actions = data.Actions
 
