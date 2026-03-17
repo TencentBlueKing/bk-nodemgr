@@ -152,7 +152,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 
 	sshConf := &ssh.ClientConfig{
 		User: config.User,
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+		HostKeyCallback: func(_ string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
 		BannerCallback: func(message string) error {
@@ -202,7 +202,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 		MaxDelay:      3 * time.Second,
 		JitterPercent: 0.2,
 	})
-	err := backoff.Do(ctx, func(attempt int) error {
+	err := backoff.Do(ctx, func(_ int) error {
 		var dialErr error
 		client.sshClient, dialErr = ssh.Dial(string(config.Network), config.getAddr(), sshConf)
 		if dialErr != nil {
