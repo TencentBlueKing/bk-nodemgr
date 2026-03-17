@@ -21,9 +21,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -45,6 +47,7 @@ const (
 func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 	return &actionInstallNodeByWMI{
 		fileHandler:           capability.FileHandler,
+		fileCache:             capability.FileCache,
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
@@ -74,7 +77,8 @@ type InstallParamsWin struct {
 }
 
 type actionInstallNodeByWMI struct {
-	fileHandler           file.IHandler
+	fileHandler  file.IHandler
+	fileCache    filecache.IFileCache
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -225,27 +229,19 @@ func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStan
 }
 
 func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeActionStandarder, client *wmix.Client) (string, error) {
-	// select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return "", fmt.Errorf("failed to format installer tool name: %w", err)
 	}
 
-	toolFile, err := act.fileHandler.DownloadInstaller(
-		std.Context(), std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
+	content, err := act.openInstallerReader(std)
 	if err != nil {
-		return "", fmt.Errorf("failed to download installer from file service: %w", err)
+		return "", err
 	}
-	defer func() {
-		if closeErr := toolFile.Data.Close(); closeErr != nil {
-			std.InstanceData().Log().
-				Zh("关闭installer流失败: %v", closeErr).
-				En("failed to close installer stream: %v", closeErr).
-				Error()
-		}
-	}()
 
-	tmpInstallerFile, err := tmp.NewTempFileWithSpecialName(toolFile.Data, toolName)
+	// NewTempFileWithSpecialName reads from content and closes it internally;
+	// do not close content again to avoid a double-close.
+	tmpInstallerFile, err := tmp.NewTempFileWithSpecialName(content, toolName)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file for installer: %w", err)
 	}
@@ -263,6 +259,7 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 		return "", fmt.Errorf("failed to transfer installer tool to host, stdout(%s), stderr(%s): %w",
 			stdout, stderr, err)
 	}
+
 	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
 	std.InstanceData().Log().
 		Zh("已传输文件到主机，路径(%s)", installerPath).
@@ -270,6 +267,47 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 		Info()
 
 	return installerPath, nil
+}
+
+// openInstallerReader returns a reader for the installer binary, using the local
+// file cache when available to avoid redundant downloads across workflow retries.
+func (act *actionInstallNodeByWMI) openInstallerReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, error) {
+	osType := std.DeployInfo().Host.Dynamic.NodeOsType
+	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
+
+	if act.fileCache == nil {
+		toolFile, err := act.fileHandler.DownloadInstaller(std.Context(), osType, cpuArch)
+		if err != nil {
+			return nil, fmt.Errorf("failed to download installer from file service: %w", err)
+		}
+
+		return toolFile.Data, nil
+	}
+
+	fileInfo, err := act.fileHandler.InfoInstaller(std.Context(), osType, cpuArch)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get installer info from file service: %w", err)
+	}
+
+	cachedFile, _, err := act.fileCache.GetOrFetch(std.Context(), fileInfo.Name, fileInfo.MD5,
+		func(nCtx contextx.IContext) (io.ReadCloser, error) {
+			resp, dlErr := act.fileHandler.DownloadInstaller(nCtx, osType, cpuArch)
+			if dlErr != nil {
+				return nil, dlErr
+			}
+
+			return resp.Data, nil
+		})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get installer from file cache: %w", err)
+	}
+
+	reader, err := cachedFile.Content(std.Context())
+	if err != nil {
+		return nil, fmt.Errorf("failed to open cached installer content: %w", err)
+	}
+
+	return reader, nil
 }
 
 func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
