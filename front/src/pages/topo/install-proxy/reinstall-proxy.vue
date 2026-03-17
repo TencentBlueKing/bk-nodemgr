@@ -52,7 +52,7 @@
           v-if="isTargetShow"
           :label="t('installProxy.installSource')"
           property="proxy_install_origin"
-          label-width="90"
+          label-width="110"
           required
         >
           <Cascader
@@ -62,7 +62,67 @@
             trigger="click"
           ></Cascader>
         </Form.FormItem>
-        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="90" required v-if="isTargetShow">
+        <Form.FormItem
+          v-if="isTargetShow"
+          property="relay_callback_port"
+          label-width="110"
+          required
+        >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.relayCallbackPort') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.relayCallbackPortTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <Input class="w-[488px]" v-model="form.relay_callback_port" />
+        </Form.FormItem>
+        <Form.FormItem
+          v-if="isTargetShow"
+          property="relay_download_port"
+          label-width="110"
+          required
+        >
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('topoManager.installProxy.form.relayDownloadPort') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('installProxy.relayDownloadPortTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <Input class="w-[488px]" v-model="form.relay_download_port" />
+        </Form.FormItem>
+        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="110" required v-if="isTargetShow">
           <div class="w-[488px]">
             <Table :data="systemData" :border="true" :empty-text="t('installProxy.noAvailableVersion')">
               <TableColumn
@@ -131,11 +191,11 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Cascader, Form, InfoBox, Input, Loading, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Form, InfoBox, Input, Loading, Message, Popover, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -236,7 +296,9 @@ const form = reactive({
     cloneDeep(initData),
   ],
   target_version: [] as TargetVersion[],
-  proxy_install_origin: [],
+  proxy_install_origin: [] as string[],
+  relay_download_port: '',
+  relay_callback_port: '',
 });
 const isTargetShow = ref(false);
 const systemData = ref([
@@ -318,9 +380,8 @@ const checkUnitsHasProxy = async (unitIds: number[]) => {
   unitHasProxyMap.value = map;
 };
 
-// 根据单元是否有 proxy 设置安装源默认值
+// 根据单元是否有 proxy 设置安装源默认值（不展开高级选项）
 const setDefaultInstallOrigin = () => {
-  // 取第一条数据的单元来决定默认值（批量重装时以第一条为准显示）
   const firstUnitId = Number(form.info[0]?.bk_networkunit_id);
   if (!firstUnitId) return;
   const hasProxy = unitHasProxyMap.value.get(firstUnitId) ?? false;
@@ -401,16 +462,16 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     onCancel: () => reject(),
   });
 });
-const formRef = ref(null);
-const installTableRef = ref(null);
+const formRef = ref<InstanceType<typeof Form>>();
+const installTableRef = ref<{ tableValidate: () => Promise<boolean>; showSetting: () => void }>();
 const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
 const setInputRef = (
   os: string,
-  el: InstanceType<typeof Validate> | null,
+  el: any,
 ) => {
   if (el) {
     const key = os;
-    inputRefs.value.set(key, el);
+    inputRefs.value.set(key, el as InstanceType<typeof Validate>);
   }
 };
 const systemValidate = async () => {
@@ -425,18 +486,59 @@ const systemValidate = async () => {
 const isShowPreview = ref(false);
 const previewData = ref<any>({});
 const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
-const handleConfirm = async () => {
-  const result = await Promise.all([
-    formRef.value?.validate().catch(() => false),
-    installTableRef.value?.tableValidate(),
-    isTargetShow.value ? systemValidate() : true,
-  ]);
-  // 合并多重Promise
-  if (Array.isArray(result[2])) {
-    result[2] = result[2].every(item => item);
+
+// Fill relay port defaults from proxy list (do not expand; expand only on install when invalid)
+const setRelayPortDefaults = () => {
+  const ports = form.info
+    .map((row: any) => {
+      const dlRaw = row.relay_download_port ?? row.relayDownloadPort;
+      const cbRaw = row.relay_callback_port ?? row.relayCallbackPort;
+      const dl = dlRaw != null && dlRaw !== '' ? Number(dlRaw) : null;
+      const cb = cbRaw != null && cbRaw !== '' ? Number(cbRaw) : null;
+      if (dl != null && cb != null && !Number.isNaN(dl) && !Number.isNaN(cb)) return `${dl}-${cb}`;
+      return null;
+    })
+    .filter(Boolean);
+  const unique = [...new Set(ports)];
+  if (unique.length === 1 && unique[0]) {
+    const [dl, cb] = unique[0].split('-').map(Number);
+    form.relay_download_port = String(dl);
+    form.relay_callback_port = String(cb);
+  } else {
+    form.relay_download_port = '';
+    form.relay_callback_port = '';
   }
-  if (result.every(item => item)) {
-    const modeMap = {
+};
+
+const handleConfirm = async () => {
+  setRelayPortDefaults();
+  const relayDownload = Number(form.relay_download_port);
+  const relayCallback = Number(form.relay_callback_port);
+  if (!relayDownload || !relayCallback || relayDownload <= 0 || relayCallback <= 0) {
+    isTargetShow.value = true;
+    Message({
+      theme: 'error',
+      message: t('installProxy.relayPortRequired'),
+    });
+    return;
+  }
+  let result: unknown[];
+  try {
+    result = await Promise.all([
+      formRef.value?.validate().catch(() => false),
+      installTableRef.value?.tableValidate().catch(() => false),
+      isTargetShow.value ? systemValidate().catch(() => false) : true,
+    ]);
+  } catch (err) {
+    Message({ theme: 'error', message: (err as Error)?.message || t('validate.required') });
+    return;
+  }
+  const resultArr = Array.isArray(result) ? result : [result];
+  if (Array.isArray(resultArr[2])) {
+    resultArr[2] = (resultArr[2] as boolean[]).every(item => item);
+  }
+  if (resultArr.every(item => item === true)) {
+    const modeMap: Record<string, string> = {
       password: 'login_password',
       keyfile: 'login_key_file',
     };
@@ -489,8 +591,8 @@ const handleConfirm = async () => {
           bk_networkunit_id: bkNetworkUnitId,
           os_type: 'linux',
           login_port: Number(rest.login_port),
-          relay_download_port: Number(rest.relay_download_port),
-          relay_callback_port: Number(rest.relay_callback_port),
+          relay_download_port: relayDownload,
+          relay_callback_port: relayCallback,
           proxy_install_origin_unit_id: getinstallOriginUnitId(bkNetworkUnitId),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
@@ -503,7 +605,12 @@ const handleConfirm = async () => {
     };
     isShowPreview.value = true;
   } else {
+    await nextTick();
     scrollToFirstErrorByClassNames();
+    Message({
+      theme: 'warning',
+      message: t('installProxy.validationFailed'),
+    });
   }
 };
 function getinstallOriginUnitId(unit_id: number) {
@@ -612,20 +719,33 @@ watch(() => isShow.value, async () => {
           }
         }
 
-        form.info = allHosts.map((host: any) => ({
-          ...host.state,
-          ...host.info,
-          ...host,
-          bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
-          bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
-          bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
-          login_mode: resolveLoginMode(host.info?.login_mode),
-        }));
+        form.info = allHosts.map((host: any) => {
+          const base = {
+            ...host.state,
+            ...host.info,
+            ...host,
+            bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
+            bk_host_innerip: host.info?.bk_host_innerip_list?.join(','),
+            bk_host_innerip_v6: host.info?.bk_host_innerip_v6_list?.join(','),
+            login_mode: resolveLoginMode(host.info?.login_mode),
+          };
+          // Normalize relay ports (API may return camelCase)
+          const dlPort = host.info?.relay_download_port ?? host.info?.relayDownloadPort ?? host.state?.relay_download_port;
+          const cbPort = host.info?.relay_callback_port ?? host.info?.relayCallbackPort ?? host.state?.relay_callback_port;
+          if (dlPort != null && dlPort !== '') base.relay_download_port = String(dlPort);
+          if (cbPort != null && cbPort !== '') base.relay_callback_port = String(cbPort);
+          return base;
+        });
       } else {
         // 本页选择模式：使用原有数据
         form.info = props.data.map((item: Host) => {
           const data = cloneDeep(initData);
           assign(data, item, item.info);
+          // Normalize relay ports from API (may return camelCase)
+          const dlPort = item.info?.relay_download_port ?? (item as any).info?.relayDownloadPort ?? (item as any).relayDownloadPort;
+          const cbPort = item.info?.relay_callback_port ?? (item as any).info?.relayCallbackPort ?? (item as any).relayCallbackPort;
+          if (dlPort != null && String(dlPort) !== '') data.relay_download_port = String(dlPort);
+          if (cbPort != null && String(cbPort) !== '') data.relay_callback_port = String(cbPort);
           data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
           data.login_mode = resolveLoginMode(data.login_mode);
           return data;
@@ -635,6 +755,7 @@ watch(() => isShow.value, async () => {
       const unitIds = form.info.map((item: any) => Number(item.bk_networkunit_id)).filter(Boolean);
       await checkUnitsHasProxy(unitIds);
       setDefaultInstallOrigin();
+      setRelayPortDefaults();
 
       await getVersions();
       originData.value = cloneDeep(form);

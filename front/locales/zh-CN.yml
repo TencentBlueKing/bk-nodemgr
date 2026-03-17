@@ -966,6 +966,7 @@ installProxy:
   installInitiated: 已发起proxy安装
   reinstallInitiated: 已发起proxy重装
   validationFailed: 有填写的信息未通过校验
+  relayPortRequired: 请填写中转回调端口和中转下载端口
 route:
   agentStatus: Agent状态
   proxyStatus: Proxy状态

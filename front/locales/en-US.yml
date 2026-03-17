@@ -966,6 +966,7 @@ installProxy:
   installInitiated: Proxy installation initiated
   reinstallInitiated: Proxy reinstallation initiated
   validationFailed: Verification failed
+  relayPortRequired: Please fill in the relay callback port and relay download port
 route:
   agentStatus: Agent Status
   installAgent: Install Agent
