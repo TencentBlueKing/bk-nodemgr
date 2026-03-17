@@ -537,7 +537,7 @@ const handleConfirm = async () => {
   if (Array.isArray(resultArr[2])) {
     resultArr[2] = (resultArr[2] as boolean[]).every(item => item);
   }
-  if (resultArr.every(item => item === true)) {
+  if (resultArr.every(item => item !== false)) {
     const modeMap: Record<string, string> = {
       password: 'login_password',
       keyfile: 'login_key_file',
