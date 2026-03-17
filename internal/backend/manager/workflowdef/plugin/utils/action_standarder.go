@@ -62,6 +62,16 @@ func (std *PluginActionStandarder) Save() error {
 	return nil
 }
 
+// SaveBlockingActionName saves the BlockingActionName data.
+func (std *PluginActionStandarder) SaveBlockingActionName(actionName string) error {
+	std.info.BlockingActionName = actionName
+	if err := std.daoPluginDeployment.UpdatePluginDeploymentInfo(std.instanceContext.Ctx, std.param.Token, std.info); err != nil {
+		return fmt.Errorf("failed to update plugin deployment info: %w", err)
+	}
+
+	return nil
+}
+
 // DeployInfo returns the plugin deployment info.
 func (std *PluginActionStandarder) DeployInfo() *types.PluginDeploymentInfo {
 	return std.info

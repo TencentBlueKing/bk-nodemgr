@@ -121,7 +121,9 @@ func (act *actionGenManualBootstrapCommand) Do(ctx *action.InstanceContext) erro
 	}()
 
 	// let the callback server known which action to mark and log.
-	std.DeployInfo().BlockingActionName = ActionNameWaitDetectInfoByManual
+	if err := std.SaveBlockingActionName(ActionNameWaitDetectInfoByManual); err != nil {
+		return fmt.Errorf("failed to save blocking action name: %w", err)
+	}
 
 	// generate install cmd.
 	if err = act.generateInstallCMD(std); err != nil {

@@ -70,6 +70,16 @@ func (std *NodeActionStandarder) Save() error {
 	return nil
 }
 
+// SaveBlockingActionName saves the BlockingActionName data.
+func (std *NodeActionStandarder) SaveBlockingActionName(actionName string) error {
+	std.info.BlockingActionName = actionName
+	if err := std.storageNodeDeployment.UpdateNodeDeploymentInfo(std.instanceContext.Ctx, std.param.Token, std.info); err != nil {
+		return fmt.Errorf("failed to update node deployment info: %w", err)
+	}
+
+	return nil
+}
+
 // DeployInfo returns the node deployment info.
 func (std *NodeActionStandarder) DeployInfo() *types.DeploymentInfo {
 	return std.info

@@ -119,7 +119,9 @@ func (act *actionUninstallPlugin) Do(ctx *action.InstanceContext) error {
 	}()
 
 	// let the callback server known which action to mark and log.
-	std.DeployInfo().BlockingActionName = ActionNameWaitPluginInstallerComplete
+	if err := std.SaveBlockingActionName(ActionNameWaitPluginInstallerComplete); err != nil {
+		return fmt.Errorf("failed to save blocking action name: %w", err)
+	}
 
 	nCtx := std.Context()
 	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)

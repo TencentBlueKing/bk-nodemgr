@@ -146,8 +146,11 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 			err = errors.Join(storeErr, err)
 		}
 	}()
+
 	// let the callback server known which action to mark and log.
-	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+	if err := std.SaveBlockingActionName(ActionNameWaitInstallerComplete); err != nil {
+		return fmt.Errorf("failed to save blocking action name: %w", err)
+	}
 
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
