@@ -44,12 +44,18 @@ func (h *handler) AgentReconfig(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	unitsMap, err := h.generatesUnitDirectLink(rCtx, hosts)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig agent, failed to get network unit info")
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
 	reqHosts := req.GetHost()
 	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesReconfigDeploys(rCtx.TenantID(), reqHost, hosts)
+		nodeDeploy, err := h.generatesReconfigDeploys(rCtx.TenantID(), reqHost, hosts, unitsMap)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig agent, failed to generate node deployment")
 
@@ -117,7 +123,8 @@ func (h *handler) getReconfigNodeBizIDs(hostMap map[int64]*types.Host) []int64 {
 func (h *handler) generatesReconfigDeploys(
 	tenantID string,
 	reqHost *protoBackend.NodeAgentReconfigReq_Host,
-	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
+	hostMap map[int64]*types.Host,
+	unitsMap map[int64]bool) (*types.NodeDeployment, error) {
 
 	hostID := reqHost.GetBkHostId()
 	host, ok := hostMap[hostID]
@@ -135,6 +142,9 @@ func (h *handler) generatesReconfigDeploys(
 		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           reqHost.GetForce(),
 			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
+		},
+		ReconfigOptions: types.DeploymentReconfigOptions{
+			DirectLink: unitsMap[host.Dynamic.NetworkUnitID],
 		},
 		TransferOptions: types.DeploymentTransferOptions{
 			SelectDownloads: true,

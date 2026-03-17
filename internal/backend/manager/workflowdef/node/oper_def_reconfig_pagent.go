@@ -18,40 +18,38 @@ import (
 )
 
 const (
-	// OperDefNameUpgradePagent the name of the operation definition.
-	OperDefNameUpgradePagent = "upgrade_pagent"
+	// OperDefNameReconfigPagent the name of the operation definition.
+	OperDefNameReconfigPagent = "reconfig_pagent"
 )
 
-// NewOperUpgradePagent new an operation.
-func NewOperUpgradePagent(param OperParamUpgradePagent) operation.Definition {
-	return &operUpgradePagent{param: param}
+// NewOperReconfigPagent new an operation.
+func NewOperReconfigPagent(param OperParamReconfigPagent) operation.Definition {
+	return &operReconfigPagent{param: param}
 }
 
-type operUpgradePagent struct {
-	param OperParamUpgradePagent
+type operReconfigPagent struct {
+	param OperParamReconfigPagent
 }
 
-// OperParamUpgradePagent defines the parameters for operUpgradePagent.
-type OperParamUpgradePagent struct {
+// OperParamReconfigPagent defines the parameters for operReconfigPagent.
+type OperParamReconfigPagent struct {
 	Token    string `json:"token"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operUpgradePagent) Name() string {
-	return OperDefNameUpgradePagent
+func (oper *operReconfigPagent) Name() string {
+	return OperDefNameReconfigPagent
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operUpgradePagent) ActionDefNames() []string {
+func (oper *operReconfigPagent) ActionDefNames() []string {
 	return []string{
 		ActionNameSelectRelayHost,
 		ActionNameVersionCompatCheck,
 		ActionNameRenderNodeDeployment,
 		ActionNameTransferPkgToNode,
-		ActionNameEnableReleaseTransfer,
-		ActionNameEnsurePkgToRelay,
-		ActionNameUpgradePagent,
+		ActionNameReconfigPagent,
 		ActionNameWaitInstallerComplete,
 		ActionNameRestartNode,
 		ActionNameWaitGseReady,
@@ -62,7 +60,7 @@ func (oper *operUpgradePagent) ActionDefNames() []string {
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operUpgradePagent) DefaultParameters() operation.Param {
+func (oper *operReconfigPagent) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -71,9 +69,7 @@ func (oper *operUpgradePagent) DefaultParameters() operation.Param {
 			ActionNameVersionCompatCheck:    true,
 			ActionNameRenderNodeDeployment:  true,
 			ActionNameTransferPkgToNode:     true,
-			ActionNameEnableReleaseTransfer: true,
-			ActionNameEnsurePkgToRelay:      true,
-			ActionNameUpgradePagent:         true,
+			ActionNameReconfigPagent:        true,
 			ActionNameWaitInstallerComplete: false,
 			ActionNameRestartNode:           true,
 			ActionNameWaitGseReady:          false,
@@ -85,6 +81,6 @@ func (oper *operUpgradePagent) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operUpgradePagent) ExtraExecutionName() string {
+func (oper *operReconfigPagent) ExtraExecutionName() string {
 	return OperExtraExecutionName
 }

@@ -98,6 +98,8 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionEnableReleaseTransfer(nodeCap),
 		node.NewActionUpgradePagent(nodeCap),
 		node.NewActionUninstallNode(nodeCap),
+		node.NewActionReconfigPagent(nodeCap),
+		node.NewActionUninstallPagent(nodeCap),
 		node.NewActionResetNodeDynamic(nodeCap),
 		node.NewActionInstallPreOrderedPlugins(nodeCap),
 		node.NewActionGenManualCommand(nodeCap),

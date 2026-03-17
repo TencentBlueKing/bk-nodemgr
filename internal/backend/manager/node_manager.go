@@ -418,7 +418,7 @@ func (mgr *Manager) getUpgradeOperationDef(deploy *types.NodeDeployment, operato
 	}
 
 	// indirect link, use pagent.
-	return node.NewoperUpgradePagent(node.OperParamUpgradePagent{
+	return node.NewOperUpgradePagent(node.OperParamUpgradePagent{
 		Token:    deploy.Token,
 		Operator: operator,
 	})
@@ -482,10 +482,7 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 				return err
 			}
 
-			operationDef := node.NewOperReconfigNode(node.OperParamReconfigNode{
-				Token:    deploy.Token,
-				Operator: param.Operator,
-			})
+			operationDef := mgr.getReconfigOperationDef(deploy, param.Operator)
 			operationParam := operationDef.DefaultParameters()
 
 			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
@@ -640,10 +637,7 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 				return err
 			}
 
-			operationDef := node.NewOperUninstallNode(node.OperParamUninstallNode{
-				Token:    deploy.Token,
-				Operator: param.Operator,
-			})
+			operationDef := mgr.getUninstallOperationDef(deploy, param.Operator)
 			operationParam := operationDef.DefaultParameters()
 
 			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
@@ -673,6 +667,54 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	}
 
 	return workflowID, nil
+}
+
+func (mgr *Manager) getReconfigOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
+	// proxy node, use direct link.
+	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		return node.NewOperReconfigNode(node.OperParamReconfigNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	// direct link, use direct link.
+	if deploy.Info.ReconfigOptions.DirectLink {
+		return node.NewOperReconfigNode(node.OperParamReconfigNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	// indirect link, use pagent.
+	return node.NewOperReconfigPagent(node.OperParamReconfigPagent{
+		Token:    deploy.Token,
+		Operator: operator,
+	})
+}
+
+func (mgr *Manager) getUninstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
+	// proxy node, use direct link.
+	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		return node.NewOperUninstallNode(node.OperParamUninstallNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	// direct link, use direct link.
+	if deploy.Info.UninstallOptions.DirectLink {
+		return node.NewOperUninstallNode(node.OperParamUninstallNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	// indirect link, use pagent.
+	return node.NewOperUninstallPagent(node.OperParamUninstallPagent{
+		Token:    deploy.Token,
+		Operator: operator,
+	})
 }
 
 func collectDeploymentIDs(deployments []*types.NodeDeployment) ([]int64, []int64) {

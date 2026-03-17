@@ -33,72 +33,74 @@ import (
 )
 
 const (
-	// ActionNameUpgradePagent defines the action name.
-	ActionNameUpgradePagent = "upgrade_pagent"
+	// ActionNameReconfigPagent defines the action name.
+	ActionNameReconfigPagent = "reconfig_pagent"
+
+	reconfigPagentScriptTimeout = 10 * time.Minute
 )
 
-// NewActionUpgradePagent get a new action.
-func NewActionUpgradePagent(capability *Capability) action.Definition {
-	return &actionUpgradePagent{
+// NewActionReconfigPagent get a new action.
+func NewActionReconfigPagent(capability *Capability) action.Definition {
+	return &actionReconfigPagent{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
 	}
 }
 
-// ActionParamUpgradePagent defines the action param.
-type ActionParamUpgradePagent struct {
+// ActionParamReconfigPagent defines the action param.
+type ActionParamReconfigPagent struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
-type actionUpgradePagent struct {
+type actionReconfigPagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
 }
 
 // Name returns the name of the action.
-func (act *actionUpgradePagent) Name() string {
-	return ActionNameUpgradePagent
+func (act *actionReconfigPagent) Name() string {
+	return ActionNameReconfigPagent
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUpgradePagent) DisplayNameZh() string {
-	return "升级 P-Agent"
+func (act *actionReconfigPagent) DisplayNameZh() string {
+	return "重新配置 P-Agent"
 }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionUpgradePagent) DisplayNameEn() string {
-	return "Upgrade P-Agent"
+func (act *actionReconfigPagent) DisplayNameEn() string {
+	return "Reconfigure P-Agent"
 }
 
 // Version returns the version of the action.
-func (act *actionUpgradePagent) Version() string {
+func (act *actionReconfigPagent) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionUpgradePagent) Description() string {
-	return "upgrade pagent"
+func (act *actionReconfigPagent) Description() string {
+	return "reconfig pagent through relay callback"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionUpgradePagent) Timeout() time.Duration {
+func (act *actionReconfigPagent) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionUpgradePagent) Tags() []action.Tag {
+func (act *actionReconfigPagent) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionUpgradePagent) MaxRetryCount() uint {
+func (act *actionReconfigPagent) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionUpgradePagent) DelayFn() func() {
+func (act *actionReconfigPagent) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -107,8 +109,8 @@ func (act *actionUpgradePagent) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
-	param := new(ActionParamUpgradePagent)
+func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamReconfigPagent)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -130,71 +132,59 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to save blocking action name: %w", err)
 	}
 
-	// get upgrade params.
-	upgradeParams, err := act.setupUpgradeParams(std)
+	// select matching tools.
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		return fmt.Errorf("failed to update instance data content: %w", err)
-	}
-
-	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
-		NodeActionStandardParam: param.NodeActionStandardParam,
-		EnsureAgentID:           true,
-	}); err != nil {
 		return err
 	}
 
-	// exec upgrade command
-	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.doUpgradeWindows(std, upgradeParams)
-	}
-
-	return act.doUpgradeUnix(std, upgradeParams)
-}
-
-func (act *actionUpgradePagent) setupUpgradeParams(
-	std *nodeUtils.NodeActionStandarder) (*UpgradeParams, error) {
-
-	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
+	// get callback address from the selected relay.
+	relayInfo, err := std.GetSelectedRelay()
 	if err != nil {
-		return nil, fmt.Errorf("failed to format tools name: %w", err)
+		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
+	_, callbackSvrAddr := std.BuildRelayServerURLs(relayInfo)
+
+	std.InstanceData().Log().
+		Zh("relay 回调服务地址(%s)", callbackSvrAddr).
+		En("relay callback svr addr(%s)", callbackSvrAddr).
+		Info()
 
 	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
-	// get service addresses from relay config file.
-	downloadSvcAddr, callbackSvcAddr, err := act.selectServiceURLs(std)
-	if err != nil {
-		return nil, fmt.Errorf("failed to select service urls: %w", err)
-	}
-
-	upgradeParams := &UpgradeParams{
+	reconfigParams := &ReconfigParams{
 		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
 		InstallerName:    toolName,
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
-		NodeVersion:      std.DeployInfo().Host.Dynamic.NodeVersion,
 		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  callbackSvcAddr,
-		DownloadSvrAddr:  downloadSvcAddr,
+		CallbackSvrAddr:  callbackSvrAddr,
 		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
-	std.InstanceData().Log().
-		Zh("构建升级参数成功。params(%v)", upgradeParams).
-		En("build upgrade params success. params(%v)", upgradeParams).
-		Info()
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+		NodeActionStandardParam: param.NodeActionStandardParam,
+		EnsureAgentID:           true,
+	}); err != nil {
+		return fmt.Errorf("failed to update instance data content: %w", err)
+	}
 
-	return upgradeParams, nil
+	// exec reconfig command
+	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
+		return act.doReconfigWindows(std, reconfigParams)
+	}
+
+	return act.doReconfigUnix(std, reconfigParams)
 }
 
 // nolint: perfsprint
-func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
+func (act *actionReconfigPagent) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *ReconfigParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -203,51 +193,48 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarde
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
-		installerPath, installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
+	reconfigLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
+	reconfigCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
+		installerPath, installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
 	std.InstanceData().Log().
-		Zh("升级节点命令: %s", upgradeCmd).
-		En("upgrade node command: %s", upgradeCmd).
+		Zh("重新配置节点命令: %s", reconfigCmd).
+		En("reconfig node cmd: %s", reconfigCmd).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
 		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > upgrade.sh && sh upgrade.sh`,
+			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
 			param.InstallerWorkDir,
 			param.InstallerWorkDir,
-			upgradeCmd),
-		upgradeScriptTimeout,
+			reconfigCmd),
+		reconfigPagentScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
 				AgentID: param.AgentID,
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("failed to execute upgrade script: %w", err)
+		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-
 	std.InstanceData().Log().
-		Zh("升级节点 task id: %s", taskID).
-		En("upgrade node task id: %s", taskID).
+		Zh("重新配置节点 task-id: %s", taskID).
+		En("reconfig node task-id: %s", taskID).
 		Info()
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
+func (act *actionReconfigPagent) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *ReconfigParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -256,22 +243,20 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 	}
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
 
-	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	upgradeCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
-		installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
+	reconfigLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+	reconfigCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
+		installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
 	std.InstanceData().Log().
-		Zh("升级节点命令: %s", upgradeCmd).
-		En("upgrade node command: %s", upgradeCmd).
+		Zh("重新配置节点命令: %s", reconfigCmd).
+		En("reconfig node cmd: %s", reconfigCmd).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
@@ -279,42 +264,20 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 		fmt.Sprintf(
 			`cd %s && %s`,
 			param.InstallerWorkDir,
-			upgradeCmd),
-		upgradeScriptTimeout,
+			reconfigCmd),
+		reconfigPagentScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
 				AgentID: param.AgentID,
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("failed to execute upgrade script: %w", err)
+		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-
 	std.InstanceData().Log().
-		Zh("升级节点 task id: %s", taskID).
-		En("upgrade node task id: %s", taskID).
+		Zh("重新配置节点 task-id: %s", taskID).
+		En("reconfig node task-id: %s", taskID).
 		Info()
 
 	return nil
-}
-
-// selectServiceURLs selects service URLs for download and callback servers.
-// For pagent upgrade, it always uses relay info (pagent upgrade is only used in indirect link scenarios).
-// It returns download URLs and callback URLs in comma-separated format: "http://ip1:port1,http://ip2:port2,...".
-// Returns: (downloadURLs, callbackURLs, error).
-func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
-	callbackEndpoints, downloadEndpoints, err := std.GetRelayEndpoints()
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get relay endpoints: %w", err)
-	}
-
-	downloadSvrAddr := nodeUtils.BuildServerURLs(downloadEndpoints...)
-	callbackSvrAddr := nodeUtils.BuildServerURLs(callbackEndpoints...)
-
-	std.InstanceData().Log().
-		Zh("relay 下载服务地址(%s)，回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).
-		En("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr).
-		Info()
-
-	return downloadSvrAddr, callbackSvrAddr, nil
 }

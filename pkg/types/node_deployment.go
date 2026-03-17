@@ -84,6 +84,16 @@ type DeploymentUpgradeOptions struct {
 	DirectLink bool
 }
 
+// DeploymentReconfigOptions this is the options for node reconfig.
+type DeploymentReconfigOptions struct {
+	DirectLink bool
+}
+
+// DeploymentUninstallOptions this is the options for node uninstall.
+type DeploymentUninstallOptions struct {
+	DirectLink bool
+}
+
 // DeploymentRestartOptions this is the options for node restart.
 type DeploymentRestartOptions struct {
 	ForceRestart           bool
@@ -127,6 +137,12 @@ type DeploymentInfo struct {
 
 	// RestartOptions is used to control the tools when restart node.
 	RestartOptions DeploymentRestartOptions
+
+	// ReconfigOptions is used to control the tools when reconfig node.
+	ReconfigOptions DeploymentReconfigOptions
+
+	// UninstallOptions is used to control the tools when uninstall node.
+	UninstallOptions DeploymentUninstallOptions
 
 	// TransferOptions is used to control the tools when transfer node.
 	TransferOptions DeploymentTransferOptions

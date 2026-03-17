@@ -43,12 +43,18 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	unitsMap, err := h.generatesUnitDirectLink(rCtx, hosts)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall agent, failed to get network unit info")
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
 	reqHosts := req.GetHost()
 	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesUninstallDeploys(rCtx.TenantID(), reqHost, hosts)
+		nodeDeploy, err := h.generatesUninstallDeploys(rCtx.TenantID(), reqHost, hosts, unitsMap)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall agent, failed to generate node deployment")
 
@@ -116,7 +122,8 @@ func (h *handler) getUninstallNodeHosts(
 func (h *handler) generatesUninstallDeploys(
 	tenantID string,
 	reqHost *protoBackend.NodeAgentUninstallReq_Host,
-	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
+	hostMap map[int64]*types.Host,
+	unitsMap map[int64]bool) (*types.NodeDeployment, error) {
 
 	hostID := reqHost.GetBkHostId()
 	host, ok := hostMap[hostID]
@@ -130,6 +137,9 @@ func (h *handler) generatesUninstallDeploys(
 			HostID:   host.HostID,
 			Static:   host.Static,
 			Dynamic:  host.Dynamic,
+		},
+		UninstallOptions: types.DeploymentUninstallOptions{
+			DirectLink: unitsMap[host.Dynamic.NetworkUnitID],
 		},
 		TransferOptions: types.DeploymentTransferOptions{
 			SelectDownloads: true,

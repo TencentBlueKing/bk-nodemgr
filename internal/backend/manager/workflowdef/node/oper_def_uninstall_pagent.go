@@ -18,73 +18,59 @@ import (
 )
 
 const (
-	// OperDefNameUpgradePagent the name of the operation definition.
-	OperDefNameUpgradePagent = "upgrade_pagent"
+	// OperDefNameUninstallPagent the name of the operation definition.
+	OperDefNameUninstallPagent = "uninstall_pagent"
 )
 
-// NewOperUpgradePagent new an operation.
-func NewOperUpgradePagent(param OperParamUpgradePagent) operation.Definition {
-	return &operUpgradePagent{param: param}
+// NewOperUninstallPagent new an operation.
+func NewOperUninstallPagent(param OperParamUninstallPagent) operation.Definition {
+	return &operUninstallPagent{param: param}
 }
 
-type operUpgradePagent struct {
-	param OperParamUpgradePagent
+type operUninstallPagent struct {
+	param OperParamUninstallPagent
 }
 
-// OperParamUpgradePagent defines the parameters for operUpgradePagent.
-type OperParamUpgradePagent struct {
+// OperParamUninstallPagent defines the parameters for operUninstallPagent.
+type OperParamUninstallPagent struct {
 	Token    string `json:"token"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operUpgradePagent) Name() string {
-	return OperDefNameUpgradePagent
+func (oper *operUninstallPagent) Name() string {
+	return OperDefNameUninstallPagent
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operUpgradePagent) ActionDefNames() []string {
+func (oper *operUninstallPagent) ActionDefNames() []string {
 	return []string{
 		ActionNameSelectRelayHost,
-		ActionNameVersionCompatCheck,
-		ActionNameRenderNodeDeployment,
 		ActionNameTransferPkgToNode,
-		ActionNameEnableReleaseTransfer,
-		ActionNameEnsurePkgToRelay,
-		ActionNameUpgradePagent,
+		ActionNameUninstallPagent,
 		ActionNameWaitInstallerComplete,
-		ActionNameRestartNode,
-		ActionNameWaitGseReady,
-		ActionNameCleanInstaller,
-		ActionNameSyncNodeInfo,
+		ActionNameResetNodeDynamic,
 		ActionNameUpdateHost,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operUpgradePagent) DefaultParameters() operation.Param {
+func (oper *operUninstallPagent) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
 			ActionNameSelectRelayHost:       true,
-			ActionNameVersionCompatCheck:    true,
-			ActionNameRenderNodeDeployment:  true,
 			ActionNameTransferPkgToNode:     true,
-			ActionNameEnableReleaseTransfer: true,
-			ActionNameEnsurePkgToRelay:      true,
-			ActionNameUpgradePagent:         true,
+			ActionNameUninstallPagent:       true,
 			ActionNameWaitInstallerComplete: false,
-			ActionNameRestartNode:           true,
-			ActionNameWaitGseReady:          false,
-			ActionNameCleanInstaller:        true,
-			ActionNameSyncNodeInfo:          true,
+			ActionNameResetNodeDynamic:      true,
 			ActionNameUpdateHost:            true,
 		},
 	}
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operUpgradePagent) ExtraExecutionName() string {
+func (oper *operUninstallPagent) ExtraExecutionName() string {
 	return OperExtraExecutionName
 }
