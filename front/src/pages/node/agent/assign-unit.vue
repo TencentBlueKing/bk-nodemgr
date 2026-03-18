@@ -47,7 +47,7 @@
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Loading, Message } from 'bkui-vue';
 import { debounce } from 'lodash';
-import { h, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { h, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -154,10 +154,8 @@ const handleConfirm = async () => {
           });
           restartDialogShow.value = true;
         },
-        onClosed: () => {
-          if (!restartDialogShow.value) {
-            router.push({ name: 'agent' });
-          }
+        onCancel: () => {
+          router.push({ name: 'agent' });
         },
       });
     } else {
@@ -173,7 +171,10 @@ const handleConfirm = async () => {
   }
 };
 
+const restartInProgress = ref(false);
+
 const handleRestartConfirm = async (extraData: any = {}) => {
+  restartInProgress.value = true;
   loading.value = true;
   const params = {
     host: assignedHostIds.value.map((id: number) => ({
@@ -195,8 +196,16 @@ const handleRestartConfirm = async (extraData: any = {}) => {
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
       query: { active: 'node' },
     });
+  } else {
+    router.push({ name: 'agent' });
   }
 };
+
+watch(restartDialogShow, (newVal, oldVal) => {
+  if (oldVal && !newVal && !restartInProgress.value) {
+    router.push({ name: 'agent' });
+  }
+});
 
 const checkIfAtBottom = () => {
   if (footerRef.value) {
