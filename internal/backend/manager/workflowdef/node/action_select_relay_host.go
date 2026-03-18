@@ -214,7 +214,7 @@ func (act *actionSelectRelayHost) validateRelayHost(host *types.Host) error {
 		return errors.New("relay callback service port is required")
 	}
 
-	if host.Dynamic.AdvertiseIP == "" || host.Dynamic.AdvertiseIPV6 == "" {
+	if host.Dynamic.AdvertiseIP == "" && host.Dynamic.AdvertiseIPV6 == "" {
 		return errors.New("advertise ip or ipv6 is required")
 	}
 

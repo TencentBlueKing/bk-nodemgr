@@ -113,7 +113,7 @@ func (std *NodeActionStandarder) GetSelectedRelay() (*types.RelayInfo, error) {
 		return nil, errors.New("callback service port is required")
 	}
 
-	if relay.AdvertiseIP == "" || relay.AdvertiseIPV6 == "" {
+	if relay.AdvertiseIP == "" && relay.AdvertiseIPV6 == "" {
 		return nil, errors.New("advertise ip or ipv6 is required")
 	}
 
