@@ -991,6 +991,7 @@ installProxy:
   reinstallInitiated: 已发起proxy重装
   validationFailed: 有填写的信息未通过校验
   relayPortRequired: 请填写中转回调端口和中转下载端口
+  portMustBeValidRange: 端口必须是1-65535之间的整数
 route:
   agentStatus: Agent状态
   proxyStatus: Proxy状态

@@ -991,6 +991,7 @@ installProxy:
   reinstallInitiated: Proxy reinstallation initiated
   validationFailed: Verification failed
   relayPortRequired: Please fill in the relay callback port and relay download port
+  portMustBeValidRange: Port must be an integer between 1 and 65535
 route:
   agentStatus: Agent Status
   installAgent: Install Agent

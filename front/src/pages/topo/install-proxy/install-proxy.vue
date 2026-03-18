@@ -8,7 +8,7 @@
   >
     <div class="py-[20px] px-[40px]">
       <!-- form -->
-      <Form ref="formRef" :model="form" class="mt-[24px]">
+      <Form ref="formRef" :model="form" :rules="formRules" class="mt-[24px]">
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.method')"
           property="method"
@@ -589,6 +589,36 @@ const settings = reactive({
   size: 'medium',
 });
 const isTargetShow = ref(false);
+
+// 端口校验规则
+const portValidator = (value: string) => {
+  if (!value || value.trim() === '') {
+    return false;
+  }
+  const port = Number(value);
+  if (Number.isNaN(port) || !Number.isInteger(port)) {
+    return false;
+  }
+  if (port <= 0 || port > 65535) {
+    return false;
+  }
+  return true;
+};
+
+const formRules = {
+  login_port: [
+    { required: true, message: t('validate.required'), trigger: 'blur' },
+    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
+  ],
+  relay_callback_port: [
+    { required: true, message: t('validate.required'), trigger: 'blur' },
+    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
+  ],
+  relay_download_port: [
+    { required: true, message: t('validate.required'), trigger: 'blur' },
+    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
+  ],
+};
 const businessList = computed(() => mainStore.businessList);
 const collectList = ref<number[]>([]);
 const selectedBizIds = computed(() => {

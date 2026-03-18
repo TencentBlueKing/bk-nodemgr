@@ -8,7 +8,7 @@
   >
     <div class="py-[20px] px-[40px]">
       <!-- form -->
-      <Form ref="formRef" :model="form" class="mt-[24px]">
+      <Form ref="formRef" :model="form" :rules="formRules" class="mt-[24px]">
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.method')"
           property=""
@@ -301,6 +301,36 @@ const form = reactive({
   relay_callback_port: '',
 });
 const isTargetShow = ref(false);
+
+// 端口校验规则
+const portValidator = (value: string) => {
+  if (!value || value.trim() === '') {
+    return false;
+  }
+  const port = Number(value);
+  if (Number.isNaN(port) || !Number.isInteger(port)) {
+    return false;
+  }
+  if (port <= 0 || port > 65535) {
+    return false;
+  }
+  return true;
+};
+
+const formRules = {
+  login_port: [
+    { required: true, message: t('validate.required'), trigger: 'blur' },
+    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
+  ],
+  relay_callback_port: [
+    { required: true, message: t('validate.required'), trigger: 'blur' },
+    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
+  ],
+  relay_download_port: [
+    { required: true, message: t('validate.required'), trigger: 'blur' },
+    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
+  ],
+};
 const systemData = ref([
   {
     displayName: 'linux/amd64',
@@ -491,8 +521,8 @@ const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'dat
 const setRelayPortDefaults = () => {
   const ports = form.info
     .map((row: any) => {
-      const dlRaw = row.relay_download_port ?? row.relayDownloadPort;
-      const cbRaw = row.relay_callback_port ?? row.relayCallbackPort;
+      const dlRaw = row.relay_download_port;
+      const cbRaw = row.relay_callback_port;
       const dl = dlRaw != null && dlRaw !== '' ? Number(dlRaw) : null;
       const cb = cbRaw != null && cbRaw !== '' ? Number(cbRaw) : null;
       if (dl != null && cb != null && !Number.isNaN(dl) && !Number.isNaN(cb)) return `${dl}-${cb}`;
@@ -511,17 +541,13 @@ const setRelayPortDefaults = () => {
 };
 
 const handleConfirm = async () => {
-  setRelayPortDefaults();
-  const relayDownload = Number(form.relay_download_port);
-  const relayCallback = Number(form.relay_callback_port);
-  if (!relayDownload || !relayCallback || relayDownload <= 0 || relayCallback <= 0) {
+  // 如果端口字段为空且高级选项未展开，先展开让表单校验能触发
+  const dlRaw = form.relay_download_port?.trim();
+  const cbRaw = form.relay_callback_port?.trim();
+  if (!dlRaw || !cbRaw) {
     isTargetShow.value = true;
-    Message({
-      theme: 'error',
-      message: t('installProxy.relayPortRequired'),
-    });
-    return;
   }
+
   let result: unknown[];
   try {
     result = await Promise.all([
@@ -538,6 +564,10 @@ const handleConfirm = async () => {
     resultArr[2] = (resultArr[2] as boolean[]).every(item => item);
   }
   if (resultArr.every(item => item !== false)) {
+    // 表单校验通过后，转换端口值
+    const relayDownload = Number(form.relay_download_port);
+    const relayCallback = Number(form.relay_callback_port);
+
     const modeMap: Record<string, string> = {
       password: 'login_password',
       keyfile: 'login_key_file',
@@ -594,7 +624,7 @@ const handleConfirm = async () => {
           relay_download_port: relayDownload,
           relay_callback_port: relayCallback,
           proxy_install_origin_unit_id: getinstallOriginUnitId(bkNetworkUnitId),
-          ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
+          ...(bk_host_id != null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
         return host;
     });
@@ -721,6 +751,7 @@ watch(() => isShow.value, async () => {
 
         form.info = allHosts.map((host: any) => {
           const base = {
+            ...cloneDeep(initData),
             ...host.state,
             ...host.info,
             ...host,
@@ -728,10 +759,11 @@ watch(() => isShow.value, async () => {
             bk_host_innerip: host.info?.bk_host_innerip_list?.join(','),
             bk_host_innerip_v6: host.info?.bk_host_innerip_v6_list?.join(','),
             login_mode: resolveLoginMode(host.info?.login_mode),
+            proxy_tags: Array.isArray(host.proxy_tags) ? [...host.proxy_tags] : [],
           };
           // Normalize relay ports (API may return camelCase)
-          const dlPort = host.info?.relay_download_port ?? host.info?.relayDownloadPort ?? host.state?.relay_download_port;
-          const cbPort = host.info?.relay_callback_port ?? host.info?.relayCallbackPort ?? host.state?.relay_callback_port;
+          const dlPort = host.info?.relay_download_port;
+          const cbPort = host.info?.relay_callback_port;
           if (dlPort != null && dlPort !== '') base.relay_download_port = String(dlPort);
           if (cbPort != null && cbPort !== '') base.relay_callback_port = String(cbPort);
           return base;
@@ -742,8 +774,8 @@ watch(() => isShow.value, async () => {
           const data = cloneDeep(initData);
           assign(data, item, item.info);
           // Normalize relay ports from API (may return camelCase)
-          const dlPort = item.info?.relay_download_port ?? (item as any).info?.relayDownloadPort ?? (item as any).relayDownloadPort;
-          const cbPort = item.info?.relay_callback_port ?? (item as any).info?.relayCallbackPort ?? (item as any).relayCallbackPort;
+          const dlPort = item.info?.relay_download_port;
+          const cbPort = item.info?.relay_callback_port;
           if (dlPort != null && String(dlPort) !== '') data.relay_download_port = String(dlPort);
           if (cbPort != null && String(cbPort) !== '') data.relay_callback_port = String(cbPort);
           data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
