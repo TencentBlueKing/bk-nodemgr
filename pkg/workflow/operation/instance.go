@@ -13,6 +13,7 @@ package operation
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -31,7 +32,26 @@ type InstanceMetadata struct {
 	Timeout                time.Duration
 	InitContent            map[string]any
 	ExtraExecutionName     string
+	ExtraExecutionMutex    sync.Mutex
 	ExtraExecutionMessages []common.Message
+}
+
+// SetMessage sets the extra execution message for the operation instance.
+func (data *InstanceMetadata) SetMessage(zhMsg, enMsg, level string) {
+	data.ExtraExecutionMutex.Lock()
+	defer data.ExtraExecutionMutex.Unlock()
+
+	data.ExtraExecutionMessages = append(data.ExtraExecutionMessages, common.Message{
+		Time:   time.Now(),
+		TextZh: zhMsg,
+		TextEn: enMsg,
+		Level:  level,
+	})
+}
+
+// Log returns a new LogBuilder for chainable bilingual logging.
+func (data *InstanceMetadata) Log() *common.LogBuilder {
+	return common.NewLogBuilder(data)
 }
 
 // InstanceBriefData defines the brief data of operation instance.
@@ -44,42 +64,6 @@ type InstanceBriefData struct {
 
 	// the below fields can be changed.
 	Lifecycle *Lifecycle
-}
-
-// LogI logs info messages.
-func (data *InstanceBriefData) LogI(messages ...string) {
-	for _, message := range messages {
-		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
-			Time:   time.Now(),
-			TextZh: message,
-			TextEn: message,
-			Level:  "INFO",
-		})
-	}
-}
-
-// LogW logs warning messages.
-func (data *InstanceBriefData) LogW(messages ...string) {
-	for _, message := range messages {
-		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
-			Time:   time.Now(),
-			TextZh: message,
-			TextEn: message,
-			Level:  "WARN",
-		})
-	}
-}
-
-// LogE logs error messages.
-func (data *InstanceBriefData) LogE(messages ...string) {
-	for _, message := range messages {
-		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
-			Time:   time.Now(),
-			TextZh: message,
-			TextEn: message,
-			Level:  "ERROR",
-		})
-	}
 }
 
 // InstanceData defines the data of operation instance.

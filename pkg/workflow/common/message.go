@@ -11,7 +11,16 @@
 // Package common defines workflow common things.
 package common
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
+
+// MessageHandler defines the interface for handling messages in action instances.
+type MessageHandler interface {
+	// SetMessage sets a message to the instance.
+	SetMessage(zhMsg, enMsg, level string)
+}
 
 // Message describes the single message in action instance.
 type Message struct {
@@ -20,3 +29,61 @@ type Message struct {
 	TextEn string // English content
 	Level  string
 }
+
+// LogBuilder is a chainable log builder for bilingual logging.
+type LogBuilder struct {
+	msgHandler MessageHandler
+	zhMsg      string
+	enMsg      string
+	zhSet      bool
+	enSet      bool
+}
+
+// NewLogBuilder creates a new LogBuilder with the given MessageHandler.
+func NewLogBuilder(handler MessageHandler) *LogBuilder {
+	return &LogBuilder{
+		msgHandler: handler,
+	}
+}
+
+// Zh sets the Chinese log message.
+func (builder *LogBuilder) Zh(format string, args ...any) *LogBuilder {
+	builder.zhMsg = fmt.Sprintf(format, args...)
+	builder.zhSet = true
+
+	return builder
+}
+
+// En sets the English log message.
+func (builder *LogBuilder) En(format string, args ...any) *LogBuilder {
+	builder.enMsg = fmt.Sprintf(format, args...)
+	builder.enSet = true
+
+	return builder
+}
+
+// log is the internal method that handles auto-fill logic and appends the message.
+func (builder *LogBuilder) log(level string) {
+	zhMsg, enMsg := builder.zhMsg, builder.enMsg
+
+	// Auto-fill rules based on flags
+	switch {
+	case builder.zhSet && !builder.enSet:
+		enMsg = zhMsg
+	case !builder.zhSet && builder.enSet:
+		zhMsg = enMsg
+	case !builder.zhSet && !builder.enSet:
+		zhMsg, enMsg = level, level
+	}
+
+	builder.msgHandler.SetMessage(zhMsg, enMsg, level)
+}
+
+// Info logs at INFO level.
+func (builder *LogBuilder) Info() { builder.log("INFO") }
+
+// Warn logs at WARN level.
+func (builder *LogBuilder) Warn() { builder.log("WARN") }
+
+// Error logs at ERROR level.
+func (builder *LogBuilder) Error() { builder.log("ERROR") }

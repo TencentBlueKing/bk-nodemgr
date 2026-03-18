@@ -410,8 +410,21 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		}
 	}
 
+	extraExecutionLogs := &WorkflowActionMessage{
+		Logs: make([]*WorkflowActionMessage_Message, 0),
+	}
+	for _, msg := range result.Metadata.ExtraExecutionMessages {
+		extraExecutionLogs.Logs = append(extraExecutionLogs.Logs, &WorkflowActionMessage_Message{
+			Time:   msg.Time.UnixMilli(),
+			TextZh: msg.TextZh,
+			TextEn: msg.TextEn,
+			Level:  msg.Level,
+		})
+	}
+
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
-		OperInstLogs: operInstLogs,
+		OperInstLogs:       operInstLogs,
+		ExtraExecutionLogs: extraExecutionLogs,
 	}
 }
 

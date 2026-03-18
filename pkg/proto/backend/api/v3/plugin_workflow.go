@@ -645,9 +645,21 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 		}
 	}
 
+	extraExecutionLogs := &WorkflowActionMessage{
+		Logs: make([]*WorkflowActionMessage_Message, 0),
+	}
+	for _, msg := range result.Metadata.ExtraExecutionMessages {
+		extraExecutionLogs.Logs = append(extraExecutionLogs.Logs, &WorkflowActionMessage_Message{
+			Time:   msg.Time.UnixMilli(),
+			TextZh: msg.TextZh,
+			TextEn: msg.TextEn,
+			Level:  msg.Level,
+		})
+	}
+
 	x.Data = &PluginWorkflowOperationInstanceLogGetResp_Data{
-		OperInstLogs: operInstLogs,
-		Total:        int64(len(result.ActionInstanceDataMap)),
+		OperInstLogs:       operInstLogs,
+		ExtraExecutionLogs: extraExecutionLogs,
 	}
 }
 
@@ -660,6 +672,11 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInst
 
 	result := &operation.InstanceData{
 		ActionInstanceDataMap: make(map[string]*action.InstanceData),
+		InstanceBriefData: operation.InstanceBriefData{
+			Metadata: &operation.InstanceMetadata{
+				ExtraExecutionMessages: make([]common.Message, 0),
+			},
+		},
 	}
 
 	for actionID, actionData := range x.GetData().GetOperInstLogs() {
@@ -694,6 +711,19 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInst
 		}
 
 		result.ActionInstanceDataMap[actionID] = instance
+	}
+
+	for _, msg := range x.GetData().GetExtraExecutionLogs().GetLogs() {
+		if msg == nil {
+			continue
+		}
+
+		result.InstanceBriefData.Metadata.ExtraExecutionMessages = append(result.InstanceBriefData.Metadata.ExtraExecutionMessages, common.Message{
+			Time:   time.UnixMilli(msg.GetTime()),
+			TextZh: msg.GetTextZh(),
+			TextEn: msg.GetTextEn(),
+			Level:  msg.GetLevel(),
+		})
 	}
 
 	return result

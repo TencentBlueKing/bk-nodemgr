@@ -568,9 +568,21 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 		}
 	}
 
+	extraExecutionLogs := &WorkflowActionMessage{
+		Logs: make([]*WorkflowActionMessage_Message, 0),
+	}
+	for _, msg := range result.Metadata.ExtraExecutionMessages {
+		extraExecutionLogs.Logs = append(extraExecutionLogs.Logs, &WorkflowActionMessage_Message{
+			Time:   msg.Time.UnixMilli(),
+			TextZh: msg.TextZh,
+			TextEn: msg.TextEn,
+			Level:  msg.Level,
+		})
+	}
+
 	x.Data = &PluginWorkflowOperationInstanceLogGetResp_Data{
-		OperInstLogs: operInstLogs,
-		Total:        int64(len(result.ActionInstanceDataMap)),
+		OperInstLogs:       operInstLogs,
+		ExtraExecutionLogs: extraExecutionLogs,
 	}
 }
 

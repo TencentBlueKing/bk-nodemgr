@@ -64,54 +64,12 @@ func (data *InstanceData) Info() string {
 		data.OperationID, data.Index, data.Name)
 }
 
-// LogBuilder is a chainable log builder for bilingual logging.
-type LogBuilder struct {
-	data  *InstanceData
-	zhMsg string
-	enMsg string
-	zhSet bool
-	enSet bool
-}
+// SetMessage sets the execution message for the action instance.
+func (data *InstanceData) SetMessage(zhMsg, enMsg, level string) {
+	data.MessagesMutex.Lock()
+	defer data.MessagesMutex.Unlock()
 
-// Log returns a new LogBuilder for chainable bilingual logging.
-func (data *InstanceData) Log() *LogBuilder {
-	return &LogBuilder{data: data}
-}
-
-// Zh sets the Chinese log message.
-func (builder *LogBuilder) Zh(format string, args ...any) *LogBuilder {
-	builder.zhMsg = fmt.Sprintf(format, args...)
-	builder.zhSet = true
-
-	return builder
-}
-
-// En sets the English log message.
-func (builder *LogBuilder) En(format string, args ...any) *LogBuilder {
-	builder.enMsg = fmt.Sprintf(format, args...)
-	builder.enSet = true
-
-	return builder
-}
-
-// log is the internal method that handles auto-fill logic and appends the message.
-func (builder *LogBuilder) log(level string) {
-	zhMsg, enMsg := builder.zhMsg, builder.enMsg
-
-	// Auto-fill rules based on flags
-	switch {
-	case builder.zhSet && !builder.enSet:
-		enMsg = zhMsg
-	case !builder.zhSet && builder.enSet:
-		zhMsg = enMsg
-	case !builder.zhSet && !builder.enSet:
-		zhMsg, enMsg = level, level
-	}
-
-	builder.data.MessagesMutex.Lock()
-	defer builder.data.MessagesMutex.Unlock()
-
-	builder.data.Messages = append(builder.data.Messages, common.Message{
+	data.Messages = append(data.Messages, common.Message{
 		Time:   time.Now(),
 		TextZh: zhMsg,
 		TextEn: enMsg,
@@ -119,14 +77,10 @@ func (builder *LogBuilder) log(level string) {
 	})
 }
 
-// Info logs at INFO level.
-func (builder *LogBuilder) Info() { builder.log("INFO") }
-
-// Warn logs at WARN level.
-func (builder *LogBuilder) Warn() { builder.log("WARN") }
-
-// Error logs at ERROR level.
-func (builder *LogBuilder) Error() { builder.log("ERROR") }
+// Log returns a new LogBuilder for chainable bilingual logging.
+func (data *InstanceData) Log() *common.LogBuilder {
+	return common.NewLogBuilder(data)
+}
 
 // IsFirst checks if the action instance is the first one.
 func (data *InstanceData) IsFirst() bool {

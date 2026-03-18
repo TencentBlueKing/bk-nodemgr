@@ -221,7 +221,10 @@ message NodeWorkflowOperationInstanceLogGetResp {
   string request_id = 3;
   Error error = 4;
 
-  message Data { map<string, WorkflowActionData> oper_inst_logs = 1; }
+  message Data {
+    map<string, WorkflowActionData> oper_inst_logs = 1;
+    WorkflowActionMessage extra_execution_logs = 2;
+  }
   Data data = 5;
 }
 

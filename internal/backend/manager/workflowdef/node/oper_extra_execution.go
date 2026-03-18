@@ -61,7 +61,11 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 
 	info, err := exec.storageNodeDeployment.GetNodeDeploymentInfo(nCtx, param.Token)
 	if err != nil {
-		instance.LogE(fmt.Sprintf("get deployment info by token(%s) failed: %v", param.Token, err))
+		instance.Metadata.Log().
+			Zh("通过 token(%s) 获取部署信息失败: %v", param.Token, err).
+			En("get deployment info by token(%s) failed: %v", param.Token, err).
+			Error()
+
 		return fmt.Errorf("get node deployment info by token(%s) failed: %w", param.Token, err)
 	}
 
@@ -81,30 +85,45 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 	case operation.StateLaunched:
 		err := exec.Lock(nCtx, lockerName, instance.Metadata.OperationInstanceID, instance.Metadata.Timeout)
 		if err != nil {
-			instance.LogE(err.Error())
+			instance.Metadata.Log().
+				Zh("锁定节点失败: %v", err).
+				En("lock host failed: %v", err).
+				Error()
 			instance.Lifecycle.End(action.StateFailed)
 
 			return err
 		}
 
-		instance.LogI(fmt.Sprintf("lock host by locker(%s) success", lockerName))
+		instance.Metadata.Log().
+			Zh("通过锁(%s)锁定节点成功", lockerName).
+			En("lock host by locker(%s) success", lockerName).
+			Info()
 
 		return nil
 
 	case operation.StateSuccess, operation.StateFailed, operation.StateTimeout, operation.StateTerminated:
 		err := exec.Unlock(nCtx, lockerName, instance.Metadata.OperationInstanceID)
 		if err != nil {
-			instance.LogE(err.Error())
+			instance.Metadata.Log().
+				Zh("解锁节点失败: %v", err).
+				En("unlock host failed: %v", err).
+				Error()
 			instance.Lifecycle.End(action.StateFailed)
 
 			return fmt.Errorf("unlock host by locker(%s) failed: %w", lockerName, err)
 		}
 
-		instance.LogI(fmt.Sprintf("unlock host by locker(%s) success", lockerName))
+		instance.Metadata.Log().
+			Zh("通过锁(%s)解锁节点成功", lockerName).
+			En("unlock host by locker(%s) success", lockerName).
+			Info()
 
 		return nil
 	default:
-		instance.LogE(fmt.Sprintf("unexpected operation instance state: %s", instance.Lifecycle.State))
+		instance.Metadata.Log().
+			Zh("操作实例状态异常: %s", instance.Lifecycle.State).
+			En("unexpected operation instance state: %s", instance.Lifecycle.State).
+			Error()
 		instance.Lifecycle.End(action.StateFailed)
 
 		return fmt.Errorf("unexpected operation instance state: %s", instance.Lifecycle.State)

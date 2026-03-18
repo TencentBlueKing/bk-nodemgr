@@ -945,6 +945,9 @@
           "additionalProperties": {
             "$ref": "#/definitions/v3WorkflowActionData"
           }
+        },
+        "extra_execution_logs": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
         }
       }
     },
