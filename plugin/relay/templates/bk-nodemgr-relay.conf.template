@@ -60,7 +60,7 @@ downloadServer:
   traceSampleRate: 0
 
 relayWorkspaceFileGroup:
-  fullPath: {{ .CustomContext.WorkspaceFileGroupFullPath | default "/tmp/bknm" }}
+  fullPath: {{ .CustomContext.WorkspaceFileGroupFullPath | default "/tmp/bknm/relay" }}
 
 {{- if .CustomContext.Tracing }}
 tracing:

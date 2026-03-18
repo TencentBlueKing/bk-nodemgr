@@ -258,7 +258,7 @@ configTemplates:
             properties:
       - title: WorkspaceFileGroupFullPath
         type: string
-        default: /tmp/bknm/
+        default: /tmp/bknm/relay/
         required: false
         description: 文件分发工作空间路径
         descriptionEn: File Distribution Workspace Path
