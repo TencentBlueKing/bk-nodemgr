@@ -11,12 +11,50 @@
 package backend
 
 import (
+	"fmt"
+
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // CodeOK defines the success code.
 const CodeOK = 0
+
+type backendBaseResp interface {
+	GetCode() int32
+	GetMessage() string
+	GetRequestId() string
+}
+
+type backendPermissionError struct {
+	message string
+}
+
+func (err *backendPermissionError) Error() string {
+	if err.message != "" {
+		return err.message
+	}
+
+	return "permission denied"
+}
+
+func (err *backendPermissionError) PermissionData() resterrf.Permission {
+	return resterrf.Permission{}
+}
+
+func buildBackendResponseError(apiName string, resp backendBaseResp, errInfo any) error {
+	baseErr := fmt.Errorf("%s failed. code(%d), message(%s), error(%v), request-id(%s)",
+		apiName, resp.GetCode(), resp.GetMessage(), errInfo, resp.GetRequestId())
+
+	if resterrf.Code(resp.GetCode()) != resterrf.PermissionDenied {
+		return baseErr
+	}
+
+	permErr := &backendPermissionError{message: resp.GetMessage()}
+
+	return fmt.Errorf("%w: %w", baseErr, permErr)
+}
 
 func convertPage(page types.Page) *protoBackend.Page {
 	return &protoBackend.Page{

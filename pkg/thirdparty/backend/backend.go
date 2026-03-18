@@ -101,8 +101,7 @@ func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusiness
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list business failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list business", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -132,8 +131,7 @@ func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list host failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list host", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -163,8 +161,7 @@ func (c *cli) selectHostID(ctx contextx.IContext, req *protoBackend.TopoHostSele
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("select host id failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("select host id", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -194,8 +191,7 @@ func (c *cli) selectInnerIP(ctx contextx.IContext, req *protoBackend.TopoHostSel
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("select inner ip failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("select inner ip", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -225,8 +221,7 @@ func (c *cli) selectInnerIPV6(ctx contextx.IContext, req *protoBackend.TopoHostS
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("select inner ipv6 failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("select inner ipv6", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -256,8 +251,7 @@ func (c *cli) selectNetWorkareaIDAndInnerIP(ctx contextx.IContext, req *protoBac
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("select networkarea id and inner ip failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("select networkarea id and inner ip", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -287,8 +281,7 @@ func (c *cli) selectNetWorkareaIDAndInnerIPV6(ctx contextx.IContext, req *protoB
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("select networkarea id and inner ipv6 failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("select networkarea id and inner ipv6", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -380,8 +373,7 @@ func (c *cli) distinctHost(ctx contextx.IContext, req *protoBackend.TopoHostDist
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct host failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct host", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -411,8 +403,7 @@ func (c *cli) createNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("create networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("create networkarea", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -442,8 +433,7 @@ func (c *cli) updateNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("update networkarea", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -471,8 +461,7 @@ func (c *cli) listNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetwo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list networkarea", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -502,8 +491,7 @@ func (c *cli) getNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetwor
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get networkarea", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -533,8 +521,7 @@ func (c *cli) deleteNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("delete networkarea failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("delete networkarea", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -564,8 +551,7 @@ func (c *cli) createNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("create networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("create networkunit", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -595,8 +581,7 @@ func (c *cli) updateNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("update networkunit", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -626,8 +611,7 @@ func (c *cli) getNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetwor
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get networkunit", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -657,8 +641,7 @@ func (c *cli) listNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetwo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list networkunit", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -688,8 +671,7 @@ func (c *cli) deleteNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("delete networkunit failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("delete networkunit", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -719,8 +701,7 @@ func (c *cli) listTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEventLi
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list topoevent failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list topoevent", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -750,8 +731,7 @@ func (c *cli) distinctTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEve
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct topoevent failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct topoevent", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -781,8 +761,7 @@ func (c *cli) listAccessPoint(ctx contextx.IContext, req *protoBackend.TopoAcces
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list accesspoint failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list accesspoint", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -812,8 +791,7 @@ func (c *cli) getConstant(ctx contextx.IContext, req *protoBackend.TopoConstantG
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get constant failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get constant", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -843,8 +821,7 @@ func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNod
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get graph node failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get graph node", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -879,8 +856,7 @@ func (c *cli) listNodeWorkflow(ctx contextx.IContext, req *protoBackend.NodeWork
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list workflow failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list workflow", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -910,8 +886,7 @@ func (c *cli) distinctNodeWorkflow(ctx contextx.IContext, req *protoBackend.Node
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct workflow failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct workflow", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -941,8 +916,7 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list workflow operation", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -972,8 +946,7 @@ func (c *cli) distinctNodeWorkflowOperation(ctx contextx.IContext, req *protoBac
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct workflow operation", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1005,8 +978,7 @@ func (c *cli) listNodeWorkflowOperationInstance(
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list workflow operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list workflow operation instance", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1038,8 +1010,7 @@ func (c *cli) getNodeWorkflowOperationInstanceLog(
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get workflow operation instance logs failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get workflow operation instance logs", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1070,8 +1041,7 @@ func (c *cli) retryNodeWorkflowOperation(ctx contextx.IContext, req *protoBacken
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("retry operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("retry operation", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -1096,8 +1066,7 @@ func (c *cli) terminateNodeWorkflowOperation(ctx contextx.IContext, req *protoBa
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("terminate operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("terminate operation instance", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -1123,8 +1092,7 @@ func (c *cli) getNodeWorkflowManualInfo(
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get workflow operation manual info failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get workflow operation manual info", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1156,8 +1124,7 @@ func (c *cli) listNodeWorkflowOperationInstanceStatusDistribution(
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list operation instance status distribution failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list operation instance status distribution", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1192,8 +1159,7 @@ func (c *cli) installNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgen
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("install node agent failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("install node agent", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1384,8 +1350,7 @@ func (c *cli) checkInstallAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("check install agent failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("check install agent", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1606,8 +1571,7 @@ func (c *cli) checkInstallProxy(ctx contextx.IContext, req *protoBackend.NodePro
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("check install proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("check install proxy", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1642,8 +1606,7 @@ func (c *cli) listReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageR
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list agent release", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1674,8 +1637,7 @@ func (c *cli) distinctReleaseAgent(ctx contextx.IContext, req *protoBackend.Pack
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct agent release", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1853,8 +1815,7 @@ func (c *cli) listReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageR
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list release proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list release proxy", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -1885,8 +1846,7 @@ func (c *cli) distinctReleaseProxy(ctx contextx.IContext, req *protoBackend.Pack
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct release proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct release proxy", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2064,8 +2024,7 @@ func (c *cli) listReleasePlugin(ctx contextx.IContext, req *protoBackend.Package
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list release proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list release proxy", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2215,8 +2174,7 @@ func (c *cli) listReleaseCert(ctx contextx.IContext, req *protoBackend.PackageRe
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list cert release failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list cert release", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2271,8 +2229,7 @@ func (c *cli) listReleaseBinTool(ctx contextx.IContext, req *protoBackend.Packag
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list bintool release failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list bintool release", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2327,8 +2284,7 @@ func (c *cli) listReleasePluginBinTool(ctx contextx.IContext, req *protoBackend.
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugin bintool release failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list plugin bintool release", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2387,8 +2343,7 @@ func (c *cli) listConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPo
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2413,8 +2368,7 @@ func (c *cli) getConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPol
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2439,8 +2393,7 @@ func (c *cli) createConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("create config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("create config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2465,8 +2418,7 @@ func (c *cli) updateConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("update config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2491,8 +2443,7 @@ func (c *cli) enableConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("enable config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("enable config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2517,8 +2468,7 @@ func (c *cli) disableConfigPolicy(ctx contextx.IContext, req *protoBackend.Confi
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("disable config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("disable config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2543,8 +2493,7 @@ func (c *cli) deleteConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("delete config policy failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("delete config policy", resp, resp.GetError())
 	}
 
 	return resp, nil
@@ -2569,8 +2518,7 @@ func (c *cli) listConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.Con
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list config policy event", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2600,8 +2548,7 @@ func (c *cli) distinctConfigPolicyEvent(ctx contextx.IContext, req *protoBackend
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct config policy event", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2635,8 +2582,7 @@ func (c *cli) listPackageEvent(ctx contextx.IContext, req *protoBackend.PackageE
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list package event failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list package event", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2666,8 +2612,7 @@ func (c *cli) distinctPackageEvent(ctx contextx.IContext, req *protoBackend.Pack
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct package event failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct package event", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2699,8 +2644,7 @@ func (c *cli) listPlugins(ctx contextx.IContext, req *protoBackend.PluginListReq
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugins failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list plugins", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2729,8 +2673,7 @@ func (c *cli) installPlugin(ctx contextx.IContext, req *protoBackend.PluginInsta
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("install plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("install plugin", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2759,8 +2702,7 @@ func (c *cli) upgradePlugin(ctx contextx.IContext, req *protoBackend.PluginUpgra
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("upgrade plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("upgrade plugin", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2789,8 +2731,7 @@ func (c *cli) uninstallPlugin(ctx contextx.IContext, req *protoBackend.PluginUni
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("uninstall plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("uninstall plugin", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2819,8 +2760,7 @@ func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.Plug
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("apply plugin sub config failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("apply plugin sub config", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2855,8 +2795,7 @@ func (c *cli) listProcesses(ctx contextx.IContext, req *protoBackend.ProcessList
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list processes failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list processes", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2887,8 +2826,7 @@ func (c *cli) getProcessDistributionByHostID(ctx contextx.IContext, req *protoBa
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get process distribution by host id failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get process distribution by host id", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2919,8 +2857,7 @@ func (c *cli) getProcessDistributionByPluginName(ctx contextx.IContext, req *pro
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get process distribution by plugin name failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get process distribution by plugin name", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2952,8 +2889,7 @@ func (c *cli) distinctProcess(ctx contextx.IContext, req *protoBackend.ProcessDi
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct process failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct process", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -2987,8 +2923,7 @@ func (c *cli) listPluginWorkflows(ctx contextx.IContext, req *protoBackend.Plugi
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugin workflows failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list plugin workflows", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3019,8 +2954,7 @@ func (c *cli) distinctPluginWorkflows(ctx contextx.IContext, req *protoBackend.P
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct plugin workflows failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct plugin workflows", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3051,8 +2985,7 @@ func (c *cli) listPluginWorkflowOperation(ctx contextx.IContext, req *protoBacke
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list plugin workflow operation", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3083,8 +3016,7 @@ func (c *cli) distinctPluginWorkflowOperation(ctx contextx.IContext, req *protoB
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("distinct plugin workflow operation", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3115,8 +3047,7 @@ func (c *cli) listPluginWorkflowOperationInstance(ctx contextx.IContext, req *pr
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugin workflow operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list plugin workflow operation instance", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3147,8 +3078,7 @@ func (c *cli) getPluginWorkflowOperationInstanceLog(ctx contextx.IContext, req *
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get plugin workflow operation instance log failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get plugin workflow operation instance log", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3180,8 +3110,7 @@ func (c *cli) listPluginWorkflowOperationInstanceStatusDistribution(ctx contextx
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugin workflow operation instance status distribution failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("list plugin workflow operation instance status distribution", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
@@ -3286,8 +3215,7 @@ func (c *cli) getRSAPublicKey(ctx contextx.IContext, req *protoBackend.GetRSAPub
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get RSA public key failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+		return nil, buildBackendResponseError("get RSA public key", resp, resp.GetError())
 	}
 
 	if resp.GetData() == nil {
