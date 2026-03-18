@@ -125,6 +125,14 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	if err = std.DeployInfo().Host.Dynamic.NodeOsType.Validate(); err != nil {
+		return fmt.Errorf("host dynamic has invalid node_os_type. host-id(%d): %w", std.DeployInfo().Host.HostID, err)
+	}
+
+	if err = std.DeployInfo().Host.Dynamic.NodeCPUArch.Validate(); err != nil {
+		return fmt.Errorf("host dynamic has invalid node_cpu_arch. host-id(%d): %w", std.DeployInfo().Host.HostID, err)
+	}
+
 	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)

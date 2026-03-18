@@ -19,6 +19,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
@@ -37,6 +38,8 @@ type StepArgs struct {
 	AgentID         string
 	OperInstID      string
 	CallbackSvrAddr []string
+	SkipCallback    bool
+	DataFilePath    string
 }
 
 // String step args string message.
@@ -50,8 +53,20 @@ func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
+// dataFileContent is the JSON structure written to the local data file in skip-callback mode.
+// SYNC: must stay in sync with sshDataFile in internal/backend/manager/workflowdef/node/action_wait_installer_complete.go.
+type dataFileContent struct {
+	AgentID    string `json:"agent_id"`
+	Token      string `json:"token"`
+	OperInstID string `json:"oper_inst_id"`
+}
+
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
+	if step.args.SkipCallback {
+		return step.writeDataFile()
+	}
+
 	logger.Infof(node.StepReportData, "start to report data. %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -68,6 +83,30 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 
 	logger.Infof(node.StepReportData, "successfully reported data")
+
+	return nil
+}
+
+func (step *Step) writeDataFile() error {
+	logger.Infof(node.StepReportData, "skip-callback mode: writing data to %s", step.args.DataFilePath)
+
+	content := dataFileContent{
+		AgentID:    step.args.AgentID,
+		Token:      step.args.Token,
+		OperInstID: step.args.OperInstID,
+	}
+
+	data, err := json.Marshal(content)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data file: %w", err)
+	}
+
+	// nolint: gosec
+	if err := os.WriteFile(step.args.DataFilePath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write data file: %w", err)
+	}
+
+	logger.Infof(node.StepReportData, "wrote data file: agent_id=%s", step.args.AgentID)
 
 	return nil
 }

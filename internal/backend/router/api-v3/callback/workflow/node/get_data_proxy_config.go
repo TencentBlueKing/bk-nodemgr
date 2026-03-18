@@ -14,6 +14,7 @@ package node
 import (
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
@@ -48,10 +49,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(Template{
-		UniqueKey: types.ConfigKeyData,
-		Content:   nodeConf.ConfigTemplate[types.ConfigKeyData],
-	}, nodeConf)
+	conf, err := nodeconfig.RenderNodeConfig(types.ConfigKeyData, nodeConf)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse data proxy config, failed to render config")
 		gCtx.JSON(http.StatusInternalServerError, err.Error())
@@ -60,6 +58,4 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 	}
 
 	gCtx.IndentedJSON(http.StatusOK, conf)
-
-	return
 }

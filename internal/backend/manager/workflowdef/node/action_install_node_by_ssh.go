@@ -11,6 +11,7 @@
 package node
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -27,6 +29,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -73,6 +77,8 @@ type InstallParams struct {
 	BaseWorkDir     string
 	BaseDeployDir   string
 	AdditionArgs    []string
+	SkipCallback    bool
+	SkipDownload    bool
 }
 
 type actionInstallNodeBySSH struct {
@@ -113,7 +119,7 @@ func (act *actionInstallNodeBySSH) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionInstallNodeBySSH) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 5 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
@@ -202,7 +208,18 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to ensure installer tool through ssh: %w", err)
 	}
 
-	// execute install cmd.
+	// if the node is a proxy and it is a cross-unit install, handle it with SSH-only mode.
+	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy &&
+		std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID != std.DeployInfo().Host.Dynamic.NetworkUnitID {
+
+		if err := act.doCrossUnitProxyInstall(std, client, param, installerPath); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// normal install.
 	if err := act.executeInstallCMD(std, client, installerPath); err != nil {
 		return fmt.Errorf("failed to execute install cmd: %w", err)
 	}
@@ -213,6 +230,252 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) error {
 	}); err != nil {
 		return fmt.Errorf("failed to update instance data content: %w", err)
 	}
+
+	return nil
+}
+
+// doCrossUnitProxyInstall handles the SSH-only install flow for cross-unit proxy deployment.
+func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(
+	std *nodeUtils.NodeActionStandarder,
+	client *sshx.Client,
+	param *ActParamInstallAgentBySSH,
+	installerPath string,
+) error {
+
+	std.InstanceData().Log().
+		Zh("检测到跨管控单元 Proxy 安装，使用 SSH-Only 模式").
+		En("cross-unit proxy install detected, using SSH-Only mode").
+		Info()
+
+	// pre-render configs and checklist, then push via SFTP.
+	if err := act.ensureProxyArtifacts(std, client); err != nil {
+		return fmt.Errorf("failed to ensure proxy artifacts: %w", err)
+	}
+
+	// execute install command with skip flags.
+	if err := act.executeSSHOnlyProxyInstallCMD(std, client, installerPath); err != nil {
+		return fmt.Errorf("failed to execute ssh-only proxy install cmd: %w", err)
+	}
+
+	// pass UseSSHPolling marker to WaitInstallerComplete.
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+		NodeActionStandardParam: param.NodeActionStandardParam,
+		EnsureAgentID:           true,
+		UseSSHPolling:           true,
+	}); err != nil {
+		return fmt.Errorf("failed to update instance data content: %w", err)
+	}
+
+	return nil
+}
+
+// ensureProxyArtifacts pre-renders GSE config files and checklist, pushes them to target via SFTP.
+func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
+	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), std.Token())
+	if err != nil {
+		return fmt.Errorf("failed to get node conf: %w", err)
+	}
+
+	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
+	configDir := path.Join(dataDir, "config")
+	if _, stderr, err := client.RunCommand("mkdir -p " + configDir); err != nil {
+		return fmt.Errorf("failed to mkdir config dir, stderr(%s): %w", stderr, err)
+	}
+
+	// render and push each config file.
+	configKeys := map[string]string{
+		types.ConfigKeyAgent: "gse_agent.conf",
+		types.ConfigKeyFile:  "gse_file_proxy.conf",
+		types.ConfigKeyData:  "gse_data_proxy.conf",
+	}
+
+	for key, filename := range configKeys {
+		rendered, err := nodeconfig.RenderNodeConfig(key, nodeConf)
+		if err != nil {
+			return fmt.Errorf("failed to render config %s: %w", key, err)
+		}
+
+		configBytes, err := json.MarshalIndent(rendered, "", "    ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal rendered config %s: %w", key, err)
+		}
+
+		remotePath := path.Join(configDir, filename)
+		if err := client.TransferFile(io.NopCloser(strings.NewReader(string(configBytes))), remotePath); err != nil {
+			return fmt.Errorf("failed to transfer config %s: %w", filename, err)
+		}
+
+		std.InstanceData().Log().
+			Zh("已推送配置文件: %s", remotePath).
+			En("pushed config file: %s", remotePath).
+			Info()
+	}
+
+	// render and push checklist.
+	// Reuse std.DeployInfo() which was loaded during Initialize(), avoiding a redundant storage query.
+	checkList, err := nodeconfig.BuildCheckList(std.DeployInfo(), nodeConf)
+	if err != nil {
+		return fmt.Errorf("failed to build checklist: %w", err)
+	}
+
+	checkListBytes, err := json.Marshal(checkList)
+	if err != nil {
+		return fmt.Errorf("failed to marshal checklist: %w", err)
+	}
+
+	checkListPath := path.Join(dataDir, "precheck.json")
+	if err := client.TransferFile(io.NopCloser(strings.NewReader(string(checkListBytes))), checkListPath); err != nil {
+		return fmt.Errorf("failed to transfer checklist: %w", err)
+	}
+
+	std.InstanceData().Log().
+		Zh("已推送预检清单: %s", checkListPath).
+		En("pushed checklist: %s", checkListPath).
+		Info()
+
+	// push release package via SFTP.
+	if err := act.pushProxyReleasePackage(std, client); err != nil {
+		return fmt.Errorf("failed to push release package: %w", err)
+	}
+
+	return nil
+}
+
+// pushProxyReleasePackage downloads the proxy release package and pushes it to the target via SFTP.
+func (act *actionInstallNodeBySSH) pushProxyReleasePackage(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
+	// Resolve the target filename first so that openReleaseReader's reader is not
+	// leaked when FormatPkgFileName fails.
+	plat := platfmt.NewPlatform(
+		std.DeployInfo().Host.Dynamic.NodeOsType,
+		std.DeployInfo().Host.Dynamic.NodeCPUArch,
+	)
+
+	// The remote filename must match the installer's GenReleasePkgName convention,
+	// which uses NodeRole ("proxy") rather than ReleaseType ("origin_proxy").
+	installerPkgName, err := nodepkg.FormatPkgFileName(
+		std.DeployInfo().Host.Dynamic.NodeGeneration,
+		types.ReleaseTypeProxy,
+		plat,
+		std.DeployInfo().Host.Dynamic.NodeVersion,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to format installer pkg name: %w", err)
+	}
+
+	reader, _, err := act.openReleaseReader(std)
+	if err != nil {
+		return fmt.Errorf("failed to get release package: %w", err)
+	}
+
+	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
+	remotePath := path.Join(dataDir, installerPkgName)
+	if err := client.TransferFile(reader, remotePath); err != nil {
+		return fmt.Errorf("failed to transfer release package: %w", err)
+	}
+
+	std.InstanceData().Log().
+		Zh("已推送 release 包: %s", remotePath).
+		En("pushed release package: %s", remotePath).
+		Info()
+
+	return nil
+}
+
+// openReleaseReader returns a reader for the release package (proxy).
+func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, string, error) {
+	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
+	osType := std.DeployInfo().Host.Dynamic.NodeOsType
+	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
+	version := std.DeployInfo().Host.Dynamic.NodeVersion
+	plat := platfmt.NewPlatform(osType, cpuArch)
+
+	pkgFileName, err := nodepkg.FormatPkgFileName(gen, types.ReleaseTypeOriginProxy, plat, version)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to format release pkg name: %w", err)
+	}
+
+	if act.fileCache == nil {
+		resp, err := act.fileHandler.DownloadReleaseProxy(std.Context(), gen, plat, version)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to download release proxy: %w", err)
+		}
+
+		return resp.Data, pkgFileName, nil
+	}
+
+	fileInfo, err := act.fileHandler.InfoReleaseProxy(std.Context(), gen, plat, version)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get release proxy info: %w", err)
+	}
+
+	cachedFile, _, err := act.fileCache.GetOrFetch(std.Context(), fileInfo.Name, fileInfo.MD5,
+		func(nCtx contextx.IContext) (io.ReadCloser, error) {
+			resp, dlErr := act.fileHandler.DownloadReleaseProxy(nCtx, gen, plat, version)
+			if dlErr != nil {
+				return nil, dlErr
+			}
+
+			return resp.Data, nil
+		})
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get release proxy from file cache: %w", err)
+	}
+
+	reader, err := cachedFile.Content(std.Context())
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to open cached release content: %w", err)
+	}
+
+	return reader, pkgFileName, nil
+}
+
+// executeSSHOnlyProxyInstallCMD builds and runs the ssh only installer command with --skip_callback --skip_download flags.
+func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
+	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
+
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to get deploy constant: %w", err)
+	}
+
+	installParams := &InstallParams{
+		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
+		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
+		InstallerPath: installerPath,
+		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
+		DeployToken:   std.Token(),
+		OperInstID:    std.InstanceData().OperationInstanceID,
+		BaseWorkDir:   deployConstant.BaseWorkDir,
+		BaseDeployDir: deployConstant.BaseDeployDir,
+		SkipCallback:  true,
+		SkipDownload:  true,
+	}
+
+	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
+		installParams.AdditionArgs = append(installParams.AdditionArgs,
+			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
+	}
+
+	installCmd := act.buildCMD(installParams)
+	std.InstanceData().Log().
+		Zh("安装节点命令（跨管控单元 SSH-only）: %s", installCmd).
+		En("install node cmd (cross-unit SSH-only): %s", installCmd).
+		Info()
+
+	outStr, _, err := client.RunCommand(fmt.Sprintf(
+		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
+		std.DeployInfo().InstallerWorkDir,
+		std.DeployInfo().InstallerWorkDir,
+		installCmd),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to run install node: %w", err)
+	}
+
+	std.InstanceData().Log().
+		Zh("安装节点结果: %s", outStr).
+		En("install node result: %s", outStr).
+		Info()
 
 	return nil
 }
@@ -380,12 +643,23 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 	}
+
+	if param.SkipCallback {
+		args = append(args, "--skip_callback")
+	} else {
+		args = append(args, fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr))
+	}
+
+	if param.SkipDownload {
+		args = append(args, "--skip_download")
+	} else {
+		args = append(args, fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr))
+	}
+
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}

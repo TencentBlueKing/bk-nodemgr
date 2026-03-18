@@ -12,9 +12,9 @@
 package node
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
@@ -49,20 +49,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		return
 	}
 
-	configTemplate, ok := nodeConf.ConfigTemplate[types.ConfigKeyAgent]
-	if !ok {
-		err := fmt.Errorf("config template not found: %s", types.ConfigKeyAgent)
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, config template not found")
-
-		gCtx.IndentedJSON(http.StatusInternalServerError, err)
-
-		return
-	}
-
-	conf, err := RenderConfig(Template{
-		UniqueKey: types.ConfigKeyAgent,
-		Content:   configTemplate,
-	}, nodeConf)
+	conf, err := nodeconfig.RenderNodeConfig(types.ConfigKeyAgent, nodeConf)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, failed to render config")
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
@@ -71,6 +58,4 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 	}
 
 	gCtx.IndentedJSON(http.StatusOK, conf)
-
-	return
 }

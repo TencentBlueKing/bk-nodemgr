@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package node ...
-package node
+package nodeconfig
 
 import (
 	"testing"
@@ -33,7 +32,7 @@ func TestRenderConfig(t *testing.T) {
 			name: "test",
 			args: args{
 				template: Template{
-					UniqueKey: UniqueKeyFile,
+					UniqueKey: types.ConfigKeyFile,
 					Content: `{
     "run_mode": "proxy",
     "cloud_id": __BK_GSE_CLOUD_ID__,

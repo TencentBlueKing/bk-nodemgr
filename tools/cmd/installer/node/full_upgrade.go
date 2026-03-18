@@ -85,6 +85,8 @@ func NewFullUpgrade() *cobra.Command {
 		},
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
+			CleanOldReleasePackages(persistentVars.DataDir, pkgPath)
+
 			// init log settings.
 			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
 			if len(callbackSvrAddrs) == 0 {

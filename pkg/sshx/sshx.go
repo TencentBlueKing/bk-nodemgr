@@ -259,14 +259,21 @@ func (cli *Client) Close() error {
 	return cli.sshClient.Close()
 }
 
+// copyBufSize is the io.CopyBuffer read-side buffer size.
+// A larger buffer reduces syscall overhead without affecting SFTP packet framing.
+const copyBufSize = 1 << 20 // 1 MiB
+
 // TransferFile transfer file.
 func (cli *Client) TransferFile(file io.ReadCloser, destPath string) error {
 	defer func() { _ = file.Close() }()
 
-	sftpClient, err := sftp.NewClient(cli.sshClient)
+	sftpClient, err := sftp.NewClient(cli.sshClient,
+		sftp.UseConcurrentWrites(true),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create sftp client: %w", err)
 	}
+	defer func() { _ = sftpClient.Close() }()
 
 	destDir := path.Dir(destPath)
 	if err := sftpClient.MkdirAll(destDir); err != nil {
@@ -279,7 +286,8 @@ func (cli *Client) TransferFile(file io.ReadCloser, destPath string) error {
 	}
 	defer func() { _ = destFile.Close() }()
 
-	if _, err := io.Copy(destFile, file); err != nil {
+	buf := make([]byte, copyBufSize)
+	if _, err := io.CopyBuffer(destFile, file, buf); err != nil {
 		return fmt.Errorf("failed to copy file: %w", err)
 	}
 

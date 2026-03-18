@@ -26,6 +26,14 @@ const (
 
 // FormatInstallerName formats the tools name based on the OS type and CPU architecture.
 func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (string, error) {
+	if err := osType.Validate(); err != nil {
+		return "", fmt.Errorf("invalid os type for installer name: %w", err)
+	}
+
+	if err := cpuArch.Validate(); err != nil {
+		return "", fmt.Errorf("invalid cpu arch for installer name: %w", err)
+	}
+
 	toolName := fmt.Sprintf("%s_%s_%s", NamePrefixInstaller, osType, cpuArch)
 
 	if osType == criteria.OSWindows {

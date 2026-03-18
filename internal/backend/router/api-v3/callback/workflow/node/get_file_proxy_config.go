@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
@@ -24,7 +25,6 @@ import (
 
 // GetFileProxyConfig get file proxy config.
 func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
-
 	nCtx := contextx.New(gCtx)
 
 	req := new(protoCallback.GetFileProxyConfReq)
@@ -50,10 +50,7 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 		return
 	}
 
-	conf, err := RenderConfig(Template{
-		UniqueKey: types.ConfigKeyFile,
-		Content:   nodeConf.ConfigTemplate[types.ConfigKeyFile],
-	}, nodeConf)
+	conf, err := nodeconfig.RenderNodeConfig(types.ConfigKeyFile, nodeConf)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse file proxy config, failed to render config")
 		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("render gse file proxy config failed: %w", err))
@@ -62,6 +59,4 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 	}
 
 	gCtx.IndentedJSON(http.StatusOK, conf)
-
-	return
 }

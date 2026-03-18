@@ -48,9 +48,11 @@ func NewFullInstall() *cobra.Command {
 		nodeVersion     string
 
 		// optional flags.
-		logDir   string
-		logToStd bool
-		agentID  string
+		logDir       string
+		logToStd     bool
+		agentID      string
+		skipDownload bool
+		skipCallback bool
 
 		// pre-run.
 		persistentVars   *persistent.Variables
@@ -64,6 +66,14 @@ func NewFullInstall() *cobra.Command {
 		Short: "Full install process",
 		Long:  "Full install process",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			if downloadSvrAddr == "" && !skipDownload {
+				return fmt.Errorf("%s is required when %s is not set", flag2.DownloadSvrAddr, flag2.SkipDownload)
+			}
+
+			if callbackSvrAddr == "" && !skipCallback {
+				return fmt.Errorf("%s is required when %s is not set", flag2.CallbackSvrAddr, flag2.SkipCallback)
+			}
+
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
@@ -83,22 +93,29 @@ func NewFullInstall() *cobra.Command {
 		},
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
-			// init log settings.
-			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
-			if len(callbackSvrAddrs) == 0 {
-				return fmt.Errorf("callback server address is empty or invalid")
+			CleanOldReleasePackages(persistentVars.DataDir, pkgPath)
+
+			var callbackSvrAddrs []string
+			var logURLs []string
+			if !skipCallback {
+				callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+				if len(callbackSvrAddrs) == 0 {
+					return fmt.Errorf("callback server address is empty or invalid")
+				}
+				var err error
+				logURLs, err = reportLogURLs(callbackSvrAddrs)
+				if err != nil {
+					return fmt.Errorf("failed to build log report URLs: %w", err)
+				}
 			}
-			logURLs, err := reportLogURLs(callbackSvrAddrs)
-			if err != nil {
-				return fmt.Errorf("failed to build log report URLs: %w", err)
-			}
+
 			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, logURLs)
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
 
-			// report status.
+			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
 			defer func() {
 				state := types.ProcessStateSuccess
 				if runErr != nil {
@@ -110,27 +127,31 @@ func NewFullInstall() *cobra.Command {
 					OperInstID:      operInstID,
 					Status:          state,
 					CallbackSvrAddr: callbackSvrAddrs,
+					SkipCallback:    skipCallback,
+					StatusFilePath:  statusFilePath,
+					ErrorMessage:    errString(runErr),
 				}).Run(cmd.Context())
 			}()
 
-			// download files.
-			downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
-			if len(downloadSvrAddrs) == 0 {
-				return fmt.Errorf("download server address is empty or invalid")
-			}
+			if !skipDownload {
+				downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
+				if len(downloadSvrAddrs) == 0 {
+					return fmt.Errorf("download server address is empty or invalid")
+				}
 
-			if err := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr:    downloadSvrAddrs,
-				CallbackSvrAddr:    callbackSvrAddrs,
-				NodeRole:           persistentVars.NodeRole,
-				Generation:         persistentVars.Generation,
-				DeployToken:        deployToken,
-				PkgVersion:         nodeVersion,
-				PkgSavedPath:       pkgPath,
-				ConfigSavedDir:     persistentVars.ConfigDir,
-				CheckListSavedPath: preCheckListConf,
-			}).Run(cmd.Context()); err != nil {
-				return err
+				if err := filedownloader.NewStep(filedownloader.StepArgs{
+					DownloadSvrAddr:    downloadSvrAddrs,
+					CallbackSvrAddr:    callbackSvrAddrs,
+					NodeRole:           persistentVars.NodeRole,
+					Generation:         persistentVars.Generation,
+					DeployToken:        deployToken,
+					PkgVersion:         nodeVersion,
+					PkgSavedPath:       pkgPath,
+					ConfigSavedDir:     persistentVars.ConfigDir,
+					CheckListSavedPath: preCheckListConf,
+				}).Run(cmd.Context()); err != nil {
+					return err
+				}
 			}
 
 			// Stop node.
@@ -192,12 +213,14 @@ func NewFullInstall() *cobra.Command {
 				return err
 			}
 
-			// report data.
+			dataFilePath := filepath.Join(persistentVars.DataDir, "installer.data.json")
 			if err := datareporter.NewStep(datareporter.StepArgs{
 				CallbackSvrAddr: callbackSvrAddrs,
 				Token:           deployToken,
 				OperInstID:      operInstID,
 				AgentID:         installResult.AgentID,
+				SkipCallback:    skipCallback,
+				DataFilePath:    dataFilePath,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -209,12 +232,8 @@ func NewFullInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, flag2.DownloadSvrAddr, "", "download server address, for downloading release files and reporting status")
-	_ = fullCmd.MarkFlagRequired(flag2.DownloadSvrAddr)
-
-	fullCmd.Flags().StringVar(&callbackSvrAddr, flag2.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = fullCmd.MarkFlagRequired(flag2.CallbackSvrAddr)
-
+	fullCmd.Flags().StringVar(&downloadSvrAddr, flag2.DownloadSvrAddr, "", "download server address. if skip_download is set, this can be empty")
+	fullCmd.Flags().StringVar(&callbackSvrAddr, flag2.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
 	fullCmd.Flags().StringVar(&deployToken, flag2.DeployToken, "", "deploy token, contains the details of files")
 	_ = fullCmd.MarkFlagRequired(flag2.DeployToken)
 
@@ -230,6 +249,15 @@ func NewFullInstall() *cobra.Command {
 	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().StringVar(&agentID, flag2.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
+	fullCmd.Flags().BoolVar(&skipDownload, flag2.SkipDownload, false, "whether to skip downloading files")
+	fullCmd.Flags().BoolVar(&skipCallback, flag2.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
+}
+
+func errString(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }

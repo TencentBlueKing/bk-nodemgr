@@ -19,6 +19,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
@@ -38,6 +39,9 @@ type StepArgs struct {
 	OperInstID      string
 	Status          types.ProcessState
 	CallbackSvrAddr []string
+	SkipCallback    bool
+	StatusFilePath  string
+	ErrorMessage    string
 }
 
 // String step args string message.
@@ -51,8 +55,20 @@ func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
+// statusFileContent is the JSON structure written to the local status file in skip-callback mode.
+// SYNC: must stay in sync with sshStatusFile in internal/backend/manager/workflowdef/node/action_wait_installer_complete.go.
+type statusFileContent struct {
+	OperInstID string `json:"oper_inst_id"`
+	Status     string `json:"status"`
+	Error      string `json:"error,omitempty"`
+}
+
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
+	if step.args.SkipCallback {
+		return step.writeStatusFile()
+	}
+
 	logger.Infof(node.StepReportStatus, "start to report status: %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -71,6 +87,30 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 
 	logger.Infof(node.StepReportStatus, "reported status")
+
+	return nil
+}
+
+func (step *Step) writeStatusFile() error {
+	logger.Infof(node.StepReportStatus, "skip-callback mode: writing status to %s", step.args.StatusFilePath)
+
+	content := statusFileContent{
+		OperInstID: step.args.OperInstID,
+		Status:     string(step.args.Status),
+		Error:      step.args.ErrorMessage,
+	}
+
+	data, err := json.Marshal(content)
+	if err != nil {
+		return fmt.Errorf("failed to marshal status file: %w", err)
+	}
+
+	// nolint: gosec
+	if err := os.WriteFile(step.args.StatusFilePath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write status file: %w", err)
+	}
+
+	logger.Infof(node.StepReportStatus, "wrote status file: status=%s", step.args.Status)
 
 	return nil
 }

@@ -74,4 +74,7 @@ const (
 
 	// SkipDownload defines the skip download flag.
 	SkipDownload = "skip_download"
+
+	// SkipCallback defines the skip callback flag.
+	SkipCallback = "skip_callback"
 )

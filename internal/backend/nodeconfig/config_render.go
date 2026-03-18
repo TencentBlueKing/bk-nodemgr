@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package node ...
-package node
+// Package nodeconfig provides shared config rendering and pre-check logic for node deployment.
+package nodeconfig
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Template is a template.
+// Template is a config template with a unique key and raw content.
 type Template struct {
 	UniqueKey string
 	Content   string
@@ -33,7 +33,7 @@ type Template struct {
 // ConfigFieldRegex is the regex of config field.
 const ConfigFieldRegex = `__BK_.*?__`
 
-// RenderConfig render config.
+// RenderConfig renders a config template with pre-settings and custom settings from NodeConf.
 func RenderConfig(template Template, nodeConf *types.NodeConf) (*orderjson.OrderedData, error) {
 	config, err := renderPreSetting(template.Content, nodeConf)
 	if err != nil {
@@ -41,7 +41,6 @@ func RenderConfig(template Template, nodeConf *types.NodeConf) (*orderjson.Order
 	}
 
 	if nodeConf.CustomSetting != nil {
-		// append custom setting to config.
 		for key, value := range nodeConf.CustomSetting {
 			if err := renderCustomSetting(template.UniqueKey, config, key, value); err != nil {
 				return nil, err
@@ -50,6 +49,17 @@ func RenderConfig(template Template, nodeConf *types.NodeConf) (*orderjson.Order
 	}
 
 	return config, nil
+}
+
+// RenderNodeConfig is a convenience wrapper that looks up the config template by key
+// from nodeConf.ConfigTemplate and renders it. Returns an error if the template is missing.
+func RenderNodeConfig(configKey string, nodeConf *types.NodeConf) (*orderjson.OrderedData, error) {
+	templateContent, ok := nodeConf.ConfigTemplate[configKey]
+	if !ok {
+		return nil, fmt.Errorf("config template not found: %s", configKey)
+	}
+
+	return RenderConfig(Template{UniqueKey: configKey, Content: templateContent}, nodeConf)
 }
 
 func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderjson.OrderedData, error) {
@@ -63,7 +73,6 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderj
 
 		value, ok := nodeConf.PreSetting[key]
 		if !ok {
-			// if not found, we ignore it.
 			continue
 		}
 
@@ -77,7 +86,7 @@ func renderPreSetting(templateContent string, nodeConf *types.NodeConf) (*orderj
 
 			configStr = strings.ReplaceAll(configStr, item[0], string(bytes))
 		default:
-			configStr = strings.ReplaceAll(configStr, item[0], escapeForJson(fmt.Sprintf("%v", value)))
+			configStr = strings.ReplaceAll(configStr, item[0], escapeForJSON(fmt.Sprintf("%v", value)))
 		}
 	}
 
@@ -99,7 +108,6 @@ func renderCustomSetting(uniqueKey string, config *orderjson.OrderedData, key st
 		return errors.New("key cannot be empty")
 	}
 
-	// ignore if key is not belong to this uniqueKey.
 	if keys[0] != uniqueKey {
 		return nil
 	}
@@ -108,14 +116,19 @@ func renderCustomSetting(uniqueKey string, config *orderjson.OrderedData, key st
 	target := config
 	for i, k := range keys {
 		if i == len(keys)-1 {
-			target.Set(k, value)
+			if err := target.Set(k, value); err != nil {
+				return err
+			}
+
 			break
 		}
 
 		subTarget, err := target.Get(k)
 		if err != nil {
 			subTarget = new(orderjson.OrderedData)
-			target.Set(k, subTarget)
+			if err := target.Set(k, subTarget); err != nil {
+				return err
+			}
 		}
 
 		orderData, ok := subTarget.(*orderjson.OrderedData)
@@ -129,7 +142,7 @@ func renderCustomSetting(uniqueKey string, config *orderjson.OrderedData, key st
 	return nil
 }
 
-func escapeForJson(src string) string {
+func escapeForJSON(src string) string {
 	quoted := strconv.Quote(src)
 	return quoted[1 : len(quoted)-1]
 }
