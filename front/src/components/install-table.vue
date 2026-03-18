@@ -1140,7 +1140,7 @@ const tableValidate = async () => {
   const data = tableData.value;
   if (!Array.isArray(data) || !data.length) return true;
 
-  for (const key in errorMap) delete errorMap[key];
+  clearAllErrors();
 
   let isValid = true;
   let firstErrorRowIndex = -1;
