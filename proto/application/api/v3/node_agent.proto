@@ -246,4 +246,31 @@ service NodeAgent {
       body : "*"
     };
   }
+
+  // NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.
+  rpc NodeAgentAssignUnit(NodeAgentAssignUnitReq)
+      returns (NodeAgentAssignUnitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/assign_unit"
+      body : "*"
+    };
+  }
+}
+
+// NodeAgentAssignUnitReq describes the request body for batch-assigning
+// a network unit to hosts.
+message NodeAgentAssignUnitReq {
+  repeated int64 bk_host_id = 1;
+  int64 bk_networkunit_id = 2;
+}
+
+// NodeAgentAssignUnitResp describes the response for batch-assigning
+// a network unit.
+message NodeAgentAssignUnitResp {
+  message Data {
+    int64 success_count = 1;
+    int64 failed_count = 2;
+    repeated string failed_reasons = 3;
+  }
+  Data data = 1;
 }

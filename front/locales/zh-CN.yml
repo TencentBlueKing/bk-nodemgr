@@ -25,6 +25,30 @@ platform:
       confirmIsSingle: 请确认是否{type}
       batchOperate: "{type} {firstIp} 等{num}个IP的Agent"
       singleOperate: "{type} {firstIp} 的Agent"
+      assignUnit: 分配管控单元
+      assignUnitDisabledAssigned: 选中主机中包含已分配管控单元的节点，请取消选择或筛选未分配主机
+      assignUnitDisabledRowAssigned: 该主机已分配管控单元
+      assignUnitDisabledMultiArea: 选中主机分属不同管控区域，请筛选同一区域的主机
+      assignUnitHostCount: "已选择 {count} 台主机"
+      assignUnitSelectPlaceholder: 请选择目标管控单元
+      assignUnitSuccessTitle: 分配管控单元完成
+      assignUnitSuccessDescPrefix: "成功分配 "
+      assignUnitSuccessDescMid: " 台，失败 "
+      assignUnitSuccessDescSuffix: " 台。建议立即重启 Agent 以应用新的管控单元配置。"
+      restartNow: 立即重启
+      handleLater: 稍后处理
+      assignUnitAllFailed: 分配失败，请检查选中主机的状态
+      assignUnitPageDesc: 为选中的主机分配管控单元，同一管控区域下可分配不同的管控单元
+      assignUnitHostInfo: 主机信息
+      assignUnitBatchSet: 批量设置
+      assignUnitTargetUnit: 目标管控单元
+      assignUnitCurrentUnit: 当前管控单元
+      assignUnitConfirmBtn: "确认分配 ({count})"
+      assignUnitNoUnit: 请至少为一台主机选择目标管控单元
+      assignUnitMultiAreaError: 选中主机分属不同管控区域，无法批量分配管控单元
+      assignUnitLoadingHosts: 正在加载主机数据...
+      assignUnitConfirmDeleteRow: 确认移除该行主机？
+      assignUnitConfirmDeleteRowSub: 移除后主机 {ip} 将不会被分配管控单元
     proxyStatus:
       title: Proxy 状态
     installAgent: 安装 Agent
@@ -972,6 +996,7 @@ route:
   proxyStatus: Proxy状态
   installAgent: 安装Agent
   installReinstallAgent: 安装/重装Agent
+  assignUnit: 分配管控单元
   plugin: 插件
   taskHistory: 任务历史
   workarea: 管控区域

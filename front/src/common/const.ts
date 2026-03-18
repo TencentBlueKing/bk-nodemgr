@@ -1,4 +1,7 @@
 export const PACKAGE_GENERATION = 2;
+
+export const UNASSIGNED_NETWORK_UNIT = -1;
+export const isNetworkUnitAssigned = (id: unknown): boolean => Number(id) >= 0;
 export const STORAGE_VERSION = '0.0.1';
 export const STORAGE_KEY = '_pinia_storage';
 export const VALIDATE_REGEX = {

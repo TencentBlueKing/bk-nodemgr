@@ -799,6 +799,7 @@ import { PACKAGE_GENERATION, VALIDATE_REGEX } from '@/common/const';
 import { getDefaultLoginMode } from '@/common/util';
 import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
+import useTableErrors from '@/composables/use-table-errors';
 import { useMainStore } from '@/stores/main';
 
 type VxeComponentSizeType = 'small' | 'medium' | 'large';
@@ -907,43 +908,11 @@ const type = computed(() => (props.releaseType === 'proxy'
   ? mainStore.proxySetupType
   : mainStore.agentSetupType));
 
-// --- 错误状态管理 ---
-const errorMap = reactive<Record<number, Record<string, string>>>({});
+const { getError, setError, clearError, clearAllErrors, shiftErrors } = useTableErrors();
 
-const getError = (rowIndex: number, field: string) => errorMap[rowIndex]?.[field] || '';
-const setError = (rowIndex: number, field: string, msg: string) => {
-  if (!errorMap[rowIndex]) errorMap[rowIndex] = {};
-  errorMap[rowIndex][field] = msg;
-};
-const clearError = (rowIndex: number, field: string) => {
-  if (errorMap[rowIndex]) delete errorMap[rowIndex][field];
-};
-// 清除所有错误标记的方法
-const clearAllErrors = () => {
-  for (const key in errorMap) delete errorMap[key];
-};
 function getInitData() {
   return cloneDeep(initData);
 }
-
-// --- 错误位移算法 ---
-const shiftErrors = (index: number, offset: number) => {
-  const newMap: Record<number, Record<string, string>> = {};
-  Object.keys(errorMap).forEach((keyStr) => {
-    const k = Number(keyStr);
-    if (offset === 1) {
-      // 新增
-      if (k <= index) newMap[k] = errorMap[k];
-      else newMap[k + 1] = errorMap[k];
-    } else if (offset === -1) {
-      // 删除
-      if (k < index) newMap[k] = errorMap[k];
-      else if (k > index) newMap[k - 1] = errorMap[k];
-    }
-  });
-  for (const k in errorMap) delete errorMap[k];
-  Object.assign(errorMap, newMap);
-};
 
 const handleAddRow = (index: number) => {
   if (!Array.isArray(tableData.value)) return;

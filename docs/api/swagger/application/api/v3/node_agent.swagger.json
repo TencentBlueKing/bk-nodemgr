@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/node/agent/assign_unit": {
+      "post": {
+        "summary": "NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.",
+        "operationId": "NodeAgent_NodeAgentAssignUnit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentAssignUnitResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentAssignUnitReq describes the request body for batch-assigning\na network unit to hosts.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentAssignUnitReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/install": {
       "post": {
         "summary": "NodeAgentInstall installs node agent.",
@@ -391,6 +425,51 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeAgentAssignUnitReq": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "NodeAgentAssignUnitReq describes the request body for batch-assigning\na network unit to hosts."
+    },
+    "v3NodeAgentAssignUnitResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentAssignUnitRespData"
+        }
+      },
+      "description": "NodeAgentAssignUnitResp describes the response for batch-assigning\na network unit."
+    },
+    "v3NodeAgentAssignUnitRespData": {
+      "type": "object",
+      "properties": {
+        "success_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }

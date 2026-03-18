@@ -19,6 +19,22 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// Validate checks that the request body is valid.
+func (x *NodeAgentAssignUnitReq) Validate() error {
+	if len(x.GetBkHostId()) == 0 {
+		return errors.New("bk_host_id can not be empty")
+	}
+
+	if x.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id must be greater than or equal to 0")
+	}
+
+	return nil
+}
+
+// AutoConvert is a no-op for assign unit requests.
+func (x *NodeAgentAssignUnitReq) AutoConvert() {}
+
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
 	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *NodeAgentInstallReq_TargetVersion) string {

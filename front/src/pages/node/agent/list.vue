@@ -48,7 +48,13 @@
               <Dropdown.DropdownItem
                 v-for="item in operate"
                 :key="item.id"
-                @click="handleOperate(item.id, selection, true)"
+                :disabled="item.disabled"
+                :class="{ 'operate-item-disabled': item.disabled }"
+                v-bk-tooltips="{
+                  content: item.tooltip,
+                  disabled: !item.disabled,
+                }"
+                @click.stop="!item.disabled && handleOperate(item.id, selection, true)"
               >
                 {{ item.name }}
               </Dropdown.DropdownItem>
@@ -299,7 +305,13 @@
                     v-for="item in operate"
                     :key="item.id"
                     v-show="getOperateShow(row, item)"
-                    @click="handleOperate(item.id, [row])"
+                    :disabled="getRowOperateDisabled(row, item).disabled"
+                    :class="{ 'operate-item-disabled': getRowOperateDisabled(row, item).disabled }"
+                    v-bk-tooltips="{
+                      content: getRowOperateDisabled(row, item).tooltip,
+                      disabled: !getRowOperateDisabled(row, item).disabled,
+                    }"
+                    @click.stop="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
                   >
                     {{ item.name }}
                   </Dropdown.DropdownItem>
@@ -342,7 +354,6 @@
 </template>
 <script setup lang="ts">
 import { Button, Checkbox, Dropdown, InfoBox, Loading, SearchSelect } from 'bkui-vue';
-// 引入lodash的debounce来处理防抖，解决重复请求问题
 import { debounce } from 'lodash';
 import { computed, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -360,6 +371,7 @@ import type {
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
+import { isNetworkUnitAssigned } from '@/common/const';
 import useTableSetting from '@/composables/use-table-setting';
 import BkFooter from '@/pages/app/footer.vue';
 import { useMainStore } from '@/stores/main';
@@ -410,13 +422,37 @@ const dropdownShow = ref(false);
 const operateData = ref<Host[]>([]);
 const topo = ref([]);
 
+const assignUnitDisabledState = computed(() => {
+  const selected = selection.value;
+  if (selected.length === 0) return { disabled: false, tooltip: '' };
+
+  const hasAssigned = selected.some((h: any) => isNetworkUnitAssigned(h.bk_networkunit_id));
+  if (hasAssigned) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.assignUnitDisabledAssigned'),
+    };
+  }
+
+  const areaIds = new Set(selected.map((h: any) => h.bk_networkarea_id));
+  if (areaIds.size > 1) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.assignUnitDisabledMultiArea'),
+    };
+  }
+
+  return { disabled: false, tooltip: '' };
+});
+
 // ---------- 常量定义 ----------
 const topoBizFilterList = computed(() => mainStore.businessList);
-const operate = ref([
-  { id: 'reinstall', name: t('platform.nodeMan.agentStatus.reinstall'), disabled: false, show: true },
-  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: false, show: true },
-  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: false, show: true },
-  { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: false, show: true },
+const operate = computed(() => [
+  { id: 'reinstall', name: t('platform.nodeMan.agentStatus.reinstall'), disabled: false, tooltip: '', show: true },
+  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: false, tooltip: '', show: true },
+  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: false, tooltip: '', show: true },
+  { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: false, tooltip: '', show: true },
+  { id: 'assign_unit', name: t('platform.nodeMan.agentStatus.assignUnit'), disabled: assignUnitDisabledState.value.disabled, tooltip: assignUnitDisabledState.value.tooltip, show: true },
 ]);
 const agentInstallType = [
   { id: 'setup', name: '普通远程安装' },
@@ -886,10 +922,20 @@ const getOperateShow = (row: Host, config: any) => {
   return config.show;
 };
 
+const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; tooltip: string } => {
+  if (config.id === 'assign_unit' && isNetworkUnitAssigned(row.bk_networkunit_id)) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.assignUnitDisabledRowAssigned'),
+    };
+  }
+  return { disabled: false, tooltip: '' };
+};
+
 const handleOperate = async (type: string, data: Host[], batch = false) => {
   // 如果是跨页全选模式，获取所有数据
   let operateData = data;
-  if (isCrossPageSelection.value && type !== 'reinstall') {
+  if (isCrossPageSelection.value && type !== 'reinstall' && type !== 'assign_unit') {
     await getCorssPageHostIds();
     operateData = crossPageHostIdData.value.map((item: any) => ({ bk_host_id: item }));
     batch = true; // 强制设置为批量模式
@@ -905,6 +951,14 @@ const handleOperate = async (type: string, data: Host[], batch = false) => {
     case 'upgrade':
       handleOperatetHost(operateData, batch, 'upgrade');
       break;
+    case 'assign_unit':
+      nodeManageStore.updateAssignUnitParams({
+        tableData: operateData.map((item: any) => ({ ...item })),
+        isCrossPageSelection: isCrossPageSelection.value,
+        queryParams: crossPageQueryParams.value,
+      });
+      router.push({ name: 'assignUnit' });
+      return;
   }
   if (type !== 'reinstall') return;
   const params = {
@@ -1125,6 +1179,16 @@ onUnmounted(() => {
 
 </script>
 <style lang="postcss" scoped>
+.operate-item-disabled {
+  color: #c4c6cc !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+
+  &:hover {
+    color: #c4c6cc !important;
+    background-color: transparent !important;
+  }
+}
 .dropDown-menu {
   .bk-dropdown-item {
     font-size: 14px;

@@ -25,6 +25,30 @@ platform:
       confirmIsSingle: Confirm {type}?
       batchOperate: '{type} Agent for {num} IPs including {firstIp}'
       singleOperate: '{type} Agent for {firstIp}'
+      assignUnit: Assign Network Unit
+      assignUnitDisabledAssigned: Selected hosts include nodes already assigned to a network unit. Please deselect or filter for unassigned hosts
+      assignUnitDisabledRowAssigned: This host is already assigned to a network unit
+      assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please filter for hosts in the same area
+      assignUnitHostCount: '{count} host(s) selected'
+      assignUnitSelectPlaceholder: Select target network unit
+      assignUnitSuccessTitle: Network Unit Assignment Complete
+      assignUnitSuccessDescPrefix: 'Successfully assigned '
+      assignUnitSuccessDescMid: ' host(s), failed '
+      assignUnitSuccessDescSuffix: '. It is recommended to restart the Agent now to apply the new network unit configuration.'
+      restartNow: Restart Now
+      handleLater: Handle Later
+      assignUnitAllFailed: Assignment failed. Please check the status of the selected hosts
+      assignUnitPageDesc: Assign network units to selected hosts. Different units can be assigned within the same network area.
+      assignUnitHostInfo: Host Information
+      assignUnitBatchSet: Batch Set
+      assignUnitTargetUnit: Target Network Unit
+      assignUnitCurrentUnit: Current Network Unit
+      assignUnitConfirmBtn: 'Confirm Assignment ({count})'
+      assignUnitNoUnit: Please select a target network unit for at least one host
+      assignUnitMultiAreaError: Selected hosts belong to different network areas. Batch assignment is not possible.
+      assignUnitLoadingHosts: Loading host data...
+      assignUnitConfirmDeleteRow: Confirm to remove this host?
+      assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
     proxyStatus:
       title: Proxy Status
     installAgent: Install Agent
@@ -971,6 +995,7 @@ route:
   agentStatus: Agent Status
   installAgent: Install Agent
   installReinstallAgent: Install/Reinstall Agent
+  assignUnit: Assign Network Unit
   plugin: Plugin
   taskHistory: Task History
   workarea: Network Area

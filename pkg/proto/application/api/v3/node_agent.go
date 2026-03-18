@@ -622,3 +622,26 @@ func (x *NodeAgentUninstallHost) Validate() error {
 func (x *NodeAgentUninstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentUninstallResp_Data{WorkflowId: workflowID}
 }
+
+// AutoConvert is a no-op for assign unit requests.
+func (x *NodeAgentAssignUnitReq) AutoConvert() {}
+
+// Validate checks that the request body is valid.
+func (x *NodeAgentAssignUnitReq) Validate() error {
+	if len(x.GetBkHostId()) == 0 {
+		return errors.New("bk_host_id can not be empty")
+	}
+	if x.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id must be greater than or equal to 0")
+	}
+	return nil
+}
+
+// ConvertResult populates the response from result values.
+func (x *NodeAgentAssignUnitResp) ConvertResult(successCount, failedCount int64, failedReasons []string) {
+	x.Data = &NodeAgentAssignUnitResp_Data{
+		SuccessCount:  successCount,
+		FailedCount:   failedCount,
+		FailedReasons: failedReasons,
+	}
+}

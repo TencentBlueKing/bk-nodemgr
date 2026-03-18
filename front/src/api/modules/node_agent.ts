@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, UploadAgentTemplateReq, UploadAgentTemplateResp } from '@/@types/node_agent';
+import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp, UploadAgentTemplateReq, UploadAgentTemplateResp } from '@/@types/node_agent';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -21,6 +21,8 @@ export const NodeAgentService = {
   NodeAgentUninstall: async <Request = NodeAgentUninstallReq, ResponseData = NodeAgentUninstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/uninstall')(params, config),
   // NodeAgentInstallCheck  check installs node agent.
   NodeAgentInstallCheck: async <Request = NodeAgentInstallCheckReq, ResponseData = NodeAgentInstallCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/install_check')(params, config),
+  // NodeAgentAssignUnit batch-assigns a network unit to hosts.
+  NodeAgentAssignUnit: async <Request = NodeAgentAssignUnitReq, ResponseData = NodeAgentAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/assign_unit')(params, config),
   UploadAgentTemplate: async <Request = UploadAgentTemplateReq, ResponseData = UploadAgentTemplateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/upload_template')(params, config),
 };
 

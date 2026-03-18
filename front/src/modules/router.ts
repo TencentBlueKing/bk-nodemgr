@@ -1,10 +1,11 @@
 
 import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
-import { i18n } from '@/modules/i18n';
 
 import { cancelRequest } from '@/api/request-queue';
+import { i18n } from '@/modules/i18n';
 import NotFound from '@/pages/app/404.vue';
+import AssignUnit from '@/pages/node/agent/assign-unit.vue';
 import AgentImport from '@/pages/node/agent/import.vue';
 import AgentManager from '@/pages/node/agent/list.vue';
 import AgentSetup from '@/pages/node/agent/setup.vue';
@@ -77,6 +78,17 @@ const routes = setupLayouts([
             component: AgentImport,
             meta: {
               title: i18n.global.t('route.installReinstallAgent'),
+              back: true,
+              mainMenu: 'nodeManager',
+              parentName: 'agent',
+            },
+          },
+          {
+            name: 'assignUnit',
+            path: 'assign-unit',
+            component: AssignUnit,
+            meta: {
+              title: i18n.global.t('route.assignUnit'),
               back: true,
               mainMenu: 'nodeManager',
               parentName: 'agent',

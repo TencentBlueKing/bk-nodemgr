@@ -55,6 +55,13 @@ type IHandlerNodeAgent interface {
 	// @param uninstallParam the uninstall param.
 	// @return the restarting workflow-ids and error.
 	UninstallAgent(nCtx contextx.IContext, uninstallParam *types.NodeAgentUninstallParam) (string, error)
+
+	// AssignUnitAgent batch-assigns a network unit to unassigned hosts.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param hostIDs the host IDs to assign.
+	// @param networkUnitID the target network unit ID.
+	// @return success count, failed count, failed reasons, and error.
+	AssignUnitAgent(nCtx contextx.IContext, hostIDs []int64, networkUnitID int64) (int64, int64, []string, error)
 }
 
 // InstallAgent node agent.
@@ -140,4 +147,22 @@ func (h *Handler) UninstallAgent(nCtx contextx.IContext, reconfigParam *types.No
 	}
 
 	return resp.GetWorkflowID(), nil
+}
+
+// AssignUnitAgent batch-assigns a network unit to unassigned hosts.
+func (h *Handler) AssignUnitAgent(nCtx contextx.IContext, hostIDs []int64, networkUnitID int64) (
+	int64, int64, []string, error) {
+
+	req := &protoBackend.NodeAgentAssignUnitReq{
+		BkHostId:       hostIDs,
+		BkNetworkunitId: networkUnitID,
+	}
+
+	resp, err := h.cli.assignUnitNodeAgent(nCtx, req)
+	if err != nil {
+		return 0, 0, nil, fmt.Errorf("failed to assign unit agent: %w", err)
+	}
+
+	data := resp.GetData()
+	return data.GetSuccessCount(), data.GetFailedCount(), data.GetFailedReasons(), nil
 }

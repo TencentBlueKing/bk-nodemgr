@@ -1333,6 +1333,38 @@ func (c *cli) uninstallNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAg
 	return resp, nil
 }
 
+func (c *cli) assignUnitNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentAssignUnitReq,
+) (*protoBackend.NodeAgentAssignUnitResp, error) {
+
+	resp := new(protoBackend.NodeAgentAssignUnitResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/agent/assign_unit").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("assign unit node agent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("assign unit node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) checkInstallAgent(ctx contextx.IContext, req *protoBackend.NodeAgentInstallCheckReq,
 ) (*protoBackend.NodeAgentInstallCheckResp, error) {
 

@@ -41,6 +41,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/restart", restserver.Handler(h.Restart))
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 	h.rg.POST("/install_check", restserver.Handler(h.AgentInstallCheck))
+	h.rg.POST("/assign_unit", restserver.Handler(h.AssignUnit))
 
 	h.rg.GET("/download_template", restserver.FileHandler(h.DownloadTemplate))
 	h.rg.POST("/upload_template", restserver.Handler(h.UploadTemplate))
