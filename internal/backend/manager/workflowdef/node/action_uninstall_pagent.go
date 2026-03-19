@@ -127,6 +127,11 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	// let the callback server known which action to mark and log.
+	if err := std.SaveBlockingActionName(ActionNameWaitInstallerComplete); err != nil {
+		return fmt.Errorf("failed to save blocking action name: %w", err)
+	}
+
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -160,11 +165,6 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) error {
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,
-	}
-
-	// let the callback server known which action to mark and log.
-	if err := std.SaveBlockingActionName(ActionNameWaitInstallerComplete); err != nil {
-		return fmt.Errorf("failed to save blocking action name: %w", err)
 	}
 
 	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
