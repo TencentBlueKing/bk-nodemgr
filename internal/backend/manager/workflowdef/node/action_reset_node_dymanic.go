@@ -123,7 +123,7 @@ func (act *actionResetNodeDynamic) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().Host.Dynamic.ProxyClusterPort = 0
 	std.DeployInfo().Host.Dynamic.ProxyDataPort = 0
 	std.DeployInfo().Host.Dynamic.ProxyFilePort = 0
-	std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID = 0
+	std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID = -1
 	std.DeployInfo().Host.Dynamic.RelayDownloadPort = 0
 	std.DeployInfo().Host.Dynamic.RelayCallbackPort = 0
 	std.DeployInfo().Host.Dynamic.ProxyAccessDisabled = false

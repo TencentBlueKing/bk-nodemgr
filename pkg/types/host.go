@@ -282,12 +282,13 @@ func StringListToProxyTagList(stringList []string) []ProxyTag {
 // NewBlankNodeDynamic returns a blank node dynamic.
 func NewBlankNodeDynamic() *HostDynamic {
 	return &HostDynamic{
-		NodeRole:       NodeRoleBlank,
-		NodeStatus:     NodeStatusUnknown,
-		NodeVersion:    "",
-		NodeGeneration: 0,
-		AgentID:        "",
-		NetworkUnitID:  -1,
+		NodeRole:                 NodeRoleBlank,
+		NodeStatus:               NodeStatusUnknown,
+		NodeVersion:              "",
+		NodeGeneration:           0,
+		AgentID:                  "",
+		NetworkUnitID:            -1,
+		ProxyInstallOriginUnitID: -1,
 	}
 }
 

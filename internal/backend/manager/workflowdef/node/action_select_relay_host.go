@@ -151,8 +151,8 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 
 	if num == 0 {
 		std.InstanceData().Log().
-			Zh("网络单元中没有代理主机。network-unit-id(%d)", std.DeployInfo().Host.Dynamic.NetworkUnitID).
-			En("no proxy host in network unit. network-unit-id(%d)", std.DeployInfo().Host.Dynamic.NetworkUnitID).
+			Zh("网络单元中没有代理主机。network-unit-id(%d)", networkunitID).
+			En("no proxy host in network unit. network-unit-id(%d)", networkunitID).
 			Error()
 
 		return types.RelayInfo{}, errors.New("no proxy host in network unit")
