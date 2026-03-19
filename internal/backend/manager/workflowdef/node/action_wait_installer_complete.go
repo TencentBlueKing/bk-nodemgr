@@ -11,12 +11,9 @@
 package node
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"path"
-	"strings"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
@@ -38,17 +35,6 @@ const (
 	ActionNameWaitInstallerComplete = "wait_node_installer_complete"
 
 	waitInstallerCompleteInterval = 1 * time.Second
-
-	sshPollingInterval    = 5 * time.Second  // nolint: mnd
-	sshPollingMaxBackoff  = 30 * time.Second // nolint: mnd
-	sshPollingBaseBackoff = 2 * time.Second  // nolint: mnd
-
-	// sshCommandTimeout bounds how long a single SSH RunCommand may block.
-	// If the SSH connection enters a half-open state (TCP alive but remote
-	// unresponsive), session.Run() blocks forever and prevents both context
-	// cancellation and the polling loop from progressing. This timeout
-	// ensures we detect the stall and trigger a reconnect.
-	sshCommandTimeout = 30 * time.Second // nolint: mnd
 )
 
 // NewActionWaitInstallerComplete get a new action.
@@ -172,32 +158,8 @@ func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeAct
 	return act.handleInstallerResult(std, instanceID, installerResult)
 }
 
-// sshStatusFile represents the installer.status.json on the target machine.
-// SYNC: must stay in sync with statusFileContent in tools/internal/installer/node/statusreporter/step.go.
-type sshStatusFile struct {
-	OperInstID string `json:"oper_inst_id"`
-	Status     string `json:"status"`
-	Error      string `json:"error,omitempty"`
-}
-
-// sshDataFile represents the installer.data.json on the target machine.
-// SYNC: must stay in sync with dataFileContent in tools/internal/installer/node/datareporter/step.go.
-type sshDataFile struct {
-	AgentID    string `json:"agent_id"`
-	Token      string `json:"token"`
-	OperInstID string `json:"oper_inst_id"`
-}
-
 // doSSHPolling implements the SSH polling branch for cross-unit proxy installations.
-// nolint: gocognit,funlen,cyclop
 func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionStandarder, param *ActionWaitInstallerComplete) error {
-	instanceID := std.InstanceData().OperationInstanceID
-
-	std.InstanceData().Log().
-		Zh("使用 SSH 轮询模式等待安装器完成").
-		En("using SSH polling mode to wait for installer completion").
-		Info()
-
 	creditHandler := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := creditHandler.GetSSHCredit(std)
 	if err != nil {
@@ -227,282 +189,23 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 	}
 
 	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
-	statusFilePath := path.Join(dataDir, installer.StatusFileName)
-	dataFilePath := path.Join(dataDir, installer.DataFileName)
-	logGlobPath := path.Join(dataDir, "logs", "installer_*.log")
-
-	client, err := sshx.NewClient(std.Context(), sshConfig, sshx.DefaultTimeout)
+	result, err := nodeUtils.NewSSHInstallerPoller().Wait(std, nodeUtils.SSHInstallerPollerConfig{
+		SSHConfig:     sshConfig,
+		StatusFile:    path.Join(dataDir, installer.StatusFileName),
+		DataFile:      path.Join(dataDir, installer.DataFileName),
+		LogGlobPath:   path.Join(dataDir, "logs", "installer_*.log"),
+		InstanceID:    std.InstanceData().OperationInstanceID,
+		EnsureAgentID: param.EnsureAgentID,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to create SSH client for polling: %w", err)
-	}
-	defer func() { _ = client.Close() }()
-
-	ticker := time.NewTicker(sshPollingInterval)
-	defer ticker.Stop()
-
-	// NOTE on backoff strategy: We use a simple inline exponential backoff for SSH reconnect
-	// delays rather than pkg/runtime/retrier.ExpoBackoff because the behavior differs:
-	// ExpoBackoff.Do() retries a function N times then fails, whereas here we need an
-	// indefinite polling loop where reconnect delays grow on consecutive failures but
-	// reset on success. The reconnect backoff is only a wait-before-retry within the
-	// outer ticker loop, not a standalone retry-until-exhaustion pattern.
-	backoff := sshPollingBaseBackoff
-	logLineOffset := 1
-
-	for {
-		select {
-		case <-std.Context().Done():
-			return std.Context().Err()
-
-		case <-ticker.C:
-			statusContent, _, connectErr := runCommandWithContext(
-				std.Context(), client,
-				fmt.Sprintf("cat %s 2>/dev/null", statusFilePath),
-				sshCommandTimeout,
-			)
-			if connectErr != nil {
-				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(connectErr).
-					Warn("SSH connection error during polling, attempting reconnect")
-
-				client, backoff = act.attemptSSHReconnect(std, instanceID, client, sshConfig, backoff)
-
-				continue
-			}
-
-			backoff = sshPollingBaseBackoff
-
-			var tailErr error
-			logLineOffset, tailErr = act.tailInstallerLogs(std.Context(), client, std, logGlobPath, logLineOffset)
-			if tailErr != nil {
-				// tailInstallerLogs failed — the client was closed by runCommandWithContext.
-				// Treat this like a connection error and reconnect.
-				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(tailErr).
-					Warn("SSH error while tailing logs, attempting reconnect")
-
-				client, backoff = act.attemptSSHReconnect(std, instanceID, client, sshConfig, backoff)
-
-				continue
-			}
-
-			statusContent = strings.TrimSpace(statusContent)
-			if statusContent == "" {
-				logger.G.Sys().With("oper-inst-id", instanceID).Debug("status file not yet available")
-
-				continue
-			}
-
-			var status sshStatusFile
-			if jsonErr := json.Unmarshal([]byte(statusContent), &status); jsonErr != nil {
-				logger.G.Sys().With("oper-inst-id", instanceID).
-					Warn("status file JSON parse failed (partial write), treating as in-progress")
-
-				continue
-			}
-
-			// Guard against stale status files left by a previous installation run.
-			// Only accept a status whose oper_inst_id matches the current operation.
-			if status.OperInstID != instanceID {
-				logger.G.Sys().With("oper-inst-id", instanceID, "file-oper-inst-id", status.OperInstID).
-					Debug("status file belongs to a different operation, skipping")
-
-				continue
-			}
-
-			installerResult := installer.ProcessState(status.Status)
-
-			// Log error details before any data file reads — if the installer failed,
-			// we want the error recorded regardless of EnsureAgentID or data file availability.
-			if installerResult == installer.ProcessStateFailed {
-				std.InstanceData().Log().
-					Zh("安装器错误详情: %s", status.Error).
-					En("installer error detail: %s", status.Error).
-					Info()
-			}
-
-			// Always attempt to read the data file on success so that results
-			// are captured. Only enforce AgentID presence when EnsureAgentID is set.
-			if installerResult == installer.ProcessStateSuccess {
-				dataContent, _, dataErr := runCommandWithContext(
-					std.Context(), client,
-					fmt.Sprintf("cat %s 2>/dev/null", dataFilePath),
-					sshCommandTimeout,
-				)
-				if dataErr != nil {
-					return fmt.Errorf("failed to read data file via SSH: %w", dataErr)
-				}
-
-				var data sshDataFile
-				if jsonErr := json.Unmarshal([]byte(strings.TrimSpace(dataContent)), &data); jsonErr != nil {
-					return fmt.Errorf("failed to parse data file: %w", jsonErr)
-				}
-
-				if data.AgentID != "" {
-					std.DeployInfo().Host.Dynamic.AgentID = data.AgentID
-				} else if param.EnsureAgentID {
-					return fmt.Errorf("installer succeeded but agent_id is empty in data file")
-				}
-			}
-
-			return act.handleInstallerResult(std, instanceID, installerResult)
-		}
-	}
-}
-
-// tailInstallerLogs reads new lines from the installer log file on the target machine
-// via SSH and pushes them as action instance messages for frontend visibility.
-// Returns the updated line offset and an error if the SSH command failed (which
-// means the client has been closed by runCommandWithContext and must be reconnected).
-func (act *actionWaitInstallerComplete) tailInstallerLogs(
-	ctx context.Context,
-	client *sshx.Client,
-	std *nodeUtils.NodeActionStandarder,
-	logGlobPath string,
-	offset int,
-) (int, error) {
-	// Find the newest installer log file and read lines starting from offset.
-	// The subshell resolves the glob; if no file exists, tail receives an empty
-	// argument and silently produces no output.
-	tailCmd := fmt.Sprintf(
-		`tail -n +%d "$(ls -1t %s 2>/dev/null | head -1)" 2>/dev/null`,
-		offset, logGlobPath,
-	)
-
-	output, _, err := runCommandWithContext(ctx, client, tailCmd, sshCommandTimeout)
-	if err != nil {
-		return offset, fmt.Errorf("failed to tail installer logs: %w", err)
+		return err
 	}
 
-	if strings.TrimSpace(output) == "" {
-		return offset, nil
+	if result.AgentID != "" {
+		std.DeployInfo().Host.Dynamic.AgentID = result.AgentID
 	}
 
-	lines := strings.Split(strings.TrimRight(output, "\n"), "\n")
-	for _, line := range lines {
-		if msg := parseInstallerLogLine(line); msg != "" {
-			std.InstanceData().Log().Zh(msg).En(msg).Info()
-		}
-	}
-
-	return offset + len(lines), nil
-}
-
-// parseInstallerLogLine extracts a human-readable message from a raw installer log line.
-// Expected format: "YYYY/MM/DD HH:MM:SS | LEVEL | step_name | message".
-func parseInstallerLogLine(line string) string {
-	line = strings.TrimSpace(line)
-	if line == "" {
-		return ""
-	}
-
-	parts := strings.SplitN(line, installer.LogFieldSeparator, installer.LogFieldCount)
-	if len(parts) < installer.LogFieldCount {
-		return line
-	}
-
-	step := strings.TrimSpace(parts[2])
-	msg := strings.TrimSpace(parts[3])
-
-	if step != "" {
-		return fmt.Sprintf("[%s] %s", step, msg)
-	}
-
-	return msg
-}
-
-// reconnectSSH attempts to re-establish an SSH connection with exponential backoff delay.
-func (act *actionWaitInstallerComplete) reconnectSSH(
-	std *nodeUtils.NodeActionStandarder,
-	config *sshx.Config,
-	backoff time.Duration,
-) (*sshx.Client, error) {
-
-	logger.G.Sys().With("backoff", backoff.String()).Info("waiting before SSH reconnect")
-
-	select {
-	case <-std.Context().Done():
-		return nil, std.Context().Err()
-	case <-time.After(backoff):
-	}
-
-	client, err := sshx.NewClient(std.Context(), config, sshx.DefaultTimeout)
-	if err != nil {
-		return nil, fmt.Errorf("SSH reconnect failed: %w", err)
-	}
-
-	logger.G.Sys().Info("SSH reconnected successfully")
-
-	return client, nil
-}
-
-// attemptSSHReconnect closes the dead client and re-establishes a fresh SSH connection.
-// The client may already have been closed by runCommandWithContext; calling Close again is
-// safe on *ssh.Client (double-close returns an ignorable error).
-// On reconnect failure the original (closed) client is returned unchanged so the next polling
-// tick will naturally fail again and the exponential backoff continues to grow.
-func (act *actionWaitInstallerComplete) attemptSSHReconnect(
-	std *nodeUtils.NodeActionStandarder,
-	instanceID string,
-	client *sshx.Client,
-	config *sshx.Config,
-	backoff time.Duration,
-) (*sshx.Client, time.Duration) {
-	_ = client.Close()
-
-	newClient, err := act.reconnectSSH(std, config, backoff)
-	if err != nil {
-		logger.G.Sys().With("oper-inst-id", instanceID).WithErr(err).
-			Warn("SSH reconnect failed, will retry on next tick")
-
-		return client, min(backoff*2, sshPollingMaxBackoff) // nolint: mnd
-	}
-
-	return newClient, sshPollingBaseBackoff
-}
-
-// sshCommandResult holds the output of a single RunCommand call.
-type sshCommandResult struct {
-	stdout string
-	stderr string
-	err    error
-}
-
-// runCommandWithContext runs an SSH command with context awareness and a hard timeout.
-//
-// sshx.Client.RunCommand (session.Run) does not accept a context and will block
-// indefinitely when the SSH connection enters a half-open state. This wrapper
-// runs the command in a goroutine and returns early when the context is cancelled
-// or the timeout fires, closing the underlying client to unblock session.Run.
-//
-// IMPORTANT: on timeout / context cancellation the caller MUST NOT reuse the
-// client — it has been forcibly closed. The returned error signals the caller to
-// enter the reconnect path.
-func runCommandWithContext(ctx context.Context, client *sshx.Client, cmd string, timeout time.Duration) (string, string, error) {
-	ch := make(chan sshCommandResult, 1)
-
-	go func() {
-		stdout, stderr, err := client.RunCommand(cmd)
-		ch <- sshCommandResult{stdout, stderr, err}
-	}()
-
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
-	select {
-	case res := <-ch:
-		return res.stdout, res.stderr, res.err
-
-	case <-ctx.Done():
-		// Force-close the SSH connection so the blocked session.Run returns.
-		_ = client.Close()
-
-		return "", "", fmt.Errorf("context cancelled while running SSH command: %w", ctx.Err())
-
-	case <-timer.C:
-		// Force-close the SSH connection so the blocked session.Run returns.
-		_ = client.Close()
-
-		return "", "", fmt.Errorf("SSH command timed out after %v: %s", timeout, cmd)
-	}
+	return act.handleInstallerResult(std, std.InstanceData().OperationInstanceID, result.State)
 }
 
 // handleInstallerResult processes the final installer result for both polling modes.
