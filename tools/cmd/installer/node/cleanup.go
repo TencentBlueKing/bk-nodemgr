@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	nodeStep "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
@@ -23,13 +24,13 @@ import (
 func CleanOldReleasePackages(dataDir, currentPkgPath string) {
 	entries, err := os.ReadDir(dataDir)
 	if err != nil {
-		logger.Warnf("cleanup", "failed to read data dir for cleanup: %v", err)
+		logger.Warnf(nodeStep.StepCleanup, "failed to read data dir for cleanup: %v", err)
 		return
 	}
 
 	absCurrentPkg, err := filepath.Abs(currentPkgPath)
 	if err != nil {
-		logger.Warnf("cleanup", "failed to resolve current pkg path: %v", err)
+		logger.Warnf(nodeStep.StepCleanup, "failed to resolve current pkg path: %v", err)
 		return
 	}
 
@@ -49,9 +50,9 @@ func CleanOldReleasePackages(dataDir, currentPkgPath string) {
 			continue
 		}
 		if err := os.Remove(fullPath); err != nil {
-			logger.Warnf("cleanup", "failed to remove old release package %s: %v", fullPath, err)
+			logger.Warnf(nodeStep.StepCleanup, "failed to remove old release package %s: %v", fullPath, err)
 		} else {
-			logger.Infof("cleanup", "removed old release package: %s", fullPath)
+			logger.Infof(nodeStep.StepCleanup, "removed old release package: %s", fullPath)
 		}
 	}
 }

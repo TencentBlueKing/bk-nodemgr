@@ -115,6 +115,7 @@ func NewFullInstall() *cobra.Command {
 			}
 			defer lHandler.Stop()
 
+			// SYNC: file name must match installer.StatusFileName in pkg/installer/constant.go.
 			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
 			defer func() {
 				state := types.ProcessStateSuccess
@@ -213,6 +214,7 @@ func NewFullInstall() *cobra.Command {
 				return err
 			}
 
+			// SYNC: file name must match installer.DataFileName in pkg/installer/constant.go.
 			dataFilePath := filepath.Join(persistentVars.DataDir, "installer.data.json")
 			if err := datareporter.NewStep(datareporter.StepArgs{
 				CallbackSvrAddr: callbackSvrAddrs,

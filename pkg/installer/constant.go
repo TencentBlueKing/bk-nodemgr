@@ -33,4 +33,23 @@ const (
 	// ServerAddrSeparator is the separator used to join/split multiple server addresses.
 	// This separator is used in the installer tools to handle comma-separated server addresses.
 	ServerAddrSeparator = ","
+
+	// LogFieldSeparator is the delimiter between fields in installer log lines.
+	// Format: "YYYY/MM/DD HH:MM:SS | LEVEL | step_name | message"
+	// Used by tools/pkg/logger to format and by the backend to parse installer logs.
+	LogFieldSeparator = "|"
+
+	// LogFieldCount is the expected number of fields in a well-formed installer log line
+	// (timestamp | level | step | message).
+	LogFieldCount = 4
+
+	// StatusFileName is the name of the installer status file written by the tools and read by the backend.
+	// SYNC: tools/internal/installer/node/statusreporter writes this file;
+	//       internal/backend/manager/workflowdef/node/action_wait_installer_complete reads it via SSH.
+	StatusFileName = "installer.status.json"
+
+	// DataFileName is the name of the installer data file written by the tools and read by the backend.
+	// SYNC: tools/internal/installer/node/datareporter writes this file;
+	//       internal/backend/manager/workflowdef/node/action_wait_installer_complete reads it via SSH.
+	DataFileName = "installer.data.json"
 )

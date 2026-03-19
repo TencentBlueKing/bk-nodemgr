@@ -219,8 +219,8 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 	}
 
 	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
-	statusFilePath := path.Join(dataDir, "installer.status.json")
-	dataFilePath := path.Join(dataDir, "installer.data.json")
+	statusFilePath := path.Join(dataDir, installer.StatusFileName)
+	dataFilePath := path.Join(dataDir, installer.DataFileName)
 	logGlobPath := path.Join(dataDir, "logs", "installer_*.log")
 
 	client, err := sshx.NewClient(std.Context(), sshConfig, sshx.DefaultTimeout)
@@ -232,6 +232,12 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 	ticker := time.NewTicker(sshPollingInterval)
 	defer ticker.Stop()
 
+	// NOTE on backoff strategy: We use a simple inline exponential backoff for SSH reconnect
+	// delays rather than pkg/runtime/retrier.ExpoBackoff because the behavior differs:
+	// ExpoBackoff.Do() retries a function N times then fails, whereas here we need an
+	// indefinite polling loop where reconnect delays grow on consecutive failures but
+	// reset on success. The reconnect backoff is only a wait-before-retry within the
+	// outer ticker loop, not a standalone retry-until-exhaustion pattern.
 	backoff := sshPollingBaseBackoff
 	logLineOffset := 1
 
@@ -241,9 +247,9 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 			return std.Context().Err()
 
 		case <-ticker.C:
-			statusContent, _, readErr := client.RunCommand(fmt.Sprintf("cat %s 2>/dev/null", statusFilePath))
-			if readErr != nil {
-				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(readErr).
+			statusContent, _, connectErr := client.RunCommand(fmt.Sprintf("cat %s 2>/dev/null", statusFilePath))
+			if connectErr != nil {
+				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(connectErr).
 					Warn("SSH connection error during polling, attempting reconnect")
 
 				_ = client.Close()
@@ -358,9 +364,8 @@ func parseInstallerLogLine(line string) string {
 		return ""
 	}
 
-	const expectedParts = 4
-	parts := strings.SplitN(line, "|", expectedParts)
-	if len(parts) < expectedParts {
+	parts := strings.SplitN(line, installer.LogFieldSeparator, installer.LogFieldCount)
+	if len(parts) < installer.LogFieldCount {
 		return line
 	}
 

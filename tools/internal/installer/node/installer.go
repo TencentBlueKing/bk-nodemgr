@@ -52,4 +52,7 @@ const (
 
 	// StepCleanTmp this is the step to clean tmp.
 	StepCleanTmp logger.Step = "clean_tmp"
+
+	// StepCleanup this is the step to cleanup old release packages.
+	StepCleanup logger.Step = "cleanup"
 )

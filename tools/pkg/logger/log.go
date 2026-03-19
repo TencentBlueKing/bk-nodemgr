@@ -56,6 +56,8 @@ func levelNames(level LogLevel) string {
 var currentLevel atomic.Int32 // nolint: gochecknoglobals
 
 // Pre-compute aligned format string for better performance.
+// SYNC: The separator "|" and field count (4) must stay in sync with
+// installer.LogFieldSeparator and installer.LogFieldCount in pkg/installer/constant.go.
 const logFormat = "| %-5s | %-15s | %s"
 
 // init default log level.
