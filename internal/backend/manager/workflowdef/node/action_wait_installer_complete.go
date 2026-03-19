@@ -11,6 +11,7 @@
 package node
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -41,6 +42,13 @@ const (
 	sshPollingInterval    = 5 * time.Second  // nolint: mnd
 	sshPollingMaxBackoff  = 30 * time.Second // nolint: mnd
 	sshPollingBaseBackoff = 2 * time.Second  // nolint: mnd
+
+	// sshCommandTimeout bounds how long a single SSH RunCommand may block.
+	// If the SSH connection enters a half-open state (TCP alive but remote
+	// unresponsive), session.Run() blocks forever and prevents both context
+	// cancellation and the polling loop from progressing. This timeout
+	// ensures we detect the stall and trigger a reconnect.
+	sshCommandTimeout = 30 * time.Second // nolint: mnd
 )
 
 // NewActionWaitInstallerComplete get a new action.
@@ -247,11 +255,17 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 			return std.Context().Err()
 
 		case <-ticker.C:
-			statusContent, _, connectErr := client.RunCommand(fmt.Sprintf("cat %s 2>/dev/null", statusFilePath))
+			statusContent, _, connectErr := runCommandWithContext(
+				std.Context(), client,
+				fmt.Sprintf("cat %s 2>/dev/null", statusFilePath),
+				sshCommandTimeout,
+			)
 			if connectErr != nil {
 				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(connectErr).
 					Warn("SSH connection error during polling, attempting reconnect")
 
+				// runCommandWithContext already closed the client on timeout/cancel,
+				// but we call Close again defensively (double-close on *ssh.Client is safe).
 				_ = client.Close()
 				newClient, reconnErr := act.reconnectSSH(std, sshConfig, backoff)
 				if reconnErr != nil {
@@ -270,7 +284,7 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 
 			backoff = sshPollingBaseBackoff
 
-			logLineOffset = act.tailInstallerLogs(client, std, logGlobPath, logLineOffset)
+			logLineOffset = act.tailInstallerLogs(std.Context(), client, std, logGlobPath, logLineOffset)
 
 			statusContent = strings.TrimSpace(statusContent)
 			if statusContent == "" {
@@ -310,7 +324,11 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 			// Always attempt to read the data file on success so that results
 			// are captured. Only enforce AgentID presence when EnsureAgentID is set.
 			if installerResult == installer.ProcessStateSuccess {
-				dataContent, _, dataErr := client.RunCommand(fmt.Sprintf("cat %s 2>/dev/null", dataFilePath))
+				dataContent, _, dataErr := runCommandWithContext(
+					std.Context(), client,
+					fmt.Sprintf("cat %s 2>/dev/null", dataFilePath),
+					sshCommandTimeout,
+				)
 				if dataErr != nil {
 					return fmt.Errorf("failed to read data file via SSH: %w", dataErr)
 				}
@@ -336,6 +354,7 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 // via SSH and pushes them as action instance messages for frontend visibility.
 // Returns the updated line offset for the next call.
 func (act *actionWaitInstallerComplete) tailInstallerLogs(
+	ctx context.Context,
 	client *sshx.Client,
 	std *nodeUtils.NodeActionStandarder,
 	logGlobPath string,
@@ -349,7 +368,7 @@ func (act *actionWaitInstallerComplete) tailInstallerLogs(
 		offset, logGlobPath,
 	)
 
-	output, _, err := client.RunCommand(tailCmd)
+	output, _, err := runCommandWithContext(ctx, client, tailCmd, sshCommandTimeout)
 	if err != nil || strings.TrimSpace(output) == "" {
 		return offset
 	}
@@ -410,6 +429,52 @@ func (act *actionWaitInstallerComplete) reconnectSSH(
 	logger.G.Sys().Info("SSH reconnected successfully")
 
 	return client, nil
+}
+
+// sshCommandResult holds the output of a single RunCommand call.
+type sshCommandResult struct {
+	stdout string
+	stderr string
+	err    error
+}
+
+// runCommandWithContext runs an SSH command with context awareness and a hard timeout.
+//
+// sshx.Client.RunCommand (session.Run) does not accept a context and will block
+// indefinitely when the SSH connection enters a half-open state. This wrapper
+// runs the command in a goroutine and returns early when the context is cancelled
+// or the timeout fires, closing the underlying client to unblock session.Run.
+//
+// IMPORTANT: on timeout / context cancellation the caller MUST NOT reuse the
+// client — it has been forcibly closed. The returned error signals the caller to
+// enter the reconnect path.
+func runCommandWithContext(ctx context.Context, client *sshx.Client, cmd string, timeout time.Duration) (string, string, error) {
+	ch := make(chan sshCommandResult, 1)
+
+	go func() {
+		stdout, stderr, err := client.RunCommand(cmd)
+		ch <- sshCommandResult{stdout, stderr, err}
+	}()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	select {
+	case res := <-ch:
+		return res.stdout, res.stderr, res.err
+
+	case <-ctx.Done():
+		// Force-close the SSH connection so the blocked session.Run returns.
+		_ = client.Close()
+
+		return "", "", fmt.Errorf("context cancelled while running SSH command: %w", ctx.Err())
+
+	case <-timer.C:
+		// Force-close the SSH connection so the blocked session.Run returns.
+		_ = client.Close()
+
+		return "", "", fmt.Errorf("SSH command timed out after %v: %s", timeout, cmd)
+	}
 }
 
 // handleInstallerResult processes the final installer result for both polling modes.
