@@ -492,9 +492,16 @@ export default class NetWorkUnitNode extends BaseNode {
     const suffix = `${total_agent}`;
     const textColor = running_agent > 0 ? NetWorkUnitNode.greenColor : NetWorkUnitNode.normalColor;
 
-    this.upsert('agent-val-pre', GText, { x: startX + 66, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
-    this.upsert('agent-val-slash', GText, { x: startX + 74, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
-    this.upsert('agent-val-suf', GText, { x: startX + 80, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
+    // 动态计算每段文字的 x 坐标，避免多位数字时重叠
+    const agentValStartX = startX + 66;
+    // 估算数字宽度：每个字符约 7px（12px 字体）
+    const prefixWidth = prefix.length * 7;
+    const slashX = agentValStartX + prefixWidth + 1;
+    const suffixX = slashX + 7 + 1; // "/" 宽度约 7px
+
+    this.upsert('agent-val-pre', GText, { x: agentValStartX, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
+    this.upsert('agent-val-slash', GText, { x: slashX, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
+    this.upsert('agent-val-suf', GText, { x: suffixX, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
 
     const linkIconAgentElement = this.upsert('linkIcon-agent', GImage, {
       x: startX + NetWorkUnitNode.nodeWidth - 43,
