@@ -12,6 +12,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -75,7 +76,15 @@ const (
 	defaultApplicationTracingExporterType = "stdout"
 
 	defaultApplicationBKLoginTraceServiceName = "application-client-bklogin"
+
+	defaultApplicationConfigPolicyOptionFilePath = "/bk-nodemgr/support-files/configpolicy"
 )
+
+// ConfigPolicyOption defines config policy option file settings.
+// nolint: revive
+type ConfigPolicyOption struct {
+	FilePath string `yaml:"filePath" usage:"config policy option file path"`
+}
 
 // Backend the config of backend gateway config.
 type Backend struct {
@@ -101,21 +110,22 @@ func (n *Notice) Validate() error {
 
 // ApplicationService the config of application service.
 type ApplicationService struct {
-	RunMode     RunMode     `yaml:"mode" usage:"run mode of service"`
-	TenantMode  tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
-	BKSaas      BKSaas      `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
-	BKPaas      BKPaaS      `yaml:"bkPaaS" usage:"bk paas config of application service"`
-	Front       Front       `yaml:"front" usage:"front config of application service"`
-	Backend     Backend     `yaml:"backend" usage:"backend gateway config"`
-	Notice      Notice      `yaml:"notice" usage:"notice gateway config"`
-	File        File        `yaml:"file" usage:"file config of backend service"`
-	Etcd        Etcd        `yaml:"etcd" usage:"etcd config of application service"`
-	MongoDB     MongoDB     `yaml:"mongodb" usage:"mongodb config of application service"`
-	InfoServer  HTTPServer  `yaml:"infoServer" usage:"info server config of application service"`
-	AdminServer HTTPServer  `yaml:"adminServer" usage:"admin server config of application service"`
-	BasicServer HTTPServer  `yaml:"basicServer" usage:"basic server config of application service"`
-	Log         Log         `yaml:"log" usage:"log config of application service"`
-	Tracing     Tracing     `yaml:"tracing" usage:"tracing config of file service"`
+	RunMode            RunMode            `yaml:"mode" usage:"run mode of service"`
+	TenantMode         tenant.Mode        `yaml:"tenantMode" usage:"tenant mode of service"`
+	BKSaas             BKSaas             `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
+	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
+	Front              Front              `yaml:"front" usage:"front config of application service"`
+	Backend            Backend            `yaml:"backend" usage:"backend gateway config"`
+	Notice             Notice             `yaml:"notice" usage:"notice gateway config"`
+	File               File               `yaml:"file" usage:"file config of backend service"`
+	Etcd               Etcd               `yaml:"etcd" usage:"etcd config of application service"`
+	MongoDB            MongoDB            `yaml:"mongodb" usage:"mongodb config of application service"`
+	InfoServer         HTTPServer         `yaml:"infoServer" usage:"info server config of application service"`
+	AdminServer        HTTPServer         `yaml:"adminServer" usage:"admin server config of application service"`
+	BasicServer        HTTPServer         `yaml:"basicServer" usage:"basic server config of application service"`
+	Log                Log                `yaml:"log" usage:"log config of application service"`
+	Tracing            Tracing            `yaml:"tracing" usage:"tracing config of file service"`
+	ConfigPolicyOption ConfigPolicyOption `yaml:"configPolicyOption" usage:"config policy option file settings"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -203,6 +213,9 @@ func NewApplicationService() *ApplicationService {
 		Tracing: Tracing{
 			ExporterType: defaultApplicationTracingExporterType,
 		},
+		ConfigPolicyOption: ConfigPolicyOption{
+			FilePath: defaultApplicationConfigPolicyOptionFilePath,
+		},
 	}
 }
 
@@ -230,7 +243,7 @@ func (svc *ApplicationService) Load(filePath string) error {
 }
 
 // LoadFromEnv loads config from environment variables.
-// nolint: gocyclo, cyclop, funlen
+// nolint: gocyclo, cyclop, funlen, gocognit
 func (svc *ApplicationService) LoadFromEnv() error {
 	// run mode.
 	var runMode string
@@ -287,6 +300,7 @@ func (svc *ApplicationService) LoadFromEnv() error {
 		return err
 	}
 	// Only load Notice configuration when enabled.
+	// nolint: nestif
 	if svc.Notice.Enabled {
 		if err := envx.MustLoadString("NODEMAN_NOTICE_APP_CODE", &svc.Notice.AppCode); err != nil {
 			return err
@@ -460,6 +474,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Tracing.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
+	if strings.TrimSpace(svc.ConfigPolicyOption.FilePath) == "" {
+		return errors.New("configPolicyOption.filePath is empty")
 	}
 
 	return nil

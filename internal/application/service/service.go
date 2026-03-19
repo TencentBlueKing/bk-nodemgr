@@ -13,9 +13,13 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
@@ -45,6 +49,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -196,6 +201,11 @@ func (svc *Service) initialCapability() error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create front setting: %w", err)
+	}
+
+	svc.Cap.ConfigPolicyOptionSet, err = newConfigPolicyOptionSet(svc.conf.ConfigPolicyOption.FilePath)
+	if err != nil {
+		return fmt.Errorf("failed to create config option definition set: %w", err)
 	}
 
 	return nil
@@ -593,6 +603,42 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 	}
 
 	return bkloginHandler, nil
+}
+
+func newConfigPolicyOptionSet(filePath string) (types.ConfigPolicyOptionSet, error) {
+	if strings.TrimSpace(filePath) == "" {
+		return types.ConfigPolicyOptionSet{}, errors.New("configPolicyOption.filePath is empty")
+	}
+
+	agentOption, err := os.ReadFile(filepath.Join(filepath.Clean(filePath), types.ConfigOptionDefinitionFileNameAgent))
+	if err != nil {
+		return types.ConfigPolicyOptionSet{}, err
+	}
+
+	fileTemplate := types.ConfigPolicyOptionSet{}
+	if err = json.Unmarshal(agentOption, &fileTemplate.Agent); err != nil {
+		return types.ConfigPolicyOptionSet{}, err
+	}
+
+	proxyOption, err := os.ReadFile(filepath.Join(filepath.Clean(filePath), types.ConfigOptionDefinitionFileNameProxy))
+	if err != nil {
+		return types.ConfigPolicyOptionSet{}, err
+	}
+
+	if err = json.Unmarshal(proxyOption, &fileTemplate.Proxy); err != nil {
+		return types.ConfigPolicyOptionSet{}, err
+	}
+
+	pluginOption, err := os.ReadFile(filepath.Join(filepath.Clean(filePath), types.ConfigOptionDefinitionFileNamePlugin))
+	if err != nil {
+		return types.ConfigPolicyOptionSet{}, err
+	}
+
+	if err = json.Unmarshal(pluginOption, &fileTemplate.Plugin); err != nil {
+		return types.ConfigPolicyOptionSet{}, err
+	}
+
+	return fileTemplate, nil
 }
 
 // Start starts the application service.

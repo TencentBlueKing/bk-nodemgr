@@ -1,0 +1,193 @@
+[
+    {
+        "id": "base_config",
+        "title_en": "Base config",
+        "title_zh": "基础配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "enable_fake_seed",
+                "name_en": "Non-fixed MAC address mode",
+                "name_zh": "不固定MAC地址模式",
+                "remark_en": "Unfixed MAC addresses may pose security risks. Please choose carefully.",
+                "remark_zh": "不固定MAC地址可能存在安全风险, 请谨慎选择.",
+                "key": "agent.access.enable_fake_seed",
+                "type": 2,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "logger_level",
+                "name_en": "Log level",
+                "name_zh": "日志等级",
+                "remark_en": "The lower the log level, the more logs are printed.",
+                "remark_zh": "日志等级越低打印的日志数量越多.",
+                "key": "agent.logger.level",
+                "type": 3,
+                "value_string": "INFO",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [
+                    "DEBUG",
+                    "INFO",
+                    "WARN",
+                    "ERROR"
+                ],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            }
+        ]
+    },
+    {
+        "id": "script_config",
+        "title_en": "Script task config",
+        "title_zh": "脚本任务配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "concurrent",
+                "name_en": "Maximum concurrent execution",
+                "name_zh": "最大同时执行数量",
+                "remark_en": "If the number exceeds this limit, it will be queued and executed after the currently executing task is completed. In early versions, tasks exceeding the specified number would be discarded directly.",
+                "remark_zh": "超过该数量会排队, 等待正在执行的任务完成后再执行. 早期版本中, 超过数量的任务会被直接放弃.",
+                "key": "agent.task.concurrence_count",
+                "type": 1,
+                "value_string": "",
+                "value_int": 100,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            }
+        ]
+    },
+    {
+        "id": "data_config",
+        "title_en": "Data report config",
+        "title_zh": "数据上报配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "enable_data_compression",
+                "name_en": "Enable data compression",
+                "name_zh": "开启数据压缩",
+                "remark_en": "Enabling data compression can reduce traffic consumption on the reporting link, but it will increase CPU consumption.",
+                "remark_zh": "开启数据压缩可以减少上报链路的流量消耗, 但会额外增加CPU消耗.",
+                "key": "agent.data.enable_compression",
+                "type": 2,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            }
+        ]
+    },
+    {
+        "id": "file_config",
+        "title_en": "File task config",
+        "title_zh": "文件任务配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "max_speed",
+                "name_en": "Maximum transfer speed(MBytes/s)",
+                "name_zh": "最大传输速度(MBytes/s)",
+                "remark_en": "Uploads and downloads are calculated separately.",
+                "remark_zh": "上传和下载各自独立计算.",
+                "key": "agent.file.max_transfer_speed_mb_per_sec",
+                "type": 1,
+                "value_string": "",
+                "value_int": 100,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "concurrent",
+                "name_en": "Maximum concurrent execution",
+                "name_zh": "最大同时执行数量",
+                "remark_en": "If the number exceeds this limit, it will be queued and executed after the currently executing task is completed.",
+                "remark_zh": "超过该数量会排队, 等待正在执行的任务完成后再执行.",
+                "key": "agent.file.max_transfer_concurrent_num",
+                "type": 1,
+                "value_string": "",
+                "value_int": 10,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "forbid_utp",
+                "name_en": "Mandatory use of TCP transmission",
+                "name_zh": "强制使用TCP传输",
+                "remark_en": "Disabling uTP transmission in the BT protocol will result in more stable transmission. However, this may cause packet loss in cloud CVMs on Windows, so please use with caution.",
+                "remark_zh": "禁用BT协议中的uTP传输, 传输效果会更加稳定. 但在Windows上可能会导致云CVM入包Drop, 请谨慎使用.",
+                "key": "VALUE_GROUP_FILE_MANDATORY_TCP",
+                "type": 2,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {
+                    "agent.file.bt_enable_outgoing_utp": false,
+                    "agent.file.bt_enable_incoming_utp": false,
+                    "agent.file.bt_enable_outgoing_tcp": true,
+                    "agent.file.bt_enable_incoming_tcp": true
+                },
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "enable_outgoing_interface",
+                "name_en": "Enable outgoing interface",
+                "name_zh": "绑定出口网卡",
+                "remark_en": "Enabling outgoing interface will allow the agent to use the specified interface for file transfers.",
+                "remark_zh": "绑定出口网卡将允许agent使用指定的网卡进行文件传输. 默认为内网IP所在网卡.",
+                "key": "agent.file.bt_enable_outgoing_interface",
+                "type": 2,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": true,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "disable_listen_sockets",
+                "name_en": "Enable silent mode",
+                "name_zh": "开启无监听模式",
+                "remark_en": "The agent will not listen to any file service ports and will use one-way outbound TCP connections for file transfers.",
+                "remark_zh": "agent将不会监听任何文件服务端口, 使用单向对外的TCP链接进行文件传输.",
+                "key": "agent.file.disable_listen_sockets",
+                "type": 2,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            }
+        ]
+    }
+]

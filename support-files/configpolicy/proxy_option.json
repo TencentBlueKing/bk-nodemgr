@@ -1,0 +1,80 @@
+[
+    {
+        "id": "base_config",
+        "title_en": "Base config",
+        "title_zh": "基础配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "all_logger_level",
+                "name_en": "Log level",
+                "name_zh": "日志等级",
+                "remark_en": "The lower the log level, the more logs are printed.",
+                "remark_zh": "日志等级越低打印的日志数量越多.",
+                "key": "VALUE_GROUP_PROXY_LOGGER_LEVEL",
+                "type": 3,
+                "value_string": "INFO",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [
+                    "DEBUG",
+                    "INFO",
+                    "WARN",
+                    "ERROR"
+                ],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {
+                    "agent.logger.level": "",
+                    "file.logger.level": "",
+                    "data.logger.level": ""
+                }
+            },
+            {
+                "enabled": false,
+                "id": "all_logger_path",
+                "name_en": "Log Path",
+                "name_zh": "日志存储路径",
+                "remark_en": "",
+                "remark_zh": "",
+                "key": "VALUE_GROUP_PROXY_LOGGER_LEVEL",
+                "type": 0,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {
+                    "agent.logger.path": "",
+                    "file.logger.path": "",
+                    "data.logger.path": ""
+                }
+            }
+        ]
+    },
+    {
+        "id": "file_config",
+        "title_en": "File task config",
+        "title_zh": "文件任务配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "file_cache_dir",
+                "name_en": "Cache file storage path",
+                "name_zh": "缓存文件存储路径",
+                "remark_en": "All file transfers through this proxy are cached in this directory. The cache is automatically cleared, but if the disk where the directory is located has insufficient space, it will affect file transfers.",
+                "remark_zh": "经过该Proxy的文件传输都会缓存在这个目录下, 缓存会自动清理, 若目录所在磁盘可用空间不足会影响文件传输.",
+                "key": "file.cache.dirs",
+                "type": 0,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            }
+        ]
+    }
+]

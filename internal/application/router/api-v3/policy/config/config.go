@@ -29,6 +29,7 @@ type handler struct {
 	rg                          *gin.RouterGroup
 	backendHandler              backend.IHandler
 	storageConfigPolicyTemplate cptemplate.IStorage
+	configPolicyOptionSet       types.ConfigPolicyOptionSet
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -37,6 +38,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:                          rg.Group("/config"),
 		backendHandler:              capability.BackendHandler,
 		storageConfigPolicyTemplate: capability.StorageConfigPolicyTemplate,
+		configPolicyOptionSet:       capability.ConfigPolicyOptionSet,
 	}
 }
 
@@ -135,7 +137,12 @@ func (h *handler) GetConfigPolicy(rCtx restserver.IContext) (interface{}, error)
 	}
 
 	// refresh template with new items.
-	templates := getConfigTemplate(configPolicy.Type)
+	templates, err := h.configPolicyOptionSet.GetOptionsByPolicyType(configPolicy.Type)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy template")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	for _, block := range templates {
 		blocks = insertTemplateBlock(blocks, block)
 	}
@@ -197,8 +204,14 @@ func (h *handler) GetConfigPolicyTemplate(rCtx restserver.IContext) (interface{}
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	configTemplate, err := h.configPolicyOptionSet.GetOptionsByPolicyType(types.ConfigPolicyType(req.GetConfigpolicyType()))
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy template")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	resp := new(protoApplication.ConfigPolicyGetTemplateResp)
-	resp.ConvertTemplateFromTypes(getConfigTemplate(types.ConfigPolicyType(req.GetConfigpolicyType())))
+	resp.ConvertTemplateFromTypes(configTemplate)
 
 	return resp.GetData(), nil
 }
@@ -213,8 +226,14 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 
 	configPolicy, cpTemplate := req.ConvertConfigPolicyToTypes()
 
+	configTemplate, err := h.configPolicyOptionSet.GetOptionsByPolicyType(types.ConfigPolicyType(req.GetConfigpolicyType()))
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy template")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	// create config policy.
-	addCustomConfig(configPolicy, cpTemplate)
+	addCustomConfig(configPolicy, cpTemplate, configTemplate)
 	configPolicy.TenantID = rCtx.TenantID()
 	configPolicyID, err := h.backendHandler.CreateConfigPolicy(rCtx, configPolicy)
 	if err != nil {
@@ -253,8 +272,14 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 
 	configPolicy, cpTemplate := req.ConvertConfigPolicyToTypes()
 
+	configTemplate, err := h.configPolicyOptionSet.GetOptionsByPolicyType(types.ConfigPolicyType(req.GetConfigpolicyType()))
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy template")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
 	// update config policy.
-	addCustomConfig(configPolicy, cpTemplate)
+	addCustomConfig(configPolicy, cpTemplate, configTemplate)
 	configPolicy.TenantID = rCtx.TenantID()
 	if _, err := h.backendHandler.UpdateConfigPolicy(rCtx, configPolicy); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy")
@@ -463,7 +488,7 @@ func insertTemplateBlock(
 
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPolicyTemplateBlock) {
+func addCustomConfig(configPolicy *types.ConfigPolicy, blocks, preDefinedBlocks []types.ConfigPolicyTemplateBlock) {
 	if configPolicy == nil {
 		return
 	}
@@ -472,7 +497,6 @@ func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPoli
 		configPolicy.Configs = make(map[string]any)
 	}
 
-	templates := getConfigTemplate(configPolicy.Type)
 	for _, block := range blocks {
 		for _, item := range block.Items {
 			if !item.Enabled {
@@ -498,7 +522,7 @@ func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPoli
 				continue
 			}
 
-			templateItem, ok := findTemplateItem(templates, block.ID, item.ID)
+			templateItem, ok := findTemplateItem(preDefinedBlocks, block.ID, item.ID)
 			if !ok {
 				continue
 			}

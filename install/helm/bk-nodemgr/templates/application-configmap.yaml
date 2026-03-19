@@ -40,6 +40,9 @@ data:
 
     tracing: {{ .Values.application.config.tracing | toYaml | nindent 6 }}
 
+    configPolicyOption:
+      filePath: {{ .Values.application.config.configPolicyOption.filePath | quote }}
+
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:
@@ -92,4 +95,19 @@ data:
       {{- end}}
       traceServiceName: {{ .Values.application.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.application.config.mongodb.traceSampleRate }}
+
+  {{- if .Values.application.config.configPolicyOption.agentOption }}
+  agent_option.json: |
+    {{ .Values.application.config.configPolicyOption.agentOption | toJson }}
+  {{- end }}
+
+  {{- if .Values.application.config.configPolicyOption.proxyOption }}
+  proxy_option.json: |
+    {{ .Values.application.config.configPolicyOption.proxyOption | toJson }}
+  {{- end }}
+
+  {{- if .Values.application.config.configPolicyOption.pluginOption }}
+  plugin_option.json: |
+    {{ .Values.application.config.configPolicyOption.pluginOption | toJson }}
+  {{- end }}
 {{- end }}

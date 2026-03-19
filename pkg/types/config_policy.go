@@ -48,6 +48,27 @@ type ConfigPolicyTemplate struct {
 	Template string
 }
 
+// ConfigPolicyOptionSet defines the config policy option set.
+type ConfigPolicyOptionSet struct {
+	Agent  []ConfigPolicyTemplateBlock
+	Proxy  []ConfigPolicyTemplateBlock
+	Plugin []ConfigPolicyTemplateBlock
+}
+
+// GetOptionsByPolicyType gets the config policy template blocks by policy type.
+func (set ConfigPolicyOptionSet) GetOptionsByPolicyType(policyType ConfigPolicyType) ([]ConfigPolicyTemplateBlock, error) {
+	switch policyType {
+	case ConfigPolicyTypeAgent:
+		return set.Agent, nil
+	case ConfigPolicyTypeProxy:
+		return set.Proxy, nil
+	case ConfigPolicyTypePlugin:
+		return set.Plugin, nil
+	default:
+		return nil, fmt.Errorf("invalid config policy type, type(%s)", policyType)
+	}
+}
+
 // ConfigPolicyTemplateBlock defines the config policy template block.
 type ConfigPolicyTemplateBlock struct {
 	ID      string                     `json:"id"`
@@ -167,3 +188,14 @@ func ConvertNodeRoleToConfigPolicyType(nodeRole NodeRole) (ConfigPolicyType, err
 		return "", fmt.Errorf("invalid node role. role(%s)", nodeRole)
 	}
 }
+
+const (
+	// ConfigOptionDefinitionFileNameAgent defines the config option definition file name for agent.
+	ConfigOptionDefinitionFileNameAgent = "agent_option.json"
+
+	// ConfigOptionDefinitionFileNameProxy defines the config option definition file name for proxy.
+	ConfigOptionDefinitionFileNameProxy = "proxy_option.json"
+
+	// ConfigOptionDefinitionFileNamePlugin defines the config option definition file name for plugin.
+	ConfigOptionDefinitionFileNamePlugin = "plugin_option.json"
+)

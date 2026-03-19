@@ -863,6 +863,15 @@ application:
       # otlp headers
       otlpHeaders: {}
 
+    # defines the config policy option settings.
+    configPolicyOption:
+      # file path for the config policy option JSON consumed by application service.
+      filePath: /bk-nodemgr/support-files/configpolicy
+      agentOption:
+      proxyOption:
+      pluginOption:
+
+
 ## Nodemgr backend.
 ##
 backend:

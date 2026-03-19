@@ -16,11 +16,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -49,6 +50,9 @@ type Capability struct {
 
 	// BKLoginHandler the bklogin handler.
 	BKLoginHandler bksaasbklogin.IHandler
+
+	// ConfigPolicyOptionSet is the config policy option set.
+	ConfigPolicyOptionSet types.ConfigPolicyOptionSet
 }
 
 // Start starts all services in capability.

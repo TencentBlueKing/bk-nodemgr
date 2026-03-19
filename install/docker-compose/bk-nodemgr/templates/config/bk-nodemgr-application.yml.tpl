@@ -152,3 +152,7 @@ tracing:
   otlpEndpoint: ""
   otlpInsecure: false
   otlpHeaders: {}
+
+# config policy option settings.
+configPolicyOption:
+  filePath: /bk-nodemgr/support-files/configpolicy

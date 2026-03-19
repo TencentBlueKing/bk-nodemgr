@@ -138,6 +138,21 @@ spec:
               mountPath: {{ .Values.common.certPath }}
             - name: nodemgr-etc
               mountPath: {{ .Values.common.etcPath }}
+            {{- if .Values.application.config.configPolicyOption.agentOption }}
+            - name: {{ template "bk-nodemgr.fullname" . }}-application-config
+              mountPath: {{ printf "%s/%s" .Values.application.config.configPolicyOption.filePath "agent_option.json" | quote }}
+              subPath: agent_option.json
+            {{- end }}
+            {{- if .Values.application.config.configPolicyOption.proxyOption }}
+            - name: {{ template "bk-nodemgr.fullname" . }}-application-config
+              mountPath: {{ printf "%s/%s" .Values.application.config.configPolicyOption.filePath "proxy_option.json" | quote }}
+              subPath: proxy_option.json
+            {{- end }}
+            {{- if .Values.application.config.configPolicyOption.pluginOption }}
+            - name: {{ template "bk-nodemgr.fullname" . }}-application-config
+              mountPath: {{ printf "%s/%s" .Values.application.config.configPolicyOption.filePath "plugin_option.json" | quote }}
+              subPath: plugin_option.json
+            {{- end }}
           {{- if .Values.resources }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- else }}
