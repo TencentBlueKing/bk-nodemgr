@@ -284,7 +284,29 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 
 			backoff = sshPollingBaseBackoff
 
-			logLineOffset = act.tailInstallerLogs(std.Context(), client, std, logGlobPath, logLineOffset)
+			var tailErr error
+			logLineOffset, tailErr = act.tailInstallerLogs(std.Context(), client, std, logGlobPath, logLineOffset)
+			if tailErr != nil {
+				// tailInstallerLogs failed — the client was closed by runCommandWithContext.
+				// Treat this like a connection error and reconnect.
+				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(tailErr).
+					Warn("SSH error while tailing logs, attempting reconnect")
+
+				_ = client.Close()
+				newClient, reconnErr := act.reconnectSSH(std, sshConfig, backoff)
+				if reconnErr != nil {
+					logger.G.Sys().With("oper-inst-id", instanceID).WithErr(reconnErr).
+						Warn("SSH reconnect failed, will retry on next tick")
+					backoff = min(backoff*2, sshPollingMaxBackoff) // nolint: mnd
+
+					continue
+				}
+
+				client = newClient
+				backoff = sshPollingBaseBackoff
+
+				continue
+			}
 
 			statusContent = strings.TrimSpace(statusContent)
 			if statusContent == "" {
@@ -352,14 +374,15 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 
 // tailInstallerLogs reads new lines from the installer log file on the target machine
 // via SSH and pushes them as action instance messages for frontend visibility.
-// Returns the updated line offset for the next call.
+// Returns the updated line offset and an error if the SSH command failed (which
+// means the client has been closed by runCommandWithContext and must be reconnected).
 func (act *actionWaitInstallerComplete) tailInstallerLogs(
 	ctx context.Context,
 	client *sshx.Client,
 	std *nodeUtils.NodeActionStandarder,
 	logGlobPath string,
 	offset int,
-) int {
+) (int, error) {
 	// Find the newest installer log file and read lines starting from offset.
 	// The subshell resolves the glob; if no file exists, tail receives an empty
 	// argument and silently produces no output.
@@ -369,8 +392,12 @@ func (act *actionWaitInstallerComplete) tailInstallerLogs(
 	)
 
 	output, _, err := runCommandWithContext(ctx, client, tailCmd, sshCommandTimeout)
-	if err != nil || strings.TrimSpace(output) == "" {
-		return offset
+	if err != nil {
+		return offset, fmt.Errorf("failed to tail installer logs: %w", err)
+	}
+
+	if strings.TrimSpace(output) == "" {
+		return offset, nil
 	}
 
 	lines := strings.Split(strings.TrimRight(output, "\n"), "\n")
@@ -380,7 +407,7 @@ func (act *actionWaitInstallerComplete) tailInstallerLogs(
 		}
 	}
 
-	return offset + len(lines)
+	return offset + len(lines), nil
 }
 
 // parseInstallerLogLine extracts a human-readable message from a raw installer log line.
