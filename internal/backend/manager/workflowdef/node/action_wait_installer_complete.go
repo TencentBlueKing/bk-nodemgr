@@ -298,7 +298,18 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 
 			installerResult := installer.ProcessState(status.Status)
 
-			if param.EnsureAgentID && installerResult == installer.ProcessStateSuccess {
+			// Log error details before any data file reads — if the installer failed,
+			// we want the error recorded regardless of EnsureAgentID or data file availability.
+			if installerResult == installer.ProcessStateFailed {
+				std.InstanceData().Log().
+					Zh("安装器错误详情: %s", status.Error).
+					En("installer error detail: %s", status.Error).
+					Info()
+			}
+
+			// Always attempt to read the data file on success so that results
+			// are captured. Only enforce AgentID presence when EnsureAgentID is set.
+			if installerResult == installer.ProcessStateSuccess {
 				dataContent, _, dataErr := client.RunCommand(fmt.Sprintf("cat %s 2>/dev/null", dataFilePath))
 				if dataErr != nil {
 					return fmt.Errorf("failed to read data file via SSH: %w", dataErr)
@@ -309,14 +320,11 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 					return fmt.Errorf("failed to parse data file: %w", jsonErr)
 				}
 
-				std.DeployInfo().Host.Dynamic.AgentID = data.AgentID
-			}
-
-			if installerResult == installer.ProcessStateFailed && status.Error != "" {
-				std.InstanceData().Log().
-					Zh("安装器错误详情: %s", status.Error).
-					En("installer error detail: %s", status.Error).
-					Info()
+				if data.AgentID != "" {
+					std.DeployInfo().Host.Dynamic.AgentID = data.AgentID
+				} else if param.EnsureAgentID {
+					return fmt.Errorf("installer succeeded but agent_id is empty in data file")
+				}
 			}
 
 			return act.handleInstallerResult(std, instanceID, installerResult)
