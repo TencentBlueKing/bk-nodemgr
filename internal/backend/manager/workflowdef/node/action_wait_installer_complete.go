@@ -264,20 +264,7 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(connectErr).
 					Warn("SSH connection error during polling, attempting reconnect")
 
-				// runCommandWithContext already closed the client on timeout/cancel,
-				// but we call Close again defensively (double-close on *ssh.Client is safe).
-				_ = client.Close()
-				newClient, reconnErr := act.reconnectSSH(std, sshConfig, backoff)
-				if reconnErr != nil {
-					logger.G.Sys().With("oper-inst-id", instanceID).WithErr(reconnErr).
-						Warn("SSH reconnect failed, will retry on next tick")
-					backoff = min(backoff*2, sshPollingMaxBackoff) // nolint: mnd
-
-					continue
-				}
-
-				client = newClient
-				backoff = sshPollingBaseBackoff
+				client, backoff = act.attemptSSHReconnect(std, instanceID, client, sshConfig, backoff)
 
 				continue
 			}
@@ -292,18 +279,7 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 				logger.G.Sys().With("oper-inst-id", instanceID).WithErr(tailErr).
 					Warn("SSH error while tailing logs, attempting reconnect")
 
-				_ = client.Close()
-				newClient, reconnErr := act.reconnectSSH(std, sshConfig, backoff)
-				if reconnErr != nil {
-					logger.G.Sys().With("oper-inst-id", instanceID).WithErr(reconnErr).
-						Warn("SSH reconnect failed, will retry on next tick")
-					backoff = min(backoff*2, sshPollingMaxBackoff) // nolint: mnd
-
-					continue
-				}
-
-				client = newClient
-				backoff = sshPollingBaseBackoff
+				client, backoff = act.attemptSSHReconnect(std, instanceID, client, sshConfig, backoff)
 
 				continue
 			}
@@ -456,6 +432,31 @@ func (act *actionWaitInstallerComplete) reconnectSSH(
 	logger.G.Sys().Info("SSH reconnected successfully")
 
 	return client, nil
+}
+
+// attemptSSHReconnect closes the dead client and re-establishes a fresh SSH connection.
+// The client may already have been closed by runCommandWithContext; calling Close again is
+// safe on *ssh.Client (double-close returns an ignorable error).
+// On reconnect failure the original (closed) client is returned unchanged so the next polling
+// tick will naturally fail again and the exponential backoff continues to grow.
+func (act *actionWaitInstallerComplete) attemptSSHReconnect(
+	std *nodeUtils.NodeActionStandarder,
+	instanceID string,
+	client *sshx.Client,
+	config *sshx.Config,
+	backoff time.Duration,
+) (*sshx.Client, time.Duration) {
+	_ = client.Close()
+
+	newClient, err := act.reconnectSSH(std, config, backoff)
+	if err != nil {
+		logger.G.Sys().With("oper-inst-id", instanceID).WithErr(err).
+			Warn("SSH reconnect failed, will retry on next tick")
+
+		return client, min(backoff*2, sshPollingMaxBackoff) // nolint: mnd
+	}
+
+	return newClient, sshPollingBaseBackoff
 }
 
 // sshCommandResult holds the output of a single RunCommand call.
