@@ -209,8 +209,8 @@ export interface PluginWorkflowOperationInstanceLogGetResp {
 }
 
 export interface PluginWorkflowOperationInstanceLogGetRespData {
-  total: number;
   oper_inst_logs: Record<string, WorkflowActionData>;
+  extra_execution_logs: WorkflowActionMessage;
 }
 
 // PluginWorkflowOperationRetryReq describes the plugin operation retry.

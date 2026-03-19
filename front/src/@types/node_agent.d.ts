@@ -183,29 +183,6 @@ export interface NodeAgentInstallCheckResult {
   category: string;
 }
 
-// NodeAgentAssignUnitReq describes the request body for batch-assigning a
-// network unit to hosts.
-export interface NodeAgentAssignUnitReq {
-  bk_host_id: number[];
-  bk_networkunit_id: number;
-}
-
-// NodeAgentAssignUnitResp describes the response for batch-assigning a network
-// unit.
-export interface NodeAgentAssignUnitResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: NodeAgentAssignUnitRespData;
-}
-
-export interface NodeAgentAssignUnitRespData {
-  success_count: number;
-  failed_count: number;
-  failed_reasons: string[];
-}
-
 // UploadAgentTemplateReq is the request for upload agent tempalte file.
 export interface UploadAgentTemplateReq {
 }
@@ -230,5 +207,24 @@ export interface UploadAgentTemplateResp {
 export interface UploadAgentTemplateRespData {
   info: ParsedInfo[];
   total_count: number;
+}
+
+// NodeAgentAssignUnitReq describes the request body for batch-assigning
+// a network unit to hosts.
+export interface NodeAgentAssignUnitReq {
+  bk_host_id: number[];
+  bk_networkunit_id: number;
+}
+
+// NodeAgentAssignUnitResp describes the response for batch-assigning
+// a network unit.
+export interface NodeAgentAssignUnitResp {
+  data: NodeAgentAssignUnitRespData;
+}
+
+export interface NodeAgentAssignUnitRespData {
+  success_count: number;
+  failed_count: number;
+  failed_reasons: string[];
 }
 

@@ -212,6 +212,7 @@ export interface NodeWorkflowOperationInstanceLogGetResp {
 
 export interface NodeWorkflowOperationInstanceLogGetRespData {
   oper_inst_logs: Record<string, WorkflowActionData>;
+  extra_execution_logs: WorkflowActionMessage;
 }
 
 // NodeWorkflowOperationRetryReq

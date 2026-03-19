@@ -97,7 +97,8 @@
                 :class="['cursor-pointer', { 'text-[#c6c4cc]': row.state === 'pending' }]"
                 @click="handleClickStep(row)"
               >
-                {{ row.index }}. {{ getDisplayName(row) }}
+                <span v-if="row.stepKey !== 'extra_execution_logs'">{{ row.index }}. </span>
+                {{ getDisplayName(row) }}
               </Button>
             </template>
           </TableColumn>
@@ -768,16 +769,22 @@ const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
 async function getLog() {
   if (!curOperInstId.value) return;
-  const res = await serviceCaller.call('operationInstanceLogGet', {
+  const res: any = await serviceCaller.call('operationInstanceLogGet', {
     oper_inst_id: curOperInstId.value,
   }).catch(() => ({
     total: 0,
     oper_inst_logs: {},
+    extra_execution_logs: { logs: [] },
   }));
+
+  const operInstLogs = res.oper_inst_logs || {};
   const list: any[] = [];
   curSortNames.value.forEach((key: string, index: number) => {
-    logData.value.oper_inst_logs[key] = res.oper_inst_logs[key];
-    const { start_time, end_time, state } = res.oper_inst_logs[key].life_cycle || {};
+    const actionData = operInstLogs[key];
+    if (!actionData) return; // 跳过不存在的 key，防止报错
+
+    logData.value.oper_inst_logs[key] = actionData;
+    const { start_time, end_time, state } = actionData.life_cycle || {};
     let costTime = 0;
     if (start_time && end_time) {
       if (end_time <= 0 && state !== 'pending') {
@@ -789,7 +796,6 @@ async function getLog() {
         costTime = end_time - start_time;
       }
     }
-    const actionData = res.oper_inst_logs[key];
     list.push({
       index: index + 1,
       stepKey: key,
@@ -799,35 +805,70 @@ async function getLog() {
       state: state || '未知',
     });
   });
-  logData.value.total = Object.keys(res.oper_inst_logs).length;
+  logData.value.total = Object.keys(operInstLogs).length;
+
+  // 如果有 extra_execution_logs，在表格最前面插入一行"额外执行日志"
+  const hasExtraLogs = res.extra_execution_logs?.logs?.length > 0;
+  if (hasExtraLogs) {
+    const extraLogItem = res.extra_execution_logs.logs;
+    // 判断额外日志中是否有 ERROR 级别
+    const hasError = extraLogItem.some((log: any) => log.level === 'ERROR');
+    list.unshift({
+      index: 0,
+      stepKey: 'extra_execution_logs',
+      display_name_zh: '额外执行日志',
+      display_name_en: 'Extra Execution Logs',
+      costTime: 0,
+      state: hasError ? 'failed' : 'success',
+    });
+    // 重新编号后续步骤
+    for (let i = 1; i < list.length; i++) {
+      list[i].index = i;
+    }
+  }
+
   tableData.value = list;
 
   let currentKey;
   for (const [key, entry] of Object.entries(logData.value.oper_inst_logs)) {
-    if (['failed', 'timeout', 'terminated'].includes(entry.life_cycle?.state)) {
+    if (['failed', 'timeout', 'terminated'].includes((entry as any).life_cycle?.state)) {
       currentKey = key;
       hasErrorOrTimeout.value = true;
       isInterval.value = false;
       break;
-    } else if (entry.life_cycle?.state === 'running') {
+    } else if ((entry as any).life_cycle?.state === 'running') {
       currentKey = key;
       isInterval.value = true;
       break;
     }
     currentKey = key;
   }
-  if (logData.value.oper_inst_logs[currentKey]?.life_cycle.state === 'success') {
+  if (currentKey && logData.value.oper_inst_logs[currentKey]?.life_cycle.state === 'success') {
     isInterval.value = false;
   }
-  allLogs.value = curSortNames.value.map(key => ({
-    key,
-    logs: res.oper_inst_logs[key].message.logs,
-  }));
-  if (currentKey) {
-    logs.value = { ...res.oper_inst_logs[currentKey].message.logs };
+
+  // 构建 allLogs：包含 extra_execution_logs + 各步骤日志
+  const extraLogs = hasExtraLogs
+    ? [{ key: 'extra_execution_logs', logs: res.extra_execution_logs.logs }]
+    : [];
+  allLogs.value = [
+    ...extraLogs,
+    ...curSortNames.value
+      .filter(key => operInstLogs[key]?.message)
+      .map(key => ({
+        key,
+        logs: operInstLogs[key].message.logs,
+      })),
+  ];
+
+  // 如果有额外日志，默认选中它展示；否则按原逻辑选中当前步骤
+  if (hasExtraLogs) {
+    activeStepKey.value = 'extra_execution_logs';
+  } else if (currentKey && operInstLogs[currentKey]?.message) {
+    logs.value = { ...operInstLogs[currentKey].message.logs };
     activeKey.value = currentKey;
   }
-};
+}
 
 const handleToggleLogItem = (key: string) => {
   logs.value = logData.value.oper_inst_logs[key].message.logs;

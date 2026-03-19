@@ -61,6 +61,20 @@ export const loginModal = async () => {
   }
 };
 
+// 监听跨域登录成功的 BroadcastChannel 通知
+// 当 HTTP 页面打开 HTTPS 登录弹窗时，window.opener 跨域丢失，
+// login_success.html 会通过 BroadcastChannel 通知父页面刷新
+try {
+  const loginChannel = new BroadcastChannel('login-success');
+  loginChannel.addEventListener('message', ({ data }) => {
+    if (data?.type === 'loginSuccess') {
+      window.location.reload();
+    }
+  });
+} catch (e) {
+  // BroadcastChannel 不可用时静默忽略（仍可通过 window.opener 方式回调）
+}
+
 // 退出登录
 export const logout = () => {
   window.location.replace(getLoginUrl(window.PROJECT_CONFIG.BK_LOGIN_URL, location.origin, true));

@@ -7,8 +7,19 @@
 </head>
 <body>
   <script>
-    window.opener && window.opener.location.reload()
-    window.close()
+    // 优先使用 window.opener 刷新父页面（同源时可用）
+    if (window.opener) {
+      window.opener.location.reload();
+    } else {
+      // 跨域（如 HTTP 页面打开 HTTPS 登录）时 window.opener 为 null
+      // 通过 BroadcastChannel 通知父页面登录成功，触发刷新
+      try {
+        var channel = new BroadcastChannel('login-success');
+        channel.postMessage({ type: 'loginSuccess' });
+        channel.close();
+      } catch (e) {}
+    }
+    window.close();
   </script>
 </body>
 </html>
