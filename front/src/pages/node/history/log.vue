@@ -252,7 +252,7 @@
   <guide v-model:is-show="isGuideShow" :data="guideData" />
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, Input, overflowTitle, SearchSelect } from 'bkui-vue';
+import { Button, Dropdown, InfoBox, Input, Message, overflowTitle, SearchSelect } from 'bkui-vue';
 import { AngleUpFill, ArrowsLeft, Close, RightShape, Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
@@ -578,19 +578,27 @@ const handleRetry = async (row: any, type: string) => {
 };
 
 // 终止
-const handleTerminate = async () => {
+const handleTerminate = () => {
   if (!route.params.taskId) return;
-  
-  const res = await serviceCaller.call('terminate', {
-    workflow_id: route.params.taskId,
-    operation_ids: [currentOperate.value.operation_id],
-  }).catch(() => false);
-  if (res !== false) {
-    await getOperateList();
-    await getInstance();
-    start();
-    mainStore.updateLogTerminate(true);
-  }
+  InfoBox({
+    title: t('platform.nodeMan.log.terminateConfirmTitle'),
+    subTitle: t('platform.nodeMan.log.terminateConfirmSubTitle'),
+    onConfirm: async () => {
+      const res = await serviceCaller.call('terminate', {
+        workflow_id: route.params.taskId,
+        operation_ids: [currentOperate.value.operation_id],
+      }).catch(() => {
+        Message({ theme: 'error', message: t('platform.nodeMan.log.terminateFailedMsg') });
+        return false;
+      });
+      if (res !== false) {
+        await getOperateList();
+        await getInstance();
+        start();
+        mainStore.updateLogTerminate(true);
+      }
+    },
+  });
 };
 
 const scrollToFirstErrorByClassNames = (classNames: string | undefined) => {
