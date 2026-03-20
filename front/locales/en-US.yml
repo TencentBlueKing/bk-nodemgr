@@ -833,6 +833,12 @@ agentProxyPkg:
   no: 'No'
   osArch: OS / Arch
 components:
+  permission:
+    noPermission: No permission to access or operate this resource
+    system: System
+    requiredPermissions: Required Permissions
+    relatedResources: Related Resource Instances
+    apply: Apply
   batchEdit:
     passwordTip: Only for Password Auth
     batchEditKey: Batch Edit Keys

@@ -833,6 +833,12 @@ agentProxyPkg:
   no: 否
   osArch: 操作系统/架构
 components:
+  permission:
+    noPermission: 没有权限访问或操作此资源
+    system: 系统
+    requiredPermissions: 需要申请的权限
+    relatedResources: 关联的资源实例
+    apply: 去申请
   batchEdit:
     passwordTip: 仅对密码认证生效
     batchEditKey: 批量编辑密钥

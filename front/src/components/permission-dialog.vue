@@ -7,7 +7,7 @@
     @closed="permissionStore.hideDialog()"
   >
     <img class="no-permission-img" src="/images/403.png" alt="403">
-    <div class="no-permission-text">没有权限访问或操作此资源</div>
+    <div class="no-permission-text">{{ t('components.permission.noPermission') }}</div>
     <Table
       class="mt20 no-permission-table"
       align="left"
@@ -17,15 +17,16 @@
       row-hover="auto"
     />
     <template #footer>
-      <bk-button
-        class="mr10"
-        theme="primary"
-        :disabled="!applyUrl"
-        @click="handleApply"
-      >
-        去申请
-      </bk-button>
-      <bk-button @click="permissionStore.hideDialog()">取消</bk-button>
+      <div class="flex justify-end gap-[8px]">
+        <bk-button
+          theme="primary"
+          :disabled="!applyUrl"
+          @click="handleApply"
+        >
+          {{ t('components.permission.apply') }}
+        </bk-button>
+        <bk-button @click="permissionStore.hideDialog()">{{ t('action.cancel') }}</bk-button>
+      </div>
     </template>
   </Dialog>
 </template>
@@ -33,10 +34,12 @@
 <script setup lang="ts">
 import { Dialog, Table } from 'bkui-vue';
 import { computed, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { PermissionAction } from '@/stores/permission';
 import { usePermissionStore } from '@/stores/permission';
 
+const { t } = useI18n();
 const permissionStore = usePermissionStore();
 
 const systemName = computed(() => permissionStore.data?.system_name ?? '');
@@ -45,17 +48,17 @@ const applyUrl = computed(() => permissionStore.data?.apply_url ?? '');
 
 const columns = computed(() => [
   {
-    label: '系统',
+    label: t('components.permission.system'),
     width: 150,
     render: () => h('span', {}, systemName.value),
   },
   {
-    label: '需要申请的权限',
+    label: t('components.permission.requiredPermissions'),
     field: 'name',
     width: 200,
   },
   {
-    label: '关联的资源实例',
+    label: t('components.permission.relatedResources'),
     width: 342,
     render: ({ data }: { data: PermissionAction }) => {
       const relatedResourceTypes = data?.related_resource_types;
