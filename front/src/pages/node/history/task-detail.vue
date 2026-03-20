@@ -331,6 +331,7 @@ import {
   Button,
   Checkbox,
   Dropdown,
+  InfoBox,
   Input,
   Radio,
   ResizeLayout,
@@ -1155,36 +1156,50 @@ const handleFullRetry = async (type: string) => {
 };
 
 // 终止
-const handleTerminate = async (row: any) => {
+const handleTerminate = (row: any) => {
   if (!route.params.taskId) return;
-  
-  const res = await serviceCaller.call('terminate', {
-    workflow_id: route.params.taskId,
-    operation_ids: [row.operation_id],
-  }).catch(() => false);
-  if (res !== false) {
-    await getOperateList();
-    if (currentTaskStatus.value === 'running' && needInterval.value) {
-      start();
-    }
-    await updataCurrentTaskInfo();
-  }
+  InfoBox({
+    title: t('taskDetail.confirmTerminate'),
+    subTitle: t('taskDetail.confirmTerminateSub'),
+    confirmText: t('action.confirm'),
+    cancelText: t('action.cancel'),
+    onConfirm: async () => {
+      const res = await serviceCaller.call('terminate', {
+        workflow_id: route.params.taskId,
+        operation_ids: [row.operation_id],
+      }).catch(() => false);
+      if (res !== false) {
+        await getOperateList();
+        if (currentTaskStatus.value === 'running' && needInterval.value) {
+          start();
+        }
+        await updataCurrentTaskInfo();
+      }
+    },
+  });
 };
 // 批量终止
-const handleBatchTerminate = async () => {
+const handleBatchTerminate = () => {
   if (!route.params.taskId) return;
-  
-  const res = await serviceCaller.call('terminate', {
-    workflow_id: route.params.taskId,
-    operation_ids: runningSelection.value.map(item => item.operation_id),
-  }).catch(() => false);
-  if (res !== false) {
-    await getOperateList();
-    if (currentTaskStatus.value === 'running' && needInterval.value) {
-      start();
-    }
-    await updataCurrentTaskInfo();
-  }
+  InfoBox({
+    title: t('taskDetail.confirmBatchTerminate'),
+    subTitle: t('taskDetail.confirmBatchTerminateSub', { count: runningSelection.value.length }),
+    confirmText: t('action.confirm'),
+    cancelText: t('action.cancel'),
+    onConfirm: async () => {
+      const res = await serviceCaller.call('terminate', {
+        workflow_id: route.params.taskId,
+        operation_ids: runningSelection.value.map(item => item.operation_id),
+      }).catch(() => false);
+      if (res !== false) {
+        await getOperateList();
+        if (currentTaskStatus.value === 'running' && needInterval.value) {
+          start();
+        }
+        await updataCurrentTaskInfo();
+      }
+    },
+  });
 };
 
 const updataCurrentTaskInfo = async () => {

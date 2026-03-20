@@ -679,8 +679,14 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
     
-    // 同一 bucket 内按序号分配 edgeIndex
+    // 同一 bucket 内，先按目标接入点分组排序（同一接入点的边排在一起），再分配 edgeIndex
     xBuckets.forEach((bucketEdges) => {
+      // 按目标接入点 ID 排序，使同一接入点的边连续排列
+      bucketEdges.sort((a, b) => {
+        const apA = a.target as string;
+        const apB = b.target as string;
+        return apA.localeCompare(apB);
+      });
       bucketEdges.forEach((edge, idx) => {
         unitToApEdgeIndexMap.set(edge.id as string, idx);
       });

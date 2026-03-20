@@ -541,6 +541,10 @@ taskDetail:
   searchPlaceholder: Select IP, Network Area, Business, Target Version, Status
   batchRetry: Batch Retry
   batchTerminate: Batch Terminate
+  confirmTerminate: Confirm to terminate this task?
+  confirmTerminateSub: The task will stop executing after termination, please proceed with caution
+  confirmBatchTerminate: Confirm to batch terminate tasks?
+  confirmBatchTerminateSub: "About to terminate {count} running task(s), please proceed with caution"
   title: Task Details
   state: State
   retryType:

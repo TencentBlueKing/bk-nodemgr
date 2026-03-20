@@ -541,6 +541,10 @@ taskDetail:
   searchPlaceholder: 请选择 IP、管控区域、业务、目标版本、执行状态
   batchRetry: 批量重试
   batchTerminate: 批量终止
+  confirmTerminate: 确认终止该任务？
+  confirmTerminateSub: 终止后任务将停止执行，请谨慎操作
+  confirmBatchTerminate: 确认批量终止任务？
+  confirmBatchTerminateSub: "即将终止 {count} 个正在执行的任务，请谨慎操作"
   title: 任务详情
   state: 状态
   retryType:
