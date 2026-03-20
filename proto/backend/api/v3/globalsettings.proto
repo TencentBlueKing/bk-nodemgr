@@ -35,6 +35,7 @@ message ListGlobalSettingsResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -54,6 +55,7 @@ message GetGlobalSettingResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string value = 1; }
   Data data = 5;
@@ -70,6 +72,7 @@ message UpsertGlobalSettingsResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -86,6 +89,7 @@ message DeleteGlobalSettingsResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;

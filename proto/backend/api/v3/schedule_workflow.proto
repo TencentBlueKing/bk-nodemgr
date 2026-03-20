@@ -17,6 +17,7 @@ message EnableScheduleWorkflowResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -33,6 +34,7 @@ message DisableScheduleWorkflowResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -70,6 +72,7 @@ message ListScheduleWorkflowResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message ScheduleWorkflow {
     optional string workflow_id = 1;

@@ -45,6 +45,7 @@ message PackageReleaseAgentListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -68,6 +69,7 @@ message PackageReleaseAgentDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
   PackageReleaseDistinctData data = 5;
 }
 
@@ -86,6 +88,7 @@ message PackageReleaseAgentSetLabelsManyResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -107,6 +110,7 @@ message PackageReleaseAgentEnableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -128,6 +132,7 @@ message PackageReleaseAgentDisableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -149,6 +154,7 @@ message PackageReleaseAgentSetAsDefaultResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -170,6 +176,7 @@ message PackageReleaseAgentCancelAsDefaultResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -191,6 +198,7 @@ message PackageReleaseAgentDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -213,6 +221,7 @@ message PackageReleaseProxyListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -236,6 +245,7 @@ message PackageReleaseProxyDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
   PackageReleaseDistinctData data = 5;
 }
 
@@ -254,6 +264,7 @@ message PackageReleaseProxySetLabelsManyResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -275,6 +286,7 @@ message PackageReleaseProxyEnableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -296,6 +308,7 @@ message PackageReleaseProxyDisableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -317,6 +330,7 @@ message PackageReleaseProxySetAsDefaultResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -338,6 +352,7 @@ message PackageReleaseProxyCancelAsDefaultResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -359,6 +374,7 @@ message PackageReleaseProxyDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -381,6 +397,7 @@ message PackageReleasePluginListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -405,6 +422,7 @@ message PackageReleasePluginEnableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -426,6 +444,7 @@ message PackageReleasePluginDisableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -447,6 +466,7 @@ message PackageReleasePluginSetAsDefaultResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -468,6 +488,7 @@ message PackageReleasePluginCancelAsDefaultResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -489,6 +510,7 @@ message PackageReleasePluginDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -505,6 +527,7 @@ message PackageReleaseCertListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -524,6 +547,7 @@ message PackageReleaseCertDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -540,6 +564,7 @@ message PackageReleaseBinToolListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -559,6 +584,7 @@ message PackageReleaseBinToolDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -575,6 +601,7 @@ message PackageReleasePluginBinToolListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -597,6 +624,7 @@ message PackageReleasePluginBinToolDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -634,6 +662,7 @@ message PackageEventListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -657,6 +686,7 @@ message PackageEventDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string release_type = 1;

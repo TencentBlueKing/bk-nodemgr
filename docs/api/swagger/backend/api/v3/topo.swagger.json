@@ -952,6 +952,24 @@
       },
       "description": "AccessPoint describes the access point informations."
     },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
     "v3Business": {
       "type": "object",
       "properties": {
@@ -1307,6 +1325,41 @@
       },
       "description": "Page describes the generaic conditions when paging query."
     },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
+    },
     "v3TimeRange": {
       "type": "object",
       "properties": {
@@ -1370,6 +1423,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoAccessPointListRespData"
@@ -1450,6 +1506,9 @@
         "error": {
           "$ref": "#/definitions/v3TopoBusinessListRespError"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoBusinessListRespData"
         }
@@ -1528,6 +1587,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoConstantGetRespData"
@@ -1622,6 +1684,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoEventDistinctRespData"
@@ -1761,6 +1826,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoEventListRespData"
         }
@@ -1811,6 +1879,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "type": "object",
           "additionalProperties": {
@@ -1849,6 +1920,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "type": "object",
           "additionalProperties": {
@@ -1874,6 +1948,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoGraphNodeGetRespData"
@@ -1920,6 +1997,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoHostDistinctRespData"
@@ -2148,6 +2228,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostListRespData"
         }
@@ -2201,6 +2284,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostSelectHostIDRespData"
         }
@@ -2250,6 +2336,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostSelectInnerIPRespData"
         }
@@ -2297,6 +2386,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoHostSelectInnerIPV6RespData"
@@ -2346,6 +2438,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPRespData"
         }
@@ -2394,6 +2489,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPV6RespData"
         }
@@ -2438,6 +2536,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3TopoNetworkAreaCreateRespError"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaCreateRespData"
@@ -2509,6 +2610,9 @@
         "error": {
           "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespError"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaDeleteRespData"
         }
@@ -2578,6 +2682,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3TopoNetworkAreaGetRespError"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NetworkArea"
@@ -2677,6 +2784,9 @@
         "error": {
           "$ref": "#/definitions/v3TopoNetworkAreaListRespError"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaListRespData"
         }
@@ -2759,6 +2869,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespError"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkAreaUpdateRespData"
@@ -2849,6 +2962,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitCreateRespData"
         }
@@ -2890,6 +3006,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitDeleteRespData"
         }
@@ -2930,6 +3049,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NetworkUnit"
@@ -2992,6 +3114,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitListRespData"
@@ -3063,6 +3188,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3TopoNetworkUnitUpdateRespData"

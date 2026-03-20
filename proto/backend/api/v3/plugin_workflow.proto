@@ -50,6 +50,7 @@ message PluginWorkflowListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -70,6 +71,7 @@ message PluginWorkflowDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string type = 1;
@@ -118,6 +120,7 @@ message PluginWorkflowOperationDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated string state = 1; }
   Data data = 5;
@@ -132,6 +135,7 @@ message PluginWorkflowOperationListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message PluginDeploymentInfo {
     int64 bk_host_id = 1;
@@ -179,6 +183,7 @@ message PluginWorkflowOperationInstanceListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -198,6 +203,7 @@ message PluginWorkflowOperationInstanceLogGetResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     map<string, WorkflowActionData> oper_inst_logs = 1;
@@ -219,6 +225,7 @@ message PluginWorkflowOperationRetryResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -237,6 +244,7 @@ message PluginWorkflowOperationTerminateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -256,6 +264,7 @@ message PluginWorkflowOperationInstanceStatusDistributionListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
   message StatusDistribution {
     int64 not_inited_count = 1;
     map<string, int64> state_counts = 2;

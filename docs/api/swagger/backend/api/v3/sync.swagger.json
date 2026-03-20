@@ -355,6 +355,24 @@
         }
       }
     },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
     "v3Error": {
       "type": "object",
       "properties": {
@@ -370,6 +388,41 @@
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
           }
+        }
+      }
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
         }
       }
     },
@@ -401,6 +454,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3SyncAgentInfoRespData"
@@ -445,6 +501,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncAgentStateRespData"
         }
@@ -478,6 +537,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3SyncAliveHostAgentInfoRespData"
@@ -522,6 +584,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncAlivePluginProcessInfoRespData"
         }
@@ -555,6 +620,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3SyncAllAgentStateRespData"
@@ -590,6 +658,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncAllAlivePluginProcessInfoRespData"
         }
@@ -623,6 +694,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3SyncCmdbConstantsRespData"
@@ -658,6 +732,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3SyncCmdbHostRespData"
         }
@@ -691,6 +768,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3SyncCmdbNetworkAreaRespData"

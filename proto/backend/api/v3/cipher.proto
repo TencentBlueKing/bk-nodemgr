@@ -15,6 +15,7 @@ message GetRSAPublicKeyResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string public_key = 1; }
   Data data = 5;

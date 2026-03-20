@@ -15,6 +15,7 @@ message SyncCmdbHostResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -31,6 +32,7 @@ message SyncCmdbNetworkAreaResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -47,6 +49,7 @@ message SyncCmdbConstantsResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -61,6 +64,7 @@ message SyncAgentStateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string trigger_id = 1; }
   Data data = 5;
@@ -77,6 +81,7 @@ message SyncAllAgentStateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string trigger_id = 1; }
   Data data = 5;
@@ -91,6 +96,7 @@ message SyncAgentInfoResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string trigger_id = 1; }
   Data data = 5;
@@ -107,6 +113,7 @@ message SyncAliveHostAgentInfoResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string trigger_id = 1; }
   Data data = 5;
@@ -122,6 +129,7 @@ message SyncAlivePluginProcessInfoResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string trigger_id = 1; }
   Data data = 5;
@@ -138,6 +146,7 @@ message SyncAllAlivePluginProcessInfoResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string trigger_id = 1; }
   Data data = 5;

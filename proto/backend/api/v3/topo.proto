@@ -35,6 +35,7 @@ message TopoBusinessListResp {
     repeated Details details = 3;
   }
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -75,6 +76,7 @@ message TopoNetworkAreaListResp {
     repeated Details details = 3;
   }
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -103,6 +105,7 @@ message TopoNetworkAreaGetResp {
     repeated Details details = 3;
   }
   Error error = 4;
+  Permission permission = 6;
   NetworkArea data = 5;
 }
 
@@ -129,6 +132,7 @@ message TopoNetworkAreaCreateResp {
     repeated Details details = 3;
   }
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 bk_networkarea_id = 1; }
   Data data = 5;
@@ -158,6 +162,7 @@ message TopoNetworkAreaUpdateResp {
     repeated Details details = 3;
   }
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 bk_networkarea_id = 1; }
   Data data = 5;
@@ -183,6 +188,7 @@ message TopoNetworkAreaDeleteResp {
     repeated Details details = 3;
   }
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 bk_networkarea_id = 1; }
   Data data = 5;
@@ -209,6 +215,7 @@ message TopoNetworkUnitListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -228,6 +235,7 @@ message TopoNetworkUnitGetResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
   NetworkUnit data = 5;
 }
 
@@ -249,6 +257,7 @@ message TopoNetworkUnitCreateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 bk_networkunit_id = 1; }
   Data data = 5;
@@ -273,6 +282,7 @@ message TopoNetworkUnitUpdateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 bk_networkunit_id = 1; }
   Data data = 5;
@@ -289,6 +299,7 @@ message TopoNetworkUnitDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 bk_networkunit_id = 1; }
   Data data = 5;
@@ -336,6 +347,7 @@ message TopoHostListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -359,6 +371,7 @@ message TopoHostSelectHostIDResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated int64 items = 1; }
   Data data = 5;
@@ -379,6 +392,7 @@ message TopoHostSelectInnerIPResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated string items = 1; }
   Data data = 5;
@@ -399,6 +413,7 @@ message TopoHostSelectInnerIPV6Resp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated string items = 1; }
   Data data = 5;
@@ -419,6 +434,7 @@ message TopoHostSelectNetWorkareaIDAndInnerIPResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated string items = 1; }
   Data data = 5;
@@ -439,6 +455,7 @@ message TopoHostSelectNetWorkareaIDAndInnerIPV6Resp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated string items = 1; }
   Data data = 5;
@@ -458,6 +475,7 @@ message TopoHostDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string node_role = 1;
@@ -488,6 +506,7 @@ message TopoGetHostDistributionByNodeRoleResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   map<string, int64> data = 5;
 }
@@ -506,6 +525,7 @@ message TopoGetHostDistributionByNetworkAreaIDResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   map<int64, int64> data = 5;
 }
@@ -543,6 +563,7 @@ message TopoEventListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -566,6 +587,7 @@ message TopoEventDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated int64 bk_networkarea_id = 1;
@@ -597,6 +619,7 @@ message TopoAccessPointListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -619,6 +642,7 @@ message TopoConstantGetResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string cloud_vendor = 1;
@@ -636,6 +660,7 @@ message TopoGraphNodeGetResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message GraphNodeInfo {
     int64 bk_networkunit_id = 1;
