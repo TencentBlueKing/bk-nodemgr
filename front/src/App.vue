@@ -195,6 +195,7 @@
       <RouterView />
     </Navigation>
     <log-version v-model:is-show="showLog"></log-version>
+    <PermissionDialog />
   </div>
 </template>
 
@@ -213,6 +214,7 @@ import { TopoService } from '@/api/modules/topo';
 import { logout } from '@/common/auth';
 import { parseCookies, setCookie } from '@/common/util';
 import Notice from '@/components/notice.vue';
+import PermissionDialog from '@/components/permission-dialog.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';

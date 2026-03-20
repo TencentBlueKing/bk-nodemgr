@@ -1,7 +1,10 @@
 import { Message } from 'bkui-vue';
 import { isObject, merge } from 'lodash';
-import { loginModal } from '@/common/auth';
+
 import { type Config, fetch, interceptors  } from './interceptors';
+
+import { loginModal } from '@/common/auth';
+import { usePermissionStore } from '@/stores/permission';
 
 type HttpMethods = 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT';
 
@@ -31,6 +34,12 @@ interceptors.response.use(async (response: Response, config: Config) => {
       });
     }
     return;
+  }
+
+  // 权限不足 (HTTP 403)
+  if (response.status === 403 && res.permission) {
+    usePermissionStore().showDialog(res.permission);
+    return Promise.reject(resData);
   }
 
   const showMessageData = res?.message || res?.datas?.message || res?.error?.message || '';

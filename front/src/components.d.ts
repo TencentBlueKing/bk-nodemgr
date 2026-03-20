@@ -25,6 +25,7 @@ declare module 'vue' {
     Notice: typeof import('./components/notice.vue')['default']
     OperateDialog: typeof import('./components/operate-dialog.vue')['default']
     PageHeader: typeof import('./components/page-header.vue')['default']
+    PermissionDialog: typeof import('./components/permission-dialog.vue')['default']
     README: typeof import('./components/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
