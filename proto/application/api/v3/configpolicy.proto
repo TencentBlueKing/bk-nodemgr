@@ -35,6 +35,7 @@ message ConfigPolicyListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -54,6 +55,7 @@ message ConfigPolicyGetTemplateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated ConfigPolicyConfigBlock templates = 1; }
   Data data = 5;
@@ -73,6 +75,7 @@ message ConfigPolicyListPlatformResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string os_type = 1;
@@ -110,6 +113,7 @@ message ConfigPolicyCreateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 configpolicy_id = 1; }
   Data data = 5;
@@ -135,6 +139,7 @@ message ConfigPolicyUpdateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { optional int64 configpolicy_id = 1; }
   Data data = 5;
@@ -150,6 +155,7 @@ message ConfigPolicyEnableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -166,6 +172,7 @@ message ConfigPolicyDisableResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -181,6 +188,7 @@ message ConfigPolicyDeleteResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -218,6 +226,7 @@ message ConfigPolicyEventListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -241,6 +250,7 @@ message ConfigPolicyEventDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated int64 configpolicy_id = 1;

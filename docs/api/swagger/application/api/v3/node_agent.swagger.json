@@ -328,6 +328,24 @@
         }
       }
     },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
     "v3AgentInstallCheckInfo": {
       "type": "object",
       "properties": {
@@ -543,6 +561,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeAgentInstallCheckRespData"
         }
@@ -621,6 +642,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeAgentInstallRespData"
         }
@@ -679,6 +703,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NodeAgentReconfigRespData"
@@ -739,6 +766,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeAgentRestartRespData"
         }
@@ -790,6 +820,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NodeAgentUninstallRespData"
@@ -853,6 +886,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeAgentUpgradeRespData"
         }
@@ -897,6 +933,41 @@
         }
       },
       "description": "ParsedInfo describes the result for tempalte file parsed info."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
     },
     "v3TargetVersion": {
       "type": "object",

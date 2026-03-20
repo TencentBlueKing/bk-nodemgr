@@ -1951,6 +1951,24 @@
         }
       }
     },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
     "v3Error": {
       "type": "object",
       "properties": {
@@ -2044,6 +2062,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageEventDistinctRespData"
@@ -2182,6 +2203,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageEventListRespData"
         }
@@ -2229,6 +2253,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseAgentRespData"
         }
@@ -2262,6 +2289,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseBinToolRespData"
@@ -2297,6 +2327,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseCertRespData"
         }
@@ -2330,6 +2363,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseExternalPluginV2RespData"
@@ -2396,6 +2432,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleasePluginV2RespData"
         }
@@ -2429,6 +2468,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleasePluginV3RespData"
@@ -2467,6 +2509,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackagePublishReleaseProxyRespData"
@@ -2511,6 +2556,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentCancelAsDefaultRespData"
@@ -2565,6 +2613,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentCountDeployedRespData"
         }
@@ -2618,6 +2669,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentDeleteRespData"
         }
@@ -2662,6 +2716,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentDisableRespData"
         }
@@ -2702,6 +2759,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDistinctData"
@@ -2760,6 +2820,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentEnableRespData"
         }
@@ -2803,6 +2866,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentListRespData"
@@ -2861,6 +2927,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentSetAsDefaultRespData"
         }
@@ -2905,6 +2974,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseAgentSetLabelsManyRespData"
         }
@@ -2939,6 +3011,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseBinToolDeleteRespData"
@@ -2984,6 +3059,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseBinToolListRespData"
@@ -3033,6 +3111,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseCertDeleteRespData"
         }
@@ -3077,6 +3158,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseCertListRespData"
@@ -3202,6 +3286,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginBinToolDeleteRespData"
         }
@@ -3249,6 +3336,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginBinToolListRespData"
@@ -3307,6 +3397,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginCancelAsDefaultRespData"
         }
@@ -3351,6 +3444,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginDeleteRespData"
         }
@@ -3394,6 +3490,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginDisableRespData"
@@ -3454,6 +3553,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginEnableRespData"
         }
@@ -3497,6 +3599,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginListRespData"
@@ -3555,6 +3660,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleasePluginSetAsDefaultRespData"
         }
@@ -3598,6 +3706,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxyCancelAsDefaultRespData"
@@ -3652,6 +3763,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxyCountDeployedRespData"
         }
@@ -3705,6 +3819,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxyDeleteRespData"
         }
@@ -3749,6 +3866,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxyDisableRespData"
         }
@@ -3789,6 +3909,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseDistinctData"
@@ -3847,6 +3970,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxyEnableRespData"
         }
@@ -3890,6 +4016,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxyListRespData"
@@ -3948,6 +4077,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxySetAsDefaultRespData"
         }
@@ -3992,6 +4124,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageReleaseProxySetLabelsManyRespData"
         }
@@ -4029,6 +4164,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginAgentRespData"
@@ -4105,6 +4243,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginBinToolRespData"
         }
@@ -4174,6 +4315,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginCertRespData"
         }
@@ -4234,6 +4378,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginExternalPluginV2RespData"
@@ -4379,6 +4526,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginPluginV2RespData"
         }
@@ -4464,6 +4614,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginPluginV3RespData"
@@ -4552,6 +4705,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginProxyRespData"
         }
@@ -4627,6 +4783,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3PackageUploadOriginServerRespData"
         }
@@ -4687,6 +4846,27 @@
       },
       "description": "Page describes the generaic conditions when paging query."
     },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
     "v3Platform": {
       "type": "object",
       "properties": {
@@ -4698,6 +4878,20 @@
         }
       },
       "description": "Platform describes the platform informations."
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
     },
     "v3Release": {
       "type": "object",

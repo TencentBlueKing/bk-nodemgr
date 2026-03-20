@@ -38,6 +38,7 @@ message NodeAgentInstallResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -59,6 +60,7 @@ message NodeAgentUpgradeResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -78,6 +80,7 @@ message NodeAgentReconfigResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -97,6 +100,7 @@ message NodeAgentRestartResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -113,6 +117,7 @@ message NodeAgentUninstallResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -137,6 +142,7 @@ message NodeAgentInstallCheckResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated NodeAgentInstallCheckResult results = 1; }
   Data data = 5;

@@ -80,6 +80,24 @@
         }
       }
     },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
     "v3Announcement": {
       "type": "object",
       "properties": {
@@ -171,6 +189,9 @@
           "$ref": "#/definitions/v3Error",
           "description": "error contains error details if the request failed."
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "type": "array",
           "items": {
@@ -181,6 +202,41 @@
         }
       },
       "description": "GetCurrentAnnouncementsResp describes the response for getting current\nannouncements."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
     }
   }
 }

@@ -26,6 +26,7 @@ message PluginInstallResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -50,6 +51,7 @@ message PluginUpgradeResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -71,6 +73,7 @@ message PluginUninstallResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -96,6 +99,7 @@ message PluginApplySubConfigResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -125,6 +129,7 @@ message PluginListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -145,6 +150,7 @@ message PluginSetMemoResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 }
 
 service PluginAPI {

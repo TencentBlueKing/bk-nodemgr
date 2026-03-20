@@ -65,6 +65,7 @@ message GetCurrentAnnouncementsResp {
   string request_id = 3;
   // error contains error details if the request failed.
   Error error = 4;
+  Permission permission = 6;
   // data contains the list of current announcements.
   repeated Announcement data = 5;
 }

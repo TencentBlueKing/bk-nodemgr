@@ -295,6 +295,24 @@
         }
       }
     },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
     "v3Error": {
       "type": "object",
       "properties": {
@@ -381,6 +399,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NodeProxyInstallCheckRespData"
@@ -548,6 +569,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeProxyInstallRespData"
         }
@@ -606,6 +630,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NodeProxyReconfigRespData"
@@ -666,6 +693,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeProxyRestartRespData"
         }
@@ -717,6 +747,9 @@
         },
         "error": {
           "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
         },
         "data": {
           "$ref": "#/definitions/v3NodeProxyUninstallRespData"
@@ -817,6 +850,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeProxyUpdateRespData"
         }
@@ -878,6 +914,9 @@
         "error": {
           "$ref": "#/definitions/v3Error"
         },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
         "data": {
           "$ref": "#/definitions/v3NodeProxyUpgradeRespData"
         }
@@ -889,6 +928,27 @@
       "properties": {
         "workflow_id": {
           "type": "string"
+        }
+      }
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
         }
       }
     },
@@ -921,6 +981,20 @@
         }
       },
       "description": "ProxyInstallCheckInfo describes the node proxy install check parameter."
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
     },
     "v3TargetVersion": {
       "type": "object",

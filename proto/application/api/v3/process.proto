@@ -42,6 +42,7 @@ message ProcessListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -62,6 +63,7 @@ message GetProcessDistributionByHostIDResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   map<int64, int64> data = 5;
 }
@@ -80,6 +82,7 @@ message GetProcessDistributionByPluginNameResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   map<string, int64> data = 5;
 }
@@ -96,6 +99,7 @@ message DistinctProcessResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string os_type = 1;

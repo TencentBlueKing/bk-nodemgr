@@ -48,6 +48,7 @@ message NodeProxyInstallResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -71,6 +72,7 @@ message NodeProxyUpgradeResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -90,6 +92,7 @@ message NodeProxyReconfigResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -109,6 +112,7 @@ message NodeProxyRestartResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -144,6 +148,7 @@ message NodeProxyUninstallResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { string workflow_id = 1; }
   Data data = 5;
@@ -158,6 +163,7 @@ message NodeProxyUpdateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -182,6 +188,7 @@ message NodeProxyInstallCheckResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated NodeProxyInstallCheckResult results = 1; }
   Data data = 5;

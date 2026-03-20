@@ -52,6 +52,7 @@ message NodeWorkflowListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -69,6 +70,7 @@ message NodeWorkflowStatisticsResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated WorkflowStatisticsInfo items = 1; }
   Data data = 5;
@@ -86,6 +88,7 @@ message NodeWorkflowDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated string type = 1;
@@ -149,6 +152,7 @@ message NodeWorkflowOperationListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     repeated NodeWorkflowOperation operations = 1;
@@ -168,6 +172,7 @@ message NodeWorkflowOperationDistinctResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data { repeated string state = 1; }
   Data data = 5;
@@ -187,6 +192,7 @@ message NodeWorkflowOperationInstanceListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     int64 total = 1;
@@ -206,6 +212,7 @@ message NodeWorkflowOperationInstanceLogGetResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {
     map<string, WorkflowActionData> oper_inst_logs = 1;
@@ -227,6 +234,7 @@ message NodeWorkflowOperationRetryResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -244,6 +252,7 @@ message NodeWorkflowOperationTerminateResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   message Data {}
   Data data = 5;
@@ -280,6 +289,7 @@ message NodeWorkflowOperationManualSolutionGetResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+  Permission permission = 6;
 
   repeated ManualSolution data = 5;
 }

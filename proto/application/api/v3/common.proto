@@ -369,3 +369,22 @@ message Error {
   }
   repeated Details details = 3;
 }
+
+message RelatedResourceType {
+  string system_id = 1;
+  string type = 2;
+  string type_name = 3;
+}
+
+message Action {
+  string id = 1;
+  string name = 2;
+  repeated RelatedResourceType related_resource_types = 3;
+}
+
+message Permission {
+  string system = 1;
+  string system_name = 2;
+  string apply_url = 3;
+  repeated Action actions = 4;
+}
