@@ -456,15 +456,13 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 
 	// not idle concurrent num.
 	idleNum := metadata.MaxConcurrencyNum - int(workingCount)
-	if idleNum <= 0 {
-		return nil, nil
-	}
-
-	if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: idleNum}); err != nil {
-		logger.G.Sys().
-			WithErr(err).
-			With("trigger-id", trigCtl.GetTriggerID()).
-			Warn("failed to init ordered empty operation")
+	if idleNum > 0 {
+		if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: idleNum}); err != nil {
+			logger.G.Sys().
+				WithErr(err).
+				With("trigger-id", trigCtl.GetTriggerID()).
+				Warn("failed to init ordered empty operation")
+		}
 	}
 
 	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.Page{Limit: idleNum}, operation.StateInit)
