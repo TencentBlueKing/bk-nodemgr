@@ -839,6 +839,12 @@ components:
     requiredPermissions: Required Permissions
     relatedResources: Related Resource Instances
     apply: Apply
+    popupBlocked: The browser blocked the popup window. Please allow popups and try again
+    refreshReminder:
+      title: Permission request submitted?
+      content: Please fill in the permission request form in the Permission Center, then refresh this page after submission
+      refresh: Refresh Page
+      close: Close
   batchEdit:
     passwordTip: Only for Password Auth
     batchEditKey: Batch Edit Keys

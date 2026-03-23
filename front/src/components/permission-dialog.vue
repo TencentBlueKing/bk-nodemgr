@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { Dialog, Table } from 'bkui-vue';
+import { Dialog, InfoBox, Message, Table } from 'bkui-vue';
 import { computed, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -72,7 +72,27 @@ const columns = computed(() => [
 
 function handleApply() {
   if (applyUrl.value) {
-    window.open(applyUrl.value, '_blank', 'noopener,noreferrer');
+    const newWindow = window.open(applyUrl.value, '_blank', 'noopener,noreferrer');
+    if (newWindow) {
+      // 打开成功：关闭权限弹窗，弹出刷新提醒
+      permissionStore.hideDialog();
+      InfoBox({
+        title: t('components.permission.refreshReminder.title'),
+        subTitle: t('components.permission.refreshReminder.content'),
+        confirmText: t('components.permission.refreshReminder.refresh'),
+        cancelText: t('components.permission.refreshReminder.close'),
+        onConfirm: () => {
+          window.location.reload();
+        },
+      });
+    } else {
+      // 弹窗被浏览器拦截：保留原权限弹窗，提示用户
+      Message({
+        theme: 'warning',
+        message: t('components.permission.popupBlocked'),
+        width: 562,
+      });
+    }
   }
 }
 </script>

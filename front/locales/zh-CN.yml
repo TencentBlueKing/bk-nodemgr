@@ -839,6 +839,12 @@ components:
     requiredPermissions: 需要申请的权限
     relatedResources: 关联的资源实例
     apply: 去申请
+    popupBlocked: 浏览器拦截了弹出窗口，请允许弹窗后重试
+    refreshReminder:
+      title: 权限申请单已提交？
+      content: 请在权限中心填写权限申请单，提交完成后再刷新该页面
+      refresh: 刷新页面
+      close: 关闭
   batchEdit:
     passwordTip: 仅对密码认证生效
     batchEditKey: 批量编辑密钥
