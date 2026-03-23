@@ -130,7 +130,13 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	process, err := act.daoProcess.GetProcess(nCtx, std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName)
+	process, err := pluginUtils.GetActualExistingProcess(
+		nCtx,
+		act.daoProcess,
+		act.daoHost,
+		std.DeployInfo().Process.HostID,
+		std.DeployInfo().Process.PluginName,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to get process info: %w", err)
 	}
@@ -157,16 +163,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
 		Info()
 
-	host, err := act.daoHost.GetHostByID(nCtx, process.HostID)
-	if err != nil {
-		return fmt.Errorf("failed to get host by id, host-id(%d): %w", process.HostID, err)
-	}
-	if host.Dynamic.AgentID == "" {
-		return fmt.Errorf("host dynamic agent id is empty, host-id(%d)", process.HostID)
-	}
-
 	processSpec := process.ToProcessSpec()
-	processSpec.AgentID = host.Dynamic.AgentID
 
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {

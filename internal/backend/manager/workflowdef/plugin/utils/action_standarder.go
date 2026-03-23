@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -92,4 +93,32 @@ type PluginActionStandardParam struct {
 	TenantID string `json:"tenant_id"`
 	Token    string `json:"token"`
 	Operator string `json:"operator"`
+}
+
+// GetActualExistingProcess gets the existing plugin process and refreshes its AgentID with the latest host value.
+func GetActualExistingProcess(
+	nCtx contextx.IContext,
+	daoProcess pluginStg.IDaoProcess,
+	daoHost topoStg.IStorageHost,
+	hostID int64,
+	pluginName string,
+) (*types.Process, error) {
+
+	process, err := daoProcess.GetProcess(nCtx, hostID, pluginName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin process, process-name(%s), host-id(%d): %w", pluginName, hostID, err)
+	}
+
+	host, err := daoHost.GetHostByID(nCtx, process.HostID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host by id, host-id(%d): %w", process.HostID, err)
+	}
+	if host.Dynamic == nil || host.Dynamic.AgentID == "" {
+		return nil, fmt.Errorf("host dynamic agent id is empty, host-id(%d)", process.HostID)
+	}
+
+	actualProcess := *process
+	actualProcess.Info.AgentID = host.Dynamic.AgentID
+
+	return &actualProcess, nil
 }

@@ -12,7 +12,6 @@ package plugin
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
@@ -105,7 +104,13 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
-	process, err := act.daoProcess.GetProcess(nCtx, deployInfo.Process.HostID, deployInfo.Process.PluginName)
+	process, err := pluginUtils.GetActualExistingProcess(
+		nCtx,
+		act.daoProcess,
+		act.daoHost,
+		deployInfo.Process.HostID,
+		deployInfo.Process.PluginName,
+	)
 	if err != nil {
 		std.InstanceData().Log().
 			Zh("获取进程失败，process-name(%s), host-id(%d): %v",
@@ -114,8 +119,7 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
 			Error()
 
-		return fmt.Errorf("failed to get plugin process, process-name(%s), host-id(%d): %w",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID, err)
+		return err
 	}
 
 	std.InstanceData().Log().
@@ -126,17 +130,6 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 		Info()
 
 	deployInfo.Process = *process
-
-	host, err := act.daoHost.GetHostByID(nCtx, deployInfo.Process.HostID)
-	if err != nil {
-		return fmt.Errorf("failed to get host by id, host-id(%d): %w", deployInfo.Process.HostID, err)
-	}
-	if host.Dynamic.AgentID == "" {
-		return fmt.Errorf("host dynamic agent id is empty, host-id(%d)", deployInfo.Process.HostID)
-	}
-
-	// notice: overwrite the potentially stale process AgentID with the latest host value.
-	deployInfo.Process.Info.AgentID = host.Dynamic.AgentID
 
 	std.InstanceData().Log().
 		Zh("获取插件AgentID成功，agent-id(%s)",
