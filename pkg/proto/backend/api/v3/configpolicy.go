@@ -174,6 +174,18 @@ func (x *ConfigPolicyGetResp) ConvertConfigPolicyToTypes() *types.ConfigPolicy {
 
 // Validate check body.
 func (x *ConfigPolicyCreateReq) Validate() error {
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid config policy type: %w", err)
+	}
+
+	if len(x.GetConfigpolicyName()) == 0 {
+		return fmt.Errorf("config policy name is required")
+	}
+
 	return nil
 }
 
@@ -189,13 +201,14 @@ func (x *ConfigPolicyCreateReq) ConvertConfigPolicyToTypes() *types.ConfigPolicy
 	}
 
 	return &types.ConfigPolicy{
-		Name:     x.GetConfigpolicyName(),
-		Type:     types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:    x.GetBizId(),
-		Remark:   x.GetRemark(),
-		Scopes:   scopes,
-		Configs:  convertConfigPolicyConfigsToTypes(x.GetConfigsString(), x.GetConfigsInt(), x.GetConfigsBool()),
-		Operator: x.GetOperator(),
+		Name:          x.GetConfigpolicyName(),
+		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
+		BizID:         x.GetBizId(),
+		Remark:        x.GetRemark(),
+		Scopes:        scopes,
+		TargetHostIDs: x.GetTargetHostIds(),
+		Configs:       convertConfigPolicyConfigsToTypes(x.GetConfigsString(), x.GetConfigsInt(), x.GetConfigsBool()),
+		Operator:      x.GetOperator(),
 	}
 }
 
@@ -213,6 +226,7 @@ func (x *ConfigPolicyCreateReq) ConvertConfigPolicyFromTypes(configPolicy *types
 	x.Scopes = scopes
 	x.ConfigsString, x.ConfigsInt, x.ConfigsBool = convertConfigPolicyConfigsFromTypes(configPolicy.Configs)
 	x.Operator = configPolicy.Operator
+	x.TargetHostIds = configPolicy.TargetHostIDs
 }
 
 // ConvertConfigPolicyID convert config policy id.
@@ -225,6 +239,26 @@ func (x *ConfigPolicyCreateResp) ConvertConfigPolicyID(configPolicyID int64) {
 
 // Validate check body.
 func (x *ConfigPolicyUpdateReq) Validate() error {
+	if x.GetConfigpolicyId() <= 0 {
+		return fmt.Errorf("config policy id is required")
+	}
+
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid config policy type: %w", err)
+	}
+
+	if len(x.GetConfigpolicyName()) == 0 {
+		return fmt.Errorf("config policy name is required")
+	}
+
+	if x.GetPriority() <= 0 {
+		return fmt.Errorf("config policy priority is required")
+	}
+
 	return nil
 }
 
@@ -255,15 +289,17 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() *types.ConfigPolicy
 	}
 
 	return &types.ConfigPolicy{
-		ID:       x.GetConfigpolicyId(),
-		Name:     x.GetConfigpolicyName(),
-		Type:     types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:    x.GetBizId(),
-		Remark:   x.GetRemark(),
-		Scopes:   scopes,
-		Configs:  configs,
-		Enabled:  x.GetEnabled(),
-		Operator: x.GetOperator(),
+		ID:            x.GetConfigpolicyId(),
+		Name:          x.GetConfigpolicyName(),
+		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
+		BizID:         x.GetBizId(),
+		Remark:        x.GetRemark(),
+		Scopes:        scopes,
+		TargetHostIDs: x.GetTargetHostIds(),
+		Configs:       configs,
+		Enabled:       x.GetEnabled(),
+		Priority:      x.GetPriority(),
+		Operator:      x.GetOperator(),
 	}
 }
 
@@ -283,6 +319,8 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyFromTypes(configPolicy *types
 	x.ConfigsString, x.ConfigsInt, x.ConfigsBool = convertConfigPolicyConfigsFromTypes(configPolicy.Configs)
 	x.Enabled = configPolicy.Enabled
 	x.Operator = configPolicy.Operator
+	x.TargetHostIds = configPolicy.TargetHostIDs
+	x.Priority = configPolicy.Priority
 }
 
 // ConvertConfigPolicyID convert config policy id.
@@ -331,14 +369,16 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy) *ConfigPolic
 	*item.ConfigpolicyId = configPolicy.ID
 	*item.ConfigpolicyName = configPolicy.Name
 	*item.ConfigpolicyType = string(configPolicy.Type)
-	item.BizId = configPolicy.BizID
+	*item.BizId = configPolicy.BizID
 	*item.Remark = configPolicy.Remark
 	item.Scopes = scopes
+	item.TargetHostIds = configPolicy.TargetHostIDs
 	item.ConfigsString, item.ConfigsInt, item.ConfigsBool = convertConfigPolicyConfigsFromTypes(configPolicy.Configs)
 	*item.Enabled = configPolicy.Enabled
 	*item.UpdatedTime = configPolicy.UpdatedAt.UnixMilli()
 	*item.Operator = configPolicy.Operator
 	*item.Version = int64(configPolicy.Version)
+	item.Priority = &configPolicy.Priority
 
 	return item
 }
@@ -350,18 +390,20 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 	}
 
 	return &types.ConfigPolicy{
-		TenantID: configPolicy.GetTenantId(),
-		ID:       configPolicy.GetConfigpolicyId(),
-		Name:     configPolicy.GetConfigpolicyName(),
-		Type:     types.ConfigPolicyType(configPolicy.GetConfigpolicyType()),
-		BizID:    configPolicy.GetBizId(),
-		Remark:   configPolicy.GetRemark(),
-		Scopes:   scopes,
+		TenantID:      configPolicy.GetTenantId(),
+		ID:            configPolicy.GetConfigpolicyId(),
+		Name:          configPolicy.GetConfigpolicyName(),
+		Type:          types.ConfigPolicyType(configPolicy.GetConfigpolicyType()),
+		BizID:         configPolicy.GetBizId(),
+		Remark:        configPolicy.GetRemark(),
+		Scopes:        scopes,
+		TargetHostIDs: configPolicy.GetTargetHostIds(),
 		Configs: convertConfigPolicyConfigsToTypes(
 			configPolicy.ConfigsString,
 			configPolicy.ConfigsInt,
 			configPolicy.ConfigsBool),
 		Enabled:   configPolicy.GetEnabled(),
+		Priority:  configPolicy.GetPriority(),
 		UpdatedAt: time.UnixMilli(configPolicy.GetUpdatedTime()),
 		Operator:  configPolicy.GetOperator(),
 		Version:   int(configPolicy.GetVersion()),
@@ -436,7 +478,7 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		ConfigpolicyId:   new(int64),
 		ConfigpolicyName: new(string),
 		ConfigpolicyType: new(string),
-		BizId:            make([]int64, 0),
+		BizId:            new(int64),
 		Remark:           new(string),
 		Scopes:           make([]*ConfigPolicyScope, 0),
 		ConfigsString:    make(map[string]string),
@@ -446,6 +488,7 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		UpdatedTime:      new(int64),
 		Operator:         new(string),
 		Version:          new(int64),
+		Priority:         new(int64),
 	}
 }
 

@@ -95,22 +95,22 @@ func (s *Storage) check() error {
 	return nil
 }
 
-// MatchConfigPolicyNode matches the config policy.
+// MatchConfigPolicyNode matches enabled policies for the node, merges them by priority.
 func (s *Storage) MatchConfigPolicyNode(nCtx contextx.IContext,
 	bizID, networkAreaID, networkUnitID int64,
-	osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error) {
+	osType criteria.OSType, cpuArch criteria.CPUArch,
+	nodeRole types.NodeRole, hostID int64) (*types.ConfigPolicyMatchResult, error) {
 
-	var result *types.ConfigPolicy
-	var matched bool
+	var result *types.ConfigPolicyMatchResult
 
 	err := s.WrapFn(nCtx, metricOperationMatchConfigPolicyNode, func(nCtx contextx.IContext) error {
 		var err error
-		result, matched, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole)
+		result, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole, hostID)
 
 		return err
 	})
 
-	return result, matched, err
+	return result, err
 }
 
 // CountConfigPolicy counts the config policy by conditions.

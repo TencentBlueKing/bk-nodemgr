@@ -398,11 +398,8 @@
           "type": "string"
         },
         "biz_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+          "type": "integer",
+          "format": "int64"
         },
         "remark": {
           "type": "string"
@@ -446,6 +443,17 @@
         "version": {
           "type": "integer",
           "format": "int64"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "target_host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "ConfigPolocy decribes the config policy."
@@ -460,11 +468,8 @@
           "type": "string"
         },
         "biz_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+          "type": "integer",
+          "format": "int64"
         },
         "remark": {
           "type": "string"
@@ -497,6 +502,13 @@
         },
         "operator": {
           "type": "string"
+        },
+        "target_host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "ConfigPolicyCreateReq describes HTTP request body when create config policy."
@@ -1064,11 +1076,8 @@
           "type": "string"
         },
         "biz_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+          "type": "integer",
+          "format": "int64"
         },
         "remark": {
           "type": "string"
@@ -1104,6 +1113,17 @@
         },
         "operator": {
           "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "target_host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "ConfigPolicyUpdateReq describes HTTP request body when update config policy."

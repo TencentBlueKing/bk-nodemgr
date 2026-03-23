@@ -69,7 +69,13 @@ func (d *dao) create(nCtx contextx.IContext, configPolicy *ConfigPolicy) (int64,
 		return 0, err
 	}
 
+	prioritySeq, err := d.counter.Generate(nCtx, counterKeyPriority)
+	if err != nil {
+		return 0, err
+	}
+
 	configPolicy.Raw.ConfigPolicyID = newSequence
+	configPolicy.Raw.Priority = prioritySeq + 1
 	if err := d.Create(nCtx, configPolicy); err != nil {
 		return -1, err
 	}

@@ -55,10 +55,11 @@ type IDaoConfigPolicy interface {
 
 // IDaoConfigPolicyNode defines the interface for config policy node.
 type IDaoConfigPolicyNode interface {
-	// MatchConfigPolicyNode matches the config policy node.
+	// MatchConfigPolicyNode matches enabled policies for the node, merges them by priority.
 	MatchConfigPolicyNode(nCtx contextx.IContext,
 		bizID, networkAreaID, networkUnitID int64,
-		osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error)
+		osType criteria.OSType, cpuArch criteria.CPUArch,
+		nodeRole types.NodeRole, hostID int64) (*types.ConfigPolicyMatchResult, error)
 }
 
 // IDaoConfigPolicyEvent defines the interface for policy event.

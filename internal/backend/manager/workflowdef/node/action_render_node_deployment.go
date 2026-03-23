@@ -529,54 +529,66 @@ func forbiddenKeys() []string {
 
 // renderCustomSetting load custom setting to the config presetting.
 func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeActionStandarder, conf *types.NodeConf) error {
-	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicyNode(std.Context(),
+	matchResult, err := act.storageConfigPolicy.MatchConfigPolicyNode(std.Context(),
 		std.DeployInfo().Host.Static.BizID,
 		std.DeployInfo().Host.Static.NetworkAreaID,
 		std.DeployInfo().Host.Dynamic.NetworkUnitID,
 		std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch,
-		std.DeployInfo().Host.Dynamic.NodeRole)
+		std.DeployInfo().Host.Dynamic.NodeRole,
+		std.DeployInfo().Host.HostID)
 	if err != nil {
 		return fmt.Errorf("match config policy failed. "+
-			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s): %w",
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), host-id(%d): %w",
 			std.DeployInfo().Host.Static.BizID,
 			std.DeployInfo().Host.Static.NetworkAreaID,
 			std.DeployInfo().Host.Dynamic.NetworkUnitID,
 			std.DeployInfo().Host.Dynamic.NodeOsType,
 			std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			std.DeployInfo().Host.Dynamic.NodeRole,
+			std.DeployInfo().Host.HostID,
 			err)
 	}
+
 	std.InstanceData().Log().
 		Zh("匹配配置策略。"+
-			"biz-id(%d)，networkarea-id(%d)，networkunit-id(%d)，os-type(%s)，cpu-arch(%s)，role(%s)，matched(%t)",
+			"biz-id(%d)，networkarea-id(%d)，networkunit-id(%d)，os-type(%s)，cpu-arch(%s)，role(%s)，host-id(%d)",
 			std.DeployInfo().Host.Static.BizID,
 			std.DeployInfo().Host.Static.NetworkAreaID,
 			std.DeployInfo().Host.Dynamic.NetworkUnitID,
 			std.DeployInfo().Host.Dynamic.NodeOsType,
 			std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			std.DeployInfo().Host.Dynamic.NodeRole,
-			matched).
+			std.DeployInfo().Host.HostID).
 		En("match config policy. "+
-			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), matched(%t)",
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), host-id(%d)",
 			std.DeployInfo().Host.Static.BizID,
 			std.DeployInfo().Host.Static.NetworkAreaID,
 			std.DeployInfo().Host.Dynamic.NetworkUnitID,
 			std.DeployInfo().Host.Dynamic.NodeOsType,
 			std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			std.DeployInfo().Host.Dynamic.NodeRole,
-			matched).
+			std.DeployInfo().Host.HostID).
 		Info()
 
-	if matched && configPolicy != nil {
-		logger.G.Sys().With("configpolicy-id", configPolicy.ID, "configpolicy-name", configPolicy.Name).Info("match config policy")
+	if len(matchResult.MatchedPolicies) > 0 {
+		for _, p := range matchResult.MatchedPolicies {
+			std.InstanceData().Log().
+				Zh("命中原始策略。configpolicy-id(%d)，configpolicy-name(%s)，priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
+				En("matched original policy. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
+				Info()
+		}
 
+		conf.CustomSetting = matchResult.MergedConfig
 		std.InstanceData().Log().
-			Zh("匹配配置策略。configpolicy-id(%d)，configpolicy-name(%s)", configPolicy.ID, configPolicy.Name).
-			En("match config policy. configpolicy-id(%d), configpolicy-name(%s)", configPolicy.ID, configPolicy.Name).
+			Zh("将按照优先级合并配置策略，并应用到节点配置。").
+			En("merge config policies by priority and apply to node config.").
 			Info()
-
-		conf.CustomSetting = configPolicy.Configs
+	} else {
+		std.InstanceData().Log().
+			Zh("未命中任何策略。保持默认配置").
+			En("no policy matched. keep default config.").
+			Info()
 	}
 
 	if conf.CustomSetting != nil {

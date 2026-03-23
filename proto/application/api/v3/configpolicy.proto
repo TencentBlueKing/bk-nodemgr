@@ -99,11 +99,12 @@ message ConfigPolicyGetResp {
 message ConfigPolicyCreateReq {
   string configpolicy_name = 1;
   string configpolicy_type = 2;
-  repeated int64 biz_id = 3;
+  int64 biz_id = 3;
   string remark = 4;
   repeated ConfigPolicyScope scopes = 5;
   repeated ConfigPolicyConfigBlock configs = 6;
   string operator = 7;
+  repeated int64 target_host_ids = 8;
 }
 
 // ConfigPolicyCreateResp describes HTTP response body when create config
@@ -124,12 +125,14 @@ message ConfigPolicyUpdateReq {
   int64 configpolicy_id = 1;
   string configpolicy_name = 2;
   string configpolicy_type = 3;
-  repeated int64 biz_id = 4;
+  int64 biz_id = 4;
   string remark = 5;
   repeated ConfigPolicyScope scopes = 6;
   repeated ConfigPolicyConfigBlock configs = 7;
   bool enabled = 8;
   string operator = 9;
+  int64 priority = 10;
+  repeated int64 target_host_ids = 11;
 }
 
 // ConfigPolicyUpdateResp describes HTTP response body when update config

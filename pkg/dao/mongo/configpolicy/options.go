@@ -50,29 +50,29 @@ func WithFuzzyOperator(operators ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyOperator, operators...)
 }
 
-// WithEnabledScope filters by enabled scope.
+// WithEnabledScope filters by enabled scope OR target host ID.
 func WithEnabledScope(
-	bizID, networkAreaID, networkUnitID int64, osType criteria.OSType, cpuArch criteria.CPUArch) OptFn {
+	bizID, networkAreaID, networkUnitID int64,
+	osType criteria.OSType, cpuArch criteria.CPUArch,
+	hostID int64,
+) OptFn {
+
+	scopeMatch := bson.M{
+		FieldKeyScopes: bson.M{"$elemMatch": bson.M{
+			"networkarea_id": bson.M{"$in": []int64{-1, networkAreaID}},
+			"networkunit_id": bson.M{"$in": []int64{-1, networkUnitID}},
+			"node_os_type":   bson.M{"$in": []string{"", string(osType)}},
+			"node_cpu_arch":  bson.M{"$in": []string{"", string(cpuArch)}},
+		}},
+	}
+
+	targetHostMatch := bson.M{
+		FieldKeyTargetHostIDs: hostID,
+	}
 
 	opts := bson.D{
-		bson.E{
-			Key: "$and",
-			Value: bson.A{bson.M{
-				"$or": []bson.M{
-					{FieldKeyBizID: bson.M{"$size": 0}},
-					{FieldKeyBizID: bson.M{"$in": []int64{bizID}}},
-				},
-			}},
-		},
-		bson.E{
-			Key: FieldKeyScopes,
-			Value: bson.M{"$elemMatch": bson.M{
-				"networkarea_id": bson.M{"$in": []int64{-1, networkAreaID}},
-				"networkunit_id": bson.M{"$in": []int64{-1, networkUnitID}},
-				"node_os_type":   bson.M{"$in": []string{"", string(osType)}},
-				"node_cpu_arch":  bson.M{"$in": []string{"", string(cpuArch)}},
-			}},
-		},
+		bson.E{Key: FieldKeyBizID, Value: bizID},
+		bson.E{Key: "$or", Value: bson.A{scopeMatch, targetHostMatch}},
 		bson.E{Key: FieldKeyEnabled, Value: true},
 	}
 

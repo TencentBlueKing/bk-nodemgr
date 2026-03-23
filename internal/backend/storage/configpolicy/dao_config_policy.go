@@ -17,43 +17,63 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// matchConfigPolicyNode matches the config policy node.
+// matchConfigPolicyNode matches enabled policies for the node and returns the cascading-merged result.
 func (s *Storage) matchConfigPolicyNode(nCtx contextx.IContext,
 	bizID, networkAreaID, networkUnitID int64,
-	osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error) {
-
-	var results []*types.ConfigPolicy
-	var err error
+	osType criteria.OSType, cpuArch criteria.CPUArch,
+	nodeRole types.NodeRole, hostID int64) (*types.ConfigPolicyMatchResult, error) {
 
 	configpolicyType, err := types.ConvertNodeRoleToConfigPolicyType(nodeRole)
 	if err != nil {
-		return nil, false, fmt.Errorf("convert node role to config policy type failed: %w", err)
+		return nil, fmt.Errorf("failed to convert node role to config policy type: %w", err)
 	}
 
-	page := types.Page{Limit: 1}
-	page.Sort = types.WithSortFields(page.Sort,
-		types.WithFieldDesc(configpolicy.FieldKeyUpdatedAt))
+	// sort by priority DESC.
+	// deepMergeConfig iterates in order and later entries overlay earlier ones,
+	// meaning the smallest-numbered (highest-importance) policy wins conflicts.
+	page := types.Page{Limit: 0}
+	page.Sort = types.WithFieldDesc(configpolicy.FieldKeyPriority)
 
-	opts := make([]configpolicy.OptFn, 0)
-	opts = append(opts,
-		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch),
+	opts := []configpolicy.OptFn{
+		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch, hostID),
 		configpolicy.WithConfigPolicyType(configpolicyType),
-	)
+	}
 
-	if results, _, err = s.daoConfigPolicy.List(nCtx,
-		page, opts...); err != nil {
-		return nil, false, fmt.Errorf("list config policy failed: %w", err)
+	results, _, err := s.daoConfigPolicy.List(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list config policy: %w", err)
 	}
 
 	if len(results) == 0 {
-		return nil, false, nil
+		return &types.ConfigPolicyMatchResult{}, nil
 	}
 
-	return results[0], true, nil
+	return buildMatchResult(results), nil
+}
+
+func buildMatchResult(policies []*types.ConfigPolicy) *types.ConfigPolicyMatchResult {
+	matched := conv.SliceToSlice(policies, func(p *types.ConfigPolicy) types.ConfigPolicyMatchedPolicy {
+		return types.ConfigPolicyMatchedPolicy{
+			PolicyID:   p.ID,
+			PolicyName: p.Name,
+			Priority:   p.Priority,
+		}
+	})
+
+	var merged map[string]any
+	for _, p := range policies {
+		merged = deepMergeConfig(merged, p.Configs)
+	}
+
+	return &types.ConfigPolicyMatchResult{
+		MatchedPolicies: matched,
+		MergedConfig:    merged,
+	}
 }
 
 // countConfigPolicy counts the config policy by conditions.
@@ -71,6 +91,10 @@ func (s *Storage) countConfigPolicy(nCtx contextx.IContext, conditions ...*types
 // listConfigPolicy lists the config policy by page and conditions.
 func (s *Storage) listConfigPolicy(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
 	[]*types.ConfigPolicy, int64, error) {
+
+	// sort by priority ASC.
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldAsc(configpolicy.FieldKeyPriority))
 
 	var opts []configpolicy.OptFn
 	var err error
@@ -96,11 +120,10 @@ func (s *Storage) getConfigPolicy(nCtx contextx.IContext, configPolicyID int64) 
 
 // createConfigPolicy creates the config policy.
 func (s *Storage) createConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
-	var configPolicyID int64
-	var err error
-
 	configPolicy.UpdatedAt = time.Now()
-	if configPolicyID, err = s.daoConfigPolicy.Create(nCtx, configPolicy); err != nil {
+
+	configPolicyID, err := s.daoConfigPolicy.Create(nCtx, configPolicy)
+	if err != nil {
 		return -1, err
 	}
 

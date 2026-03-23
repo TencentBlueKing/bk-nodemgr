@@ -178,7 +178,7 @@ func (x *ConfigPolicyListPlatformReq) Validate() error {
 	}
 
 	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
-		return fmt.Errorf("invalid config policy type: %v", err)
+		return fmt.Errorf("invalid config policy type: %w", err)
 	}
 
 	return nil
@@ -209,6 +209,18 @@ func (x *ConfigPolicyListPlatformResp) ConvertPlatformFromTypes(result *types.Re
 
 // Validate check body.
 func (x *ConfigPolicyCreateReq) Validate() error {
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid config policy type: %w", err)
+	}
+
+	if len(x.GetConfigpolicyName()) == 0 {
+		return fmt.Errorf("config policy name is required")
+	}
+
 	return nil
 }
 
@@ -224,12 +236,13 @@ func (x *ConfigPolicyCreateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 	}
 
 	return &types.ConfigPolicy{
-		Name:     x.GetConfigpolicyName(),
-		Type:     types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:    x.GetBizId(),
-		Remark:   x.GetRemark(),
-		Scopes:   scopes,
-		Operator: x.GetOperator(),
+		Name:          x.GetConfigpolicyName(),
+		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
+		BizID:         x.GetBizId(),
+		Remark:        x.GetRemark(),
+		Scopes:        scopes,
+		TargetHostIDs: x.GetTargetHostIds(),
+		Operator:      x.GetOperator(),
 	}, convertConfigPolicyConfigsToTypes(x.GetConfigs())
 }
 
@@ -243,6 +256,26 @@ func (x *ConfigPolicyCreateResp) ConvertConfigPolicyID(configPolicyID int64) {
 
 // Validate check body.
 func (x *ConfigPolicyUpdateReq) Validate() error {
+	if x.GetConfigpolicyId() <= 0 {
+		return fmt.Errorf("config policy id is required")
+	}
+
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid config policy type: %w", err)
+	}
+
+	if len(x.GetConfigpolicyName()) == 0 {
+		return fmt.Errorf("config policy name is required")
+	}
+
+	if x.GetPriority() <= 0 {
+		return fmt.Errorf("config policy priority is required")
+	}
+
 	return nil
 }
 
@@ -258,14 +291,16 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 	}
 
 	return &types.ConfigPolicy{
-		ID:       x.GetConfigpolicyId(),
-		Name:     x.GetConfigpolicyName(),
-		Type:     types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:    x.GetBizId(),
-		Remark:   x.GetRemark(),
-		Scopes:   scopes,
-		Enabled:  x.GetEnabled(),
-		Operator: x.GetOperator(),
+		ID:            x.GetConfigpolicyId(),
+		Name:          x.GetConfigpolicyName(),
+		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
+		BizID:         x.GetBizId(),
+		Remark:        x.GetRemark(),
+		Scopes:        scopes,
+		TargetHostIDs: x.GetTargetHostIds(),
+		Enabled:       x.GetEnabled(),
+		Priority:      x.GetPriority(),
+		Operator:      x.GetOperator(),
 	}, convertConfigPolicyConfigsToTypes(x.GetConfigs())
 }
 
@@ -315,14 +350,16 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy, blocks []typ
 	*item.ConfigpolicyId = configPolicy.ID
 	*item.ConfigpolicyName = configPolicy.Name
 	*item.Type = string(configPolicy.Type)
-	item.BizId = configPolicy.BizID
+	*item.BizId = configPolicy.BizID
 	*item.Remark = configPolicy.Remark
 	item.Scopes = scopes
+	item.TargetHostIds = configPolicy.TargetHostIDs
 	item.Configs = convertConfigPolicyConfigsFromTypes(blocks)
 	*item.Enabled = configPolicy.Enabled
 	*item.UpdatedTime = configPolicy.UpdatedAt.UnixMilli()
 	*item.Operator = configPolicy.Operator
 	*item.Version = int64(configPolicy.Version)
+	item.Priority = &configPolicy.Priority
 
 	return item
 }
@@ -334,17 +371,19 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 	}
 
 	return &types.ConfigPolicy{
-		TenantID:  configPolicy.GetTenantId(),
-		ID:        configPolicy.GetConfigpolicyId(),
-		Name:      configPolicy.GetConfigpolicyName(),
-		Type:      types.ConfigPolicyType(configPolicy.GetType()),
-		BizID:     configPolicy.GetBizId(),
-		Remark:    configPolicy.GetRemark(),
-		Scopes:    scopes,
-		Enabled:   configPolicy.GetEnabled(),
-		UpdatedAt: time.UnixMilli(configPolicy.GetUpdatedTime()),
-		Operator:  configPolicy.GetOperator(),
-		Version:   int(configPolicy.GetVersion()),
+		TenantID:      configPolicy.GetTenantId(),
+		ID:            configPolicy.GetConfigpolicyId(),
+		Name:          configPolicy.GetConfigpolicyName(),
+		Type:          types.ConfigPolicyType(configPolicy.GetType()),
+		BizID:         configPolicy.GetBizId(),
+		Remark:        configPolicy.GetRemark(),
+		Scopes:        scopes,
+		TargetHostIDs: configPolicy.GetTargetHostIds(),
+		Enabled:       configPolicy.GetEnabled(),
+		Priority:      configPolicy.GetPriority(),
+		UpdatedAt:     time.UnixMilli(configPolicy.GetUpdatedTime()),
+		Operator:      configPolicy.GetOperator(),
+		Version:       int(configPolicy.GetVersion()),
 	}
 }
 
@@ -443,7 +482,7 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		ConfigpolicyId:   new(int64),
 		ConfigpolicyName: new(string),
 		Type:             new(string),
-		BizId:            make([]int64, 0),
+		BizId:            new(int64),
 		Remark:           new(string),
 		Scopes:           make([]*ConfigPolicyScope, 0),
 		Configs:          make([]*ConfigPolicyConfigBlock, 0),
@@ -451,6 +490,7 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		UpdatedTime:      new(int64),
 		Operator:         new(string),
 		Version:          new(int64),
+		Priority:         new(int64),
 	}
 }
 

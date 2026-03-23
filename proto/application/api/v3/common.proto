@@ -271,7 +271,7 @@ message ConfigPolicy {
   optional int64 configpolicy_id = 2;
   optional string configpolicy_name = 3;
   optional string type = 4;
-  repeated int64 biz_id = 5;
+  optional int64 biz_id = 5;
   optional string remark = 6;
   repeated ConfigPolicyScope scopes = 7;
   repeated ConfigPolicyConfigBlock configs = 8;
@@ -279,6 +279,8 @@ message ConfigPolicy {
   optional int64 updated_time = 10;
   optional string operator = 11;
   optional int64 version = 12;
+  optional int64 priority = 13;
+  repeated int64 target_host_ids = 14;
 }
 
 // ConfigPolicyEvent describes the config policy event.

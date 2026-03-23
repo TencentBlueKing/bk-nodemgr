@@ -38,6 +38,12 @@ const (
 	// FieldKeyOperator the operator field key.
 	FieldKeyOperator = "data.raw.operator"
 
+	// FieldKeyPriority the priority field key.
+	FieldKeyPriority = "data.raw.priority"
+
+	// FieldKeyTargetHostIDs the target host ids field key.
+	FieldKeyTargetHostIDs = "data.raw.target_host_ids"
+
 	// FieldKeyVersion the version field key.
 	FieldKeyVersion = "data.version"
 )

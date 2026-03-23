@@ -18,6 +18,7 @@ import (
 )
 
 const tableNamePrefix = "configpolicy"
+const counterKeyPriority = tableNamePrefix + "_priority"
 
 // TableName config policy table name.
 func TableName(tenantID string) string {
@@ -32,11 +33,13 @@ type RawData struct {
 	ConfigPolicyID   int64          `json:"configpolicy_id" bson:"configpolicy_id"`
 	ConfigPolicyName string         `json:"configpolicy_name" bson:"configpolicy_name"`
 	ConfigPolicyType string         `json:"configpolicy_type" bson:"configpolicy_type"`
-	BizID            []int64        `json:"biz_id" bson:"biz_id"`
+	BizID            int64          `json:"biz_id" bson:"biz_id"`
 	Remark           string         `json:"remark" bson:"remark"`
 	Scopes           []Scope        `json:"scopes" bson:"scopes"`
+	TargetHostIDs    []int64        `json:"target_host_ids" bson:"target_host_ids"`
 	Configs          map[string]any `json:"configs" bson:"configs"`
 	Enabled          bool           `json:"enabled" bson:"enabled"`
+	Priority         int64          `json:"priority" bson:"priority"`
 	UpdatedAt        time.Time      `json:"updated_at" bson:"updated_at"`
 	Operator         string         `json:"operator" bson:"operator"`
 }

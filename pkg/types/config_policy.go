@@ -19,18 +19,34 @@ import (
 
 // ConfigPolicy defines the config policy.
 type ConfigPolicy struct {
-	TenantID  string
-	Version   int
-	ID        int64
-	Name      string
-	Type      ConfigPolicyType
-	BizID     []int64
-	Remark    string
-	Scopes    []ConfigPolicyScope
-	Configs   map[string]any
-	Enabled   bool
-	UpdatedAt time.Time
-	Operator  string
+	TenantID      string
+	Version       int
+	ID            int64
+	Name          string
+	Type          ConfigPolicyType
+	BizID         int64
+	Remark        string
+	Scopes        []ConfigPolicyScope
+	TargetHostIDs []int64
+	Configs       map[string]any
+	Enabled       bool
+	Priority      int64
+	UpdatedAt     time.Time
+	Operator      string
+}
+
+// ConfigPolicyMatchedPolicy describes a single matched policy in preview results.
+type ConfigPolicyMatchedPolicy struct {
+	PolicyID   int64
+	PolicyName string
+	Priority   int64
+}
+
+// ConfigPolicyMatchResult describes the result of matching and merging
+// multiple config policies for a single node.
+type ConfigPolicyMatchResult struct {
+	MatchedPolicies []ConfigPolicyMatchedPolicy
+	MergedConfig    map[string]any
 }
 
 // ConfigPolicyScope defines the config policy scope.

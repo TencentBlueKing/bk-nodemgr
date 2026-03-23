@@ -62,13 +62,14 @@ message ConfigPolicyGetResp {
 message ConfigPolicyCreateReq {
   string configpolicy_name = 1;
   string configpolicy_type = 2;
-  repeated int64 biz_id = 3;
+  int64 biz_id = 3;
   string remark = 4;
   repeated ConfigPolicyScope scopes = 5;
   map<string, string> configs_string = 6;
   map<string, int64> configs_int = 7;
   map<string, bool> configs_bool = 8;
   string operator = 9;
+  repeated int64 target_host_ids = 10;
 }
 
 // ConfigPolicyCreateResp describes HTTP response body when create config
@@ -89,7 +90,7 @@ message ConfigPolicyUpdateReq {
   int64 configpolicy_id = 1;
   string configpolicy_name = 2;
   string configpolicy_type = 3;
-  repeated int64 biz_id = 4;
+  int64 biz_id = 4;
   string remark = 5;
   repeated ConfigPolicyScope scopes = 6;
   map<string, string> configs_string = 7;
@@ -97,6 +98,8 @@ message ConfigPolicyUpdateReq {
   map<string, bool> configs_bool = 9;
   bool enabled = 10;
   string operator = 11;
+  int64 priority = 12;
+  repeated int64 target_host_ids = 13;
 }
 
 // ConfigPolicyUpdateResp describes HTTP response body when update config

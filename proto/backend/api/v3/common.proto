@@ -223,7 +223,7 @@ message ConfigPolicy {
   optional int64 configpolicy_id = 2;
   optional string configpolicy_name = 3;
   optional string configpolicy_type = 4;
-  repeated int64 biz_id = 5;
+  optional int64 biz_id = 5;
   optional string remark = 6;
   repeated ConfigPolicyScope scopes = 7;
   map<string, string> configs_string = 8;
@@ -233,6 +233,8 @@ message ConfigPolicy {
   optional int64 updated_time = 12;
   optional string operator = 13;
   optional int64 version = 14;
+  optional int64 priority = 15;
+  repeated int64 target_host_ids = 16;
 }
 
 // ConfigPolicyEvent describes the config policy event.

@@ -78,8 +78,8 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 				configPolicy: &types.ConfigPolicy{
 					TenantID: tenantID,
 					Name:     "test-name-1",
-					NodeRole: types.NodeRoleAgent,
-					BizID:    []int64{0},
+					Type:     types.ConfigPolicyTypeAgent,
+					BizID:    int64(0),
 					Scopes: []types.ConfigPolicyScope{
 						{
 							NetworkAreaID: 1,
@@ -102,8 +102,8 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 				configPolicy: &types.ConfigPolicy{
 					TenantID: tenantID,
 					Name:     "test-name-2",
-					NodeRole: types.NodeRoleAgent,
-					BizID:    []int64{0},
+					Type:     types.ConfigPolicyTypeAgent,
+					BizID:    int64(0),
 					Scopes: []types.ConfigPolicyScope{
 						{
 							NetworkAreaID: 3,
@@ -126,8 +126,8 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 				configPolicy: &types.ConfigPolicy{
 					TenantID: "system_tenant",
 					Name:     "test-name-system",
-					NodeRole: types.NodeRoleAgent,
-					BizID:    []int64{0},
+					Type:     types.ConfigPolicyTypeAgent,
+					BizID:    int64(0),
 					Scopes: []types.ConfigPolicyScope{
 						{
 							NetworkAreaID: 5,
@@ -249,7 +249,7 @@ func Test_List(t *testing.T) {
 				Offset: 0,
 				Limit:  1,
 			},
-			optFn:     []OptFn{WithEnabledScope(0, 1, 2, criteria.OSLinux, criteria.CPUArchAmd64)},
+			optFn:     []OptFn{WithEnabledScope(0, 1, 2, criteria.OSLinux, criteria.CPUArchAmd64, 0)},
 			wantTotal: -1,
 			wantNum:   1,
 			wantErr:   false,
@@ -474,7 +474,7 @@ func Test_UpdateMany(t *testing.T) {
 						ID:       id,
 						TenantID: "test",
 						Name:     fmt.Sprintf("updated-%d", idx),
-						BizID:    []int64{1, 2, 3, 4},
+						BizID:    int64(1),
 						Version:  999,
 					},
 				},
