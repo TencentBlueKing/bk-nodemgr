@@ -14,6 +14,7 @@ import (
 	"errors"
 	"testing"
 
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
@@ -21,6 +22,23 @@ type fakeBackendResp struct {
 	code      int32
 	message   string
 	requestID string
+}
+
+type fakeBackendRespWithPermission struct {
+	fakeBackendResp
+	permission *protoBackend.Permission
+}
+
+type fakePermissionError struct {
+	permission resterrf.Permission
+}
+
+func (err fakePermissionError) Error() string {
+	return "permission denied"
+}
+
+func (err fakePermissionError) PermissionData() resterrf.Permission {
+	return err.permission
 }
 
 func (resp fakeBackendResp) GetCode() int32 {
@@ -33,6 +51,10 @@ func (resp fakeBackendResp) GetMessage() string {
 
 func (resp fakeBackendResp) GetRequestId() string {
 	return resp.requestID
+}
+
+func (resp fakeBackendRespWithPermission) GetPermission() *protoBackend.Permission {
+	return resp.permission
 }
 
 func TestBuildBackendResponseError_KeepNonPermissionCode(t *testing.T) {
@@ -82,5 +104,126 @@ func TestBuildBackendResponseError_ExposePermissionError(t *testing.T) {
 	}
 	if len(unwrapErrs) != 1 {
 		t.Fatalf("expected 1 unwrap error, got %d", len(unwrapErrs))
+	}
+}
+
+func TestBuildBackendResponseError_ReusePermissionDataFromErrorInfo(t *testing.T) {
+	err := buildBackendResponseError("install node agent", fakeBackendResp{
+		code:      int32(resterrf.PermissionDenied),
+		message:   "permission denied",
+		requestID: "rid-perm-data",
+	}, fakePermissionError{permission: resterrf.Permission{
+		System:     "bk_iam",
+		SystemName: "IAM",
+		ApplyURL:   "https://iam.example/apply",
+	}})
+
+	if err == nil {
+		t.Fatal("expected non-nil error")
+	}
+
+	var permErr resterrf.PermissionError
+	if !errors.As(err, &permErr) {
+		t.Fatal("expected wrapped permission error")
+	}
+
+	permData := permErr.PermissionData()
+	if permData.System != "bk_iam" {
+		t.Fatalf("expected system bk_iam, got %s", permData.System)
+	}
+	if permData.SystemName != "IAM" {
+		t.Fatalf("expected system name IAM, got %s", permData.SystemName)
+	}
+	if permData.ApplyURL != "https://iam.example/apply" {
+		t.Fatalf("expected apply url https://iam.example/apply, got %s", permData.ApplyURL)
+	}
+}
+
+func TestBuildBackendResponseError_RecognizePermissionFromErrorInfo(t *testing.T) {
+	err := buildBackendResponseError("list business", fakeBackendResp{
+		code:      int32(resterrf.ThirdpartyRequestFailed),
+		message:   "thirdparty failed",
+		requestID: "rid-perm-recognize",
+	}, fakePermissionError{permission: resterrf.Permission{
+		System: "bk_iam",
+	}})
+
+	if err == nil {
+		t.Fatal("expected non-nil error")
+	}
+
+	var permErr resterrf.PermissionError
+	if !errors.As(err, &permErr) {
+		t.Fatal("expected wrapped permission error from error info")
+	}
+
+	code, unwrapErrs := resterrf.ErrUnwrap(resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err))
+	if code != resterrf.PermissionDenied {
+		t.Fatalf("expected upgraded code %d, got %d", resterrf.PermissionDenied, code)
+	}
+	if len(unwrapErrs) != 1 {
+		t.Fatalf("expected 1 unwrap error, got %d", len(unwrapErrs))
+	}
+}
+
+func TestBuildBackendResponseError_RecognizePermissionFromResponse(t *testing.T) {
+	err := buildBackendResponseError("select inner ip", fakeBackendRespWithPermission{
+		fakeBackendResp: fakeBackendResp{
+			code:      int32(resterrf.ThirdpartyRequestFailed),
+			message:   "thirdparty failed",
+			requestID: "rid-perm-from-resp",
+		},
+		permission: &protoBackend.Permission{
+			System:     "bk_iam",
+			SystemName: "IAM",
+			ApplyUrl:   "https://iam.example/apply",
+			Actions: []*protoBackend.Action{
+				{
+					Id:   "host_manage",
+					Name: "Host Manage",
+					RelatedResourceTypes: []*protoBackend.RelatedResourceType{
+						{
+							SystemId: "bk_cmdb",
+							Type:     "biz",
+							TypeName: "Business",
+						},
+					},
+				},
+			},
+		},
+	}, nil)
+
+	if err == nil {
+		t.Fatal("expected non-nil error")
+	}
+
+	var permErr resterrf.PermissionError
+	if !errors.As(err, &permErr) {
+		t.Fatal("expected wrapped permission error from response")
+	}
+
+	permissionData := permErr.PermissionData()
+	if permissionData.System != "bk_iam" {
+		t.Fatalf("expected system bk_iam, got %s", permissionData.System)
+	}
+	if permissionData.SystemName != "IAM" {
+		t.Fatalf("expected system_name IAM, got %s", permissionData.SystemName)
+	}
+	if permissionData.ApplyURL != "https://iam.example/apply" {
+		t.Fatalf("expected apply_url https://iam.example/apply, got %s", permissionData.ApplyURL)
+	}
+	if len(permissionData.Actions) != 1 {
+		t.Fatalf("expected 1 action, got %d", len(permissionData.Actions))
+	}
+	if len(permissionData.Actions[0].RelatedResourceTypes) != 1 {
+		t.Fatalf("expected 1 related_resource_type, got %d", len(permissionData.Actions[0].RelatedResourceTypes))
+	}
+	if permissionData.Actions[0].RelatedResourceTypes[0].SystemID != "bk_cmdb" {
+		t.Fatalf("expected related system_id bk_cmdb, got %s", permissionData.Actions[0].RelatedResourceTypes[0].SystemID)
+	}
+
+	code, _ := resterrf.ErrUnwrap(resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err))
+	if code != resterrf.PermissionDenied {
+		t.Fatalf("expected upgraded code %d, got %d", resterrf.PermissionDenied, code)
 	}
 }
