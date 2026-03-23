@@ -17,6 +17,7 @@ import (
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -31,6 +32,7 @@ func NewActionFetchPluginProcess(capability *Capability) action.Definition {
 	return &actionFetchPluginProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoProcess:          capability.StoragePlugin,
+		daoHost:             capability.StorageTopo,
 	}
 }
 
@@ -42,6 +44,7 @@ type ActParamFetchPluginProcess struct {
 type actionFetchPluginProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoProcess          pluginStg.IDaoProcess
+	daoHost             topoStg.IStorageHost
 }
 
 // Name returns the name of the action.
@@ -123,6 +126,24 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 		Info()
 
 	deployInfo.Process = *process
+
+	host, err := act.daoHost.GetHostByID(nCtx, deployInfo.Process.HostID)
+	if err != nil {
+		return fmt.Errorf("failed to get host by id, host-id(%d): %w", deployInfo.Process.HostID, err)
+	}
+	if host.Dynamic.AgentID == "" {
+		return fmt.Errorf("host dynamic agent id is empty, host-id(%d)", deployInfo.Process.HostID)
+	}
+
+	// notice: overwrite the potentially stale process AgentID with the latest host value.
+	deployInfo.Process.Info.AgentID = host.Dynamic.AgentID
+
+	std.InstanceData().Log().
+		Zh("获取插件AgentID成功，agent-id(%s)",
+			deployInfo.Process.Info.AgentID).
+		En("fetch plugin agent id succeed, agent-id(%s)",
+			deployInfo.Process.Info.AgentID).
+		Info()
 
 	return nil
 }
