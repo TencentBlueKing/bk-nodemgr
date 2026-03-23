@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -44,6 +45,13 @@ func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	bizIDs := h.getUpgradeNodeBizIDs(hosts)
+	resources := buildBizResources(bizIDs)
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to upgrade agent, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	unitsMap, err := h.generatesUnitDirectLink(rCtx, hosts)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to get network unit info")
@@ -67,7 +75,7 @@ func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 
 	workflowID, err := h.nodeMgrIface.LaunchUpgradeNode(rCtx, types.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
-		BizIDs:          h.getUpgradeNodeBizIDs(hosts),
+		BizIDs:          bizIDs,
 		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})

@@ -16,6 +16,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -42,6 +44,13 @@ func (h *handler) AgentRestart(rCtx restserver.IContext) (interface{}, error) {
 	if err := validateHostNetworkUnit(hosts); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart agent, invalid network unit")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	bizIDs := h.getRestartNodeBizIDs(hosts)
+	resources := buildBizResources(bizIDs)
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to restart agent, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	reqHosts := req.GetHost()

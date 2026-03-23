@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -49,6 +50,13 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
+	bizIDs := h.getUninstallNodeBizIDs(hosts)
+	resources := buildBizResources(bizIDs)
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to uninstall agent, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	reqHosts := req.GetHost()
 	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
 	for idx := range reqHosts {
@@ -66,7 +74,7 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 
 	workflowID, err := h.nodeMgrIface.LaunchUninstallNode(rCtx, types.UninstallNodeParam{
 		Type:            types.NodeWorkflowTypeUninstallAgent,
-		BizIDs:          h.getUninstallNodeBizIDs(hosts),
+		BizIDs:          bizIDs,
 		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})

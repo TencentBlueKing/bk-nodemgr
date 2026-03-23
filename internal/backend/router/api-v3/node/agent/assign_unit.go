@@ -13,6 +13,7 @@ package agent
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -50,6 +51,24 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 	if err := validateHostNetworkAreaConsistency(hosts, networkUnit); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit, network area validation failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	networkUnitResource := buildNetworkUnitResources(networkUnit.ID)
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionNetworkUnitManage, networkUnitResource); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to assign unit, networkunit permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	bizIDMap := make(map[int64]struct{})
+	for _, host := range hosts {
+		bizIDMap[host.Static.BizID] = struct{}{}
+	}
+	bizIDs := make([]int64, 0, len(bizIDMap))
+	for bizID := range bizIDMap {
+		bizIDs = append(bizIDs, bizID)
+	}
+	resources := buildBizResources(bizIDs)
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to assign unit, agent operate permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	var successCount int64
@@ -111,7 +130,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		},
 	}
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 func (h *handler) fetchNetworkUnit(rCtx restserver.IContext, networkUnitID int64) (*types.NetworkUnit, error) {
