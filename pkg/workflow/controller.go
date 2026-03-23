@@ -488,18 +488,6 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 		}
 	}
 
-	// update state.
-	ctl.operInstanceBriefData.Lifecycle.Launch()
-	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
-		nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
-		logger.G.Sys().
-			WithErr(err).
-			With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
-			Error("failed to update operation instance lifecycle")
-
-		return err
-	}
-
 	actionNames := ctl.oper.Definition.ActionDefNames()
 	if len(actionNames) == 0 {
 		return fmt.Errorf("operation-instance-id(%s) has no action", ctl.operInstanceBriefData.Metadata.OperationInstanceID)
@@ -573,6 +561,18 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 		}
 
 		return fmt.Errorf("failed to send chain to machinery: %w", err)
+	}
+
+	// update state.
+	ctl.operInstanceBriefData.Lifecycle.Launch()
+	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
+		nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
+		logger.G.Sys().
+			WithErr(err).
+			With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+			Error("failed to update operation instance lifecycle")
+
+		return err
 	}
 
 	return nil
