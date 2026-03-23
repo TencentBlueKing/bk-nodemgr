@@ -504,50 +504,43 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 		return nil, nil
 	}
 
-	if !metadata.AllowedConcurrency {
-		workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
-			operation.StateInit, operation.StateLaunched, operation.StateRunning)
+	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
+		operation.StateInit, operation.StateLaunched, operation.StateRunning)
+	if err != nil {
+		return nil, err
+	}
+
+	if metadata.AllowedConcurrency || workingCount == 0 {
+		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
+			Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
+
+		operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), trigCtl.GetTriggerID())
 		if err != nil {
 			return nil, err
 		}
 
-		// do not allow concurrency.
-		if workingCount > 0 {
-			return nil, nil
+		if count != 1 || len(operList) != 1 {
+			return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
+				fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
+					trigCtl.GetTriggerID(), count))
 		}
+
+		oper := operList[0]
+		operCtl, err := trigCtl.GetOperation(nCtx, oper.OperationID)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err = operCtl.CreateOperationInstance(nCtx); err != nil {
+			return nil, err
+		}
+
+		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(),
+			"oper-id", operCtl.GetOperationID()).
+			Debug("created periodic operation instance")
 	}
 
-	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
-		Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
-
-	operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), trigCtl.GetTriggerID())
-	if err != nil {
-		return nil, err
-	}
-
-	if count != 1 || len(operList) != 1 {
-		return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
-			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
-				trigCtl.GetTriggerID(), count))
-	}
-
-	oper := operList[0]
-	operCtl, err := trigCtl.GetOperation(nCtx, oper.OperationID)
-	if err != nil {
-		return nil, err
-	}
-
-	operInstCtl, err := operCtl.CreateOperationInstance(nCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(),
-		"oper-id", operCtl.GetOperationID(),
-		"oper-inst-id", operInstCtl.GetOperationInstanceID()).
-		Debug("created periodic operation instance")
-
-	return []IOperationInstanceCtl{operInstCtl}, nil
+	return trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
 }
 
 func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl, instanceCtls []IOperationInstanceCtl) error {
