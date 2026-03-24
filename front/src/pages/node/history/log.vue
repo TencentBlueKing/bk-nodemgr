@@ -815,25 +815,10 @@ async function getLog() {
   });
   logData.value.total = Object.keys(operInstLogs).length;
 
-  // 如果有 extra_execution_logs，在表格最前面插入一行"额外执行日志"
+  // 额外执行日志：仅判断是否存在且含有 ERROR（用于日志区域展示），不再插入步骤标签
   const hasExtraLogs = res.extra_execution_logs?.logs?.length > 0;
-  if (hasExtraLogs) {
-    const extraLogItem = res.extra_execution_logs.logs;
-    // 判断额外日志中是否有 ERROR 级别
-    const hasError = extraLogItem.some((log: any) => log.level === 'ERROR');
-    list.unshift({
-      index: 0,
-      stepKey: 'extra_execution_logs',
-      display_name_zh: '额外执行日志',
-      display_name_en: 'Extra Execution Logs',
-      costTime: 0,
-      state: hasError ? 'failed' : 'success',
-    });
-    // 重新编号后续步骤
-    for (let i = 1; i < list.length; i++) {
-      list[i].index = i;
-    }
-  }
+  const hasExtraError = hasExtraLogs
+    && res.extra_execution_logs.logs.some((log: any) => log.level === 'ERROR');
 
   tableData.value = list;
 
@@ -855,8 +840,8 @@ async function getLog() {
     isInterval.value = false;
   }
 
-  // 构建 allLogs：包含 extra_execution_logs + 各步骤日志
-  const extraLogs = hasExtraLogs
+  // 构建 allLogs：仅在额外日志包含 ERROR 时才加入日志区域展示
+  const extraLogs = hasExtraError
     ? [{ key: 'extra_execution_logs', logs: res.extra_execution_logs.logs }]
     : [];
   allLogs.value = [
@@ -869,10 +854,7 @@ async function getLog() {
       })),
   ];
 
-  // 如果有额外日志，默认选中它展示；否则按原逻辑选中当前步骤
-  if (hasExtraLogs) {
-    activeStepKey.value = 'extra_execution_logs';
-  } else if (currentKey && operInstLogs[currentKey]?.message) {
+  if (currentKey && operInstLogs[currentKey]?.message) {
     logs.value = { ...operInstLogs[currentKey].message.logs };
     activeKey.value = currentKey;
   }
