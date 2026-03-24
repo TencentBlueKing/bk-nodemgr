@@ -70,9 +70,3 @@ func PolicyGroupPermittedOperations() []PermittedOperation {
 		PermittedOperationRestart,
 	}
 }
-
-// PluginPermmitedOperation defines the plugin permitted operation info.
-type PluginPermmitedOperation struct {
-	PluginName          string
-	PermittedOperations []PermittedOperation
-}

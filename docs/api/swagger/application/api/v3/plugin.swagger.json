@@ -118,7 +118,7 @@
         ]
       }
     },
-    "/api/v3/plugin/list_permitted_operation": {
+    "/api/v3/plugin/list_permitted_operations": {
       "post": {
         "summary": "ListPluginPermittedOperation lists the plugin operations that the user has\npermission to perform.",
         "operationId": "PluginAPI_ListPluginPermittedOperation",

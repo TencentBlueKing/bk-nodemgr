@@ -42,7 +42,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
 	h.rg.POST("/set_memo", restserver.Handler(h.SetMemo))
-	h.rg.POST("/list_permitted_operations", restserver.Handler(h.ListPerimittedOperations))
+	h.rg.POST("/list_permitted_operations", restserver.Handler(h.ListPermittedOperations))
 
 	workflow.Load(h.rg, capability)
 }

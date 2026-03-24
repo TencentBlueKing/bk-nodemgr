@@ -56,8 +56,8 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// ListPerimittedOperations defines the handler to list plugin permitted operations.
-func (h *handler) ListPerimittedOperations(rCtx restserver.IContext) (interface{}, error) {
+// ListPermittedOperations defines the handler to list plugin permitted operations.
+func (h *handler) ListPermittedOperations(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PluginListPermittedOperationReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin permitted operations, failed to decode request query.")
@@ -66,7 +66,7 @@ func (h *handler) ListPerimittedOperations(rCtx restserver.IContext) (interface{
 
 	page, err := req.ConvertPageToTypes()
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins permitted operations, invalid page info.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin permitted operations, invalid page info.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 

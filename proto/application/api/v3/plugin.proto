@@ -232,7 +232,7 @@ service PluginAPI {
   rpc ListPluginPermittedOperation(PluginListPermittedOperationReq)
       returns (PluginListPermittedOperationResp) {
     option (google.api.http) = {
-      post : "/api/v3/plugin/list_permitted_operation"
+      post : "/api/v3/plugin/list_permitted_operations"
       body : "*"
     };
   }
