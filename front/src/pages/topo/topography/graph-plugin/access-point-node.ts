@@ -159,17 +159,7 @@ export default class AccessPointNode extends BaseNode {
     const iconX = width - 12;
     const iconY = height / 2;
 
-    // 1. 扩大鼠标感应区 (透明矩形)
-    const hitAreaElement = this.upsert('info-hit-area', GRect, {
-      x: width - 25,
-      y: 0,
-      width: 25,
-      height,
-      fill: 'transparent',
-      cursor: 'pointer',
-    }, container);
-
-    // 2. 绘制图标圆圈 + 文字
+    // 1. 先绘制图标圆圈 + 文字（底层）
     this.upsert('info-circle', 'circle', {
       cx: iconX,
       cy: iconY,
@@ -177,6 +167,7 @@ export default class AccessPointNode extends BaseNode {
       stroke: '#979ba5',
       lineWidth: 1.5,
       fill: '#979ba5',
+      cursor: 'pointer',
       pointerEvents: 'none',
     }, container);
 
@@ -190,28 +181,49 @@ export default class AccessPointNode extends BaseNode {
       fontFamily: 'serif',
       textAlign: 'center',
       textBaseline: 'middle',
+      cursor: 'pointer',
       pointerEvents: 'none',
     }, container);
 
-    // 3. 直接在感应区上绑定 mouseenter/mouseleave（学习单元跳转图标的方式）
-    const infoCircle = this.shapeMap['info-circle'];
-    if (hitAreaElement) {
-      const { endpointsData } = this.data;
+    // 2. 最后绘制感应区（最上层），确保 cursor: pointer 生效
+    const hitAreaElement = this.upsert('info-hit-area', GRect, {
+      x: width - 25,
+      y: 0,
+      width: 25,
+      height,
+      fill: 'transparent',
+      cursor: 'pointer',
+    }, container);
 
-      hitAreaElement.addEventListener('mouseenter', (event: any) => {
+    // 3. 只绑定一次事件，避免 render 重复调用导致多个监听器叠加
+    if (hitAreaElement && !(hitAreaElement as any).__bindTooltip) {
+      (hitAreaElement as any).__bindTooltip = true;
+
+      hitAreaElement.addEventListener('mouseenter', () => {
+        // 每次进入时重新读取 data，确保数据最新
+        const { endpointsData } = this.data;
         if (!endpointsData || endpointsData.length === 0) return;
-        // 用 info-circle 的 bounds 定位，让箭头精确指向图标
+
+        const infoCircle = this.shapeMap['info-circle'];
         const target = infoCircle || hitAreaElement;
         const bounds = target.getRenderBounds();
-        const mouseX = event.clientX;
-        const mouseY = event.clientY;
+        const graph = this.context.graph;
 
-        const targetWidth = bounds.max[0] - bounds.min[0];
-        const targetHeight = bounds.max[1] - bounds.min[1];
-        const targetX = mouseX - targetWidth / 2;
-        const targetY = mouseY - targetHeight / 2;
+        if (graph) {
+          const topLeft = graph.getViewportByCanvas([bounds.min[0], bounds.min[1]]);
+          const bottomRight = graph.getViewportByCanvas([bounds.max[0], bounds.max[1]]);
 
-        tableTooltip.show(endpointsData, targetX, targetY, targetWidth, targetHeight);
+          const canvasDom = graph.getCanvas?.()?.getContextService?.()?.getDomElement?.();
+          const canvasRect = canvasDom?.getBoundingClientRect?.();
+          const offsetX = canvasRect?.left ?? 0;
+          const offsetY = canvasRect?.top ?? 0;
+
+          const targetX = offsetX + topLeft[0];
+          const targetY = offsetY + topLeft[1];
+          const targetWidth = bottomRight[0] - topLeft[0];
+          const targetHeight = bottomRight[1] - topLeft[1];
+          tableTooltip.show(endpointsData, targetX, targetY, targetWidth, targetHeight);
+        }
       });
 
       hitAreaElement.addEventListener('mouseleave', () => {
