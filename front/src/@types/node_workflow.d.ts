@@ -286,3 +286,21 @@ export interface NodeWorkflowOperationManualSolutionGetResp {
   data: ManualSolution[];
 }
 
+// NodeWorkflowOperationOfflineInstallResultSubmitReq describes the offline
+// install result submit request.
+export interface NodeWorkflowOperationOfflineInstallResultSubmitReq {
+  operation_id: string;
+  // result_data is the JSON string content of installer.data.json from the offline install.
+  result_data: string;
+}
+
+// NodeWorkflowOperationOfflineInstallResultSubmitResp describes the offline
+// install result submit response.
+export interface NodeWorkflowOperationOfflineInstallResultSubmitResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: null;
+}
+

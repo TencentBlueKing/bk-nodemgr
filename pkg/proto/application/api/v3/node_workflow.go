@@ -730,6 +730,36 @@ func newEmptyNodeWorkflowStatistics() *WorkflowStatisticsInfo {
 }
 
 // Validate check body.
+func (x *NodeWorkflowOperationOfflinePackageDownloadReq) Validate() error {
+	if x.GetOperationId() == "" {
+		return errors.New("operation_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationOfflinePackageDownloadReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *NodeWorkflowOperationOfflineInstallResultSubmitReq) Validate() error {
+	if x.GetOperationId() == "" {
+		return errors.New("operation_id is required")
+	}
+
+	if x.GetResultData() == "" {
+		return errors.New("result_data is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationOfflineInstallResultSubmitReq) AutoConvert() {
+}
+
+// Validate check body.
 func (x *NodeWorkflowOperationDistinctReq) Validate() error {
 	if x.GetWorkflowId() == "" {
 		return errors.New("workflow_id can not be empty")

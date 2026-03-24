@@ -8,6 +8,8 @@ export interface NodeProxyInstallHost {
   bk_host_innerip: string;
   bk_host_innerip_v6: string;
   os_type: string;
+  // cpu_arch is required for offline install (user-provided, replaces SSH detection).
+  cpu_arch: string;
   login_ip: string;
   login_port: number;
   login_user: string;
@@ -33,6 +35,8 @@ export interface NodeProxyInstallReq {
   host: NodeProxyInstallHost[];
   target_version: TargetVersion[];
   is_manual: boolean;
+  // is_offline means no network to the control unit; user executes offline package manually.
+  is_offline: boolean;
 }
 
 // NodeProxyInstallResp describes the node proxy install response.

@@ -105,6 +105,8 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionGenManualCommand(nodeCap),
 		node.NewActionWaitDetectInfoByManual(nodeCap),
 		node.NewActionInstallNodeByManual(nodeCap),
+		node.NewActionResolveOfflineDetectInfo(nodeCap),
+		node.NewActionWaitOfflineManualInstall(nodeCap),
 	); err != nil {
 		return err
 	}

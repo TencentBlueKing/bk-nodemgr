@@ -39,6 +39,7 @@ type NodeProxyInstallHost struct {
 	CreditExpiredIntervalSec int64
 	RelayDownloadPort        int64
 	RelayCallbackPort        int64
+	CPUArch                  string
 }
 
 // NodeProxyInstallParam describes the node proxy install parameter.
@@ -46,6 +47,7 @@ type NodeProxyInstallParam struct {
 	Hosts         []*NodeProxyInstallHost
 	TargetVersion []*TargetVersion
 	IsManual      bool
+	IsOffline     bool
 }
 
 // NodeProxyUpgradeHost describes the node proxy upgrade host.

@@ -446,6 +446,7 @@ const handleSave = async () => {
     params.login_mode = formData.login_mode;
     params.login_password = formData.login_password;
     params.login_key_file = formData.login_key_file;
+    params.credit_expired_interval_sec = 7 * 24 * 3600;
   }
   const res = await NodeProxyService.NodeProxyUpdate({ host: [params] }).catch(err => false);
   if (res === false) return;

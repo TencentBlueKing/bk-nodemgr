@@ -33,6 +33,7 @@ message NodeProxyInstallHost {
   int64 credit_expired_interval_sec = 21;
   int64 relay_download_port = 22;
   int64 relay_callback_port = 23;
+  string cpu_arch = 24;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
@@ -40,6 +41,7 @@ message NodeProxyInstallReq {
   repeated NodeProxyInstallHost host = 1;
   repeated TargetVersion target_version = 2;
   bool is_manual = 3;
+  bool is_offline = 4;
 }
 
 // NodeProxyInstallResp describes the node proxy install response.

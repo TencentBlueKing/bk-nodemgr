@@ -73,6 +73,12 @@ const installTypeConfig = ref([
     icon: 'nc-manual',
     desc: t('components.installType.manualInstallDesc'),
   },
+  {
+    type: 'offline',
+    name: t('components.installType.offlineInstall'),
+    icon: 'nc-package',
+    desc: t('components.installType.offlineInstallDesc'),
+  },
 ]);
 const installTypeList = computed(() => installTypeConfig.value.filter(item => props.needTypeList.includes(item.type)));
 const activeType = computed(() => props.currentNodeType === 'agent' ? mainStore.agentSetupType : mainStore.proxySetupType);

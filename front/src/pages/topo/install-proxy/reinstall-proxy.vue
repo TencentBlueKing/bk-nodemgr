@@ -15,7 +15,7 @@
           label-width="90"
           required
         >
-          <install-type currentNodeType="proxy" @change="handleChange"></install-type>
+          <install-type currentNodeType="proxy" :needTypeList="['setup', 'manual', 'offline']" @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
@@ -49,7 +49,7 @@
           </Button>
         </Form.FormItem>
         <Form.FormItem
-          v-if="isTargetShow"
+          v-if="isTargetShow && form.method !== 'offline'"
           :label="t('installProxy.installSource')"
           property="proxy_install_origin"
           label-width="110"
@@ -233,6 +233,7 @@ const settings = reactive({
     { field: 'bk_host_innerip', title: t('installProxy.innerIPv4') },
     { field: 'bk_host_innerip_v6', title: t('installProxy.innerIPv6') },
     { field: 'os_type', title: t('installProxy.os') },
+    { field: 'cpu_arch', title: t('components.installTable.cpuArch') },
     { field: 'login_port', title: t('installProxy.port') },
     { field: 'login_user', title: t('installProxy.account') },
     { field: 'export_ip', title: t('installProxy.exportIP') },
@@ -252,13 +253,14 @@ const settings = reactive({
     'bk_host_innerip',
     'bk_host_innerip_v6',
     'os_type',
+    'cpu_arch',
     'login_port',
     'login_ip',
     'login_user',
     'login_mode',
     'credit',
   ],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit', 'bk_networkunit_id'],
+  disabled: ['os_type', 'cpu_arch', 'login_port', 'login_user', 'login_mode', 'credit', 'bk_networkunit_id'],
   size: 'medium',
 });
 const initData = {
@@ -287,6 +289,7 @@ const initData = {
   file_tunnel: true,
   data_tunnel: true,
   proxy_tags: [] as string[],
+  cpu_arch: '',
   relay_download_port: '',
   relay_callback_port: '',
 };
@@ -410,10 +413,13 @@ const checkUnitsHasProxy = async (unitIds: number[]) => {
   unitHasProxyMap.value = map;
 };
 
-// 根据单元是否有 proxy 设置安装源默认值（不展开高级选项）
+// 根据单元是否有 proxy 设置安装源默认值（不展开高级选项；离线无安装源 UI，不展开、不写 cascader）
 const setDefaultInstallOrigin = () => {
   const firstUnitId = Number(form.info[0]?.bk_networkunit_id);
   if (!firstUnitId) return;
+  if (form.method === 'offline') {
+    return;
+  }
   const hasProxy = unitHasProxyMap.value.get(firstUnitId) ?? false;
   const upstreamUnitId = networkUnitListMap.get(firstUnitId);
   const hasUpstream = upstreamUnitId !== null && upstreamUnitId !== undefined;
@@ -624,6 +630,7 @@ const handleConfirm = async () => {
           relay_download_port: relayDownload,
           relay_callback_port: relayCallback,
           proxy_install_origin_unit_id: getinstallOriginUnitId(bkNetworkUnitId),
+          credit_expired_interval_sec: 7 * 24 * 3600,
           ...(bk_host_id != null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
         return host;
@@ -632,6 +639,7 @@ const handleConfirm = async () => {
       hosts,
       target_version: form.target_version,
       is_manual: form.method === 'manual',
+      is_offline: form.method === 'offline',
     };
     isShowPreview.value = true;
   } else {
@@ -644,6 +652,14 @@ const handleConfirm = async () => {
   }
 };
 function getinstallOriginUnitId(unit_id: number) {
+  if (form.method === 'offline') {
+    const o = getDefaultOriginForUnit(unit_id);
+    if (o === 'upstream') {
+      const id = networkUnitListMap.get(unit_id);
+      return id ?? unit_id;
+    }
+    return unit_id;
+  }
   // 如果没有展开高级选项（proxy_install_origin 为空），按每行数据的单元自动判断
   const origin = form.proxy_install_origin.length > 0
     ? form.proxy_install_origin[0]

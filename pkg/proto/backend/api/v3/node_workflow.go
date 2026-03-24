@@ -746,6 +746,36 @@ func (x *NodeWorkflowOperationInstanceStatusDistributionListReq) Validate() erro
 func (x *NodeWorkflowOperationInstanceStatusDistributionListReq) AutoConvert() {
 }
 
+// Validate validates the request.
+func (x *NodeWorkflowOperationOfflineInstallInfoGetReq) Validate() error {
+	if x.GetOperationId() == "" {
+		return errors.New("operation_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the request.
+func (x *NodeWorkflowOperationOfflineInstallInfoGetReq) AutoConvert() {
+}
+
+// Validate validates the request.
+func (x *NodeWorkflowOperationOfflineInstallResultSubmitReq) Validate() error {
+	if x.GetOperationId() == "" {
+		return errors.New("operation_id is required")
+	}
+
+	if x.GetResultData() == "" {
+		return errors.New("result_data is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the request.
+func (x *NodeWorkflowOperationOfflineInstallResultSubmitReq) AutoConvert() {
+}
+
 // ConvertDistributionFromTypes converts distribution from types.
 func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionFromTypes(
 	distribution map[string]*operation.InstanceStatusDistribution) {

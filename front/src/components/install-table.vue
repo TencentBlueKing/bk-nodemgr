@@ -304,7 +304,7 @@
           :title="$t('components.installTable.osType')"
           :min-width="120"
           :visible="settings.checked.includes('os_type')"
-          v-if="releaseType !== 'proxy' || isReinstall"
+          v-if="releaseType !== 'proxy' || isReinstall || settings.checked.includes('os_type')"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.osType') }}</span>
@@ -335,6 +335,43 @@
               >
                 <Select.Option
                   v-for="option in datasourceList"
+                  :key="option.id"
+                  :id="option.id"
+                  :name="option.name"
+                >
+                </Select.Option>
+              </Select>
+            </ValidateCell>
+          </template>
+        </VxeColumn>
+        <!-- cpu_arch: only for proxy offline install -->
+        <VxeColumn
+          field="cpu_arch"
+          :min-width="120"
+          :visible="settings.checked.includes('cpu_arch')"
+          v-if="releaseType === 'proxy' && type === 'offline'"
+        >
+          <template #header>
+            <span class="mr-[5px]">{{ $t('components.installTable.cpuArch') }}</span>
+            <span class="mx-[3px] text-[#FF5656]">*</span>
+            <BatchEdit
+              :title="$t('components.installTable.batchEditCpuArch')"
+              type="select"
+              :options="cpuArchOptions"
+              @confirm="(value) => handleBatchEdit('cpu_arch', value)"
+            >
+            </BatchEdit>
+          </template>
+          <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'cpu_arch')">
+              <Select
+                v-model="row.cpu_arch"
+                auto-focus
+                @change="clearError(rowIndex, 'cpu_arch')"
+                @toggle="(val) => !val && handleFieldBlur(rowIndex, 'cpu_arch', row.cpu_arch)"
+              >
+                <Select.Option
+                  v-for="option in cpuArchOptions"
                   :key="option.id"
                   :id="option.id"
                   :name="option.name"
@@ -387,7 +424,7 @@
       </VxeColgroup>
 
       <!-- 登录信息 -->
-      <VxeColgroup :title="$t('components.installTable.loginInfo')" align="center" v-if="type !== 'manual'">
+      <VxeColgroup :title="$t('components.installTable.loginInfo')" align="center" v-if="type !== 'manual' && type !== 'offline'">
         <VxeColumn
           field="login_ip"
           :title="$t('components.installTable.loginIP')"
@@ -433,7 +470,7 @@
           :title="$t('components.installTable.port')"
           :min-width="120"
           :visible="settings.checked.includes('login_port')"
-          v-if="releaseType !== 'proxy' || isReinstall"
+          v-if="releaseType !== 'proxy' || isReinstall || settings.checked.includes('login_port')"
         >
           <template #header>
             <Popover
@@ -492,7 +529,7 @@
           :title="$t('components.installTable.account')"
           :min-width="150"
           :visible="settings.checked.includes('login_user')"
-          v-if="releaseType !== 'proxy' || isReinstall"
+          v-if="releaseType !== 'proxy' || isReinstall || settings.checked.includes('login_user')"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.account') }}</span>
@@ -860,6 +897,7 @@ const initData = {
   bk_host_innerip: '',
   bk_host_innerip_v6: '',
   os_type: '',
+  cpu_arch: '',
   login_ip: '',
   login_port: '',
   login_user: '',
@@ -916,7 +954,13 @@ function getInitData() {
 
 const handleAddRow = (index: number) => {
   if (!Array.isArray(tableData.value)) return;
-  tableData.value.splice(index + 1, 0, cloneDeep(initData));
+  const newRow = cloneDeep(initData);
+  if (props.releaseType === 'proxy' && !props.isReinstall) {
+    if (!newRow.os_type) newRow.os_type = 'linux';
+    if (!newRow.login_port) newRow.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+    if (!newRow.login_user) newRow.login_user = 'root';
+  }
+  tableData.value.splice(index + 1, 0, newRow);
   shiftErrors(index, 1);
 };
 
@@ -948,6 +992,10 @@ const settingChange = (data: any) => {
 };
 
 const datasourceList = ref<{ id: string; name: string }[]>([]);
+// cpuArchOptions is populated dynamically from DistinctReleaseProxy at load time.
+// Values use Go-style arch names (e.g. "amd64") to match what the backend API and
+// host.info.cpu_arch return, enabling pre-fill for reinstall scenarios.
+const cpuArchOptions = ref<{ id: string; name: string }[]>([]);
 const authenticationTypes = ref([
   { id: 'password', name: t('components.installTable.password') },
   { id: 'keyfile', name: t('components.installTable.keyfile') },
@@ -995,7 +1043,7 @@ const getHostDistinct = async () => {
     exact_include_conditions: {
       enabled: [true],
     },
-    distinct_field: { os_type: true, cpu_arch: false },
+    distinct_field: { os_type: true, cpu_arch: true },
   };
   const service = props.releaseType === 'proxy'
     ? PackageService.DistinctReleaseProxy(distinctParams as any)
@@ -1007,6 +1055,9 @@ const getHostDistinct = async () => {
       id: item,
       name: item,
     }));
+    if (res.cpu_arch?.length) {
+      cpuArchOptions.value = res.cpu_arch.map(arch => ({ id: arch, name: arch }));
+    }
   }
 };
 
@@ -1098,6 +1149,7 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
     'login_user',
     'login_mode',
     'export_ip',
+    'cpu_arch',
   ];
   requiredFields.push('bk_networkunit_id');
   if (props.isReinstall) requiredFields.push('bk_biz_id');
@@ -1196,11 +1248,7 @@ const tableValidate = async () => {
       }
     }
     // 2.3 OS
-    if (
-      (props.releaseType !== 'proxy' || props.isReinstall)
-      && settings.checked.includes('os_type')
-      && !row.os_type
-    ) {
+    if (settings.checked.includes('os_type') && !row.os_type) {
       setError(i, 'os_type',  t('validate.required'));
       rowValid = false;
     }
@@ -1222,8 +1270,13 @@ const tableValidate = async () => {
         }
       }
     }
-    // 2.5 Login Info
-    if (type.value !== 'manual') {
+    // 2.5 cpu_arch (required for proxy offline install)
+    if (props.releaseType === 'proxy' && type.value === 'offline' && !row.cpu_arch) {
+      setError(i, 'cpu_arch', t('validate.required'));
+      rowValid = false;
+    }
+    // 2.6 Login Info (skipped for manual and offline modes)
+    if (type.value !== 'manual' && type.value !== 'offline') {
       if (settings.checked.includes('login_ip')) {
         if (!row.login_ip) {
           setError(i, 'login_ip',  t('validate.required'));
@@ -1233,20 +1286,18 @@ const tableValidate = async () => {
           rowValid = false;
         }
       }
-      if (props.releaseType !== 'proxy' || props.isReinstall) {
-        if (settings.checked.includes('login_port')) {
-          if (!row.login_port) {
-            setError(i, 'login_port',  t('validate.required'));
-            rowValid = false;
-          } else if (!validateItemData(row.login_port, rules.login_port)) {
-            setError(i, 'login_port', rules.login_port[0].message);
-            rowValid = false;
-          }
-        }
-        if (settings.checked.includes('login_user') && !row.login_user) {
-          setError(i, 'login_user',  t('validate.required'));
+      if (settings.checked.includes('login_port')) {
+        if (!row.login_port) {
+          setError(i, 'login_port',  t('validate.required'));
+          rowValid = false;
+        } else if (!validateItemData(row.login_port, rules.login_port)) {
+          setError(i, 'login_port', rules.login_port[0].message);
           rowValid = false;
         }
+      }
+      if (settings.checked.includes('login_user') && !row.login_user) {
+        setError(i, 'login_user',  t('validate.required'));
+        rowValid = false;
       }
       if (settings.checked.includes('login_mode') && !row.login_mode) {
         setError(i, 'login_mode',  t('validate.required'));

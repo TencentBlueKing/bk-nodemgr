@@ -297,6 +297,13 @@ func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment
 
 // proxy install distinguish direct install or relay install, and manual or automated.
 func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment, operator string) operation.Definition {
+	if deploy.Info.InstallOptions.IsOffline {
+		return node.NewOperInstallProxyByOffline(node.OperParamInstallProxyByOffline{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
 	if deploy.Info.InstallOptions.DirectInstall {
 		if deploy.Info.InstallOptions.IsManual {
 			return node.NewOperInstallNodeByManual(node.OperParamInstallNodeByManual{

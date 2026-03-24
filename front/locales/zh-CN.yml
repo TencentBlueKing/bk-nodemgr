@@ -149,6 +149,14 @@ platform:
       onHost: 在目标主机通过
       install: 安装
       copySuccess: 已成功复制命令
+      offlineGuideTitle: 离线安装指引
+      offline:
+        downloadPackage: 下载离线安装包
+        downloadFailed: 离线包下载失败，请检查网络或登录状态后重试
+        resultPlaceholder: 请将脚本执行成功后打印的 JSON 内容粘贴到此处...
+        submitResult: 提交结果
+        submitSuccess: 结果提交成功，工作流将自动继续
+        submitFailed: 结果提交失败，请重试
     taskHistory:
       tab:
         nodeHistory: 节点历史
@@ -203,6 +211,8 @@ platform:
       executionStatus: 执行情况
       waitManualOperation: 等待手动操作，查看
       operationGuide: 操作指引
+      waitOfflineOperation: 等待离线安装结果，查看
+      offlineGuide: 离线安装指引
       terminate: 终止
       terminateConfirmTitle: 确认终止
       terminateConfirmSubTitle: 终止后无法恢复，确认继续？
@@ -592,6 +602,8 @@ taskDetail:
     retry: 重试
     guide: 操作指引
     waitManual: 等待手动操作，查看
+    offlineGuide: 离线安装指引
+    waitOffline: 等待离线安装结果，查看
     terminateConfirmTitle: 确认终止
     terminateConfirmSubTitle: 终止后无法恢复，确认继续？
     terminateBatchConfirmSubTitle: 将终止 {count} 个运行中的任务，其他状态的任务不受影响，终止后无法恢复，确认继续？
@@ -882,6 +894,9 @@ components:
     innerIPv6: 内网IPv6
     osType: 操作系统
     batchEditOsType: 批量编辑操作系统
+    cpuArch: CPU架构
+    batchEditCpuArch: 批量编辑CPU架构
+    cpuArchValidMessage: 请选择CPU架构
     port: 登录端口
     batchEditPort: 批量编辑登录端口
     portTooltipDesc: 用于 SSH/WMI 登录目标主机的端口号
@@ -938,6 +953,8 @@ components:
     remoteInstallDesc: 线上表单填写，需要提供登录信息
     manualInstall: 手动安装
     manualInstallDesc: 无需提供登录信息，自行在服务器上执行给定命令完成安装
+    offlineInstall: 离线安装
+    offlineInstallDesc: 目标主机网络无法访问控制单元时使用，需下载离线安装包后在目标主机上手动执行
   logVersion:
     current: 当前版本
   operateDialog:

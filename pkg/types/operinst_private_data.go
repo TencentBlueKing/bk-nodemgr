@@ -11,6 +11,10 @@
 package types
 
 const (
+	// PDKeyOfflineInstallResult is key for offline install result data in oper inst private data.
+	// The value is a JSON string of installer.data.json submitted by the user.
+	PDKeyOfflineInstallResult string = "offline_install_result"
+
 	// PDKeyInstallerReportStatus is key for installer report status in oper inst private data.
 	PDKeyInstallerReportStatus string = "installer_report_status"
 

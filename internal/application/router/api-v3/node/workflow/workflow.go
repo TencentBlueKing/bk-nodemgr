@@ -18,6 +18,7 @@ import (
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +26,7 @@ import (
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
+	fileHandler    file.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -32,6 +34,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:             rg.Group("/workflow"),
 		backendHandler: capability.BackendHandler,
+		fileHandler:    capability.FileHandler,
 	}
 }
 
@@ -49,6 +52,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
 	h.rg.POST("/operation/manual/solution/get", restserver.Handler(h.GetManualSolution))
+	h.rg.POST("/operation/offline/download", restserver.StreamHandler(h.GetOfflinePackageDownload))
+	h.rg.POST("/operation/offline/result", restserver.Handler(h.SubmitOfflineInstallResult))
 }
 
 // List workflows.

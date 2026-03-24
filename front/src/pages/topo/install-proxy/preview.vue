@@ -491,6 +491,7 @@ const handleSetup = async () => {
     }),
     target_version: props.data.target_version || [],
     is_manual: props.data.is_manual || false,
+    is_offline: props.data.is_offline || false,
   };
   const res = await NodeProxyService.NodeProxyInstall(params).catch(() => ({
     workflow_id: '',

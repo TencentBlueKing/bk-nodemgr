@@ -149,6 +149,14 @@ platform:
       onHost: On target host via
       install: Install
       copySuccess: Command copied successfully
+      offlineGuideTitle: Offline installation guide
+      offline:
+        downloadPackage: Download Offline Package
+        downloadFailed: Failed to download the offline package. Check your network or login session and try again.
+        resultPlaceholder: Paste the JSON printed by the script after successful execution here...
+        submitResult: Submit Result
+        submitSuccess: Result submitted successfully, the workflow will continue automatically
+        submitFailed: Failed to submit result, please try again
     taskHistory:
       tab:
         nodeHistory: Node History
@@ -203,6 +211,8 @@ platform:
       executionStatus: Status
       waitManualOperation: Waiting for manual operation, view
       operationGuide: Operation Guide
+      waitOfflineOperation: Waiting for offline install result, view
+      offlineGuide: Offline Install Guide
       terminate: Terminate
       terminateConfirmTitle: Confirm Terminate
       terminateConfirmSubTitle: This action cannot be undone. Continue?
@@ -592,6 +602,8 @@ taskDetail:
     retry: Retry
     guide: Guide
     waitManual: Waiting for manual operation, view
+    offlineGuide: Offline Install Guide
+    waitOffline: Waiting for offline install result, view
     terminateConfirmTitle: Confirm Terminate
     terminateConfirmSubTitle: This action cannot be undone. Continue?
     terminateBatchConfirmSubTitle: Will terminate {count} running task(s). Tasks in other states will not be affected. This action cannot be undone. Continue?
@@ -882,6 +894,9 @@ components:
     innerIPv6: Private IPv6
     osType: OS
     batchEditOsType: Batch Edit OS
+    cpuArch: CPU Arch
+    batchEditCpuArch: Batch Edit CPU Arch
+    cpuArchValidMessage: Please select CPU architecture
     port: Login Port
     batchEditPort: Batch Edit Port
     portTooltipDesc: Port used for SSH/WMI login to the target host
@@ -938,6 +953,8 @@ components:
     remoteInstallDesc: Fill in the form online, login credentials required
     manualInstall: Manual
     manualInstallDesc: No login credentials needed, run the given command on the server to complete installation
+    offlineInstall: Offline
+    offlineInstallDesc: Use when the target host's network cannot reach the control unit; download the offline package and run it manually on the target host
   logVersion:
     current: Current
   operateDialog:

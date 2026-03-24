@@ -109,6 +109,20 @@ type IHandlerNodeWorkflow interface {
 	// @return the latest operation instance status distribution: map[trigger-id]*InstanceStatusDistribution and the error.
 	ListNodeWorkflowOperationInstanceStatusDistribution(nCtx contextx.IContext, triggerIDs []string) (
 		map[string]*operation.InstanceStatusDistribution, error)
+
+	// GetNodeWorkflowOperationOfflineInstallInfo gets offline install info for an operation.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param operationID the operation id.
+	// @return the offline install info data and error.
+	GetNodeWorkflowOperationOfflineInstallInfo(nCtx contextx.IContext, operationID string) (
+		*protoBackend.NodeWorkflowOperationOfflineInstallInfoGetResp_Data, error)
+
+	// SubmitNodeWorkflowOperationOfflineInstallResult submits the offline install result for an operation.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param operationID the operation id.
+	// @param resultData the result data (JSON string of installer.data.json).
+	// @return error.
+	SubmitNodeWorkflowOperationOfflineInstallResult(nCtx contextx.IContext, operationID, resultData string) error
 }
 
 // ListNodeWorkflow list node workflow within specified tenant in contextx.
@@ -337,6 +351,34 @@ func (h *Handler) GetNodeWorkflowOperationManualInfo(nCtx contextx.IContext, wor
 	}
 
 	return resp.ConvertManualInfoToTypes(), nil
+}
+
+// GetNodeWorkflowOperationOfflineInstallInfo gets offline install info for an operation.
+func (h *Handler) GetNodeWorkflowOperationOfflineInstallInfo(nCtx contextx.IContext, operationID string) (
+	*protoBackend.NodeWorkflowOperationOfflineInstallInfoGetResp_Data, error) {
+
+	req := &protoBackend.NodeWorkflowOperationOfflineInstallInfoGetReq{
+		OperationId: operationID,
+	}
+
+	resp, err := h.cli.getNodeWorkflowOfflineInstallInfo(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.GetData(), nil
+}
+
+// SubmitNodeWorkflowOperationOfflineInstallResult submits the offline install result for an operation.
+func (h *Handler) SubmitNodeWorkflowOperationOfflineInstallResult(nCtx contextx.IContext, operationID, resultData string) error {
+	req := &protoBackend.NodeWorkflowOperationOfflineInstallResultSubmitReq{
+		OperationId: operationID,
+		ResultData:  resultData,
+	}
+
+	_, err := h.cli.submitNodeWorkflowOfflineInstallResult(nCtx, req)
+
+	return err
 }
 
 // ListNodeWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.

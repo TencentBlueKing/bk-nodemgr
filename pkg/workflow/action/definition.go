@@ -21,6 +21,10 @@ type Tag string
 const (
 	// TagNeedManualExecInstallScript tag need manual execute install script.
 	TagNeedManualExecInstallScript Tag = "need_manual_exec_install_script"
+
+	// TagNeedOfflineManualInstall tag for offline install: user downloads the offline package,
+	// executes it manually, then submits the result data via the guide UI.
+	TagNeedOfflineManualInstall Tag = "need_offline_manual_install"
 )
 
 // Definition represents an action, which is a single basic step of work.

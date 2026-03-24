@@ -15,7 +15,7 @@
           label-width="110"
           required
         >
-          <install-type currentNodeType="proxy" @change="handleChange"></install-type>
+          <install-type currentNodeType="proxy" :needTypeList="['setup', 'manual', 'offline']" @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
@@ -38,81 +38,6 @@
           >
             <UploadExcel @upload="handleUpload" v-if="form.method === '1'"></UploadExcel>
           </install-table>
-        </Form.FormItem>
-        <Form.FormItem
-          v-if="form.method !== 'manual'"
-          :label="$t('topoManager.installProxy.form.password')"
-          property="saveTime"
-          label-width="110"
-          required
-        >
-          <Radio.Group v-model="form.saveTime">
-            <Radio.Button
-              :label="1"
-            >
-              {{ $t('topoManager.installProxy.form.saveTime.oneDay', { x: 1 }) }}
-            </Radio.Button>
-            <Radio.Button
-              :label="7"
-            >
-              {{ $t('topoManager.installProxy.form.saveTime.oneDay', { x: 7 }) }}
-            </Radio.Button>
-            <Radio.Button
-              :label="365"
-            >
-              {{ $t('topoManager.installProxy.form.saveTime.oneDay', { x: 365 }) }}
-            </Radio.Button>
-          </Radio.Group>
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('topoManager.installProxy.form.os')"
-          property="os_type"
-          label-width="110"
-          required
-        >
-          <Select class="w-[488px]" v-model="form.os_type" disabled></Select>
-        </Form.FormItem>
-        <Form.FormItem
-          v-if="form.method !== 'manual'"
-          property="login_port"
-          label-width="110"
-          required
-        >
-          <template #label>
-            <Popover
-              theme="light"
-              trigger="hover"
-              placement="right"
-              :arrow="true"
-              :max-width="240"
-              :offset="8"
-              :popover-delay="[0, 100]"
-              :component-event-delay="0"
-            >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('topoManager.installProxy.form.port') }}</span>
-              <template #content>
-                <div class="text-[12px] leading-[20px]">
-                  <p>{{ $t('components.installTable.portTooltipDesc') }}</p>
-                  <div class="mt-[8px]">
-                    <p>{{ $t('components.installTable.portTooltipLinuxLabel') }}<span class="text-[#FF9C01]">{{ $t('components.installTable.portTooltipLinuxPort') }}</span></p>
-                  </div>
-                </div>
-              </template>
-            </Popover>
-          </template>
-          <Input class="w-[488px]" v-model="form.login_port" />
-        </Form.FormItem>
-        <Form.FormItem
-          v-if="form.method !== 'manual'"
-          :label="$t('topoManager.installProxy.form.account')"
-          property="login_user"
-          label-width="110"
-          required
-        >
-          <Input class="w-[488px]" v-model="form.login_user" />
         </Form.FormItem>
         <Form.FormItem
           property="bk_biz_id"
@@ -276,7 +201,7 @@
           </Button>
         </Form.FormItem>
         <Form.FormItem
-          v-if="isTargetShow"
+          v-if="isTargetShow && form.method !== 'offline'"
           property="proxy_install_origin"
           label-width="110"
           required
@@ -493,7 +418,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Popover, Radio, Select, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Popover, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
@@ -534,6 +459,9 @@ const initData = {
   bk_host_id: '',
   bk_host_innerip: '',
   bk_host_innerip_v6: '',
+  os_type: 'linux',
+  login_port: window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT,
+  login_user: 'root',
   export_ip: '',
   advertise_ip: '',
   login_ip: '',
@@ -546,14 +474,11 @@ const initData = {
   file_tunnel: true,
   data_tunnel: true,
   proxy_tags: [] as string[],
+  cpu_arch: '',
 };
 const form = reactive({
   method: 'setup', // 安装方式
   info: [cloneDeep(initData)], // 安装信息
-  saveTime: 1, // 密钥/密码保存时间
-  os_type: 'linux', // 操作系统
-  login_port: window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT, // 登录端口
-  login_user: 'root', // 登录账号
   bk_biz_id: '', // 归属业务
   bk_networkarea_id: '', // 管控区域
   bk_networkarea_name: '',
@@ -567,6 +492,10 @@ const settings = reactive({
   fields: [
     { field: 'bk_host_innerip', title: t('installProxy.innerIPv4') },
     { field: 'bk_host_innerip_v6', title: t('installProxy.innerIPv6') },
+    { field: 'os_type', title: t('installProxy.os') },
+    { field: 'cpu_arch', title: t('components.installTable.cpuArch') },
+    { field: 'login_port', title: t('installProxy.port') },
+    { field: 'login_user', title: t('installProxy.account') },
     { field: 'export_ip', title: t('installProxy.exportIP') },
     { field: 'advertise_ip', title: t('installProxy.serviceIP') },
     { field: 'login_ip', title: t('installProxy.loginIP') },
@@ -580,12 +509,16 @@ const settings = reactive({
   checked: [
     'bk_host_innerip',
     'bk_host_innerip_v6',
+    'os_type',
+    'cpu_arch',
+    'login_port',
+    'login_user',
     'export_ip',
     'login_ip',
     'login_mode',
     'credit',
   ],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
+  disabled: ['os_type', 'cpu_arch', 'login_port', 'login_user', 'login_mode', 'credit'],
   size: 'medium',
 });
 const isTargetShow = ref(false);
@@ -606,10 +539,6 @@ const portValidator = (value: string) => {
 };
 
 const formRules = {
-  login_port: [
-    { required: true, message: t('validate.required'), trigger: 'blur' },
-    { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
-  ],
   relay_callback_port: [
     { required: true, message: t('validate.required'), trigger: 'blur' },
     { validator: portValidator, message: t('installProxy.portMustBeValidRange'), trigger: 'blur' },
@@ -758,11 +687,14 @@ const checkUnitHasProxy = async (unitId: number) => {
   }
 };
 
-// 根据当前单元是否有 proxy 设置安装源默认值
+// 根据当前单元是否有 proxy 设置安装源默认值（离线不展示安装源，仍刷新 currentUnitHasProxy 供默认 origin）
 const setDefaultInstallOrigin = async () => {
   const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
   if (!unitId) return;
   await checkUnitHasProxy(unitId);
+  if (form.method === 'offline') {
+    return;
+  }
   // eslint-disable-next-line max-len
   const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
   const hasUpstream = unit?.links?.cluster?.bk_networkunit_id !== null && unit?.links?.cluster?.bk_networkunit_id !== undefined;
@@ -773,6 +705,19 @@ const setDefaultInstallOrigin = async () => {
   } else {
     isTargetShow.value = true;
   }
+};
+
+// 离线安装无安装源 UI 时，与自动选择 current/upstream 一致
+const getDefaultProxyInstallOriginUnitIdForNewInstall = (): number => {
+  const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+  if (!Number.isFinite(unitId) || unitId <= 0) return 0;
+  // eslint-disable-next-line max-len
+  const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
+  const upstreamId = unit?.links?.cluster?.bk_networkunit_id;
+  const hasUpstream = upstreamId !== null && upstreamId !== undefined;
+  if (currentUnitHasProxy.value) return unitId;
+  if (hasUpstream) return Number(upstreamId);
+  return unitId;
 };
 
 // 安装源
@@ -833,9 +778,13 @@ const handleChooseVersion = (row: { version: string; os: string }) => {
 const handleComfirmVerion = (data: any[]) => {
   dialogData.value[0].version = data[0]?.version;
 };
-const handleChange = (value: string) => {
+const handleChange = async (value: string) => {
   form.method = value;
   formRef.value?.clearValidate();
+  if (value === 'offline') {
+    const uid = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+    if (uid) await checkUnitHasProxy(uid);
+  }
 };
 
 const originData = ref<any>();
@@ -928,10 +877,12 @@ const handleConfirm = async () => {
           version: item.version,
         }));
     }
-    const proxy_install_origin_unit_id = form.proxy_install_origin[0] === 'custom'
-      ? Number(form.proxy_install_origin[1])
-      : installOriginList.value.find(item => item.id === form.proxy_install_origin[0])?.bk_networkunit_id;
     const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+    const proxy_install_origin_unit_id = form.method === 'offline'
+      ? getDefaultProxyInstallOriginUnitIdForNewInstall()
+      : (form.proxy_install_origin[0] === 'custom'
+        ? Number(form.proxy_install_origin[1])
+        : installOriginList.value.find(item => item.id === form.proxy_install_origin[0])?.bk_networkunit_id ?? unitId);
     const unitName = areaUnitlist.value.find(
       (u: NetworkUnit) => u.bk_networkunit_id === unitId,
     )?.bk_networkunit_name ?? '';
@@ -942,11 +893,13 @@ const handleConfirm = async () => {
         cluster_tunnel,
         file_tunnel,
         data_tunnel,
+        login_port: rowLoginPort,
+        login_user: rowLoginUser,
         ...rest
       } = item;
       return {
         ...rest,
-        os_type: 'linux',
+        os_type: rest.os_type || 'linux',
         bk_biz_id: form.bk_biz_id,
         proxy_install_origin_unit_id,
         relay_download_port: Number(form.relay_download_port),
@@ -955,17 +908,32 @@ const handleConfirm = async () => {
         bk_networkunit_name: unitName,
         bk_networkarea_name: form.bk_networkarea_name,
         ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
-        ...(form.method !== 'manual' ? {
-          login_user: form.login_user,
-          login_port: Number(form.login_port),
-          credit_expired_interval_sec: form.saveTime * 24 * 3600,
+        ...(form.method !== 'manual' && form.method !== 'offline' ? {
+          login_user: rowLoginUser,
+          login_port: Number(rowLoginPort),
+          credit_expired_interval_sec: 7 * 24 * 3600,
         } : {}),
+        ...(form.method === 'offline' ? (() => {
+          const os = rest.os_type || 'linux';
+          const defaultUser = os === 'windows' ? 'administrator' : 'root';
+          const defaultPort = os === 'windows'
+            ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
+            : window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+          const portNum = rowLoginPort !== '' && rowLoginPort != null
+            ? Number(rowLoginPort)
+            : NaN;
+          return {
+            login_user: (rowLoginUser && String(rowLoginUser).trim()) ? rowLoginUser : defaultUser,
+            login_port: Number.isFinite(portNum) && portNum > 0 ? portNum : defaultPort,
+          };
+        })() : {}),
       };
     });
     previewData.value = {
       hosts,
       target_version: form.target_version,
       is_manual: form.method === 'manual',
+      is_offline: form.method === 'offline',
     };
     isShowPreview.value = true;
   } else {
@@ -1048,10 +1016,6 @@ watch(() => isShow.value, async () => {
     Object.assign(form, {
       method: 'setup', // 安装方式
       info: [cloneDeep(initData)], // 安装信息
-      saveTime: 1, // 密钥/密码保存时间
-      os_type: 'linux', // 操作系统
-      login_port: window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT, // 登录端口
-      login_user: 'root', // 登录账号
       bk_biz_id: '', // 归属业务
       bk_networkarea_id: '', // 管控区域
       bk_networkarea_name: '',

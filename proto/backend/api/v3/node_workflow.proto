@@ -323,6 +323,63 @@ message NodeWorkflowOperationInstanceStatusDistributionListResp {
   Data data = 5;
 }
 
+// NodeWorkflowOperationOfflineInstallInfoGetReq describes the offline install
+// info get request.
+message NodeWorkflowOperationOfflineInstallInfoGetReq {
+  string operation_id = 1;
+}
+
+// NodeWorkflowOperationOfflineInstallInfoGetResp describes the offline install
+// info get response.
+message NodeWorkflowOperationOfflineInstallInfoGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message ReleaseInfo {
+    int64 generation = 1;
+    string os_type = 2;
+    string cpu_arch = 3;
+    string version = 4;
+  }
+
+  message InstallerInfo {
+    int64 generation = 1;
+    string os_type = 2;
+    string cpu_arch = 3;
+  }
+
+  message Data {
+    string install_script = 1;
+    string metadata = 2;
+    map<string, string> configs = 3;
+    string precheck = 4;
+    ReleaseInfo release_info = 5;
+    InstallerInfo installer_info = 6;
+    string package_name = 7;
+  }
+  Data data = 5;
+}
+
+// NodeWorkflowOperationOfflineInstallResultSubmitReq describes the offline
+// install result submit request.
+message NodeWorkflowOperationOfflineInstallResultSubmitReq {
+  string operation_id = 1;
+  string result_data = 2;
+}
+
+// NodeWorkflowOperationOfflineInstallResultSubmitResp describes the offline
+// install result submit response.
+message NodeWorkflowOperationOfflineInstallResultSubmitResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+}
+
 // NodeWorkflow provdies node workflow service.
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
@@ -415,6 +472,30 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationManualInfoGetResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/manual/info/get"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationOfflineInstallInfoGet returns scripts, metadata,
+  // release and installer constraints for proxy offline manual install (POST
+  // /api/v3/node/workflow/operation/offline/info).
+  rpc NodeWorkflowOperationOfflineInstallInfoGet(
+      NodeWorkflowOperationOfflineInstallInfoGetReq)
+      returns (NodeWorkflowOperationOfflineInstallInfoGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/offline/info"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationOfflineInstallResultSubmit accepts installer output
+  // JSON and resumes the workflow (POST
+  // /api/v3/node/workflow/operation/offline/result).
+  rpc NodeWorkflowOperationOfflineInstallResultSubmit(
+      NodeWorkflowOperationOfflineInstallResultSubmitReq)
+      returns (NodeWorkflowOperationOfflineInstallResultSubmitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/offline/result"
       body : "*"
     };
   }

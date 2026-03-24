@@ -77,6 +77,7 @@ type DeploymentInstallOptions struct {
 	ReRegister    bool
 	DirectInstall bool
 	IsManual      bool
+	IsOffline     bool
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.

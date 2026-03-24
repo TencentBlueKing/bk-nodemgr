@@ -81,6 +81,10 @@ func (h *handler) generateInstallNodeDeployments(
 
 	// if this install is manual
 	isManual := req.GetIsManual()
+	// isOffline means there is no network to the control unit during install; user executes offline package manually.
+	isOffline := req.GetIsOffline()
+	// skipSSH is true when no SSH-based operations are needed (manual or offline modes).
+	skipSSH := isManual || isOffline
 	reqHosts := req.GetHost()
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
@@ -107,7 +111,7 @@ func (h *handler) generateInstallNodeDeployments(
 
 	// fetch host.
 	existedHostMap := make(map[int64]*types.Host)
-	if !isManual {
+	if !skipSSH {
 		existedHostMap, err = h.fetchExistedHosts(nCtx, reqHosts)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
@@ -115,7 +119,7 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	var rsaCrypter crypter.Crypter
-	if !isManual {
+	if !skipSSH {
 		rsaCrypter, err = h.initRSACrypter(nCtx)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to init rsa crypter for password hosts: %w", err)
@@ -164,6 +168,7 @@ func (h *handler) generateInstallNodeDeployments(
 							NodeRole:                 types.NodeRoleProxy,
 							NodeStatus:               types.NodeStatusInit,
 							NodeGeneration:           DefaultNodeGeneration,
+							NodeCPUArch:              criteria.CPUArch(reqHost.GetCpuArch()),
 							NetworkUnitID:            networkUnit.ID,
 							ProxyTags:                types.StringListToProxyTagList(reqHost.GetProxyTags()),
 							LoginIP:                  reqHost.GetLoginIp(),
@@ -185,6 +190,7 @@ func (h *handler) generateInstallNodeDeployments(
 						ReRegister:    reqHost.GetReRegister(),
 						DirectInstall: installOriginUnit.IsDirect,
 						IsManual:      isManual,
+						IsOffline:     isOffline,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},
@@ -192,7 +198,7 @@ func (h *handler) generateInstallNodeDeployments(
 					TargetVersion:   targetVersions,
 				})
 
-			if !isManual {
+			if !skipSSH {
 				err = h.processHostCredit(
 					nCtx, &nodeDeployment.Info.Host,
 					reqHost.GetLoginPassword(),

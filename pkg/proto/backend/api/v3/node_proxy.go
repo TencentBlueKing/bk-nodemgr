@@ -67,6 +67,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 			CreditExpiredIntervalSec: host.CreditExpiredIntervalSec,
 			RelayDownloadPort:        host.RelayDownloadPort,
 			RelayCallbackPort:        host.RelayCallbackPort,
+			CpuArch:                  host.CPUArch,
 		}
 	}
 
@@ -82,6 +83,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 	x.TargetVersion = targetVersion
 	x.Host = hostsParam
 	x.IsManual = installParam.IsManual
+	x.IsOffline = installParam.IsOffline
 }
 
 // Validate check body.

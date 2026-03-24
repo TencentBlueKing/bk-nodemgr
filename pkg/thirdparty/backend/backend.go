@@ -1136,6 +1136,64 @@ func (c *cli) listNodeWorkflowOperationInstanceStatusDistribution(
 	return resp, nil
 }
 
+func (c *cli) getNodeWorkflowOfflineInstallInfo(
+	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationOfflineInstallInfoGetReq,
+) (*protoBackend.NodeWorkflowOperationOfflineInstallInfoGetResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationOfflineInstallInfoGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/offline/info").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get offline install info", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get offline install info failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) submitNodeWorkflowOfflineInstallResult(
+	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationOfflineInstallResultSubmitReq,
+) (*protoBackend.NodeWorkflowOperationOfflineInstallResultSubmitResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationOfflineInstallResultSubmitResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/offline/result").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("submit offline install result", resp, resp.GetError())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Node Agent Related Interfaces
 // ===============================================================================

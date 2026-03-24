@@ -251,7 +251,14 @@
               </template>
               <div>
                 <!-- eslint-disable-next-line max-len -->
-                <div v-if="row.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script') && row.state === 'running'">
+                <div v-if="isOfflineGuideStep(row.latest_action_inst_brief_data?.tags ?? []) && row.state === 'running'">
+                  {{ $t('taskDetail.table.waitOffline') }}
+                  <Button class="ml-[2px]" text theme="primary" @click="handleOfflineGuide(row)">
+                    {{ $t('taskDetail.table.offlineGuide') }}
+                  </Button>
+                </div>
+                <!-- eslint-disable-next-line max-len -->
+                <div v-else-if="row.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script') && row.state === 'running'">
                   {{ $t('taskDetail.table.waitManual') }}
                   <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">
                     {{ $t('taskDetail.table.guide') }}
@@ -362,6 +369,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import guide from './guide.vue';
+import { isOfflineGuideStep } from './offline-package';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
@@ -415,7 +423,9 @@ const reTryType = computed(() => [
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
 const stateMinWidth = computed(() => (tableData.value.some(item =>
-  item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script') && item.state === 'running') ? 240 : 120));
+  (item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script')
+    || isOfflineGuideStep(item.latest_action_inst_brief_data?.tags ?? []))
+  && item.state === 'running') ? 240 : 120));
 
 // 当前任务状态
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
@@ -1336,10 +1346,17 @@ const handleStop = async () => {
 
 // 操作指引侧边栏
 const isGuideShow = ref(false);
-const guideData = ref<{workflow_id: string, operation_id: string, bk_host_innerip: string}>({
+const guideData = ref<{
+  workflow_id: string;
+  operation_id: string;
+  bk_host_innerip: string;
+  bk_networkarea_id?: number;
+  is_offline?: boolean;
+}>({
   workflow_id: '',
   operation_id: '',
   bk_host_innerip: '',
+  is_offline: false,
 });
 const handleOperateGuide = (row: any) => {
   isGuideShow.value = true;
@@ -1347,6 +1364,17 @@ const handleOperateGuide = (row: any) => {
     workflow_id: route.params.taskId as string,
     operation_id: row.operation_id,
     bk_host_innerip: row.bk_host_innerip,
+    is_offline: false,
+  };
+};
+const handleOfflineGuide = (row: any) => {
+  isGuideShow.value = true;
+  guideData.value = {
+    workflow_id: route.params.taskId as string,
+    operation_id: row.operation_id,
+    bk_host_innerip: row.bk_host_innerip,
+    bk_networkarea_id: row.bk_networkarea_id,
+    is_offline: true,
   };
 };
 watch(

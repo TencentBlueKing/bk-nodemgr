@@ -253,6 +253,74 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/offline/download": {
+      "post": {
+        "summary": "NodeWorkflowOperationOfflinePackageDownload streams the tar.gz offline\ninstall bundle for an operation (POST\n/api/v3/node/workflow/operation/offline/download, body: operation_id).",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationOfflinePackageDownload",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationOfflinePackageDownloadReq describes the offline package\ndownload request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationOfflinePackageDownloadReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
+    "/api/v3/node/workflow/operation/offline/result": {
+      "post": {
+        "summary": "NodeWorkflowOperationOfflineInstallResultSubmit forwards offline install\nresult JSON to the backend (POST\n/api/v3/node/workflow/operation/offline/result).",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationOfflineInstallResultSubmitResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationOfflineInstallResultSubmitReq describes the offline\ninstall result submit request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationOfflineInstallResultSubmitReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/operation/retry": {
       "post": {
         "summary": "NodeWorkflowOperationRetry retry node operation.",
@@ -449,6 +517,16 @@
           }
         }
       }
+    },
+    "v3FileChunk": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "description": "FileChunk describes the file chunk data."
     },
     "v3ManualSolution": {
       "type": "object",
@@ -1086,6 +1164,49 @@
         }
       },
       "description": "NodeWorkflowOperationManualSolutionGetResp describes the node workflow\noperation get manual solution response."
+    },
+    "v3NodeWorkflowOperationOfflineInstallResultSubmitReq": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "result_data": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowOperationOfflineInstallResultSubmitReq describes the offline\ninstall result submit request."
+    },
+    "v3NodeWorkflowOperationOfflineInstallResultSubmitResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        }
+      },
+      "description": "NodeWorkflowOperationOfflineInstallResultSubmitResp describes the offline\ninstall result submit response."
+    },
+    "v3NodeWorkflowOperationOfflinePackageDownloadReq": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowOperationOfflinePackageDownloadReq describes the offline package\ndownload request."
     },
     "v3NodeWorkflowOperationRetryReq": {
       "type": "object",

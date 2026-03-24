@@ -3,6 +3,7 @@ package v3;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
 
 import "common.proto";
+import "pkg.proto";
 import "workflow.proto";
 
 import "google/api/annotations.proto";
@@ -294,6 +295,29 @@ message NodeWorkflowOperationManualSolutionGetResp {
   repeated ManualSolution data = 5;
 }
 
+// NodeWorkflowOperationOfflinePackageDownloadReq describes the offline package
+// download request.
+message NodeWorkflowOperationOfflinePackageDownloadReq {
+  string operation_id = 1;
+}
+
+// NodeWorkflowOperationOfflineInstallResultSubmitReq describes the offline
+// install result submit request.
+message NodeWorkflowOperationOfflineInstallResultSubmitReq {
+  string operation_id = 1;
+  string result_data = 2;
+}
+
+// NodeWorkflowOperationOfflineInstallResultSubmitResp describes the offline
+// install result submit response.
+message NodeWorkflowOperationOfflineInstallResultSubmitResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+}
+
 // NodeWorkflow provides node workflow service.
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
@@ -386,6 +410,29 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationManualSolutionGetResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/manual/solution/get"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationOfflinePackageDownload streams the tar.gz offline
+  // install bundle for an operation (POST
+  // /api/v3/node/workflow/operation/offline/download, body: operation_id).
+  rpc NodeWorkflowOperationOfflinePackageDownload(
+      NodeWorkflowOperationOfflinePackageDownloadReq) returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/offline/download"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationOfflineInstallResultSubmit forwards offline install
+  // result JSON to the backend (POST
+  // /api/v3/node/workflow/operation/offline/result).
+  rpc NodeWorkflowOperationOfflineInstallResultSubmit(
+      NodeWorkflowOperationOfflineInstallResultSubmitReq)
+      returns (NodeWorkflowOperationOfflineInstallResultSubmitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/offline/result"
       body : "*"
     };
   }

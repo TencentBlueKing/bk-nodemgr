@@ -133,6 +133,7 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 			CreditExpiredIntervalSec: host.GetCreditExpiredIntervalSec(),
 			RelayDownloadPort:        host.GetRelayDownloadPort(),
 			RelayCallbackPort:        host.GetRelayCallbackPort(),
+			CPUArch:                  host.GetCpuArch(),
 		}
 	}
 
@@ -150,6 +151,7 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 		Hosts:         hostsParam,
 		TargetVersion: targetVersion,
 		IsManual:      x.GetIsManual(),
+		IsOffline:     x.GetIsOffline(),
 	}
 }
 

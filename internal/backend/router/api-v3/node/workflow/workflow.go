@@ -61,6 +61,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
 	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/manual/info/get", restserver.Handler(h.GetManualInfo))
+	h.rg.POST("/operation/offline/info", restserver.Handler(h.GetOfflineInstallInfo))
+	h.rg.POST("/operation/offline/result", restserver.Handler(h.SubmitOfflineInstallResult))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
 	h.rg.POST("/operation/instance/status_distribution/list",
