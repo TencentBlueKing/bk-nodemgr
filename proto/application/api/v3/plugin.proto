@@ -153,6 +153,29 @@ message PluginSetMemoResp {
   Permission permission = 6;
 }
 
+// PluginListPermittedOperationReq describes the plugin list permitted operation
+// request.
+message PluginListPermittedOperationReq { Page page = 1; }
+
+// PluginListPermittedOperationResp describes the plugin list permitted
+// operation response.
+message PluginListPermittedOperationResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    message Operation {
+      string name = 1;
+      repeated string permission = 2;
+    }
+    repeated Operation operations = 1;
+  }
+  Data data = 5;
+}
+
 service PluginAPI {
   // InstallPlugin installs a plugin on specified hosts.
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
@@ -200,6 +223,16 @@ service PluginAPI {
   rpc SetPluginMemo(PluginSetMemoReq) returns (PluginSetMemoResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/set_memo"
+      body : "*"
+    };
+  }
+
+  // ListPluginPermittedOperation lists the plugin operations that the user has
+  // permission to perform.
+  rpc ListPluginPermittedOperation(PluginListPermittedOperationReq)
+      returns (PluginListPermittedOperationResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/list_permitted_operation"
       body : "*"
     };
   }

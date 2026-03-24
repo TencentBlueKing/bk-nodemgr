@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/plugin/list_permitted_operation": {
+      "post": {
+        "summary": "ListPluginPermittedOperation lists the plugin operations that the user has\npermission to perform.",
+        "operationId": "PluginAPI_ListPluginPermittedOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginListPermittedOperationResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginListPermittedOperationReq describes the plugin list permitted operation\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginListPermittedOperationReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginAPI"
+        ]
+      }
+    },
     "/api/v3/plugin/set_memo": {
       "post": {
         "summary": "SetPluginMemo sets the memo for a plugin.",
@@ -222,6 +256,20 @@
     }
   },
   "definitions": {
+    "DataOperation": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "permission": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "ErrorDetails": {
       "type": "object",
       "properties": {
@@ -528,6 +576,52 @@
       "properties": {
         "workflow_id": {
           "type": "string"
+        }
+      }
+    },
+    "v3PluginListPermittedOperationReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        }
+      },
+      "description": "PluginListPermittedOperationReq describes the plugin list permitted operation\nrequest."
+    },
+    "v3PluginListPermittedOperationResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginListPermittedOperationRespData"
+        }
+      },
+      "description": "PluginListPermittedOperationResp describes the plugin list permitted\noperation response."
+    },
+    "v3PluginListPermittedOperationRespData": {
+      "type": "object",
+      "properties": {
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/DataOperation"
+          }
         }
       }
     },

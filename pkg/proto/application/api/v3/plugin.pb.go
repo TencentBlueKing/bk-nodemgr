@@ -829,6 +829,138 @@ func (x *PluginSetMemoResp) GetPermission() *Permission {
 	return nil
 }
 
+// PluginListPermittedOperationReq describes the plugin list permitted operation
+// request.
+type PluginListPermittedOperationReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          *Page                  `protobuf:"bytes,1,opt,name=page,proto3" json:"page"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginListPermittedOperationReq) Reset() {
+	*x = PluginListPermittedOperationReq{}
+	mi := &file_plugin_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginListPermittedOperationReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginListPermittedOperationReq) ProtoMessage() {}
+
+func (x *PluginListPermittedOperationReq) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginListPermittedOperationReq.ProtoReflect.Descriptor instead.
+func (*PluginListPermittedOperationReq) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PluginListPermittedOperationReq) GetPage() *Page {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+// PluginListPermittedOperationResp describes the plugin list permitted
+// operation response.
+type PluginListPermittedOperationResp struct {
+	state         protoimpl.MessageState                 `protogen:"open.v1"`
+	Code          int32                                  `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                                 `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Permission    *Permission                            `protobuf:"bytes,6,opt,name=permission,proto3" json:"permission"`
+	Data          *PluginListPermittedOperationResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginListPermittedOperationResp) Reset() {
+	*x = PluginListPermittedOperationResp{}
+	mi := &file_plugin_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginListPermittedOperationResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginListPermittedOperationResp) ProtoMessage() {}
+
+func (x *PluginListPermittedOperationResp) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginListPermittedOperationResp.ProtoReflect.Descriptor instead.
+func (*PluginListPermittedOperationResp) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *PluginListPermittedOperationResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PluginListPermittedOperationResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PluginListPermittedOperationResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *PluginListPermittedOperationResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *PluginListPermittedOperationResp) GetPermission() *Permission {
+	if x != nil {
+		return x.Permission
+	}
+	return nil
+}
+
+func (x *PluginListPermittedOperationResp) GetData() *PluginListPermittedOperationResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type PluginInstallReq_Plugin struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	BkHostId            *int64                 `protobuf:"varint,1,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id"`
@@ -842,7 +974,7 @@ type PluginInstallReq_Plugin struct {
 
 func (x *PluginInstallReq_Plugin) Reset() {
 	*x = PluginInstallReq_Plugin{}
-	mi := &file_plugin_proto_msgTypes[12]
+	mi := &file_plugin_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -854,7 +986,7 @@ func (x *PluginInstallReq_Plugin) String() string {
 func (*PluginInstallReq_Plugin) ProtoMessage() {}
 
 func (x *PluginInstallReq_Plugin) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[12]
+	mi := &file_plugin_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -914,7 +1046,7 @@ type PluginInstallResp_Data struct {
 
 func (x *PluginInstallResp_Data) Reset() {
 	*x = PluginInstallResp_Data{}
-	mi := &file_plugin_proto_msgTypes[13]
+	mi := &file_plugin_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -926,7 +1058,7 @@ func (x *PluginInstallResp_Data) String() string {
 func (*PluginInstallResp_Data) ProtoMessage() {}
 
 func (x *PluginInstallResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[13]
+	mi := &file_plugin_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,7 +1094,7 @@ type PluginUpgradeReq_Plugin struct {
 
 func (x *PluginUpgradeReq_Plugin) Reset() {
 	*x = PluginUpgradeReq_Plugin{}
-	mi := &file_plugin_proto_msgTypes[14]
+	mi := &file_plugin_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -974,7 +1106,7 @@ func (x *PluginUpgradeReq_Plugin) String() string {
 func (*PluginUpgradeReq_Plugin) ProtoMessage() {}
 
 func (x *PluginUpgradeReq_Plugin) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[14]
+	mi := &file_plugin_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1034,7 +1166,7 @@ type PluginUpgradeResp_Data struct {
 
 func (x *PluginUpgradeResp_Data) Reset() {
 	*x = PluginUpgradeResp_Data{}
-	mi := &file_plugin_proto_msgTypes[15]
+	mi := &file_plugin_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1046,7 +1178,7 @@ func (x *PluginUpgradeResp_Data) String() string {
 func (*PluginUpgradeResp_Data) ProtoMessage() {}
 
 func (x *PluginUpgradeResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[15]
+	mi := &file_plugin_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1211,7 @@ type PluginUninstallReq_Plugin struct {
 
 func (x *PluginUninstallReq_Plugin) Reset() {
 	*x = PluginUninstallReq_Plugin{}
-	mi := &file_plugin_proto_msgTypes[16]
+	mi := &file_plugin_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1091,7 +1223,7 @@ func (x *PluginUninstallReq_Plugin) String() string {
 func (*PluginUninstallReq_Plugin) ProtoMessage() {}
 
 func (x *PluginUninstallReq_Plugin) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[16]
+	mi := &file_plugin_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1130,7 +1262,7 @@ type PluginUninstallResp_Data struct {
 
 func (x *PluginUninstallResp_Data) Reset() {
 	*x = PluginUninstallResp_Data{}
-	mi := &file_plugin_proto_msgTypes[17]
+	mi := &file_plugin_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1142,7 +1274,7 @@ func (x *PluginUninstallResp_Data) String() string {
 func (*PluginUninstallResp_Data) ProtoMessage() {}
 
 func (x *PluginUninstallResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[17]
+	mi := &file_plugin_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +1309,7 @@ type PluginApplySubConfigReq_Plugin struct {
 
 func (x *PluginApplySubConfigReq_Plugin) Reset() {
 	*x = PluginApplySubConfigReq_Plugin{}
-	mi := &file_plugin_proto_msgTypes[18]
+	mi := &file_plugin_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1189,7 +1321,7 @@ func (x *PluginApplySubConfigReq_Plugin) String() string {
 func (*PluginApplySubConfigReq_Plugin) ProtoMessage() {}
 
 func (x *PluginApplySubConfigReq_Plugin) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[18]
+	mi := &file_plugin_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1242,7 +1374,7 @@ type PluginApplySubConfigResp_Data struct {
 
 func (x *PluginApplySubConfigResp_Data) Reset() {
 	*x = PluginApplySubConfigResp_Data{}
-	mi := &file_plugin_proto_msgTypes[19]
+	mi := &file_plugin_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1254,7 +1386,7 @@ func (x *PluginApplySubConfigResp_Data) String() string {
 func (*PluginApplySubConfigResp_Data) ProtoMessage() {}
 
 func (x *PluginApplySubConfigResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[19]
+	mi := &file_plugin_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1287,7 +1419,7 @@ type PluginListReq_ExactConditions struct {
 
 func (x *PluginListReq_ExactConditions) Reset() {
 	*x = PluginListReq_ExactConditions{}
-	mi := &file_plugin_proto_msgTypes[20]
+	mi := &file_plugin_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1431,7 @@ func (x *PluginListReq_ExactConditions) String() string {
 func (*PluginListReq_ExactConditions) ProtoMessage() {}
 
 func (x *PluginListReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[20]
+	mi := &file_plugin_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1339,7 +1471,7 @@ type PluginListReq_FuzzyConditions struct {
 
 func (x *PluginListReq_FuzzyConditions) Reset() {
 	*x = PluginListReq_FuzzyConditions{}
-	mi := &file_plugin_proto_msgTypes[21]
+	mi := &file_plugin_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1351,7 +1483,7 @@ func (x *PluginListReq_FuzzyConditions) String() string {
 func (*PluginListReq_FuzzyConditions) ProtoMessage() {}
 
 func (x *PluginListReq_FuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[21]
+	mi := &file_plugin_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1391,7 +1523,7 @@ type PluginListResp_Data struct {
 
 func (x *PluginListResp_Data) Reset() {
 	*x = PluginListResp_Data{}
-	mi := &file_plugin_proto_msgTypes[22]
+	mi := &file_plugin_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1403,7 +1535,7 @@ func (x *PluginListResp_Data) String() string {
 func (*PluginListResp_Data) ProtoMessage() {}
 
 func (x *PluginListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[22]
+	mi := &file_plugin_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1429,6 +1561,102 @@ func (x *PluginListResp_Data) GetTotal() int64 {
 func (x *PluginListResp_Data) GetItems() []*Plugin {
 	if x != nil {
 		return x.Items
+	}
+	return nil
+}
+
+type PluginListPermittedOperationResp_Data struct {
+	state         protoimpl.MessageState                             `protogen:"open.v1"`
+	Operations    []*PluginListPermittedOperationResp_Data_Operation `protobuf:"bytes,1,rep,name=operations,proto3" json:"operations"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginListPermittedOperationResp_Data) Reset() {
+	*x = PluginListPermittedOperationResp_Data{}
+	mi := &file_plugin_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginListPermittedOperationResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginListPermittedOperationResp_Data) ProtoMessage() {}
+
+func (x *PluginListPermittedOperationResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginListPermittedOperationResp_Data.ProtoReflect.Descriptor instead.
+func (*PluginListPermittedOperationResp_Data) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{13, 0}
+}
+
+func (x *PluginListPermittedOperationResp_Data) GetOperations() []*PluginListPermittedOperationResp_Data_Operation {
+	if x != nil {
+		return x.Operations
+	}
+	return nil
+}
+
+type PluginListPermittedOperationResp_Data_Operation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
+	Permission    []string               `protobuf:"bytes,2,rep,name=permission,proto3" json:"permission"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginListPermittedOperationResp_Data_Operation) Reset() {
+	*x = PluginListPermittedOperationResp_Data_Operation{}
+	mi := &file_plugin_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginListPermittedOperationResp_Data_Operation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginListPermittedOperationResp_Data_Operation) ProtoMessage() {}
+
+func (x *PluginListPermittedOperationResp_Data_Operation) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginListPermittedOperationResp_Data_Operation.ProtoReflect.Descriptor instead.
+func (*PluginListPermittedOperationResp_Data_Operation) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{13, 0, 0}
+}
+
+func (x *PluginListPermittedOperationResp_Data_Operation) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PluginListPermittedOperationResp_Data_Operation) GetPermission() []string {
+	if x != nil {
+		return x.Permission
 	}
 	return nil
 }
@@ -1641,51 +1869,91 @@ var file_plugin_proto_rawDesc = string([]byte{
 	0x72, 0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18,
 	0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69,
 	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f,
-	0x6e, 0x32, 0xec, 0x04, 0x0a, 0x09, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x41, 0x50, 0x49, 0x12,
-	0x5f, 0x0a, 0x0d, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e,
-	0x12, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x49, 0x6e, 0x73, 0x74,
-	0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67,
-	0x69, 0x6e, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x22, 0x21, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
-	0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c,
-	0x12, 0x5f, 0x0a, 0x0d, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69,
-	0x6e, 0x12, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x55, 0x70, 0x67,
-	0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75,
-	0x67, 0x69, 0x6e, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70, 0x22, 0x21,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x75, 0x70, 0x67, 0x72, 0x61, 0x64,
-	0x65, 0x12, 0x67, 0x0a, 0x0f, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x50, 0x6c,
-	0x75, 0x67, 0x69, 0x6e, 0x12, 0x16, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e,
-	0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x1a, 0x17, 0x2e, 0x76,
-	0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c,
-	0x6c, 0x52, 0x65, 0x73, 0x70, 0x22, 0x23, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1d, 0x3a, 0x01, 0x2a,
-	0x22, 0x18, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e,
-	0x2f, 0x75, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x7c, 0x0a, 0x14, 0x41, 0x70,
-	0x70, 0x6c, 0x79, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x53, 0x75, 0x62, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x12, 0x1b, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x41, 0x70,
-	0x70, 0x6c, 0x79, 0x53, 0x75, 0x62, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x1a,
-	0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x41, 0x70, 0x70, 0x6c, 0x79,
-	0x53, 0x75, 0x62, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x22, 0x29, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x23, 0x3a, 0x01, 0x2a, 0x22, 0x1e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
-	0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x79, 0x5f, 0x73,
-	0x75, 0x62, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x54, 0x0a, 0x0b, 0x4c, 0x69, 0x73, 0x74,
-	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x73, 0x12, 0x11, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75,
-	0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x12, 0x2e, 0x76, 0x33, 0x2e,
-	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x1e,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x18, 0x3a, 0x01, 0x2a, 0x22, 0x13, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x60,
-	0x0a, 0x0d, 0x53, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4d, 0x65, 0x6d, 0x6f, 0x12,
-	0x14, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65,
-	0x6d, 0x6f, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69,
-	0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x6d, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x22, 0x22, 0x82, 0xd3,
-	0xe4, 0x93, 0x02, 0x1c, 0x3a, 0x01, 0x2a, 0x22, 0x17, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33,
-	0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x73, 0x65, 0x74, 0x5f, 0x6d, 0x65, 0x6d, 0x6f,
-	0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54,
-	0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62,
-	0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x6e, 0x22, 0x3f, 0x0a, 0x1f, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x50,
+	0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x52, 0x65, 0x71, 0x12, 0x1c, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x08, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x04, 0x70, 0x61,
+	0x67, 0x65, 0x22, 0x9e, 0x03, 0x0a, 0x20, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73,
+	0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05,
+	0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50,
+	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x3d, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c,
+	0x69, 0x73, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x4f, 0x70, 0x65, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04,
+	0x64, 0x61, 0x74, 0x61, 0x1a, 0x9c, 0x01, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x53, 0x0a,
+	0x0a, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x33, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73,
+	0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x4f, 0x70, 0x65,
+	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x1a, 0x3f, 0x0a, 0x09, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f,
+	0x6e, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x32, 0x8c, 0x06, 0x0a, 0x09, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x41, 0x50,
+	0x49, 0x12, 0x5f, 0x0a, 0x0d, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x50, 0x6c, 0x75, 0x67,
+	0x69, 0x6e, 0x12, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x49, 0x6e,
+	0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x22,
+	0x21, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x69, 0x6e, 0x73, 0x74, 0x61,
+	0x6c, 0x6c, 0x12, 0x5f, 0x0a, 0x0d, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x50, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x12, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x55,
+	0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x50,
+	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x22, 0x21, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61, 0x70,
+	0x69, 0x2f, 0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x75, 0x70, 0x67, 0x72,
+	0x61, 0x64, 0x65, 0x12, 0x67, 0x0a, 0x0f, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c,
+	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x12, 0x16, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67,
+	0x69, 0x6e, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x1a, 0x17,
+	0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74,
+	0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x22, 0x23, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1d, 0x3a,
+	0x01, 0x2a, 0x22, 0x18, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67,
+	0x69, 0x6e, 0x2f, 0x75, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x7c, 0x0a, 0x14,
+	0x41, 0x70, 0x70, 0x6c, 0x79, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x53, 0x75, 0x62, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x12, 0x1b, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e,
+	0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x75, 0x62, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65,
+	0x71, 0x1a, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x41, 0x70, 0x70,
+	0x6c, 0x79, 0x53, 0x75, 0x62, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x22,
+	0x29, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x23, 0x3a, 0x01, 0x2a, 0x22, 0x1e, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x79,
+	0x5f, 0x73, 0x75, 0x62, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x54, 0x0a, 0x0b, 0x4c, 0x69,
+	0x73, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x73, 0x12, 0x11, 0x2e, 0x76, 0x33, 0x2e, 0x50,
+	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x12, 0x2e, 0x76,
+	0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x22, 0x1e, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x18, 0x3a, 0x01, 0x2a, 0x22, 0x13, 0x2f, 0x61, 0x70,
+	0x69, 0x2f, 0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x6c, 0x69, 0x73, 0x74,
+	0x12, 0x60, 0x0a, 0x0d, 0x53, 0x65, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4d, 0x65, 0x6d,
+	0x6f, 0x12, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x53, 0x65, 0x74,
+	0x4d, 0x65, 0x6d, 0x6f, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x53, 0x65, 0x74, 0x4d, 0x65, 0x6d, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x22, 0x22,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1c, 0x3a, 0x01, 0x2a, 0x22, 0x17, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x73, 0x65, 0x74, 0x5f, 0x6d, 0x65,
+	0x6d, 0x6f, 0x12, 0x9d, 0x01, 0x0a, 0x1c, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x6c, 0x75, 0x67, 0x69,
+	0x6e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x12, 0x23, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x4c,
+	0x69, 0x73, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x4f, 0x70, 0x65, 0x72,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x1a, 0x24, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c,
+	0x75, 0x67, 0x69, 0x6e, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65,
+	0x64, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x22, 0x32,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2c, 0x3a, 0x01, 0x2a, 0x22, 0x27, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x76, 0x33, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x5f, 0x70,
+	0x65, 0x72, 0x6d, 0x69, 0x74, 0x74, 0x65, 0x64, 0x5f, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67,
+	0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 })
 
 var (
@@ -1700,83 +1968,94 @@ func file_plugin_proto_rawDescGZIP() []byte {
 	return file_plugin_proto_rawDescData
 }
 
-var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_plugin_proto_goTypes = []any{
-	(*PluginInstallReq)(nil),               // 0: v3.PluginInstallReq
-	(*PluginInstallResp)(nil),              // 1: v3.PluginInstallResp
-	(*PluginUpgradeReq)(nil),               // 2: v3.PluginUpgradeReq
-	(*PluginUpgradeResp)(nil),              // 3: v3.PluginUpgradeResp
-	(*PluginUninstallReq)(nil),             // 4: v3.PluginUninstallReq
-	(*PluginUninstallResp)(nil),            // 5: v3.PluginUninstallResp
-	(*PluginApplySubConfigReq)(nil),        // 6: v3.PluginApplySubConfigReq
-	(*PluginApplySubConfigResp)(nil),       // 7: v3.PluginApplySubConfigResp
-	(*PluginListReq)(nil),                  // 8: v3.PluginListReq
-	(*PluginListResp)(nil),                 // 9: v3.PluginListResp
-	(*PluginSetMemoReq)(nil),               // 10: v3.PluginSetMemoReq
-	(*PluginSetMemoResp)(nil),              // 11: v3.PluginSetMemoResp
-	(*PluginInstallReq_Plugin)(nil),        // 12: v3.PluginInstallReq.Plugin
-	(*PluginInstallResp_Data)(nil),         // 13: v3.PluginInstallResp.Data
-	(*PluginUpgradeReq_Plugin)(nil),        // 14: v3.PluginUpgradeReq.Plugin
-	(*PluginUpgradeResp_Data)(nil),         // 15: v3.PluginUpgradeResp.Data
-	(*PluginUninstallReq_Plugin)(nil),      // 16: v3.PluginUninstallReq.Plugin
-	(*PluginUninstallResp_Data)(nil),       // 17: v3.PluginUninstallResp.Data
-	(*PluginApplySubConfigReq_Plugin)(nil), // 18: v3.PluginApplySubConfigReq.Plugin
-	(*PluginApplySubConfigResp_Data)(nil),  // 19: v3.PluginApplySubConfigResp.Data
-	(*PluginListReq_ExactConditions)(nil),  // 20: v3.PluginListReq.ExactConditions
-	(*PluginListReq_FuzzyConditions)(nil),  // 21: v3.PluginListReq.FuzzyConditions
-	(*PluginListResp_Data)(nil),            // 22: v3.PluginListResp.Data
-	(*Error)(nil),                          // 23: v3.Error
-	(*Permission)(nil),                     // 24: v3.Permission
-	(*Page)(nil),                           // 25: v3.Page
-	(*structpb.Struct)(nil),                // 26: google.protobuf.Struct
-	(*Plugin)(nil),                         // 27: v3.Plugin
+	(*PluginInstallReq)(nil),                                // 0: v3.PluginInstallReq
+	(*PluginInstallResp)(nil),                               // 1: v3.PluginInstallResp
+	(*PluginUpgradeReq)(nil),                                // 2: v3.PluginUpgradeReq
+	(*PluginUpgradeResp)(nil),                               // 3: v3.PluginUpgradeResp
+	(*PluginUninstallReq)(nil),                              // 4: v3.PluginUninstallReq
+	(*PluginUninstallResp)(nil),                             // 5: v3.PluginUninstallResp
+	(*PluginApplySubConfigReq)(nil),                         // 6: v3.PluginApplySubConfigReq
+	(*PluginApplySubConfigResp)(nil),                        // 7: v3.PluginApplySubConfigResp
+	(*PluginListReq)(nil),                                   // 8: v3.PluginListReq
+	(*PluginListResp)(nil),                                  // 9: v3.PluginListResp
+	(*PluginSetMemoReq)(nil),                                // 10: v3.PluginSetMemoReq
+	(*PluginSetMemoResp)(nil),                               // 11: v3.PluginSetMemoResp
+	(*PluginListPermittedOperationReq)(nil),                 // 12: v3.PluginListPermittedOperationReq
+	(*PluginListPermittedOperationResp)(nil),                // 13: v3.PluginListPermittedOperationResp
+	(*PluginInstallReq_Plugin)(nil),                         // 14: v3.PluginInstallReq.Plugin
+	(*PluginInstallResp_Data)(nil),                          // 15: v3.PluginInstallResp.Data
+	(*PluginUpgradeReq_Plugin)(nil),                         // 16: v3.PluginUpgradeReq.Plugin
+	(*PluginUpgradeResp_Data)(nil),                          // 17: v3.PluginUpgradeResp.Data
+	(*PluginUninstallReq_Plugin)(nil),                       // 18: v3.PluginUninstallReq.Plugin
+	(*PluginUninstallResp_Data)(nil),                        // 19: v3.PluginUninstallResp.Data
+	(*PluginApplySubConfigReq_Plugin)(nil),                  // 20: v3.PluginApplySubConfigReq.Plugin
+	(*PluginApplySubConfigResp_Data)(nil),                   // 21: v3.PluginApplySubConfigResp.Data
+	(*PluginListReq_ExactConditions)(nil),                   // 22: v3.PluginListReq.ExactConditions
+	(*PluginListReq_FuzzyConditions)(nil),                   // 23: v3.PluginListReq.FuzzyConditions
+	(*PluginListResp_Data)(nil),                             // 24: v3.PluginListResp.Data
+	(*PluginListPermittedOperationResp_Data)(nil),           // 25: v3.PluginListPermittedOperationResp.Data
+	(*PluginListPermittedOperationResp_Data_Operation)(nil), // 26: v3.PluginListPermittedOperationResp.Data.Operation
+	(*Error)(nil),                                           // 27: v3.Error
+	(*Permission)(nil),                                      // 28: v3.Permission
+	(*Page)(nil),                                            // 29: v3.Page
+	(*structpb.Struct)(nil),                                 // 30: google.protobuf.Struct
+	(*Plugin)(nil),                                          // 31: v3.Plugin
 }
 var file_plugin_proto_depIdxs = []int32{
-	12, // 0: v3.PluginInstallReq.plugin:type_name -> v3.PluginInstallReq.Plugin
-	23, // 1: v3.PluginInstallResp.error:type_name -> v3.Error
-	24, // 2: v3.PluginInstallResp.permission:type_name -> v3.Permission
-	13, // 3: v3.PluginInstallResp.data:type_name -> v3.PluginInstallResp.Data
-	14, // 4: v3.PluginUpgradeReq.plugin:type_name -> v3.PluginUpgradeReq.Plugin
-	23, // 5: v3.PluginUpgradeResp.error:type_name -> v3.Error
-	24, // 6: v3.PluginUpgradeResp.permission:type_name -> v3.Permission
-	15, // 7: v3.PluginUpgradeResp.data:type_name -> v3.PluginUpgradeResp.Data
-	16, // 8: v3.PluginUninstallReq.plugin:type_name -> v3.PluginUninstallReq.Plugin
-	23, // 9: v3.PluginUninstallResp.error:type_name -> v3.Error
-	24, // 10: v3.PluginUninstallResp.permission:type_name -> v3.Permission
-	17, // 11: v3.PluginUninstallResp.data:type_name -> v3.PluginUninstallResp.Data
-	18, // 12: v3.PluginApplySubConfigReq.plugin:type_name -> v3.PluginApplySubConfigReq.Plugin
-	23, // 13: v3.PluginApplySubConfigResp.error:type_name -> v3.Error
-	24, // 14: v3.PluginApplySubConfigResp.permission:type_name -> v3.Permission
-	19, // 15: v3.PluginApplySubConfigResp.data:type_name -> v3.PluginApplySubConfigResp.Data
-	25, // 16: v3.PluginListReq.page:type_name -> v3.Page
-	20, // 17: v3.PluginListReq.exact_include_conditions:type_name -> v3.PluginListReq.ExactConditions
-	21, // 18: v3.PluginListReq.fuzzy_include_conditions:type_name -> v3.PluginListReq.FuzzyConditions
-	23, // 19: v3.PluginListResp.error:type_name -> v3.Error
-	24, // 20: v3.PluginListResp.permission:type_name -> v3.Permission
-	22, // 21: v3.PluginListResp.data:type_name -> v3.PluginListResp.Data
-	23, // 22: v3.PluginSetMemoResp.error:type_name -> v3.Error
-	24, // 23: v3.PluginSetMemoResp.permission:type_name -> v3.Permission
-	26, // 24: v3.PluginInstallReq.Plugin.custom_config_context:type_name -> google.protobuf.Struct
-	26, // 25: v3.PluginUpgradeReq.Plugin.custom_config_context:type_name -> google.protobuf.Struct
-	26, // 26: v3.PluginApplySubConfigReq.Plugin.custom_config_context:type_name -> google.protobuf.Struct
-	27, // 27: v3.PluginListResp.Data.items:type_name -> v3.Plugin
-	0,  // 28: v3.PluginAPI.InstallPlugin:input_type -> v3.PluginInstallReq
-	2,  // 29: v3.PluginAPI.UpgradePlugin:input_type -> v3.PluginUpgradeReq
-	4,  // 30: v3.PluginAPI.UninstallPlugin:input_type -> v3.PluginUninstallReq
-	6,  // 31: v3.PluginAPI.ApplyPluginSubConfig:input_type -> v3.PluginApplySubConfigReq
-	8,  // 32: v3.PluginAPI.ListPlugins:input_type -> v3.PluginListReq
-	10, // 33: v3.PluginAPI.SetPluginMemo:input_type -> v3.PluginSetMemoReq
-	1,  // 34: v3.PluginAPI.InstallPlugin:output_type -> v3.PluginInstallResp
-	3,  // 35: v3.PluginAPI.UpgradePlugin:output_type -> v3.PluginUpgradeResp
-	5,  // 36: v3.PluginAPI.UninstallPlugin:output_type -> v3.PluginUninstallResp
-	7,  // 37: v3.PluginAPI.ApplyPluginSubConfig:output_type -> v3.PluginApplySubConfigResp
-	9,  // 38: v3.PluginAPI.ListPlugins:output_type -> v3.PluginListResp
-	11, // 39: v3.PluginAPI.SetPluginMemo:output_type -> v3.PluginSetMemoResp
-	34, // [34:40] is the sub-list for method output_type
-	28, // [28:34] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	14, // 0: v3.PluginInstallReq.plugin:type_name -> v3.PluginInstallReq.Plugin
+	27, // 1: v3.PluginInstallResp.error:type_name -> v3.Error
+	28, // 2: v3.PluginInstallResp.permission:type_name -> v3.Permission
+	15, // 3: v3.PluginInstallResp.data:type_name -> v3.PluginInstallResp.Data
+	16, // 4: v3.PluginUpgradeReq.plugin:type_name -> v3.PluginUpgradeReq.Plugin
+	27, // 5: v3.PluginUpgradeResp.error:type_name -> v3.Error
+	28, // 6: v3.PluginUpgradeResp.permission:type_name -> v3.Permission
+	17, // 7: v3.PluginUpgradeResp.data:type_name -> v3.PluginUpgradeResp.Data
+	18, // 8: v3.PluginUninstallReq.plugin:type_name -> v3.PluginUninstallReq.Plugin
+	27, // 9: v3.PluginUninstallResp.error:type_name -> v3.Error
+	28, // 10: v3.PluginUninstallResp.permission:type_name -> v3.Permission
+	19, // 11: v3.PluginUninstallResp.data:type_name -> v3.PluginUninstallResp.Data
+	20, // 12: v3.PluginApplySubConfigReq.plugin:type_name -> v3.PluginApplySubConfigReq.Plugin
+	27, // 13: v3.PluginApplySubConfigResp.error:type_name -> v3.Error
+	28, // 14: v3.PluginApplySubConfigResp.permission:type_name -> v3.Permission
+	21, // 15: v3.PluginApplySubConfigResp.data:type_name -> v3.PluginApplySubConfigResp.Data
+	29, // 16: v3.PluginListReq.page:type_name -> v3.Page
+	22, // 17: v3.PluginListReq.exact_include_conditions:type_name -> v3.PluginListReq.ExactConditions
+	23, // 18: v3.PluginListReq.fuzzy_include_conditions:type_name -> v3.PluginListReq.FuzzyConditions
+	27, // 19: v3.PluginListResp.error:type_name -> v3.Error
+	28, // 20: v3.PluginListResp.permission:type_name -> v3.Permission
+	24, // 21: v3.PluginListResp.data:type_name -> v3.PluginListResp.Data
+	27, // 22: v3.PluginSetMemoResp.error:type_name -> v3.Error
+	28, // 23: v3.PluginSetMemoResp.permission:type_name -> v3.Permission
+	29, // 24: v3.PluginListPermittedOperationReq.page:type_name -> v3.Page
+	27, // 25: v3.PluginListPermittedOperationResp.error:type_name -> v3.Error
+	28, // 26: v3.PluginListPermittedOperationResp.permission:type_name -> v3.Permission
+	25, // 27: v3.PluginListPermittedOperationResp.data:type_name -> v3.PluginListPermittedOperationResp.Data
+	30, // 28: v3.PluginInstallReq.Plugin.custom_config_context:type_name -> google.protobuf.Struct
+	30, // 29: v3.PluginUpgradeReq.Plugin.custom_config_context:type_name -> google.protobuf.Struct
+	30, // 30: v3.PluginApplySubConfigReq.Plugin.custom_config_context:type_name -> google.protobuf.Struct
+	31, // 31: v3.PluginListResp.Data.items:type_name -> v3.Plugin
+	26, // 32: v3.PluginListPermittedOperationResp.Data.operations:type_name -> v3.PluginListPermittedOperationResp.Data.Operation
+	0,  // 33: v3.PluginAPI.InstallPlugin:input_type -> v3.PluginInstallReq
+	2,  // 34: v3.PluginAPI.UpgradePlugin:input_type -> v3.PluginUpgradeReq
+	4,  // 35: v3.PluginAPI.UninstallPlugin:input_type -> v3.PluginUninstallReq
+	6,  // 36: v3.PluginAPI.ApplyPluginSubConfig:input_type -> v3.PluginApplySubConfigReq
+	8,  // 37: v3.PluginAPI.ListPlugins:input_type -> v3.PluginListReq
+	10, // 38: v3.PluginAPI.SetPluginMemo:input_type -> v3.PluginSetMemoReq
+	12, // 39: v3.PluginAPI.ListPluginPermittedOperation:input_type -> v3.PluginListPermittedOperationReq
+	1,  // 40: v3.PluginAPI.InstallPlugin:output_type -> v3.PluginInstallResp
+	3,  // 41: v3.PluginAPI.UpgradePlugin:output_type -> v3.PluginUpgradeResp
+	5,  // 42: v3.PluginAPI.UninstallPlugin:output_type -> v3.PluginUninstallResp
+	7,  // 43: v3.PluginAPI.ApplyPluginSubConfig:output_type -> v3.PluginApplySubConfigResp
+	9,  // 44: v3.PluginAPI.ListPlugins:output_type -> v3.PluginListResp
+	11, // 45: v3.PluginAPI.SetPluginMemo:output_type -> v3.PluginSetMemoResp
+	13, // 46: v3.PluginAPI.ListPluginPermittedOperation:output_type -> v3.PluginListPermittedOperationResp
+	40, // [40:47] is the sub-list for method output_type
+	33, // [33:40] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_plugin_proto_init() }
@@ -1785,17 +2064,17 @@ func file_plugin_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_plugin_proto_msgTypes[12].OneofWrappers = []any{}
 	file_plugin_proto_msgTypes[14].OneofWrappers = []any{}
 	file_plugin_proto_msgTypes[16].OneofWrappers = []any{}
 	file_plugin_proto_msgTypes[18].OneofWrappers = []any{}
+	file_plugin_proto_msgTypes[20].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_proto_rawDesc), len(file_plugin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

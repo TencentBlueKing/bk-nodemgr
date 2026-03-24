@@ -24,3 +24,55 @@ type Plugin struct {
 	Group   string
 	Memo    string
 }
+
+// PermittedOperation defines the plugin permitted operation type.
+type PermittedOperation string
+
+const (
+	// PermittedOperationInstall install operation.
+	PermittedOperationInstall PermittedOperation = "install"
+
+	// PermittedOperationUpgrade upgrade operation.
+	PermittedOperationUpgrade PermittedOperation = "upgrade"
+
+	// PermittedOperationReconfig reconfig operation.
+	PermittedOperationReconfig PermittedOperation = "reconfig"
+
+	// PermittedOperationRestart restart operation.
+	PermittedOperationRestart PermittedOperation = "restart"
+
+	// PermittedOperationStop stop operation.
+	PermittedOperationStop PermittedOperation = "stop"
+
+	// PermittedOperationUninstall uninstall operation.
+	PermittedOperationUninstall PermittedOperation = "uninstall"
+)
+
+func (p PermittedOperation) String() string {
+	return string(p)
+}
+
+// DefaultGroupPermittedOperations returns the default plugin group permitted operations.
+func DefaultGroupPermittedOperations() []PermittedOperation {
+	return []PermittedOperation{
+		PermittedOperationInstall,
+		PermittedOperationUpgrade,
+		PermittedOperationReconfig,
+		PermittedOperationRestart,
+		PermittedOperationStop,
+		PermittedOperationUninstall,
+	}
+}
+
+// PolicyGroupPermittedOperations returns the policy plugin group permitted operations.
+func PolicyGroupPermittedOperations() []PermittedOperation {
+	return []PermittedOperation{
+		PermittedOperationRestart,
+	}
+}
+
+// PluginPermmitedOperation defines the plugin permitted operation info.
+type PluginPermmitedOperation struct {
+	PluginName          string
+	PermittedOperations []PermittedOperation
+}

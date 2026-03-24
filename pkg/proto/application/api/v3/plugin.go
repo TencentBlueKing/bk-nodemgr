@@ -12,8 +12,8 @@ package v3
 
 import (
 	"errors"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -450,3 +450,38 @@ func (x *PluginSetMemoReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PluginSetMemoReq) AutoConvert() {}
+
+// Validate check body.
+func (x *PluginListPermittedOperationReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginListPermittedOperationReq) AutoConvert() {}
+
+// ConvertPageToTypes converts page to types.
+func (x *PluginListPermittedOperationReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
+}
+
+// ConvertPluginPermittedOperationsFromTypes converts plugin permitted operations from types.
+func (x *PluginListPermittedOperationResp) ConvertPluginPermittedOperationsFromTypes(plugins ...*types.Plugin) {
+	x.Data = &PluginListPermittedOperationResp_Data{}
+	x.Data.Operations = conv.SliceToSlice(plugins, func(plugin *types.Plugin) *PluginListPermittedOperationResp_Data_Operation {
+		item := &PluginListPermittedOperationResp_Data_Operation{}
+		item.Name = plugin.Name
+
+		// default group and policy group have different permitted operations.
+		if plugin.Group == types.PluginGroupDefault {
+			item.Permission = conv.SliceToSlice(types.DefaultGroupPermittedOperations(), func(operation types.PermittedOperation) string {
+				return operation.String()
+			})
+		} else {
+			item.Permission = conv.SliceToSlice(types.PolicyGroupPermittedOperations(), func(operation types.PermittedOperation) string {
+				return operation.String()
+			})
+		}
+
+		return item
+	})
+}
