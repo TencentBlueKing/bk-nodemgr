@@ -19,6 +19,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -116,6 +117,13 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 	err = act.storageHost.UpdateManyHostDynamic(std.Context(), &std.DeployInfo().Host)
 	if err != nil {
 		return fmt.Errorf("update host dynamic failed: %w", err)
+	}
+
+	if touchErr := act.storageHost.TouchHostOperationTime(std.Context(), std.DeployInfo().Host.HostID); touchErr != nil {
+		logger.G.Sys().
+			WithErr(touchErr).
+			With("host-id", std.DeployInfo().Host.HostID).
+			Warn("failed to touch host operation time after update host dynamic")
 	}
 
 	return nil

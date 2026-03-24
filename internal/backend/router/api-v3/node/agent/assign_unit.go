@@ -62,6 +62,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 	}
 
 	toUpdate := make([]*types.Host, 0, len(hosts))
+	var successTouchIDs []int64
 	for _, host := range hosts {
 		if host.Dynamic.NetworkUnitID >= 0 {
 			failedCount++
@@ -95,6 +96,9 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		}
 
 		successCount += int64(len(batch))
+		for _, host := range batch {
+			successTouchIDs = append(successTouchIDs, host.HostID)
+		}
 	}
 
 	logger.G.Biz(rCtx).
@@ -102,6 +106,12 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		With("success-count", successCount).
 		With("failed-count", failedCount).
 		Info("batch assign unit completed")
+
+	if len(successTouchIDs) > 0 {
+		if err := h.storageHost.TouchHostOperationTime(rCtx, successTouchIDs...); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Warn("failed to touch host operation time after assign unit")
+		}
+	}
 
 	resp := &protoBackend.NodeAgentAssignUnitResp{
 		Data: &protoBackend.NodeAgentAssignUnitResp_Data{
@@ -111,7 +121,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		},
 	}
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 func (h *handler) fetchNetworkUnit(rCtx restserver.IContext, networkUnitID int64) (*types.NetworkUnit, error) {

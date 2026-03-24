@@ -157,6 +157,10 @@ type IStorageHost interface {
 	// UpdateHostDynamicFields updates the dynamic fields of a host.
 	UpdateHostDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
 
+	// TouchHostOperationTime marks the given hosts as recently operated by a user
+	// or API action, updating the business operation time used for list ordering.
+	TouchHostOperationTime(nCtx contextx.IContext, hostIDs ...int64) error
+
 	// DistinctHost distincts host fields.
 	DistinctHost(nCtx contextx.IContext, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 		*types.HostDistinctResult, error)

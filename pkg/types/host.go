@@ -12,6 +12,7 @@ package types
 
 import (
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
@@ -299,6 +300,11 @@ type Host struct {
 
 	Static  *HostStatic
 	Dynamic *HostDynamic
+
+	// OperationUpdatedAt tracks the last time a user-initiated or API-driven
+	// business operation modified this host. Zero value means no operation has
+	// been recorded yet (legacy data).
+	OperationUpdatedAt time.Time
 }
 
 // HostStatic represents a static host under a host.

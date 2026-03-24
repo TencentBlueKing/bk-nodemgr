@@ -135,7 +135,8 @@ func (s *Storage) ListHost(nCtx contextx.IContext, page types.Page, conditions .
 	return results, num, err
 }
 
-// ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by update time.
+// ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by
+// business operation time first, then by general update time as fallback.
 func (s *Storage) ListHostOrderByUpdateTime(
 	nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error) {
 
@@ -145,6 +146,7 @@ func (s *Storage) ListHostOrderByUpdateTime(
 	)
 	err := s.WrapFn(nCtx, metricOperationListHostOrderByUpdateTime, func(nCtx contextx.IContext) error {
 		page.Sort = types.WithSortFields(page.Sort,
+			types.WithFieldDesc(host.FieldKeyOperationUpdatedAt),
 			types.WithFieldDesc(base.FieldKeyUpdatedAt))
 		opts := convertHostConditionsToOptions(conditions...)
 		var err error
@@ -422,6 +424,23 @@ func (s *Storage) FindHostWithDynamic(nCtx contextx.IContext, page types.Page, c
 	})
 
 	return results, err
+}
+
+// TouchHostOperationTime marks the given hosts as recently operated by a user
+// or API action. This updates the dedicated business-operation timestamp used
+// to sort the host list, without affecting the general updated_at field.
+func (s *Storage) TouchHostOperationTime(nCtx contextx.IContext, hostIDs ...int64) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	return s.WrapFn(nCtx, metricOperationTouchHostOperationTime, func(nCtx contextx.IContext) error {
+		return s.daoHost.TouchOperationUpdatedAt(nCtx, hostIDs...)
+	})
 }
 
 // UpdateHostDynamicFields updates the dynamic fields of a host.

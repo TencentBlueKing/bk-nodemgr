@@ -63,6 +63,7 @@ const (
 	metricOperationDeleteManyHost                     = "delete_many_host"
 	metricOperationFindHostWithDynamic                = "find_host_with_dynamic"
 	metricOperationUpdateHostDynamicFields            = "update_host_dynamic_fields"
+	metricOperationTouchHostOperationTime             = "touch_host_operation_time"
 	metricOperationGetV4AgentAccessEndpoints          = "get_v4_agent_access_endpoints"
 	metricOperationGetV6AgentAccessEndpoints          = "get_v6_agent_access_endpoints"
 	metricOperationGetProxyUpstreamAccessPoints       = "get_proxy_upstream_accesspoints"

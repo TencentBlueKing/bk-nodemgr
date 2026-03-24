@@ -14,6 +14,7 @@ package host
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
@@ -86,6 +87,8 @@ type Host struct {
 
 	Static  *HostStatic  `json:"static" bson:"static"`
 	Dynamic *HostDynamic `json:"dynamic" bson:"dynamic"`
+
+	OperationUpdatedAt *time.Time `json:"operation_updated_at,omitempty" bson:"operation_updated_at,omitempty"`
 }
 
 // UniqueFields unique fields of the table.

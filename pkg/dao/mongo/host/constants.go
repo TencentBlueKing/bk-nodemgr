@@ -140,4 +140,7 @@ const (
 
 	// FieldKeyDynamicProxyInstallOriginUnitID the dynamic proxy install origin network unit id field key.
 	FieldKeyDynamicProxyInstallOriginUnitID = "data.dynamic.proxy_install_origin_unit_id"
+
+	// FieldKeyOperationUpdatedAt the operation updated at field key for business-operation sort ordering.
+	FieldKeyOperationUpdatedAt = "data.operation_updated_at"
 )

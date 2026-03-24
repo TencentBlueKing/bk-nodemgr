@@ -30,6 +30,14 @@ func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	hostIDs := make([]int64, 0, len(req.GetHost()))
+	for _, host := range req.GetHost() {
+		hostIDs = append(hostIDs, host.GetBkHostId())
+	}
+	if err := h.storageHost.TouchHostOperationTime(rCtx, hostIDs...); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Warn("failed to touch host operation time after proxy update")
+	}
+
 	resp := new(protoBackend.NodeProxyUpdateResp)
 
 	return resp.GetData(), nil

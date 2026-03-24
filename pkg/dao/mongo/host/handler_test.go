@@ -18,8 +18,10 @@ import (
 	"sort"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -787,6 +789,62 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 				t.Errorf("DistinctNetworkAreaID() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}
 		})
+	}
+}
+
+// Test_handler_TouchOperationUpdatedAt tests TouchOperationUpdatedAt and verifies
+// that the operation_updated_at field is written, preserved, and usable for sorting.
+func Test_handler_TouchOperationUpdatedAt(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
+
+	prepareData(t, nCtx)
+
+	h := testClient(t)
+
+	if err := h.TouchOperationUpdatedAt(nCtx, 90001); err != nil {
+		t.Fatalf("TouchOperationUpdatedAt() error = %v", err)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+
+	if err := h.TouchOperationUpdatedAt(nCtx, 90003); err != nil {
+		t.Fatalf("TouchOperationUpdatedAt() error = %v", err)
+	}
+
+	page := types.Page{
+		Offset: 0,
+		Limit:  10,
+		Sort: types.WithSortFields(
+			types.WithFieldDesc(FieldKeyOperationUpdatedAt),
+			types.WithFieldDesc(base.FieldKeyUpdatedAt)),
+	}
+	hosts, _, err := h.List(nCtx, page)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+
+	if len(hosts) < 2 {
+		t.Fatalf("expected at least 2 hosts, got %d", len(hosts))
+	}
+
+	if hosts[0].HostID != 90003 {
+		t.Errorf("expected first host to be 90003 (latest operation), got %d", hosts[0].HostID)
+	}
+	if hosts[1].HostID != 90001 {
+		t.Errorf("expected second host to be 90001 (earlier operation), got %d", hosts[1].HostID)
+	}
+
+	t.Logf("sort order verified: %d, %d, ...", hosts[0].HostID, hosts[1].HostID)
+}
+
+// Test_handler_TouchOperationUpdatedAt_empty verifies that empty host IDs is a no-op.
+func Test_handler_TouchOperationUpdatedAt_empty(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
+
+	h := testClient(t)
+
+	if err := h.TouchOperationUpdatedAt(nCtx); err != nil {
+		t.Errorf("TouchOperationUpdatedAt() with empty IDs should succeed, got error = %v", err)
 	}
 }
 

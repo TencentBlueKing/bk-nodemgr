@@ -14,6 +14,7 @@ package host
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -70,6 +71,9 @@ type IHandler interface {
 	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
 	// Uses MongoDB projection to only query required fields (6 fields instead of 40+).
 	GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error)
+
+	// TouchOperationUpdatedAt sets operation_updated_at to now for the given host IDs.
+	TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int64) error
 
 	IDistinctor
 }
@@ -544,12 +548,19 @@ func convertHostFromTypes(host *types.Host) *Host {
 		}
 	}
 
-	return &Host{
+	result := &Host{
 		HostID:   host.HostID,
 		TenantID: host.TenantID,
 		Static:   static,
 		Dynamic:  dynamic,
 	}
+
+	if !host.OperationUpdatedAt.IsZero() {
+		t := host.OperationUpdatedAt
+		result.OperationUpdatedAt = &t
+	}
+
+	return result
 }
 
 func convertHostToTypes(host *Host) *types.Host {
@@ -616,12 +627,57 @@ func convertHostToTypes(host *Host) *types.Host {
 		}
 	}
 
-	return &types.Host{
+	result := &types.Host{
 		HostID:   host.HostID,
 		TenantID: host.TenantID,
 		Static:   static,
 		Dynamic:  dynamic,
 	}
+
+	if host.OperationUpdatedAt != nil {
+		result.OperationUpdatedAt = *host.OperationUpdatedAt
+	}
+
+	return result
+}
+
+// TouchOperationUpdatedAt sets operation_updated_at to the current time for
+// the given host IDs. This marks hosts as recently operated by a user or API
+// action, which drives the host list sort order.
+func (h *handler) TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int64) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	tenantID := nCtx.TenantID()
+	nowTime := time.Now()
+
+	models := make([]mongo.WriteModel, 0, len(hostIDs))
+	for _, hostID := range hostIDs {
+		filter := base.AliveFilter()
+		filter = append(filter, bson.E{Key: FieldKeyHostID, Value: hostID})
+
+		update := bson.D{
+			{Key: "$set", Value: bson.M{
+				FieldKeyOperationUpdatedAt: nowTime,
+			}},
+		}
+
+		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
+	}
+
+	d := h.tenantDao(tenantID)
+	_, err := d.GetClient().BulkWrite(nCtx, models)
+
+	return err
 }
 
 // DeleteMany delete many hosts.
