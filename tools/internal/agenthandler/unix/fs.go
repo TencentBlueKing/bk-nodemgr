@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/throttle"
 )
 
 const (
@@ -287,7 +288,7 @@ func (handler *AgentHandler) writeTgz(ctx context.Context, targetRelativePath st
 			R: source,
 			N: maxDecompressedSize,
 		}
-		if _, err := io.Copy(tarWriter, limitedReader); err != nil {
+		if _, err := throttle.Copy(tarWriter, limitedReader); err != nil {
 			continue
 		}
 	}
@@ -380,7 +381,7 @@ func (handler *AgentHandler) extractTgz(
 				R: tarReader,
 				N: maxDecompressedSize,
 			}
-			if _, err := io.Copy(outFile, limitedReader); err != nil {
+			if _, err := throttle.Copy(outFile, limitedReader); err != nil {
 				_ = outFile.Close()
 
 				return fmt.Errorf("write file content failed, path(%s): %v", targetRelativePath, err)

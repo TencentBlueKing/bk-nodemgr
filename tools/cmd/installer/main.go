@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/throttle"
 	"github.com/spf13/cobra"
 )
 
@@ -43,6 +44,10 @@ func NewRootCommand() *cobra.Command {
 			return cmd.Help()
 		},
 	}
+
+	// global flags.
+	rootCmd.PersistentFlags().Float64Var(&throttle.CPULimit, "cpu-limit", 0,
+		"CPU usage limit ratio (0.0~1.0), 0 means unlimited")
 
 	// sub commands.
 	rootCmd.AddCommand(node.NewNodeCommand())
