@@ -143,7 +143,7 @@ func (act *actionResolveOfflineDetectInfo) Do(ctx *action.InstanceContext) error
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("转换节点角色到发布类型失败，错误: %v", err).
+			Zh("节点角色转换为发布类型失败。err: %v", err).
 			En("failed to convert node role to release type. err: %v", err).
 			Error()
 

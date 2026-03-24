@@ -346,7 +346,7 @@ func buildOfflineInstallScript(
 	// After the installer completes (--skip_callback), results are written to installer.data.json.
 	// Print the file content so the user can copy and paste it into the management portal.
 	lines = append(lines,
-		fmt.Sprintf(`echo "--- installer.data.json ---"`, ),
+		`echo "--- installer.data.json ---"`,
 		fmt.Sprintf(`cat "%s/installer.data.json"`, dataDir),
 	)
 
@@ -369,5 +369,6 @@ func buildOfflinePackageStem(deployInfo *types.DeploymentInfo) string {
 	if ipSlug == "" {
 		ipSlug = "unknown"
 	}
+
 	return fmt.Sprintf("%s-%d-%s", offlinePkgNamePrefix, networkAreaID, ipSlug)
 }
