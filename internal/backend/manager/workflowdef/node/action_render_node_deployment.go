@@ -617,10 +617,10 @@ func (act *actionRenderNodeDeployment) checkHostExist(nCtx contextx.IContext, ho
 
 // FileLink file link.
 type FileLink struct {
-	TargetIP   string `json:"target_ip, omitempty" bson:"target_ip, omitempty"`
-	TargetPort int64  `json:"target_port, omitempty" bson:"target_port, omitempty"`
-	ReportIP   string `json:"report_ip, omitempty" bson:"report_ip, omitempty"`
-	ReportPort int64  `json:"report_port, omitempty" bson:"report_port, omitempty"`
+	TargetIP   string `json:"target_ip,omitempty" bson:"target_ip,omitempty"`
+	TargetPort int64  `json:"target_port,omitempty" bson:"target_port,omitempty"`
+	ReportIP   string `json:"report_ip,omitempty" bson:"report_ip,omitempty"`
+	ReportPort int64  `json:"report_port,omitempty" bson:"report_port,omitempty"`
 }
 
 // NewFileLink new file link.
