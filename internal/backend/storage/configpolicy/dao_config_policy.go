@@ -95,8 +95,9 @@ func (s *Storage) countConfigPolicy(nCtx contextx.IContext, conditions ...*types
 func (s *Storage) listConfigPolicy(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
 	[]*types.ConfigPolicy, int64, error) {
 
-	// sort by priority ASC.
+	// sort enabled policies first, then by priority ASC within each group.
 	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(configpolicy.FieldKeyEnabled),
 		types.WithFieldAsc(configpolicy.FieldKeyPriority))
 
 	var opts []configpolicy.OptFn
