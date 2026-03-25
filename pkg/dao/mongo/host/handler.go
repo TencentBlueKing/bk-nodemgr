@@ -660,22 +660,17 @@ func (h *handler) TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int
 	tenantID := nCtx.TenantID()
 	nowTime := time.Now()
 
-	models := make([]mongo.WriteModel, 0, len(hostIDs))
-	for _, hostID := range hostIDs {
-		filter := base.AliveFilter()
-		filter = append(filter, bson.E{Key: FieldKeyHostID, Value: hostID})
-
-		update := bson.D{
-			{Key: "$set", Value: bson.M{
-				FieldKeyOperationUpdatedAt: nowTime,
-			}},
-		}
-
-		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
-	}
-
 	d := h.tenantDao(tenantID)
-	_, err := d.GetClient().BulkWrite(nCtx, models)
+	filter := base.AliveFilter()
+	filter = WithHostID(hostIDs...)(filter)
+
+	// Use UpdateMany with $in (via WithHostID) instead of BulkWrite. Do not use
+	// IOrm.UpdateField: buildUpdateField also sets basic.updated_at, which would
+	// conflate CMDB/sync ordering with business operation time.
+	update := bson.D{
+		{Key: "$set", Value: bson.M{FieldKeyOperationUpdatedAt: nowTime}},
+	}
+	_, err := d.GetClient().UpdateMany(nCtx, filter, update)
 
 	return err
 }
