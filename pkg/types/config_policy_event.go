@@ -33,11 +33,15 @@ const (
 
 	// ConfigPolicyEventTypeDisable defines the policy event type disable.
 	ConfigPolicyEventTypeDisable ConfigPolicyEventType = "disable"
+
+	// ConfigPolicyEventTypeReorderPriorities defines the policy event type reorder priorities.
+	ConfigPolicyEventTypeReorderPriorities ConfigPolicyEventType = "reorder_priorities"
 )
 
 // ConfigPolicyEvent represents the policy config event.
 type ConfigPolicyEvent struct {
 	TenantID         string
+	BizID            int64
 	ConfigPolicyID   int64
 	ConfigPolicyName string
 	ConfigPolicyType ConfigPolicyType
@@ -51,7 +55,7 @@ type ConfigPolicyEvent struct {
 func (eventType ConfigPolicyEventType) Validate() error {
 	switch eventType {
 	case ConfigPolicyEventTypeCreate, ConfigPolicyEventTypeUpdate, ConfigPolicyEventTypeDelete,
-		ConfigPolicyEventTypeEnable, ConfigPolicyEventTypeDisable:
+		ConfigPolicyEventTypeEnable, ConfigPolicyEventTypeDisable, ConfigPolicyEventTypeReorderPriorities:
 		return nil
 	default:
 		return fmt.Errorf("invalid policy event type, type(%s)", eventType)

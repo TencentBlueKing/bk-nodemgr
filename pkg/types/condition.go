@@ -346,6 +346,7 @@ type PackageEventCondition struct {
 
 // ConfigPolicyEventExactFields defines the policy event exact fields.
 type ConfigPolicyEventExactFields struct {
+	BizID            []int64
 	ConfigPolicyID   []int64
 	ConfigPolicyType []ConfigPolicyType
 	Version          []int64

@@ -30,6 +30,7 @@ var _ base.IData = &ConfigPolicyEvent{}
 type ConfigPolicyEvent struct {
 	EventID          int64     `json:"event_id" bson:"event_id"`
 	TenantID         string    `json:"tenant_id" bson:"tenant_id"`
+	BizID            int64     `json:"biz_id" bson:"biz_id"`
 	ConfigpolicyID   int64     `json:"configpolicy_id" bson:"configpolicy_id"`
 	ConfigpolicyName string    `json:"configpolicy_name" bson:"configpolicy_name"`
 	ConfigpolicyType string    `json:"configpolicy_type" bson:"configpolicy_type"`

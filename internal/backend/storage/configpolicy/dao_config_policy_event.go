@@ -13,6 +13,7 @@
 package configpolicy
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -22,12 +23,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// countPakcageEvent counts policy events.
+// countConfigPolicyEvent counts policy events.
 func (s *Storage) countConfigPolicyEvent(nCtx contextx.IContext, conditions ...*types.ConfigPolicyEventCondition) (int64, error) {
-	opts := convertConfigPolicyEventConditionsToOptions(conditions...)
-
 	if nCtx == nil {
 		return 0, base.ErrInvalidContext()
+	}
+
+	opts, err := convertConfigPolicyEventConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, err
 	}
 
 	num, err := s.daoConfigPolicyEvent.Count(nCtx, opts...)
@@ -46,7 +50,10 @@ func (s *Storage) listConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 		return nil, 0, base.ErrInvalidContext()
 	}
 
-	opts := convertConfigPolicyEventConditionsToOptions(conditions...)
+	opts, err := convertConfigPolicyEventConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(daoConfigPolicyEvent.FieldKeyOperateTime))
@@ -79,11 +86,23 @@ func (s *Storage) distinctConfigPolicyEvent(
 	nCtx contextx.IContext, request types.ConfigPolicyEventDistinctRequest, conditions ...*types.ConfigPolicyEventCondition) (
 	data *types.ConfigPolicyEventDistinctResult, err error) {
 
-	opts := convertConfigPolicyEventConditionsToOptions(conditions...)
+	opts, err := convertConfigPolicyEventConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
 
 	data = new(types.ConfigPolicyEventDistinctResult)
 
 	gp := gopool.NewPool()
+	if request.BizID {
+		gp.Go(func() error {
+			var err error
+			data.BizID, err = s.daoConfigPolicyEvent.DistinctBizID(nCtx, opts...)
+
+			return err
+		})
+	}
+
 	if request.ConfigPolicyType {
 		gp.Go(func() error {
 			var err error
@@ -144,7 +163,7 @@ func (s *Storage) distinctConfigPolicyEvent(
 	return data, nil
 }
 
-func convertConfigPolicyEventConditionsToOptions(conditions ...*types.ConfigPolicyEventCondition) []daoConfigPolicyEvent.OptFn {
+func convertConfigPolicyEventConditionsToOptions(conditions ...*types.ConfigPolicyEventCondition) ([]daoConfigPolicyEvent.OptFn, error) {
 	opts := make([]daoConfigPolicyEvent.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -157,6 +176,7 @@ func convertConfigPolicyEventConditionsToOptions(conditions ...*types.ConfigPoli
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
+				daoConfigPolicyEvent.WithBizID(condition.ExactInclude.BizID...),
 				daoConfigPolicyEvent.WithType(condition.ExactInclude.Type...),
 				daoConfigPolicyEvent.WithVersion(condition.ExactInclude.Version...),
 				daoConfigPolicyEvent.WithConfigPolicyType(condition.ExactInclude.ConfigPolicyType...),
@@ -165,12 +185,7 @@ func convertConfigPolicyEventConditionsToOptions(conditions ...*types.ConfigPoli
 		}
 
 		if condition.ExactExclude != nil {
-			opts = append(opts,
-				daoConfigPolicyEvent.WithType(condition.ExactInclude.Type...),
-				daoConfigPolicyEvent.WithVersion(condition.ExactInclude.Version...),
-				daoConfigPolicyEvent.WithConfigPolicyType(condition.ExactInclude.ConfigPolicyType...),
-				daoConfigPolicyEvent.WithConfigPolicyID(condition.ExactInclude.ConfigPolicyID...),
-			)
+			return nil, errors.New("exact exclude is not supported")
 		}
 
 		if condition.FuzzyInclude != nil {
@@ -181,12 +196,9 @@ func convertConfigPolicyEventConditionsToOptions(conditions ...*types.ConfigPoli
 		}
 
 		if condition.FuzzyExclude != nil {
-			opts = append(opts,
-				daoConfigPolicyEvent.WithConfigPolicyName(condition.FuzzyExclude.ConfigPolicyName...),
-				daoConfigPolicyEvent.WithOperator(condition.FuzzyExclude.Operator...),
-			)
+			return nil, errors.New("fuzzy exclude is not supported")
 		}
 	}
 
-	return opts
+	return opts, nil
 }

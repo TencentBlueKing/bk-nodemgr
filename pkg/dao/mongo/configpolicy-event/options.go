@@ -18,6 +18,11 @@ import (
 // OptFn provides filtering options.
 type OptFn = base.OptFn
 
+// WithBizID provides filtering by business id.
+func WithBizID(bizIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyBizID, bizIDs...)
+}
+
 // WithType provides filtering by event type.
 func WithType(eventType ...types.ConfigPolicyEventType) OptFn {
 	return base.WithValues(FieldKeyType, types.ConfigPolicyEventTypeListToStringList(eventType)...)

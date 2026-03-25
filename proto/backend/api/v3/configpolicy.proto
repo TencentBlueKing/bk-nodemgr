@@ -240,6 +240,7 @@ message ConfigPolicyEventExactConditions {
   repeated string configpolicy_type = 2;
   repeated int64 version = 3;
   repeated string type = 4;
+  repeated int64 bk_biz_id = 5;
 }
 
 // ConfigPolicyEventFuzzyConditions describes the conditions when list event
@@ -299,6 +300,7 @@ message ConfigPolicyEventDistinctResp {
     repeated string type = 4;
     repeated int64 version = 5;
     repeated string operator = 6;
+    repeated int64 bk_biz_id = 7;
   }
   Data data = 5;
 }

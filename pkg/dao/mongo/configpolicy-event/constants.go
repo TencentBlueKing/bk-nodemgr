@@ -14,6 +14,9 @@ const (
 	// FieldKeyEventID defines the field key of event id.
 	FieldKeyEventID = "data.event_id"
 
+	// FieldKeyBizID defines the field key of business id.
+	FieldKeyBizID = "data.biz_id"
+
 	// FieldKeyConfigPolicyID defines the field key of config policy id.
 	FieldKeyConfigPolicyID = "data.configpolicy_id"
 

@@ -278,6 +278,7 @@ message ConfigPolicyEvent {
   optional int64 version = 6;
   optional int64 operate_time = 7;
   optional string operator = 8;
+  optional int64 bk_biz_id = 9;
 }
 
 message TargetVersion {

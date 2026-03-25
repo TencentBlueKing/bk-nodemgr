@@ -938,6 +938,10 @@
         },
         "operator": {
           "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "ConfigPolicyEvent describes the config policy event."
@@ -1022,6 +1026,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },
@@ -1052,6 +1063,13 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },

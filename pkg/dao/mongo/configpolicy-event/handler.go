@@ -37,6 +37,9 @@ type IHandler interface {
 
 // IDistinctor defines the interface for distinctor.
 type IDistinctor interface {
+	// DistinctBizID distincts with field business id.
+	DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error)
+
 	// DistinctEventType distincts with field event type.
 	DistinctEventType(nCtx contextx.IContext, opts ...OptFn) ([]types.ConfigPolicyEventType, error)
 
@@ -175,6 +178,11 @@ func (h *Handler) CreateMany(nCtx contextx.IContext, events ...*types.ConfigPoli
 	return nil
 }
 
+// DistinctBizID returns distinct values of business id field.
+func (h *Handler) DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(nCtx, FieldKeyBizID, opts...)
+}
+
 // DistinctEventType returns distinct values of event type field.
 func (h *Handler) DistinctEventType(nCtx contextx.IContext, opts ...OptFn) ([]types.ConfigPolicyEventType, error) {
 	result, err := h.distinctString(nCtx, FieldKeyType, opts...)
@@ -264,6 +272,7 @@ func (h *Handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptF
 func convertConfigPolicyEventToTypes(event *ConfigPolicyEvent) *types.ConfigPolicyEvent {
 	return &types.ConfigPolicyEvent{
 		TenantID:         event.TenantID,
+		BizID:            event.BizID,
 		Type:             types.ConfigPolicyEventType(event.Type),
 		ConfigPolicyID:   event.ConfigpolicyID,
 		ConfigPolicyName: event.ConfigpolicyName,
@@ -277,6 +286,7 @@ func convertConfigPolicyEventToTypes(event *ConfigPolicyEvent) *types.ConfigPoli
 func convertConfigPolicyEventFromTypes(event *types.ConfigPolicyEvent) *ConfigPolicyEvent {
 	return &ConfigPolicyEvent{
 		TenantID:         event.TenantID,
+		BizID:            event.BizID,
 		Type:             string(event.Type),
 		ConfigpolicyType: string(event.ConfigPolicyType),
 		Version:          event.Version,

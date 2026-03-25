@@ -12,13 +12,13 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -31,18 +31,28 @@ const (
 	initVersion = 1
 
 	minConfigPolicyPriority int64 = 1
+
+	asyncPoolNum  = 10
+	asyncPoolSize = 100
 )
 
 type handler struct {
 	rg                  *gin.RouterGroup
 	storageConfigPolicy configpolicy.IStorage
+	goAsyncPool         goasync.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+	goAsyncPool, _ := goasync.NewHandler(goasync.HandlerOption{
+		PoolNum:               asyncPoolNum,
+		PerPoolSize:           asyncPoolSize,
+		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
+	})
+
 	return &handler{
-		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                  rg.Group("/config"),
 		storageConfigPolicy: capability.StorageConfigPolicy,
+		goAsyncPool:         goAsyncPool,
 	}
 }
 
@@ -159,9 +169,8 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event
-	configPolicy.ID = configPolicyID
-	h.recordCreateEvent(rCtx, types.ConfigPolicyEventTypeCreate, configPolicy)
+	// record event.
+	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeCreate, configPolicyID)
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
 	resp.ConvertConfigPolicyID(configPolicyID)
@@ -186,8 +195,8 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event
-	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeUpdate, configPolicy.ID)
+	// record event.
+	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeUpdate, configPolicy.ID)
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
 	resp.ConvertConfigPolicyID(req.GetConfigpolicyId())
@@ -210,8 +219,8 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event
-	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeEnable, req.GetConfigpolicyId()...)
+	// record event.
+	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeEnable, req.GetConfigpolicyId()...)
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
 
@@ -233,8 +242,8 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event
-	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
+	// record event.
+	h.recordConfigPolicyEventsByPolicyIDs(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
 
@@ -287,7 +296,17 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	//TODO: record event.
+	// record event.
+	// reorder is a biz-level operation, so only biz_id is recorded without specific policy info.
+	reorderEvent := &types.ConfigPolicyEvent{
+		TenantID:         rCtx.TenantID(),
+		BizID:            bizID,
+		Type:             types.ConfigPolicyEventTypeReorderPriorities,
+		ConfigPolicyType: policyType,
+		Operator:         rCtx.BKUsername(),
+		OperateTime:      time.Now(),
+	}
+	h.recordConfigPolicyEvent(rCtx, reorderEvent)
 
 	resp := new(protoBackend.ConfigPolicyPriorityReorderResp)
 
@@ -318,8 +337,8 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// record event
-	h.recordDeleteEvent(rCtx, types.ConfigPolicyEventTypeDelete, configpolicy)
+	// record event.
+	h.recordConfigPolicyEventsByPolicies(rCtx, types.ConfigPolicyEventTypeDelete, configpolicy...)
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
 
@@ -437,86 +456,86 @@ func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface
 	return resp.GetData(), nil
 }
 
-func (h *handler) recordCreateEvent(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, configPolicy *types.ConfigPolicy) {
-	tenantID := rCtx.TenantID()
-
-	go func() {
-		event := &types.ConfigPolicyEvent{
-			TenantID:         tenantID,
-			Type:             eventType,
-			ConfigPolicyID:   configPolicy.ID,
-			ConfigPolicyName: configPolicy.Name,
-			ConfigPolicyType: configPolicy.Type,
-			Version:          int64(configPolicy.Version),
-			OperateTime:      time.Now(),
-			Operator:         configPolicy.Operator,
-		}
-
-		if err := h.storageConfigPolicy.CreateManyConfigPolicyEvent(contextx.New(context.Background(),
-			contextx.WithTenantID(tenantID)), event); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
-		}
-	}()
+// recordConfigPolicyEvent records a single config policy event.
+func (h *handler) recordConfigPolicyEvent(rCtx restserver.IContext, event *types.ConfigPolicyEvent) {
+	err := h.goAsyncPool.Run(
+		rCtx,
+		func(nCtx contextx.IContext) error {
+			return h.storageConfigPolicy.CreateManyConfigPolicyEvent(nCtx, event)
+		},
+		goasync.WithName("record_config_policy_event"),
+	)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to submit policy event recording task")
+	}
 }
 
-func (h *handler) recordDeleteEvent(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, configPolicy []*types.ConfigPolicy) {
-	tenantID := rCtx.TenantID()
+// recordConfigPolicyEventsByPolicies builds events from policies and records them via the goasync pool.
+func (h *handler) recordConfigPolicyEventsByPolicies(
+	rCtx restserver.IContext,
+	eventType types.ConfigPolicyEventType,
+	policies ...*types.ConfigPolicy,
+) {
 
-	go func() {
-		events := make([]*types.ConfigPolicyEvent, len(configPolicy))
-		for idx, cp := range configPolicy {
-			event := &types.ConfigPolicyEvent{
-				TenantID:         tenantID,
-				Type:             eventType,
-				ConfigPolicyID:   cp.ID,
-				ConfigPolicyName: cp.Name,
-				ConfigPolicyType: cp.Type,
-				Version:          int64(cp.Version),
-				OperateTime:      time.Now(),
-				Operator:         cp.Operator,
+	err := h.goAsyncPool.Run(
+		rCtx,
+		func(nCtx contextx.IContext) error {
+			events := make([]*types.ConfigPolicyEvent, len(policies))
+			for i, cp := range policies {
+				events[i] = &types.ConfigPolicyEvent{
+					TenantID:         nCtx.TenantID(),
+					BizID:            cp.BizID,
+					Type:             eventType,
+					ConfigPolicyID:   cp.ID,
+					ConfigPolicyName: cp.Name,
+					ConfigPolicyType: cp.Type,
+					Version:          int64(cp.Version),
+					Operator:         cp.Operator,
+					OperateTime:      time.Now(),
+				}
 			}
-			events[idx] = event
-		}
-		if err := h.storageConfigPolicy.CreateManyConfigPolicyEvent(contextx.New(context.Background(),
-			contextx.WithTenantID(tenantID)), events...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
-		}
-	}()
+
+			return h.storageConfigPolicy.CreateManyConfigPolicyEvent(nCtx, events...)
+		},
+		goasync.WithName("record_config_policy_event_by_policies"),
+	)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to submit policy event recording task")
+	}
 }
-func (h *handler) recordChangesEvent(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, configpolicyID ...int64) {
-	tenantID := rCtx.TenantID()
 
-	go func() {
-		newCtx := contextx.New(contextx.Background(), contextx.WithTenantID(tenantID))
-
-		// get the config policy info.
-		configpolicy, err := h.getConfigPolicy(newCtx, configpolicyID)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to get policy info")
-
-			return
-		}
-
-		events := make([]*types.ConfigPolicyEvent, len(configpolicy))
-		for idx, cp := range configpolicy {
-			event := &types.ConfigPolicyEvent{
-				TenantID:         tenantID,
-				Type:             eventType,
-				ConfigPolicyID:   cp.ID,
-				ConfigPolicyName: cp.Name,
-				ConfigPolicyType: cp.Type,
-				Version:          int64(cp.Version),
-				Operator:         cp.Operator,
-				OperateTime:      time.Now(),
+// recordConfigPolicyEventsByPolicyIDs queries policies by IDs, builds events, and records them via the goasync pool.
+func (h *handler) recordConfigPolicyEventsByPolicyIDs(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, policyIDs ...int64) {
+	err := h.goAsyncPool.Run(
+		rCtx,
+		func(nCtx contextx.IContext) error {
+			policies, err := h.getConfigPolicy(nCtx, policyIDs)
+			if err != nil {
+				return fmt.Errorf("failed to get policy info: %w", err)
 			}
 
-			events[idx] = event
-		}
+			events := make([]*types.ConfigPolicyEvent, len(policies))
+			for i, cp := range policies {
+				events[i] = &types.ConfigPolicyEvent{
+					TenantID:         nCtx.TenantID(),
+					BizID:            cp.BizID,
+					Type:             eventType,
+					ConfigPolicyID:   cp.ID,
+					ConfigPolicyName: cp.Name,
+					ConfigPolicyType: cp.Type,
+					Version:          int64(cp.Version),
+					Operator:         cp.Operator,
+					OperateTime:      time.Now(),
+				}
+			}
 
-		if err := h.storageConfigPolicy.CreateManyConfigPolicyEvent(newCtx, events...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
-		}
-	}()
+			return h.storageConfigPolicy.CreateManyConfigPolicyEvent(nCtx, events...)
+		},
+		goasync.WithName("record_config_policy_event_by_ids"),
+	)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to submit policy event recording task")
+	}
 }
 
 // buildReorderedPolicyIDs returns orderedIDs followed by the remaining IDs in all in their original order.

@@ -612,6 +612,7 @@ func (x *ConfigPolicyEventListResp) ConvertConfigPolicyEventsFromTypes(total int
 	for idx, event := range events {
 		item := newEmptyConfigPolicyEvent()
 		*item.TenantId = event.TenantID
+		*item.BkBizId = event.BizID
 		*item.Type = string(event.Type)
 		*item.ConfigpolicyType = string(event.ConfigPolicyType)
 		*item.ConfigpolicyId = event.ConfigPolicyID
@@ -657,6 +658,7 @@ func convertConfigPolicyEventConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ConfigPolicyEventExactFields{
+			BizID:            exactCond.GetBkBizId(),
 			Type:             eventTypeList,
 			ConfigPolicyType: configPolicyTypeList,
 			Version:          exactCond.GetVersion(),
@@ -695,6 +697,7 @@ func convertConfigPolicyEventConditionsFromTypes(condition *types.ConfigPolicyEv
 
 	if condition.ExactInclude != nil {
 		exactCond = &ConfigPolicyEventExactConditions{
+			BkBizId:          condition.ExactInclude.BizID,
 			Type:             types.ConfigPolicyEventTypeListToStringList(condition.ExactInclude.Type),
 			ConfigpolicyType: types.ConfigPolicyTypeListToStringList(condition.ExactInclude.ConfigPolicyType),
 			Version:          condition.ExactInclude.Version,
@@ -752,6 +755,7 @@ func (x *ConfigPolicyEventDistinctResp) ConvertResultToTypes() (*types.ConfigPol
 	}
 
 	return &types.ConfigPolicyEventDistinctResult{
+		BizID:            data.GetBkBizId(),
 		Type:             eventTypeList,
 		ConfigPolicyID:   data.GetConfigpolicyId(),
 		ConfigPolicyName: data.GetConfigpolicyName(),
@@ -768,6 +772,7 @@ func (x *ConfigPolicyEventDistinctResp) ConvertResultFromTypes(result *types.Con
 	}
 
 	x.Data = &ConfigPolicyEventDistinctResp_Data{
+		BkBizId:          formatRespSlice(result.BizID),
 		Type:             formatRespSlice(types.ConfigPolicyEventTypeListToStringList(result.Type)),
 		ConfigpolicyType: formatRespSlice(types.ConfigPolicyTypeListToStringList(result.ConfigPolicyType)),
 		Version:          formatRespSlice(result.Version),
@@ -780,6 +785,7 @@ func (x *ConfigPolicyEventDistinctResp) ConvertResultFromTypes(result *types.Con
 func newEmptyConfigPolicyEvent() *ConfigPolicyEvent {
 	return &ConfigPolicyEvent{
 		TenantId:         new(string),
+		BkBizId:          new(int64),
 		Type:             new(string),
 		ConfigpolicyType: new(string),
 		ConfigpolicyId:   new(int64),
