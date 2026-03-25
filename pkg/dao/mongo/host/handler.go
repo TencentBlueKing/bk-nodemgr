@@ -664,15 +664,10 @@ func (h *handler) TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int
 	filter := base.AliveFilter()
 	filter = WithHostID(hostIDs...)(filter)
 
-	// Use UpdateMany with $in (via WithHostID) instead of BulkWrite. Do not use
-	// IOrm.UpdateField: buildUpdateField also sets basic.updated_at, which would
-	// conflate CMDB/sync ordering with business operation time.
-	update := bson.D{
-		{Key: "$set", Value: bson.M{FieldKeyOperationUpdatedAt: nowTime}},
-	}
-	_, err := d.GetClient().UpdateMany(nCtx, filter, update)
-
-	return err
+	// UpdateField also sets basic.updated_at and basic.is_deleted=false (ORM
+	// buildUpdateField); business touches therefore refresh the document-wide
+	// updated time as well as operation_updated_at.
+	return d.UpdateField(nCtx, filter, FieldKeyOperationUpdatedAt, nowTime)
 }
 
 // DeleteMany delete many hosts.

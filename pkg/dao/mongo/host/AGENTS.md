@@ -30,13 +30,13 @@ Physical collection name is `TableName(tenantID)` (see `table.go`). Handlers alw
 | `UpsertStaticMany` | `$set` static + `basic.updated_at`; `$setOnInsert` dynamic on insert |
 | `UpdateDynamicMany` | `$set` dynamic + `basic.updated_at` |
 | `UpdateDynamicFields` | Partial dynamic field `$set` + `basic.updated_at` (via field map builder) |
-| `TouchOperationUpdatedAt` | `$set` **only** `data.operation_updated_at` via `Collection.UpdateMany`; does **not** change `basic.updated_at` |
+| `TouchOperationUpdatedAt` | `IOrm.UpdateField` for `FieldKeyOperationUpdatedAt`; `base.buildUpdateField` also sets `basic.updated_at` and `basic.is_deleted=false` |
 
 ### Business operation timestamp (`operation_updated_at`)
 
 - Stored at `data.operation_updated_at` (`FieldKeyOperationUpdatedAt`). DAO `Host` uses `*time.Time` with `omitempty`; `types.Host` uses `time.Time` (zero = unset).
 - **Call `TouchOperationUpdatedAt` from user/API or explicit workflow paths** when a business operation should move the host ahead in “recently operated” list ordering. Do **not** call it from CMDB static sync or agent sync jobs.
-- Implementation uses `AliveFilter()` + `WithHostID(...)` and a single `UpdateMany` (multi-ID uses `$in`). This intentionally avoids `IOrm.UpdateField`, because `base.buildUpdateField` also sets `basic.updated_at` and would mix sync-time ordering with business ordering.
+- Implementation uses `AliveFilter()` + `WithHostID(...)` (multi-ID → `$in`) and `UpdateField`, so metrics/logging follow the shared ORM path. List ordering still prefers `operation_updated_at`; `basic.updated_at` is refreshed together with the touch.
 
 ### Indexes
 
@@ -48,7 +48,6 @@ List/count/exist use `OptFn` over `base.AliveFilter()`. Pagination and sort stri
 
 ## ANTI-PATTERNS
 
-- Do not use `IOrm.UpdateField` to implement “touch business operation time only” — it refreshes `basic.updated_at`.
 - Do not assume `UpsertMany` merges nested fields: `BuildUpsertParam` replaces the whole `data` document; omitting optional fields can drop existing keys (see package design docs for CMDB vs full upsert call sites).
 - Do not bypass `IHandler` to open arbitrary collections — tenant and table naming must stay consistent.
 - Do not pass raw `context.Context` where `contextx.IContext` is required (tenant checks).
