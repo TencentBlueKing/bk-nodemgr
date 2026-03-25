@@ -63,6 +63,11 @@ type IDaoConfigPolicyNode interface {
 		bizID, networkAreaID, networkUnitID int64,
 		osType criteria.OSType, cpuArch criteria.CPUArch,
 		nodeRole types.NodeRole, hostID int64) (*types.ConfigPolicyMatchResult, error)
+
+	// PreviewConfigPolicy previews the merged config for each host by matching enabled policies.
+	PreviewConfigPolicy(nCtx contextx.IContext,
+		bizID int64, policyType types.ConfigPolicyType,
+		hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error)
 }
 
 // IDaoConfigPolicyEvent defines the interface for policy event.

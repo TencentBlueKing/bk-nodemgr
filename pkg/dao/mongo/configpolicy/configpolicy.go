@@ -221,7 +221,6 @@ func buildEnableManyParams(tenantID string, seqBase int64, configPolicyIDs ...in
 
 	return models
 }
-
 func buildUpdatePriorityManyParams(tenantID string, priorities map[int64]int64) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0, len(priorities))
 

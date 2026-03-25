@@ -72,7 +72,17 @@ type IHandlerConfigPolicy interface {
 	// @param policyType the config policy type scope.
 	// @param orderedPolicyIDs ordered config policy ids to assign priority 1..N;
 	//        unlisted enabled policies preserve relative order from N+1.
-	ReorderPrioritiesConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType, orderedPolicyIDs []int64) error
+	ReorderPrioritiesConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType,
+		orderedPolicyIDs []int64) error
+
+	// PreviewConfigPolicy previews the merged config for each host.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param bizID the business id.
+	// @param policyType the config policy type.
+	// @param hosts the preview host entries.
+	// @return the preview result and error.
+	PreviewConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType,
+		hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error)
 }
 
 // ListConfigPolicy lists config policy.
@@ -189,11 +199,24 @@ func (h *Handler) DeleteConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...
 	return nil
 }
 
+// PreviewConfigPolicy previews the merged config for each host.
+func (h *Handler) PreviewConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType,
+	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
+
+	req := new(protoBackend.ConfigPolicyPreviewReq)
+	req.ConvertFromTypes(bizID, policyType, hosts)
+
+	resp, err := h.cli.previewConfigPolicy(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertMatchResultsToTypes(), nil
+}
+
 // ReorderPrioritiesConfigPolicy reorders config policy priorities within a (biz, type) scope.
-func (h *Handler) ReorderPrioritiesConfigPolicy(nCtx contextx.IContext,
-	bizID int64,
-	policyType types.ConfigPolicyType,
-	orderedPolicyIDs []int64) error {
+func (h *Handler) ReorderPrioritiesConfigPolicy(nCtx contextx.IContext, bizID int64,
+	policyType types.ConfigPolicyType, orderedPolicyIDs []int64) error {
 
 	req := &protoBackend.ConfigPolicyPriorityReorderReq{
 		BizId:                 bizID,

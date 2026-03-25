@@ -53,10 +53,12 @@ func (s *Storage) matchConfigPolicyNode(nCtx contextx.IContext,
 		return &types.ConfigPolicyMatchResult{}, nil
 	}
 
-	return buildMatchResult(results), nil
+	result := buildMatchResult(hostID, results)
+
+	return &result, nil
 }
 
-func buildMatchResult(policies []*types.ConfigPolicy) *types.ConfigPolicyMatchResult {
+func buildMatchResult(hostID int64, policies []*types.ConfigPolicy) types.ConfigPolicyMatchResult {
 	matched := conv.SliceToSlice(policies, func(p *types.ConfigPolicy) types.ConfigPolicyMatchedPolicy {
 		return types.ConfigPolicyMatchedPolicy{
 			PolicyID:   p.ID,
@@ -70,7 +72,8 @@ func buildMatchResult(policies []*types.ConfigPolicy) *types.ConfigPolicyMatchRe
 		merged = deepMergeConfig(merged, p.Configs)
 	}
 
-	return &types.ConfigPolicyMatchResult{
+	return types.ConfigPolicyMatchResult{
+		HostID:          hostID,
 		MatchedPolicies: matched,
 		MergedConfig:    merged,
 	}
@@ -217,4 +220,116 @@ func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCon
 	}
 
 	return opts, nil
+}
+
+// scopeConstraints tracks whether any enabled policy has non-wildcard scope constraints.
+type scopeConstraints struct {
+	HasSpecificOS   bool
+	HasSpecificArch bool
+	HasSpecificUnit bool
+	HasSpecificArea bool
+}
+
+// previewConfigPolicy queries all enabled policies once and filters per host in memory.
+func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
+	bizID int64, policyType types.ConfigPolicyType,
+	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
+
+	// list all enabled policies for this biz+type, sorted by priority DESC.
+	page := types.UnlimitedPage()
+	page.Sort = types.WithFieldDesc(configpolicy.FieldKeyPriority)
+	opts := []configpolicy.OptFn{
+		configpolicy.WithBizID(bizID),
+		configpolicy.WithConfigPolicyType(policyType),
+		configpolicy.WithEnabled(true),
+	}
+	allPolicies, _, err := s.daoConfigPolicy.List(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all enabled policies: %w", err)
+	}
+	constraints := collectScopeConstraints(allPolicies)
+
+	result := &types.ConfigPolicyPreviewResult{}
+	for _, host := range hosts {
+		policies := findMatchedPolicies(allPolicies, host)
+		matchResult := buildMatchResult(host.HostID, policies)
+
+		if isPreviewReliable(host, constraints) {
+			result.ReliableResults = append(result.ReliableResults, matchResult)
+		} else {
+			result.UnreliableResults = append(result.UnreliableResults, matchResult)
+		}
+	}
+
+	return result, nil
+}
+
+func collectScopeConstraints(policies []*types.ConfigPolicy) scopeConstraints {
+	var sc scopeConstraints
+	for _, p := range policies {
+		for _, scope := range p.Scopes {
+			if scope.NodeOsType != types.ConfigPolicyScopeAnyOSType {
+				sc.HasSpecificOS = true
+			}
+			if scope.NodeCPUArch != types.ConfigPolicyScopeAnyCPUArch {
+				sc.HasSpecificArch = true
+			}
+			if scope.NetworkUnitID != types.ConfigPolicyScopeAnyID {
+				sc.HasSpecificUnit = true
+			}
+			if scope.NetworkAreaID != types.ConfigPolicyScopeAnyID {
+				sc.HasSpecificArea = true
+			}
+		}
+	}
+
+	return sc
+}
+
+func findMatchedPolicies(policies []*types.ConfigPolicy, host types.ConfigPolicyPreviewHost) []*types.ConfigPolicy {
+	matched := make([]*types.ConfigPolicy, 0, len(policies))
+	for _, p := range policies {
+		if !isPolicyMatched(p, host) {
+			continue
+		}
+		matched = append(matched, p)
+	}
+
+	return matched
+}
+
+func isPolicyMatched(policy *types.ConfigPolicy, host types.ConfigPolicyPreviewHost) bool {
+	for _, id := range policy.TargetHostIDs {
+		if id == host.HostID {
+			return true
+		}
+	}
+	for _, s := range policy.Scopes {
+		if (s.NetworkAreaID == types.ConfigPolicyScopeAnyID || s.NetworkAreaID == host.NetworkAreaID) &&
+			(s.NetworkUnitID == types.ConfigPolicyScopeAnyID || s.NetworkUnitID == host.NetworkUnitID) &&
+			(s.NodeOsType == types.ConfigPolicyScopeAnyOSType || s.NodeOsType == host.OSType) &&
+			(s.NodeCPUArch == types.ConfigPolicyScopeAnyCPUArch || s.NodeCPUArch == host.CPUArch) {
+
+			return true
+		}
+	}
+
+	return false
+}
+
+func isPreviewReliable(host types.ConfigPolicyPreviewHost, sc scopeConstraints) bool {
+	if host.OSType == "" && sc.HasSpecificOS {
+		return false
+	}
+	if host.CPUArch == "" && sc.HasSpecificArch {
+		return false
+	}
+	if host.NetworkUnitID == -1 && sc.HasSpecificUnit {
+		return false
+	}
+	if host.NetworkAreaID == -1 && sc.HasSpecificArea {
+		return false
+	}
+
+	return true
 }

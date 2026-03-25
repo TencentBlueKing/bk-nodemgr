@@ -510,8 +510,7 @@ func (x *ConfigPolicyPriorityReorderReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *ConfigPolicyPriorityReorderReq) AutoConvert() {
-}
+func (x *ConfigPolicyPriorityReorderReq) AutoConvert() {}
 
 func newEmptyConfigPolicyScope() *ConfigPolicyScope {
 	return &ConfigPolicyScope{
@@ -520,4 +519,173 @@ func newEmptyConfigPolicyScope() *ConfigPolicyScope {
 		OsType:          new(string),
 		CpuArch:         new(string),
 	}
+}
+
+// Validate check body.
+func (x *ConfigPolicyPreviewReq) Validate() error {
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz_id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetPolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid policy_type: %w", err)
+	}
+
+	if len(x.GetHosts()) == 0 {
+		return fmt.Errorf("hosts is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ConfigPolicyPreviewReq) AutoConvert() {
+	for _, host := range x.GetHosts() {
+		if host.HostId == nil {
+			host.HostId = new(int64)
+			*host.HostId = -1
+		}
+		if host.NetworkUnitId == nil {
+			host.NetworkUnitId = new(int64)
+			*host.NetworkUnitId = types.ConfigPolicyScopeAnyID
+		}
+		if host.NetworkAreaId == nil {
+			host.NetworkAreaId = new(int64)
+			*host.NetworkAreaId = types.ConfigPolicyScopeAnyID
+		}
+	}
+}
+
+// ConvertFromTypes populates the preview request from types values.
+func (x *ConfigPolicyPreviewReq) ConvertFromTypes(
+	bizID int64, policyType types.ConfigPolicyType, hosts []types.ConfigPolicyPreviewHost) {
+
+	x.BizId = bizID
+	x.PolicyType = string(policyType)
+
+	protoHosts := make([]*PreviewHost, len(hosts))
+	for i, host := range hosts {
+		protoHosts[i] = &PreviewHost{
+			HostId:        &host.HostID,
+			OsType:        string(host.OSType),
+			CpuArch:       string(host.CPUArch),
+			NetworkUnitId: &host.NetworkUnitID,
+			NetworkAreaId: &host.NetworkAreaID,
+		}
+	}
+	x.Hosts = protoHosts
+}
+
+// ConvertPreviewHostsToTypes converts proto PreviewHost slice to types.
+func (x *ConfigPolicyPreviewReq) ConvertPreviewHostsToTypes() []types.ConfigPolicyPreviewHost {
+	hosts := make([]types.ConfigPolicyPreviewHost, len(x.GetHosts()))
+	for i, rh := range x.GetHosts() {
+		hosts[i] = types.ConfigPolicyPreviewHost{
+			HostID:        rh.GetHostId(),
+			NetworkAreaID: rh.GetNetworkAreaId(),
+			NetworkUnitID: rh.GetNetworkUnitId(),
+			OSType:        criteria.OSType(rh.GetOsType()),
+			CPUArch:       criteria.CPUArch(rh.GetCpuArch()),
+		}
+	}
+	return hosts
+}
+
+// ConvertMatchResultsFromTypes converts types.ConfigPolicyPreviewResult into response data.
+func (x *ConfigPolicyPreviewResp) ConvertMatchResultsFromTypes(result *types.ConfigPolicyPreviewResult) {
+	if result == nil {
+		return
+	}
+
+	data := &ConfigPolicyPreviewResp_Data{
+		ReliableItems:   convertPreviewMatchResults(result.ReliableResults),
+		UnreliableItems: convertPreviewMatchResults(result.UnreliableResults),
+	}
+
+	x.Data = data
+}
+
+// ConvertMatchResultsToTypes converts response data into types.ConfigPolicyPreviewResult.
+func (x *ConfigPolicyPreviewResp) ConvertMatchResultsToTypes() *types.ConfigPolicyPreviewResult {
+	data := x.GetData()
+	if data == nil {
+		return &types.ConfigPolicyPreviewResult{}
+	}
+
+	result := &types.ConfigPolicyPreviewResult{
+		ReliableResults:   convertPreviewItemsToMatchResults(data.GetReliableItems()),
+		UnreliableResults: convertPreviewItemsToMatchResults(data.GetUnreliableItems()),
+	}
+
+	return result
+}
+
+func convertPreviewMatchResults(results []types.ConfigPolicyMatchResult) []*ConfigPolicyPreviewResp_PreviewItem {
+	items := make([]*ConfigPolicyPreviewResp_PreviewItem, len(results))
+	for i, result := range results {
+		matchedPolicies := make([]*ConfigPolicyPreviewResp_MatchedPolicy, len(result.MatchedPolicies))
+		for j, matchedPolicy := range result.MatchedPolicies {
+			matchedPolicies[j] = &ConfigPolicyPreviewResp_MatchedPolicy{
+				ConfigpolicyId:   matchedPolicy.PolicyID,
+				ConfigpolicyName: matchedPolicy.PolicyName,
+				Priority:         matchedPolicy.Priority,
+			}
+		}
+
+		configsString, configsInt, configsBool := convertConfigPolicyConfigsFromTypes(result.MergedConfig)
+		items[i] = &ConfigPolicyPreviewResp_PreviewItem{
+			HostId:              result.HostID,
+			MatchedPolicies:     matchedPolicies,
+			MergedConfigsString: configsString,
+			MergedConfigsInt:    configsInt,
+			MergedConfigsBool:   configsBool,
+		}
+	}
+
+	return items
+}
+
+func convertPreviewItemsToMatchResults(items []*ConfigPolicyPreviewResp_PreviewItem) []types.ConfigPolicyMatchResult {
+	results := make([]types.ConfigPolicyMatchResult, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+
+		matchedPolicies := make([]types.ConfigPolicyMatchedPolicy, 0, len(item.GetMatchedPolicies()))
+		for _, matchedPolicy := range item.GetMatchedPolicies() {
+			if matchedPolicy == nil {
+				continue
+			}
+
+			matchedPolicies = append(matchedPolicies, types.ConfigPolicyMatchedPolicy{
+				PolicyID:   matchedPolicy.GetConfigpolicyId(),
+				PolicyName: matchedPolicy.GetConfigpolicyName(),
+				Priority:   matchedPolicy.GetPriority(),
+			})
+		}
+
+		results = append(results, types.ConfigPolicyMatchResult{
+			HostID:          item.GetHostId(),
+			MatchedPolicies: matchedPolicies,
+			MergedConfig:    mergeMapsFromProto(item),
+		})
+	}
+
+	return results
+}
+
+func mergeMapsFromProto(item *ConfigPolicyPreviewResp_PreviewItem) map[string]any {
+	mergedConfig := make(map[string]any)
+	for key, value := range item.GetMergedConfigsString() {
+		mergedConfig[key] = value
+	}
+	for key, value := range item.GetMergedConfigsInt() {
+		mergedConfig[key] = value
+	}
+	for key, value := range item.GetMergedConfigsBool() {
+		mergedConfig[key] = value
+	}
+
+	return mergedConfig
 }

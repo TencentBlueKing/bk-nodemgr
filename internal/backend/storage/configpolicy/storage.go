@@ -35,6 +35,7 @@ const (
 	metricOperationGetConfigPolicy               = "get"
 	metricOperationCreateConfigPolicy            = "create"
 	metricOperationUpdateConfigPolicy            = "update"
+	metricOperationPreviewConfigPolicy           = "preview"
 	metricOperationDeleteManyConfigPolicy        = "delete_many"
 	metricOperationEnableManyConfigPolicy        = "enable_many"
 	metricOperationDisableManyConfigPolicy       = "disable_many"
@@ -221,6 +222,23 @@ func (s *Storage) UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorit
 
 		return err
 	})
+}
+
+// PreviewConfigPolicy previews the merged config for each host.
+func (s *Storage) PreviewConfigPolicy(nCtx contextx.IContext,
+	bizID int64, policyType types.ConfigPolicyType,
+	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
+
+	var result *types.ConfigPolicyPreviewResult
+
+	err := s.WrapFn(nCtx, metricOperationPreviewConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.previewConfigPolicy(nCtx, bizID, policyType, hosts)
+
+		return err
+	})
+
+	return result, err
 }
 
 // CountConfigPolicyEvent counts policy events.

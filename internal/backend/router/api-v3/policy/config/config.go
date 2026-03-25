@@ -34,15 +34,15 @@ const (
 )
 
 type handler struct {
-	rg      *gin.RouterGroup
-	storage configpolicy.IStorage
+	rg                  *gin.RouterGroup
+	storageConfigPolicy configpolicy.IStorage
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/config"),
-		storage: capability.StorageConfigPolicy,
+		rg:                  rg.Group("/config"),
+		storageConfigPolicy: capability.StorageConfigPolicy,
 	}
 }
 
@@ -58,6 +58,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/disable", restserver.Handler(h.DisableConfigPolicy))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteConfigPolicy))
 	h.rg.POST("/reorder_priorities", restserver.Handler(h.ReorderPrioritiesConfigPolicy))
+	h.rg.POST("/preview", restserver.Handler(h.PreviewConfigPolicy))
 
 	// package event apis.
 	h.rg.POST("/event/list", restserver.Handler(h.ListConfigPolicyEvent))
@@ -81,7 +82,7 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 	}
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountConfigPolicy(
+		num, err := h.storageConfigPolicy.CountConfigPolicy(
 			rCtx,
 			conditions)
 		if err != nil {
@@ -103,7 +104,7 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.storage.ListConfigPolicy(rCtx, page, conditions)
+	hosts, num, err := h.storageConfigPolicy.ListConfigPolicy(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy")
 
@@ -126,7 +127,7 @@ func (h *handler) GetConfigPolicy(rCtx restserver.IContext) (interface{}, error)
 	}
 
 	// get config policy.
-	configPolicy, err := h.storage.GetConfigPolicy(rCtx, req.GetConfigpolicyId())
+	configPolicy, err := h.storageConfigPolicy.GetConfigPolicy(rCtx, req.GetConfigpolicyId())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy")
 
@@ -151,7 +152,7 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	configPolicy := req.ConvertConfigPolicyToTypes()
 	configPolicy.TenantID = rCtx.TenantID()
 	configPolicy.Version = initVersion
-	configPolicyID, err := h.storage.CreateConfigPolicy(rCtx, configPolicy)
+	configPolicyID, err := h.storageConfigPolicy.CreateConfigPolicy(rCtx, configPolicy)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create config policy")
 
@@ -179,7 +180,7 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
 	configPolicy.TenantID = rCtx.TenantID()
-	if err := h.storage.UpdateConfigPolicy(rCtx, configPolicy); err != nil {
+	if err := h.storageConfigPolicy.UpdateConfigPolicy(rCtx, configPolicy); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -203,7 +204,7 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	if err := h.storage.EnableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
+	if err := h.storageConfigPolicy.EnableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -226,7 +227,7 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	if err := h.storage.DisableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
+	if err := h.storageConfigPolicy.DisableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -254,7 +255,7 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 	orderedPolicyIDs := req.GetOrderedConfigpolicyId()
 
 	// list all enabled config policies for this (biz, type) scope, ordered by priority ascending.
-	all, _, err := h.storage.ListConfigPolicy(rCtx, types.UnlimitedPage(), &types.ConfigPolicyCondition{
+	all, _, err := h.storageConfigPolicy.ListConfigPolicy(rCtx, types.UnlimitedPage(), &types.ConfigPolicyCondition{
 		ExactInclude: &types.ConfigPolicyExactFields{
 			BizID:   []int64{bizID},
 			Type:    []types.ConfigPolicyType{policyType},
@@ -280,7 +281,7 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 	priorities := assignPolicyPriorities(sortedIDs)
 
 	// update priorities.
-	if err := h.storage.UpdatePriorityManyConfigPolicy(rCtx, priorities); err != nil {
+	if err := h.storageConfigPolicy.UpdatePriorityManyConfigPolicy(rCtx, priorities); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -311,7 +312,7 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// delete the config policy.
-	if err := h.storage.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
+	if err := h.storageConfigPolicy.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
@@ -321,6 +322,31 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	h.recordDeleteEvent(rCtx, types.ConfigPolicyEventTypeDelete, configpolicy)
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// PreviewConfigPolicy previews the merged config for each host.
+func (h *handler) PreviewConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.ConfigPolicyPreviewReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to preview config policy, failed to decode request body")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	policyType := types.ConfigPolicyType(req.GetPolicyType())
+	previewHosts := req.ConvertPreviewHostsToTypes()
+
+	results, err := h.storageConfigPolicy.PreviewConfigPolicy(rCtx, req.GetBizId(), policyType, previewHosts)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to preview config policy")
+
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.ConfigPolicyPreviewResp)
+	resp.ConvertMatchResultsFromTypes(results)
 
 	return resp.GetData(), nil
 }
@@ -343,7 +369,7 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountConfigPolicyEvent(
+		num, err := h.storageConfigPolicy.CountConfigPolicyEvent(
 			rCtx,
 		)
 		if err != nil {
@@ -365,7 +391,7 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	events, num, err := h.storage.ListConfigPolicyEvent(rCtx, page, conditions)
+	events, num, err := h.storageConfigPolicy.ListConfigPolicyEvent(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event")
 
@@ -395,7 +421,7 @@ func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	result, err := h.storage.DistinctConfigPolicyEvent(
+	result, err := h.storageConfigPolicy.DistinctConfigPolicyEvent(
 		rCtx,
 		types.NewConfigPolicyEventDistinctRequestAllSet(),
 		conditions)
@@ -426,7 +452,8 @@ func (h *handler) recordCreateEvent(rCtx restserver.IContext, eventType types.Co
 			Operator:         configPolicy.Operator,
 		}
 
-		if err := h.storage.CreateManyConfigPolicyEvent(contextx.New(context.Background(), contextx.WithTenantID(tenantID)), event); err != nil {
+		if err := h.storageConfigPolicy.CreateManyConfigPolicyEvent(contextx.New(context.Background(),
+			contextx.WithTenantID(tenantID)), event); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
 		}
 	}()
@@ -450,7 +477,8 @@ func (h *handler) recordDeleteEvent(rCtx restserver.IContext, eventType types.Co
 			}
 			events[idx] = event
 		}
-		if err := h.storage.CreateManyConfigPolicyEvent(contextx.New(context.Background(), contextx.WithTenantID(tenantID)), events...); err != nil {
+		if err := h.storageConfigPolicy.CreateManyConfigPolicyEvent(contextx.New(context.Background(),
+			contextx.WithTenantID(tenantID)), events...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
 		}
 	}()
@@ -485,7 +513,7 @@ func (h *handler) recordChangesEvent(rCtx restserver.IContext, eventType types.C
 			events[idx] = event
 		}
 
-		if err := h.storage.CreateManyConfigPolicyEvent(newCtx, events...); err != nil {
+		if err := h.storageConfigPolicy.CreateManyConfigPolicyEvent(newCtx, events...); err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
 		}
 	}()
@@ -541,7 +569,7 @@ func assignPolicyPriorities(ids []int64) map[int64]int64 {
 
 func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64) ([]*types.ConfigPolicy, error) {
 	// get the config policy info.
-	configpolicies, _, err := h.storage.ListConfigPolicy(nCtx, types.UnlimitedPage(),
+	configpolicies, _, err := h.storageConfigPolicy.ListConfigPolicy(nCtx, types.UnlimitedPage(),
 		&types.ConfigPolicyCondition{
 			ExactInclude: &types.ConfigPolicyExactFields{
 				ConfigPolicyID: configpolicyID,

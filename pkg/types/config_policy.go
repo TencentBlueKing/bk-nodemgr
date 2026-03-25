@@ -42,11 +42,26 @@ type ConfigPolicyMatchedPolicy struct {
 	Priority   int64
 }
 
-// ConfigPolicyMatchResult describes the result of matching and merging
-// multiple config policies for a single node.
+// ConfigPolicyMatchResult holds the match result.
 type ConfigPolicyMatchResult struct {
+	HostID          int64
 	MatchedPolicies []ConfigPolicyMatchedPolicy
 	MergedConfig    map[string]any
+}
+
+// ConfigPolicyPreviewResult holds the preview results.
+type ConfigPolicyPreviewResult struct {
+	ReliableResults   []ConfigPolicyMatchResult
+	UnreliableResults []ConfigPolicyMatchResult
+}
+
+// ConfigPolicyPreviewHost carries resolved host attributes for preview matching.
+type ConfigPolicyPreviewHost struct {
+	HostID        int64
+	NetworkAreaID int64
+	NetworkUnitID int64
+	OSType        criteria.OSType
+	CPUArch       criteria.CPUArch
 }
 
 // ConfigPolicyScope defines the config policy scope.
@@ -56,6 +71,17 @@ type ConfigPolicyScope struct {
 	NodeOsType    criteria.OSType
 	NodeCPUArch   criteria.CPUArch
 }
+
+const (
+	// ConfigPolicyScopeAnyID indicates a scope dimension matches any network area or unit.
+	ConfigPolicyScopeAnyID int64 = -1
+
+	// ConfigPolicyScopeAnyOSType indicates a scope matches any OS type.
+	ConfigPolicyScopeAnyOSType criteria.OSType = ""
+
+	// ConfigPolicyScopeAnyCPUArch indicates a scope matches any CPU architecture.
+	ConfigPolicyScopeAnyCPUArch criteria.CPUArch = ""
+)
 
 // ConfigPolicyTemplate defines the config policy template.
 type ConfigPolicyTemplate struct {

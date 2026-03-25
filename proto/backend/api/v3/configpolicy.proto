@@ -187,6 +187,53 @@ message ConfigPolicyPriorityReorderResp {
   Data data = 5;
 }
 
+
+message PreviewHost {
+  optional int64 host_id = 1;
+  string os_type = 2;
+  string cpu_arch = 3;
+  optional int64 network_unit_id = 4;
+  optional int64 network_area_id = 5;
+}
+
+// ConfigPolicyPreviewReq describes HTTP request body for previewing merged
+// config result by host list.
+message ConfigPolicyPreviewReq {
+  int64 biz_id = 1;
+  string policy_type = 2;
+  repeated PreviewHost hosts = 3;
+}
+
+// ConfigPolicyPreviewResp describes HTTP response body for preview result.
+message ConfigPolicyPreviewResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message MatchedPolicy {
+    int64 configpolicy_id = 1;
+    string configpolicy_name = 2;
+    int64 priority = 3;
+  }
+
+  message PreviewItem {
+    int64 host_id = 1;
+    repeated MatchedPolicy matched_policies = 2;
+    map<string, string> merged_configs_string = 3;
+    map<string, int64> merged_configs_int = 4;
+    map<string, bool> merged_configs_bool = 5;
+  }
+
+  message Data {
+    repeated PreviewItem reliable_items = 1;
+    repeated PreviewItem unreliable_items = 2;
+  }
+
+  Data data = 5;
+}
+
 // ConfigPolicyEventExactConditions describes the conditions when list event
 message ConfigPolicyEventExactConditions {
   repeated int64 configpolicy_id = 1;
@@ -324,6 +371,15 @@ service ConfigPolicyAPI {
       returns (ConfigPolicyPriorityReorderResp) {
     option (google.api.http) = {
       post : "/api/v3/policy/config/reorder_priorities"
+      body : "*"
+    };
+  }
+
+  // ConfigPolicyPreview previews merged config for selected hosts.
+  rpc ConfigPolicyPreview(ConfigPolicyPreviewReq)
+      returns (ConfigPolicyPreviewResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/preview"
       body : "*"
     };
   }
