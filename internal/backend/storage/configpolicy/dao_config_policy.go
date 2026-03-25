@@ -153,7 +153,7 @@ func (s *Storage) deleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs
 	return nil
 }
 
-// enableManyConfigPolicy enables the config policies.
+// enableManyConfigPolicy enables the config policies and reassigns global priorities.
 func (s *Storage) enableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	var err error
 
@@ -164,11 +164,22 @@ func (s *Storage) enableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs
 	return nil
 }
 
-// disableManyConfigPolicy disables the config policies.
+// disableManyConfigPolicy disables the config policies and clears their priorities.
 func (s *Storage) disableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	var err error
 
 	if err = s.daoConfigPolicy.DisableMany(nCtx, configPolicyIDs...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updatePriorityManyConfigPolicy batch-updates the priority field for the given policy IDs.
+func (s *Storage) updatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) error {
+	var err error
+
+	if err = s.daoConfigPolicy.UpdatePriorityMany(nCtx, priorities); err != nil {
 		return err
 	}
 

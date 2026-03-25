@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -510,6 +511,27 @@ func newEmptyConfigPolicyConfigBlock() *ConfigPolicyConfigBlock {
 		TitleZh: new(string),
 		Items:   make([]*ConfigPolicyConfigItem, 0),
 	}
+}
+
+// Validate check body.
+func (x *ConfigPolicyPriorityReorderReq) Validate() error {
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz_id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid configpolicy_type: %w", err)
+	}
+
+	if ids := x.GetOrderedConfigpolicyId(); len(conv.SliceUnique(ids)) != len(ids) {
+		return fmt.Errorf("duplicated ordered_configpolicy_id")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ConfigPolicyPriorityReorderReq) AutoConvert() {
 }
 
 func newEmptyConfigPolicyConfigItem() *ConfigPolicyConfigItem {

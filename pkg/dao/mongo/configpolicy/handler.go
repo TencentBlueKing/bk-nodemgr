@@ -47,6 +47,9 @@ type IHandler interface {
 
 	// DisableMany disables config policies by ids.
 	DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
+
+	// UpdatePriorityMany batch-updates the priority field for the given policy IDs.
+	UpdatePriorityMany(nCtx contextx.IContext, priorities map[int64]int64) error
 }
 
 type handler struct {
@@ -223,33 +226,62 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) e
 }
 
 // EnableMany enables config policies by ids.
+// NOTE: enable and priority reassignment are two separate DB operations; not atomic.
 func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
-	tenantID := nCtx.TenantID()
-
 	if len(configPolicyIDs) == 0 {
 		return base.ErrEmptyParamData()
 	}
 
-	return h.tenantDao(tenantID).setEnabledMany(nCtx, tenantID, true, configPolicyIDs...)
+	tenantID := nCtx.TenantID()
+	d := h.tenantDao(tenantID)
+
+	if err := d.setEnabledMany(nCtx, tenantID, true, configPolicyIDs...); err != nil {
+		return err
+	}
+
+	return d.reassignPriorities(nCtx, tenantID, configPolicyIDs...)
 }
 
-// DisableMany disables config policies by ids.
+// DisableMany disables config policies by ids and clears their priorities.
+// NOTE: disable and priority clearing are two separate DB operations; not atomic.
 func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
-	tenantID := nCtx.TenantID()
-
 	if len(configPolicyIDs) == 0 {
 		return base.ErrEmptyParamData()
 	}
 
-	return h.tenantDao(tenantID).setEnabledMany(nCtx, tenantID, false, configPolicyIDs...)
+	tenantID := nCtx.TenantID()
+	d := h.tenantDao(tenantID)
+
+	if err := d.setEnabledMany(nCtx, tenantID, false, configPolicyIDs...); err != nil {
+		return err
+	}
+
+	priorities := make(map[int64]int64, len(configPolicyIDs))
+	for _, id := range configPolicyIDs {
+		priorities[id] = types.ConfigPolicyPriorityDisabled
+	}
+
+	return d.updatePriorityMany(nCtx, tenantID, priorities)
+}
+
+// UpdatePriorityMany batch-updates the priority field for the given policy IDs.
+func (h *handler) UpdatePriorityMany(nCtx contextx.IContext, priorities map[int64]int64) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	d := h.tenantDao(tenantID)
+
+	return d.updatePriorityMany(nCtx, tenantID, priorities)
 }
 
 func convertConfigPolicyToTypes(cp *ConfigPolicy) *types.ConfigPolicy {

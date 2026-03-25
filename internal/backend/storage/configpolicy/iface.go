@@ -51,6 +51,9 @@ type IDaoConfigPolicy interface {
 
 	// DisableManyConfigPolicy disables the config policies.
 	DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+
+	// UpdatePriorityManyConfigPolicy batch-updates the priority field for the given policy IDs.
+	UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) error
 }
 
 // IDaoConfigPolicyNode defines the interface for config policy node.

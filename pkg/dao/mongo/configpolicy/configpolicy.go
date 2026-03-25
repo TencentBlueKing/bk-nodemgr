@@ -127,7 +127,32 @@ func (d *dao) setEnabledMany(nCtx contextx.IContext, tenantID string, enabled bo
 	return d.UpdateField(nCtx, filter, FieldKeyEnabled, enabled)
 }
 
-// buildUpdateManyParams build update many params.
+func (d *dao) reassignPriorities(nCtx contextx.IContext, tenantID string, configPolicyIDs ...int64) error {
+	priorities := make(map[int64]int64, len(configPolicyIDs))
+	for _, id := range configPolicyIDs {
+		seq, err := d.counter.Generate(nCtx, counterKeyPriority)
+		if err != nil {
+			return err
+		}
+
+		priorities[id] = seq + 1
+	}
+
+	return d.updatePriorityMany(nCtx, tenantID, priorities)
+}
+
+func (d *dao) updatePriorityMany(nCtx contextx.IContext, tenantID string, priorities map[int64]int64) error {
+	if len(priorities) == 0 {
+		return nil
+	}
+
+	models := buildUpdatePriorityManyParams(tenantID, priorities)
+
+	_, err := d.client.BulkWrite(nCtx, models)
+
+	return err
+}
+
 func buildUpdateManyParams(tenantID string, configPolicies []*ConfigPolicy) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 
@@ -152,6 +177,29 @@ func buildUpdateManyParams(tenantID string, configPolicies []*ConfigPolicy) []mo
 					FieldKeyVersion: 1,
 				},
 			},
+		}
+
+		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
+	}
+
+	return models
+}
+
+func buildUpdatePriorityManyParams(tenantID string, priorities map[int64]int64) []mongo.WriteModel {
+	models := make([]mongo.WriteModel, 0, len(priorities))
+
+	for id, priority := range priorities {
+		filter := append(base.AliveFilter(),
+			bson.E{Key: FieldKeyConfigPolicyID, Value: id},
+			bson.E{Key: FieldKeyTenantID, Value: tenantID})
+
+		nowTime := time.Now()
+		update := bson.D{
+			{Key: "$set", Value: bson.M{
+				"basic.is_deleted": false,
+				"basic.updated_at": nowTime,
+				FieldKeyPriority:   priority,
+			}},
 		}
 
 		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))

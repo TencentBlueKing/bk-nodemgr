@@ -2587,6 +2587,31 @@ func (c *cli) deleteConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 	return resp, nil
 }
 
+func (c *cli) reorderPrioritiesConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyPriorityReorderReq) (
+	*protoBackend.ConfigPolicyPriorityReorderResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyPriorityReorderResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/policy/config/reorder_priorities").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("reorder priorities config policy", resp, resp.GetError())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventListReq,
 ) (*protoBackend.ConfigPolicyEventListResp, error) {
 

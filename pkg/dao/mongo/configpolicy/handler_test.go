@@ -546,6 +546,9 @@ func Test_EnableMany(t *testing.T) {
 			if !configPolicy.Enabled {
 				t.Errorf("EnableMany() failed to enable")
 			}
+			if configPolicy.Priority <= 0 {
+				t.Errorf("EnableMany() want positive priority, got %d", configPolicy.Priority)
+			}
 		})
 	}
 }
@@ -596,9 +599,82 @@ func Test_DisableMany(t *testing.T) {
 				t.Errorf("DisableMany() check Get() error = %v", err)
 			}
 			if configPolicy.Enabled {
-				t.Errorf("DisableMany() failed to enable")
+				t.Errorf("DisableMany() failed to disable")
+			}
+			if configPolicy.Priority != types.ConfigPolicyPriorityDisabled {
+				t.Errorf("DisableMany() want priority %d, got %d",
+					types.ConfigPolicyPriorityDisabled, configPolicy.Priority)
 			}
 		})
+	}
+}
+
+// Test_EnableMany_ReassignsPriority verifies EnableMany assigns distinct positive priorities.
+func Test_EnableMany_ReassignsPriority(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+
+	h := testClient(t)
+	id0, id1 := preparedConfigPolicyIDs[0], preparedConfigPolicyIDs[1]
+
+	if err := h.EnableMany(nCtx, id0, id1); err != nil {
+		t.Fatalf("EnableMany() error = %v", err)
+	}
+
+	cp0, err := h.Get(nCtx, id0)
+	if err != nil {
+		t.Fatalf("Get(id0) error = %v", err)
+	}
+
+	cp1, err := h.Get(nCtx, id1)
+	if err != nil {
+		t.Fatalf("Get(id1) error = %v", err)
+	}
+
+	if cp0.Priority == cp1.Priority {
+		t.Errorf("EnableMany() priorities should differ, got both %d", cp0.Priority)
+	}
+
+	if cp0.Priority <= 0 || cp1.Priority <= 0 {
+		t.Errorf("EnableMany() want positive priorities, got %d and %d", cp0.Priority, cp1.Priority)
+	}
+}
+
+// Test_UpdatePriorityMany tests the UpdatePriorityMany method.
+func Test_UpdatePriorityMany(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+
+	id0, id1 := preparedConfigPolicyIDs[0], preparedConfigPolicyIDs[1]
+
+	h := testClient(t)
+
+	priorities := map[int64]int64{id1: 1, id0: 2}
+
+	if err := h.UpdatePriorityMany(nCtx, priorities); err != nil {
+		t.Fatalf("UpdatePriorityMany() error = %v", err)
+	}
+
+	cp0, err := h.Get(nCtx, id0)
+	if err != nil {
+		t.Fatalf("Get(id0) error = %v", err)
+	}
+
+	cp1, err := h.Get(nCtx, id1)
+	if err != nil {
+		t.Fatalf("Get(id1) error = %v", err)
+	}
+
+	if cp0.Priority != 2 {
+		t.Errorf("UpdatePriorityMany() id0 priority got %d, want 2", cp0.Priority)
+	}
+
+	if cp1.Priority != 1 {
+		t.Errorf("UpdatePriorityMany() id1 priority got %d, want 1", cp1.Priority)
 	}
 }
 

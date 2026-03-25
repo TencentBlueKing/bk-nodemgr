@@ -356,6 +356,40 @@
         ]
       }
     },
+    "/api/v3/policy/config/reorder_priorities": {
+      "post": {
+        "summary": "ConfigPolicyPriorityReorder reorders config policy priorities within a\n(biz, type) scope.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyPriorityReorder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyPriorityReorderResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyPriorityReorderReq describes HTTP request body when reordering\nconfig policy priorities within a single (biz, type) scope.\nListed IDs are assigned priority 1..N; remaining enabled policies in the\nsame (biz, type) preserve their relative order starting from N+1.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyPriorityReorderReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
     "/api/v3/policy/config/update": {
       "post": {
         "summary": "UpdateConfigPolicy updates config policy.",
@@ -1256,6 +1290,54 @@
           }
         }
       }
+    },
+    "v3ConfigPolicyPriorityReorderReq": {
+      "type": "object",
+      "properties": {
+        "biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "configpolicy_type": {
+          "type": "string"
+        },
+        "ordered_configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "ConfigPolicyPriorityReorderReq describes HTTP request body when reordering\nconfig policy priorities within a single (biz, type) scope.\nListed IDs are assigned priority 1..N; remaining enabled policies in the\nsame (biz, type) preserve their relative order starting from N+1."
+    },
+    "v3ConfigPolicyPriorityReorderResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyPriorityReorderRespData"
+        }
+      },
+      "description": "ConfigPolicyPriorityReorderResp describes HTTP response body when\nreordering config policy priorities."
+    },
+    "v3ConfigPolicyPriorityReorderRespData": {
+      "type": "object"
     },
     "v3ConfigPolicyScope": {
       "type": "object",

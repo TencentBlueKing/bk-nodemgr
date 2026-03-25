@@ -29,6 +29,8 @@ import (
 
 const (
 	initVersion = 1
+
+	minConfigPolicyPriority int64 = 1
 )
 
 type handler struct {
@@ -55,6 +57,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/enable", restserver.Handler(h.EnableConfigPolicy))
 	h.rg.POST("/disable", restserver.Handler(h.DisableConfigPolicy))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteConfigPolicy))
+	h.rg.POST("/reorder_priorities", restserver.Handler(h.ReorderPrioritiesConfigPolicy))
 
 	// package event apis.
 	h.rg.POST("/event/list", restserver.Handler(h.ListConfigPolicyEvent))
@@ -233,6 +236,57 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
+
+	return resp.GetData(), nil
+}
+
+// ReorderPrioritiesConfigPolicy reorders config policy priorities within a (biz, type) scope.
+func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.ConfigPolicyPriorityReorderReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy, failed to decode request body")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	bizID := req.GetBizId()
+	policyType := types.ConfigPolicyType(req.GetConfigpolicyType())
+	orderedPolicyIDs := req.GetOrderedConfigpolicyId()
+
+	// list all enabled config policies for this (biz, type) scope, ordered by priority ascending.
+	all, _, err := h.storage.ListConfigPolicy(rCtx, types.UnlimitedPage(), &types.ConfigPolicyCondition{
+		ExactInclude: &types.ConfigPolicyExactFields{
+			BizID:   []int64{bizID},
+			Type:    []types.ConfigPolicyType{policyType},
+			Enabled: []bool{true},
+		},
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy, failed to list config policies")
+
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	// split policies into ordered and remaining groups.
+	remaining, err := splitPoliciesByOrder(all, orderedPolicyIDs)
+	if err != nil {
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	// build priority map.
+	// ordered policies get priority 1..N; remaining policies preserve their relative order starting from N+1.
+	priorities := buildPriorityMap(orderedPolicyIDs, remaining)
+
+	// update priorities.
+	if err := h.storage.UpdatePriorityManyConfigPolicy(rCtx, priorities); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy")
+
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	//TODO: record event.
+
+	resp := new(protoBackend.ConfigPolicyPriorityReorderResp)
 
 	return resp.GetData(), nil
 }
@@ -433,6 +487,45 @@ func (h *handler) recordChangesEvent(rCtx restserver.IContext, eventType types.C
 			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
 		}
 	}()
+}
+
+// splitPoliciesByOrder splits all policies into ordered and remaining groups.
+func splitPoliciesByOrder(all []*types.ConfigPolicy, orderedIDs []int64) ([]*types.ConfigPolicy, error) {
+	orderedSet := make(map[int64]struct{}, len(orderedIDs))
+	for _, id := range orderedIDs {
+		orderedSet[id] = struct{}{}
+	}
+
+	remaining := make([]*types.ConfigPolicy, 0, max(0, len(all)-len(orderedIDs)))
+
+	for _, cp := range all {
+		if _, ok := orderedSet[cp.ID]; ok {
+			delete(orderedSet, cp.ID)
+			continue
+		}
+		remaining = append(remaining, cp)
+	}
+
+	if len(orderedSet) > 0 {
+		return nil, fmt.Errorf("failed to reorder priorities for config policy, config policy not found")
+	}
+
+	return remaining, nil
+}
+
+func buildPriorityMap(orderedIDs []int64, remaining []*types.ConfigPolicy) map[int64]int64 {
+	priorities := make(map[int64]int64, len(orderedIDs)+len(remaining))
+	pri := minConfigPolicyPriority
+	for _, id := range orderedIDs {
+		priorities[id] = pri
+		pri++
+	}
+	for _, cp := range remaining {
+		priorities[cp.ID] = pri
+		pri++
+	}
+
+	return priorities
 }
 
 func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64) ([]*types.ConfigPolicy, error) {

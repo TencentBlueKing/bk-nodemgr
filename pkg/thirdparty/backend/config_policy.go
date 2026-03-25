@@ -66,6 +66,13 @@ type IHandlerConfigPolicy interface {
 	// @param configPolicyIDs the config policy ids to delete.
 	// @return the error.
 	DeleteConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+
+	// ReorderPrioritiesConfigPolicy reorders config policy priorities within a (biz, type) scope.
+	// @param bizID the biz scope.
+	// @param policyType the config policy type scope.
+	// @param orderedPolicyIDs ordered config policy ids to assign priority 1..N;
+	//        unlisted enabled policies preserve relative order from N+1.
+	ReorderPrioritiesConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType, orderedPolicyIDs []int64) error
 }
 
 // ListConfigPolicy lists config policy.
@@ -175,6 +182,26 @@ func (h *Handler) DeleteConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...
 	req := &protoBackend.ConfigPolicyDeleteReq{ConfigpolicyId: configPolicyIDs}
 
 	_, err := h.cli.deleteConfigPolicy(nCtx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ReorderPrioritiesConfigPolicy reorders config policy priorities within a (biz, type) scope.
+func (h *Handler) ReorderPrioritiesConfigPolicy(nCtx contextx.IContext,
+	bizID int64,
+	policyType types.ConfigPolicyType,
+	orderedPolicyIDs []int64) error {
+
+	req := &protoBackend.ConfigPolicyPriorityReorderReq{
+		BizId:                 bizID,
+		ConfigpolicyType:      string(policyType),
+		OrderedConfigpolicyId: orderedPolicyIDs,
+	}
+
+	_, err := h.cli.reorderPrioritiesConfigPolicy(nCtx, req)
 	if err != nil {
 		return err
 	}

@@ -164,6 +164,29 @@ message ConfigPolicyDeleteResp {
   Data data = 5;
 }
 
+// ConfigPolicyPriorityReorderReq describes HTTP request body when reordering
+// config policy priorities within a single (biz, type) scope.
+// Listed IDs are assigned priority 1..N; remaining enabled policies in the
+// same (biz, type) preserve their relative order starting from N+1.
+message ConfigPolicyPriorityReorderReq {
+  int64 biz_id = 1;
+  string configpolicy_type = 2;
+  repeated int64 ordered_configpolicy_id = 3;
+}
+
+// ConfigPolicyPriorityReorderResp describes HTTP response body when
+// reordering config policy priorities.
+message ConfigPolicyPriorityReorderResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
 // ConfigPolicyEventExactConditions describes the conditions when list event
 message ConfigPolicyEventExactConditions {
   repeated int64 configpolicy_id = 1;
@@ -291,6 +314,16 @@ service ConfigPolicyAPI {
       returns (ConfigPolicyDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/policy/config/delete"
+      body : "*"
+    };
+  }
+
+  // ConfigPolicyPriorityReorder reorders config policy priorities within a
+  // (biz, type) scope.
+  rpc ConfigPolicyPriorityReorder(ConfigPolicyPriorityReorderReq)
+      returns (ConfigPolicyPriorityReorderResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/reorder_priorities"
       body : "*"
     };
   }

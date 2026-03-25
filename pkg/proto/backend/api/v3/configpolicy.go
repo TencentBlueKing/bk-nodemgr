@@ -492,6 +492,27 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 	}
 }
 
+// Validate check body.
+func (x *ConfigPolicyPriorityReorderReq) Validate() error {
+	if x.GetBizId() <= 0 {
+		return fmt.Errorf("biz_id is required")
+	}
+
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid configpolicy_type: %w", err)
+	}
+
+	if ids := x.GetOrderedConfigpolicyId(); len(conv.SliceUnique(ids)) != len(ids) {
+		return fmt.Errorf("duplicated ordered_configpolicy_id")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ConfigPolicyPriorityReorderReq) AutoConvert() {
+}
+
 func newEmptyConfigPolicyScope() *ConfigPolicyScope {
 	return &ConfigPolicyScope{
 		BkNetworkareaId: new(int64),

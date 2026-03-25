@@ -29,19 +29,20 @@ import (
 const StorageName = "configpolicy"
 
 const (
-	metricOperationMatchConfigPolicyNode       = "match"
-	metricOperationCountConfigPolicy           = "count"
-	metricOperationListConfigPolicy            = "list"
-	metricOperationGetConfigPolicy             = "get"
-	metricOperationCreateConfigPolicy          = "create"
-	metricOperationUpdateConfigPolicy          = "update"
-	metricOperationDeleteManyConfigPolicy      = "delete_many"
-	metricOperationEnableManyConfigPolicy      = "enable_many"
-	metricOperationDisableManyConfigPolicy     = "disable_many"
-	metricOperationCountConfigPolicyEvent      = "count_config_policy_event"
-	metricOperationListConfigPolicyEvent       = "list_config_policy_event"
-	metricOperationCreateManyConfigPolicyEvent = "create_many_config_policy_event"
-	metricOperationDistinctConfigPolicyEvent   = "distinct_config_policy_event"
+	metricOperationMatchConfigPolicyNode         = "match"
+	metricOperationCountConfigPolicy             = "count"
+	metricOperationListConfigPolicy              = "list"
+	metricOperationGetConfigPolicy               = "get"
+	metricOperationCreateConfigPolicy            = "create"
+	metricOperationUpdateConfigPolicy            = "update"
+	metricOperationDeleteManyConfigPolicy        = "delete_many"
+	metricOperationEnableManyConfigPolicy        = "enable_many"
+	metricOperationDisableManyConfigPolicy       = "disable_many"
+	metricOperationReorderPrioritiesConfigPolicy = "reorder_priorities"
+	metricOperationCountConfigPolicyEvent        = "count_config_policy_event"
+	metricOperationListConfigPolicyEvent         = "list_config_policy_event"
+	metricOperationCreateManyConfigPolicyEvent   = "create_many_config_policy_event"
+	metricOperationDistinctConfigPolicyEvent     = "distinct_config_policy_event"
 )
 
 // NewStorage creates a new release storage.
@@ -207,6 +208,16 @@ func (s *Storage) DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyID
 	return s.WrapFn(nCtx, metricOperationDisableManyConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
 		err = s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
+
+		return err
+	})
+}
+
+// UpdatePriorityManyConfigPolicy batch-updates the priority field for the given policy IDs.
+func (s *Storage) UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorities map[int64]int64) error {
+	return s.WrapFn(nCtx, metricOperationReorderPrioritiesConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		err = s.updatePriorityManyConfigPolicy(nCtx, priorities)
 
 		return err
 	})

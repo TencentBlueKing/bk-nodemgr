@@ -146,6 +146,9 @@ const (
 	ConfigPolicyTemplateTypeIntSelect ConfigPolicyTemplateType = 4
 )
 
+// ConfigPolicyPriorityDisabled is the priority value for disabled policies.
+const ConfigPolicyPriorityDisabled int64 = -1
+
 // ConfigPolicyType defines the policy type.
 type ConfigPolicyType string
 

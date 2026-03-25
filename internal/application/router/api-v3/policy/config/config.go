@@ -55,6 +55,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/enable", restserver.Handler(h.EnableConfigPolicy))
 	h.rg.POST("/disable", restserver.Handler(h.DisableConfigPolicy))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteConfigPolicy))
+	h.rg.POST("/reorder_priorities", restserver.Handler(h.ReorderPrioritiesConfigPolicy))
 
 	// package event apis.
 	h.rg.POST("/event/list", restserver.Handler(h.ListConfigPolicyEvent))
@@ -357,6 +358,25 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	resp := new(protoApplication.ConfigPolicyDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// ReorderPrioritiesConfigPolicy reorders config policy priorities within a (biz, type) scope.
+func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ConfigPolicyPriorityReorderReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy, failed to decode request body")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	policyType := types.ConfigPolicyType(req.GetConfigpolicyType())
+	if err := h.backendHandler.ReorderPrioritiesConfigPolicy(rCtx, req.GetBizId(), policyType, req.GetOrderedConfigpolicyId()); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy")
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.ConfigPolicyPriorityReorderResp)
 
 	return resp.GetData(), nil
 }
