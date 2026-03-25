@@ -1,0 +1,41 @@
+{
+  "skill_name": "scoped-agentsmd",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "为 internal/backend/router/ 写一个 scoped AGENTS.md（压缩 pipe-index 格式）。要求：只写该 scope 相关的 Where-to-look/Conventions/Anti-patterns，不要复制全仓库目录结构。",
+      "expected_output": "在 internal/backend/router/ 下生成完整 AGENTS.md，内容以 |IMPORTANT 开头，含 |Scope:internal/backend/router，并覆盖 router scope 的关键任务索引。",
+      "files": [],
+      "expectations": [
+        "The output starts with a pipe-index AGENTS.md structure including a |IMPORTANT line.",
+        "The output includes |Scope:internal/backend/router.",
+        "The output contains scope-specific guidance for backend router work such as where-to-look, conventions, or anti-patterns.",
+        "The output does not dump a repo-wide top-level directory inventory unrelated to the router scope."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我最近在做 backend 的 api-v3 路由开发（新增 domain、加 handler、错误码、auth 中间件），请你先定位最合适的目录 scope，然后在那个目录下生成一份 scoped AGENTS.md（压缩格式）。如果有多个候选目录，先列出候选并让我选。",
+      "expected_output": "先给出 2-6 个候选 scope root 目录并请求确认；确认后在 выбран scope 下生成 AGENTS.md，包含 scope 相关的 where-to-look（api-v3.go、domain load、options.Capability、pkg/rest/errf 等）。",
+      "files": [],
+      "expectations": [
+        "The run records at least one candidate scope resolution step before the final output.",
+        "The final chosen scope is justified and documented when the eval proceeds without an actual user reply.",
+        "The final AGENTS.md is in compressed pipe-index format.",
+        "The final AGENTS.md includes router/api-v3 related guidance rather than generic repository guidance."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "把 internal/backend/router/AGENTS.md 的内容改写为 pipe-index 压缩格式（保留信息，不要丢掉 handler 签名、error handling、type flow、anti-patterns 这些要点），输出仍然写回 internal/backend/router/AGENTS.md。",
+      "expected_output": "internal/backend/router/AGENTS.md 被改写为以 | 开头的压缩格式，保留原文关键信息点且更易扫描。",
+      "files": [],
+      "expectations": [
+        "The rewritten output is primarily pipe-index style instead of traditional markdown sections.",
+        "The rewritten output preserves the handler signature guidance from the source AGENTS.md.",
+        "The rewritten output preserves error handling, type flow, and anti-pattern guidance from the source AGENTS.md.",
+        "The rewritten output is more compact than the source while retaining the requested facts."
+      ]
+    }
+  ]
+}
