@@ -35,14 +35,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
-const (
-	offlinePkgNamePrefix = "bk-nodemgr-proxy-offline"
-
-	gseAgentConfFilename     = "gse_agent.conf"
-	gseFileProxyConfFilename = "gse_file_proxy.conf"
-	gseDataProxyConfFilename = "gse_data_proxy.conf"
-)
-
 // offlineInstallMetadata is the structure of metadata.json in the offline package.
 type offlineInstallMetadata struct {
 	InstanceID  string `json:"instance_id"`
@@ -129,9 +121,9 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 
 	// render GSE config files.
 	configKeyToFilename := map[string]string{
-		types.ConfigKeyAgent: gseAgentConfFilename,
-		types.ConfigKeyFile:  gseFileProxyConfFilename,
-		types.ConfigKeyData:  gseDataProxyConfFilename,
+		types.ConfigKeyAgent: installer.OfflineGseAgentConfFileName,
+		types.ConfigKeyFile:  installer.OfflineGseFileProxyConfFileName,
+		types.ConfigKeyData:  installer.OfflineGseDataProxyConfFileName,
 	}
 
 	configs := make(map[string]string, len(configKeyToFilename))
@@ -339,7 +331,7 @@ func buildOfflineInstallScript(
 		`SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"`,
 		fmt.Sprintf(`DATA_DIR="%s"`, dataDir),
 		`mkdir -p "${DATA_DIR}"`,
-		`cp -rn "${SCRIPT_DIR}/data/." "${DATA_DIR}/"`,
+		fmt.Sprintf(`cp -rn "${SCRIPT_DIR}/%s/." "${DATA_DIR}/"`, installer.OfflinePkgRelPathData),
 		fmt.Sprintf(`chmod +x "${SCRIPT_DIR}/%s"`, installerFileName),
 		fmt.Sprintf(`"${SCRIPT_DIR}/%s" `, installerFileName) + installer.NodeCmdFullInstall + ` \`,
 	}
@@ -355,8 +347,8 @@ func buildOfflineInstallScript(
 	// After the installer completes (--skip_callback), results are written to installer.data.json.
 	// Print the file content so the user can copy and paste it into the management portal.
 	lines = append(lines,
-		`echo "--- installer.data.json ---"`,
-		fmt.Sprintf(`cat "%s/installer.data.json"`, dataDir),
+		fmt.Sprintf(`echo "--- %s ---"`, installer.DataFileName),
+		fmt.Sprintf(`cat "%s/%s"`, dataDir, installer.DataFileName),
 	)
 
 	return strings.Join(lines, "\n") + "\n"
@@ -379,5 +371,5 @@ func buildOfflinePackageStem(deployInfo *types.DeploymentInfo) string {
 		ipSlug = "unknown"
 	}
 
-	return fmt.Sprintf("%s-%d-%s", offlinePkgNamePrefix, networkAreaID, ipSlug)
+	return fmt.Sprintf("%s-%d-%s", installer.OfflinePackageNamePrefix, networkAreaID, ipSlug)
 }

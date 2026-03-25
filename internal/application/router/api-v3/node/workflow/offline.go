@@ -17,12 +17,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -36,7 +38,7 @@ const (
 	// installerFileMode is the file mode for the installer binary inside the tar package.
 	installerFileMode = 0o755
 
-	// scriptFileMode is the file mode for install.sh inside the tar package.
+	// scriptFileMode is the file mode for the offline install script inside the tar package.
 	scriptFileMode = 0o755
 
 	// configFileMode is the file mode for config and metadata files inside the tar package.
@@ -160,33 +162,37 @@ func (h *handler) GetOfflinePackageDownload(rCtx restserver.IContext) (*restserv
 			return buildErr
 		}
 
-		// Add release package into data/ directory (required by --skip_download install.sh flag).
-		if buildErr = tarstream.AddStreamFileToTar(tarWriter, pkgName+"/data", releasePkgFilename,
+		// Tar entry names are POSIX paths; use path.Join (not filepath.Join) so separators stay '/'.
+		dataDirPrefix := path.Join(pkgName, installer.OfflinePkgRelPathData)
+		configDirPrefix := path.Join(pkgName, installer.OfflinePkgRelPathConfig)
+
+		// Add release package under data/ (required by install.sh + --skip_download).
+		if buildErr = tarstream.AddStreamFileToTar(tarWriter, dataDirPrefix, releasePkgFilename,
 			releaseStream.Data, releaseStream.Headers, configFileMode); buildErr != nil {
 			return buildErr
 		}
 
-		// Add install.sh script.
-		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName, "install.sh",
+		// Add offline install script at bundle root.
+		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName, installer.OfflinePkgInstallScriptName,
 			[]byte(infoData.GetInstallScript()), scriptFileMode); buildErr != nil {
 			return buildErr
 		}
 
-		// Add metadata.json.
-		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName, "metadata.json",
+		// Add metadata at bundle root.
+		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName, installer.OfflinePkgMetadataFileName,
 			[]byte(infoData.GetMetadata()), configFileMode); buildErr != nil {
 			return buildErr
 		}
 
-		// Add precheck.json into data/ directory.
-		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName+"/data", "precheck.json",
+		// Add precheck JSON under data/.
+		if buildErr = tarstream.AddTextFileToTar(tarWriter, dataDirPrefix, installer.OfflinePkgPrecheckFileName,
 			[]byte(infoData.GetPrecheck()), configFileMode); buildErr != nil {
 			return buildErr
 		}
 
-		// Add GSE config files into data/config/ directory.
+		// Add GSE config files under data/config/.
 		for fileName, content := range infoData.GetConfigs() {
-			if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName+"/data/config", fileName,
+			if buildErr = tarstream.AddTextFileToTar(tarWriter, configDirPrefix, fileName,
 				[]byte(content), configFileMode); buildErr != nil {
 				return buildErr
 			}

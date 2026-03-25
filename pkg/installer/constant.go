@@ -52,4 +52,35 @@ const (
 	// SYNC: tools/internal/installer/node/datareporter writes this file;
 	//       internal/backend/manager/workflowdef/node/action_wait_installer_complete reads it via SSH.
 	DataFileName = "installer.data.json"
+
+	// --- Offline proxy install bundle (tar.gz layout and filenames) ---
+	// SYNC: internal/application/router/api-v3/node/workflow/offline.go (tar writer);
+	//       internal/backend/router/api-v3/node/workflow/offline.go (install.sh, config map keys);
+	//       front/src/pages/node/history/guide.vue (package stem prefix in UX; keep in sync manually).
+
+	// OfflinePackageNamePrefix is the prefix for the offline bundle directory / download stem
+	// ({prefix}-{network_area_id}-{ip_slug}).
+	OfflinePackageNamePrefix = "bk-nodemgr-proxy-offline"
+
+	// OfflinePkgRelPathData is the path segment under the bundle root for the data subtree: release package,
+	// precheck JSON, and config dir. install.sh copies this tree into installer DataDir before --skip_download.
+	OfflinePkgRelPathData = "data"
+
+	// OfflinePkgRelPathConfig is the path under the bundle root for rendered GSE JSON configs
+	// (tar prefix: {pkgName}/data/config).
+	OfflinePkgRelPathConfig = "data/config"
+
+	// OfflinePkgInstallScriptName is the entrypoint shell script at the bundle root.
+	OfflinePkgInstallScriptName = "install.sh"
+
+	// OfflinePkgMetadataFileName is instance metadata JSON at the bundle root.
+	OfflinePkgMetadataFileName = "metadata.json"
+
+	// OfflinePkgPrecheckFileName is the precheck list JSON inside OfflinePkgRelPathData.
+	OfflinePkgPrecheckFileName = "precheck.json"
+
+	// OfflineGse* file names match keys under OfflinePkgRelPathConfig and GSE tooling expectations.
+	OfflineGseAgentConfFileName     = "gse_agent.conf"
+	OfflineGseFileProxyConfFileName = "gse_file_proxy.conf"
+	OfflineGseDataProxyConfFileName = "gse_data_proxy.conf"
 )
