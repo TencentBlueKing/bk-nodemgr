@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -99,11 +100,16 @@ func (h *handler) GetOfflinePackageDownload(rCtx restserver.IContext) (*restserv
 	}
 
 	// Download the installer binary from the file service.
-	installerStream, err := h.fileHandler.DownloadInstaller(
-		rCtx,
-		criteria.OSType(installerInfo.GetOsType()),
-		criteria.CPUArch(installerInfo.GetCpuArch()),
-	)
+	installerOs := criteria.OSType(installerInfo.GetOsType())
+	installerArch := criteria.CPUArch(installerInfo.GetCpuArch())
+	installerFileName, err := tool.FormatInstallerName(installerOs, installerArch)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get offline package, failed to format installer file name")
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	installerStream, err := h.fileHandler.DownloadInstaller(rCtx, installerOs, installerArch)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get offline package, failed to download installer binary")
 
@@ -147,7 +153,7 @@ func (h *handler) GetOfflinePackageDownload(rCtx restserver.IContext) (*restserv
 		}()
 
 		// Add installer binary (size comes from Content-Length header returned by file service).
-		if buildErr = tarstream.AddStreamFileToTar(tarWriter, pkgName, "installer",
+		if buildErr = tarstream.AddStreamFileToTar(tarWriter, pkgName, installerFileName,
 			installerStream.Data, installerStream.Headers, installerFileMode); buildErr != nil {
 			return
 		}
