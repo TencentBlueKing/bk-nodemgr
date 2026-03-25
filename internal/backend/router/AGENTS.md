@@ -89,6 +89,7 @@ gCtx.JSON(http.StatusOK, nil)
 - Auth middleware added at first-level router only (see `README.md`).
 - `restserver.MiddlewareAuth(authIdentity)` parses user info into `rest.Context`.
 - Access user via `rCtx.BKUsername()`, `rCtx.TenantID()`.
+- For `api-v3/node/agent` permission checks, build auth resources via package-local helper functions and reuse them across handlers (for example, `buildBizResources(...)` and `buildNetworkUnitResources(...)`). Do not inline resource construction inside handlers when the helper-based pattern applies.
 
 ### Routes
 
