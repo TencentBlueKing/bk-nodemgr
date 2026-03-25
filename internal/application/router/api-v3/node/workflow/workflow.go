@@ -13,6 +13,7 @@ package workflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -23,18 +24,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	workflowGoAsyncPoolNum  = 50
+	workflowGoAsyncPerPool  = 1000
+)
+
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
 	fileHandler    file.IHandler
+	goAsyncPool    goasync.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+	goAsyncPool, _ := goasync.NewHandler(goasync.HandlerOption{
+		PoolNum:               workflowGoAsyncPoolNum,
+		PerPoolSize:           workflowGoAsyncPerPool,
+		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
+	})
+
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:             rg.Group("/workflow"),
 		backendHandler: capability.BackendHandler,
 		fileHandler:    capability.FileHandler,
+		goAsyncPool:    goAsyncPool,
 	}
 }
 

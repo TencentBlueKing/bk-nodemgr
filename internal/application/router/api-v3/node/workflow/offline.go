@@ -18,9 +18,11 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -121,7 +123,7 @@ func (h *handler) GetOfflinePackageDownload(rCtx restserver.IContext) (*restserv
 	// Stream the tar.gz through a pipe to avoid buffering the entire package in memory.
 	pipeReader, pipeWriter := io.Pipe()
 
-	go func() {
+	if err := h.goAsyncPool.Run(rCtx, func(_ contextx.IContext) error {
 		gzWriter := gzip.NewWriter(pipeWriter)
 		tarWriter := tar.NewWriter(gzWriter)
 
@@ -155,41 +157,50 @@ func (h *handler) GetOfflinePackageDownload(rCtx restserver.IContext) (*restserv
 		// Add installer binary (size comes from Content-Length header returned by file service).
 		if buildErr = tarstream.AddStreamFileToTar(tarWriter, pkgName, installerFileName,
 			installerStream.Data, installerStream.Headers, installerFileMode); buildErr != nil {
-			return
+			return buildErr
 		}
 
 		// Add release package into data/ directory (required by --skip_download install.sh flag).
 		if buildErr = tarstream.AddStreamFileToTar(tarWriter, pkgName+"/data", releasePkgFilename,
 			releaseStream.Data, releaseStream.Headers, configFileMode); buildErr != nil {
-			return
+			return buildErr
 		}
 
 		// Add install.sh script.
 		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName, "install.sh",
 			[]byte(infoData.GetInstallScript()), scriptFileMode); buildErr != nil {
-			return
+			return buildErr
 		}
 
 		// Add metadata.json.
 		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName, "metadata.json",
 			[]byte(infoData.GetMetadata()), configFileMode); buildErr != nil {
-			return
+			return buildErr
 		}
 
 		// Add precheck.json into data/ directory.
 		if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName+"/data", "precheck.json",
 			[]byte(infoData.GetPrecheck()), configFileMode); buildErr != nil {
-			return
+			return buildErr
 		}
 
 		// Add GSE config files into data/config/ directory.
 		for fileName, content := range infoData.GetConfigs() {
 			if buildErr = tarstream.AddTextFileToTar(tarWriter, pkgName+"/data/config", fileName,
 				[]byte(content), configFileMode); buildErr != nil {
-				return
+				return buildErr
 			}
 		}
-	}()
+
+		return nil
+	}, goasync.WithName("offline_package_tar_stream")); err != nil {
+		_ = installerStream.Data.Close()
+		_ = releaseStream.Data.Close()
+		_ = pipeWriter.CloseWithError(err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get offline package, failed to schedule tar stream task")
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("failed to schedule offline package stream: %w", err))
+	}
 
 	headers := http.Header{}
 	headers.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.tar.gz", pkgName))
