@@ -111,7 +111,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		},
 	}
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 func (h *handler) fetchNetworkUnit(rCtx restserver.IContext, networkUnitID int64) (*types.NetworkUnit, error) {

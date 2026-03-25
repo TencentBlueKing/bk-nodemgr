@@ -46,7 +46,7 @@ const (
 )
 
 // GetOfflinePackageDownload downloads the offline install tar.gz package for an operation.
-// nolint: funlen, gocognit
+// nolint: funlen, gocognit, cyclop, gocyclo
 func (h *handler) GetOfflinePackageDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
 	req := new(protoApplication.NodeWorkflowOperationOfflinePackageDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
