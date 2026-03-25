@@ -16,6 +16,7 @@ export const useMainStore = defineStore('mainStore', {
     isLogTerminate: Boolean,
     noticeShow: Boolean,
     isBusinessReady: boolean,
+    strategyBizId: number,
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
@@ -23,6 +24,7 @@ export const useMainStore = defineStore('mainStore', {
     selectedBusinessId: [] as number[], // 当前业务id
     selectedBusinessName: [] as string[], // 当前业务名称
     isBusinessReady: false, // 业务初始化是否完成
+    strategyBizId: 0, // 策略管理 - 当前选中的业务ID
     agentSetupType: 'setup', // 代理安装方式
     proxySetupType: 'setup',
     configEditData: null,
@@ -76,6 +78,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     setBusinessReady() {
       this.isBusinessReady = true;
+    },
+    updateStrategyBizId(bizId: number) {
+      this.strategyBizId = bizId;
     },
   },
 });

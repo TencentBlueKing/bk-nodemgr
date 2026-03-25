@@ -108,62 +108,7 @@
         </FlexRow>
       </template>
       <template #menu>
-        <div class="nm-menu-biz mb-[10px]" v-if="isNeedBizSelect">
-          <div
-            v-show="!navToggle"
-            class="w-[30px] h-[30px] text-[12px] bg-[#F0F1F5] m-auto cursor-pointer flex items-center justify-center"
-          >
-            {{ navBizShrinkText }}
-          </div>
-          <Select
-            v-show="navToggle"
-            class="mx-[12px]"
-            v-model="business"
-            :filter-option="filterOption"
-            :show-selected-icon="false"
-            multiple
-            filterable
-            :placeholder="t('platform.nodeMan.allBusiness')"
-            :popover-options="{ boundary: 'document.body', width: '235px' }"
-            @change="changeCurBusiness"
-            @toggle="handleToggle"
-          >
-            <Select.Option
-              v-for="item in businessList"
-              :key="item.bk_biz_id"
-              :name="item.bk_biz_name"
-              :id="item.bk_biz_id"
-              v-bk-tooltips="{
-                content: `[${item.bk_biz_id}] ${item.bk_biz_name}`,
-                disabled: !textOverflowMap[item.bk_biz_id],
-                boundary: 'parent',
-                placement: 'right',
-                offset: 10
-              }"
-            >
-              <div class="w-full flex items-center biz-select-option overflow-hidden">
-                <Button
-                  class="mr-[8px] w-[18px] shrink-0"
-                  text
-                  @click.native.stop="handleCollect(item.bk_biz_id)">
-                  <i
-                    class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-                    v-if="collectList.includes(item.bk_biz_id)">
-                  </i>
-                  <i
-                    class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
-                    v-else>
-                  </i>
-                </Button>
-                <div
-                  class="truncate"
-                  @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
-                  [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-                </div>
-              </div>
-            </Select.Option>
-          </Select>
-        </div>
+        <BizSelector ref="bizSelectorRef" :expanded="navToggle" />
         <Menu :active-key="String(currentActive)">
           <Menu.Group
             v-for="item in subMenuData"
@@ -200,10 +145,10 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, Menu, Navigation, Select } from 'bkui-vue';
+import { Dropdown, Menu, Navigation } from 'bkui-vue';
 import { AngleUpFill } from 'bkui-vue/lib/icon';
-import { debounce, isArray } from 'lodash';
-import { computed, onBeforeMount, onMounted, reactive, ref, watch } from 'vue';
+import { debounce } from 'lodash';
+import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -212,7 +157,8 @@ import { useHead } from '@vueuse/head';
 
 import { TopoService } from '@/api/modules/topo';
 import { logout } from '@/common/auth';
-import { parseCookies, setCookie } from '@/common/util';
+import { parseCookies } from '@/common/util';
+import BizSelector from '@/components/biz-selector.vue';
 import Notice from '@/components/notice.vue';
 import PermissionDialog from '@/components/permission-dialog.vue';
 import type { NavItem } from '@/composables/use-menu';
@@ -238,10 +184,6 @@ const { navData, subMenuData } = useMenu();
 const { platformConfig, getPlatformInfo } = usePlatform();
 const appName = computed(() => platformConfig.i18n.productName);
 const navToggle = ref(false);
-const isNeedBizSelect = computed(() => !route.path.includes('topo-manager') && !route.path.includes('pkg-manager'));
-
-// 收藏
-const collectList = ref<number[]>([]);
 
 // 跳转首页
 function handleGotoHome() {
@@ -270,9 +212,8 @@ const handleNavToggle = (value: boolean) => {
   navToggle.value = value;
 };
 
-// 业务选择
-const business = ref<number[]>([]);
-const businessList = computed(() => mainStore.businessList);
+// 业务选择器
+const bizSelectorRef = ref<InstanceType<typeof BizSelector>>();
 const currentActive = computed(() => route.meta.parentName || route.name);
 const loading = ref(false);
 const getBusinessList = async () => {
@@ -287,19 +228,6 @@ const getBusinessList = async () => {
   mainStore.updateBusinessList(res.items);
   loading.value = false;
 };
-const changeCurBusiness = (val: number[]) => {
-  mainStore.updateCurBusiness(val);
-  localStorage.setItem('bk_biz_id', JSON.stringify(val));
-};
-// 收起左侧菜单展示的业务的文案
-const navBizShrinkText = computed(() => {
-  if (!mainStore.selectedBusinessName.length) {
-    return t('platform.nodeMan.all');
-  }
-  const len = mainStore.selectedBusinessName.length;
-  const text = len > 1 ? len : mainStore.selectedBusinessName[0]?.[0];
-  return text;
-});
 const helpList = computed(() => [
   {
     id: 'DOC',
@@ -440,32 +368,6 @@ async function handleChangeLang(item) {
     }
   }
 }
-// 自定义批量搜索方法
-const filterOption = (input: any, options: {id: number, name: string}) => {
-  const inputStr = String(input).trim();
-  if (!inputStr) return false;
-
-  // 使用正则表达式分割输入，支持空格、逗号、分号作为分隔符
-  const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
-
-  if (keywords.length === 0) return false;
-
-  // 批量匹配name：只要有一个关键词匹配就返回true
-  const nameMatch = keywords.some(keyword => {
-    // 安全处理关键词，防止正则表达式注入
-    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const nameRegex = new RegExp(safeKeyword, 'i');
-    return options.name?.match(nameRegex);
-  });
-
-  // 批量匹配id：只要有一个id匹配就返回true
-  const idMatch = keywords.some(keyword => {
-    const keywordStr = String(keyword).trim();
-    return keywordStr === String(options.id);
-  });
-
-  return nameMatch || idMatch;
-};
 // 设置title
 watch(appName, () => {
   // https://github.com/vueuse/head
@@ -486,54 +388,6 @@ watch(appName, () => {
     ],
   });
 });
-// 收藏
-const handleToggle = () => {
-  businessList.value.sort((a: Business, b: Business) => {
-    // 判断a是否在收藏列表中
-    const aIsCollected = collectList.value.includes(a.bk_biz_id);
-    // 判断b是否在收藏列表中
-    const bIsCollected = collectList.value.includes(b.bk_biz_id);
-
-    // 判断是否为选中的业务
-    const aIsSelected = business.value.includes(a.bk_biz_id);
-    const bIsSelected = business.value.includes(b.bk_biz_id);
-
-    // 优先级1:选中状态（选中的排在前面）
-    if (aIsSelected && !bIsSelected) {
-      return -1; // a选中, b未选中 → a在前
-    }
-    if (!aIsSelected && bIsSelected) {
-      return 1; // a未选中, b选中 → b在前
-    }
-
-    // 优先级2: 选中状态相同则按收藏状态排序（收藏在前）
-    if (aIsCollected && !bIsCollected) {
-      return -1; // a收藏, b未收藏 → a在前
-    }
-    if (!aIsCollected && bIsCollected) {
-      return 1; // a未收藏, b收藏 → b在前
-    }
-
-    // 优先级3: 选中和收藏状态都相同则按ID从小到大排序
-    return a.bk_biz_id - b.bk_biz_id;
-  });
-};
-
-const textOverflowMap = reactive<Record<number, boolean>>({});
-const handleTextMouseenter = (e: MouseEvent, id: number) => {
-  const el = e.target as HTMLElement;
-  textOverflowMap[id] = el.scrollWidth > el.clientWidth;
-};
-
-const handleCollect = (val: number) => {
-  if (collectList.value.includes(val)) {
-    collectList.value = collectList.value.filter(item => item !== val);
-  } else {
-    collectList.value.push(val);
-  }
-  localStorage.setItem('collect', JSON.stringify(collectList.value));
-};
-
 onBeforeMount(async () => {
   userStore.getUser();
   // 获取平台配置信息
@@ -543,21 +397,9 @@ onBeforeMount(async () => {
   // 设置favicon
   setShortcutIcon(platformConfig.favicon);
 
-  if (isNeedBizSelect.value) {
-    await getBusinessList();
-  }
-  const bizIdsJson = localStorage.getItem('bk_biz_id');
-  if (bizIdsJson) {
-    const bizIds = JSON.parse(bizIdsJson);
-    business.value = bizIds;
-    mainStore.updateCurBusiness(bizIds);
-  }
-  // 获取收藏业务
-  const collectsJson = localStorage.getItem('collect');
-  if (collectsJson) {
-    const collects = JSON.parse(collectsJson);
-    collectList.value = collects;
-  }
+  await getBusinessList();
+  // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
+  bizSelectorRef.value?.init();
   mainStore.setBusinessReady();
 });
 onMounted(async () => {
@@ -575,27 +417,10 @@ onMounted(async () => {
 });
 </script>
 <style lang="postcss" scoped>
-.nm-menu-biz {
-  :deep(.bk-select-trigger) {
-    .bk-input {
-      border: none;
-    }
-    .bk-input--text {
-      background: #f0f1f5 !important;
-    }
-  }
-}
 .dropdown-item {
   &:hover {
     background-color: #eaf3ff;
     color: #3a84ff;
-  }
-}
-.biz-select-option {
-  &:hover {
-    .nc-not-favorited {
-      display: inline;
-    }
   }
 }
 </style>

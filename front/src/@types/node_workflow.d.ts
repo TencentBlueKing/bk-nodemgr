@@ -44,6 +44,7 @@ export interface NodeWorkflowListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowListRespData;
 }
 
@@ -63,6 +64,7 @@ export interface NodeWorkflowStatisticsResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowStatisticsRespData;
 }
 
@@ -82,6 +84,7 @@ export interface NodeWorkflowDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowDistinctRespData;
 }
 
@@ -146,6 +149,7 @@ export interface NodeWorkflowOperationListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowOperationListRespData;
 }
 
@@ -167,6 +171,7 @@ export interface NodeWorkflowOperationDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowOperationDistinctRespData;
 }
 
@@ -188,6 +193,7 @@ export interface NodeWorkflowOperationInstanceListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowOperationInstanceListRespData;
 }
 
@@ -207,6 +213,7 @@ export interface NodeWorkflowOperationInstanceLogGetResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowOperationInstanceLogGetRespData;
 }
 
@@ -228,6 +235,7 @@ export interface NodeWorkflowOperationRetryResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowOperationRetryRespData;
 }
 
@@ -246,6 +254,7 @@ export interface NodeWorkflowOperationTerminateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeWorkflowOperationTerminateRespData;
 }
 
@@ -283,14 +292,20 @@ export interface NodeWorkflowOperationManualSolutionGetResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ManualSolution[];
+}
+
+// NodeWorkflowOperationOfflinePackageDownloadReq describes the offline package
+// download request.
+export interface NodeWorkflowOperationOfflinePackageDownloadReq {
+  operation_id: string;
 }
 
 // NodeWorkflowOperationOfflineInstallResultSubmitReq describes the offline
 // install result submit request.
 export interface NodeWorkflowOperationOfflineInstallResultSubmitReq {
   operation_id: string;
-  // result_data is the JSON string content of installer.data.json from the offline install.
   result_data: string;
 }
 
@@ -301,6 +316,6 @@ export interface NodeWorkflowOperationOfflineInstallResultSubmitResp {
   message: string;
   request_id: string;
   error: Error;
-  data: null;
+  permission: Permission;
 }
 

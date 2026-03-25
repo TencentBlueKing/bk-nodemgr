@@ -11,6 +11,7 @@ export interface PackageUploadOriginAgentResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginAgentRespData;
 }
 
@@ -39,6 +40,7 @@ export interface PackageUploadOriginServerResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginServerRespData;
 }
 
@@ -67,6 +69,7 @@ export interface PackageUploadOriginProxyResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginProxyRespData;
 }
 
@@ -94,6 +97,7 @@ export interface PackageUploadOriginCertResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginCertRespData;
 }
 
@@ -120,6 +124,7 @@ export interface PackageUploadOriginBinToolResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginBinToolRespData;
 }
 
@@ -145,6 +150,7 @@ export interface PackageUploadOriginPluginV2Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginPluginV2RespData;
 }
 
@@ -179,6 +185,7 @@ export interface PackageUploadOriginExternalPluginV2Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginExternalPluginV2RespData;
 }
 
@@ -211,6 +218,7 @@ export interface PackageUploadOriginPluginV3Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageUploadOriginPluginV3RespData;
 }
 
@@ -278,6 +286,7 @@ export interface PackagePublishReleasePluginV2Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleasePluginV2RespData;
 }
 
@@ -297,6 +306,7 @@ export interface PackagePublishReleaseExternalPluginV2Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleaseExternalPluginV2RespData;
 }
 
@@ -316,6 +326,7 @@ export interface PackagePublishReleasePluginV3Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleasePluginV3RespData;
 }
 
@@ -333,6 +344,7 @@ export interface PackagePublishReleaseAgentResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleaseAgentRespData;
 }
 
@@ -353,6 +365,7 @@ export interface PackagePublishReleaseProxyResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleaseProxyRespData;
 }
 
@@ -370,6 +383,7 @@ export interface PackagePublishReleaseCertResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleaseCertRespData;
 }
 
@@ -389,6 +403,7 @@ export interface PackagePublishReleaseBinToolResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackagePublishReleaseBinToolRespData;
 }
 
@@ -451,6 +466,7 @@ export interface PackageReleaseAgentListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentListRespData;
 }
 
@@ -474,6 +490,7 @@ export interface PackageReleaseAgentDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseDistinctData;
 }
 
@@ -492,6 +509,7 @@ export interface PackageReleaseAgentSetLabelsManyResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentSetLabelsManyRespData;
 }
 
@@ -514,6 +532,7 @@ export interface PackageReleaseAgentEnableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentEnableRespData;
 }
 
@@ -536,6 +555,7 @@ export interface PackageReleaseAgentDisableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentDisableRespData;
 }
 
@@ -558,6 +578,7 @@ export interface PackageReleaseAgentSetAsDefaultResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentSetAsDefaultRespData;
 }
 
@@ -580,6 +601,7 @@ export interface PackageReleaseAgentCancelAsDefaultResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentCancelAsDefaultRespData;
 }
 
@@ -602,6 +624,7 @@ export interface PackageReleaseAgentDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentDeleteRespData;
 }
 
@@ -627,6 +650,7 @@ export interface PackageReleaseAgentCountDeployedResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseAgentCountDeployedRespData;
 }
 
@@ -657,6 +681,7 @@ export interface PackageReleaseProxyListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxyListRespData;
 }
 
@@ -680,6 +705,7 @@ export interface PackageReleaseProxyDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseDistinctData;
 }
 
@@ -698,6 +724,7 @@ export interface PackageReleaseProxySetLabelsManyResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxySetLabelsManyRespData;
 }
 
@@ -720,6 +747,7 @@ export interface PackageReleaseProxyEnableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxyEnableRespData;
 }
 
@@ -742,6 +770,7 @@ export interface PackageReleaseProxyDisableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxyDisableRespData;
 }
 
@@ -764,6 +793,7 @@ export interface PackageReleaseProxySetAsDefaultResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxySetAsDefaultRespData;
 }
 
@@ -786,6 +816,7 @@ export interface PackageReleaseProxyCancelAsDefaultResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxyCancelAsDefaultRespData;
 }
 
@@ -808,6 +839,7 @@ export interface PackageReleaseProxyDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxyDeleteRespData;
 }
 
@@ -833,6 +865,7 @@ export interface PackageReleaseProxyCountDeployedResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseProxyCountDeployedRespData;
 }
 
@@ -863,6 +896,7 @@ export interface PackageReleasePluginListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginListRespData;
 }
 
@@ -887,6 +921,7 @@ export interface PackageReleasePluginEnableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginEnableRespData;
 }
 
@@ -909,6 +944,7 @@ export interface PackageReleasePluginDisableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginDisableRespData;
 }
 
@@ -931,6 +967,7 @@ export interface PackageReleasePluginSetAsDefaultResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginSetAsDefaultRespData;
 }
 
@@ -953,6 +990,7 @@ export interface PackageReleasePluginCancelAsDefaultResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginCancelAsDefaultRespData;
 }
 
@@ -975,6 +1013,7 @@ export interface PackageReleasePluginDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginDeleteRespData;
 }
 
@@ -1001,6 +1040,7 @@ export interface PackageReleaseCertListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseCertListRespData;
 }
 
@@ -1022,6 +1062,7 @@ export interface PackageReleaseCertDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseCertDeleteRespData;
 }
 
@@ -1046,6 +1087,7 @@ export interface PackageReleaseBinToolListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseBinToolListRespData;
 }
 
@@ -1067,6 +1109,7 @@ export interface PackageReleaseBinToolDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleaseBinToolDeleteRespData;
 }
 
@@ -1091,6 +1134,7 @@ export interface PackageReleasePluginBinToolListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginBinToolListRespData;
 }
 
@@ -1113,6 +1157,7 @@ export interface PackageReleasePluginBinToolDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageReleasePluginBinToolDeleteRespData;
 }
 
@@ -1163,6 +1208,7 @@ export interface PackageEventListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageEventListRespData;
 }
 
@@ -1186,6 +1232,7 @@ export interface PackageEventDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PackageEventDistinctRespData;
 }
 

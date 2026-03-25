@@ -8,8 +8,6 @@ export interface NodeProxyInstallHost {
   bk_host_innerip: string;
   bk_host_innerip_v6: string;
   os_type: string;
-  // cpu_arch is required for offline install (user-provided, replaces SSH detection).
-  cpu_arch: string;
   login_ip: string;
   login_port: number;
   login_user: string;
@@ -28,6 +26,7 @@ export interface NodeProxyInstallHost {
   credit_expired_interval_sec: number;
   relay_download_port: number;
   relay_callback_port: number;
+  cpu_arch: string;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
@@ -35,7 +34,6 @@ export interface NodeProxyInstallReq {
   host: NodeProxyInstallHost[];
   target_version: TargetVersion[];
   is_manual: boolean;
-  // is_offline means no network to the control unit; user executes offline package manually.
   is_offline: boolean;
 }
 
@@ -45,6 +43,7 @@ export interface NodeProxyInstallResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyInstallRespData;
 }
 
@@ -70,6 +69,7 @@ export interface NodeProxyUpgradeResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyUpgradeRespData;
 }
 
@@ -94,6 +94,7 @@ export interface NodeProxyReconfigResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyReconfigRespData;
 }
 
@@ -118,6 +119,7 @@ export interface NodeProxyRestartResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyRestartRespData;
 }
 
@@ -159,6 +161,7 @@ export interface NodeProxyUninstallResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyUninstallRespData;
 }
 
@@ -177,6 +180,7 @@ export interface NodeProxyUpdateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyUpdateRespData;
 }
 
@@ -204,6 +208,7 @@ export interface NodeProxyInstallCheckResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeProxyInstallCheckRespData;
 }
 

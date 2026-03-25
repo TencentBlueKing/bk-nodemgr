@@ -14,43 +14,15 @@
         <Form.FormItem :label="t('agentStrategy.form.business')" property="biz_id" required>
           <Select
             v-model="formData.biz_id"
-            auto-focus
-            filterable
-            multiple
-            :filter-option="filterOption"
-            :show-selected-icon="false"
+            disabled
             :placeholder="t('agentStrategy.form.selectBusiness')"
-            @toggle="handleBizToggle"
-            @change="handleChangeBiz"
           >
             <Select.Option
-              v-for="item in sortedBusinessList"
+              v-for="item in businessList"
               :key="item.bk_biz_id"
-              :name="item.bk_biz_name"
+              :name="`[${item.bk_biz_id}] ${item.bk_biz_name}`"
               :id="item.bk_biz_id"
             >
-              <span v-show="item.bk_biz_id !== -1"
-              >
-                <div class="w-full flex items-center biz-select-option overflow-hidden">
-                  <Button
-                    class="mr-[8px] w-[18px] shrink-0"
-                    text
-                    @click.native.stop="handleCollect(item.bk_biz_id)"
-                  >
-                    <i
-                      class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-                      v-if="collectList.includes(item.bk_biz_id)">
-                    </i>
-                    <i
-                      class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
-                      v-else>
-                    </i>
-                  </Button>
-                  <span class="truncate">
-                    [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-                  </span>
-                </div>
-              </span>
             </Select.Option>
           </Select>
         </Form.FormItem>
@@ -186,9 +158,8 @@
 </template>
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
-import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { NetworkArea, NetworkUnit } from '@/@types/topo';
@@ -226,83 +197,12 @@ const title = computed(() => {
   return t('agentStrategy.form.configTitle', { action, role });
 });
 const businessList = computed(() => mainStore.businessList);
-const collectList = ref<number[]>([]);
-const selectedBizIds = computed(() => {
-  return formData.biz_id
-    .filter(item => item !== t('agentStrategy.form.unlimited'))
-    .map(item => Number(item))
-    .filter(item => Number.isFinite(item));
-});
-const sortedBusinessList = computed(() => {
-  const selectedSet = new Set(selectedBizIds.value);
-  const list = [...businessList.value];
-  return list.sort((a, b) => {
-    const aIsCollected = collectList.value.includes(a.bk_biz_id);
-    const bIsCollected = collectList.value.includes(b.bk_biz_id);
-    const aIsSelected = selectedSet.has(a.bk_biz_id);
-    const bIsSelected = selectedSet.has(b.bk_biz_id);
-
-    if (aIsSelected && !bIsSelected) {
-      return -1;
-    }
-    if (!aIsSelected && bIsSelected) {
-      return 1;
-    }
-    if (aIsCollected && !bIsCollected) {
-      return -1;
-    }
-    if (!aIsCollected && bIsCollected) {
-      return 1;
-    }
-    return a.bk_biz_id - b.bk_biz_id;
-  });
-});
-const filterOption = (input: any, options: { id: number, name: string }) => {
-  const inputStr = String(input).trim();
-  if (!inputStr) return false;
-
-  const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
-  if (keywords.length === 0) return false;
-
-  const nameMatch = keywords.some(keyword => {
-    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const nameRegex = new RegExp(safeKeyword, 'i');
-    return options.name?.match(nameRegex);
-  });
-  const idMatch = keywords.some(keyword => {
-    const keywordStr = String(keyword).trim();
-    return keywordStr === String(options.id);
-  });
-  return nameMatch || idMatch;
-};
-const handleBizToggle = () => {
-  // 侧边栏行为对齐：下拉展开/收起时重新计算排序
-  sortedBusinessList.value;
-};
-const handleCollect = (val: number) => {
-  const list = [...collectList.value];
-  if (list.includes(val)) {
-    collectList.value = list.filter(item => item !== val);
-  } else {
-    collectList.value = [...list, val];
-  }
-  localStorage.setItem('collect', JSON.stringify(collectList.value));
-};
-const initCollectList = () => {
-  const collectsJson = localStorage.getItem('collect');
-  if (collectsJson) {
-    const collects = JSON.parse(collectsJson) as unknown;
-    if (Array.isArray(collects)) {
-      collectList.value = collects.map(item => Number(item)).filter(item => Number.isFinite(item));
-    }
-  }
-};
 
 // 初始化数据函数
 const formData = reactive({
   configpolicy_name: '',
   configpolicy_type: props.configpolicyType,
-  biz_id: [t('agentStrategy.form.unlimited')] as string[] | number[],
+  biz_id: mainStore.strategyBizId || 0,
   remark: '',
   scopes: [] as IScope[],
   configs: [] as ConfigPolicyConfigBlock[],
@@ -313,7 +213,7 @@ const initData = () => {
   formData.configpolicy_name = '';
   formData.configpolicy_type = props.configpolicyType;
   formData.remark = '';
-  formData.biz_id = [t('agentStrategy.form.unlimited')];
+  formData.biz_id = mainStore.strategyBizId || 0;
   formData.scopes = [];
   formData.configs = [];
   formData.operator = '';
@@ -364,14 +264,6 @@ const handleAdd = () => {
 const handleDelete = (index: number) => {
   formData.scopes = formData.scopes.filter((_: any, ind: number) => ind !== index);
 };
-const handleChangeBiz = (val: any) => {
-  const filter = val.filter((item: any) => item !== t('agentStrategy.form.unlimited'));
-  if (filter.length > 0) {
-    formData.biz_id = filter;
-  } else {
-    formData.biz_id = [t('agentStrategy.form.unlimited')];
-  }
-};
 const updateConfig = (configs: any[]) => {
   formData.configs = configs;
 };
@@ -388,7 +280,7 @@ const handleSubmit = async () => {
     os_type: item.os_type === '-1' ? '' : item.os_type,
     cpu_arch: item.cpu_arch === '-1' ? '' : item.cpu_arch,
   }));
-  const biz_id = formData.biz_id.includes(t('agentStrategy.form.unlimited')) ? [] : formData.biz_id;
+  const biz_id = formData.biz_id;
   if (props.isEdit) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
       configpolicy_id: configpolicyId.value,
@@ -451,6 +343,7 @@ const getPlatform = async () => {
 };
 
 
+
 watch(() => isShow.value, () => {
   if (isShow.value) {
     Promise.all([getNetworkUnitList(), getPlatform()]);
@@ -460,9 +353,7 @@ watch(() => isShow.value, () => {
       // 编辑模式，使用props中的配置数据
       configpolicyId.value = props.configData.configpolicy_id;
       Object.assign(formData, props.configData);
-      formData.biz_id = props.configData.biz_id.length
-        ? props.configData.biz_id
-        : [t('agentStrategy.form.unlimited')];
+      formData.biz_id = props.configData.biz_id;
       formData.scopes = props.configData.scopes.map((item: ConfigPolicyScope) => ({
         ...item,
         bk_networkarea_id: String(item.bk_networkarea_id),
@@ -474,23 +365,12 @@ watch(() => isShow.value, () => {
     originData.value = cloneDeep(formData);
   }
 }, { immediate: true });
-onMounted(() => {
-  initCollectList();
-});
 </script>
 <style lang="postcss" scoped>
 .form-scope {
   &:hover {
     .delete {
       display: inline-block;
-    }
-  }
-}
-
-.biz-select-option {
-  &:hover {
-    .nc-not-favorited {
-      display: inline;
     }
   }
 }

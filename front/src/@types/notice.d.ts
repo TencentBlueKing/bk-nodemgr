@@ -44,6 +44,7 @@ export interface GetCurrentAnnouncementsResp {
   request_id: string;
   // error contains error details if the request failed.
   error: Error;
+  permission: Permission;
   // data contains the list of current announcements.
   data: Announcement[];
 }

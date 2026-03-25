@@ -23,6 +23,7 @@ export interface TopoBusinessListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoBusinessListRespData;
 }
 
@@ -56,6 +57,7 @@ export interface TopoNetworkAreaListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkAreaListRespData;
 }
 
@@ -77,6 +79,7 @@ export interface TopoNetworkAreaStatisticsResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkAreaStatisticsRespData;
 }
 
@@ -122,6 +125,7 @@ export interface TopoNetworkAreaCreateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkAreaCreateRespData;
 }
 
@@ -144,6 +148,7 @@ export interface TopoNetworkAreaUpdateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkAreaUpdateRespData;
 }
 
@@ -164,6 +169,7 @@ export interface TopoNetworkAreaDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkAreaDeleteRespData;
 }
 
@@ -192,6 +198,7 @@ export interface TopoNetworkUnitListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkUnitListRespData;
 }
 
@@ -233,6 +240,7 @@ export interface TopoNetworkUnitCreateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkUnitCreateRespData;
 }
 
@@ -259,6 +267,7 @@ export interface TopoNetworkUnitUpdateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkUnitUpdateRespData;
 }
 
@@ -279,6 +288,7 @@ export interface TopoNetworkUnitDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoNetworkUnitDeleteRespData;
 }
 
@@ -326,6 +336,7 @@ export interface TopoHostListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostListRespData;
 }
 
@@ -349,6 +360,7 @@ export interface TopoHostSelectHostIDResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostSelectHostIDRespData;
 }
 
@@ -371,6 +383,7 @@ export interface TopoHostSelectInnerIPResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostSelectInnerIPRespData;
 }
 
@@ -393,6 +406,7 @@ export interface TopoHostSelectInnerIPV6Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostSelectInnerIPV6RespData;
 }
 
@@ -415,6 +429,7 @@ export interface TopoHostSelectNetWorkareaIDAndInnerIPResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostSelectNetWorkareaIDAndInnerIPRespData;
 }
 
@@ -437,6 +452,7 @@ export interface TopoHostSelectNetWorkareaIDAndInnerIPV6Resp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostSelectNetWorkareaIDAndInnerIPV6RespData;
 }
 
@@ -458,6 +474,7 @@ export interface TopoHostDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoHostDistinctRespData;
 }
 
@@ -487,6 +504,7 @@ export interface TopoGraphGetResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoGraphGetRespData;
 }
 
@@ -506,6 +524,7 @@ export interface TopoGraphNodeCountResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoGraphNodeCountRespData;
 }
 
@@ -530,6 +549,7 @@ export interface TopoGraphNodeGetResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoGraphNodeGetRespData;
 }
 
@@ -579,6 +599,7 @@ export interface TopoEventListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoEventListRespData;
 }
 
@@ -602,6 +623,7 @@ export interface TopoEventDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoEventDistinctRespData;
 }
 
@@ -627,6 +649,7 @@ export interface TopoConstantGetResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: TopoConstantGetRespData;
 }
 

@@ -35,6 +35,7 @@ export interface ProcessListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ProcessListRespData;
 }
 
@@ -55,6 +56,7 @@ export interface GetProcessDistributionByHostIDResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: Record<int64, number>;
 }
 
@@ -72,6 +74,7 @@ export interface GetProcessDistributionByPluginNameResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: Record<string, number>;
 }
 
@@ -87,6 +90,7 @@ export interface DistinctProcessResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: DistinctProcessRespData;
 }
 

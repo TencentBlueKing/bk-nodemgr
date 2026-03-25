@@ -31,6 +31,7 @@ export interface NodeAgentInstallResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeAgentInstallRespData;
 }
 
@@ -56,6 +57,7 @@ export interface NodeAgentUpgradeResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeAgentUpgradeRespData;
 }
 
@@ -80,6 +82,7 @@ export interface NodeAgentReconfigResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeAgentReconfigRespData;
 }
 
@@ -104,6 +107,7 @@ export interface NodeAgentRestartResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeAgentRestartRespData;
 }
 
@@ -126,6 +130,7 @@ export interface NodeAgentUninstallResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeAgentUninstallRespData;
 }
 
@@ -154,6 +159,7 @@ export interface NodeAgentInstallCheckResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: NodeAgentInstallCheckRespData;
 }
 

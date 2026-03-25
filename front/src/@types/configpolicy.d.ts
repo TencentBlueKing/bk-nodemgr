@@ -27,6 +27,7 @@ export interface ConfigPolicyListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyListRespData;
 }
 
@@ -48,6 +49,7 @@ export interface ConfigPolicyGetTemplateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyGetTemplateRespData;
 }
 
@@ -69,6 +71,7 @@ export interface ConfigPolicyListPlatformResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyListPlatformRespData;
 }
 
@@ -94,11 +97,12 @@ export interface ConfigPolicyGetResp {
 export interface ConfigPolicyCreateReq {
   configpolicy_name: string;
   configpolicy_type: string;
-  biz_id: number[];
+  biz_id: number;
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
   operator: string;
+  target_host_ids: number[];
 }
 
 // ConfigPolicyCreateResp describes HTTP response body when create config
@@ -108,6 +112,7 @@ export interface ConfigPolicyCreateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyCreateRespData;
 }
 
@@ -120,12 +125,14 @@ export interface ConfigPolicyUpdateReq {
   configpolicy_id: number;
   configpolicy_name: string;
   configpolicy_type: string;
-  biz_id: number[];
+  biz_id: number;
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
   enabled: boolean;
   operator: string;
+  priority: number;
+  target_host_ids: number[];
 }
 
 // ConfigPolicyUpdateResp describes HTTP response body when update config
@@ -135,6 +142,7 @@ export interface ConfigPolicyUpdateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyUpdateRespData;
 }
 
@@ -154,6 +162,7 @@ export interface ConfigPolicyEnableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyEnableRespData;
 }
 
@@ -173,6 +182,7 @@ export interface ConfigPolicyDisableResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyDisableRespData;
 }
 
@@ -191,6 +201,7 @@ export interface ConfigPolicyDeleteResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyDeleteRespData;
 }
 
@@ -228,6 +239,7 @@ export interface ConfigPolicyEventListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyEventListRespData;
 }
 
@@ -251,6 +263,7 @@ export interface ConfigPolicyEventDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: ConfigPolicyEventDistinctRespData;
 }
 

@@ -409,7 +409,7 @@ const getParams = () => {
     },
     exact_include_conditions: {
       configpolicy_type: [configpolicyType.value],
-      biz_id: mainStore.selectedBusinessId,
+      biz_id: strategyBizId.value ? [strategyBizId.value] : [],
     } as ConfigPolicyExactConditions,
     fuzzy_include_conditions: {} as ConfigPolicyFuzzyConditions,
   };
@@ -436,17 +436,22 @@ const getConfigPolicyList = async () => {
   tableData.value = res.items.map((item: any) => ({
     ...item,
     biz_name: mainStore.businessList
-      .filter(biz => item.biz_id.includes(biz.bk_biz_id))
-      .map(item => item.bk_biz_name)
-      .join(',') || t('agentStrategy.table.unlimited'),
+      .find(biz => item.biz_id === biz.bk_biz_id)
+      ?.bk_biz_name || t('agentStrategy.table.unlimited'),
   }));
 };
 const debounceConfigPolicyList = debounce(getConfigPolicyList, 300);
+
+// 从 store 获取策略专用的单选业务 ID
+const strategyBizId = computed(() => mainStore.strategyBizId);
+
 watch([
   () => route.name,
   searchSelectValue,
-  () => mainStore.selectedBusinessId,
+  strategyBizId,
 ], async () => {
-  await debounceConfigPolicyList();
+  if (strategyBizId.value) {
+    await debounceConfigPolicyList();
+  }
 }, { immediate: true, deep: true });
 </script>

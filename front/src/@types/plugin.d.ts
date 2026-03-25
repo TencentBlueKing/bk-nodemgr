@@ -18,6 +18,7 @@ export interface PluginInstallResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginInstallRespData;
 }
 
@@ -44,6 +45,7 @@ export interface PluginUpgradeResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginUpgradeRespData;
 }
 
@@ -67,6 +69,7 @@ export interface PluginUninstallResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginUninstallRespData;
 }
 
@@ -94,6 +97,7 @@ export interface PluginApplySubConfigResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginApplySubConfigRespData;
 }
 
@@ -125,6 +129,7 @@ export interface PluginListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginListRespData;
 }
 
@@ -145,5 +150,32 @@ export interface PluginSetMemoResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
+}
+
+// PluginListPermittedOperationReq describes the plugin list permitted operation
+// request.
+export interface PluginListPermittedOperationReq {
+  page: Page;
+}
+
+// PluginListPermittedOperationResp describes the plugin list permitted
+// operation response.
+export interface PluginListPermittedOperationResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PluginListPermittedOperationRespData;
+}
+
+export interface PluginListPermittedOperationRespData {
+  operations: Operation[];
+}
+
+export interface DataOperation {
+  name: string;
+  permission: string[];
 }
 

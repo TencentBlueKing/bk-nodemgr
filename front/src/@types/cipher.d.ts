@@ -9,6 +9,7 @@ export interface GetRSAPublicKeyResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: GetRSAPublicKeyRespData;
 }
 

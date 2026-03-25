@@ -12,6 +12,7 @@ declare module 'vue' {
     AssignUnitTable: typeof import('./components/assign-unit-table.vue')['default']
     AutoFitTags: typeof import('./components/auto-fit-tags.vue')['default']
     BatchEdit: typeof import('./components/batch-edit.vue')['default']
+    BizSelector: typeof import('./components/biz-selector.vue')['default']
     ChooseVersionDialog: typeof import('./components/choose-version-dialog.vue')['default']
     ConfigTemplate: typeof import('./components/config-template.vue')['default']
     CopyIp: typeof import('./components/copy-ip.vue')['default']

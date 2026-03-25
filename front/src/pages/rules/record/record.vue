@@ -128,7 +128,8 @@ import {
   Tab,
 } from 'bkui-vue';
 import dayjs from 'dayjs';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, inject, onMounted, reactive, ref, watch } from 'vue';
+import type { Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import type { VxeTablePropTypes } from 'vxe-table';
@@ -164,6 +165,8 @@ const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+// 从 App.vue 注入策略专用的单选业务 ID
+const strategyBizId = inject<Ref<number>>('strategyBizId', ref(0));
 const tableData = ref<ConfigPolicyEvent[]>([]);
 
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
@@ -456,7 +459,9 @@ const getParams = () => {
       limit: pagination.limit,
       offset: (pagination.current - 1) * pagination.limit,
     },
-    exact_include_conditions: {},
+    exact_include_conditions: {
+      biz_id: strategyBizId.value ? [strategyBizId.value] : [],
+    } as Record<string, any>,
     fuzzy_include_conditions: {} as Record<string, string[]>,
     operate_time_range: {
       start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
@@ -486,6 +491,16 @@ watch(
     await getTaskList();
   },
   { deep: true },
+);
+// 监听策略业务切换，重新加载操作记录
+watch(
+  strategyBizId,
+  async () => {
+    if (strategyBizId.value) {
+      await getTaskList();
+      await getHostDistinct();
+    }
+  },
 );
 onMounted(async () => {
   await getTaskList();

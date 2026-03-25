@@ -276,7 +276,7 @@ interface ConfigPolicy {
   configpolicy_id: number;
   configpolicy_name: string;
   type: string;
-  biz_id: number[];
+  biz_id: number;
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
@@ -284,6 +284,8 @@ interface ConfigPolicy {
   updated_time: number;
   operator: string;
   version: number;
+  priority: number;
+  target_host_ids: number[];
 }
 
 // ConfigPolicyEvent describes the config policy event.
@@ -374,5 +376,24 @@ interface Error {
 interface ErrorDetails {
   code: string;
   message: string;
+}
+
+interface RelatedResourceType {
+  system_id: string;
+  type: string;
+  type_name: string;
+}
+
+interface Action {
+  id: string;
+  name: string;
+  related_resource_types: RelatedResourceType[];
+}
+
+interface Permission {
+  system: string;
+  system_name: string;
+  apply_url: string;
+  actions: Action[];
 }
 

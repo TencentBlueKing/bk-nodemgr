@@ -42,6 +42,7 @@ export interface PluginWorkflowListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowListRespData;
 }
 
@@ -61,6 +62,7 @@ export interface PluginWorkflowStatisticsResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowStatisticsRespData;
 }
 
@@ -80,6 +82,7 @@ export interface PluginWorkflowDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowDistinctRespData;
 }
 
@@ -126,6 +129,7 @@ export interface PluginWorkflowOperationDistinctResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowOperationDistinctRespData;
 }
 
@@ -162,6 +166,7 @@ export interface PluginWorkflowOperationListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowOperationListRespData;
 }
 
@@ -184,6 +189,7 @@ export interface PluginWorkflowOperationInstanceListResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowOperationInstanceListRespData;
 }
 
@@ -205,6 +211,7 @@ export interface PluginWorkflowOperationInstanceLogGetResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowOperationInstanceLogGetRespData;
 }
 
@@ -226,6 +233,7 @@ export interface PluginWorkflowOperationRetryResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowOperationRetryRespData;
 }
 
@@ -245,6 +253,7 @@ export interface PluginWorkflowOperationTerminateResp {
   message: string;
   request_id: string;
   error: Error;
+  permission: Permission;
   data: PluginWorkflowOperationTerminateRespData;
 }
 
