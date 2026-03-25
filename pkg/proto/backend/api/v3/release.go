@@ -942,6 +942,7 @@ func (x *PackageReleasePluginGetConfigVariablesReq) GetIdentifier() (string, typ
 	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
 }
 
+// ConvertConfigVariablesFromTypes convert config variables from types.
 func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(plugin *types.ReleasePlugin) {
 	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{}
 

@@ -407,7 +407,7 @@ func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (int
 	if err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
-			With("gen", gen, "platform", plat, "version", version).
+			With("name", name, "gen", gen, "platform", plat, "version", version).
 			Error("failed to get release plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

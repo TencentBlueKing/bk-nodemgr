@@ -12,9 +12,11 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -793,7 +795,7 @@ func (x *PackageReleaseProxyCountDeployedResp) ConvertResultFromTypes(results []
 // Validate check body.
 func (x *PackageReleasePluginGetConfigVariablesReq) Validate() error {
 	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return errors.New("got invalid platform")
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
 	}
 
 	return nil
@@ -810,36 +812,31 @@ func (x *PackageReleasePluginGetConfigVariablesReq) GetIdentifier() (string, typ
 
 // ConvertConfigVariablesFromTypes converts config variables from types.
 func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(configTemplates []types.PluginPkgConfigTemplate) {
-	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{
-		ConfigVariables: make([]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables, 0, len(configTemplates)),
+	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{}
+
+	if len(configTemplates) == 0 {
+		return
 	}
 
-	for _, variable := range configTemplates {
-		item := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables{
-			Name:          variable.Name,
-			FilePath:      variable.FilePath,
-			SourcePath:    variable.SourcePath,
-			IsMainConfig:  variable.IsMainConfig,
-			SourceContent: variable.SourceContent,
-			Variables:     convertPluginPkgConfigTemplatePropertiesFromTypes(variable.Variables),
-		}
-		x.Data.ConfigVariables = append(x.Data.ConfigVariables, item)
-	}
-}
+	x.Data.ConfigVariables = conv.SliceToSlice(
+		configTemplates,
+		func(variable types.PluginPkgConfigTemplate) *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables {
+			result := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables{
+				Name:          variable.Name,
+				FilePath:      variable.FilePath,
+				SourcePath:    variable.SourcePath,
+				IsMainConfig:  variable.IsMainConfig,
+				SourceContent: variable.SourceContent,
+				Variables:     make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property),
+			}
 
-func convertPluginPkgConfigTemplatePropertiesFromTypes(properties map[string]*types.PluginPkgConfigTemplateProperty,
-) map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
+			for key, property := range variable.Variables {
+				result.Variables[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
+			}
 
-	if len(properties) == 0 {
-		return make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property)
-	}
-
-	result := make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property, len(properties))
-	for key, property := range properties {
-		result[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
-	}
-
-	return result
+			return result
+		},
+	)
 }
 
 func convertPluginPkgConfigTemplatePropertyFromTypes(property *types.PluginPkgConfigTemplateProperty,
@@ -855,7 +852,11 @@ func convertPluginPkgConfigTemplatePropertyFromTypes(property *types.PluginPkgCo
 		Required:      property.Required,
 		Description:   property.Description,
 		DescriptionEn: property.DescriptionEn,
-		Properties:    convertPluginPkgConfigTemplatePropertiesFromTypes(property.Properties),
+		Properties:    make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property),
+	}
+
+	for key, child := range property.Properties {
+		result.Properties[key] = convertPluginPkgConfigTemplatePropertyFromTypes(child)
 	}
 
 	if property.Default != nil {
