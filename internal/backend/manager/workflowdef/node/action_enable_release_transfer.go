@@ -118,7 +118,7 @@ func (act *actionEnableReleaseTransfer) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().TransferOptions.EnableReleasePackage = true
 
 	std.InstanceData().Log().
-		Zh("启用发布包传输成功，安装器(%v)，发布包(%v)",
+		Zh("启用发布包传输成功, 安装器(%v), 发布包(%v)",
 			std.DeployInfo().TransferOptions.EnableInstaller, std.DeployInfo().TransferOptions.EnableReleasePackage).
 		En("enable release transfer success. installer(%v), release(%v)",
 			std.DeployInfo().TransferOptions.EnableInstaller, std.DeployInfo().TransferOptions.EnableReleasePackage).

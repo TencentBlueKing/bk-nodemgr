@@ -34,6 +34,8 @@ const (
 func NewActionTryReuseAgentID(capability *Capability) action.Definition {
 	return &TryReuseAgentID{
 		storageHost:           capability.StorageTopo,
+		storageNetworkArea:    capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
 		storageNodeDeployment: capability.StorageNode,
 	}
 }
@@ -46,6 +48,8 @@ type ActParamTryReuseAgentID struct {
 // TryReuseAgentID ...
 type TryReuseAgentID struct {
 	storageHost           topoStg.IStorageHost
+	storageNetworkArea    topoStg.IStorageNetworkArea
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
@@ -115,6 +119,45 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	networkArea, err := act.storageNetworkArea.GetNetworkArea(std.Context(), std.DeployInfo().Host.Static.NetworkAreaID)
+	if err != nil {
+		return fmt.Errorf("failed to get network area: %w", err)
+	}
+
+	networkUnit, err := act.storageNetworkUnit.GetNetworkUnit(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
+	if err != nil {
+		return fmt.Errorf("failed to get network unit: %w", err)
+	}
+
+	// log some basic information.
+	std.InstanceData().Log().
+		Zh("所属管控区域: (%d)%s", networkArea.ID, networkArea.Name).
+		En("Network Area: (%d)%s", networkArea.ID, networkArea.Name).
+		Info()
+	std.InstanceData().Log().
+		Zh("所属管控单元: (%d)%s", networkUnit.ID, networkUnit.Name).
+		En("Network Unit: (%d)%s", networkUnit.ID, networkUnit.Name).
+		Info()
+
+	if std.DeployInfo().Host.Static.Addressing == types.AddressingStatic {
+		std.InstanceData().Log().Zh("IP寻址: 静态").En("Addressing: Static").Info()
+	} else {
+		std.InstanceData().Log().Zh("IP寻址: 动态").En("Addressing: Dynamic").Info()
+	}
+
+	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
+		std.InstanceData().Log().
+			Zh("内网IPV4: %v", std.DeployInfo().Host.Static.InnerIPList).
+			En("Inner IPV4: %v", std.DeployInfo().Host.Static.InnerIPList).
+			Info()
+	}
+	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
+		std.InstanceData().Log().
+			Zh("内网IPV6: %v", std.DeployInfo().Host.Static.InnerIPV6List).
+			En("Inner IPV6: %v", std.DeployInfo().Host.Static.InnerIPV6List).
+			Info()
+	}
+
 	// To reduce the frequency of cache invalidation in downstream systems, reuse the AgentID as much as possible.
 	// Notice: Since there will be a large number of if judgments here,
 	// it is recommended that when adding a new judgment, it is recommended to use the principle of fast ending, i.e.,
@@ -123,10 +166,10 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// force re-register the agentID.
 	if std.DeployInfo().InstallOptions.ReRegister {
 		std.InstanceData().Log().
-			Zh("强制重新注册，不会复用 agent id").
-			En("force re-register, will not reuse agent id").
+			Zh("强制重新注册agent-id").
+			En("force re-register agent-id").
 			Info()
-		logger.G.Sys().Info("force re-register, will not reuse agent id")
+		logger.G.Sys().Info("force re-register agent id, will not reuse agent id")
 
 		return nil
 	}
@@ -150,8 +193,8 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// maybe: host don't exist, or host 's network area changed.
 	if count == 0 {
 		std.InstanceData().Log().
-			Zh("未匹配到主机，无法复用 agent id").
-			En("not match host, can't reuse agent id").
+			Zh("未匹配到主机, 无法复用 agent-id").
+			En("not match host, can't reuse agent-id").
 			Warn()
 		logger.G.Sys().Info("not match host, can't reuse agent id")
 
@@ -161,8 +204,8 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
 	std.InstanceData().Log().
-		Zh("找到 agent id，尝试复用，agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID).
-		En("find agent id, try reuse it, agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID).
+		Zh("复用已存在的agent-id: %s", std.DeployInfo().Host.Dynamic.AgentID).
+		En("reuse existing agent-id: %s", std.DeployInfo().Host.Dynamic.AgentID).
 		Info()
 	logger.G.Sys().With("agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("find agent id, try reuse it")
 

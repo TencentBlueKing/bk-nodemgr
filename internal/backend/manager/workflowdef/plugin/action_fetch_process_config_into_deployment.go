@@ -118,7 +118,7 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 
 	if len(processConfigs) == 0 {
 		std.InstanceData().Log().
-			Zh("未找到进程子配置，process(%s), host(%d)",
+			Zh("未找到进程子配置, process(%s), host(%d)",
 				deployInfo.Process.PluginName, deployInfo.Process.HostID).
 			En("no process sub configs found for process(%s) on host(%d)",
 				deployInfo.Process.PluginName, deployInfo.Process.HostID).

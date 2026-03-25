@@ -113,7 +113,7 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 	)
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("获取进程失败，process-name(%s), host-id(%d): %v",
+			Zh("获取进程失败, process-name(%s), host-id(%d): %v",
 				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
 			En("failed to get process, process-name(%s), host-id(%d): %v",
 				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
@@ -123,7 +123,7 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("获取插件进程成功，plugin-name(%s), host-id(%d)",
+		Zh("获取插件进程成功, plugin-name(%s), host-id(%d)",
 			deployInfo.Process.PluginName, deployInfo.Process.HostID).
 		En("fetch plugin process succeed, plugin-name(%s), host-id(%d)",
 			deployInfo.Process.PluginName, deployInfo.Process.HostID).
@@ -132,7 +132,7 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 	deployInfo.Process = *process
 
 	std.InstanceData().Log().
-		Zh("获取插件AgentID成功，agent-id(%s)",
+		Zh("获取插件AgentID成功, agent-id(%s)",
 			deployInfo.Process.Info.AgentID).
 		En("fetch plugin agent id succeed, agent-id(%s)",
 			deployInfo.Process.Info.AgentID).

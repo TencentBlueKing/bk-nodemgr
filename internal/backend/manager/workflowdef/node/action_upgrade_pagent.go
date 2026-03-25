@@ -186,7 +186,7 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 	}
 
 	std.InstanceData().Log().
-		Zh("构建升级参数成功。params(%v)", upgradeParams).
+		Zh("构建升级参数成功. params(%v)", upgradeParams).
 		En("build upgrade params success. params(%v)", upgradeParams).
 		Info()
 
@@ -300,7 +300,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 
 // selectServiceURLs selects service URLs for download and callback servers.
 // For pagent upgrade, it always uses relay info (pagent upgrade is only used in indirect link scenarios).
-// It returns download URLs and callback URLs in comma-separated format: "http://ip1:port1,http://ip2:port2,...".
+// It returns download URLs and callback URLs in comma-separated format: "http://ip1:port1, http://ip2:port2, ...".
 // Returns: (downloadURLs, callbackURLs, error).
 func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
 	callbackEndpoints, downloadEndpoints, err := std.GetRelayEndpoints()
@@ -312,7 +312,7 @@ func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStand
 	callbackSvrAddr := nodeUtils.BuildServerURLs(callbackEndpoints...)
 
 	std.InstanceData().Log().
-		Zh("relay 下载服务地址(%s)，回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).
+		Zh("relay 下载服务地址(%s), 回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).
 		En("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr).
 		Info()
 

@@ -195,7 +195,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
 				std.InstanceData().Log().
-					Zh("用户选择，使用目标版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Zh("用户选择, 使用目标版本. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 					Info()
 
@@ -216,7 +216,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 		std.InstanceData().Log().
-			Zh("自动选择，使用系统默认版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Zh("自动选择, 使用系统默认版本. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 			Info()
 	}
@@ -338,7 +338,7 @@ func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 			}
 
 			std.InstanceData().Log().
-				Zh("等待 relay 报告探测结果成功，os-type(%s)，cpu-arch(%s)", osType, cpuArch).
+				Zh("等待 relay 报告探测结果成功, os-type(%s), cpu-arch(%s)", osType, cpuArch).
 				En("wait for relay report detect result successfully, os-type(%s), cpu-arch(%s)", osType, cpuArch).
 				Info()
 

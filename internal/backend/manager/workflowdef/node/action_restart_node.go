@@ -167,7 +167,7 @@ func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionSta
 		return fmt.Errorf("failed to operate agent for restarting. not-available-agent-ids(%v)", result.MissingAgentIDs)
 	}
 	std.InstanceData().Log().
-		Zh("通过集群操作代理重启节点，agent-id(%s)，强制(%t)，超时(%.2fs)",
+		Zh("通过集群操作代理重启节点, agent-id(%s), 强制(%t), 超时(%.2fs)",
 			info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()).
 		En("restart node through operating agent with cluster. agent-id(%s), force(%t), timeout(%.2fs)",
 			info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()).

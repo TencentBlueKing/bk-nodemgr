@@ -551,8 +551,8 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeAc
 	}
 
 	std.InstanceData().Log().
-		Zh("匹配配置策略。"+
-			"biz-id(%d)，networkarea-id(%d)，networkunit-id(%d)，os-type(%s)，cpu-arch(%s)，role(%s)，host-id(%d)",
+		Zh("匹配配置策略. "+
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), host-id(%d)",
 			std.DeployInfo().Host.Static.BizID,
 			std.DeployInfo().Host.Static.NetworkAreaID,
 			std.DeployInfo().Host.Dynamic.NetworkUnitID,
@@ -574,20 +574,20 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeAc
 	if len(matchResult.MatchedPolicies) > 0 {
 		for _, p := range matchResult.MatchedPolicies {
 			std.InstanceData().Log().
-				Zh("命中原始策略。configpolicy-id(%d)，configpolicy-name(%s)，priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
+				Zh("命中原始策略. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
 				En("matched original policy. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
 				Info()
 		}
 
 		conf.CustomSetting = matchResult.MergedConfig
 		std.InstanceData().Log().
-			Zh("将按照优先级合并配置策略，并应用到节点配置。").
-			En("merge config policies by priority and apply to node config.").
+			Zh("将按照优先级合并配置策略, 并应用到节点配置").
+			En("merge config policies by priority and apply to node config").
 			Info()
 	} else {
 		std.InstanceData().Log().
-			Zh("未命中任何策略。保持默认配置").
-			En("no policy matched. keep default config.").
+			Zh("未命中任何策略. 保持默认配置").
+			En("no policy matched. keep default config").
 			Info()
 	}
 
@@ -617,10 +617,10 @@ func (act *actionRenderNodeDeployment) checkHostExist(nCtx contextx.IContext, ho
 
 // FileLink file link.
 type FileLink struct {
-	TargetIP   string `json:"target_ip,omitempty" bson:"target_ip,omitempty"`
-	TargetPort int64  `json:"target_port,omitempty" bson:"target_port,omitempty"`
-	ReportIP   string `json:"report_ip,omitempty" bson:"report_ip,omitempty"`
-	ReportPort int64  `json:"report_port,omitempty" bson:"report_port,omitempty"`
+	TargetIP   string `json:"target_ip, omitempty" bson:"target_ip, omitempty"`
+	TargetPort int64  `json:"target_port, omitempty" bson:"target_port, omitempty"`
+	ReportIP   string `json:"report_ip, omitempty" bson:"report_ip, omitempty"`
+	ReportPort int64  `json:"report_port, omitempty" bson:"report_port, omitempty"`
 }
 
 // NewFileLink new file link.

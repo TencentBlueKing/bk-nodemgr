@@ -245,7 +245,7 @@ func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(
 ) error {
 
 	std.InstanceData().Log().
-		Zh("检测到跨管控单元 Proxy 安装，使用 SSH-Only 模式").
+		Zh("检测到跨管控单元 Proxy 安装, 使用 SSH-Only 模式").
 		En("cross-unit proxy install detected, using SSH-Only mode").
 		Info()
 
@@ -460,7 +460,7 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 
 	installCmd := act.buildCMD(installParams)
 	std.InstanceData().Log().
-		Zh("安装节点命令（跨管控单元 SSH-only）: %s", installCmd).
+		Zh("安装节点命令(跨管控单元 SSH-only): %s", installCmd).
 		En("install node cmd (cross-unit SSH-only): %s", installCmd).
 		Info()
 
@@ -512,8 +512,8 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 	}
 
 	std.InstanceData().Log().
-		Zh("已传输文件到主机，路径(%s)", installerPath).
-		En("transferred file to host, path(%s)", installerPath).
+		Zh("已传输安装器到主机, 路径(%s)", installerPath).
+		En("transferred installer to host, path(%s)", installerPath).
 		Info()
 
 	// make sure tool is executable
@@ -616,7 +616,7 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		Info()
 
 	// exec install command.
-	outStr, _, err := client.RunCommand(fmt.Sprintf(
+	outStr, stderr, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
 		std.DeployInfo().InstallerWorkDir,
 		std.DeployInfo().InstallerWorkDir,
@@ -629,8 +629,8 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 	}
 
 	std.InstanceData().Log().
-		Zh("安装节点结果: %s", outStr).
-		En("install node result: %s", outStr).
+		Zh("安装指令结果: stdout(%s), stderr(%s)", outStr, stderr).
+		En("install command result: stdout(%s), stderr(%s)", outStr, stderr).
 		Info()
 
 	return nil

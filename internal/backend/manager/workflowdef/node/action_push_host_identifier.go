@@ -126,8 +126,8 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 	std.InstanceData().Log().
-		Zh("已推送主机标识，task-id(%s)", taskID).
-		En("pushed host identifier, task-id(%s)", taskID).
+		Zh("尝试推送主机标识, task-id(%s)", taskID).
+		En("try to push host identifier, task-id(%s)", taskID).
 		Info()
 
 	var success bool
@@ -166,7 +166,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 
 	if !success {
 		std.InstanceData().Log().
-			Zh("推送主机标识失败，无成功结果").
+			Zh("推送主机标识失败, 无成功结果").
 			En("failed to push host identifier, no success result").
 			Error()
 

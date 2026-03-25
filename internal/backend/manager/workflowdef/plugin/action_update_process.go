@@ -112,7 +112,7 @@ func (act *actUpdateProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("成功更新进程信息，plugin-name(%s), host-id(%d)",
+		Zh("成功更新进程信息, plugin-name(%s), host-id(%d)",
 			std.DeployInfo().Process.PluginName,
 			std.DeployInfo().Process.HostID).
 		En("succeed to update process info, plugin-name(%s), host-id(%d)",

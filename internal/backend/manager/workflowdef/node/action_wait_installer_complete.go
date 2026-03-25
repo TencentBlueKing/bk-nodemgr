@@ -227,7 +227,7 @@ func (act *actionWaitInstallerComplete) handleInstallerResult(
 
 	case installer.ProcessStateFailed, installer.ProcessStateTimeout:
 		std.InstanceData().Log().
-			Zh("接收到安装器结果不成功。installer-result(%s)", result).
+			Zh("接收到安装器结果不成功. installer-result(%s)", result).
 			En("received installer result is not success. installer-result(%s)", result).
 			Info()
 
@@ -291,4 +291,3 @@ func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionS
 
 	return value, nil
 }
-

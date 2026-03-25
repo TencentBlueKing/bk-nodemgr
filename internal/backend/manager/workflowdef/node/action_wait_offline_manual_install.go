@@ -218,7 +218,7 @@ func (act *actionWaitOfflineManualInstall) applyResult(
 	std.DeployInfo().Host.Dynamic.AgentID = data.AgentID
 	std.ResetInstanceDataContext()
 	std.InstanceData().Log().
-		Zh("接收到离线安装结果，agent-id(%s)", data.AgentID).
+		Zh("接收到离线安装结果, agent-id(%s)", data.AgentID).
 		En("received offline install result, agent-id(%s)", data.AgentID).
 		Info()
 

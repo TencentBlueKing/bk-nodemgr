@@ -107,7 +107,7 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 	}()
 
 	std.InstanceData().Log().
-		Zh("尝试执行停止插件进程，plugin-name(%s), host-id(%d), cmd(%s)",
+		Zh("尝试执行停止插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).
 		En("try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).
@@ -122,7 +122,7 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("成功执行停止插件进程操作，result(%s)", result).
+		Zh("成功执行停止插件进程操作, result(%s)", result).
 		En("successfully execute stop plugin process operation, result(%s)", result).
 		Info()
 
@@ -144,7 +144,7 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 
 		if processInfo.Status != types.ProcessStatusStopped {
 			std.InstanceData().Log().
-				Zh("进程状态未停止，status(%s)", processInfo.Status).
+				Zh("进程状态未停止, status(%s)", processInfo.Status).
 				En("process status is not stopped, status(%s)", processInfo.Status).
 				Info()
 
@@ -170,7 +170,7 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("进程已停止，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		Zh("进程已停止, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
 		En("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).

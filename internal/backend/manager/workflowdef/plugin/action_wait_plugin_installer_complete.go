@@ -126,7 +126,7 @@ func (act *actionWaitPluginInstallerComplete) Do(ctx *action.InstanceContext) er
 
 	case installer.ProcessStateFailed, installer.ProcessStateTimeout:
 		std.InstanceData().Log().
-			Zh("收到安装器结果不成功，installer-result(%s)", installerResult).
+			Zh("收到安装器结果不成功, installer-result(%s)", installerResult).
 			En("received installer result is not success. installer-result(%s)", installerResult).
 			Info()
 

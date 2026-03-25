@@ -163,7 +163,7 @@ func (act *actionRenderPluginConfig) renderConfig(
 	}
 
 	std.InstanceData().Log().
-		Zh("开始渲染插件配置，template-renderer-type(%s)", pluginConf.TemplateRenderer).
+		Zh("开始渲染插件配置, template-renderer-type(%s)", pluginConf.TemplateRenderer).
 		En("start render plugin config, template-renderer-type(%s)", pluginConf.TemplateRenderer).
 		Info()
 
@@ -175,7 +175,7 @@ func (act *actionRenderPluginConfig) renderConfig(
 		}
 
 		std.InstanceData().Log().
-			Zh("渲染插件配置成功，plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
+			Zh("渲染插件配置成功, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
 				std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
 				std.DeployInfo().Process.Info.Version, pluginConf.ConfigFilesDetail[idx].Name).
 			En("rendered plugin config success, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",

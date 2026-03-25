@@ -209,7 +209,7 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeA
 	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
 
 	std.InstanceData().Log().
-		Zh("设置安装工具，工具名(%s)，安装器路径(%s)", toolName, installerPath).
+		Zh("设置安装工具, 工具名(%s), 安装器路径(%s)", toolName, installerPath).
 		En("setup installation tools, tool name(%s), installerPath(%s)", toolName, installerPath).
 		Info()
 
@@ -312,7 +312,7 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 			}
 
 			std.InstanceData().Log().
-				Zh("等待 relay 报告安装结果成功，结果 stdout: %s", outStr).
+				Zh("等待 relay 报告安装结果成功, 结果 stdout: %s", outStr).
 				En("wait for relay report install result successfully. result stdout: %s", outStr).
 				Info()
 

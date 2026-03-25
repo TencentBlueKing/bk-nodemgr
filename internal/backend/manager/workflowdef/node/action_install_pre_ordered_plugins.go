@@ -144,7 +144,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	preOrderedPlugins := getPreOrderedPlugins()
 	if len(preOrderedPlugins) == 0 {
 		std.InstanceData().Log().
-			Zh("无预置插件需要安装，跳过此操作").
+			Zh("无预置插件需要安装, 跳过此操作").
 			En("no pre-ordered plugins to install, skip this action").
 			Info()
 
@@ -203,7 +203,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	std.InstanceData().PrivateData[privateDataKeyPluginWorkflowID] = workflowID
 
 	std.InstanceData().Log().
-		Zh("成功启动预置插件安装工作流，workflow-id(%s)", workflowID).
+		Zh("成功启动预置插件安装工作流, workflow-id(%s)", workflowID).
 		En("succeed to launch install pre-ordered plugins workflow, workflow-id(%s)", workflowID).
 		Info()
 
@@ -233,7 +233,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		}
 
 		std.InstanceData().Log().
-			Zh("预置插件安装工作流已完成，状态: %s", workflowStatus).
+			Zh("预置插件安装工作流已完成, 状态: %s", workflowStatus).
 			En("install pre-ordered plugins workflow finished with status: %s", workflowStatus).
 			Info()
 

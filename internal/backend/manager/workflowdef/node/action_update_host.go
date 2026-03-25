@@ -126,5 +126,10 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 			Warn("failed to touch host operation time after update host dynamic")
 	}
 
+	std.InstanceData().Log().
+		Zh("更新主机信息成功, 主机ID(%d)", std.DeployInfo().Host.HostID).
+		En("successfully update host, host-id(%d)", std.DeployInfo().Host.HostID).
+		Info()
+
 	return nil
 }

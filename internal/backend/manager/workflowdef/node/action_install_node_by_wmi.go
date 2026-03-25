@@ -77,8 +77,8 @@ type InstallParamsWin struct {
 }
 
 type actionInstallNodeByWMI struct {
-	fileHandler  file.IHandler
-	fileCache    filecache.IFileCache
+	fileHandler           file.IHandler
+	fileCache             filecache.IFileCache
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -221,7 +221,7 @@ func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStan
 	}
 
 	std.InstanceData().Log().
-		Zh("确保安装器工作目录存在，stdout(%s)，stderr(%s)",
+		Zh("确保安装器工作目录存在, stdout(%s), stderr(%s)",
 			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
 		En("make sure the installer workspace exists, stdout(%s), stderr(%s)",
 			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
@@ -264,8 +264,8 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 
 	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
 	std.InstanceData().Log().
-		Zh("已传输文件到主机，路径(%s)", installerPath).
-		En("transferred file to host, path(%s)", installerPath).
+		Zh("已传输安装器到主机, 路径(%s)", installerPath).
+		En("transferred installer to host, path(%s)", installerPath).
 		Info()
 
 	return installerPath, nil

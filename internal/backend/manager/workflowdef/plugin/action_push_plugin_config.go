@@ -149,7 +149,7 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		})
 
 		std.InstanceData().Log().
-			Zh("准备推送插件配置文件(%s)到主机(%d)，目录(%s)",
+			Zh("准备推送插件配置文件(%s)到主机(%d), 目录(%s)",
 				pluginConfDetail.Name, host.HostID, storeDir).
 			En("prepare to push plugin config file(%s) to host(%d) in dir(%s)",
 				pluginConfDetail.Name, host.HostID, storeDir).
@@ -189,7 +189,7 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("推送插件配置全部完成，task-id(%s)", taskID).
+		Zh("推送插件配置全部完成, task-id(%s)", taskID).
 		En("push plugin config all done, task-id(%s).", taskID).
 		Info()
 

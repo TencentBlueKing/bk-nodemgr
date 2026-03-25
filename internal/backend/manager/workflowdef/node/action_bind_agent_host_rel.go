@@ -152,6 +152,11 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("bind host agent relation failed: %w", err)
 	}
 
+	std.InstanceData().Log().
+		Zh("绑定主机与Agent关联成功, 主机ID(%d), agent-id(%s)", std.DeployInfo().Host.HostID, std.DeployInfo().Host.Dynamic.AgentID).
+		En("successfully bind host agent relation, host-id(%d), agent-id(%s)", std.DeployInfo().Host.HostID, std.DeployInfo().Host.Dynamic.AgentID).
+		Info()
+
 	logger.G.Sys().
 		With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).
 		Info("successfully bind host agent relation")

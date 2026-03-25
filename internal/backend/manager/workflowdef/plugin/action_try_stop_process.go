@@ -123,7 +123,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 
 	if !exist {
 		std.InstanceData().Log().
-			Zh("进程不存在，无需停止进程").
+			Zh("进程不存在, 无需停止进程").
 			En("process not exist, no need to stop the process.").
 			Info()
 
@@ -143,7 +143,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 
 	if process.Info.Status != types.ProcessStatusRunning {
 		std.InstanceData().Log().
-			Zh("数据库中记录的进程状态未运行(%s)，无需停止进程", process.Info.Status).
+			Zh("数据库中记录的进程状态未运行(%s), 无需停止进程", process.Info.Status).
 			En("process status recorded in database is not running(%s), no need to stop the process", process.Info.Status).
 			Info()
 
@@ -151,13 +151,13 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("数据库中记录的进程状态为运行中，尝试执行停止插件进程，plugin-name(%s), host-id(%d), cmd(%s)",
+		Zh("数据库中记录的进程状态为运行中, 尝试执行停止插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
 			process.PluginName, process.HostID, process.Controller.StopCmd).
 		En("process status recorded in database is running, try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
 			process.PluginName, process.HostID, process.Controller.StopCmd).
 		Info()
 	std.InstanceData().Log().
-		Zh("数据库中的进程记录，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		Zh("数据库中的进程记录, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
 		En("process record in database, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
@@ -168,12 +168,12 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("执行停止插件进程操作失败，result(%s), err(%s)", result, err.Error()).
+			Zh("执行停止插件进程操作失败, result(%s), err(%s)", result, err.Error()).
 			En("failed to execute stop plugin process operation, result(%s), err(%s)", result, err.Error()).
 			Warn()
 	} else {
 		std.InstanceData().Log().
-			Zh("成功执行停止插件进程操作，result(%s)", result).
+			Zh("成功执行停止插件进程操作, result(%s)", result).
 			En("successfully execute stop plugin process operation, result(%s)", result).
 			Info()
 	}
@@ -205,7 +205,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 
 		if processInfo.AutoStart {
 			std.InstanceData().Log().
-				Zh("进程自动启动为 true，进程将被 GSE 再次重启").
+				Zh("进程自动启动为 true, 进程将被 GSE 再次重启").
 				En("process autostart is true, process will be restart by gse again").
 				Info()
 
@@ -222,7 +222,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("进程已停止，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		Zh("进程已停止, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
 		En("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).

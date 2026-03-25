@@ -144,11 +144,16 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("agent version is not match, version(%s)", state.Version)
 		}
 
+		std.InstanceData().Log().
+			Zh("查询到 Agent 状态为运行中, 版本(%s)", state.Version).
+			En("found agent state is running, version(%s)", state.Version).
+			Info()
+
 		return nil
 	})
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("查询 agent 状态失败: %s", err.Error()).
+			Zh("查询 Agent 状态失败: %s", err.Error()).
 			En("failed to query agent state: %s", err.Error()).
 			Error()
 

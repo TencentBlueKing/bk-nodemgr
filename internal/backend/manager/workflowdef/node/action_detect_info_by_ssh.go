@@ -138,7 +138,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("凭证获取成功，认证方式(%s)，凭证长度(%d)", cMethod, len(cKey)).
+		Zh("凭证获取成功, 认证方式(%s), 凭证长度(%d)", cMethod, len(cKey)).
 		En("credit loaded, auth-method(%s), credential-length(%d)", cMethod, len(cKey)).
 		Info()
 
@@ -194,7 +194,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("转换节点角色到发布类型失败，错误: %v", err).
+			Zh("转换节点角色到发布类型失败, 错误: %v", err).
 			En("failed to convert node role to release type. err: %v", err).
 			Error()
 
@@ -207,7 +207,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
 				std.InstanceData().Log().
-					Zh("用户选择，使用目标版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Zh("用户选择目标版本, 使用版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 					Info()
 
@@ -228,7 +228,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 		std.InstanceData().Log().
-			Zh("自动选择，使用系统默认版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Zh("自动选择目标版本, 使用系统默认版本. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 			Info()
 	}
@@ -294,7 +294,7 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 	}
 
 	data.Log().
-		Zh("主机 CPU 架构(%s)", cpuArch).
+		Zh("主机CPU架构(%s)", cpuArch).
 		En("host-cpu-arch(%s)", cpuArch).
 		Info()
 

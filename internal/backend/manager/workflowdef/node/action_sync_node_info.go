@@ -142,5 +142,12 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("update info error, agent-id(%s), info(%v)", std.DeployInfo().Host.Dynamic.AgentID, err)
 	}
 
+	std.InstanceData().Log().
+		Zh("同步节点信息成功, agent-id(%s), os-type(%s), cpu-arch(%s)",
+			std.DeployInfo().Host.Dynamic.AgentID, std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch).
+		En("sync node info successfully, agent-id(%s), os-type(%s), cpu-arch(%s)",
+			std.DeployInfo().Host.Dynamic.AgentID, std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch).
+		Info()
+
 	return nil
 }

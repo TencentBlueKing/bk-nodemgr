@@ -114,7 +114,7 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 
 	if processInfo.Status != types.ProcessStatusRunning {
 		std.InstanceData().Log().
-			Zh("进程状态未运行，status(%s)", processInfo.Status).
+			Zh("进程状态未运行, status(%s)", processInfo.Status).
 			En("process status is not running, status(%s)", processInfo.Status).
 			Info()
 
@@ -123,7 +123,7 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 
 	if deployInfo.Process.Info.Version != processInfo.Version {
 		std.InstanceData().Log().
-			Zh("进程版本不匹配，记录版本(%s)，实际版本(%s)",
+			Zh("进程版本不匹配, 记录版本(%s), 实际版本(%s)",
 				deployInfo.Process.Info.Version, processInfo.Version).
 			En("process version mismatch, record-version(%s), actual-version(%s)",
 				deployInfo.Process.Info.Version, processInfo.Version).
@@ -131,7 +131,7 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 	}
 
 	std.InstanceData().Log().
-		Zh("检查插件进程存活成功，plugin-name(%s), host-id(%d), status(%s), version(%s)",
+		Zh("检查插件进程存活成功, plugin-name(%s), host-id(%d), status(%s), version(%s)",
 			deployInfo.Process.PluginName, deployInfo.Process.HostID, processInfo.Status, processInfo.Version).
 		En("check plugin process alive succeed, plugin-name(%s), host-id(%d), status(%s), version(%s)",
 			deployInfo.Process.PluginName, deployInfo.Process.HostID, processInfo.Status, processInfo.Version).

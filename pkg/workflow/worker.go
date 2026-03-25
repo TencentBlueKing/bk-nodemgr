@@ -513,10 +513,12 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 			Info("started action")
 
-		actionInstCtx.Data.Log().
-			Zh("开始执行步骤 [%s] (name=%s, retry=%d)", actionInstCtx.Data.DisplayNameZh, actionInstCtx.Data.Name, retryNum).
-			En("started action [%s] (name=%s, retry=%d)", actionInstCtx.Data.DisplayNameEn, actionInstCtx.Data.Name, retryNum).
-			Info()
+		if retryNum > 0 {
+			actionInstCtx.Data.Log().
+				Zh("第%d次重试步骤", retryNum).
+				En("retried action, for the No.%d attempt", retryNum).
+				Info()
+		}
 
 		doErr = actionDef.Do(actionInstCtx)
 
@@ -527,10 +529,9 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 				With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 				Error("failed to do action")
 
-			actionInstCtx.Data.Log().
-				Zh("步骤执行失败 [%s] (name=%s, retry=%d): %v", actionInstCtx.Data.DisplayNameZh, actionInstCtx.Data.Name, retryNum, doErr).
-				En("failed to do action [%s] (name=%s, retry=%d): %v", actionInstCtx.Data.DisplayNameEn, actionInstCtx.Data.Name, retryNum, doErr).
-				Warn()
+			if retryNum < engineMaxRetryLimit {
+				actionInstCtx.Data.Log().Zh("步骤执行失败, 即将重试: %v", doErr).En("action failed, about to retry: %v", doErr).Warn()
+			}
 
 			delayFn := actionDef.DelayFn()
 			if delayFn != nil {
@@ -545,13 +546,6 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 			Info("done action")
 
-		actionInstCtx.Data.Log().
-			Zh("步骤执行完成 [%s] (name=%s, oper-def-name=%s, retry=%d)",
-				actionInstCtx.Data.DisplayNameZh, actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum).
-			En("done action [%s] (name=%s, oper-def-name=%s, retry=%d)",
-				actionInstCtx.Data.DisplayNameEn, actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum).
-			Info()
-
 		break
 	}
 
@@ -562,12 +556,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name).
 			Error("failed to do action with all attempts")
 
-		actionInstCtx.Data.Log().
-			Zh("步骤最终失败 [%s] (name=%s, oper-def-name=%s): %v",
-				actionInstCtx.Data.DisplayNameZh, actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr).
-			En("action failed [%s] (name=%s, oper-def-name=%s): %v",
-				actionInstCtx.Data.DisplayNameEn, actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr).
-			Error()
+		actionInstCtx.Data.Log().Zh("步骤最终失败: %v", doErr).En("action failed: %v", doErr).Error()
 	}
 
 	return doErr

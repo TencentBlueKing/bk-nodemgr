@@ -1,10 +1,6 @@
 <template>
   <SlideDetail class="bg-[#fff]" ref="slideDetailRef">
-    <div
-      ref="contentRef"
-      class="h-[500px] flex flex-col overflow-y-auto"
-      :class="{ 'text-[12px]': !isFullscreen, 'text-[16px]': isFullscreen }"
-    >
+    <div class="h-[500px] flex flex-col overflow-y-auto text-[12px]">
       <div
         class="h-[50px] flex flex-shrink-0 justify-between items-center px-[16px] bg-[#2E2E2E] text-[#C4C6CC]"
       >
@@ -40,20 +36,10 @@
               </ul>
             </template>
           </Dropdown>
-          <Button text v-if="isFullscreen" @click="switchFullScreen">
-            <i
-              class="nodeman-icon nc-icon-un-full-screen text-[16px] text-[#C4C6CC]"
-            ></i>
-          </Button>
-          <Button text v-else @click="switchFullScreen">
-            <i
-              class="nodeman-icon nc-icon-full-screen text-[16px] text-[#C4C6CC]"
-            ></i>
-          </Button>
         </div>
       </div>
       <div class="bg-[#1A1A1A] flex-1 flex">
-        <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]" :class="{ 'w-[360px]': isFullscreen }">
+        <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]">
           <div
             v-for="(item, key, index) in logData.oper_inst_logs"
             :key="`${key}${Math.random()}`"
@@ -82,7 +68,7 @@
               height="12.25px"
             />
             <span class="ml-[7px]">{{ index + 1 }}.</span>
-            <bk-overflow-title class="overflow-ellipsis w-[200px]" :class="{ 'w-[300px]': isFullscreen }">
+            <bk-overflow-title class="overflow-ellipsis w-[200px]">
               <span class="ml-[2px] mr-[4px]">{{ getDisplayName(key) }}</span>
               <span
                 v-if="item.life_cycle?.end_time >= 0 && item.life_cycle?.start_time >= 0"
@@ -99,14 +85,20 @@
             :key="index"
             class="mx-[30px] my-[8px]"
             :class="{
-              'bg-[#422321] flex !mx-0':
-                item.level === 'ERROR' || getLogText(item).includes('ERROR'),
+              'bg-[#422321] flex !mx-0': isExecutionLogError(item),
+              'bg-[#3d3220] flex !mx-0': isExecutionLogWarn(item),
             }"
           >
             <div class="flex justify-center items-baseline w-[26px] pt-[6px]">
               <close
-                v-if="item.level === 'ERROR' || getLogText(item).includes('ERROR')"
+                v-if="isExecutionLogError(item)"
                 :fill="'#993D3D'"
+                width="12.25px"
+                height="12.25px"
+              />
+              <exclamation-circle-shape
+                v-else-if="isExecutionLogWarn(item)"
+                :fill="'#FF9C01'"
                 width="12.25px"
                 height="12.25px"
               />
@@ -128,14 +120,20 @@
 </template>
 <script setup lang="ts">
 import { Button, Dropdown, overflowTitle } from 'bkui-vue';
-import { AngleUpFill, Close, RightTurnLine, Spinner, Success } from 'bkui-vue/lib/icon';
+import {
+  AngleUpFill,
+  Close,
+  ExclamationCircleShape,
+  RightTurnLine,
+  Spinner,
+  Success,
+} from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import SlideDetail from '@/components/slide-detail.vue';
-import useFullScreen from '@/composables/use-fullscreen';
 import useInterval from '@/composables/use-interval';
 import { useMainStore } from '@/stores/main';
 
@@ -148,8 +146,6 @@ const { t } = useI18n();
 
 const mainStore = useMainStore();
 
-// 全屏
-const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 1000); // 轮询
 const activeKey = ref('');
 const curOperInstId = ref('');
@@ -185,6 +181,9 @@ const getLogText = (item: any) => {
     ? (item.text_zh || '')
     : (item.text_en || '');
 };
+
+const isExecutionLogError = (item: any) => item.level === 'ERROR' || getLogText(item).includes('ERROR');
+const isExecutionLogWarn = (item: any) => !isExecutionLogError(item) && (item.level === 'WARN' || getLogText(item).includes('WARN'));
 const timeFormatter = (
   val: number | string | undefined,
   format = 'YYYY-MM-DD HH:mm:ss',

@@ -191,7 +191,7 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("节点角色转换为发布类型失败。err: %v", err).
+			Zh("节点角色转换为发布类型失败: %v", err).
 			En("failed to convert node role to release type. err: %v", err).
 			Error()
 
@@ -204,7 +204,7 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
 				std.InstanceData().Log().
-					Zh("用户选择，使用目标版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Zh("用户选择, 使用目标版本. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 					Info()
 
@@ -225,7 +225,7 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 			return err
 		}
 		std.InstanceData().Log().
-			Zh("自动选择，使用系统默认版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Zh("自动选择, 使用系统默认版本. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
 			Info()
 	}

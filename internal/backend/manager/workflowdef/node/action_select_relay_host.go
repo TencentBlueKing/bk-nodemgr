@@ -121,7 +121,7 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().RelayInfo = relayHost
 
 	std.InstanceData().Log().
-		Zh("选择 relay 主机成功。relay-host-id(%d)", relayHost.HostID).
+		Zh("选择 relay 主机成功. relay-host-id(%d)", relayHost.HostID).
 		En("select relay host success. relay-host-id(%d)", relayHost.HostID).
 		Info()
 
@@ -151,7 +151,7 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 
 	if num == 0 {
 		std.InstanceData().Log().
-			Zh("网络单元中没有代理主机。network-unit-id(%d)", networkunitID).
+			Zh("网络单元中没有代理主机. network-unit-id(%d)", networkunitID).
 			En("no proxy host in network unit. network-unit-id(%d)", networkunitID).
 			Error()
 
@@ -163,7 +163,7 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 		if host.Dynamic.ProxySupportInstaller() {
 			if err := act.validateRelayHost(host); err != nil {
 				std.InstanceData().Log().
-					Zh("专用安装主机缺少 relay 配置信息，已忽略。host-id(%d): %v", host.HostID, err).
+					Zh("专用安装主机缺少 relay 配置信息, 已忽略. host-id(%d): %v", host.HostID, err).
 					En("dedicated installer host missing relay config and skipped. host-id(%d): %v", host.HostID, err).
 					Warn()
 

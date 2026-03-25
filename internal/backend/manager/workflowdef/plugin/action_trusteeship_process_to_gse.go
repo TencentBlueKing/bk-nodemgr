@@ -113,7 +113,7 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("成功执行托管插件进程操作，result(%s)", result).
+		Zh("成功执行托管插件进程操作, result(%s)", result).
 		En("successfully execute trusteeship plugin process operation, result(%s)", result).
 		Info()
 
@@ -135,7 +135,7 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 
 		if processInfo.Status != types.ProcessStatusRunning {
 			std.InstanceData().Log().
-				Zh("进程状态未运行，status(%s)", processInfo.Status).
+				Zh("进程状态未运行, status(%s)", processInfo.Status).
 				En("process status is not running, status(%s)", processInfo.Status).
 				Info()
 
@@ -161,7 +161,7 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("进程运行中，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		Zh("进程运行中, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
 		En("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).

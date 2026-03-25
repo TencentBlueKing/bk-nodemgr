@@ -138,7 +138,7 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 
 	if !pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
 		std.InstanceData().Log().
-			Zh("插件包启动节点类型与主机节点角色不匹配，"+
+			Zh("插件包启动节点类型与主机节点角色不匹配,"+
 				"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
 				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
 				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole).
@@ -156,7 +156,7 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 
 	if !pluginPkg.Enabled {
 		std.InstanceData().Log().
-			Zh("插件包未启用，plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
+			Zh("插件包未启用, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
 				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID).
 			En("plugin pkg is not enabled, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
 				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID).
@@ -167,7 +167,7 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 	}
 
 	std.InstanceData().Log().
-		Zh("插件包验证成功，"+
+		Zh("插件包验证成功,"+
 			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s)",
 			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
 			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType).

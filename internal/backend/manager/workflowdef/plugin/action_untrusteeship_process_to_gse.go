@@ -111,7 +111,7 @@ func (act *actUnTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("成功执行取消进程托管操作，result(%s)", result).
+		Zh("成功执行取消进程托管操作, result(%s)", result).
 		En("successfully execute untrusteeship process operation, result(%s)", result).
 		Info()
 
@@ -130,7 +130,7 @@ func (act *actUnTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("进程运行中，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		Zh("进程运行中, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
 		En("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).

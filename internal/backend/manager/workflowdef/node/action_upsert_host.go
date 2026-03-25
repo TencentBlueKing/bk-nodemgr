@@ -119,18 +119,25 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	if err := act.checkHost(std.Context(), std.DeployInfo()); err != nil {
+	if err := act.checkHost(std); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types.DeploymentInfo) error {
+func (act *actionUpsertHostToCMDB) checkHost(std *nodeUtils.NodeActionStandarder) error {
+	info := std.DeployInfo()
+
 	// nolint: nestif
 	// host-id not specified.
 	if info.Host.HostID < 0 {
-		count, err := act.storageHost.CountHost(nCtx, &types.HostCondition{
+		std.InstanceData().Log().
+			Zh("未指定主机ID, 即将创建新主机").
+			En("host-id not specified, will create new host").
+			Info()
+
+		count, err := act.storageHost.CountHost(std.Context(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
 				Addressing:    []types.Addressing{info.Host.Static.Addressing},
@@ -147,21 +154,26 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 		}
 
 		// new host should be inserted into cmdb.
-		hostID, err := act.insertHost(nCtx, info)
+		hostID, err := act.insertHost(std.Context(), info)
 		if err != nil {
 			return fmt.Errorf("insert host to cmdb failed: %w", err)
 		}
 
 		info.Host.HostID = hostID
-		if err := act.storageHost.UpsertManyHost(nCtx, &info.Host); err != nil {
+		if err := act.storageHost.UpsertManyHost(std.Context(), &info.Host); err != nil {
 			return fmt.Errorf("upsert host to db failed: %w", err)
 		}
 
 		return nil
 	}
 
+	std.InstanceData().Log().
+		Zh("主机ID已指定(%d), 即将更新主机", info.Host.HostID).
+		En("host-id specified(%d), will update host", info.Host.HostID).
+		Info()
+
 	// host-id specified.
-	count, err := act.storageHost.CountHost(nCtx, &types.HostCondition{
+	count, err := act.storageHost.CountHost(std.Context(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID:        []int64{info.Host.HostID},
 			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},

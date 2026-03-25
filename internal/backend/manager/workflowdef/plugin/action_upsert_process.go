@@ -133,7 +133,7 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 
 	if !exist {
 		std.InstanceData().Log().
-			Zh("指定进程不存在，host-id(%d), plugin-name(%s)",
+			Zh("指定进程不存在, host-id(%d), plugin-name(%s)",
 				process.HostID, process.PluginName).
 			En("the specified process does not exist, host-id(%d), plugin-name(%s)",
 				process.HostID, process.PluginName).
@@ -145,12 +145,12 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		std.InstanceData().Log().
-			Zh("成功创建进程，host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			Zh("成功创建进程, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
 			En("successfully create process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
 			Info()
 	} else {
 		std.InstanceData().Log().
-			Zh("指定进程已存在，host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			Zh("指定进程已存在, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
 			En("the specified process exist, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
 			Info()
 
@@ -160,7 +160,7 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		std.InstanceData().Log().
-			Zh("成功更新进程，host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			Zh("成功更新进程, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
 			En("successfully update process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
 			Info()
 	}
