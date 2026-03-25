@@ -2213,6 +2213,36 @@ func (c *cli) deleteReleasePlugin(ctx contextx.IContext, req *protoBackend.Packa
 	return nil
 }
 
+func (c *cli) getConfigVariablesReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginGetConfigVariablesReq,
+) (*protoBackend.PackageReleasePluginGetConfigVariablesResp, error) {
+
+	resp := new(protoBackend.PackageReleasePluginGetConfigVariablesResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin/get_config_variables").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get release plugin config variables", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get release plugin config variables failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listReleaseCert(ctx contextx.IContext, req *protoBackend.PackageReleaseCertListReq,
 ) (*protoBackend.PackageReleaseCertListResp, error) {
 

@@ -1070,6 +1070,40 @@
         ]
       }
     },
+    "/api/v3/package/release/plugin/get_config_variables": {
+      "post": {
+        "summary": "GetConfigVariablesReleasePlugin gets config variables of plugin release.",
+        "operationId": "Package_GetConfigVariablesReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginGetConfigVariablesResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginGetConfigVariablesReq describes the HTTP request body\nwhen get config variables of plugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginGetConfigVariablesReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/plugin/list": {
       "post": {
         "summary": "ListReleasePlugin lists plugin releases.",
@@ -1888,6 +1922,59 @@
     }
   },
   "definitions": {
+    "ConfigVariablesProperty": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "default": {},
+        "description": {
+          "type": "string"
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ConfigVariablesProperty"
+          }
+        }
+      }
+    },
+    "DataConfigVariables": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "is_main_config": {
+          "type": "boolean"
+        },
+        "source_content": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ConfigVariablesProperty"
+          }
+        }
+      }
+    },
     "DataV2Info": {
       "type": "object",
       "properties": {
@@ -1931,6 +2018,14 @@
         }
       },
       "additionalProperties": {}
+    },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
     },
     "rpcStatus": {
       "type": "object",
@@ -3564,6 +3659,62 @@
     },
     "v3PackageReleasePluginEnableRespData": {
       "type": "object"
+    },
+    "v3PackageReleasePluginGetConfigVariablesReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginGetConfigVariablesReq describes the HTTP request body\nwhen get config variables of plugin release."
+    },
+    "v3PackageReleasePluginGetConfigVariablesResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginGetConfigVariablesRespData"
+        }
+      },
+      "description": "PackageReleasePluginGetConfigVariablesResp describes the HTTP response body\nwhen get config variables of plugin release."
+    },
+    "v3PackageReleasePluginGetConfigVariablesRespData": {
+      "type": "object",
+      "properties": {
+        "config_variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/DataConfigVariables"
+          }
+        }
+      }
     },
     "v3PackageReleasePluginListReq": {
       "type": "object",

@@ -17,6 +17,7 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // ==================== Helper Functions ====================
@@ -788,6 +789,84 @@ func (x *PackageReleaseProxyCountDeployedResp) ConvertResultFromTypes(results []
 }
 
 // ==================== PackageReleasePlugin ====================
+
+// Validate check body.
+func (x *PackageReleasePluginGetConfigVariablesReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return errors.New("got invalid platform")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginGetConfigVariablesReq) AutoConvert() {
+}
+
+// GetIdentifier gets identifier for plugin release.
+func (x *PackageReleasePluginGetConfigVariablesReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// ConvertConfigVariablesFromTypes converts config variables from types.
+func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(configTemplates []types.PluginPkgConfigTemplate) {
+	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{
+		ConfigVariables: make([]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables, 0, len(configTemplates)),
+	}
+
+	for _, variable := range configTemplates {
+		item := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables{
+			Name:          variable.Name,
+			FilePath:      variable.FilePath,
+			SourcePath:    variable.SourcePath,
+			IsMainConfig:  variable.IsMainConfig,
+			SourceContent: variable.SourceContent,
+			Variables:     convertPluginPkgConfigTemplatePropertiesFromTypes(variable.Variables),
+		}
+		x.Data.ConfigVariables = append(x.Data.ConfigVariables, item)
+	}
+}
+
+func convertPluginPkgConfigTemplatePropertiesFromTypes(properties map[string]*types.PluginPkgConfigTemplateProperty,
+) map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
+
+	if len(properties) == 0 {
+		return make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property)
+	}
+
+	result := make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property, len(properties))
+	for key, property := range properties {
+		result[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
+	}
+
+	return result
+}
+
+func convertPluginPkgConfigTemplatePropertyFromTypes(property *types.PluginPkgConfigTemplateProperty,
+) *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
+
+	if property == nil {
+		return nil
+	}
+
+	result := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property{
+		Title:         property.Title,
+		Type:          property.Type,
+		Required:      property.Required,
+		Description:   property.Description,
+		DescriptionEn: property.DescriptionEn,
+		Properties:    convertPluginPkgConfigTemplatePropertiesFromTypes(property.Properties),
+	}
+
+	if property.Default != nil {
+		defaultValue, err := structpb.NewValue(property.Default)
+		if err == nil {
+			result.Default = defaultValue
+		}
+	}
+
+	return result
+}
 
 // ==================== PackageReleaseCert ====================
 

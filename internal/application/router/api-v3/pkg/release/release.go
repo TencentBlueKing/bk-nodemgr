@@ -75,6 +75,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
 	h.rg.POST("/plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
 	h.rg.POST("/plugin/download", restserver.StreamHandler(h.DownloadReleasePlugin))
+	h.rg.POST("/plugin/get_config_variables", restserver.Handler(h.GetConfigVariablesReleasePlugin))
 
 	// release cert.
 	h.rg.POST("/cert/list", restserver.Handler(h.ListReleaseCert))
@@ -908,6 +909,37 @@ func (h *handler) DownloadReleasePlugin(rCtx restserver.IContext) (*restserver.S
 	logger.G.Biz(rCtx).With("plugin_name", name, "plat", plat, "version", version).Info("downloaded release plugin")
 
 	return resp, nil
+}
+
+// GetConfigVariablesReleasePlugin gets release plugin config variables.
+func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginGetConfigVariablesReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get release plugin config variables, failed to decode request body")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	configVariables, err := h.backendHandler.GetConfigVariablesReleasePlugin(rCtx, types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			With("name", name, "gen", gen, "plat", plat, "version", version).
+			Error("failed to get release plugin config variables")
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleasePluginGetConfigVariablesResp)
+	resp.ConvertConfigVariablesFromTypes(configVariables)
+
+	return resp.GetData(), nil
 }
 
 // ==================== Release Cert ====================

@@ -387,3 +387,34 @@ func (h *handler) recordPluginEvent(rCtx restserver.IContext, gen types.Generati
 		}
 	}()
 }
+
+// GetConfigVariablesReleasePlugin gets the config variables of a plugin release.
+func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginGetConfigVariablesReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config variables of plugin release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	key := types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+	plugin, err := h.daoReleasePlugin.GetReleasePlugin(rCtx, key)
+	if err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to get release plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleasePluginGetConfigVariablesResp)
+	resp.ConvertConfigVariablesFromTypes(plugin)
+
+	return resp.GetData(), nil
+}

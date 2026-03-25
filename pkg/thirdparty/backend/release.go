@@ -211,6 +211,12 @@ type IHandlerReleasePlugin interface {
 	// @param key the release plugin key.
 	// @return the error.
 	DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// GetConfigVariablesReleasePlugin gets plugin release config variables.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release plugin key.
+	// @return the plugin release config variables and error.
+	GetConfigVariablesReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) ([]types.PluginPkgConfigTemplate, error)
 }
 
 // IHandlerReleaseCert defines the backend Handler for release cert.
@@ -263,7 +269,7 @@ type IHandlerReleasePluginBinTool interface {
 // ===============================================================================
 
 // ListReleaseAgent lists agent releases by page and conditions.
-func (h *Handler) ListReleaseAgent(nCtx contextx.IContext,gen types.Generation,page types.Page,condition *types.ReleaseCondition) (
+func (h *Handler) ListReleaseAgent(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
 	[]*types.ReleaseAgent, int64, error) {
 
 	req := &protoBackend.PackageReleaseAgentListReq{
@@ -299,7 +305,7 @@ func (h *Handler) ListReleaseAgent(nCtx contextx.IContext,gen types.Generation,p
 }
 
 // CountReleaseAgent counts agent releases by conditions.
-func (h *Handler) CountReleaseAgent(nCtx contextx.IContext,gen types.Generation,condition *types.ReleaseCondition) (int64, error) {
+func (h *Handler) CountReleaseAgent(nCtx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error) {
 	req := &protoBackend.PackageReleaseAgentListReq{
 		Generation: int64(gen),
 		OnlyCount:  true,
@@ -320,7 +326,7 @@ func (h *Handler) CountReleaseAgent(nCtx contextx.IContext,gen types.Generation,
 
 // DistinctReleaseAgent distincts agent releases by conditions.
 func (h *Handler) DistinctReleaseAgent(
-	nCtx contextx.IContext,gen types.Generation,distinctField types.ReleaseDistinctField,condition *types.ReleaseCondition) (
+	nCtx contextx.IContext, gen types.Generation, distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (
 	*types.ReleaseDistinctResult, error) {
 
 	req := &protoBackend.PackageReleaseAgentDistinctReq{
@@ -343,7 +349,7 @@ func (h *Handler) DistinctReleaseAgent(
 }
 
 // SetReleaseAgentLabelsMany sets many agent release labels.
-func (h *Handler) SetReleaseAgentLabelsMany(nCtx contextx.IContext,gen types.Generation,labels []string,condition *types.ReleaseCondition) error {
+func (h *Handler) SetReleaseAgentLabelsMany(nCtx contextx.IContext, gen types.Generation, labels []string, condition *types.ReleaseCondition) error {
 	req := &protoBackend.PackageReleaseAgentSetLabelsManyReq{
 		Generation: int64(gen),
 		Labels:     labels,
@@ -356,7 +362,7 @@ func (h *Handler) SetReleaseAgentLabelsMany(nCtx contextx.IContext,gen types.Gen
 }
 
 // EnableReleaseAgent enables agent release.
-func (h *Handler) EnableReleaseAgent(nCtx contextx.IContext,key types.ReleaseAgentKey) error {
+func (h *Handler) EnableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	req := &protoBackend.PackageReleaseAgentEnableReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -367,7 +373,7 @@ func (h *Handler) EnableReleaseAgent(nCtx contextx.IContext,key types.ReleaseAge
 }
 
 // DisableReleaseAgent disables agent release.
-func (h *Handler) DisableReleaseAgent(nCtx contextx.IContext,key types.ReleaseAgentKey) error {
+func (h *Handler) DisableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	req := &protoBackend.PackageReleaseAgentDisableReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -378,7 +384,7 @@ func (h *Handler) DisableReleaseAgent(nCtx contextx.IContext,key types.ReleaseAg
 }
 
 // SetAsDefaultReleaseAgent sets agent release as default.
-func (h *Handler) SetAsDefaultReleaseAgent(nCtx contextx.IContext,key types.ReleaseAgentKey) error {
+func (h *Handler) SetAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	req := &protoBackend.PackageReleaseAgentSetAsDefaultReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -389,7 +395,7 @@ func (h *Handler) SetAsDefaultReleaseAgent(nCtx contextx.IContext,key types.Rele
 }
 
 // CancelAsDefaultReleaseAgent cancels agent release as default.
-func (h *Handler) CancelAsDefaultReleaseAgent(nCtx contextx.IContext,key types.ReleaseAgentKey) error {
+func (h *Handler) CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	req := &protoBackend.PackageReleaseAgentCancelAsDefaultReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -400,7 +406,7 @@ func (h *Handler) CancelAsDefaultReleaseAgent(nCtx contextx.IContext,key types.R
 }
 
 // DeleteReleaseAgent deletes agent release.
-func (h *Handler) DeleteReleaseAgent(nCtx contextx.IContext,key types.ReleaseAgentKey) error {
+func (h *Handler) DeleteReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	req := &protoBackend.PackageReleaseAgentDeleteReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -415,7 +421,7 @@ func (h *Handler) DeleteReleaseAgent(nCtx contextx.IContext,key types.ReleaseAge
 // ===============================================================================
 
 // ListReleaseProxy lists proxy releases by page and conditions.
-func (h *Handler) ListReleaseProxy(nCtx contextx.IContext,gen types.Generation,page types.Page,condition *types.ReleaseCondition) (
+func (h *Handler) ListReleaseProxy(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
 	[]*types.ReleaseProxy, int64, error) {
 
 	req := &protoBackend.PackageReleaseProxyListReq{
@@ -451,7 +457,7 @@ func (h *Handler) ListReleaseProxy(nCtx contextx.IContext,gen types.Generation,p
 }
 
 // CountReleaseProxy counts proxy releases by conditions.
-func (h *Handler) CountReleaseProxy(nCtx contextx.IContext,gen types.Generation,condition *types.ReleaseCondition) (int64, error) {
+func (h *Handler) CountReleaseProxy(nCtx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error) {
 	req := &protoBackend.PackageReleaseProxyListReq{
 		Generation: int64(gen),
 		OnlyCount:  true,
@@ -472,7 +478,7 @@ func (h *Handler) CountReleaseProxy(nCtx contextx.IContext,gen types.Generation,
 
 // DistinctReleaseProxy distincts proxy releases by conditions.
 func (h *Handler) DistinctReleaseProxy(
-	nCtx contextx.IContext,gen types.Generation,distinctField types.ReleaseDistinctField,condition *types.ReleaseCondition) (
+	nCtx contextx.IContext, gen types.Generation, distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (
 	*types.ReleaseDistinctResult, error) {
 
 	req := &protoBackend.PackageReleaseProxyDistinctReq{
@@ -495,7 +501,7 @@ func (h *Handler) DistinctReleaseProxy(
 }
 
 // SetReleaseProxyLabelsMany sets many proxy release labels.
-func (h *Handler) SetReleaseProxyLabelsMany(nCtx contextx.IContext,gen types.Generation,labels []string,condition *types.ReleaseCondition) error {
+func (h *Handler) SetReleaseProxyLabelsMany(nCtx contextx.IContext, gen types.Generation, labels []string, condition *types.ReleaseCondition) error {
 	req := &protoBackend.PackageReleaseProxySetLabelsManyReq{
 		Generation: int64(gen),
 		Labels:     labels,
@@ -508,7 +514,7 @@ func (h *Handler) SetReleaseProxyLabelsMany(nCtx contextx.IContext,gen types.Gen
 }
 
 // EnableReleaseProxy enables proxy release.
-func (h *Handler) EnableReleaseProxy(nCtx contextx.IContext,key types.ReleaseProxyKey) error {
+func (h *Handler) EnableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	req := &protoBackend.PackageReleaseProxyEnableReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -519,7 +525,7 @@ func (h *Handler) EnableReleaseProxy(nCtx contextx.IContext,key types.ReleasePro
 }
 
 // DisableReleaseProxy disables proxy release.
-func (h *Handler) DisableReleaseProxy(nCtx contextx.IContext,key types.ReleaseProxyKey) error {
+func (h *Handler) DisableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	req := &protoBackend.PackageReleaseProxyDisableReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -530,7 +536,7 @@ func (h *Handler) DisableReleaseProxy(nCtx contextx.IContext,key types.ReleasePr
 }
 
 // SetAsDefaultReleaseProxy sets proxy release as default.
-func (h *Handler) SetAsDefaultReleaseProxy(nCtx contextx.IContext,key types.ReleaseProxyKey) error {
+func (h *Handler) SetAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	req := &protoBackend.PackageReleaseProxySetAsDefaultReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -541,7 +547,7 @@ func (h *Handler) SetAsDefaultReleaseProxy(nCtx contextx.IContext,key types.Rele
 }
 
 // CancelAsDefaultReleaseProxy cancels proxy release as default.
-func (h *Handler) CancelAsDefaultReleaseProxy(nCtx contextx.IContext,key types.ReleaseProxyKey) error {
+func (h *Handler) CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	req := &protoBackend.PackageReleaseProxyCancelAsDefaultReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -552,7 +558,7 @@ func (h *Handler) CancelAsDefaultReleaseProxy(nCtx contextx.IContext,key types.R
 }
 
 // DeleteReleaseProxy deletes proxy release.
-func (h *Handler) DeleteReleaseProxy(nCtx contextx.IContext,key types.ReleaseProxyKey) error {
+func (h *Handler) DeleteReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	req := &protoBackend.PackageReleaseProxyDeleteReq{
 		Generation: int64(key.Generation),
 		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
@@ -567,7 +573,7 @@ func (h *Handler) DeleteReleaseProxy(nCtx contextx.IContext,key types.ReleasePro
 // ===============================================================================
 
 // ListReleasePlugin lists plugin releases by page and conditions.
-func (h *Handler) ListReleasePlugin(nCtx contextx.IContext,gen types.Generation,page types.Page,condition *types.ReleaseCondition) (
+func (h *Handler) ListReleasePlugin(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
 	[]*types.ReleasePlugin, int64, error) {
 
 	req := &protoBackend.PackageReleasePluginListReq{
@@ -603,7 +609,7 @@ func (h *Handler) ListReleasePlugin(nCtx contextx.IContext,gen types.Generation,
 }
 
 // CountReleasePlugin counts plugin releases by conditions.
-func (h *Handler) CountReleasePlugin(nCtx contextx.IContext,gen types.Generation,condition *types.ReleaseCondition) (int64, error) {
+func (h *Handler) CountReleasePlugin(nCtx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error) {
 	req := &protoBackend.PackageReleasePluginListReq{
 		Generation: int64(gen),
 		OnlyCount:  true,
@@ -623,7 +629,7 @@ func (h *Handler) CountReleasePlugin(nCtx contextx.IContext,gen types.Generation
 }
 
 // EnableReleasePlugin enables plugin release.
-func (h *Handler) EnableReleasePlugin(nCtx contextx.IContext,key types.ReleasePluginKey) error {
+func (h *Handler) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	req := &protoBackend.PackageReleasePluginEnableReq{}
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
@@ -631,7 +637,7 @@ func (h *Handler) EnableReleasePlugin(nCtx contextx.IContext,key types.ReleasePl
 }
 
 // DisableReleasePlugin disables plugin release.
-func (h *Handler) DisableReleasePlugin(nCtx contextx.IContext,key types.ReleasePluginKey) error {
+func (h *Handler) DisableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	req := &protoBackend.PackageReleasePluginDisableReq{}
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
@@ -639,7 +645,7 @@ func (h *Handler) DisableReleasePlugin(nCtx contextx.IContext,key types.ReleaseP
 }
 
 // SetAsDefaultReleasePlugin sets plugin release as default.
-func (h *Handler) SetAsDefaultReleasePlugin(nCtx contextx.IContext,key types.ReleasePluginKey) error {
+func (h *Handler) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	req := &protoBackend.PackageReleasePluginSetAsDefaultReq{}
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
@@ -647,7 +653,7 @@ func (h *Handler) SetAsDefaultReleasePlugin(nCtx contextx.IContext,key types.Rel
 }
 
 // CancelAsDefaultReleasePlugin cancels plugin release as default.
-func (h *Handler) CancelAsDefaultReleasePlugin(nCtx contextx.IContext,key types.ReleasePluginKey) error {
+func (h *Handler) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	req := &protoBackend.PackageReleasePluginCancelAsDefaultReq{}
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
@@ -655,11 +661,88 @@ func (h *Handler) CancelAsDefaultReleasePlugin(nCtx contextx.IContext,key types.
 }
 
 // DeleteReleasePlugin deletes plugin release.
-func (h *Handler) DeleteReleasePlugin(nCtx contextx.IContext,key types.ReleasePluginKey) error {
+func (h *Handler) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	req := &protoBackend.PackageReleasePluginDeleteReq{}
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.deleteReleasePlugin(nCtx, req)
+}
+
+// GetConfigVariablesReleasePlugin gets plugin release config variables.
+func (h *Handler) GetConfigVariablesReleasePlugin(nCtx contextx.IContext,
+	key types.ReleasePluginKey) ([]types.PluginPkgConfigTemplate, error) {
+
+	req := &protoBackend.PackageReleasePluginGetConfigVariablesReq{
+		Name:       key.Name,
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	resp, err := h.cli.getConfigVariablesReleasePlugin(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, nil
+	}
+
+	items := data.GetConfigVariables()
+	result := make([]types.PluginPkgConfigTemplate, len(items))
+	for idx, item := range items {
+		result[idx] = types.PluginPkgConfigTemplate{
+			Name:          item.GetName(),
+			FilePath:      item.GetFilePath(),
+			SourcePath:    item.GetSourcePath(),
+			IsMainConfig:  item.GetIsMainConfig(),
+			SourceContent: item.GetSourceContent(),
+			Variables:     convertPluginPkgConfigTemplatePropertiesFromProto(item.GetVariables()),
+		}
+	}
+
+	return result, nil
+}
+
+func convertPluginPkgConfigTemplatePropertiesFromProto(
+	properties map[string]*protoBackend.PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property,
+) map[string]*types.PluginPkgConfigTemplateProperty {
+
+	if len(properties) == 0 {
+		return make(map[string]*types.PluginPkgConfigTemplateProperty)
+	}
+
+	result := make(map[string]*types.PluginPkgConfigTemplateProperty, len(properties))
+	for key, property := range properties {
+		result[key] = convertPluginPkgConfigTemplatePropertyFromProto(property)
+	}
+
+	return result
+}
+
+func convertPluginPkgConfigTemplatePropertyFromProto(
+	property *protoBackend.PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property,
+) *types.PluginPkgConfigTemplateProperty {
+
+	if property == nil {
+		return nil
+	}
+
+	result := &types.PluginPkgConfigTemplateProperty{
+		Title:         property.GetTitle(),
+		Type:          property.GetType(),
+		Required:      property.GetRequired(),
+		Description:   property.GetDescription(),
+		DescriptionEn: property.GetDescriptionEn(),
+		Properties:    convertPluginPkgConfigTemplatePropertiesFromProto(property.GetProperties()),
+	}
+
+	if property.GetDefault() != nil {
+		result.Default = property.GetDefault().AsInterface()
+	}
+
+	return result
 }
 
 // ===============================================================================
@@ -667,7 +750,7 @@ func (h *Handler) DeleteReleasePlugin(nCtx contextx.IContext,key types.ReleasePl
 // ===============================================================================
 
 // ListReleaseCert lists cert releases by page and conditions.
-func (h *Handler) ListReleaseCert(nCtx contextx.IContext,gen types.Generation) ([]*types.ReleaseCert, int64, error) {
+func (h *Handler) ListReleaseCert(nCtx contextx.IContext, gen types.Generation) ([]*types.ReleaseCert, int64, error) {
 	req := &protoBackend.PackageReleaseCertListReq{
 		Generation: int64(gen),
 	}
@@ -692,7 +775,7 @@ func (h *Handler) ListReleaseCert(nCtx contextx.IContext,gen types.Generation) (
 }
 
 // DeleteReleaseCert deletes cert release.
-func (h *Handler) DeleteReleaseCert(nCtx contextx.IContext,key types.ReleaseCertKey) error {
+func (h *Handler) DeleteReleaseCert(nCtx contextx.IContext, key types.ReleaseCertKey) error {
 	req := &protoBackend.PackageReleaseCertDeleteReq{
 		Generation: int64(key.Generation),
 	}
@@ -729,7 +812,7 @@ func convertReleaseCertFromProto(item *protoBackend.ReleaseCert) *types.ReleaseC
 // ===============================================================================
 
 // ListReleaseBinTool lists bintool releases by page and conditions.
-func (h *Handler) ListReleaseBinTool(nCtx contextx.IContext,gen types.Generation) ([]*types.ReleaseBinTool, int64, error) {
+func (h *Handler) ListReleaseBinTool(nCtx contextx.IContext, gen types.Generation) ([]*types.ReleaseBinTool, int64, error) {
 	req := &protoBackend.PackageReleaseBinToolListReq{
 		Generation: int64(gen),
 	}
@@ -754,7 +837,7 @@ func (h *Handler) ListReleaseBinTool(nCtx contextx.IContext,gen types.Generation
 }
 
 // DeleteReleaseBinTool deletes bintool release.
-func (h *Handler) DeleteReleaseBinTool(nCtx contextx.IContext,key types.ReleaseBinToolKey) error {
+func (h *Handler) DeleteReleaseBinTool(nCtx contextx.IContext, key types.ReleaseBinToolKey) error {
 	req := &protoBackend.PackageReleaseBinToolDeleteReq{
 		Generation: int64(key.Generation),
 	}
@@ -767,7 +850,7 @@ func (h *Handler) DeleteReleaseBinTool(nCtx contextx.IContext,key types.ReleaseB
 // ===============================================================================
 
 // ListReleasePluginBinTool lists plugin-bintool releases by page and conditions.
-func (h *Handler) ListReleasePluginBinTool(nCtx contextx.IContext,gen types.Generation) ([]*types.ReleasePluginBinTool, int64, error) {
+func (h *Handler) ListReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation) ([]*types.ReleasePluginBinTool, int64, error) {
 	req := &protoBackend.PackageReleasePluginBinToolListReq{
 		Generation: int64(gen),
 	}
@@ -792,7 +875,7 @@ func (h *Handler) ListReleasePluginBinTool(nCtx contextx.IContext,gen types.Gene
 }
 
 // DeleteReleasePluginBinTool deletes plugin-bintool release.
-func (h *Handler) DeleteReleasePluginBinTool(nCtx contextx.IContext,key types.ReleasePluginBinToolKey) error {
+func (h *Handler) DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.ReleasePluginBinToolKey) error {
 	req := &protoBackend.PackageReleasePluginBinToolDeleteReq{
 		Generation: int64(key.Generation),
 		Name:       key.Name,

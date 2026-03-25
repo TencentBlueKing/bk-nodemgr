@@ -5,6 +5,7 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/
 import "common.proto";
 
 import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
 
 // PackageReleaseExactConditions describes release exact conditions.
 message PackageReleaseExactConditions {
@@ -516,6 +517,48 @@ message PackageReleasePluginDeleteResp {
   Data data = 5;
 }
 
+// PackageReleasePluginGetConfigVariablesReq describes the HTTP request body
+// when get config variables of plugin release.
+message PackageReleasePluginGetConfigVariablesReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginGetConfigVariablesResp describes the HTTP response body
+// when get config variables of plugin release.
+message PackageReleasePluginGetConfigVariablesResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    message ConfigVariables {
+      message Property {
+        string title = 1;
+        string type = 2;
+        bool required = 3;
+        google.protobuf.Value default = 4;
+        string description = 5;
+        string description_en = 6;
+        map<string, Property> properties = 7;
+      }
+
+      string name = 1;
+      string file_path = 2;
+      string source_path = 3;
+      bool is_main_config = 4;
+      string source_content = 5;
+      map<string, Property> variables = 6;
+    }
+    repeated ConfigVariables config_variables = 1;
+  }
+  Data data = 5;
+}
+
 // PackageReleaseCertListReq describes the HTTP request body when list cert
 // release.
 message PackageReleaseCertListReq { int64 generation = 1; }
@@ -895,6 +938,15 @@ service Package {
       returns (PackageReleasePluginDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/plugin/delete"
+      body : "*"
+    };
+  }
+
+  // GetConfigVariablesReleasePlugin gets config variables of plugin release.
+  rpc GetConfigVariablesReleasePlugin(PackageReleasePluginGetConfigVariablesReq)
+      returns (PackageReleasePluginGetConfigVariablesResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/get_config_variables"
       body : "*"
     };
   }

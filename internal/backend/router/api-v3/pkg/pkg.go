@@ -81,6 +81,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
 	h.rg.POST("/release/plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
 	h.rg.POST("/release/plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
+	h.rg.POST("/release/plugin/get_config_variables", restserver.Handler(h.GetConfigVariablesReleasePlugin))
 
 	// release cert.
 	h.rg.POST("/release/cert/list", restserver.Handler(h.ListReleaseCert))
