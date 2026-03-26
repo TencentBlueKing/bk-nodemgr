@@ -2,6 +2,27 @@
 
 ## 必需工具
 
+### 可选: 使用 mise 管理项目所需工具
+
+> 如果使用vscode等工具进行开发时找不到go的二进制可以使用mise全局安装go1.23.10
+> `mise use -g go@1.23.10`
+> 安装完成后重启vscode即可
+
+```bash
+curl https://mise.run | sh
+# use bash
+echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+# use zsh
+echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc
+mise install
+pnpm setup
+# use bash
+source ~/.bashrc
+# use zsh
+source ~/.zshrc
+mise run setup-extra-tools
+```
+
 ### Go 1.23.10
 
 ```bash
