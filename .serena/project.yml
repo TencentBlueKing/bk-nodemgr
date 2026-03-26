@@ -23,8 +23,6 @@
 # Note that when using the JetBrains backend, language servers are not used and this list is correspondingly ignored.
 languages:
 - go
-- typescript
-- vue
 
 # the encoding used by text files in the project
 # For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
@@ -36,11 +34,11 @@ ignore_all_files_in_gitignore: true
 # list of additional paths to ignore in all projects
 # same syntax as gitignore, so you can use * and **
 ignored_paths:
-  - "**/*.pb.go"              # generated protobuf, never edit manually
-  - "vendor/**"               # Go vendor dependencies
-  - "front/node_modules/**"   # frontend dependencies
-  - "front/dist/**"           # frontend build output
-  - ".serena/cache/**"        # Serena LSP cache
+- "**/*.pb.go"
+- "vendor/**"
+- "front/node_modules/**"
+- "front/dist/**"
+- ".serena/cache/**"
 
 # whether the project is in read-only mode
 # If set to true, all editing tools will be disabled and attempts to use them will result in an error
@@ -87,49 +85,24 @@ read_only: false
 #  * `think_about_whether_you_are_done`: Thinking tool for determining whether the task is truly completed.
 #  * `write_memory`: Writes a named memory (for future reference) to Serena's project-specific memory store.
 excluded_tools:
-  - activate_project          # single-project workspace, no switching needed
-  - remove_project            # destructive, not needed in daily dev
-  - prepare_for_new_conversation # IDE manages context automatically
-  - initial_instructions      # system prompt is set; this is only for clients without system prompt support
-  - get_current_config        # diagnostic only, not needed in normal workflow
-  - summarize_changes         # covered by Claude's native capability
-  - switch_modes              # no runtime mode switching needed
-  - think_about_collected_information  # replaced by mcp__sequential-thinking
-  - think_about_task_adherence         # replaced by mcp__sequential-thinking
-  - think_about_whether_you_are_done   # replaced by mcp__sequential-thinking
+- activate_project
+- remove_project
+- prepare_for_new_conversation
+- initial_instructions
+- get_current_config
+- summarize_changes
+- switch_modes
+- think_about_collected_information
+- think_about_task_adherence
+- think_about_whether_you_are_done
+- write_memory
+- read_memory
+- list_memories
+- delete_memory
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
-initial_prompt: |
-  Project: BlueKing Node Manager (bk-nodemgr).
-  Source of truth for conventions, structure, anti-patterns and commands: AGENTS.md (always read first).
-
-  **Serena-specific guidance:**
-  - Prefer symbolic tools (find_symbol, get_symbols_overview) over reading full files
-  - Use search_for_pattern for cross-file pattern searches
-  - Restart language server if edits were made outside Serena tools
-
-  **Git worktree support:**
-  This project uses `.worktrees/` for isolated PR review and feature work.
-  All serena tools support worktree paths via `relative_path` — use them instead of grep/rg.
-  - Browse: `list_dir(relative_path=".worktrees")` to discover active worktrees
-  - Symbols: `get_symbols_overview(relative_path=".worktrees/pr-XXX/path/to/file.go")`
-  - Search:  `search_for_pattern(substring_pattern="...", relative_path=".worktrees/pr-XXX/...")`
-  - Find:    `find_symbol(name_path_pattern="Foo", relative_path=".worktrees/pr-XXX/...")`
-  - NEVER assume worktrees are invisible to serena — always use serena first, grep only for git ops.
-  - Note: `find_referencing_symbols` requires the symbol to exist in the LSP index; for deleted
-    symbols or cross-worktree references, fall back to `search_for_pattern`.
-
-  **Available memories (load on demand):**
-  - `project_overview`        — monorepo layout and service boundaries
-  - `code_style_conventions`  — Go/TS coding rules and anti-patterns
-  - `suggested_commands`      — build, lint, proto, frontend, test commands
-  - `task_completion_checklist` — post-change verification steps
-  - `code_review/worktree_tool_strategy` — PR review tool selection rules
-
-  **Initialization check:**
-  If this is the first session or memories appear empty, call `check_onboarding_performed` first.
-  If onboarding has not been done, call `onboarding` to populate memories before proceeding.
+initial_prompt: ""
 # the name by which the project can be referenced within Serena
 project_name: "bk-nodemgr"
 
@@ -176,3 +149,17 @@ line_ending:
 # list of regex patterns which, when matched, mark a memory entry as read‑only.
 # Extends the list from the global configuration, merging the two lists.
 read_only_memory_patterns: []
+
+# list of regex patterns for memories to completely ignore.
+# Matching memories will not appear in list_memories or activate_project output
+# and cannot be accessed via read_memory or write_memory.
+# To access ignored memory files, use the read_file tool on the raw file path.
+# Extends the list from the global configuration, merging the two lists.
+# Example: ["_archive/.*", "_episodes/.*"]
+ignored_memory_patterns: []
+
+# advanced configuration option allowing to configure language server-specific options.
+# Maps the language key to the options.
+# Have a look at the docstring of the constructors of the LS implementations within solidlsp (e.g., for C# or PHP) to see which options are available.
+# No documentation on options means no options are available.
+ls_specific_settings: {}
