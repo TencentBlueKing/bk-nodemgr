@@ -128,6 +128,9 @@ func (h *handler) generatesReconfigNodeDeployments(
 				ForceRestart:           reqHost.GetForce(),
 				GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
 			},
+			ReconfigOptions: types.DeploymentReconfigOptions{
+				AllowReleaseFallback: true,
+			},
 			TransferOptions: types.DeploymentTransferOptions{
 				SelectDownloads: true,
 				EnableInstaller: true,

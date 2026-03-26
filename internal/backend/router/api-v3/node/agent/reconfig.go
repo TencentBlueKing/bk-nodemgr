@@ -152,7 +152,8 @@ func (h *handler) generatesReconfigDeploys(
 			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
 		},
 		ReconfigOptions: types.DeploymentReconfigOptions{
-			DirectLink: unitsMap[host.Dynamic.NetworkUnitID],
+			DirectLink:           unitsMap[host.Dynamic.NetworkUnitID],
+			AllowReleaseFallback: true,
 		},
 		TransferOptions: types.DeploymentTransferOptions{
 			SelectDownloads: true,

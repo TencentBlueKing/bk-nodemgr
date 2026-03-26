@@ -87,7 +87,8 @@ type DeploymentUpgradeOptions struct {
 
 // DeploymentReconfigOptions this is the options for node reconfig.
 type DeploymentReconfigOptions struct {
-	DirectLink bool
+	DirectLink            bool
+	AllowReleaseFallback  bool
 }
 
 // DeploymentUninstallOptions this is the options for node uninstall.

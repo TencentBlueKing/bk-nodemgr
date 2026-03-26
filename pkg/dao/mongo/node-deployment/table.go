@@ -66,6 +66,7 @@ type Info struct {
 	InstallerWorkDir         string          `json:"installer_workdir" bson:"installer_workdir"`
 	InstallOptions           InstallOptions  `json:"install_options" bson:"install_options"`
 	UpgradeOptions           UpgradeOptions  `json:"upgrade_options" bson:"upgrade_options"`
+	ReconfigOptions          ReconfigOptions `json:"reconfig_options" bson:"reconfig_options"`
 	RestartOptions           RestartOptions  `json:"restart_options" bson:"restart_options"`
 	TransferOptions          TransferOptions `json:"transfer_options" bson:"transfer_options"`
 	CurrentVersionSupports   VersionSupports `json:"current_version_supports" bson:"current_version_supports"`
@@ -90,6 +91,12 @@ type InstallOptions struct {
 // UpgradeOptions this is the options for node upgrade.
 type UpgradeOptions struct {
 	DirectLink bool `json:"direct_link" bson:"direct_link"`
+}
+
+// ReconfigOptions this is the options for node reconfig.
+type ReconfigOptions struct {
+	DirectLink           bool `json:"direct_link" bson:"direct_link"`
+	AllowReleaseFallback bool `json:"allow_release_fallback" bson:"allow_release_fallback"`
 }
 
 // RestartOptions this is the options for node restart.

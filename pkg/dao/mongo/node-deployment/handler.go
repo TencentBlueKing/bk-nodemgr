@@ -187,6 +187,10 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			DirectInstall: info.InstallOptions.DirectInstall,
 			IsManual:      info.InstallOptions.IsManual,
 		},
+		ReconfigOptions: types.DeploymentReconfigOptions{
+			DirectLink:           info.ReconfigOptions.DirectLink,
+			AllowReleaseFallback: info.ReconfigOptions.AllowReleaseFallback,
+		},
 		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,
 			GracefulRestartTimeout: info.RestartOptions.GracefulRestartTimeout,
@@ -411,6 +415,10 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,
 			IsManual:      info.InstallOptions.IsManual,
+		},
+		ReconfigOptions: ReconfigOptions{
+			DirectLink:           info.ReconfigOptions.DirectLink,
+			AllowReleaseFallback: info.ReconfigOptions.AllowReleaseFallback,
 		},
 		RestartOptions: RestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,

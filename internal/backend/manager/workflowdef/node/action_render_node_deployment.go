@@ -148,25 +148,17 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	switch releaseType {
 	case types.ReleaseTypeAgent:
-		rlsAgent, err := act.storageRelease.GetReleaseAgent(std.Context(), types.ReleaseAgentKey{
-			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
-			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
-			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
-		})
+		rlsAgent, err := act.getReleaseAgentForRender(std)
 		if err != nil {
-			return fmt.Errorf("failed to get release agent: %w", err)
+			return err
 		}
 
 		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
 		nodeConf.ConfigTemplate = rlsAgent.ReleaseAdditionInfoAgent.ConfigTemplate
 	case types.ReleaseTypeProxy:
-		rlsProxy, err := act.storageRelease.GetReleaseProxy(std.Context(), types.ReleaseProxyKey{
-			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
-			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
-			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
-		})
+		rlsProxy, err := act.getReleaseProxyForRender(std)
 		if err != nil {
-			return fmt.Errorf("failed to get release proxy: %w", err)
+			return err
 		}
 
 		nodeConf.PreSetting = rlsProxy.ReleaseAdditionInfoProxy.ConfigEnviron
@@ -211,6 +203,167 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	return nil
+}
+
+// getReleaseAgentForRender gets agent release for rendering node config.
+// If the exact version is not found and AllowReleaseFallback is enabled, it falls back to the default release.
+func (act *actionRenderNodeDeployment) getReleaseAgentForRender(
+	std *nodeUtils.NodeActionStandarder) (*types.ReleaseAgent, error) {
+
+	plat := platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch}
+	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
+	version := std.DeployInfo().Host.Dynamic.NodeVersion
+
+	// check if the exact version exists.
+	cond := &types.ReleaseCondition{
+		ExactInclude: &types.ReleaseExactFields{
+			Platform:   []platfmt.Platform{plat},
+			Generation: []types.Generation{gen},
+			Version:    []string{version},
+			Enabled:    []bool{true},
+		},
+	}
+
+	releases, _, err := act.storageRelease.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list release agent: %w", err)
+	}
+
+	if len(releases) > 0 {
+		return releases[0], nil
+	}
+
+	// version not found, try fallback to default release if allowed.
+	if !std.DeployInfo().ReconfigOptions.AllowReleaseFallback {
+		return nil, fmt.Errorf("release agent version(%s) not found for platform(%v)", version, plat)
+	}
+
+	return act.fallbackDefaultReleaseAgent(std, plat, gen, version)
+}
+
+// fallbackDefaultReleaseAgent queries the default agent release and logs the fallback.
+func (act *actionRenderNodeDeployment) fallbackDefaultReleaseAgent(
+	std *nodeUtils.NodeActionStandarder,
+	plat platfmt.Platform, gen types.Generation, originalVersion string,
+) (*types.ReleaseAgent, error) {
+
+	cond := &types.ReleaseCondition{
+		ExactInclude: &types.ReleaseExactFields{
+			Platform:   []platfmt.Platform{plat},
+			Generation: []types.Generation{gen},
+			AsDefault:  []bool{true},
+			Enabled:    []bool{true},
+		},
+	}
+
+	defaults, _, err := act.storageRelease.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
+	if err != nil {
+		return nil, fmt.Errorf("release agent version(%s) not found, "+
+			"and failed to list default agent release for platform(%v): %w", originalVersion, plat, err)
+	}
+	if len(defaults) == 0 {
+		return nil, fmt.Errorf("release agent version(%s) not found, "+
+			"and no default agent release available for platform(%v)", originalVersion, plat)
+	}
+	if len(defaults) > 1 {
+		return nil, fmt.Errorf("release agent version(%s) not found, "+
+			"and multiple default agent releases found for platform(%v)", originalVersion, plat)
+	}
+
+	rls := defaults[0]
+	act.logReleaseFallback(std, originalVersion, rls.Version)
+
+	return rls, nil
+}
+
+// getReleaseProxyForRender gets proxy release for rendering node config.
+// If the exact version is not found and AllowReleaseFallback is enabled, it falls back to the default release.
+func (act *actionRenderNodeDeployment) getReleaseProxyForRender(
+	std *nodeUtils.NodeActionStandarder) (*types.ReleaseProxy, error) {
+
+	plat := platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch}
+	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
+	version := std.DeployInfo().Host.Dynamic.NodeVersion
+
+	// check if the exact version exists.
+	cond := &types.ReleaseCondition{
+		ExactInclude: &types.ReleaseExactFields{
+			Platform:   []platfmt.Platform{plat},
+			Generation: []types.Generation{gen},
+			Version:    []string{version},
+			Enabled:    []bool{true},
+		},
+	}
+
+	releases, _, err := act.storageRelease.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list release proxy: %w", err)
+	}
+
+	if len(releases) > 0 {
+		return releases[0], nil
+	}
+
+	// version not found, try fallback to default release if allowed.
+	if !std.DeployInfo().ReconfigOptions.AllowReleaseFallback {
+		return nil, fmt.Errorf("release proxy version(%s) not found for platform(%v)", version, plat)
+	}
+
+	return act.fallbackDefaultReleaseProxy(std, plat, gen, version)
+}
+
+// fallbackDefaultReleaseProxy queries the default proxy release and logs the fallback.
+func (act *actionRenderNodeDeployment) fallbackDefaultReleaseProxy(
+	std *nodeUtils.NodeActionStandarder,
+	plat platfmt.Platform, gen types.Generation, originalVersion string,
+) (*types.ReleaseProxy, error) {
+
+	cond := &types.ReleaseCondition{
+		ExactInclude: &types.ReleaseExactFields{
+			Platform:   []platfmt.Platform{plat},
+			Generation: []types.Generation{gen},
+			AsDefault:  []bool{true},
+			Enabled:    []bool{true},
+		},
+	}
+
+	defaults, _, err := act.storageRelease.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
+	if err != nil {
+		return nil, fmt.Errorf("release proxy version(%s) not found, "+
+			"and failed to list default proxy release for platform(%v): %w", originalVersion, plat, err)
+	}
+	if len(defaults) == 0 {
+		return nil, fmt.Errorf("release proxy version(%s) not found, "+
+			"and no default proxy release available for platform(%v)", originalVersion, plat)
+	}
+	if len(defaults) > 1 {
+		return nil, fmt.Errorf("release proxy version(%s) not found, "+
+			"and multiple default proxy releases found for platform(%v)", originalVersion, plat)
+	}
+
+	rls := defaults[0]
+	act.logReleaseFallback(std, originalVersion, rls.Version)
+
+	return rls, nil
+}
+
+// logReleaseFallback records fallback behavior in both system log and workflow log.
+func (act *actionRenderNodeDeployment) logReleaseFallback(
+	std *nodeUtils.NodeActionStandarder,
+	originalVersion, fallbackVersion string,
+) {
+
+	logger.G.Sys().With("token", std.Token()).
+		With("original_version", originalVersion).
+		With("fallback_version", fallbackVersion).
+		Warn("release not found, fallback to default release for reconfig")
+
+	std.InstanceData().Log().
+		Zh("原始版本(%s)的 release 不存在, 回退使用默认版本(%s)的配置模板",
+			originalVersion, fallbackVersion).
+		En("release for version(%s) not found, fallback to default release version(%s) for reconfig",
+			originalVersion, fallbackVersion).
+		Warn()
 }
 
 const (
