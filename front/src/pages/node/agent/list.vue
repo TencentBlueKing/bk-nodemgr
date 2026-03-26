@@ -28,9 +28,13 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown> -->
-        <Button class="w-[130px]" theme="primary" @click="triggerHandler('setup')">{{
-          $t("platform.nodeMan.installAgent")
-        }}</Button>
+        <Button
+          class="w-[130px]"
+          theme="primary"
+          :class="{ 'btn-reinstall': hasSelection }"
+          @click="handlePrimaryButtonClick">
+          {{ primaryButtonLabel }}
+        </Button>
         <Dropdown
           theme="light"
           trigger="click"
@@ -560,6 +564,18 @@ const crossPageQueryParams = computed(() => ({
 // 计算属性：是否有任何选中（用于禁用批量按钮）
 const hasSelection = computed(() => tableData.value.some(item => item.checked) || isCrossPageSelection.value);
 
+// 计算属性：主按钮文案（安装/重装动态切换）
+const primaryButtonLabel = computed(() => (hasSelection.value ? t('platform.nodeMan.reinstallAgent') : t('platform.nodeMan.installAgent')));
+
+// 主按钮点击事件：根据勾选状态分支调用安装或重装
+const handlePrimaryButtonClick = () => {
+  if (hasSelection.value) {
+    handleOperate('reinstall', selection.value, true);
+  } else {
+    triggerHandler('setup');
+  }
+};
+
 // 计算属性：当前页是否全选（用于表头 Checkbox 状态）
 // eslint-disable-next-line max-len
 const isCurrentPageAllChecked = computed(() => tableData.value.length > 0 && tableData.value.every(item => item.checked));
@@ -568,9 +584,16 @@ const isIndeterminate = computed(() => {
   return selectedCount > 0 && selectedCount < tableData.value.length;
 });
 
+const setRowCheckedByHostId = (hostId: number, checked: boolean) => {
+  const target = tableData.value.find(item => item.bk_host_id === hostId);
+  if (target) {
+    target.checked = checked;
+  }
+};
+
 // 1. 处理单行勾选
 const handleRowCheck = (checked: boolean, row: any) => {
-  row.checked = checked;
+  setRowCheckedByHostId(row.bk_host_id, checked);
   if (isCrossPageSelection.value) {
     if (!checked) {
       excludedIds.value.add(row.bk_host_id);
@@ -971,7 +994,7 @@ const handleOperate = async (type: string, data: Host[], batch = false) => {
   router.push({ name: 'agentEdit' });
 };
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
-  row.checked = checked;
+  setRowCheckedByHostId(row.bk_host_id, checked);
 };
 
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {

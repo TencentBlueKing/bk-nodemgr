@@ -52,6 +52,7 @@ platform:
     proxyStatus:
       title: Proxy 状态
     installAgent: 安装 Agent
+    reinstallAgent: 重装 Agent
     installAgentPage:
       tip1: 对于先前未在蓝鲸 CMDB 注册过的 {0}，执行 Agent 安装，将 {1} 主机记录到 CMDB 中
       tip1FirstSlotText: 全新主机
@@ -336,6 +337,7 @@ topoManager:
       direct: 直连
     button:
       installProxy: 安装 Proxy
+      reinstallProxy: 重装 Proxy
       batch: 批量
     searchSelect:
       placeholder: 请选择 内网IPv4、内网IPv6、AgentID

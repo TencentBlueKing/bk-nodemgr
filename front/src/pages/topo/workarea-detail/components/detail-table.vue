@@ -329,6 +329,12 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 }, `topoMng-workarea-detail-${String(route.name)}`);
 // 表格勾选
 const selection = computed(() => list.value.filter((item: any) => item.checked));
+const setRowCheckedByHostId = (hostId: number, checked: boolean) => {
+  const target = list.value.find(item => item.bk_host_id === hostId);
+  if (target) {
+    target.checked = checked;
+  }
+};
 const handleSelectChange = ({
   checked,
   row,
@@ -336,7 +342,7 @@ const handleSelectChange = ({
   checked: boolean;
   row: any;
 }) => {
-  row.checked = checked;
+  setRowCheckedByHostId(row.bk_host_id, checked);
   emit('selectChange', selection.value);
 };
 
@@ -362,7 +368,7 @@ const isIndeterminate = computed(() => {
 
 // 1. 处理单行勾选
 const handleRowCheck = (checked: boolean, row: any) => {
-  row.checked = checked;
+  setRowCheckedByHostId(row.bk_host_id, checked);
   if (isCrossPageSelection.value) {
     if (!checked) {
       excludedIds.value.add(row.bk_host_id);

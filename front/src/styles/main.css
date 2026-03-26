@@ -16,3 +16,20 @@ body,
 .action-tab-wrapper {
   overflow-y: auto !important;
 }
+
+/* 重装按钮深蓝色主题（覆盖 primary 蓝色） */
+.btn-reinstall {
+  background-color: #2b5ccc !important;
+  border-color: #2b5ccc !important;
+  color: #fff !important;
+}
+
+.btn-reinstall:hover {
+  background-color: #2451b3 !important;
+  border-color: #2451b3 !important;
+}
+
+.btn-reinstall:active {
+  background-color: #1d479a !important;
+  border-color: #1d479a !important;
+}

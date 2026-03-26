@@ -52,6 +52,7 @@ platform:
     proxyStatus:
       title: Proxy Status
     installAgent: Install Agent
+    reinstallAgent: Reinstall Agent
     installAgentPage:
       tip1: For {0} not previously registered in BK-CMDB, installing the Agent will {1} host records into CMDB
       tip1FirstSlotText: new hosts
@@ -336,6 +337,7 @@ topoManager:
       direct: Direct
     button:
       installProxy: Install Proxy
+      reinstallProxy: Reinstall Proxy
       batch: Batch
     searchSelect:
       placeholder: Select Private IPv4, Private IPv6, Agent ID

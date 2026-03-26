@@ -3,10 +3,13 @@
     <FlexRow class="mt-[24px]">
       <template #left>
         <div class="flex items-center">
-          <!-- 新建 -->
-          <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">
+          <!-- 安装/重装 -->
+          <Button
+            theme="primary"
+            :class="['mr-[8px]', 'w-[130px]', { 'btn-reinstall': hasSelection }]"
+            @click="handlePrimaryButtonClick">
             <span>{{
-              $t("topoManager.workAreaDetail.button.installProxy")
+              primaryButtonLabel
             }}</span>
           </Button>
           <MoreAction
@@ -17,7 +20,7 @@
             :is-cross-page-selection="isCrossPageSelection"
             :cross-page-query-params="crossPageQueryParams"
           >
-            <Button :disabled="!selectTableData.length" class="mr-[8px]">
+            <Button :disabled="!hasSelection" class="mr-[8px]">
               <span>{{ $t("topoManager.workAreaDetail.button.batch") }}</span>
               <i
                 class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
@@ -26,7 +29,7 @@
           </MoreAction>
           <!-- 复制 -->
           <copy-ip-dropdown
-            :disabled="!selectTableData.length"
+            :disabled="!hasSelection"
             :data="tableData"
             :list="list"
             :is-cross-page-selection="isCrossPageSelection"
@@ -202,10 +205,28 @@ const isShowInstallProxy = ref(false);
 const handleInstallProxy = () => {
   isShowInstallProxy.value = true;
 };
+
+// 计算属性：是否有勾选主机
+const hasSelection = computed(() => {
+  const hasCheckedRow = tableData.value.some(item => item.checked);
+  return selectTableData.value.length > 0 || hasCheckedRow || isCrossPageSelection.value;
+});
+
+// 计算属性：主按钮文案（安装/重装动态切换）
+const primaryButtonLabel = computed(() => (hasSelection.value ? t('topoManager.workAreaDetail.button.reinstallProxy') : t('topoManager.workAreaDetail.button.installProxy')));
+
+// 主按钮点击事件：根据勾选状态分支调用安装或重装
+const handlePrimaryButtonClick = () => {
+  if (hasSelection.value) {
+    handleReinstall();
+  } else {
+    handleInstallProxy();
+  }
+};
 const tableData = ref<Host[]>([]);
 const handleSelectChange = (tableList: Host[]) => {
-  selectTableData.value = tableList.filter((item: any) => item.checked);
-  tableData.value = tableList;
+  // detail-table 已经回传选中列表，这里直接接管即可，避免状态二次过滤导致丢失
+  selectTableData.value = tableList;
 };
 const handleGetData = (tableList: Host[]) => {
   selectTableData.value = [];
