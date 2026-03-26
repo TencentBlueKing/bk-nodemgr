@@ -53,7 +53,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	networkUnitResource := buildNetworkUnitResources(networkUnit.ID)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionNetworkUnitManage, networkUnitResource); authErr != nil {
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionNetworkUnitUseForAgent, networkUnitResource); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to assign unit, networkunit permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
