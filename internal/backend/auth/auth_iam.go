@@ -12,6 +12,7 @@ package auth
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,6 +22,36 @@ import (
 )
 
 const iamCacheTTL = 5 * time.Minute
+
+// Canonical ordering constants for related_resource_types in IAM apply requests.
+// Order must match action registration in support-files/bkiamv3/templates/0003_bk_nodemgr_actions.json.tpl.
+const (
+	iamOrderBiz         = 0
+	iamOrderNetworkArea = 1
+	iamOrderNetworkUnit = 2
+	iamOrderPackageType = 3
+	iamOrderPackage     = 4
+	iamOrderUnknown     = 5
+)
+
+// iamResourceTypeOrderKey returns the canonical ordering index for a (systemID, resourceType) pair.
+// Unknown pairs are assigned a position after all known pairs.
+func iamResourceTypeOrderKey(systemID, typ string) int {
+	switch systemID + "/" + typ {
+	case SystemIDCMDB + "/" + string(ResourceTypeBiz):
+		return iamOrderBiz
+	case SystemIDNodeMgr + "/" + string(ResourceTypeNetworkArea):
+		return iamOrderNetworkArea
+	case SystemIDNodeMgr + "/" + string(ResourceTypeNetworkUnit):
+		return iamOrderNetworkUnit
+	case SystemIDNodeMgr + "/" + string(ResourceTypePackageType):
+		return iamOrderPackageType
+	case SystemIDNodeMgr + "/" + string(ResourceTypePackage):
+		return iamOrderPackage
+	default:
+		return iamOrderUnknown
+	}
+}
 
 type iamv3Authorizer struct {
 	systemID string
@@ -80,19 +111,40 @@ func (authorizer *iamv3Authorizer) newCheckRequestWithoutResource(ctx contextx.I
 }
 
 func buildIAMApplyResourceTypes(resources []Resource) []types.IAMApplyResourceType {
-	rts := make([]types.IAMApplyResourceType, 0, len(resources))
-	seen := map[string]bool{}
+	type rtKey struct{ systemID, typ string }
+	order := make([]rtKey, 0, len(resources))
+	instancesByKey := make(map[rtKey][]types.IAMApplyResourceInstance)
+
 	for _, r := range resources {
-		key := r.SystemID + "/" + string(r.Type)
-		if seen[key] {
-			continue
+		k := rtKey{r.SystemID, string(r.Type)}
+		if _, exists := instancesByKey[k]; !exists {
+			order = append(order, k)
+			instancesByKey[k] = make([]types.IAMApplyResourceInstance, 0)
 		}
-		seen[key] = true
+		if r.ID != "" {
+			instancesByKey[k] = append(instancesByKey[k], types.IAMApplyResourceInstance{
+				{Type: string(r.Type), ID: r.ID},
+			})
+		}
+	}
+
+	rts := make([]types.IAMApplyResourceType, 0, len(order))
+	for _, k := range order {
 		rts = append(rts, types.IAMApplyResourceType{
-			SystemID: r.SystemID,
-			Type:     string(r.Type),
+			SystemID:  k.systemID,
+			Type:      k.typ,
+			Instances: instancesByKey[k],
 		})
 	}
+	sort.Slice(rts, func(idx, jdx int) bool {
+		ki := iamResourceTypeOrderKey(rts[idx].SystemID, rts[idx].Type)
+		kj := iamResourceTypeOrderKey(rts[jdx].SystemID, rts[jdx].Type)
+		if ki != kj {
+			return ki < kj
+		}
+
+		return rts[idx].SystemID+"/"+rts[idx].Type < rts[jdx].SystemID+"/"+rts[jdx].Type
+	})
 
 	return rts
 }

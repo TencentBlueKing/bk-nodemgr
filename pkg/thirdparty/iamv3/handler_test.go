@@ -441,3 +441,96 @@ func TestGetApplyURL_PreservesInstances(t *testing.T) {
 		t.Fatalf("second instance node = %+v, want host/host-1", rt.Instances[0][1])
 	}
 }
+
+// TestGetApplyURL_MultipleInstancesSameType verifies that multiple denied
+// resources of the same type are sent as separate instances in one
+// RelatedResourceType entry.
+func TestGetApplyURL_MultipleInstancesSameType(t *testing.T) {
+	var gotApplication Application
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if req.URL.Path != "/api/v1/open/application/" {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+		_ = json.NewDecoder(req.Body).Decode(&gotApplication)
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"code":0,"message":"ok","data":{"url":"https://example.com/apply"}}`))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	_, err := h.GetApplyURL(contextx.New(context.Background()), types.IAMApplyRequest{
+		SystemID: "bk_nodemgr",
+		Actions: []types.IAMApplyAction{
+			{
+				ID: "host_view",
+				RelatedResourceTypes: []types.IAMApplyResourceType{
+					{
+						SystemID: "bk_cmdb",
+						Type:     "biz",
+						Instances: []types.IAMApplyResourceInstance{
+							{{Type: "biz", ID: "biz-1"}},
+							{{Type: "biz", ID: "biz-2"}},
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetApplyURL() unexpected error: %v", err)
+	}
+
+	if len(gotApplication.Actions) != 1 {
+		t.Fatalf("actions length = %d, want 1", len(gotApplication.Actions))
+	}
+	rt := gotApplication.Actions[0].RelatedResourceTypes[0]
+	if len(rt.Instances) != 2 {
+		t.Fatalf("instances length = %d, want 2", len(rt.Instances))
+	}
+	if rt.Instances[0][0].ID != "biz-1" || rt.Instances[1][0].ID != "biz-2" {
+		t.Fatalf("instance IDs mismatch: got %v %v", rt.Instances[0], rt.Instances[1])
+	}
+}
+
+// TestGetApplyURL_EmptyInstances verifies that an IAMApplyResourceType with no
+// instances (e.g. action-level permissions) produces an empty instances array
+// in the wire payload and does not fail validation.
+func TestGetApplyURL_EmptyInstances(t *testing.T) {
+	var gotApplication Application
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if req.URL.Path != "/api/v1/open/application/" {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+		_ = json.NewDecoder(req.Body).Decode(&gotApplication)
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"code":0,"message":"ok","data":{"url":"https://example.com/apply"}}`))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	_, err := h.GetApplyURL(contextx.New(context.Background()), types.IAMApplyRequest{
+		SystemID: "bk_nodemgr",
+		Actions: []types.IAMApplyAction{
+			{
+				ID: "networkarea_create",
+				RelatedResourceTypes: []types.IAMApplyResourceType{
+					{
+						SystemID:  "bk_cmdb",
+						Type:      "biz",
+						Instances: []types.IAMApplyResourceInstance{},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetApplyURL() unexpected error: %v", err)
+	}
+
+	rt := gotApplication.Actions[0].RelatedResourceTypes[0]
+	if len(rt.Instances) != 0 {
+		t.Fatalf("expected empty instances, got %d", len(rt.Instances))
+	}
+}
