@@ -15,6 +15,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -99,6 +100,62 @@ func Test_handler_Generate(t *testing.T) {
 			}
 
 			t.Logf("Generate() got = %v", got)
+		})
+	}
+}
+
+// Test_handler_GenerateN reserves n consecutive sequence values in one call.
+func Test_handler_GenerateN(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	tests := []struct {
+		name    string
+		key     string
+		n       int64
+		wantErr bool
+	}{
+		{
+			name:    "reserve 5 consecutive values",
+			key:     "key-generate-n",
+			n:       5,
+			wantErr: false,
+		},
+		{
+			name:    "reserve 1 is equivalent to Generate",
+			key:     "key-generate-n",
+			n:       1,
+			wantErr: false,
+		},
+		{
+			name:    "n=0 should fail",
+			key:     "key-generate-n",
+			n:       0,
+			wantErr: true,
+		},
+		{
+			name:    "negative n should fail",
+			key:     "key-generate-n",
+			n:       -1,
+			wantErr: true,
+		},
+		{
+			name:    "empty key should fail",
+			key:     "",
+			n:       3,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GenerateN(nCtx, tt.key, tt.n)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateN() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("GenerateN(n=%d) got = %v", tt.n, got)
 		})
 	}
 }

@@ -11,6 +11,7 @@
 package counter
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -23,6 +24,10 @@ import (
 type Handler interface {
 	// Generate generate a global new sequence in namespace key.
 	Generate(nCtx contextx.IContext, key string) (int64, error)
+
+	// GenerateN atomically reserves n consecutive sequence values in namespace key.
+	// It returns the value before the increment; the caller owns [returned+1 .. returned+n].
+	GenerateN(nCtx contextx.IContext, key string, n int64) (int64, error)
 }
 
 type handler struct {
@@ -47,6 +52,19 @@ func (h *handler) Generate(nCtx contextx.IContext, key string) (int64, error) {
 	}
 
 	return h.getDao().generate(nCtx, key)
+}
+
+// GenerateN atomically reserves n consecutive sequence values in namespace key.
+func (h *handler) GenerateN(nCtx contextx.IContext, key string, n int64) (int64, error) {
+	if key == "" {
+		return -1, base.ErrEmptyParamData()
+	}
+
+	if n <= 0 {
+		return -1, base.ErrInvalidParam(errors.New("n must be greater than 0"))
+	}
+
+	return h.getDao().generateN(nCtx, key, n)
 }
 
 func (h *handler) getDao() *dao {

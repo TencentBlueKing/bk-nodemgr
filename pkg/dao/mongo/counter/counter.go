@@ -38,7 +38,7 @@ func (d *dao) ensureIndexes() error {
 	var indexes []mongo.IndexModel
 
 	indexes = append(indexes, mongo.IndexModel{
-		Keys: bson.D{{Key: "data.key", Value: 1}},
+		Keys: bson.D{{Key: FieldKeyKey, Value: 1}},
 	})
 
 	_, err := d.client.Indexes().CreateMany(context.Background(), indexes)
@@ -52,11 +52,16 @@ func (d *dao) ensureIndexes() error {
 }
 
 func (d *dao) generate(nCtx contextx.IContext, key string) (int64, error) {
-	filter := append(base.AliveFilter(), bson.E{Key: "data.key", Value: key})
+	return d.generateN(nCtx, key, 1)
+}
+
+// generateN atomically increments the counter by n and returns the value before the increment.
+func (d *dao) generateN(nCtx contextx.IContext, key string, n int64) (int64, error) {
+	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyKey, Value: key})
 	opts := new(options.FindOneAndUpdateOptions)
 	opts.SetUpsert(true)
 
-	result := d.client.FindOneAndUpdate(nCtx, filter, buildGenerateParam(), opts)
+	result := d.client.FindOneAndUpdate(nCtx, filter, buildGenerateParam(n), opts)
 	if errors.Is(result.Err(), mongo.ErrNoDocuments) {
 		return 0, nil
 	}
@@ -76,26 +81,26 @@ func (d *dao) generate(nCtx contextx.IContext, key string) (int64, error) {
 	return data.Data.Seqeunce, nil
 }
 
-func buildGenerateParam() bson.D {
+func buildGenerateParam(n int64) bson.D {
 	nowTime := time.Now()
 	update := bson.D{
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted": false,
-				"basic.updated_at": nowTime,
+				base.FieldKeyIsDeleted: false,
+				base.FieldKeyUpdatedAt: nowTime,
 			},
 		},
 		{
 			Key: "$setOnInsert",
 			Value: bson.M{
-				"basic.created_at": nowTime,
+				base.FieldKeyCreatedAt: nowTime,
 			},
 		},
 		{
 			Key: "$inc",
 			Value: bson.M{
-				"data.sequence": 1,
+				FieldKeySequence: n,
 			},
 		},
 	}

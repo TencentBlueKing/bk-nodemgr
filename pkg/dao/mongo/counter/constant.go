@@ -13,4 +13,7 @@ package counter
 const (
 	// FieldKeyKey the key field key.
 	FieldKeyKey = "data.key"
+
+	// FieldKeySequence the sequence field key.
+	FieldKeySequence = "data.sequence"
 )
