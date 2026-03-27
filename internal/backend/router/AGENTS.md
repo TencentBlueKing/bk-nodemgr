@@ -1,128 +1,27 @@
-# Backend Router Knowledge Base
-
-## Where to Look
-
-| Task                         | Location                      | Notes                                                                 |
-|------------------------------|-------------------------------|-----------------------------------------------------------------------|
-| Add new API domain           | `api-v3/` + `api-v3.go`       | Create package, add `Load()` call in `api-v3.go`                      |
-| Add route to existing domain | `api-v3/{domain}/{domain}.go` | Register in `Load()`, implement handler method                        |
-| Understand callback flow     | `api-v3/callback/`            | See `callback/README.md` for routing convention                       |
-| IAM provider extension       | `api-v3/iam/v3/provider/`     | See `provider/AGENTS.md` for full guide                               |
-| Service wiring               | `internal/backend/service/`   | Where `LoadBasicAPIs`/`LoadCallbackAPIs`/`LoadProxyAPIs` are called   |
-| Handler dependencies         | `internal/backend/options/`   | `options.Capability` struct carries all injected deps                 |
-| Proto request/response types | `pkg/proto/backend/api/v3/`   | Request binding and response conversion                               |
-| Error code definitions       | `pkg/rest/errf/`              | `resterrf.InvalidParameter`, `resterrf.DBExecCmdFailed`, etc.         |
-| REST framework               | `pkg/rest/server/`            | `restserver.Handler`, `restserver.IContext`, `restserver.FileHandler` |
-
-## Conventions
-
-### Package Skeleton (every route package)
-
-```go
-type handler struct {
-rg      *gin.RouterGroup
-// injected dependencies from options.Capability
-}
-
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
-return &handler{
-rg: rg.Group("/<path>"),
-// wire deps from capability
-}
-}
-
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
-h := newHandler(rg, capability)
-h.rg.POST("/<action>", restserver.Handler(h.ActionName))
-}
-```
-
-### Two Handler Signatures
-
-1. Standard API handler (most routes):
-
-```go
-func (h *handler) ActionName(rCtx restserver.IContext) (interface{}, error) {
-req := new(protoBackend.SomeReq)
-if err := rCtx.BindJSON(req); err != nil {
-logger.G.Biz(rCtx).WithErr(err).Error("failed to <action>, failed to decode request body")
-return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-}
-// business logic via manager/storage
-resp := new(protoBackend.SomeResp)
-resp.ConvertFromTypes(result)
-return resp.GetData(), nil
-}
-```
-
-2. Raw gin handler (callback/workflow/node only):
-
-```go
-func (h *handler) ActionName(gCtx *gin.Context) {
-nCtx := contextx.New(gCtx)
-req := new(protoCallback.SomeReq)
-if err := gCtx.BindJSON(req); err != nil {
-logger.G.Biz(nCtx).WithErr(err).Error("failed to ...")
-gCtx.JSON(http.StatusBadRequest, err)
-return
-}
-// ...
-gCtx.JSON(http.StatusOK, nil)
-}
-```
-
-### Error Handling
-
-- Wrap errors with `resterrf.ErrWrap(code, err)` — never return raw errors.
-- Common codes: `resterrf.InvalidParameter`, `resterrf.DBExecCmdFailed`, `resterrf.BackendOperateFailed`.
-- Always log before returning error: `logger.G.Biz(rCtx).WithErr(err).Error("failed to ...")`.
-
-### Logging
-
-- Business context: `logger.G.Biz(rCtx)` (carries request trace).
-- System context (background goroutines): `logger.G.Sys()`.
-- Structured fields: `.With("key", value)`.
-- Success actions get `.Info()` log with identifying fields.
-
-### Auth
-
-- Auth middleware added at first-level router only (see `README.md`).
-- `restserver.MiddlewareAuth(authIdentity)` parses user info into `rest.Context`.
-- Access user via `rCtx.BKUsername()`, `rCtx.TenantID()`.
-- For `api-v3/node/agent` permission checks, build auth resources via package-local helper functions and reuse them across handlers (for example, `buildBizResources(...)` and `buildNetworkUnitResources(...)`). Do not inline resource construction inside handlers when the helper-based pattern applies.
-
-### Routes
-
-- Nearly all routes use `POST` — including reads (`/list`, `/get`, `/distinct`).
-- Exceptions: `GET /healthz`, `GET /get_manual_script/:os_type/:operation_instance_id`.
-- Proxy uses `Any` for catch-all forwarding.
-
-### Type Flow
-
-```
-proto request → BindJSON → convert to pkg/types → manager/storage → convert to proto response → GetData()
-```
-
-- Use `req.ConvertXxxToTypes()` for request conversion.
-- Use `resp.ConvertXxxFromTypes()` for response conversion.
-
-## Anti-Patterns
-
-- Do not return raw errors without `resterrf.ErrWrap`.
-- Do not use proto structs as business models — convert to `pkg/types` at the router boundary.
-- Do not add auth middleware below first-level router groups.
-- Do not mix `restserver.Handler` and raw gin handler styles within the same package (callback/node is the sole
-  exception for historical reasons).
-- Do not place business logic in handlers — delegate to manager/storage layers.
-- Do not skip logging on error paths.
-
-## Unique Styles
-
-- `callback/workflow/node/` uses raw `*gin.Context` handlers instead of `restserver.Handler` — intentional for installer
-  callback endpoints that need direct HTTP control.
-- `proxy/` uses `gin.Any("/*path")` catch-all to forward relay messages to backend callback endpoints.
-- `api-v3.go` splits loading into three entry points (`LoadBasicAPIs`, `LoadCallbackAPIs`, `LoadProxyAPIs`) with
-  separate middleware chains.
-- Background event recording uses `go func()` with `contextx.New(context.Background())` for fire-and-forget topo events.
-- `callback/workflow/` maintains separate `node/` and `plugin/` packages despite overlapping API shapes — intentional
-  per `callback/workflow/README.md`.
+|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
+|Required Tools:serena (semantic code ops)|context7 (3rd-party docs)|sequential-thinking (decisions)
+|Language Policy:Chinese for Q&A|English for code/docs/tech discussions
+|Compression Rule:Follow references/AGENTS-compression-guide.md (pipe-index format, concise, no prose/code blocks)
+|Scope:internal/backend/router
+|Overview:Backend router adapters own route registration|request bind/validation|response shaping|auth checks|delegate business logic to manager/storage
+|Structure:internal/backend/router:{admin,api-v3,healthz}
+|Child AGENTS:internal/backend/router/api-v3/iam/v3/provider/AGENTS.md
+|Where to look:new API domain:internal/backend/router/api-v3|api-v3.go:add package+Load() wiring
+|Where to look:add route to existing domain:internal/backend/router/api-v3/{domain}/{domain}.go:register in Load()+implement handler
+|Where to look:callback flow:internal/backend/router/api-v3/callback/README.md:raw gin callback conventions
+|Where to look:service wiring:internal/backend/service/:LoadBasicAPIs|LoadCallbackAPIs|LoadProxyAPIs
+|Where to look:handler deps:internal/backend/options/capability.go:manager|storage|authorizer deps live here
+|Where to look:proto req/resp:pkg/proto/backend/api/v3/:request binding and boundary conversion
+|Where to look:error codes:pkg/rest/errf/:InvalidParameter|DBExecCmdFailed|BackendOperateFailed|PermissionDenied
+|Where to look:REST stack:pkg/rest/server/:Handler|IContext|FileHandler
+|Conventions:package skeleton=handler{rg,deps}+newHandler(rg.Group(...),capability)+Load(register routes)
+|Conventions:standard handler=BindJSON→log+ErrWrap invalid params→delegate→ConvertFromTypes/GetData
+|Conventions:raw gin handlers only for callback/workflow/node paths needing direct HTTP control
+|Conventions:error handling=always log before return|always resterrf.ErrWrap|never return raw errors
+|Conventions:logging=logger.G.Biz(rCtx) for request scope|logger.G.Sys() for background|success paths log Info with identifiers
+|Conventions:auth=middleware only at first-level router|user via rCtx.BKUsername/TenantID|reuse package-local permission helpers across handlers
+|Conventions:before coding read relevant module + analogous handler in same service/layer; prefer existing router helpers and pkg/proto converters over parallel implementations
+|Routes:mostly POST including reads|exceptions GET /healthz and /get_manual_script/:os_type/:operation_instance_id|proxy uses gin.Any("/*path")
+|Type Flow:proto request→BindJSON→pkg/types→manager/storage→proto response→GetData
+|Anti-patterns:no raw errors|no proto structs as router business models|no auth middleware below first-level groups|no mixed restserver/raw gin styles except callback/node historical paths|no business logic in handlers|no skipped error logs|no duplicate helpers before checking current router and pkg/proto patterns
+|Unique Styles:api-v3.go splits LoadBasicAPIs|LoadCallbackAPIs|LoadProxyAPIs|callback/workflow/node uses raw gin|proxy forwards catch-all relay callbacks|background topo events use go func()+contextx.New(context.Background())
