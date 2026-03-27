@@ -43,6 +43,8 @@ bk-nodemgr/
 - Go toolchain is pinned to `go1.23.10` in root build flow.
 - Lint baseline is centralized in `.golangci.yml` (strict, many enabled linters, generated-file rules enabled).
 - Public Go functions/types require English comments (project rule).
+- Before writing new code, read the relevant module and at least one analogous implementation in the same service or layer.
+- Prefer extending an existing code path, helper, or proto conversion over introducing a parallel implementation.
 - Use structured logging via `pkg/logger`.
 - Frontend package manager is `pnpm` (`front/package.json`, `packageManager: pnpm@9.8.0`).
 - Frontend lint extends `@blueking/eslint-config-bk/tsvue3` with import sorting and type-import rules.
@@ -51,6 +53,7 @@ bk-nodemgr/
 
 - Never hand-edit generated `*.pb.go` files (`Code generated ... DO NOT EDIT`).
 - Treat proto structs as boundary types; convert to/from `pkg/types` before business logic (`pkg/proto/*/README.md`).
+- Do not introduce duplicate helpers or parallel conversion logic before checking whether the same capability already exists in the current service, router package, or `pkg/proto/**`.
 - Do not bypass root lint/build entrypoints when changing cross-service behavior.
 - Do not place service-specific logic in `pkg` when it belongs in `internal/<service>`.
 
