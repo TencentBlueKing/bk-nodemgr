@@ -721,9 +721,11 @@ pluginPackage:
 pkgUpload:
   title: 包上传
   officialPlugin: 2.0 官方插件包
-  externalPlugin: 2.0 业务插件包
-  officialPluginTip: 兼容旧版 2.0 格式的官方插件包上传，仅在需要上传旧版官方插件包时使用
-  externalPluginTip: 兼容旧版 2.0 格式的业务自定义插件包上传，仅在需要上传旧版业务插件包时使用
+  officialPluginV3: 标准插件
+  officialPluginV2: V2官方插件
+  officialPluginV2Tip: 兼容V2版本的official插件包
+  externalPlugin: V2外部插件
+  externalPluginV2Tip: 兼容V2版本的external插件包
   submit: 提交
   cancel: 取消
   uploadTip: 请先上传包文件
@@ -750,8 +752,10 @@ pkgUpload:
   configFile: "配置文件：{file}"
   configFormat: "配置格式：{format}"
   launchNode: "运行节点类型：{node}"
-  proxyPkgTypeOriginServer: "包类型：origin_server"
-  proxyPkgTypeOriginProxy: "包类型：origin_proxy"
+  proxyPkgTypeOriginServer: Server包
+  proxyPkgTypeOriginProxy: Proxy包
+  proxyPkgTypeOriginServerTip: 包含GSE Server包，将会匹配同版本的Agent包自动合并为Proxy包
+  proxyPkgTypeOriginProxyTip: 包含完整的标准GSE Proxy包
 certBintool:
   upload: 包上传
   searchPlaceholder: 包文件名、上传用户

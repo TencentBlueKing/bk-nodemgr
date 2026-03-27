@@ -6,85 +6,60 @@
     render-directive="if"
     :before-close="handleBeforeClose"
   >
-    <template #header>
-      <div class="flex items-center justify-between w-full">
-        <span>{{ t('pkgUpload.title') }}<span v-if="subTitle" class="text-[14px] ml-[10px]">{{ subTitle }}</span></span>
-        <template v-if="route.name === 'pluginPackageMng'">
-          <Dropdown
-            theme="light"
-            trigger="click"
-            placement="bottom-start"
-            :popover-options="{
-              clickContentAutoHide: true,
-            }"
-          >
-            <Button
-              class="mr-[24px]"
-              text
-            >
-              <i class="nodeman-icon nc-setting"></i>
-            </Button>
-            <template #content>
-              <Dropdown.DropdownMenu ext-cls="dropDown-menu">
-                <Dropdown.DropdownItem
-                  :class="['text-14px', { 'active': pluginUploadType === item.id }]"
-                  v-for="item in pluginUploadTypeList"
-                  :key="item.id"
-                  v-bk-tooltips="{ content: t(item.tipKey), placement: 'right' }"
-                  @click="triggerHandler(item.id)"
-                >
-                  {{ item.name }}
-                </Dropdown.DropdownItem>
-              </Dropdown.DropdownMenu>
-            </template>
-          </Dropdown>
-        </template>
-        <template v-if="route.name === 'proxyPackageMng'">
-          <Dropdown
-            theme="light"
-            trigger="click"
-            placement="bottom-start"
-            :popover-options="{
-              clickContentAutoHide: true,
-            }"
-          >
-            <Button
-              class="mr-[24px]"
-              text
-            >
-              <i class="nodeman-icon nc-setting"></i>
-            </Button>
-            <template #content>
-              <Dropdown.DropdownMenu ext-cls="dropDown-menu">
-                <Dropdown.DropdownItem
-                  :class="['text-14px', { 'active': proxyUploadType === item.id }]"
-                  v-for="item in proxyUploadTypeList"
-                  :key="item.id"
-                  @click="proxyTriggerHandler(item.id)"
-                >
-                  {{ item.name }}
-                </Dropdown.DropdownItem>
-              </Dropdown.DropdownMenu>
-            </template>
-          </Dropdown>
-        </template>
-      </div>
-    </template>
     <template #default>
-      <div class="px-[24px] pt-[28px]">
-        <pkg-upload
-          :key="`${pluginUploadType}_${proxyUploadType}`"
-          :plugin-type="pluginUploadType"
-          :proxy-type="proxyUploadType"
-          @upload="handleUpload"
-          @cancel="handleCancel"
-          @loading="handleLoading"
-          class="mb-[24px]">
-        </pkg-upload>
-        <upload-result-table
-          :data="uploadData"
-          :loading="parseLoading">
-        </upload-result-table>
+      <div class="px-[24px] pt-[28px] pb-[24px]">
+        <template v-if="showUploadTypeTabs">
+          <div class="upload-type-tabs" role="tablist" :aria-label="t('pkgUpload.title')">
+            <button
+              v-for="item in uploadTypeTabs"
+              :key="item.id"
+              type="button"
+              role="tab"
+              :aria-selected="activeUploadType === item.id"
+              :tabindex="activeUploadType === item.id ? 0 : -1"
+              :class="['upload-type-tab', { 'active': activeUploadType === item.id }]"
+              v-bk-tooltips="{
+                content: item.tipKey ? t(item.tipKey) : '',
+                placement: 'top',
+                disabled: !item.tipKey,
+                theme: 'light',
+              }"
+              @click="handleUploadTypeChange(item.id)"
+            >
+              {{ item.name }}
+            </button>
+          </div>
+          <div class="upload-type-panel">
+            <pkg-upload
+              :key="`${pluginUploadType}_${proxyUploadType}`"
+              :plugin-type="pluginUploadType"
+              :proxy-type="proxyUploadType"
+              @upload="handleUpload"
+              @cancel="handleCancel"
+              @loading="handleLoading"
+              class="mb-[24px]">
+            </pkg-upload>
+            <upload-result-table
+              :data="uploadData"
+              :loading="parseLoading">
+            </upload-result-table>
+          </div>
+        </template>
+        <template v-else>
+          <pkg-upload
+            :key="`${pluginUploadType}_${proxyUploadType}`"
+            :plugin-type="pluginUploadType"
+            :proxy-type="proxyUploadType"
+            @upload="handleUpload"
+            @cancel="handleCancel"
+            @loading="handleLoading"
+            class="mb-[24px]">
+          </pkg-upload>
+          <upload-result-table
+            :data="uploadData"
+            :loading="parseLoading">
+          </upload-result-table>
+        </template>
       </div>
     </template>
     <template #footer>
@@ -107,12 +82,11 @@
 <script lang="ts" setup>
 import {
   Button,
-  Dropdown,
   InfoBox,
   Message,
   Sideslider,
 } from 'bkui-vue';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -121,56 +95,70 @@ import UploadResultTable from './upload-result-table.vue';
 
 import type { PackageUploadOriginAgentRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
-import { usePackageStore } from '@/stores/package';
+type UploadTab = {
+  id: string;
+  name: string;
+  tipKey: string;
+};
 
-const { t } = useI18n();
 const isShow = defineModel('isShow', { type: Boolean });
 const emit = defineEmits('confirm');
+const { t } = useI18n();
 const route = useRoute();
 const hasPkg = computed(() => !!uploadData.value);
 const uploadData = ref<PackageUploadOriginAgentRespData | null>(null);
-const packageStore = usePackageStore();
 
 // 插件上传类型
 const pluginUploadType = ref('v3/plugin');
 // Proxy上传来源包类型
 const proxyUploadType = ref<string>('origin_proxy');
-const subTitle = ref('');
-const pluginUploadTypeList = computed(() => [
+const isPluginPackageRoute = computed(() => route.name === 'pluginPackageMng');
+const isProxyPackageRoute = computed(() => route.name === 'proxyPackageMng');
+const showUploadTypeTabs = computed(() => isPluginPackageRoute.value || isProxyPackageRoute.value);
+
+const pluginUploadTypeList = computed<UploadTab[]>(() => [
+  {
+    id: 'v3/plugin',
+    name: t('pkgUpload.officialPluginV3'),
+    tipKey: '',
+  },
   {
     id: 'v2/plugin',
-    name: t('pkgUpload.officialPlugin'),
-    tipKey: 'pkgUpload.officialPluginTip',
+    name: t('pkgUpload.officialPluginV2'),
+    tipKey: 'pkgUpload.officialPluginV2Tip',
   },
   {
     id: 'v2/external_plugin',
     name: t('pkgUpload.externalPlugin'),
-    tipKey: 'pkgUpload.externalPluginTip',
+    tipKey: 'pkgUpload.externalPluginV2Tip',
   },
 ]);
-const proxyUploadTypeList = computed(() => [
+const proxyUploadTypeList = computed<UploadTab[]>(() => [
   {
     id: 'origin_proxy',
     name: t('pkgUpload.proxyPkgTypeOriginProxy'),
+    tipKey: 'pkgUpload.proxyPkgTypeOriginProxyTip',
   },
   {
     id: 'origin_server',
     name: t('pkgUpload.proxyPkgTypeOriginServer'),
+    tipKey: 'pkgUpload.proxyPkgTypeOriginServerTip',
   },
 ]);
+const uploadTypeTabs = computed<UploadTab[]>(() => {
+  if (isPluginPackageRoute.value) return pluginUploadTypeList.value;
+  if (isProxyPackageRoute.value) return proxyUploadTypeList.value;
+  return [];
+});
+const activeUploadType = computed(() => (isPluginPackageRoute.value ? pluginUploadType.value : proxyUploadType.value));
+
 const triggerHandler = (id: string) => {
+  if (pluginUploadType.value === id) return;
   const doSwitch = () => {
-    if (pluginUploadType.value === id) {
-      pluginUploadType.value = 'v3/plugin';
-      subTitle.value = '';
-    } else {
-      pluginUploadType.value = id;
-      subTitle.value = pluginUploadTypeList.value.find(item => item.id === id)?.name || '';
-    }
+    pluginUploadType.value = id;
     uploadData.value = null;
     parseLoading.value = false;
   };
-
   if (uploadData.value) {
     InfoBox({
       title: t('dialog.confirmSwitchType'),
@@ -181,14 +169,14 @@ const triggerHandler = (id: string) => {
   }
   doSwitch();
 };
+
 const proxyTriggerHandler = (id: string) => {
+  if (proxyUploadType.value === id) return;
   const doSwitch = () => {
     proxyUploadType.value = id;
-    subTitle.value = proxyUploadTypeList.value.find(item => item.id === id)?.name || '';
     uploadData.value = null;
     parseLoading.value = false;
   };
-
   if (uploadData.value) {
     InfoBox({
       title: t('dialog.confirmSwitchType'),
@@ -198,6 +186,13 @@ const proxyTriggerHandler = (id: string) => {
     return;
   }
   doSwitch();
+};
+const handleUploadTypeChange = (id: string) => {
+  if (isPluginPackageRoute.value) {
+    triggerHandler(id);
+    return;
+  }
+  proxyTriggerHandler(id);
 };
 
 const handleBeforeClose = () => new Promise((resolve, reject) => {
@@ -271,18 +266,61 @@ const submit = async () => {
   }
 };
 
-watch(() => isShow.value, async () => {
+watch(() => isShow.value, () => {
   if (isShow.value) {
-    // await packageStore.getPackages();
     uploadData.value = null;
     proxyUploadType.value = 'origin_proxy';
-    subTitle.value = route.name === 'proxyPackageMng' ? t('pkgUpload.proxyPkgTypeOriginProxy') : '';
+    pluginUploadType.value = 'v3/plugin';
   }
 }, { immediate: true });
 </script>
 <style lang="postcss" scoped>
-.active {
-  color: #3a84ff !important;
-  background-color: #eaf3ff;
+.upload-type-tabs {
+  display: flex;
+  gap: 0;
+  /* Tab 行与下方面板之间无间隙 */
+  position: relative;
+  z-index: 1;
+}
+
+.upload-type-tab {
+  appearance: none;
+  padding: 10px 20px;
+  border: 1px solid #dcdee5;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: #f5f7fa;
+  color: #63656e;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  margin-right: 4px;
+  transition: color 0.15s, background 0.15s;
+
+  &:focus-visible {
+    outline: 2px solid #3a84ff;
+    outline-offset: 2px;
+  }
+
+  &:hover {
+    color: #3a84ff;
+    background: #fff;
+  }
+
+  &.active {
+    background: #fff;
+    color: #3a84ff;
+    border-color: #dcdee5;
+    /* 底边用白色盖住面板顶部边框，形成连通效果 */
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+  }
+}
+
+.upload-type-panel {
+  border: 1px solid #dcdee5;
+  border-radius: 0 4px 4px 4px;
+  padding: 24px;
+  background: #fff;
 }
 </style>

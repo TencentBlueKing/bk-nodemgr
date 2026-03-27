@@ -721,9 +721,11 @@ pluginPackage:
 pkgUpload:
   title: Upload Package
   officialPlugin: Official Plugin (2.0)
-  externalPlugin: Business Plugin (2.0)
-  officialPluginTip: For uploading legacy 2.0 official plugin packages. Use only when compatibility with 2.0 format is required.
-  externalPluginTip: For uploading legacy 2.0 business plugin packages. Use only when compatibility with 2.0 format is required.
+  officialPluginV3: Standard Plugin
+  officialPluginV2: V2 Official Plugin
+  officialPluginV2Tip: Compatible with V2 official plugin packages
+  externalPlugin: V2 External Plugin
+  externalPluginV2Tip: Compatible with V2 external plugin packages
   submit: Submit
   cancel: Cancel
   uploadTip: Please upload a file first
@@ -750,8 +752,10 @@ pkgUpload:
   configFile: "Config: {file}"
   configFormat: "Format: {format}"
   launchNode: "Node Type: {node}"
-  proxyPkgTypeOriginServer: "Package Type: origin_server"
-  proxyPkgTypeOriginProxy: "Package Type: origin_proxy"
+  proxyPkgTypeOriginServer: Server Package
+  proxyPkgTypeOriginProxy: Proxy Package
+  proxyPkgTypeOriginServerTip: Contains GSE Server package, which will be automatically merged with the matching Agent package of the same version into a Proxy package
+  proxyPkgTypeOriginProxyTip: Contains a complete standard GSE Proxy package
 certBintool:
   upload: Upload
   searchPlaceholder: Filename, User
