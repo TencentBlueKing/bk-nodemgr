@@ -267,15 +267,17 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
-	// split policies into ordered and remaining groups.
-	remaining, err := splitPoliciesByOrder(all, orderedPolicyIDs)
+	// build sorted policy IDs from all and ordered IDs.
+	sortedIDs, err := buildReorderedPolicyIDs(all, orderedPolicyIDs)
 	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reorder priorities for config policy, failed to build reordered policy IDs")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// build priority map.
-	// ordered policies get priority 1..N; remaining policies preserve their relative order starting from N+1.
-	priorities := buildPriorityMap(orderedPolicyIDs, remaining)
+	// assign priorities to the reordered policy IDs.
+	// this will assign priorities 1..N to the ordered IDs, and N+1.. to the remaining IDs.
+	priorities := assignPolicyPriorities(sortedIDs)
 
 	// update priorities.
 	if err := h.storage.UpdatePriorityManyConfigPolicy(rCtx, priorities); err != nil {
@@ -489,40 +491,49 @@ func (h *handler) recordChangesEvent(rCtx restserver.IContext, eventType types.C
 	}()
 }
 
-// splitPoliciesByOrder splits all policies into ordered and remaining groups.
-func splitPoliciesByOrder(all []*types.ConfigPolicy, orderedIDs []int64) ([]*types.ConfigPolicy, error) {
+// buildReorderedPolicyIDs returns orderedIDs followed by the remaining IDs in all in their original order.
+func buildReorderedPolicyIDs(all []*types.ConfigPolicy, orderedIDs []int64) ([]int64, error) {
+	if err := checkPolicyIDsExist(all, orderedIDs); err != nil {
+		return nil, err
+	}
+
 	orderedSet := make(map[int64]struct{}, len(orderedIDs))
 	for _, id := range orderedIDs {
 		orderedSet[id] = struct{}{}
 	}
 
-	remaining := make([]*types.ConfigPolicy, 0, max(0, len(all)-len(orderedIDs)))
-
+	result := make([]int64, 0, len(all))
+	result = append(result, orderedIDs...)
 	for _, cp := range all {
 		if _, ok := orderedSet[cp.ID]; ok {
-			delete(orderedSet, cp.ID)
 			continue
 		}
-		remaining = append(remaining, cp)
+
+		result = append(result, cp.ID)
 	}
 
-	if len(orderedSet) > 0 {
-		return nil, fmt.Errorf("failed to reorder priorities for config policy, config policy not found")
-	}
-
-	return remaining, nil
+	return result, nil
 }
 
-func buildPriorityMap(orderedIDs []int64, remaining []*types.ConfigPolicy) map[int64]int64 {
-	priorities := make(map[int64]int64, len(orderedIDs)+len(remaining))
-	pri := minConfigPolicyPriority
-	for _, id := range orderedIDs {
-		priorities[id] = pri
-		pri++
+func checkPolicyIDsExist(all []*types.ConfigPolicy, givenIDs []int64) error {
+	allSet := make(map[int64]struct{}, len(all))
+	for _, cp := range all {
+		allSet[cp.ID] = struct{}{}
 	}
-	for _, cp := range remaining {
-		priorities[cp.ID] = pri
-		pri++
+
+	for _, id := range givenIDs {
+		if _, ok := allSet[id]; !ok {
+			return fmt.Errorf("ordered config policy id not found. config-policy-id(%d)", id)
+		}
+	}
+
+	return nil
+}
+
+func assignPolicyPriorities(ids []int64) map[int64]int64 {
+	priorities := make(map[int64]int64, len(ids))
+	for i, id := range ids {
+		priorities[id] = minConfigPolicyPriority + int64(i)
 	}
 
 	return priorities
