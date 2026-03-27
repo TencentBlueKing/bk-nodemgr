@@ -63,7 +63,7 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 

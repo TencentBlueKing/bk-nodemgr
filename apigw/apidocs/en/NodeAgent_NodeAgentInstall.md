@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.0+.
-- Required Permission: agent_operate (Operate Agent).
+- Required Permission: agent_operate (Operate Agent), networkunit_use_for_agent (Use Network Unit for Agent Deployment).
 - Function: Batch install node agents with support for specifying target versions and manual installation mode.
 
 ### URL
