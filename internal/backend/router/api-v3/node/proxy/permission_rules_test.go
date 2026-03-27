@@ -42,3 +42,23 @@ func TestBuildBizIDsFromTypeHosts(t *testing.T) {
 		t.Fatalf("unexpected biz ids: %v", bizIDs)
 	}
 }
+
+func TestBuildNetworkUnitResources(t *testing.T) {
+	resources := buildNetworkUnitResources([]int64{10, 20})
+	if len(resources) != 2 {
+		t.Fatalf("expected 2 resources, got %d", len(resources))
+	}
+
+	for idx, resource := range resources {
+		if resource.SystemID != auth.SystemIDNodeMgr {
+			t.Fatalf("resource %d system id = %s, want %s", idx, resource.SystemID, auth.SystemIDNodeMgr)
+		}
+		if resource.Type != auth.ResourceTypeNetworkUnit {
+			t.Fatalf("resource %d type = %s, want %s", idx, resource.Type, auth.ResourceTypeNetworkUnit)
+		}
+	}
+
+	if resources[0].ID != "10" || resources[1].ID != "20" {
+		t.Fatalf("unexpected resource ids: %+v", resources)
+	}
+}

@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1+.
-- Required Permission: proxy_operate (Operate Proxy).
+- Required Permission: proxy_operate (Operate Proxy), networkunit_use_for_proxy (Use Network Unit for Proxy Deployment).
 - Function: Batch install node Proxy. Supports manual and offline installation modes.
 
 ### URL

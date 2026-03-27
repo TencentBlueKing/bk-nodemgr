@@ -1,7 +1,7 @@
 ### 描述
 
 - 该接口提供版本：v3.0.1+。
-- 该接口所需权限：proxy_operate（操作Proxy）。
+- 该接口所需权限：proxy_operate（操作Proxy）、networkunit_use_for_proxy（使用网络单元部署Proxy）。
 - 该接口功能描述：批量安装节点Proxy。支持手动安装和离线安装模式。
 
 ### URL
