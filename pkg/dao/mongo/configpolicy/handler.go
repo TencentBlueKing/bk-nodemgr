@@ -225,8 +225,7 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) e
 	return h.tenantDao(tenantID).deleteMany(nCtx, tenantID, configPolicyIDs...)
 }
 
-// EnableMany enables config policies by ids.
-// NOTE: enable and priority reassignment are two separate DB operations; not atomic.
+// EnableMany enables config policies by ids and reassigns global priorities.
 func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
@@ -237,17 +236,11 @@ func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) e
 	}
 
 	tenantID := nCtx.TenantID()
-	d := h.tenantDao(tenantID)
 
-	if err := d.setEnabledMany(nCtx, tenantID, true, configPolicyIDs...); err != nil {
-		return err
-	}
-
-	return d.reassignPriorities(nCtx, tenantID, configPolicyIDs...)
+	return h.tenantDao(tenantID).enableMany(nCtx, tenantID, configPolicyIDs...)
 }
 
-// DisableMany disables config policies by ids and clears their priorities.
-// NOTE: disable and priority clearing are two separate DB operations; not atomic.
+// DisableMany disables config policies by ids and sets their priorities to disabled.
 func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
@@ -258,18 +251,8 @@ func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) 
 	}
 
 	tenantID := nCtx.TenantID()
-	d := h.tenantDao(tenantID)
 
-	if err := d.setEnabledMany(nCtx, tenantID, false, configPolicyIDs...); err != nil {
-		return err
-	}
-
-	priorities := make(map[int64]int64, len(configPolicyIDs))
-	for _, id := range configPolicyIDs {
-		priorities[id] = types.ConfigPolicyPriorityDisabled
-	}
-
-	return d.updatePriorityMany(nCtx, tenantID, priorities)
+	return h.tenantDao(tenantID).disableMany(nCtx, tenantID, types.ConfigPolicyPriorityDisabled, configPolicyIDs...)
 }
 
 // UpdatePriorityMany batch-updates the priority field for the given policy IDs.
