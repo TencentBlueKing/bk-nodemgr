@@ -134,10 +134,10 @@ func (d *dao) enableMany(nCtx contextx.IContext, tenantID string, configPolicyID
 }
 
 func (d *dao) disableMany(nCtx contextx.IContext, tenantID string, priorityDisabled int64, configPolicyIDs ...int64) error {
-	filter := bson.D{
-		{Key: FieldKeyConfigPolicyID, Value: bson.D{{Key: "$in", Value: configPolicyIDs}}},
-		{Key: FieldKeyTenantID, Value: tenantID},
-	}
+	filter := append(base.AliveFilter(),
+		bson.E{Key: FieldKeyConfigPolicyID, Value: bson.D{{Key: "$in", Value: configPolicyIDs}}},
+		bson.E{Key: FieldKeyTenantID, Value: tenantID},
+	)
 
 	nowTime := time.Now()
 	update := bson.D{
