@@ -1026,6 +1026,10 @@ installProxy:
   agentControlTooltip: 开启后该Proxy将作为GSE Agent的控制链路中转节点
   fileTransferTooltip: 开启后该Proxy将作为GSE Agent的文件传输中转节点
   dataReportTooltip: 开启后该Proxy将作为GSE Agent的数据上报中转节点
+  installJumpListTooltip: 该Proxy可以作为安装跳板，发起对其他Proxy或Agent的远程安装流程
+  agentControlListTooltip: 该Proxy将作为GSE Agent的控制链路中转节点
+  fileTransferListTooltip: 该Proxy将作为GSE Agent的文件传输中转节点
+  dataReportListTooltip: 该Proxy将作为GSE Agent的数据上报中转节点
   upstreamUnit: 上级管控单元
   currentUnit: 当前管控单元
   custom: 自定义

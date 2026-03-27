@@ -182,8 +182,24 @@
           :min-width="300">
           <template #default="{ row }">
             <div class="flex items-center gap-[4px]">
-              <div v-for="tag in row.proxy_tags" :key="tag">
-                <Tag>{{ proxyTagMap[tag] }}</Tag>
+              <div v-for="tag in getOrderedProxyTags(row.proxy_tags)" :key="tag">
+                <Popover
+                  theme="light"
+                  trigger="hover"
+                  placement="top"
+                  :arrow="true"
+                  :max-width="280"
+                  :offset="8"
+                  :popover-delay="[0, 100]"
+                  :component-event-delay="0"
+                >
+                  <Tag>{{ proxyTagMap[tag] }}</Tag>
+                  <template #content>
+                    <div class="text-[12px] leading-[20px]">
+                      <p>{{ proxyTagListTooltipMap[tag] }}</p>
+                    </div>
+                  </template>
+                </Popover>
               </div>
             </div>
           </template>
@@ -243,7 +259,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Checkbox, Dropdown, Tag } from 'bkui-vue';
+import { Button, Checkbox, Dropdown, Popover, Tag } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -306,6 +322,22 @@ const proxyTagMap = ref({
   cluster_tunnel: t('installProxy.agentControl'),
   file_tunnel: t('installProxy.fileTransfer'),
   data_tunnel: t('installProxy.dataReport'),
+});
+const proxyTagListTooltipMap = ref({
+  dedicated_installer: t('installProxy.installJumpListTooltip'),
+  cluster_tunnel: t('installProxy.agentControlListTooltip'),
+  file_tunnel: t('installProxy.fileTransferListTooltip'),
+  data_tunnel: t('installProxy.dataReportListTooltip'),
+});
+const proxyTagDisplayOrder = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
+const proxyTagOrderMap = new Map(proxyTagDisplayOrder.map((tag, index) => [tag, index]));
+const getOrderedProxyTags = (tags: string[] = []) => [...tags].sort((a, b) => {
+  const aIndex = proxyTagOrderMap.get(a) ?? Number.MAX_SAFE_INTEGER;
+  const bIndex = proxyTagOrderMap.get(b) ?? Number.MAX_SAFE_INTEGER;
+  if (aIndex === bIndex) {
+    return a.localeCompare(b);
+  }
+  return aIndex - bIndex;
 });
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [

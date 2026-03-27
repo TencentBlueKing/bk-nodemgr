@@ -1026,6 +1026,10 @@ installProxy:
   agentControlTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent control links
   fileTransferTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent file transfers
   dataReportTooltip: When enabled, this Proxy will serve as a relay node for GSE Agent data reporting
+  installJumpListTooltip: This Proxy can serve as an install jumper to initiate remote installation of other Proxies or Agents
+  agentControlListTooltip: This Proxy will serve as a relay node for GSE Agent control links
+  fileTransferListTooltip: This Proxy will serve as a relay node for GSE Agent file transfers
+  dataReportListTooltip: This Proxy will serve as a relay node for GSE Agent data reporting
   upstreamUnit: Upstream Unit
   currentUnit: Current Unit
   custom: Custom
