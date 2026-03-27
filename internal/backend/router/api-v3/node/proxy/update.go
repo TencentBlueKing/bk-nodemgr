@@ -11,10 +11,17 @@
 package proxy
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Update updates proxy.
@@ -23,6 +30,17 @@ func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	hosts, err := h.getUpdateNodeHosts(rCtx, req.GetHost())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy, failed to get host list")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	bizIDs := buildBizIDsFromTypeHosts(hosts)
+	resources := buildBizResources(bizIDs)
+	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update proxy, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	if err := h.storageHost.UpdateHostDynamicFields(rCtx, req.ConvertHostFieldsToTypes(), req.ConvertHostToTypes()...); err != nil {
@@ -41,4 +59,35 @@ func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 	resp := new(protoBackend.NodeProxyUpdateResp)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) getUpdateNodeHosts(
+	nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyUpdateHost) ([]*types.Host, error) {
+
+	if len(reqHosts) == 0 {
+		return nil, errors.New("empty host list")
+	}
+
+	hostIDs := make(map[int64]struct{})
+	for _, host := range reqHosts {
+		hostIDs[host.GetBkHostId()] = struct{}{}
+	}
+
+	hosts, _, err := h.storageHost.ListHost(nCtx,
+		types.UnlimitedPage(),
+		&types.HostCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				HostID: conv.MapKeyToSlice(hostIDs),
+			}})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, host := range hosts {
+		if host.Dynamic.NodeRole != types.NodeRoleProxy {
+			return nil, fmt.Errorf("node role is not proxy. host-id(%d), node-role(%s)", host.HostID, host.Dynamic.NodeRole)
+		}
+	}
+
+	return hosts, nil
 }

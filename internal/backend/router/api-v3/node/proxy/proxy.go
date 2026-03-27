@@ -12,6 +12,7 @@
 package proxy
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
@@ -31,6 +32,7 @@ type handler struct {
 	storageHostCredit               credit.IStorageHostCredit
 	storageHost                     topoStg.IStorageHost
 	storageCipher                   cipherStg.IStorage
+	authorizer                      auth.IAuthorizer
 }
 
 // newHandler ...
@@ -44,6 +46,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageHostCredit:               capability.StorageCredit,
 		storageHost:                     capability.StorageTopo,
 		storageCipher:                   capability.StorageCipher,
+		authorizer:                      capability.Authorizer,
 	}
 }
 

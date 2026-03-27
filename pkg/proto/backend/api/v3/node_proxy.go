@@ -638,6 +638,26 @@ func (x *NodeProxyInstallCheckReq_Host) AutoConvert() {
 	}
 }
 
+// ConvertToTypeHost converts request host to types.Host.
+func (x *NodeProxyInstallCheckReq_Host) ConvertToTypeHost() *types.Host {
+	return &types.Host{
+		HostID: x.GetBkHostId(),
+		Static: &types.HostStatic{
+			BizID: x.GetBkBizId(),
+		},
+	}
+}
+
+// ConvertHostsToTypes converts request hosts to types.Host list.
+func (x *NodeProxyInstallCheckReq) ConvertHostsToTypes() []*types.Host {
+	hosts := make([]*types.Host, 0, len(x.GetHost()))
+	for _, host := range x.GetHost() {
+		hosts = append(hosts, host.ConvertToTypeHost())
+	}
+
+	return hosts
+}
+
 // ConvertParamFromTypes convert host param from types.
 func (x *NodeProxyInstallCheckReq) ConvertParamFromTypes(checkParam []*types.NodeProxyInstallCheckParam) {
 	hostsParam := make([]*NodeProxyInstallCheckReq_Host, len(checkParam))
