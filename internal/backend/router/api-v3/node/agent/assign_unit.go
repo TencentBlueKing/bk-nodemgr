@@ -24,6 +24,7 @@ import (
 const assignUnitBatchSize = 2000
 
 // AgentAssignUnit batch-assigns a network unit to unassigned hosts (metadata-only, no remote operations).
+// nolint: gocognit, funlen, gocyclo, cyclop
 func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentAssignUnitReq)
 	if err := rCtx.BindJSON(req); err != nil {
