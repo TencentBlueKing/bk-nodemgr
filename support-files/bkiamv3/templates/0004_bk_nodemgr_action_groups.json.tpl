@@ -126,6 +126,9 @@
           "name_en": "Package Management",
           "actions": [
             {
+              "id": "package_type_upload"
+            },
+            {
               "id": "package_view"
             },
             {

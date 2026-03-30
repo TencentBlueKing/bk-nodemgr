@@ -2,7 +2,7 @@
 # Copy this file to vars.yaml and fill in your values
 #
 # Usage:
-#   cd support-files/bkiam
+#   cd support-files/bkiamv3
 #   ./iam-render -t templates -v vars.yaml -o output
 
 # System configuration

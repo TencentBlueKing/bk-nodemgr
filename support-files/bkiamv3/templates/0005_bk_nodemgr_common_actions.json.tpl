@@ -93,6 +93,15 @@
               "id": "config_policy_history_view"
             },
             {
+              "id": "deploy_policy_view"
+            },
+            {
+              "id": "deploy_policy_manage"
+            },
+            {
+              "id": "deploy_policy_history_view"
+            },
+            {
               "id": "package_view"
             },
             {
@@ -107,6 +116,9 @@
           "name": "资源包管理员",
           "name_en": "Package Manager",
           "actions": [
+            {
+              "id": "package_type_upload"
+            },
             {
               "id": "package_view"
             },

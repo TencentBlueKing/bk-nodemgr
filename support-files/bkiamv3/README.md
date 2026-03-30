@@ -17,7 +17,7 @@
 ### 1. 渲染模板
 
 ```bash
-cd support-files/bkiam
+cd support-files/bkiamv3
 ./iam-render -t templates -v vars.yaml -o output
 ```
 
@@ -25,13 +25,13 @@ cd support-files/bkiam
 
 ### 2. 执行迁移
 
-使用 `script_tools/bkiam/do_migrate.py` 脚本执行迁移：
+使用 `support-files/bkiamv3/do_migrate.py` 脚本执行迁移：
 
 ```bash
-cd script_tools/bkiam
+cd support-files/bkiamv3
 python do_migrate.py \
   -t "https://bkapi.example.com/api/bk-iam/prod/" \
-  -f "../../support-files/bkiam/output/0001_bk_nodemgr_init.json" \
+  -f "output/0001_bk_nodemgr_init.json" \
   -a "bk-nodemgr" \
   -s "your-app-secret"
 ```
@@ -48,7 +48,7 @@ python do_migrate.py \
 ## 添加新模板
 
 ```bash
-cd support-files/bkiam
+cd support-files/bkiamv3
 ./new_template.sh add_resource_type
 ```
 
