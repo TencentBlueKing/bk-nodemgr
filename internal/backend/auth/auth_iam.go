@@ -177,9 +177,11 @@ func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResour
 func (authorizer *iamv3Authorizer) collectDeniedResources(
 	ctx contextx.IContext, action Action, resources []Resource,
 ) ([]Resource, bool, error) {
+
 	if ctx == nil {
 		return nil, false, fmt.Errorf("auth: Check called with nil context")
 	}
+
 	if len(resources) == 0 {
 		req := authorizer.newCheckRequest(ctx, action, nil)
 		allowed, err := authorizer.handler.IsAllowedWithCache(ctx, req, iamCacheTTL)
@@ -215,6 +217,7 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 func (authorizer *iamv3Authorizer) newPermissionDeniedError(
 	ctx contextx.IContext, actionResources map[Action][]Resource,
 ) PermissionDeniedError {
+
 	actions := sortedActions(actionResources)
 	applyActions := make([]types.IAMApplyAction, 0, len(actions))
 	deniedActions := make([]ActionInfo, 0, len(actions))
@@ -265,6 +268,7 @@ func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, r
 func (authorizer *iamv3Authorizer) CheckMany(
 	ctx contextx.IContext, actionResources map[Action][]Resource,
 ) error {
+
 	deniedActionResources := make(map[Action][]Resource, len(actionResources))
 	for _, action := range sortedActions(actionResources) {
 		denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, actionResources[action])

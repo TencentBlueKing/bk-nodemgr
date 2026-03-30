@@ -15,8 +15,11 @@ import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 // IAuthorizer defines the contract for permission checking.
 type IAuthorizer interface {
-	// Check verifies whether the current request context can perform the action on resources.
+	// Check verifies whether the current request context can perform one action on the given resources.
+	// Empty resources trigger an action-level IAM check, while non-empty resources are evaluated
+	// per resource and aggregated into one permission error.
 	Check(ctx contextx.IContext, action Action, resources []Resource) error
 	// CheckMany verifies multiple actions over their corresponding resources and aggregates denied actions.
+	// Each action follows the same action-level versus per-resource evaluation rules as Check.
 	CheckMany(ctx contextx.IContext, actionResources map[Action][]Resource) error
 }

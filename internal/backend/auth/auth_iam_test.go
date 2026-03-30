@@ -331,6 +331,28 @@ func TestIAMV3AuthorizerCheck_EmptyResourcesFallsBackToActionCheck(t *testing.T)
 	}
 }
 
+func TestIAMV3AuthorizerCheck_NonEmptyResourcesUsesBatchEvaluation(t *testing.T) {
+	handler := &fakeIAMBatchHandler{
+		batchResults: map[string]bool{
+			"42": true,
+		},
+	}
+	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
+		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "42"},
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got: %v", err)
+	}
+	if handler.batchCalls != 1 {
+		t.Fatalf("expected batch IAM evaluation to be called once, got %d", handler.batchCalls)
+	}
+	if handler.isAllowedWithCacheCalls != 0 {
+		t.Fatalf("expected action-level cached check not to be called, got %d", handler.isAllowedWithCacheCalls)
+	}
+}
+
 // TestBuildIAMApplyResourceTypes_SingleResource verifies a single denied resource
 // produces one RelatedResourceType with one single-node instance.
 func TestBuildIAMApplyResourceTypes_SingleResource(t *testing.T) {

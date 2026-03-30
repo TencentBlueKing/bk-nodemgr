@@ -40,6 +40,7 @@ LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${
 
 # fixed go version.
 GO = go1.23.10
+GOLANGCI_LINT_TIMEOUT ?= 2m
 
 # Go build env for cross compile (empty when TARGET_PLATFORM is not set)
 GO_BUILD_ENV = CGO_ENABLED=0 $(if $(TARGET_OS),GOOS=$(TARGET_OS),) $(if $(TARGET_ARCH),GOARCH=$(TARGET_ARCH),)
@@ -296,5 +297,5 @@ apigw-docs: | pre
 
 lint: | pre
 	@$(ECHO) "Linting..."
-	@$(CD) $(ROOT_DIR) && GOGC=40 $(if $(strip $(GOMEMLIMIT)),GOMEMLIMIT=$(GOMEMLIMIT),) golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR)
+	@$(CD) $(ROOT_DIR) && GOGC=40 $(if $(strip $(GOMEMLIMIT)),GOMEMLIMIT=$(GOMEMLIMIT),) golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR) --timeout $(GOLANGCI_LINT_TIMEOUT)
 	@$(ECHO) "Linting completed"
