@@ -40,16 +40,16 @@ type fakeAuthorizer struct {
 	lastBatchResources   []auth.Resource
 }
 
-func (f *fakeAuthorizer) Check(_ contextx.IContext, _ auth.Action, _ []auth.Resource) error {
-	return nil
-}
-
-func (f *fakeAuthorizer) BatchCheck(_ contextx.IContext, action auth.Action, resources []auth.Resource) error {
+func (f *fakeAuthorizer) Check(_ contextx.IContext, action auth.Action, resources []auth.Resource) error {
 	f.batchCheckCalls++
 	f.lastBatchCheckAction = action
 	f.lastBatchResources = append([]auth.Resource(nil), resources...)
 
 	return f.batchCheckErr
+}
+
+func (f *fakeAuthorizer) CheckMany(_ contextx.IContext, _ map[auth.Action][]auth.Resource) error {
+	return nil
 }
 
 type fakeAuthorizerSeq struct {
@@ -61,11 +61,7 @@ type fakeAuthorizerSeq struct {
 	batchCheckResourceses [][]auth.Resource
 }
 
-func (f *fakeAuthorizerSeq) Check(_ contextx.IContext, _ auth.Action, _ []auth.Resource) error {
-	return nil
-}
-
-func (f *fakeAuthorizerSeq) BatchCheck(_ contextx.IContext, action auth.Action, resources []auth.Resource) error {
+func (f *fakeAuthorizerSeq) Check(_ contextx.IContext, action auth.Action, resources []auth.Resource) error {
 	f.batchCheckCalls++
 	f.lastBatchCheckAction = action
 	f.lastBatchResources = append([]auth.Resource(nil), resources...)
@@ -77,6 +73,10 @@ func (f *fakeAuthorizerSeq) BatchCheck(_ contextx.IContext, action auth.Action, 
 		return f.errs[idx]
 	}
 
+	return nil
+}
+
+func (f *fakeAuthorizerSeq) CheckMany(_ contextx.IContext, _ map[auth.Action][]auth.Resource) error {
 	return nil
 }
 
@@ -133,6 +133,10 @@ func (f *fakeStorageHost) FindHostWithDynamic(contextx.IContext, types.Page, ...
 }
 
 func (f *fakeStorageHost) UpdateHostDynamicFields(contextx.IContext, types.HostDynamicFields, ...*types.Host) error {
+	return nil
+}
+
+func (f *fakeStorageHost) TouchHostOperationTime(contextx.IContext, ...int64) error {
 	return nil
 }
 
@@ -355,8 +359,8 @@ func TestAgentAssignUnit_NetworkUnitPermissionDenied(t *testing.T) {
 	if authorizer.batchCheckCalls != 1 {
 		t.Fatalf("expected BatchCheck to be called once, got %d", authorizer.batchCheckCalls)
 	}
-	if authorizer.lastBatchCheckAction != auth.ActionNetworkUnitManage {
-		t.Fatalf("expected action %q, got %q", auth.ActionNetworkUnitManage, authorizer.lastBatchCheckAction)
+	if authorizer.lastBatchCheckAction != auth.ActionNetworkUnitUseForAgent {
+		t.Fatalf("expected action %q, got %q", auth.ActionNetworkUnitUseForAgent, authorizer.lastBatchCheckAction)
 	}
 	if len(authorizer.lastBatchResources) != 1 {
 		t.Fatalf("expected 1 network unit resource, got %d", len(authorizer.lastBatchResources))
@@ -395,8 +399,8 @@ func TestAgentAssignUnit_AgentOperatePermissionDenied(t *testing.T) {
 	if len(authorizer.batchCheckActions) != 2 {
 		t.Fatalf("expected 2 recorded actions, got %d", len(authorizer.batchCheckActions))
 	}
-	if authorizer.batchCheckActions[0] != auth.ActionNetworkUnitManage {
-		t.Fatalf("expected first action %q, got %q", auth.ActionNetworkUnitManage, authorizer.batchCheckActions[0])
+	if authorizer.batchCheckActions[0] != auth.ActionNetworkUnitUseForAgent {
+		t.Fatalf("expected first action %q, got %q", auth.ActionNetworkUnitUseForAgent, authorizer.batchCheckActions[0])
 	}
 	if authorizer.batchCheckActions[1] != auth.ActionAgentOperate {
 		t.Fatalf("expected second action %q, got %q", auth.ActionAgentOperate, authorizer.batchCheckActions[1])
@@ -440,8 +444,8 @@ func TestAgentAssignUnit_BothPermissionsGranted(t *testing.T) {
 	if len(authorizer.batchCheckActions) != 2 {
 		t.Fatalf("expected 2 recorded actions, got %d", len(authorizer.batchCheckActions))
 	}
-	if authorizer.batchCheckActions[0] != auth.ActionNetworkUnitManage {
-		t.Fatalf("expected first action %q, got %q", auth.ActionNetworkUnitManage, authorizer.batchCheckActions[0])
+	if authorizer.batchCheckActions[0] != auth.ActionNetworkUnitUseForAgent {
+		t.Fatalf("expected first action %q, got %q", auth.ActionNetworkUnitUseForAgent, authorizer.batchCheckActions[0])
 	}
 	if authorizer.batchCheckActions[1] != auth.ActionAgentOperate {
 		t.Fatalf("expected second action %q, got %q", auth.ActionAgentOperate, authorizer.batchCheckActions[1])

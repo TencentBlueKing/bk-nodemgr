@@ -48,7 +48,7 @@ func (h *handler) AgentRestart(rCtx restserver.IContext) (interface{}, error) {
 
 	bizIDs := h.getRestartNodeBizIDs(hosts)
 	resources := buildBizResources(bizIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to restart agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

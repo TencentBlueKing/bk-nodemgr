@@ -24,10 +24,13 @@ import (
 var _ iamv3.IHandler = (*fakeIAMBatchHandler)(nil)
 
 type fakeIAMBatchHandler struct {
-	batchResults map[string]bool
-	batchErr     error
-	applyURL     string
-	applyErr     error
+	batchResults         map[string]bool
+	batchResultsByAction map[string]map[string]bool
+	batchErr             error
+	applyURL             string
+	applyErr             error
+	checkResult          bool
+	checkErr             error
 
 	batchCalls              int
 	isAllowedWithCacheCalls int
@@ -46,7 +49,7 @@ func (h *fakeIAMBatchHandler) IsAllowedWithCache(
 	_ contextx.IContext, _ types.IAMCheckRequest, _ time.Duration,
 ) (bool, error) {
 	h.isAllowedWithCacheCalls++
-	return false, nil
+	return h.checkResult, h.checkErr
 }
 
 func (h *fakeIAMBatchHandler) BatchIsAllowed(
@@ -55,6 +58,11 @@ func (h *fakeIAMBatchHandler) BatchIsAllowed(
 	h.batchCalls++
 	h.lastBatchReq = req
 	h.lastBatchResources = resourcesList
+	if h.batchResultsByAction != nil {
+		if results, ok := h.batchResultsByAction[req.ActionID]; ok {
+			return results, h.batchErr
+		}
+	}
 	return h.batchResults, h.batchErr
 }
 
@@ -93,7 +101,7 @@ func newTestIAMContext() contextx.IContext {
 	)
 }
 
-func TestIAMV3AuthorizerBatchCheck_AllAllowed(t *testing.T) {
+func TestIAMV3AuthorizerCheck_AllAllowed(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
 		batchResults: map[string]bool{
 			"1": true,
@@ -102,7 +110,7 @@ func TestIAMV3AuthorizerBatchCheck_AllAllowed(t *testing.T) {
 	}
 	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.BatchCheck(newTestIAMContext(), ActionAgentOperate, []Resource{
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
 	})
@@ -126,7 +134,7 @@ func TestIAMV3AuthorizerBatchCheck_AllAllowed(t *testing.T) {
 	}
 }
 
-func TestIAMV3AuthorizerBatchCheck_PartialDeniedReturnsPermissionDenied(t *testing.T) {
+func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
 		batchResults: map[string]bool{
 			"1": true,
@@ -137,7 +145,7 @@ func TestIAMV3AuthorizerBatchCheck_PartialDeniedReturnsPermissionDenied(t *testi
 	}
 	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.BatchCheck(newTestIAMContext(), ActionAgentOperate, []Resource{
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "3"},
@@ -167,12 +175,12 @@ func TestIAMV3AuthorizerBatchCheck_PartialDeniedReturnsPermissionDenied(t *testi
 	}
 }
 
-func TestIAMV3AuthorizerBatchCheck_BatchErrorReturnsImmediately(t *testing.T) {
+func TestIAMV3AuthorizerCheck_BatchErrorReturnsImmediately(t *testing.T) {
 	sentinel := errors.New("batch iam failure")
 	handler := &fakeIAMBatchHandler{batchErr: sentinel}
 	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.BatchCheck(newTestIAMContext(), ActionAgentOperate, []Resource{
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
 	})
 	if !errors.Is(err, sentinel) {
@@ -183,7 +191,7 @@ func TestIAMV3AuthorizerBatchCheck_BatchErrorReturnsImmediately(t *testing.T) {
 	}
 }
 
-func TestIAMV3AuthorizerBatchCheck_ApplyURLErrorReturnsPermissionDeniedWithoutURL(t *testing.T) {
+func TestIAMV3AuthorizerCheck_ApplyURLErrorReturnsPermissionDeniedWithoutURL(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
 		batchResults: map[string]bool{
 			"1": false,
@@ -192,7 +200,7 @@ func TestIAMV3AuthorizerBatchCheck_ApplyURLErrorReturnsPermissionDeniedWithoutUR
 	}
 	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.BatchCheck(newTestIAMContext(), ActionAgentOperate, []Resource{
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
 	})
 	if err == nil {
@@ -208,16 +216,118 @@ func TestIAMV3AuthorizerBatchCheck_ApplyURLErrorReturnsPermissionDeniedWithoutUR
 	}
 }
 
-func TestIAMV3AuthorizerBatchCheck_EmptyResourcesReturnsNil(t *testing.T) {
-	handler := &fakeIAMBatchHandler{}
+func TestIAMV3AuthorizerNewPermissionDeniedError_MultiActionStableOrder(t *testing.T) {
+	handler := &fakeIAMBatchHandler{
+		applyURL: "https://iam.example.com/apply",
+	}
 	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.BatchCheck(nil, ActionAgentOperate, nil)
+	permErr := authorizer.newPermissionDeniedError(newTestIAMContext(), map[Action][]Resource{
+		ActionProxyView: {
+			{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
+		},
+		ActionAgentOperate: {
+			{SystemID: SystemIDNodeMgr, Type: ResourceTypeNetworkArea, ID: "3"},
+		},
+	})
+
+	if handler.applyCalls != 1 {
+		t.Fatalf("expected GetApplyURL to be called once, got %d", handler.applyCalls)
+	}
+	if len(handler.lastApplyReq.Actions) != 2 {
+		t.Fatalf("expected 2 apply actions, got %d", len(handler.lastApplyReq.Actions))
+	}
+	if handler.lastApplyReq.Actions[0].ID != string(ActionAgentOperate) {
+		t.Fatalf("expected first apply action %q, got %q", ActionAgentOperate, handler.lastApplyReq.Actions[0].ID)
+	}
+	if handler.lastApplyReq.Actions[1].ID != string(ActionProxyView) {
+		t.Fatalf("expected second apply action %q, got %q", ActionProxyView, handler.lastApplyReq.Actions[1].ID)
+	}
+	if len(permErr.Actions) != 2 {
+		t.Fatalf("expected 2 permission actions, got %d", len(permErr.Actions))
+	}
+	if permErr.Actions[0].ID != string(ActionAgentOperate) {
+		t.Fatalf("expected first permission action %q, got %q", ActionAgentOperate, permErr.Actions[0].ID)
+	}
+	if permErr.Actions[1].ID != string(ActionProxyView) {
+		t.Fatalf("expected second permission action %q, got %q", ActionProxyView, permErr.Actions[1].ID)
+	}
+	if len(permErr.Actions[0].RelatedResourceTypes) != 1 {
+		t.Fatalf("expected 1 related resource type for %q, got %d", ActionAgentOperate, len(permErr.Actions[0].RelatedResourceTypes))
+	}
+	if permErr.Actions[0].RelatedResourceTypes[0].Type != string(ResourceTypeNetworkArea) {
+		t.Fatalf("expected %q resource type for %q, got %q", ResourceTypeNetworkArea, ActionAgentOperate, permErr.Actions[0].RelatedResourceTypes[0].Type)
+	}
+	if len(permErr.Actions[1].RelatedResourceTypes) != 1 {
+		t.Fatalf("expected 1 related resource type for %q, got %d", ActionProxyView, len(permErr.Actions[1].RelatedResourceTypes))
+	}
+	if permErr.Actions[1].RelatedResourceTypes[0].Type != string(ResourceTypeBiz) {
+		t.Fatalf("expected %q resource type for %q, got %q", ResourceTypeBiz, ActionProxyView, permErr.Actions[1].RelatedResourceTypes[0].Type)
+	}
+}
+
+func TestIAMV3AuthorizerCheckMany_AggregatesDeniedActions(t *testing.T) {
+	handler := &fakeIAMBatchHandler{
+		batchResultsByAction: map[string]map[string]bool{
+			string(ActionAgentView): {
+				"1": true,
+				"2": false,
+			},
+			string(ActionProxyView): {
+				"1": false,
+				"2": false,
+			},
+		},
+		applyURL: "https://iam.example.com/apply",
+	}
+	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	bizResources := []Resource{
+		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
+		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
+	}
+
+	err := authorizer.CheckMany(newTestIAMContext(), map[Action][]Resource{
+		ActionProxyView: bizResources,
+		ActionAgentView: bizResources,
+	})
+	if err == nil {
+		t.Fatal("expected aggregated permission error, got nil")
+	}
+
+	var permErr PermissionDeniedError
+	if !errors.As(err, &permErr) {
+		t.Fatalf("expected PermissionDeniedError, got %T: %v", err, err)
+	}
+	if handler.batchCalls != 2 {
+		t.Fatalf("expected BatchIsAllowed to be called twice, got %d", handler.batchCalls)
+	}
+	if handler.applyCalls != 1 {
+		t.Fatalf("expected GetApplyURL to be called once, got %d", handler.applyCalls)
+	}
+	if len(permErr.Actions) != 2 {
+		t.Fatalf("expected 2 denied actions, got %d", len(permErr.Actions))
+	}
+	if permErr.Actions[0].ID != string(ActionAgentView) {
+		t.Fatalf("expected first denied action %q, got %q", ActionAgentView, permErr.Actions[0].ID)
+	}
+	if permErr.Actions[1].ID != string(ActionProxyView) {
+		t.Fatalf("expected second denied action %q, got %q", ActionProxyView, permErr.Actions[1].ID)
+	}
+}
+
+func TestIAMV3AuthorizerCheck_EmptyResourcesFallsBackToActionCheck(t *testing.T) {
+	handler := &fakeIAMBatchHandler{checkResult: true}
+	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, nil)
 	if err != nil {
-		t.Fatalf("expected nil for empty resources, got: %v", err)
+		t.Fatalf("expected nil error, got: %v", err)
 	}
 	if handler.batchCalls != 0 {
 		t.Fatalf("expected no batch IAM calls for empty resources, got %d", handler.batchCalls)
+	}
+	if handler.isAllowedWithCacheCalls != 1 {
+		t.Fatalf("expected action-level check to be called once, got %d", handler.isAllowedWithCacheCalls)
 	}
 }
 
@@ -298,9 +408,9 @@ func TestBuildIAMApplyResourceTypes_EmptyID(t *testing.T) {
 	}
 }
 
-// TestIAMV3AuthorizerBatchCheck_DeniedResourcesHaveInstances verifies that
+// TestIAMV3AuthorizerCheck_DeniedResourcesHaveInstances verifies that
 // the apply request sent to IAM contains the denied resource IDs as instances.
-func TestIAMV3AuthorizerBatchCheck_DeniedResourcesHaveInstances(t *testing.T) {
+func TestIAMV3AuthorizerCheck_DeniedResourcesHaveInstances(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
 		batchResults: map[string]bool{
 			"1": false,
@@ -310,7 +420,7 @@ func TestIAMV3AuthorizerBatchCheck_DeniedResourcesHaveInstances(t *testing.T) {
 	}
 	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.BatchCheck(newTestIAMContext(), ActionAgentOperate, []Resource{
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
 		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
 	})

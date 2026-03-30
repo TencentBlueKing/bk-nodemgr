@@ -60,13 +60,13 @@ func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 	}
 	networkUnitIDs := conv.MapKeyToSlice(networkUnitIDMap)
 	networkUnitResources := buildNetworkUnitResources(networkUnitIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionNetworkUnitUseForAgent, networkUnitResources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitUseForAgent, networkUnitResources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to install agent, network unit permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	resources := buildBizResources(bizIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to install agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

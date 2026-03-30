@@ -374,31 +374,34 @@ func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password s
 func (h *Handler) GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error) {
 	actions := make([]ApplicationAction, 0, len(req.Actions))
 	for _, action := range req.Actions {
-		relatedResourceTypes := make([]ApplicationRelatedResourceType, 0, len(action.RelatedResourceTypes))
-		for _, related := range action.RelatedResourceTypes {
-			instances := make([]ApplicationResourceInstance, 0, len(related.Instances))
-			for _, instance := range related.Instances {
-				nodes := make(ApplicationResourceInstance, 0, len(instance))
-				for _, node := range instance {
-					nodes = append(nodes, ApplicationResourceNode{
-						Type: node.Type,
-						ID:   node.ID,
-					})
-				}
-				instances = append(instances, nodes)
-			}
-
-			relatedResourceTypes = append(relatedResourceTypes, ApplicationRelatedResourceType{
-				SystemID:  related.SystemID,
-				Type:      related.Type,
-				Instances: instances,
-			})
+		appAction := ApplicationAction{
+			ID: action.ID,
 		}
 
-		actions = append(actions, ApplicationAction{
-			ID:                   action.ID,
-			RelatedResourceTypes: relatedResourceTypes,
-		})
+		if len(action.RelatedResourceTypes) > 0 {
+			appAction.RelatedResourceTypes = make([]ApplicationRelatedResourceType, 0, len(action.RelatedResourceTypes))
+			for _, related := range action.RelatedResourceTypes {
+				instances := make([]ApplicationResourceInstance, 0, len(related.Instances))
+				for _, instance := range related.Instances {
+					nodes := make(ApplicationResourceInstance, 0, len(instance))
+					for _, node := range instance {
+						nodes = append(nodes, ApplicationResourceNode{
+							Type: node.Type,
+							ID:   node.ID,
+						})
+					}
+					instances = append(instances, nodes)
+				}
+
+				appAction.RelatedResourceTypes = append(appAction.RelatedResourceTypes, ApplicationRelatedResourceType{
+					SystemID:  related.SystemID,
+					Type:      related.Type,
+					Instances: instances,
+				})
+			}
+		}
+
+		actions = append(actions, appAction)
 	}
 
 	application := Application{

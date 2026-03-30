@@ -33,7 +33,7 @@ func (h *handler) ProxyInstallCheck(rCtx restserver.IContext) (interface{}, erro
 	}
 	bizIDs := buildBizIDsFromTypeHosts(req.ConvertHostsToTypes())
 	resources := buildBizResources(bizIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check install proxy, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

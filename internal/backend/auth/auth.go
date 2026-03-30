@@ -17,6 +17,6 @@ import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 type IAuthorizer interface {
 	// Check verifies whether the current request context can perform the action on resources.
 	Check(ctx contextx.IContext, action Action, resources []Resource) error
-	// BatchCheck verifies multiple resources and aggregates denied resources into a single permission error.
-	BatchCheck(ctx contextx.IContext, action Action, resources []Resource) error
+	// CheckMany verifies multiple actions over their corresponding resources and aggregates denied actions.
+	CheckMany(ctx contextx.IContext, actionResources map[Action][]Resource) error
 }

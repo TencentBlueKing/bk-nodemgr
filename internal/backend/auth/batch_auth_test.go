@@ -158,20 +158,20 @@ func TestBatchBizIDAuth_SingleDenied(t *testing.T) {
 	}
 }
 
-func TestNewNoOpAuthorizer_ExposesBatchCheckMethod(t *testing.T) {
-	batchAuthorizer, ok := any(auth.NewNoOpAuthorizer()).(interface {
-		BatchCheck(contextx.IContext, auth.Action, []auth.Resource) error
+func TestNewNoOpAuthorizer_ExposesCheckMethod(t *testing.T) {
+	checkAuthorizer, ok := any(auth.NewNoOpAuthorizer()).(interface {
+		Check(contextx.IContext, auth.Action, []auth.Resource) error
 	})
 	if !ok {
-		t.Fatal("expected NewNoOpAuthorizer to expose BatchCheck method")
+		t.Fatal("expected NewNoOpAuthorizer to expose Check method")
 	}
 
-	err := batchAuthorizer.BatchCheck(nil, auth.ActionAgentOperate, []auth.Resource{{
+	err := checkAuthorizer.Check(nil, auth.ActionAgentOperate, []auth.Resource{{
 		SystemID: auth.SystemIDCMDB,
 		Type:     auth.ResourceTypeBiz,
 		ID:       "1",
 	}})
 	if err != nil {
-		t.Fatalf("expected nil error from no-op batch check, got: %v", err)
+		t.Fatalf("expected nil error from no-op check, got: %v", err)
 	}
 }

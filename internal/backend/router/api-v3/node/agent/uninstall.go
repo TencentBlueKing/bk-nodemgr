@@ -52,7 +52,7 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 
 	bizIDs := h.getUninstallNodeBizIDs(hosts)
 	resources := buildBizResources(bizIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to uninstall agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

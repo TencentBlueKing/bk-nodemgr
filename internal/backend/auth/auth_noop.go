@@ -23,6 +23,6 @@ func (a *noopAuthorizer) Check(_ contextx.IContext, _ Action, _ []Resource) erro
 	return nil
 }
 
-func (a *noopAuthorizer) BatchCheck(_ contextx.IContext, _ Action, _ []Resource) error {
+func (a *noopAuthorizer) CheckMany(_ contextx.IContext, _ map[Action][]Resource) error {
 	return nil
 }

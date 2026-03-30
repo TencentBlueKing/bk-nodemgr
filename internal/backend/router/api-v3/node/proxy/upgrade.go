@@ -51,7 +51,7 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	resources := buildBizResources(bizIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to upgrade proxy, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

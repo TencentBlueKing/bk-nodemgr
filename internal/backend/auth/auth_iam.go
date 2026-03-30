@@ -93,6 +93,18 @@ func buildIAMBatchResultKey(resources []types.IAMResource) string {
 	return strings.Join(nodeIDs, "/")
 }
 
+func sortedActions(actionResources map[Action][]Resource) []Action {
+	actions := make([]Action, 0, len(actionResources))
+	for action := range actionResources {
+		actions = append(actions, action)
+	}
+	sort.Slice(actions, func(idx, jdx int) bool {
+		return actions[idx] < actions[jdx]
+	})
+
+	return actions
+}
+
 func (authorizer *iamv3Authorizer) newCheckRequest(ctx contextx.IContext, action Action, resources []Resource) types.IAMCheckRequest {
 	return types.IAMCheckRequest{
 		SystemID:  authorizer.systemID,
@@ -162,56 +174,20 @@ func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResour
 	return relatedRTs
 }
 
-func (authorizer *iamv3Authorizer) newPermissionDeniedError(
+func (authorizer *iamv3Authorizer) collectDeniedResources(
 	ctx contextx.IContext, action Action, resources []Resource,
-) PermissionDeniedError {
-
-	rts := buildIAMApplyResourceTypes(resources)
-	app := types.IAMApplyRequest{
-		SystemID: authorizer.systemID,
-		Actions: []types.IAMApplyAction{
-			{ID: string(action), RelatedResourceTypes: rts},
-		},
-	}
-	applyURL, urlErr := authorizer.handler.GetApplyURL(ctx, app)
-	if urlErr != nil {
-		applyURL = ""
-	}
-
-	return PermissionDeniedError{
-		ApplyURL:   applyURL,
-		SystemID:   authorizer.systemID,
-		SystemName: SystemDisplayName(authorizer.systemID),
-		Actions: []ActionInfo{{
-			ID:                   string(action),
-			Name:                 ActionDisplayName(action),
-			RelatedResourceTypes: buildRelatedResourceTypes(rts),
-		}},
-	}
-}
-
-func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, resources []Resource) error {
+) ([]Resource, bool, error) {
 	if ctx == nil {
-		return fmt.Errorf("auth: Check called with nil context")
+		return nil, false, fmt.Errorf("auth: Check called with nil context")
 	}
-	req := authorizer.newCheckRequest(ctx, action, resources)
-	allowed, err := authorizer.handler.IsAllowedWithCache(ctx, req, iamCacheTTL)
-	if err != nil {
-		return err
-	}
-	if allowed {
-		return nil
-	}
-
-	return authorizer.newPermissionDeniedError(ctx, action, resources)
-}
-
-func (authorizer *iamv3Authorizer) BatchCheck(ctx contextx.IContext, action Action, resources []Resource) error {
 	if len(resources) == 0 {
-		return nil
-	}
-	if ctx == nil {
-		return fmt.Errorf("auth: Check called with nil context")
+		req := authorizer.newCheckRequest(ctx, action, nil)
+		allowed, err := authorizer.handler.IsAllowedWithCache(ctx, req, iamCacheTTL)
+		if err != nil {
+			return nil, false, err
+		}
+
+		return nil, !allowed, nil
 	}
 
 	resourcesList := make([][]types.IAMResource, 0, len(resources))
@@ -221,7 +197,7 @@ func (authorizer *iamv3Authorizer) BatchCheck(ctx contextx.IContext, action Acti
 
 	results, err := authorizer.handler.BatchIsAllowed(ctx, authorizer.newCheckRequestWithoutResource(ctx, action), resourcesList)
 	if err != nil {
-		return err
+		return nil, false, err
 	}
 
 	denied := make([]Resource, 0, len(resources))
@@ -232,9 +208,76 @@ func (authorizer *iamv3Authorizer) BatchCheck(ctx contextx.IContext, action Acti
 		}
 		denied = append(denied, resource)
 	}
-	if len(denied) == 0 {
+
+	return denied, len(denied) != 0, nil
+}
+
+func (authorizer *iamv3Authorizer) newPermissionDeniedError(
+	ctx contextx.IContext, actionResources map[Action][]Resource,
+) PermissionDeniedError {
+	actions := sortedActions(actionResources)
+	applyActions := make([]types.IAMApplyAction, 0, len(actions))
+	deniedActions := make([]ActionInfo, 0, len(actions))
+	for _, action := range actions {
+		rts := buildIAMApplyResourceTypes(actionResources[action])
+		applyActions = append(applyActions, types.IAMApplyAction{
+			ID:                   string(action),
+			RelatedResourceTypes: rts,
+		})
+		deniedActions = append(deniedActions, ActionInfo{
+			ID:                   string(action),
+			Name:                 ActionDisplayName(action),
+			RelatedResourceTypes: buildRelatedResourceTypes(rts),
+		})
+	}
+
+	app := types.IAMApplyRequest{
+		SystemID: authorizer.systemID,
+		Actions:  applyActions,
+	}
+	applyURL, urlErr := authorizer.handler.GetApplyURL(ctx, app)
+	if urlErr != nil {
+		applyURL = ""
+	}
+
+	return PermissionDeniedError{
+		ApplyURL:   applyURL,
+		SystemID:   authorizer.systemID,
+		SystemName: SystemDisplayName(authorizer.systemID),
+		Actions:    deniedActions,
+	}
+}
+
+func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, resources []Resource) error {
+	denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, resources)
+	if err != nil {
+		return err
+	}
+	if !deniedAny {
 		return nil
 	}
 
-	return authorizer.newPermissionDeniedError(ctx, action, denied)
+	return authorizer.newPermissionDeniedError(ctx, map[Action][]Resource{
+		action: denied,
+	})
+}
+
+func (authorizer *iamv3Authorizer) CheckMany(
+	ctx contextx.IContext, actionResources map[Action][]Resource,
+) error {
+	deniedActionResources := make(map[Action][]Resource, len(actionResources))
+	for _, action := range sortedActions(actionResources) {
+		denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, actionResources[action])
+		if err != nil {
+			return err
+		}
+		if deniedAny {
+			deniedActionResources[action] = denied
+		}
+	}
+	if len(deniedActionResources) == 0 {
+		return nil
+	}
+
+	return authorizer.newPermissionDeniedError(ctx, deniedActionResources)
 }

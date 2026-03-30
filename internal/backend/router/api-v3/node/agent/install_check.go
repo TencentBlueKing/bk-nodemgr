@@ -42,7 +42,7 @@ func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, erro
 		bizIDs = append(bizIDs, bizID)
 	}
 	resources := buildBizResources(bizIDs)
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check install agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
