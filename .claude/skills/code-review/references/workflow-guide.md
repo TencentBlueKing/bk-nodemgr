@@ -103,29 +103,48 @@ git status -uno  # 查看已暂存的提交文件
 - `pkg/rest/` → API 框架规范
 - API 相关代码 → API 开发流程
 
-### 步骤 2: Design 审查（阻塞性门禁）
+### 步骤 2: Design 审查 + AGENTS.md 门禁（阻塞性）
 
-在理解审查范围之后、进入语法检查之前，评估代码的设计合理性。Design 问题比语法错误更根本——如果代码放错了位置或引入了不合理的依赖，后续的修复都无意义。
+在理解审查范围之后、进入语法检查之前，评估代码的设计合理性 **并检查 AGENTS.md 合规性**。Design 问题和 AGENTS.md Anti-pattern 违反比语法错误更根本——如果代码放错了位置或引入了不合理的依赖，后续的修复都无意义。
 
 **使用工具：**
 - `🧠 sequential-thinking` — 结构化评估设计合理性，逐项分析代码放置、依赖方向、抽象层级
 - `🔍 serena.get_symbols_overview` — 查看变更文件的符号结构，判断代码是否放在了正确的模块
 - `🔍 serena.find_referencing_symbols` — 检查新增代码的依赖方向，确认无反向依赖（`pkg` 不应依赖 `internal`）
+- `Read AGENTS.md` — 必须读取项目根目录 AGENTS.md，获取最新的 Anti-patterns 和 Where to look 约定
 
 **检查内容：**
 
-- **代码放置位置**：service 逻辑是否错误地放在了 `pkg`（应在 `internal/<service>`）？`pkg` 中的代码是否真正具备跨服务复用性？
-- **模块依赖合理性**：是否引入了不合理的跨模块依赖？依赖方向是否正确（`internal` 依赖 `pkg`，而非反向）？
-- **抽象层级**：是否存在不必要的抽象层？新增的接口/结构是否在合理的抽象层级上？
+**A. AGENTS.md Anti-patterns（违反即阻塞 ❌）：**
+- 是否手动修改了 `*.pb.go` 文件？
+- proto struct 是否直接用于业务逻辑而未通过 `pkg/proto/*` 转换？
+- 是否引入了 duplicate helper / parallel conversion logic？（用 `serena.find_symbol` 搜索同名或功能相似的函数）
+- service-specific 逻辑是否错误地放在了 `pkg/` 而非 `internal/<service>/`？
+
+**B. 代码放置位置（基于 AGENTS.md Where to look）：**
+- service startup 代码是否在 `cmd/*`？
+- router/handler 是否在 `internal/*/router/api-v3`？
+- DAO 是否在 `pkg/dao/mongo` 或 `internal/*/storage`？
+- proto 转换是否在 `pkg/proto/**`？
+
+**C. 模块依赖合理性：**
+- `pkg/` 是否 import 了 `internal/` 下的包？（严重 ❌）
+- 是否引入了不合理的跨模块依赖？
+- 新增的接口/结构是否在合理的抽象层级上？
+
+**D. 架构原则（参见 [architecture-principles.md](architecture-principles.md)）：**
+- DRY：是否与已有代码功能重叠？
+- 正交性：是否引入了不必要的耦合？
+- 可逆性：设计决策是否允许后续变更？
 
 **门禁行为：**
 
 - **无设计问题**：在 `.review/checklist.md` 中标记步骤完成，继续执行后续步骤
-- **发现设计问题**：
-  1. 生成**早期报告**（仅包含设计问题）
-  2. 提示用户："发现设计层面问题，建议先修正后重新提交审查。是否继续后续检查？"
-  3. **用户选择终止**：输出早期报告，在 checklist 中记录"⛔"标记和设计问题，结束审查
-  4. **用户选择继续**：设计问题记录到 Issues Found，照常执行后续步骤 3-7
+- **发现设计问题或 AGENTS.md 违反**：
+  1. 生成**早期报告**（包含设计问题和 AGENTS.md 违反项）
+  2. 提示用户："发现设计层面问题 / AGENTS.md 违反，建议先修正后重新提交审查。是否继续后续检查？"
+  3. **用户选择终止**：输出早期报告，在 checklist 中记录"⛔"标记和问题，结束审查
+  4. **用户选择继续**：问题记录到 Issues Found，照常执行后续步骤 3-7
 
 ### 步骤 3: 语法错误检查（阻塞性门禁）
 
@@ -141,9 +160,15 @@ go vet ./path/to/package/...
 - 阻止编译的问题必须首先解决
 - 避免在语法错误的代码上浪费时间审查逻辑
 
-### 步骤 4: 项目规范检查
+### 步骤 4: 项目规范检查 + AGENTS.md Conventions
 
-**根据文件类型和模块，参考相应的规范文档：**
+**首先检查 AGENTS.md Conventions（违反 → ⚠️ 重要）：**
+- 导出的 Go 函数/类型是否有英文文档注释？
+- 是否使用 `pkg/logger` 记录日志？
+- 是否优先扩展已有 code path 而非新建平行实现？
+- 前端代码是否遵循 `pnpm@9.8.0` + `@blueking/eslint-config-bk/tsvue3` 规范？
+
+**然后根据文件类型和模块，参考相应的规范文档：**
 
 #### API 接口开发
 - 文件路径包含 `proto/` 或 API 相关代码
@@ -180,6 +205,16 @@ go vet ./path/to/package/...
 - 日志格式是否一致
 - 数据结构构建是否符合模式
 
+**架构原则检查（参见 [architecture-principles.md](architecture-principles.md)）：**
+- DRY：搜索是否存在功能重复的代码
+- 控制熵：新代码是否遵循同模块的既定范式
+- 统一术语：新增的命名是否与已有约定一致
+- 显式处理：忽略返回值是否显式标注
+
+**案例库参考：**
+- 检查 `cases/` 目录中是否有与当前发现类似的案例
+- 如有匹配案例，在报告中引用：`参见案例 cases/XXX.md`
+
 **如何进行一致性检查：**
 1. 使用 `serena.find_symbol`（substring_matching=true）查找相似函数，降级时用 Grep
 2. 使用 `serena.search_for_pattern` 查找相关模式，降级时用 Grep
@@ -191,9 +226,16 @@ go vet ./path/to/package/...
 **核心规范：**
 - 遵循 `.golangci.yml` 规则
 - 遵循 `.cursor/rules/conv.mdc` 数据转换规则
-- 参考 `AGENTS.md` 和 `CLAUDE.md` 项目规范
+- **遵循 `AGENTS.md` 约定（Conventions 部分，步骤 4 已检查 Anti-patterns）**
 
-**检查清单：**
+**架构原则检查（参见 [architecture-principles.md](architecture-principles.md)）：**
+- [ ] 单层级函数：函数体内抽象层级是否统一
+- [ ] 只管命令不要询问：是否先 Get 再 Set 同一对象
+- [ ] 传入最小参数集：函数参数是否过于宽泛
+- [ ] 缄默原则：正常路径是否有不必要的日志
+- [ ] 尽早崩溃：是否有 `recover()` 后空操作、静默忽略错误
+
+**常规检查清单：**
 - [ ] 错误处理是否完整（使用 `fmt.Errorf` 和 `%w`）
 - [ ] 是否遵循项目代码风格（导入别名、命名、注释）
 - [ ] 是否使用了 `pkg/runtime/conv` 进行数据转换
