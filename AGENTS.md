@@ -16,6 +16,7 @@
 |Where to look:integration tests:test/{cases,mock-server}:router-level API tests and support mocks
 |Conventions:toolchain=go1.23.10|lint=.golangci.yml strict baseline|public Go functions/types require English comments
 |Conventions:before coding read relevant module + at least one analogous implementation in same service/layer
+|Conventions:for every touched path, identify and obey all applicable scoped AGENTS.md files before designing or coding|priority=nearest-scope over broader guidance|if local AGENTS already constrain boundary/type/flow, treat it as a hard requirement, not a style hint
 |Conventions:prefer extending existing code paths/helpers/proto conversions over parallel implementations
 |Conventions:use pkg/logger for structured logging
 |Conventions:frontend package manager=pnpm@9.8.0|eslint extends @blueking/eslint-config-bk/tsvue3 with import sorting and type-import rules
