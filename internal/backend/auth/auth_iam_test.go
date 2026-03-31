@@ -31,14 +31,19 @@ type fakeIAMBatchHandler struct {
 	applyErr             error
 	checkResult          bool
 	checkErr             error
+	authorizedIsAny      bool
+	authorizedResources  []types.IAMResource
+	authorizedErr        error
 
 	batchCalls              int
 	isAllowedWithCacheCalls int
 	applyCalls              int
+	authorizedCalls         int
 
 	lastBatchReq       types.IAMCheckRequest
 	lastBatchResources [][]types.IAMResource
 	lastApplyReq       types.IAMApplyRequest
+	lastAuthorizedReq  types.IAMAuthorizedInstancesRequest
 }
 
 func (h *fakeIAMBatchHandler) IsAllowed(_ contextx.IContext, _ types.IAMCheckRequest) (bool, error) {
@@ -90,6 +95,14 @@ func (h *fakeIAMBatchHandler) GetApplyURL(_ contextx.IContext, req types.IAMAppl
 	h.applyCalls++
 	h.lastApplyReq = req
 	return h.applyURL, h.applyErr
+}
+
+func (h *fakeIAMBatchHandler) ListAuthorizedInstances(
+	_ contextx.IContext, req types.IAMAuthorizedInstancesRequest,
+) (bool, []types.IAMResource, error) {
+	h.authorizedCalls++
+	h.lastAuthorizedReq = req
+	return h.authorizedIsAny, h.authorizedResources, h.authorizedErr
 }
 
 func newTestIAMContext() contextx.IContext {
@@ -350,6 +363,75 @@ func TestIAMV3AuthorizerCheck_NonEmptyResourcesUsesBatchEvaluation(t *testing.T)
 	}
 	if handler.isAllowedWithCacheCalls != 0 {
 		t.Fatalf("expected action-level cached check not to be called, got %d", handler.isAllowedWithCacheCalls)
+	}
+}
+
+func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testing.T) {
+	handler := &fakeIAMBatchHandler{
+		authorizedResources: []types.IAMResource{
+			{SystemID: SystemIDCMDB, Type: string(ResourceTypeBiz), ID: "1"},
+			{SystemID: SystemIDCMDB, Type: string(ResourceTypeBiz), ID: "2"},
+		},
+	}
+	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+
+	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, ResourceTypeBiz)
+	if err != nil {
+		t.Fatalf("expected nil error, got: %v", err)
+	}
+	if scope.IsAny {
+		t.Fatal("expected IsAny=false, got true")
+	}
+	if len(scope.Resources) != 2 {
+		t.Fatalf("expected 2 resources, got %d", len(scope.Resources))
+	}
+	if scope.Resources[0].ID != "1" || scope.Resources[1].ID != "2" {
+		t.Fatalf("unexpected authorized resource IDs: %+v", scope.Resources)
+	}
+	if scope.Resources[0].SystemID != SystemIDCMDB || scope.Resources[0].Type != ResourceTypeBiz {
+		t.Fatalf("unexpected resource[0] systemID/type: %+v", scope.Resources[0])
+	}
+	if handler.authorizedCalls != 1 {
+		t.Fatalf("expected ListAuthorizedInstances called once, got %d", handler.authorizedCalls)
+	}
+	if handler.lastAuthorizedReq.SystemID != SystemIDNodeMgr {
+		t.Fatalf("expected systemID %q, got %q", SystemIDNodeMgr, handler.lastAuthorizedReq.SystemID)
+	}
+	if handler.lastAuthorizedReq.Username != "admin" {
+		t.Fatalf("expected username admin, got %q", handler.lastAuthorizedReq.Username)
+	}
+	if handler.lastAuthorizedReq.ActionID != string(ActionAgentView) {
+		t.Fatalf("expected actionID %q, got %q", ActionAgentView, handler.lastAuthorizedReq.ActionID)
+	}
+	if handler.lastAuthorizedReq.ResourceType != string(ResourceTypeBiz) {
+		t.Fatalf("expected resourceType %q, got %q", ResourceTypeBiz, handler.lastAuthorizedReq.ResourceType)
+	}
+}
+
+func TestIAMV3AuthorizerListAuthorizedInstances_ReturnsAnyScope(t *testing.T) {
+	handler := &fakeIAMBatchHandler{authorizedIsAny: true}
+	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+
+	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, ResourceTypeBiz)
+	if err != nil {
+		t.Fatalf("expected nil error, got: %v", err)
+	}
+	if !scope.IsAny {
+		t.Fatal("expected IsAny=true, got false")
+	}
+	if len(scope.Resources) != 0 {
+		t.Fatalf("expected empty Resources for any scope, got %+v", scope.Resources)
+	}
+}
+
+func TestIAMV3AuthorizerListAuthorizedInstances_PropagatesError(t *testing.T) {
+	sentinel := errors.New("list authorized instances failure")
+	handler := &fakeIAMBatchHandler{authorizedErr: sentinel}
+	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+
+	_, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, ResourceTypeBiz)
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel error, got: %v", err)
 	}
 }
 

@@ -13,13 +13,25 @@ package auth
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
+// AuthorizedScope describes the auth-domain authorized instance scope for one action/resource type query.
+type AuthorizedScope struct {
+	// IsAny indicates whether the caller has full access to the target resource type.
+	IsAny bool
+	// Resources contains the authorized resource instances when IsAny is false.
+	Resources []Resource
+}
+
 // IAuthorizer defines the contract for permission checking.
 type IAuthorizer interface {
 	// Check verifies whether the current request context can perform one action on the given resources.
 	// Empty resources trigger an action-level IAM check, while non-empty resources are evaluated
 	// per resource and aggregated into one permission error.
 	Check(ctx contextx.IContext, action Action, resources []Resource) error
+
 	// CheckMany verifies multiple actions over their corresponding resources and aggregates denied actions.
 	// Each action follows the same action-level versus per-resource evaluation rules as Check.
 	CheckMany(ctx contextx.IContext, actionResources map[Action][]Resource) error
+
+	// ListAuthorizedInstances returns the auth-domain authorized scope for one action and resource type.
+	ListAuthorizedInstances(ctx contextx.IContext, action Action, resourceType ResourceType) (AuthorizedScope, error)
 }

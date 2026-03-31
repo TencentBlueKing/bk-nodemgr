@@ -77,6 +77,19 @@ func toIAMResources(resources []Resource) []types.IAMResource {
 	return checkResources
 }
 
+func toAuthorizedScope(isAny bool, iamResources []types.IAMResource) AuthorizedScope {
+	resources := make([]Resource, 0, len(iamResources))
+	for _, r := range iamResources {
+		resources = append(resources, Resource{
+			SystemID: r.SystemID,
+			Type:     ResourceType(r.Type),
+			ID:       r.ID,
+		})
+	}
+
+	return AuthorizedScope{IsAny: isAny, Resources: resources}
+}
+
 func buildIAMBatchResultKey(resources []types.IAMResource) string {
 	if len(resources) == 0 {
 		return ""
@@ -284,4 +297,25 @@ func (authorizer *iamv3Authorizer) CheckMany(
 	}
 
 	return authorizer.newPermissionDeniedError(ctx, deniedActionResources)
+}
+
+func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
+	ctx contextx.IContext, action Action, resourceType ResourceType,
+) (AuthorizedScope, error) {
+
+	if ctx == nil {
+		return AuthorizedScope{}, fmt.Errorf("auth: ListAuthorizedInstances called with nil context")
+	}
+
+	isAny, iamResources, err := authorizer.handler.ListAuthorizedInstances(ctx, types.IAMAuthorizedInstancesRequest{
+		SystemID:     authorizer.systemID,
+		Username:     ctx.BKUsername(),
+		ActionID:     string(action),
+		ResourceType: string(resourceType),
+	})
+	if err != nil {
+		return AuthorizedScope{}, err
+	}
+
+	return toAuthorizedScope(isAny, iamResources), nil
 }

@@ -26,3 +26,10 @@ func (a *noopAuthorizer) Check(_ contextx.IContext, _ Action, _ []Resource) erro
 func (a *noopAuthorizer) CheckMany(_ contextx.IContext, _ map[Action][]Resource) error {
 	return nil
 }
+
+func (a *noopAuthorizer) ListAuthorizedInstances(
+	_ contextx.IContext, _ Action, _ ResourceType,
+) (AuthorizedScope, error) {
+
+	return AuthorizedScope{IsAny: true, Resources: []Resource{}}, nil
+}

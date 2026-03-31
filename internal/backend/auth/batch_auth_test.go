@@ -175,3 +175,23 @@ func TestNewNoOpAuthorizer_ExposesCheckMethod(t *testing.T) {
 		t.Fatalf("expected nil error from no-op check, got: %v", err)
 	}
 }
+
+func TestNewNoOpAuthorizer_ExposesListAuthorizedInstancesMethod(t *testing.T) {
+	scopeAuthorizer, ok := any(auth.NewNoOpAuthorizer()).(interface {
+		ListAuthorizedInstances(contextx.IContext, auth.Action, auth.ResourceType) (auth.AuthorizedScope, error)
+	})
+	if !ok {
+		t.Fatal("expected NewNoOpAuthorizer to expose ListAuthorizedInstances method")
+	}
+
+	scope, err := scopeAuthorizer.ListAuthorizedInstances(nil, auth.ActionAgentView, auth.ResourceTypeBiz)
+	if err != nil {
+		t.Fatalf("expected nil error from no-op list authorized instances, got: %v", err)
+	}
+	if !scope.IsAny {
+		t.Fatal("expected IsAny=true from no-op authorized scope")
+	}
+	if len(scope.Resources) != 0 {
+		t.Fatalf("expected empty Resources from no-op authorized scope, got %+v", scope.Resources)
+	}
+}
