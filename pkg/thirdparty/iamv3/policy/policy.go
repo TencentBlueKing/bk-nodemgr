@@ -1,3 +1,5 @@
+// Package policy provides IAM v2 policy expression parsing utilities.
+// It transforms iam-go-sdk ExprCell tree into authorized resource ID list.
 package policy
 
 import (
@@ -10,6 +12,9 @@ import (
 	"github.com/TencentBlueKing/iam-go-sdk/expression/operator"
 )
 
+// Parse parses an IAM policy expression and returns the authorized resource scope.
+// Returns (true, [], nil) for full access (any), (false, resources, nil) for scoped access,
+// or (false, nil, err) for unsupported expressions.
 func Parse(expr *expression.ExprCell, systemID, resourceType string) (bool, []types.IAMResource, error) {
 	if expr == nil {
 		return false, []types.IAMResource{}, nil
@@ -81,6 +86,7 @@ func parseCompositePolicy(
 	systemID, resourceType string,
 	isAnd bool,
 ) (bool, []types.IAMResource, error) {
+
 	if len(expr.Content) == 0 {
 		return false, []types.IAMResource{}, nil
 	}
@@ -97,6 +103,7 @@ func parseCompositePolicy(
 		if index == 0 {
 			mergedIsAny = childIsAny
 			mergedResources = childResources
+
 			continue
 		}
 
@@ -139,6 +146,7 @@ func unionAuthorizedInstances(
 	rightIsAny bool,
 	rightResources []types.IAMResource,
 ) (bool, []types.IAMResource) {
+
 	if leftIsAny || rightIsAny {
 		return true, []types.IAMResource{}
 	}
@@ -154,6 +162,7 @@ func intersectAuthorizedInstances(
 	rightIsAny bool,
 	rightResources []types.IAMResource,
 ) (bool, []types.IAMResource) {
+
 	if leftIsAny {
 		return rightIsAny, deduplicateResources(rightResources)
 	}
@@ -226,14 +235,15 @@ func deduplicateResources(resources []types.IAMResource) []types.IAMResource {
 		unique = append(unique, resource)
 	}
 
-	sort.Slice(unique, func(i, j int) bool {
-		if unique[i].SystemID != unique[j].SystemID {
-			return unique[i].SystemID < unique[j].SystemID
+	sort.Slice(unique, func(left, right int) bool {
+		if unique[left].SystemID != unique[right].SystemID {
+			return unique[left].SystemID < unique[right].SystemID
 		}
-		if unique[i].Type != unique[j].Type {
-			return unique[i].Type < unique[j].Type
+		if unique[left].Type != unique[right].Type {
+			return unique[left].Type < unique[right].Type
 		}
-		return unique[i].ID < unique[j].ID
+
+		return unique[left].ID < unique[right].ID
 	})
 
 	return unique

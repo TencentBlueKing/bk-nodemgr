@@ -123,6 +123,7 @@ func (h *NoOpHandler) ListAuthorizedInstances(
 	_ contextx.IContext,
 	_ types.IAMAuthorizedInstancesRequest,
 ) (bool, []types.IAMResource, error) {
+
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping ListAuthorizedInstances")
 
 	return true, []types.IAMResource{}, nil

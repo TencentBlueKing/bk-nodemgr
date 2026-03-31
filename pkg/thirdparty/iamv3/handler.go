@@ -426,6 +426,7 @@ func (h *Handler) ListAuthorizedInstances(
 	ctx contextx.IContext,
 	req types.IAMAuthorizedInstancesRequest,
 ) (bool, []types.IAMResource, error) {
+
 	request := toAuthorizedInstancesWireRequest(req)
 
 	if err := request.Validate(); err != nil {
