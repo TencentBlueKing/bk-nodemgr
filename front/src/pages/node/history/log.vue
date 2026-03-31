@@ -112,10 +112,10 @@
           <TableColumn
             field="state"
             :title="$t('platform.nodeMan.log.executionStatus')"
-            :min-width="isManual || isOffline ? 230 : 150">
+            :min-width="isManual || isOffline ? 260 : 180">
             <template #default="{ row }">
               <div class="flex items-center gap-[5px]">
-                <div class="flex items-center flex-1">
+                <div class="flex items-center flex-1 min-w-0">
                   <i
                     v-if="statusMap[row.state]?.icon"
                     :class="`nodeman-icon nc-${
@@ -128,7 +128,7 @@
                     height="12.25px"
                   />
                   <span class="nodeman-icon nc-unknown status-icon" v-else></span>
-                  <div :class="['ml-[5px]']">
+                  <div :class="['ml-[5px]', 'min-w-0']">
                     <div v-if="showOfflineGuideButton(row)">
                       {{ $t('platform.nodeMan.log.waitOfflineOperation') }}
                       <Button class="ml-[2px]" text theme="primary" @click="handleOfflineGuide">
@@ -146,6 +146,53 @@
                       {{ statusMap[row.state]?.text }}
                     </span>
                   </div>
+                  <Button
+                    v-if="row.sub_workflow_refs?.length === 1"
+                    text
+                    theme="primary"
+                    class="ml-[6px] !px-0 min-w-0 leading-none"
+                    data-test="sub-workflow-entry"
+                    v-bk-tooltips="{
+                      content: $t('platform.nodeMan.log.viewSubWorkflow'),
+                      placement: 'top',
+                    }"
+                    @click="openSubWorkflowDetail(row.sub_workflow_refs[0])"
+                  >
+                    <img :src="JumpLink" alt="" class="w-[11px] h-[11px]" />
+                  </Button>
+                  <Dropdown
+                    v-else-if="row.sub_workflow_refs && row.sub_workflow_refs.length > 1"
+                    :popover-options="{
+                      clickContentAutoHide: true,
+                      boundary: 'body',
+                      trigger: 'click',
+                    }"
+                  >
+                    <Button
+                      text
+                      theme="primary"
+                      class="ml-[6px] !px-0 min-w-0 leading-none"
+                      data-test="sub-workflow-entry"
+                      v-bk-tooltips="{
+                        content: $t('platform.nodeMan.log.viewSubWorkflow'),
+                        placement: 'top',
+                      }"
+                    >
+                      <img :src="JumpLink" alt="" class="w-[11px] h-[11px]" />
+                    </Button>
+                    <template #content>
+                      <ul class="py-[4px]">
+                        <li
+                          v-for="(subRef, idx) in row.sub_workflow_refs"
+                          :key="idx"
+                          class="px-[16px] py-[6px] cursor-pointer hover:bg-[#f0f1f5] text-[12px] whitespace-nowrap"
+                          @click="openSubWorkflowDetail(subRef)"
+                        >
+                          {{ subRef.workflow_id }}
+                        </li>
+                      </ul>
+                    </template>
+                  </Dropdown>
                 </div>
                 <Button
                   v-if="row.state === 'running'"
@@ -157,9 +204,9 @@
               </div>
             </template>
           </TableColumn>
-          <TableColumn fixed="right" min-width="20">
+          <TableColumn fixed="right" min-width="32">
             <template #default="{ row }">
-              <div class="text-right">
+              <div class="flex items-center justify-end">
                 <right-shape fill="#C4C6CC" v-if="row.stepKey === activeStepKey" />
               </div>
             </template>
@@ -250,10 +297,9 @@
   <guide v-model:is-show="isGuideShow" :data="guideData" />
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, InfoBox, Input, Message, overflowTitle, SearchSelect } from 'bkui-vue';
+import { Button, Dropdown, InfoBox, Message, SearchSelect } from 'bkui-vue';
 import {
   AngleUpFill,
-  ArrowsLeft,
   Close,
   ExclamationCircleShape,
   RightShape,
@@ -261,11 +307,13 @@ import {
 } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
+
+import JumpLink from '../../../../public/images/jump-link.svg';
 
 import guide from './guide.vue';
 import { isOfflineGuideStep, STEP_KEY_WAIT_OFFLINE_MANUAL_INSTALL } from './offline-package';
@@ -276,7 +324,6 @@ import useInterval from '@/composables/use-interval';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
-const emit = defineEmits(['stop']);
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
@@ -288,18 +335,14 @@ const nodeManageStore = useNodeManageStore();
 const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
 
 // 获取 action 显示名称
-const getDisplayName = (row: any) => {
-  return isZh.value
-    ? (row.display_name_zh || row.stepKey)
-    : (row.display_name_en || row.stepKey);
-};
+const getDisplayName = (row: any) => (isZh.value
+  ? (row.display_name_zh || row.stepKey)
+  : (row.display_name_en || row.stepKey));
 
 // 获取日志文本
-const getLogText = (item: any) => {
-  return isZh.value
-    ? (item.text_zh || '')
-    : (item.text_en || '');
-};
+const getLogText = (item: any) => (isZh.value
+  ? (item.text_zh || '')
+  : (item.text_en || ''));
 
 const isExecutionLogError = (item: any) => item.level === 'ERROR' || getLogText(item).includes('ERROR');
 const isExecutionLogWarn = (item: any) => !isExecutionLogError(item) && (item.level === 'WARN' || getLogText(item).includes('WARN'));
@@ -345,19 +388,27 @@ const serviceCaller = {
 const activeKey = ref('');
 const isNode = computed(() => route.query.active !== 'plugin');
 const operateList = ref<any[]>([]); // 子任务列表
-const filterOperateList = computed(() => operateList.value.filter((row: any) =>
-  searchSelectValue.value.every((searchItem: any) => {
-    const { id: searchField, values } = searchItem;
-    const searchIds = values?.map((value: { id: string }) => value.id);
-    return searchIds.includes(row[searchField]);
-  })
-));
+const matchesSearchSelect = (row: any) => searchSelectValue.value.every((searchItem: any) => {
+  const { id: searchField, values } = searchItem;
+  const searchIds = values?.map((value: { id: string }) => value.id);
+  return searchIds.includes(row[searchField]);
+});
+const filterOperateList = computed(() => operateList.value.filter(matchesSearchSelect));
 // 搜索过滤
-const currentOperate = computed(() => operateList.value.find(item => isNode.value
+const currentOperate = computed(() => operateList.value.find(item => (isNode.value
   ? item.bk_host_id === Number(route.params.hostId)
-  : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`)));
+  : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`))));
 const isManual = computed(() => !!currentOperate.value?.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script'));
 const isOffline = computed(() => isOfflineGuideStep(currentOperate.value?.latest_action_inst_brief_data?.tags ?? []));
+
+const openSubWorkflowDetail = (ref: { workflow_id: string; workflow_domain: 'node' | 'plugin' }) => {
+  const loc = router.resolve({
+    name: 'taskDetail',
+    params: { taskId: ref.workflow_id },
+    query: ref.workflow_domain === 'plugin' ? { active: 'plugin' } : {},
+  });
+  window.open(loc.href, '_blank', 'noopener,noreferrer');
+};
 
 // Pin to wait_offline_manual_install row; last_oper_inst_step_key moves to the next step after submit.
 const showOfflineGuideButton = (row: { stepKey: string; state: string }): boolean => (
@@ -450,13 +501,12 @@ const timeFormatter = (
     if (timestampStr.length === 10) {
       // 秒级时间戳，使用 dayjs.unix()
       return dayjs.unix(val).format(format);
-    } else if (timestampStr.length === 13) {
+    } if (timestampStr.length === 13) {
       // 毫秒级时间戳，使用 dayjs()
       return dayjs(val).format(format);
-    } else {
-      // 其他长度的数字，默认按毫秒处理
-      return dayjs(val).format(format);
     }
+    // 其他长度的数字，默认按毫秒处理
+    return dayjs(val).format(format);
   }
   return val ? dayjs(val).format(format) : '--';
 };
@@ -471,7 +521,7 @@ const distinctStates = ref<string[]>([]);
 const getDistinctStates = async () => {
   // 没有taskId，不请求distinctStates
   if (!route.params.taskId) return;
-  
+
   try {
     const res = await serviceCaller.call('operationDistinct', {
       workflow_id: route.params.taskId,
@@ -592,7 +642,7 @@ const reTryType = [
 
 const handleRetry = async (row: any, type: string) => {
   if (!route.params.taskId) return;
-  
+
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
@@ -664,7 +714,7 @@ const handleClickStep = (row: any) => {
 };
 
 // 搜索Ip
-const handleChangeIp = async (hostId: number, plugin_name: string = '') => {
+const handleChangeIp = async (hostId: number, plugin_name = '') => {
   router.replace({
     name: 'log',
     params: {
@@ -737,7 +787,7 @@ const operateLoading = ref(false);
 const getOperateList = async () => {
   // 没有taskId，不请求operationList
   if (!route.params.taskId) return;
-  
+
   operateLoading.value = true;
   const res = await serviceCaller.call('operationList', {
     page: { limit: 500, offset: 0 },
@@ -751,7 +801,7 @@ const getOperateList = async () => {
   }));
   operateLoading.value = false;
   if (route.query.active !== 'plugin') {
-    operateList.value = res.operations.map(item => {
+    operateList.value = res.operations.map((item) => {
       const briefData = item.latest_oper_inst_brief_data;
       return {
         ...item.node_deployment_info,
@@ -763,7 +813,7 @@ const getOperateList = async () => {
       };
     });
   } else {
-    operateList.value = res.operations.map(item => {
+    operateList.value = res.operations.map((item) => {
       const briefData = item.latest_oper_inst_brief_data;
       return {
         ...item.plugin_deployment_info,
@@ -843,6 +893,7 @@ async function getLog() {
       display_name_en: actionData.display_name_en || key,
       costTime,
       state: state || '未知',
+      sub_workflow_refs: actionData.sub_workflow_refs || [],
     });
   });
   logData.value.total = Object.keys(operInstLogs).length;
@@ -891,11 +942,6 @@ async function getLog() {
     activeKey.value = currentKey;
   }
 }
-
-const handleToggleLogItem = (key: string) => {
-  logs.value = logData.value.oper_inst_logs[key].message.logs;
-  activeKey.value = key;
-};
 
 watch(() => isInterval.value, async (val: boolean) => {
   if (!val) {

@@ -561,10 +561,11 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 		}
 
 		operInstLogs[actionID] = &WorkflowActionData{
-			DisplayNameZh: v.DisplayNameZh,
-			DisplayNameEn: v.DisplayNameEn,
-			LifeCycle:     lifecycle,
-			Message:       &WorkflowActionMessage{Logs: messages},
+			DisplayNameZh:   v.DisplayNameZh,
+			DisplayNameEn:   v.DisplayNameEn,
+			LifeCycle:       lifecycle,
+			Message:         &WorkflowActionMessage{Logs: messages},
+			SubWorkflowRefs: subWorkflowRefsFromPrivateData(v.PrivateData),
 		}
 	}
 

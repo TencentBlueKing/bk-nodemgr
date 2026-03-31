@@ -356,10 +356,6 @@ func (h *Handler) GetActionInstData(
 		Lifecycle:           ConvActInstLifeCycleFromDB(actionInstData.Lifecycle),
 	}
 
-	for k, v := range actionInstData.PrivateData {
-		data.PrivateData[k] = v
-	}
-
 	for _, msg := range actionInstData.Messages {
 		data.Messages = append(data.Messages, common.Message{
 			Time:   msg.Time,

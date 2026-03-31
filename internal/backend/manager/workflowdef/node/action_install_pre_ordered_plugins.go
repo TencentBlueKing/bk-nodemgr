@@ -11,6 +11,7 @@
 package node
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -21,11 +22,13 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -33,8 +36,7 @@ const (
 	// ActionNameInstallPreOrderedPlugins defines the action name.
 	ActionNameInstallPreOrderedPlugins = "install_pre_ordered_plugins"
 
-	privateDataKeyPluginWorkflowID = "plugin_workflow_id"
-	pollingInterval                = 10 * time.Second
+	pollingInterval = 10 * time.Second
 )
 
 // NewActionInstallPreOrderedPlugins get a new action.
@@ -44,6 +46,7 @@ func NewActionInstallPreOrderedPlugins(capability *Capability) action.Definition
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storagePluginWorkflow: capability.StoragePlugin,
+		storageActionInstance: capability.StorageWorkflow,
 
 		pluginMgrIface: capability.PluginIface,
 	}
@@ -64,6 +67,7 @@ type actionInstallPreOrderedPlugins struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storagePluginWorkflow pluginStg.IDaoPluginWorkflow
+	storageActionInstance workflow.IStorageActionInstance
 
 	pluginMgrIface managerIface.IPluginManager
 }
@@ -200,7 +204,23 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		return fmt.Errorf("failed to launch install pre-ordered plugins workflow: %w", err)
 	}
 
-	std.InstanceData().PrivateData[privateDataKeyPluginWorkflowID] = workflowID
+	subWorkflowRefs := []types.SubWorkflowRef{{
+		WorkflowID:     workflowID,
+		WorkflowDomain: types.WorkflowDomainPlugin,
+	}}
+	serializedSubWorkflowRefs, err := serializeSubWorkflowRefs(subWorkflowRefs)
+	if err != nil {
+		return fmt.Errorf("failed to serialize sub workflow refs: %w", err)
+	}
+
+	std.InstanceData().PrivateData[types.PDKeySubWorkflowRefs] = serializedSubWorkflowRefs
+	if err = act.saveSubWorkflowRefs(
+		nCtx,
+		std.InstanceData().OperationInstanceID,
+		serializedSubWorkflowRefs,
+	); err != nil {
+		return fmt.Errorf("failed to save sub workflow refs to private data: %w", err)
+	}
 
 	std.InstanceData().Log().
 		Zh("成功启动预置插件安装工作流, workflow-id(%s)", workflowID).
@@ -272,6 +292,31 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	default:
 		return fmt.Errorf("unknown plugin workflow status: %s", workflowStatus)
 	}
+}
+
+func (act *actionInstallPreOrderedPlugins) saveSubWorkflowRefs(
+	nCtx contextx.IContext,
+	operInstID string,
+	serializedRefs string,
+) error {
+
+	return act.storageActionInstance.UpsertActionInstancePrivateData(
+		nCtx,
+		operInstID,
+		ActionNameInstallPreOrderedPlugins,
+		map[string]any{
+			types.PDKeySubWorkflowRefs: serializedRefs,
+		},
+	)
+}
+
+func serializeSubWorkflowRefs(refs []types.SubWorkflowRef) (string, error) {
+	data, err := json.Marshal(refs)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
 
 func getPreOrderedPlugins() map[types.NodeRole][]string {

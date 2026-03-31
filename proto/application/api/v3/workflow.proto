@@ -59,12 +59,19 @@ message WorkflowActionInstBriefData {
   repeated string tags = 2;
 }
 
+// SubWorkflowRef describes a child workflow reference surfaced in action logs.
+message SubWorkflowRef {
+  string workflow_id = 1;
+  string workflow_domain = 2;
+}
+
 // WorkflowActionData describes the workflow action data.
 message WorkflowActionData {
   WorkflowLifeCycle life_cycle = 1;
   WorkflowActionMessage message = 2;
   string display_name_zh = 3; // Chinese display name
   string display_name_en = 4; // English display name
+  repeated SubWorkflowRef sub_workflow_refs = 5;
 }
 
 // WorkflowOperInstBriefData describes the brief data of operation instance.

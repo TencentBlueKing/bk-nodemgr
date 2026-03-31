@@ -638,10 +638,11 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 		}
 
 		operInstLogs[actionID] = &WorkflowActionData{
-			DisplayNameZh: v.DisplayNameZh,
-			DisplayNameEn: v.DisplayNameEn,
-			LifeCycle:     lifecycle,
-			Message:       &WorkflowActionMessage{Logs: messages},
+			DisplayNameZh:   v.DisplayNameZh,
+			DisplayNameEn:   v.DisplayNameEn,
+			LifeCycle:       lifecycle,
+			Message:         &WorkflowActionMessage{Logs: messages},
+			SubWorkflowRefs: subWorkflowRefsFromPrivateData(v.PrivateData),
 		}
 	}
 
@@ -707,6 +708,26 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInst
 					TextEn: msg.GetTextEn(),
 					Level:  msg.GetLevel(),
 				})
+			}
+		}
+
+		instance.PrivateData = make(map[string]any)
+		subWorkflowRefs := make([]types.SubWorkflowRef, 0, len(actionData.GetSubWorkflowRefs()))
+		for _, ref := range actionData.GetSubWorkflowRefs() {
+			if ref == nil {
+				continue
+			}
+			if id := ref.GetWorkflowId(); id != "" && ref.GetWorkflowDomain() != "" {
+				subWorkflowRefs = append(subWorkflowRefs, types.SubWorkflowRef{
+					WorkflowID:     id,
+					WorkflowDomain: types.WorkflowDomain(ref.GetWorkflowDomain()),
+				})
+			}
+		}
+		if len(subWorkflowRefs) > 0 {
+			serializedRefs, err := serializeSubWorkflowRefs(subWorkflowRefs)
+			if err == nil {
+				instance.PrivateData[types.PDKeySubWorkflowRefs] = serializedRefs
 			}
 		}
 

@@ -47,6 +47,10 @@ const (
 
 	// PDKeyManualInstallActionNameGetExecCommand is key for manual install action name get exec command in oper inst private data.
 	PDKeyManualInstallActionNameGetExecCommand = "manual_install_action_name_get_exec_command"
+
+	// PDKeySubWorkflowRefs is the oper-inst action private_data key for spawned child workflow refs.
+	// The value is a JSON string of []SubWorkflowRef.
+	PDKeySubWorkflowRefs string = "sub_workflow_refs"
 )
 
 // PDDetectInfo is report detect info.
@@ -55,4 +59,20 @@ type PDDetectInfo struct {
 	CPUArch string `json:"cpu_arch"`
 	RunDir  string `json:"run_dir"`
 	ErrMsg  string `json:"err_msg"`
+}
+
+// WorkflowDomain identifies which workflow API domain a workflow belongs to.
+type WorkflowDomain string
+
+const (
+	// WorkflowDomainNode indicates the node workflow domain.
+	WorkflowDomainNode WorkflowDomain = "node"
+	// WorkflowDomainPlugin indicates the plugin workflow domain.
+	WorkflowDomainPlugin WorkflowDomain = "plugin"
+)
+
+// SubWorkflowRef describes a child workflow reference stored in action private_data.
+type SubWorkflowRef struct {
+	WorkflowID     string         `json:"workflow_id" bson:"workflow_id"`
+	WorkflowDomain WorkflowDomain `json:"workflow_domain" bson:"workflow_domain"`
 }

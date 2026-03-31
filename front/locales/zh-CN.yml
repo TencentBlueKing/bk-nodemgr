@@ -218,6 +218,7 @@ platform:
       terminateConfirmTitle: 确认终止
       terminateConfirmSubTitle: 终止后无法恢复，确认继续？
       terminateFailedMsg: 终止操作失败，请重试
+      viewSubWorkflow: 查看子工作流
   topoManagerName: 拓扑管理
   ruleManagerName: 策略管理
   pkgManagerName: 包管理

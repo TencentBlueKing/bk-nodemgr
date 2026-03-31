@@ -1129,6 +1129,18 @@
         }
       }
     },
+    "v3SubWorkflowRef": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_domain": {
+          "type": "string"
+        }
+      },
+      "description": "SubWorkflowRef describes a child workflow reference surfaced in action logs."
+    },
     "v3TimeRange": {
       "type": "object",
       "properties": {
@@ -1192,6 +1204,13 @@
         "display_name_en": {
           "type": "string",
           "title": "English display name"
+        },
+        "sub_workflow_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SubWorkflowRef"
+          }
         }
       },
       "description": "WorkflowActionData describes the workflow action data."
