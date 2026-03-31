@@ -12,6 +12,10 @@ import (
 	"github.com/TencentBlueKing/iam-go-sdk/expression/operator"
 )
 
+// iamFieldSeparator is the separator used by IAM to split resource type and
+// attribute name in policy field expressions (e.g., "biz.id" → type="biz", attr="id").
+const iamFieldSeparator = "."
+
 // Parse parses an IAM policy expression and returns the authorized resource scope.
 // Returns (true, [], nil) for full access (any), (false, resources, nil) for scoped access,
 // or (false, nil, err) for unsupported expressions.
@@ -254,7 +258,7 @@ func getFieldAttribute(field string) string {
 		return ""
 	}
 
-	parts := strings.Split(field, ".")
+	parts := strings.Split(field, iamFieldSeparator)
 
 	return parts[len(parts)-1]
 }
