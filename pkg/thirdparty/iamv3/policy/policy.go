@@ -12,9 +12,15 @@ import (
 	"github.com/TencentBlueKing/iam-go-sdk/expression/operator"
 )
 
-// iamFieldSeparator is the separator used by IAM to split resource type and
-// attribute name in policy field expressions (e.g., "biz.id" → type="biz", attr="id").
-const iamFieldSeparator = "."
+const (
+	// iamFieldSeparator is the separator used by IAM to split resource type and
+	// attribute name in policy field expressions (e.g., "biz.id" → type="biz", attr="id").
+	iamFieldSeparator = "."
+
+	// iamPathAttribute is the special IAM attribute used for hierarchical resource
+	// path conditions. This attribute is not supported by the current parser.
+	iamPathAttribute = "_bk_iam_path_"
+)
 
 // Parse parses an IAM policy expression and returns the authorized resource scope.
 // Returns (true, [], nil) for full access (any), (false, resources, nil) for scoped access,
@@ -137,8 +143,8 @@ func parsePolicyAttribute(expr *expression.ExprCell) (string, error) {
 	}
 
 	attribute := getFieldAttribute(expr.Field)
-	if attribute == "_bk_iam_path_" {
-		return "", fmt.Errorf("policy contains _bk_iam_path_, not supported")
+	if attribute == iamPathAttribute {
+		return "", fmt.Errorf("policy contains %s, not supported", iamPathAttribute)
 	}
 
 	return attribute, nil
