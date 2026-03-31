@@ -18,6 +18,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
 const (
@@ -62,8 +63,8 @@ func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 }
 
 // v2PolicyQuery performs V2 policy query API call.
-func (c *cli) v2PolicyQuery(ctx contextx.IContext, req *PolicyQueryInput) (map[string]interface{}, error) {
-	resp := new(BaseBroker[map[string]interface{}])
+func (c *cli) v2PolicyQuery(ctx contextx.IContext, req *PolicyQueryInput) (*expression.ExprCell, error) {
+	resp := new(BaseBroker[*expression.ExprCell])
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().

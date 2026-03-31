@@ -148,6 +148,131 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestListAuthorizedInstances(t *testing.T) {
+	tests := []struct {
+		name             string
+		req              types.IAMAuthorizedInstancesRequest
+		responseBody     string
+		responseStatus   int
+		wantIsAny        bool
+		wantIDs          []string
+		wantErrSubstring string
+		wantCalls        int32
+	}{
+		{
+			name: "validation failure short-circuits",
+			req: types.IAMAuthorizedInstancesRequest{
+				SystemID: "bk_nodemgr",
+				Username: "admin",
+			},
+			wantErrSubstring: "action is required",
+			wantCalls:        0,
+		},
+		{
+			name: "nil policy returns empty ids",
+			req: types.IAMAuthorizedInstancesRequest{
+				SystemID:     "bk_nodemgr",
+				Username:     "admin",
+				ActionID:     "agent_view",
+				ResourceType: "biz",
+			},
+			responseBody:   `{"code":0,"message":"ok","data":null}`,
+			responseStatus: http.StatusOK,
+			wantIDs:        []string{},
+			wantCalls:      1,
+		},
+		{
+			name: "any policy returns is any",
+			req: types.IAMAuthorizedInstancesRequest{
+				SystemID:     "bk_nodemgr",
+				Username:     "admin",
+				ActionID:     "agent_view",
+				ResourceType: "biz",
+			},
+			responseBody:   `{"code":0,"message":"ok","data":{"op":"any"}}`,
+			responseStatus: http.StatusOK,
+			wantIsAny:      true,
+			wantCalls:      1,
+		},
+		{
+			name: "in policy returns ids",
+			req: types.IAMAuthorizedInstancesRequest{
+				SystemID:     "bk_nodemgr",
+				Username:     "admin",
+				ActionID:     "agent_view",
+				ResourceType: "biz",
+			},
+			responseBody:   `{"code":0,"message":"ok","data":{"op":"in","field":"biz.id","value":["1","2"]}}`,
+			responseStatus: http.StatusOK,
+			wantIDs:        []string{"1", "2"},
+			wantCalls:      1,
+		},
+		{
+			name: "iam failure bubbles up",
+			req: types.IAMAuthorizedInstancesRequest{
+				SystemID:     "bk_nodemgr",
+				Username:     "admin",
+				ActionID:     "agent_view",
+				ResourceType: "biz",
+			},
+			responseBody:     `{"code":1,"message":"failed","data":{}}`,
+			responseStatus:   http.StatusOK,
+			wantErrSubstring: "v2 policy query failed",
+			wantCalls:        1,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var queryCalls int32
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				if req.URL.Path != "/api/v2/policy/systems/bk_nodemgr/query/" {
+					rw.WriteHeader(http.StatusNotFound)
+					return
+				}
+				atomic.AddInt32(&queryCalls, 1)
+				rw.Header().Set("Content-Type", "application/json")
+				rw.WriteHeader(tc.responseStatus)
+				_, _ = rw.Write([]byte(tc.responseBody))
+			}))
+			defer server.Close()
+
+			h := newTestIAMHandler(t, server.URL)
+			gotIsAny, gotResources, err := h.ListAuthorizedInstances(contextx.New(context.Background()), tc.req)
+
+			if tc.wantErrSubstring != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.wantErrSubstring) {
+					t.Fatalf("ListAuthorizedInstances() error = %v, want substring %q", err, tc.wantErrSubstring)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("ListAuthorizedInstances() unexpected error: %v", err)
+				}
+				if gotIsAny != tc.wantIsAny {
+					t.Fatalf("ListAuthorizedInstances().isAny = %v, want %v", gotIsAny, tc.wantIsAny)
+				}
+				gotIDs := make([]string, 0, len(gotResources))
+				for _, resource := range gotResources {
+					gotIDs = append(gotIDs, resource.ID)
+					if resource.SystemID != tc.req.SystemID {
+						t.Fatalf("ListAuthorizedInstances().resource.SystemID = %q, want %q", resource.SystemID, tc.req.SystemID)
+					}
+					if resource.Type != tc.req.ResourceType {
+						t.Fatalf("ListAuthorizedInstances().resource.Type = %q, want %q", resource.Type, tc.req.ResourceType)
+					}
+				}
+				if strings.Join(gotIDs, ",") != strings.Join(tc.wantIDs, ",") {
+					t.Fatalf("ListAuthorizedInstances().resourceIDs = %v, want %v", gotIDs, tc.wantIDs)
+				}
+			}
+
+			if calls := atomic.LoadInt32(&queryCalls); calls != tc.wantCalls {
+				t.Fatalf("policy query called %d times, want %d", calls, tc.wantCalls)
+			}
+		})
+	}
+}
+
 func newTestIAMHandler(t *testing.T, endpoint string) *Handler {
 	t.Helper()
 

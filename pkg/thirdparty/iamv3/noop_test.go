@@ -195,3 +195,24 @@ func TestNoOpHandler_GetApplyURL(t *testing.T) {
 		t.Errorf("GetApplyURL() = %q, want empty string (bypass)", url)
 	}
 }
+
+func TestNoOpHandler_ListAuthorizedInstances(t *testing.T) {
+	h := NewNoOpHandler()
+	ctx := contextx.New(context.Background())
+
+	isAny, resources, err := h.ListAuthorizedInstances(ctx, types.IAMAuthorizedInstancesRequest{
+		SystemID:     "bk_nodemgr",
+		Username:     "admin",
+		ActionID:     "agent_view",
+		ResourceType: "biz",
+	})
+	if err != nil {
+		t.Fatalf("ListAuthorizedInstances() unexpected error: %v", err)
+	}
+	if !isAny {
+		t.Fatalf("ListAuthorizedInstances().isAny = false, want true")
+	}
+	if len(resources) != 0 {
+		t.Fatalf("ListAuthorizedInstances().resources = %v, want empty", resources)
+	}
+}

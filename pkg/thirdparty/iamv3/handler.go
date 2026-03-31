@@ -18,8 +18,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/iam-go-sdk/expression"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -52,6 +52,12 @@ type IHandler interface {
 
 	// GetApplyURL generates a permission apply URL for the given request.
 	GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error)
+
+	// ListAuthorizedInstances queries IAM policy and resolves the authorized.
+	ListAuthorizedInstances(
+		ctx contextx.IContext,
+		req types.IAMAuthorizedInstancesRequest,
+	) (bool, []types.IAMResource, error)
 }
 
 // Handler the Handler of IAM v3.
@@ -104,6 +110,17 @@ func toWireRequest(req types.IAMCheckRequest) Request {
 	}
 }
 
+func toAuthorizedInstancesWireRequest(req types.IAMAuthorizedInstancesRequest) Request {
+	return Request{
+		System: req.SystemID,
+		Subject: Subject{
+			Type: "user",
+			ID:   req.Username,
+		},
+		Action: Action{ID: req.ActionID},
+	}
+}
+
 // IsAllowed checks if the user has permission for the given action.
 func (h *Handler) IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (bool, error) {
 	request := toWireRequest(req)
@@ -130,16 +147,10 @@ func (h *Handler) IsAllowed(ctx contextx.IContext, req types.IAMCheckRequest) (b
 		return false, nil
 	}
 
-	// Decode policy data to expression
-	expr := expression.ExprCell{}
-	if err := mapstructure.Decode(policyData, &expr); err != nil {
-		return false, fmt.Errorf("failed to decode expression: %w", err)
-	}
-
 	// Evaluate the expression against the resources
 	objSet := request.GenObjectSet()
 
-	return expr.Eval(objSet), nil
+	return policyData.Eval(objSet), nil
 }
 
 // IsAllowedWithCache checks permission with caching support.
@@ -206,18 +217,12 @@ func (h *Handler) BatchIsAllowed(ctx contextx.IContext, req types.IAMCheckReques
 		return results, nil
 	}
 
-	// Decode expression once
-	expr := expression.ExprCell{}
-	if err := mapstructure.Decode(policyData, &expr); err != nil {
-		return nil, fmt.Errorf("failed to decode expression: %w", err)
-	}
-
 	// Evaluate for each resource set
 	for _, resources := range resourcesList {
 		wireResources := toWireResources(resources)
 		objSet := NewObjectSet(wireResources)
 		key := buildResourceID(wireResources)
-		results[key] = expr.Eval(objSet)
+		results[key] = policyData.Eval(objSet)
 	}
 
 	return results, nil
@@ -413,6 +418,32 @@ func (h *Handler) GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) 
 	}
 
 	return h.cli.getApplyURL(ctx, &application)
+}
+
+// ListAuthorizedInstances queries IAM policy and resolves the authorized
+// resource scope for a single action.
+func (h *Handler) ListAuthorizedInstances(
+	ctx contextx.IContext,
+	req types.IAMAuthorizedInstancesRequest,
+) (bool, []types.IAMResource, error) {
+	request := toAuthorizedInstancesWireRequest(req)
+
+	if err := request.Validate(); err != nil {
+		return false, nil, err
+	}
+
+	input := &PolicyQueryInput{
+		System:  request.System,
+		Subject: request.Subject,
+		Action:  request.Action,
+	}
+
+	policyData, err := h.cli.v2PolicyQuery(ctx, input)
+	if err != nil {
+		return false, nil, err
+	}
+
+	return policy.Parse(policyData, req.SystemID, req.ResourceType)
 }
 
 // GenPermissionApplyData generates permission apply data for frontend display.

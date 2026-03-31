@@ -47,6 +47,15 @@ type IAMMultiActionCheckRequest struct {
 	Resources []IAMResource
 }
 
+// IAMAuthorizedInstancesRequest is the shared business-semantic request for
+// querying authorized resource scope for a single action.
+type IAMAuthorizedInstancesRequest struct {
+	SystemID     string
+	Username     string
+	ActionID     string
+	ResourceType string
+}
+
 // IAMApplyResourceType identifies a resource type within a specific system for
 // apply URL generation. SystemID is the resource-owning system, matching the
 // convention used in IAMResource.SystemID.
