@@ -165,7 +165,7 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 	}
 
 	// get service addresses from relay config file.
-	downloadSvcAddr, callbackSvcAddr, err := act.selectServiceURLs(std)
+	callbackSvcAddr, downloadSvcAddr, err := act.selectServiceURLs(std)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select service urls: %w", err)
 	}
@@ -298,23 +298,19 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 	return nil
 }
 
-// selectServiceURLs selects service URLs for download and callback servers.
-// For pagent upgrade, it always uses relay info (pagent upgrade is only used in indirect link scenarios).
-// It returns download URLs and callback URLs in comma-separated format: "http://ip1:port1, http://ip2:port2, ...".
-// Returns: (downloadURLs, callbackURLs, error).
+// selectServiceURLs builds callback and download server URLs from the pre-selected relay.
+// Returns: (callbackURLs, downloadURLs, error).
 func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
-	callbackEndpoints, downloadEndpoints, err := std.GetRelayEndpoints()
+	relay, err := std.GetSelectedRelay()
 	if err != nil {
-		return "", "", fmt.Errorf("failed to get relay endpoints: %w", err)
+		return "", "", fmt.Errorf("failed to get selected relay info: %w", err)
 	}
-
-	downloadSvrAddr := nodeUtils.BuildServerURLs(downloadEndpoints...)
-	callbackSvrAddr := nodeUtils.BuildServerURLs(callbackEndpoints...)
+	callbackSvrAddr, downloadSvrAddr := std.BuildRelayServerURLs(relay)
 
 	std.InstanceData().Log().
 		Zh("relay 下载服务地址(%s), 回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).
 		En("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr).
 		Info()
 
-	return downloadSvrAddr, callbackSvrAddr, nil
+	return callbackSvrAddr, downloadSvrAddr, nil
 }

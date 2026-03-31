@@ -12,14 +12,12 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// relayInfoToEndpoint converts types.RelayInfo to discover.Endpoint.
+// relayInfoToEndpoint converts types.RelayInfo to discover.Endpoint with the given port.
 func relayInfoToEndpoint(relayInfo *types.RelayInfo, port int64) discover.Endpoint {
 	return discover.Endpoint{
 		IPV4: relayInfo.AdvertiseIP,
@@ -29,69 +27,19 @@ func relayInfoToEndpoint(relayInfo *types.RelayInfo, port int64) discover.Endpoi
 	}
 }
 
-// getNetworkUnitID gets the network unit ID from the standarder.
-func (std *NodeActionStandarder) getNetworkUnitID() int64 {
-	networkUnitID := std.DeployInfo().Host.Dynamic.NetworkUnitID
-	// For Proxy nodes, use ProxyInstallOriginUnitID
-	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		networkUnitID = std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID
-	}
-
-	return networkUnitID
+// RelayToEndpoints returns callback and download endpoints from a single relay.
+func RelayToEndpoints(relay *types.RelayInfo) ([]discover.Endpoint, []discover.Endpoint) {
+	return []discover.Endpoint{relayInfoToEndpoint(relay, relay.CallbackSvcPort)},
+		[]discover.Endpoint{relayInfoToEndpoint(relay, relay.DownloadSvcPort)}
 }
 
-// GetRelayInfos queries Relay hosts and returns RelayInfo list.
-// It filters RelayInfo that has download service port and selects using round-robin selector.
-// If count > 0, returns up to count RelayInfos; otherwise returns a single RelayInfo.
-func (std *NodeActionStandarder) GetRelayInfos() ([]*types.RelayInfo, error) {
-	if std.storageHost == nil {
-		return nil, fmt.Errorf("storageHost is not set")
-	}
+// BuildRelayServerURLs builds callback and download urls directly from the selected relay.
+// Returns: (callbackURL, downloadURL).
+func (std *NodeActionStandarder) BuildRelayServerURLs(relay *types.RelayInfo) (string, string) {
+	callbackURL := BuildServerURLs(relayInfoToEndpoint(relay, relay.CallbackSvcPort))
+	downloadURL := BuildServerURLs(relayInfoToEndpoint(relay, relay.DownloadSvcPort))
 
-	networkUnitID := std.getNetworkUnitID()
-
-	// Query RelayInfo list
-	relayInfos, err := std.storageHost.GetRelayInfosInNetworkUnit(std.Context(), networkUnitID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get relay infos in network unit %d: %w", networkUnitID, err)
-	}
-
-	if len(relayInfos) == 0 {
-		return nil, fmt.Errorf("no available relay host in network unit %d", networkUnitID)
-	}
-
-	relayInfoMap, err := conv.SliceToMap(relayInfos, func(v *types.RelayInfo) int64 {
-		return v.HostID
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert relay infos to map: %w", err)
-	}
-
-	for _, relayInfo := range relayInfoMap {
-		if relayInfo.DownloadSvcPort <= 0 || relayInfo.CallbackSvcPort <= 0 {
-			delete(relayInfoMap, relayInfo.HostID)
-		}
-	}
-
-	validRelayInfos := conv.MapValueToSlice(relayInfoMap)
-	if len(validRelayInfos) == 0 {
-		return nil, fmt.Errorf("no relay host with download service port in network unit %d", networkUnitID)
-	}
-
-	return validRelayInfos, nil
-}
-
-// RelayInfosToEndpoints converts relay infos to callback and download endpoint slices.
-// nolint: nonamedreturns
-func RelayInfosToEndpoints(infos []*types.RelayInfo) (callbacks []discover.Endpoint, downloads []discover.Endpoint) {
-	callbacks = make([]discover.Endpoint, len(infos))
-	downloads = make([]discover.Endpoint, len(infos))
-	for i, info := range infos {
-		callbacks[i] = relayInfoToEndpoint(info, info.CallbackSvcPort)
-		downloads[i] = relayInfoToEndpoint(info, info.DownloadSvcPort)
-	}
-
-	return callbacks, downloads
+	return callbackURL, downloadURL
 }
 
 // GetSelectedRelay returns the relay that was selected by SelectRelayHost action.
@@ -118,25 +66,4 @@ func (std *NodeActionStandarder) GetSelectedRelay() (*types.RelayInfo, error) {
 	}
 
 	return relay, nil
-}
-
-// BuildRelayServerURLs builds download and callback urls directly from the selected relay.
-func (std *NodeActionStandarder) BuildRelayServerURLs(relay *types.RelayInfo) (string, string) {
-	downloadURL := BuildServerURLs(relayInfoToEndpoint(relay, relay.DownloadSvcPort))
-	callbackURL := BuildServerURLs(relayInfoToEndpoint(relay, relay.CallbackSvcPort))
-
-	return downloadURL, callbackURL
-}
-
-// GetRelayEndpoints queries Relay hosts and returns Endpoint list, callback and download endpoints.
-// Returns: (callback endpoints, download endpoints, error).
-func (std *NodeActionStandarder) GetRelayEndpoints() ([]discover.Endpoint, []discover.Endpoint, error) {
-	infos, err := std.GetRelayInfos()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get relay infos: %w", err)
-	}
-
-	callbacks, downloads := RelayInfosToEndpoints(infos)
-
-	return callbacks, downloads, nil
 }

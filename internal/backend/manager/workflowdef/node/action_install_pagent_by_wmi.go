@@ -166,7 +166,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	downloadURLs, callbackURLs := std.BuildRelayServerURLs(relayInfo)
+	callbackURLs, downloadURLs := std.BuildRelayServerURLs(relayInfo)
 
 	// build install command.
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)

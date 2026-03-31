@@ -143,7 +143,7 @@ func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
-	_, callbackSvrAddr := std.BuildRelayServerURLs(relayInfo)
+	callbackSvrAddr, _ := std.BuildRelayServerURLs(relayInfo)
 
 	std.InstanceData().Log().
 		Zh("relay 回调服务地址(%s)", callbackSvrAddr).

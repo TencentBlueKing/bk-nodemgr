@@ -136,12 +136,10 @@ func (act *actionGenManualBootstrapCommand) Do(ctx *action.InstanceContext) erro
 func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.NodeActionStandarder) error {
 	callbackSvrEndpoints, downloadSvrEndpoints, err := act.selectServiceEndpoints(std)
 	if err != nil {
-		return fmt.Errorf("failed to select service urls: %w", err)
+		return fmt.Errorf("failed to select service endpoints: %w", err)
 	}
 
-	// generate server url.
-	var callbackSvrAddress string
-	var downloadSvrAddress string
+	var callbackSvrAddress, downloadSvrAddress string
 	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
 		callbackSvrAddress = nodeUtils.SelectOneServerV4URL(callbackSvrEndpoints)
 		downloadSvrAddress = nodeUtils.SelectOneServerV4URL(downloadSvrEndpoints)
@@ -202,21 +200,23 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 }
 
 // selectServiceEndpoints selects service endpoints for download and callback servers.
-// Returns: (callback services, download services, error).
+// Returns: (callback endpoints, download endpoints, error).
 func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtils.NodeActionStandarder) (
 	[]discover.Endpoint, []discover.Endpoint, error) {
 
 	if !std.DeployInfo().InstallOptions.DirectInstall {
-		callbackSvrEndpoint, downloadSvrEndpoint, err := std.GetRelayEndpoints()
+		relay, err := std.GetSelectedRelay()
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to build relay service urls: %w", err)
+			return nil, nil, fmt.Errorf("failed to get selected relay info: %w", err)
 		}
 
-		return callbackSvrEndpoint, downloadSvrEndpoint, nil
+		callbacks, downloads := nodeUtils.RelayToEndpoints(relay)
+
+		return callbacks, downloads, nil
 	}
 
 	randSelector := discover.NewRandomSelector()
-	callbackSvrEndpoint, err := act.provider.SelectEndpoints(
+	callbackSvrEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
 		nodeUtils.DefaultEndpointSelectionCount,
@@ -225,7 +225,7 @@ func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtil
 		return nil, nil, fmt.Errorf("failed to select backend callback endpoint: %w", err)
 	}
 
-	downloadSvrEndpoint, err := act.provider.SelectEndpoints(
+	downloadSvrEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
 		nodeUtils.DefaultEndpointSelectionCount,
@@ -234,5 +234,5 @@ func (act *actionGenManualBootstrapCommand) selectServiceEndpoints(std *nodeUtil
 		return nil, nil, fmt.Errorf("failed to select file download endpoint: %w", err)
 	}
 
-	return callbackSvrEndpoint, downloadSvrEndpoint, nil
+	return callbackSvrEndpoints, downloadSvrEndpoints, nil
 }
