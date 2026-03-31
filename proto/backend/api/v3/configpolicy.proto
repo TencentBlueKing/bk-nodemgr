@@ -9,7 +9,7 @@ import "google/api/annotations.proto";
 // ConfigPolicyExactConditions describes config policy exact conditions.
 message ConfigPolicyExactConditions {
   repeated int64 configpolicy_id = 1;
-  repeated int64 biz_id = 2;
+  repeated int64 bk_biz_id = 2;
   repeated string configpolicy_type = 3;
   repeated bool enabled = 4;
 }
@@ -62,7 +62,7 @@ message ConfigPolicyGetResp {
 message ConfigPolicyCreateReq {
   string configpolicy_name = 1;
   string configpolicy_type = 2;
-  int64 biz_id = 3;
+  int64 bk_biz_id = 3;
   string remark = 4;
   repeated ConfigPolicyScope scopes = 5;
   map<string, string> configs_string = 6;
@@ -90,7 +90,7 @@ message ConfigPolicyUpdateReq {
   int64 configpolicy_id = 1;
   string configpolicy_name = 2;
   string configpolicy_type = 3;
-  int64 biz_id = 4;
+  int64 bk_biz_id = 4;
   string remark = 5;
   repeated ConfigPolicyScope scopes = 6;
   map<string, string> configs_string = 7;
@@ -169,7 +169,7 @@ message ConfigPolicyDeleteResp {
 // Listed IDs are assigned priority 1..N; remaining enabled policies in the
 // same (biz, type) preserve their relative order starting from N+1.
 message ConfigPolicyPriorityReorderReq {
-  int64 biz_id = 1;
+  int64 bk_biz_id = 1;
   string configpolicy_type = 2;
   repeated int64 ordered_configpolicy_id = 3;
 }
@@ -187,19 +187,19 @@ message ConfigPolicyPriorityReorderResp {
   Data data = 5;
 }
 
-
+// PreviewHost carries a host ID with optional attribute overrides for preview.
 message PreviewHost {
-  optional int64 host_id = 1;
-  string os_type = 2;
-  string cpu_arch = 3;
-  optional int64 network_unit_id = 4;
-  optional int64 network_area_id = 5;
+  optional int64 bk_host_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional int64 bk_networkarea_id = 3;
+  string os_type = 4;
+  string cpu_arch = 5;
 }
 
 // ConfigPolicyPreviewReq describes HTTP request body for previewing merged
 // config result by host list.
 message ConfigPolicyPreviewReq {
-  int64 biz_id = 1;
+  int64 bk_biz_id = 1;
   string policy_type = 2;
   repeated PreviewHost hosts = 3;
 }
@@ -219,7 +219,7 @@ message ConfigPolicyPreviewResp {
   }
 
   message PreviewItem {
-    int64 host_id = 1;
+    int64 bk_host_id = 1;
     repeated MatchedPolicy matched_policies = 2;
     map<string, string> merged_configs_string = 3;
     map<string, int64> merged_configs_int = 4;

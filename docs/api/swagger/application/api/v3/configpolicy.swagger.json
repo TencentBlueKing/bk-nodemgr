@@ -479,7 +479,7 @@
     "ConfigPolicyPreviewRespPreviewItem": {
       "type": "object",
       "properties": {
-        "host_id": {
+        "bk_host_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -584,7 +584,7 @@
         "type": {
           "type": "string"
         },
-        "biz_id": {
+        "bk_biz_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -718,7 +718,7 @@
         "configpolicy_type": {
           "type": "string"
         },
-        "biz_id": {
+        "bk_biz_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -1147,7 +1147,7 @@
             "format": "int64"
           }
         },
-        "biz_id": {
+        "bk_biz_id": {
           "type": "array",
           "items": {
             "type": "integer",
@@ -1379,7 +1379,7 @@
     "v3ConfigPolicyPreviewReq": {
       "type": "object",
       "properties": {
-        "biz_id": {
+        "bk_biz_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -1443,7 +1443,7 @@
     "v3ConfigPolicyPriorityReorderReq": {
       "type": "object",
       "properties": {
-        "biz_id": {
+        "bk_biz_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -1521,7 +1521,7 @@
         "configpolicy_type": {
           "type": "string"
         },
-        "biz_id": {
+        "bk_biz_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -1652,7 +1652,15 @@
     "v3PreviewHost": {
       "type": "object",
       "properties": {
-        "host_id": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -1661,14 +1669,6 @@
         },
         "cpu_arch": {
           "type": "string"
-        },
-        "network_unit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "network_area_id": {
-          "type": "integer",
-          "format": "int64"
         }
       },
       "description": "PreviewHost carries a host ID with optional attribute overrides for preview."

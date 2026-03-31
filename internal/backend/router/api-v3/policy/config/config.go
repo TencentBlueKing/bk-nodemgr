@@ -250,7 +250,7 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	bizID := req.GetBizId()
+	bizID := req.GetBkBizId()
 	policyType := types.ConfigPolicyType(req.GetConfigpolicyType())
 	orderedPolicyIDs := req.GetOrderedConfigpolicyId()
 
@@ -338,7 +338,7 @@ func (h *handler) PreviewConfigPolicy(rCtx restserver.IContext) (interface{}, er
 	policyType := types.ConfigPolicyType(req.GetPolicyType())
 	previewHosts := req.ConvertPreviewHostsToTypes()
 
-	results, err := h.storageConfigPolicy.PreviewConfigPolicy(rCtx, req.GetBizId(), policyType, previewHosts)
+	results, err := h.storageConfigPolicy.PreviewConfigPolicy(rCtx, req.GetBkBizId(), policyType, previewHosts)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to preview config policy")
 

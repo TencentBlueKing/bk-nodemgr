@@ -271,7 +271,7 @@ message ConfigPolicy {
   optional int64 configpolicy_id = 2;
   optional string configpolicy_name = 3;
   optional string type = 4;
-  optional int64 biz_id = 5;
+  optional int64 bk_biz_id = 5;
   optional string remark = 6;
   repeated ConfigPolicyScope scopes = 7;
   repeated ConfigPolicyConfigBlock configs = 8;

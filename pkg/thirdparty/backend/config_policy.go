@@ -219,7 +219,7 @@ func (h *Handler) ReorderPrioritiesConfigPolicy(nCtx contextx.IContext, bizID in
 	policyType types.ConfigPolicyType, orderedPolicyIDs []int64) error {
 
 	req := &protoBackend.ConfigPolicyPriorityReorderReq{
-		BizId:                 bizID,
+		BkBizId:               bizID,
 		ConfigpolicyType:      string(policyType),
 		OrderedConfigpolicyId: orderedPolicyIDs,
 	}

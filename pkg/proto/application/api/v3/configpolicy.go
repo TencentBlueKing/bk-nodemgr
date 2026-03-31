@@ -67,7 +67,7 @@ func convertConfigPolicyConditionsToTypes(
 	if exactCond != nil {
 		condition.ExactInclude = &types.ConfigPolicyExactFields{
 			ConfigPolicyID: exactCond.GetConfigpolicyId(),
-			BizID:          exactCond.GetBizId(),
+			BizID:          exactCond.GetBkBizId(),
 			Type:           configPolicyTypeList,
 			Enabled:        exactCond.GetEnabled(),
 		}
@@ -97,7 +97,7 @@ func convertConfigPolicyConditionsFromTypes(conditions *types.ConfigPolicyCondit
 	if conditions.ExactInclude != nil {
 		exactCond = new(ConfigPolicyExactConditions)
 		exactCond.ConfigpolicyId = conditions.ExactInclude.ConfigPolicyID
-		exactCond.BizId = conditions.ExactInclude.BizID
+		exactCond.BkBizId = conditions.ExactInclude.BizID
 		exactCond.ConfigpolicyType = types.ConfigPolicyTypeListToStringList(conditions.ExactInclude.Type)
 		exactCond.Enabled = conditions.ExactInclude.Enabled
 	}
@@ -211,8 +211,8 @@ func (x *ConfigPolicyListPlatformResp) ConvertPlatformFromTypes(result *types.Re
 
 // Validate check body.
 func (x *ConfigPolicyCreateReq) Validate() error {
-	if x.GetBizId() <= 0 {
-		return fmt.Errorf("biz id is required")
+	if x.GetBkBizId() <= 0 {
+		return fmt.Errorf("bk_biz_id is required")
 	}
 
 	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
@@ -240,7 +240,7 @@ func (x *ConfigPolicyCreateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 	return &types.ConfigPolicy{
 		Name:          x.GetConfigpolicyName(),
 		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:         x.GetBizId(),
+		BizID:         x.GetBkBizId(),
 		Remark:        x.GetRemark(),
 		Scopes:        scopes,
 		TargetHostIDs: x.GetTargetHostIds(),
@@ -262,8 +262,8 @@ func (x *ConfigPolicyUpdateReq) Validate() error {
 		return fmt.Errorf("config policy id is required")
 	}
 
-	if x.GetBizId() <= 0 {
-		return fmt.Errorf("biz id is required")
+	if x.GetBkBizId() <= 0 {
+		return fmt.Errorf("bk_biz_id is required")
 	}
 
 	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
@@ -296,7 +296,7 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 		ID:            x.GetConfigpolicyId(),
 		Name:          x.GetConfigpolicyName(),
 		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:         x.GetBizId(),
+		BizID:         x.GetBkBizId(),
 		Remark:        x.GetRemark(),
 		Scopes:        scopes,
 		TargetHostIDs: x.GetTargetHostIds(),
@@ -352,7 +352,7 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy, blocks []typ
 	*item.ConfigpolicyId = configPolicy.ID
 	*item.ConfigpolicyName = configPolicy.Name
 	*item.Type = string(configPolicy.Type)
-	*item.BizId = configPolicy.BizID
+	*item.BkBizId = configPolicy.BizID
 	*item.Remark = configPolicy.Remark
 	item.Scopes = scopes
 	item.TargetHostIds = configPolicy.TargetHostIDs
@@ -377,7 +377,7 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 		ID:            configPolicy.GetConfigpolicyId(),
 		Name:          configPolicy.GetConfigpolicyName(),
 		Type:          types.ConfigPolicyType(configPolicy.GetType()),
-		BizID:         configPolicy.GetBizId(),
+		BizID:         configPolicy.GetBkBizId(),
 		Remark:        configPolicy.GetRemark(),
 		Scopes:        scopes,
 		TargetHostIDs: configPolicy.GetTargetHostIds(),
@@ -484,7 +484,7 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		ConfigpolicyId:   new(int64),
 		ConfigpolicyName: new(string),
 		Type:             new(string),
-		BizId:            new(int64),
+		BkBizId:          new(int64),
 		Remark:           new(string),
 		Scopes:           make([]*ConfigPolicyScope, 0),
 		Configs:          make([]*ConfigPolicyConfigBlock, 0),
@@ -516,8 +516,8 @@ func newEmptyConfigPolicyConfigBlock() *ConfigPolicyConfigBlock {
 
 // Validate check body.
 func (x *ConfigPolicyPriorityReorderReq) Validate() error {
-	if x.GetBizId() <= 0 {
-		return fmt.Errorf("biz_id is required")
+	if x.GetBkBizId() <= 0 {
+		return fmt.Errorf("bk_biz_id is required")
 	}
 
 	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
@@ -537,8 +537,8 @@ func (x *ConfigPolicyPriorityReorderReq) AutoConvert() {
 
 // Validate check body.
 func (x *ConfigPolicyPreviewReq) Validate() error {
-	if x.GetBizId() <= 0 {
-		return fmt.Errorf("biz_id is required")
+	if x.GetBkBizId() <= 0 {
+		return fmt.Errorf("bk_biz_id is required")
 	}
 
 	if err := types.ConfigPolicyType(x.GetPolicyType()).Validate(); err != nil {
@@ -549,23 +549,25 @@ func (x *ConfigPolicyPreviewReq) Validate() error {
 		return fmt.Errorf("hosts is required")
 	}
 
+	for _, host := range x.GetHosts() {
+		if host.BkHostId == nil || host.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be positive")
+		}
+	}
+
 	return nil
 }
 
 // AutoConvert auto convert.
 func (x *ConfigPolicyPreviewReq) AutoConvert() {
 	for _, host := range x.GetHosts() {
-		if host.HostId == nil {
-			host.HostId = new(int64)
-			*host.HostId = -1
+		if host.BkNetworkunitId == nil {
+			host.BkNetworkunitId = new(int64)
+			*host.BkNetworkunitId = types.ConfigPolicyScopeAnyID
 		}
-		if host.NetworkUnitId == nil {
-			host.NetworkUnitId = new(int64)
-			*host.NetworkUnitId = types.ConfigPolicyScopeAnyID
-		}
-		if host.NetworkAreaId == nil {
-			host.NetworkAreaId = new(int64)
-			*host.NetworkAreaId = types.ConfigPolicyScopeAnyID
+		if host.BkNetworkareaId == nil {
+			host.BkNetworkareaId = new(int64)
+			*host.BkNetworkareaId = types.ConfigPolicyScopeAnyID
 		}
 	}
 }
@@ -575,9 +577,9 @@ func (x *ConfigPolicyPreviewReq) ConvertPreviewHostsToTypes() []types.ConfigPoli
 	hosts := make([]types.ConfigPolicyPreviewHost, len(x.GetHosts()))
 	for i, rh := range x.GetHosts() {
 		hosts[i] = types.ConfigPolicyPreviewHost{
-			HostID:        rh.GetHostId(),
-			NetworkAreaID: rh.GetNetworkAreaId(),
-			NetworkUnitID: rh.GetNetworkUnitId(),
+			HostID:        rh.GetBkHostId(),
+			NetworkAreaID: rh.GetBkNetworkareaId(),
+			NetworkUnitID: rh.GetBkNetworkunitId(),
 			OSType:        criteria.OSType(rh.GetOsType()),
 			CPUArch:       criteria.CPUArch(rh.GetCpuArch()),
 		}
@@ -614,7 +616,7 @@ func convertAppPreviewMatchResults(
 
 		configsString, configsInt, configsBool := convertMergedConfigFromTypes(result.MergedConfig)
 		items[i] = &ConfigPolicyPreviewResp_PreviewItem{
-			HostId:              result.HostID,
+			BkHostId:            result.HostID,
 			MatchedPolicies:     matchedPolicies,
 			MergedConfigsString: configsString,
 			MergedConfigsInt:    configsInt,

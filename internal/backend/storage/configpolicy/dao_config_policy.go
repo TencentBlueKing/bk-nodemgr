@@ -224,16 +224,21 @@ func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCon
 
 // scopeConstraints tracks whether any enabled policy has non-wildcard scope constraints.
 type scopeConstraints struct {
-	HasSpecificOS   bool
-	HasSpecificArch bool
-	HasSpecificUnit bool
-	HasSpecificArea bool
+	HasSpecificOS      bool
+	HasSpecificArch    bool
+	HasSpecificUnit    bool
+	HasSpecificArea    bool
+	HasTargetedHostIDs bool
 }
 
 // previewConfigPolicy queries all enabled policies once and filters per host in memory.
 func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
 	bizID int64, policyType types.ConfigPolicyType,
 	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
+
+	if len(hosts) == 0 {
+		return &types.ConfigPolicyPreviewResult{}, nil
+	}
 
 	// list all enabled policies for this biz+type, sorted by priority DESC.
 	page := types.UnlimitedPage()
@@ -267,6 +272,9 @@ func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
 func collectScopeConstraints(policies []*types.ConfigPolicy) scopeConstraints {
 	var sc scopeConstraints
 	for _, p := range policies {
+		if len(p.TargetHostIDs) > 0 {
+			sc.HasTargetedHostIDs = true
+		}
 		for _, scope := range p.Scopes {
 			if scope.NodeOsType != types.ConfigPolicyScopeAnyOSType {
 				sc.HasSpecificOS = true
@@ -318,6 +326,9 @@ func isPolicyMatched(policy *types.ConfigPolicy, host types.ConfigPolicyPreviewH
 }
 
 func isPreviewReliable(host types.ConfigPolicyPreviewHost, sc scopeConstraints) bool {
+	if host.HostID <= 0 && sc.HasTargetedHostIDs {
+		return false
+	}
 	if host.OSType == "" && sc.HasSpecificOS {
 		return false
 	}
