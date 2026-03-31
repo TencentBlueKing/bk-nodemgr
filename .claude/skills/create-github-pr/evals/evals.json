@@ -1,0 +1,45 @@
+{
+  "skill_name": "create-github-pr",
+  "evals": [
+    {
+      "id": 1,
+      "name": "fork-workflow-detection",
+      "prompt": "我在 bk-nodemgr 项目的 feature/auth-refactor 分支上做了一些修改，现在想提交 PR。我的 fork 是 zouxingyuks/bk-nodemgr，upstream 是 TencentBlueKing/bk-nodemgr。帮我创建 PR。",
+      "expected_output": "识别出 fork 工作流，使用 gh api 方式创建 PR，head 参数格式正确",
+      "files": [],
+      "expectations": [
+        "检测到 fork remote 配置",
+        "使用 gh api repos/.../pulls 方式而非 gh pr create",
+        "head 参数格式为 fork-owner:branch-name",
+        "推送目标是 fork remote 而非 origin"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "chinese-issue-chinese-pr-body",
+      "prompt": "我刚完成了一个功能，已经创建了 issue #123，issue 是用中文写的。现在帮我创建对应的 PR。",
+      "expected_output": "PR body 使用中文模板，PR title 保持英文",
+      "files": [],
+      "expectations": [
+        "PR title 保持英文格式 (type: description --issue=#123)",
+        "PR body 使用中文模板 (概述/变更内容/动机)",
+        "在 Checkpoint 2 展示中文模板",
+        "closes #123 引用正确"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "standard-direct-push-workflow",
+      "prompt": "我在 origin 的 fix/login-timeout 分支上修复了一个登录超时的 bug，涉及 internal/backend/auth/handler.go 和 pkg/types/auth.go 两个文件。请帮我创建 issue 和 PR。",
+      "expected_output": "完整走通 issue 创建和 PR 创建流程，正确选择 bug 模板和 fix 类型",
+      "files": [],
+      "expectations": [
+        "选择 bug_report 模板创建 issue",
+        "PR title 以 fix: 开头",
+        "使用 gh pr create 方式（非 fork 场景）",
+        "在两个 checkpoint 都请求用户确认",
+        "预测 module/pkg 和相关 labels"
+      ]
+    }
+  ]
+}
