@@ -50,7 +50,7 @@ func (h *handler) AgentUpgradeCheck(rCtx restserver.IContext) (interface{}, erro
 		bizIDMap[host.Static.BizID] = struct{}{}
 	}
 	resources := buildBizResources(conv.MapKeyToSlice(bizIDMap))
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check upgrade agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

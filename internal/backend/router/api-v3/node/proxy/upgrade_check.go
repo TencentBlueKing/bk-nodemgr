@@ -49,7 +49,7 @@ func (h *handler) ProxyUpgradeCheck(rCtx restserver.IContext) (interface{}, erro
 		bizIDMap[host.Static.BizID] = struct{}{}
 	}
 	resources := buildBizResources(conv.MapKeyToSlice(bizIDMap))
-	if authErr := h.authorizer.BatchCheck(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
+	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check upgrade proxy, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
