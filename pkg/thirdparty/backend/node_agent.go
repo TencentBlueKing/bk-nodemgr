@@ -184,7 +184,7 @@ func (h *Handler) AssignUnitAgent(nCtx contextx.IContext, hostIDs []int64, netwo
 	int64, int64, []string, error) {
 
 	req := &protoBackend.NodeAgentAssignUnitReq{
-		BkHostId:       hostIDs,
+		BkHostId:        hostIDs,
 		BkNetworkunitId: networkUnitID,
 	}
 
@@ -194,5 +194,6 @@ func (h *Handler) AssignUnitAgent(nCtx contextx.IContext, hostIDs []int64, netwo
 	}
 
 	data := resp.GetData()
+
 	return data.GetSuccessCount(), data.GetFailedCount(), data.GetFailedReasons(), nil
 }
