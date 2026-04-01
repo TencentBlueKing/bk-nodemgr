@@ -29,7 +29,7 @@
                 :to="{ name: item.routeName, params: item.params }"
                 :class="[
                   'px-[16px] text-[#96A2B9]',
-                  { 'text-[#fff]': item.routeName === route.meta.mainMenu },
+                  { 'text-[#fff]': item.routeName === currentMainMenu },
                 ]"
               >
                 {{ $t(item.title) }}
@@ -164,12 +164,15 @@ import PermissionDialog from '@/components/permission-dialog.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
+import { matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
 import { i18nReady } from '@/modules/i18n';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 
 const { t } = useI18n();
 const mainStore = useMainStore();
+const authStore = useAuthStore();
 // 路由信息
 const route = useRoute();
 const router = useRouter();
@@ -184,6 +187,7 @@ const { navData, subMenuData } = useMenu();
 const { platformConfig, getPlatformInfo } = usePlatform();
 const appName = computed(() => platformConfig.i18n.productName);
 const navToggle = ref(false);
+const currentMainMenu = computed(() => (route.meta.mainMenu || (route.query.mainMenu as string)));
 
 // 跳转首页
 function handleGotoHome() {
@@ -191,6 +195,51 @@ function handleGotoHome() {
     name: 'nodeManager',
   });
 }
+
+const ensureCurrentRoutePermission = async () => {
+  if (route.name === '403' || route.name === '404') return;
+
+  const matched = matchPageAuth(route, PAGE_AUTH_CONFIG);
+  if (!matched) return;
+
+  let selectedBizIds = [...mainStore.selectedBusinessId];
+  let currentBizId = selectedBizIds[0];
+  if (
+    matched.resourceType === 'biz'
+    && mainStore.isBusinessReady
+    && (currentBizId === undefined || currentBizId === null)
+  ) {
+    const defaultBizId = mainStore.businessList[0]?.bk_biz_id;
+    if (defaultBizId !== undefined && defaultBizId !== null) {
+      mainStore.updateCurBusiness([defaultBizId]);
+      selectedBizIds = [defaultBizId];
+      currentBizId = defaultBizId;
+    }
+  }
+
+  const bizScope = selectedBizIds.length > 0
+    ? selectedBizIds.map(id => String(id))
+    : currentBizId ? [String(currentBizId)] : undefined;
+  if (shouldDeferBizAuthCheck(matched, mainStore.isBusinessReady, currentBizId)) {
+    authStore.refreshPermissions();
+    return;
+  }
+
+  if (
+    authStore.needRefresh
+    || authStore.isDifferentBiz(bizScope)
+    || !authStore.hasPermissionCache(matched.id, bizScope)
+    || authStore.isPermissionCacheExpired(matched.id, bizScope)
+  ) {
+    const verified = await authStore.batchVerify([matched], bizScope);
+    if (!verified) return;
+  }
+
+  if (!authStore.hasPermission(matched.id, bizScope)) {
+    authStore.setDeniedActionIds([matched.id]);
+    router.replace({ name: '403' });
+  }
+};
 
 // 切换通知
 const apiUrl = '/api/v3/notice/announcements/current';
@@ -388,6 +437,13 @@ watch(appName, () => {
     ],
   });
 });
+watch(
+  [() => mainStore.isBusinessReady, () => mainStore.selectedBusinessId[0], () => route.fullPath],
+  () => {
+    void ensureCurrentRoutePermission();
+  },
+  { immediate: true },
+);
 onBeforeMount(async () => {
   userStore.getUser();
   // 获取平台配置信息

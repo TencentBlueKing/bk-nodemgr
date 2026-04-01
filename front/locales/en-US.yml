@@ -854,6 +854,7 @@ agentProxyPkg:
 components:
   permission:
     noPermission: No permission to access or operate this resource
+    missingAction: "Missing permission: {action}"
     system: System
     requiredPermissions: Required Permissions
     relatedResources: Related Resource Instances

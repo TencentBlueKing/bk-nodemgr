@@ -854,6 +854,7 @@ agentProxyPkg:
 components:
   permission:
     noPermission: 没有权限访问或操作此资源
+    missingAction: "缺少权限：{action}"
     system: 系统
     requiredPermissions: 需要申请的权限
     relatedResources: 关联的资源实例

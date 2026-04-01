@@ -3,7 +3,9 @@ import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { cancelRequest } from '@/api/request-queue';
+import { matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
 import { i18n } from '@/modules/i18n';
+import Forbidden from '@/pages/app/403.vue';
 import NotFound from '@/pages/app/404.vue';
 import AssignUnit from '@/pages/node/agent/assign-unit.vue';
 import AgentImport from '@/pages/node/agent/import.vue';
@@ -26,6 +28,9 @@ import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
 import proxyStatus from '@/pages/topo/workarea-detail/components/proxy-info.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useMainStore } from '@/stores/main';
+import { usePermissionStore } from '@/stores/permission';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -327,6 +332,7 @@ const routes = setupLayouts([
       },
     ],
   },
+  { path: '/403', name: '403', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: '404', component: NotFound },
 ]);
 
@@ -337,8 +343,71 @@ export const install: UserModule = ({ app }) => {
     history: createWebHashHistory(import.meta.env.BK_SITE_URL),
     routes,
   });
-  router.beforeEach(() => {
+  router.beforeEach(async (to) => {
     cancelRequest();
+
+    if (to.name === '403' || to.name === '404') return true;
+
+    const authStore = useAuthStore();
+    const mainStore = useMainStore();
+    const permissionStore = usePermissionStore();
+
+    let selectedBizIds = [...mainStore.selectedBusinessId];
+    let currentBizId = selectedBizIds[0];
+    const matched = matchPageAuth(to, PAGE_AUTH_CONFIG);
+    if (!matched) {
+      return true;
+    }
+
+    if (
+      matched.resourceType === 'biz'
+      && (currentBizId === undefined || currentBizId === null)
+    ) {
+      const cachedBiz = localStorage.getItem('bk_biz_id');
+      if (cachedBiz) {
+        try {
+          const parsed = JSON.parse(cachedBiz);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            mainStore.updateCurBusiness(parsed);
+            selectedBizIds = [...parsed];
+            [currentBizId] = parsed;
+          }
+        } catch {
+          // ignore invalid local cache
+        }
+      }
+    }
+
+    const fallbackMainMenu = String(to.meta?.mainMenu || 'nodeManager');
+    if (shouldDeferBizAuthCheck(matched, mainStore.isBusinessReady, currentBizId)) {
+      return { name: '403', query: { mainMenu: fallbackMainMenu } };
+    }
+
+    const bizScope = selectedBizIds.length > 0
+      ? selectedBizIds.map(id => String(id))
+      : currentBizId ? [String(currentBizId)] : undefined;
+    if (
+      authStore.needRefresh
+      || authStore.isDifferentBiz(bizScope)
+      || !authStore.hasPermissionCache(matched.id, bizScope)
+      || authStore.isPermissionCacheExpired(matched.id, bizScope)
+    ) {
+      const verified = await authStore.batchVerify([matched], bizScope);
+      if (!verified) {
+        return { name: '403', query: { mainMenu: fallbackMainMenu } };
+      }
+    }
+
+    if (authStore.hasPermission(matched.id, bizScope)) {
+      return true;
+    }
+
+    authStore.setDeniedActionIds([matched.id]);
+    const permissionDetail = authStore.getPermissionDetail();
+    if (permissionDetail?.actions?.length) {
+      permissionStore.showDialog(permissionDetail);
+    }
+    return { name: '403', query: { mainMenu: fallbackMainMenu } };
   });
   app.use(router);
 };

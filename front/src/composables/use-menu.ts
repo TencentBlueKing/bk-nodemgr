@@ -187,13 +187,14 @@ const navList = [
 
 export default function useMenu() {
   const route = useRoute();
+  const currentMainMenu = computed(() => (route.meta?.mainMenu || (route.query.mainMenu as string)));
 
   const navData = computed<NavItem[]>(() => navList.map(item => ({
     ...item,
     params: {},
   })));
 
-  const subMenuData = computed(() => navData.value.find(item => item.routeName === route.meta?.mainMenu)?.group || []);
+  const subMenuData = computed(() => navData.value.find(item => item.routeName === currentMainMenu.value)?.group || []);
 
   return {
     navData,

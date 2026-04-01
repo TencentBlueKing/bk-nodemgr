@@ -15,8 +15,7 @@
       "vitest",
       "vite/client",
       "vite-plugin-vue-layouts/client",
-      "node-forge",
-      "./src/@types/*"
+      "node-forge"
     ],
     "allowJs": true,
     "strict": true,
@@ -34,10 +33,12 @@
   "exclude": ["dist", "node_modules", "cypress"],
   "include": [
     "./node_modules/bkui-vue/lib/volar.components.d.ts",
+    "./test/**/*.ts",
     "./src/**/*.js",
     "./src/**/*.ts",
     "./src/**/*.tsx",
     "./src/**/*.vue",
+    "./src/@types/*.d.ts",
     "./@types/*"
   ],
 }
