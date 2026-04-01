@@ -1037,9 +1037,6 @@
         "base_deploy_dir": {
           "type": "string"
         },
-        "host_id_path": {
-          "type": "string"
-        },
         "log_dir": {
           "type": "string"
         },

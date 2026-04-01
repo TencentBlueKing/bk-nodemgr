@@ -197,7 +197,6 @@ type CustomGSERuntime struct {
 // CustomPluginRuntime defines the custom plugin runtime.
 type CustomPluginRuntime struct {
 	BaseDeployDir string
-	HostIDPath    string
 	LogDir        string
 	DataDir       string
 	RunDir        string

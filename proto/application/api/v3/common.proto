@@ -59,10 +59,9 @@ message CustomGSERuntime {
 // CustomPluginRuntime describes the custom plugin runtime config.
 message CustomPluginRuntime {
   string base_deploy_dir = 1;
-  string host_id_path = 2;
-  string log_dir = 3;
-  string data_dir = 4;
-  string run_dir = 5;
+  string log_dir = 2;
+  string data_dir = 3;
+  string run_dir = 4;
 }
 
 // CustomDeployConfig describes the deploy config for host deployment.
