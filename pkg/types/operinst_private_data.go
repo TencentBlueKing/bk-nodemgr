@@ -10,6 +10,8 @@
 
 package types
 
+import "encoding/json"
+
 const (
 	// PDKeyOfflineInstallResult is key for offline install result data in oper inst private data.
 	// The value is a JSON string of installer.data.json submitted by the user.
@@ -75,4 +77,14 @@ const (
 type SubWorkflowRef struct {
 	WorkflowID     string         `json:"workflow_id" bson:"workflow_id"`
 	WorkflowDomain WorkflowDomain `json:"workflow_domain" bson:"workflow_domain"`
+}
+
+// SerializeSubWorkflowRefs serializes sub-workflow references to JSON string for private_data storage.
+func SerializeSubWorkflowRefs(refs []SubWorkflowRef) (string, error) {
+	data, err := json.Marshal(refs)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }

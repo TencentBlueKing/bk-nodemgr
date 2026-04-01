@@ -571,7 +571,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 			}
 		}
 		if len(subWorkflowRefs) > 0 {
-			serializedRefs, err := serializeSubWorkflowRefs(subWorkflowRefs)
+			serializedRefs, err := types.SerializeSubWorkflowRefs(subWorkflowRefs)
 			if err == nil {
 				instance.PrivateData[types.PDKeySubWorkflowRefs] = serializedRefs
 			}

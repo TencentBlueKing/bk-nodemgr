@@ -13,13 +13,14 @@ package v3
 import (
 	"encoding/json"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // subWorkflowRefsFromPrivateData maps private_data[sub_workflow_refs] to API sub_workflow_refs.
 func subWorkflowRefsFromPrivateData(privateData map[string]any) []*SubWorkflowRef {
-	serializedRefs, ok := privateData[types.PDKeySubWorkflowRefs].(string)
-	if !ok || serializedRefs == "" {
+	serializedRefs := conv.ToStringDefault(privateData[types.PDKeySubWorkflowRefs], "")
+	if serializedRefs == "" {
 		return []*SubWorkflowRef{}
 	}
 

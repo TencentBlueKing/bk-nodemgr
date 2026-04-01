@@ -11,7 +11,6 @@
 package node
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -208,7 +207,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		WorkflowID:     workflowID,
 		WorkflowDomain: types.WorkflowDomainPlugin,
 	}}
-	serializedSubWorkflowRefs, err := serializeSubWorkflowRefs(subWorkflowRefs)
+	serializedSubWorkflowRefs, err := types.SerializeSubWorkflowRefs(subWorkflowRefs)
 	if err != nil {
 		return fmt.Errorf("failed to serialize sub workflow refs: %w", err)
 	}
@@ -308,15 +307,6 @@ func (act *actionInstallPreOrderedPlugins) saveSubWorkflowRefs(
 			types.PDKeySubWorkflowRefs: serializedRefs,
 		},
 	)
-}
-
-func serializeSubWorkflowRefs(refs []types.SubWorkflowRef) (string, error) {
-	data, err := json.Marshal(refs)
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
 }
 
 func getPreOrderedPlugins() map[types.NodeRole][]string {
