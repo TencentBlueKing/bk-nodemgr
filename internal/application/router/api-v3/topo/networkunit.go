@@ -37,11 +37,13 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	// creates networkunit.
 	networkUnit := &types.NetworkUnit{
-		TenantID:        rCtx.TenantID(),
-		NetworkAreaID:   networkAreaID,
-		Name:            req.GetBkNetworkunitName(),
-		IsDirect:        req.GetIsDirect(),
-		DirectEndpoints: req.ConvertDirectEndpointsToTypes(),
+		TenantID:           rCtx.TenantID(),
+		NetworkAreaID:      networkAreaID,
+		Name:               req.GetBkNetworkunitName(),
+		IsDirect:           req.GetIsDirect(),
+		DirectEndpoints:    req.ConvertDirectEndpointsToTypes(),
+		Generation:         types.Generation(req.GetGeneration()),
+		CustomDeployConfig: req.ConvertCustomDeployConfigToTypes(),
 	}
 	if !networkUnit.IsDirect {
 		networkUnit.Links = req.ConvertLinksToTypes()
@@ -80,12 +82,14 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	// updates networkunit.
 	networkUnit := &types.NetworkUnit{
-		TenantID:        rCtx.TenantID(),
-		NetworkAreaID:   networkAreaID,
-		ID:              req.GetBkNetworkunitId(),
-		Name:            req.GetBkNetworkunitName(),
-		IsDirect:        req.GetIsDirect(),
-		DirectEndpoints: req.ConvertDirectEndpointsToTypes(),
+		TenantID:           rCtx.TenantID(),
+		NetworkAreaID:      networkAreaID,
+		ID:                 req.GetBkNetworkunitId(),
+		Name:               req.GetBkNetworkunitName(),
+		IsDirect:           req.GetIsDirect(),
+		DirectEndpoints:    req.ConvertDirectEndpointsToTypes(),
+		Generation:         types.Generation(req.GetGeneration()),
+		CustomDeployConfig: req.ConvertCustomDeployConfigToTypes(),
 	}
 	if !networkUnit.IsDirect {
 		networkUnit.Links = req.ConvertLinksToTypes()

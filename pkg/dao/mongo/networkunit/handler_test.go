@@ -69,7 +69,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 
 		systemCtx := contextx.New(context.Background(), contextx.WithTenantID("system_tenant"))
 		tests := []struct {
-			nCtx        context.Context
+			nCtx        contextx.IContext
 			networkUnit *types.NetworkUnit
 			isGlobal    bool
 		}{
@@ -326,7 +326,7 @@ func Test_handler_Create(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx        context.Context
+		nCtx        contextx.IContext
 		networkUnit *types.NetworkUnit
 	}
 	tests := []struct {
@@ -480,7 +480,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx           context.Context
+		nCtx           contextx.IContext
 		networkUnitIDs []int64
 	}
 

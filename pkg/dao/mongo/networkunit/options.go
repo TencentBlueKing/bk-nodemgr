@@ -54,3 +54,13 @@ func WithFuzzyNetworkUnitName(networkUnitNames ...string) OptFn {
 func WithoutFuzzyNetworkUnitName(networkUnitNames ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyNetworkUnitName, networkUnitNames...)
 }
+
+// WithGeneration filters by generation.
+func WithGeneration(generations ...int64) OptFn {
+	return base.WithInt64Values(FieldKeyGeneration, generations...)
+}
+
+// WithoutGeneration filters by not contains generation.
+func WithoutGeneration(generations ...int64) OptFn {
+	return base.WithoutInt64Values(FieldKeyGeneration, generations...)
+}

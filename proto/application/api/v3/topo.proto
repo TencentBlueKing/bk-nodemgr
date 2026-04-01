@@ -163,18 +163,21 @@ message TopoNetworkAreaDeleteResp {
   Data data = 5;
 }
 
+// TopoNetworkUnitExactConditions describes the exact conditions when list
+message TopoNetworkUnitExactConditions {
+  repeated int64 bk_networkunit_id = 1;
+  repeated int64 bk_networkarea_id = 2;
+  repeated bool is_direct = 3;
+  repeated int64 generation = 4;
+}
+
 // TopoNetworkUnitListReq describes the HTTP request body when list network-unit
 // in topo service.
 message TopoNetworkUnitListReq {
   Page page = 1;
   bool only_count = 2;
 
-  message ExactConditions {
-    repeated int64 bk_networkunit_id = 1;
-    repeated int64 bk_networkarea_id = 2;
-    repeated bool is_direct = 3;
-  }
-  ExactConditions exact_include_conditions = 3;
+  TopoNetworkUnitExactConditions exact_include_conditions = 3;
 }
 
 // TopoNetworkUnitListResp describes the HTTP response body when list
@@ -215,6 +218,8 @@ message TopoNetworkUnitCreateReq {
   Links links = 4;
   bool is_direct = 5;
   Endpoints direct_endpoints = 6;
+  int64 generation = 7;
+  map<string, CustomDeployConfig> deploy_configs = 8;
 }
 
 // TopoNetworkUnitCreateResp describes the HTTP response body when create
@@ -240,6 +245,8 @@ message TopoNetworkUnitUpdateReq {
   Links links = 5;
   bool is_direct = 6;
   Endpoints direct_endpoints = 7;
+  int64 generation = 8;
+  map<string, CustomDeployConfig> deploy_configs = 9;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update

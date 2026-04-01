@@ -13,6 +13,7 @@ package topo
 
 import (
 	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
@@ -219,6 +220,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 					networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
 					networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
 					networkunit.WithIsDirect(condition.ExactInclude.IsDirect...),
+					networkunit.WithGeneration(condition.ExactInclude.Generation...),
 				)
 			}
 
@@ -227,6 +229,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 					networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
 					networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
 					networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
+					networkunit.WithoutGeneration(condition.ExactExclude.Generation...),
 				)
 			}
 

@@ -44,6 +44,34 @@ message Endpoints {
   repeated string data = 3;
 }
 
+// CustomInstallerRuntime describes the custom installer runtime config.
+message CustomInstallerRuntime { string base_work_dir = 1; }
+
+// CustomGSERuntime describes the custom gse runtime config.
+message CustomGSERuntime {
+  string base_deploy_dir = 1;
+  string data_ipc = 2;
+  string plugin_ipc = 3;
+  string extra_config_dir = 4;
+  string log_dir = 5;
+}
+
+// CustomPluginRuntime describes the custom plugin runtime config.
+message CustomPluginRuntime {
+  string base_deploy_dir = 1;
+  string host_id_path = 2;
+  string log_dir = 3;
+  string data_dir = 4;
+  string run_dir = 5;
+}
+
+// CustomDeployConfig describes the deploy config for host deployment.
+message CustomDeployConfig {
+  CustomInstallerRuntime installer_runtime = 1;
+  CustomGSERuntime gse_runtime = 2;
+  CustomPluginRuntime plugin_runtime = 3;
+}
+
 // AccessPoint describes the access point informations.
 message AccessPoint {
   optional string tenant_id = 1;
@@ -64,6 +92,8 @@ message NetworkUnit {
   optional Links links = 6;
   optional bool is_direct = 7;
   Endpoints direct_endpoints = 8;
+  optional int64 generation = 9;
+  map<string, CustomDeployConfig> deploy_configs = 10;
 }
 
 // NetworkUnitBrief describes the network unit brief informations.
@@ -77,6 +107,8 @@ message NetworkUnitBrief {
   optional Links links = 6;
   optional bool is_direct = 7;
   Endpoints direct_endpoints = 8;
+  optional int64 generation = 9;
+  map<string, CustomDeployConfig> deploy_configs = 10;
 }
 
 // HostState describes the host state informations. Usually contains

@@ -22,4 +22,7 @@ const (
 
 	// FieldKeyNetworkUnitName the networkunit-name field key.
 	FieldKeyNetworkUnitName = "data.networkunit_name"
+
+	// FieldKeyGeneration the generation field key.
+	FieldKeyGeneration = "data.generation"
 )

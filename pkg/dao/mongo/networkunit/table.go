@@ -30,11 +30,13 @@ type NetworkUnit struct {
 	NetworkUnitID   int64  `json:"networkunit_id" bson:"networkunit_id"`
 	NetworkUnitName string `json:"networkunit_name" bson:"networkunit_name"`
 
-	NetworkAreaID   int64      `json:"networkarea_id" bson:"networkarea_id"`
-	AccessPoints    []int64    `json:"accesspoints" bson:"accesspoints"`
-	Links           *Links     `json:"links" bson:"links"`
-	IsDirect        bool       `json:"is_direct" bson:"is_direct"`
-	DirectEndpoints *Endpoints `json:"direct_endpoints" bson:"direct_endpoints"`
+	NetworkAreaID      int64                         `json:"networkarea_id" bson:"networkarea_id"`
+	AccessPoints       []int64                       `json:"accesspoints" bson:"accesspoints"`
+	Links              *Links                        `json:"links" bson:"links"`
+	IsDirect           bool                          `json:"is_direct" bson:"is_direct"`
+	DirectEndpoints    *Endpoints                    `json:"direct_endpoints" bson:"direct_endpoints"`
+	Generation         int64                         `json:"generation" bson:"generation"`
+	CustomDeployConfig map[string]CustomDeployConfig `json:"custom_deploy_config" bson:"custom_deploy_config"`
 }
 
 // UniqueFields unique fields of the table.
@@ -69,6 +71,36 @@ type Endpoints struct {
 	Cluster []string `json:"cluster" bson:"cluster"`
 	File    []string `json:"file" bson:"file"`
 	Data    []string `json:"data" bson:"data"`
+}
+
+// CustomInstallerRuntime defines the custom installer runtime.
+type CustomInstallerRuntime struct {
+	BaseWorkDir string `json:"base_work_dir" bson:"base_work_dir"`
+}
+
+// CustomGSERuntime defines the custom GSE runtime.
+type CustomGSERuntime struct {
+	BaseDeployDir  string `json:"base_deploy_dir" bson:"base_deploy_dir"`
+	DataIPC        string `json:"data_ipc" bson:"data_ipc"`
+	PluginIPC      string `json:"plugin_ipc" bson:"plugin_ipc"`
+	ExtraConfigDir string `json:"extra_config_dir" bson:"extra_config_dir"`
+	LogDir         string `json:"log_dir" bson:"log_dir"`
+}
+
+// CustomPluginRuntime defines the custom plugin runtime.
+type CustomPluginRuntime struct {
+	BaseDeployDir string `json:"base_deploy_dir" bson:"base_deploy_dir"`
+	HostIDPath    string `json:"host_id_path" bson:"host_id_path"`
+	LogDir        string `json:"log_dir" bson:"log_dir"`
+	DataDir       string `json:"data_dir" bson:"data_dir"`
+	RunDir        string `json:"run_dir" bson:"run_dir"`
+}
+
+// CustomDeployConfig represents custom deploy config of a network unit.
+type CustomDeployConfig struct {
+	InstallerRuntime CustomInstallerRuntime `json:"installer_runtime" bson:"installer_runtime"`
+	GSERuntime       CustomGSERuntime       `json:"gse_runtime" bson:"gse_runtime"`
+	PluginRuntime    CustomPluginRuntime    `json:"plugin_runtime" bson:"plugin_runtime"`
 }
 
 // TableNetworkUnit represent the complete db structures of a networkunit.

@@ -12,6 +12,10 @@
 // Everything from API or Database should be converted into types in this package before using.
 package types
 
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+)
+
 // Business represents a business under a tenant.
 type Business struct {
 	// belongs to.
@@ -63,6 +67,12 @@ type NetworkUnit struct {
 	// direct unit links to gse server directly.
 	IsDirect        bool
 	DirectEndpoints *Endpoints
+
+	// generation refers to the node generation of this network unit.
+	Generation Generation
+
+	// custom deploy config for this network unit.
+	CustomDeployConfig map[criteria.OSType]CustomDeployConfig
 }
 
 // TopoNameMapping represents id to name mapping.
@@ -168,4 +178,34 @@ type Endpoints struct {
 type TopoConstant struct {
 	CloudVendor []string
 	OSType      []string
+}
+
+// CustomInstallerRuntime defines the custom installer runtime.
+type CustomInstallerRuntime struct {
+	BaseWorkDir string
+}
+
+// CustomGSERuntime defines the custom GSE runtime.
+type CustomGSERuntime struct {
+	BaseDeployDir  string
+	DataIPC        string
+	PluginIPC      string
+	ExtraConfigDir string
+	LogDir         string
+}
+
+// CustomPluginRuntime defines the custom plugin runtime.
+type CustomPluginRuntime struct {
+	BaseDeployDir string
+	HostIDPath    string
+	LogDir        string
+	DataDir       string
+	RunDir        string
+}
+
+// CustomDeployConfig defines the custom deploy config for a network unit.
+type CustomDeployConfig struct {
+	InstallerRuntime CustomInstallerRuntime
+	GSERuntime       CustomGSERuntime
+	PluginRuntime    CustomPluginRuntime
 }

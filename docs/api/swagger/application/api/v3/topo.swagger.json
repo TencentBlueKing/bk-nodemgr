@@ -1041,6 +1041,72 @@
       },
       "description": "Business describes the business informations."
     },
+    "v3CustomDeployConfig": {
+      "type": "object",
+      "properties": {
+        "installer_runtime": {
+          "$ref": "#/definitions/v3CustomInstallerRuntime"
+        },
+        "gse_runtime": {
+          "$ref": "#/definitions/v3CustomGSERuntime"
+        },
+        "plugin_runtime": {
+          "$ref": "#/definitions/v3CustomPluginRuntime"
+        }
+      },
+      "description": "CustomDeployConfig describes the deploy config for host deployment."
+    },
+    "v3CustomGSERuntime": {
+      "type": "object",
+      "properties": {
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "data_ipc": {
+          "type": "string"
+        },
+        "plugin_ipc": {
+          "type": "string"
+        },
+        "extra_config_dir": {
+          "type": "string"
+        },
+        "log_dir": {
+          "type": "string"
+        }
+      },
+      "description": "CustomGSERuntime describes the custom gse runtime config."
+    },
+    "v3CustomInstallerRuntime": {
+      "type": "object",
+      "properties": {
+        "base_work_dir": {
+          "type": "string"
+        }
+      },
+      "description": "CustomInstallerRuntime describes the custom installer runtime config."
+    },
+    "v3CustomPluginRuntime": {
+      "type": "object",
+      "properties": {
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "host_id_path": {
+          "type": "string"
+        },
+        "log_dir": {
+          "type": "string"
+        },
+        "data_dir": {
+          "type": "string"
+        },
+        "run_dir": {
+          "type": "string"
+        }
+      },
+      "description": "CustomPluginRuntime describes the custom plugin runtime config."
+    },
     "v3Endpoints": {
       "type": "object",
       "properties": {
@@ -1345,6 +1411,16 @@
         },
         "direct_endpoints": {
           "$ref": "#/definitions/v3Endpoints"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "deploy_configs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3CustomDeployConfig"
+          }
         }
       },
       "description": "NetworkUnit describes the network unit informations."
@@ -2821,6 +2897,16 @@
         },
         "direct_endpoints": {
           "$ref": "#/definitions/v3Endpoints"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "deploy_configs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3CustomDeployConfig"
+          }
         }
       },
       "description": "TopoNetworkUnitCreateReq describes the HTTP request body when create\nnetwork-unit in topo service."
@@ -2903,6 +2989,39 @@
         }
       }
     },
+    "v3TopoNetworkUnitExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "is_direct": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "generation": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "title": "TopoNetworkUnitExactConditions describes the exact conditions when list"
+    },
     "v3TopoNetworkUnitGetReq": {
       "type": "object",
       "properties": {
@@ -2942,35 +3061,10 @@
           "type": "boolean"
         },
         "exact_include_conditions": {
-          "$ref": "#/definitions/v3TopoNetworkUnitListReqExactConditions"
+          "$ref": "#/definitions/v3TopoNetworkUnitExactConditions"
         }
       },
       "description": "TopoNetworkUnitListReq describes the HTTP request body when list network-unit\nin topo service."
-    },
-    "v3TopoNetworkUnitListReqExactConditions": {
-      "type": "object",
-      "properties": {
-        "bk_networkunit_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "bk_networkarea_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "is_direct": {
-          "type": "array",
-          "items": {
-            "type": "boolean"
-          }
-        }
-      }
     },
     "v3TopoNetworkUnitListResp": {
       "type": "object",
@@ -3042,6 +3136,16 @@
         },
         "direct_endpoints": {
           "$ref": "#/definitions/v3Endpoints"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "deploy_configs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3CustomDeployConfig"
+          }
         }
       },
       "description": "TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service."

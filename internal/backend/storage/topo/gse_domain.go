@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -332,4 +333,44 @@ func (s *Storage) NeedStaticAccess(nCtx contextx.IContext, networkUnitID int64) 
 	}
 
 	return result, nil
+}
+
+// GetNetworkUnitCustomDeployConfig gets network unit custom deploy config by network unit id and os type.
+func (s *Storage) GetNetworkUnitCustomDeployConfig(nCtx contextx.IContext, networkUnitID int64, osType criteria.OSType) (
+	*types.CustomDeployConfig, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if networkUnitID < 0 {
+		return nil, errors.New("unit id should be equal or greater than 0")
+	}
+
+	customDeployConfig := &types.CustomDeployConfig{}
+	err := s.WrapFn(nCtx, metricOperationGetNetworkUnitCustomDeployConfig, func(nCtx contextx.IContext) error {
+		var err error
+		var networkUnit *types.NetworkUnit
+		if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
+			return fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
+		}
+
+		if networkUnit.CustomDeployConfig == nil {
+			return nil
+		}
+
+		config, ok := networkUnit.CustomDeployConfig[osType]
+		if !ok {
+			return nil
+		}
+
+		customDeployConfig = &config
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return customDeployConfig, nil
 }

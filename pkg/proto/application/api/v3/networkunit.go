@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -68,6 +69,16 @@ func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsToTypes() *types.Endpoi
 // ConvertDirectEndpointsFromTypes convert endpoints from types to proto.
 func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsFromTypes(endpoints *types.Endpoints) {
 	x.DirectEndpoints = convertEndpointFromTypes(endpoints)
+}
+
+// ConvertCustomDeployConfigToTypes convert custom deploy config from proto to types.
+func (x *TopoNetworkUnitCreateReq) ConvertCustomDeployConfigToTypes() map[criteria.OSType]types.CustomDeployConfig {
+	return convertCustomDeployConfigToTypes(x.GetDeployConfigs())
+}
+
+// ConvertCustomDeployConfigFromTypes convert custom deploy config from types to proto.
+func (x *TopoNetworkUnitCreateReq) ConvertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomDeployConfig) {
+	x.DeployConfigs = convertCustomDeployConfigFromTypes(deployConfig)
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
@@ -127,6 +138,16 @@ func (x *TopoNetworkUnitUpdateReq) ConvertDirectEndpointsFromTypes(endpoints *ty
 	x.DirectEndpoints = convertEndpointFromTypes(endpoints)
 }
 
+// ConvertCustomDeployConfigToTypes convert custom deploy config from proto to types.
+func (x *TopoNetworkUnitUpdateReq) ConvertCustomDeployConfigToTypes() map[criteria.OSType]types.CustomDeployConfig {
+	return convertCustomDeployConfigToTypes(x.GetDeployConfigs())
+}
+
+// ConvertCustomDeployConfigFromTypes convert custom deploy config from types to proto.
+func (x *TopoNetworkUnitUpdateReq) ConvertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomDeployConfig) {
+	x.DeployConfigs = convertCustomDeployConfigFromTypes(deployConfig)
+}
+
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
 func (x *TopoNetworkUnitUpdateResp) ConvertNetworkUnitFromTypes(networkUnitID int64) {
 	data := &TopoNetworkUnitUpdateResp_Data{BkNetworkunitId: new(int64)}
@@ -162,6 +183,8 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitFromTypes(
 	data.Accesspoints = convertAccesspointsFromTypes(accessPoints)
 	data.Links = convertLinksFromTypes(networkUnit.Links)
 	data.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
+	*data.Generation = int64(networkUnit.Generation)
+	data.DeployConfigs = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
 
 	x.Data = data
 }
@@ -182,14 +205,16 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitToTypes() (*types.NetworkUnit
 	}
 
 	return &types.NetworkUnit{
-		TenantID:        data.GetTenantId(),
-		NetworkAreaID:   data.GetBkNetworkareaId(),
-		ID:              data.GetBkNetworkunitId(),
-		Name:            data.GetBkNetworkunitName(),
-		AccessPoints:    accessPointIDs,
-		Links:           convertLinksToTypes(data.GetLinks()),
-		IsDirect:        data.GetIsDirect(),
-		DirectEndpoints: convertEndpointToTypes(data.GetDirectEndpoints()),
+		TenantID:           data.GetTenantId(),
+		NetworkAreaID:      data.GetBkNetworkareaId(),
+		ID:                 data.GetBkNetworkunitId(),
+		Name:               data.GetBkNetworkunitName(),
+		AccessPoints:       accessPointIDs,
+		Links:              convertLinksToTypes(data.GetLinks()),
+		IsDirect:           data.GetIsDirect(),
+		DirectEndpoints:    convertEndpointToTypes(data.GetDirectEndpoints()),
+		Generation:         types.Generation(data.GetGeneration()),
+		CustomDeployConfig: convertCustomDeployConfigToTypes(data.GetDeployConfigs()),
 	}, accessPointsMap
 }
 
@@ -217,6 +242,7 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsToTypes() *types.NetworkUnitCo
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			IsDirect:      exactCond.GetIsDirect(),
+			Generation:    exactCond.GetGeneration(),
 		}
 	}
 
@@ -230,9 +256,11 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsFromTypes(condition *types.Net
 	}
 
 	if condition.ExactInclude != nil {
-		x.ExactIncludeConditions = &TopoNetworkUnitListReq_ExactConditions{
+		x.ExactIncludeConditions = &TopoNetworkUnitExactConditions{
 			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			IsDirect:        condition.ExactInclude.IsDirect,
+			Generation:      condition.ExactInclude.Generation,
 		}
 	}
 
@@ -260,6 +288,8 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, netw
 		item.Links = convertLinksFromTypes(networkUnit.Links)
 		*item.IsDirect = networkUnit.IsDirect
 		item.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
+		*item.Generation = int64(networkUnit.Generation)
+		item.DeployConfigs = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
 
 		// convert accesspoints
 		for _, accessPointID := range networkUnit.AccessPoints {
@@ -293,14 +323,16 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 		}
 
 		result[idx] = &types.NetworkUnit{
-			TenantID:        item.GetTenantId(),
-			NetworkAreaID:   item.GetBkNetworkareaId(),
-			ID:              item.GetBkNetworkunitId(),
-			Name:            item.GetBkNetworkunitName(),
-			AccessPoints:    ids,
-			Links:           convertLinksToTypes(item.GetLinks()),
-			IsDirect:        item.GetIsDirect(),
-			DirectEndpoints: convertEndpointToTypes(item.GetDirectEndpoints()),
+			TenantID:           item.GetTenantId(),
+			NetworkAreaID:      item.GetBkNetworkareaId(),
+			ID:                 item.GetBkNetworkunitId(),
+			Name:               item.GetBkNetworkunitName(),
+			AccessPoints:       ids,
+			Links:              convertLinksToTypes(item.GetLinks()),
+			IsDirect:           item.GetIsDirect(),
+			DirectEndpoints:    convertEndpointToTypes(item.GetDirectEndpoints()),
+			Generation:         types.Generation(item.GetGeneration()),
+			CustomDeployConfig: convertCustomDeployConfigToTypes(item.GetDeployConfigs()),
 		}
 	}
 
@@ -358,6 +390,8 @@ func newEmptyNetworkUnit() *NetworkUnit {
 			File:    make([]string, 0),
 			Data:    make([]string, 0),
 		},
+		Generation:    new(int64),
+		DeployConfigs: make(map[string]*CustomDeployConfig, 0),
 	}
 }
 
@@ -379,6 +413,8 @@ func newEmptyNetworkUnitBrief() *NetworkUnitBrief {
 			File:    make([]string, 0),
 			Data:    make([]string, 0),
 		},
+		Generation:    new(int64),
+		DeployConfigs: make(map[string]*CustomDeployConfig, 0),
 	}
 }
 
@@ -521,4 +557,66 @@ func convertEndpointFromTypes(endpoint *types.Endpoints) *Endpoints {
 		File:    endpoint.File,
 		Data:    endpoint.Data,
 	}
+}
+
+func convertCustomDeployConfigToTypes(deployConfig map[string]*CustomDeployConfig) map[criteria.OSType]types.CustomDeployConfig {
+	if deployConfig == nil {
+		return nil
+	}
+
+	data := make(map[criteria.OSType]types.CustomDeployConfig, len(deployConfig))
+	for osType, config := range deployConfig {
+		data[criteria.OSType(osType)] = types.CustomDeployConfig{
+			InstallerRuntime: types.CustomInstallerRuntime{
+				BaseWorkDir: config.GetInstallerRuntime().GetBaseWorkDir(),
+			},
+			GSERuntime: types.CustomGSERuntime{
+				BaseDeployDir:  config.GetGseRuntime().GetBaseDeployDir(),
+				DataIPC:        config.GetGseRuntime().GetDataIpc(),
+				PluginIPC:      config.GetGseRuntime().GetPluginIpc(),
+				ExtraConfigDir: config.GetGseRuntime().GetExtraConfigDir(),
+				LogDir:         config.GetGseRuntime().GetLogDir(),
+			},
+			PluginRuntime: types.CustomPluginRuntime{
+				BaseDeployDir: config.GetPluginRuntime().GetBaseDeployDir(),
+				HostIDPath:    config.GetPluginRuntime().GetHostIdPath(),
+				LogDir:        config.GetPluginRuntime().GetLogDir(),
+				DataDir:       config.GetPluginRuntime().GetDataDir(),
+				RunDir:        config.GetPluginRuntime().GetRunDir(),
+			},
+		}
+	}
+
+	return data
+}
+
+func convertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomDeployConfig) map[string]*CustomDeployConfig {
+	if deployConfig == nil {
+		return nil
+	}
+
+	data := make(map[string]*CustomDeployConfig, len(deployConfig))
+	for osType, config := range deployConfig {
+		data[osType.String()] = &CustomDeployConfig{
+			InstallerRuntime: &CustomInstallerRuntime{
+				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
+			},
+			GseRuntime: &CustomGSERuntime{
+				BaseDeployDir:  config.GSERuntime.BaseDeployDir,
+				DataIpc:        config.GSERuntime.DataIPC,
+				PluginIpc:      config.GSERuntime.PluginIPC,
+				ExtraConfigDir: config.GSERuntime.ExtraConfigDir,
+				LogDir:         config.GSERuntime.LogDir,
+			},
+			PluginRuntime: &CustomPluginRuntime{
+				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
+				HostIdPath:    config.PluginRuntime.HostIDPath,
+				LogDir:        config.PluginRuntime.LogDir,
+				DataDir:       config.PluginRuntime.DataDir,
+				RunDir:        config.PluginRuntime.RunDir,
+			},
+		}
+	}
+
+	return data
 }

@@ -12,10 +12,12 @@ package networkunit
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -160,6 +162,10 @@ func (h *handler) Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit)
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
+	if err := networkUnit.Generation.Validate(); err != nil {
+		return -1, fmt.Errorf("invalid generation: %w", err)
+	}
+
 	return h.dao.create(nCtx, convertNetworkUnitFromTypes(networkUnit))
 }
 
@@ -226,8 +232,10 @@ func convertNetworkUnitFromTypes(networkUnit *types.NetworkUnit) *NetworkUnit {
 			File:    convertLinksFromTypes(networkUnit.Links.File),
 			Data:    convertLinksFromTypes(networkUnit.Links.Data),
 		},
-		IsDirect:        networkUnit.IsDirect,
-		DirectEndpoints: convertEndpointsFromTypes(networkUnit.DirectEndpoints),
+		IsDirect:           networkUnit.IsDirect,
+		DirectEndpoints:    convertEndpointsFromTypes(networkUnit.DirectEndpoints),
+		Generation:         int64(networkUnit.Generation),
+		CustomDeployConfig: convertDeployConfigFromTypes(networkUnit.CustomDeployConfig),
 	}
 }
 
@@ -242,14 +250,16 @@ func convertNetworkUnitToTypes(networkArea *NetworkUnit) *types.NetworkUnit {
 	}
 
 	return &types.NetworkUnit{
-		TenantID:        networkArea.TenantID,
-		ID:              networkArea.NetworkUnitID,
-		Name:            networkArea.NetworkUnitName,
-		NetworkAreaID:   networkArea.NetworkAreaID,
-		AccessPoints:    networkArea.AccessPoints,
-		Links:           links,
-		IsDirect:        networkArea.IsDirect,
-		DirectEndpoints: convertEndpointsToTypes(networkArea.DirectEndpoints),
+		TenantID:           networkArea.TenantID,
+		ID:                 networkArea.NetworkUnitID,
+		Name:               networkArea.NetworkUnitName,
+		NetworkAreaID:      networkArea.NetworkAreaID,
+		AccessPoints:       networkArea.AccessPoints,
+		Links:              links,
+		IsDirect:           networkArea.IsDirect,
+		DirectEndpoints:    convertEndpointsToTypes(networkArea.DirectEndpoints),
+		Generation:         types.Generation(networkArea.Generation),
+		CustomDeployConfig: convertDeployConfigToTypes(networkArea.CustomDeployConfig),
 	}
 }
 
@@ -299,4 +309,66 @@ func convertEndpointsToTypes(endpoint *Endpoints) *types.Endpoints {
 		File:    endpoint.File,
 		Data:    endpoint.Data,
 	}
+}
+
+func convertDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomDeployConfig) map[string]CustomDeployConfig {
+	if deployConfig == nil {
+		return nil
+	}
+
+	data := make(map[string]CustomDeployConfig, len(deployConfig))
+	for osType, config := range deployConfig {
+		data[osType.String()] = CustomDeployConfig{
+			InstallerRuntime: CustomInstallerRuntime{
+				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
+			},
+			GSERuntime: CustomGSERuntime{
+				BaseDeployDir:  config.GSERuntime.BaseDeployDir,
+				DataIPC:        config.GSERuntime.DataIPC,
+				PluginIPC:      config.GSERuntime.PluginIPC,
+				ExtraConfigDir: config.GSERuntime.ExtraConfigDir,
+				LogDir:         config.GSERuntime.LogDir,
+			},
+			PluginRuntime: CustomPluginRuntime{
+				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
+				HostIDPath:    config.PluginRuntime.HostIDPath,
+				LogDir:        config.PluginRuntime.LogDir,
+				DataDir:       config.PluginRuntime.DataDir,
+				RunDir:        config.PluginRuntime.RunDir,
+			},
+		}
+	}
+
+	return data
+}
+
+func convertDeployConfigToTypes(deployConfig map[string]CustomDeployConfig) map[criteria.OSType]types.CustomDeployConfig {
+	if deployConfig == nil {
+		return nil
+	}
+
+	data := make(map[criteria.OSType]types.CustomDeployConfig, len(deployConfig))
+	for osType, config := range deployConfig {
+		data[criteria.OSType(osType)] = types.CustomDeployConfig{
+			InstallerRuntime: types.CustomInstallerRuntime{
+				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
+			},
+			GSERuntime: types.CustomGSERuntime{
+				BaseDeployDir:  config.GSERuntime.BaseDeployDir,
+				DataIPC:        config.GSERuntime.DataIPC,
+				PluginIPC:      config.GSERuntime.PluginIPC,
+				ExtraConfigDir: config.GSERuntime.ExtraConfigDir,
+				LogDir:         config.GSERuntime.LogDir,
+			},
+			PluginRuntime: types.CustomPluginRuntime{
+				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
+				HostIDPath:    config.PluginRuntime.HostIDPath,
+				LogDir:        config.PluginRuntime.LogDir,
+				DataDir:       config.PluginRuntime.DataDir,
+				RunDir:        config.PluginRuntime.RunDir,
+			},
+		}
+	}
+
+	return data
 }

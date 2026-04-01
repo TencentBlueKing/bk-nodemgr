@@ -14,6 +14,7 @@ package topo
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -194,4 +195,7 @@ type IStorageDomainGse interface {
 
 	// NeedStaticAccess check host is need static access or not.
 	NeedStaticAccess(nCtx contextx.IContext, networkUnitID int64) (bool, error)
+
+	// GetNetworkUnitCustomDeployConfig gets network unit custom deploy config by network unit id and os type.
+	GetNetworkUnitCustomDeployConfig(nCtx contextx.IContext, networkUnitID int64, osType criteria.OSType) (*types.CustomDeployConfig, error)
 }
