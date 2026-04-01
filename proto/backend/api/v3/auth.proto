@@ -1,0 +1,68 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// AuthResource describes a single resource instance for authorization checks.
+// Aligns with internal/backend/auth.Resource structure.
+message AuthResource {
+  // system_id is the IAM system that owns this resource (e.g. "bk_cmdb" or
+  // "bk_nodemgr").
+  string system_id = 1;
+  // type is the resource type identifier (e.g. "biz", "networkarea").
+  string type = 2;
+  // id is the resource instance ID.
+  string id = 3;
+}
+
+// AuthVerifyItem describes a single action-resource pair for permission
+// verification.
+message AuthVerifyItem {
+  // action is the IAM action identifier (e.g. "agent_view",
+  // "networkarea_create").
+  string action = 1;
+  // resources lists the resources to check for this action. Empty for
+  // action-level checks.
+  repeated AuthResource resources = 2;
+}
+
+// AuthVerifyReq describes the HTTP request body for auth verification.
+message AuthVerifyReq {
+  // items lists the action-resource pairs to verify permissions for.
+  repeated AuthVerifyItem items = 1;
+}
+
+// AuthVerifyResult holds the authorization result for a single action.
+message AuthVerifyResult {
+  // action is the IAM action that was checked.
+  string action = 1;
+  // authorized indicates whether the user has this permission.
+  bool authorized = 2;
+}
+
+// AuthVerifyResp describes the HTTP response body for auth verification.
+message AuthVerifyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated AuthVerifyResult results = 1; }
+  Data data = 5;
+}
+
+// Auth service provides proactive permission verification endpoints.
+service Auth {
+  // Verify checks whether the current user has permissions for the requested
+  // resources.
+  rpc Verify(AuthVerifyReq) returns (AuthVerifyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/auth/verify"
+      body : "*"
+    };
+  }
+}

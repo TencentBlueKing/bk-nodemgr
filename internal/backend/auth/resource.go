@@ -68,6 +68,16 @@ func ResourceTypeDisplayName(t ResourceType) string {
 	}
 }
 
+// ResourceTypeToSystemID returns the IAM system ID that owns the given resource type.
+func ResourceTypeToSystemID(rt ResourceType) string {
+	switch rt {
+	case ResourceTypeBiz:
+		return SystemIDCMDB
+	default:
+		return SystemIDNodeMgr
+	}
+}
+
 // SystemDisplayName returns the human-readable display name for the given IAM system ID.
 func SystemDisplayName(systemID string) string {
 	switch systemID {

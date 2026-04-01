@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package auth provides application-side proactive permission verification routes.
 package auth
 
 import (
@@ -29,6 +30,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	}
 }
 
+// Load registers the application auth verification routes.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 

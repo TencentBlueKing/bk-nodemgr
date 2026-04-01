@@ -17,6 +17,7 @@ import (
 // IHandler is interface for nodeman backend Handler.
 // nolint: interfacebloat
 type IHandler interface {
+	IHandlerAuth
 	IHandlerHost
 	IHandlerNodeAgent
 	IHandlerNodeProxy

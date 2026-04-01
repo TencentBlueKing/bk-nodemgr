@@ -40,9 +40,6 @@ func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 
 	resp := new(protoApplication.AuthVerifyResp)
 	resp.ConvertResultsFromTypes(results)
-	if resp.GetData() == nil {
-		return nil, nil
-	}
 
 	return resp.GetData(), nil
 }

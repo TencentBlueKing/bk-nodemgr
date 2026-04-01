@@ -37,6 +37,12 @@ type IAMCheckRequest struct {
 	Resources []IAMResource
 }
 
+// IAMCheckResult stores the authorization outcome for one requested IAM action.
+type IAMCheckResult struct {
+	ActionID   string
+	Authorized bool
+}
+
 // IAMMultiActionCheckRequest is the business-semantic request for a
 // multi-action permission check. SystemID carries the same target IAM system ID
 // semantics as IAMCheckRequest.SystemID.

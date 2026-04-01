@@ -1,0 +1,267 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "auth.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/auth/verify": {
+      "post": {
+        "summary": "Verify checks whether the current user has permissions for the requested\nresources.",
+        "operationId": "Auth_Verify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3AuthVerifyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "AuthVerifyReq describes the HTTP request body for auth verification.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3AuthVerifyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "AuthVerifyRespData": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthVerifyResult"
+          }
+        }
+      }
+    },
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3AuthResource": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string",
+          "description": "system_id is the IAM system that owns this resource (e.g. \"bk_cmdb\" or\n\"bk_nodemgr\")."
+        },
+        "type": {
+          "type": "string",
+          "description": "type is the resource type identifier (e.g. \"biz\", \"networkarea\")."
+        },
+        "id": {
+          "type": "string",
+          "description": "id is the resource instance ID."
+        }
+      },
+      "description": "AuthResource describes a single resource instance for authorization checks.\nAligns with internal/backend/auth.Resource structure."
+    },
+    "v3AuthVerifyItem": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "action is the IAM action identifier (e.g. \"agent_view\",\n\"networkarea_create\")."
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthResource"
+          },
+          "description": "resources lists the resources to check for this action. Empty for\naction-level checks."
+        }
+      },
+      "description": "AuthVerifyItem describes a single action-resource pair for permission\nverification."
+    },
+    "v3AuthVerifyReq": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthVerifyItem"
+          },
+          "description": "items lists the action-resource pairs to verify permissions for."
+        }
+      },
+      "description": "AuthVerifyReq describes the HTTP request body for auth verification."
+    },
+    "v3AuthVerifyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/AuthVerifyRespData"
+        }
+      },
+      "description": "AuthVerifyResp describes the HTTP response body for auth verification."
+    },
+    "v3AuthVerifyResult": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "action is the IAM action that was checked."
+        },
+        "authorized": {
+          "type": "boolean",
+          "description": "authorized indicates whether the user has this permission."
+        }
+      },
+      "description": "AuthVerifyResult holds the authorization result for a single action."
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
