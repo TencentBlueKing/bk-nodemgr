@@ -1,0 +1,45 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+message AuthResource {
+  string system_id = 1;
+  string type = 2;
+  string id = 3;
+}
+
+message AuthVerifyItem {
+  string action = 1;
+  repeated AuthResource resources = 2;
+}
+
+message AuthVerifyReq { repeated AuthVerifyItem items = 1; }
+
+message AuthVerifyResult {
+  string action = 1;
+  bool authorized = 2;
+}
+
+message AuthVerifyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated AuthVerifyResult results = 1; }
+  Data data = 5;
+}
+
+service Auth {
+  rpc Verify(AuthVerifyReq) returns (AuthVerifyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/auth/verify"
+      body : "*"
+    };
+  }
+}

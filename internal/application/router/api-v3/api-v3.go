@@ -13,6 +13,7 @@ package apiv3
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/notice"
@@ -51,5 +52,6 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	plugin.Load(h.rg, capability)
 	process.Load(h.rg, capability)
 	cipher.Load(h.rg, capability)
+	auth.Load(h.rg, capability)
 	notice.Load(h.rg, capability)
 }
