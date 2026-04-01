@@ -62,6 +62,17 @@ type IHandlerNodeProxy interface {
 	// @param params the check param.
 	// @return the check result and error.
 	CheckInstallProxy(ctx contextx.IContext, params []*types.NodeProxyInstallCheckParam) ([]*types.NodeProxyInstallCheckResult, error)
+
+	// CheckUpgradeProxy checks whether node proxies can be upgraded.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param params the upgrade check params.
+	// @param targetVersions the target versions for os/arch matching.
+	// @return the check results and error.
+	CheckUpgradeProxy(
+		ctx contextx.IContext,
+		params []*types.NodeProxyUpgradeCheckParam,
+		targetVersions []*types.TargetVersion,
+	) ([]*types.NodeProxyUpgradeCheckResult, error)
 }
 
 // InstallProxy install node proxy.
@@ -156,4 +167,23 @@ func (h *Handler) CheckInstallProxy(ctx contextx.IContext, params []*types.NodeP
 	result := resp.ConvertResultToTypes()
 
 	return result, nil
+}
+
+// CheckUpgradeProxy checks whether node proxies can be upgraded.
+func (h *Handler) CheckUpgradeProxy(
+	ctx contextx.IContext,
+	params []*types.NodeProxyUpgradeCheckParam,
+	targetVersions []*types.TargetVersion,
+) ([]*types.NodeProxyUpgradeCheckResult, error) {
+
+	req := &protoBackend.NodeProxyUpgradeCheckReq{}
+
+	req.ConvertParamFromTypes(params, targetVersions)
+
+	resp, err := h.cli.checkUpgradeProxy(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check upgrade proxy: %w", err)
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }

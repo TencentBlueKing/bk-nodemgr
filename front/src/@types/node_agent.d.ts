@@ -44,6 +44,8 @@ export interface NodeAgentUpgradeHost {
   target_version: string;
   force: boolean;
   graceful_restart_timeout_sec: number;
+  bk_networkunit_id?: number;
+  cpu_arch?: string;
 }
 
 // NodeAgentUpgradeReq describes the node agent upgrade request.
@@ -232,5 +234,56 @@ export interface NodeAgentAssignUnitRespData {
   success_count: number;
   failed_count: number;
   failed_reasons: string[];
+}
+
+// AgentUpgradeCheckInfo describes the node agent upgrade check parameter.
+export interface AgentUpgradeCheckInfo {
+  bk_host_id: number;
+  bk_networkunit_id?: number;
+  cpu_arch?: string;
+}
+
+// NodeAgentUpgradeCheckReq describes the node agent upgrade check request.
+export interface NodeAgentUpgradeCheckReq {
+  host: AgentUpgradeCheckInfo[];
+  target_version?: TargetVersion[];
+}
+
+// NodeAgentUpgradeCheckResp describes the response for node agent upgrade
+// check.
+export interface NodeAgentUpgradeCheckResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeAgentUpgradeCheckRespData;
+}
+
+export interface NodeAgentUpgradeCheckRespData {
+  results: NodeAgentUpgradeCheckResult[];
+}
+
+// NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade
+// check.
+export interface NodeAgentUpgradeCheckMatchedItem {
+  bk_host_id: number;
+  bk_biz_id: number;
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
+  os_type: string;
+  node_role: string;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
+}
+
+// NodeAgentUpgradeCheckResult describes the check result for node agent
+// upgrade.
+export interface NodeAgentUpgradeCheckResult {
+  status: string;
+  matched: NodeAgentUpgradeCheckMatchedItem;
+  message_en: string;
+  message_zh: string;
+  category: string;
 }
 

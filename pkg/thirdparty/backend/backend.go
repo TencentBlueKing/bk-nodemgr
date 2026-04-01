@@ -1420,6 +1420,37 @@ func (c *cli) checkInstallAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 	return resp, nil
 }
 
+func (c *cli) checkUpgradeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentUpgradeCheckReq,
+) (*protoBackend.NodeAgentUpgradeCheckResp, error) {
+
+	resp := new(protoBackend.NodeAgentUpgradeCheckResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/agent/upgrade_check").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("check upgrade agent", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("check upgrade agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Node Proxy Related Interfaces
 // ===============================================================================
@@ -1635,6 +1666,37 @@ func (c *cli) checkInstallProxy(ctx contextx.IContext, req *protoBackend.NodePro
 	if resp.GetData() == nil {
 		return nil,
 			fmt.Errorf("check install proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) checkUpgradeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyUpgradeCheckReq,
+) (*protoBackend.NodeProxyUpgradeCheckResp, error) {
+
+	resp := new(protoBackend.NodeProxyUpgradeCheckResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/proxy/upgrade_check").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("check upgrade proxy", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("check upgrade proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

@@ -49,6 +49,8 @@ message NodeAgentUpgradeHost {
   string target_version = 2;
   bool force = 3;
   int64 graceful_restart_timeout_sec = 4;
+  optional int64 bk_networkunit_id = 5;
+  string cpu_arch = 6;
 }
 
 // NodeAgentUpgradeReq describes the node agent upgrade request.
@@ -170,6 +172,55 @@ message NodeAgentInstallCheckResult {
   string category = 5;
 }
 
+// AgentUpgradeCheckInfo describes the node agent upgrade check parameter.
+message AgentUpgradeCheckInfo {
+  optional int64 bk_host_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  string cpu_arch = 3;
+}
+
+// NodeAgentUpgradeCheckReq describes the node agent upgrade check request.
+message NodeAgentUpgradeCheckReq {
+  repeated AgentUpgradeCheckInfo host = 1;
+  repeated TargetVersion target_version = 2;
+}
+
+// NodeAgentUpgradeCheckResp describes the response for node agent upgrade
+// check.
+message NodeAgentUpgradeCheckResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated NodeAgentUpgradeCheckResult results = 1; }
+  Data data = 5;
+}
+
+// NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade
+// check.
+message NodeAgentUpgradeCheckMatchedItem {
+  optional int64 bk_host_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional int64 bk_networkarea_id = 3;
+  optional int64 bk_networkunit_id = 4;
+  string os_type = 5;
+  string node_role = 6;
+  repeated string bk_host_innerip_list = 7;
+  repeated string bk_host_innerip_v6_list = 8;
+}
+
+// NodeAgentUpgradeCheckResult describes the check result for node agent
+// upgrade.
+message NodeAgentUpgradeCheckResult {
+  string status = 1;
+  NodeAgentUpgradeCheckMatchedItem matched = 2;
+  string message_en = 3;
+  string message_zh = 4;
+  string category = 5;
+}
+
 // UploadAgentTemplateReq is the request for upload agent tempalte file.
 message UploadAgentTemplateReq {}
 
@@ -241,6 +292,15 @@ service NodeAgent {
       returns (NodeAgentInstallCheckResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/install_check"
+      body : "*"
+    };
+  }
+
+  // NodeAgentUpgradeCheck checks node agent upgrade.
+  rpc NodeAgentUpgradeCheck(NodeAgentUpgradeCheckReq)
+      returns (NodeAgentUpgradeCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/upgrade_check"
       body : "*"
     };
   }

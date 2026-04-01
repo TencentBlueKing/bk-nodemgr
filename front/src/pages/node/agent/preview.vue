@@ -601,7 +601,6 @@ const handleSetup = async () => {
   const res = await NodeAgentService.NodeAgentInstall({
     info: filteredData,
     target_version: props.data.target_version,
-    disable_default_target_version: props.data.disable_default_target_version,
     is_manual: props.isManual,
   }).catch(() => ({
     workflow_id: '',

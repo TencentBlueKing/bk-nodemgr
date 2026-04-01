@@ -50,6 +50,17 @@ type IHandlerNodeAgent interface {
 	// @return the check result and error.
 	CheckInstallAgent(ctx contextx.IContext, params []*types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error)
 
+	// CheckUpgradeAgent checks whether node agents can be upgraded.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param params the upgrade check params.
+	// @param targetVersions the target versions for os/arch matching.
+	// @return the check results and error.
+	CheckUpgradeAgent(
+		ctx contextx.IContext,
+		params []*types.NodeAgentUpgradeCheckParam,
+		targetVersions []*types.TargetVersion,
+	) ([]*types.NodeAgentUpgradeCheckResult, error)
+
 	// UninstallAgent node agent.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param uninstallParam the uninstall param.
@@ -94,6 +105,25 @@ func (h *Handler) CheckInstallAgent(ctx contextx.IContext, params []*types.NodeA
 	result := resp.ConvertResultToTypes()
 
 	return result, nil
+}
+
+// CheckUpgradeAgent checks whether node agents can be upgraded.
+func (h *Handler) CheckUpgradeAgent(
+	ctx contextx.IContext,
+	params []*types.NodeAgentUpgradeCheckParam,
+	targetVersions []*types.TargetVersion,
+) ([]*types.NodeAgentUpgradeCheckResult, error) {
+
+	req := &protoBackend.NodeAgentUpgradeCheckReq{}
+
+	req.ConvertParamFromTypes(params, targetVersions)
+
+	resp, err := h.cli.checkUpgradeAgent(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check upgrade agent: %w", err)
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }
 
 // UpgradeAgent node agent.

@@ -53,6 +53,8 @@ type NodeProxyInstallParam struct {
 // NodeProxyUpgradeHost describes the node proxy upgrade host.
 type NodeProxyUpgradeHost struct {
 	HostID                 int64
+	NetworkUnitID          int64
+	CPUArch                string
 	Force                  bool
 	GracefulRestartTimeout time.Duration
 }
@@ -199,4 +201,61 @@ func ConvertHostToNodeProxyInstallCheckMatchedItem(host *Host) *NodeProxyInstall
 type NodeProxyInstallCheckResult struct {
 	Status  NodeProxyInstallCheckStatus
 	Matched *NodeProxyInstallCheckMatchedItem
+}
+
+// NodeProxyUpgradeCheckStatus describes the node proxy upgrade check status.
+type NodeProxyUpgradeCheckStatus string
+
+const (
+	// NodeProxyUpgradeCheckStatusHostNotFound indicates the host is not found.
+	NodeProxyUpgradeCheckStatusHostNotFound NodeProxyUpgradeCheckStatus = "host_not_found"
+
+	// NodeProxyUpgradeCheckStatusNetworkUnitNotFound indicates the network unit is not found.
+	NodeProxyUpgradeCheckStatusNetworkUnitNotFound NodeProxyUpgradeCheckStatus = "networkunit_not_found"
+
+	// NodeProxyUpgradeCheckStatusNetworkUnitMismatch indicates the network unit does not belong to the host's
+	// current network area.
+	NodeProxyUpgradeCheckStatusNetworkUnitMismatch NodeProxyUpgradeCheckStatus = "networkunit_mismatch"
+
+	// NodeProxyUpgradeCheckStatusVersionNotFound indicates no matching version is found for the host's
+	// os_type and cpu_arch.
+	NodeProxyUpgradeCheckStatusVersionNotFound NodeProxyUpgradeCheckStatus = "version_not_found"
+
+	// NodeProxyUpgradeCheckStatusNodeStatusNotAllowed indicates the host's current node status does not
+	// allow upgrade.
+	NodeProxyUpgradeCheckStatusNodeStatusNotAllowed NodeProxyUpgradeCheckStatus = "node_status_not_allowed"
+
+	// NodeProxyUpgradeCheckStatusNetworkUnitChanged indicates the network unit will change after upgrade.
+	NodeProxyUpgradeCheckStatusNetworkUnitChanged NodeProxyUpgradeCheckStatus = "networkunit_changed"
+
+	// NodeProxyUpgradeCheckStatusNormalUpgrade indicates a normal node proxy upgrade.
+	NodeProxyUpgradeCheckStatusNormalUpgrade NodeProxyUpgradeCheckStatus = "normal_upgrade"
+
+	// NodeProxyUpgradeCheckStatusCPUArchMissing indicates the host's cpu_arch is missing.
+	NodeProxyUpgradeCheckStatusCPUArchMissing NodeProxyUpgradeCheckStatus = "cpu_arch_missing"
+)
+
+// NodeProxyUpgradeCheckMatchedItem describes the node proxy upgrade check matched item.
+type NodeProxyUpgradeCheckMatchedItem struct {
+	HostID        int64
+	BizID         int64
+	NetworkAreaID int64
+	NetworkUnitID int64
+	OsType        criteria.OSType
+	NodeRole      NodeRole
+	InnerIPList   []string
+	InnerIPV6List []string
+}
+
+// NodeProxyUpgradeCheckResult describes the node proxy upgrade check result.
+type NodeProxyUpgradeCheckResult struct {
+	Status  NodeProxyUpgradeCheckStatus
+	Matched *NodeProxyUpgradeCheckMatchedItem
+}
+
+// NodeProxyUpgradeCheckParam describes the node proxy upgrade check parameter.
+type NodeProxyUpgradeCheckParam struct {
+	HostID        int64
+	NetworkUnitID int64
+	CPUArch       string
 }

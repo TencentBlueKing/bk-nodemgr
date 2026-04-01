@@ -253,6 +253,40 @@
           "NodeProxy"
         ]
       }
+    },
+    "/api/v3/node/proxy/upgrade_check": {
+      "post": {
+        "summary": "NodeProxyUpgradeCheck checks node proxy upgrade.",
+        "operationId": "NodeProxy_NodeProxyUpgradeCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyUpgradeCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyUpgradeCheckReq describes the node proxy upgrade check request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyUpgradeCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
     }
   },
   "definitions": {
@@ -868,6 +902,124 @@
     "v3NodeProxyUpdateRespData": {
       "type": "object"
     },
+    "v3NodeProxyUpgradeCheckMatchedItem": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeProxyUpgradeCheckMatchedItem describes the matched item for proxy upgrade\ncheck."
+    },
+    "v3NodeProxyUpgradeCheckReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ProxyUpgradeCheckInfo"
+          }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TargetVersion"
+          }
+        }
+      },
+      "description": "NodeProxyUpgradeCheckReq describes the node proxy upgrade check request."
+    },
+    "v3NodeProxyUpgradeCheckResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyUpgradeCheckRespData"
+        }
+      },
+      "description": "NodeProxyUpgradeCheckResp describes the response for node proxy upgrade\ncheck."
+    },
+    "v3NodeProxyUpgradeCheckRespData": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyUpgradeCheckResult"
+          }
+        }
+      }
+    },
+    "v3NodeProxyUpgradeCheckResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "matched": {
+          "$ref": "#/definitions/v3NodeProxyUpgradeCheckMatchedItem"
+        },
+        "message_en": {
+          "type": "string"
+        },
+        "message_zh": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      },
+      "description": "NodeProxyUpgradeCheckResult describes the check result for node proxy\nupgrade."
+    },
     "v3NodeProxyUpgradeHost": {
       "type": "object",
       "properties": {
@@ -881,6 +1033,13 @@
         "graceful_restart_timeout_sec": {
           "type": "integer",
           "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "cpu_arch": {
+          "type": "string"
         }
       }
     },
@@ -987,6 +1146,23 @@
         }
       },
       "description": "ProxyInstallCheckInfo describes the node proxy install check parameter."
+    },
+    "v3ProxyUpgradeCheckInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "ProxyUpgradeCheckInfo describes the node proxy upgrade check parameter."
     },
     "v3RelatedResourceType": {
       "type": "object",

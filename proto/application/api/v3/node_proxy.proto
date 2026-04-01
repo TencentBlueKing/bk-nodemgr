@@ -60,6 +60,8 @@ message NodeProxyUpgradeHost {
   int64 bk_host_id = 1;
   bool force = 2;
   int64 graceful_restart_timeout_sec = 3;
+  optional int64 bk_networkunit_id = 4;
+  string cpu_arch = 5;
 }
 
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
@@ -218,6 +220,55 @@ message NodeProxyInstallCheckResult {
   string category = 5;
 }
 
+// ProxyUpgradeCheckInfo describes the node proxy upgrade check parameter.
+message ProxyUpgradeCheckInfo {
+  optional int64 bk_host_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  string cpu_arch = 3;
+}
+
+// NodeProxyUpgradeCheckReq describes the node proxy upgrade check request.
+message NodeProxyUpgradeCheckReq {
+  repeated ProxyUpgradeCheckInfo host = 1;
+  repeated TargetVersion target_version = 2;
+}
+
+// NodeProxyUpgradeCheckResp describes the response for node proxy upgrade
+// check.
+message NodeProxyUpgradeCheckResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated NodeProxyUpgradeCheckResult results = 1; }
+  Data data = 5;
+}
+
+// NodeProxyUpgradeCheckMatchedItem describes the matched item for proxy upgrade
+// check.
+message NodeProxyUpgradeCheckMatchedItem {
+  optional int64 bk_host_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional int64 bk_networkarea_id = 3;
+  optional int64 bk_networkunit_id = 4;
+  string os_type = 5;
+  string node_role = 6;
+  repeated string bk_host_innerip_list = 7;
+  repeated string bk_host_innerip_v6_list = 8;
+}
+
+// NodeProxyUpgradeCheckResult describes the check result for node proxy
+// upgrade.
+message NodeProxyUpgradeCheckResult {
+  string status = 1;
+  NodeProxyUpgradeCheckMatchedItem matched = 2;
+  string message_en = 3;
+  string message_zh = 4;
+  string category = 5;
+}
+
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
@@ -273,6 +324,15 @@ service NodeProxy {
       returns (NodeProxyInstallCheckResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/install_check"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpgradeCheck checks node proxy upgrade.
+  rpc NodeProxyUpgradeCheck(NodeProxyUpgradeCheckReq)
+      returns (NodeProxyUpgradeCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/upgrade_check"
       body : "*"
     };
   }

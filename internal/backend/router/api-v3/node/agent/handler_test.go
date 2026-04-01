@@ -160,6 +160,10 @@ func (f *fakeStorageHost) GetRelayInfosInNetworkUnit(contextx.IContext, int64) (
 	return nil, nil
 }
 
+func (f *fakeStorageHost) TouchHostOperationTime(contextx.IContext, ...int64) error {
+	return nil
+}
+
 type fakeStorageNetworkUnit struct {
 	listUnits []*types.NetworkUnit
 	listErr   error

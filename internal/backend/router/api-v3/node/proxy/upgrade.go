@@ -40,7 +40,7 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := validateHostNetworkUnit(hosts); err != nil {
+	if err := validateUpgradeHostNetworkUnit(req.GetHost(), hosts); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, invalid network unit")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
@@ -134,12 +134,18 @@ func (h *handler) generatesUpgradeNodeDeployments(
 			return nil, nil, fmt.Errorf("host not found. host-id(%d)", reqHost.GetBkHostId())
 		}
 
+		// Use target networkunit if specified; otherwise keep the host's current networkunit.
+		targetNetworkUnitID := resolveUpgradeNetworkUnitID(host.Dynamic.NetworkUnitID, reqHost.GetBkNetworkunitId())
+
+		deployHostDynamic := host.Dynamic
+		deployHostDynamic.NetworkUnitID = targetNetworkUnitID
+
 		nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 			Host: types.Host{
 				TenantID: nCtx.TenantID(),
 				HostID:   host.HostID,
 				Static:   host.Static,
-				Dynamic:  host.Dynamic,
+				Dynamic:  deployHostDynamic,
 			},
 			RestartOptions: types.DeploymentRestartOptions{
 				ForceRestart:           reqHost.GetForce(),

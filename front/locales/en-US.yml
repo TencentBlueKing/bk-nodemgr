@@ -29,6 +29,8 @@ platform:
       assignUnitDisabledAssigned: Selected hosts include nodes already assigned to a network unit. Please deselect or filter for unassigned hosts
       assignUnitDisabledRowAssigned: This host is already assigned to a network unit
       assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please filter for hosts in the same area
+      operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
+      operateDisabledRowNotRunning: This host has abnormal Agent status. Please troubleshoot and fix before operating
       assignUnitHostCount: '{count} host(s) selected'
       assignUnitSelectPlaceholder: Select target network unit
       assignUnitSuccessTitle: Network Unit Assignment Complete
@@ -37,6 +39,13 @@ platform:
       assignUnitSuccessDescSuffix: '. It is recommended to restart the Agent now to apply the new network unit configuration.'
       restartNow: Restart Now
       handleLater: Handle Later
+      upgradeMode: Upgrade Mode
+      goUpgrade: Go Upgrade/Rollback
+      timeout: Timeout
+      forceUpgrade: Force Upgrade
+      gracefulUpgrade: Graceful Upgrade
+      forceUpgradeDesc: Immediately terminate processes and upgrade, may interrupt running tasks
+      gracefulUpgradeDesc: Wait for tasks to complete before upgrading, will abort upgrade after timeout
       assignUnitAllFailed: Assignment failed. Please check the status of the selected hosts
       assignUnitPageDesc: Assign network units to selected hosts. Different units can be assigned within the same network area.
       assignUnitHostInfo: Host Information
@@ -119,6 +128,18 @@ platform:
         remove: Remove
         performInstallation: Execute Installation
         setup: Install All Nodes
+    upgradePreview:
+      tipTitle: "Upgrade preview will check the selected nodes' information:"
+      gracefulTip: 1. This is a "Graceful Upgrade", it will complete when the node is idle within the timeout period. If the node remains busy, the upgrade will be abandoned.
+      forceTip: 1. This is a "Force Upgrade", which may cause task interruption. Please ensure you are prepared.
+      secondTip: 2. If the host status is abnormal, please troubleshoot and fix it before upgrading.
+      versionChange: Version Change
+      executeAll: Upgrade All Nodes
+      disabledTip: Cannot upgrade while nodes are pending or in error
+      loadingTip: Verifying upgrade nodes...
+      checkFailedTip: Verification failed, cannot upgrade
+      label:
+        normalUpgrade: Normal Upgrade
     batchOperate: Batch
     allBusiness: All Businesses
     all: All

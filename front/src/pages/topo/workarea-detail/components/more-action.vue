@@ -12,7 +12,7 @@
         <slot></slot>
       </Button>
       <template #content>
-        <Dropdown.DropdownMenu>
+        <Dropdown.DropdownMenu ext-cls="proxy-action-dropdown-menu">
           <Dropdown.DropdownItem
             v-for="(item, index) in dropMenuList"
             :key="index"
@@ -23,16 +23,11 @@
         </Dropdown.DropdownMenu>
       </template>
     </Dropdown>
-    <choose-version-dialog
-      v-model:is-show="chooseVersionData.isShow"
-      :title="chooseVersionData.title"
-      :data="chooseVersionData.data"
-      :batch="chooseVersionData.batch"
+    <upgrade-sideslider
+      v-model:is-show="upgradePreviewData.isShow"
+      :hosts="upgradePreviewData.hosts"
       release-type="proxy"
-      :type="chooseVersionData.type"
-      @confirm="handleUpgrade"
-    >
-    </choose-version-dialog>
+    />
     <operate-dialog
       v-model:is-show="operateDialogIsShow"
       :title="operateDialogData.title"
@@ -51,7 +46,7 @@
  *    搭配focusout能轻松关闭上一个open的DropMenu，实在巧妙！
  */
 
- import { Button, Dropdown, InfoBox } from 'bkui-vue';
+import { Button, Dropdown, InfoBox } from 'bkui-vue';
 import type { PropType } from 'vue';
 import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -59,6 +54,7 @@ import { useRouter } from 'vue-router';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { TopoService } from '@/api/modules/topo';
+import UpgradeSideslider from '@/pages/node/agent/upgrade-sideslider.vue';
 
 interface DialogProps {
   title: string
@@ -175,7 +171,7 @@ const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
     let batch = props.batch;
     if (props.isCrossPageSelection) {
       await getCorssPageHostIds();
-      operateData = crossPageHostIdData.value;
+      operateData = crossPageHostIdData.value.map(item => ({ bk_host_id: item })) as any;
       batch = true; // 强制设置为批量模式
     }
     const titleObj = {
@@ -183,11 +179,8 @@ const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
       num: operateData.length,
     };
     if (action === 'upgrade') {
-      chooseVersionData.title = t('topoManager.workAreaDetail.upgrade');
-      chooseVersionData.isShow = true;
-      chooseVersionData.data = operateData;
-      chooseVersionData.batch = batch;
-      chooseVersionData.type = action;
+      upgradePreviewData.hosts = operateData as Host[];
+      upgradePreviewData.isShow = true;
     } else if (action === 'restart') {
       operateDialogIsShow.value = true;
       operateDialogData.type = action;
@@ -225,6 +218,7 @@ const operateDialogData = {
   title: '',
   subTitle: '',
 };
+const upgradePreviewData = reactive({ isShow: false, hosts: [] as Host[] });
 // 卸载
 const handleUninstall = async () => {
   let operateData = props.data;
@@ -310,3 +304,9 @@ const handleUpgrade = async (versionList: any[]) => {
   }
 };
 </script>
+
+<style lang="postcss">
+.proxy-action-dropdown-menu {
+  min-width: 100px !important;
+}
+</style>

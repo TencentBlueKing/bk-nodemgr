@@ -43,6 +43,8 @@ type NodeAgentInstallParam struct {
 // NodeAgentUpgradeHost describes the node agent upgrade host.
 type NodeAgentUpgradeHost struct {
 	HostID                 int64
+	NetworkUnitID          int64
+	CPUArch                string
 	Force                  bool
 	TargetVersion          string
 	GracefulRestartTimeout time.Duration
@@ -171,4 +173,61 @@ func ConvertHostToNodeAgentInstallCheckMatchedItem(host *Host) *NodeAgentInstall
 type NodeAgentInstallCheckResult struct {
 	Status  NodeAgentInstallCheckStatus
 	Matched *NodeAgentInstallCheckMatchedItem
+}
+
+// NodeAgentUpgradeCheckStatus describes the node agent upgrade check status.
+type NodeAgentUpgradeCheckStatus string
+
+const (
+	// NodeAgentUpgradeCheckStatusHostNotFound indicates the host is not found.
+	NodeAgentUpgradeCheckStatusHostNotFound NodeAgentUpgradeCheckStatus = "host_not_found"
+
+	// NodeAgentUpgradeCheckStatusNetworkUnitNotFound indicates the network unit is not found.
+	NodeAgentUpgradeCheckStatusNetworkUnitNotFound NodeAgentUpgradeCheckStatus = "networkunit_not_found"
+
+	// NodeAgentUpgradeCheckStatusNetworkUnitMismatch indicates the network unit does not belong to the host's
+	// current network area.
+	NodeAgentUpgradeCheckStatusNetworkUnitMismatch NodeAgentUpgradeCheckStatus = "networkunit_mismatch"
+
+	// NodeAgentUpgradeCheckStatusVersionNotFound indicates no matching version is found for the host's
+	// os_type and cpu_arch.
+	NodeAgentUpgradeCheckStatusVersionNotFound NodeAgentUpgradeCheckStatus = "version_not_found"
+
+	// NodeAgentUpgradeCheckStatusNodeStatusNotAllowed indicates the host's current node status does not
+	// allow upgrade.
+	NodeAgentUpgradeCheckStatusNodeStatusNotAllowed NodeAgentUpgradeCheckStatus = "node_status_not_allowed"
+
+	// NodeAgentUpgradeCheckStatusNetworkUnitChanged indicates the network unit will change after upgrade.
+	NodeAgentUpgradeCheckStatusNetworkUnitChanged NodeAgentUpgradeCheckStatus = "networkunit_changed"
+
+	// NodeAgentUpgradeCheckStatusNormalUpgrade indicates a normal node agent upgrade.
+	NodeAgentUpgradeCheckStatusNormalUpgrade NodeAgentUpgradeCheckStatus = "normal_upgrade"
+
+	// NodeAgentUpgradeCheckStatusCPUArchMissing indicates the host's cpu_arch is missing.
+	NodeAgentUpgradeCheckStatusCPUArchMissing NodeAgentUpgradeCheckStatus = "cpu_arch_missing"
+)
+
+// NodeAgentUpgradeCheckMatchedItem describes the node agent upgrade check matched item.
+type NodeAgentUpgradeCheckMatchedItem struct {
+	HostID        int64
+	BizID         int64
+	NetworkAreaID int64
+	NetworkUnitID int64
+	OsType        criteria.OSType
+	NodeRole      NodeRole
+	InnerIPList   []string
+	InnerIPV6List []string
+}
+
+// NodeAgentUpgradeCheckResult describes the node agent upgrade check result.
+type NodeAgentUpgradeCheckResult struct {
+	Status  NodeAgentUpgradeCheckStatus
+	Matched *NodeAgentUpgradeCheckMatchedItem
+}
+
+// NodeAgentUpgradeCheckParam describes the node agent upgrade check parameter.
+type NodeAgentUpgradeCheckParam struct {
+	HostID        int64
+	NetworkUnitID int64
+	CPUArch       string
 }

@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"strings"
 
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -24,6 +25,35 @@ func validateHostNetworkUnit(hosts map[int64]*types.Host) error {
 	for _, host := range hosts {
 		if host.Dynamic.NetworkUnitID < 0 {
 			invalid = append(invalid, fmt.Sprintf("host-id(%d) networkunit-id(%d)", host.HostID, host.Dynamic.NetworkUnitID))
+		}
+	}
+
+	if len(invalid) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("hosts have no valid network unit. %s", strings.Join(invalid, ", "))
+}
+
+func resolveUpgradeNetworkUnitID(currentNetworkUnitID, requestedNetworkUnitID int64) int64 {
+	if requestedNetworkUnitID >= 0 {
+		return requestedNetworkUnitID
+	}
+
+	return currentNetworkUnitID
+}
+
+func validateUpgradeHostNetworkUnit(reqHosts []*protoBackend.NodeAgentUpgradeReq_Host, hosts map[int64]*types.Host) error {
+	var invalid []string
+	for _, reqHost := range reqHosts {
+		host, ok := hosts[reqHost.GetBkHostId()]
+		if !ok {
+			continue
+		}
+
+		targetNetworkUnitID := resolveUpgradeNetworkUnitID(host.Dynamic.NetworkUnitID, reqHost.GetBkNetworkunitId())
+		if targetNetworkUnitID < 0 {
+			invalid = append(invalid, fmt.Sprintf("host-id(%d) networkunit-id(%d)", host.HostID, targetNetworkUnitID))
 		}
 	}
 

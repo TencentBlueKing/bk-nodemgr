@@ -166,6 +166,10 @@ func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 
 // AutoConvert auto convert.
 func (x *NodeAgentUpgradeReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
 }
 
 // Validate check body.
@@ -196,6 +200,8 @@ func (x *NodeAgentUpgradeReq) ConvertParamToTypes() *types.NodeAgentUpgradeParam
 	for idx, host := range hosts {
 		hostsParam[idx] = &types.NodeAgentUpgradeHost{
 			HostID:                 host.GetBkHostId(),
+			NetworkUnitID:          host.GetBkNetworkunitId(),
+			CPUArch:                host.GetCpuArch(),
 			Force:                  host.GetForce(),
 			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
 			TargetVersion:          host.GetTargetVersion(),
@@ -219,6 +225,14 @@ func (x *NodeAgentUpgradeHost) Validate() error {
 	}
 
 	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentUpgradeHost) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
 }
 
 // ConvertWorkflowID convert workflow id.
@@ -643,5 +657,163 @@ func (x *NodeAgentAssignUnitResp) ConvertResult(successCount, failedCount int64,
 		SuccessCount:  successCount,
 		FailedCount:   failedCount,
 		FailedReasons: failedReasons,
+	}
+}
+
+// Validate checks body.
+func (x *NodeAgentUpgradeCheckReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate checks body.
+func (x *AgentUpgradeCheckInfo) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto-converts default values.
+func (x *NodeAgentUpgradeCheckReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto-converts default values.
+func (x *AgentUpgradeCheckInfo) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
+
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamToTypes converts proto request to type params and target versions.
+func (x *NodeAgentUpgradeCheckReq) ConvertParamToTypes() ([]*types.NodeAgentUpgradeCheckParam, []*types.TargetVersion) {
+	hosts := x.GetHost()
+	params := make([]*types.NodeAgentUpgradeCheckParam, len(hosts))
+	for idx, info := range hosts {
+		params[idx] = &types.NodeAgentUpgradeCheckParam{
+			HostID:        info.GetBkHostId(),
+			NetworkUnitID: info.GetBkNetworkunitId(),
+			CPUArch:       info.GetCpuArch(),
+		}
+	}
+
+	rawVersions := x.GetTargetVersion()
+	versions := make([]*types.TargetVersion, len(rawVersions))
+	for idx, v := range rawVersions {
+		versions[idx] = &types.TargetVersion{
+			Version: v.GetVersion(),
+			OsType:  criteria.OSType(v.GetOsType()),
+			CPUArch: criteria.CPUArch(v.GetCpuArch()),
+		}
+	}
+
+	return params, versions
+}
+
+const (
+	agentUpgradeCheckResultCategoryNormalUpgrade = "normal_upgrade"
+	agentUpgradeCheckResultCategoryNeedConfirm   = "need_confirm"
+	agentUpgradeCheckResultCategoryError         = "error"
+)
+
+// ConvertResultFromTypes converts type results to proto response with category and messages.
+// nolint: cyclop
+func (x *NodeAgentUpgradeCheckResp) ConvertResultFromTypes(results []*types.NodeAgentUpgradeCheckResult) {
+	if results == nil {
+		return
+	}
+
+	items := make([]*NodeAgentUpgradeCheckResult, len(results))
+	for idx, result := range results {
+		item := &NodeAgentUpgradeCheckResult{
+			Status: string(result.Status),
+		}
+
+		switch result.Status {
+		case types.NodeAgentUpgradeCheckStatusHostNotFound:
+			item.MessageEn = "Host does not exist"
+			item.MessageZh = "该主机不存在"
+			item.Category = agentUpgradeCheckResultCategoryError
+
+		case types.NodeAgentUpgradeCheckStatusNetworkUnitNotFound:
+			item.MessageEn = "Target networkunit does not exist"
+			item.MessageZh = "目标管控单元不存在"
+			item.Category = agentUpgradeCheckResultCategoryError
+
+		case types.NodeAgentUpgradeCheckStatusNetworkUnitMismatch:
+			item.MessageEn = "Target networkunit does not belong to the same networkarea as the host"
+			item.MessageZh = "目标管控单元不属于该主机所在的管控区域"
+			item.Category = agentUpgradeCheckResultCategoryError
+
+		case types.NodeAgentUpgradeCheckStatusVersionNotFound:
+			item.MessageEn = "No matching version found for host os_type and cpu_arch"
+			item.MessageZh = "未找到匹配该主机操作系统和CPU架构的目标版本"
+			item.Category = agentUpgradeCheckResultCategoryError
+
+		case types.NodeAgentUpgradeCheckStatusNodeStatusNotAllowed:
+			item.MessageEn = "Host current status does not allow upgrade"
+			item.MessageZh = "主机当前状态不允许升级"
+			item.Category = agentUpgradeCheckResultCategoryError
+
+		case types.NodeAgentUpgradeCheckStatusCPUArchMissing:
+			item.MessageEn = "Host cpu_arch is missing"
+			item.MessageZh = "主机CPU架构缺失"
+			item.Category = agentUpgradeCheckResultCategoryError
+
+		case types.NodeAgentUpgradeCheckStatusNetworkUnitChanged:
+			item.MessageEn = "Upgrade will change the host's networkunit, please confirm"
+			item.MessageZh = "升级将变更主机的管控单元，请确认"
+			item.Category = agentUpgradeCheckResultCategoryNeedConfirm
+
+		case types.NodeAgentUpgradeCheckStatusNormalUpgrade:
+			item.MessageEn = "Upgrade Agent"
+			item.MessageZh = "升级Agent"
+			item.Category = agentUpgradeCheckResultCategoryNormalUpgrade
+
+		default:
+			item.MessageEn = fmt.Sprintf("Unknown error %s", result.Status)
+			item.MessageZh = fmt.Sprintf("未知错误 %s", result.Status)
+			item.Category = agentUpgradeCheckResultCategoryError
+		}
+
+		if result.Matched != nil {
+			item.Matched = &NodeAgentUpgradeCheckMatchedItem{
+				BkHostId:            &result.Matched.HostID,
+				BkBizId:             &result.Matched.BizID,
+				BkNetworkareaId:     &result.Matched.NetworkAreaID,
+				BkNetworkunitId:     &result.Matched.NetworkUnitID,
+				OsType:              string(result.Matched.OsType),
+				NodeRole:            string(result.Matched.NodeRole),
+				BkHostInneripList:   result.Matched.InnerIPList,
+				BkHostInneripV6List: result.Matched.InnerIPV6List,
+			}
+		}
+
+		items[idx] = item
+	}
+
+	x.Data = &NodeAgentUpgradeCheckResp_Data{
+		Results: items,
 	}
 }

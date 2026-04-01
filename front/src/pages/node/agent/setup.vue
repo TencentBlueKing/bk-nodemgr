@@ -370,7 +370,6 @@ const formData = reactive({
   bk_host_name: '',
   info: [cloneDeep(initData)],
   target_version: [] as any[],
-  disable_default_target_version: false,
 });
 
 // 表头设置
@@ -663,7 +662,6 @@ const handlePreview = async () => {
             version: item.version,
           };
         });
-      clonedData.disable_default_target_version = true;
     }
     previewData.data = clonedData;
   } else {

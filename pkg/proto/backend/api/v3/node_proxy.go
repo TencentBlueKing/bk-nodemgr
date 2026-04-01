@@ -178,8 +178,11 @@ func (x *NodeProxyUpgradeReq) Validate() error {
 func (x *NodeProxyUpgradeReq) ConvertParamFromTypes(upgradeParam *types.NodeProxyUpgradeParam) {
 	hostsParam := make([]*NodeProxyUpgradeReq_Host, len(upgradeParam.Hosts))
 	for idx, host := range upgradeParam.Hosts {
+		networkUnitID := host.NetworkUnitID
 		hostsParam[idx] = &NodeProxyUpgradeReq_Host{
 			BkHostId:                  host.HostID,
+			BkNetworkunitId:           &networkUnitID,
+			CpuArch:                   host.CPUArch,
 			Force:                     host.Force,
 			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
 		}
@@ -213,8 +216,8 @@ func (x *NodeProxyUpgradeReq_Host) Validate() error {
 		return errors.New("bk_host_id must be >= 0")
 	}
 
-	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
-		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	if !x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is false")
 	}
 
 	return nil
@@ -222,6 +225,10 @@ func (x *NodeProxyUpgradeReq_Host) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeProxyUpgradeReq_Host) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
 }
 
 // ConvertWorkflowID convert workflow id.
@@ -283,8 +290,8 @@ func (x *NodeProxyRestartReq_Host) Validate() error {
 		return errors.New("bk_host_id must be >= 0")
 	}
 
-	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
-		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	if !x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is false")
 	}
 
 	return nil
@@ -353,8 +360,8 @@ func (x *NodeProxyReconfigReq_Host) Validate() error {
 		return errors.New("bk_host_id must be >= 0")
 	}
 
-	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
-		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	if !x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is false")
 	}
 
 	return nil
@@ -719,6 +726,136 @@ func (x *NodeProxyInstallCheckResp) ConvertResultToTypes() []*types.NodeProxyIns
 
 		if matched := result.GetMatched(); matched != nil {
 			item.Matched = &types.NodeProxyInstallCheckMatchedItem{
+				HostID:        matched.GetBkHostId(),
+				BizID:         matched.GetBkBizId(),
+				NetworkAreaID: matched.GetBkNetworkareaId(),
+				NetworkUnitID: matched.GetBkNetworkunitId(),
+				OsType:        criteria.OSType(matched.GetOsType()),
+				NodeRole:      types.NodeRole(matched.GetNodeRole()),
+				InnerIPList:   matched.GetBkHostInneripList(),
+				InnerIPV6List: matched.GetBkHostInneripV6List(),
+			}
+		}
+
+		items[idx] = item
+	}
+
+	return items
+}
+
+// Validate checks body.
+func (x *NodeProxyUpgradeCheckReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate checks body.
+func (x *NodeProxyUpgradeCheckReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto-converts default values.
+func (x *NodeProxyUpgradeCheckReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto-converts default values.
+func (x *NodeProxyUpgradeCheckReq_Host) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
+
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes converts type params to proto request hosts.
+func (x *NodeProxyUpgradeCheckReq) ConvertParamFromTypes(params []*types.NodeProxyUpgradeCheckParam, targetVersions []*types.TargetVersion) {
+	hosts := make([]*NodeProxyUpgradeCheckReq_Host, len(params))
+	for idx, p := range params {
+		networkUnitID := p.NetworkUnitID
+		hosts[idx] = &NodeProxyUpgradeCheckReq_Host{
+			BkHostId:        &p.HostID,
+			BkNetworkunitId: &networkUnitID,
+			CpuArch:         p.CPUArch,
+		}
+	}
+	x.Host = hosts
+
+	versions := make([]*TargetVersion, len(targetVersions))
+	for idx, v := range targetVersions {
+		versions[idx] = &TargetVersion{
+			Version: v.Version,
+			CpuArch: string(v.CPUArch),
+			OsType:  string(v.OsType),
+		}
+	}
+	x.TargetVersion = versions
+}
+
+// ConvertResultFromTypes converts type results to proto response data.
+func (x *NodeProxyUpgradeCheckResp) ConvertResultFromTypes(results []*types.NodeProxyUpgradeCheckResult) {
+	items := make([]*NodeProxyUpgradeCheckResult, len(results))
+	for idx, result := range results {
+		item := &NodeProxyUpgradeCheckResult{
+			Status: string(result.Status),
+		}
+
+		if result.Matched != nil {
+			item.Matched = &NodeProxyUpgradeCheckMatchedItem{
+				BkHostId:            &result.Matched.HostID,
+				BkBizId:             &result.Matched.BizID,
+				BkNetworkareaId:     &result.Matched.NetworkAreaID,
+				BkNetworkunitId:     &result.Matched.NetworkUnitID,
+				OsType:              string(result.Matched.OsType),
+				NodeRole:            string(result.Matched.NodeRole),
+				BkHostInneripList:   result.Matched.InnerIPList,
+				BkHostInneripV6List: result.Matched.InnerIPV6List,
+			}
+		}
+
+		items[idx] = item
+	}
+
+	x.Data = &NodeProxyUpgradeCheckResp_Data{
+		Results: items,
+	}
+}
+
+// ConvertResultToTypes converts proto response data to type results.
+func (x *NodeProxyUpgradeCheckResp) ConvertResultToTypes() []*types.NodeProxyUpgradeCheckResult {
+	if x.GetData() == nil {
+		return nil
+	}
+
+	items := make([]*types.NodeProxyUpgradeCheckResult, len(x.GetData().GetResults()))
+	for idx, result := range x.GetData().GetResults() {
+		item := &types.NodeProxyUpgradeCheckResult{
+			Status: types.NodeProxyUpgradeCheckStatus(result.GetStatus()),
+		}
+
+		if matched := result.GetMatched(); matched != nil {
+			item.Matched = &types.NodeProxyUpgradeCheckMatchedItem{
 				HostID:        matched.GetBkHostId(),
 				BizID:         matched.GetBkBizId(),
 				NetworkAreaID: matched.GetBkNetworkareaId(),

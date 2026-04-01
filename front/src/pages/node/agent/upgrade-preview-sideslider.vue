@@ -1,0 +1,628 @@
+<template>
+  <Sideslider
+    v-model:is-show="isShow"
+    :width="1200"
+    :title="releaseType === 'proxy'
+      ? $t('topoManager.workAreaDetail.dropdown.upgrade')
+      : $t('platform.nodeMan.agentStatus.agentUpgrade')"
+    render-directive="if"
+    :before-close="handleBeforeClose"
+  >
+    <template #default>
+      <div class="py-[24px] px-[40px]">
+        <div
+          class="flex min-h-[56px] bg-[#FFF4E2] border border-[#FFF4E2] rounded-[2px] py-[6px] px-[9px] gap-[9px]"
+        >
+          <i class="nodeman-icon nc-tips pt-[2px] text-[#FF9C01]"></i>
+          <div class="flex-1 text-[12px] text-[#4D4F56]">
+            <p>{{ $t('platform.nodeMan.upgradePreview.tipTitle') }}</p>
+            <p>{{ formData?.force
+              ? $t('platform.nodeMan.upgradePreview.forceTip')
+              : $t('platform.nodeMan.upgradePreview.gracefulTip') }}</p>
+            <p>{{ $t('platform.nodeMan.upgradePreview.secondTip') }}</p>
+          </div>
+        </div>
+        <div class="flex justify-between mt-[16px]">
+          <div class="w-[50%] flex gap-[8px]">
+            <SearchSelect
+              class="flex-1 bg-[#fff]"
+              :data="searchSelectData"
+              v-model.trim="searchSelectValue"
+              :unique-select="true"
+              :placeholder="$t('platform.nodeMan.preview.searchPlaceholder')"
+            />
+            <CopyIpDropdown
+              :type="releaseType"
+              :disabled="!selection.length"
+              :data="tableData"
+              :list="[]"
+            />
+          </div>
+          <div class="flex gap-[8px]">
+            <Button
+              @click="handleAllConfirm"
+              :disabled="!tableData.length || !tableData.find(item => item.category === 'need_confirm')"
+              v-bk-tooltips="{ content: $t('platform.nodeMan.preview.processConfirmTip') }"
+            >
+              {{ $t('platform.nodeMan.preview.button.batchConfirm') }}
+            </Button>
+            <Button
+              @click="handleBatchRemove"
+              :disabled="!selection.length || !selection.find(item => item.category === 'error')"
+            >
+              {{ $t('platform.nodeMan.preview.button.batchRemove') }}
+            </Button>
+            <Dropdown
+              theme="light"
+              trigger="click"
+              :popover-options="{ clickContentAutoHide: true }"
+            >
+              <Button :disabled="!selection.length">
+                <span>{{ $t('platform.nodeMan.batchOperate') }}</span>
+                <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
+              </Button>
+              <template #content>
+                <Dropdown.DropdownMenu>
+                  <Dropdown.DropdownItem
+                    v-for="item in batchOperateList"
+                    :key="item.id"
+                    @click="handleBatchOperate(item.id)"
+                  >
+                    {{ item.name }}
+                  </Dropdown.DropdownItem>
+                </Dropdown.DropdownMenu>
+              </template>
+            </Dropdown>
+          </div>
+        </div>
+        <Tab
+          class="mt-[16px]"
+          v-model:active="active"
+          type="card"
+          :key="tabKey"
+        >
+          <Tab.TabPanel
+            v-for="item in tabs"
+            :key="item.name"
+            :label="item.label"
+            :name="item.name"
+          >
+            <template #label>
+              <div class="flex gap-[5px] items-center">
+                <close
+                  v-if="item.icon === 'wrong'"
+                  width="14px"
+                  height="14px"
+                  :fill="item.iconColor"
+                />
+                <i
+                  v-else-if="item.icon"
+                  :class="`nodeman-icon nc-${item.icon} text-[14px]`"
+                  :style="{ color: item.iconColor }"
+                ></i>
+                <span class="text-[14px] text-[#313238]">{{ item.label }}</span>
+                <div
+                  :class="[
+                    'rounded-[8px] w-[23px] h-[16px] border text-[12px] leading-[16px] text-center',
+                    item.name === active ? 'bg-[#E1ECFF]' : 'bg-[#DCDEE5]'
+                  ]"
+                >
+                  {{ item.count }}
+                </div>
+              </div>
+            </template>
+            <template #panel>
+              <Table
+                :data="tableData"
+                :pagination="pagination"
+                :empty-text="$t('table.empty')"
+                :column-config="{ resizable: true }"
+                show-overflow-tooltip
+                :max-height="462"
+                :virtual-y-config="{ enabled: true, gt: 20 }"
+                @checkbox-change="handleSelectChange"
+                @checkbox-all="handleSelectAllChange"
+              >
+                <TableColumn type="checkbox" width="80" fixed="left" />
+                <TableColumn
+                  field="bk_host_innerip"
+                  :title="t('platform.nodeMan.inner_ip')"
+                  min-width="150"
+                  fixed="left"
+                />
+                <TableColumn
+                  field="bk_host_innerip_v6"
+                  :title="t('platform.nodeMan.inner_ipv6')"
+                  min-width="150"
+                />
+                <TableColumn
+                  field="os_type"
+                  :title="t('platform.nodeMan.os_type')"
+                  min-width="100"
+                />
+                <TableColumn
+                  field="bk_networkarea_name"
+                  :title="t('platform.nodeMan.bk_cloud_name')"
+                  min-width="150"
+                />
+                <TableColumn
+                  field="bk_networkunit_name"
+                  :title="$t('platform.nodeMan.bk_cloud_unit')"
+                  min-width="150"
+                />
+                <TableColumn
+                  field="version"
+                  :title="$t('platform.nodeMan.upgradePreview.versionChange')"
+                  min-width="280"
+                >
+                  <template #default="{ row }">
+                    <span>{{ row.node_version || '-' }}</span>
+                    <span class="mx-[4px] text-[#979BA5]">→</span>
+                    <span class="text-[#3A84FF]">{{ row.target_version || '-' }}</span>
+                  </template>
+                </TableColumn>
+                <TableColumn
+                  field="status"
+                  :title="$t('platform.nodeMan.preview.status')"
+                  min-width="400"
+                  max-width="600"
+                  show-overflow-tooltip
+                >
+                  <template #default="{ row }">
+                    <Spinner v-if="upgradeCheckLoading" class="mr-[8px]" />
+                    <div class="flex items-center gap-[4px] w-full" v-else>
+                      <close
+                        v-if="categoryMap[row.category]?.icon === 'wrong'"
+                        width="14px"
+                        height="14px"
+                        :fill="categoryMap[row.category]?.iconColor"
+                        class="flex-shrink-0"
+                      />
+                      <i
+                        v-else
+                        :class="`nodeman-icon nc-${categoryMap[row.category]?.icon} text-[14px] flex-shrink-0`"
+                        :style="{ color: categoryMap[row.category]?.iconColor }"
+                      />
+                      <OverflowTitle type="tips" class="flex-1 min-w-0">
+                        {{ isZh ? row.message_zh : row.message_en }}
+                      </OverflowTitle>
+                    </div>
+                  </template>
+                </TableColumn>
+                <TableColumn
+                  field="action"
+                  :title="t('platform.nodeMan.operate')"
+                  min-width="140"
+                  fixed="right"
+                >
+                  <template #default="{ row }">
+                    <div class="flex gap-[8px]">
+                      <Button
+                        v-if="row.category === 'need_confirm'"
+                        theme="primary"
+                        text
+                        @click="handleConfirmRow(row)"
+                      >{{ $t('action.confirm1') }}</Button>
+                      <Button theme="primary" text @click="handleRemove(row)">
+                        {{ t('platform.nodeMan.preview.button.remove') }}
+                      </Button>
+                    </div>
+                  </template>
+                </TableColumn>
+              </Table>
+            </template>
+          </Tab.TabPanel>
+        </Tab>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex justify-start gap-[8px] pl-[16px]">
+        <Button
+          theme="primary"
+          @click="handleExecuteUpgrade"
+          :disabled="disabledDataNum > 0 || checkFailed"
+          :loading="loading"
+          v-bk-tooltips="{
+            content: disabledDataNum
+              ? $t('platform.nodeMan.upgradePreview.disabledTip')
+              : upgradeCheckLoading
+                ? $t('platform.nodeMan.upgradePreview.loadingTip') : $t('platform.nodeMan.upgradePreview.checkFailedTip'),
+            disabled: disabledDataNum === 0 && !checkFailed,
+          }"
+        >{{ $t('platform.nodeMan.upgradePreview.executeAll') }}</Button>
+        <Button @click="handleBeforeClose">{{ t('action.cancel') }}</Button>
+      </div>
+    </template>
+  </Sideslider>
+</template>
+<script lang="ts" setup>
+import {
+  Button,
+  Dropdown,
+  InfoBox,
+  OverflowTitle,
+  SearchSelect,
+  Sideslider,
+  Tab,
+} from 'bkui-vue';
+import { Close, Spinner } from 'bkui-vue/lib/icon';
+import { cloneDeep } from 'lodash';
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import CopyIpDropdown from '@/components/copy-ip-dropdown.vue';
+import { NodeAgentService } from '@/api/modules/node_agent';
+import { NodeProxyService } from '@/api/modules/node_proxy';
+import { TopoService } from '@/api/modules/topo';
+import usePage from '@/composables/use-page';
+import { buildExecuteUpgradeParams, buildUpgradeCheckParams } from '@/pages/node/agent/upgrade-request';
+import { useMainStore } from '@/stores/main';
+
+export interface UpgradeFormData {
+  networkUnitId?: number;
+  targetVersions: Array<{ os_type: string; cpu_arch: string; version: string }>;
+  force: boolean;
+  gracefulRestartTimeoutSec: number;
+}
+
+const isShow = defineModel('isShow', { type: Boolean });
+
+const props = defineProps({
+  hosts: {
+    type: Array as () => Host[],
+    default: () => [],
+  },
+  releaseType: {
+    type: String as () => 'agent' | 'proxy',
+    default: 'agent',
+  },
+  formData: {
+    type: Object as () => UpgradeFormData | null,
+    default: null,
+  },
+});
+
+const { t } = useI18n();
+const mainStore = useMainStore();
+const router = useRouter();
+
+const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
+
+const categoryMap: Record<string, { icon: string; iconColor: string }> = {
+  normal_upgrade: {
+    icon: 'check-circle-fill',
+    iconColor: '#1CAB88',
+  },
+  need_confirm: {
+    icon: 'danger-fill',
+    iconColor: '#FF9C01',
+  },
+  error: {
+    icon: 'wrong',
+    iconColor: '#EA3636',
+  },
+};
+
+let rowIdSeed = 0;
+const genRowID = () => {
+  rowIdSeed += 1;
+  return `upgrade-row-${rowIdSeed}`;
+};
+
+const originData = ref<any[]>([]);
+const tableData = ref<any[]>([]);
+const tabKey = ref(Date.now());
+const disabledDataNum = ref(0);
+const checkFailed = computed(() => tableData.value.some(item => !item.status));
+const { pagination } = usePage(tableData);
+
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const searchSelectData = computed(() => [
+  {
+    id: 'bk_host_innerip',
+    name: t('platform.nodeMan.inner_ip'),
+    children: getUniqueChildren('bk_host_innerip'),
+  },
+  {
+    id: 'os_type',
+    name: t('platform.nodeMan.os_type'),
+    children: getUniqueChildren('os_type'),
+    multiple: true,
+  },
+]);
+
+function getUniqueChildren(prop: string) {
+  const res = Array.from(new Set(originData.value.map((item: any) => item[prop]).filter(Boolean)));
+  return res.map((value: any) => ({ id: value, name: String(value), value, text: String(value) }));
+}
+
+const tabs = computed(() => {
+  const counts = originData.value.reduce(
+    (acc: any, item: any) => {
+      acc.all += 1;
+      if (item.category === 'need_confirm') acc.confirm += 1;
+      if (item.category === 'error') acc.error += 1;
+      if (item.category === 'normal_upgrade') acc.normalUpgrade += 1;
+      return acc;
+    },
+    { all: 0, confirm: 0, error: 0, normalUpgrade: 0 },
+  );
+  disabledDataNum.value = counts.confirm + counts.error;
+  return [
+    { label: t('platform.nodeMan.preview.label.all'), name: 'all', count: counts.all },
+    {
+      label: t('platform.nodeMan.preview.label.pendingConfirmation'),
+      name: 'need_confirm',
+      count: counts.confirm,
+      icon: 'danger-fill',
+      iconColor: '#FF9C01',
+    },
+    {
+      label: t('platform.nodeMan.preview.label.error'),
+      name: 'error',
+      count: counts.error,
+      icon: 'wrong',
+      iconColor: '#EA3636',
+    },
+    {
+      label: t('platform.nodeMan.upgradePreview.label.normalUpgrade'),
+      name: 'normal_upgrade',
+      count: counts.normalUpgrade,
+      icon: 'check-circle-fill',
+      iconColor: '#1CAB88',
+    },
+  ];
+});
+
+const active = ref('all');
+
+const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+
+const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
+  row.checked = checked;
+};
+
+const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
+  tableData.value.forEach((item: any) => (item.checked = checked));
+};
+
+const handleConfirmRow = (row: any) => {
+  row.category = 'normal_upgrade';
+  tableData.value = [...tableData.value];
+};
+
+const handleAllConfirm = () => {
+  tableData.value.forEach((item: any) => {
+    if (item.category === 'need_confirm') item.category = 'normal_upgrade';
+  });
+  tabKey.value = Date.now();
+};
+
+const handleBatchRemove = () => {
+  originData.value = originData.value.filter(
+    (item: any) => !(item.category === 'error' && item.checked),
+  );
+  tabKey.value = Date.now();
+};
+
+const batchOperateList = computed(() => [
+  {
+    id: 'confirm',
+    match: 'need_confirm',
+    name: t('action.confirm1'),
+  },
+  {
+    id: 'remove',
+    match: 'error',
+    name: t('action.remove'),
+  },
+]);
+
+const handleBatchOperate = (id: string) => {
+  if (id === 'confirm') {
+    selection.value.forEach((item: any) => {
+      if (item.category === 'need_confirm') {
+        item.category = 'normal_upgrade';
+      }
+    });
+  } else if (id === 'remove') {
+    originData.value = originData.value.filter((item: any) => !item.checked);
+  }
+  tabKey.value = Date.now();
+};
+
+const handleRemove = (row: any) => {
+  originData.value = originData.value.filter((item: any) => item.__row_id !== row.__row_id);
+  tabKey.value = Date.now();
+};
+
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+  InfoBox({
+    title: t('dialog.confirmClose'),
+    infoType: 'warning',
+    onConfirm: () => {
+      resolve(true);
+      isShow.value = false;
+    },
+    onCancel: () => reject(),
+  });
+});
+
+const upgradeCheckLoading = ref(false);
+
+const runUpgradeCheck = async () => {
+  if (!props.formData) return;
+  upgradeCheckLoading.value = true;
+  const checkParams = buildUpgradeCheckParams(originData.value, props.formData);
+
+  let results: any[] = [];
+  if (props.releaseType === 'proxy') {
+    const res = await NodeProxyService.NodeProxyUpgradeCheck(checkParams).catch(() => ({ results: [] }));
+    results = res?.results ?? [];
+  } else {
+    const res = await NodeAgentService.NodeAgentUpgradeCheck(checkParams).catch(() => ({ results: [] }));
+    results = res?.results ?? [];
+  }
+  upgradeCheckLoading.value = false;
+
+  originData.value = originData.value.map((item: any, index: number) => ({
+    ...item,
+    ...(results[index] ?? {}),
+  }));
+  tableData.value = cloneDeep(originData.value);
+};
+
+const loading = ref(false);
+
+const handleExecuteUpgrade = async () => {
+  if (!props.formData) return;
+  loading.value = true;
+  const validHosts = tableData.value.filter(item => item.category === 'normal_upgrade');
+  const params = buildExecuteUpgradeParams(props.releaseType, validHosts, props.formData);
+
+  let result: any;
+  if (props.releaseType === 'proxy') {
+    result = await NodeProxyService.NodeProxyUpgrade(params).catch(() => ({ workflow_id: '' }));
+  } else {
+    result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({ workflow_id: '' }));
+  }
+  loading.value = false;
+  if (result?.workflow_id) {
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+      query: { active: 'node' },
+    });
+    isShow.value = false;
+  }
+};
+
+const initHostData = async () => {
+  const toNumber = (val: any) => {
+    const num = Number(val);
+    return Number.isNaN(num) ? 0 : num;
+  };
+
+  const networkUnitIds = [...new Set(props.hosts.map(
+    (h: any) => toNumber(h.bk_networkunit_id ?? h.info?.bk_networkunit_id ?? 0),
+  ))].filter(Boolean);
+  const networkAreaIds = [...new Set(props.hosts.map(
+    (h: any) => toNumber(h.bk_networkarea_id ?? h.info?.bk_networkarea_id ?? 0),
+  ))].filter(Boolean);
+
+  const [unitRes, areaRes] = await Promise.all([
+    networkUnitIds.length
+      ? TopoService.NetworkUnitList({
+        exact_include_conditions: { bk_networkunit_id: networkUnitIds },
+      }).catch(() => ({ items: [] }))
+      : Promise.resolve({ items: [] }),
+    networkAreaIds.length
+      ? TopoService.NetworkAreaList({
+        exact_include_conditions: { bk_networkarea_id: networkAreaIds },
+      }).catch(() => ({ items: [] }))
+      : Promise.resolve({ items: [] }),
+  ]);
+
+  const unitMap = new Map(unitRes.items.map((u: any) => [u.bk_networkunit_id, u.bk_networkunit_name]));
+  const areaMap = new Map(areaRes.items.map((a: any) => [a.bk_networkarea_id, a.bk_networkarea_name]));
+
+  const versionMap = new Map(
+    (props.formData?.targetVersions ?? []).map(
+      (v: any) => [`${v.os_type}:${v.cpu_arch}`, v.version],
+    ),
+  );
+
+  originData.value = props.hosts.map((host: any) => {
+    const info = host.info ?? host;
+    const state = host.state ?? {};
+    const hostInnerIp = info.bk_host_innerip
+      ?? (info.bk_host_innerip_list ?? []).join(';')
+      ?? '';
+    const hostInnerIpV6 = info.bk_host_innerip_v6
+      ?? (info.bk_host_innerip_v6_list ?? []).join(';')
+      ?? '';
+    const unitId = toNumber(info.bk_networkunit_id ?? 0);
+    const areaId = toNumber(info.bk_networkarea_id ?? 0);
+    const osType = info.os_type ?? '';
+    const cpuArch = info.cpu_arch ?? '';
+    const currentVersion = info.node_version ?? state.node_version ?? '';
+    const targetVersion = versionMap.get(`${osType}:${cpuArch}`) ?? '';
+    return {
+      bk_host_id: host.bk_host_id,
+      bk_host_innerip: hostInnerIp,
+      bk_host_innerip_v6: hostInnerIpV6,
+      os_type: osType,
+      cpu_arch: cpuArch,
+      bk_networkunit_id: unitId,
+      bk_networkunit_name: unitMap.get(unitId) ?? info.bk_networkunit_name ?? '',
+      bk_networkarea_id: areaId,
+      bk_networkarea_name: areaMap.get(areaId) ?? info.bk_networkarea_name ?? '',
+      node_version: currentVersion,
+      target_version: targetVersion,
+      status: null,
+      category: null,
+      message_zh: '',
+      message_en: '',
+      checked: false,
+      __row_id: genRowID(),
+    };
+  });
+  tableData.value = cloneDeep(originData.value);
+  await runUpgradeCheck();
+};
+
+watch(
+  [searchSelectValue],
+  () => {
+    tableData.value = originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
+      const { id: searchField, values } = searchItem;
+      const searchIds = values?.map((v: { id: string }) => v.id);
+      return searchIds.includes(row[searchField]);
+    }));
+  },
+  { immediate: true, deep: true },
+);
+
+watch(
+  [active, originData],
+  () => {
+    tableData.value = originData.value.filter((item: any) => {
+      if (active.value === 'all') return true;
+      return item.category === active.value;
+    });
+  },
+  { immediate: true },
+);
+
+watch(
+  () => tableData.value,
+  () => {
+    tabKey.value = Date.now();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => isShow.value,
+  async (val) => {
+    if (val && props.hosts.length) {
+      active.value = 'all';
+      searchSelectValue.value = [];
+      originData.value = [];
+      tableData.value = [];
+      await initHostData();
+    }
+  },
+);
+</script>
+<style lang="postcss" scoped>
+:deep(.bk-tab-header) {
+  background: #f0f1f5;
+}
+:deep(.bk-tab-content) {
+  padding: 0;
+}
+</style>

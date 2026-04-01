@@ -196,6 +196,8 @@ func (x *NodeProxyUpgradeReq) ConvertParamToTypes() *types.NodeProxyUpgradeParam
 	for idx, host := range hosts {
 		hostsParam[idx] = &types.NodeProxyUpgradeHost{
 			HostID:                 host.GetBkHostId(),
+			NetworkUnitID:          host.GetBkNetworkunitId(),
+			CPUArch:                host.GetCpuArch(),
 			Force:                  host.GetForce(),
 			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
 		}
@@ -224,8 +226,8 @@ func (x *NodeProxyUpgradeHost) Validate() error {
 		return errors.New("bk_host_id must be >= 0")
 	}
 
-	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
-		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	if !x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is false")
 	}
 
 	return nil
@@ -233,6 +235,10 @@ func (x *NodeProxyUpgradeHost) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeProxyUpgradeHost) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
 }
 
 // ConvertWorkflowID convert workflow id.
@@ -307,8 +313,8 @@ func (x *NodeProxyRestartHost) Validate() error {
 		return errors.New("bk_host_id must be >= 0")
 	}
 
-	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
-		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	if !x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is false")
 	}
 
 	return nil
@@ -376,8 +382,8 @@ func (x *NodeProxyReconfigHost) Validate() error {
 		return errors.New("bk_host_id must be >= 0")
 	}
 
-	if x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
-		return errors.New("graceful_restart_timeout_sec must be > 0 when force is true")
+	if !x.GetForce() && x.GetGracefulRestartTimeoutSec() <= 0 {
+		return errors.New("graceful_restart_timeout_sec must be > 0 when force is false")
 	}
 
 	return nil
@@ -733,6 +739,164 @@ func (x *NodeProxyInstallCheckResp) ConvertResultFromTypes(requests []*ProxyInst
 	}
 
 	x.Data = &NodeProxyInstallCheckResp_Data{
+		Results: items,
+	}
+}
+
+// Validate checks body.
+func (x *NodeProxyUpgradeCheckReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate checks body.
+func (x *ProxyUpgradeCheckInfo) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto-converts default values.
+func (x *NodeProxyUpgradeCheckReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto-converts default values.
+func (x *ProxyUpgradeCheckInfo) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
+
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamToTypes converts proto request to type params and target versions.
+func (x *NodeProxyUpgradeCheckReq) ConvertParamToTypes() ([]*types.NodeProxyUpgradeCheckParam, []*types.TargetVersion) {
+	hosts := x.GetHost()
+	params := make([]*types.NodeProxyUpgradeCheckParam, len(hosts))
+	for idx, info := range hosts {
+		params[idx] = &types.NodeProxyUpgradeCheckParam{
+			HostID:        info.GetBkHostId(),
+			NetworkUnitID: info.GetBkNetworkunitId(),
+			CPUArch:       info.GetCpuArch(),
+		}
+	}
+
+	rawVersions := x.GetTargetVersion()
+	versions := make([]*types.TargetVersion, len(rawVersions))
+	for idx, v := range rawVersions {
+		versions[idx] = &types.TargetVersion{
+			Version: v.GetVersion(),
+			OsType:  criteria.OSType(v.GetOsType()),
+			CPUArch: criteria.CPUArch(v.GetCpuArch()),
+		}
+	}
+
+	return params, versions
+}
+
+const (
+	proxyUpgradeCheckResultCategoryNormalUpgrade = "normal_upgrade"
+	proxyUpgradeCheckResultCategoryNeedConfirm   = "need_confirm"
+	proxyUpgradeCheckResultCategoryError         = "error"
+)
+
+// ConvertResultFromTypes converts type results to proto response with category and messages.
+// nolint: cyclop
+func (x *NodeProxyUpgradeCheckResp) ConvertResultFromTypes(results []*types.NodeProxyUpgradeCheckResult) {
+	if results == nil {
+		return
+	}
+
+	items := make([]*NodeProxyUpgradeCheckResult, len(results))
+	for idx, result := range results {
+		item := &NodeProxyUpgradeCheckResult{
+			Status: string(result.Status),
+		}
+
+		switch result.Status {
+		case types.NodeProxyUpgradeCheckStatusHostNotFound:
+			item.MessageEn = "Host does not exist"
+			item.MessageZh = "该主机不存在"
+			item.Category = proxyUpgradeCheckResultCategoryError
+
+		case types.NodeProxyUpgradeCheckStatusNetworkUnitNotFound:
+			item.MessageEn = "Target networkunit does not exist"
+			item.MessageZh = "目标管控单元不存在"
+			item.Category = proxyUpgradeCheckResultCategoryError
+
+		case types.NodeProxyUpgradeCheckStatusNetworkUnitMismatch:
+			item.MessageEn = "Target networkunit does not belong to the same networkarea as the host"
+			item.MessageZh = "目标管控单元不属于该主机所在的管控区域"
+			item.Category = proxyUpgradeCheckResultCategoryError
+
+		case types.NodeProxyUpgradeCheckStatusVersionNotFound:
+			item.MessageEn = "No matching version found for host os_type and cpu_arch"
+			item.MessageZh = "未找到匹配该主机操作系统和CPU架构的目标版本"
+			item.Category = proxyUpgradeCheckResultCategoryError
+
+		case types.NodeProxyUpgradeCheckStatusNodeStatusNotAllowed:
+			item.MessageEn = "Host current status does not allow upgrade"
+			item.MessageZh = "主机当前状态不允许升级"
+			item.Category = proxyUpgradeCheckResultCategoryError
+
+		case types.NodeProxyUpgradeCheckStatusCPUArchMissing:
+			item.MessageEn = "Host cpu_arch is missing"
+			item.MessageZh = "主机CPU架构缺失"
+			item.Category = proxyUpgradeCheckResultCategoryError
+
+		case types.NodeProxyUpgradeCheckStatusNetworkUnitChanged:
+			item.MessageEn = "Upgrade will change the host's networkunit, please confirm"
+			item.MessageZh = "升级将变更主机的管控单元，请确认"
+			item.Category = proxyUpgradeCheckResultCategoryNeedConfirm
+
+		case types.NodeProxyUpgradeCheckStatusNormalUpgrade:
+			item.MessageEn = "Upgrade Proxy"
+			item.MessageZh = "升级Proxy"
+			item.Category = proxyUpgradeCheckResultCategoryNormalUpgrade
+
+		default:
+			item.MessageEn = fmt.Sprintf("Unknown error %s", result.Status)
+			item.MessageZh = fmt.Sprintf("未知错误 %s", result.Status)
+			item.Category = proxyUpgradeCheckResultCategoryError
+		}
+
+		if result.Matched != nil {
+			item.Matched = &NodeProxyUpgradeCheckMatchedItem{
+				BkHostId:            &result.Matched.HostID,
+				BkBizId:             &result.Matched.BizID,
+				BkNetworkareaId:     &result.Matched.NetworkAreaID,
+				BkNetworkunitId:     &result.Matched.NetworkUnitID,
+				OsType:              string(result.Matched.OsType),
+				NodeRole:            string(result.Matched.NodeRole),
+				BkHostInneripList:   result.Matched.InnerIPList,
+				BkHostInneripV6List: result.Matched.InnerIPV6List,
+			}
+		}
+
+		items[idx] = item
+	}
+
+	x.Data = &NodeProxyUpgradeCheckResp_Data{
 		Results: items,
 	}
 }

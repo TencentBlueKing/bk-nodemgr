@@ -254,6 +254,40 @@
         ]
       }
     },
+    "/api/v3/node/agent/upgrade_check": {
+      "post": {
+        "summary": "NodeAgentUpgradeCheck checks node agent upgrade.",
+        "operationId": "NodeAgent_NodeAgentUpgradeCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentUpgradeCheckReq describes the node agent upgrade check request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/upload_template": {
       "post": {
         "operationId": "NodeAgent_UploadAgentTemplate",
@@ -428,6 +462,23 @@
         }
       },
       "description": "AgentInstallInfo ..."
+    },
+    "v3AgentUpgradeCheckInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "AgentUpgradeCheckInfo describes the node agent upgrade check parameter."
     },
     "v3Error": {
       "type": "object",
@@ -838,6 +889,124 @@
         }
       }
     },
+    "v3NodeAgentUpgradeCheckMatchedItem": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade\ncheck."
+    },
+    "v3NodeAgentUpgradeCheckReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AgentUpgradeCheckInfo"
+          }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TargetVersion"
+          }
+        }
+      },
+      "description": "NodeAgentUpgradeCheckReq describes the node agent upgrade check request."
+    },
+    "v3NodeAgentUpgradeCheckResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentUpgradeCheckRespData"
+        }
+      },
+      "description": "NodeAgentUpgradeCheckResp describes the response for node agent upgrade\ncheck."
+    },
+    "v3NodeAgentUpgradeCheckRespData": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentUpgradeCheckResult"
+          }
+        }
+      }
+    },
+    "v3NodeAgentUpgradeCheckResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "matched": {
+          "$ref": "#/definitions/v3NodeAgentUpgradeCheckMatchedItem"
+        },
+        "message_en": {
+          "type": "string"
+        },
+        "message_zh": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      },
+      "description": "NodeAgentUpgradeCheckResult describes the check result for node agent\nupgrade."
+    },
     "v3NodeAgentUpgradeHost": {
       "type": "object",
       "properties": {
@@ -854,6 +1023,13 @@
         "graceful_restart_timeout_sec": {
           "type": "integer",
           "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "cpu_arch": {
+          "type": "string"
         }
       }
     },

@@ -329,16 +329,11 @@
 
     <bk-footer></bk-footer>
 
-    <choose-version-dialog
-      v-model:is-show="chooseVersionData.isShow"
-      :title="chooseVersionData.title"
-      :data="chooseVersionData.data"
-      :batch="chooseVersionData.batch"
-      :is-cross-page-selection="isCrossPageSelection"
-      type="upgrade"
-      @confirm="handleUpgrade"
-    >
-    </choose-version-dialog>
+    <upgrade-sideslider
+      v-model:is-show="upgradePreviewData.isShow"
+      :hosts="upgradePreviewData.hosts"
+      release-type="agent"
+    />
 
     <operate-dialog
       v-model:is-show="operateDialogIsShow"
@@ -366,6 +361,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import processSideslider from '../plugin/process-sideslider.vue';
+import UpgradeSideslider from './upgrade-sideslider.vue';
 
 import type { TopoHostDistinctRespData } from '@/@types/topo';
 import type {
@@ -425,6 +421,7 @@ const operateDialogData = { type: '', title: '', subTitle: '' };
 const dropdownShow = ref(false);
 const operateData = ref<Host[]>([]);
 const topo = ref([]);
+const upgradePreviewData = reactive({ isShow: false, hosts: [] as Host[] });
 
 const assignUnitDisabledState = computed(() => {
   const selected = selection.value;
@@ -449,12 +446,27 @@ const assignUnitDisabledState = computed(() => {
   return { disabled: false, tooltip: '' };
 });
 
+const operateDisabledState = computed(() => {
+  const selected = selection.value;
+  if (selected.length === 0) return { disabled: false, tooltip: '' };
+
+  const hasNonRunning = selected.some((h: any) => h.node_status !== 'running');
+  if (hasNonRunning) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledNotRunning'),
+    };
+  }
+
+  return { disabled: false, tooltip: '' };
+});
+
 // ---------- 常量定义 ----------
 const topoBizFilterList = computed(() => mainStore.businessList);
 const operate = computed(() => [
   { id: 'reinstall', name: t('platform.nodeMan.agentStatus.reinstall'), disabled: false, tooltip: '', show: true },
-  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: false, tooltip: '', show: true },
-  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: false, tooltip: '', show: true },
+  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: operateDisabledState.value.disabled, tooltip: operateDisabledState.value.tooltip, show: true },
+  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: operateDisabledState.value.disabled, tooltip: operateDisabledState.value.tooltip, show: true },
   { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: false, tooltip: '', show: true },
   { id: 'assign_unit', name: t('platform.nodeMan.agentStatus.assignUnit'), disabled: assignUnitDisabledState.value.disabled, tooltip: assignUnitDisabledState.value.tooltip, show: true },
 ]);
@@ -952,6 +964,12 @@ const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; too
       tooltip: t('platform.nodeMan.agentStatus.assignUnitDisabledRowAssigned'),
     };
   }
+  if ((config.id === 'upgrade' || config.id === 'restart') && (row as any).node_status !== 'running') {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledRowNotRunning'),
+    };
+  }
   return { disabled: false, tooltip: '' };
 };
 
@@ -1081,10 +1099,8 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
   }
   operateData.value = data;
   if (operateType === 'upgrade') {
-    chooseVersionData.title = t('platform.nodeMan.agentStatus.agentUpgrade');
-    chooseVersionData.isShow = true;
-    chooseVersionData.data = data;
-    chooseVersionData.batch = batch;
+    upgradePreviewData.hosts = data;
+    upgradePreviewData.isShow = true;
   } else if (operateType === 'restart') {
     operateDialogIsShow.value = true;
     operateDialogData.type = operateType;
