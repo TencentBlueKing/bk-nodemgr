@@ -841,6 +841,67 @@ func TestSliceUnique(t *testing.T) {
 	}
 }
 
+func TestSliceIntersect(t *testing.T) {
+	type args[T comparable] struct {
+		left  []T
+		right []T
+	}
+	type testCase[T comparable] struct {
+		name string
+		args args[T]
+		want []T
+	}
+	tests := []testCase[string]{
+		{
+			name: "normal",
+			args: args[string]{
+				left:  []string{"a", "b", "c"},
+				right: []string{"b", "c", "d"},
+			},
+			want: []string{"b", "c"},
+		},
+		{
+			name: "preserve left order and unique",
+			args: args[string]{
+				left:  []string{"c", "a", "b", "a", "c"},
+				right: []string{"a", "c", "d", "a"},
+			},
+			want: []string{"c", "a"},
+		},
+		{
+			name: "nil left",
+			args: args[string]{
+				left:  nil,
+				right: []string{"a", "b"},
+			},
+			want: nil,
+		},
+		{
+			name: "empty left",
+			args: args[string]{
+				left:  []string{},
+				right: []string{"a", "b"},
+			},
+			want: []string{},
+		},
+		{
+			name: "disjoint",
+			args: args[string]{
+				left:  []string{"a", "b"},
+				right: []string{"c", "d"},
+			},
+			want: []string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SliceIntersect(tt.args.left, tt.args.right); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceIntersect() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestMapMapValueToSlice map to slice.
 func TestMapMapValueToSlice(t *testing.T) {
 	t.Run("string_key", func(t *testing.T) {
