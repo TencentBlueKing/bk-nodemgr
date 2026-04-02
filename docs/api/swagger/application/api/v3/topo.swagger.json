@@ -1413,7 +1413,7 @@
           "type": "integer",
           "format": "int64"
         },
-        "deploy_configs": {
+        "custom_deploy_config": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v3CustomDeployConfig"
@@ -2899,7 +2899,7 @@
           "type": "integer",
           "format": "int64"
         },
-        "deploy_configs": {
+        "custom_deploy_config": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v3CustomDeployConfig"
@@ -3138,7 +3138,7 @@
           "type": "integer",
           "format": "int64"
         },
-        "deploy_configs": {
+        "custom_deploy_config": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v3CustomDeployConfig"

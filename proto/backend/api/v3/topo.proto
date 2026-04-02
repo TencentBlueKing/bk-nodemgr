@@ -250,7 +250,7 @@ message TopoNetworkUnitCreateReq {
   bool is_direct = 5;
   Endpoints direct_endpoints = 6;
   int64 generation = 7;
-  map<string, CustomDeployConfig> deploy_configs = 8;
+  map<string, CustomDeployConfig> custom_deploy_config = 8;
 }
 
 // TopoNetworkUnitCreateResp describes the HTTP response body when create
@@ -277,7 +277,7 @@ message TopoNetworkUnitUpdateReq {
   bool is_direct = 6;
   Endpoints direct_endpoints = 7;
   int64 generation = 8;
-  map<string, CustomDeployConfig> deploy_configs = 9;
+  map<string, CustomDeployConfig> custom_deploy_config = 9;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update

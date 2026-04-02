@@ -91,7 +91,7 @@ message NetworkUnit {
   optional bool is_direct = 7;
   Endpoints direct_endpoints = 8;
   optional int64 generation = 9;
-  map<string, CustomDeployConfig> deploy_configs = 10;
+  map<string, CustomDeployConfig> custom_deploy_config = 10;
 }
 
 // NetworkUnitBrief describes the network unit brief informations.
@@ -106,7 +106,7 @@ message NetworkUnitBrief {
   optional bool is_direct = 7;
   Endpoints direct_endpoints = 8;
   optional int64 generation = 9;
-  map<string, CustomDeployConfig> deploy_configs = 10;
+  map<string, CustomDeployConfig> custom_deploy_config = 10;
 }
 
 // HostState describes the host state informations. Usually contains

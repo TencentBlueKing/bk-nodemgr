@@ -73,12 +73,12 @@ func (x *TopoNetworkUnitCreateReq) ConvertDirectEndpointsFromTypes(endpoints *ty
 
 // ConvertCustomDeployConfigToTypes convert custom deploy config from proto to types.
 func (x *TopoNetworkUnitCreateReq) ConvertCustomDeployConfigToTypes() map[criteria.OSType]types.CustomDeployConfig {
-	return convertCustomDeployConfigToTypes(x.GetDeployConfigs())
+	return convertCustomDeployConfigToTypes(x.GetCustomDeployConfig())
 }
 
 // ConvertCustomDeployConfigFromTypes convert custom deploy config from types to proto.
 func (x *TopoNetworkUnitCreateReq) ConvertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomDeployConfig) {
-	x.DeployConfigs = convertCustomDeployConfigFromTypes(deployConfig)
+	x.CustomDeployConfig = convertCustomDeployConfigFromTypes(deployConfig)
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
@@ -140,12 +140,12 @@ func (x *TopoNetworkUnitUpdateReq) ConvertDirectEndpointsFromTypes(endpoints *ty
 
 // ConvertCustomDeployConfigToTypes convert custom deploy config from proto to types.
 func (x *TopoNetworkUnitUpdateReq) ConvertCustomDeployConfigToTypes() map[criteria.OSType]types.CustomDeployConfig {
-	return convertCustomDeployConfigToTypes(x.GetDeployConfigs())
+	return convertCustomDeployConfigToTypes(x.GetCustomDeployConfig())
 }
 
 // ConvertCustomDeployConfigFromTypes convert custom deploy config from types to proto.
 func (x *TopoNetworkUnitUpdateReq) ConvertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomDeployConfig) {
-	x.DeployConfigs = convertCustomDeployConfigFromTypes(deployConfig)
+	x.CustomDeployConfig = convertCustomDeployConfigFromTypes(deployConfig)
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
@@ -184,7 +184,7 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitFromTypes(
 	data.Links = convertLinksFromTypes(networkUnit.Links)
 	data.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
 	*data.Generation = int64(networkUnit.Generation)
-	data.DeployConfigs = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
+	data.CustomDeployConfig = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
 
 	x.Data = data
 }
@@ -214,7 +214,7 @@ func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitToTypes() (*types.NetworkUnit
 		IsDirect:           data.GetIsDirect(),
 		DirectEndpoints:    convertEndpointToTypes(data.GetDirectEndpoints()),
 		Generation:         types.Generation(data.GetGeneration()),
-		CustomDeployConfig: convertCustomDeployConfigToTypes(data.GetDeployConfigs()),
+		CustomDeployConfig: convertCustomDeployConfigToTypes(data.GetCustomDeployConfig()),
 	}, accessPointsMap
 }
 
@@ -289,7 +289,7 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, netw
 		*item.IsDirect = networkUnit.IsDirect
 		item.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
 		*item.Generation = int64(networkUnit.Generation)
-		item.DeployConfigs = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
+		item.CustomDeployConfig = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
 
 		// convert accesspoints
 		for _, accessPointID := range networkUnit.AccessPoints {
@@ -332,7 +332,7 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 			IsDirect:           item.GetIsDirect(),
 			DirectEndpoints:    convertEndpointToTypes(item.GetDirectEndpoints()),
 			Generation:         types.Generation(item.GetGeneration()),
-			CustomDeployConfig: convertCustomDeployConfigToTypes(item.GetDeployConfigs()),
+			CustomDeployConfig: convertCustomDeployConfigToTypes(item.GetCustomDeployConfig()),
 		}
 	}
 
@@ -391,7 +391,7 @@ func newEmptyNetworkUnit() *NetworkUnit {
 			Data:    make([]string, 0),
 		},
 		Generation:    new(int64),
-		DeployConfigs: make(map[string]*CustomDeployConfig, 0),
+		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
 	}
 }
 
@@ -414,7 +414,7 @@ func newEmptyNetworkUnitBrief() *NetworkUnitBrief {
 			Data:    make([]string, 0),
 		},
 		Generation:    new(int64),
-		DeployConfigs: make(map[string]*CustomDeployConfig, 0),
+		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
 	}
 }
 
