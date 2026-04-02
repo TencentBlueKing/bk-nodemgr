@@ -19,7 +19,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -130,15 +129,6 @@ func (act *actionResolveOfflineDetectInfo) Do(ctx *action.InstanceContext) error
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType
 	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {

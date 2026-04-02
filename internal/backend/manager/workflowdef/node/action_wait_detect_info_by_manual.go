@@ -19,7 +19,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -172,21 +171,6 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType
 	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
-	// this is a fallback strategy, if system has no specified workdir, use connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = detectInfo.RunDir
-	}
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {

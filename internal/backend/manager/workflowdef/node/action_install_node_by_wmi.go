@@ -23,7 +23,6 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -214,10 +213,10 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *wmix.Client) error {
-	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerWorkDir)
+	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerRuntime.WorkDir)
 	if err != nil {
 		return fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
-			std.DeployInfo().InstallerWorkDir, stdout, stderr, err)
+			std.DeployInfo().InstallerRuntime.WorkDir, stdout, stderr, err)
 	}
 
 	std.InstanceData().Log().
@@ -256,13 +255,13 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 		}
 	}()
 
-	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallerFile.Path(), std.DeployInfo().InstallerWorkDir)
+	stdout, stderr, err := client.UploadFile(std.Context(), tmpInstallerFile.Path(), std.DeployInfo().InstallerRuntime.WorkDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host, stdout(%s), stderr(%s): %w",
 			stdout, stderr, err)
 	}
 
-	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
 	std.InstanceData().Log().
 		Zh("已传输安装器到主机, 路径(%s)", installerPath).
 		En("transferred installer to host, path(%s)", installerPath).
@@ -331,11 +330,6 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	installParams := &InstallParamsWin{
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -345,8 +339,8 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
 		DeployToken:     std.Token(),
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     deployConstant.BaseWorkDir,
-		BaseDeployDir:   deployConstant.BaseDeployDir,
+		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
+		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -374,12 +368,12 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		}
 	}()
 
-	_, _, err = client.UploadFile(std.Context(), tmpInstallBat.Path(), std.DeployInfo().InstallerWorkDir)
+	_, _, err = client.UploadFile(std.Context(), tmpInstallBat.Path(), std.DeployInfo().InstallerRuntime.WorkDir)
 	if err != nil {
 		return fmt.Errorf("failed to transfer bat file for wmi execution: %w", err)
 	}
 
-	installCMD := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, installBatName))
+	installCMD := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installBatName))
 	stdout, stderr, err := client.RunSilentCommand(std.Context(), installCMD)
 	if err != nil {
 		return fmt.Errorf("failed to run install node: %w", err)

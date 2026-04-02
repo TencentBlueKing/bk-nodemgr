@@ -71,14 +71,41 @@ type PluginDeploymentInfo struct {
 	// Process is the process info.
 	Process Process
 
-	// InstallerWorkDir is used to store the installation files.
-	InstallerWorkDir string
+	// InstallerRuntime is used to store the installer runtime.
+	InstallerRuntime PluginDeploymentInstallerRuntime
+
+	// BaseRuntime is used to store the plugin base runtime.
+	BaseRuntime PluginDeploymentBaseRuntime
 
 	// InstallOptions is used to control the tools when install plugin.
 	InstallOptions PluginDeploymentInstallOptions
 
 	// TransferOptions is used to control the tools when transfer plugin.
 	TransferOptions PluginDeploymentTransferOptions
+}
+
+// PluginDeploymentInstallerRuntime this is the installer runtime for plugin deployment.
+type PluginDeploymentInstallerRuntime struct {
+	BaseWorkDir string
+	WorkDir     string
+}
+
+// PluginDeploymentBaseRuntime this is the base runtime for plugin deployment.
+type PluginDeploymentBaseRuntime struct {
+	BaseDeployDir         string
+	DeployDir             string
+	GSEHomeDir            string
+	PluginHomeDir         string
+	DataIPC               string
+	PluginIPC             string
+	HostIDPath            string
+	LogDir                string
+	DataDir               string
+	RunDir                string
+	ConfigDir             string
+	SubConfigDir          string
+	PluginCommonConstants map[string]any
+	GlobalCommonConstants map[string]any
 }
 
 // PluginDeploymentInstallOptions defines the options for plugin deployment.

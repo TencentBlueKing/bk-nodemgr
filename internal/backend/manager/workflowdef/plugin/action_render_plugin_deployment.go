@@ -19,8 +19,6 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -41,7 +39,6 @@ func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 	return &actionRenderPluginDeployment{
 		daoHost:             capability.StorageTopo,
 		daoPluginPkg:        capability.StorageRelease,
-		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 	}
 }
@@ -55,7 +52,6 @@ type ActParamRenderPluginDeployment struct {
 type actionRenderPluginDeployment struct {
 	daoHost             topoStg.IStorageHost
 	daoPluginPkg        releaseStg.IPlugin
-	daoPlugin           pluginStg.IDaoPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 }
 
@@ -122,34 +118,12 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	plugin, err := act.daoPlugin.GetPlugin(nCtx, std.DeployInfo().Process.PluginName)
-	if err != nil {
-		return fmt.Errorf("failed to get plugin, host-id(%d), plugin-name(%s): %w",
-			std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, err)
-	}
-
 	version := std.DeployInfo().Process.Info.Version
 	if version == "" {
 		version = std.DeployInfo().InstallOptions.Version
 	}
-	pluginPkgName := plugin.PkgName
-	pluginGroup := plugin.Group
-	pluginName := plugin.Name
-	nodeGeneration := host.Dynamic.NodeGeneration
-	nodePlatform := platfmt.Platform{
-		OS:   host.Dynamic.NodeOsType,
-		Arch: host.Dynamic.NodeCPUArch,
-	}
-
-	// setting process by host.
-	std.DeployInfo().Process.Platform = nodePlatform
-
-	std.DeployInfo().Process.Generation = nodeGeneration
 
 	// setting process by plugin.
-	std.DeployInfo().Process.PluginName = pluginName
-	std.DeployInfo().Process.PluginPkgName = pluginPkgName
-	std.DeployInfo().Process.PluginGroup = pluginGroup
 	std.DeployInfo().Process.Info = types.ProcessInfo{
 		Version: version,
 		AgentID: host.Dynamic.AgentID,
@@ -158,40 +132,27 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	// setting process by plugin pkg.
 
 	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(nCtx, types.ReleasePluginKey{
-		Generation: nodeGeneration,
-		Platform:   nodePlatform,
+		Generation: std.DeployInfo().Process.Generation,
+		Platform:   std.DeployInfo().Process.Platform,
 		Version:    version,
-		Name:       pluginPkgName,
+		Name:       std.DeployInfo().Process.PluginPkgName,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get plugin pkg by name, plugin-pkg-name(%s): %w", pluginPkgName, err)
+		return fmt.Errorf("failed to get plugin pkg by name, plugin-pkg-name(%s): %w", std.DeployInfo().Process.PluginPkgName, err)
 	}
 	if !pluginPkg.Enabled {
-		return fmt.Errorf("plugin pkg is not enabled, plugin-pkg-name(%s), version(%s)", pluginPkgName, version)
+		return fmt.Errorf("plugin pkg is not enabled, plugin-pkg-name(%s), version(%s)", std.DeployInfo().Process.PluginPkgName, version)
 	}
 
 	std.DeployInfo().Process.Controller = pluginPkg.PluginController
 
-	// setting process by plugin deploy conf.
-	pluginDeployConf, err := deployconstant.GetPluginDeployConf(nodeGeneration, nodePlatform.OS)
-	if err != nil {
-		return fmt.Errorf("failed to get plugin deploy conf, node-generation(%d), node-os(%s), node-arch(%s): %w",
-			nodeGeneration, nodePlatform.OS, nodePlatform.Arch, err)
-	}
-
-	programName := pluginPkgName
-	if nodePlatform.OS == criteria.OSWindows {
+	programName := std.DeployInfo().Process.PluginPkgName
+	if std.DeployInfo().Process.Platform.OS == criteria.OSWindows {
 		programName += ".exe"
 	}
 
-	pidFileName := fmt.Sprintf("%s.pid", pluginPkgName)
-	pidFilePath := tool.JoinPath(
-		nodePlatform.OS,
-		pluginDeployConf.GenerateDefaultRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		pidFileName,
-	)
-
-	setupPath := pluginDeployConf.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName)
+	pidFileName := fmt.Sprintf("%s.pid", std.DeployInfo().Process.PluginPkgName)
+	pidFilePath := tool.JoinPath(std.DeployInfo().Process.Platform.OS, std.DeployInfo().BaseRuntime.RunDir, pidFileName)
 
 	var mainConfigPath string
 	for _, configTemplate := range pluginPkg.ConfigTemplates {
@@ -199,17 +160,11 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 			continue
 		}
 
-		mainConfigPath = tool.JoinPath(
-			nodePlatform.OS,
-			pluginDeployConf.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-			configTemplate.FilePath,
-			configTemplate.Name,
-		)
+		mainConfigPath = tool.JoinPath(std.DeployInfo().Process.Platform.OS, std.DeployInfo().BaseRuntime.PluginHomeDir,
+			configTemplate.FilePath, configTemplate.Name)
 
 		break
 	}
-
-	logDirPath := pluginDeployConf.LogDir
 
 	// TODO: 接入配置管理
 	if host.Dynamic.LoginUser == "" {
@@ -218,10 +173,10 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 
 	std.DeployInfo().Process.Identity = types.ProcessIdentity{
 		Name:       programName,
-		SetupPath:  setupPath,
+		SetupPath:  std.DeployInfo().BaseRuntime.PluginHomeDir,
 		PidPath:    pidFilePath,
 		ConfigPath: mainConfigPath,
-		LogPath:    logDirPath,
+		LogPath:    std.DeployInfo().BaseRuntime.LogDir,
 		User:       host.Dynamic.LoginUser,
 	}
 

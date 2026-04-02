@@ -21,8 +21,6 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -57,9 +55,6 @@ type actionEnsureAndUpdatePluginConfigDetails struct {
 	daoNetworkArea      topoStg.IStorageNetworkArea
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoPluginRelease    release.IPlugin
-
-	pluginDeployConstant deployconstant.PluginDeployConf
-	nodeDeployConstant   deployconstant.NodeDeployConf
 }
 
 // Name returns the name of the action.
@@ -116,16 +111,6 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 			err = errors.Join(storeErr, err)
 		}
 	}()
-
-	act.nodeDeployConstant, err = deployconstant.GetNodeDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
-	if err != nil {
-		return fmt.Errorf("failed to get node deploy constant: %w", err)
-	}
-
-	act.pluginDeployConstant, err = deployconstant.GetPluginDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
-	if err != nil {
-		return fmt.Errorf("failed to get plugin deploy constant: %w", err)
-	}
 
 	hostInfo, err := act.daoHost.GetHostByID(std.Context(), std.DeployInfo().Process.HostID)
 	if err != nil {
@@ -382,22 +367,22 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemCon
 
 	pluginInfo := ContextPluginInfo{
 		Name:          std.DeployInfo().Process.PluginName,
-		LogPath:       act.pluginDeployConstant.LogDir,
-		DataPath:      act.pluginDeployConstant.GenerateDefaultDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		PidPath:       act.pluginDeployConstant.GenerateDefaultRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		SetupPath:     act.pluginDeployConstant.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		ConfigPath:    act.pluginDeployConstant.GenerateDefaultConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		HostIDPath:    act.nodeDeployConstant.HostIDPath,
-		PluginIPC:     act.nodeDeployConstant.GenerateDefaultPluginIPCPath(hostInfo.Dynamic.NodeRole),
-		DataIPC:       act.nodeDeployConstant.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
-		AgentDir:      act.nodeDeployConstant.DeployDir,
+		LogPath:       std.DeployInfo().BaseRuntime.LogDir,
+		DataPath:      std.DeployInfo().BaseRuntime.DataDir,
+		PidPath:       std.DeployInfo().BaseRuntime.RunDir,
+		SetupPath:     std.DeployInfo().BaseRuntime.PluginHomeDir,
+		ConfigPath:    std.DeployInfo().BaseRuntime.ConfigDir,
+		HostIDPath:    std.DeployInfo().BaseRuntime.HostIDPath,
+		PluginIPC:     std.DeployInfo().BaseRuntime.PluginIPC,
+		DataIPC:       std.DeployInfo().BaseRuntime.DataIPC,
+		AgentDir:      std.DeployInfo().BaseRuntime.GSEHomeDir,
 		GroupID:       std.DeployInfo().Process.PluginGroup,
 		IsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
 	}
 
 	preDefinitionConstants := ContextPreDefinitionConstants{
-		Unique: act.pluginDeployConstant.GetCommonConstants(std.DeployInfo().Process.PluginPkgName),
-		Global: act.pluginDeployConstant.GetCommonConstants(keyGlobal),
+		Unique: std.DeployInfo().BaseRuntime.PluginCommonConstants,
+		Global: std.DeployInfo().BaseRuntime.GlobalCommonConstants,
 	}
 
 	nodeInfo := convertHostTypeToContextNodeInfo(hostInfo)
@@ -494,8 +479,8 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 		return nil, fmt.Errorf("failed to get network area, networkarea-id(%d): %w", hostInfo.Static.NetworkAreaID, err)
 	}
 
-	constants := act.pluginDeployConstant.GetCommonConstants(std.DeployInfo().Process.PluginName)
-	constants[keyGlobal] = act.pluginDeployConstant.GetCommonConstants(keyGlobal)
+	constants := std.DeployInfo().BaseRuntime.PluginCommonConstants
+	constants[keyGlobal] = std.DeployInfo().BaseRuntime.GlobalCommonConstants
 	nodeManInfo := map[string]any{
 		keyHost: map[string]any{
 			keyBkHostID: hostInfo.HostID,
@@ -535,33 +520,29 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 	}
 
 	// notice: in v2 plugin, subconfig_path still need provide, and the path is fixed
-	subconfigDir := act.pluginDeployConstant.GenerateDefaultSubConfigDir(
-		std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName,
-		tool.JoinPath(std.DeployInfo().Process.Platform.OS, "etc", std.DeployInfo().Process.PluginName), // nolint: goconst
-	)
-	if err = pluginUtils.CheckDirPathSafe(subconfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
-		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", subconfigDir, err)
+	if err = pluginUtils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 	}
 
 	pluginPath := map[string]any{
-		keyLogPath:       act.pluginDeployConstant.LogDir,
-		keyDataPath:      act.pluginDeployConstant.GenerateDefaultDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		keyPidPath:       act.pluginDeployConstant.GenerateDefaultRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		keySetupPath:     act.pluginDeployConstant.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		keyEndpoint:      act.nodeDeployConstant.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
-		keyHostID:        act.nodeDeployConstant.HostIDPath,
-		keySubConfigPath: subconfigDir,
+		keyLogPath:       std.DeployInfo().BaseRuntime.LogDir,
+		keyDataPath:      std.DeployInfo().BaseRuntime.DataDir,
+		keyPidPath:       std.DeployInfo().BaseRuntime.RunDir,
+		keySetupPath:     std.DeployInfo().BaseRuntime.PluginHomeDir,
+		keyEndpoint:      std.DeployInfo().BaseRuntime.DataIPC,
+		keyHostID:        std.DeployInfo().BaseRuntime.HostIDPath,
+		keySubConfigPath: std.DeployInfo().BaseRuntime.SubConfigDir,
 	}
 
 	controlInfo := map[string]any{
-		keyPluginIPC:    act.nodeDeployConstant.GenerateDefaultPluginIPCPath(hostInfo.Dynamic.NodeRole),
-		keyDataIPC:      act.nodeDeployConstant.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
-		keyGSEAgentHome: act.nodeDeployConstant.DeployDir,
+		keyPluginIPC:    std.DeployInfo().BaseRuntime.PluginIPC,
+		keyDataIPC:      std.DeployInfo().BaseRuntime.DataIPC,
+		keyGSEAgentHome: std.DeployInfo().BaseRuntime.GSEHomeDir,
 		keyGroupID:      std.DeployInfo().Process.PluginGroup,
-		keyLogPath:      act.pluginDeployConstant.LogDir,
-		keyDataPath:     act.pluginDeployConstant.GenerateDefaultDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		keyPidPath:      act.pluginDeployConstant.GenerateDefaultRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		keySetupPath:    act.pluginDeployConstant.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+		keyLogPath:      std.DeployInfo().BaseRuntime.LogDir,
+		keyDataPath:     std.DeployInfo().BaseRuntime.DataDir,
+		keyPidPath:      std.DeployInfo().BaseRuntime.RunDir,
+		keySetupPath:    std.DeployInfo().BaseRuntime.PluginHomeDir,
 		// TODO: implement a plugin to obtain listen ip and port
 		keyListenIP:   "",
 		keyListenPort: 0,

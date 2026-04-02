@@ -15,6 +15,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -25,6 +26,11 @@ const (
 	pluginConfigDirName = "etc"
 	pluginRunDirName    = "run"
 	pluginDataDirName   = "data"
+
+	pluginUnixLogDirFormat        = "/var/log/%s/plugin/"
+	pluginUnixHostIDPathFormat    = "/var/lib/%s/host/hostid"
+	pluginWindowsLogDirFormat     = "C:\\%s\\logs\\plugin\\"
+	pluginWindowsHostIDPathFormat = "C:\\%s\\data\\host\\hostid"
 )
 
 // PluginDeployConf defines the deployment configuration for agent.
@@ -86,59 +92,59 @@ func SetPluginDeployConf(conf PluginDeployConf) error {
 }
 
 func populatePluginDefaultValues(conf *PluginDeployConf) {
-	env := system.GetEnv()
+	conf.LogDir = conv.NonEmptyOr(conf.LogDir, conf.generateDefaultPluginLogDir())
+	conf.HostIDPath = conv.NonEmptyOr(conf.HostIDPath, conf.generateDefaultHostIDPath())
+}
 
-	conf.DeployDir = tool.JoinPath(conf.OsType, conf.BaseDeployDir, env, pluginBaseDirName)
-	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env)
-
-	// HostIDPath is a special logic of CMDB that cannot be modified
+// generateDefaultPluginLogDir generates the default log directory for the deployment configuration.
+func (conf PluginDeployConf) generateDefaultPluginLogDir() string {
 	if conf.OsType == criteria.OSWindows {
-		if conf.LogDir == "" {
-			conf.LogDir = fmt.Sprintf("C:\\%s\\logs\\", env)
-		}
-
-		if conf.HostIDPath == "" {
-			conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
-		}
-
-		return
+		return fmt.Sprintf(pluginWindowsLogDirFormat, system.GetEnv())
 	}
 
-	if conf.LogDir == "" {
-		conf.LogDir = fmt.Sprintf("/var/log/%s/", env)
+	return fmt.Sprintf(pluginUnixLogDirFormat, system.GetEnv())
+}
+
+// GenerateDefaultHostIDPath generates the default host ID path for the deployment configuration.
+// HostIDPath is a special logic of CMDB that cannot be modified, so we need to provide a default value for it.
+func (conf PluginDeployConf) generateDefaultHostIDPath() string {
+	if conf.OsType == criteria.OSWindows {
+		return fmt.Sprintf(pluginWindowsHostIDPathFormat, system.GetEnv())
 	}
 
-	if conf.HostIDPath == "" {
-		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", env)
-	}
+	return fmt.Sprintf(pluginUnixHostIDPathFormat, system.GetEnv())
 }
 
-// GenerateDefaultSetupPath generates the default setup path based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultSetupPath(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName)
+// GeneratePluginDeployDir generates the deploy dir for the deployment configuration.
+func (conf PluginDeployConf) GeneratePluginDeployDir() string {
+	return tool.JoinPath(conf.OsType, conf.BaseDeployDir, system.GetEnv(), pluginBaseDirName)
 }
 
-// GenerateDefaultRunDir generates the default run directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultRunDir(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), pluginRunDirName)
+// GeneratePluginHomeDir generates the plugin home directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GeneratePluginHomeDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GeneratePluginDeployDir(), pluginGroup, pluginName)
 }
 
-// GenerateDefaultDataDir generates the default data directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultDataDir(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), pluginDataDirName)
+// GeneratePluginRunDir generates the run directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GeneratePluginRunDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GeneratePluginHomeDir(pluginGroup, pluginName), pluginRunDirName)
 }
 
-// GenerateDefaultConfigDir generates the default configuration directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultConfigDir(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), pluginConfigDirName)
+// GeneratePluginDataDir generates the data directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GeneratePluginDataDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GeneratePluginHomeDir(pluginGroup, pluginName), pluginDataDirName)
 }
 
-// GenerateDefaultSubConfigDir generates the default sub-configuration directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultSubConfigDir(pluginGroup, pluginName, targetRelatedFilePath string) string {
-	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), targetRelatedFilePath)
+// GeneratePluginConfigDir generates the configuration directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GeneratePluginConfigDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GeneratePluginHomeDir(pluginGroup, pluginName), pluginConfigDirName)
 }
 
-// GetCommonConstants returns the common constants by target plugin name.
+// GeneratePluginSubConfigDir generates the sub-configuration directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GeneratePluginSubConfigDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GeneratePluginConfigDir(pluginGroup, pluginName), pluginName)
+}
+
 // CommonConstants structure:
 //
 //	{
@@ -154,7 +160,9 @@ func (conf PluginDeployConf) GenerateDefaultSubConfigDir(pluginGroup, pluginName
 //	        "constant_key_5": "constant_value_5"
 //	    }
 //	}.
-func (conf PluginDeployConf) GetCommonConstants(targetPluginName string) map[string]any {
+
+// GetPluginCommonConstants returns the common constants by target plugin name.
+func (conf PluginDeployConf) GetPluginCommonConstants(targetPluginName string) map[string]any {
 	if conf.CommonConstants == nil {
 		return map[string]any{}
 	}
@@ -165,4 +173,18 @@ func (conf PluginDeployConf) GetCommonConstants(targetPluginName string) map[str
 	}
 
 	return pluginConstants
+}
+
+// GetGlobalCommonConstants returns the global common constants.
+func (conf PluginDeployConf) GetGlobalCommonConstants() map[string]any {
+	if conf.CommonConstants == nil {
+		return map[string]any{}
+	}
+
+	globalConstants, ok := conf.CommonConstants["global"]
+	if !ok {
+		return map[string]any{}
+	}
+
+	return globalConstants
 }

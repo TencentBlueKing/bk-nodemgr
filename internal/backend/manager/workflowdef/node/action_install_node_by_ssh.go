@@ -26,7 +26,6 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
@@ -278,7 +277,7 @@ func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActio
 		return fmt.Errorf("failed to get node conf: %w", err)
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
+	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
 	configDir := path.Join(dataDir, "config")
 	if _, stderr, err := client.RunCommand("mkdir -p " + configDir); err != nil {
 		return fmt.Errorf("failed to mkdir config dir, stderr(%s): %w", stderr, err)
@@ -369,7 +368,7 @@ func (act *actionInstallNodeBySSH) pushProxyReleasePackage(std *nodeUtils.NodeAc
 		return fmt.Errorf("failed to get release package: %w", err)
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
+	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
 	remotePath := path.Join(dataDir, installerPkgName)
 	if err := client.TransferFile(reader, remotePath); err != nil {
 		return fmt.Errorf("failed to transfer release package: %w", err)
@@ -435,11 +434,6 @@ func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionSt
 func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	installParams := &InstallParams{
 		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
 		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -447,8 +441,8 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
 		DeployToken:   std.Token(),
 		OperInstID:    std.InstanceData().OperationInstanceID,
-		BaseWorkDir:   deployConstant.BaseWorkDir,
-		BaseDeployDir: deployConstant.BaseDeployDir,
+		BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+		BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
 		SkipCallback:  true,
 		SkipDownload:  true,
 	}
@@ -466,8 +460,8 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 
 	outStr, _, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		std.DeployInfo().InstallerWorkDir,
-		std.DeployInfo().InstallerWorkDir,
+		std.DeployInfo().InstallerRuntime.WorkDir,
+		std.DeployInfo().InstallerRuntime.WorkDir,
 		installCmd),
 	)
 	if err != nil {
@@ -483,8 +477,8 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 }
 
 func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
-	if _, stderr, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerWorkDir); err != nil {
-		err = fmt.Errorf("failed to run command. command(mkdir -p %s), stderr(%s): %w", std.DeployInfo().InstallerWorkDir, stderr, err)
+	if _, stderr, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerRuntime.WorkDir); err != nil {
+		err = fmt.Errorf("failed to run command. command(mkdir -p %s), stderr(%s): %w", std.DeployInfo().InstallerRuntime.WorkDir, stderr, err)
 
 		return err
 	}
@@ -506,7 +500,7 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 
 	// TransferFile accepts io.ReadCloser and closes it via its own defer,
 	// so we must not close toolReader here to avoid a double-close.
-	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
 	if err = client.TransferFile(toolReader, installerPath); err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host: %w", err)
 	}
@@ -586,11 +580,6 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	installParams := &InstallParams{
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -600,8 +589,8 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
 		DeployToken:     std.Token(),
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     deployConstant.BaseWorkDir,
-		BaseDeployDir:   deployConstant.BaseDeployDir,
+		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
+		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -618,8 +607,8 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 	// exec install command.
 	outStr, stderr, err := client.RunCommand(fmt.Sprintf(
 		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		std.DeployInfo().InstallerWorkDir,
-		std.DeployInfo().InstallerWorkDir,
+		std.DeployInfo().InstallerRuntime.WorkDir,
+		std.DeployInfo().InstallerRuntime.WorkDir,
 		installCmd),
 	)
 	if err != nil {

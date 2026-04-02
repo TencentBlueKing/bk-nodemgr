@@ -23,7 +23,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -524,10 +523,6 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 	}
 
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
-	deploymentConf, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get node deploy conf: %w", err)
-	}
 
 	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
 	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
@@ -541,7 +536,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 	nodeConf.PreSetting[GseTemplateKeyZoneID] = std.DeployInfo().Host.Static.RegionID
 	nodeConf.PreSetting[GseTemplateKeyCityID] = std.DeployInfo().Host.Static.CityID
 
-	homeDir := deploymentConf.GenerateNodeHomeDir(std.DeployInfo().Host.Dynamic.NodeRole)
+	homeDir := std.DeployInfo().BaseRuntime.HomeDir
 	certDir := tool.JoinPath(osType, homeDir, "cert")
 	nodeConf.PreSetting[GseTemplateKeyHomeDir] = homeDir
 
@@ -595,16 +590,15 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSCliKeyFile] = gseAPIClientKeyFilePath
 	}
 
-	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = deploymentConf.ExtraConfigDir
-	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.LogDir
-	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GenerateDefaultPluginIPCPath(std.DeployInfo().Host.Dynamic.NodeRole)
-	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GenerateDefaultDataIPCPath(std.DeployInfo().Host.Dynamic.NodeRole)
-	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.storageDomainGse.NeedStaticAccess(
-		std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
-
+	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = std.DeployInfo().BaseRuntime.ExtraConfigDir
+	nodeConf.PreSetting[GseTemplateKeyLogPath] = std.DeployInfo().BaseRuntime.LogDir
+	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = std.DeployInfo().BaseRuntime.PluginIPC
+	nodeConf.PreSetting[GseTemplateKeyDataIPC] = std.DeployInfo().BaseRuntime.DataIPC
+	needStaticAccess, err := act.storageDomainGse.NeedStaticAccess(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
 	if err != nil {
 		return fmt.Errorf("failed to get need static access: %w", err)
 	}
+	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess] = needStaticAccess
 
 	// render access endpoints
 	switch std.DeployInfo().Host.Dynamic.NodeRole {

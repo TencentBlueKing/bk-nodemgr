@@ -20,7 +20,6 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -183,19 +182,14 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	restartParams := &RestartParams{
 		AgentID:          info.Host.Dynamic.AgentID,
 		InstallerName:    toolName,
-		InstallerWorkDir: info.InstallerWorkDir,
+		InstallerWorkDir: info.InstallerRuntime.WorkDir,
 		Generation:       info.Host.Dynamic.NodeGeneration,
 		NodeRole:         info.Host.Dynamic.NodeRole,
-		BaseWorkDir:      deployConstant.BaseWorkDir,
-		BaseDeployDir:    deployConstant.BaseDeployDir,
+		BaseWorkDir:      info.InstallerRuntime.BaseWorkDir,
+		BaseDeployDir:    info.BaseRuntime.BaseDeployDir,
 	}
 
 	// exec upgrade command

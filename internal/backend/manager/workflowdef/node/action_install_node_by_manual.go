@@ -22,7 +22,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
@@ -176,12 +175,6 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		return fmt.Errorf("failed to select service urls: %w", err)
 	}
 
-	// get deploy constant
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	// format installer tool name
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -191,9 +184,9 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 	// generate download URL and commands
 	var installerPath string
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
-		installerPath = winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
+		installerPath = winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
 	} else {
-		installerPath = path.Clean(path.Join(std.DeployInfo().InstallerWorkDir, toolName))
+		installerPath = path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
 	}
 
 	// build install params
@@ -206,8 +199,8 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		DownloadSvrAddr: downloadSvrAddress,
 		DeployToken:     std.Token(),
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     deployConstant.BaseWorkDir,
-		BaseDeployDir:   deployConstant.BaseDeployDir,
+		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
+		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {

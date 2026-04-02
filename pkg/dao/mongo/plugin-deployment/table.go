@@ -29,11 +29,12 @@ type Data struct {
 
 // Info this is the info of this plugin deployment.
 type Info struct {
-	ActionName       string          `json:"action_name" bson:"action_name"`
-	Process          process         `json:"process" bson:"process"`
-	InstallerWorkDir string          `json:"installer_work_dir" bson:"installer_work_dir"`
-	TransferOptions  transferOptions `json:"transfer_options" bson:"transfer_options"`
-	InstallOptions   installOptions  `json:"install_options" bson:"install_options"`
+	ActionName       string           `json:"action_name" bson:"action_name"`
+	Process          process          `json:"process" bson:"process"`
+	InstallerRuntime installerRuntime `json:"installer_runtime" bson:"installer_runtime"`
+	BaseRuntime      baseRuntime      `json:"base_runtime" bson:"base_runtime"`
+	TransferOptions  transferOptions  `json:"transfer_options" bson:"transfer_options"`
+	InstallOptions   installOptions   `json:"install_options" bson:"install_options"`
 }
 
 type process struct {
@@ -92,6 +93,30 @@ type processMonitorPolicy struct {
 	StartCheckSecs int64  `json:"start_check_secs" bson:"start_check_secs"`
 	StopCheckSecs  int64  `json:"stop_check_secs" bson:"stop_check_secs"`
 	OpTimeoutSecs  int64  `json:"op_timeout_secs" bson:"op_timeout_secs"`
+}
+
+// installerRuntime this is the installer runtime for plugin deployment.
+type installerRuntime struct {
+	BaseWorkDir string `json:"base_work_dir" bson:"base_work_dir"`
+	WorkDir     string `json:"work_dir" bson:"work_dir"`
+}
+
+// baseRuntime this is the base runtime for plugin deployment.
+type baseRuntime struct {
+	BaseDeployDir         string         `json:"base_deploy_dir" bson:"base_deploy_dir"`
+	DeployDir             string         `json:"deploy_dir" bson:"deploy_dir"`
+	GSEHomeDir            string         `json:"gse_home_dir" bson:"gse_home_dir"`
+	PluginHomeDir         string         `json:"plugin_home_dir" bson:"plugin_home_dir"`
+	DataIPC               string         `json:"data_ipc" bson:"data_ipc"`
+	PluginIPC             string         `json:"plugin_ipc" bson:"plugin_ipc"`
+	HostIDPath            string         `json:"host_id_path" bson:"host_id_path"`
+	LogDir                string         `json:"log_dir" bson:"log_dir"`
+	DataDir               string         `json:"data_dir" bson:"data_dir"`
+	RunDir                string         `json:"run_dir" bson:"run_dir"`
+	ConfigDir             string         `json:"config_dir" bson:"config_dir"`
+	SubConfigDir          string         `json:"sub_config_dir" bson:"sub_config_dir"`
+	PluginCommonConstants map[string]any `json:"plugin_common_constants" bson:"plugin_common_constants"`
+	GlobalCommonConstants map[string]any `json:"global_common_constants" bson:"global_common_constants"`
 }
 
 // installOptions this is the options for nodemgr tools.

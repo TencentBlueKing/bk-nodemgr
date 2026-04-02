@@ -28,9 +28,6 @@ type DeployConf struct {
 	BaseDeployDir string
 	BaseWorkDir   string
 
-	DeployDir string
-	WorkDir   string
-
 	ManualScriptPath string
 }
 
@@ -76,9 +73,6 @@ func GetDeployConf(generation types.Generation, osType criteria.OSType) (DeployC
 // SetDeployConf sets the deployment configuration for the specified OS type.
 // this map only set once, if the osType already exists, it will not be set again.
 func SetDeployConf(conf DeployConf) error {
-	// Populate default values if not set
-	populateDefaultValues(&conf)
-
 	if err := conf.Validate(); err != nil {
 		return fmt.Errorf("set deploy conf failed: %w", err)
 	}
@@ -94,9 +88,12 @@ func SetDeployConf(conf DeployConf) error {
 	return nil
 }
 
-func populateDefaultValues(conf *DeployConf) {
-	env := system.GetEnv()
+// GenerateDeployDir generates the deploy dir for the deployment configuration.
+func (conf DeployConf) GenerateDeployDir() string {
+	return tool.JoinPath(conf.OsType, conf.BaseDeployDir, system.GetEnv())
+}
 
-	conf.DeployDir = tool.JoinPath(conf.OsType, conf.BaseDeployDir, env)
-	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env)
+// GenerateWorkDir generates the work dir for the deployment configuration.
+func (conf DeployConf) GenerateWorkDir() string {
+	return tool.JoinPath(conf.OsType, conf.BaseWorkDir, system.GetEnv())
 }

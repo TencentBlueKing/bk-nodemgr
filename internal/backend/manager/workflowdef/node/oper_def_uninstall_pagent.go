@@ -46,6 +46,7 @@ func (oper *operUninstallPagent) Name() string {
 func (oper *operUninstallPagent) ActionDefNames() []string {
 	return []string{
 		ActionNameSelectRelayHost,
+		ActionNameInjectNodeCustomDeployConfig,
 		ActionNameTransferPkgToNode,
 		ActionNameUninstallPagent,
 		ActionNameWaitInstallerComplete,
@@ -60,12 +61,13 @@ func (oper *operUninstallPagent) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameSelectRelayHost:       true,
-			ActionNameTransferPkgToNode:     true,
-			ActionNameUninstallPagent:       true,
-			ActionNameWaitInstallerComplete: false,
-			ActionNameResetNodeDynamic:      true,
-			ActionNameUpdateHost:            true,
+			ActionNameSelectRelayHost:              true,
+			ActionNameInjectNodeCustomDeployConfig: true,
+			ActionNameTransferPkgToNode:            true,
+			ActionNameUninstallPagent:              true,
+			ActionNameWaitInstallerComplete:        false,
+			ActionNameResetNodeDynamic:             true,
+			ActionNameUpdateHost:                   true,
 		},
 	}
 }

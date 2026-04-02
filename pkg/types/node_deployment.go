@@ -72,6 +72,23 @@ func (mode LoginMode) Validate() error {
 	}
 }
 
+// DeploymentInstallerRuntime this is the installer runtime for node deployment.
+type DeploymentInstallerRuntime struct {
+	BaseWorkDir string
+	WorkDir     string
+}
+
+// DeploymentBaseRuntime  this is the base runtime for deployment.
+type DeploymentBaseRuntime struct {
+	BaseDeployDir  string
+	DeployDir      string
+	HomeDir        string
+	DataIPC        string
+	PluginIPC      string
+	ExtraConfigDir string
+	LogDir         string
+}
+
 // DeploymentInstallOptions this is the options for nodemgr tools.
 type DeploymentInstallOptions struct {
 	ReRegister    bool
@@ -87,8 +104,8 @@ type DeploymentUpgradeOptions struct {
 
 // DeploymentReconfigOptions this is the options for node reconfig.
 type DeploymentReconfigOptions struct {
-	DirectLink            bool
-	AllowReleaseFallback  bool
+	DirectLink           bool
+	AllowReleaseFallback bool
 }
 
 // DeploymentUninstallOptions this is the options for node uninstall.
@@ -125,8 +142,11 @@ type DeploymentInfo struct {
 	Host               Host
 	RelayInfo          RelayInfo
 
-	// InstallerWorkDir is used to store the installation files.
-	InstallerWorkDir string
+	// InstallerRuntime is used to store the installer runtime.
+	InstallerRuntime DeploymentInstallerRuntime
+
+	// BaseRuntime is used to store the base runtime.
+	BaseRuntime DeploymentBaseRuntime
 
 	// CurrentVersionSupports is used to mark the source agent(before any workflow) supports things.
 	CurrentVersionSupports DeploymentVersionSupports

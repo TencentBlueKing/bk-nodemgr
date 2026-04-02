@@ -46,6 +46,7 @@ func (oper *operReconfigNode) Name() string {
 func (oper *operReconfigNode) ActionDefNames() []string {
 	return []string{
 		ActionNameVersionCompatCheck,
+		ActionNameInjectNodeCustomDeployConfig,
 		ActionNameRenderNodeDeployment,
 		ActionNameTransferPkgToNode,
 		ActionNameReconfigNode,
@@ -64,16 +65,17 @@ func (oper *operReconfigNode) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameVersionCompatCheck:    true,
-			ActionNameRenderNodeDeployment:  true,
-			ActionNameTransferPkgToNode:     true,
-			ActionNameReconfigNode:          true,
-			ActionNameWaitInstallerComplete: false,
-			ActionNameRestartNode:           true,
-			ActionNameWaitGseReady:          false,
-			ActionNameCleanInstaller:        true,
-			ActionNameSyncNodeInfo:          true,
-			ActionNameUpdateHost:            true,
+			ActionNameVersionCompatCheck:           true,
+			ActionNameInjectNodeCustomDeployConfig: true,
+			ActionNameRenderNodeDeployment:         true,
+			ActionNameTransferPkgToNode:            true,
+			ActionNameReconfigNode:                 true,
+			ActionNameWaitInstallerComplete:        false,
+			ActionNameRestartNode:                  true,
+			ActionNameWaitGseReady:                 false,
+			ActionNameCleanInstaller:               true,
+			ActionNameSyncNodeInfo:                 true,
+			ActionNameUpdateHost:                   true,
 		},
 	}
 }

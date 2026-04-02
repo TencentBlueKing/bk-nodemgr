@@ -22,7 +22,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -108,8 +107,6 @@ func (act *actionDetectInfoByWMI) DelayFn() func() {
 	}
 }
 
-const windowsDefaultInstallerWorkDir = "C:\\tmp"
-
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,gocognit
@@ -167,20 +164,6 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	osType, cpuArch, err := act.detectInfo(std, client)
 	if err != nil {
 		return err
-	}
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = windowsDefaultInstallerWorkDir
 	}
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType

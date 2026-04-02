@@ -1187,7 +1187,6 @@ backend:
         manualScriptPath: "/bk-nodemgr/script/manual/linux/install.sh"
         custom:
           logDir: ""
-          hostIDPath: ""
           extraConfigDir: ""
         pluginCustom:
           logDir: ""
@@ -1201,7 +1200,6 @@ backend:
         manualScriptPath: "/bk-nodemgr/script/manual/windows/install.bat"
         custom:
           logDir: ""
-          hostIDPath: ""
           extraConfigDir: ""
         pluginCustom:
           logDir: ""

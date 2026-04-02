@@ -181,7 +181,19 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				LoginCreditID:            info.LoginCreditID,
 			},
 		},
-		InstallerWorkDir: info.InstallerWorkDir,
+		InstallerRuntime: types.DeploymentInstallerRuntime{
+			BaseWorkDir: info.InstallerRuntime.BaseWorkDir,
+			WorkDir:     info.InstallerRuntime.WorkDir,
+		},
+		BaseRuntime: types.DeploymentBaseRuntime{
+			BaseDeployDir:  info.BaseRuntime.BaseDeployDir,
+			DeployDir:      info.BaseRuntime.DeployDir,
+			HomeDir:        info.BaseRuntime.HomeDir,
+			DataIPC:        info.BaseRuntime.DataIPC,
+			PluginIPC:      info.BaseRuntime.PluginIPC,
+			ExtraConfigDir: info.BaseRuntime.ExtraConfigDir,
+			LogDir:         info.BaseRuntime.LogDir,
+		},
 		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,
@@ -410,7 +422,19 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		RelayDownloadPort:        info.Host.Dynamic.RelayDownloadPort,
 		RelayCallbackPort:        info.Host.Dynamic.RelayCallbackPort,
 		ProxyInstallOriginUnitID: info.Host.Dynamic.ProxyInstallOriginUnitID,
-		InstallerWorkDir:         info.InstallerWorkDir,
+		InstallerRuntime: InstallerRuntime{
+			BaseWorkDir: info.InstallerRuntime.BaseWorkDir,
+			WorkDir:     info.InstallerRuntime.WorkDir,
+		},
+		BaseRuntime: BaseRuntime{
+			BaseDeployDir:  info.BaseRuntime.BaseDeployDir,
+			DeployDir:      info.BaseRuntime.DeployDir,
+			HomeDir:        info.BaseRuntime.HomeDir,
+			DataIPC:        info.BaseRuntime.DataIPC,
+			PluginIPC:      info.BaseRuntime.PluginIPC,
+			ExtraConfigDir: info.BaseRuntime.ExtraConfigDir,
+			LogDir:         info.BaseRuntime.LogDir,
+		},
 		InstallOptions: InstallOptions{
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,

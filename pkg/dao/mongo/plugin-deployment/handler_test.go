@@ -125,7 +125,9 @@ func TestHandler_Create(t *testing.T) {
 								OpTimeoutSecs:  5,
 							},
 						},
-						InstallerWorkDir: "/usr/local/bin",
+						InstallerRuntime: types.PluginDeploymentInstallerRuntime{
+							BaseWorkDir: "/usr/local/bin",
+						},
 						InstallOptions: types.PluginDeploymentInstallOptions{
 							Version: "1.0.0",
 						},
@@ -170,8 +172,10 @@ func TestHandler_GetInfo(t *testing.T) {
 			want: &types.PluginDeploymentInfo{
 				BlockingActionName: "wait_plugin_installer_complete",
 				Process:            types.Process{},
-				InstallerWorkDir:   "",
-				InstallOptions:     types.PluginDeploymentInstallOptions{},
+				InstallerRuntime: types.PluginDeploymentInstallerRuntime{
+					BaseWorkDir: "",
+				},
+				InstallOptions: types.PluginDeploymentInstallOptions{},
 				TransferOptions: types.PluginDeploymentTransferOptions{
 					SelectDownloads:      false,
 					EnableReleasePackage: false,
@@ -254,7 +258,9 @@ func TestHandler_UpdateInfo(t *testing.T) {
 							OpTimeoutSecs:  5,
 						},
 					},
-					InstallerWorkDir: "/usr/local/bin",
+					InstallerRuntime: types.PluginDeploymentInstallerRuntime{
+						BaseWorkDir: "/usr/local/bin",
+					},
 					InstallOptions: types.PluginDeploymentInstallOptions{
 						Version: "1.0.0",
 					},

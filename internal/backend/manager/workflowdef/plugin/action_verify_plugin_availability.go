@@ -177,6 +177,21 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType).
 		Info()
 
+	std.DeployInfo().Process.PluginName = plugin.Name
+	std.DeployInfo().Process.PluginGroup = plugin.Group
+	std.DeployInfo().Process.PluginPkgName = plugin.PkgName
+	std.DeployInfo().Process.Generation = pluginPkg.Generation
+	std.DeployInfo().Process.Platform = platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
+
+	std.InstanceData().Log().
+		Zh("更新插件信息成功, plugin-name(%s), plugin-group(%s), plugin-pkg-name(%s), version(%s), generation(%d), platform(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginPkgName,
+			version, std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform).
+		En("update plugin info succeed, plugin-name(%s), plugin-group(%s), plugin-pkg-name(%s), version(%s), generation(%d), platform(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginPkgName,
+			version, std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform).
+		Info()
+
 	return nil
 }
 

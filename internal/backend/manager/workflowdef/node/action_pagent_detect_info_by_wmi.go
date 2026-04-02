@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
@@ -166,20 +165,6 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 	osType, cpuArch, err := act.waitForRelayReportDetect(std)
 	if err != nil {
 		return err
-	}
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = windowsDefaultInstallerWorkDir
 	}
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType

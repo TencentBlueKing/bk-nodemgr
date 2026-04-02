@@ -331,7 +331,6 @@ func convertDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomD
 			},
 			PluginRuntime: CustomPluginRuntime{
 				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
-				HostIDPath:    config.PluginRuntime.HostIDPath,
 				LogDir:        config.PluginRuntime.LogDir,
 				DataDir:       config.PluginRuntime.DataDir,
 				RunDir:        config.PluginRuntime.RunDir,
@@ -362,7 +361,6 @@ func convertDeployConfigToTypes(deployConfig map[string]CustomDeployConfig) map[
 			},
 			PluginRuntime: types.CustomPluginRuntime{
 				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
-				HostIDPath:    config.PluginRuntime.HostIDPath,
 				LogDir:        config.PluginRuntime.LogDir,
 				DataDir:       config.PluginRuntime.DataDir,
 				RunDir:        config.PluginRuntime.RunDir,

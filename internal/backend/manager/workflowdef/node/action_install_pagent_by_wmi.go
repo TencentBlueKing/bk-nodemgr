@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -156,7 +155,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	}
 
 	// select matching tools, and use sftp to transfer it.
-	toolName, installerPath, deployConstant, err := act.setupInstallationTools(std)
+	toolName, installerPath, err := act.setupInstallationTools(std)
 	if err != nil {
 		return err
 	}
@@ -169,7 +168,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	callbackURLs, downloadURLs := std.BuildRelayServerURLs(relayInfo)
 
 	// build install command.
-	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
+	installCmd := act.buildInstallCmd(std, installerPath, downloadURLs, callbackURLs)
 
 	// notify relay to install.
 	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfo); err != nil {
@@ -191,29 +190,21 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeActionStandarder) (
-	string, string, deployconstant.NodeDeployConf, error) {
-
+func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeActionStandarder) (string, string, error) {
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to format tools name: %w", err)
+		return "", "", fmt.Errorf("failed to format tools name: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration,
-		std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return "", "", deployconstant.NodeDeployConf{}, fmt.Errorf("failed to get deploy conf: %w", err)
-	}
-
-	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
+	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, toolName))
 
 	std.InstanceData().Log().
 		Zh("设置安装工具, 工具名(%s), 安装器路径(%s)", toolName, installerPath).
 		En("setup installation tools, tool name(%s), installerPath(%s)", toolName, installerPath).
 		Info()
 
-	return toolName, installerPath, deployConstant, nil
+	return toolName, installerPath, nil
 }
 
 func (act *actionInstallPagentByWMI) notifyRelayToInstall(
@@ -231,7 +222,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 		User:             std.DeployInfo().Host.Dynamic.LoginUser,
 		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
 		Password:         cKey,
-		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 		ToolsName:        toolsName,
 		InstallerCmd:     installCmd,
 		InstallerBatName: installBatName,
@@ -324,7 +315,6 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 func (act *actionInstallPagentByWMI) buildInstallCmd(
 	std *nodeUtils.NodeActionStandarder,
 	installerPath string,
-	deployConstant deployconstant.NodeDeployConf,
 	downloadURLs, callbackURLs string) string {
 
 	installParams := &InstallParamsWin{
@@ -334,8 +324,8 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
 		DeployToken:     std.Token(),
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     deployConstant.BaseWorkDir,
-		BaseDeployDir:   deployConstant.BaseDeployDir,
+		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
+		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
 		DownloadSvrAddr: downloadURLs,
 		CallbackSvrAddr: callbackURLs,
 	}

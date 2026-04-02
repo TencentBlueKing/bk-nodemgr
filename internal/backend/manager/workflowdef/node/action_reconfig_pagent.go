@@ -20,7 +20,6 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -150,22 +149,17 @@ func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) error {
 		En("relay callback svr addr(%s)", callbackSvrAddr).
 		Info()
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	reconfigParams := &ReconfigParams{
 		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
 		InstallerName:    toolName,
-		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr:  callbackSvrAddr,
 		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
-		BaseWorkDir:      deployConstant.BaseWorkDir,
-		BaseDeployDir:    deployConstant.BaseDeployDir,
+		BaseWorkDir:      std.DeployInfo().InstallerRuntime.BaseWorkDir,
+		BaseDeployDir:    std.DeployInfo().BaseRuntime.BaseDeployDir,
 	}
 
 	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{

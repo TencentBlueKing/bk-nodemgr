@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -111,14 +110,6 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 				req.GetOperationId(), lifecycle.State))
 	}
 
-	// get deploy constant for base work/deploy dirs.
-	deployConst, err := deployconstant.GetNodeDeployConf(
-		deployInfo.Host.Dynamic.NodeGeneration, deployInfo.Host.Dynamic.NodeOsType)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get offline install info, failed to get deploy constant")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	// render GSE config files.
 	configKeyToFilename := map[string]string{
 		types.ConfigKeyAgent: installer.OfflineGseAgentConfFileName,
@@ -163,7 +154,7 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 
 	// build install.sh content.
 	installScript := buildOfflineInstallScript(
-		deployInfo, deployConst.BaseWorkDir, deployConst.BaseDeployDir, param.Token, lastInstID, installerFileName)
+		deployInfo, deployInfo.InstallerRuntime.BaseWorkDir, deployInfo.BaseRuntime.BaseDeployDir, param.Token, lastInstID, installerFileName)
 
 	// build metadata.json content.
 	targetIP := ""

@@ -18,7 +18,6 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
@@ -198,11 +197,6 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 		return nil, err
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(targetHost.Dynamic.NodeGeneration, targetHost.Dynamic.NodeOsType)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
 	downloadEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
@@ -224,10 +218,10 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 	params := &pluginUpgradeParams{
 		PluginUpgradeParams: installer.PluginUpgradeParams{
 			PluginCommonParams: installer.PluginCommonParams{
-				InstallWorkDir:    std.DeployInfo().InstallerWorkDir,
+				InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 				InstallerFileName: toolName,
-				BaseDeployDir:     deployConstant.BaseDeployDir,
-				BaseWorkDir:       deployConstant.BaseWorkDir,
+				BaseDeployDir:     std.DeployInfo().BaseRuntime.BaseDeployDir,
+				BaseWorkDir:       std.DeployInfo().InstallerRuntime.BaseWorkDir,
 				DeployEnv:         system.GetEnv(),
 			},
 			PluginGroup:     targetPlugin.Group,
@@ -239,7 +233,7 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 		},
-		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
 
 	return params, nil

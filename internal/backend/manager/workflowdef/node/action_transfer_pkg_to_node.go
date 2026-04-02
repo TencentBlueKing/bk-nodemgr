@@ -20,7 +20,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -133,16 +132,6 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("host dynamic has invalid node_cpu_arch. host-id(%d): %w", std.DeployInfo().Host.HostID, err)
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
@@ -184,9 +173,9 @@ func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info
 
 	var dataDir string
 	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data")
+		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data")
 	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data")
+		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data")
 	}
 
 	transferHandler, err := act.fileHandler.LaunchTransferNode(nCtx,
@@ -233,7 +222,7 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 			OS:   info.Host.Dynamic.NodeOsType,
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},
-		info.InstallerWorkDir,
+		info.InstallerRuntime.WorkDir,
 		&info.Host)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.Host.HostID, err)

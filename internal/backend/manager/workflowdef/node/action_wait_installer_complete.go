@@ -188,7 +188,7 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 		}(),
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerWorkDir, "data")
+	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
 	result, err := nodeUtils.NewSSHInstallerPoller().Wait(std, nodeUtils.SSHInstallerPollerConfig{
 		SSHConfig:     sshConfig,
 		StatusFile:    path.Join(dataDir, installer.StatusFileName),

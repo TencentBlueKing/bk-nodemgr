@@ -18,7 +18,6 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -119,11 +118,6 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	pluginDeployConf, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
-	if err != nil {
-		return err
-	}
-
 	endpoints := []*types.Endpoint{{AgentID: host.Dynamic.AgentID}}
 	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
 	for _, pluginConfDetail := range pluginConf {
@@ -132,27 +126,23 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 			continue
 		}
 
-		storeDir := pluginDeployConf.GenerateDefaultSubConfigDir(
-			std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName, pluginConfDetail.FilePath,
-		)
-
-		if err = pluginUtils.CheckDirPathSafe(storeDir, std.DeployInfo().Process.Platform.OS); err != nil {
-			return fmt.Errorf("check config store dir safe failed, dir(%s): %w", storeDir, err)
+		if err = pluginUtils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+			return fmt.Errorf("check config store dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 		}
 
 		tasks = append(tasks, &types.PushFileDetail{
 			FileName:    pluginConfDetail.Name,
 			FileContent: pluginConfDetail.Content,
-			StoreDir:    storeDir,
+			StoreDir:    std.DeployInfo().BaseRuntime.SubConfigDir,
 			Owner:       host.Dynamic.LoginUser,
 			Endpoints:   endpoints,
 		})
 
 		std.InstanceData().Log().
 			Zh("准备推送插件配置文件(%s)到主机(%d), 目录(%s)",
-				pluginConfDetail.Name, host.HostID, storeDir).
+				pluginConfDetail.Name, host.HostID, std.DeployInfo().BaseRuntime.SubConfigDir).
 			En("prepare to push plugin config file(%s) to host(%d) in dir(%s)",
-				pluginConfDetail.Name, host.HostID, storeDir).
+				pluginConfDetail.Name, host.HostID, std.DeployInfo().BaseRuntime.SubConfigDir).
 			Info()
 	}
 

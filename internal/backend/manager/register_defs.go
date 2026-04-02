@@ -107,6 +107,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionInstallNodeByManual(nodeCap),
 		node.NewActionResolveOfflineDetectInfo(nodeCap),
 		node.NewActionWaitOfflineManualInstall(nodeCap),
+		node.NewActionInjectNodeCustomDeployConfig(nodeCap),
 	); err != nil {
 		return err
 	}
@@ -233,6 +234,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionTryStopProcess(pluginCap),
 		plugin.NewActionVerifyPluginAvailability(pluginCap),
 		plugin.NewActionFetchProcessSubConfigIntoDeployment(pluginCap),
+		plugin.NewActionInjectPluginCustomDeployConfig(pluginCap),
 	); err != nil {
 		return err
 	}

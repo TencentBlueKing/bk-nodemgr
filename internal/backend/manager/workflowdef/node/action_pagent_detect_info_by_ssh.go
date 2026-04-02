@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
@@ -161,25 +160,9 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	// wait for relay report detect result.
-	osType, cpuArch, connectedDir, err := act.waitForRelayReportDetect(std)
+	osType, cpuArch, err := act.waitForRelayReportDetect(std)
 	if err != nil {
 		return err
-	}
-
-	// get deploy constant.
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
-	// this is a fallback strategy, if system has no specified workdir, use connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = connectedDir
 	}
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType
@@ -281,9 +264,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
 }
 
 // nolint: gocognit
-func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
-	std *nodeUtils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
-
+func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(std *nodeUtils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 
@@ -293,7 +274,7 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 	for {
 		select {
 		case <-timeoutCtx.Done():
-			return "", "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
+			return "", "", fmt.Errorf("wait for relay report detect result timed out. oper_inst_id(%s), action_name(%s)",
 				std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 
 		case <-ticker.C:
@@ -310,17 +291,17 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 
 			relayDetectResult, ok := relayDetectResultRaw.(map[string]any)
 			if !ok {
-				return "", "", "", errors.New("unexpected type for relay detect result")
+				return "", "", errors.New("unexpected type for relay detect result")
 			}
 
 			errMsgRaw := relayDetectResult[relayconstant.DetectResultErrMsgKey]
 			errMsg, ok := errMsgRaw.(string)
 			if !ok {
-				return "", "", "", errors.New("unexpected type for relay detect result error message")
+				return "", "", errors.New("unexpected type for relay detect result error message")
 			}
 
 			if errMsg != "" {
-				return "", "", "", errors.New(errMsg)
+				return "", "", errors.New(errMsg)
 			}
 
 			osTypeStr, osTypeOk := relayDetectResult[relayconstant.DetectResultOsTypeKey].(string)
@@ -328,17 +309,17 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 			connectionDir, connerctionDirOk := relayDetectResult[relayconstant.DetectResultConnectionDirKey].(string)
 
 			if !osTypeOk || !cpuArchOk || !connerctionDirOk {
-				return "", "", "", errors.New("incomplete relay detect result")
+				return "", "", errors.New("incomplete relay detect result")
 			}
 
 			osType, err := platfmt.NormalizeOS(osTypeStr)
 			if err != nil {
-				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
+				return "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
 			cpuArch, err := platfmt.NormalizeArch(cpuArchStr)
 			if err != nil {
-				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
+				return "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
 			std.InstanceData().Log().
@@ -346,7 +327,7 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				En("wait for relay report detect result successfully. os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectionDir).
 				Info()
 
-			return osType, cpuArch, connectionDir, nil
+			return osType, cpuArch, nil
 		}
 	}
 }

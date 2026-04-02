@@ -46,6 +46,7 @@ func (oper *operRestartNode) Name() string {
 func (oper *operRestartNode) ActionDefNames() []string {
 	return []string{
 		ActionNameVersionCompatCheck,
+		ActionNameInjectNodeCustomDeployConfig,
 		ActionNameTransferPkgToNode,
 		ActionNameRestartNode,
 		ActionNameWaitGseReady,
@@ -61,13 +62,14 @@ func (oper *operRestartNode) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameVersionCompatCheck: true,
-			ActionNameTransferPkgToNode:  true,
-			ActionNameRestartNode:        true,
-			ActionNameWaitGseReady:       false,
-			ActionNameCleanInstaller:     true,
-			ActionNameSyncNodeInfo:       true,
-			ActionNameUpdateHost:         true,
+			ActionNameVersionCompatCheck:           true,
+			ActionNameInjectNodeCustomDeployConfig: true,
+			ActionNameTransferPkgToNode:            true,
+			ActionNameRestartNode:                  true,
+			ActionNameWaitGseReady:                 false,
+			ActionNameCleanInstaller:               true,
+			ActionNameSyncNodeInfo:                 true,
+			ActionNameUpdateHost:                   true,
 		},
 	}
 }

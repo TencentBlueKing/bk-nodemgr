@@ -45,6 +45,7 @@ func (oper *operUninstallNode) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operUninstallNode) ActionDefNames() []string {
 	return []string{
+		ActionNameInjectNodeCustomDeployConfig,
 		ActionNameTransferPkgToNode,
 		ActionNameUninstallNode,
 		ActionNameWaitInstallerComplete,
@@ -59,11 +60,12 @@ func (oper *operUninstallNode) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameTransferPkgToNode:     true,
-			ActionNameUninstallNode:         true,
-			ActionNameWaitInstallerComplete: false,
-			ActionNameResetNodeDynamic:      true,
-			ActionNameUpdateHost:            true,
+			ActionNameInjectNodeCustomDeployConfig: true,
+			ActionNameTransferPkgToNode:            true,
+			ActionNameUninstallNode:                true,
+			ActionNameWaitInstallerComplete:        false,
+			ActionNameResetNodeDynamic:             true,
+			ActionNameUpdateHost:                   true,
 		},
 	}
 }

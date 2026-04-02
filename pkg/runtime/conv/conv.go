@@ -523,3 +523,12 @@ type NumberConvertible interface {
 func NumberToBool[T NumberConvertible](val T) bool {
 	return val != 0
 }
+
+// NonEmptyOr returns the given value if it is not empty, otherwise returns the default value.
+func NonEmptyOr[T any](val T, defaultVal T) T {
+	if IsEmpty(val) {
+		return defaultVal
+	}
+
+	return val
+}

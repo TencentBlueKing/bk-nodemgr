@@ -31,47 +31,65 @@ type Data struct {
 
 // Info this is the info of this node deployment.
 type Info struct {
-	ActionName               string          `json:"action_name" bson:"action_name"`
-	HostID                   int64           `json:"host_id" bson:"host_id"`
-	OSType                   string          `json:"os_type" bson:"os_type"`
-	TenantID                 string          `json:"tenant_id" bson:"tenant_id"`
-	NodeRole                 string          `json:"node_role" bson:"node_role"`
-	NodeStatus               string          `json:"node_status" bson:"node_status"`
-	NodeVersion              string          `json:"node_version" bson:"node_version"`
-	NodeGeneration           int64           `json:"node_generation" bson:"node_generation"`
-	NodeCPUArch              string          `json:"node_cpu_arch" bson:"node_cpu_arch"`
-	NodeOsType               string          `json:"node_os_type" bson:"node_os_type"`
-	AgentID                  string          `json:"agent_id" bson:"agent_id"`
-	NetworkUnitID            int64           `json:"networkunit_id" bson:"networkunit_id"`
-	NetworkAreaID            int64           `json:"networkarea_id" bson:"networkarea_id"`
-	BizID                    int64           `json:"biz_id" bson:"biz_id"`
-	InnerIPList              []string        `json:"inner_ip_list" bson:"inner_ip_list"`
-	Addressing               string          `json:"addressing" bson:"addressing"`
-	ExportIP                 string          `json:"export_ip" bson:"export_ip"`
-	ExportIPV6               string          `json:"export_ipv6" bson:"export_ipv6"`
-	AdvertiseIP              string          `json:"advertise_ip" bson:"advertise_ip"`
-	AdvertiseIPV6            string          `json:"advertise_ipv6" bson:"advertise_ipv6"`
-	ProxyTags                []string        `json:"proxy_tags" bson:"proxy_tags"`
-	ProxyClusterPort         int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
-	ProxyDataPort            int64           `json:"proxy_data_port" bson:"proxy_data_port"`
-	ProxyFilePort            int64           `json:"proxy_file_port" bson:"proxy_file_port"`
-	RelayDownloadPort        int64           `json:"relay_download_port" bson:"relay_download_port"`
-	RelayCallbackPort        int64           `json:"relay_callback_port" bson:"relay_callback_port"`
-	ProxyInstallOriginUnitID int64           `json:"proxy_install_origin_unit_id" bson:"proxy_install_origin_unit_id"`
-	LoginIP                  string          `json:"login_ip" bson:"login_ip"`
-	LoginPort                int64           `json:"login_port" bson:"login_port"`
-	LoginUser                string          `json:"login_user" bson:"login_user"`
-	LoginMode                string          `json:"login_mode" bson:"login_mode"`
-	LoginCreditID            string          `json:"login_credit_id" bson:"login_credit_id"`
-	InstallerWorkDir         string          `json:"installer_workdir" bson:"installer_workdir"`
-	InstallOptions           InstallOptions  `json:"install_options" bson:"install_options"`
-	UpgradeOptions           UpgradeOptions  `json:"upgrade_options" bson:"upgrade_options"`
-	ReconfigOptions          ReconfigOptions `json:"reconfig_options" bson:"reconfig_options"`
-	RestartOptions           RestartOptions  `json:"restart_options" bson:"restart_options"`
-	TransferOptions          TransferOptions `json:"transfer_options" bson:"transfer_options"`
-	CurrentVersionSupports   VersionSupports `json:"current_version_supports" bson:"current_version_supports"`
-	TargetVersion            []TargetVersion `json:"target_version" bson:"target_version"`
-	RelayInfo                RelayInfo       `json:"relay_info" bson:"relay_info"`
+	ActionName               string           `json:"action_name" bson:"action_name"`
+	HostID                   int64            `json:"host_id" bson:"host_id"`
+	OSType                   string           `json:"os_type" bson:"os_type"`
+	TenantID                 string           `json:"tenant_id" bson:"tenant_id"`
+	NodeRole                 string           `json:"node_role" bson:"node_role"`
+	NodeStatus               string           `json:"node_status" bson:"node_status"`
+	NodeVersion              string           `json:"node_version" bson:"node_version"`
+	NodeGeneration           int64            `json:"node_generation" bson:"node_generation"`
+	NodeCPUArch              string           `json:"node_cpu_arch" bson:"node_cpu_arch"`
+	NodeOsType               string           `json:"node_os_type" bson:"node_os_type"`
+	AgentID                  string           `json:"agent_id" bson:"agent_id"`
+	NetworkUnitID            int64            `json:"networkunit_id" bson:"networkunit_id"`
+	NetworkAreaID            int64            `json:"networkarea_id" bson:"networkarea_id"`
+	BizID                    int64            `json:"biz_id" bson:"biz_id"`
+	InnerIPList              []string         `json:"inner_ip_list" bson:"inner_ip_list"`
+	Addressing               string           `json:"addressing" bson:"addressing"`
+	ExportIP                 string           `json:"export_ip" bson:"export_ip"`
+	ExportIPV6               string           `json:"export_ipv6" bson:"export_ipv6"`
+	AdvertiseIP              string           `json:"advertise_ip" bson:"advertise_ip"`
+	AdvertiseIPV6            string           `json:"advertise_ipv6" bson:"advertise_ipv6"`
+	ProxyTags                []string         `json:"proxy_tags" bson:"proxy_tags"`
+	ProxyClusterPort         int64            `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
+	ProxyDataPort            int64            `json:"proxy_data_port" bson:"proxy_data_port"`
+	ProxyFilePort            int64            `json:"proxy_file_port" bson:"proxy_file_port"`
+	RelayDownloadPort        int64            `json:"relay_download_port" bson:"relay_download_port"`
+	RelayCallbackPort        int64            `json:"relay_callback_port" bson:"relay_callback_port"`
+	ProxyInstallOriginUnitID int64            `json:"proxy_install_origin_unit_id" bson:"proxy_install_origin_unit_id"`
+	LoginIP                  string           `json:"login_ip" bson:"login_ip"`
+	LoginPort                int64            `json:"login_port" bson:"login_port"`
+	LoginUser                string           `json:"login_user" bson:"login_user"`
+	LoginMode                string           `json:"login_mode" bson:"login_mode"`
+	LoginCreditID            string           `json:"login_credit_id" bson:"login_credit_id"`
+	InstallerRuntime         InstallerRuntime `json:"installer_runtime" bson:"installer_runtime"`
+	BaseRuntime              BaseRuntime      `json:"base_runtime" bson:"base_runtime"`
+	InstallOptions           InstallOptions   `json:"install_options" bson:"install_options"`
+	UpgradeOptions           UpgradeOptions   `json:"upgrade_options" bson:"upgrade_options"`
+	ReconfigOptions          ReconfigOptions  `json:"reconfig_options" bson:"reconfig_options"`
+	RestartOptions           RestartOptions   `json:"restart_options" bson:"restart_options"`
+	TransferOptions          TransferOptions  `json:"transfer_options" bson:"transfer_options"`
+	CurrentVersionSupports   VersionSupports  `json:"current_version_supports" bson:"current_version_supports"`
+	TargetVersion            []TargetVersion  `json:"target_version" bson:"target_version"`
+	RelayInfo                RelayInfo        `json:"relay_info" bson:"relay_info"`
+}
+
+// InstallerRuntime this is the installer runtime for node deployment.
+type InstallerRuntime struct {
+	BaseWorkDir string `json:"base_work_dir" bson:"base_work_dir"`
+	WorkDir     string `json:"work_dir" bson:"work_dir"`
+}
+
+// BaseRuntime this is the base runtime for node deployment.
+type BaseRuntime struct {
+	BaseDeployDir  string `json:"base_deploy_dir" bson:"base_deploy_dir"`
+	DeployDir      string `json:"deploy_dir" bson:"deploy_dir"`
+	HomeDir        string `json:"home_dir" bson:"home_dir"`
+	DataIPC        string `json:"data_ipc" bson:"data_ipc"`
+	PluginIPC      string `json:"plugin_ipc" bson:"plugin_ipc"`
+	ExtraConfigDir string `json:"extra_config_dir" bson:"extra_config_dir"`
+	LogDir         string `json:"log_dir" bson:"log_dir"`
 }
 
 // TargetVersion this is the target version for node deployment.

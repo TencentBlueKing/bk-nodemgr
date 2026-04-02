@@ -367,7 +367,26 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 				OpTimeoutSecs:  info.Process.MonitorPolicy.OpTimeoutSecs,
 			},
 		},
-		InstallerWorkDir: info.InstallerWorkDir,
+		InstallerRuntime: types.PluginDeploymentInstallerRuntime{
+			BaseWorkDir: info.InstallerRuntime.BaseWorkDir,
+			WorkDir:     info.InstallerRuntime.WorkDir,
+		},
+		BaseRuntime: types.PluginDeploymentBaseRuntime{
+			BaseDeployDir:   info.BaseRuntime.BaseDeployDir,
+			DeployDir:       info.BaseRuntime.DeployDir,
+			GSEHomeDir:      info.BaseRuntime.GSEHomeDir,
+			PluginHomeDir:   info.BaseRuntime.PluginHomeDir,
+			DataIPC:         info.BaseRuntime.DataIPC,
+			PluginIPC:       info.BaseRuntime.PluginIPC,
+			HostIDPath:      info.BaseRuntime.HostIDPath,
+			LogDir:          info.BaseRuntime.LogDir,
+			DataDir:         info.BaseRuntime.DataDir,
+			RunDir:          info.BaseRuntime.RunDir,
+			ConfigDir:       info.BaseRuntime.ConfigDir,
+			SubConfigDir:    info.BaseRuntime.SubConfigDir,
+			PluginCommonConstants: info.BaseRuntime.PluginCommonConstants,
+			GlobalCommonConstants: info.BaseRuntime.GlobalCommonConstants,
+		},
 		InstallOptions: types.PluginDeploymentInstallOptions{
 			Version: info.InstallOptions.Version,
 		},
@@ -388,8 +407,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	}
 
 	data := &Info{
-		ActionName:       info.BlockingActionName,
-		InstallerWorkDir: info.InstallerWorkDir,
+		ActionName: info.BlockingActionName,
 		Process: process{
 			TenantID: info.Process.TenantID,
 			HostID:   info.Process.HostID,
@@ -435,6 +453,26 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 				StopCheckSecs:  info.Process.MonitorPolicy.StopCheckSecs,
 				OpTimeoutSecs:  info.Process.MonitorPolicy.OpTimeoutSecs,
 			},
+		},
+		InstallerRuntime: installerRuntime{
+			BaseWorkDir: info.InstallerRuntime.BaseWorkDir,
+			WorkDir:     info.InstallerRuntime.WorkDir,
+		},
+		BaseRuntime: baseRuntime{
+			BaseDeployDir:         info.BaseRuntime.BaseDeployDir,
+			DeployDir:             info.BaseRuntime.DeployDir,
+			GSEHomeDir:            info.BaseRuntime.GSEHomeDir,
+			PluginHomeDir:         info.BaseRuntime.PluginHomeDir,
+			DataIPC:               info.BaseRuntime.DataIPC,
+			PluginIPC:             info.BaseRuntime.PluginIPC,
+			HostIDPath:            info.BaseRuntime.HostIDPath,
+			LogDir:                info.BaseRuntime.LogDir,
+			DataDir:               info.BaseRuntime.DataDir,
+			RunDir:                info.BaseRuntime.RunDir,
+			ConfigDir:             info.BaseRuntime.ConfigDir,
+			SubConfigDir:          info.BaseRuntime.SubConfigDir,
+			PluginCommonConstants: info.BaseRuntime.PluginCommonConstants,
+			GlobalCommonConstants: info.BaseRuntime.GlobalCommonConstants,
 		},
 		TransferOptions: transferOptions{
 			SelectDownloads:      info.TransferOptions.SelectDownloads,

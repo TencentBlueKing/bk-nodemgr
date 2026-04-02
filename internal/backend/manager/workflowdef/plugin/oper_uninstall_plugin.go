@@ -48,6 +48,7 @@ func (oper *operUninstallPlugin) ActionDefNames() []string {
 		ActionNameFetchPluginProcess,
 		ActionNameCheckPluginProcessAlive,
 		ActionNameStopProcess,
+		ActionNameInjectPluginCustomDeployConfig,
 		ActionNameTransferPluginPkgToNode,
 		ActionNameUninstallPlugin,
 		ActionNameWaitPluginInstallerComplete,
@@ -61,13 +62,14 @@ func (oper *operUninstallPlugin) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameFetchPluginProcess:          true,
-			ActionNameCheckPluginProcessAlive:     true,
-			ActionNameStopProcess:                 true,
-			ActionNameTransferPluginPkgToNode:     true,
-			ActionNameUninstallPlugin:             true,
-			ActionNameWaitPluginInstallerComplete: false,
-			ActionNameDeleteProcess:               true,
+			ActionNameFetchPluginProcess:             true,
+			ActionNameCheckPluginProcessAlive:        true,
+			ActionNameStopProcess:                    true,
+			ActionNameInjectPluginCustomDeployConfig: true,
+			ActionNameTransferPluginPkgToNode:        true,
+			ActionNameUninstallPlugin:                true,
+			ActionNameWaitPluginInstallerComplete:    false,
+			ActionNameDeleteProcess:                  true,
 		},
 	}
 }

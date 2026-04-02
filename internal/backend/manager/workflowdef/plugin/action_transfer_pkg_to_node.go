@@ -20,7 +20,6 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -74,7 +73,7 @@ func (act *actionTransferPluginPkgToNode) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionTransferPluginPkgToNode) Timeout() time.Duration {
-	return 10 * time.Minute
+	return 10 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
@@ -126,16 +125,6 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
@@ -178,9 +167,9 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.PluginPkgName)
+		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName)
 	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.PluginPkgName)
+		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName)
 	}
 
 	transferHandler, err := act.fileHandler.LaunchTransferPlugin(
@@ -225,7 +214,7 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 			OS:   targetHost.Dynamic.NodeOsType,
 			Arch: targetHost.Dynamic.NodeCPUArch,
 		},
-		info.InstallerWorkDir,
+		info.InstallerRuntime.WorkDir,
 		targetHost)
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer installer, host-id(%d): %w", targetHost.HostID, err)

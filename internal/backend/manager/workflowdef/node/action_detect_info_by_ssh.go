@@ -22,7 +22,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -168,24 +167,9 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to generate new ssh client: %w", err)
 	}
 
-	osType, cpuArch, connectedDir, err := act.detectInfo(std.InstanceData(), client)
+	osType, cpuArch, err := act.detectInfo(std.InstanceData(), client)
 	if err != nil {
 		return err
-	}
-
-	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
-	if err != nil {
-		return fmt.Errorf("failed to get deploy constant: %w", err)
-	}
-
-	// installer workdir priority: user specified in info > deploy constant default > connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
-	}
-
-	// this is a fallback strategy, if system has no specified workdir, use connected dir.
-	if std.DeployInfo().InstallerWorkDir == "" {
-		std.DeployInfo().InstallerWorkDir = connectedDir
 	}
 
 	std.DeployInfo().Host.Dynamic.NodeOsType = osType
@@ -251,21 +235,21 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 
 // nolint: nonamedreturns,perfsprint
 func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *sshx.Client) (
-	osType criteria.OSType, cpuArch criteria.CPUArch, connectedDir string, err error) {
+	osType criteria.OSType, cpuArch criteria.CPUArch, err error) {
 
 	// 1. detect target system
 	osTypeStr, _, err := client.RunCommand("uname -s")
 	if err != nil {
 		err = fmt.Errorf("failed to run uname -s: %w", err)
 
-		return "", "", "", err
+		return "", "", err
 	}
 	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'
 	})
 	osType, err = platfmt.NormalizeOS(osTypeStr)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to detect info: %w", err)
+		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
 	switch osType {
@@ -273,7 +257,7 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 	default:
 		err = fmt.Errorf("unsupported os type, os-type(%s)", osType)
 
-		return "", "", "", err
+		return "", "", err
 	}
 	data.Log().
 		Zh("主机操作系统类型(%s)", osType).
@@ -283,14 +267,14 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 	// 2. detect target cpu arch
 	cpuArchStr, _, err := client.RunCommand("uname -m")
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to run uname -m: %w", err)
+		return "", "", fmt.Errorf("failed to run uname -m: %w", err)
 	}
 	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
 		return r == '\n'
 	})
 	cpuArch, err = platfmt.NormalizeArch(cpuArchStr)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to detect info: %w", err)
+		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
 	data.Log().
@@ -299,11 +283,11 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 		Info()
 
 	// 3. detect target dir
-	connectedDir, _, err = client.RunCommand("pwd")
+	connectedDir, _, err := client.RunCommand("pwd")
 	if err != nil {
 		err = fmt.Errorf("failed to run pwd: %w", err)
 
-		return "", "", "", err
+		return "", "", err
 	}
 	connectedDir = strings.TrimFunc(connectedDir, func(r rune) bool {
 		return r == '\n'
@@ -313,5 +297,5 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 		En("connected-dir(%s)", connectedDir).
 		Info()
 
-	return osType, cpuArch, connectedDir, nil
+	return osType, cpuArch, nil
 }
