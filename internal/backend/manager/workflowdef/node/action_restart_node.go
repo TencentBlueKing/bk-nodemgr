@@ -152,8 +152,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 
-		restartCommandIssuedAt := time.Now()
-		return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime, restartCommandIssuedAt)
+		return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime)
 	}
 
 	if !std.DeployInfo().RestartOptions.ForceRestart {
@@ -164,8 +163,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	restartCommandIssuedAt := time.Now()
-	return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime, restartCommandIssuedAt)
+	return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime)
 }
 
 func (act *actionRestartNode) capturePreRestartNodeStartTime(
@@ -195,13 +193,12 @@ func (act *actionRestartNode) updateInstanceContentForWaitGseReady(
 	std *nodeUtils.NodeActionStandarder,
 	param *ActionParamRestartNode,
 	preRestartNodeStartTime uint64,
-	restartCommandIssuedAt time.Time,
 ) error {
 
 	return std.UpdateInstanceDataContent(ActParamWaitGseReady{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		PreRestartNodeStartTime: preRestartNodeStartTime,
-		RestartCommandIssuedAt:  restartCommandIssuedAt,
+		RestartCommandIssuedAt:  time.Now(),
 	})
 }
 
