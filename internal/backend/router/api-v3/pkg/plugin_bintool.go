@@ -11,6 +11,8 @@
 package pkg
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -68,6 +70,15 @@ func (h *handler) DeleteReleasePluginBinTool(rCtx restserver.IContext) (interfac
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
+
+	h.recordPackageEvents(rCtx, &types.PackageEvent{
+		Name:        name,
+		ReleaseType: types.ReleaseTypePluginBinTool,
+		Generation:  gen,
+		EventType:   types.PackageEventTypeDelete,
+		OperateTime: time.Now(),
+		Operator:    rCtx.Data().GetLoginName(),
+	})
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "name", name).

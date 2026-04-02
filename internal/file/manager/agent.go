@@ -21,6 +21,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -396,47 +397,50 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 }
 
 func (m *Manager) recordUploadEvent(nCtx contextx.IContext, rt types.ReleaseType, name string, version string, platforms []platfmt.Platform) {
-	operation := nCtx.BKUsername()
-
-	go func() {
-		for _, plt := range platforms {
-			if err := m.storageEvent.CreateManyPackageEvent(contextx.Background(),
-				&types.PackageEvent{
-					Name:        name,
-					EventType:   types.PackageEventTypeUpload,
-					ReleaseType: rt,
-					Generation:  types.Generation2,
-					Version:     version,
-					OSType:      plt.OS,
-					CPUArch:     plt.Arch,
-					Operator:    operation,
-					OperateTime: time.Now(),
-				}); err != nil {
-				logger.G.Sys().WithErr(err).With("event-type", types.PackageEventTypeUpload).Error("failed to record package event")
-			}
+	events := make([]*types.PackageEvent, len(platforms))
+	for idx := range platforms {
+		plt := platforms[idx]
+		events[idx] = &types.PackageEvent{
+			Name:        name,
+			EventType:   types.PackageEventTypeUpload,
+			ReleaseType: rt,
+			Generation:  types.Generation2,
+			Version:     version,
+			OSType:      plt.OS,
+			CPUArch:     plt.Arch,
+			Operator:    nCtx.BKUsername(),
+			OperateTime: time.Now(),
 		}
-	}()
+	}
+
+	m.recordPackageEvents(nCtx, events...)
 }
 
 func (m *Manager) recordPublishEvent(nCtx contextx.IContext, releaseInfo *types.Release) {
-	operation := nCtx.BKUsername()
+	m.recordPackageEvents(nCtx, &types.PackageEvent{
+		Name:        releaseInfo.Name,
+		EventType:   types.PackageEventTypePublish,
+		ReleaseType: releaseInfo.Type,
+		Generation:  releaseInfo.Generation,
+		Version:     releaseInfo.Version,
+		OSType:      releaseInfo.Platform.OS,
+		CPUArch:     releaseInfo.Platform.Arch,
+		Operator:    nCtx.BKUsername(),
+		OperateTime: time.Now(),
+	})
+}
 
-	go func() {
-		if err := m.storageEvent.CreateManyPackageEvent(contextx.Background(),
-			&types.PackageEvent{
-				Name:        releaseInfo.Name,
-				EventType:   types.PackageEventTypePublish,
-				ReleaseType: releaseInfo.Type,
-				Generation:  releaseInfo.Generation,
-				Version:     releaseInfo.Version,
-				OSType:      releaseInfo.Platform.OS,
-				CPUArch:     releaseInfo.Platform.Arch,
-				Operator:    operation,
-				OperateTime: time.Now(),
-			}); err != nil {
-			logger.G.Sys().WithErr(err).With("event-type", types.PackageEventTypePublish).Error("failed to record package event")
-		}
-	}()
+func (m *Manager) recordPackageEvents(nCtx contextx.IContext, events ...*types.PackageEvent) {
+	err := m.goAsyncPool.Run(
+		nCtx,
+		func(asyncCtx contextx.IContext) error {
+			return m.storageEvent.CreateManyPackageEvent(asyncCtx, events...)
+		},
+		goasync.WithName("record_package_event"),
+	)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to submit package event recording task")
+	}
 }
 
 type releaseAgentPkg struct {

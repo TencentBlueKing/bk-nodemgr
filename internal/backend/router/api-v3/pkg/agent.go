@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -326,24 +327,30 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 
 func (h *handler) recordAgentEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
 	eventType types.PackageEventType) {
+	event := &types.PackageEvent{
+		Name:        types.ReleaseNameAgent,
+		ReleaseType: types.ReleaseTypeAgent,
+		Generation:  gen,
+		OSType:      plat.OS,
+		CPUArch:     plat.Arch,
+		Version:     version,
+		EventType:   eventType,
+		Operator:    rCtx.Data().GetLoginName(),
+		OperateTime: time.Now(),
+	}
 
-	operator := rCtx.Data().GetLoginName()
-	go func() {
-		// record package events.
-		event := &types.PackageEvent{
-			Name:        types.ReleaseNameAgent,
-			ReleaseType: types.ReleaseTypeAgent,
-			Generation:  gen,
-			OSType:      plat.OS,
-			CPUArch:     plat.Arch,
-			Version:     version,
-			EventType:   eventType,
-			Operator:    operator,
-			OperateTime: time.Now(),
-		}
+	h.recordPackageEvents(rCtx, event)
+}
 
-		if err := h.daoPackageEvent.CreateManyPackageEvent(contextx.Background(), event); err != nil {
-			logger.G.Sys().WithErr(err).With("event-type", eventType).Error("failed to record package event")
-		}
-	}()
+func (h *handler) recordPackageEvents(rCtx restserver.IContext, events ...*types.PackageEvent) {
+	err := h.goAsyncPool.Run(
+		rCtx,
+		func(nCtx contextx.IContext) error {
+			return h.daoPackageEvent.CreateManyPackageEvent(nCtx, events...)
+		},
+		goasync.WithName("record_package_event"),
+	)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to submit package event recording task")
+	}
 }

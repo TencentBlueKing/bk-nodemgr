@@ -368,24 +368,17 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 
 func (h *handler) recordPluginEvent(rCtx restserver.IContext, gen types.Generation, name, version string,
 	plat platfmt.Platform, eventType types.PackageEventType) {
-
-	operator := rCtx.Data().GetLoginName()
-	go func() {
-		if err := h.daoPackageEvent.CreateManyPackageEvent(contextx.Background(),
-			&types.PackageEvent{
-				Name:        name,
-				EventType:   eventType,
-				ReleaseType: types.ReleaseTypePlugin,
-				Generation:  gen,
-				Version:     version,
-				OSType:      plat.OS,
-				CPUArch:     plat.Arch,
-				OperateTime: time.Now(),
-				Operator:    operator,
-			}); err != nil {
-			logger.G.Sys().WithErr(err).With("event-type", eventType).Error("failed to record package event")
-		}
-	}()
+	h.recordPackageEvents(rCtx, &types.PackageEvent{
+		Name:        name,
+		EventType:   eventType,
+		ReleaseType: types.ReleaseTypePlugin,
+		Generation:  gen,
+		Version:     version,
+		OSType:      plat.OS,
+		CPUArch:     plat.Arch,
+		OperateTime: time.Now(),
+		Operator:    rCtx.Data().GetLoginName(),
+	})
 }
 
 // GetConfigVariablesReleasePlugin gets the config variables of a plugin release.

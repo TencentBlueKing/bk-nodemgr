@@ -47,7 +47,8 @@ const (
 func (eventType PackageEventType) Validate() error {
 	switch eventType {
 	case PackageEventTypePublish, PackageEventTypeDelete, PackageEventTypeEnable,
-		PackageEventTypeDisable, PackageEventTypeSetAsDefault, PackageEventTypeCancelAsDefault:
+		PackageEventTypeDisable, PackageEventTypeSetAsDefault, PackageEventTypeCancelAsDefault,
+		PackageEventTypeUpload:
 		return nil
 	default:
 		return fmt.Errorf("invalid eventType type, type(%s)", eventType)

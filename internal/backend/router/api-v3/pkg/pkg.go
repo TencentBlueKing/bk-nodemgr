@@ -16,12 +16,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	asyncPoolNum  = 10
+	asyncPoolSize = 100
+)
+
 type handler struct {
 	rg                      *gin.RouterGroup
+	goAsyncPool             goasync.IHandler
 	daoPackageEvent         release.IPackageEvent
 	daoReleasePlugin        release.IPlugin
 	daoReleaseAgent         release.IAgent
@@ -35,9 +42,16 @@ type handler struct {
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+	goAsyncPool, _ := goasync.NewHandler(goasync.HandlerOption{
+		PoolNum:               asyncPoolNum,
+		PerPoolSize:           asyncPoolSize,
+		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
+	})
+
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                      rg.Group("/package"),
+		goAsyncPool:             goAsyncPool,
 		daoPackageEvent:         capability.StorageRelease,
 		daoReleasePlugin:        capability.StorageRelease,
 		daoReleaseAgent:         capability.StorageRelease,

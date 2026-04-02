@@ -31,9 +31,15 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
+)
+
+const (
+	asyncPoolNum  = 10
+	asyncPoolSize = 100
 )
 
 // IManager defines the file manager interface.
@@ -95,7 +101,13 @@ type IManager interface {
 
 // New returns a new file manager.
 func New(opts ...OptionFn) *Manager {
-	manager := &Manager{}
+	goAsyncPool, _ := goasync.NewHandler(goasync.HandlerOption{
+		PoolNum:               asyncPoolNum,
+		PerPoolSize:           asyncPoolSize,
+		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
+	})
+
+	manager := &Manager{goAsyncPool: goAsyncPool}
 
 	for _, opt := range opts {
 		opt(manager)
@@ -336,6 +348,7 @@ type Manager struct {
 	storageRelease release.IStorage
 	storageTopo    topo.IStorage
 	storageEvent   packageevent.IStorage
+	goAsyncPool    goasync.IHandler
 }
 
 // Start starts the manager.

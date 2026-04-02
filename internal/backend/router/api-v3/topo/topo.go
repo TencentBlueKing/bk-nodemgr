@@ -16,10 +16,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	asyncPoolNum  = 10
+	asyncPoolSize = 100
 )
 
 type handler struct {
@@ -29,9 +35,16 @@ type handler struct {
 	storageHostCredit credit.IStorageHostCredit
 	cmdbHandler       cmdb.IHandler
 	gseHandler        gse.IHandler
+	goAsyncPool       goasync.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+	goAsyncPool, _ := goasync.NewHandler(goasync.HandlerOption{
+		PoolNum:               asyncPoolNum,
+		PerPoolSize:           asyncPoolSize,
+		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
+	})
+
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                rg.Group("/topo"),
@@ -40,6 +53,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageHostCredit: capability.StorageCredit,
 		cmdbHandler:       capability.CmdbHandler,
 		gseHandler:        capability.GSEHandler,
+		goAsyncPool:       goAsyncPool,
 	}
 }
 

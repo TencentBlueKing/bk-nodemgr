@@ -11,10 +11,8 @@
 package topo
 
 import (
-	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -37,19 +35,14 @@ func (h *handler) CreateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// record event.
-	go func() {
-		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background(), contextx.WithTenantID(rCtx.TenantID())),
-			&types.TopoEvent{
-				TenantID:        rCtx.TenantID(),
-				Type:            types.TopoEventNetworkAreaCreate,
-				NetworkAreaID:   networkArea.ID,
-				NetworkAreaName: networkArea.Name,
-				OperateTime:     time.Now(),
-				Operator:        rCtx.BKUsername(),
-			}); err != nil {
-			logger.G.Sys().WithErr(err).With("networkarea-id", networkArea.ID).Warn("failed to record topo event in networkarea create")
-		}
-	}()
+	h.recordTopoEvents(rCtx, &types.TopoEvent{
+		TenantID:        rCtx.TenantID(),
+		Type:            types.TopoEventNetworkAreaCreate,
+		NetworkAreaID:   networkArea.ID,
+		NetworkAreaName: networkArea.Name,
+		OperateTime:     time.Now(),
+		Operator:        rCtx.BKUsername(),
+	})
 
 	if err := h.storage.UpsertManyNetworkArea(rCtx,
 		req.ConvertNetworkAreaToTypes(rCtx.TenantID(), networkArea.ID)); err != nil {
@@ -80,19 +73,14 @@ func (h *handler) UpdateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// record event.
-	go func() {
-		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background(), contextx.WithTenantID(rCtx.TenantID())),
-			&types.TopoEvent{
-				TenantID:        rCtx.TenantID(),
-				Type:            types.TopoEventNetworkAreaUpdate,
-				NetworkAreaID:   networkArea.ID,
-				NetworkAreaName: networkArea.Name,
-				OperateTime:     time.Now(),
-				Operator:        rCtx.BKUsername(),
-			}); err != nil {
-			logger.G.Sys().WithErr(err).With("networkarea-id", networkArea.ID).Warn("failed to record topo event in networkarea update")
-		}
-	}()
+	h.recordTopoEvents(rCtx, &types.TopoEvent{
+		TenantID:        rCtx.TenantID(),
+		Type:            types.TopoEventNetworkAreaUpdate,
+		NetworkAreaID:   networkArea.ID,
+		NetworkAreaName: networkArea.Name,
+		OperateTime:     time.Now(),
+		Operator:        rCtx.BKUsername(),
+	})
 
 	logger.G.Biz(rCtx).With("networkarea-id", networkArea.ID).Info("updated networkarea")
 
@@ -170,19 +158,14 @@ func (h *handler) DeleteNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// record event.
-	go func() {
-		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background(), contextx.WithTenantID(rCtx.TenantID())),
-			&types.TopoEvent{
-				TenantID:        rCtx.TenantID(),
-				Type:            types.TopoEventNetworkAreaDelete,
-				NetworkAreaID:   networkAreaID,
-				NetworkAreaName: networkArea.Name,
-				OperateTime:     time.Now(),
-				Operator:        rCtx.BKUsername(),
-			}); err != nil {
-			logger.G.Sys().WithErr(err).With("networkarea-id", networkArea.ID).Warn("failed to record topo event in networkarea delete")
-		}
-	}()
+	h.recordTopoEvents(rCtx, &types.TopoEvent{
+		TenantID:        rCtx.TenantID(),
+		Type:            types.TopoEventNetworkAreaDelete,
+		NetworkAreaID:   networkAreaID,
+		NetworkAreaName: networkArea.Name,
+		OperateTime:     time.Now(),
+		Operator:        rCtx.BKUsername(),
+	})
 
 	logger.G.Biz(rCtx).With("networkarea-id", networkArea.ID).Info("deleted networkarea")
 

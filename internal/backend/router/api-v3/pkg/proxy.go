@@ -13,7 +13,6 @@ package pkg
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -326,24 +325,17 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 
 func (h *handler) recordProxyEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
 	eventType types.PackageEventType) {
+	event := &types.PackageEvent{
+		Name:        types.ReleaseNameProxy,
+		ReleaseType: types.ReleaseTypeProxy,
+		Generation:  gen,
+		OSType:      plat.OS,
+		CPUArch:     plat.Arch,
+		Version:     version,
+		EventType:   eventType,
+		Operator:    rCtx.Data().GetLoginName(),
+		OperateTime: time.Now(),
+	}
 
-	operator := rCtx.Data().GetLoginName()
-	go func() {
-		// record package events.
-		event := &types.PackageEvent{
-			Name:        types.ReleaseNameProxy,
-			ReleaseType: types.ReleaseTypeProxy,
-			Generation:  gen,
-			OSType:      plat.OS,
-			CPUArch:     plat.Arch,
-			Version:     version,
-			EventType:   eventType,
-			Operator:    operator,
-			OperateTime: time.Now(),
-		}
-
-		if err := h.daoPackageEvent.CreateManyPackageEvent(contextx.Background(), event); err != nil {
-			logger.G.Sys().WithErr(err).With("event-type", eventType).Error("failed to record package event")
-		}
-	}()
+	h.recordPackageEvents(rCtx, event)
 }
