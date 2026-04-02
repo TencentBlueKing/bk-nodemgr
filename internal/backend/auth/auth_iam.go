@@ -177,10 +177,22 @@ func buildIAMApplyResourceTypes(resources []Resource) []types.IAMApplyResourceTy
 func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResourceType {
 	relatedRTs := make([]RelatedResourceType, 0, len(rts))
 	for _, rt := range rts {
+		instances := make([]ResourceNode, 0, len(rt.Instances))
+		for _, instance := range rt.Instances {
+			for _, node := range instance {
+				instances = append(instances, ResourceNode{
+					Type:     node.Type,
+					TypeName: ResourceTypeDisplayName(ResourceType(node.Type)),
+					ID:       node.ID,
+				})
+			}
+		}
 		relatedRTs = append(relatedRTs, RelatedResourceType{
-			SystemID: rt.SystemID,
-			Type:     rt.Type,
-			TypeName: ResourceTypeDisplayName(ResourceType(rt.Type)),
+			SystemID:   rt.SystemID,
+			SystemName: SystemDisplayName(rt.SystemID),
+			Type:       rt.Type,
+			TypeName:   ResourceTypeDisplayName(ResourceType(rt.Type)),
+			Instances:  instances,
 		})
 	}
 

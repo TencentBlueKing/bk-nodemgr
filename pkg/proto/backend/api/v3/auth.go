@@ -47,10 +47,21 @@ func (x *AuthVerifyResp) SetPermissionFromErrf(perm *resterrf.Permission) {
 	for i, action := range perm.Actions {
 		relatedTypes := make([]*RelatedResourceType, len(action.RelatedResourceTypes))
 		for j, rt := range action.RelatedResourceTypes {
+			instances := make([]*ResourceNode, len(rt.Instances))
+			for k, node := range rt.Instances {
+				instances[k] = &ResourceNode{
+					Type:     node.Type,
+					TypeName: node.TypeName,
+					Id:       node.ID,
+					Name:     node.Name,
+				}
+			}
 			relatedTypes[j] = &RelatedResourceType{
-				SystemId: rt.SystemID,
-				Type:     rt.Type,
-				TypeName: rt.TypeName,
+				SystemId:   rt.SystemID,
+				SystemName: rt.SystemName,
+				Type:       rt.Type,
+				TypeName:   rt.TypeName,
+				Instances:  instances,
 			}
 		}
 

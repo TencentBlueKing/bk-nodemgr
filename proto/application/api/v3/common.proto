@@ -404,10 +404,19 @@ message Error {
   repeated Details details = 3;
 }
 
+message ResourceNode {
+  string type = 1;
+  string type_name = 2;
+  string id = 3;
+  string name = 4;
+}
+
 message RelatedResourceType {
   string system_id = 1;
-  string type = 2;
-  string type_name = 3;
+  string system_name = 2;
+  string type = 3;
+  string type_name = 4;
+  repeated ResourceNode instances = 5;
 }
 
 message Action {

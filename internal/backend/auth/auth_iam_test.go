@@ -180,6 +180,17 @@ func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T)
 	if len(permErr.Actions[0].RelatedResourceTypes) != 1 {
 		t.Fatalf("expected denied biz resources to be deduplicated by type, got %d", len(permErr.Actions[0].RelatedResourceTypes))
 	}
+	rt := permErr.Actions[0].RelatedResourceTypes[0]
+	if len(rt.Instances) != 2 {
+		t.Fatalf("expected 2 denied instances in permission payload, got %d", len(rt.Instances))
+	}
+	first := rt.Instances[0]
+	if first.Type != string(ResourceTypeBiz) || first.ID != "2" {
+		t.Fatalf("unexpected first denied instance node: %+v", first)
+	}
+	if first.TypeName != ResourceTypeDisplayName(ResourceTypeBiz) {
+		t.Fatalf("expected first denied instance type name %q, got %q", ResourceTypeDisplayName(ResourceTypeBiz), first.TypeName)
+	}
 	if handler.applyCalls != 1 {
 		t.Fatalf("expected GetApplyURL to be called once, got %d", handler.applyCalls)
 	}

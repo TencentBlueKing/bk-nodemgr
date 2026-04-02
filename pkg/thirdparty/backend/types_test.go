@@ -183,9 +183,18 @@ func TestBuildBackendResponseError_RecognizePermissionFromResponse(t *testing.T)
 					Name: "Host Manage",
 					RelatedResourceTypes: []*protoBackend.RelatedResourceType{
 						{
-							SystemId: "bk_cmdb",
-							Type:     "biz",
-							TypeName: "Business",
+							SystemId:   "bk_cmdb",
+							SystemName: "CMDB",
+							Type:       "biz",
+							TypeName:   "Business",
+							Instances: []*protoBackend.ResourceNode{
+								{
+									Type:     "biz",
+									TypeName: "Business",
+									Id:       "biz-2",
+									Name:     "Biz 2",
+								},
+							},
 						},
 					},
 				},
@@ -218,8 +227,18 @@ func TestBuildBackendResponseError_RecognizePermissionFromResponse(t *testing.T)
 	if len(permissionData.Actions[0].RelatedResourceTypes) != 1 {
 		t.Fatalf("expected 1 related_resource_type, got %d", len(permissionData.Actions[0].RelatedResourceTypes))
 	}
-	if permissionData.Actions[0].RelatedResourceTypes[0].SystemID != "bk_cmdb" {
-		t.Fatalf("expected related system_id bk_cmdb, got %s", permissionData.Actions[0].RelatedResourceTypes[0].SystemID)
+	rt := permissionData.Actions[0].RelatedResourceTypes[0]
+	if rt.SystemID != "bk_cmdb" {
+		t.Fatalf("expected related system_id bk_cmdb, got %s", rt.SystemID)
+	}
+	if len(rt.Instances) != 1 {
+		t.Fatalf("expected 1 related instance, got %d", len(rt.Instances))
+	}
+	if rt.Instances[0].ID != "biz-2" {
+		t.Fatalf("expected related instance id biz-2, got %s", rt.Instances[0].ID)
+	}
+	if rt.Instances[0].TypeName != "Business" {
+		t.Fatalf("expected related instance type name Business, got %s", rt.Instances[0].TypeName)
 	}
 
 	code, _ := resterrf.ErrUnwrap(resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err))

@@ -40,11 +40,21 @@ type ActionInfo struct {
 	RelatedResourceTypes []RelatedResourceType
 }
 
-// RelatedResourceType represents an IAM related resource type.
-type RelatedResourceType struct {
-	SystemID string
+// ResourceNode represents one node on a denied resource instance path.
+type ResourceNode struct {
 	Type     string
 	TypeName string
+	ID       string
+	Name     string
+}
+
+// RelatedResourceType represents an IAM related resource type.
+type RelatedResourceType struct {
+	SystemID   string
+	SystemName string
+	Type       string
+	TypeName   string
+	Instances  []ResourceNode
 }
 
 // PermissionData converts PermissionDeniedError into a restserver.Permission payload.
@@ -54,10 +64,21 @@ func (permErr PermissionDeniedError) PermissionData() resterrf.Permission {
 	for _, act := range permErr.Actions {
 		rts := make([]resterrf.RelatedResourceType, 0, len(act.RelatedResourceTypes))
 		for _, rt := range act.RelatedResourceTypes {
+			instances := make([]resterrf.ResourceNode, 0, len(rt.Instances))
+			for _, node := range rt.Instances {
+				instances = append(instances, resterrf.ResourceNode{
+					Type:     node.Type,
+					TypeName: node.TypeName,
+					ID:       node.ID,
+					Name:     node.Name,
+				})
+			}
 			rts = append(rts, resterrf.RelatedResourceType{
-				SystemID: rt.SystemID,
-				Type:     rt.Type,
-				TypeName: rt.TypeName,
+				SystemID:   rt.SystemID,
+				SystemName: rt.SystemName,
+				Type:       rt.Type,
+				TypeName:   rt.TypeName,
+				Instances:  instances,
 			})
 		}
 		actions = append(actions, resterrf.Action{

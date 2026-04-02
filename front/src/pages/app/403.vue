@@ -43,13 +43,20 @@ const permissionStore = usePermissionStore();
 const permissionDetail = computed(() => authStore.getPermissionDetail());
 const canOpenPermissionDialog = computed(() => !!permissionDetail.value?.actions?.length);
 const deniedActionIds = computed(() => authStore.getDeniedActionIds());
-const displayActions = computed(() => deniedActionIds.value.map(actionId => ({ actionId })));
+const displayActions = computed(() => deniedActionIds.value.map((actionId) => {
+  const matchedAction = permissionDetail.value?.actions?.find(action => action.id === actionId);
+
+  return {
+    actionId,
+    actionName: matchedAction?.name || actionId,
+  };
+}));
 
 const columns = computed(() => [
   {
     label: t('components.permission.requiredPermissions'),
     width: 700,
-    render: ({ data }: { data: { actionId: string } }) => h('span', {}, data.actionId),
+    render: ({ data }: { data: { actionId: string; actionName: string } }) => h('span', {}, data.actionName),
   },
 ]);
 

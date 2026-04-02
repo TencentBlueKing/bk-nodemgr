@@ -59,6 +59,28 @@ func (err *backendPermissionError) PermissionData() resterrf.Permission {
 	}
 }
 
+func convertBackendResourceNodes(nodes []*protoBackend.ResourceNode) []resterrf.ResourceNode {
+	if len(nodes) == 0 {
+		return nil
+	}
+
+	convertedNodes := make([]resterrf.ResourceNode, 0, len(nodes))
+	for _, node := range nodes {
+		if node == nil {
+			continue
+		}
+
+		convertedNodes = append(convertedNodes, resterrf.ResourceNode{
+			Type:     node.GetType(),
+			TypeName: node.GetTypeName(),
+			ID:       node.GetId(),
+			Name:     node.GetName(),
+		})
+	}
+
+	return convertedNodes
+}
+
 func extractPermissionError(errInfo any) (resterrf.PermissionError, bool) {
 	if errInfo == nil {
 		return nil, false
@@ -93,9 +115,11 @@ func convertBackendRelatedResourceTypes(resourceTypes []*protoBackend.RelatedRes
 		}
 
 		relatedResourceTypes = append(relatedResourceTypes, resterrf.RelatedResourceType{
-			SystemID: resourceType.GetSystemId(),
-			Type:     resourceType.GetType(),
-			TypeName: resourceType.GetTypeName(),
+			SystemID:   resourceType.GetSystemId(),
+			SystemName: resourceType.GetSystemName(),
+			Type:       resourceType.GetType(),
+			TypeName:   resourceType.GetTypeName(),
+			Instances:  convertBackendResourceNodes(resourceType.GetInstances()),
 		})
 	}
 

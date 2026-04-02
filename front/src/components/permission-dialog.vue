@@ -46,6 +46,46 @@ const systemName = computed(() => permissionStore.data?.system_name ?? '');
 const actions = computed(() => permissionStore.data?.actions ?? []);
 const applyUrl = computed(() => permissionStore.data?.apply_url ?? '');
 
+function formatResourceInstance(instance: {
+  type_name: string;
+  id: string;
+  name: string;
+}): string {
+  const trimmedName = instance.name?.trim();
+  const trimmedID = instance.id?.trim();
+
+  if (trimmedName && trimmedID && trimmedName !== trimmedID) {
+    return `${trimmedName} (${trimmedID})`;
+  }
+
+  if (trimmedName) {
+    return trimmedName;
+  }
+
+  if (trimmedID) {
+    return trimmedID;
+  }
+
+  return instance.type_name;
+}
+
+function formatRelatedResources(data: PermissionAction): string {
+  const relatedResourceTypes = data?.related_resource_types;
+  if (!relatedResourceTypes?.length) {
+    return '--';
+  }
+
+  return relatedResourceTypes.map((resource) => {
+    const instances = resource.instances ?? [];
+    if (!instances.length) {
+      return resource.type_name;
+    }
+
+    const renderedInstances = instances.map(formatResourceInstance).join('、');
+    return `${resource.type_name}: ${renderedInstances}`;
+  }).join('；');
+}
+
 const columns = computed(() => [
   {
     label: t('components.permission.system'),
@@ -61,11 +101,7 @@ const columns = computed(() => [
     label: t('components.permission.relatedResources'),
     width: 342,
     render: ({ data }: { data: PermissionAction }) => {
-      const relatedResourceTypes = data?.related_resource_types;
-      if (!relatedResourceTypes?.length) {
-        return h('span', {}, '--');
-      }
-      return h('span', {}, relatedResourceTypes.map(resource => resource.type_name).join('、'));
+      return h('span', { class: 'permission-related-resources' }, formatRelatedResources(data));
     },
   },
 ]);
@@ -110,6 +146,14 @@ function handleApply() {
   .no-permission-table {
     max-height: 200px;
     overflow-y: auto;
+
+    .permission-related-resources {
+      display: inline-block;
+      line-height: 20px;
+      white-space: normal;
+      word-break: break-word;
+      text-align: left;
+    }
   }
 
   text-align: center;

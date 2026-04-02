@@ -28,14 +28,30 @@ type Action struct {
 	RelatedResourceTypes []RelatedResourceType `json:"related_resource_types"`
 }
 
-// RelatedResourceType describes a resource type associated with an IAM action.
-type RelatedResourceType struct {
-	// SystemID is the IAM system that owns this resource type.
-	SystemID string `json:"system_id"`
+// ResourceNode describes one resource node on an IAM resource instance path.
+type ResourceNode struct {
 	// Type is the resource type identifier.
 	Type string `json:"type"`
 	// TypeName is the display name of the resource type.
 	TypeName string `json:"type_name"`
+	// ID is the resource instance identifier.
+	ID string `json:"id"`
+	// Name is the display name of the resource instance.
+	Name string `json:"name"`
+}
+
+// RelatedResourceType describes a resource type associated with an IAM action.
+type RelatedResourceType struct {
+	// SystemID is the IAM system that owns this resource type.
+	SystemID string `json:"system_id"`
+	// SystemName is the display name of the IAM system that owns this resource type.
+	SystemName string `json:"system_name"`
+	// Type is the resource type identifier.
+	Type string `json:"type"`
+	// TypeName is the display name of the resource type.
+	TypeName string `json:"type_name"`
+	// Instances lists the denied resource instances for this resource type.
+	Instances []ResourceNode `json:"instances,omitempty"`
 }
 
 // PermissionError is implemented by errors that carry IAM permission-apply data.
