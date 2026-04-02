@@ -529,7 +529,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 				With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 				Error("failed to do action")
 
-			if retryNum < engineMaxRetryLimit {
+			if retryNum < actionDef.MaxRetryCount() && retryNum+1 < engineMaxRetryLimit {
 				actionInstCtx.Data.Log().Zh("步骤执行失败, 即将重试: %v", doErr).En("action failed, about to retry: %v", doErr).Warn()
 			}
 

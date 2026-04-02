@@ -11,6 +11,7 @@
 package node
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -40,9 +41,18 @@ func NewActionWaitGseReady(capability *Capability) action.Definition {
 	}
 }
 
-// ActParamWaitGseReady ...
+// ActParamWaitGseReady defines the action param for waiting GSE ready.
+// Fields PreRestartNodeStartTime, RestartCommandIssuedAt, and GracefulRestartTimeout
+// are passed from the restart action via instance content.
 type ActParamWaitGseReady struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
+
+	// PreRestartNodeStartTime is the agent start time captured before restart command was issued.
+	// Zero means the field was not captured (e.g., query failed or non-restart workflow).
+	PreRestartNodeStartTime uint64 `json:"pre_restart_node_start_time"`
+
+	// RestartCommandIssuedAt is the timestamp when restart command was issued.
+	RestartCommandIssuedAt time.Time `json:"restart_command_issued_at"`
 }
 
 type actionWaitGseReady struct {
@@ -120,11 +130,31 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	// Log restart-related fields for debugging.
+	gracefulRestartTimeout := std.DeployInfo().RestartOptions.GracefulRestartTimeout
+	preRestartNodeStartTime := time.Unix(int64(param.PreRestartNodeStartTime), 0)
+	std.InstanceData().Log().
+		Zh("发起重启时间(%v), 无损等待超时(%v), 节点上一次启动时间(%v)",
+			param.RestartCommandIssuedAt.Local(), gracefulRestartTimeout, preRestartNodeStartTime.Local()).
+		En("restart issued time(%v), graceful timeout(%v), node last start time(%v)",
+			param.RestartCommandIssuedAt.Local(), gracefulRestartTimeout, preRestartNodeStartTime.Local()).
+		Info()
+
+	// Create a context with GracefulRestartTimeout if applicable.
+	// This ensures polling stops automatically when the restart timeout is exceeded.
+	var pollingCtx context.Context = std.Context()
+	if canFastFailWithRestartTimeout(param, gracefulRestartTimeout) {
+		deadline := param.RestartCommandIssuedAt.Add(gracefulRestartTimeout)
+		var cancel context.CancelFunc
+		pollingCtx, cancel = context.WithDeadline(std.Context(), deadline)
+		defer cancel()
+	}
+
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
 	})
-	err = polling.Do(std.Context(), func(_ int) error {
+	err = polling.Do(pollingCtx, func(_ int) error {
 		states, err := act.gseClient.ListAgentState(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
 		if err != nil {
 			return err
@@ -135,30 +165,100 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		}
 
 		state := states[0]
-		std.DeployInfo().Host.Dynamic.NodeStatus = state.NodeStatus
-		if state.NodeStatus != types.NodeStatusRunning {
-			return fmt.Errorf("agent state is not running, status(%s)", state.NodeStatus)
+		if err := ensureStateReady(std, state); err != nil {
+			return err
 		}
 
-		if state.Version != std.DeployInfo().Host.Dynamic.NodeVersion {
-			return fmt.Errorf("agent version is not match, version(%s)", state.Version)
-		}
-
-		std.InstanceData().Log().
-			Zh("查询到 Agent 状态为运行中, 版本(%s)", state.Version).
-			En("found agent state is running, version(%s)", state.Version).
-			Info()
-
-		return nil
+		return act.verifyRestartStartTime(std, param, state)
 	})
 	if err != nil {
+		// Provide clearer error message when restart timeout was exceeded.
+		if errors.Is(err, context.DeadlineExceeded) {
+			elapsed := time.Since(param.RestartCommandIssuedAt)
+			err = fmt.Errorf(
+				"restart verification timeout exceeded: pre-start-time(%d), graceful-timeout(%s), elapsed(%s)",
+				param.PreRestartNodeStartTime,
+				gracefulRestartTimeout,
+				elapsed,
+			)
+
+			std.InstanceData().Log().
+				Zh("等待 Agent 就绪超时: %s", err.Error()).
+				En("wait agent ready timeout: %s", err.Error()).
+				Warn()
+
+			return err
+		}
+
 		std.InstanceData().Log().
 			Zh("查询 Agent 状态失败: %s", err.Error()).
 			En("failed to query agent state: %s", err.Error()).
-			Error()
+			Warn()
 
 		return err
 	}
 
 	return nil
+}
+
+func ensureStateReady(std *nodeUtils.NodeActionStandarder, state *types.AgentState) error {
+	std.DeployInfo().Host.Dynamic.NodeStatus = state.NodeStatus
+	if state.NodeStatus != types.NodeStatusRunning {
+		return fmt.Errorf("agent state is not running, status(%s)", state.NodeStatus)
+	}
+
+	if state.Version != std.DeployInfo().Host.Dynamic.NodeVersion {
+		return fmt.Errorf("agent version is not match, version(%s)", state.Version)
+	}
+
+	return nil
+}
+
+func (act *actionWaitGseReady) verifyRestartStartTime(
+	std *nodeUtils.NodeActionStandarder,
+	param *ActParamWaitGseReady,
+	state *types.AgentState,
+) error {
+
+	if param.PreRestartNodeStartTime == 0 {
+		std.InstanceData().Log().
+			Zh("未记录重启前启动时间，沿用原有状态校验通过路径").
+			En("pre-restart start time is absent, using legacy state-only verification path").
+			Info()
+
+		return nil
+	}
+
+	agentInfos, err := act.gseClient.ListAgentInfo(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
+	if err != nil {
+		return err
+	}
+
+	if len(agentInfos) != 1 {
+		return fmt.Errorf("query agent info result no 1, agent_infos(%v)", agentInfos)
+	}
+
+	agentInfo := agentInfos[0]
+	if agentInfo.StartTime <= param.PreRestartNodeStartTime {
+		return fmt.Errorf(
+			"agent start time has not advanced yet, pre-start-time(%d), current-start-time(%d)",
+			param.PreRestartNodeStartTime,
+			agentInfo.StartTime,
+		)
+	}
+
+	preRestartNodeStartTime := time.Unix(int64(param.PreRestartNodeStartTime), 0)
+	startTime := time.Unix(int64(agentInfo.StartTime), 0)
+	std.InstanceData().Log().
+		Zh("查询到 Agent 状态为运行中, 版本(%s), 启动时间(%v -> %v)",
+			state.Version, preRestartNodeStartTime.Local(), startTime.Local()).
+		En("found agent state is running, version(%s), start-time(%v -> %v)",
+			state.Version, preRestartNodeStartTime.Local(), startTime.Local()).
+		Info()
+
+	return nil
+}
+
+func canFastFailWithRestartTimeout(param *ActParamWaitGseReady, gracefulRestartTimeout time.Duration) bool {
+	return !param.RestartCommandIssuedAt.IsZero() && gracefulRestartTimeout > 0
 }

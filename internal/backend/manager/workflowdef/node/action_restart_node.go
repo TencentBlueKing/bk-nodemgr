@@ -136,17 +136,72 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	// Capture pre-restart state for verification in wait_gse_ready action.
+	var preRestartNodeStartTime uint64
+	var restartCommandIssuedAt time.Time
+	if captureErr := act.capturePreRestartNodeStartTime(std, &preRestartNodeStartTime); captureErr != nil {
+		std.InstanceData().Log().
+			Zh("重启前查询 Agent 启动时间失败，将回退为仅状态校验: %s", captureErr.Error()).
+			En("failed to query pre-restart agent start time, fallback to state-only verification: %s", captureErr.Error()).
+			Warn()
+	}
+
 	// check if this node version is >= lowest version which supports the soft restart through cluster.
 	// proxy node do not support soft restart.
 	if std.DeployInfo().CurrentVersionSupports.OperateAgentRestart && std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleAgent {
-		return act.restartThroughCluster(std, std.DeployInfo())
+		restartCommandIssuedAt = time.Now()
+		if err := act.restartThroughCluster(std, std.DeployInfo()); err != nil {
+			return err
+		}
+
+		return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime, restartCommandIssuedAt)
 	}
 
 	if !std.DeployInfo().RestartOptions.ForceRestart {
 		return errors.New("current node version do not support soft restart")
 	}
 
-	return act.restartThroughCommand(std, std.DeployInfo())
+	restartCommandIssuedAt = time.Now()
+	if err := act.restartThroughCommand(std, std.DeployInfo()); err != nil {
+		return err
+	}
+
+	return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime, restartCommandIssuedAt)
+}
+
+func (act *actionRestartNode) capturePreRestartNodeStartTime(
+	std *nodeUtils.NodeActionStandarder,
+	preRestartNodeStartTime *uint64,
+) error {
+	agentInfos, err := act.gseHandler.ListAgentInfo(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
+	if err != nil {
+		return fmt.Errorf("failed to list agent info before restart: %w", err)
+	}
+
+	if len(agentInfos) != 1 {
+		return fmt.Errorf("query agent info result no 1, agent_infos(%v)", agentInfos)
+	}
+
+	*preRestartNodeStartTime = agentInfos[0].StartTime
+	std.InstanceData().Log().
+		Zh("记录重启前 Agent 启动时间: %d", *preRestartNodeStartTime).
+		En("record pre-restart agent start time: %d", *preRestartNodeStartTime).
+		Info()
+
+	return nil
+}
+
+func (act *actionRestartNode) updateInstanceContentForWaitGseReady(
+	std *nodeUtils.NodeActionStandarder,
+	param *ActionParamRestartNode,
+	preRestartNodeStartTime uint64,
+	restartCommandIssuedAt time.Time,
+) error {
+	return std.UpdateInstanceDataContent(ActParamWaitGseReady{
+		NodeActionStandardParam: param.NodeActionStandardParam,
+		PreRestartNodeStartTime: preRestartNodeStartTime,
+		RestartCommandIssuedAt:  restartCommandIssuedAt,
+	})
 }
 
 func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
