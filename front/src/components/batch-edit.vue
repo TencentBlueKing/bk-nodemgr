@@ -24,7 +24,14 @@
           v-for="item in options"
           :key="item.id"
           :id="item.id"
-          :name="item.name">
+          :name="item.name"
+          :disabled="item.disabled"
+          v-bk-tooltips="{
+            content: item.disabledTip || '',
+            disabled: !(item.disabled && item.disabledTip),
+            boundary: 'parent',
+            placement: 'left',
+          }">
         </Select.Option>
       </Select>
       <div v-if="type === 'credit'">
@@ -66,6 +73,8 @@ type batchEditType = 'input' | 'credit' | 'switcher' | 'select';
 interface IOptions {
   id: string | number
   name: string | number
+  disabled?: boolean
+  disabledTip?: string
 }
 
 interface IProps {
@@ -110,7 +119,6 @@ const handleBeforeUpload = (file: File) => {
       } else {
         keyBase64.value = result;
       }
-      
     }
   };
   reader.readAsDataURL(file);

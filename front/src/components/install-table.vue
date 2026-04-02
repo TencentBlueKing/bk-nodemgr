@@ -426,7 +426,11 @@
       </VxeColgroup>
 
       <!-- 登录信息 -->
-      <VxeColgroup :title="$t('components.installTable.loginInfo')" align="center" v-if="type !== 'manual' && type !== 'offline'">
+      <VxeColgroup
+        :title="$t('components.installTable.loginInfo')"
+        align="center"
+        v-if="type !== 'manual' && type !== 'offline'"
+      >
         <VxeColumn
           field="login_ip"
           :title="$t('components.installTable.loginIP')"
@@ -1065,6 +1069,15 @@ const getHostDistinct = async () => {
 };
 
 const handleBatchEdit = (field: string, value: any) => {
+  if (field === 'bk_networkunit_id' && isProxyDirectNetworkUnit(value)) {
+    Message({
+      theme: 'warning',
+      message: t('topoManager.installProxy.form.tip'),
+    });
+
+    return;
+  }
+
   tableData.value?.forEach((item: any, index: number) => {
     if (field === 'credit') {
       if (item.login_mode === 'password') item.credit = value.password;
@@ -1159,6 +1172,12 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
 
   if (requiredFields.includes(field) && !value && value !== 0) {
     setError(rowIndex, field,  t('validate.required'));
+    return;
+  }
+
+  if (field === 'bk_networkunit_id' && value && isProxyDirectNetworkUnit(value)) {
+    setError(rowIndex, field, t('topoManager.installProxy.form.tip'));
+
     return;
   }
 
@@ -1257,6 +1276,11 @@ const tableValidate = async () => {
     }
     // 2.4 Proxy IP
     if (props.releaseType === 'proxy') {
+      if (row.bk_networkunit_id && isProxyDirectNetworkUnit(row.bk_networkunit_id)) {
+        setError(i, 'bk_networkunit_id', t('topoManager.installProxy.form.tip'));
+        rowValid = false;
+      }
+
       if (settings.checked.includes('export_ip')) {
         if (!row.export_ip) {
           setError(i, 'export_ip',  t('validate.required'));
@@ -1370,6 +1394,16 @@ const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => {
   return networkUnitGroupMap.value[Number(bkNetworkAreaId)] || [];
 };
 
+const isProxyDirectNetworkUnit = (networkUnitID: number | string) => {
+  if (props.releaseType !== 'proxy') {
+    return false;
+  }
+
+  return !!networkUnitList.value.find((unit: any) => (
+    String(unit.bk_networkunit_id) === String(networkUnitID) && unit.is_direct
+  ));
+};
+
 const isSameNetworkArea = computed(() => {
   if (!tableData.value?.length) return false;
   const firstAreaId = Number(tableData.value[0].bk_networkarea_id);
@@ -1382,6 +1416,8 @@ const networkUnitBatchOptions = computed(() => {
   return getNetworkUnitsByAreaId(areaId).map((unit: any) => ({
     id: String(unit.bk_networkunit_id),
     name: `[${unit.bk_networkunit_id}] ${unit.bk_networkunit_name}`,
+    disabled: props.releaseType === 'proxy' && unit.is_direct,
+    disabledTip: t('topoManager.installProxy.form.tip'),
   }));
 });
 
