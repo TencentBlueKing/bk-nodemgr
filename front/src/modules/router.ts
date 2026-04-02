@@ -3,7 +3,12 @@ import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { cancelRequest } from '@/api/request-queue';
-import { matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
+import {
+  handleDeferredBizAuthCheck,
+  matchPageAuth,
+  PAGE_AUTH_CONFIG,
+  shouldDeferBizAuthCheck,
+} from '@/constants/auth';
 import { i18n } from '@/modules/i18n';
 import Forbidden from '@/pages/app/403.vue';
 import NotFound from '@/pages/app/404.vue';
@@ -380,7 +385,7 @@ export const install: UserModule = ({ app }) => {
 
     const fallbackMainMenu = String(to.meta?.mainMenu || 'nodeManager');
     if (shouldDeferBizAuthCheck(matched, mainStore.isBusinessReady, currentBizId)) {
-      return { name: '403', query: { mainMenu: fallbackMainMenu } };
+      return handleDeferredBizAuthCheck(authStore);
     }
 
     const bizScope = selectedBizIds.length > 0

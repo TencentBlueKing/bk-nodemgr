@@ -38,6 +38,10 @@ export interface AuthVerifyResp {
   permission?: PermissionData;
 }
 
+export interface DeferredBizAuthHandler {
+  refreshPermissions: () => void;
+}
+
 // IAM system IDs
 export const SYSTEM_ID_CMDB = 'bk_cmdb';
 export const SYSTEM_ID_NODEMGR = 'bk_nodemgr';
@@ -90,6 +94,12 @@ export function shouldDeferBizAuthCheck(
   if (!authItem || authItem.resourceType !== 'biz') return false;
 
   return !isBusinessReady || currentBizId === undefined || currentBizId === null || currentBizId === '';
+}
+
+export function handleDeferredBizAuthCheck(authStore: DeferredBizAuthHandler): true {
+  authStore.refreshPermissions();
+
+  return true;
 }
 
 export function matchPageAuth(

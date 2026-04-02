@@ -1,7 +1,12 @@
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
+import {
+  handleDeferredBizAuthCheck,
+  matchPageAuth,
+  PAGE_AUTH_CONFIG,
+  shouldDeferBizAuthCheck,
+} from '@/constants/auth';
 import { useAuthStore } from '@/stores/auth';
 
 const { verifyRequestMock, postMock } = vi.hoisted(() => {
@@ -34,6 +39,13 @@ describe('auth permission helpers', () => {
     expect(shouldDeferBizAuthCheck(matched, false, undefined)).toBe(true);
     expect(shouldDeferBizAuthCheck(matched, true, undefined)).toBe(true);
     expect(shouldDeferBizAuthCheck(matched, true, 2)).toBe(false);
+  });
+
+  it('refreshes permissions and allows navigation when biz auth should be deferred', () => {
+    const refreshPermissions = vi.fn();
+
+    expect(handleDeferredBizAuthCheck({ refreshPermissions })).toBe(true);
+    expect(refreshPermissions).toHaveBeenCalledTimes(1);
   });
 });
 
