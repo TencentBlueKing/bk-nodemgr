@@ -325,6 +325,7 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 
 func (h *handler) recordProxyEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
 	eventType types.PackageEventType) {
+
 	event := &types.PackageEvent{
 		Name:        types.ReleaseNameProxy,
 		ReleaseType: types.ReleaseTypeProxy,

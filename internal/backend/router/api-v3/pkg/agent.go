@@ -327,6 +327,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 
 func (h *handler) recordAgentEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
 	eventType types.PackageEventType) {
+
 	event := &types.PackageEvent{
 		Name:        types.ReleaseNameAgent,
 		ReleaseType: types.ReleaseTypeAgent,

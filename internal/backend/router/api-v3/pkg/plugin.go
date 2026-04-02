@@ -368,6 +368,7 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 
 func (h *handler) recordPluginEvent(rCtx restserver.IContext, gen types.Generation, name, version string,
 	plat platfmt.Platform, eventType types.PackageEventType) {
+
 	h.recordPackageEvents(rCtx, &types.PackageEvent{
 		Name:        name,
 		EventType:   eventType,

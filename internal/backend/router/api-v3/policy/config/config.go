@@ -476,6 +476,7 @@ func (h *handler) recordConfigPolicyEventsByPolicies(
 	eventType types.ConfigPolicyEventType,
 	policies ...*types.ConfigPolicy,
 ) {
+
 	err := h.goAsyncPool.Run(
 		rCtx,
 		func(nCtx contextx.IContext) error {
