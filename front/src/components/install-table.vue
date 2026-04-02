@@ -984,7 +984,7 @@ const handleDelRow = (index: number) => {
     const ip = row?.bk_host_innerip || row?.bk_host_innerip_v6 || '';
     InfoBox({
       title: t('components.installTable.confirmDeleteRow'),
-      subTitle: t('components.installTable.confirmDeleteRowSub', { ip }),
+      subTitle: t('components.installTable.confirmDeleteRowSub', { ip, action: props.isUpgrade ? t('platform.nodeMan.agentStatus.upgrade') : t('platform.nodeMan.agentStatus.reinstall') }),
       onConfirm: () => doDelRow(index),
     });
     return;

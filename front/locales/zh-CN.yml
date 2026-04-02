@@ -974,7 +974,7 @@ components:
     keyfile: 密钥
     minimum: 至少保留一行
     confirmDeleteRow: 确认删除该行主机？
-    confirmDeleteRowSub: 删除后主机 {ip} 将不会被重装
+    confirmDeleteRowSub: 删除后主机 {ip} 将不会被{action}
     either: IPv4与IPv6至少填一项
     passwordVaultDisabled: 密码库功能未开启
   installType:
