@@ -44,6 +44,40 @@ describe('auth store batch verify', () => {
     postMock.mockClear();
   });
 
+  it('treats permission denied as a known unauthorized result', async () => {
+    const matched = PAGE_AUTH_CONFIG[0];
+    verifyRequestMock.mockRejectedValueOnce({
+      permission: {
+        system: 'bk_nodemgr',
+        system_name: 'NodeMan',
+        apply_url: '/apply',
+        actions: [{
+          id: 'agent_view',
+          name: 'Agent View',
+          related_resource_types: [],
+        }],
+      },
+    });
+
+    const authStore = useAuthStore();
+    const success = await authStore.batchVerify([matched], '2');
+
+    expect(success).toBe(true);
+    expect(authStore.needRefresh).toBe(false);
+    expect(authStore.hasPermission('agent_view', 2)).toBe(false);
+    expect(authStore.getDeniedActionIds()).toEqual(['agent_view']);
+    expect(authStore.getPermissionDetail()).toEqual({
+      system: 'bk_nodemgr',
+      system_name: 'NodeMan',
+      apply_url: '/apply',
+      actions: [{
+        id: 'agent_view',
+        name: 'Agent View',
+        related_resource_types: [],
+      }],
+    });
+  });
+
   it('does not downgrade unexpected verify failures into denied permissions', async () => {
     verifyRequestMock.mockRejectedValueOnce(new Error('iam backend unavailable'));
 

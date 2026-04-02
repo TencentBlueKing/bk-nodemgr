@@ -10,6 +10,14 @@ const fetch = new Fetch({
   prefix: `${import.meta.env.BK_API_PREFIX}`,
 });
 
+function isPermissionDeniedResponse(error: unknown): error is { permission: PermissionData } {
+  return typeof error === 'object'
+    && error !== null
+    && 'permission' in error
+    && typeof error.permission === 'object'
+    && error.permission !== null;
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const CACHE_EXPIRE_MS = 5 * 60 * 1000;
   const permissionMap = reactive<Record<string, boolean>>({});
@@ -31,7 +39,10 @@ export const useAuthStore = defineStore('auth', () => {
     return String(bizScope ?? '');
   }
 
-  async function batchVerify(authItems: PageAuthItem[], bkBizScope?: string | number | Array<string | number>): Promise<boolean> {
+  async function batchVerify(
+    authItems: PageAuthItem[],
+    bkBizScope?: string | number | Array<string | number>,
+  ): Promise<boolean> {
     const bizScope = normalizeBizScope(bkBizScope);
     const bizResources = bizScope
       ? bizScope.split(',').map(id => ({
@@ -56,7 +67,10 @@ export const useAuthStore = defineStore('auth', () => {
 
     loading.value = true;
     try {
-      const resp = await fetch.post<{ items: AuthVerifyItem[] }, AuthVerifyResp>('/api/v3/auth/verify')({ items }, { interceptorErr: false, validateCode: false, needRes: true }) as unknown as AuthVerifyResp;
+      const resp = await fetch.post<{ items: AuthVerifyItem[] }, AuthVerifyResp>('/api/v3/auth/verify')(
+        { items },
+        { interceptorErr: false, validateCode: false, needRes: true },
+      ) as unknown as AuthVerifyResp;
 
       const data = (resp as any)?.data ?? resp;
       if (data?.results) {
@@ -82,7 +96,25 @@ export const useAuthStore = defineStore('auth', () => {
       lastVerifiedBizScope.value = bizScope;
       needRefresh.value = false;
       return true;
-    } catch {
+    } catch (error) {
+      if (isPermissionDeniedResponse(error)) {
+        const denied = authItems.map(item => item.action);
+        const now = Date.now();
+
+        for (const action of denied) {
+          const cacheKey = `${action}:${bizScope}`;
+          permissionMap[cacheKey] = false;
+          permissionTimestampMap[cacheKey] = now;
+        }
+
+        permissionDetail.value = error.permission;
+        deniedActionIds.value = denied;
+        lastVerifiedBizScope.value = bizScope;
+        needRefresh.value = false;
+
+        return true;
+      }
+
       permissionDetail.value = null;
       deniedActionIds.value = [];
       needRefresh.value = true;
