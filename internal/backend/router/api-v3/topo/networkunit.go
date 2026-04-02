@@ -52,6 +52,10 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	if !networkUnit.IsDirect {
 		networkUnit.Links = req.ConvertLinksToTypes()
 	}
+
+	// todo: 1.目前只支持 networkunit 为 Generation2
+	networkUnit.Generation = types.Generation2
+
 	networkUnitID, accessPointResult, err := h.storage.CreateNetworkUnit(
 		rCtx,
 		networkUnit,
@@ -139,6 +143,11 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	if !networkUnit.IsDirect {
 		networkUnit.Links = req.ConvertLinksToTypes()
 	}
+
+	// todo: 1.目前只支持 networkunit 为 Generation2
+	// todo: 2.update不允许修改 Generation
+	networkUnit.Generation = types.Generation2
+
 	accessPointResult, err := h.storage.UpdateNetworkUnit(
 		rCtx,
 		networkUnit,
