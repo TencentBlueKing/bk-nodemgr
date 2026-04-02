@@ -37,19 +37,15 @@ func (h *handler) AgentUpgradeCheck(rCtx restserver.IContext) (interface{}, erro
 	for _, host := range req.GetHost() {
 		hostIDs = append(hostIDs, host.GetBkHostId())
 	}
-	hosts, _, err := h.storageHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+	result, err := h.storageHost.DistinctHost(rCtx, types.HostDistinctRequest{BizID: true}, &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to check upgrade agent, failed to list hosts")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to check upgrade agent, failed to distinct hosts")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	bizIDMap := make(map[int64]struct{})
-	for _, host := range hosts {
-		bizIDMap[host.Static.BizID] = struct{}{}
-	}
-	resources := buildBizResources(conv.MapKeyToSlice(bizIDMap))
+	resources := buildBizResources(result.BizID)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check upgrade agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
