@@ -16,6 +16,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -142,11 +144,10 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 
 	// Create a context with GracefulRestartTimeout if applicable.
 	// This ensures polling stops automatically when the restart timeout is exceeded.
-	var pollingCtx context.Context = std.Context()
+	pollingCtx := std.Context()
 	if canFastFailWithRestartTimeout(param, gracefulRestartTimeout) {
-		deadline := param.RestartCommandIssuedAt.Add(gracefulRestartTimeout)
 		var cancel context.CancelFunc
-		pollingCtx, cancel = context.WithDeadline(std.Context(), deadline)
+		pollingCtx, cancel = contextx.WithDeadline(std.Context(), param.RestartCommandIssuedAt.Add(gracefulRestartTimeout))
 		defer cancel()
 	}
 
@@ -155,7 +156,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		Interval: time.Second,
 	})
 	err = polling.Do(pollingCtx, func(_ int) error {
-		states, err := act.gseClient.ListAgentState(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
+		states, err := act.gseClient.ListAgentState(pollingCtx, std.DeployInfo().Host.Dynamic.AgentID)
 		if err != nil {
 			return err
 		}
@@ -169,7 +170,7 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 
-		return act.verifyRestartStartTime(std, param, state)
+		return act.verifyRestartStartTime(pollingCtx, std, param, state)
 	})
 	if err != nil {
 		// Provide clearer error message when restart timeout was exceeded.
@@ -215,6 +216,7 @@ func ensureStateReady(std *nodeUtils.NodeActionStandarder, state *types.AgentSta
 }
 
 func (act *actionWaitGseReady) verifyRestartStartTime(
+	nCtx contextx.IContext,
 	std *nodeUtils.NodeActionStandarder,
 	param *ActParamWaitGseReady,
 	state *types.AgentState,
@@ -229,7 +231,7 @@ func (act *actionWaitGseReady) verifyRestartStartTime(
 		return nil
 	}
 
-	agentInfos, err := act.gseClient.ListAgentInfo(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
+	agentInfos, err := act.gseClient.ListAgentInfo(nCtx, std.DeployInfo().Host.Dynamic.AgentID)
 	if err != nil {
 		return err
 	}

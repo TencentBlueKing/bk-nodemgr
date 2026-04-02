@@ -175,6 +175,13 @@ func WithTimeout(nCtx IContext, timeout time.Duration) (IContext, context.Cancel
 	return New(ctxWithC, WithValues(nCtx.Values())), cancel
 }
 
+// WithDeadline this is the same as context.WithDeadline.
+func WithDeadline(nCtx IContext, deadline time.Time) (IContext, context.CancelFunc) {
+	ctxWithC, cancel := context.WithDeadline(nCtx, deadline)
+
+	return New(ctxWithC, WithValues(nCtx.Values())), cancel
+}
+
 // WithoutCancel this is the same as context.WithoutCancel.
 func WithoutCancel(nCtx IContext) IContext {
 	if nCtx == nil {

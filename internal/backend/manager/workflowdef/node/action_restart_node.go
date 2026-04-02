@@ -138,7 +138,6 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 
 	// Capture pre-restart state for verification in wait_gse_ready action.
 	var preRestartNodeStartTime uint64
-	var restartCommandIssuedAt time.Time
 	if captureErr := act.capturePreRestartNodeStartTime(std, &preRestartNodeStartTime); captureErr != nil {
 		std.InstanceData().Log().
 			Zh("重启前查询 Agent 启动时间失败，将回退为仅状态校验: %s", captureErr.Error()).
@@ -149,11 +148,11 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 	// check if this node version is >= lowest version which supports the soft restart through cluster.
 	// proxy node do not support soft restart.
 	if std.DeployInfo().CurrentVersionSupports.OperateAgentRestart && std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleAgent {
-		restartCommandIssuedAt = time.Now()
 		if err := act.restartThroughCluster(std, std.DeployInfo()); err != nil {
 			return err
 		}
 
+		restartCommandIssuedAt := time.Now()
 		return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime, restartCommandIssuedAt)
 	}
 
@@ -161,11 +160,11 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 		return errors.New("current node version do not support soft restart")
 	}
 
-	restartCommandIssuedAt = time.Now()
 	if err := act.restartThroughCommand(std, std.DeployInfo()); err != nil {
 		return err
 	}
 
+	restartCommandIssuedAt := time.Now()
 	return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime, restartCommandIssuedAt)
 }
 
@@ -173,6 +172,7 @@ func (act *actionRestartNode) capturePreRestartNodeStartTime(
 	std *nodeUtils.NodeActionStandarder,
 	preRestartNodeStartTime *uint64,
 ) error {
+
 	agentInfos, err := act.gseHandler.ListAgentInfo(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
 	if err != nil {
 		return fmt.Errorf("failed to list agent info before restart: %w", err)
@@ -197,6 +197,7 @@ func (act *actionRestartNode) updateInstanceContentForWaitGseReady(
 	preRestartNodeStartTime uint64,
 	restartCommandIssuedAt time.Time,
 ) error {
+
 	return std.UpdateInstanceDataContent(ActParamWaitGseReady{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		PreRestartNodeStartTime: preRestartNodeStartTime,
