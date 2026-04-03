@@ -1,0 +1,29 @@
+{
+  "skill_name": "readme-logic-first",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "把 internal/backend/auth 的 README 重写成\"逻辑导向\"，重点解释 scope 收缩，不要按文件结构展开。",
+      "expected_output": "README uses logic-first structure with scope narrowing rules and avoids file-by-file narration.",
+      "files": [
+        "internal/backend/auth/README.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我只要\"无授权实例\"和\"请求无交集\"的返回策略说明，给我一版能直接放 README 的决策规则。",
+      "expected_output": "Decision rules clearly separate no-authorized-instance vs empty-intersection behaviors with explicit response policy.",
+      "files": [
+        "internal/backend/auth/README.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "现有 README 太啰嗦，保留流程图和四层模型，删掉废话并统一术语。",
+      "expected_output": "README is concise, retains flowchart and four-layer model, and uses consistent terminology throughout.",
+      "files": [
+        "internal/backend/auth/README.md"
+      ]
+    }
+  ]
+}
