@@ -97,7 +97,7 @@ func toAuthorizedScope(isAny bool, iamResources []types.IAMResource) AuthorizedS
 	return AuthorizedScope{IsAny: isAny, Resources: resources}
 }
 
-func buildIAMBatchResultKey(resources []types.IAMResource) string {
+func buildIAMBatchLookupKey(resources []types.IAMResource) string {
 	if len(resources) == 0 {
 		return ""
 	}
@@ -236,7 +236,7 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 
 	denied := make([]Resource, 0, len(resources))
 	for i, resource := range resources {
-		key := buildIAMBatchResultKey(resourcesList[i])
+		key := buildIAMBatchLookupKey(resourcesList[i])
 		if allowed, ok := results[key]; ok && allowed {
 			continue
 		}

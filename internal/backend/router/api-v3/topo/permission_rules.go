@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-var errNoAuthorizedNetworkAreas = errors.New("no authorized network areas")
+var errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
 
 // buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
 func buildNetworkAreaResources(ids []int64) []auth.Resource {
@@ -46,7 +46,7 @@ func (h *handler) narrowAuthorizedNetworkAreaIDs(
 		return nil, false, err
 	}
 
-	narrowedIDs, fullAccess, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, auth.ResourceTypeNetworkArea,
 	)
 
@@ -59,10 +59,10 @@ func (h *handler) narrowAuthorizedNetworkAreaIDs(
 			return nil, false, checkErr
 		}
 
-		return nil, false, errNoAuthorizedNetworkAreas
+		return nil, false, errNetworkAreaViewDeniedByEmptyScope
 	}
 
-	if fullAccess {
+	if scopeIsAny {
 		return requestedIDs, true, nil
 	}
 
@@ -75,8 +75,8 @@ func (h *handler) narrowAuthorizedNetworkAreaIDs(
 	return narrowedIDs, false, nil
 }
 
-func narrowNetworkAreaCondition(condition *types.NetworkAreaCondition, narrowedIDs []int64, fullAccess bool) *types.NetworkAreaCondition {
-	if fullAccess {
+func narrowNetworkAreaCondition(condition *types.NetworkAreaCondition, narrowedIDs []int64, scopeIsAny bool) *types.NetworkAreaCondition {
+	if scopeIsAny {
 		return condition
 	}
 

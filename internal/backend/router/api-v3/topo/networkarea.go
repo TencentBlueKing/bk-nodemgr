@@ -141,12 +141,12 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		areaIDs = exactCond.GetBkNetworkareaId()
 	}
-	narrowedIDs, fullAccess, authErr := h.narrowAuthorizedNetworkAreaIDs(rCtx, areaIDs)
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkAreaIDs(rCtx, areaIDs)
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list networkarea, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
-	condition = narrowNetworkAreaCondition(condition, narrowedIDs, fullAccess)
+	condition = narrowNetworkAreaCondition(condition, narrowedIDs, scopeIsAny)
 
 	page, err := req.ConvertPageToTypes()
 	if err != nil {

@@ -19,7 +19,7 @@ import (
 // nolint: nonamedreturns
 func resolveAuthorizedIDsResult[T comparable](
 	isAny bool, requestedIDs []T, authorizedIDs []T,
-) (narrowedIDs []T, fullAccess bool, hasAuthorized bool) {
+) (narrowedIDs []T, scopeIsAny bool, hasAuthorized bool) {
 
 	if isAny {
 		return requestedIDs, true, true
@@ -40,7 +40,7 @@ func resolveAuthorizedIDsResult[T comparable](
 // nolint: nonamedreturns
 func ResolveAuthorizedResourceIDsInt64(
 	scope AuthorizedScope, requestedIDs []int64, resourceType ResourceType,
-) (narrowedIDs []int64, fullAccess bool, hasAuthorized bool, err error) {
+) (narrowedIDs []int64, scopeIsAny bool, hasAuthorized bool, err error) {
 
 	authorizedIDs := make([]int64, 0, len(scope.Resources))
 
@@ -57,7 +57,7 @@ func ResolveAuthorizedResourceIDsInt64(
 	}
 	authorizedIDs = conv.SliceUnique(authorizedIDs)
 
-	narrowedIDs, fullAccess, hasAuthorized = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
+	narrowedIDs, scopeIsAny, hasAuthorized = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
 
-	return narrowedIDs, fullAccess, hasAuthorized, nil
+	return narrowedIDs, scopeIsAny, hasAuthorized, nil
 }
