@@ -12,6 +12,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -30,6 +31,7 @@ const (
 
 type handler struct {
 	rg                *gin.RouterGroup
+	authorizer        auth.IAuthorizer
 	manager           manager.IManager
 	storage           topoStg.IStorage
 	storageHostCredit credit.IStorageHostCredit
@@ -48,6 +50,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                rg.Group("/topo"),
+		authorizer:        capability.Authorizer,
 		manager:           capability.Manager,
 		storage:           capability.StorageTopo,
 		storageHostCredit: capability.StorageCredit,

@@ -13,6 +13,7 @@ package topo
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -26,6 +27,11 @@ func (h *handler) CreateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaCreate, nil); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to create networkarea, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	networkArea, err := h.cmdbHandler.CreateNetworkArea(rCtx, req.GetBkNetworkareaName(), req.GetCloudVendor())
@@ -66,6 +72,12 @@ func (h *handler) UpdateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaEdit,
+		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()})); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update networkarea, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	networkArea := req.ConvertNetworkAreaToTypes(rCtx.TenantID())
 	if err := h.storage.UpdateManyNetworkArea(rCtx, networkArea); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkarea, failed to upsert networkarea")
@@ -98,6 +110,12 @@ func (h *handler) GetNetworkArea(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView,
+		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()})); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get networkarea, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	networkArea, err := h.storage.GetNetworkArea(rCtx, req.GetBkNetworkareaId())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get networkarea")
@@ -118,13 +136,25 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	condition := req.ConvertConditionsToTypes()
+	var areaIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		areaIDs = exactCond.GetBkNetworkareaId()
+	}
+	narrowedIDs, fullAccess, authErr := h.narrowAuthorizedNetworkAreaIDs(rCtx, areaIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list networkarea, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowNetworkAreaCondition(condition, narrowedIDs, fullAccess)
+
 	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkAreas, num, err := h.storage.ListNetworkArea(rCtx, page, req.ConvertConditionsToTypes())
+	networkAreas, num, err := h.storage.ListNetworkArea(rCtx, page, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -142,6 +172,12 @@ func (h *handler) DeleteNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaDelete,
+		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()})); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to delete networkarea, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	networkAreaID := req.GetBkNetworkareaId()
