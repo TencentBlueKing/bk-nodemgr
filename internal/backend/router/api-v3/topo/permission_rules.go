@@ -39,6 +39,7 @@ func buildNetworkAreaResources(ids []int64) []auth.Resource {
 func (h *handler) narrowAuthorizedNetworkAreaIDs(
 	rCtx restserver.IContext, requestedIDs []int64,
 ) ([]int64, bool, error) {
+
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionNetworkAreaView, auth.ResourceTypeNetworkArea)
 
 	if err != nil {

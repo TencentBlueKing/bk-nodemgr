@@ -11,6 +11,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -22,6 +23,12 @@ import (
 )
 
 const iamCacheTTL = 5 * time.Minute
+
+const (
+	iamTypeKeySep             = "/"
+	iamBatchResultPairFmt     = "%s,%s"
+	iamBatchResultResourceSep = "/"
+)
 
 // Canonical ordering constants for related_resource_types in IAM apply requests.
 // Order must match action registration in support-files/bkiamv3/templates/0003_bk_nodemgr_actions.json.tpl.
@@ -37,16 +44,16 @@ const (
 // iamResourceTypeOrderKey returns the canonical ordering index for a (systemID, resourceType) pair.
 // Unknown pairs are assigned a position after all known pairs.
 func iamResourceTypeOrderKey(systemID, typ string) int {
-	switch systemID + "/" + typ {
-	case SystemIDCMDB + "/" + string(ResourceTypeBiz):
+	switch systemID + iamTypeKeySep + typ {
+	case SystemIDCMDB + iamTypeKeySep + string(ResourceTypeBiz):
 		return iamOrderBiz
-	case SystemIDNodeMgr + "/" + string(ResourceTypeNetworkArea):
+	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypeNetworkArea):
 		return iamOrderNetworkArea
-	case SystemIDNodeMgr + "/" + string(ResourceTypeNetworkUnit):
+	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypeNetworkUnit):
 		return iamOrderNetworkUnit
-	case SystemIDNodeMgr + "/" + string(ResourceTypePackageType):
+	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypePackageType):
 		return iamOrderPackageType
-	case SystemIDNodeMgr + "/" + string(ResourceTypePackage):
+	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypePackage):
 		return iamOrderPackage
 	default:
 		return iamOrderUnknown
@@ -100,10 +107,10 @@ func buildIAMBatchResultKey(resources []types.IAMResource) string {
 
 	nodeIDs := make([]string, 0, len(resources))
 	for _, resource := range resources {
-		nodeIDs = append(nodeIDs, fmt.Sprintf("%s,%s", resource.Type, resource.ID))
+		nodeIDs = append(nodeIDs, fmt.Sprintf(iamBatchResultPairFmt, resource.Type, resource.ID))
 	}
 
-	return strings.Join(nodeIDs, "/")
+	return strings.Join(nodeIDs, iamBatchResultResourceSep)
 }
 
 func sortedActions(actionResources map[Action][]Resource) []Action {
@@ -168,7 +175,7 @@ func buildIAMApplyResourceTypes(resources []Resource) []types.IAMApplyResourceTy
 			return ki < kj
 		}
 
-		return rts[idx].SystemID+"/"+rts[idx].Type < rts[jdx].SystemID+"/"+rts[jdx].Type
+		return rts[idx].SystemID+iamTypeKeySep+rts[idx].Type < rts[jdx].SystemID+iamTypeKeySep+rts[jdx].Type
 	})
 
 	return rts
@@ -204,7 +211,7 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 ) ([]Resource, bool, error) {
 
 	if ctx == nil {
-		return nil, false, fmt.Errorf("auth: Check called with nil context")
+		return nil, false, errors.New("auth: Check called with nil context")
 	}
 
 	if len(resources) == 0 {
@@ -316,7 +323,7 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 ) (AuthorizedScope, error) {
 
 	if ctx == nil {
-		return AuthorizedScope{}, fmt.Errorf("auth: ListAuthorizedInstances called with nil context")
+		return AuthorizedScope{}, errors.New("auth: ListAuthorizedInstances called with nil context")
 	}
 
 	isAny, iamResources, err := authorizer.handler.ListAuthorizedInstances(ctx, types.IAMAuthorizedInstancesRequest{

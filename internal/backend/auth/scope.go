@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
+// nolint: nonamedreturns
 func resolveAuthorizedIDsResult[T comparable](
 	isAny bool, requestedIDs []T, authorizedIDs []T,
 ) (narrowedIDs []T, fullAccess bool, hasAuthorized bool) {
@@ -36,6 +37,7 @@ func resolveAuthorizedIDsResult[T comparable](
 }
 
 // ResolveAuthorizedResourceIDsInt64 narrows requested IDs by authorized scope for a specific resource type.
+// nolint: nonamedreturns
 func ResolveAuthorizedResourceIDsInt64(
 	scope AuthorizedScope, requestedIDs []int64, resourceType ResourceType,
 ) (narrowedIDs []int64, fullAccess bool, hasAuthorized bool, err error) {

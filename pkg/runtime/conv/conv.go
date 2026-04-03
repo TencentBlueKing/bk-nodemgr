@@ -377,18 +377,18 @@ func SliceUnique[T comparable](source []T) []T {
 }
 
 // SliceIntersect returns the unique intersection of two slices in left-side order.
-func SliceIntersect[T comparable](left, right []T) []T {
+func SliceIntersect[itemID comparable](left, right []itemID) []itemID {
 	if left == nil {
 		return nil
 	}
 
-	rightSet := make(map[T]struct{}, len(right))
+	rightSet := make(map[itemID]struct{}, len(right))
 	for _, item := range right {
 		rightSet[item] = struct{}{}
 	}
 
-	result := make([]T, 0)
-	seen := make(map[T]struct{})
+	result := make([]itemID, 0)
+	seen := make(map[itemID]struct{})
 	for _, item := range left {
 		if _, ok := rightSet[item]; !ok {
 			continue
