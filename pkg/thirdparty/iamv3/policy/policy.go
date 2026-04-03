@@ -30,6 +30,10 @@ func Parse(expr *expression.ExprCell, systemID, resourceType string) (bool, []ty
 		return false, []types.IAMResource{}, nil
 	}
 
+	if expr.OP == "" && expr.Content == nil {
+		return false, []types.IAMResource{}, nil
+	}
+
 	switch expr.OP {
 	case operator.Any:
 		return true, []types.IAMResource{}, nil
