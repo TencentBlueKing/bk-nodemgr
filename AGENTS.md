@@ -18,6 +18,7 @@
 |Conventions:before coding read relevant module + at least one analogous implementation in same service/layer
 |Conventions:for every touched path, identify and obey all applicable scoped AGENTS.md files before designing or coding|priority=nearest-scope over broader guidance|if local AGENTS already constrain boundary/type/flow, treat it as a hard requirement, not a style hint
 |Conventions:prefer extending existing code paths/helpers/proto conversions over parallel implementations
+#LC||Conventions:prefer reusing existing implementations/patterns after searching analogous code first|aim=minimize cross-module inconsistency and style drift
 |Conventions:use pkg/logger for structured logging
 |Conventions:frontend package manager=pnpm@9.8.0|eslint extends @blueking/eslint-config-bk/tsvue3 with import sorting and type-import rules
 |OCP:extend by addition, not mutation|anchor:{internal/*/router/api-v3,internal/backend/auth,pkg/proto/*}|pattern:{new-subpackage,new-constant,new-interface-impl,additive-proto,new-method}|ban:{patching-stable-signatures,rename/remove-proto-fields}

@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
@@ -41,19 +42,66 @@ type IAuthIdentity interface {
 	Verify(r IRequest) error
 }
 
+// AuthMiddlewareOption customizes auth middleware behavior.
+type AuthMiddlewareOption func(opt *authMiddlewareConfig)
+
+type authMiddlewareConfig struct {
+	skipPathPrefixes []string
+}
+
+// WithSkipPathPrefixes configures path prefixes to bypass identity verification.
+func WithSkipPathPrefixes(skipPathPrefixes ...string) AuthMiddlewareOption {
+	return func(opt *authMiddlewareConfig) {
+		opt.skipPathPrefixes = append(opt.skipPathPrefixes, skipPathPrefixes...)
+	}
+}
+
 // MiddlewareAuth verify auth info.
-func MiddlewareAuth(identity IAuthIdentity) gin.HandlerFunc {
+func MiddlewareAuth(identity IAuthIdentity, options ...AuthMiddlewareOption) gin.HandlerFunc {
+	config := &authMiddlewareConfig{}
+	for _, option := range options {
+		option(config)
+	}
+
+	normalizedSkipPathPrefixes := normalizeSkipPathPrefixes(config.skipPathPrefixes)
+
 	return func(gCtx *gin.Context) {
 		r := loadRestRequest(gCtx)
 
-		if err := identity.Verify(r); err != nil {
-			r.AbortWithJSONError(resterrf.Unauthorized, []error{err})
+		if !shouldSkipAuthByPath(gCtx.Request.URL.Path, normalizedSkipPathPrefixes) {
+			if err := identity.Verify(r); err != nil {
+				r.AbortWithJSONError(resterrf.Unauthorized, []error{err})
 
-			return
+				return
+			}
 		}
 
 		gCtx.Next()
 	}
+}
+
+func normalizeSkipPathPrefixes(skipPathPrefixes []string) []string {
+	normalizedSkipPathPrefixes := make([]string, 0, len(skipPathPrefixes))
+	for _, skipPathPrefix := range skipPathPrefixes {
+		normalizedSkipPathPrefix := strings.TrimSuffix(skipPathPrefix, "/")
+		if normalizedSkipPathPrefix == "" {
+			continue
+		}
+
+		normalizedSkipPathPrefixes = append(normalizedSkipPathPrefixes, normalizedSkipPathPrefix)
+	}
+
+	return normalizedSkipPathPrefixes
+}
+
+func shouldSkipAuthByPath(path string, normalizedSkipPathPrefixes []string) bool {
+	for _, skipPathPrefix := range normalizedSkipPathPrefixes {
+		if path == skipPathPrefix || strings.HasPrefix(path, skipPathPrefix+"/") {
+			return true
+		}
+	}
+
+	return false
 }
 
 var _ IAuthIdentity = &RestServerAuthIdentity{}

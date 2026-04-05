@@ -288,3 +288,106 @@ func TestHandler_ThirdpartyWrappedPermissionErrorRoutesToPermDenied(t *testing.T
 		t.Errorf("expected apply_url %q, got %q", "https://iam.example.com/apply", resp.Permission.ApplyURL)
 	}
 }
+
+type countingAuthIdentity struct {
+	verifyCalls int
+	err         error
+}
+
+func (i *countingAuthIdentity) Verify(_ server.IRequest) error {
+	i.verifyCalls++
+
+	return i.err
+}
+
+func TestMiddlewareAuth_WithSkipPathPrefixes_ShouldSkipForIAMPath(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+
+	identity := &countingAuthIdentity{err: errors.New("verify failed")}
+	engine.Use(server.MiddlewareContext())
+	engine.Use(server.MiddlewareAuth(identity, server.WithSkipPathPrefixes("/api/v3/iam")))
+	engine.GET("/api/v3/iam/v3/resource", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v3/iam/v3/resource", nil)
+	engine.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status 200 for skipped path, got %d", recorder.Code)
+	}
+	if identity.verifyCalls != 0 {
+		t.Fatalf("expected verify not called for skipped path, got %d", identity.verifyCalls)
+	}
+}
+
+func TestMiddlewareAuth_WithSkipPathPrefixes_ShouldVerifyForNonSkippedPath(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+
+	identity := &countingAuthIdentity{err: errors.New("verify failed")}
+	engine.Use(server.MiddlewareContext())
+	engine.Use(server.MiddlewareAuth(identity, server.WithSkipPathPrefixes("/api/v3/iam")))
+	engine.GET("/api/v3/node/list", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v3/node/list", nil)
+	engine.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status 401 for non-skipped path, got %d", recorder.Code)
+	}
+	if identity.verifyCalls != 1 {
+		t.Fatalf("expected verify called once for non-skipped path, got %d", identity.verifyCalls)
+	}
+}
+
+func TestMiddlewareAuth_WithSkipPathPrefixes_ShouldNotSkipPrefixCollisionPath(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+
+	identity := &countingAuthIdentity{err: errors.New("verify failed")}
+	engine.Use(server.MiddlewareContext())
+	engine.Use(server.MiddlewareAuth(identity, server.WithSkipPathPrefixes("/api/v3/iam")))
+	engine.GET("/api/v3/iamx/resource", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v3/iamx/resource", nil)
+	engine.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status 401 for prefix-collision path, got %d", recorder.Code)
+	}
+	if identity.verifyCalls != 1 {
+		t.Fatalf("expected verify called once for prefix-collision path, got %d", identity.verifyCalls)
+	}
+}
+
+func TestMiddlewareAuth_WithoutOptions_ShouldRemainBackwardCompatible(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+
+	identity := &countingAuthIdentity{err: errors.New("verify failed")}
+	engine.Use(server.MiddlewareContext())
+	engine.Use(server.MiddlewareAuth(identity))
+	engine.GET("/api/v3/iam/v3/resource", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v3/iam/v3/resource", nil)
+	engine.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status 401 for middleware without options, got %d", recorder.Code)
+	}
+	if identity.verifyCalls != 1 {
+		t.Fatalf("expected verify called once for middleware without options, got %d", identity.verifyCalls)
+	}
+}

@@ -872,7 +872,7 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withAPIV3Basic(svc.Cap,
-			restserver.MiddlewareAuth(authIdentity)),
+			restserver.MiddlewareAuth(authIdentity, restserver.WithSkipPathPrefixes("/api/v3/iam"))),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register basic server: %w", err)
