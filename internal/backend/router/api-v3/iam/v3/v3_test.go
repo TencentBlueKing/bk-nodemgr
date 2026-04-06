@@ -22,6 +22,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
@@ -78,6 +80,13 @@ func (m *mockIAMHandler) GetToken(_ contextx.IContext) (string, error) {
 
 func (m *mockIAMHandler) GetApplyURL(_ contextx.IContext, _ types.IAMApplyRequest) (string, error) {
 	return "", nil
+}
+
+func (m *mockIAMHandler) ListAuthorizedInstances(
+	_ contextx.IContext,
+	_ types.IAMAuthorizedInstancesRequest,
+) (bool, []types.IAMResource, error) {
+	return false, nil, nil
 }
 
 func setupTestRouter(mockHandler *mockIAMHandler) *gin.Engine {
@@ -188,6 +197,51 @@ func TestBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200 OK for valid credentials, got %d. Body: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestBasicAuthMiddleware_ValidCredentials_ShouldInjectDefaultTenant(t *testing.T) {
+	mockHandler := &mockIAMHandler{
+		token: "test_token",
+	}
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	h := &handler{
+		capability: &options.Capability{IAMV3Handler: mockHandler},
+	}
+	router.Use(restserver.MiddlewareContext())
+	router.Use(h.basicAuthMiddleware())
+	router.POST("/tenant", func(c *gin.Context) {
+		rCtx, err := restserver.GenRestContext(c)
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"tenant_id": rCtx.Data().GetTenantID()})
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/tenant", nil)
+	req.Header.Set("Authorization", basicAuth("bk_iam", "test_token"))
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status 200 OK for valid credentials, got %d. Body: %s", w.Code, w.Body.String())
+	}
+
+	var resp struct {
+		TenantID string `json:"tenant_id"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	if resp.TenantID != tenant.SingleModeTenantID {
+		t.Fatalf("Expected injected tenant_id %q, got %q", tenant.SingleModeTenantID, resp.TenantID)
 	}
 }
 

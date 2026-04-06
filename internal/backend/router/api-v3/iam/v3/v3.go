@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam/v3/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/gin-gonic/gin"
 )
 
@@ -96,6 +97,10 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 			})
 
 			return
+		}
+
+		if rCtx, err := restserver.GenRestContext(c); err == nil && rCtx.Data().GetTenantID() == "" {
+			rCtx.Data().SetTenantID(tenant.SingleModeTenantID)
 		}
 
 		// Authentication successful, continue processing
