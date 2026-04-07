@@ -11,6 +11,12 @@ Core responsibilities:
 - Convert callback payloads into typed request structures.
 - Query backend storage and map data into IAM callback response schema.
 - Return stable empty results for callback methods that are not used in current scenarios.
+- **Provide canonical resource construction helpers for router permission checks** (e.g., `BuildPackageResources`).
+
+- Validate and dispatch IAM callback requests by `type` and `method`.
+- Convert callback payloads into typed request structures.
+- Query backend storage and map data into IAM callback response schema.
+- Return stable empty results for callback methods that are not used in current scenarios.
 
 ## File Map
 
@@ -50,6 +56,7 @@ Important constraints:
 - Keep search behavior case-insensitive where keyword search is supported.
 - **Pagination pattern**: Use storage Distinct → sort → in-memory pagination (NOT List+dedup).
 - **Error propagation**: Always propagate storage errors (use `%w`), never swallow with Warn.
+- **Resource construction**: Each provider file exports `Build{ResourceType}Resources()` helpers that construct `auth.Resource` slices matching the resource ID format returned by IAM callbacks. Router handlers MUST use these canonical helpers for permission checks to ensure consistency between IAM provider resource IDs and authorization resource IDs.
 
 ## Pagination & Deduplication Pattern
 

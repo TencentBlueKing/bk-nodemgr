@@ -13,6 +13,8 @@ package pkg
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -143,6 +145,12 @@ func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Permission check: ActionPackageManage
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
+	}
+
 	gen := types.Generation(req.GetGeneration())
 	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
 	version := req.GetVersion()
@@ -181,9 +189,16 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Permission check: ActionPackageManage
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
+	}
+
 	gen := types.Generation(req.GetGeneration())
 	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
 	version := req.GetVersion()
+
 	key := types.ReleaseAgentKey{
 		Generation: gen,
 		Platform:   plat,
@@ -217,6 +232,12 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default agent release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// Permission check: ActionPackageManage
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -257,6 +278,12 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Permission check: ActionPackageManage
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
+	}
+
 	gen := types.Generation(req.GetGeneration())
 	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
 	version := req.GetVersion()
@@ -293,6 +320,12 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete agent release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// Permission check: ActionPackageManage
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
 	}
 
 	gen := types.Generation(req.GetGeneration())

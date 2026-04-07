@@ -12,6 +12,7 @@
 package pkg
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -39,6 +40,7 @@ type handler struct {
 	daoPlugin               plugin.IDaoPlugin
 
 	daoTenant tenant.IStorage
+	authorizer auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -61,6 +63,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoReleasePluginBinTool: capability.StorageRelease,
 		daoPlugin:               capability.StoragePlugin,
 		daoTenant:               capability.StorageTenant,
+		authorizer:              capability.Authorizer,
 	}
 }
 
