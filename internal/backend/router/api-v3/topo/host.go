@@ -27,11 +27,23 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	condition := req.ConvertConditionsToTypes()
+	var bizIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		bizIDs = exactCond.GetBkBizId()
+	}
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, bizIDs, condition)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list host, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowHostConditionByBiz(condition, narrowedBizIDs, scopeIsAny)
+
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storage.CountHost(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list host. failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -49,7 +61,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, num, err := h.storage.ListHostOrderByUpdateTime(rCtx, page, req.ConvertConditionsToTypes())
+	hosts, num, err := h.storage.ListHostOrderByUpdateTime(rCtx, page, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

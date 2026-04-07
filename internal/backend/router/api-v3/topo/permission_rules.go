@@ -20,7 +20,23 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-var errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
+var (
+	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
+	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
+)
+
+func buildBizResources(bizIDs []int64) []auth.Resource {
+	resources := make([]auth.Resource, 0, len(bizIDs))
+	for _, bizID := range bizIDs {
+		resources = append(resources, auth.Resource{
+			SystemID: auth.SystemIDCMDB,
+			Type:     auth.ResourceTypeBiz,
+			ID:       fmt.Sprintf("%d", bizID),
+		})
+	}
+
+	return resources
+}
 
 // buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
 func buildNetworkAreaResources(ids []int64) []auth.Resource {
@@ -87,6 +103,165 @@ func narrowNetworkAreaCondition(condition *types.NetworkAreaCondition, narrowedI
 		condition.ExactInclude = &types.NetworkAreaExactFields{}
 	}
 	condition.ExactInclude.NetworkAreaID = conv.SliceUnique(narrowedIDs)
+
+	return condition
+}
+
+func (h *handler) narrowAuthorizedBizIDsByAction(
+	rCtx restserver.IContext, action auth.Action, requestedIDs []int64,
+) ([]int64, bool, error) {
+
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, action, auth.ResourceTypeBiz)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, auth.ResourceTypeBiz,
+	)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, action, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+
+		return nil, false, errBizViewDeniedByEmptyScope
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, action, buildBizResources(requestedIDs)); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+func hostListBizActions(condition *types.HostCondition) []auth.Action {
+	if condition == nil || condition.DynamicExactInclude == nil || len(condition.DynamicExactInclude.NodeRole) == 0 {
+		return []auth.Action{auth.ActionAgentView, auth.ActionProxyView}
+	}
+
+	actions := make([]auth.Action, 0, 2)
+	needAgentView := false
+	needProxyView := false
+
+	for _, nodeRole := range condition.DynamicExactInclude.NodeRole {
+		switch nodeRole {
+		case types.NodeRoleBlank, types.NodeRoleAgent:
+			needAgentView = true
+		case types.NodeRoleProxy:
+			needProxyView = true
+		default:
+			needAgentView = true
+			needProxyView = true
+		}
+	}
+
+	if needAgentView {
+		actions = append(actions, auth.ActionAgentView)
+	}
+	if needProxyView {
+		actions = append(actions, auth.ActionProxyView)
+	}
+
+	if len(actions) == 0 {
+		return []auth.Action{auth.ActionAgentView, auth.ActionProxyView}
+	}
+
+	return actions
+}
+
+func mergeNarrowedBizIDs(
+	leftIDs []int64, leftScopeIsAny bool,
+	rightIDs []int64, rightScopeIsAny bool,
+	requestedIDs []int64,
+) ([]int64, bool) {
+	if leftScopeIsAny && rightScopeIsAny {
+		return requestedIDs, true
+	}
+
+	if leftScopeIsAny {
+		return conv.SliceUnique(rightIDs), false
+	}
+
+	if rightScopeIsAny {
+		return conv.SliceUnique(leftIDs), false
+	}
+
+	return conv.SliceUnique(conv.SliceIntersect(leftIDs, rightIDs)), false
+}
+
+func (h *handler) narrowAuthorizedBizIDsForHostList(
+	rCtx restserver.IContext, requestedIDs []int64, condition *types.HostCondition,
+) ([]int64, bool, error) {
+	actions := hostListBizActions(condition)
+	if len(actions) == 1 {
+		return h.narrowAuthorizedBizIDsByAction(rCtx, actions[0], requestedIDs)
+	}
+
+	var (
+		mergedIDs        []int64
+		mergedScopeIsAny bool
+	)
+
+	for idx, action := range actions {
+		narrowedIDs, scopeIsAny, err := h.narrowAuthorizedBizIDsByAction(rCtx, action, requestedIDs)
+		if err != nil {
+			return nil, false, err
+		}
+
+		if idx == 0 {
+			mergedIDs = narrowedIDs
+			mergedScopeIsAny = scopeIsAny
+			continue
+		}
+
+		mergedIDs, mergedScopeIsAny = mergeNarrowedBizIDs(
+			mergedIDs, mergedScopeIsAny,
+			narrowedIDs, scopeIsAny,
+			requestedIDs,
+		)
+	}
+
+	if len(requestedIDs) > 0 && !mergedScopeIsAny && len(mergedIDs) == 0 {
+		actionResources := make(map[auth.Action][]auth.Resource, len(actions))
+		resources := buildBizResources(requestedIDs)
+		for _, action := range actions {
+			actionResources[action] = resources
+		}
+
+		if checkErr := h.authorizer.CheckMany(rCtx, actionResources); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return mergedIDs, mergedScopeIsAny, nil
+}
+
+func narrowHostConditionByBiz(condition *types.HostCondition, narrowedBizIDs []int64, scopeIsAny bool) *types.HostCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.HostCondition{}
+	}
+
+	if condition.StaticExactInclude == nil {
+		condition.StaticExactInclude = &types.HostStaticExactFields{}
+	}
+
+	condition.StaticExactInclude.BizID = conv.SliceUnique(narrowedBizIDs)
 
 	return condition
 }
