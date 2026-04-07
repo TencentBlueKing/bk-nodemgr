@@ -100,7 +100,7 @@ func (h *handler) verifyItem(
 ) (*protoBackend.AuthVerifyResult, error) {
 
 	action := auth.Action(item.GetAction())
-	resources := convertAuthResourcesToInternal(item.GetResources())
+	resources := protoBackend.ConvertAuthResourcesToInternal(item.GetResources())
 
 	checkErr := h.authorizer.Check(rCtx, action, resources)
 	if checkErr == nil {
@@ -113,21 +113,4 @@ func (h *handler) verifyItem(
 	}
 
 	return nil, fmt.Errorf("check action %s permission: %w", item.GetAction(), checkErr)
-}
-
-func convertAuthResourcesToInternal(protoResources []*protoBackend.AuthResource) []auth.Resource {
-	if len(protoResources) == 0 {
-		return nil
-	}
-
-	resources := make([]auth.Resource, len(protoResources))
-	for i, pr := range protoResources {
-		resources[i] = auth.Resource{
-			SystemID: pr.GetSystemId(),
-			Type:     auth.ResourceType(pr.GetType()),
-			ID:       pr.GetId(),
-		}
-	}
-
-	return resources
 }

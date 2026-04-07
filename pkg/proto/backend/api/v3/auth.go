@@ -13,6 +13,7 @@ package v3
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
 
@@ -86,4 +87,22 @@ func NewAuthVerifyResult(action string, authorized bool) *AuthVerifyResult {
 		Action:     action,
 		Authorized: authorized,
 	}
+}
+
+// ConvertAuthResourcesToInternal converts proto auth resources to internal auth resources.
+func ConvertAuthResourcesToInternal(protoResources []*AuthResource) []auth.Resource {
+	if len(protoResources) == 0 {
+		return nil
+	}
+
+	resources := make([]auth.Resource, len(protoResources))
+	for i, pr := range protoResources {
+		resources[i] = auth.Resource{
+			SystemID: pr.GetSystemId(),
+			Type:     auth.ResourceType(pr.GetType()),
+			ID:       pr.GetId(),
+		}
+	}
+
+	return resources
 }
