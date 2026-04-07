@@ -66,7 +66,7 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
   { id: 'plugin_history_view', action: 'plugin_history_view', resourceType: 'biz', routes: ['history', 'taskDetail', 'log'], activeScopes: ['plugin'] },
 
   // topoManager — non-biz pages
-  { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: ['workarea', 'workareaDetail'] },
+  { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: ['workareaDetail'] },
   { id: 'networkunit_view', action: 'networkunit_view', resourceType: 'networkunit', routes: ['topo'] },
   { id: 'networkarea_history_view', action: 'networkarea_history_view', resourceType: 'networkarea', routes: ['record'] },
 
