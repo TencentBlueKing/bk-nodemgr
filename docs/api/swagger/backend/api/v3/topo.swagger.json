@@ -84,6 +84,40 @@
         ]
       }
     },
+    "/api/v3/topo/constant/default_deploy/get": {
+      "post": {
+        "summary": "DefaultDeployConstantGet provides getting default deploy constant.",
+        "operationId": "Topo_DefaultDeployConstantGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoDefaultDeployConstantGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoDefaultDeployConstantGetReq describes the HTTP request body when get\ndefault deploy constant in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoDefaultDeployConstantGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/constant/get": {
       "post": {
         "summary": "ConstantGet provides getting a constant.",
@@ -990,64 +1024,16 @@
       "type": "object",
       "properties": {
         "installer_runtime": {
-          "$ref": "#/definitions/v3CustomInstallerRuntime"
+          "$ref": "#/definitions/v3InstallerRuntime"
         },
-        "gse_runtime": {
-          "$ref": "#/definitions/v3CustomGSERuntime"
+        "node_runtime": {
+          "$ref": "#/definitions/v3NodeRuntime"
         },
         "plugin_runtime": {
-          "$ref": "#/definitions/v3CustomPluginRuntime"
+          "$ref": "#/definitions/v3PluginRuntime"
         }
       },
       "description": "CustomDeployConfig describes the deploy config for host deployment."
-    },
-    "v3CustomGSERuntime": {
-      "type": "object",
-      "properties": {
-        "base_deploy_dir": {
-          "type": "string"
-        },
-        "data_ipc": {
-          "type": "string"
-        },
-        "plugin_ipc": {
-          "type": "string"
-        },
-        "extra_config_dir": {
-          "type": "string"
-        },
-        "log_dir": {
-          "type": "string"
-        }
-      },
-      "description": "CustomGSERuntime describes the custom gse runtime config."
-    },
-    "v3CustomInstallerRuntime": {
-      "type": "object",
-      "properties": {
-        "base_work_dir": {
-          "type": "string"
-        }
-      },
-      "description": "CustomInstallerRuntime describes the custom installer runtime config."
-    },
-    "v3CustomPluginRuntime": {
-      "type": "object",
-      "properties": {
-        "base_deploy_dir": {
-          "type": "string"
-        },
-        "log_dir": {
-          "type": "string"
-        },
-        "data_dir": {
-          "type": "string"
-        },
-        "run_dir": {
-          "type": "string"
-        }
-      },
-      "description": "CustomPluginRuntime describes the custom plugin runtime config."
     },
     "v3Endpoints": {
       "type": "object",
@@ -1250,6 +1236,15 @@
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."
     },
+    "v3InstallerRuntime": {
+      "type": "object",
+      "properties": {
+        "base_work_dir": {
+          "type": "string"
+        }
+      },
+      "description": "InstallerRuntime describes the installer runtime config."
+    },
     "v3Link": {
       "type": "object",
       "properties": {
@@ -1394,6 +1389,45 @@
       },
       "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
     },
+    "v3NetworkUnitUpdateFields": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_name": {
+          "type": "boolean"
+        },
+        "accesspoints": {
+          "type": "boolean"
+        },
+        "links": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "type": "boolean"
+        },
+        "custom_deploy_config": {
+          "type": "boolean"
+        }
+      },
+      "description": "NetworkUnitUpdateFields describes the fields of network unit."
+    },
+    "v3NodeRuntime": {
+      "type": "object",
+      "properties": {
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "data_ipc": {
+          "type": "string"
+        },
+        "plugin_ipc": {
+          "type": "string"
+        },
+        "log_dir": {
+          "type": "string"
+        }
+      },
+      "description": "NodeRuntime describes the node runtime config."
+    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -1428,6 +1462,18 @@
           }
         }
       }
+    },
+    "v3PluginRuntime": {
+      "type": "object",
+      "properties": {
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "log_dir": {
+          "type": "string"
+        }
+      },
+      "description": "PluginRuntime describes the custom plugin runtime config."
     },
     "v3RelatedResourceType": {
       "type": "object",
@@ -1721,6 +1767,52 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v3TopoDefaultDeployConstantGetReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        }
+      },
+      "description": "TopoDefaultDeployConstantGetReq describes the HTTP request body when get\ndefault deploy constant in topo service."
+    },
+    "v3TopoDefaultDeployConstantGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoDefaultDeployConstantGetRespData"
+        }
+      },
+      "description": "TopoDefaultDeployConstantGetResp describes the HTTP response body when get\ndefault deploy constant in topo service."
+    },
+    "v3TopoDefaultDeployConstantGetRespData": {
+      "type": "object",
+      "properties": {
+        "default_deploy_config": {
+          "$ref": "#/definitions/v3CustomDeployConfig"
         }
       }
     },
@@ -3270,42 +3362,11 @@
     "v3TopoNetworkUnitUpdateReq": {
       "type": "object",
       "properties": {
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
+        "networkunit": {
+          "$ref": "#/definitions/v3NetworkUnit"
         },
-        "bk_networkunit_name": {
-          "type": "string"
-        },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "accesspoints": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3AccessPoint"
-          }
-        },
-        "links": {
-          "$ref": "#/definitions/v3Links"
-        },
-        "is_direct": {
-          "type": "boolean"
-        },
-        "direct_endpoints": {
-          "$ref": "#/definitions/v3Endpoints"
-        },
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "custom_deploy_config": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/v3CustomDeployConfig"
-          }
+        "fields": {
+          "$ref": "#/definitions/v3NetworkUnitUpdateFields"
         }
       },
       "description": "TopoNetworkUnitUpdateReq describes the HTTP request body when update\nnetwork-unit in topo service."

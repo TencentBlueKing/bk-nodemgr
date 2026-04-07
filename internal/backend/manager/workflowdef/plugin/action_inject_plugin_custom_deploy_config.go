@@ -144,8 +144,8 @@ func (act *actionInjectPluginCustomDeployConfig) Do(ctx *action.InstanceContext)
 			pluginConstant.BaseDeployDir = customDeployConfig.PluginRuntime.BaseDeployDir
 		}
 
-		if customDeployConfig.GSERuntime.BaseDeployDir != "" {
-			nodeConstant.BaseDeployDir = customDeployConfig.GSERuntime.BaseDeployDir
+		if customDeployConfig.NodeRuntime.BaseDeployDir != "" {
+			nodeConstant.BaseDeployDir = customDeployConfig.NodeRuntime.BaseDeployDir
 		}
 
 		// override BaseWorkDir and generate corresponding configuration
@@ -168,12 +168,12 @@ func (act *actionInjectPluginCustomDeployConfig) Do(ctx *action.InstanceContext)
 		DeployDir:             pluginConstant.GeneratePluginDeployDir(),
 		GSEHomeDir:            nodeConstant.GenerateNodeHomeDir(nodeRole),
 		PluginHomeDir:         pluginConstant.GeneratePluginHomeDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
-		DataIPC:               conv.NonEmptyOr(customDeployConfig.GSERuntime.DataIPC, nodeConstant.GenerateDataIPCPath(nodeRole)),
-		PluginIPC:             conv.NonEmptyOr(customDeployConfig.GSERuntime.PluginIPC, nodeConstant.GeneratePluginIPCPath(nodeRole)),
+		DataIPC:               conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, nodeConstant.GenerateDataIPCPath(nodeRole)),
+		PluginIPC:             conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, nodeConstant.GeneratePluginIPCPath(nodeRole)),
 		HostIDPath:            pluginConstant.HostIDPath,
 		LogDir:                conv.NonEmptyOr(customDeployConfig.PluginRuntime.LogDir, pluginConstant.LogDir),
-		DataDir:               conv.NonEmptyOr(customDeployConfig.PluginRuntime.DataDir, pluginConstant.GeneratePluginDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName)),
-		RunDir:                conv.NonEmptyOr(customDeployConfig.PluginRuntime.RunDir, pluginConstant.GeneratePluginRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName)),
+		DataDir:               pluginConstant.GeneratePluginDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+		RunDir:                pluginConstant.GeneratePluginRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		ConfigDir:             pluginConstant.GeneratePluginConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		SubConfigDir:          pluginConstant.GeneratePluginSubConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		PluginCommonConstants: pluginConstant.GetPluginCommonConstants(std.DeployInfo().Process.PluginPkgName),

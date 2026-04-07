@@ -10,7 +10,13 @@
 
 package v3
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // Validate check body.
 func (x *TopoConstantGetReq) Validate() error {
@@ -38,5 +44,79 @@ func (x *TopoConstantGetResp) ConvertConstantToTypes() *types.TopoConstant {
 	return &types.TopoConstant{
 		CloudVendor: x.GetData().GetCloudVendor(),
 		OSType:      x.GetData().GetOsType(),
+	}
+}
+
+// Validate check body.
+func (x *TopoDefaultDeployConstantGetReq) Validate() error {
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return fmt.Errorf("invalid generation, generation(%d): %w", x.GetGeneration(), err)
+	}
+
+	if err := criteria.OSType(x.GetOsType()).Validate(); err != nil {
+		return fmt.Errorf("invalid os_type, os_type(%s): %w", x.GetOsType(), err)
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoDefaultDeployConstantGetReq) AutoConvert() {
+}
+
+// ConvertConstantFromTypes converts NodeDeployConf and PluginDeployConf into the response data.
+// Node role defaults to agent; plugin group defaults to "default"; plugin name defaults to "bk-nodemgr-relay".
+func (x *TopoDefaultDeployConstantGetResp) ConvertConstantFromTypes(
+	osType criteria.OSType,
+	nodeConf deployconstant.NodeDeployConf,
+	pluginConf deployconstant.PluginDeployConf) {
+
+	if x.Data == nil {
+		x.Data = &TopoDefaultDeployConstantGetResp_Data{}
+	}
+
+	x.Data.DefaultDeployConfig = &CustomDeployConfig{
+		InstallerRuntime: &InstallerRuntime{
+			BaseWorkDir: &nodeConf.BaseWorkDir,
+		},
+		NodeRuntime: &NodeRuntime{
+			BaseDeployDir: &nodeConf.BaseDeployDir,
+			LogDir:        &nodeConf.LogDir,
+		},
+		PluginRuntime: &PluginRuntime{
+			BaseDeployDir: &pluginConf.BaseDeployDir,
+			LogDir:        &pluginConf.LogDir,
+		},
+	}
+
+	if osType == criteria.OSWindows {
+		dataIPC := deployconstant.GetWindowsDefaultDataIPCPort()
+		pluginIPC := deployconstant.GetWindowsDefaultPluginIPCPort()
+		x.Data.DefaultDeployConfig.NodeRuntime.DataIpc = &dataIPC
+		x.Data.DefaultDeployConfig.NodeRuntime.PluginIpc = &pluginIPC
+	}
+}
+
+// ConvertConstantToTypes converts the response data into a types.DeployConfig.
+func (x *TopoDefaultDeployConstantGetResp) ConvertConstantToTypes() *types.CustomDeployConfig {
+	config := x.GetData().GetDefaultDeployConfig()
+	if config == nil {
+		return nil
+	}
+
+	return &types.CustomDeployConfig{
+		InstallerRuntime: types.InstallerRuntime{
+			BaseWorkDir: config.GetInstallerRuntime().GetBaseWorkDir(),
+		},
+		NodeRuntime: types.NodeRuntime{
+			BaseDeployDir: config.GetNodeRuntime().GetBaseDeployDir(),
+			DataIPC:       config.GetNodeRuntime().GetDataIpc(),
+			PluginIPC:     config.GetNodeRuntime().GetPluginIpc(),
+			LogDir:        config.GetNodeRuntime().GetLogDir(),
+		},
+		PluginRuntime: types.PluginRuntime{
+			BaseDeployDir: config.GetPluginRuntime().GetBaseDeployDir(),
+			LogDir:        config.GetPluginRuntime().GetLogDir(),
+		},
 	}
 }

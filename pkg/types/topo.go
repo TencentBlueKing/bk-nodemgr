@@ -180,31 +180,48 @@ type TopoConstant struct {
 	OSType      []string
 }
 
-// CustomInstallerRuntime defines the custom installer runtime.
-type CustomInstallerRuntime struct {
+// InstallerRuntime defines the installer runtime.
+type InstallerRuntime struct {
 	BaseWorkDir string
 }
 
-// CustomGSERuntime defines the custom GSE runtime.
-type CustomGSERuntime struct {
-	BaseDeployDir  string
-	DataIPC        string
-	PluginIPC      string
-	ExtraConfigDir string
-	LogDir         string
+// NodeRuntime defines the node runtime.
+type NodeRuntime struct {
+	BaseDeployDir string
+	DataIPC       string
+	PluginIPC     string
+	LogDir        string
 }
 
-// CustomPluginRuntime defines the custom plugin runtime.
-type CustomPluginRuntime struct {
+// PluginRuntime defines the plugin runtime.
+type PluginRuntime struct {
 	BaseDeployDir string
 	LogDir        string
-	DataDir       string
-	RunDir        string
 }
 
 // CustomDeployConfig defines the custom deploy config for a network unit.
 type CustomDeployConfig struct {
-	InstallerRuntime CustomInstallerRuntime
-	GSERuntime       CustomGSERuntime
-	PluginRuntime    CustomPluginRuntime
+	InstallerRuntime InstallerRuntime
+	NodeRuntime      NodeRuntime
+	PluginRuntime    PluginRuntime
+}
+
+// NetworkUnitUpdateFields defines the fields to be updated for a network unit.
+type NetworkUnitUpdateFields struct {
+	Name               bool
+	AccessPoints       bool
+	Links              bool
+	DirectEndpoints    bool
+	CustomDeployConfig bool
+}
+
+// NewNetworkUnitUpdateFields creates a new NetworkUnitUpdateFields with all fields set to true.
+func NewNetworkUnitUpdateFields() NetworkUnitUpdateFields {
+	return NetworkUnitUpdateFields{
+		Name:               true,
+		AccessPoints:       true,
+		Links:              true,
+		DirectEndpoints:    true,
+		CustomDeployConfig: true,
+	}
 }

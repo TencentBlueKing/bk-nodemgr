@@ -72,7 +72,7 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// check if networkarea exists.
-	networkAreaID := req.GetBkNetworkareaId()
+	networkAreaID := req.GetNetworkunit().GetBkNetworkareaId()
 	if _, err := h.backendHandler.GetNetworkArea(rCtx, networkAreaID); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
@@ -84,11 +84,10 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	networkUnit := &types.NetworkUnit{
 		TenantID:           rCtx.TenantID(),
 		NetworkAreaID:      networkAreaID,
-		ID:                 req.GetBkNetworkunitId(),
-		Name:               req.GetBkNetworkunitName(),
-		IsDirect:           req.GetIsDirect(),
+		ID:                 req.GetNetworkunit().GetBkNetworkunitId(),
+		Name:               req.GetNetworkunit().GetBkNetworkunitName(),
+		IsDirect:           req.GetNetworkunit().GetIsDirect(),
 		DirectEndpoints:    req.ConvertDirectEndpointsToTypes(),
-		Generation:         types.Generation(req.GetGeneration()),
 		CustomDeployConfig: req.ConvertCustomDeployConfigToTypes(),
 	}
 	if !networkUnit.IsDirect {
@@ -96,6 +95,7 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	}
 	err := h.backendHandler.UpdateNetworkUnit(
 		rCtx,
+		req.ConvertFieldsToTypes(),
 		networkUnit,
 		req.ConvertAccssPointsToTypes(rCtx.TenantID(), networkAreaID)...)
 	if err != nil {
@@ -104,7 +104,7 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	resp := new(protoApplication.TopoNetworkUnitUpdateResp)
-	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())
+	resp.ConvertNetworkUnitFromTypes(req.GetNetworkunit().GetBkNetworkunitId())
 
 	return resp.GetData(), nil
 }

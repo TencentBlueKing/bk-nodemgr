@@ -44,31 +44,28 @@ message Endpoints {
   repeated string data = 3;
 }
 
-// CustomInstallerRuntime describes the custom installer runtime config.
-message CustomInstallerRuntime { string base_work_dir = 1; }
+// InstallerRuntime describes the installer runtime config.
+message InstallerRuntime { optional string base_work_dir = 1; }
 
-// CustomGSERuntime describes the custom gse runtime config.
-message CustomGSERuntime {
-  string base_deploy_dir = 1;
-  string data_ipc = 2;
-  string plugin_ipc = 3;
-  string extra_config_dir = 4;
-  string log_dir = 5;
+// NodeRuntime describes the node runtime config.
+message NodeRuntime {
+  optional string base_deploy_dir = 1;
+  optional string data_ipc = 2;
+  optional string plugin_ipc = 3;
+  optional string log_dir = 4;
 }
 
-// CustomPluginRuntime describes the custom plugin runtime config.
-message CustomPluginRuntime {
-  string base_deploy_dir = 1;
-  string log_dir = 2;
-  string data_dir = 3;
-  string run_dir = 4;
+// PluginRuntime describes the custom plugin runtime config.
+message PluginRuntime {
+  optional string base_deploy_dir = 1;
+  optional string log_dir = 2;
 }
 
 // CustomDeployConfig describes the deploy config for host deployment.
 message CustomDeployConfig {
-  CustomInstallerRuntime installer_runtime = 1;
-  CustomGSERuntime gse_runtime = 2;
-  CustomPluginRuntime plugin_runtime = 3;
+  InstallerRuntime installer_runtime = 1;
+  NodeRuntime node_runtime = 2;
+  PluginRuntime plugin_runtime = 3;
 }
 
 // AccessPoint describes the access point informations.

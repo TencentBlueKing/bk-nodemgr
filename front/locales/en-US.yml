@@ -399,6 +399,26 @@ topoManager:
       upstream: Upstream
       downstream: Downstream
       directConfig: Direct Config
+      customDeployConfig: Custom Deploy Config
+      customDeployConfigTips: 'Configure values per OS. Leave all empty to use the default deploy config. Once any field is modified, all fields for the current OS must be filled in'
+      customDeployConfigPartialError: 'Custom deploy config is incomplete: if any field is modified, all fields for the current OS must be filled in'
+      osLabel: OS
+      noOsAvailable: No OS is available for configuration
+      installerRuntime: Installer Config
+      nodeRuntime: Node Config
+      pluginRuntime: Plugin Config
+      baseWorkDir: Base Work Dir
+      baseDeployDir: Base Deploy Dir
+      dataIPC: Data IPC
+      pluginIPC: Plugin IPC
+      windowsOnlyIpcEditable: Only Windows is editable
+      logDir: Log Dir
+      osOptions:
+        linux: Linux
+        windows: Windows
+        aix: AIX
+        macos: macOS
+        darwin: Darwin
       senior: Advanced
       accessPointName: Access Point Name
       createAccessPoint: Add Access Point

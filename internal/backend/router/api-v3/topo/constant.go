@@ -11,10 +11,13 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // GetConstant get constant values.
@@ -42,4 +45,36 @@ func (h *handler) GetConstant(rCtx restserver.IContext) (interface{}, error) {
 		CloudVendor: cloudVendors,
 		OsType:      osTypes,
 	}, nil
+}
+
+// GetDefaultDeployConstant get default deploy constant values.
+func (h *handler) GetDefaultDeployConstant(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoDefaultDeployConstantGetReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get default deploy constant, failed to decode request body")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	generation := types.Generation(req.GetGeneration())
+	osType := criteria.OSType(req.GetOsType())
+
+	nodeConf, err := deployconstant.GetNodeDeployConf(generation, osType)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get default deploy constant, node deploy conf not found")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	pluginConf, err := deployconstant.GetPluginDeployConf(generation, osType)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get default deploy constant, plugin deploy conf not found")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	resp := new(protoBackend.TopoDefaultDeployConstantGetResp)
+	resp.ConvertConstantFromTypes(osType, nodeConf, pluginConf)
+
+	return resp.GetData(), nil
 }

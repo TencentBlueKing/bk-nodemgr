@@ -405,7 +405,8 @@ func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 }
 
 // UpdateNetworkUnit updates networkunit.
-func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+func (s *Storage) UpdateNetworkUnit(
+	nCtx contextx.IContext, fields types.NetworkUnitUpdateFields, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
 	*AccessPointResult, error) {
 
 	var (
@@ -421,11 +422,11 @@ func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 		}
 
 		if len(accessPoints) == 0 {
-			data, err = s.updateNetworkUnitWithoutAccessPoints(nCtx, networkUnit)
+			data, err = s.updateNetworkUnitWithoutAccessPoints(nCtx, fields, networkUnit)
 			return err
 		}
 
-		data, err = s.updateNetworkUnitWithAccessPoints(nCtx, networkUnit, accessPoints...)
+		data, err = s.updateNetworkUnitWithAccessPoints(nCtx, fields, networkUnit, accessPoints...)
 
 		return err
 	})
@@ -442,11 +443,11 @@ func (s *Storage) prepareNetworkUnitUpdate(nCtx contextx.IContext, networkUnit *
 }
 
 func (s *Storage) updateNetworkUnitWithoutAccessPoints(
-	nCtx contextx.IContext, networkUnit *types.NetworkUnit,
+	nCtx contextx.IContext, fields types.NetworkUnitUpdateFields, networkUnit *types.NetworkUnit,
 ) (*AccessPointResult, error) {
 
 	networkUnit.AccessPoints = nil
-	if err := s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+	if err := s.daoNetworkUnit.UpdateMany(nCtx, fields, networkUnit); err != nil {
 		return nil, err
 	}
 
@@ -454,7 +455,7 @@ func (s *Storage) updateNetworkUnitWithoutAccessPoints(
 }
 
 func (s *Storage) updateNetworkUnitWithAccessPoints(
-	nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint,
+	nCtx contextx.IContext, fields types.NetworkUnitUpdateFields, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint,
 ) (*AccessPointResult, error) {
 
 	accessPointIDs, oldAccessPoints, newAccessPoints := splitAccessPoints(accessPoints)
@@ -465,7 +466,7 @@ func (s *Storage) updateNetworkUnitWithAccessPoints(
 	}
 
 	networkUnit.AccessPoints = accessPointIDs
-	if err := s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+	if err := s.daoNetworkUnit.UpdateMany(nCtx, fields, networkUnit); err != nil {
 		return nil, err
 	}
 

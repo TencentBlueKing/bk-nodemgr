@@ -41,6 +41,28 @@ interface Endpoints {
   data: string[];
 }
 
+interface InstallerRuntime {
+  base_work_dir: string;
+}
+
+interface NodeRuntime {
+  base_deploy_dir: string;
+  data_ipc: string;
+  plugin_ipc: string;
+  log_dir: string;
+}
+
+interface PluginRuntime {
+  base_deploy_dir: string;
+  log_dir: string;
+}
+
+interface CustomDeployConfig {
+  installer_runtime: InstallerRuntime;
+  node_runtime: NodeRuntime;
+  plugin_runtime: PluginRuntime;
+}
+
 // AccessPoint describes the access point informations.
 interface AccessPoint {
   tenant_id: string;
@@ -60,6 +82,8 @@ interface NetworkUnit {
   links: Links;
   is_direct: boolean;
   direct_endpoints: Endpoints;
+  generation: number;
+  custom_deploy_config: Record<string, CustomDeployConfig>;
 }
 
 // NetworkUnitBrief describes the network unit brief informations.
@@ -73,6 +97,8 @@ interface NetworkUnitBrief {
   links: Links;
   is_direct: boolean;
   direct_endpoints: Endpoints;
+  generation: number;
+  custom_deploy_config: Record<string, CustomDeployConfig>;
 }
 
 // HostState describes the host state informations. Usually contains

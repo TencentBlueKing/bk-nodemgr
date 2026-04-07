@@ -49,9 +49,6 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 		networkUnit.Links = req.ConvertLinksToTypes()
 	}
 
-	// todo: 1.目前只支持 networkunit 为 Generation2
-	networkUnit.Generation = types.Generation2
-
 	networkUnitID, accessPointResult, err := h.storage.CreateNetworkUnit(
 		rCtx,
 		networkUnit,
@@ -83,7 +80,7 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	// check if networkarea exists.
-	networkAreaID := req.GetBkNetworkareaId()
+	networkAreaID := req.GetNetworkunit().GetBkNetworkareaId()
 	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("networkarea-id", networkAreaID).Error("failed to update networkunit, failed to get networkarea")
@@ -91,30 +88,26 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	networkUnitID := req.GetBkNetworkunitId()
-	networkUnitName := req.GetBkNetworkunitName()
+	networkUnitID := req.GetNetworkunit().GetBkNetworkunitId()
+	networkUnitName := req.GetNetworkunit().GetBkNetworkunitName()
 
 	// updates networkunit.
 	networkUnit := &types.NetworkUnit{
 		TenantID:           rCtx.TenantID(),
 		NetworkAreaID:      networkAreaID,
 		ID:                 networkUnitID,
-		Name:               req.GetBkNetworkunitName(),
-		IsDirect:           req.GetIsDirect(),
+		Name:               req.GetNetworkunit().GetBkNetworkunitName(),
+		IsDirect:           req.GetNetworkunit().GetIsDirect(),
 		DirectEndpoints:    req.ConvertDirectEndpointsToTypes(),
-		Generation:         types.Generation(req.GetGeneration()),
 		CustomDeployConfig: req.ConvertCustomDeployConfigToTypes(),
 	}
 	if !networkUnit.IsDirect {
 		networkUnit.Links = req.ConvertLinksToTypes()
 	}
 
-	// todo: 1.目前只支持 networkunit 为 Generation2
-	// todo: 2.update不允许修改 Generation
-	networkUnit.Generation = types.Generation2
-
 	accessPointResult, err := h.storage.UpdateNetworkUnit(
 		rCtx,
+		req.ConvertFieldsToTypes(),
 		networkUnit,
 		req.ConvertAccssPointsToTypes(rCtx.TenantID(), networkAreaID)...)
 	if err != nil {

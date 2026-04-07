@@ -41,10 +41,15 @@
             :label="$t('topoManager.workUnit.form.downstream')"
             label-width="130">
             <CreateAccessPointList
-              v-model:access-points="form.accesspoints"
-              ref="accessPointRef">
+              v-model:access-points="form.accesspoints">
             </CreateAccessPointList>
           </Form.FormItem>
+          <CustomDeployConfigForm
+            v-model:configs="form.custom_deploy_configs"
+            v-model:active-os="activeCustomDeployOs"
+            :os-options="customDeployOsOptions"
+            :default-config="defaultDeployConfigs[activeCustomDeployOs] ?? null"
+          />
         </template>
         <Button text theme="primary" class="ml-[130px]" @click="toggleExpand">
           <span>{{ $t('topoManager.workUnit.form.senior') }}</span>
@@ -111,10 +116,15 @@
             :label="$t('topoManager.workUnit.form.downstream')"
             label-width="130">
             <CreateAccessPointList
-              v-model:access-points="form.accesspoints"
-              ref="accessPointRef">
+              v-model:access-points="form.accesspoints">
             </CreateAccessPointList>
           </Form.FormItem>
+          <CustomDeployConfigForm
+            v-model:configs="form.custom_deploy_configs"
+            v-model:active-os="activeCustomDeployOs"
+            :os-options="customDeployOsOptions"
+            :default-config="defaultDeployConfigs[activeCustomDeployOs] ?? null"
+          />
         </template>
         <Button text theme="primary" class="ml-[130px]" @click="toggleExpand">
           <span class="text-[14px]">{{ $t('topoManager.workUnit.form.senior') }}</span>
@@ -149,10 +159,18 @@ import { useRoute } from 'vue-router';
 
 import CreateAccessPointList from './components/create-access-point-list.vue';
 import CreateDirectAccessPoint from './components/create-direct-access-point.vue';
+import CustomDeployConfigForm from './components/custom-deploy-config-form.vue';
 import SelectGroup from './components/select-group.vue';
+import {
+  deployConfigMapFromApi,
+  normalizeCustomDeployConfigs,
+  validateCustomDeployConfigAllOrNothing,
+} from './custom-deploy-config';
+import { buildNetworkUnitPayload } from './network-unit-payload';
 
-import type { TopoNetworkUnitCreateReq, TopoNetworkUnitUpdateReq } from '@/@types/topo';
+import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -202,8 +220,11 @@ const generalLink = ref<Record<keyof Link, number | undefined>>({
 });
 
 const form = reactive({
+  tenant_id: '',
   bk_networkunit_name: '',
   bk_networkarea_id: workareaId,
+  generation: PACKAGE_GENERATION,
+  custom_deploy_configs: {} as Record<string, CustomDeployConfig>,
   accesspoints: [] as AccessPoint[],
   direct_endpoints: {
     cluster: [''],
@@ -217,14 +238,43 @@ const form = reactive({
   },
 });
 
+const activeCustomDeployOs = ref('');
+const customDeployOsOptions = ref<{ id: string; name: string }[]>([]);
+const defaultDeployConfigs = ref<Record<string, CustomDeployConfig>>({});
+const DEFAULT_CUSTOM_DEPLOY_OS = 'linux';
+
+const syncCustomDeployConfigs = (
+  config?: Record<string, CustomDeployConfig>,
+  preferredOs?: string,
+) => {
+  const configMap = deployConfigMapFromApi(config);
+  form.custom_deploy_configs = normalizeCustomDeployConfigs(
+    configMap,
+    customDeployOsOptions.value.map(item => item.id),
+  );
+  const configuredOsList = Object.keys(configMap);
+  const normalizedOsList = Object.keys(form.custom_deploy_configs);
+  const defaultOs = normalizedOsList.includes(DEFAULT_CUSTOM_DEPLOY_OS)
+    ? DEFAULT_CUSTOM_DEPLOY_OS
+    : undefined;
+  activeCustomDeployOs.value = preferredOs
+    || defaultOs
+    || configuredOsList[0]
+    || normalizedOsList[0]
+    || '';
+};
+
 const initForm = () => {
+  form.tenant_id = '';
   form.bk_networkunit_name = '';
+  form.generation = PACKAGE_GENERATION;
+  syncCustomDeployConfigs();
   form.accesspoints = [];
   form.direct_endpoints = {
     cluster: [''],
     file: [''],
     data: [''],
-  },
+  };
   form.links = {
     cluster: {},
     file: {},
@@ -238,7 +288,38 @@ const initForm = () => {
   isExpand.value = false;
 };
 
-const title = computed(() => (props.isCreate ? t('topoManager.workUnit.title.create') : t('topoManager.workUnit.title.edit')));
+const fetchCustomDeployOsOptions = async () => {
+  const distinctParams = {
+    generation: PACKAGE_GENERATION,
+    exact_include_conditions: {
+      enabled: [true],
+    },
+    distinct_field: {
+      os_type: true,
+    },
+  };
+  const res = await PackageService.DistinctReleaseAgent(distinctParams as any).catch(() => null);
+  customDeployOsOptions.value = res?.os_type?.map(item => ({ id: item, name: item })) ?? [];
+};
+
+const fetchDefaultDeployConfig = async (osType: string) => {
+  if (!osType || defaultDeployConfigs.value[osType] !== undefined) {
+    return;
+  }
+  const res = await TopoService.DefaultDeployConstantGet({
+    generation: PACKAGE_GENERATION,
+    os_type: osType,
+  }).catch(() => null);
+  if (res?.default_deploy_config) {
+    defaultDeployConfigs.value[osType] = res.default_deploy_config;
+  }
+};
+
+const title = computed(() => (
+  props.isCreate
+    ? t('topoManager.workUnit.title.create')
+    : t('topoManager.workUnit.title.edit')
+));
 
 const rules = reactive({
   bk_networkunit_name: [{
@@ -291,8 +372,6 @@ function validateLink(
   return !isExpand.value || isAllFieldsValid;
 }
 
-// 下游接入点组件 用于表单校验
-const accessPointRef = ref();
 const saveLoading = ref(false);
 
 const handleConfirm = async () => {
@@ -304,6 +383,14 @@ const handleConfirm = async () => {
       return;
     };
 
+    // Validate all-or-nothing constraint for custom deploy configs
+    const partialConfigs = Object.entries(form.custom_deploy_configs)
+      .filter(([, config]) => !validateCustomDeployConfigAllOrNothing(config));
+    if (partialConfigs.length > 0) {
+      Message({ theme: 'error', message: t('topoManager.workUnit.form.customDeployConfigPartialError') });
+      return;
+    }
+
     // params配置
     const links = form.links as Links;
     const generalLinkData = generalLink.value as Link;
@@ -312,19 +399,14 @@ const handleConfirm = async () => {
       links.file = generalLinkData;
       links.data = generalLinkData;
     }
-    const params: TopoNetworkUnitCreateReq = {
-      bk_networkunit_name: form.bk_networkunit_name,
-      bk_networkarea_id: form.bk_networkarea_id,
-      accesspoints: form.accesspoints.map((item: AccessPoint) => ({
-        ...item,
-        accesspoint_id: item.accesspoint_id ?? -1,
-      })),
-      direct_endpoints: form.direct_endpoints,
+    const params = buildNetworkUnitPayload({
+      form,
       links,
-      is_direct: props.isCreate ? type.value === 'direct' : isDirect.value,
-    };
-
-    if (!props.isCreate) (params as TopoNetworkUnitUpdateReq).bk_networkunit_id = props.workUnitId;
+      isCreate: props.isCreate,
+      workUnitId: props.workUnitId,
+      type: type.value,
+      isDirect: isDirect.value,
+    });
     let res;
     if (props.isCreate) {
       res = await TopoService.NetworkUnitCreate(params).catch(() => ({
@@ -362,7 +444,7 @@ const handleClose = () => {
 };
 
 const originData = ref<any>();
-const handleBeforeClose = () => new Promise((resolve, reject) => {
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve) => {
   // 没有修改，直接关闭
   if (isEqual(form, originData.value)) {
     resolve(true);
@@ -376,7 +458,7 @@ const handleBeforeClose = () => new Promise((resolve, reject) => {
       resolve(true);
       isShow.value = false;
     },
-    onCancel: () => reject(),
+    onCancel: () => resolve(false),
   });
 });
 const workAreaList = ref<{
@@ -391,7 +473,10 @@ const getWorkUnit = async () => {
   const curWorkUnit = workUnitList?.find((unit: NetworkUnit) => unit.bk_networkunit_id === props.workUnitId) as NetworkUnit;
   isDirect.value = curWorkUnit.is_direct;
   // 数据回填
+  form.tenant_id = curWorkUnit.tenant_id;
   form.bk_networkunit_name = curWorkUnit.bk_networkunit_name;
+  form.generation = curWorkUnit.generation ?? PACKAGE_GENERATION;
+  syncCustomDeployConfigs(curWorkUnit.custom_deploy_config);
 
   // 判断 cluster, file, data 数据是否一致
   // 以及是否有下游接入点 决定高级是否展开
@@ -417,8 +502,12 @@ watch(isShow, async (isCurrentShow: boolean) => {
     await Promise.all([
       handleFetchAllWorkarea(),
       handleFetchAllWorkUnit(),
+      fetchCustomDeployOsOptions(),
     ]);
 
+    if (props.isCreate) {
+      syncCustomDeployConfigs();
+    }
     if (!props.isCreate) {
       getWorkUnit();
     }
@@ -428,5 +517,9 @@ watch(isShow, async (isCurrentShow: boolean) => {
     formRef.value.clearValidate();
     initForm();
   }
+});
+
+watch(activeCustomDeployOs, (osType) => {
+  fetchDefaultDeployConfig(osType);
 });
 </script>

@@ -802,6 +802,36 @@ func (c *cli) getConstant(ctx contextx.IContext, req *protoBackend.TopoConstantG
 	return resp, nil
 }
 
+func (c *cli) getDefaultDeployConstant(ctx contextx.IContext, req *protoBackend.TopoDefaultDeployConstantGetReq,
+) (*protoBackend.TopoDefaultDeployConstantGetResp, error) {
+
+	resp := new(protoBackend.TopoDefaultDeployConstantGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/constant/default_deploy/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get default deploy constant", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get default deploy constant failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNodeGetReq) (
 	*protoBackend.TopoGraphNodeGetResp, error) {
 

@@ -12,13 +12,13 @@ package networkunit
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -37,7 +37,7 @@ type IHandler interface {
 	Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit) (int64, error)
 
 	// UpdateMany updates networkunit.
-	UpdateMany(nCtx contextx.IContext, networkUnits ...*types.NetworkUnit) error
+	UpdateMany(nCtx contextx.IContext, fields types.NetworkUnitUpdateFields, networkUnits ...*types.NetworkUnit) error
 
 	// DeleteMany deletes networkunit.
 	DeleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) error
@@ -162,15 +162,11 @@ func (h *handler) Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit)
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
-	if err := networkUnit.Generation.Validate(); err != nil {
-		return -1, fmt.Errorf("invalid generation: %w", err)
-	}
-
 	return h.dao.create(nCtx, convertNetworkUnitFromTypes(networkUnit))
 }
 
 // UpdateMany updates networkunit.
-func (h *handler) UpdateMany(nCtx contextx.IContext, networkUnits ...*types.NetworkUnit) error {
+func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.NetworkUnitUpdateFields, networkUnits ...*types.NetworkUnit) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -181,20 +177,37 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, networkUnits ...*types.Netw
 		return base.ErrEmptyParamData()
 	}
 
-	data := make([]*NetworkUnit, len(networkUnits))
-	for idx, networkUnit := range networkUnits {
+	if !fields.Name && !fields.AccessPoints && !fields.Links && !fields.DirectEndpoints && !fields.CustomDeployConfig {
+		return errors.New("no fields to update")
+	}
+
+	docs := make([]*base.DocumentFieldUpdate, 0, len(networkUnits))
+	for _, networkUnit := range networkUnits {
 		if networkUnit == nil {
 			return base.ErrInvalidItemInParamList()
 		}
 
-		data[idx] = convertNetworkUnitFromTypes(networkUnit)
+		updates := generateNetworkUnitUpdates(fields, networkUnit)
+		if len(updates) == 0 {
+			continue
+		}
 
-		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, networkUnit.TenantID); err != nil {
 			return err
 		}
+
+		docs = append(docs, &base.DocumentFieldUpdate{
+			Filter: func() bson.D {
+				filter := base.AliveFilter()
+				filter = WithNetworkUnitID(networkUnit.ID)(filter)
+
+				return filter
+			}(),
+			Fields: updates,
+		})
 	}
 
-	if err := h.dao.updateMany(nCtx, tenantID, data); err != nil {
+	if err := h.dao.UpdateFieldsBulk(nCtx, docs); err != nil {
 		return err
 	}
 
@@ -319,21 +332,18 @@ func convertDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomD
 	data := make(map[string]CustomDeployConfig, len(deployConfig))
 	for osType, config := range deployConfig {
 		data[osType.String()] = CustomDeployConfig{
-			InstallerRuntime: CustomInstallerRuntime{
+			InstallerRuntime: InstallerRuntime{
 				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
 			},
-			GSERuntime: CustomGSERuntime{
-				BaseDeployDir:  config.GSERuntime.BaseDeployDir,
-				DataIPC:        config.GSERuntime.DataIPC,
-				PluginIPC:      config.GSERuntime.PluginIPC,
-				ExtraConfigDir: config.GSERuntime.ExtraConfigDir,
-				LogDir:         config.GSERuntime.LogDir,
+			NodeRuntime: NodeRuntime{
+				BaseDeployDir: config.NodeRuntime.BaseDeployDir,
+				DataIPC:       config.NodeRuntime.DataIPC,
+				PluginIPC:     config.NodeRuntime.PluginIPC,
+				LogDir:        config.NodeRuntime.LogDir,
 			},
-			PluginRuntime: CustomPluginRuntime{
+			PluginRuntime: PluginRuntime{
 				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
 				LogDir:        config.PluginRuntime.LogDir,
-				DataDir:       config.PluginRuntime.DataDir,
-				RunDir:        config.PluginRuntime.RunDir,
 			},
 		}
 	}
@@ -349,24 +359,50 @@ func convertDeployConfigToTypes(deployConfig map[string]CustomDeployConfig) map[
 	data := make(map[criteria.OSType]types.CustomDeployConfig, len(deployConfig))
 	for osType, config := range deployConfig {
 		data[criteria.OSType(osType)] = types.CustomDeployConfig{
-			InstallerRuntime: types.CustomInstallerRuntime{
+			InstallerRuntime: types.InstallerRuntime{
 				BaseWorkDir: config.InstallerRuntime.BaseWorkDir,
 			},
-			GSERuntime: types.CustomGSERuntime{
-				BaseDeployDir:  config.GSERuntime.BaseDeployDir,
-				DataIPC:        config.GSERuntime.DataIPC,
-				PluginIPC:      config.GSERuntime.PluginIPC,
-				ExtraConfigDir: config.GSERuntime.ExtraConfigDir,
-				LogDir:         config.GSERuntime.LogDir,
+			NodeRuntime: types.NodeRuntime{
+				BaseDeployDir: config.NodeRuntime.BaseDeployDir,
+				DataIPC:       config.NodeRuntime.DataIPC,
+				PluginIPC:     config.NodeRuntime.PluginIPC,
+				LogDir:        config.NodeRuntime.LogDir,
 			},
-			PluginRuntime: types.CustomPluginRuntime{
+			PluginRuntime: types.PluginRuntime{
 				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
 				LogDir:        config.PluginRuntime.LogDir,
-				DataDir:       config.PluginRuntime.DataDir,
-				RunDir:        config.PluginRuntime.RunDir,
 			},
 		}
 	}
 
 	return data
+}
+
+func generateNetworkUnitUpdates(fields types.NetworkUnitUpdateFields, networkUnit *types.NetworkUnit) map[string]any {
+	updates := make(map[string]any)
+	if fields.Name {
+		updates[FieldKeyNetworkUnitName] = networkUnit.Name
+	}
+
+	if fields.AccessPoints {
+		updates[FieldKeyAccessPoints] = networkUnit.AccessPoints
+	}
+
+	if fields.Links {
+		updates[FieldKeyLinks] = &Links{
+			Cluster: convertLinksFromTypes(networkUnit.Links.Cluster),
+			File:    convertLinksFromTypes(networkUnit.Links.File),
+			Data:    convertLinksFromTypes(networkUnit.Links.Data),
+		}
+	}
+
+	if fields.DirectEndpoints {
+		updates[FieldKeyDirectEndpoints] = convertEndpointsFromTypes(networkUnit.DirectEndpoints)
+	}
+
+	if fields.CustomDeployConfig {
+		updates[FieldKeyCustomDeployConfig] = convertDeployConfigFromTypes(networkUnit.CustomDeployConfig)
+	}
+
+	return updates
 }

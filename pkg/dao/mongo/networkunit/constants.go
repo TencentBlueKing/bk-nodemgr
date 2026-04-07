@@ -25,4 +25,16 @@ const (
 
 	// FieldKeyGeneration the generation field key.
 	FieldKeyGeneration = "data.generation"
+
+	// FieldKeyAccessPoints the access-points field key.
+	FieldKeyAccessPoints = "data.accesspoints"
+
+	// FieldKeyLinks the links field key.
+	FieldKeyLinks = "data.links"
+
+	// FieldKeyDirectEndpoints the direct-endpoints field key.
+	FieldKeyDirectEndpoints = "data.direct_endpoints"
+
+	// FieldKeyCustomDeployConfig the custom-deploy-config field key.
+	FieldKeyCustomDeployConfig = "data.custom_deploy_config"
 )

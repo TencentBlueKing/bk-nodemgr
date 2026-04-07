@@ -74,7 +74,8 @@ type IStorageNetworkUnit interface {
 		int64, *AccessPointResult, error)
 
 	// UpdateNetworkUnit updates networkunit.
-	UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+	UpdateNetworkUnit(
+		nCtx contextx.IContext, fields types.NetworkUnitUpdateFields, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
 		*AccessPointResult, error)
 
 	// DeleteManyNetworkUnit deletes networkunits.

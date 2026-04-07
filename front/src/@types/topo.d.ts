@@ -189,6 +189,7 @@ export interface TopoNetworkUnitListReqExactConditions {
   bk_networkunit_id: number[];
   bk_networkarea_id: number[];
   is_direct: boolean[];
+  generation: number[];
 }
 
 // TopoNetworkUnitListResp describes the HTTP response body when list
@@ -231,6 +232,8 @@ export interface TopoNetworkUnitCreateReq {
   links: Links;
   is_direct: boolean;
   direct_endpoints: Endpoints;
+  generation: number;
+  custom_deploy_config: Record<string, CustomDeployConfig>;
 }
 
 // TopoNetworkUnitCreateResp describes the HTTP response body when create
@@ -248,16 +251,20 @@ export interface TopoNetworkUnitCreateRespData {
   bk_networkunit_id: number;
 }
 
+// NetworkUnitUpdateFields describes the fields of network unit.
+export interface NetworkUnitUpdateFields {
+  bk_networkunit_name: boolean;
+  accesspoints: boolean;
+  links: boolean;
+  direct_endpoints: boolean;
+  custom_deploy_config: boolean;
+}
+
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 export interface TopoNetworkUnitUpdateReq {
-  bk_networkunit_id: number;
-  bk_networkunit_name: string;
-  bk_networkarea_id: number;
-  accesspoints: AccessPoint[];
-  links: Links;
-  is_direct: boolean;
-  direct_endpoints: Endpoints;
+  networkunit: NetworkUnit;
+  fields: NetworkUnitUpdateFields;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update
@@ -656,5 +663,27 @@ export interface TopoConstantGetResp {
 export interface TopoConstantGetRespData {
   cloud_vendor: string[];
   os_type: string[];
+}
+
+// TopoDefaultDeployConstantGetReq describes the HTTP request body when get
+// default deploy constant in topo service.
+export interface TopoDefaultDeployConstantGetReq {
+  generation: number;
+  os_type: string;
+}
+
+// TopoDefaultDeployConstantGetResp describes the HTTP response body when get
+// default deploy constant in topo service.
+export interface TopoDefaultDeployConstantGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoDefaultDeployConstantGetRespData;
+}
+
+export interface TopoDefaultDeployConstantGetRespData {
+  default_deploy_config: CustomDeployConfig;
 }
 

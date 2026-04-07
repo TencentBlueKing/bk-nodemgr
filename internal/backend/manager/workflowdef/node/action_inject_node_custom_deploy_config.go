@@ -133,8 +133,8 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) e
 	// update deploy constant with custom deploy config if custom deploy config exists
 	if customDeployConfig != nil {
 		// override BaseDeployDir and generate corresponding configuration
-		if customDeployConfig.GSERuntime.BaseDeployDir != "" {
-			deployConstant.BaseDeployDir = customDeployConfig.GSERuntime.BaseDeployDir
+		if customDeployConfig.NodeRuntime.BaseDeployDir != "" {
+			deployConstant.BaseDeployDir = customDeployConfig.NodeRuntime.BaseDeployDir
 		}
 
 		// override BaseWorkDir and generate corresponding configuration
@@ -152,13 +152,12 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) e
 	std.DeployInfo().InstallerRuntime.WorkDir = deployConstant.GenerateWorkDir()
 
 	std.DeployInfo().BaseRuntime = types.DeploymentBaseRuntime{
-		BaseDeployDir:  deployConstant.BaseDeployDir,
-		DeployDir:      deployConstant.GenerateDeployDir(),
-		HomeDir:        deployConstant.GenerateNodeHomeDir(nodeRole),
-		DataIPC:        conv.NonEmptyOr(customDeployConfig.GSERuntime.DataIPC, deployConstant.GenerateDataIPCPath(nodeRole)),
-		PluginIPC:      conv.NonEmptyOr(customDeployConfig.GSERuntime.PluginIPC, deployConstant.GeneratePluginIPCPath(nodeRole)),
-		ExtraConfigDir: conv.NonEmptyOr(customDeployConfig.GSERuntime.ExtraConfigDir, deployConstant.ExtraConfigDir),
-		LogDir:         conv.NonEmptyOr(customDeployConfig.GSERuntime.LogDir, deployConstant.LogDir),
+		BaseDeployDir: deployConstant.BaseDeployDir,
+		DeployDir:     deployConstant.GenerateDeployDir(),
+		HomeDir:       deployConstant.GenerateNodeHomeDir(nodeRole),
+		DataIPC:       conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, deployConstant.GenerateDataIPCPath(nodeRole)),
+		PluginIPC:     conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, deployConstant.GeneratePluginIPCPath(nodeRole)),
+		LogDir:        conv.NonEmptyOr(customDeployConfig.NodeRuntime.LogDir, deployConstant.LogDir),
 	}
 
 	std.InstanceData().Log().

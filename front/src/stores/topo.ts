@@ -23,6 +23,8 @@ type NetworkUnit = {
     file?: any;
     data?: any;
   };
+  generation?: number;
+  custom_deploy_config?: Record<string, CustomDeployConfig>;
   status?: string;
   latency?: number[];
   running_proxy: number;

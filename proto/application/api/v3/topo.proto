@@ -235,18 +235,20 @@ message TopoNetworkUnitCreateResp {
   Data data = 5;
 }
 
+// NetworkUnitUpdateFields describes the fields of network unit.
+message NetworkUnitUpdateFields {
+  bool bk_networkunit_name = 1;
+  bool accesspoints = 2;
+  bool links = 3;
+  bool direct_endpoints = 4;
+  bool custom_deploy_config = 5;
+}
+
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 message TopoNetworkUnitUpdateReq {
-  int64 bk_networkunit_id = 1;
-  string bk_networkunit_name = 2;
-  int64 bk_networkarea_id = 3;
-  repeated AccessPoint accesspoints = 4;
-  Links links = 5;
-  bool is_direct = 6;
-  Endpoints direct_endpoints = 7;
-  int64 generation = 8;
-  map<string, CustomDeployConfig> custom_deploy_config = 9;
+  NetworkUnit networkunit = 1;
+  NetworkUnitUpdateFields fields = 2;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update
@@ -623,6 +625,26 @@ message TopoConstantGetResp {
   Data data = 5;
 }
 
+// TopoDefaultDeployConstantGetReq describes the HTTP request body when get
+// default deploy constant in topo service.
+message TopoDefaultDeployConstantGetReq {
+  int64 generation = 1;
+  string os_type = 2;
+}
+
+// TopoDefaultDeployConstantGetResp describes the HTTP response body when get
+// default deploy constant in topo service.
+message TopoDefaultDeployConstantGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { CustomDeployConfig default_deploy_config = 1; }
+  Data data = 5;
+}
+
 // topo service.
 service Topo {
   // BusinessList provides business listing.
@@ -831,6 +853,15 @@ service Topo {
   rpc ConstantGet(TopoConstantGetReq) returns (TopoConstantGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/constant/get"
+      body : "*"
+    };
+  }
+
+  // DefaultDeployConstantGet provides getting default deploy constant.
+  rpc DefaultDeployConstantGet(TopoDefaultDeployConstantGetReq)
+      returns (TopoDefaultDeployConstantGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/constant/default_deploy/get"
       body : "*"
     };
   }

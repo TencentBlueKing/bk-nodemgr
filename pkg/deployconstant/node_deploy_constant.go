@@ -34,6 +34,16 @@ const (
 	nodeWindowsExtraConfigDirFormat = "C:\\Windows\\System32\\config\\gse\\%s\\user_conf"
 )
 
+// GetWindowsDefaultDataIPCPort returns the default data IPC port for Windows.
+func GetWindowsDefaultDataIPCPort() string {
+	return nodeWindowsDataIPCPort
+}
+
+// GetWindowsDefaultPluginIPCPort returns the default plugin IPC port for Windows.
+func GetWindowsDefaultPluginIPCPort() string {
+	return nodeWindowsPluginIPCPort
+}
+
 // NodeDeployConf defines the deployment configuration for agent.
 type NodeDeployConf struct {
 	DeployConf
