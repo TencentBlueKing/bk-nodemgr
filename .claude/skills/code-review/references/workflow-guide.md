@@ -126,6 +126,9 @@ git status -uno  # 查看已暂存的提交文件
 - router/handler 是否在 `internal/*/router/api-v3`？
 - DAO 是否在 `pkg/dao/mongo` 或 `internal/*/storage`？
 - proto 转换是否在 `pkg/proto/**`？
+- **API 路由是否放在正确的领域**？（参见案例 `cases/001-api-routing-domain-mismatch.md`）
+  - 检查 API 的实际消费者和领域专家是谁
+  - 确认路由分组与领域能力对齐，而非仅按数据存储位置分组
 
 **C. 模块依赖合理性：**
 - `pkg/` 是否 import 了 `internal/` 下的包？（严重 ❌）
