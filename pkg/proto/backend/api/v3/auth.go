@@ -89,6 +89,45 @@ func NewAuthVerifyResult(action string, authorized bool) *AuthVerifyResult {
 	}
 }
 
+// AuthCheckItem describes an internal auth check item converted from verify request.
+type AuthCheckItem struct {
+	Action    auth.Action
+	Resources []auth.Resource
+}
+
+// ConvertItemsToCheckItems converts verify request items to internal auth check items.
+func (x *AuthVerifyReq) ConvertItemsToCheckItems() []AuthCheckItem {
+	items := x.GetItems()
+	if len(items) == 0 {
+		return nil
+	}
+
+	checkItems := make([]AuthCheckItem, 0, len(items))
+	for _, item := range items {
+		checkItems = append(checkItems, AuthCheckItem{
+			Action:    auth.Action(item.GetAction()),
+			Resources: ConvertAuthResourcesToInternal(item.GetResources()),
+		})
+	}
+
+	return checkItems
+}
+
+// ConvertItemsToVerifyResults converts verify request items to successful verify results.
+func (x *AuthVerifyReq) ConvertItemsToVerifyResults() []*AuthVerifyResult {
+	items := x.GetItems()
+	if len(items) == 0 {
+		return nil
+	}
+
+	results := make([]*AuthVerifyResult, 0, len(items))
+	for _, item := range items {
+		results = append(results, NewAuthVerifyResult(item.GetAction(), true))
+	}
+
+	return results
+}
+
 // ConvertAuthResourcesToInternal converts proto auth resources to internal auth resources.
 func ConvertAuthResourcesToInternal(protoResources []*AuthResource) []auth.Resource {
 	if len(protoResources) == 0 {
