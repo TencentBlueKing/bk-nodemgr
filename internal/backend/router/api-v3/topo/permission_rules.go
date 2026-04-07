@@ -22,6 +22,7 @@ import (
 
 var (
 	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
+	errNetworkUnitViewDeniedByEmptyScope = errors.New("no authorized network units")
 	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
 )
 
@@ -45,6 +46,19 @@ func buildNetworkAreaResources(ids []int64) []auth.Resource {
 		resources = append(resources, auth.Resource{
 			SystemID: auth.SystemIDNodeMgr,
 			Type:     auth.ResourceTypeNetworkArea,
+			ID:       fmt.Sprintf("%d", id),
+		})
+	}
+
+	return resources
+}
+
+func buildNetworkUnitResources(ids []int64) []auth.Resource {
+	resources := make([]auth.Resource, 0, len(ids))
+	for _, id := range ids {
+		resources = append(resources, auth.Resource{
+			SystemID: auth.SystemIDNodeMgr,
+			Type:     auth.ResourceTypeNetworkUnit,
 			ID:       fmt.Sprintf("%d", id),
 		})
 	}
@@ -103,6 +117,63 @@ func narrowNetworkAreaCondition(condition *types.NetworkAreaCondition, narrowedI
 		condition.ExactInclude = &types.NetworkAreaExactFields{}
 	}
 	condition.ExactInclude.NetworkAreaID = conv.SliceUnique(narrowedIDs)
+
+	return condition
+}
+
+func (h *handler) narrowAuthorizedNetworkUnitIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionNetworkUnitView, auth.ResourceTypeNetworkUnit)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, auth.ResourceTypeNetworkUnit,
+	)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+
+		return nil, false, errNetworkUnitViewDeniedByEmptyScope
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView, buildNetworkUnitResources(requestedIDs)); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+func narrowNetworkUnitCondition(condition *types.NetworkUnitCondition, narrowedIDs []int64, scopeIsAny bool) *types.NetworkUnitCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.NetworkUnitCondition{}
+	}
+
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.NetworkUnitExactFields{}
+	}
+
+	condition.ExactInclude.NetworkUnitID = conv.SliceUnique(narrowedIDs)
 
 	return condition
 }

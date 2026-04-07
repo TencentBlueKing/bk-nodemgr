@@ -11,6 +11,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -24,6 +25,11 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create networkunit, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitCreate, nil); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to create networkunit, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	// check if networkarea exists.
@@ -80,6 +86,12 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkunit, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitEdit,
+		buildNetworkUnitResources([]int64{req.GetBkNetworkunitId()})); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update networkunit, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	// check if networkarea exists.
@@ -145,6 +157,12 @@ func (h *handler) GetNetworkUnit(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView,
+		buildNetworkUnitResources([]int64{req.GetBkNetworkunitId()})); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get networkunit, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	// get networkunit.
 	networkUnit, err := h.storage.GetNetworkUnit(rCtx, req.GetBkNetworkunitId())
 	if err != nil {
@@ -190,7 +208,19 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, req.ConvertConditionsToTypes())
+	condition := req.ConvertConditionsToTypes()
+	var unitIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		unitIDs = exactCond.GetBkNetworkunitId()
+	}
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkUnitIDs(rCtx, unitIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list networkunit, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowNetworkUnitCondition(condition, narrowedIDs, scopeIsAny)
+
+	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -208,6 +238,12 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkunit, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitDelete,
+		buildNetworkUnitResources([]int64{req.GetBkNetworkunitId()})); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to delete networkunit, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	networkUnitID := req.GetBkNetworkunitId()
