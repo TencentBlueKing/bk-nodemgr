@@ -207,7 +207,9 @@ func hostListBizActions(condition *types.HostCondition) []auth.Action {
 		return []auth.Action{auth.ActionAgentView, auth.ActionProxyView}
 	}
 
-	actions := make([]auth.Action, 0, 2)
+	// Pre-allocate for at most 2 actions: AgentView and ProxyView
+	const maxActions = 2
+	actions := make([]auth.Action, 0, maxActions)
 	needAgentView := false
 	needProxyView := false
 
@@ -242,6 +244,7 @@ func mergeNarrowedBizIDs(
 	rightIDs []int64, rightScopeIsAny bool,
 	requestedIDs []int64,
 ) ([]int64, bool) {
+
 	if leftScopeIsAny && rightScopeIsAny {
 		return requestedIDs, true
 	}
@@ -260,6 +263,7 @@ func mergeNarrowedBizIDs(
 func (h *handler) narrowAuthorizedBizIDsForHostList(
 	rCtx restserver.IContext, requestedIDs []int64, condition *types.HostCondition,
 ) ([]int64, bool, error) {
+
 	actions := hostListBizActions(condition)
 	if len(actions) == 1 {
 		return h.narrowAuthorizedBizIDsByAction(rCtx, actions[0], requestedIDs)
@@ -279,6 +283,7 @@ func (h *handler) narrowAuthorizedBizIDsForHostList(
 		if idx == 0 {
 			mergedIDs = narrowedIDs
 			mergedScopeIsAny = scopeIsAny
+
 			continue
 		}
 
