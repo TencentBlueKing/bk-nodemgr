@@ -34,6 +34,7 @@ This package is NOT responsible for:
 - Keep proto structs lifecycle confined to this package:
    - Convert proto -> `pkg/types` before business logic.
    - Convert `pkg/types` -> proto structs for responses.
+- `pkg/proto/**` only handles transport conversion (proto <-> `pkg/types`); business decisions/result construction must stay in `internal/<service>` layers.
 - Avoid declaring brand-new parallel types in this package; extend generated structs via methods/helpers.
 - Handle “semantic defaults” in conversion paths (commonly in `AutoConvert()`):
    - If `nil` vs `0` has different meaning, normalize explicitly instead of relying on proto getters.
@@ -42,6 +43,7 @@ This package is NOT responsible for:
 
 - Reading/editing generated `*.pb.go` as if it were business logic.
 - Using proto structs directly in upper-layer business modules.
+- Deriving business results in `pkg/proto/**` (for example request-derived authorized results).
 - Duplicating conversion/validation logic outside this package.
 - Introducing new types that mirror generated messages without a strong reason.
 
@@ -55,4 +57,3 @@ This package is NOT responsible for:
 ## TESTING
 
 - Basic compile/test: `go test ./pkg/proto/application/api/v3`
-

@@ -12,9 +12,10 @@
 |Where to look:usage guide:pkg/proto/backend/api/v3/README.md:proto lifecycle confinement and package intent
 |Conventions:edit handwritten .go files only unless contract changes require proto edit+regen
 |Conventions:proto lifecycle stays here=proto→pkg/types before business logic|pkg/types→proto for responses
+|Conventions:pkg/proto/** only handles transport conversion (proto <-> pkg/types); business decisions/result construction must stay in internal/<service> layers
 |Conventions:before adding converters/helpers, search this directory for analogous implementations and extend existing message methods over parallel logic
 |Conventions:prefer generated-message methods/helpers over brand-new mirror types
 |Conventions:semantic defaults belong in AutoConvert or conversion helpers; normalize nil vs zero explicitly
 |How to change:contract change=edit proto/backend/api/v3/*.proto→cd proto && make clean && make all→update handwritten converters/validators here
 |Testing:go test ./pkg/proto/backend/api/v3|focused=go test ./pkg/proto/backend/api/v3 -run 'TestDeployPolicy'
-|Anti-patterns:no hand edits to *.pb.go|no treating generated files as business logic|no using proto structs directly in upper business layers|no duplicate conversion/validation outside this package|no mirror types without strong reason|no new parallel converters before checking existing files in this directory
+|Anti-patterns:no hand edits to *.pb.go|no treating generated files as business logic|no using proto structs directly in upper business layers|no business-result derivation in pkg/proto/** (e.g., request-derived authorized results)|no duplicate conversion/validation outside this package|no mirror types without strong reason|no new parallel converters before checking existing files in this directory
