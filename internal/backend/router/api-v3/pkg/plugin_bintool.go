@@ -13,6 +13,8 @@ package pkg
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -57,6 +59,14 @@ func (h *handler) DeleteReleasePluginBinTool(rCtx restserver.IContext) (interfac
 
 	gen := types.Generation(req.GetGeneration())
 	name := req.GetName()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypePluginBinTool))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete plugin-bintool release, permission denied")
+		return nil, err
+	}
+
 	key := types.ReleasePluginBinToolKey{
 		Generation: gen,
 		Name:       name,

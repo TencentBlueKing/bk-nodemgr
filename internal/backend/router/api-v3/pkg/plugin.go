@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -87,6 +89,14 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	}
 
 	pluginPkgName, gen, plat, version := req.GetIdentifier()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypePlugin))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable plugin, permission denied")
+		return nil, err
+	}
+
 	key := types.ReleasePluginKey{
 		Name:       pluginPkgName,
 		Generation: gen,
@@ -234,6 +244,14 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypePlugin))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable plugin, permission denied")
+		return nil, err
+	}
+
 	key := types.ReleasePluginKey{
 		Name:       name,
 		Generation: gen,
@@ -269,6 +287,14 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypePlugin))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default plugin, permission denied")
+		return nil, err
+	}
+
 	key := types.ReleasePluginKey{
 		Name:       name,
 		Generation: gen,
@@ -304,6 +330,14 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypePlugin))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default plugin, permission denied")
+		return nil, err
+	}
+
 	key := types.ReleasePluginKey{
 		Name:       name,
 		Generation: gen,
@@ -339,6 +373,14 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypePlugin))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete plugin, permission denied")
+		return nil, err
+	}
+
 	key := types.ReleasePluginKey{
 		Name:       name,
 		Generation: gen,
