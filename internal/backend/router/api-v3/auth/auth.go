@@ -12,6 +12,8 @@
 package auth
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
@@ -36,4 +38,32 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/verify", restserver.Handler(h.Verify))
+}
+
+// BuildBizResources constructs auth.Resource slice for business IDs.
+func BuildBizResources(bizIDs []int64) []auth.Resource {
+	resources := make([]auth.Resource, 0, len(bizIDs))
+	for _, bizID := range bizIDs {
+		resources = append(resources, auth.Resource{
+			SystemID: auth.SystemIDCMDB,
+			Type:     auth.ResourceTypeBiz,
+			ID:       fmt.Sprintf("%d", bizID),
+		})
+	}
+
+	return resources
+}
+
+// BuildNetworkUnitResources constructs auth.Resource slice for network unit IDs.
+func BuildNetworkUnitResources(networkUnitIDs []int64) []auth.Resource {
+	resources := make([]auth.Resource, 0, len(networkUnitIDs))
+	for _, id := range networkUnitIDs {
+		resources = append(resources, auth.Resource{
+			SystemID: auth.SystemIDNodeMgr,
+			Type:     auth.ResourceTypeNetworkUnit,
+			ID:       fmt.Sprintf("%d", id),
+		})
+	}
+
+	return resources
 }

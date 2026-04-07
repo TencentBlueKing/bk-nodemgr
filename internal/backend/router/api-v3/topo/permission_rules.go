@@ -15,6 +15,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	routerAuth "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -26,17 +27,9 @@ var (
 	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
 )
 
+// buildBizResources is deprecated. Use auth.BuildBizResources instead.
 func buildBizResources(bizIDs []int64) []auth.Resource {
-	resources := make([]auth.Resource, 0, len(bizIDs))
-	for _, bizID := range bizIDs {
-		resources = append(resources, auth.Resource{
-			SystemID: auth.SystemIDCMDB,
-			Type:     auth.ResourceTypeBiz,
-			ID:       fmt.Sprintf("%d", bizID),
-		})
-	}
-
-	return resources
+	return routerAuth.BuildBizResources(bizIDs)
 }
 
 // buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
@@ -53,17 +46,9 @@ func buildNetworkAreaResources(ids []int64) []auth.Resource {
 	return resources
 }
 
+// buildNetworkUnitResources is deprecated. Use auth.BuildNetworkUnitResources instead.
 func buildNetworkUnitResources(ids []int64) []auth.Resource {
-	resources := make([]auth.Resource, 0, len(ids))
-	for _, id := range ids {
-		resources = append(resources, auth.Resource{
-			SystemID: auth.SystemIDNodeMgr,
-			Type:     auth.ResourceTypeNetworkUnit,
-			ID:       fmt.Sprintf("%d", id),
-		})
-	}
-
-	return resources
+	return routerAuth.BuildNetworkUnitResources(ids)
 }
 
 func (h *handler) narrowAuthorizedNetworkAreaIDs(
