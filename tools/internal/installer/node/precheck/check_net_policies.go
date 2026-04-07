@@ -13,16 +13,21 @@ package precheck
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
 
+const (
+	checkNetPolicyTimeout = 2 * time.Second
+)
+
 // NetworkPolicy network policy.
 type NetworkPolicy struct {
-	Host    string `json:"host"`
-	Port    uint64 `json:"port"`
-	Network string `json:"network"`
+	Host    string            `json:"host"`
+	Port    uint64            `json:"port"`
+	Network utils.NetworkType `json:"network"`
 }
 
 // Validate validate network policy.
@@ -36,38 +41,34 @@ func (policy *NetworkPolicy) Validate() error {
 	}
 
 	switch policy.Network {
-	case utils.NetTCP4.String(), utils.NetTCP6.String(), utils.NetUDP4.String(), utils.NetUDP6.String():
+	case utils.NetTCP, utils.NetTCP4, utils.NetTCP6, utils.NetUDP, utils.NetUDP4, utils.NetUDP6:
 		return nil
+
 	default:
-		return fmt.Errorf("invalid network: %s", policy.Network)
+		return fmt.Errorf("invalid network: %s", policy.Network.String())
 	}
 }
 
 // CheckNetworkPolicies check network policies.
-func CheckNetworkPolicies(ctx context.Context, policies []NetworkPolicy) error {
+func CheckNetworkPolicies(_ context.Context, policies []NetworkPolicy) error {
 	gp := gopool.NewPool()
 	for idx := range policies {
 		policy := &policies[idx]
 		gp.Go(func() error {
 			switch policy.Network {
-			case utils.NetTCP4.String():
-				idle, err := utils.CheckTCP4PortIdle(ctx, policy.Port)
-				if err != nil || !idle {
-					return fmt.Errorf("port %d is not idle", policy.Port)
+			case utils.NetTCP, utils.NetTCP4, utils.NetTCP6:
+				available, err := utils.CheckNetTCPOpen(policy.Network.String(), policy.Port, checkNetPolicyTimeout)
+				if err != nil || !available {
+					return fmt.Errorf("target network is not available. network(%+v), err(%v)", policy, err)
 				}
 
 				return nil
-			case utils.NetTCP6.String():
-				idle, err := utils.CheckTCP6PortIdle(ctx, policy.Port)
-				if err != nil || !idle {
-					return fmt.Errorf("port %d is not idle", policy.Port)
-				}
 
-				return nil
-			case utils.NetUDP4.String(), utils.NetUDP6.String():
-				return fmt.Errorf("not support network: %s", policy.Network)
+			case utils.NetUDP, utils.NetUDP4, utils.NetUDP6:
+				return fmt.Errorf("not support network: %s", policy.Network.String())
+
 			default:
-				return fmt.Errorf("invalid network: %s", policy.Network)
+				return fmt.Errorf("invalid network: %s", policy.Network.String())
 			}
 		})
 	}

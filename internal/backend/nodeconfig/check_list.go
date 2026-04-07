@@ -71,6 +71,7 @@ type DiskRequire struct {
 
 // PortPolicy describes a port availability check.
 type PortPolicy struct {
+	BindIP  string           `json:"bind_ip"`
 	Port    uint64           `json:"port"`
 	Network criteria.NetType `json:"network"`
 }
@@ -120,56 +121,17 @@ func calCheckListDiskRequires(nodeConf *types.NodeConf) ([]DiskRequire, error) {
 	return diskRequires, nil
 }
 
-func proxyPortKeys() []string {
-	return []string{
-		GSEDataAgentBindPort,
-		GSEDataMetricExporterBindPort,
-		GSEFileBittorrentBindPort,
-		GSEFileBittorrentTrackerBindPort,
-		GSEFileTopologyBindPort,
-		GSEFileTopologyThriftBindPort,
-		GSEFileMetricExporterBindPort,
-		GSEProxyBindPort,
-	}
-}
-
-func calCheckListPortPolicies(deployInfo *types.DeploymentInfo, nodeConf *types.NodeConf) ([]PortPolicy, error) {
+func calCheckListPortPolicies(deployInfo *types.DeploymentInfo, _ *types.NodeConf) ([]PortPolicy, error) {
 	switch deployInfo.Host.Dynamic.NodeRole {
 	case types.NodeRoleProxy:
-		return calCheckListProxyPortPolicies(nodeConf)
+		return []PortPolicy{}, nil
+
 	case types.NodeRoleAgent:
 		return []PortPolicy{}, nil
+
 	default:
 		return nil, fmt.Errorf("invalid node role: %s", deployInfo.Host.Dynamic.NodeRole)
 	}
-}
-
-func calCheckListProxyPortPolicies(nodeConf *types.NodeConf) ([]PortPolicy, error) {
-	portPolicies := make([]PortPolicy, 0)
-	for _, portKey := range proxyPortKeys() {
-		port, ok := nodeConf.PreSetting[portKey]
-		if !ok {
-			continue
-		}
-
-		portNum, err := conv.ToInt64(port)
-		if err != nil {
-			return nil, fmt.Errorf("invalid node conf, key(%s) , value(%v)", portKey, port)
-		}
-
-		portPolicies = append(portPolicies,
-			PortPolicy{
-				Port:    uint64(portNum),
-				Network: criteria.NetTypeTCP4,
-			},
-			PortPolicy{
-				Port:    uint64(portNum),
-				Network: criteria.NetTypeTCP6,
-			},
-		)
-	}
-
-	return portPolicies, nil
 }
 
 func calCheckListNetworkPolicies(_ *types.NodeConf) ([]NetworkPolicy, error) {

@@ -20,26 +20,28 @@ import (
 
 // PortPolicy port policy.
 type PortPolicy struct {
-	// policy port
-	Port uint64 `json:"port"`
-
-	// Network
-	Network string `json:"network"`
+	BindIP  string            `json:"bind_ip"`
+	Port    uint64            `json:"port"`
+	Network utils.NetworkType `json:"network"`
 }
 
 // Validate validate port policy.
 func (policy *PortPolicy) Validate() error {
+	if policy.BindIP == "" {
+		return fmt.Errorf("invalid bind_ip: %s", policy.BindIP)
+	}
+
 	if policy.Port == 0 {
 		return fmt.Errorf("invalid port: %d", policy.Port)
 	}
 
 	switch policy.Network {
-	case utils.NetTCP4.String(), utils.NetTCP6.String(), utils.NetUDP4.String(), utils.NetUDP6.String():
-	default:
-		return fmt.Errorf("invalid network: %s", policy.Network)
-	}
+	case utils.NetTCP, utils.NetTCP4, utils.NetTCP6, utils.NetUDP, utils.NetUDP4, utils.NetUDP6:
+		return nil
 
-	return nil
+	default:
+		return fmt.Errorf("invalid network: %s", policy.Network.String())
+	}
 }
 
 // CheckPortPolicies check port policies.
@@ -49,23 +51,25 @@ func CheckPortPolicies(ctx context.Context, polices []PortPolicy) error {
 		policy := &polices[idx]
 		gp.Go(func() error {
 			switch policy.Network {
-			case utils.NetTCP4.String():
-				idle, err := utils.CheckTCP4PortIdle(ctx, policy.Port)
+			case utils.NetTCP, utils.NetTCP4, utils.NetTCP6:
+				idle, err := utils.CheckTCPPortIdle(ctx, policy.Network.String(), policy.BindIP, policy.Port)
 				if err != nil || !idle {
-					return fmt.Errorf("port %d is not idle", policy.Port)
+					return fmt.Errorf("network is not idle. network(%+v), err(%v)", policy, err)
 				}
-			case utils.NetTCP6.String():
-				idle, err := utils.CheckTCP6PortIdle(ctx, policy.Port)
-				if err != nil || !idle {
-					return fmt.Errorf("port %d is not idle", policy.Port)
-				}
-			case utils.NetUDP4.String(), utils.NetUDP6.String():
-				return fmt.Errorf("not support network: %s", policy.Network)
-			default:
-				return fmt.Errorf("invalid network: %s", policy.Network)
-			}
 
-			return nil
+				return nil
+
+			case utils.NetUDP, utils.NetUDP4, utils.NetUDP6:
+				idle, err := utils.CheckUDPPortIdle(ctx, policy.Network.String(), policy.BindIP, policy.Port)
+				if err != nil || !idle {
+					return fmt.Errorf("network is not idle. network(%+v), err(%v)", policy, err)
+				}
+
+				return nil
+
+			default:
+				return fmt.Errorf("invalid network: %s", policy.Network.String())
+			}
 		})
 	}
 

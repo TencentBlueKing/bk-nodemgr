@@ -337,10 +337,8 @@ func CountDiskFreeSpace(dirPath string) (uint64, error) {
 }
 
 // CheckNetTCPOpen check the remote server is open tcp port.
-func CheckNetTCPOpen(host string, port int, timeout time.Duration) (bool, error) {
-	target := fmt.Sprintf("%s:%d", host, port)
-
-	conn, err := net.DialTimeout(NetTCP.String(), target, timeout)
+func CheckNetTCPOpen(host string, port uint64, timeout time.Duration) (bool, error) {
+	conn, err := net.DialTimeout(NetTCP.String(), net.JoinHostPort(host, strconv.FormatUint(port, 10)), timeout)
 	if err != nil {
 		return false, err
 	}
@@ -351,25 +349,9 @@ func CheckNetTCPOpen(host string, port int, timeout time.Duration) (bool, error)
 	return true, nil
 }
 
-const checkPortIdleTimeout = 2 * time.Second
-
-// CheckTCP4PortIdle check tcp4 port is in use or not.
-func CheckTCP4PortIdle(ctx context.Context, port uint64) (bool, error) {
-	address := fmt.Sprintf("127.0.0.1:%d", port)
-
-	tCtx, cancel := context.WithTimeout(ctx, checkPortIdleTimeout)
-	defer cancel()
-
-	// try to connect tcp4 port.
-	var dialer net.Dialer
-	conn, _ := dialer.DialContext(tCtx, NetTCP4.String(), address)
-	if conn != nil {
-		_ = conn.Close()
-		return false, errors.New("port is in use")
-	}
-
-	// port could not be connected, but could't be sure whether it is idle.
-	listener, err := net.Listen(NetTCP4.String(), address)
+// CheckTCPPortIdle check tcp port is in use or not.
+func CheckTCPPortIdle(_ context.Context, network, host string, port uint64) (bool, error) {
+	listener, err := net.ListenTCP(network, &net.TCPAddr{IP: net.ParseIP(host), Port: int(port)})
 	if err != nil {
 		return false, err
 	}
@@ -379,24 +361,9 @@ func CheckTCP4PortIdle(ctx context.Context, port uint64) (bool, error) {
 	return true, nil
 }
 
-// CheckTCP6PortIdle check tcp6 port is in use or not.
-func CheckTCP6PortIdle(ctx context.Context, port uint64) (bool, error) {
-	address := fmt.Sprintf("[::1]:%d", port)
-
-	tCtx, cancel := context.WithTimeout(ctx, checkPortIdleTimeout)
-	defer cancel()
-
-	// try to connect tcp6 port.
-	var dialer net.Dialer
-	conn, _ := dialer.DialContext(tCtx, NetTCP6.String(), address)
-	if conn != nil {
-		_ = conn.Close()
-
-		return false, errors.New("port is in use")
-	}
-
-	// port could not be connected, but could't be sure whether it is idle.
-	listener, err := net.Listen(NetTCP6.String(), address)
+// CheckUDPPortIdle check udp port is in use or not.
+func CheckUDPPortIdle(_ context.Context, network, host string, port uint64) (bool, error) {
+	listener, err := net.ListenUDP(network, &net.UDPAddr{IP: net.ParseIP(host), Port: int(port)})
 	if err != nil {
 		return false, err
 	}

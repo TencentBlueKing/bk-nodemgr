@@ -48,6 +48,11 @@ func NewStep(args StepArgs) *Step {
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(node.StepPreCheck, "start to precheck with config: %s", step.args.String())
 
+	if err := step.args.CheckList.Validate(); err != nil {
+		logger.Errorf(node.StepPreCheck, "invalid precheck config: %v", err)
+		return err
+	}
+
 	r := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	gp := gopool.NewPool()
 
