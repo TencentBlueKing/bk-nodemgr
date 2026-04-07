@@ -13,6 +13,8 @@ package pkg
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -53,6 +55,13 @@ func (h *handler) DeleteReleaseCert(rCtx restserver.IContext) (interface{}, erro
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete cert release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeCert))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete cert release, permission denied")
+		return nil, err
 	}
 
 	gen := types.Generation(req.GetGeneration())

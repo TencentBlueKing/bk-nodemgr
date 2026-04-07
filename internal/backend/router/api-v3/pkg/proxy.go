@@ -13,6 +13,8 @@ package pkg
 import (
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -108,6 +110,13 @@ func (h *handler) SetReleaseProxyLabelsMany(rCtx restserver.IContext) (interface
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many proxy release labels, permission denied")
+		return nil, err
+	}
+
 	gen := types.Generation(req.GetGeneration())
 	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
 	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
@@ -139,6 +148,13 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable proxy release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable proxy release, permission denied")
+		return nil, err
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -179,6 +195,13 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable proxy release, permission denied")
+		return nil, err
+	}
+
 	gen := types.Generation(req.GetGeneration())
 	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
 	version := req.GetVersion()
@@ -215,6 +238,13 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default proxy release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default proxy release, permission denied")
+		return nil, err
 	}
 
 	gen := types.Generation(req.GetGeneration())
@@ -255,6 +285,13 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default proxy release, permission denied")
+		return nil, err
+	}
+
 	gen := types.Generation(req.GetGeneration())
 	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
 	version := req.GetVersion()
@@ -291,6 +328,13 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete proxy release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete proxy release, permission denied")
+		return nil, err
 	}
 
 	gen := types.Generation(req.GetGeneration())
