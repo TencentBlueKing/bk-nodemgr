@@ -25,11 +25,6 @@ func (h *handler) SetMemo(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to set plugin memo, invalid request.")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	if err := h.daoPlugin.SetPluginMemo(rCtx, req.GetPluginName(), req.GetMemo()); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set plugin memo.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

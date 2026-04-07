@@ -32,11 +32,6 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit, invalid request")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	networkUnit, err := h.fetchNetworkUnit(rCtx, req.GetBkNetworkunitId())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit, failed to fetch network unit")

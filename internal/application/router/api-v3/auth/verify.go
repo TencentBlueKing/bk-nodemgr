@@ -25,12 +25,6 @@ func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to verify auth, invalid request")
-
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	results, err := h.backendHandler.VerifyAuth(rCtx, req.ConvertItemsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to verify auth")

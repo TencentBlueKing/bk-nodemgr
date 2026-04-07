@@ -241,12 +241,6 @@ func (h *handler) SubmitOfflineInstallResult(rCtx restserver.IContext) (interfac
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to submit offline install result, invalid request")
-
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	operationID := req.GetOperationId()
 	resultDataRaw := req.GetResultData()
 

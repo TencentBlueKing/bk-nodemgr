@@ -256,11 +256,6 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to validate request body: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
-	}
-
 	resp := new(protoApplication.PluginWorkflowOperationInstanceListResp)
 
 	if req.GetOnlyCount() {

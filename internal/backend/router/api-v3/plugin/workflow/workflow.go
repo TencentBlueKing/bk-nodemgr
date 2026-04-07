@@ -322,11 +322,6 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, operation ID is required")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
 	result, num, err := h.storageWorkflow.ListOperInstanceBriefWithoutActionInstByOperationID(
 		rCtx, types.UnlimitedPage(), req.GetOperationId()...)
 	if err != nil {
