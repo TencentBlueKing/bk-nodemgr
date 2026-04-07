@@ -25,8 +25,8 @@ var (
 	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
 	errNetworkUnitViewDeniedByEmptyScope = errors.New("no authorized network units")
 	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
+	errAccessPointViewDeniedByEmptyScope = errors.New("no authorized access points")
 )
-
 // buildBizResources is deprecated. Use auth.BuildBizResources instead.
 func buildBizResources(bizIDs []int64) []auth.Resource {
 	return authRouter.BuildBizResources(bizIDs)
@@ -323,6 +323,92 @@ func narrowHostConditionByBiz(condition *types.HostCondition, narrowedBizIDs []i
 	}
 
 	condition.StaticExactInclude.BizID = conv.SliceUnique(narrowedBizIDs)
+
+	return condition
+}
+
+func (h *handler) narrowAuthorizedAccessPointIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+
+	// AccessPoint authorization is based on NetworkUnit ownership.
+	// Step 1: If specific AccessPoint IDs are requested, find which NetworkUnits own them.
+	var targetNetworkUnitIDs []int64
+	if len(requestedIDs) > 0 {
+		var err error
+		targetNetworkUnitIDs, err = h.storage.GetNetworkUnitIDsByAccessPoints(rCtx, requestedIDs)
+		if err != nil {
+			return nil, false, err
+		}
+		if len(targetNetworkUnitIDs) == 0 {
+			// Requested AccessPoints don't exist or don't belong to any NetworkUnit.
+			return nil, false, errAccessPointViewDeniedByEmptyScope
+		}
+	}
+
+	// Step 2: Get authorized NetworkUnit IDs (either for specific units or all units).
+	authorizedNetworkUnitIDs, scopeIsAny, err := h.narrowAuthorizedNetworkUnitIDs(rCtx, targetNetworkUnitIDs)
+	if err != nil {
+		return nil, false, err
+	}
+
+	// Step 3: If user has full access to all NetworkUnits, return requested IDs or all.
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	// Step 4: Query authorized NetworkUnits to get their AccessPoints.
+	if len(authorizedNetworkUnitIDs) == 0 {
+		return nil, false, errAccessPointViewDeniedByEmptyScope
+	}
+
+	networkUnits, err := h.storage.GetNetworkUnitByIDs(rCtx, authorizedNetworkUnitIDs)
+	if err != nil {
+		return nil, false, err
+	}
+
+	// Step 5: Extract all AccessPoint IDs from authorized NetworkUnits.
+	authorizedAccessPointIDs := make([]int64, 0)
+	for _, unit := range networkUnits {
+		if unit != nil && len(unit.AccessPoints) > 0 {
+			authorizedAccessPointIDs = append(authorizedAccessPointIDs, unit.AccessPoints...)
+		}
+	}
+
+	// Step 6: If no specific IDs requested, return all authorized AccessPoint IDs.
+	if len(requestedIDs) == 0 {
+		return conv.SliceUnique(authorizedAccessPointIDs), false, nil
+	}
+
+	// Step 7: Intersect requested IDs with authorized IDs.
+	narrowedIDs := conv.SliceIntersect(requestedIDs, authorizedAccessPointIDs)
+
+	// Step 8: If requested specific IDs but none are authorized, build resources and check.
+	if len(narrowedIDs) == 0 {
+		// Build NetworkUnit resources for permission denied error.
+		if len(targetNetworkUnitIDs) > 0 {
+			resources := buildNetworkUnitResources(targetNetworkUnitIDs)
+			if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView, resources); checkErr != nil {
+				return nil, false, checkErr
+			}
+		}
+	}
+
+	return conv.SliceUnique(narrowedIDs), false, nil
+}
+
+func narrowAccessPointCondition(condition *types.AccessPointCondition, narrowedIDs []int64, scopeIsAny bool) *types.AccessPointCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.AccessPointCondition{}
+	}
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.AccessPointExactFields{}
+	}
+	condition.ExactInclude.AccessPointID = conv.SliceUnique(narrowedIDs)
 
 	return condition
 }

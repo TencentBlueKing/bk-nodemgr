@@ -73,6 +73,7 @@ const (
 	metricOperationCreateManyTopoEvent                = "create_many_topo_event"
 	metricOperationDistinctTopoEvent                  = "distinct_topo_event"
 	metricOperationGetNetworkUnitCustomDeployConfig   = "get_networkunit_custom_deploy_config"
+	metricOperationGetNetworkUnitIDsByAccessPoints    = "get_networkunit_ids_by_accesspoints"
 )
 
 // NewStorage ...

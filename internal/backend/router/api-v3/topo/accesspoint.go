@@ -25,11 +25,24 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Extract requested AccessPoint IDs from conditions.
+	condition := req.ConvertConditionsToTypes()
+	var accessPointIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		accessPointIDs = exactCond.GetAccesspointId()
+	}
+
+	// Get authorized AccessPoint IDs and narrow the scope.
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedAccessPointIDs(rCtx, accessPointIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list accesspoint, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowAccessPointCondition(condition, narrowedIDs, scopeIsAny)
+
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountAccessPoint(
-			rCtx,
-			req.ConvertConditionsToTypes())
+		num, err := h.storage.CountAccessPoint(rCtx, condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint. failed to count accesspoint")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -47,7 +60,7 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	accesspoints, num, err := h.storage.ListAccessPoint(rCtx, page, req.ConvertConditionsToTypes())
+	accesspoints, num, err := h.storage.ListAccessPoint(rCtx, page, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

@@ -271,6 +271,60 @@ func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 	return data, err
 }
 
+// GetNetworkUnitIDsByAccessPoints returns NetworkUnit IDs that contain the given AccessPoint IDs.
+func (s *Storage) GetNetworkUnitIDsByAccessPoints(nCtx contextx.IContext, accessPointIDs []int64) ([]int64, error) {
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if len(accessPointIDs) == 0 {
+		return nil, nil
+	}
+
+	var networkUnitIDs []int64
+
+	err := s.WrapFn(nCtx, metricOperationGetNetworkUnitIDsByAccessPoints, func(nCtx contextx.IContext) error {
+		// Query all NetworkUnits and filter those containing the requested AccessPoint IDs.
+		networkUnits, _, err := s.daoNetworkUnit.List(nCtx, types.UnlimitedPage())
+		if err != nil {
+			return fmt.Errorf("list networkunits failed: %w", err)
+		}
+
+		// Build a set of requested AccessPoint IDs for fast lookup.
+		requestedSet := make(map[int64]struct{}, len(accessPointIDs))
+		for _, id := range accessPointIDs {
+			requestedSet[id] = struct{}{}
+		}
+
+		// Collect NetworkUnit IDs that contain any of the requested AccessPoint IDs.
+		unitIDSet := make(map[int64]struct{})
+		for _, unit := range networkUnits {
+			if unit == nil {
+				continue
+			}
+
+			for _, apID := range unit.AccessPoints {
+				if _, found := requestedSet[apID]; !found {
+					continue
+				}
+				unitIDSet[unit.ID] = struct{}{}
+
+				break
+			}
+		}
+
+		// Convert set to slice.
+		networkUnitIDs = make([]int64, 0, len(unitIDSet))
+		for id := range unitIDSet {
+			networkUnitIDs = append(networkUnitIDs, id)
+		}
+
+		return nil
+	})
+
+	return networkUnitIDs, err
+}
+
 func (s *Storage) checkNetworkUnitLinks(nCtx contextx.IContext, networkUnit *types.NetworkUnit) error {
 	upstreamNetworkUnitIDs := make([]int64, 0)
 	if networkUnit.Links.Cluster != nil {
