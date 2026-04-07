@@ -2,15 +2,17 @@ package auth
 
 import (
 	"errors"
-	"fmt"
+	"sort"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// Verify checks whether the current user has permissions for requested actions.
 func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.AuthVerifyReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -25,7 +27,7 @@ func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.verifyItems(rCtx, req.ConvertItemsToCheckItems())
+	results, err := h.verifyItems(rCtx, req.ConvertItemsToActionResources())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to verify auth")
 
@@ -38,36 +40,42 @@ func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	resp := new(protoBackend.AuthVerifyResp)
-	resp.ConvertResultsFromVerify(req.ConvertItemsToVerifyResults())
+	resp.ConvertResultsFromTypes(results)
 
 	return resp.GetData(), nil
 }
 
 func (h *handler) verifyItems(
-	rCtx restserver.IContext, items []protoBackend.AuthCheckItem,
-) error {
-	for _, item := range items {
-		err := h.verifyItem(rCtx, item)
-		if err != nil {
-			return err
-		}
+	rCtx restserver.IContext, actionResources map[auth.Action][]auth.Resource,
+) ([]*types.IAMCheckResult, error) {
+
+	err := h.authorizer.CheckMany(rCtx, actionResources)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return buildVerifyResults(actionResources), nil
 }
 
-func (h *handler) verifyItem(
-	rCtx restserver.IContext, item protoBackend.AuthCheckItem,
-) error {
-	checkErr := h.authorizer.Check(rCtx, item.Action, item.Resources)
-	if checkErr == nil {
+func buildVerifyResults(actionResources map[auth.Action][]auth.Resource) []*types.IAMCheckResult {
+	if len(actionResources) == 0 {
 		return nil
 	}
 
-	var permErr auth.PermissionDeniedError
-	if errors.As(checkErr, &permErr) {
-		return checkErr
+	results := make([]*types.IAMCheckResult, 0, len(actionResources))
+	actions := make([]string, 0, len(actionResources))
+	for action := range actionResources {
+		actions = append(actions, string(action))
+	}
+	sort.Strings(actions)
+
+	for _, action := range actions {
+		results = append(results, &types.IAMCheckResult{
+			ActionID:   action,
+			Authorized: true,
+		})
 	}
 
-	return fmt.Errorf("check action %s permission: %w", item.Action, checkErr)
+	return results
 }

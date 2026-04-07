@@ -15,6 +15,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate validates the request body.
@@ -35,6 +37,17 @@ func (x *AuthVerifyReq) AutoConvert() {}
 func (x *AuthVerifyResp) ConvertResultsFromVerify(results []*AuthVerifyResult) {
 	x.Data = &AuthVerifyResp_Data{
 		Results: results,
+	}
+}
+
+func (x *AuthVerifyResp) ConvertResultsFromTypes(results []*types.IAMCheckResult) {
+	x.Data = &AuthVerifyResp_Data{
+		Results: conv.SliceToSlice(results, func(result *types.IAMCheckResult) *AuthVerifyResult {
+			return &AuthVerifyResult{
+				Action:     result.ActionID,
+				Authorized: result.Authorized,
+			}
+		}),
 	}
 }
 
@@ -89,43 +102,21 @@ func NewAuthVerifyResult(action string, authorized bool) *AuthVerifyResult {
 	}
 }
 
-// AuthCheckItem describes an internal auth check item converted from verify request.
-type AuthCheckItem struct {
-	Action    auth.Action
-	Resources []auth.Resource
-}
-
-// ConvertItemsToCheckItems converts verify request items to internal auth check items.
-func (x *AuthVerifyReq) ConvertItemsToCheckItems() []AuthCheckItem {
+// ConvertItemsToActionResources converts verify request items to action-resource map.
+func (x *AuthVerifyReq) ConvertItemsToActionResources() map[auth.Action][]auth.Resource {
 	items := x.GetItems()
 	if len(items) == 0 {
 		return nil
 	}
 
-	checkItems := make([]AuthCheckItem, 0, len(items))
+	actionResources := make(map[auth.Action][]auth.Resource, len(items))
 	for _, item := range items {
-		checkItems = append(checkItems, AuthCheckItem{
-			Action:    auth.Action(item.GetAction()),
-			Resources: ConvertAuthResourcesToInternal(item.GetResources()),
-		})
+		action := auth.Action(item.GetAction())
+		resources := ConvertAuthResourcesToInternal(item.GetResources())
+		actionResources[action] = append(actionResources[action], resources...)
 	}
 
-	return checkItems
-}
-
-// ConvertItemsToVerifyResults converts verify request items to successful verify results.
-func (x *AuthVerifyReq) ConvertItemsToVerifyResults() []*AuthVerifyResult {
-	items := x.GetItems()
-	if len(items) == 0 {
-		return nil
-	}
-
-	results := make([]*AuthVerifyResult, 0, len(items))
-	for _, item := range items {
-		results = append(results, NewAuthVerifyResult(item.GetAction(), true))
-	}
-
-	return results
+	return actionResources
 }
 
 // ConvertAuthResourcesToInternal converts proto auth resources to internal auth resources.

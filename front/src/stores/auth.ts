@@ -73,21 +73,13 @@ export const useAuthStore = defineStore('auth', () => {
       ) as unknown as AuthVerifyResp;
 
       const data = (resp as any)?.data ?? resp;
-      if (data?.results) {
-        const denied: string[] = [];
-        const now = Date.now();
-        for (const result of data.results) {
-          const cacheKey = `${result.action}:${bizScope}`;
-          permissionMap[cacheKey] = result.authorized;
-          permissionTimestampMap[cacheKey] = now;
-          if (!result.authorized) {
-            denied.push(result.action);
-          }
-        }
-        deniedActionIds.value = denied;
-      } else {
-        deniedActionIds.value = [];
+      const now = Date.now();
+      for (const item of authItems) {
+        const cacheKey = `${item.action}:${bizScope}`;
+        permissionMap[cacheKey] = true;
+        permissionTimestampMap[cacheKey] = now;
       }
+      deniedActionIds.value = [];
       if (data?.permission) {
         permissionDetail.value = data.permission as PermissionData;
       } else {
