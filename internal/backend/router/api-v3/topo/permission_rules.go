@@ -15,7 +15,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	routerAuth "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -29,7 +29,7 @@ var (
 
 // buildBizResources is deprecated. Use auth.BuildBizResources instead.
 func buildBizResources(bizIDs []int64) []auth.Resource {
-	return routerAuth.BuildBizResources(bizIDs)
+	return authRouter.BuildBizResources(bizIDs)
 }
 
 // buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
@@ -48,7 +48,7 @@ func buildNetworkAreaResources(ids []int64) []auth.Resource {
 
 // buildNetworkUnitResources is deprecated. Use auth.BuildNetworkUnitResources instead.
 func buildNetworkUnitResources(ids []int64) []auth.Resource {
-	return routerAuth.BuildNetworkUnitResources(ids)
+	return authRouter.BuildNetworkUnitResources(ids)
 }
 
 func (h *handler) narrowAuthorizedNetworkAreaIDs(

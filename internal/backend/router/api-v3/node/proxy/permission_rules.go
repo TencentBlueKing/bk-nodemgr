@@ -2,14 +2,14 @@ package proxy
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	routerAuth "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // buildBizResources is deprecated. Use auth.BuildBizResources instead.
 func buildBizResources(bizIDs []int64) []auth.Resource {
-	return routerAuth.BuildBizResources(bizIDs)
+	return authRouter.BuildBizResources(bizIDs)
 }
 
 func buildBizIDsFromTypeHosts(hosts []*types.Host) []int64 {
@@ -26,5 +26,5 @@ func buildBizIDsFromTypeHosts(hosts []*types.Host) []int64 {
 
 // buildNetworkUnitResources is deprecated. Use auth.BuildNetworkUnitResources instead.
 func buildNetworkUnitResources(networkUnitIDs []int64) []auth.Resource {
-	return routerAuth.BuildNetworkUnitResources(networkUnitIDs)
+	return authRouter.BuildNetworkUnitResources(networkUnitIDs)
 }
