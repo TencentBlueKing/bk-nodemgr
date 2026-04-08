@@ -16,7 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
-	flag2 "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
+	nodeFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
@@ -67,11 +67,11 @@ func NewFullInstall() *cobra.Command {
 		Long:  "Full install process",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if downloadSvrAddr == "" && !skipDownload {
-				return fmt.Errorf("%s is required when %s is not set", flag2.DownloadSvrAddr, flag2.SkipDownload)
+				return fmt.Errorf("%s is required when %s is not set", nodeFlag.DownloadSvrAddr, nodeFlag.SkipDownload)
 			}
 
 			if callbackSvrAddr == "" && !skipCallback {
-				return fmt.Errorf("%s is required when %s is not set", flag2.CallbackSvrAddr, flag2.SkipCallback)
+				return fmt.Errorf("%s is required when %s is not set", nodeFlag.CallbackSvrAddr, nodeFlag.SkipCallback)
 			}
 
 			vars, err := persistent.GetVariables(cmd)
@@ -234,25 +234,25 @@ func NewFullInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, flag2.DownloadSvrAddr, "", "download server address. if skip_download is set, this can be empty")
-	fullCmd.Flags().StringVar(&callbackSvrAddr, flag2.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
-	fullCmd.Flags().StringVar(&deployToken, flag2.DeployToken, "", "deploy token, contains the details of files")
-	_ = fullCmd.MarkFlagRequired(flag2.DeployToken)
+	fullCmd.Flags().StringVar(&downloadSvrAddr, nodeFlag.DownloadSvrAddr, "", "download server address. if skip_download is set, this can be empty")
+	fullCmd.Flags().StringVar(&callbackSvrAddr, nodeFlag.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
+	fullCmd.Flags().StringVar(&deployToken, nodeFlag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.DeployToken)
 
-	fullCmd.Flags().StringVar(&nodeVersion, flag2.NodeVersion, "", "node version, for downloading package version")
-	_ = fullCmd.MarkFlagRequired(flag2.NodeVersion)
+	fullCmd.Flags().StringVar(&nodeVersion, nodeFlag.NodeVersion, "", "node version, for downloading package version")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.NodeVersion)
 
-	fullCmd.Flags().StringVar(&operInstID, flag2.OperInstID, "", "operation instance id")
-	_ = fullCmd.MarkFlagRequired(flag2.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, nodeFlag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.OperInstID)
 
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
-	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
-	fullCmd.Flags().StringVar(&agentID, flag2.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
-	fullCmd.Flags().BoolVar(&skipDownload, flag2.SkipDownload, false, "whether to skip downloading files")
-	fullCmd.Flags().BoolVar(&skipCallback, flag2.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
+	fullCmd.Flags().StringVar(&logDir, nodeFlag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, nodeFlag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().StringVar(&agentID, nodeFlag.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
+	fullCmd.Flags().BoolVar(&skipDownload, nodeFlag.SkipDownload, false, "whether to skip downloading files")
+	fullCmd.Flags().BoolVar(&skipCallback, nodeFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
 }

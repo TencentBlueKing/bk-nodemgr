@@ -198,6 +198,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,
 			IsManual:      info.InstallOptions.IsManual,
+			IsOffline:     info.InstallOptions.IsOffline,
 		},
 		ReconfigOptions: types.DeploymentReconfigOptions{
 			DirectLink:           info.ReconfigOptions.DirectLink,
@@ -439,6 +440,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,
 			IsManual:      info.InstallOptions.IsManual,
+			IsOffline:     info.InstallOptions.IsOffline,
 		},
 		ReconfigOptions: ReconfigOptions{
 			DirectLink:           info.ReconfigOptions.DirectLink,

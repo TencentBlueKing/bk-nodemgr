@@ -110,7 +110,8 @@ type PluginDeploymentBaseRuntime struct {
 
 // PluginDeploymentInstallOptions defines the options for plugin deployment.
 type PluginDeploymentInstallOptions struct {
-	Version string
+	Version   string
+	IsOffline bool
 }
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.
@@ -130,6 +131,7 @@ type PluginDeploymentParam struct {
 	Version             string
 	ConfigName          []string
 	CustomConfigContext map[string]any
+	IsOffline           bool
 }
 
 // Validate validates the plugin deployment param.
@@ -170,7 +172,8 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 				PluginName: param.PluginName,
 			},
 			InstallOptions: PluginDeploymentInstallOptions{
-				Version: param.Version,
+				Version:   param.Version,
+				IsOffline: param.IsOffline,
 			},
 			TransferOptions: transferOption,
 		}

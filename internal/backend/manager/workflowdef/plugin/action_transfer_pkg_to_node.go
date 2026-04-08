@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -42,6 +43,7 @@ func NewActionTransferPluginPkgToNode(capability *Capability) action.Definition 
 		daoPluginDeployment: capability.StoragePlugin,
 		fileHandler:         capability.FileHandler,
 		daoHost:             capability.StorageTopo,
+		gseHandler:          capability.GSEHandler,
 	}
 }
 
@@ -54,6 +56,7 @@ type actionTransferPluginPkgToNode struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoHost             topoStg.IStorageHost
 	fileHandler         file.IHandler
+	gseHandler          gse.IHandler
 }
 
 // Name returns the name of the action.
@@ -137,16 +140,27 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 				En("transfer release done.").
 				Info()
 
-			if err := act.transferRelease(nCtx, std.DeployInfo(), targetHost); err != nil {
-				return fmt.Errorf("failed to transfer release, host-id(%d): %w", targetHost.HostID, err)
-			}
-
-			return nil
+			return act.transferRelease(nCtx, std.DeployInfo(), targetHost)
 		})
 	}
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
+			std.InstanceData().Log().
+				Zh("开始传输安装器").
+				En("transfer installer start.").
+				Info()
+			defer std.InstanceData().Log().
+				Zh("传输安装器完成").
+				En("transfer installer done.").
+				Info()
+
 			return act.transferInstaller(nCtx, std.DeployInfo(), targetHost)
+		})
+	}
+	// offline mode: push config files since installer cannot callback to fetch them.
+	if std.DeployInfo().InstallOptions.IsOffline {
+		gp.Go(func() error {
+			return act.pushOfflinePluginConfig(nCtx, std, targetHost)
 		})
 	}
 
@@ -239,6 +253,93 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 	}
 
 	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer installer done.")
+
+	return nil
+}
+
+// pushOfflinePluginConfig pushes plugin config files to ConfigDir via GSE in offline mode.
+// In offline mode, installer cannot callback to fetch config, so we push it beforehand.
+func (act *actionTransferPluginPkgToNode) pushOfflinePluginConfig(
+	nCtx contextx.IContext,
+	std *pluginUtils.PluginActionStandarder,
+	targetHost *types.Host,
+) error {
+
+	if targetHost.Dynamic.LoginUser == "" {
+		return fmt.Errorf("host login user is empty, host-id(%d)", targetHost.HostID)
+	}
+
+	if err := pluginUtils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.ConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+		return fmt.Errorf("check config store dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.ConfigDir, err)
+	}
+
+	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(nCtx, std.Token())
+	if err != nil {
+		return fmt.Errorf("failed to get plugin config: %w", err)
+	}
+
+	endpoints := []*types.Endpoint{{AgentID: targetHost.Dynamic.AgentID}}
+	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
+	for _, conf := range pluginConf {
+		if conf == nil || !conf.IsMainConfig {
+			continue
+		}
+
+		tasks = append(tasks, &types.PushFileDetail{
+			FileName:    conf.Name,
+			FileContent: conf.Content,
+			StoreDir:    std.DeployInfo().BaseRuntime.ConfigDir,
+			Owner:       targetHost.Dynamic.LoginUser,
+			Endpoints:   endpoints,
+		})
+
+		std.InstanceData().Log().
+			Zh("准备推送插件主配置文件(%s)到主机(%d), 目录(%s)", conf.Name, targetHost.HostID, std.DeployInfo().BaseRuntime.ConfigDir).
+			En("prepare to push plugin main config file(%s) to host(%d) in dir(%s)", conf.Name, targetHost.HostID, std.DeployInfo().BaseRuntime.ConfigDir).
+			Info()
+	}
+
+	if len(tasks) == 0 {
+		std.InstanceData().Log().
+			Zh("无需推送插件主配置").
+			En("no plugin main config need to push").
+			Info()
+
+		return nil
+	}
+
+	std.InstanceData().Log().
+		Zh("开始推送 %d 个插件主配置文件到主机(%d)", len(tasks), targetHost.HostID).
+		En("start to push %d plugin main config files to host(%d)", len(tasks), targetHost.HostID).
+		Info()
+
+	// Need GSE handler - will be added to capability
+	if act.gseHandler == nil {
+		return fmt.Errorf("gse handler is nil, cannot push config files")
+	}
+
+	taskID, err := act.gseHandler.PushFile(nCtx, tasks...)
+	if err != nil {
+		return fmt.Errorf("failed to push config files: %w", err)
+	}
+
+	pushResult, err := act.gseHandler.QueryPushFileFinalResult(nCtx, taskID)
+	if err != nil {
+		return fmt.Errorf("failed to query push config result: %w", err)
+	}
+
+	if !pushResult.Terminated {
+		return fmt.Errorf("push config not terminated, task-id(%s)", taskID)
+	}
+
+	if pushResult.ErrorCode != 0 {
+		return fmt.Errorf("push config failed, task-id(%s), err-code(%d), err-msg(%s)", taskID, pushResult.ErrorCode, pushResult.ErrorMessage)
+	}
+
+	std.InstanceData().Log().
+		Zh("插件主配置推送成功, task-id(%s)", taskID).
+		En("plugin main config pushed successfully, task-id(%s)", taskID).
+		Info()
 
 	return nil
 }

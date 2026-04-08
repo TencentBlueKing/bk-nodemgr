@@ -105,7 +105,6 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return err
 	}
-
 	// initialize standard data.
 	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
@@ -132,6 +131,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to get plugin: %w", err)
 	}
+
 
 	installParams, err := act.buildInstallParams(std, targetHost, targetPlugin)
 	if err != nil {
@@ -184,6 +184,7 @@ type pluginInstallParams struct {
 	InstallerWorkDir string
 }
 
+
 func (act *actionInstallPlugin) buildInstallParams(
 	std *pluginUtils.PluginActionStandarder,
 	targetHost *types.Host,
@@ -232,6 +233,8 @@ func (act *actionInstallPlugin) buildInstallParams(
 			DownloadSvrAddr: pluginUtils.BuildServerURLs(downloadEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
+			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline,
+			SkipDownload:    std.DeployInfo().InstallOptions.IsOffline,
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}

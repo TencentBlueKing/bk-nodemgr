@@ -27,7 +27,11 @@ import (
 )
 
 // LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
-func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param types.InstallPluginParam) (string, error) {
+func (mgr *Manager) LaunchInstallPlugin(
+	nCtx contextx.IContext,
+	param types.InstallPluginParam,
+) (string, error) {
+
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -68,7 +72,11 @@ func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param types.Inst
 }
 
 func (mgr *Manager) createInstallPluginOper(
-	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+	nCtx contextx.IContext,
+	operator string,
+	triggerCtl workflow.ITriggerCtl,
+	deploy *types.PluginDeployment,
+) error {
 
 	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
@@ -103,7 +111,11 @@ func (mgr *Manager) createInstallPluginOper(
 	return nil
 }
 
-func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+func (mgr *Manager) getPluginInstallOperationDef(
+	deploy *types.PluginDeployment,
+	operator string,
+) operation.Definition {
+
 	return plugin.NewOperInstallPlugin(plugin.OperParamInstallPlugin{
 		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
 			Token:    deploy.Token,

@@ -388,7 +388,8 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 			GlobalCommonConstants: info.BaseRuntime.GlobalCommonConstants,
 		},
 		InstallOptions: types.PluginDeploymentInstallOptions{
-			Version: info.InstallOptions.Version,
+			Version:   info.InstallOptions.Version,
+			IsOffline: info.InstallOptions.IsOffline,
 		},
 		TransferOptions: types.PluginDeploymentTransferOptions{
 			SelectDownloads:      info.TransferOptions.SelectDownloads,
@@ -480,7 +481,8 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			EnableInstaller:      info.TransferOptions.EnableInstaller,
 		},
 		InstallOptions: installOptions{
-			Version: info.InstallOptions.Version,
+			Version:   info.InstallOptions.Version,
+			IsOffline: info.InstallOptions.IsOffline,
 		},
 	}
 

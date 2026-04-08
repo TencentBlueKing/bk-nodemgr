@@ -18,6 +18,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
@@ -33,12 +34,16 @@ type Step struct {
 // StepArgs define args for step.
 type StepArgs struct {
 	Token           string
+	OperInstID      string
 	CallbackSvrAddr []string
+	SkipCallback    bool
+	DataFilePath    string
 }
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("token(%s), callback-svr-addrs(%v)", args.Token, args.CallbackSvrAddr)
+	return fmt.Sprintf("token(%s), oper-inst-id(%s), callback-svr-addrs(%v)",
+		args.Token, args.OperInstID, args.CallbackSvrAddr)
 }
 
 // NewStep new a step to report data.
@@ -46,8 +51,17 @@ func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
+type dataFileContent struct {
+	Token      string `json:"token"`
+	OperInstID string `json:"oper_inst_id"`
+}
+
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
+	if step.args.SkipCallback {
+		return step.writeDataFile()
+	}
+
 	logger.Infof(plugin.StepReportData, "start to report data. %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
@@ -68,9 +82,32 @@ func (step *Step) Run(ctx context.Context) error {
 	return nil
 }
 
+func (step *Step) writeDataFile() error {
+	logger.Infof(plugin.StepReportData, "skip-callback mode: writing data to %s", step.args.DataFilePath)
+
+	content := dataFileContent{
+		Token:      step.args.Token,
+		OperInstID: step.args.OperInstID,
+	}
+
+	data, err := json.Marshal(content)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data file: %w", err)
+	}
+
+	// nolint: mnd
+	if err := os.WriteFile(step.args.DataFilePath, data, 0600); err != nil {
+		return fmt.Errorf("failed to write data file: %w", err)
+	}
+
+	return nil
+}
+
 // reportDataReq report log req.
 type reportDataReq struct {
-	Token string `json:"token"`
+	Token      string `json:"token"`
+	OperInstID string `json:"oper_inst_id"`
+	AgentID    string `json:"agent_id"`
 }
 
 const (
@@ -87,7 +124,8 @@ func (step *Step) reportDataMultiEndpoint(ctx context.Context) error {
 
 	var lastErr error
 	for i, callbackSvrAddr := range step.args.CallbackSvrAddr {
-		logger.Infof(plugin.StepReportData, "attempting to report data to server, index(%d/%d), url(%s)", i+1, len(step.args.CallbackSvrAddr), callbackSvrAddr)
+		logger.Infof(plugin.StepReportData, "attempting to report data to server, index(%d/%d), url(%s)",
+			i+1, len(step.args.CallbackSvrAddr), callbackSvrAddr)
 		err := step.reportData(ctx, callbackSvrAddr)
 		if err == nil {
 			return nil
@@ -103,7 +141,8 @@ func (step *Step) reportDataMultiEndpoint(ctx context.Context) error {
 // reportData report data to a single server.
 func (step *Step) reportData(ctx context.Context, baseURL string) error {
 	req := &reportDataReq{
-		Token: step.args.Token,
+		Token:      step.args.Token,
+		OperInstID: step.args.OperInstID,
 	}
 
 	jsonData, err := json.Marshal(req)

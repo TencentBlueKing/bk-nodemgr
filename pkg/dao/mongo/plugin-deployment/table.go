@@ -121,7 +121,8 @@ type baseRuntime struct {
 
 // installOptions this is the options for nodemgr tools.
 type installOptions struct {
-	Version string `json:"version" bson:"version"`
+	Version   string `json:"version" bson:"version"`
+	IsOffline bool   `json:"is_offline" bson:"is_offline"`
 }
 
 // transferOptions this is the options for plugin transfer.

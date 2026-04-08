@@ -120,7 +120,7 @@ func (act *actionInstallPreOrderedPlugins) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen
+// nolint: perfsprint,funlen,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error {
 	param := new(InstallPreOrderedPluginsParams)
@@ -160,6 +160,13 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		En("start to install pre-ordered plugins(%v)", preOrderedPluginsName).
 		Info()
 
+	if std.DeployInfo().InstallOptions.IsOffline {
+		std.InstanceData().Log().
+			Zh("当前为离线安装模式").
+			En("offline install mode").
+			Info()
+	}
+
 	deployParams := make([]*types.PluginDeploymentParam, 0, len(preOrderedPluginsName))
 	gp := gopool.NewPool()
 	for _, pluginName := range preOrderedPluginsName {
@@ -179,6 +186,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 				HostID:     deployInfo.Host.HostID,
 				PluginName: name,
 				Version:    version,
+				IsOffline:  deployInfo.InstallOptions.IsOffline,
 			})
 
 			return nil
@@ -188,7 +196,14 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(tenantID, types.DefaultPluginDeploymentTransferOptions(), deployParams...)
+	// if in offline mode, disable select downloads.
+	pluginTransferOpts := types.DefaultPluginDeploymentTransferOptions()
+	if deployInfo.InstallOptions.IsOffline {
+		pluginTransferOpts.SelectDownloads = false
+	}
+
+	// create plugin deployments.
+	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(tenantID, pluginTransferOpts, deployParams...)
 	if err != nil {
 		return fmt.Errorf("failed to create plugin deployments by params: %w", err)
 	}

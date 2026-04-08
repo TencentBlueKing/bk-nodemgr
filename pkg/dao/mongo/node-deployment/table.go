@@ -104,6 +104,7 @@ type InstallOptions struct {
 	ReRegister    bool `json:"re_register" bson:"re_register"`
 	DirectInstall bool `json:"direct_install" bson:"direct_install"`
 	IsManual      bool `json:"is_manual" bson:"is_manual"`
+	IsOffline     bool `json:"is_offline" bson:"is_offline"`
 }
 
 // UpgradeOptions this is the options for node upgrade.

@@ -317,7 +317,7 @@ func buildOfflineInstallScript(
 		`SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"`,
 		fmt.Sprintf(`DATA_DIR="%s"`, dataDir),
 		`mkdir -p "${DATA_DIR}"`,
-		fmt.Sprintf(`cp -rn "${SCRIPT_DIR}/%s/." "${DATA_DIR}/"`, installer.OfflinePkgRelPathData),
+		fmt.Sprintf(`cp -rf "${SCRIPT_DIR}/%s/." "${DATA_DIR}/"`, installer.OfflinePkgRelPathData),
 		fmt.Sprintf(`chmod +x "${SCRIPT_DIR}/%s"`, installerFileName),
 		fmt.Sprintf(`"${SCRIPT_DIR}/%s" `, installerFileName) + installer.NodeCmdFullInstall + ` \`,
 	}

@@ -815,3 +815,7 @@ linters-settings:
       # IAM v3 router
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam/v3
         alias: iamv3
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag
+        alias: pluginFlag
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag
+        alias: nodeFlag

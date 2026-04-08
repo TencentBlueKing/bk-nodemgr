@@ -56,6 +56,12 @@ const (
 	// PluginVersion defines the plugin version flag.
 	PluginVersion = "plugin_version"
 
+	// SkipCallback defines the skip callback flag.
+	SkipCallback = "skip_callback"
+
+	// SkipDownload defines the skip download flag.
+	SkipDownload = "skip_download"
+
 	// PluginPkgName defines the plugin package name flag.
 	PluginPkgName = "plugin_pkg_name"
 )
