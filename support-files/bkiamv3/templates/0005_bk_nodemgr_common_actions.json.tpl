@@ -9,6 +9,9 @@
           "name_en": "Agent Manager",
           "actions": [
             {
+              "id": "biz_access"
+            },
+            {
               "id": "agent_view"
             },
             {
@@ -35,6 +38,9 @@
           "name": "管控区域管理员",
           "name_en": "Network Area Manager",
           "actions": [
+            {
+              "id": "biz_access"
+            },
             {
               "id": "networkarea_view"
             },
@@ -84,6 +90,9 @@
           "name_en": "Policy Manager",
           "actions": [
             {
+              "id": "biz_access"
+            },
+            {
               "id": "config_policy_view"
             },
             {
@@ -100,15 +109,6 @@
             },
             {
               "id": "deploy_policy_history_view"
-            },
-            {
-              "id": "package_view"
-            },
-            {
-              "id": "package_manage"
-            },
-            {
-              "id": "package_history_view"
             }
           ]
         },

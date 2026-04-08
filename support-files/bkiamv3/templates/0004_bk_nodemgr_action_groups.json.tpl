@@ -5,47 +5,88 @@
       "operation": "upsert_action_groups",
       "data": [
         {
-          "name": "Agent",
-          "name_en": "Agent",
+          "name": "业务",
+          "name_en": "Business",
           "actions": [
             {
-              "id": "agent_view"
-            },
-            {
-              "id": "agent_operate"
-            },
-            {
-              "id": "agent_history_view"
+              "id": "biz_access"
             }
-          ]
-        },
-        {
-          "name": "Proxy",
-          "name_en": "Proxy",
-          "actions": [
+          ],
+          "sub_groups": [
             {
-              "id": "proxy_view"
+              "name": "Agent",
+              "name_en": "Agent",
+              "actions": [
+                {
+                  "id": "agent_view"
+                },
+                {
+                  "id": "agent_operate"
+                },
+                {
+                  "id": "agent_history_view"
+                }
+              ]
             },
             {
-              "id": "proxy_operate"
+              "name": "Proxy",
+              "name_en": "Proxy",
+              "actions": [
+                {
+                  "id": "proxy_view"
+                },
+                {
+                  "id": "proxy_operate"
+                },
+                {
+                  "id": "proxy_history_view"
+                }
+              ]
             },
             {
-              "id": "proxy_history_view"
-            }
-          ]
-        },
-        {
-          "name": "插件",
-          "name_en": "Plugin",
-          "actions": [
-            {
-              "id": "plugin_view"
+              "name": "插件",
+              "name_en": "Plugin",
+              "actions": [
+                {
+                  "id": "plugin_view"
+                },
+                {
+                  "id": "plugin_operate"
+                },
+                {
+                  "id": "plugin_history_view"
+                }
+              ]
             },
             {
-              "id": "plugin_operate"
+              "name": "配置策略",
+              "name_en": "Config Policy",
+              "actions": [
+                {
+                  "id": "config_policy_view"
+                },
+                {
+                  "id": "config_policy_manage"
+                },
+                {
+                  "id": "config_policy_history_view"
+                }
+              ]
             },
             {
-              "id": "plugin_history_view"
+              "name": "部署策略",
+              "name_en": "Deploy Policy",
+              "actions": [
+                {
+                  "id": "deploy_policy_view"
+                },
+                {
+                  "id": "deploy_policy_manage"
+                },
+                {
+                  "id": "deploy_policy_history_view"
+                }
+              ]
             }
           ]
         },
@@ -68,56 +109,34 @@
             {
               "id": "networkarea_history_view"
             }
-          ]
-        },
-        {
-          "name": "管控单元",
-          "name_en": "Network Unit",
-          "actions": [
+          ],
+          "sub_groups": [
             {
-              "id": "networkunit_view"
-            },
-            {
-              "id": "networkunit_create"
-            },
-            {
-              "id": "networkunit_edit"
-            },
-            {
-              "id": "networkunit_delete"
-            },
-            {
-              "id": "networkunit_history_view"
-            },
-            {
-              "id": "networkunit_use_for_agent"
-            },
-            {
-              "id": "networkunit_use_for_proxy"
-            }
-          ]
-        },
-        {
-          "name": "策略",
-          "name_en": "Policy",
-          "actions": [
-            {
-              "id": "config_policy_view"
-            },
-            {
-              "id": "config_policy_manage"
-            },
-            {
-              "id": "config_policy_history_view"
-            },
-            {
-              "id": "deploy_policy_view"
-            },
-            {
-              "id": "deploy_policy_manage"
-            },
-            {
-              "id": "deploy_policy_history_view"
+              "name": "管控单元",
+              "name_en": "Network Unit",
+              "actions": [
+                {
+                  "id": "networkunit_view"
+                },
+                {
+                  "id": "networkunit_create"
+                },
+                {
+                  "id": "networkunit_edit"
+                },
+                {
+                  "id": "networkunit_delete"
+                },
+                {
+                  "id": "networkunit_history_view"
+                },
+                {
+                  "id": "networkunit_use_for_agent"
+                },
+                {
+                  "id": "networkunit_use_for_proxy"
+                }
+              ]
             }
           ]
         },
