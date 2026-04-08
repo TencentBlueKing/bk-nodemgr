@@ -36,6 +36,13 @@ func (h *handler) ListReleaseCert(rCtx restserver.IContext) (interface{}, error)
 			Generation: []types.Generation{gen},
 		},
 	}
+	// Check permission.
+	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeCert)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list cert release, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 
 	items, num, err := h.daoReleaseCert.ListReleaseCert(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {

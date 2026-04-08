@@ -47,6 +47,15 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 	cond := &types.ReleaseCondition{
 		ExactInclude: exactIncludeCond,
 	}
+	// Check permission and narrow by authorized plugin names.
+	requestedNames := exactIncludeCond.Name
+	narrowedNames, scopeIsAny, authErr := h.narrowAuthorizedPackageNames(rCtx, requestedNames, types.ReleaseTypePlugin)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list plugin, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	cond = narrowReleaseCondition(cond, narrowedNames, scopeIsAny, types.ReleaseTypePlugin)
+
 
 	// only count.
 	if req.GetOnlyCount() {

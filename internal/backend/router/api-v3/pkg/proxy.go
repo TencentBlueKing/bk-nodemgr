@@ -37,6 +37,13 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 	cond := &types.ReleaseCondition{
 		ExactInclude: exactIncludeCond,
 	}
+	// Check permission.
+	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeProxy)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list release proxy, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 
 	// only count.
 	if req.GetOnlyCount() {
@@ -84,6 +91,13 @@ func (h *handler) DistinctReleaseProxy(rCtx restserver.IContext) (interface{}, e
 	cond := &types.ReleaseCondition{
 		ExactInclude: exactIncludeCond,
 	}
+	// Check permission.
+	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeProxy)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to distinct proxy release, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 
 	distinctField := types.ReleaseDistinctField{
 		OSType:  req.GetDistinctField().GetOsType(),

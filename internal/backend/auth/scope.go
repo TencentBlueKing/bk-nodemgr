@@ -61,3 +61,25 @@ func ResolveAuthorizedResourceIDsInt64(
 
 	return narrowedIDs, scopeIsAny, hasAuthorized, nil
 }
+
+// ResolveAuthorizedResourceIDsString narrows requested IDs by authorized scope for a specific resource type.
+// nolint: nonamedreturns
+func ResolveAuthorizedResourceIDsString(
+	scope AuthorizedScope, requestedIDs []string, resourceType ResourceType,
+) (narrowedIDs []string, scopeIsAny bool, hasAuthorized bool, err error) {
+
+	authorizedIDs := make([]string, 0, len(scope.Resources))
+
+	for _, resource := range scope.Resources {
+		if resource.Type != resourceType {
+			continue
+		}
+
+		authorizedIDs = append(authorizedIDs, resource.ID)
+	}
+	authorizedIDs = conv.SliceUnique(authorizedIDs)
+
+	narrowedIDs, scopeIsAny, hasAuthorized = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
+
+	return narrowedIDs, scopeIsAny, hasAuthorized, nil
+}

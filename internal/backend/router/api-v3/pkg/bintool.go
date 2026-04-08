@@ -36,6 +36,13 @@ func (h *handler) ListReleaseBinTool(rCtx restserver.IContext) (interface{}, err
 			Generation: []types.Generation{gen},
 		},
 	}
+	// Check permission.
+	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeBinTool)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list bintool release, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 
 	items, num, err := h.daoReleaseBinTool.ListReleaseBinTool(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
