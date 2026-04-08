@@ -85,14 +85,15 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	networkunit := req.GetNetworkunit()
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitEdit,
-		buildNetworkUnitResources([]int64{req.GetBkNetworkunitId()})); authErr != nil {
+		buildNetworkUnitResources([]int64{networkunit.GetBkNetworkunitId()})); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update networkunit, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	// check if networkarea exists.
-	networkAreaID := req.GetNetworkunit().GetBkNetworkareaId()
+	networkAreaID := networkunit.GetBkNetworkareaId()
 	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("networkarea-id", networkAreaID).Error("failed to update networkunit, failed to get networkarea")
@@ -100,16 +101,16 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	networkUnitID := req.GetNetworkunit().GetBkNetworkunitId()
-	networkUnitName := req.GetNetworkunit().GetBkNetworkunitName()
+	networkUnitID := networkunit.GetBkNetworkunitId()
+	networkUnitName := networkunit.GetBkNetworkunitName()
 
 	// updates networkunit.
 	networkUnit := &types.NetworkUnit{
 		TenantID:           rCtx.TenantID(),
 		NetworkAreaID:      networkAreaID,
 		ID:                 networkUnitID,
-		Name:               req.GetNetworkunit().GetBkNetworkunitName(),
-		IsDirect:           req.GetNetworkunit().GetIsDirect(),
+		Name:               networkunit.GetBkNetworkunitName(),
+		IsDirect:           networkunit.GetIsDirect(),
 		DirectEndpoints:    req.ConvertDirectEndpointsToTypes(),
 		CustomDeployConfig: req.ConvertCustomDeployConfigToTypes(),
 	}
