@@ -22,7 +22,6 @@ import (
 )
 
 var (
-	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
 	errNetworkUnitViewDeniedByEmptyScope = errors.New("no authorized network units")
 	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
 	errAccessPointViewDeniedByEmptyScope = errors.New("no authorized access points")
@@ -50,61 +49,6 @@ func buildNetworkAreaResources(ids []int64) []types.AuthResource {
 // buildNetworkUnitResources is deprecated. Use auth.BuildNetworkUnitResources instead.
 func buildNetworkUnitResources(ids []int64) []types.AuthResource {
 	return authRouter.BuildNetworkUnitResources(ids)
-}
-
-func (h *handler) narrowAuthorizedNetworkAreaIDs(
-	rCtx restserver.IContext, requestedIDs []int64,
-) ([]int64, bool, error) {
-
-	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionNetworkAreaView, types.AuthResourceTypeNetworkArea)
-
-	if err != nil {
-		return nil, false, err
-	}
-
-	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
-		scope, requestedIDs, types.AuthResourceTypeNetworkArea,
-	)
-
-	if err != nil {
-		return nil, false, err
-	}
-
-	if !hasAuthorized {
-		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, nil); checkErr != nil {
-			return nil, false, checkErr
-		}
-
-		return nil, false, errNetworkAreaViewDeniedByEmptyScope
-	}
-
-	if scopeIsAny {
-		return requestedIDs, true, nil
-	}
-
-	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
-		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources(requestedIDs)); checkErr != nil {
-			return nil, false, checkErr
-		}
-	}
-
-	return narrowedIDs, false, nil
-}
-
-func narrowNetworkAreaCondition(condition *types.NetworkAreaCondition, narrowedIDs []int64, scopeIsAny bool) *types.NetworkAreaCondition {
-	if scopeIsAny {
-		return condition
-	}
-
-	if condition == nil {
-		condition = &types.NetworkAreaCondition{}
-	}
-	if condition.ExactInclude == nil {
-		condition.ExactInclude = &types.NetworkAreaExactFields{}
-	}
-	condition.ExactInclude.NetworkAreaID = conv.SliceUnique(narrowedIDs)
-
-	return condition
 }
 
 func (h *handler) narrowAuthorizedNetworkUnitIDs(
