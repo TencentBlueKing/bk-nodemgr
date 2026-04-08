@@ -824,23 +824,6 @@
                 "required": false
               }
             ]
-          },
-          {
-            "id": "package",
-            "actions": [
-              {
-                "id": "package_view",
-                "required": false
-              },
-              {
-                "id": "package_manage",
-                "required": false
-              },
-              {
-                "id": "package_history_view",
-                "required": false
-              }
-            ]
           }
         ]
       }
