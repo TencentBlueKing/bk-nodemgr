@@ -45,15 +45,15 @@ const (
 // Unknown pairs are assigned a position after all known pairs.
 func iamResourceTypeOrderKey(systemID, typ string) int {
 	switch systemID + iamTypeKeySep + typ {
-	case SystemIDCMDB + iamTypeKeySep + string(ResourceTypeBiz):
+	case types.SystemIDCMDB + iamTypeKeySep + string(types.AuthResourceTypeBiz):
 		return iamOrderBiz
-	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypeNetworkArea):
+	case types.SystemIDNodeMgr + iamTypeKeySep + string(types.AuthResourceTypeNetworkArea):
 		return iamOrderNetworkArea
-	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypeNetworkUnit):
+	case types.SystemIDNodeMgr + iamTypeKeySep + string(types.AuthResourceTypeNetworkUnit):
 		return iamOrderNetworkUnit
-	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypePackageType):
+	case types.SystemIDNodeMgr + iamTypeKeySep + string(types.AuthResourceTypePackageType):
 		return iamOrderPackageType
-	case SystemIDNodeMgr + iamTypeKeySep + string(ResourceTypePackage):
+	case types.SystemIDNodeMgr + iamTypeKeySep + string(types.AuthResourceTypePackage):
 		return iamOrderPackage
 	default:
 		return iamOrderUnknown
@@ -70,7 +70,7 @@ func NewIAMV3Authorizer(systemID string, handler iamv3.IHandler) IAuthorizer {
 	return &iamv3Authorizer{systemID: systemID, handler: handler}
 }
 
-func toIAMResources(resources []Resource) []types.IAMResource {
+func toIAMResources(resources []types.AuthResource) []types.IAMResource {
 	checkResources := make([]types.IAMResource, 0, len(resources))
 	for _, r := range resources {
 		checkResources = append(checkResources, types.IAMResource{
@@ -85,11 +85,11 @@ func toIAMResources(resources []Resource) []types.IAMResource {
 }
 
 func toAuthorizedScope(isAny bool, iamResources []types.IAMResource) AuthorizedScope {
-	resources := make([]Resource, 0, len(iamResources))
+	resources := make([]types.AuthResource, 0, len(iamResources))
 	for _, r := range iamResources {
-		resources = append(resources, Resource{
+		resources = append(resources, types.AuthResource{
 			SystemID: r.SystemID,
-			Type:     ResourceType(r.Type),
+			Type:     types.AuthResourceType(r.Type),
 			ID:       r.ID,
 		})
 	}
@@ -113,7 +113,7 @@ func buildIAMBatchLookupKey(resources []types.IAMResource) string {
 	return strings.Join(nodeIDs, iamBatchResultResourceSep)
 }
 
-func sortedActions(actionResources map[Action][]Resource) []Action {
+func sortedActions(actionResources map[Action][]types.AuthResource) []Action {
 	actions := make([]Action, 0, len(actionResources))
 	for action := range actionResources {
 		actions = append(actions, action)
@@ -125,7 +125,7 @@ func sortedActions(actionResources map[Action][]Resource) []Action {
 	return actions
 }
 
-func (authorizer *iamv3Authorizer) newCheckRequest(ctx contextx.IContext, action Action, resources []Resource) types.IAMCheckRequest {
+func (authorizer *iamv3Authorizer) newCheckRequest(ctx contextx.IContext, action Action, resources []types.AuthResource) types.IAMCheckRequest {
 	return types.IAMCheckRequest{
 		SystemID:  authorizer.systemID,
 		Username:  ctx.BKUsername(),
@@ -142,7 +142,7 @@ func (authorizer *iamv3Authorizer) newCheckRequestWithoutResource(ctx contextx.I
 	}
 }
 
-func buildIAMApplyResourceTypes(resources []Resource) []types.IAMApplyResourceType {
+func buildIAMApplyResourceTypes(resources []types.AuthResource) []types.IAMApplyResourceType {
 	type rtKey struct{ systemID, typ string }
 	order := make([]rtKey, 0, len(resources))
 	instancesByKey := make(map[rtKey][]types.IAMApplyResourceInstance)
@@ -189,16 +189,16 @@ func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResour
 			for _, node := range instance {
 				instances = append(instances, ResourceNode{
 					Type:     node.Type,
-					TypeName: ResourceTypeDisplayName(ResourceType(node.Type)),
+					TypeName: types.AuthResourceTypeDisplayName(types.AuthResourceType(node.Type)),
 					ID:       node.ID,
 				})
 			}
 		}
 		relatedRTs = append(relatedRTs, RelatedResourceType{
 			SystemID:   rt.SystemID,
-			SystemName: SystemDisplayName(rt.SystemID),
+			SystemName: types.SystemDisplayName(rt.SystemID),
 			Type:       rt.Type,
-			TypeName:   ResourceTypeDisplayName(ResourceType(rt.Type)),
+			TypeName:   types.AuthResourceTypeDisplayName(types.AuthResourceType(rt.Type)),
 			Instances:  instances,
 		})
 	}
@@ -207,8 +207,8 @@ func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResour
 }
 
 func (authorizer *iamv3Authorizer) collectDeniedResources(
-	ctx contextx.IContext, action Action, resources []Resource,
-) ([]Resource, bool, error) {
+	ctx contextx.IContext, action Action, resources []types.AuthResource,
+) ([]types.AuthResource, bool, error) {
 
 	if ctx == nil {
 		return nil, false, errors.New("auth: Check called with nil context")
@@ -226,7 +226,7 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 
 	resourcesList := make([][]types.IAMResource, 0, len(resources))
 	for _, resource := range resources {
-		resourcesList = append(resourcesList, toIAMResources([]Resource{resource}))
+		resourcesList = append(resourcesList, toIAMResources([]types.AuthResource{resource}))
 	}
 
 	results, err := authorizer.handler.BatchIsAllowed(ctx, authorizer.newCheckRequestWithoutResource(ctx, action), resourcesList)
@@ -234,7 +234,7 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 		return nil, false, err
 	}
 
-	denied := make([]Resource, 0, len(resources))
+	denied := make([]types.AuthResource, 0, len(resources))
 	for i, resource := range resources {
 		key := buildIAMBatchLookupKey(resourcesList[i])
 		if allowed, ok := results[key]; ok && allowed {
@@ -247,7 +247,7 @@ func (authorizer *iamv3Authorizer) collectDeniedResources(
 }
 
 func (authorizer *iamv3Authorizer) newPermissionDeniedError(
-	ctx contextx.IContext, actionResources map[Action][]Resource,
+	ctx contextx.IContext, actionResources map[Action][]types.AuthResource,
 ) PermissionDeniedError {
 
 	actions := sortedActions(actionResources)
@@ -278,12 +278,12 @@ func (authorizer *iamv3Authorizer) newPermissionDeniedError(
 	return PermissionDeniedError{
 		ApplyURL:   applyURL,
 		SystemID:   authorizer.systemID,
-		SystemName: SystemDisplayName(authorizer.systemID),
+		SystemName: types.SystemDisplayName(authorizer.systemID),
 		Actions:    deniedActions,
 	}
 }
 
-func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, resources []Resource) error {
+func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, resources []types.AuthResource) error {
 	denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, resources)
 	if err != nil {
 		return err
@@ -292,16 +292,16 @@ func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, r
 		return nil
 	}
 
-	return authorizer.newPermissionDeniedError(ctx, map[Action][]Resource{
+	return authorizer.newPermissionDeniedError(ctx, map[Action][]types.AuthResource{
 		action: denied,
 	})
 }
 
 func (authorizer *iamv3Authorizer) CheckMany(
-	ctx contextx.IContext, actionResources map[Action][]Resource,
+	ctx contextx.IContext, actionResources map[Action][]types.AuthResource,
 ) error {
 
-	deniedActionResources := make(map[Action][]Resource, len(actionResources))
+	deniedActionResources := make(map[Action][]types.AuthResource, len(actionResources))
 	for _, action := range sortedActions(actionResources) {
 		denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, actionResources[action])
 		if err != nil {
@@ -319,7 +319,7 @@ func (authorizer *iamv3Authorizer) CheckMany(
 }
 
 func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
-	ctx contextx.IContext, action Action, resourceType ResourceType,
+	ctx contextx.IContext, action Action, resourceType types.AuthResourceType,
 ) (AuthorizedScope, error) {
 
 	if ctx == nil {

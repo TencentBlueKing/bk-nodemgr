@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// Validate checks the validity of the request parameters.
 func (x *AuthVerifyReq) Validate() error {
 	for i, item := range x.GetItems() {
 		if item.GetAction() == "" {
@@ -27,34 +28,85 @@ func (x *AuthVerifyReq) Validate() error {
 	return nil
 }
 
+// AutoConvert is a no-op for this request type, as it does not require any conversion.
 func (x *AuthVerifyReq) AutoConvert() {}
 
-func (x *AuthVerifyReq) ConvertItemsToTypes() []*types.IAMCheckRequest {
-	return conv.SliceToSlice(x.GetItems(), func(item *AuthVerifyItem) *types.IAMCheckRequest {
-		return &types.IAMCheckRequest{
-			ActionID:  item.GetAction(),
+// ConvertItemsToTypes converts the request items to internal types for backend processing.
+func (x *AuthVerifyReq) ConvertItemsToTypes() []*types.AuthVerifyItem {
+	return conv.SliceToSlice(x.GetItems(), func(item *AuthVerifyItem) *types.AuthVerifyItem {
+		return &types.AuthVerifyItem{
+			Action:    item.GetAction(),
 			Resources: convertAuthResourcesToTypes(item.GetResources()),
 		}
 	})
 }
 
-func (x *AuthVerifyResp) ConvertResultsFromTypes(results []*types.IAMCheckResult) {
+// ConvertResultsFromTypes populates the response data from IAM verify results.
+func (x *AuthVerifyResp) ConvertResultsFromTypes(results []*types.AuthVerifyResult) {
 	x.Data = &AuthVerifyResp_Data{
-		Results: conv.SliceToSlice(results, func(result *types.IAMCheckResult) *AuthVerifyResult {
+		Results: conv.SliceToSlice(results, func(result *types.AuthVerifyResult) *AuthVerifyResult {
 			return &AuthVerifyResult{
-				Action:     result.ActionID,
+				Action:     result.Action,
 				Authorized: result.Authorized,
 			}
 		}),
 	}
 }
 
-func convertAuthResourcesToTypes(resources []*AuthResource) []types.IAMResource {
-	return conv.SliceToSlice(resources, func(resource *AuthResource) types.IAMResource {
-		return types.IAMResource{
+// Validate checks the validity of the request parameters.
+func (x *AuthorizedReq) Validate() error {
+	for i, item := range x.GetItems() {
+		if item.GetAction() == "" {
+			return fmt.Errorf("items[%d].action is required", i)
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert is a no-op for this request type, as it does not require any conversion.
+func (x *AuthorizedReq) AutoConvert() {}
+
+// ConvertItemsToTypes converts the request items to internal types for backend processing.
+func (x *AuthorizedReq) ConvertItemsToTypes() []*types.AuthorizedItem {
+	return conv.SliceToSlice(x.GetItems(), func(item *AuthorizedItem) *types.AuthorizedItem {
+		return &types.AuthorizedItem{
+			Action:       item.GetAction(),
+			ResourceType: types.AuthResourceType(item.GetResourceType()),
+		}
+	})
+}
+
+// ConvertResultsFromTypes populates the response data from IAM verify results.
+func (x *AuthorizedResp) ConvertResultsFromTypes(results []*types.AuthorizedResult) {
+	x.Data = &AuthorizedResp_Data{
+		Results: conv.SliceToSlice(results, func(result *types.AuthorizedResult) *AuthorizedResult {
+			return &AuthorizedResult{
+				Action:       result.Action,
+				ResourceType: string(result.ResourceType),
+				IsAny:        result.IsAny,
+				Resources:    convertAuthResourceFromTypes(result.Resources),
+			}
+		}),
+	}
+}
+
+func convertAuthResourcesToTypes(resources []*AuthResource) []types.AuthResource {
+	return conv.SliceToSlice(resources, func(resource *AuthResource) types.AuthResource {
+		return types.AuthResource{
 			SystemID: resource.GetSystemId(),
-			Type:     resource.GetType(),
+			Type:     types.AuthResourceType(resource.GetType()),
 			ID:       resource.GetId(),
+		}
+	})
+}
+
+func convertAuthResourceFromTypes(resources []types.AuthResource) []*AuthResource {
+	return conv.SliceToSlice(resources, func(resource types.AuthResource) *AuthResource {
+		return &AuthResource{
+			SystemId: resource.SystemID,
+			Type:     string(resource.Type),
+			Id:       resource.ID,
 		}
 	})
 }

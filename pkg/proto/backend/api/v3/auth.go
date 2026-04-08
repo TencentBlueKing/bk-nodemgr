@@ -14,7 +14,6 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -33,108 +32,63 @@ func (x *AuthVerifyReq) Validate() error {
 // AutoConvert is a no-op for this request type.
 func (x *AuthVerifyReq) AutoConvert() {}
 
-// ConvertResultsFromVerify populates the response data from verification results.
-func (x *AuthVerifyResp) ConvertResultsFromVerify(results []*AuthVerifyResult) {
-	x.Data = &AuthVerifyResp_Data{
-		Results: results,
-	}
-}
-
-func (x *AuthVerifyResp) ConvertResultsFromTypes(results []*types.IAMCheckResult) {
-	x.Data = &AuthVerifyResp_Data{
-		Results: conv.SliceToSlice(results, func(result *types.IAMCheckResult) *AuthVerifyResult {
-			return &AuthVerifyResult{
-				Action:     result.ActionID,
-				Authorized: result.Authorized,
-			}
-		}),
-	}
-}
-
-// SetPermissionFromErrf populates the response permission from resterrf.Permission.
-func (x *AuthVerifyResp) SetPermissionFromErrf(perm *resterrf.Permission) {
-	if perm == nil {
-		return
-	}
-
-	protoActions := make([]*Action, len(perm.Actions))
-	for i, action := range perm.Actions {
-		relatedTypes := make([]*RelatedResourceType, len(action.RelatedResourceTypes))
-		for j, rt := range action.RelatedResourceTypes {
-			instances := make([]*ResourceNode, len(rt.Instances))
-			for k, node := range rt.Instances {
-				instances[k] = &ResourceNode{
-					Type:     node.Type,
-					TypeName: node.TypeName,
-					Id:       node.ID,
-					Name:     node.Name,
-				}
-			}
-			relatedTypes[j] = &RelatedResourceType{
-				SystemId:   rt.SystemID,
-				SystemName: rt.SystemName,
-				Type:       rt.Type,
-				TypeName:   rt.TypeName,
-				Instances:  instances,
-			}
-		}
-
-		protoActions[i] = &Action{
-			Id:                   action.ID,
-			Name:                 action.Name,
-			RelatedResourceTypes: relatedTypes,
-		}
-	}
-
-	x.Permission = &Permission{
-		System:     perm.System,
-		SystemName: perm.SystemName,
-		ApplyUrl:   perm.ApplyURL,
-		Actions:    protoActions,
-	}
-}
-
-// NewAuthVerifyResult creates a new AuthVerifyResult.
-func NewAuthVerifyResult(action string, authorized bool) *AuthVerifyResult {
-	return &AuthVerifyResult{
-		Action:     action,
-		Authorized: authorized,
+// ConvertParamFromTypes populates the request items from IAM check requests.
+func (x *AuthVerifyReq) ConvertParamFromTypes(items []*types.AuthVerifyItem) {
+	x.Items = make([]*AuthVerifyItem, 0, len(items))
+	for _, item := range items {
+		x.Items = append(x.Items, &AuthVerifyItem{
+			Action:    item.Action,
+			Resources: convertAuthResourceFromTypes(item.Resources),
+		})
 	}
 }
 
 // ConvertItemsToActionResources converts verify request items to action-resource map.
-func (x *AuthVerifyReq) ConvertItemsToActionResources() map[auth.Action][]auth.Resource {
+func (x *AuthVerifyReq) ConvertItemsToActionResources() map[auth.Action][]types.AuthResource {
 	items := x.GetItems()
 	if len(items) == 0 {
 		return nil
 	}
 
-	actionResources := make(map[auth.Action][]auth.Resource, len(items))
+	actionResources := make(map[auth.Action][]types.AuthResource, len(items))
 	for _, item := range items {
 		action := auth.Action(item.GetAction())
-		resources := ConvertAuthResourcesToInternal(item.GetResources())
+		resources := convertAuthResourceToTypes(item.GetResources())
 		actionResources[action] = append(actionResources[action], resources...)
 	}
 
 	return actionResources
 }
 
-// ConvertAuthResourcesToInternal converts proto auth resources to internal auth resources.
-func ConvertAuthResourcesToInternal(protoResources []*AuthResource) []auth.Resource {
-	if len(protoResources) == 0 {
+// ConvertResultToTypes converts the response data to auth verify results.
+func (x *AuthVerifyResp) ConvertResultToTypes() []*types.AuthVerifyResult {
+	data := x.GetData()
+	if data == nil {
 		return nil
 	}
 
-	resources := make([]auth.Resource, len(protoResources))
-	for i, pr := range protoResources {
-		resources[i] = auth.Resource{
-			SystemID: pr.GetSystemId(),
-			Type:     auth.ResourceType(pr.GetType()),
-			ID:       pr.GetId(),
-		}
+	results := data.GetResults()
+	checkResults := make([]*types.AuthVerifyResult, 0, len(results))
+	for _, result := range results {
+		checkResults = append(checkResults, &types.AuthVerifyResult{
+			Action:     result.GetAction(),
+			Authorized: result.GetAuthorized(),
+		})
 	}
 
-	return resources
+	return checkResults
+}
+
+// ConvertResultsFromTypes populates the response data from auth verify results.
+func (x *AuthVerifyResp) ConvertResultsFromTypes(results []*types.AuthVerifyResult) {
+	x.Data = &AuthVerifyResp_Data{
+		Results: conv.SliceToSlice(results, func(result *types.AuthVerifyResult) *AuthVerifyResult {
+			return &AuthVerifyResult{
+				Action:     result.Action,
+				Authorized: result.Authorized,
+			}
+		}),
+	}
 }
 
 // Validate validates the authorized request body.
@@ -154,6 +108,36 @@ func (x *AuthorizedReq) Validate() error {
 // AutoConvert is a no-op for this request type.
 func (x *AuthorizedReq) AutoConvert() {}
 
+// ConvertParamFromAuthorizedInstances populates the request items from IAM authorized instances requests.
+func (x *AuthorizedReq) ConvertParamFromTypes(items []*types.AuthorizedItem) {
+	x.Items = conv.SliceToSlice(items, func(item *types.AuthorizedItem) *AuthorizedItem {
+		return &AuthorizedItem{
+			Action:       item.Action,
+			ResourceType: string(item.ResourceType),
+		}
+	})
+}
+
+// ConvertResultToTypes converts the response data to authorized results.
+func (x *AuthorizedResp) ConvertResultToTypes() []*types.AuthorizedResult {
+	data := x.GetData()
+	if data == nil {
+		return nil
+	}
+
+	results := make([]*types.AuthorizedResult, len(data.GetResults()))
+	for i, result := range data.GetResults() {
+		results[i] = &types.AuthorizedResult{
+			Action:       result.GetAction(),
+			ResourceType: types.AuthResourceType(result.GetResourceType()),
+			IsAny:        result.GetIsAny(),
+			Resources:    convertAuthResourceToTypes(result.GetResources()),
+		}
+	}
+
+	return results
+}
+
 // ConvertResultsFromScopes populates the response data from authorized scopes.
 func (x *AuthorizedResp) ConvertResultsFromScopes(
 	items []*AuthorizedItem,
@@ -169,7 +153,7 @@ func (x *AuthorizedResp) ConvertResultsFromScopes(
 			Action:       item.GetAction(),
 			ResourceType: item.GetResourceType(),
 			IsAny:        scopes[i].IsAny,
-			Resources:    ConvertInternalToAuthResources(scopes[i].Resources),
+			Resources:    convertAuthResourceFromTypes(scopes[i].Resources),
 		}
 	}
 
@@ -178,20 +162,38 @@ func (x *AuthorizedResp) ConvertResultsFromScopes(
 	}
 }
 
-// ConvertInternalToAuthResources converts internal auth resources to proto auth resources.
-func ConvertInternalToAuthResources(resources []auth.Resource) []*AuthResource {
+// convertAuthResourceToTypes converts proto auth resources to types auth resources.
+func convertAuthResourceToTypes(resources []*AuthResource) []types.AuthResource {
 	if len(resources) == 0 {
 		return nil
 	}
 
-	protoResources := make([]*AuthResource, len(resources))
-	for i, r := range resources {
-		protoResources[i] = &AuthResource{
-			SystemId: r.SystemID,
-			Type:     string(r.Type),
-			Id:       r.ID,
+	result := make([]types.AuthResource, 0, len(resources))
+	for _, resource := range resources {
+		result = append(result, types.AuthResource{
+			SystemID: resource.GetSystemId(),
+			Type:     types.AuthResourceType(resource.GetType()),
+			ID:       resource.GetId(),
+		})
+	}
+
+	return result
+}
+
+// convertAuthResourceFromTypes converts types auth resources to proto auth resources.
+func convertAuthResourceFromTypes(resources []types.AuthResource) []*AuthResource {
+	if len(resources) == 0 {
+		return nil
+	}
+
+	backendResources := make([]*AuthResource, len(resources))
+	for i, resource := range resources {
+		backendResources[i] = &AuthResource{
+			SystemId: resource.SystemID,
+			Type:     string(resource.Type),
+			Id:       resource.ID,
 		}
 	}
 
-	return protoResources
+	return backendResources
 }

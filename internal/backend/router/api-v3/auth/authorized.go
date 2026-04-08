@@ -6,6 +6,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Authorized queries the authorized resource scope for requested action-resource type pairs.
@@ -29,14 +30,11 @@ func (h *handler) Authorized(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) queryAuthorizedScopes(
-	rCtx restserver.IContext, items []*protoBackend.AuthorizedItem,
-) ([]auth.AuthorizedScope, error) {
-
+func (h *handler) queryAuthorizedScopes(rCtx restserver.IContext, items []*protoBackend.AuthorizedItem) ([]auth.AuthorizedScope, error) {
 	scopes := make([]auth.AuthorizedScope, len(items))
 	for i, item := range items {
 		action := auth.Action(item.GetAction())
-		resourceType := auth.ResourceType(item.GetResourceType())
+		resourceType := types.AuthResourceType(item.GetResourceType())
 
 		scope, err := h.authorizer.ListAuthorizedInstances(rCtx, action, resourceType)
 		if err != nil {

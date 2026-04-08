@@ -18,13 +18,17 @@ import (
 
 // IHandlerAuth defines the backend auth verification capability exposed to callers.
 type IHandlerAuth interface {
-	VerifyAuth(nCtx contextx.IContext, req []*types.IAMCheckRequest) ([]*types.IAMCheckResult, error)
+	// VerifyAuth proxies proactive auth verification requests to the backend service.
+	VerifyAuth(nCtx contextx.IContext, req []*types.AuthVerifyItem) ([]*types.AuthVerifyResult, error)
+
+	// Authorized checks whether the user has permissions for the specified actions and resources.
+	Authorized(nCtx contextx.IContext, req []*types.AuthorizedItem) ([]*types.AuthorizedResult, error)
 }
 
 // VerifyAuth proxies proactive auth verification requests to the backend service.
-func (h *Handler) VerifyAuth(nCtx contextx.IContext, req []*types.IAMCheckRequest) ([]*types.IAMCheckResult, error) {
+func (h *Handler) VerifyAuth(nCtx contextx.IContext, req []*types.AuthVerifyItem) ([]*types.AuthVerifyResult, error) {
 	backendReq := new(protoBackend.AuthVerifyReq)
-	backendReq.Items = convertIAMCheckRequestsToBackend(req)
+	backendReq.ConvertParamFromTypes(req)
 
 	resp, err := h.cli.verifyAuth(nCtx, backendReq)
 	if err != nil {
@@ -35,54 +39,22 @@ func (h *Handler) VerifyAuth(nCtx contextx.IContext, req []*types.IAMCheckReques
 		return nil, nil
 	}
 
-	return convertAuthVerifyResultsToTypes(resp.GetData().GetResults()), nil
+	return resp.ConvertResultToTypes(), nil
 }
 
-func convertIAMCheckRequestsToBackend(items []*types.IAMCheckRequest) []*protoBackend.AuthVerifyItem {
-	if len(items) == 0 {
-		return nil
+// Authorized checks whether the user has permissions for the specified actions and resources.
+func (h *Handler) Authorized(nCtx contextx.IContext, req []*types.AuthorizedItem) ([]*types.AuthorizedResult, error) {
+	backendReq := new(protoBackend.AuthorizedReq)
+	backendReq.ConvertParamFromTypes(req)
+
+	resp, err := h.cli.authorized(nCtx, backendReq)
+	if err != nil {
+		return nil, err
 	}
 
-	backendItems := make([]*protoBackend.AuthVerifyItem, len(items))
-	for i, item := range items {
-		backendItems[i] = &protoBackend.AuthVerifyItem{
-			Action:    item.ActionID,
-			Resources: convertIAMResourcesToBackend(item.Resources),
-		}
+	if resp.GetData() == nil {
+		return nil, nil
 	}
 
-	return backendItems
-}
-
-func convertIAMResourcesToBackend(resources []types.IAMResource) []*protoBackend.AuthResource {
-	if len(resources) == 0 {
-		return nil
-	}
-
-	backendResources := make([]*protoBackend.AuthResource, len(resources))
-	for i, resource := range resources {
-		backendResources[i] = &protoBackend.AuthResource{
-			SystemId: resource.SystemID,
-			Type:     resource.Type,
-			Id:       resource.ID,
-		}
-	}
-
-	return backendResources
-}
-
-func convertAuthVerifyResultsToTypes(results []*protoBackend.AuthVerifyResult) []*types.IAMCheckResult {
-	if len(results) == 0 {
-		return nil
-	}
-
-	checkResults := make([]*types.IAMCheckResult, len(results))
-	for i, result := range results {
-		checkResults[i] = &types.IAMCheckResult{
-			ActionID:   result.GetAction(),
-			Authorized: result.GetAuthorized(),
-		}
-	}
-
-	return checkResults
+	return resp.ConvertResultToTypes(), nil
 }

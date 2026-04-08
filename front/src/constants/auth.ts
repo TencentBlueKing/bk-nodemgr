@@ -15,7 +15,7 @@ export interface RouteAuthTarget {
   query?: Record<string, unknown>;
 }
 
-// AuthResource aligns with backend auth.Resource structure
+// AuthResource aligns with backend types.AuthResource structure
 export interface AuthResource {
   system_id: string;
   type: string;

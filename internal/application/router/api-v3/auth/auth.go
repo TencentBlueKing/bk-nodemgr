@@ -35,4 +35,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/verify", restserver.Handler(h.Verify))
+	h.rg.POST("/authorized", restserver.Handler(h.Authorized))
 }

@@ -15,7 +15,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -562,14 +561,14 @@ func (p *PackageProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Reques
 // For agent/proxy/cert/bintool types, the resource ID is the release type itself.
 // For plugin types, the resource ID is the plugin name.
 // Supports multiple release types for batch permission checks.
-// This is the canonical helper used by router handlers to construct auth.Resource
+// This is the canonical helper used by router handlers to construct types.AuthResource
 // matching the resource ID format returned by this provider's IAM callbacks.
-func BuildPackageResources(releaseType ...string) []auth.Resource {
-	resources := make([]auth.Resource, 0, len(releaseType))
+func BuildPackageResources(releaseType ...string) []types.AuthResource {
+	resources := make([]types.AuthResource, 0, len(releaseType))
 	for _, rt := range releaseType {
-		resources = append(resources, auth.Resource{
-			SystemID: auth.SystemIDNodeMgr,
-			Type:     auth.ResourceTypePackage,
+		resources = append(resources, types.AuthResource{
+			SystemID: types.SystemIDNodeMgr,
+			Type:     types.AuthResourceTypePackage,
 			ID:       rt,
 		})
 	}

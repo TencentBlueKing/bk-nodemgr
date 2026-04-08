@@ -159,7 +159,7 @@
           "description": "id is the resource instance ID."
         }
       },
-      "description": "AuthResource describes a single resource instance for authorization checks.\nAligns with internal/backend/auth.Resource structure."
+      "description": "AuthResource describes a single resource instance for authorization checks."
     },
     "v3AuthVerifyItem": {
       "type": "object",

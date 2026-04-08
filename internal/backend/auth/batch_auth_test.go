@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // fakeAuthorizer is a test double for auth.IAuthorizer.
@@ -27,7 +28,7 @@ type fakeAuthorizer struct {
 	applyURL     string
 }
 
-func (f *fakeAuthorizer) Check(_ contextx.IContext, action auth.Action, resources []auth.Resource) error {
+func (f *fakeAuthorizer) Check(_ contextx.IContext, action auth.Action, resources []types.AuthResource) error {
 	for _, r := range resources {
 		if f.deniedBizIDs[r.ID] {
 			rts := make([]auth.RelatedResourceType, 0, len(resources))
@@ -35,7 +36,7 @@ func (f *fakeAuthorizer) Check(_ contextx.IContext, action auth.Action, resource
 				rts = append(rts, auth.RelatedResourceType{
 					SystemID: res.SystemID,
 					Type:     string(res.Type),
-					TypeName: auth.ResourceTypeDisplayName(res.Type),
+					TypeName: types.AuthResourceTypeDisplayName(res.Type),
 				})
 			}
 			return auth.PermissionDeniedError{
@@ -53,20 +54,20 @@ func (f *fakeAuthorizer) Check(_ contextx.IContext, action auth.Action, resource
 
 // simulateBatchAuth replicates the batch auth pattern used in install/uninstall/upgrade handlers.
 type checkOnlyAuthorizer interface {
-	Check(ctx contextx.IContext, action auth.Action, resources []auth.Resource) error
+	Check(ctx contextx.IContext, action auth.Action, resources []types.AuthResource) error
 }
 
 func simulateBatchAuth(authorizer checkOnlyAuthorizer, bizIDs []int64) error {
 	type ctxStub struct{}
 	_ = ctxStub{}
 
-	deniedResources := make([]auth.Resource, 0)
+	deniedResources := make([]types.AuthResource, 0)
 	for _, bizID := range bizIDs {
 		authErr := authorizer.Check(nil, auth.ActionAgentOperate,
-			[]auth.Resource{{SystemID: auth.SystemIDCMDB, Type: auth.ResourceTypeBiz, ID: fmt.Sprintf("%d", bizID)}})
+			[]types.AuthResource{{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: fmt.Sprintf("%d", bizID)}})
 		if authErr != nil {
-			deniedResources = append(deniedResources, auth.Resource{
-				SystemID: auth.SystemIDCMDB, Type: auth.ResourceTypeBiz, ID: fmt.Sprintf("%d", bizID),
+			deniedResources = append(deniedResources, types.AuthResource{
+				SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: fmt.Sprintf("%d", bizID),
 			})
 		}
 	}
@@ -160,15 +161,15 @@ func TestBatchBizIDAuth_SingleDenied(t *testing.T) {
 
 func TestNewNoOpAuthorizer_ExposesCheckMethod(t *testing.T) {
 	checkAuthorizer, ok := any(auth.NewNoOpAuthorizer()).(interface {
-		Check(contextx.IContext, auth.Action, []auth.Resource) error
+		Check(contextx.IContext, auth.Action, []types.AuthResource) error
 	})
 	if !ok {
 		t.Fatal("expected NewNoOpAuthorizer to expose Check method")
 	}
 
-	err := checkAuthorizer.Check(nil, auth.ActionAgentOperate, []auth.Resource{{
-		SystemID: auth.SystemIDCMDB,
-		Type:     auth.ResourceTypeBiz,
+	err := checkAuthorizer.Check(nil, auth.ActionAgentOperate, []types.AuthResource{{
+		SystemID: types.SystemIDCMDB,
+		Type:     types.AuthResourceTypeBiz,
 		ID:       "1",
 	}})
 	if err != nil {
@@ -178,13 +179,13 @@ func TestNewNoOpAuthorizer_ExposesCheckMethod(t *testing.T) {
 
 func TestNewNoOpAuthorizer_ExposesListAuthorizedInstancesMethod(t *testing.T) {
 	scopeAuthorizer, ok := any(auth.NewNoOpAuthorizer()).(interface {
-		ListAuthorizedInstances(contextx.IContext, auth.Action, auth.ResourceType) (auth.AuthorizedScope, error)
+		ListAuthorizedInstances(contextx.IContext, auth.Action, types.AuthResourceType) (auth.AuthorizedScope, error)
 	})
 	if !ok {
 		t.Fatal("expected NewNoOpAuthorizer to expose ListAuthorizedInstances method")
 	}
 
-	scope, err := scopeAuthorizer.ListAuthorizedInstances(nil, auth.ActionAgentView, auth.ResourceTypeBiz)
+	scope, err := scopeAuthorizer.ListAuthorizedInstances(nil, auth.ActionAgentView, types.AuthResourceTypeBiz)
 	if err != nil {
 		t.Fatalf("expected nil error from no-op list authorized instances, got: %v", err)
 	}

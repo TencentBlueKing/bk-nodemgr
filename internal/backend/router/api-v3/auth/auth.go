@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 type handler struct {
@@ -41,13 +42,13 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/authorized", restserver.Handler(h.Authorized))
 }
 
-// BuildBizResources constructs auth.Resource slice for business IDs.
-func BuildBizResources(bizIDs []int64) []auth.Resource {
-	resources := make([]auth.Resource, 0, len(bizIDs))
+// BuildBizResources constructs types.AuthResource slice for business IDs.
+func BuildBizResources(bizIDs []int64) []types.AuthResource {
+	resources := make([]types.AuthResource, 0, len(bizIDs))
 	for _, bizID := range bizIDs {
-		resources = append(resources, auth.Resource{
-			SystemID: auth.SystemIDCMDB,
-			Type:     auth.ResourceTypeBiz,
+		resources = append(resources, types.AuthResource{
+			SystemID: types.SystemIDCMDB,
+			Type:     types.AuthResourceTypeBiz,
 			ID:       fmt.Sprintf("%d", bizID),
 		})
 	}
@@ -55,13 +56,13 @@ func BuildBizResources(bizIDs []int64) []auth.Resource {
 	return resources
 }
 
-// BuildNetworkUnitResources constructs auth.Resource slice for network unit IDs.
-func BuildNetworkUnitResources(networkUnitIDs []int64) []auth.Resource {
-	resources := make([]auth.Resource, 0, len(networkUnitIDs))
+// BuildNetworkUnitResources constructs types.AuthResource slice for network unit IDs.
+func BuildNetworkUnitResources(networkUnitIDs []int64) []types.AuthResource {
+	resources := make([]types.AuthResource, 0, len(networkUnitIDs))
 	for _, id := range networkUnitIDs {
-		resources = append(resources, auth.Resource{
-			SystemID: auth.SystemIDNodeMgr,
-			Type:     auth.ResourceTypeNetworkUnit,
+		resources = append(resources, types.AuthResource{
+			SystemID: types.SystemIDNodeMgr,
+			Type:     types.AuthResourceTypeNetworkUnit,
 			ID:       fmt.Sprintf("%d", id),
 		})
 	}

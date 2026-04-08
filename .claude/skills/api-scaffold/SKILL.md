@@ -65,7 +65,7 @@ Follow these steps in order. Create a task list at the start to track progress.
 
 Before implementing, create an initial version of the API documentation. This helps clarify the interface contract and serves as a placeholder that will be completed later using the api-doc skill.
 
-**Files**: 
+**Files**:
 - `apigw/apidocs/zh/{OperationId}.md` (Chinese)
 - `apigw/apidocs/en/{OperationId}.md` (English)
 
@@ -161,7 +161,7 @@ message AuthorizedResp {
   message Data {
     repeated AuthorizedResult results = 1;
   }
-  
+
   string code = 1;
   string message = 2;
   string request_id = 3;
@@ -187,7 +187,7 @@ message GetNodeResp {
   message Data {
     NodeInfo node = 1;
   }
-  
+
   string code = 1;
   string message = 2;
   string request_id = 3;
@@ -273,7 +273,7 @@ func (x *AuthorizedResp) ConvertResultsFromScopes(scopes []auth.AuthorizedScope,
     x.Data = &AuthorizedResp_Data{
         Results: make([]*AuthorizedResult, len(scopes)),
     }
-    
+
     for i, scope := range scopes {
         x.Data.Results[i] = &AuthorizedResult{
             Action:       items[i].GetAction(),
@@ -287,14 +287,14 @@ func (x *AuthorizedResp) ConvertResultsFromScopes(scopes []auth.AuthorizedScope,
 
 **Helper functions** - Add any needed conversion helpers:
 ```go
-func ConvertInternalToAuthResources(resources []auth.Resource) []*AuthResource {
-    return conv.SliceToSlice(resources, func(r auth.Resource) *AuthResource {
-        return &AuthResource{
-            SystemId: r.SystemID,
-            Type:     r.Type,
-            Id:       r.ID,
-        }
-    })
+func convertAuthResourceFromTypes(resources []types.AuthResource) []*AuthResource {
+	return conv.SliceToSlice(resources, func(resource types.AuthResource) *AuthResource {
+		return &AuthResource{
+			SystemId: resource.SystemID,
+			Type:     string(resource.Type),
+			Id:       resource.ID,
+		}
+	})
 }
 ```
 

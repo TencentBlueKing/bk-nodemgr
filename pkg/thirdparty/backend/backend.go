@@ -3428,6 +3428,10 @@ func (c *cli) setPluginMemo(ctx contextx.IContext, req *protoBackend.PluginSetMe
 	return nil
 }
 
+// ===============================================================================
+// Auth Related Interfaces
+// ===============================================================================
+
 func (c *cli) verifyAuth(ctx contextx.IContext, req *protoBackend.AuthVerifyReq) (*protoBackend.AuthVerifyResp, error) {
 	resp := new(protoBackend.AuthVerifyResp)
 	header := c.getHeader(ctx)
@@ -3451,6 +3455,35 @@ func (c *cli) verifyAuth(ctx contextx.IContext, req *protoBackend.AuthVerifyReq)
 	if resp.GetData() == nil {
 		return nil,
 			fmt.Errorf("verify auth failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) authorized(ctx contextx.IContext, req *protoBackend.AuthorizedReq) (*protoBackend.AuthorizedResp, error) {
+	resp := new(protoBackend.AuthorizedResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/auth/authorized").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("check authorized", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("check authorized failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

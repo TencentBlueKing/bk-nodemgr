@@ -10,7 +10,10 @@
 
 package auth
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 type noopAuthorizer struct{}
 
@@ -19,17 +22,17 @@ func NewNoOpAuthorizer() IAuthorizer {
 	return &noopAuthorizer{}
 }
 
-func (a *noopAuthorizer) Check(_ contextx.IContext, _ Action, _ []Resource) error {
+func (a *noopAuthorizer) Check(_ contextx.IContext, _ Action, _ []types.AuthResource) error {
 	return nil
 }
 
-func (a *noopAuthorizer) CheckMany(_ contextx.IContext, _ map[Action][]Resource) error {
+func (a *noopAuthorizer) CheckMany(_ contextx.IContext, _ map[Action][]types.AuthResource) error {
 	return nil
 }
 
 func (a *noopAuthorizer) ListAuthorizedInstances(
-	_ contextx.IContext, _ Action, _ ResourceType,
+	_ contextx.IContext, _ Action, _ types.AuthResourceType,
 ) (AuthorizedScope, error) {
 
-	return AuthorizedScope{IsAny: true, Resources: []Resource{}}, nil
+	return AuthorizedScope{IsAny: true, Resources: []types.AuthResource{}}, nil
 }

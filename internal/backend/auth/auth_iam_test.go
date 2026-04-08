@@ -121,11 +121,11 @@ func TestIAMV3AuthorizerCheck_AllAllowed(t *testing.T) {
 			"2": true,
 		},
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 	})
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
@@ -156,12 +156,12 @@ func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T)
 		},
 		applyURL: "https://iam.example.com/apply",
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "3"},
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "3"},
 	})
 	if err == nil {
 		t.Fatal("expected permission error, got nil")
@@ -185,11 +185,11 @@ func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T)
 		t.Fatalf("expected 2 denied instances in permission payload, got %d", len(rt.Instances))
 	}
 	first := rt.Instances[0]
-	if first.Type != string(ResourceTypeBiz) || first.ID != "2" {
+	if first.Type != string(types.AuthResourceTypeBiz) || first.ID != "2" {
 		t.Fatalf("unexpected first denied instance node: %+v", first)
 	}
-	if first.TypeName != ResourceTypeDisplayName(ResourceTypeBiz) {
-		t.Fatalf("expected first denied instance type name %q, got %q", ResourceTypeDisplayName(ResourceTypeBiz), first.TypeName)
+	if first.TypeName != types.AuthResourceTypeDisplayName(types.AuthResourceTypeBiz) {
+		t.Fatalf("expected first denied instance type name %q, got %q", types.AuthResourceTypeDisplayName(types.AuthResourceTypeBiz), first.TypeName)
 	}
 	if handler.applyCalls != 1 {
 		t.Fatalf("expected GetApplyURL to be called once, got %d", handler.applyCalls)
@@ -202,10 +202,10 @@ func TestIAMV3AuthorizerCheck_PartialDeniedReturnsPermissionDenied(t *testing.T)
 func TestIAMV3AuthorizerCheck_BatchErrorReturnsImmediately(t *testing.T) {
 	sentinel := errors.New("batch iam failure")
 	handler := &fakeIAMBatchHandler{batchErr: sentinel}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 	})
 	if !errors.Is(err, sentinel) {
 		t.Fatalf("expected sentinel error, got: %v", err)
@@ -222,10 +222,10 @@ func TestIAMV3AuthorizerCheck_ApplyURLErrorReturnsPermissionDeniedWithoutURL(t *
 		},
 		applyErr: errors.New("apply url failure"),
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
 	})
 	if err == nil {
 		t.Fatal("expected permission error, got nil")
@@ -244,14 +244,14 @@ func TestIAMV3AuthorizerNewPermissionDeniedError_MultiActionStableOrder(t *testi
 	handler := &fakeIAMBatchHandler{
 		applyURL: "https://iam.example.com/apply",
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	permErr := authorizer.newPermissionDeniedError(newTestIAMContext(), map[Action][]Resource{
+	permErr := authorizer.newPermissionDeniedError(newTestIAMContext(), map[Action][]types.AuthResource{
 		ActionProxyView: {
-			{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
+			{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 		},
 		ActionAgentOperate: {
-			{SystemID: SystemIDNodeMgr, Type: ResourceTypeNetworkArea, ID: "3"},
+			{SystemID: types.SystemIDNodeMgr, Type: types.AuthResourceTypeNetworkArea, ID: "3"},
 		},
 	})
 
@@ -279,14 +279,14 @@ func TestIAMV3AuthorizerNewPermissionDeniedError_MultiActionStableOrder(t *testi
 	if len(permErr.Actions[0].RelatedResourceTypes) != 1 {
 		t.Fatalf("expected 1 related resource type for %q, got %d", ActionAgentOperate, len(permErr.Actions[0].RelatedResourceTypes))
 	}
-	if permErr.Actions[0].RelatedResourceTypes[0].Type != string(ResourceTypeNetworkArea) {
-		t.Fatalf("expected %q resource type for %q, got %q", ResourceTypeNetworkArea, ActionAgentOperate, permErr.Actions[0].RelatedResourceTypes[0].Type)
+	if permErr.Actions[0].RelatedResourceTypes[0].Type != string(types.AuthResourceTypeNetworkArea) {
+		t.Fatalf("expected %q resource type for %q, got %q", types.AuthResourceTypeNetworkArea, ActionAgentOperate, permErr.Actions[0].RelatedResourceTypes[0].Type)
 	}
 	if len(permErr.Actions[1].RelatedResourceTypes) != 1 {
 		t.Fatalf("expected 1 related resource type for %q, got %d", ActionProxyView, len(permErr.Actions[1].RelatedResourceTypes))
 	}
-	if permErr.Actions[1].RelatedResourceTypes[0].Type != string(ResourceTypeBiz) {
-		t.Fatalf("expected %q resource type for %q, got %q", ResourceTypeBiz, ActionProxyView, permErr.Actions[1].RelatedResourceTypes[0].Type)
+	if permErr.Actions[1].RelatedResourceTypes[0].Type != string(types.AuthResourceTypeBiz) {
+		t.Fatalf("expected %q resource type for %q, got %q", types.AuthResourceTypeBiz, ActionProxyView, permErr.Actions[1].RelatedResourceTypes[0].Type)
 	}
 }
 
@@ -304,13 +304,13 @@ func TestIAMV3AuthorizerCheckMany_AggregatesDeniedActions(t *testing.T) {
 		},
 		applyURL: "https://iam.example.com/apply",
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
-	bizResources := []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
+	bizResources := []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 	}
 
-	err := authorizer.CheckMany(newTestIAMContext(), map[Action][]Resource{
+	err := authorizer.CheckMany(newTestIAMContext(), map[Action][]types.AuthResource{
 		ActionProxyView: bizResources,
 		ActionAgentView: bizResources,
 	})
@@ -341,7 +341,7 @@ func TestIAMV3AuthorizerCheckMany_AggregatesDeniedActions(t *testing.T) {
 
 func TestIAMV3AuthorizerCheck_EmptyResourcesFallsBackToActionCheck(t *testing.T) {
 	handler := &fakeIAMBatchHandler{checkResult: true}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
 	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, nil)
 	if err != nil {
@@ -361,10 +361,10 @@ func TestIAMV3AuthorizerCheck_NonEmptyResourcesUsesBatchEvaluation(t *testing.T)
 			"42": true,
 		},
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "42"},
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "42"},
 	})
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
@@ -380,13 +380,13 @@ func TestIAMV3AuthorizerCheck_NonEmptyResourcesUsesBatchEvaluation(t *testing.T)
 func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
 		authorizedResources: []types.IAMResource{
-			{SystemID: SystemIDCMDB, Type: string(ResourceTypeBiz), ID: "1"},
-			{SystemID: SystemIDCMDB, Type: string(ResourceTypeBiz), ID: "2"},
+			{SystemID: types.SystemIDCMDB, Type: string(types.AuthResourceTypeBiz), ID: "1"},
+			{SystemID: types.SystemIDCMDB, Type: string(types.AuthResourceTypeBiz), ID: "2"},
 		},
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, ResourceTypeBiz)
+	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
 	}
@@ -399,14 +399,14 @@ func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testin
 	if scope.Resources[0].ID != "1" || scope.Resources[1].ID != "2" {
 		t.Fatalf("unexpected authorized resource IDs: %+v", scope.Resources)
 	}
-	if scope.Resources[0].SystemID != SystemIDCMDB || scope.Resources[0].Type != ResourceTypeBiz {
+	if scope.Resources[0].SystemID != types.SystemIDCMDB || scope.Resources[0].Type != types.AuthResourceTypeBiz {
 		t.Fatalf("unexpected resource[0] systemID/type: %+v", scope.Resources[0])
 	}
 	if handler.authorizedCalls != 1 {
 		t.Fatalf("expected ListAuthorizedInstances called once, got %d", handler.authorizedCalls)
 	}
-	if handler.lastAuthorizedReq.SystemID != SystemIDNodeMgr {
-		t.Fatalf("expected systemID %q, got %q", SystemIDNodeMgr, handler.lastAuthorizedReq.SystemID)
+	if handler.lastAuthorizedReq.SystemID != types.SystemIDNodeMgr {
+		t.Fatalf("expected systemID %q, got %q", types.SystemIDNodeMgr, handler.lastAuthorizedReq.SystemID)
 	}
 	if handler.lastAuthorizedReq.Username != "admin" {
 		t.Fatalf("expected username admin, got %q", handler.lastAuthorizedReq.Username)
@@ -414,16 +414,16 @@ func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testin
 	if handler.lastAuthorizedReq.ActionID != string(ActionAgentView) {
 		t.Fatalf("expected actionID %q, got %q", ActionAgentView, handler.lastAuthorizedReq.ActionID)
 	}
-	if handler.lastAuthorizedReq.ResourceType != string(ResourceTypeBiz) {
-		t.Fatalf("expected resourceType %q, got %q", ResourceTypeBiz, handler.lastAuthorizedReq.ResourceType)
+	if handler.lastAuthorizedReq.ResourceType != string(types.AuthResourceTypeBiz) {
+		t.Fatalf("expected resourceType %q, got %q", types.AuthResourceTypeBiz, handler.lastAuthorizedReq.ResourceType)
 	}
 }
 
 func TestIAMV3AuthorizerListAuthorizedInstances_ReturnsAnyScope(t *testing.T) {
 	handler := &fakeIAMBatchHandler{authorizedIsAny: true}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, ResourceTypeBiz)
+	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
 	if err != nil {
 		t.Fatalf("expected nil error, got: %v", err)
 	}
@@ -438,9 +438,9 @@ func TestIAMV3AuthorizerListAuthorizedInstances_ReturnsAnyScope(t *testing.T) {
 func TestIAMV3AuthorizerListAuthorizedInstances_PropagatesError(t *testing.T) {
 	sentinel := errors.New("list authorized instances failure")
 	handler := &fakeIAMBatchHandler{authorizedErr: sentinel}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	_, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, ResourceTypeBiz)
+	_, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
 	if !errors.Is(err, sentinel) {
 		t.Fatalf("expected sentinel error, got: %v", err)
 	}
@@ -449,14 +449,14 @@ func TestIAMV3AuthorizerListAuthorizedInstances_PropagatesError(t *testing.T) {
 // TestBuildIAMApplyResourceTypes_SingleResource verifies a single denied resource
 // produces one RelatedResourceType with one single-node instance.
 func TestBuildIAMApplyResourceTypes_SingleResource(t *testing.T) {
-	rts := buildIAMApplyResourceTypes([]Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "42"},
+	rts := buildIAMApplyResourceTypes([]types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "42"},
 	})
 	if len(rts) != 1 {
 		t.Fatalf("expected 1 resource type, got %d", len(rts))
 	}
 	rt := rts[0]
-	if rt.SystemID != SystemIDCMDB || rt.Type != string(ResourceTypeBiz) {
+	if rt.SystemID != types.SystemIDCMDB || rt.Type != string(types.AuthResourceTypeBiz) {
 		t.Fatalf("unexpected resource type %+v", rt)
 	}
 	if len(rt.Instances) != 1 {
@@ -466,7 +466,7 @@ func TestBuildIAMApplyResourceTypes_SingleResource(t *testing.T) {
 		t.Fatalf("expected instance path length 1, got %d", len(rt.Instances[0]))
 	}
 	node := rt.Instances[0][0]
-	if node.Type != string(ResourceTypeBiz) || node.ID != "42" {
+	if node.Type != string(types.AuthResourceTypeBiz) || node.ID != "42" {
 		t.Fatalf("unexpected instance node %+v", node)
 	}
 }
@@ -475,10 +475,10 @@ func TestBuildIAMApplyResourceTypes_SingleResource(t *testing.T) {
 // denied resources of the same type are deduplicated into one RelatedResourceType
 // with one instance per resource ID.
 func TestBuildIAMApplyResourceTypes_MultiResourceSameType(t *testing.T) {
-	rts := buildIAMApplyResourceTypes([]Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "3"},
+	rts := buildIAMApplyResourceTypes([]types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "3"},
 	})
 	if len(rts) != 1 {
 		t.Fatalf("expected 1 resource type (dedup), got %d", len(rts))
@@ -491,17 +491,17 @@ func TestBuildIAMApplyResourceTypes_MultiResourceSameType(t *testing.T) {
 // TestBuildIAMApplyResourceTypes_MultiResourceMultiType verifies that resources
 // of different types produce separate RelatedResourceType entries in canonical registration order.
 func TestBuildIAMApplyResourceTypes_MultiResourceMultiType(t *testing.T) {
-	rts := buildIAMApplyResourceTypes([]Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
-		{SystemID: SystemIDNodeMgr, Type: ResourceTypeNetworkArea, ID: "na-1"},
+	rts := buildIAMApplyResourceTypes([]types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
+		{SystemID: types.SystemIDNodeMgr, Type: types.AuthResourceTypeNetworkArea, ID: "na-1"},
 	})
 	if len(rts) != 2 {
 		t.Fatalf("expected 2 resource types, got %d", len(rts))
 	}
-	if rts[0].Type != string(ResourceTypeBiz) {
+	if rts[0].Type != string(types.AuthResourceTypeBiz) {
 		t.Fatalf("expected first type to be biz, got %q", rts[0].Type)
 	}
-	if rts[1].Type != string(ResourceTypeNetworkArea) {
+	if rts[1].Type != string(types.AuthResourceTypeNetworkArea) {
 		t.Fatalf("expected second type to be networkarea, got %q", rts[1].Type)
 	}
 	if len(rts[0].Instances) != 1 || len(rts[1].Instances) != 1 {
@@ -512,8 +512,8 @@ func TestBuildIAMApplyResourceTypes_MultiResourceMultiType(t *testing.T) {
 // TestBuildIAMApplyResourceTypes_EmptyID verifies that resources with an empty
 // ID do not produce an instance entry (action-level permissions have no resource).
 func TestBuildIAMApplyResourceTypes_EmptyID(t *testing.T) {
-	rts := buildIAMApplyResourceTypes([]Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: ""},
+	rts := buildIAMApplyResourceTypes([]types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: ""},
 	})
 	if len(rts) != 1 {
 		t.Fatalf("expected 1 resource type, got %d", len(rts))
@@ -533,11 +533,11 @@ func TestIAMV3AuthorizerCheck_DeniedResourcesHaveInstances(t *testing.T) {
 		},
 		applyURL: "https://iam.example.com/apply",
 	}
-	authorizer := &iamv3Authorizer{systemID: SystemIDNodeMgr, handler: handler}
+	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
-	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []Resource{
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "1"},
-		{SystemID: SystemIDCMDB, Type: ResourceTypeBiz, ID: "2"},
+	err := authorizer.Check(newTestIAMContext(), ActionAgentOperate, []types.AuthResource{
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "1"},
+		{SystemID: types.SystemIDCMDB, Type: types.AuthResourceTypeBiz, ID: "2"},
 	})
 	if err == nil {
 		t.Fatal("expected permission error, got nil")
@@ -562,19 +562,19 @@ func TestIAMV3AuthorizerCheck_DeniedResourcesHaveInstances(t *testing.T) {
 // in registration-aligned canonical order regardless of input traversal order.
 func TestBuildIAMApplyResourceTypes_OrderIsCanonical(t *testing.T) {
 	// Supply resources in reverse canonical order: networkunit before networkarea.
-	rts := buildIAMApplyResourceTypes([]Resource{
-		{SystemID: SystemIDNodeMgr, Type: ResourceTypeNetworkUnit, ID: "10"},
-		{SystemID: SystemIDNodeMgr, Type: ResourceTypeNetworkArea, ID: "5"},
+	rts := buildIAMApplyResourceTypes([]types.AuthResource{
+		{SystemID: types.SystemIDNodeMgr, Type: types.AuthResourceTypeNetworkUnit, ID: "10"},
+		{SystemID: types.SystemIDNodeMgr, Type: types.AuthResourceTypeNetworkArea, ID: "5"},
 	})
 	if len(rts) != 2 {
 		t.Fatalf("expected 2 resource types, got %d", len(rts))
 	}
 	// networkarea must come before networkunit per canonical registration order.
-	if rts[0].Type != string(ResourceTypeNetworkArea) {
-		t.Fatalf("expected first type %s, got %s", ResourceTypeNetworkArea, rts[0].Type)
+	if rts[0].Type != string(types.AuthResourceTypeNetworkArea) {
+		t.Fatalf("expected first type %s, got %s", types.AuthResourceTypeNetworkArea, rts[0].Type)
 	}
-	if rts[1].Type != string(ResourceTypeNetworkUnit) {
-		t.Fatalf("expected second type %s, got %s", ResourceTypeNetworkUnit, rts[1].Type)
+	if rts[1].Type != string(types.AuthResourceTypeNetworkUnit) {
+		t.Fatalf("expected second type %s, got %s", types.AuthResourceTypeNetworkUnit, rts[1].Type)
 	}
 	// Verify instances are correctly associated after reorder.
 	if len(rts[0].Instances) != 1 || rts[0].Instances[0][0].ID != "5" {

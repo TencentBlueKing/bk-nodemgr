@@ -4,7 +4,6 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -15,11 +14,11 @@ func TestBuildBizResources(t *testing.T) {
 	}
 
 	for idx, resource := range resources {
-		if resource.SystemID != auth.SystemIDCMDB {
-			t.Fatalf("resource %d system id = %s, want %s", idx, resource.SystemID, auth.SystemIDCMDB)
+		if resource.SystemID != types.SystemIDCMDB {
+			t.Fatalf("resource %d system id = %s, want %s", idx, resource.SystemID, types.SystemIDCMDB)
 		}
-		if resource.Type != auth.ResourceTypeBiz {
-			t.Fatalf("resource %d type = %s, want %s", idx, resource.Type, auth.ResourceTypeBiz)
+		if resource.Type != types.AuthResourceTypeBiz {
+			t.Fatalf("resource %d type = %s, want %s", idx, resource.Type, types.AuthResourceTypeBiz)
 		}
 	}
 
@@ -50,11 +49,11 @@ func TestBuildNetworkUnitResources(t *testing.T) {
 	}
 
 	for idx, resource := range resources {
-		if resource.SystemID != auth.SystemIDNodeMgr {
-			t.Fatalf("resource %d system id = %s, want %s", idx, resource.SystemID, auth.SystemIDNodeMgr)
+		if resource.SystemID != types.SystemIDNodeMgr {
+			t.Fatalf("resource %d system id = %s, want %s", idx, resource.SystemID, types.SystemIDNodeMgr)
 		}
-		if resource.Type != auth.ResourceTypeNetworkUnit {
-			t.Fatalf("resource %d type = %s, want %s", idx, resource.Type, auth.ResourceTypeNetworkUnit)
+		if resource.Type != types.AuthResourceTypeNetworkUnit {
+			t.Fatalf("resource %d type = %s, want %s", idx, resource.Type, types.AuthResourceTypeNetworkUnit)
 		}
 	}
 

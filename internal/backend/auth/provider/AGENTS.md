@@ -56,7 +56,7 @@ Important constraints:
 - Keep search behavior case-insensitive where keyword search is supported.
 - **Pagination pattern**: Use storage Distinct → sort → in-memory pagination (NOT List+dedup).
 - **Error propagation**: Always propagate storage errors (use `%w`), never swallow with Warn.
-- **Resource construction**: Each provider file exports `Build{ResourceType}Resources()` helpers that construct `auth.Resource` slices matching the resource ID format returned by IAM callbacks. Router handlers MUST use these canonical helpers for permission checks to ensure consistency between IAM provider resource IDs and authorization resource IDs.
+- **Resource construction**: Each provider file exports `Build{ResourceType}Resources()` helpers that construct `types.AuthResource` slices matching the resource ID format returned by IAM callbacks. Router handlers MUST use these canonical helpers for permission checks to ensure consistency between IAM provider resource IDs and authorization resource IDs.
 
 ## Pagination & Deduplication Pattern
 

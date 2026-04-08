@@ -16,8 +16,43 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/auth/authorized": {
+      "post": {
+        "summary": "Authorized queries the authorized resource scope for the requested\naction-resource type pairs.",
+        "operationId": "Auth_Authorized",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3AuthorizedResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "AuthorizedReq describes the HTTP request body for querying authorized\nresource scope.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3AuthorizedReq"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/v3/auth/verify": {
       "post": {
+        "summary": "Verify checks whether the current user has permissions for the requested\nresources.",
         "operationId": "Auth_Verify",
         "responses": {
           "200": {
@@ -36,6 +71,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "AuthVerifyReq describes the HTTP request body for auth verification.",
             "in": "body",
             "required": true,
             "schema": {
@@ -50,18 +86,6 @@
     }
   },
   "definitions": {
-    "AuthVerifyRespData": {
-      "type": "object",
-      "properties": {
-        "results": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3AuthVerifyResult"
-          }
-        }
-      }
-    },
     "ErrorDetails": {
       "type": "object",
       "properties": {
@@ -123,30 +147,37 @@
       "type": "object",
       "properties": {
         "system_id": {
-          "type": "string"
+          "type": "string",
+          "description": "system_id is the IAM system that owns this resource (e.g. \"bk_cmdb\" or\n\"bk_nodemgr\")."
         },
         "type": {
-          "type": "string"
+          "type": "string",
+          "description": "type is the resource type identifier (e.g. \"biz\", \"networkarea\")."
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "id is the resource instance ID."
         }
-      }
+      },
+      "description": "AuthResource describes a single resource instance for authorization checks."
     },
     "v3AuthVerifyItem": {
       "type": "object",
       "properties": {
         "action": {
-          "type": "string"
+          "type": "string",
+          "description": "action is the IAM action identifier (e.g. \"agent_view\",\n\"networkarea_create\")."
         },
         "resources": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3AuthResource"
-          }
+          },
+          "description": "resources lists the resources to check for this action. Empty for\naction-level checks."
         }
-      }
+      },
+      "description": "AuthVerifyItem describes a single action-resource pair for permission\nverification."
     },
     "v3AuthVerifyReq": {
       "type": "object",
@@ -156,9 +187,11 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3AuthVerifyItem"
-          }
+          },
+          "description": "items lists the action-resource pairs to verify permissions for."
         }
-      }
+      },
+      "description": "AuthVerifyReq describes the HTTP request body for auth verification."
     },
     "v3AuthVerifyResp": {
       "type": "object",
@@ -180,7 +213,20 @@
           "$ref": "#/definitions/v3Permission"
         },
         "data": {
-          "$ref": "#/definitions/AuthVerifyRespData"
+          "$ref": "#/definitions/v3AuthVerifyRespData"
+        }
+      },
+      "description": "AuthVerifyResp describes the HTTP response body for auth verification."
+    },
+    "v3AuthVerifyRespData": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthVerifyResult"
+          }
         }
       }
     },
@@ -188,12 +234,106 @@
       "type": "object",
       "properties": {
         "action": {
-          "type": "string"
+          "type": "string",
+          "description": "action is the IAM action that was checked."
         },
         "authorized": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "authorized indicates whether the user has this permission."
+        }
+      },
+      "description": "AuthVerifyResult holds the authorization result for a single action."
+    },
+    "v3AuthorizedItem": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "action is the IAM action identifier (e.g. \"agent_view\",\n\"networkarea_create\")."
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "resource_type is the resource type to query authorized scope for (e.g.\n\"biz\", \"networkarea\")."
+        }
+      },
+      "description": "AuthorizedItem describes a single action-resource type pair for querying\nauthorized scope."
+    },
+    "v3AuthorizedReq": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthorizedItem"
+          },
+          "description": "items lists the action-resource type pairs to query authorized scope\nfor."
+        }
+      },
+      "description": "AuthorizedReq describes the HTTP request body for querying authorized\nresource scope."
+    },
+    "v3AuthorizedResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3AuthorizedRespData"
+        }
+      },
+      "description": "AuthorizedResp describes the HTTP response body for authorized scope\nquery."
+    },
+    "v3AuthorizedRespData": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthorizedResult"
+          }
         }
       }
+    },
+    "v3AuthorizedResult": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "action is the IAM action that was queried."
+        },
+        "resource_type": {
+          "type": "string",
+          "description": "resource_type is the resource type that was queried."
+        },
+        "is_any": {
+          "type": "boolean",
+          "description": "is_any indicates whether the user has unrestricted access to all\nresources of this type."
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AuthResource"
+          },
+          "description": "resources lists the authorized resource instances. Empty when is_any is\ntrue."
+        }
+      },
+      "description": "AuthorizedResult holds the authorized scope for a single action-resource\ntype pair."
     },
     "v3Error": {
       "type": "object",

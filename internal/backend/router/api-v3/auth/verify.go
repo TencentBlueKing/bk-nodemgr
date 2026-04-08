@@ -40,8 +40,8 @@ func (h *handler) Verify(rCtx restserver.IContext) (interface{}, error) {
 }
 
 func (h *handler) verifyItems(
-	rCtx restserver.IContext, actionResources map[auth.Action][]auth.Resource,
-) ([]*types.IAMCheckResult, error) {
+	rCtx restserver.IContext, actionResources map[auth.Action][]types.AuthResource,
+) ([]*types.AuthVerifyResult, error) {
 
 	err := h.authorizer.CheckMany(rCtx, actionResources)
 
@@ -52,12 +52,12 @@ func (h *handler) verifyItems(
 	return buildVerifyResults(actionResources), nil
 }
 
-func buildVerifyResults(actionResources map[auth.Action][]auth.Resource) []*types.IAMCheckResult {
+func buildVerifyResults(actionResources map[auth.Action][]types.AuthResource) []*types.AuthVerifyResult {
 	if len(actionResources) == 0 {
 		return nil
 	}
 
-	results := make([]*types.IAMCheckResult, 0, len(actionResources))
+	results := make([]*types.AuthVerifyResult, 0, len(actionResources))
 	actions := make([]string, 0, len(actionResources))
 	for action := range actionResources {
 		actions = append(actions, string(action))
@@ -65,8 +65,8 @@ func buildVerifyResults(actionResources map[auth.Action][]auth.Resource) []*type
 	sort.Strings(actions)
 
 	for _, action := range actions {
-		results = append(results, &types.IAMCheckResult{
-			ActionID:   action,
+		results = append(results, &types.AuthVerifyResult{
+			Action:     action,
 			Authorized: true,
 		})
 	}
