@@ -15,6 +15,9 @@ package auth
 type Action string
 
 const (
+	// ActionBizAccess represents the action to access business-scoped capabilities.
+	ActionBizAccess Action = "biz_access"
+
 	// ActionAgentView represents the action to view Agent.
 	ActionAgentView Action = "agent_view"
 	// ActionAgentOperate represents the action to operate Agent.
@@ -90,6 +93,8 @@ const (
 // Returns an empty string for unknown actions.
 func ActionDisplayName(a Action) string {
 	switch a {
+	case ActionBizAccess:
+		return "业务访问"
 	case ActionAgentView:
 		return "查看 Agent"
 	case ActionAgentOperate:
