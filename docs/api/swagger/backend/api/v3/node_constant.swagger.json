@@ -1,0 +1,293 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "node_constant.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "NodeConstant"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/node/constant/deploy/get": {
+      "post": {
+        "summary": "NodeConstantDeployGet provides getting deploy constant.",
+        "operationId": "NodeConstant_NodeConstantDeployGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeConstantDeployGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeConstantDeployGetReq describes the HTTP request body when get\ndefault deploy constant in node service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeConstantDeployGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeConstant"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "NodeConstantDeployGetRespData": {
+      "type": "object",
+      "properties": {
+        "default_deploy_config": {
+          "$ref": "#/definitions/v3CustomDeployConfig"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3CustomDeployConfig": {
+      "type": "object",
+      "properties": {
+        "installer_runtime": {
+          "$ref": "#/definitions/v3InstallerRuntime"
+        },
+        "node_runtime": {
+          "$ref": "#/definitions/v3NodeRuntime"
+        },
+        "plugin_runtime": {
+          "$ref": "#/definitions/v3PluginRuntime"
+        }
+      },
+      "description": "CustomDeployConfig describes the deploy config for host deployment."
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3InstallerRuntime": {
+      "type": "object",
+      "properties": {
+        "base_work_dir": {
+          "type": "string"
+        }
+      },
+      "description": "InstallerRuntime describes the installer runtime config."
+    },
+    "v3NodeConstantDeployGetReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        }
+      },
+      "description": "NodeConstantDeployGetReq describes the HTTP request body when get\ndefault deploy constant in node service."
+    },
+    "v3NodeConstantDeployGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/NodeConstantDeployGetRespData"
+        }
+      },
+      "description": "NodeConstantDeployGetResp describes the HTTP response body when get\ndefault deploy constant in node service."
+    },
+    "v3NodeRuntime": {
+      "type": "object",
+      "properties": {
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "data_ipc": {
+          "type": "string"
+        },
+        "plugin_ipc": {
+          "type": "string"
+        },
+        "log_dir": {
+          "type": "string"
+        }
+      },
+      "description": "NodeRuntime describes the node runtime config."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3PluginRuntime": {
+      "type": "object",
+      "properties": {
+        "base_deploy_dir": {
+          "type": "string"
+        },
+        "log_dir": {
+          "type": "string"
+        }
+      },
+      "description": "PluginRuntime describes the custom plugin runtime config."
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
