@@ -66,7 +66,7 @@ func ResolveAuthorizedResourceIDsInt64(
 // ResolveAuthorizedResourceIDsString narrows requested IDs by authorized scope for a specific resource type.
 // nolint: nonamedreturns
 func ResolveAuthorizedResourceIDsString(
-	scope AuthorizedScope, requestedIDs []string, resourceType ResourceType,
+	scope AuthorizedScope, requestedIDs []string, resourceType types.AuthResourceType,
 ) (narrowedIDs []string, scopeIsAny bool, hasAuthorized bool, err error) {
 
 	authorizedIDs := make([]string, 0, len(scope.Resources))

@@ -30,13 +30,13 @@ func (h *handler) narrowAuthorizedPackageNames(
 	rCtx restserver.IContext, requestedNames []string, releaseType types.ReleaseType,
 ) ([]string, bool, error) {
 
-	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageView, auth.ResourceTypePackage)
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPackageView, types.AuthResourceTypePackage)
 	if err != nil {
 		return nil, false, err
 	}
 
 	narrowedNames, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsString(
-		scope, requestedNames, auth.ResourceTypePackage,
+		scope, requestedNames, types.AuthResourceTypePackage,
 	)
 	if err != nil {
 		return nil, false, err
