@@ -37,6 +37,15 @@ func (h *handler) ListReleasePluginBinTool(rCtx restserver.IContext) (interface{
 		},
 	}
 
+	// Check permission and narrow by authorized plugin-bintool names.
+	// Request has no name field, so requestedNames is nil (list all authorized).
+	narrowedNames, scopeIsAny, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypePluginBinTool)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list plugin-bintool release, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	cond = narrowReleaseCondition(cond, narrowedNames, scopeIsAny, types.ReleaseTypePluginBinTool)
+
 	items, num, err := h.daoReleasePluginBinTool.ListReleasePluginBinTool(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin-bintool release")
