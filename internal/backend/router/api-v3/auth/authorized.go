@@ -32,9 +32,6 @@ func (h *handler) Authorized(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) queryAuthorizedScopes(
 	rCtx restserver.IContext, items []*protoBackend.AuthorizedItem,
 ) ([]auth.AuthorizedScope, error) {
-	if len(items) == 0 {
-		return nil, nil
-	}
 
 	scopes := make([]auth.AuthorizedScope, len(items))
 	for i, item := range items {
