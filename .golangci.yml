@@ -667,6 +667,8 @@ linters-settings:
         alias: protoFile
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth
         alias: authRouter
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider
+        alias: authProvider
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay
         alias: protoRelay
       # Using `tc` alias for `github.com/testcontainers/testcontainers-go`
