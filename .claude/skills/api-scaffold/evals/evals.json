@@ -1,0 +1,228 @@
+{
+  "skill_name": "api-scaffold",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "batch-permission-check",
+      "prompt": "我要在 backend 的 auth 模块加个新接口叫 CheckPermissions，批量检查权限，输入是 action 和 resource_id 的数组，输出每个的检查结果（是否有权限 + 原因）",
+      "expected_output": "Proto definitions, generated pb.go, conversion layer with validation, route registration, and handler scaffold with TODO markers",
+      "files": [],
+      "assertions": [
+        {
+          "name": "Proto file contains Request message",
+          "description": "proto/backend/api/v3/auth.proto should contain CheckPermissionsReq message with repeated items field"
+        },
+        {
+          "name": "Proto file contains Response message",
+          "description": "proto/backend/api/v3/auth.proto should contain CheckPermissionsResp message with Data.results field"
+        },
+        {
+          "name": "Proto file contains RPC method",
+          "description": "Auth service should have CheckPermissions RPC method added"
+        },
+        {
+          "name": "Proto generation succeeded",
+          "description": "pkg/proto/backend/api/v3/auth.pb.go should exist and contain generated structs"
+        },
+        {
+          "name": "Validate method implemented",
+          "description": "CheckPermissionsReq.Validate() should check required fields (action, resource_id)"
+        },
+        {
+          "name": "Convert method implemented",
+          "description": "CheckPermissionsResp should have ConvertResultsFrom... method"
+        },
+        {
+          "name": "Route registered",
+          "description": "internal/backend/router/api-v3/auth/auth.go should register /check_permissions route"
+        },
+        {
+          "name": "Handler file created",
+          "description": "internal/backend/router/api-v3/auth/check_permissions.go should exist"
+        },
+        {
+          "name": "Handler has BindJSON",
+          "description": "Handler should contain BindJSON with error handling and logging"
+        },
+        {
+          "name": "Handler has TODO markers",
+          "description": "Handler should contain TODO comments for business logic"
+        },
+        {
+          "name": "Handler has response structure",
+          "description": "Handler should initialize response and return resp.GetData()"
+        },
+        {
+          "name": "No LSP errors",
+          "description": "LSP diagnostics should pass with no type errors"
+        },
+        {
+          "name": "Proto lifecycle confined",
+          "description": "Proto structs should only be used in handler and conversion layer, not leaked to service/storage"
+        },
+        {
+          "name": "No business logic in converters",
+          "description": "Convert methods should not contain business decisions, permission checks, or data filtering"
+        },
+        {
+          "name": "Minimal public surface",
+          "description": "Only necessary conversion methods should be public (exported)"
+        },
+        {
+          "name": "No duplicate conversion logic",
+          "description": "Should reuse existing conversion helpers instead of duplicating"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "single-node-detail",
+      "prompt": "帮我在 backend 的 node 模块搞个 GetNodeDetail 接口，输入是 node_id，输出节点的详细信息（包括 ip、状态、所属业务等）",
+      "expected_output": "Proto definitions, generated pb.go, conversion layer with validation, route registration, and handler scaffold with TODO markers",
+      "files": [],
+      "assertions": [
+        {
+          "name": "Proto file contains Request message",
+          "description": "proto/backend/api/v3/node.proto should contain GetNodeDetailReq message with node_id field"
+        },
+        {
+          "name": "Proto file contains Response message",
+          "description": "proto/backend/api/v3/node.proto should contain GetNodeDetailResp message with NodeInfo in Data"
+        },
+        {
+          "name": "Proto file contains RPC method",
+          "description": "Node service should have GetNodeDetail RPC method added"
+        },
+        {
+          "name": "Proto generation succeeded",
+          "description": "pkg/proto/backend/api/v3/node.pb.go should exist and contain generated structs"
+        },
+        {
+          "name": "Validate method implemented",
+          "description": "GetNodeDetailReq.Validate() should check node_id is required"
+        },
+        {
+          "name": "Convert method implemented",
+          "description": "GetNodeDetailResp should have ConvertFrom... method for NodeInfo"
+        },
+        {
+          "name": "Route registered",
+          "description": "internal/backend/router/api-v3/node/node.go should register /get_node_detail route"
+        },
+        {
+          "name": "Handler file created",
+          "description": "internal/backend/router/api-v3/node/get_node_detail.go should exist"
+        },
+        {
+          "name": "Handler has BindJSON",
+          "description": "Handler should contain BindJSON with error handling and logging"
+        },
+        {
+          "name": "Handler has TODO markers",
+          "description": "Handler should contain TODO comments for business logic"
+        },
+        {
+          "name": "Handler has response structure",
+          "description": "Handler should initialize response and return resp.GetData()"
+        },
+        {
+          "name": "No LSP errors",
+          "description": "LSP diagnostics should pass with no type errors"
+        },
+        {
+          "name": "Proto lifecycle confined",
+          "description": "Proto structs should only be used in handler and conversion layer"
+        },
+        {
+          "name": "No business logic in converters",
+          "description": "Convert methods should not contain business decisions"
+        },
+        {
+          "name": "Minimal public surface",
+          "description": "Only necessary conversion methods should be public"
+        },
+        {
+          "name": "No duplicate conversion logic",
+          "description": "Should reuse existing conversion helpers"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "paginated-package-versions",
+      "prompt": "我需要在 backend 的 package 模块加个 ListPackageVersions 接口，输入是 package_id 和分页参数（page、page_size），输出是版本列表，每个版本包含版本号、创建时间、文件列表（文件名和大小）",
+      "expected_output": "Proto definitions, generated pb.go, conversion layer with validation, route registration, and handler scaffold with TODO markers",
+      "files": [],
+      "assertions": [
+        {
+          "name": "Proto file contains Request message",
+          "description": "proto/backend/api/v3/package.proto should contain ListPackageVersionsReq with package_id, page, page_size"
+        },
+        {
+          "name": "Proto file contains Response message with nested structure",
+          "description": "proto/backend/api/v3/package.proto should contain ListPackageVersionsResp with nested VersionInfo and FileInfo messages"
+        },
+        {
+          "name": "Proto file contains RPC method",
+          "description": "Package service should have ListPackageVersions RPC method added"
+        },
+        {
+          "name": "Proto generation succeeded",
+          "description": "pkg/proto/backend/api/v3/package.pb.go should exist and contain generated structs"
+        },
+        {
+          "name": "Validate method implemented",
+          "description": "ListPackageVersionsReq.Validate() should check package_id required and page/page_size > 0"
+        },
+        {
+          "name": "Convert method implemented",
+          "description": "ListPackageVersionsResp should have ConvertFrom... method handling nested structures"
+        },
+        {
+          "name": "Route registered",
+          "description": "internal/backend/router/api-v3/package/package.go should register /list_package_versions route"
+        },
+        {
+          "name": "Handler file created",
+          "description": "internal/backend/router/api-v3/package/list_package_versions.go should exist"
+        },
+        {
+          "name": "Handler has BindJSON",
+          "description": "Handler should contain BindJSON with error handling and logging"
+        },
+        {
+          "name": "Handler has TODO markers",
+          "description": "Handler should contain TODO comments for business logic"
+        },
+        {
+          "name": "Handler has response structure",
+          "description": "Handler should initialize response and return resp.GetData()"
+        },
+        {
+          "name": "No LSP errors",
+          "description": "LSP diagnostics should pass with no type errors"
+        },
+        {
+          "name": "Proto lifecycle confined",
+          "description": "Proto structs should only be used in handler and conversion layer"
+        },
+        {
+          "name": "No business logic in converters",
+          "description": "Convert methods should not contain business decisions"
+        },
+        {
+          "name": "Minimal public surface",
+          "description": "Only necessary conversion methods should be public"
+        },
+        {
+          "name": "No duplicate conversion logic",
+          "description": "Should reuse existing conversion helpers"
+        },
+        {
+          "name": "Nested structure handled correctly",
+          "description": "Conversion should properly handle nested FileInfo within VersionInfo"
+        }
+      ]
+    }
+  ]
+}
