@@ -154,6 +154,7 @@ func (act *actionWaitPluginInstallerComplete) doOfflinePolling(std *pluginUtils.
 }
 
 // waitOfflineInstallerStatus executes a single GSE script that polls internally until status file is ready.
+// nolint: gocognit
 func (act *actionWaitPluginInstallerComplete) waitOfflineInstallerStatus(
 	std *pluginUtils.PluginActionStandarder,
 ) (*offlinePluginInstallerStatus, error) {
@@ -214,8 +215,8 @@ func (act *actionWaitPluginInstallerComplete) waitOfflineInstallerStatus(
 		// Check if script failed
 		if result.Status == types.ScriptStatusFailed {
 			return nil, fmt.Errorf(
-				"wait status script failed, exit-code(%d), err-code(%d), err-msg(%s)",
-				result.ExitCode, result.ErrorCode, result.ErrorMessage,
+				"wait status script failed, exit-code(%d), err-code(%d), err-msg(%s), screen(%s)",
+				result.ExitCode, result.ErrorCode, result.ErrorMessage, result.ScreenLog,
 			)
 		}
 

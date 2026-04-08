@@ -120,7 +120,7 @@ func (act *actionInstallPreOrderedPlugins) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen,gocognit
+// nolint: perfsprint,funlen,gocognit,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error {
 	param := new(InstallPreOrderedPluginsParams)
