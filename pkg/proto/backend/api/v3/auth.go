@@ -136,3 +136,62 @@ func ConvertAuthResourcesToInternal(protoResources []*AuthResource) []auth.Resou
 
 	return resources
 }
+
+// Validate validates the authorized request body.
+func (x *AuthorizedReq) Validate() error {
+	for i, item := range x.GetItems() {
+		if item.GetAction() == "" {
+			return fmt.Errorf("items[%d].action is required", i)
+		}
+		if item.GetResourceType() == "" {
+			return fmt.Errorf("items[%d].resource_type is required", i)
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert is a no-op for this request type.
+func (x *AuthorizedReq) AutoConvert() {}
+
+// ConvertResultsFromScopes populates the response data from authorized scopes.
+func (x *AuthorizedResp) ConvertResultsFromScopes(
+	items []*AuthorizedItem,
+	scopes []auth.AuthorizedScope,
+) {
+	if len(items) != len(scopes) {
+		return
+	}
+
+	results := make([]*AuthorizedResult, len(items))
+	for i, item := range items {
+		results[i] = &AuthorizedResult{
+			Action:       item.GetAction(),
+			ResourceType: item.GetResourceType(),
+			IsAny:        scopes[i].IsAny,
+			Resources:    ConvertInternalToAuthResources(scopes[i].Resources),
+		}
+	}
+
+	x.Data = &AuthorizedResp_Data{
+		Results: results,
+	}
+}
+
+// ConvertInternalToAuthResources converts internal auth resources to proto auth resources.
+func ConvertInternalToAuthResources(resources []auth.Resource) []*AuthResource {
+	if len(resources) == 0 {
+		return nil
+	}
+
+	protoResources := make([]*AuthResource, len(resources))
+	for i, r := range resources {
+		protoResources[i] = &AuthResource{
+			SystemId: r.SystemID,
+			Type:     string(r.Type),
+			Id:       r.ID,
+		}
+	}
+
+	return protoResources
+}
