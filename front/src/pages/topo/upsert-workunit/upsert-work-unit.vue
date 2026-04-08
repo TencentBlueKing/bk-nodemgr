@@ -168,6 +168,7 @@ import {
 } from './custom-deploy-config';
 import { buildNetworkUnitPayload } from './network-unit-payload';
 
+import { NodeConstantService } from '@/api/modules/node_constant';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import { PACKAGE_GENERATION } from '@/common/const';
@@ -306,7 +307,7 @@ const fetchDefaultDeployConfig = async (osType: string) => {
   if (!osType || defaultDeployConfigs.value[osType] !== undefined) {
     return;
   }
-  const res = await TopoService.DefaultDeployConstantGet({
+  const res = await NodeConstantService.NodeConstantDeployGet({
     generation: PACKAGE_GENERATION,
     os_type: osType,
   }).catch(() => null);

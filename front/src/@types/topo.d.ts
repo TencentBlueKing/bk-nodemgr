@@ -177,19 +177,20 @@ export interface TopoNetworkAreaDeleteRespData {
   bk_networkarea_id: number;
 }
 
+// TopoNetworkUnitExactConditions describes the exact conditions when list
+export interface TopoNetworkUnitExactConditions {
+  bk_networkunit_id: number[];
+  bk_networkarea_id: number[];
+  is_direct: boolean[];
+  generation: number[];
+}
+
 // TopoNetworkUnitListReq describes the HTTP request body when list network-unit
 // in topo service.
 export interface TopoNetworkUnitListReq {
   page: Page;
   only_count: boolean;
-  exact_include_conditions: TopoNetworkUnitListReqExactConditions;
-}
-
-export interface TopoNetworkUnitListReqExactConditions {
-  bk_networkunit_id: number[];
-  bk_networkarea_id: number[];
-  is_direct: boolean[];
-  generation: number[];
+  exact_include_conditions: TopoNetworkUnitExactConditions;
 }
 
 // TopoNetworkUnitListResp describes the HTTP response body when list
@@ -663,27 +664,5 @@ export interface TopoConstantGetResp {
 export interface TopoConstantGetRespData {
   cloud_vendor: string[];
   os_type: string[];
-}
-
-// TopoDefaultDeployConstantGetReq describes the HTTP request body when get
-// default deploy constant in topo service.
-export interface TopoDefaultDeployConstantGetReq {
-  generation: number;
-  os_type: string;
-}
-
-// TopoDefaultDeployConstantGetResp describes the HTTP response body when get
-// default deploy constant in topo service.
-export interface TopoDefaultDeployConstantGetResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: TopoDefaultDeployConstantGetRespData;
-}
-
-export interface TopoDefaultDeployConstantGetRespData {
-  default_deploy_config: CustomDeployConfig;
 }
 

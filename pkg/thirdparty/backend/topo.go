@@ -14,7 +14,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -55,13 +54,6 @@ type IHandlerConstant interface {
 	// @param fields describes the fields to get.
 	// @return the constant result and error.
 	GetConstant(nCtx contextx.IContext, fields types.TopoConstantFields) (*types.TopoConstant, error)
-
-	// GetDefaultDeployConstant get default deploy constant by generation and os type.
-	// @param nCtx contextx.IContext, contains tenant-id and username.
-	// @param generation the deploy constant generation.
-	// @param osType the os type.
-	// @return the custom deploy config and error.
-	GetDefaultDeployConstant(nCtx contextx.IContext, generation types.Generation, osType criteria.OSType) (*types.CustomDeployConfig, error)
 }
 
 // IHandlerGraph defines the graph Handler.
@@ -230,25 +222,6 @@ func (h *Handler) GetConstant(nCtx contextx.IContext, fields types.TopoConstantF
 	}
 
 	resp, err := h.cli.getConstant(nCtx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.ConvertConstantToTypes(), nil
-}
-
-// GetDefaultDeployConstant get default deploy constant by generation and os type.
-func (h *Handler) GetDefaultDeployConstant(
-	nCtx contextx.IContext,
-	generation types.Generation,
-	osType criteria.OSType) (*types.CustomDeployConfig, error) {
-
-	req := &protoBackend.TopoDefaultDeployConstantGetReq{
-		Generation: int64(generation),
-		OsType:     string(osType),
-	}
-
-	resp, err := h.cli.getDefaultDeployConstant(nCtx, req)
 	if err != nil {
 		return nil, err
 	}

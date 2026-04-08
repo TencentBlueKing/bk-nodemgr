@@ -35,7 +35,7 @@ func (x *TopoConstantGetReq) ConvertFieldsToTypes() types.TopoConstantFields {
 }
 
 // Validate check body.
-func (x *TopoDefaultDeployConstantGetReq) Validate() error {
+func (x *NodeConstantDeployGetReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
 		return fmt.Errorf("invalid generation, generation(%d): %w", x.GetGeneration(), err)
 	}
@@ -48,13 +48,13 @@ func (x *TopoDefaultDeployConstantGetReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *TopoDefaultDeployConstantGetReq) AutoConvert() {
+func (x *NodeConstantDeployGetReq) AutoConvert() {
 }
 
 // ConvertConstantFromTypes converts NodeDeployConf and PluginDeployConf into the response data.
 // Node role defaults to agent; plugin group defaults to "default"; plugin name defaults to "bk-nodemgr-relay".
-func (x *TopoDefaultDeployConstantGetResp) ConvertConstantFromTypes(deployConfig *types.CustomDeployConfig) {
-	x.Data = &TopoDefaultDeployConstantGetResp_Data{
+func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(deployConfig *types.CustomDeployConfig) {
+	x.Data = &NodeConstantDeployGetResp_Data{
 		DefaultDeployConfig: &CustomDeployConfig{
 			InstallerRuntime: &InstallerRuntime{
 				BaseWorkDir: &deployConfig.InstallerRuntime.BaseWorkDir,

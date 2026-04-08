@@ -1,0 +1,39 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// NodeConstantDeployGetReq describes the HTTP request body when get
+// default deploy constant in node service.
+message NodeConstantDeployGetReq {
+  int64 generation = 1;
+  string os_type = 2;
+}
+
+// NodeConstantDeployGetResp describes the HTTP response body when get
+// default deploy constant in node service.
+message NodeConstantDeployGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { CustomDeployConfig default_deploy_config = 1; }
+  Data data = 5;
+}
+
+// node constant service.
+service NodeConstant {
+  // NodeConstantDeployGet provides getting deploy constant.
+  rpc NodeConstantDeployGet(NodeConstantDeployGetReq)
+      returns (NodeConstantDeployGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/constant/deploy/get"
+      body : "*"
+    };
+  }
+}

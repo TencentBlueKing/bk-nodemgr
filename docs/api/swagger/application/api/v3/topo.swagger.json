@@ -50,40 +50,6 @@
         ]
       }
     },
-    "/api/v3/topo/constant/default_deploy/get": {
-      "post": {
-        "summary": "DefaultDeployConstantGet provides getting default deploy constant.",
-        "operationId": "Topo_DefaultDeployConstantGet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3TopoDefaultDeployConstantGetResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "TopoDefaultDeployConstantGetReq describes the HTTP request body when get\ndefault deploy constant in topo service.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3TopoDefaultDeployConstantGetReq"
-            }
-          }
-        ],
-        "tags": [
-          "Topo"
-        ]
-      }
-    },
     "/api/v3/topo/constant/get": {
       "post": {
         "summary": "ConstantGet provides getting a constant.",
@@ -1718,52 +1684,6 @@
           "items": {
             "type": "string"
           }
-        }
-      }
-    },
-    "v3TopoDefaultDeployConstantGetReq": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "os_type": {
-          "type": "string"
-        }
-      },
-      "description": "TopoDefaultDeployConstantGetReq describes the HTTP request body when get\ndefault deploy constant in topo service."
-    },
-    "v3TopoDefaultDeployConstantGetResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3TopoDefaultDeployConstantGetRespData"
-        }
-      },
-      "description": "TopoDefaultDeployConstantGetResp describes the HTTP response body when get\ndefault deploy constant in topo service."
-    },
-    "v3TopoDefaultDeployConstantGetRespData": {
-      "type": "object",
-      "properties": {
-        "default_deploy_config": {
-          "$ref": "#/definitions/v3CustomDeployConfig"
         }
       }
     },

@@ -14,6 +14,7 @@ package node
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/agent"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/constant"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node/workflow"
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,7 @@ type handler struct {
 	rg *gin.RouterGroup
 }
 
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg: rg.Group("/node"),
@@ -37,4 +38,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	workflow.Load(h.rg, capability)
 	agent.Load(h.rg, capability)
 	proxy.Load(h.rg, capability)
+	constant.Load(h.rg, capability)
 }

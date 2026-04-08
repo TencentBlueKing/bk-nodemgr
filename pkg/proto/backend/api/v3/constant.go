@@ -48,7 +48,7 @@ func (x *TopoConstantGetResp) ConvertConstantToTypes() *types.TopoConstant {
 }
 
 // Validate check body.
-func (x *TopoDefaultDeployConstantGetReq) Validate() error {
+func (x *NodeConstantDeployGetReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
 		return fmt.Errorf("invalid generation, generation(%d): %w", x.GetGeneration(), err)
 	}
@@ -61,18 +61,18 @@ func (x *TopoDefaultDeployConstantGetReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *TopoDefaultDeployConstantGetReq) AutoConvert() {
+func (x *NodeConstantDeployGetReq) AutoConvert() {
 }
 
 // ConvertConstantFromTypes converts NodeDeployConf and PluginDeployConf into the response data.
 // Node role defaults to agent; plugin group defaults to "default"; plugin name defaults to "bk-nodemgr-relay".
-func (x *TopoDefaultDeployConstantGetResp) ConvertConstantFromTypes(
+func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(
 	osType criteria.OSType,
 	nodeConf deployconstant.NodeDeployConf,
 	pluginConf deployconstant.PluginDeployConf) {
 
 	if x.Data == nil {
-		x.Data = &TopoDefaultDeployConstantGetResp_Data{}
+		x.Data = &NodeConstantDeployGetResp_Data{}
 	}
 
 	x.Data.DefaultDeployConfig = &CustomDeployConfig{
@@ -98,7 +98,7 @@ func (x *TopoDefaultDeployConstantGetResp) ConvertConstantFromTypes(
 }
 
 // ConvertConstantToTypes converts the response data into a types.DeployConfig.
-func (x *TopoDefaultDeployConstantGetResp) ConvertConstantToTypes() *types.CustomDeployConfig {
+func (x *NodeConstantDeployGetResp) ConvertConstantToTypes() *types.CustomDeployConfig {
 	config := x.GetData().GetDefaultDeployConfig()
 	if config == nil {
 		return nil

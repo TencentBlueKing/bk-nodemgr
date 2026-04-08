@@ -75,5 +75,4 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// constant apis.
 	h.rg.POST("/constant/get", restserver.Handler(h.GetConstant))
-	h.rg.POST("/constant/default_deploy/get", restserver.Handler(h.GetDefaultDeployConstant))
 }
