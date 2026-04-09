@@ -29,20 +29,24 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	// if networkunit-id is empty, get all.
-	networkUnitIDs := req.GetBkNetworkunitId()
-	if len(networkUnitIDs) == 0 {
-		networkUnits, _, err := h.storage.ListNetworkUnit(
-			rCtx, types.UnlimitedPage(), nil)
-		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph node, failed to list networkunit")
-			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-		}
+	requestedIDs := req.GetBkNetworkunitId()
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkUnitIDs(rCtx, requestedIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get graph node, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
 
-		networkUnitIDs = make([]int64, len(networkUnits))
-		for idx, networkUnit := range networkUnits {
-			networkUnitIDs[idx] = networkUnit.ID
-		}
+	condition := narrowNetworkUnitCondition(nil, narrowedIDs, scopeIsAny)
+
+	networkUnits, _, err := h.storage.ListNetworkUnit(rCtx, types.UnlimitedPage(), condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph node, failed to list networkunit")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	networkUnitIDs := make([]int64, len(networkUnits))
+	for idx, networkUnit := range networkUnits {
+		networkUnitIDs[idx] = networkUnit.ID
 	}
 
 	result := make(map[int64]*protoBackend.GraphNodeInfo)
