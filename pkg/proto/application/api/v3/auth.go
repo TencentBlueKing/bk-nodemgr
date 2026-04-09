@@ -59,6 +59,10 @@ func (x *AuthorizedReq) Validate() error {
 		if item.GetAction() == "" {
 			return fmt.Errorf("items[%d].action is required", i)
 		}
+
+		if item.GetResourceType() == "" {
+			return fmt.Errorf("items[%d].resource_type is required", i)
+		}
 	}
 
 	return nil
