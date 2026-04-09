@@ -142,6 +142,10 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 
 			return act.transferRelease(nCtx, std.DeployInfo(), targetHost)
 		})
+
+		gp.Go(func() error {
+			return act.pushOfflinePluginConfig(nCtx, std, targetHost)
+		})
 	}
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
@@ -155,12 +159,6 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 				Info()
 
 			return act.transferInstaller(nCtx, std.DeployInfo(), targetHost)
-		})
-	}
-	// offline mode: push config files since installer cannot callback to fetch them.
-	if std.DeployInfo().InstallOptions.IsOffline {
-		gp.Go(func() error {
-			return act.pushOfflinePluginConfig(nCtx, std, targetHost)
 		})
 	}
 

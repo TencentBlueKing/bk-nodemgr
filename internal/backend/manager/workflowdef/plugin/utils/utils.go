@@ -14,14 +14,18 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"path/filepath"
 	"slices"
 	"strings"
 
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -156,4 +160,96 @@ func BuildServerURLs(endpoints ...discover.Endpoint) string {
 	}
 
 	return strings.Join(addrs, installer.ServerAddrSeparator)
+}
+
+// GeneratePluginInstallerServerEndpoints generates the server URLs for installer.
+// Returns: (callbackURL, downloadURL).
+func GeneratePluginInstallerServerEndpoints(
+	nCtx contextx.IContext,
+	provider discover.Discover,
+	storageHost topoStg.IStorageHost,
+	storageNetworkUnit topoStg.IStorageNetworkUnit,
+	hostID int64) ([]discover.Endpoint, []discover.Endpoint, error) {
+
+	// get host.
+	host, err := storageHost.GetHostByID(nCtx, hostID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get host: %w", err)
+	}
+	if host.Dynamic.NetworkUnitID < 0 {
+		return nil, nil, fmt.Errorf("invalid networkunit id: %d", host.Dynamic.NetworkUnitID)
+	}
+
+	// get networkunit.
+	networkUnit, err := storageNetworkUnit.GetNetworkUnit(nCtx, host.Dynamic.NetworkUnitID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get networkunit: %w", err)
+	}
+
+	// if networkunit is direct, select endpoints from direct services with discover provider.
+	if networkUnit.IsDirect {
+		callbackEndpoints, err := provider.SelectEndpoints(
+			discover.ServiceNameBackend,
+			discover.EndpointNameBackendCallback,
+			DefaultEndpointSelectionCount,
+			discover.NewRoundRobinSelector())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		}
+
+		downloadEndpoints, err := provider.SelectEndpoints(
+			discover.ServiceNameFile,
+			discover.EndpointNameFileDownload,
+			DefaultEndpointSelectionCount,
+			discover.NewRoundRobinSelector())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to select file endpoints: %w", err)
+		}
+
+		return callbackEndpoints, downloadEndpoints, nil
+	}
+
+	// select relay endpoints for callback.
+	hosts, _, err := storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		DynamicExactInclude: &types.HostDynamicExactFields{
+			NetworkUnitID: []int64{networkUnit.ID},
+			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
+			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
+		},
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get running proxy: %w", err)
+	}
+
+	callbackEndpoints := make([]discover.Endpoint, 0)
+	for _, host := range hosts {
+		if host.HostID == hostID {
+			continue
+		}
+
+		if host.Dynamic.RelayCallbackPort <= 0 {
+			continue
+		}
+
+		callbackEndpoints = append(callbackEndpoints, discover.Endpoint{
+			IPV4: host.Dynamic.AdvertiseIP,
+			IPV6: host.Dynamic.AdvertiseIPV6,
+			Port: int(host.Dynamic.RelayCallbackPort),
+		})
+	}
+	if len(callbackEndpoints) == 0 {
+		return nil, nil, fmt.Errorf("no available proxy found")
+	}
+
+	// shuffle callback endpoints.
+	rand.Shuffle(len(callbackEndpoints), func(i, j int) {
+		callbackEndpoints[i], callbackEndpoints[j] = callbackEndpoints[j], callbackEndpoints[i]
+	})
+
+	if len(callbackEndpoints) > DefaultEndpointSelectionCount {
+		callbackEndpoints = callbackEndpoints[:DefaultEndpointSelectionCount]
+	}
+
+	// in-direct never use download endpoints.
+	return callbackEndpoints, nil, nil
 }

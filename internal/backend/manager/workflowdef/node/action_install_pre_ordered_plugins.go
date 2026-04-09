@@ -120,7 +120,7 @@ func (act *actionInstallPreOrderedPlugins) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen,gocognit,cyclop
+// nolint: perfsprint,funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error {
 	param := new(InstallPreOrderedPluginsParams)
@@ -196,9 +196,9 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	// if in offline mode, disable select downloads.
+	// if in offline mode or indirect unit, disable select downloads.
 	pluginTransferOpts := types.DefaultPluginDeploymentTransferOptions()
-	if deployInfo.InstallOptions.IsOffline {
+	if deployInfo.InstallOptions.IsOffline || !deployInfo.InstallOptions.DirectInstall {
 		pluginTransferOpts.SelectDownloads = false
 	}
 

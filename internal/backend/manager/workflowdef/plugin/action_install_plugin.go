@@ -40,6 +40,7 @@ const (
 func NewActionInstallPlugin(capability *Capability) action.Definition {
 	return &actionInstallPlugin{
 		daoHost:             capability.StorageTopo,
+		daoNetworkUnit:      capability.StorageTopo,
 		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 		provider:            capability.DiscoverProvider,
@@ -55,6 +56,7 @@ type ActParamInstallPlugin struct {
 // actionInstallPlugin ...
 type actionInstallPlugin struct {
 	daoHost             topoStg.IStorageHost
+	daoNetworkUnit      topoStg.IStorageNetworkUnit
 	daoPlugin           pluginStg.IDaoPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	provider            discover.Discover
@@ -132,7 +134,6 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get plugin: %w", err)
 	}
 
-
 	installParams, err := act.buildInstallParams(std, targetHost, targetPlugin)
 	if err != nil {
 		return fmt.Errorf("build install params failed: %w", err)
@@ -184,7 +185,6 @@ type pluginInstallParams struct {
 	InstallerWorkDir string
 }
 
-
 func (act *actionInstallPlugin) buildInstallParams(
 	std *pluginUtils.PluginActionStandarder,
 	targetHost *types.Host,
@@ -198,22 +198,16 @@ func (act *actionInstallPlugin) buildInstallParams(
 		return nil, err
 	}
 
-	downloadEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileDownload,
-		pluginUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
+	callbackEndpoints, downloadEndpoints, err := pluginUtils.GeneratePluginInstallerServerEndpoints(
+		std.Context(),
+		act.provider,
+		act.daoHost,
+		act.daoNetworkUnit,
+		std.DeployInfo().Process.HostID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to select file endpoints: %w", err)
-	}
+		err = fmt.Errorf("failed to generate plugin installer server endpoints: %w", err)
 
-	callbackEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		pluginUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
-	if err != nil {
-		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		return nil, err
 	}
 
 	params := &pluginInstallParams{
@@ -233,8 +227,8 @@ func (act *actionInstallPlugin) buildInstallParams(
 			DownloadSvrAddr: pluginUtils.BuildServerURLs(downloadEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
-			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline,
-			SkipDownload:    std.DeployInfo().InstallOptions.IsOffline,
+			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline || len(callbackEndpoints) == 0,
+			SkipDownload:    std.DeployInfo().InstallOptions.IsOffline || len(downloadEndpoints) == 0,
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}
