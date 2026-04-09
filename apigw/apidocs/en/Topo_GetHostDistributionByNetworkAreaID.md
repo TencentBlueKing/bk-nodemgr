@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1+.
-- Required Permission: None.
+- Required Permission: networkarea_view (View Network Area).
 - Function: Count the host distribution for each network area based on host filtering conditions.
 
 ### URL

@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1+.
-- Required Permission: None.
+- Required Permission: networkunit_view (View Network Unit).
 - Function: Query the access point list with pagination and exact filtering by network area ID and access point ID.
 
 ### URL
