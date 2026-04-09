@@ -123,25 +123,22 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkunits, _, err := h.backendHandler.ListNetworkUnit(
+	networkUnitDistributionByNetworkAreaID, err := h.backendHandler.GetNetworkUnitDistributionByNetworkAreaID(
 		rCtx,
-		types.UnlimitedPage(),
 		req.ConvertNetworkUnitConditionToTypes(),
 	)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics networkarea, failed to list networkunit")
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics networkarea, failed to get networkunit distribution by network area id")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	// result is a map of networkareaID and networkareaStatics
 	result := make(map[int64]*protoApplication.NetworkAreaStatistics)
-	for _, networkunit := range networkunits {
-		if _, ok := result[networkunit.NetworkAreaID]; !ok {
-			result[networkunit.NetworkAreaID] = &protoApplication.NetworkAreaStatistics{
-				NetworkAreaID: networkunit.NetworkAreaID,
-			}
+	for networkAreaID, networkUnitCount := range networkUnitDistributionByNetworkAreaID {
+		result[networkAreaID] = &protoApplication.NetworkAreaStatistics{
+			NetworkAreaID:    networkAreaID,
+			NetworkUnitCount: networkUnitCount,
 		}
-		result[networkunit.NetworkAreaID].NetworkUnitCount++
 	}
 
 	networkAreaIDs := req.GetBkNetworkareaId()
