@@ -454,6 +454,8 @@ onBeforeMount(async () => {
   setShortcutIcon(platformConfig.favicon);
 
   await getBusinessList();
+  // 获取各 action 有权限的业务范围
+  await authStore.fetchAuthorized();
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
   bizSelectorRef.value?.init();
   mainStore.setBusinessReady();

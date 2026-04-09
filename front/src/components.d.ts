@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AreaSelector: typeof import('./components/areaSelector.vue')['default']
     AssignUnitTable: typeof import('./components/assign-unit-table.vue')['default']
+    AuthButton: typeof import('./components/auth-button.vue')['default']
     AutoFitTags: typeof import('./components/auto-fit-tags.vue')['default']
     BatchEdit: typeof import('./components/batch-edit.vue')['default']
     BizSelector: typeof import('./components/biz-selector.vue')['default']

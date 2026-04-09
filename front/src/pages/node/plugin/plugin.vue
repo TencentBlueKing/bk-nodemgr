@@ -56,9 +56,15 @@
           min-width="150"
         >
           <template #default="{ row }">
-            <Button text theme="primary" @click="handleEditInfo(row)">
+            <AuthButton
+              text
+              theme="primary"
+              :has-permission="hasAction('set_memo', row.name)"
+              :action-name="$t('action.edit')"
+              @click="handleEditInfo(row)"
+            >
               {{ $t('action.edit') }}
-            </Button>
+            </AuthButton>
           </template>
         </TableColumn>
       </Table>
@@ -90,9 +96,13 @@ import editDialog from './edit-dialog.vue';
 import processSideslider from './process-sideslider.vue';
 
 import { PluginAPIService } from '@/api/modules/plugin';
+import AuthButton from '@/components/auth-button.vue';
+import usePluginAuth from '@/composables/use-plugin-auth';
 import { ProcessAPIService } from '@/api/modules/process';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
+
+const { hasAction, load: loadPluginAuth, loaded: authLoaded } = usePluginAuth();
 
 const router = useRouter();
 const mainStore = useMainStore();
@@ -236,6 +246,7 @@ const openSidebar = async (plugin: any) => {
 
 // 组件挂载时加载数据
 onMounted(() => {
+  loadPluginAuth();
   loadPluginList();
 });
 </script>

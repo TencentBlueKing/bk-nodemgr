@@ -1027,6 +1027,49 @@ export interface PackageReleasePluginDownloadReq {
   version: string;
 }
 
+// PackageReleasePluginGetConfigVariablesReq describes the HTTP request body
+// when get config variables of plugin release.
+export interface PackageReleasePluginGetConfigVariablesReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginGetConfigVariablesResp describes the HTTP response body
+// when get config variables of plugin release.
+export interface PackageReleasePluginGetConfigVariablesResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PackageReleasePluginGetConfigVariablesRespData;
+}
+
+export interface PackageReleasePluginGetConfigVariablesRespData {
+  config_variables: ConfigVariables[];
+}
+
+export interface DataConfigVariables {
+  name: string;
+  file_path: string;
+  source_path: string;
+  is_main_config: boolean;
+  source_content: string;
+  variables: Record<string, Property>;
+}
+
+export interface ConfigVariablesProperty {
+  title: string;
+  type: string;
+  required: boolean;
+  default: google.protobuf.Value;
+  description: string;
+  description_en: string;
+  properties: Record<string, Property>;
+}
+
 // PackageReleaseCertListReq describes the HTTP request body when list cert
 // release.
 export interface PackageReleaseCertListReq {

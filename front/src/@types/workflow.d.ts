@@ -54,10 +54,10 @@ export interface WorkflowActionInstBriefData {
   tags: string[];
 }
 
-// SubWorkflowRef surfaced in action logs.
+// SubWorkflowRef describes a child workflow reference surfaced in action logs.
 export interface SubWorkflowRef {
   workflow_id: string;
-  workflow_domain: 'node' | 'plugin';
+  workflow_domain: string;
 }
 
 // WorkflowActionData describes the workflow action data.
@@ -68,7 +68,7 @@ export interface WorkflowActionData {
   display_name_zh: string;
   // English display name
   display_name_en: string;
-  sub_workflow_refs?: SubWorkflowRef[];
+  sub_workflow_refs: SubWorkflowRef[];
 }
 
 // WorkflowOperInstBriefData describes the brief data of operation instance.

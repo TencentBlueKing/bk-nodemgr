@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { ConfigPolicyListReq, ConfigPolicyListResp, ConfigPolicyGetReq, ConfigPolicyGetResp, ConfigPolicyListPlatformReq, ConfigPolicyListPlatformResp, ConfigPolicyGetTemplateReq, ConfigPolicyGetTemplateResp, ConfigPolicyCreateReq, ConfigPolicyCreateResp, ConfigPolicyUpdateReq, ConfigPolicyUpdateResp, ConfigPolicyEnableReq, ConfigPolicyEnableResp, ConfigPolicyDisableReq, ConfigPolicyDisableResp, ConfigPolicyDeleteReq, ConfigPolicyDeleteResp, ConfigPolicyEventListReq, ConfigPolicyEventListResp, ConfigPolicyEventDistinctReq, ConfigPolicyEventDistinctResp } from '@/@types/configpolicy';
+import type { ConfigPolicyListReq, ConfigPolicyListResp, ConfigPolicyGetReq, ConfigPolicyGetResp, ConfigPolicyListPlatformReq, ConfigPolicyListPlatformResp, ConfigPolicyGetTemplateReq, ConfigPolicyGetTemplateResp, ConfigPolicyCreateReq, ConfigPolicyCreateResp, ConfigPolicyUpdateReq, ConfigPolicyUpdateResp, ConfigPolicyEnableReq, ConfigPolicyEnableResp, ConfigPolicyDisableReq, ConfigPolicyDisableResp, ConfigPolicyDeleteReq, ConfigPolicyDeleteResp, ConfigPolicyPriorityReorderReq, ConfigPolicyPriorityReorderResp, ConfigPolicyPreviewReq, ConfigPolicyPreviewResp, ConfigPolicyEventListReq, ConfigPolicyEventListResp, ConfigPolicyEventDistinctReq, ConfigPolicyEventDistinctResp } from '@/@types/configpolicy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -27,6 +27,11 @@ export const ConfigPolicyAPIService = {
   ConfigPolicyDisable: async <Request = ConfigPolicyDisableReq, ResponseData = ConfigPolicyDisableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/disable')(params, config),
   // DeleteConfigPolicy deletes config policy.
   ConfigPolicyDelete: async <Request = ConfigPolicyDeleteReq, ResponseData = ConfigPolicyDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/delete')(params, config),
+  // ConfigPolicyPriorityReorder reorders config policy priorities within a
+  // (biz, type) scope.
+  ConfigPolicyPriorityReorder: async <Request = ConfigPolicyPriorityReorderReq, ResponseData = ConfigPolicyPriorityReorderResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/reorder_priorities')(params, config),
+  // ConfigPolicyPreview previews merged config for selected hosts.
+  ConfigPolicyPreview: async <Request = ConfigPolicyPreviewReq, ResponseData = ConfigPolicyPreviewResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/preview')(params, config),
   // ConfigPolicyEventList provides policy event listing.
   ConfigPolicyEventList: async <Request = ConfigPolicyEventListReq, ResponseData = ConfigPolicyEventListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/event/list')(params, config),
   // ConfigPolicyEventDistinct provides policy event distincting.

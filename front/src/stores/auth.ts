@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
 
+import type { AuthorizedItem, AuthorizedResult } from '@/@types/auth';
+import { AuthService } from '@/api/modules/auth';
 import Fetch from '@/api/fetch';
 import type { AuthVerifyItem, AuthVerifyResp, PageAuthItem } from '@/constants/auth';
 import { getSystemIdForResourceType } from '@/constants/auth';
@@ -163,6 +165,83 @@ export const useAuthStore = defineStore('auth', () => {
     lastVerifiedBizScope.value = '';
   }
 
+  // ===== Authorized API =====
+  // action → { isAny: boolean; bizIds: Set<string> }
+  const authorizedMap = reactive<Record<string, { isAny: boolean; bizIds: Set<string> }>>({});
+  const authorizedLoaded = ref(false);
+  const authorizedLoading = ref(false);
+
+  /**
+   * 调用 /api/v3/auth/authorized 获取当前用户对各 action 有权限的业务范围
+   * @param items 要查询的 action-resource_type 对，默认查所有 biz 类型的页面权限
+   */
+  async function fetchAuthorized(items?: AuthorizedItem[]) {
+    if (authorizedLoading.value) return;
+    authorizedLoading.value = true;
+
+    const defaultItems: AuthorizedItem[] = [
+      { action: 'agent_view', resource_type: 'biz' },
+      { action: 'agent_operate', resource_type: 'biz' },
+      { action: 'proxy_view', resource_type: 'biz' },
+      { action: 'plugin_view', resource_type: 'biz' },
+      { action: 'plugin_operate', resource_type: 'biz' },
+      { action: 'agent_history_view', resource_type: 'biz' },
+      { action: 'proxy_history_view', resource_type: 'biz' },
+      { action: 'plugin_history_view', resource_type: 'biz' },
+      { action: 'deploy_policy_view', resource_type: 'biz' },
+      { action: 'config_policy_view', resource_type: 'biz' },
+      { action: 'deploy_policy_history_view', resource_type: 'biz' },
+    ];
+
+    try {
+      const res = await AuthService.Authorized({
+        items: items || defaultItems,
+      });
+
+      const results: AuthorizedResult[] = (res as any)?.results || [];
+      for (const r of results) {
+        const bizIds = new Set<string>();
+        if (!r.is_any) {
+          (r.resources || []).forEach(res => bizIds.add(res.id));
+        }
+        authorizedMap[r.action] = { isAny: r.is_any, bizIds };
+      }
+      authorizedLoaded.value = true;
+    } catch (err) {
+      console.error('fetchAuthorized failed:', err);
+    } finally {
+      authorizedLoading.value = false;
+    }
+  }
+
+  /**
+   * 判断某个 action 下，指定业务是否有权限
+   * @param action IAM action 标识
+   * @param bizId 业务 ID
+   * @returns 有权限返回 true；未加载完成时默认 false（显示锁图标），靠 authorized 接口返回后更新
+   */
+  function hasAuthorizedBiz(action: string, bizId?: string | number): boolean {
+    if (!action) return true; // 无 action 匹配时不做权限限制
+    if (!authorizedLoaded.value) return false; // 未加载完成时默认无权限，显示锁图标
+    const entry = authorizedMap[action];
+    if (!entry) return true; // 不在查询列表中的 action，默认放行
+    if (entry.isAny) return true;
+    if (bizId === undefined || bizId === null) return entry.bizIds.size > 0;
+    return entry.bizIds.has(String(bizId));
+  }
+
+  /**
+   * 获取某个 action 下有权限的所有业务 ID
+   * @param action IAM action 标识
+   * @returns isAny=true 时返回 null（表示全部），否则返回 bizId 数组
+   */
+  function getAuthorizedBizIds(action: string): string[] | null {
+    if (!authorizedLoaded.value) return null;
+    const entry = authorizedMap[action];
+    if (!entry || entry.isAny) return null;
+    return Array.from(entry.bizIds);
+  }
+
   return {
     permissionMap,
     permissionTimestampMap,
@@ -171,6 +250,9 @@ export const useAuthStore = defineStore('auth', () => {
     needRefresh,
     loading,
     lastVerifiedBizScope,
+    authorizedMap,
+    authorizedLoaded,
+    authorizedLoading,
     batchVerify,
     hasPermission,
     hasPermissionCache,
@@ -181,5 +263,8 @@ export const useAuthStore = defineStore('auth', () => {
     setDeniedActionIds,
     refreshPermissions,
     reset,
+    fetchAuthorized,
+    hasAuthorizedBiz,
+    getAuthorizedBizIds,
   };
 });

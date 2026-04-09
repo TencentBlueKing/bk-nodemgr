@@ -2,7 +2,7 @@
 // ConfigPolicyExactConditions describes config policy exact conditions.
 export interface ConfigPolicyExactConditions {
   configpolicy_id: number[];
-  biz_id: number[];
+  bk_biz_id: number[];
   configpolicy_type: string[];
   enabled: boolean[];
 }
@@ -97,7 +97,7 @@ export interface ConfigPolicyGetResp {
 export interface ConfigPolicyCreateReq {
   configpolicy_name: string;
   configpolicy_type: string;
-  biz_id: number;
+  bk_biz_id: number;
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
@@ -125,7 +125,7 @@ export interface ConfigPolicyUpdateReq {
   configpolicy_id: number;
   configpolicy_name: string;
   configpolicy_type: string;
-  biz_id: number;
+  bk_biz_id: number;
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
@@ -208,12 +208,83 @@ export interface ConfigPolicyDeleteResp {
 export interface ConfigPolicyDeleteRespData {
 }
 
+// ConfigPolicyPriorityReorderReq describes HTTP request body when reordering
+// config policy priorities within a single (biz, type) scope.
+// Listed IDs are assigned priority 1..N; remaining enabled policies in the
+// same (biz, type) preserve their relative order starting from N+1.
+export interface ConfigPolicyPriorityReorderReq {
+  bk_biz_id: number;
+  configpolicy_type: string;
+  ordered_configpolicy_id: number[];
+}
+
+// ConfigPolicyPriorityReorderResp describes HTTP response body when
+// reordering config policy priorities.
+export interface ConfigPolicyPriorityReorderResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: ConfigPolicyPriorityReorderRespData;
+}
+
+export interface ConfigPolicyPriorityReorderRespData {
+}
+
+// PreviewHost carries a host ID with optional attribute overrides for preview.
+export interface PreviewHost {
+  bk_host_id: number;
+  bk_networkunit_id: number;
+  bk_networkarea_id: number;
+  os_type: string;
+  cpu_arch: string;
+}
+
+// ConfigPolicyPreviewReq describes HTTP request body for previewing merged
+// config result by host list.
+export interface ConfigPolicyPreviewReq {
+  bk_biz_id: number;
+  policy_type: string;
+  hosts: PreviewHost[];
+}
+
+// ConfigPolicyPreviewResp describes HTTP response body for preview result.
+export interface ConfigPolicyPreviewResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: ConfigPolicyPreviewRespData;
+}
+
+export interface ConfigPolicyPreviewRespMatchedPolicy {
+  configpolicy_id: number;
+  configpolicy_name: string;
+  priority: number;
+}
+
+export interface ConfigPolicyPreviewRespPreviewItem {
+  bk_host_id: number;
+  matched_policies: MatchedPolicy[];
+  merged_configs_string: Record<string, string>;
+  merged_configs_int: Record<string, number>;
+  merged_configs_bool: Record<string, boolean>;
+}
+
+export interface ConfigPolicyPreviewRespData {
+  reliable_items: PreviewItem[];
+  unreliable_items: PreviewItem[];
+}
+
 // ConfigPolicyEventExactConditions describes the conditions when list event
 export interface ConfigPolicyEventExactConditions {
   configpolicy_id: number[];
   configpolicy_type: string[];
   version: number[];
   type: string[];
+  bk_biz_id: number[];
 }
 
 // ConfigPolicyEventFuzzyConditions describes the conditions when list event
@@ -274,5 +345,6 @@ export interface ConfigPolicyEventDistinctRespData {
   type: string[];
   version: number[];
   operator: string[];
+  bk_biz_id: number[];
 }
 

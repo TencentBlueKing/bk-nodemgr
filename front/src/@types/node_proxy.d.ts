@@ -55,8 +55,8 @@ export interface NodeProxyUpgradeHost {
   bk_host_id: number;
   force: boolean;
   graceful_restart_timeout_sec: number;
-  bk_networkunit_id?: number;
-  cpu_arch?: string;
+  bk_networkunit_id: number;
+  cpu_arch: string;
 }
 
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
@@ -243,14 +243,14 @@ export interface NodeProxyInstallCheckResult {
 // ProxyUpgradeCheckInfo describes the node proxy upgrade check parameter.
 export interface ProxyUpgradeCheckInfo {
   bk_host_id: number;
-  bk_networkunit_id?: number;
-  cpu_arch?: string;
+  bk_networkunit_id: number;
+  cpu_arch: string;
 }
 
 // NodeProxyUpgradeCheckReq describes the node proxy upgrade check request.
 export interface NodeProxyUpgradeCheckReq {
   host: ProxyUpgradeCheckInfo[];
-  target_version?: TargetVersion[];
+  target_version: TargetVersion[];
 }
 
 // NodeProxyUpgradeCheckResp describes the response for node proxy upgrade
@@ -268,7 +268,7 @@ export interface NodeProxyUpgradeCheckRespData {
   results: NodeProxyUpgradeCheckResult[];
 }
 
-// NodeProxyUpgradeCheckMatchedItem describes the matched item for upgrade
+// NodeProxyUpgradeCheckMatchedItem describes the matched item for proxy upgrade
 // check.
 export interface NodeProxyUpgradeCheckMatchedItem {
   bk_host_id: number;

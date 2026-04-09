@@ -1,15 +1,20 @@
 // gen-api.js 自动生成，请勿手动修改
-// PluginInstallReq describes the plugin install request.
-export interface PluginInstallReq {
-  plugin: Plugin[];
-}
-
-export interface PluginInstallReqPlugin {
+export interface PluginOperateFullInfo {
   bk_host_id: number;
   plugin_name: string;
   version: string;
   config_name: string[];
   custom_config_context: Record<string, any>;
+}
+
+export interface PluginOperateBasicInfo {
+  bk_host_id: number;
+  plugin_name: string;
+}
+
+// PluginInstallReq describes the plugin install request.
+export interface PluginInstallReq {
+  plugin: PluginOperateFullInfo[];
 }
 
 // PluginInstallResp describes the plugin install response.
@@ -28,15 +33,7 @@ export interface PluginInstallRespData {
 
 // PluginUpgradeReq describes the plugin upgrade request.
 export interface PluginUpgradeReq {
-  plugin: Plugin[];
-}
-
-export interface PluginUpgradeReqPlugin {
-  bk_host_id: number;
-  plugin_name: string;
-  version: string;
-  config_name: string[];
-  custom_config_context: Record<string, any>;
+  plugin: PluginOperateFullInfo[];
 }
 
 // PluginUpgradeResp describes the plugin upgrade response.
@@ -55,12 +52,7 @@ export interface PluginUpgradeRespData {
 
 // PluginUninstallReq describes the plugin uninstall request.
 export interface PluginUninstallReq {
-  plugin: Plugin[];
-}
-
-export interface PluginUninstallReqPlugin {
-  bk_host_id: number;
-  plugin_name: string;
+  plugin: PluginOperateBasicInfo[];
 }
 
 // PluginUninstallResp describes the plugin uninstall response.
@@ -80,14 +72,7 @@ export interface PluginUninstallRespData {
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 export interface PluginApplySubConfigReq {
-  plugin: Plugin[];
-}
-
-export interface PluginApplySubConfigReqPlugin {
-  bk_host_id: number;
-  plugin_name: string;
-  config_name: string[];
-  custom_config_context: Record<string, any>;
+  plugin: PluginOperateFullInfo[];
 }
 
 // PluginApplySubConfigResp describes the plugin apply sub-configuration
@@ -105,22 +90,22 @@ export interface PluginApplySubConfigRespData {
   workflow_id: string;
 }
 
-// PluginListReq describes the plugin list request.
-export interface PluginListReq {
-  page: Page;
-  only_count: boolean;
-  exact_include_conditions: PluginListReqExactConditions;
-  fuzzy_include_conditions: PluginListReqFuzzyConditions;
-}
-
-export interface PluginListReqExactConditions {
+export interface PluginListExactConditions {
   name: string[];
   group: string[];
 }
 
-export interface PluginListReqFuzzyConditions {
+export interface PluginListFuzzyConditions {
   name: string[];
   pkg_name: string[];
+}
+
+// PluginListReq describes the plugin list request.
+export interface PluginListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: PluginListExactConditions;
+  fuzzy_include_conditions: PluginListFuzzyConditions;
 }
 
 // PluginListResp describes the plugin list response.

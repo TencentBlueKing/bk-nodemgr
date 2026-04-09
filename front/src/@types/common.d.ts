@@ -41,10 +41,12 @@ interface Endpoints {
   data: string[];
 }
 
+// InstallerRuntime describes the installer runtime config.
 interface InstallerRuntime {
   base_work_dir: string;
 }
 
+// NodeRuntime describes the node runtime config.
 interface NodeRuntime {
   base_deploy_dir: string;
   data_ipc: string;
@@ -52,11 +54,13 @@ interface NodeRuntime {
   log_dir: string;
 }
 
+// PluginRuntime describes the custom plugin runtime config.
 interface PluginRuntime {
   base_deploy_dir: string;
   log_dir: string;
 }
 
+// CustomDeployConfig describes the deploy config for host deployment.
 interface CustomDeployConfig {
   installer_runtime: InstallerRuntime;
   node_runtime: NodeRuntime;
@@ -302,7 +306,7 @@ interface ConfigPolicy {
   configpolicy_id: number;
   configpolicy_name: string;
   type: string;
-  biz_id: number;
+  bk_biz_id: number;
   remark: string;
   scopes: ConfigPolicyScope[];
   configs: ConfigPolicyConfigBlock[];
@@ -324,6 +328,7 @@ interface ConfigPolicyEvent {
   version: number;
   operate_time: number;
   operator: string;
+  bk_biz_id: number;
 }
 
 // ProcessInfo describes the process information.
@@ -404,10 +409,19 @@ interface ErrorDetails {
   message: string;
 }
 
-interface RelatedResourceType {
-  system_id: string;
+interface ResourceNode {
   type: string;
   type_name: string;
+  id: string;
+  name: string;
+}
+
+interface RelatedResourceType {
+  system_id: string;
+  system_name: string;
+  type: string;
+  type_name: string;
+  instances: ResourceNode[];
 }
 
 interface Action {
