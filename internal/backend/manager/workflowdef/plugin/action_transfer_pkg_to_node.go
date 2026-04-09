@@ -269,8 +269,15 @@ func (act *actionTransferPluginPkgToNode) pushOfflinePluginConfig(
 		return fmt.Errorf("host login user is empty, host-id(%d)", targetHost.HostID)
 	}
 
-	if err := pluginUtils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.ConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
-		return fmt.Errorf("check config store dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.ConfigDir, err)
+	var configDir string
+	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
+		configDir = winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data", "plugin", std.DeployInfo().Process.PluginPkgName, "config")
+	} else {
+		configDir = filepath.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data", "plugin", std.DeployInfo().Process.PluginPkgName, "config")
+	}
+
+	if err := pluginUtils.CheckDirPathSafe(configDir, std.DeployInfo().Process.Platform.OS); err != nil {
+		return fmt.Errorf("check config store dir safe failed, dir(%s): %w", configDir, err)
 	}
 
 	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(nCtx, std.Token())
@@ -288,14 +295,14 @@ func (act *actionTransferPluginPkgToNode) pushOfflinePluginConfig(
 		tasks = append(tasks, &types.PushFileDetail{
 			FileName:    conf.Name,
 			FileContent: conf.Content,
-			StoreDir:    std.DeployInfo().BaseRuntime.ConfigDir,
+			StoreDir:    configDir,
 			Owner:       targetHost.Dynamic.LoginUser,
 			Endpoints:   endpoints,
 		})
 
 		std.InstanceData().Log().
-			Zh("准备推送插件主配置文件(%s)到主机(%d), 目录(%s)", conf.Name, targetHost.HostID, std.DeployInfo().BaseRuntime.ConfigDir).
-			En("prepare to push plugin main config file(%s) to host(%d) in dir(%s)", conf.Name, targetHost.HostID, std.DeployInfo().BaseRuntime.ConfigDir).
+			Zh("准备推送插件主配置文件(%s)到主机(%d), 目录(%s)", conf.Name, targetHost.HostID, configDir).
+			En("prepare to push plugin main config file(%s) to host(%d) in dir(%s)", conf.Name, targetHost.HostID, configDir).
 			Info()
 	}
 
