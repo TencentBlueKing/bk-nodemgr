@@ -18,11 +18,25 @@ export interface UpgradeRequestFormData {
   gracefulRestartTimeoutSec: number;
 }
 
-const maybeNetworkUnitField = (networkUnitId?: number) => (
-  networkUnitId && networkUnitId > 0
-    ? { bk_networkunit_id: networkUnitId }
-    : {}
-);
+const normalizeNetworkUnitId = (networkUnitId?: number | string | null) => {
+  if (networkUnitId === undefined || networkUnitId === null || networkUnitId === '') {
+    return undefined;
+  }
+
+  const normalized = Number(networkUnitId);
+  if (!Number.isInteger(normalized) || normalized < 0) {
+    return undefined;
+  }
+
+  return normalized;
+};
+
+const maybeNetworkUnitField = (networkUnitId?: number | string | null) => {
+  const normalized = normalizeNetworkUnitId(networkUnitId);
+  return normalized !== undefined
+    ? { bk_networkunit_id: normalized }
+    : {};
+};
 
 export const buildUpgradeCheckParams = (
   hosts: UpgradeRequestHost[],

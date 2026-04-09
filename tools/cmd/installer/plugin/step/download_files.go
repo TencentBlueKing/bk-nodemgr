@@ -106,9 +106,12 @@ func NewDownloadFiles() *cobra.Command {
 const pluginReleasePkgExt = "tgz"
 
 // GenReleasePkgName generates release package name.
+// match the pattern with pkg/format/pluginpkg/plugin.go
+// bk-nodemgr_plugin_{generation}_{pkg-name}-{version}-{os}-{arch}.{ext}
+// TODO: generation should be a flag from command.
 func GenReleasePkgName(pluginName, version string) string {
 	return fmt.Sprintf(
-		"bk-nodemgr_%s_plugin_%s-%s-%s.%s",
+		"bk-nodemgr_plugin_2_%s-%s-%s_%s.%s",
 		pluginName,
 		version,
 		runtime.GOOS,
