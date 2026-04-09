@@ -34,7 +34,6 @@ export const usePermissionStore = defineStore('permission', {
   }),
   actions: {
     showDialog(data: PermissionData) {
-      if (this.visible) return;
       this.data = data;
       this.visible = true;
     },

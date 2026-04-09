@@ -38,7 +38,7 @@
         <div
           class="w-full flex items-center biz-select-option overflow-hidden"
           :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
-          @click="!isBizAuthorized(item.bk_biz_id) && handleApplyPermission(item.bk_biz_id)"
+          @click="handleOptionClick($event, item.bk_biz_id)"
           @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
           @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
           @mouseleave="handleOptionMouseLeave()"
@@ -97,7 +97,7 @@
         <div
           class="w-full flex items-center biz-select-option overflow-hidden"
           :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
-          @click="!isBizAuthorized(item.bk_biz_id) && handleApplyPermission(item.bk_biz_id)"
+          @click="handleOptionClick($event, item.bk_biz_id)"
           @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
           @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
           @mouseleave="handleOptionMouseLeave()"
@@ -353,15 +353,29 @@ const handleCollect = (val: number) => {
   localStorage.setItem('collect', JSON.stringify(collectList.value));
 };
 
-// ===== 点击无权限业务，申请当前菜单页的查看权限 =====
+// ===== 点击无权限业务，申请当前菜单页的查看权限 + 业务访问权限 =====
 const permissionStore = usePermissionStore();
+
+// 统一处理 option 点击：无权限时阻止选中并触发申请，有权限时不干预（让 Select 正常选中）
+const handleOptionClick = (e: MouseEvent, bizId: number) => {
+  if (!isBizAuthorized(bizId)) {
+    e.stopPropagation(); // 阻止冒泡到 Select.Option，防止被选中
+    e.preventDefault();
+    handleApplyPermission(bizId);
+  }
+  // 有权限时不管，让事件正常冒泡给 Select.Option 处理选中
+};
+
 const handleApplyPermission = async (bizId: number) => {
   const action = getActionForRoute();
   if (!action) return;
 
-  // 构造 PageAuthItem 用于 batchVerify
-  const authItem = { id: action, action, resourceType: 'biz', routes: [] };
-  await authStore.batchVerify([authItem], bizId);
+  // 同时 verify 路由对应的 view action 和 biz_access（业务访问权限）
+  const authItems = [
+    { id: action, action, resourceType: 'biz', routes: [] },
+    { id: 'biz_access', action: 'biz_access', resourceType: 'biz', routes: [] },
+  ];
+  await authStore.batchVerify(authItems, bizId);
   const detail = authStore.permissionDetail;
   if (detail) {
     permissionStore.showDialog(detail);
@@ -464,10 +478,22 @@ defineExpose({ init });
   }
 }
 .biz-select-option {
+  min-height: 32px;
+  padding: 0 12px;
+  box-sizing: border-box;
   &:hover {
     .nc-not-favorited {
       display: inline;
     }
+  }
+}
+.nm-menu-biz {
+  :deep(.bk-option) {
+    padding: 0 !important;
+  }
+  :deep(.bk-option-content) {
+    width: 100%;
+    padding: 0 !important;
   }
 }
 </style>
