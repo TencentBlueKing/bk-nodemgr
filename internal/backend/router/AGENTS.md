@@ -21,6 +21,8 @@
 |Conventions:logging=logger.G.Biz(rCtx) for request scope|logger.G.Sys() for background|success paths log Info with identifiers
 |Conventions:auth=middleware only at first-level router|user via rCtx.BKUsername/TenantID|reuse package-local permission helpers across handlers
 |Conventions:before coding read relevant module + analogous handler in same service/layer; prefer existing router helpers and pkg/proto converters over parallel implementations
+|Conventions:API MVP flow=first commit: proto+route+handler returning empty/mock data (entire chain compiles and runs)|second commit: wire storage/DAO for core logic|third commit: add error handling and boundary conditions|follow docs/api/API接口开发流程.md
+|Conventions:API reference=before adding new API, find similar endpoints (e.g. GetProcessDistributionByHostID, GetHostDistributionByNetworkAreaID)|reuse patterns instead of redesigning
 |Routes:mostly POST including reads|exceptions GET /healthz and /get_manual_script/:os_type/:operation_instance_id|proxy uses gin.Any("/*path")
 |Type Flow:proto request→BindJSON→pkg/types→manager/storage→proto response→GetData
 |Anti-patterns:no raw errors|no proto structs as router business models|no auth middleware below first-level groups|no mixed restserver/raw gin styles except callback/node historical paths|no business logic in handlers|no skipped error logs|no duplicate helpers before checking current router and pkg/proto patterns

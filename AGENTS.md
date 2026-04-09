@@ -16,6 +16,8 @@
 |Where to look:integration tests:test/{cases,mock-server}:router-level API tests and support mocks
 |Conventions:toolchain=go1.23.10|lint=.golangci.yml strict baseline|public Go functions/types require English comments
 |Conventions:before coding read relevant module + at least one analogous implementation in same service/layer
+|Conventions:MVP development=first pass through minimal path (may use mock/hardcode but entire chain runs)→second pass add core business logic→third pass add boundary/error handling/optimization|each commit independently verifiable and rollback-safe
+|Conventions:reference-first=before any new feature/refactor, must find 2-3 similar implementations as pattern reference|focus on: interface signatures, data flow, error handling|goal: maintain consistency, avoid reinventing
 |Conventions:for every touched path, identify and obey all applicable scoped AGENTS.md files before designing or coding|priority=nearest-scope over broader guidance|if local AGENTS already constrain boundary/type/flow, treat it as a hard requirement, not a style hint
 |Conventions:prefer extending existing code paths/helpers/proto conversions over parallel implementations
 #LC||Conventions:prefer reusing existing implementations/patterns after searching analogous code first|aim=minimize cross-module inconsistency and style drift
