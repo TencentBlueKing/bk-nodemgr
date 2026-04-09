@@ -25,7 +25,6 @@
         :key="item.bk_biz_id"
         :name="item.bk_biz_name"
         :id="item.bk_biz_id"
-        :disabled="!isBizAuthorized(item.bk_biz_id)"
         v-bk-tooltips="{
           content: isBizAuthorized(item.bk_biz_id)
             ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
@@ -38,7 +37,11 @@
       >
         <div
           class="w-full flex items-center biz-select-option overflow-hidden"
+          :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
           @click="!isBizAuthorized(item.bk_biz_id) && handleApplyPermission(item.bk_biz_id)"
+          @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
+          @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
+          @mouseleave="handleOptionMouseLeave()"
         >
           <Button
             class="mr-[8px] w-[18px] shrink-0"
@@ -55,14 +58,9 @@
           </Button>
           <div
             class="truncate"
-            :class="{ 'unauthorized-biz': !isBizAuthorized(item.bk_biz_id) }"
             @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
             [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
           </div>
-          <i
-            v-if="!isBizAuthorized(item.bk_biz_id)"
-            class="biz-lock-icon"
-          />
         </div>
       </Select.Option>
     </Select>
@@ -86,7 +84,6 @@
         :key="item.bk_biz_id"
         :name="item.bk_biz_name"
         :id="item.bk_biz_id"
-        :disabled="!isBizAuthorized(item.bk_biz_id)"
         v-bk-tooltips="{
           content: isBizAuthorized(item.bk_biz_id)
             ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
@@ -99,7 +96,11 @@
       >
         <div
           class="w-full flex items-center biz-select-option overflow-hidden"
+          :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
           @click="!isBizAuthorized(item.bk_biz_id) && handleApplyPermission(item.bk_biz_id)"
+          @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
+          @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
+          @mouseleave="handleOptionMouseLeave()"
         >
           <Button
             class="mr-[8px] w-[18px] shrink-0"
@@ -116,17 +117,22 @@
           </Button>
           <div
             class="truncate"
-            :class="{ 'unauthorized-biz': !isBizAuthorized(item.bk_biz_id) }"
             @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
             [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
           </div>
-          <i
-            v-if="!isBizAuthorized(item.bk_biz_id)"
-            class="biz-lock-icon"
-          />
         </div>
       </Select.Option>
     </Select>
+    <!-- hover 无权限业务时跟随鼠标的锁图标（Teleport 到 body 确保在 popover 层上方） -->
+    <Teleport to="body">
+      <div
+        v-show="lockCursorVisible"
+        class="biz-lock-cursor"
+        :style="{ left: lockCursorX + 'px', top: lockCursorY + 'px' }"
+      >
+        <img src="/images/lock.svg" alt="" />
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -257,6 +263,28 @@ watch(singleBusiness, (val) => {
     mainStore.updateStrategyBizId(val);
   }
 });
+
+// ===== hover 无权限业务时跟随鼠标的锁图标 =====
+const lockCursorVisible = ref(false);
+const lockCursorX = ref(0);
+const lockCursorY = ref(0);
+
+const handleOptionMouseEnter = (e: MouseEvent, bizId: number) => {
+  if (!isBizAuthorized(bizId)) {
+    lockCursorVisible.value = true;
+    lockCursorX.value = e.clientX + 8;
+    lockCursorY.value = e.clientY - 8;
+  }
+};
+const handleOptionMouseMove = (e: MouseEvent, bizId: number) => {
+  if (!isBizAuthorized(bizId)) {
+    lockCursorX.value = e.clientX + 8;
+    lockCursorY.value = e.clientY - 8;
+  }
+};
+const handleOptionMouseLeave = () => {
+  lockCursorVisible.value = false;
+};
 
 // ===== 文字溢出检测 =====
 const textOverflowMap = reactive<Record<number, boolean>>({});
@@ -445,21 +473,19 @@ defineExpose({ init });
 </style>
 
 <style lang="postcss">
-/* 非 scoped：锁图标和灰色文字样式需穿透 Select Option popover */
-.biz-lock-icon {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  margin-left: auto;
-  background-color: #979ba5;
-  -webkit-mask: url('/images/lock.svg') no-repeat center / contain;
-  mask: url('/images/lock.svg') no-repeat center / contain;
+/* 非 scoped：跟随鼠标锁图标和置灰样式需穿透 Select Option popover */
+.biz-lock-cursor {
+  position: fixed;
+  z-index: 999999;
+  pointer-events: none;
+  width: 12px;
+  height: 16px;
+  img {
+    width: 12px;
+    height: 16px;
+  }
 }
-.unauthorized-biz {
+.unauthorized-biz-row {
   color: #c4c6cc !important;
-  cursor: not-allowed !important;
 }
 </style>
