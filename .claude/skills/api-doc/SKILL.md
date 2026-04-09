@@ -65,6 +65,23 @@ allowed-tools:
 
 **不确定时**: 询问用户确认接口首次出现或变动的版本
 
+## 权限格式规范
+
+文档"该接口所需权限"字段必须使用标准格式：
+
+**格式**: `action_id（中文名）`
+- 单个权限: `networkunit_view（查看管控单元）`
+- 多个权限: `agent_operate（操作Agent）、networkunit_use_for_agent（使用网络单元部署Agent）`
+- 无权限: `无`
+
+**查找方法**:
+1. 在 handler 代码中搜索 `h.authorizer.Check` 或 `auth.ActionXxx`
+2. 在 `internal/backend/auth/action.go` 中查找对应常量定义
+3. 在 `ActionDisplayName` 函数中查找中文名
+
+**英文版格式**: `action_id (English Name)`
+- 示例: `networkunit_view (View Network Unit)`
+
 ## 关键文件路径
 
 | 文件类型 | 路径 |

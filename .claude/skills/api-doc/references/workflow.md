@@ -56,9 +56,20 @@
    ### 描述
 
    - 该接口提供版本: v3.0.0+
-   - 该接口所需权限: [权限名称]
+   - 该接口所需权限: action_id（中文名）、action_id2（中文名2）。
    - 该接口功能描述: [一句话说明]
    ```
+   
+   **权限格式说明**:
+   - 格式: `action_id（中文名）`
+   - 多个权限用顿号分隔: `action1（名称1）、action2（名称2）`
+   - 示例: `agent_operate（操作Agent）、networkunit_use_for_agent（使用网络单元部署Agent）`
+   - 无权限要求时写: `无`
+   - 查找方法:
+     1. 在 handler 代码中搜索 `h.authorizer.Check` 调用
+     2. 找到 `auth.ActionXxx` 常量
+     3. 在 `internal/backend/auth/action.go` 中查找对应的 action_id 和中文名
+     4. ActionDisplayName 函数返回中文名
 
 2. **编写 URL**
    ```markdown
