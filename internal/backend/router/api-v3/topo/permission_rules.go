@@ -24,6 +24,7 @@ import (
 var (
 	errNetworkUnitViewDeniedByEmptyScope = errors.New("no authorized network units")
 	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
+	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
 	errAccessPointViewDeniedByEmptyScope = errors.New("no authorized access points")
 )
 
@@ -88,6 +89,63 @@ func (h *handler) narrowAuthorizedNetworkUnitIDs(
 	}
 
 	return narrowedIDs, false, nil
+}
+
+func (h *handler) narrowAuthorizedNetworkAreaIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionNetworkAreaView, types.AuthResourceTypeNetworkArea)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, types.AuthResourceTypeNetworkArea,
+	)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+
+		return nil, false, errNetworkAreaViewDeniedByEmptyScope
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources(requestedIDs)); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+func narrowHostConditionByNetworkArea(condition *types.HostCondition, narrowedIDs []int64, scopeIsAny bool) *types.HostCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.HostCondition{}
+	}
+
+	if condition.StaticExactInclude == nil {
+		condition.StaticExactInclude = &types.HostStaticExactFields{}
+	}
+
+	condition.StaticExactInclude.NetworkAreaID = conv.SliceUnique(narrowedIDs)
+
+	return condition
 }
 
 func narrowNetworkUnitCondition(condition *types.NetworkUnitCondition, narrowedIDs []int64, scopeIsAny bool) *types.NetworkUnitCondition {
