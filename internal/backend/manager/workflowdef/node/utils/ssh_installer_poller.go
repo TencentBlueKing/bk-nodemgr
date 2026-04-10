@@ -132,7 +132,7 @@ func (p *SSHInstallerPoller) Wait(std *NodeActionStandarder, cfg SSHInstallerPol
 				sshCommandTimeout,
 			)
 			if connectErr != nil {
-				logger.G.Sys().With("oper-inst-id", cfg.InstanceID).WithErr(connectErr).
+				logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", cfg.InstanceID).WithErr(connectErr).
 					Warn("SSH connection error during polling, attempting reconnect")
 
 				client, backoff = p.attemptSSHReconnect(std, cfg.InstanceID, client, cfg.SSHConfig, backoff)
@@ -149,13 +149,13 @@ func (p *SSHInstallerPoller) Wait(std *NodeActionStandarder, cfg SSHInstallerPol
 			var tailErr error
 			logLineOffset, tailErr = p.tailInstallerLogs(std.Context(), client, std, cfg.LogGlobPath, logLineOffset)
 			if tailErr != nil {
-				logger.G.Sys().With("oper-inst-id", cfg.InstanceID).WithErr(tailErr).
+				logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", cfg.InstanceID).WithErr(tailErr).
 					Warn("SSH error while tailing logs, will reconnect after processing status")
 			}
 
 			statusContent = strings.TrimSpace(statusContent)
 			if statusContent == "" {
-				logger.G.Sys().With("oper-inst-id", cfg.InstanceID).Debug("status file not yet available")
+				logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", cfg.InstanceID).Debug("status file not yet available")
 
 				if tailErr != nil {
 					client, backoff = p.attemptSSHReconnect(std, cfg.InstanceID, client, cfg.SSHConfig, backoff)
@@ -166,7 +166,7 @@ func (p *SSHInstallerPoller) Wait(std *NodeActionStandarder, cfg SSHInstallerPol
 
 			var status sshStatusFile
 			if jsonErr := json.Unmarshal([]byte(statusContent), &status); jsonErr != nil {
-				logger.G.Sys().With("oper-inst-id", cfg.InstanceID).
+				logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", cfg.InstanceID).
 					Warn("status file JSON parse failed (partial write), treating as in-progress")
 
 				if tailErr != nil {
@@ -179,7 +179,7 @@ func (p *SSHInstallerPoller) Wait(std *NodeActionStandarder, cfg SSHInstallerPol
 			// Guard against stale status files left by a previous installation run.
 			// Only accept a status whose oper_inst_id matches the current operation.
 			if status.OperInstID != cfg.InstanceID {
-				logger.G.Sys().With("oper-inst-id", cfg.InstanceID, "file-oper-inst-id", status.OperInstID).
+				logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", cfg.InstanceID, "file-oper-inst-id", status.OperInstID).
 					Debug("status file belongs to a different operation, skipping")
 
 				if tailErr != nil {
@@ -290,7 +290,7 @@ func (p *SSHInstallerPoller) attemptSSHReconnect(
 
 	_ = client.Close()
 
-	logger.G.Sys().With("backoff", backoff.String()).Info("waiting before SSH reconnect")
+	logger.G.Sys().Ctx(std.Context()).With("backoff", backoff.String()).Info("waiting before SSH reconnect")
 
 	// Use NewTimer + Stop to avoid the timer-leak that time.After causes when ctx.Done()
 	// fires before the backoff elapses (time.After timers are not GC'd until they fire).
@@ -306,13 +306,13 @@ func (p *SSHInstallerPoller) attemptSSHReconnect(
 
 	newClient, err := sshx.NewClient(std.Context(), config, sshx.DefaultTimeout)
 	if err != nil {
-		logger.G.Sys().With("oper-inst-id", instanceID).WithErr(err).
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", instanceID).WithErr(err).
 			Warn("SSH reconnect failed, will retry on next tick")
 
 		return client, min(backoff*2, sshPollingMaxBackoff) // nolint: mnd
 	}
 
-	logger.G.Sys().Info("SSH reconnected successfully")
+	logger.G.Sys().Ctx(std.Context()).Info("SSH reconnected successfully")
 
 	return newClient, sshPollingBaseBackoff
 }

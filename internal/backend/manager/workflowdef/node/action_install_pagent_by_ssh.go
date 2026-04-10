@@ -246,7 +246,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				logger.G.Sys().
+				logger.G.Sys().Ctx(timeoutCtx).
 					With("oper-inst-id", std.InstanceData().OperationInstanceID, "action_name", std.InstanceData().Name).
 					Error("failed to get private data")
 
