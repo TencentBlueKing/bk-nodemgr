@@ -137,13 +137,13 @@ func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...strin
 	table := &TableBroker[P]{}
 	result := orm.dao.GetClient().FindOne(nCtx, filter, findOptions)
 	if err = result.Err(); err != nil {
-		logger.G.Sys().WithErr(err).With("table", orm.dao.GetTableName()).Warn("failed to find one")
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("table", orm.dao.GetTableName()).Warn("failed to find one")
 
 		return nil, err
 	}
 
 	if err = result.Decode(table); err != nil {
-		logger.G.Sys().WithErr(err).With("table", orm.dao.GetTableName()).Warn("failed to decode found document")
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("table", orm.dao.GetTableName()).Warn("failed to decode found document")
 
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func (orm *Orm[P, T]) CreateMany(nCtx contextx.IContext, datas []P) (err error) 
 		return err
 	}
 
-	logger.G.Sys().With("table", orm.dao.GetTableName(), "count", len(result.InsertedIDs)).Info("created multi documents")
+	logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "count", len(result.InsertedIDs)).Info("created multi documents")
 
 	return nil
 }
@@ -273,7 +273,7 @@ func (orm *Orm[P, T]) Create(nCtx contextx.IContext, data P) (err error) {
 		return err
 	}
 
-	logger.G.Sys().With("table", orm.dao.GetTableName(), "unique-key", data.UniqueKey()).Info("created document")
+	logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "unique-key", data.UniqueKey()).Info("created document")
 
 	return nil
 }
@@ -310,7 +310,7 @@ func (orm *Orm[P, T]) EnsureIndexes() (err error) {
 		return err
 	}
 
-	logger.G.Sys().With("table", orm.dao.GetTableName(), "indexes", result).Info("created indexes")
+	logger.G.Sys().Ctx(contextx.Background()).With("table", orm.dao.GetTableName(), "indexes", result).Info("created indexes")
 
 	return nil
 }
@@ -336,7 +336,7 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 		return err
 	}
 
-	logger.G.Sys().With("table", orm.dao.GetTableName(), "field", field, "updated-count", result.MatchedCount).Info("updated field")
+	logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "field", field, "updated-count", result.MatchedCount).Info("updated field")
 
 	return nil
 }
@@ -403,7 +403,7 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 	for cursor.Next(nCtx) {
 		document := &TableBroker[P]{}
 		if err := cursor.Decode(document); err != nil {
-			logger.G.Sys().WithErr(err).With("table", orm.dao.GetTableName()).Info("failed to list, failed to decode document")
+			logger.G.Sys().Ctx(nCtx).WithErr(err).With("table", orm.dao.GetTableName()).Info("failed to list, failed to decode document")
 
 			continue
 		}
@@ -492,7 +492,7 @@ func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err err
 	}
 
 	if result.MatchedCount > 0 {
-		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.MatchedCount).Info("deleted many")
+		logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "deleted-count", result.MatchedCount).Info("deleted many")
 	}
 
 	return nil
@@ -529,7 +529,7 @@ func (orm *Orm[P, T]) HardDelete(nCtx contextx.IContext, filter bson.D) (err err
 	}
 
 	if result.DeletedCount > 0 {
-		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.DeletedCount).Info("hard deleted document")
+		logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "deleted-count", result.DeletedCount).Info("hard deleted document")
 	}
 
 	return nil
@@ -566,7 +566,7 @@ func (orm *Orm[P, T]) HardDeleteMany(nCtx contextx.IContext, filter bson.D) (err
 	}
 
 	if result.DeletedCount > 0 {
-		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.DeletedCount).Info("hard deleted many documents")
+		logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "deleted-count", result.DeletedCount).Info("hard deleted many documents")
 	}
 
 	return nil
@@ -621,7 +621,7 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*Docume
 		return err
 	}
 
-	logger.G.Sys().
+	logger.G.Sys().Ctx(nCtx).
 		With("table", orm.dao.GetTableName(), "updated-count", result.MatchedCount, "modified-count", result.ModifiedCount).
 		Info("bulk updated fields")
 
