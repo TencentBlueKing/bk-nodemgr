@@ -48,7 +48,7 @@
       </bk-loading>
     </div>
     <div class="bg-[#fff] px-[24px] pb-[20px] h-full flex-1 flex flex-col">
-      <div class="h-[32px] mt-[20px]" v-if="!['success'].includes(currentOperate?.state)">
+      <div class="h-[32px] mt-[20px]" v-if="currentOperate && !['success'].includes(currentOperate.state)">
         <Dropdown
           theme="light"
           trigger="click"
@@ -136,7 +136,7 @@
                       </Button>
                     </div>
                     <!-- eslint-disable-next-line max-len -->
-                    <div v-else-if="isManual && last_oper_inst_step_key === row.stepKey && currentOperate.state === 'running'">
+                    <div v-else-if="isManual && last_oper_inst_step_key === row.stepKey && currentOperate?.state === 'running'">
                       {{ $t('platform.nodeMan.log.waitManualOperation') }}
                       <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide">
                         {{ $t('platform.nodeMan.log.operationGuide') }}
@@ -606,20 +606,28 @@ const guideData = ref<{
   bk_host_innerip: '',
   is_offline: false,
 });
+const getCurrentOperationId = () => currentOperate.value?.operation_id;
+
 const handleOperateGuide = () => {
+  const operationId = getCurrentOperationId();
+  if (!operationId) return;
+
   isGuideShow.value = true;
   guideData.value = {
     workflow_id: route.params.taskId as string,
-    operation_id: currentOperate.value.operation_id,
+    operation_id: operationId,
     bk_host_innerip: currentOperate.value?.bk_host_inner_list,
     is_offline: false,
   };
 };
 const handleOfflineGuide = () => {
+  const operationId = getCurrentOperationId();
+  if (!operationId) return;
+
   isGuideShow.value = true;
   guideData.value = {
     workflow_id: route.params.taskId as string,
-    operation_id: currentOperate.value.operation_id,
+    operation_id: operationId,
     bk_host_innerip: currentOperate.value?.bk_host_inner_list,
     bk_networkarea_id: currentOperate.value?.bk_networkarea_id,
     is_offline: true,
@@ -640,12 +648,15 @@ const reTryType = [
   },
 ];
 
-const handleRetry = async (row: any, type: string) => {
+const handleRetry = async (row: { operation_id?: string } | undefined, type: string) => {
   if (!route.params.taskId) return;
+
+  const operationId = row?.operation_id;
+  if (!operationId) return;
 
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
-    operation_ids: [row.operation_id],
+    operation_ids: [operationId],
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
@@ -662,13 +673,17 @@ const handleRetry = async (row: any, type: string) => {
 // 终止
 const handleTerminate = () => {
   if (!route.params.taskId) return;
+
+  const operationId = getCurrentOperationId();
+  if (!operationId) return;
+
   InfoBox({
     title: t('platform.nodeMan.log.terminateConfirmTitle'),
     subTitle: t('platform.nodeMan.log.terminateConfirmSubTitle'),
     onConfirm: async () => {
       const res = await serviceCaller.call('terminate', {
         workflow_id: route.params.taskId,
-        operation_ids: [currentOperate.value.operation_id],
+        operation_ids: [operationId],
       }).catch(() => {
         Message({ theme: 'error', message: t('platform.nodeMan.log.terminateFailedMsg') });
         return false;
@@ -830,12 +845,31 @@ const getOperateList = async () => {
 const instanceLoading = ref(false);
 const getInstance = async () => {
   instanceLoading.value = true;
+
+  const operationId = getCurrentOperationId();
+  if (!operationId) {
+    instanceLoading.value = false;
+    isInterval.value = false;
+    stop();
+    hasErrorOrTimeout.value = false;
+    activeKey.value = '';
+    curOperInstId.value = '';
+    curOperInstVal.value = 'latest';
+    curSortNames.value = [];
+    operInstList.value = [];
+    tableData.value = [];
+    allLogs.value = [];
+    logs.value = [];
+    logData.value = { total: 0, oper_inst_logs: {} };
+    return;
+  }
+
   const params = route.query.active !== 'plugin'
     ? {
-      operation_id: currentOperate.value.operation_id,
+      operation_id: operationId,
     }
     : {
-      operation_id: [currentOperate.value.operation_id],
+      operation_id: [operationId],
     };
   const res = await serviceCaller.call('operationInstanceList', params).catch(() => ({
     oper_inst_data: [],
