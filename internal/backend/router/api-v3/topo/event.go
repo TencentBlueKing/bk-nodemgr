@@ -11,8 +11,10 @@
 package topo
 
 import (
+	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -20,8 +22,182 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
+
+type topoEventIDNarrower func(requestedIDs []int64) ([]int64, bool, error)
+
+var (
+	errNetworkUnitHistoryViewDeniedByEmptyScope = errors.New("no authorized network unit history scope")
+	errNetworkAreaHistoryViewDeniedByEmptyScope = errors.New("no authorized network area history scope")
+)
+
+func narrowAuthorizedHistoryResourceIDs(
+	rCtx restserver.IContext,
+	authorizer auth.IAuthorizer,
+	action auth.Action,
+	resourceType types.AuthResourceType,
+	requestedIDs []int64,
+	buildResources func([]int64) []types.AuthResource,
+	emptyScopeErr error,
+) ([]int64, bool, error) {
+	scope, err := authorizer.ListAuthorizedInstances(rCtx, action, resourceType)
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(scope, requestedIDs, resourceType)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := authorizer.Check(rCtx, action, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+
+		return nil, false, emptyScopeErr
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := authorizer.Check(rCtx, action, buildResources(requestedIDs)); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+func narrowTopoEventCondition(
+	condition *types.TopoEventCondition,
+	narrowNetworkAreaIDs topoEventIDNarrower,
+	narrowNetworkUnitIDs topoEventIDNarrower,
+	narrowAccessPointIDs topoEventIDNarrower,
+) (*types.TopoEventCondition, error) {
+	if condition == nil {
+		condition = &types.TopoEventCondition{}
+	}
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.TopoEventExactFields{}
+	}
+
+	networkAreaIDs, networkAreaScopeIsAny, err := narrowNetworkAreaIDs(condition.ExactInclude.NetworkAreaID)
+	if err != nil {
+		return nil, err
+	}
+	if !networkAreaScopeIsAny {
+		condition.ExactInclude.NetworkAreaID = conv.SliceUnique(networkAreaIDs)
+	}
+
+	networkUnitIDs, scopeIsAny, err := narrowNetworkUnitIDs(condition.ExactInclude.NetworkUnitID)
+	if err != nil {
+		return nil, err
+	}
+	if !scopeIsAny {
+		condition.ExactInclude.NetworkUnitID = conv.SliceUnique(networkUnitIDs)
+	}
+
+	if len(condition.ExactInclude.AccessPointID) == 0 {
+		return condition, nil
+	}
+
+	accessPointIDs, accessPointScopeIsAny, err := narrowAccessPointIDs(condition.ExactInclude.AccessPointID)
+	if err != nil {
+		return nil, err
+	}
+	if !accessPointScopeIsAny {
+		condition.ExactInclude.AccessPointID = conv.SliceUnique(accessPointIDs)
+	}
+
+	return condition, nil
+}
+
+func (h *handler) narrowAuthorizedNetworkUnitHistoryIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+	return narrowAuthorizedHistoryResourceIDs(
+		rCtx,
+		h.authorizer,
+		auth.ActionNetworkUnitHistoryView,
+		types.AuthResourceTypeNetworkUnit,
+		requestedIDs,
+		buildNetworkUnitResources,
+		errNetworkUnitHistoryViewDeniedByEmptyScope,
+	)
+}
+
+func (h *handler) narrowAuthorizedNetworkAreaHistoryIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+	return narrowAuthorizedHistoryResourceIDs(
+		rCtx,
+		h.authorizer,
+		auth.ActionNetworkAreaHistoryView,
+		types.AuthResourceTypeNetworkArea,
+		requestedIDs,
+		buildNetworkAreaResources,
+		errNetworkAreaHistoryViewDeniedByEmptyScope,
+	)
+}
+
+func (h *handler) narrowAuthorizedAccessPointHistoryIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+	// AccessPoint authorization is anchored to NetworkUnit history scope.
+	var targetNetworkUnitIDs []int64
+	if len(requestedIDs) > 0 {
+		var err error
+		targetNetworkUnitIDs, err = h.storage.GetNetworkUnitIDsByAccessPoints(rCtx, requestedIDs)
+		if err != nil {
+			return nil, false, err
+		}
+		if len(targetNetworkUnitIDs) == 0 {
+			return nil, false, errNetworkUnitHistoryViewDeniedByEmptyScope
+		}
+	}
+
+	authorizedNetworkUnitIDs, scopeIsAny, err := h.narrowAuthorizedNetworkUnitHistoryIDs(rCtx, targetNetworkUnitIDs)
+	if err != nil {
+		return nil, false, err
+	}
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+	if len(authorizedNetworkUnitIDs) == 0 {
+		return nil, false, errNetworkUnitHistoryViewDeniedByEmptyScope
+	}
+
+	networkUnits, err := h.storage.GetNetworkUnitByIDs(rCtx, authorizedNetworkUnitIDs)
+	if err != nil {
+		return nil, false, err
+	}
+
+	authorizedAccessPointIDs := make([]int64, 0)
+	for _, unit := range networkUnits {
+		if unit != nil && len(unit.AccessPoints) > 0 {
+			authorizedAccessPointIDs = append(authorizedAccessPointIDs, unit.AccessPoints...)
+		}
+	}
+
+	if len(requestedIDs) == 0 {
+		return conv.SliceUnique(authorizedAccessPointIDs), false, nil
+	}
+
+	narrowedIDs := conv.SliceIntersect(requestedIDs, authorizedAccessPointIDs)
+	if len(narrowedIDs) == 0 && len(targetNetworkUnitIDs) > 0 {
+		resources := buildNetworkUnitResources(targetNetworkUnitIDs)
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitHistoryView, resources); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return conv.SliceUnique(narrowedIDs), false, nil
+}
 
 // ListEvent lists events with page and conditions.
 func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
@@ -36,6 +212,21 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to convert conditions to types")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	cond, err = narrowTopoEventCondition(cond,
+		func(requestedIDs []int64) ([]int64, bool, error) {
+			return h.narrowAuthorizedNetworkAreaHistoryIDs(rCtx, requestedIDs)
+		},
+		func(requestedIDs []int64) ([]int64, bool, error) {
+			return h.narrowAuthorizedNetworkUnitHistoryIDs(rCtx, requestedIDs)
+		},
+		func(requestedIDs []int64) ([]int64, bool, error) {
+			return h.narrowAuthorizedAccessPointHistoryIDs(rCtx, requestedIDs)
+		},
+	)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	// only count.
@@ -89,6 +280,21 @@ func (h *handler) DistinctEvent(rCtx restserver.IContext) (interface{}, error) {
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, failed to convert conditions to types")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	cond, err = narrowTopoEventCondition(cond,
+		func(requestedIDs []int64) ([]int64, bool, error) {
+			return h.narrowAuthorizedNetworkAreaHistoryIDs(rCtx, requestedIDs)
+		},
+		func(requestedIDs []int64) ([]int64, bool, error) {
+			return h.narrowAuthorizedNetworkUnitHistoryIDs(rCtx, requestedIDs)
+		},
+		func(requestedIDs []int64) ([]int64, bool, error) {
+			return h.narrowAuthorizedAccessPointHistoryIDs(rCtx, requestedIDs)
+		},
+	)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
 	}
 
 	result, err := h.storage.DistinctTopoEvent(
