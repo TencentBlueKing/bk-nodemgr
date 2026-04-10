@@ -336,7 +336,9 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 		return err
 	}
 
-	logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "field", field, "updated-count", result.MatchedCount).Debug("updated field")
+	logger.G.Sys().Ctx(nCtx).
+		With("table", orm.dao.GetTableName(), "field", field, "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
+		Debug("updated field")
 
 	return nil
 }
@@ -622,7 +624,7 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*Docume
 	}
 
 	logger.G.Sys().Ctx(nCtx).
-		With("table", orm.dao.GetTableName(), "updated-count", result.MatchedCount, "modified-count", result.ModifiedCount).
+		With("table", orm.dao.GetTableName(), "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
 		Info("bulk updated fields")
 
 	return nil
