@@ -263,16 +263,6 @@ func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.ICon
 	}
 
 	condition := req.ConvertConditionsToTypes()
-	var networkAreaIDs []int64
-	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		networkAreaIDs = exactCond.GetBkNetworkareaId()
-	}
-	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkAreaIDs(rCtx, networkAreaIDs)
-	if authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get networkunit distribution by network area id, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
-	}
-	condition = narrowNetworkUnitConditionByNetworkArea(condition, narrowedIDs, scopeIsAny)
 
 	result, err := h.storage.GetNetworkUnitDistributionByNetworkAreaID(rCtx, condition)
 	if err != nil {
