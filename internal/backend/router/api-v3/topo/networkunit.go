@@ -260,6 +260,32 @@ func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.ICon
 	return resp.GetData(), nil
 }
 
+func (h *handler) ListNetworkUnitBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoNetworkUnitListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	condition := req.ConvertConditionsToTypes()
+	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoNetworkUnitListBriefResp)
+	resp.ConvertNetworkUnitsFromTypes(num, networkUnits)
+
+	return resp.GetData(), nil
+}
+
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitDeleteReq)

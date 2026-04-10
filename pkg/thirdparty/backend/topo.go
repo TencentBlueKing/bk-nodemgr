@@ -123,6 +123,8 @@ type IHandlerNetworkUnit interface {
 	// @return the network-unit list with page and the total count with filter and error.
 	ListNetworkUnit(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) ([]*types.NetworkUnit, int64, error)
 
+	ListNetworkUnitBrief(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) ([]*types.NetworkUnit, int64, error)
+
 	// GetNetworkUnit get specific network unit.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param networkUnitID the network unit id.
@@ -425,6 +427,39 @@ func (h *Handler) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.NetworkUnit, error) {
 		req.Page = convertPage(page)
 		resp, err := h.cli.listNetworkUnit(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, networkUnits = resp.ConvertNetworkUnitsToTypes()
+
+		return networkUnits, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result.Items, total, nil
+}
+
+func (h *Handler) ListNetworkUnitBrief(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) (
+	[]*types.NetworkUnit, int64, error) {
+
+	req := new(protoBackend.TopoNetworkUnitListBriefReq)
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	var (
+		total        int64
+		networkUnits []*types.NetworkUnit
+	)
+	executor := pageexecutor.NewPageExecutor[*types.NetworkUnit](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.NetworkUnit, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listNetworkUnitBrief(nCtx, req)
 		if err != nil {
 			return nil, err
 		}

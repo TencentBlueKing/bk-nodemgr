@@ -89,6 +89,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// networkunit apis.
 	h.rg.POST("/networkunit/list", restserver.Handler(h.ListNetworkUnit))
+	h.rg.POST("/networkunit/list/brief", restserver.Handler(h.ListNetworkUnitBrief))
 	h.rg.POST("/networkunit/get_networkunit_distribution_by_networkarea_id", restserver.Handler(h.GetNetworkUnitDistributionByNetworkAreaID))
 	h.rg.POST("/networkunit/get", restserver.Handler(h.GetNetworkUnit))
 	h.rg.POST("/networkunit/create", restserver.Handler(h.CreateNetworkUnit))
