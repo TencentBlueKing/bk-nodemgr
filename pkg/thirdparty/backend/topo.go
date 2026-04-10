@@ -123,6 +123,11 @@ type IHandlerNetworkUnit interface {
 	// @return the network-unit list with page and the total count with filter and error.
 	ListNetworkUnit(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) ([]*types.NetworkUnit, int64, error)
 
+	// ListNetworkUnitBrief list brief network unit information within specified tenant in contextx.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the brief network-unit list with page and the total count with filter and error.
 	ListNetworkUnitBrief(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) ([]*types.NetworkUnit, int64, error)
 
 	// GetNetworkUnit get specific network unit.
