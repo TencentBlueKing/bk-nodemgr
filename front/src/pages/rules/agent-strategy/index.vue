@@ -385,9 +385,9 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {
   networkAreaList.value = res.items;
 };
 // 管控单元下拉列表获取
-const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitList = ref<NetworkUnitBrief[]>([]);
 const getNetworkUnitList = async (data: {bk_networkunit_id: number}[]) => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkunit_id: data.map((item: any) => item.bk_networkunit_id),
     },

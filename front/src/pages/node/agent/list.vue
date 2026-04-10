@@ -715,7 +715,7 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
  * 获取管控单元列表
  */
 const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: { bk_networkunit_id: data?.bk_networkunit_id || [] },
   }).catch((err: any) => {
     console.error('获取管控单元列表失败:', err);
@@ -1143,7 +1143,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
   } else if (bk_networkarea_id !== undefined && bk_networkunit_id !== undefined) {
     const areaId = Number(bk_networkarea_id);
     const unitId = Number(bk_networkunit_id);
-    
+
     // 等待基础数据加载完成
     const setSearchValue = () => {
       searchSelectValue.value = [
@@ -1160,7 +1160,7 @@ watch(() => route.query, async (newQuery, oldQuery) => {
         },
       ];
     };
-    
+
     // 如果数据已加载，直接设置；否则等待
     if (isInitialDataLoaded.value) {
       setSearchValue();

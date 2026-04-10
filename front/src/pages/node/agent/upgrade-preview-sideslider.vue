@@ -515,7 +515,7 @@ const initHostData = async () => {
 
   const [unitRes, areaRes] = await Promise.all([
     networkUnitIds.length
-      ? TopoService.NetworkUnitList({
+      ? TopoService.NetworkUnitListBrief({
         exact_include_conditions: { bk_networkunit_id: networkUnitIds },
       }).catch(() => ({ items: [] }))
       : Promise.resolve({ items: [] }),

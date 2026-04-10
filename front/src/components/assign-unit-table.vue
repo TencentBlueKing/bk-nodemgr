@@ -204,7 +204,7 @@ const networkUnitLoading = ref(false);
 const getNetworkUnitList = async () => {
   networkUnitLoading.value = true;
   try {
-    const res = await TopoService.NetworkUnitList({
+    const res = await TopoService.NetworkUnitListBrief({
       exact_include_conditions: {
         bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
       },

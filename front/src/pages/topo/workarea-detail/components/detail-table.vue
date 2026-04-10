@@ -609,7 +609,7 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
 };
 
 const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: { bk_networkunit_id: data?.bk_networkunit_id || [] },
   }).catch((err: any) => {
     console.error('获取管控单元列表失败:', err);

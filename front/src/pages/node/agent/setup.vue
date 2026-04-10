@@ -564,9 +564,9 @@ const handleSingleChange = (id: string, rows: any[]) => {
 };
 
 // 管控单元下拉列表获取
-const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitList = ref<NetworkUnitBrief[]>([]);
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkarea_id: [Number(formData.bk_networkarea_id)],
     },

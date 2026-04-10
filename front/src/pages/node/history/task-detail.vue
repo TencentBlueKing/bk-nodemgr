@@ -635,7 +635,7 @@ const bizListMap = computed(() => new Map<number, string>(mainStore.businessList
 const getDistinctStates = async () => {
   // 没有taskId，不请求distinctStates
   if (!route.params.taskId) return;
-  
+
   try {
     const res = await serviceCaller.call('operationDistinct', {
       workflow_id: route.params.taskId,
@@ -1046,7 +1046,7 @@ const getNetworkAreaList = async () => {
 };
 // 管控单元下拉列表获取
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkunit_id: [],
     },
@@ -1135,7 +1135,7 @@ const debouncedGetStatistics = debounce(getStatistics, 500);
 // 重试
 const handleRetry = async (row: any, type: string) => {
   if (!route.params.taskId) return;
-  
+
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
@@ -1151,7 +1151,7 @@ const handleRetry = async (row: any, type: string) => {
 };
 const handleFullRetry = async (type: string) => {
   if (!route.params.taskId) return;
-  
+
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: failedSelection.value.map(item => item.operation_id),
@@ -1269,7 +1269,7 @@ const needInterval = computed(() => subTasksStatus.value?.includes('running')
 const getOperateList = async () => {
   // 没有taskId，不请求operationList
   if (!route.params.taskId) return;
-  
+
   subTasksStatus.value = [];
   const searchParameters = getParams();
   const res = await serviceCaller.call('operationList', searchParameters).catch(() => ({

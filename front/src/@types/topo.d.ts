@@ -209,6 +209,30 @@ export interface TopoNetworkUnitListRespData {
   items: NetworkUnit[];
 }
 
+// TopoNetworkUnitListBriefReq describes the HTTP request body when list brief
+// network-unit in topo service.
+export interface TopoNetworkUnitListBriefReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoNetworkUnitExactConditions;
+}
+
+// TopoNetworkUnitListBriefResp describes the HTTP response body when list brief
+// network-unit in topo service.
+export interface TopoNetworkUnitListBriefResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoNetworkUnitListBriefRespData;
+}
+
+export interface TopoNetworkUnitListBriefRespData {
+  total: number;
+  items: NetworkUnitBrief[];
+}
+
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
 // in topo service.
 export interface TopoNetworkUnitGetReq {
