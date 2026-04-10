@@ -414,6 +414,68 @@ func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDResp) ConvertResultToTypes
 	return data
 }
 
+// Validate check body.
+func (x *TopoNetworkUnitListBriefReq) Validate() error {
+	return validatePage(x.GetPage())
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitListBriefReq) AutoConvert() {
+}
+
+// PageTimeout return page timeout.
+func (x *TopoNetworkUnitListBriefReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
+// PageLimit return page limit.
+func (x *TopoNetworkUnitListBriefReq) PageLimit() int {
+	return maxNetworkUnitLimit
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *TopoNetworkUnitListBriefReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoNetworkUnitListBriefReq) ConvertConditionsToTypes() *types.NetworkUnitCondition {
+	condition := &types.NetworkUnitCondition{}
+
+	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
+		condition.ExactInclude = &types.NetworkUnitExactFields{
+			NetworkUnitID: exactCond.GetBkNetworkunitId(),
+			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			IsDirect:      exactCond.GetIsDirect(),
+			Generation:    exactCond.GetGeneration(),
+		}
+	}
+
+	return condition
+}
+
+// ConvertConditionsFromTypes convert conditions from types to proto.
+func (x *TopoNetworkUnitListBriefReq) ConvertConditionsFromTypes(condition *types.NetworkUnitCondition) error {
+	if condition == nil {
+		return nil
+	}
+
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoNetworkUnitListBriefReq_ExactConditions{
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			IsDirect:        condition.ExactInclude.IsDirect,
+			Generation:      condition.ExactInclude.Generation,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return nil
+}
+
 // ConvertNetworkUnitsFromTypes convert networkunits from types to proto.
 func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
 
@@ -461,6 +523,45 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 			DirectEndpoints:    convertEndpointToTypes(item.GetDirectEndpoints()),
 			Generation:         types.Generation(item.GetGeneration()),
 			CustomDeployConfig: convertCustomDeployConfigToTypes(item.GetCustomDeployConfig()),
+		}
+	}
+
+	return data.GetTotal(), result
+}
+
+// ConvertNetworkUnitsFromTypes convert networkunits from types to proto.
+func (x *TopoNetworkUnitListBriefResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
+	items := make([]*NetworkUnitBrief, len(networkUnits))
+	for idx, networkUnit := range networkUnits {
+		item := newEmptyNetworkUnitBrief()
+		*item.TenantId = networkUnit.TenantID
+		*item.BkNetworkunitId = networkUnit.ID
+		*item.BkNetworkunitName = networkUnit.Name
+		*item.BkNetworkareaId = networkUnit.NetworkAreaID
+		items[idx] = item
+	}
+
+	x.Data = &TopoNetworkUnitListBriefResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+// ConvertNetworkUnitsToTypes convert networkunits from proto to types.
+func (x *TopoNetworkUnitListBriefResp) ConvertNetworkUnitsToTypes() (int64, []*types.NetworkUnit) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.NetworkUnit, len(items))
+	for idx, item := range items {
+		result[idx] = &types.NetworkUnit{
+			TenantID:      item.GetTenantId(),
+			NetworkAreaID: item.GetBkNetworkareaId(),
+			ID:            item.GetBkNetworkunitId(),
+			Name:          item.GetBkNetworkunitName(),
 		}
 	}
 
