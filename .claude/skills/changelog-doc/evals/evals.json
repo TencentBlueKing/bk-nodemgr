@@ -1,0 +1,70 @@
+{
+  "skill_name": "changelog-doc",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "template-from-external-reference",
+      "prompt": "参考 bk-cmdb 的 release.md 风格，帮我为 bk-nodemgr support-files 设计一套 changelog 模板，重点覆盖 Agent、Plugin、Package、升级说明、兼容性和回滚说明。",
+      "expected_output": "A reusable Markdown changelog template with version heading, release scope, feature/fix categories, compatibility, upgrade notes, known issues, and rollback guidance.",
+      "files": [],
+      "expectations": [
+        "Output preserves a reusable versioned Markdown template instead of inventing concrete release facts.",
+        "Output includes a version heading in the form `## [Version: ...] - ...`.",
+        "Output includes release scope sections for Agent, Plugin, and Package.",
+        "Output includes compatibility, upgrade notes, and rollback guidance sections."
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "release-note-from-change-facts",
+      "prompt": "我准备发一个版本，变更包括：优化 Linux Agent 安装速度；修复 Windows 插件下发失败；新增插件包校验；要求补一份发布说明。请按 bk-nodemgr 风格生成 changelog。",
+      "expected_output": "A concrete release note that classifies the supplied facts into feature/optimization/fix sections and includes release scope plus upgrade/compatibility considerations.",
+      "files": [],
+      "expectations": [
+        "Output classifies the supplied facts into feature, optimization, and fix style sections instead of listing them flatly.",
+        "Output identifies the affected release scope, including Agent, Plugin, or Package when relevant.",
+        "Output includes compatibility or upgrade-impact framing rather than only restating implementation changes.",
+        "Output uses release-facing wording instead of raw engineering detail."
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "explicit-gaps-marked-tbd",
+      "prompt": "给我写一个 v3.1.0 的 changelog 草稿，但我现在只知道有 Agent 协议调整和插件仓库兼容性变化，其他信息还不全。",
+      "expected_output": "A draft changelog that preserves the standard structure and explicitly marks unknown version-impact details as pending confirmation instead of inventing them.",
+      "files": [],
+      "expectations": [
+        "Output keeps the standard changelog structure even though the facts are incomplete.",
+        "Unknown details are surfaced explicitly as `待确认` instead of being guessed.",
+        "Output does not invent missing date, tag range, compatibility conclusion, or rollback requirements.",
+        "Output still highlights Agent protocol and plugin repository compatibility impact as the known facts."
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "tag-diff-is-primary-evidence",
+      "prompt": "请基于 `v2.3.0...v2.4.0` 的 tag diff 整理一版 bk-nodemgr changelog，要求先看版本间变化，再归类成新增、优化、修复、兼容性和升级说明。",
+      "expected_output": "A changelog workflow/output that treats tag-to-tag diff as the primary evidence source, then synthesizes user-facing release notes instead of copying raw commit messages.",
+      "files": [],
+      "expectations": [
+        "Output treats the `v2.3.0...v2.4.0` compare range as the primary evidence source.",
+        "Output synthesizes release-facing conclusions instead of copying raw commit messages verbatim.",
+        "Output organizes the result into feature, optimization, fix, compatibility, and upgrade-oriented sections.",
+        "If concrete facts are missing, output uses `待确认` or draft framing rather than pretending the diff was fully analyzed."
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "full-changelog-compare-link",
+      "prompt": "模板中要生成一个类似于 `Full Changelog: [v3.0.1-alpha.15...v3.0.1-alpha.16](https://github.com/TencentBlueKing/bk-nodemgr/compare/v3.0.1-alpha.15...v3.0.1-alpha.16)` 的 compare 链接。",
+      "expected_output": "A changelog template/output that includes a GitHub compare-style Full Changelog link under the version heading, using the exact from-tag...to-tag range.",
+      "files": [],
+      "expectations": [
+        "Output includes a `Full Changelog` compare link directly under the version heading.",
+        "Link text uses the exact same `from-tag...to-tag` range as the URL target.",
+        "Output keeps the compare range as `v3.0.1-alpha.15...v3.0.1-alpha.16` without rewriting or truncating it.",
+        "If tags are unavailable in a variant of this scenario, the skill should mark the compare link requirement as `待确认` instead of fabricating one."
+      ]
+    }
+  ]
+}

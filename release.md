@@ -1,0 +1,35 @@
+# BlueKing Node Manager Release Notes
+
+本文档记录 bk-nodemgr 的版本发布历史和变更概要。
+
+详细变更内容请点击各版本的 `Full Changelog` 链接查看。
+
+---
+
+## [Version: v3.0.1-alpha.17] - 2026-04-10
+
+Full Changelog: [v3.0.1-alpha.16...v3.0.1-alpha.17](https://github.com/TencentBlueKing/bk-nodemgr/compare/v3.0.1-alpha.16...v3.0.1-alpha.17)
+
+**发布范围**
+- Backend: 新增 NetworkUnit 分布统计 API、拓扑事件历史鉴权收窄、workflow 日志优化
+- Frontend: 修复节点历史日志显示问题
+
+**新增功能**
+- 新增拓扑 NetworkUnit 按 NetworkArea 分布统计 API
+- 新增拓扑事件历史查询细粒度权限控制
+
+**功能优化**
+- 优化 workflow 系统日志 context 传播机制
+- 优化 ORM 层日志计数器
+
+**缺陷修复**
+- 修复前端节点历史日志页面 operation id 显示问题
+
+**升级说明**
+- Backend 服务需重启
+- Frontend 资源需更新
+- 无数据迁移需求
+
+**回滚说明**
+- 支持回滚到 v3.0.1-alpha.16
+- 回滚前需确认无业务依赖新增 API
