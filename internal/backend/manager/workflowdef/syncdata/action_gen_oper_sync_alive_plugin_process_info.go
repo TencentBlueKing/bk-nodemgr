@@ -135,7 +135,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 			}
 			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
 			if err != nil {
-				logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync alive plugin process info operations")
+				logger.G.Sys().Ctx(nCtx).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync alive plugin process info operations")
 				return nil, err
 			}
 		}
@@ -154,12 +154,12 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 
 	if trigCtl != nil {
 		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-			logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync alive plugin process info operations")
+			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync alive plugin process info operations")
 			return err
 		}
 	}
 
-	logger.G.Sys().With("action", act.Name()).Info("executed sync alive plugin process info operation for %d hosts", result.Total)
+	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("executed sync alive plugin process info operation for %d hosts", result.Total)
 
 	return nil
 }
@@ -179,7 +179,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) executeOper(
 
 	operCtl, err := trigCtl.CreateOperation(std.Context(), operationDef, operationParam)
 	if err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			WithErr(err).
 			With("action", act.Name(), "tenant-id", std.TenantID()).
 			Error("failed to create sync alive plugin process info operation")
@@ -187,7 +187,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) executeOper(
 		return err
 	}
 
-	logger.G.Sys().
+	logger.G.Sys().Ctx(std.Context()).
 		With("action", act.Name(), "tenant-id", std.TenantID(), "operation-id", operCtl.GetOperationID()).
 		Info("created sync alive plugin process info operation")
 

@@ -101,7 +101,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return err
 	}
-	logger.G.Sys().With("action", act.Name()).Info("found business: %d", len(bizs))
+	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("found business: %d", len(bizs))
 
 	if len(bizs) == 0 {
 		return nil
@@ -114,7 +114,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 	}
 	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOnce, meta)
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync host operations")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync host operations")
 
 		return err
 	}
@@ -126,12 +126,12 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 	}
 
 	if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-		logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync host operations")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync host operations")
 
 		return err
 	}
 
-	logger.G.Sys().With("action", act.Name()).Info("executed sync host operation for %d business", len(bizs))
+	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("executed sync host operation for %d business", len(bizs))
 
 	return nil
 }
@@ -149,7 +149,7 @@ func (act *actionGenOperSyncHost) executeOper(std *syncDataUtils.SyncDataActionS
 
 	operCtl, err := trigCtl.CreateOperation(std.Context(), operationDef, operationParam)
 	if err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			WithErr(err).
 			With("action", act.Name(), "tenant-id", biz.TenantID, "biz-id", biz.BizID).
 			Error("failed to create sync host operation for business")
@@ -157,7 +157,7 @@ func (act *actionGenOperSyncHost) executeOper(std *syncDataUtils.SyncDataActionS
 		return err
 	}
 
-	logger.G.Sys().
+	logger.G.Sys().Ctx(std.Context()).
 		With("action", act.Name(), "tenant-id", biz.TenantID, "biz-id", biz.BizID, "operation-id", operCtl.GetOperationID()).
 		Info("created sync host operation for business")
 

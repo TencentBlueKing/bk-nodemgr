@@ -130,7 +130,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 			}
 			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
 			if err != nil {
-				logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync agent state operations")
+				logger.G.Sys().Ctx(nCtx).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync agent state operations")
 
 				return nil, err
 			}
@@ -150,13 +150,13 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 
 	if trigCtl != nil {
 		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-			logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync agent state operations")
+			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync agent state operations")
 
 			return err
 		}
 	}
 
-	logger.G.Sys().With("action", act.Name()).Info("executed sync agent state operation for %d hosts", result.Total)
+	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("executed sync agent state operation for %d hosts", result.Total)
 
 	return nil
 }
@@ -183,7 +183,7 @@ func (act *actionGenOperSyncAgentState) executeOper(
 
 	operCtl, err := trigCtl.CreateOperation(std.Context(), operationDef, operationParam)
 	if err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			WithErr(err).
 			With("action", act.Name(), "tenant-id", std.TenantID()).
 			Error("failed to create sync agent state operation")
@@ -191,7 +191,7 @@ func (act *actionGenOperSyncAgentState) executeOper(
 		return err
 	}
 
-	logger.G.Sys().
+	logger.G.Sys().Ctx(std.Context()).
 		With("action", act.Name(), "tenant-id", std.TenantID(), "operation-id", operCtl.GetOperationID()).
 		Info("created sync agent state operation")
 
@@ -199,7 +199,11 @@ func (act *actionGenOperSyncAgentState) executeOper(
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionGenOperSyncAgentState) DisplayNameZh() string { return "生成同步 Agent 状态任务" }
+func (act *actionGenOperSyncAgentState) DisplayNameZh() string {
+	return "生成同步 Agent 状态任务"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionGenOperSyncAgentState) DisplayNameEn() string { return "Generate Sync Agent State Operation" }
+func (act *actionGenOperSyncAgentState) DisplayNameEn() string {
+	return "Generate Sync Agent State Operation"
+}
