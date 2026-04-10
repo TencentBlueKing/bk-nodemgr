@@ -144,12 +144,12 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		logger.G.Sys().WithErr(err).With("host-id", std.DeployInfo().Host.HostID).Error("failed to transfer pkg to node")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("host-id", std.DeployInfo().Host.HostID).Error("failed to transfer pkg to node")
 
 		return err
 	}
 
-	logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID).Info("transfer pkg to node all done")
+	logger.G.Sys().Ctx(std.Context()).With("host-id", std.DeployInfo().Host.HostID).Info("transfer pkg to node all done")
 	std.InstanceData().Log().
 		Zh("传输安装包到节点全部完成").
 		En("transfer pkg to node all done").
@@ -192,7 +192,7 @@ func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info
 		return fmt.Errorf("failed to launch transfer release. host-id(%d): %w", info.Host.HostID, err)
 	}
 
-	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer release")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer release")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
@@ -210,7 +210,7 @@ func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info
 			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer release done")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer release done")
 
 	return nil
 }
@@ -228,7 +228,7 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.Host.HostID, err)
 	}
 
-	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer installer")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer installer")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
@@ -246,7 +246,7 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer installer done")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer installer done")
 
 	return nil
 }

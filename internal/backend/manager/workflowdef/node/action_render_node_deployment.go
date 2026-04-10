@@ -172,7 +172,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("failed to render logic setting: %w", err)
 		}
 
-		logger.G.Sys().With("token", std.Token()).Info("rendered logic setting")
+		logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).Info("rendered logic setting")
 
 		return nil
 	})
@@ -182,7 +182,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("failed to render custom setting: %w", err)
 		}
 
-		logger.G.Sys().With("token", std.Token()).Info("rendered custom setting")
+		logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).Info("rendered custom setting")
 
 		return nil
 	})
@@ -352,7 +352,7 @@ func (act *actionRenderNodeDeployment) logReleaseFallback(
 	originalVersion, fallbackVersion string,
 ) {
 
-	logger.G.Sys().With("token", std.Token()).
+	logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).
 		With("original_version", originalVersion).
 		With("fallback_version", fallbackVersion).
 		Warn("release not found, fallback to default release for reconfig")
