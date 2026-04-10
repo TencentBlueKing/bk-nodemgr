@@ -123,16 +123,7 @@
         </div>
       </Select.Option>
     </Select>
-    <!-- hover 无权限业务时跟随鼠标的锁图标（Teleport 到 body 确保在 popover 层上方） -->
-    <Teleport to="body">
-      <div
-        v-show="lockCursorVisible"
-        class="biz-lock-cursor"
-        :style="{ left: lockCursorX + 'px', top: lockCursorY + 'px' }"
-      >
-        <img src="/images/lock.svg" alt="" />
-      </div>
-    </Teleport>
+    <!-- 锁图标由 use-auth-lock hook 通过 DOM 管理，无需 Teleport -->
   </div>
 </template>
 
@@ -142,6 +133,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
+import useAuthLock from '@/composables/use-auth-lock';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePermissionStore } from '@/stores/permission';
@@ -264,26 +256,26 @@ watch(singleBusiness, (val) => {
   }
 });
 
-// ===== hover 无权限业务时跟随鼠标的锁图标 =====
-const lockCursorVisible = ref(false);
-const lockCursorX = ref(0);
-const lockCursorY = ref(0);
+// ===== hover 无权限业务时跟随鼠标的锁图标（使用 use-auth-lock hook）=====
+const {
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+} = useAuthLock(
+  // action 是动态的，由路由决定，这里只是占位，实际判断在 isBizAuthorized 里
+  'agent_view',
+  () => mainStore.selectedBusinessId[0],
+);
 
+// 业务选择器中每个 option 的 action 由路由决定，需根据 isBizAuthorized 判断
 const handleOptionMouseEnter = (e: MouseEvent, bizId: number) => {
-  if (!isBizAuthorized(bizId)) {
-    lockCursorVisible.value = true;
-    lockCursorX.value = e.clientX + 8;
-    lockCursorY.value = e.clientY - 8;
-  }
+  authLockMouseEnter(e, isBizAuthorized(bizId));
 };
 const handleOptionMouseMove = (e: MouseEvent, bizId: number) => {
-  if (!isBizAuthorized(bizId)) {
-    lockCursorX.value = e.clientX + 8;
-    lockCursorY.value = e.clientY - 8;
-  }
+  authLockMouseMove(e, isBizAuthorized(bizId));
 };
 const handleOptionMouseLeave = () => {
-  lockCursorVisible.value = false;
+  authLockMouseLeave();
 };
 
 // ===== 文字溢出检测 =====
@@ -370,7 +362,6 @@ const handleApplyPermission = async (bizId: number) => {
   const action = getActionForRoute();
   if (!action) return;
 
-  // 同时 verify 路由对应的 view action 和 biz_access（业务访问权限）
   const authItems = [
     { id: action, action, resourceType: 'biz', routes: [] },
     { id: 'biz_access', action: 'biz_access', resourceType: 'biz', routes: [] },
@@ -499,18 +490,7 @@ defineExpose({ init });
 </style>
 
 <style lang="postcss">
-/* 非 scoped：跟随鼠标锁图标和置灰样式需穿透 Select Option popover */
-.biz-lock-cursor {
-  position: fixed;
-  z-index: 999999;
-  pointer-events: none;
-  width: 12px;
-  height: 16px;
-  img {
-    width: 12px;
-    height: 16px;
-  }
-}
+/* 非 scoped：置灰样式需穿透 Select Option popover */
 .unauthorized-biz-row {
   color: #c4c6cc !important;
 }

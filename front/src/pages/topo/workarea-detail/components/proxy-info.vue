@@ -3,38 +3,71 @@
     <FlexRow class="mt-[24px]">
       <template #left>
         <div class="flex items-center">
-          <!-- 安装/重装 -->
+          <!-- 安装/重装 Proxy：始终可点击，无需权限校验 -->
           <Button
             theme="primary"
             :class="['mr-[8px]', 'w-[130px]', { 'btn-reinstall': hasSelection }]"
             @click="handlePrimaryButtonClick">
-            <span>{{
-              primaryButtonLabel
-            }}</span>
+            <span>{{ primaryButtonLabel }}</span>
           </Button>
-          <MoreAction
-            :data="selectTableData"
-            placement="bottom-start"
-            :batch="true"
-            @reinstall="handleReinstall"
-            :is-cross-page-selection="isCrossPageSelection"
-            :cross-page-query-params="crossPageQueryParams"
+          <!-- 批量操作：无权限时置灰 + hover 带锁 + 点击申请权限 -->
+          <template v-if="hasProxyOperateAuth">
+            <MoreAction
+              :data="selectTableData"
+              placement="bottom-start"
+              :batch="true"
+              @reinstall="handleReinstall"
+              :is-cross-page-selection="isCrossPageSelection"
+              :cross-page-query-params="crossPageQueryParams"
+            >
+              <Button :disabled="!hasSelection" class="mr-[8px]">
+                <span>{{ $t("topoManager.workAreaDetail.button.batch") }}</span>
+                <i
+                  class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
+                ></i>
+              </Button>
+            </MoreAction>
+          </template>
+          <span
+            v-else
+            class="inline-flex items-center auth-lock-wrapper mr-[8px]"
+            @click="handleAuthClick"
+            @mouseenter="authLockMouseEnter($event, false)"
+            @mousemove="authLockMouseMove($event, false)"
+            @mouseleave="authLockMouseLeave()"
           >
-            <Button :disabled="!hasSelection" class="mr-[8px]">
+            <Button class="auth-disabled-btn">
               <span>{{ $t("topoManager.workAreaDetail.button.batch") }}</span>
               <i
                 class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
               ></i>
             </Button>
-          </MoreAction>
-          <!-- 复制 -->
-          <copy-ip-dropdown
-            :disabled="!hasSelection"
-            :data="tableData"
-            :list="list"
-            :is-cross-page-selection="isCrossPageSelection"
-            :cross-page-query-params="crossPageQueryParams"
-          ></copy-ip-dropdown>
+          </span>
+          <!-- 复制IP：无权限时置灰 + hover 带锁 + 点击申请权限 -->
+          <template v-if="hasProxyOperateAuth">
+            <copy-ip-dropdown
+              :disabled="!hasSelection"
+              :data="tableData"
+              :list="list"
+              :is-cross-page-selection="isCrossPageSelection"
+              :cross-page-query-params="crossPageQueryParams"
+            ></copy-ip-dropdown>
+          </template>
+          <span
+            v-else
+            class="inline-flex items-center auth-lock-wrapper"
+            @click="handleAuthClick"
+            @mouseenter="authLockMouseEnter($event, false)"
+            @mousemove="authLockMouseMove($event, false)"
+            @mouseleave="authLockMouseLeave()"
+          >
+            <Button class="auth-disabled-btn">
+              <span>{{ $t('components.copyIpDropdown.copy') }}</span>
+              <i
+                class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
+              ></i>
+            </Button>
+          </span>
         </div>
       </template>
       <template #right>
@@ -53,11 +86,13 @@
       v-model:search-select-value="searchKey"
       :bk-networkunit-id="active"
       :is-batch-reinstall="batchReinstall"
+      :has-proxy-operate-auth="hasProxyOperateAuth"
       @select-change="handleSelectChange"
       @get-data="handleGetData"
       @update-cross-page="handleUpdateCrossPage"
       @excluded-ids-change="handleExcludedIdsChange"
-      @update-search-select-data="handleUpdateSearchSelectData">
+      @update-search-select-data="handleUpdateSearchSelectData"
+      @auth-click="handleAuthClick">
     </DetailTable>
   </div>
   <InstallProxy
@@ -86,6 +121,7 @@ import type {
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
 import CopyIp from '@/components/copy-ip.vue';
+import useAuthLock from '@/composables/use-auth-lock';
 import InstallProxy from '@/pages/topo/install-proxy/install-proxy.vue';
 import ReinstallProxy from '@/pages/topo/install-proxy/reinstall-proxy.vue';
 import { useMainStore } from '@/stores/main';
@@ -99,6 +135,14 @@ const props = defineProps({
 const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
+// ===== proxy_operate 权限控制（批量操作、复制IP） =====
+const {
+  hasAuth: hasProxyOperateAuth,
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick,
+} = useAuthLock('proxy_operate', () => mainStore.selectedBusinessId);
 const isProxyStatus = computed(() => route.name === 'proxy');
 // 搜索
 const searchKey = ref<ISearchValue[]>([]);
@@ -246,3 +290,16 @@ const handleUpdateSearchSelectData = (data: any) => {
   searchSelectData.value = data;
 };
 </script>
+
+<style lang="postcss" scoped>
+/* 无权限按钮：模拟 disabled 视觉效果但保持鼠标事件可响应 */
+.auth-lock-wrapper {
+  cursor: pointer;
+
+  .auth-disabled-btn {
+    opacity: 0.5;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
+}
+</style>

@@ -35,43 +35,12 @@
               </template>
             </Popover>
           </template>
-          <Select
-            class="w-[568px]"
+          <BizSelect
+            select-class="w-[568px]"
             v-model="formData.bk_biz_id"
-            auto-focus
-            filterable
-            :filter-option="filterOption"
-            :show-selected-icon="false"
+            action="agent_operate"
             :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.selectBiz')"
-            @toggle="handleBizToggle"
-          >
-            <Select.Option
-              v-for="item in sortedBusinessList"
-              :key="item.bk_biz_id"
-              :name="item.bk_biz_name"
-              :id="item.bk_biz_id"
-            >
-              <div class="w-full flex items-center biz-select-option overflow-hidden">
-                <Button
-                  class="mr-[8px] w-[18px] shrink-0"
-                  text
-                  @click.native.stop="handleCollect(item.bk_biz_id)"
-                >
-                  <i
-                    class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-                    v-if="collectList.includes(item.bk_biz_id)">
-                  </i>
-                  <i
-                    class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
-                    v-else>
-                  </i>
-                </Button>
-                <div class="truncate">
-                  [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-                </div>
-              </div>
-            </Select.Option>
-          </Select>
+          />
         </Form.FormItem>
         <Form.FormItem
           property="bk_networkarea_id"
@@ -322,7 +291,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Dialog, Form, Input, Message, Popover, Select, Upload } from 'bkui-vue';
+import { Button, Dialog, Form, Input, Message, Popover, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce, isEqual  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
@@ -339,6 +308,7 @@ import { encryptionTool } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
+import BizSelect from '@/components/biz-select.vue';
 import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();
@@ -423,77 +393,6 @@ const systemData = ref([
 const rules = {};
 const isShow = ref(false);
 const isShowDialog = ref(false);
-const businessList = computed(() => mainStore.businessList);
-const collectList = ref<number[]>([]);
-const selectedBizIds = computed(() => {
-  if (!formData.bk_biz_id) return [];
-  const value = Number(formData.bk_biz_id);
-  return Number.isNaN(value) ? [] : [value];
-});
-const sortedBusinessList = computed(() => {
-  const selectedSet = new Set(selectedBizIds.value);
-  const list = [...businessList.value];
-  return list.sort((a, b) => {
-    const aIsCollected = collectList.value.includes(a.bk_biz_id);
-    const bIsCollected = collectList.value.includes(b.bk_biz_id);
-    const aIsSelected = selectedSet.has(a.bk_biz_id);
-    const bIsSelected = selectedSet.has(b.bk_biz_id);
-
-    if (aIsSelected && !bIsSelected) {
-      return -1;
-    }
-    if (!aIsSelected && bIsSelected) {
-      return 1;
-    }
-    if (aIsCollected && !bIsCollected) {
-      return -1;
-    }
-    if (!aIsCollected && bIsCollected) {
-      return 1;
-    }
-    return a.bk_biz_id - b.bk_biz_id;
-  });
-});
-const filterOption = (input: any, options: { id: number, name: string }) => {
-  const inputStr = String(input).trim();
-  if (!inputStr) return false;
-
-  const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
-  if (keywords.length === 0) return false;
-
-  const nameMatch = keywords.some(keyword => {
-    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const nameRegex = new RegExp(safeKeyword, 'i');
-    return options.name?.match(nameRegex);
-  });
-  const idMatch = keywords.some(keyword => {
-    const keywordStr = String(keyword).trim();
-    return keywordStr === String(options.id);
-  });
-  return nameMatch || idMatch;
-};
-const handleBizToggle = () => {
-  // 侧边栏行为对齐：下拉展开/收起时重新计算排序
-  sortedBusinessList.value;
-};
-const handleCollect = (val: number) => {
-  const list = [...collectList.value];
-  if (list.includes(val)) {
-    collectList.value = list.filter(item => item !== val);
-  } else {
-    collectList.value = [...list, val];
-  }
-  localStorage.setItem('collect', JSON.stringify(collectList.value));
-};
-const initCollectList = () => {
-  const collectsJson = localStorage.getItem('collect');
-  if (collectsJson) {
-    const collects = JSON.parse(collectsJson) as unknown;
-    if (Array.isArray(collects)) {
-      collectList.value = collects.map(item => Number(item)).filter(item => Number.isFinite(item));
-    }
-  }
-};
 const isAtBottom = ref(false);
 const dialogData = ref([{
   os: '',
@@ -571,7 +470,7 @@ const getNetworkUnitList = async () => {
       bk_networkarea_id: [Number(formData.bk_networkarea_id)],
     },
   }).catch((err: any) => {
-    console.log(err);
+    console.error('获取管控单元列表失败:', err);
     return {
       total: 0,
       items: [],
@@ -747,7 +646,6 @@ watch(
 onMounted(async () => {
   encryptionTool.initPublicKey();
   await getVersions();
-  initCollectList();
   if (footerRef.value) {
     window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();
@@ -759,21 +657,3 @@ onUnmounted(() => {
   }
 });
 </script>
-<style lang="postcss" scoped>
-.biz-select-option {
-  &:hover {
-    .nc-not-favorited {
-      display: inline;
-    }
-  }
-}
-</style>
-<style lang="postcss" scoped>
-.biz-select-option {
-  &:hover {
-    .nc-not-favorited {
-      display: inline;
-    }
-  }
-}
-</style>

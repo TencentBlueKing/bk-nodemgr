@@ -586,4 +586,25 @@ body {
     height: calc(100vh - 40px);
   }
 }
+/* use-auth-lock hook 创建的跟随鼠标锁图标 */
+.auth-lock-cursor {
+  position: fixed;
+  z-index: 999999;
+  pointer-events: none;
+}
+/* 无权限元素置灰文字 */
+.unauthorized-text {
+  color: #c4c6cc !important;
+}
+/* 无权限下拉项：置灰但可 hover 带锁 */
+.auth-lock-dropdown-item {
+  color: #c4c6cc !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+
+  &:hover {
+    color: #c4c6cc !important;
+    background-color: #f5f7fa !important;
+  }
+}
 </style>

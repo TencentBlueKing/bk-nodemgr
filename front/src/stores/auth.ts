@@ -183,6 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
       { action: 'agent_view', resource_type: 'biz' },
       { action: 'agent_operate', resource_type: 'biz' },
       { action: 'proxy_view', resource_type: 'biz' },
+      { action: 'proxy_operate', resource_type: 'biz' },
       { action: 'plugin_view', resource_type: 'biz' },
       { action: 'plugin_operate', resource_type: 'biz' },
       { action: 'agent_history_view', resource_type: 'biz' },

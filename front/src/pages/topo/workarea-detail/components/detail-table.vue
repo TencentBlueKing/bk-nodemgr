@@ -120,7 +120,7 @@
           field="bk_networkarea_id"
           :title="t('platform.nodeMan.bk_cloud_name')"
           :filter="filterOptionSource.bk_networkarea_id"
-          :min-width="120"
+          :min-width="132"
           show-overflow
         >
           <template #default="{ row }">
@@ -132,7 +132,7 @@
           field="bk_networkunit_id"
           :title="t('platform.nodeMan.bk_cloud_unit')"
           :filter="filterOptionSource.bk_networkunit_id"
-          :min-width="120"
+          :min-width="130"
         >
           <template #default="{ row }">
             {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
@@ -224,13 +224,39 @@
           :min-width="140">
           <template #default="{ row }">
             <div class="flex">
-              <Button theme="primary" text class="mr-[12px]" @click="handleEdit(row)">
+              <!-- 编辑按钮：有权限正常，无权限置灰+hover带锁+点击申请 -->
+              <Button
+                v-if="hasProxyOperateAuth"
+                theme="primary"
+                text
+                class="mr-[12px]"
+                @click="handleEdit(row)"
+              >
                 {{ $t('topoManager.workAreaDetail.table.edit') }}
               </Button>
+              <span
+                v-else
+                class="inline-flex items-center auth-lock-wrapper mr-[12px]"
+                @click="authLockHandleAuthClick()"
+
+                @mouseenter="authLockMouseEnter($event, false)"
+                @mousemove="authLockMouseMove($event, false)"
+                @mouseleave="authLockMouseLeave()"
+              >
+                <Button theme="primary" text class="auth-disabled-text-btn">
+                  {{ $t('topoManager.workAreaDetail.table.edit') }}
+                </Button>
+              </span>
+              <!-- 更多操作：始终可点击，内部选项根据 hasAuth 控制是否带锁 -->
               <MoreAction
                 :ipv4="row.bk_host_innerip"
                 :data="[row]"
-                @reinstall="handleReinstall(row)">
+                :has-auth="hasProxyOperateAuth"
+                @reinstall="handleReinstall(row)"
+                @auth-click="authLockHandleAuthClick()"
+                @auth-lock-enter="authLockMouseEnter($event, false)"
+                @auth-lock-move="authLockMouseMove($event, false)"
+                @auth-lock-leave="authLockMouseLeave()">
                 <i class="nodeman-icon nc-more cursor"></i>
               </MoreAction>
             </div>
@@ -280,6 +306,7 @@ import type {
 } from '@/@types/topo.d';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
+import useAuthLock from '@/composables/use-auth-lock';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -299,8 +326,12 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  hasProxyOperateAuth: {
+    type: Boolean,
+    default: true,
+  },
 });
-const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData']);
+const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData', 'authClick']);
 
 const { t } = useI18n();
 const route = useRoute();
@@ -309,6 +340,12 @@ const list = ref<Host[]>([]);
 const pagination = reactive({ count: 0, limit: 20, current: 1 });
 const sortConfig = ref({ multiple: true });
 const mainStore = useMainStore();
+const {
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick: authLockHandleAuthClick,
+} = useAuthLock('proxy_operate', () => mainStore.selectedBusinessId);
 const businessList = computed(() => mainStore.businessList);
 const sidesliderData = reactive<{
   isShow: boolean,
@@ -530,7 +567,7 @@ const getParams = () => {
 const getProxyList = async () => {
   loading.value = true;
   const res = await TopoService.HostList(getParams()).catch((err) => {
-    console.log(err);
+    console.error('获取Proxy列表失败:', err);
     return {
       total: 0,
       items: [],
@@ -795,6 +832,21 @@ watch(
   &::before {
     border-color: #f0f1f5;
     background: #b2b5bd;
+  }
+}
+/* 无权限按钮：模拟 disabled 视觉效果但保持鼠标事件可响应 */
+.auth-lock-wrapper {
+  cursor: pointer;
+
+  .auth-disabled-text-btn {
+    color: #c4c6cc !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+
+    &:hover {
+      color: #c4c6cc !important;
+      background: transparent !important;
+    }
   }
 }
 </style>

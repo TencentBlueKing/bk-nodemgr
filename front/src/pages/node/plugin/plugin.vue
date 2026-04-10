@@ -56,15 +56,27 @@
           min-width="150"
         >
           <template #default="{ row }">
-            <AuthButton
+            <!-- 编辑按钮：有权限正常点击，无权限置灰+hover带锁+点击申请权限 -->
+            <Button
+              v-if="hasPluginOperateAuth"
               text
               theme="primary"
-              :has-permission="hasAction('set_memo', row.name)"
-              :action-name="$t('action.edit')"
               @click="handleEditInfo(row)"
             >
               {{ $t('action.edit') }}
-            </AuthButton>
+            </Button>
+            <span
+              v-else
+              class="inline-flex items-center auth-lock-wrapper"
+              @click="handleAuthClick"
+              @mouseenter="authLockMouseEnter($event, false)"
+              @mousemove="authLockMouseMove($event, false)"
+              @mouseleave="authLockMouseLeave()"
+            >
+              <Button theme="primary" text class="auth-disabled-text-btn">
+                {{ $t('action.edit') }}
+              </Button>
+            </span>
           </template>
         </TableColumn>
       </Table>
@@ -96,16 +108,22 @@ import editDialog from './edit-dialog.vue';
 import processSideslider from './process-sideslider.vue';
 
 import { PluginAPIService } from '@/api/modules/plugin';
-import AuthButton from '@/components/auth-button.vue';
-import usePluginAuth from '@/composables/use-plugin-auth';
+import useAuthLock from '@/composables/use-auth-lock';
 import { ProcessAPIService } from '@/api/modules/process';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 
-const { hasAction, load: loadPluginAuth, loaded: authLoaded } = usePluginAuth();
-
 const router = useRouter();
 const mainStore = useMainStore();
+
+// ===== plugin_operate 权限控制（编辑操作） =====
+const {
+  hasAuth: hasPluginOperateAuth,
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick,
+} = useAuthLock('plugin_operate', () => mainStore.selectedBusinessId);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 // 插件列表数据
 const pluginList = ref<any[]>([]);
@@ -207,7 +225,7 @@ const loadPluginList = async () => {
   loading.value = true;
   try {
     const response = await PluginAPIService.ListPlugins(getParams()).catch((err) => {
-      console.log(err);
+      console.error('获取插件列表失败:', err);
       return {
         total: 0,
         items: [],
@@ -246,7 +264,24 @@ const openSidebar = async (plugin: any) => {
 
 // 组件挂载时加载数据
 onMounted(() => {
-  loadPluginAuth();
   loadPluginList();
 });
 </script>
+
+<style lang="postcss" scoped>
+/* 无权限按钮：模拟 disabled 视觉效果但保持鼠标事件可响应 */
+.auth-lock-wrapper {
+  cursor: pointer;
+
+  .auth-disabled-text-btn {
+    color: #c4c6cc !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+
+    &:hover {
+      color: #c4c6cc !important;
+      background: transparent !important;
+    }
+  }
+}
+</style>

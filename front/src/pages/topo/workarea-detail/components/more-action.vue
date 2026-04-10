@@ -16,7 +16,11 @@
           <Dropdown.DropdownItem
             v-for="(item, index) in dropMenuList"
             :key="index"
+            :class="{ 'auth-lock-dropdown-item': !hasAuth }"
             @mousedown="handleClickDropMenu(item.value)"
+            @mouseenter="!hasAuth && emit('authLockEnter', $event)"
+            @mousemove="!hasAuth && emit('authLockMove', $event)"
+            @mouseleave="!hasAuth && emit('authLockLeave')"
           >
             {{ item.label }}
           </Dropdown.DropdownItem>
@@ -90,10 +94,16 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  hasAuth: {
+    type: Boolean,
+    default: true,
+  },
 });
-const emit = defineEmits(['reinstall']);
+const emit = defineEmits(['reinstall', 'authClick', 'authLockEnter', 'authLockMove', 'authLockLeave']);
 const { t } = useI18n();
 const router = useRouter();
+
+// ===== 权限控制：锁图标由父组件通过 props.authLockHandlers 传入 =====
 // dropMenuList
 const dropMenuList = ref<{
   label: string
@@ -164,6 +174,10 @@ const getCorssPageHostIds = async () => {
 
 // 选择dropMenuItem，打开对应的action dialog，关闭dropdown
 const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
+  if (!props.hasAuth) {
+    emit('authClick');
+    return;
+  }
   if (action === 'reinstall') {
     emit('reinstall');
   } else {
@@ -308,5 +322,14 @@ const handleUpgrade = async (versionList: any[]) => {
 <style lang="postcss">
 .proxy-action-dropdown-menu {
   min-width: 100px !important;
+}
+/* 无权限菜单项：灰色文字 + cursor: pointer 保持事件可响应 */
+.auth-lock-dropdown-item {
+  color: #c4c6cc !important;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f1f5 !important;
+  }
 }
 </style>

@@ -28,6 +28,7 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown> -->
+        <!-- 主按钮（安装/重装）：始终可点击，无需权限校验 -->
         <Button
           class="w-[130px]"
           theme="primary"
@@ -35,7 +36,9 @@
           @click="handlePrimaryButtonClick">
           {{ primaryButtonLabel }}
         </Button>
+        <!-- 批量操作：无权限时置灰 + hover 带锁 + 点击申请权限 -->
         <Dropdown
+          v-if="hasOperateAuth"
           theme="light"
           trigger="click"
           :popover-options="{
@@ -65,14 +68,47 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
-        <copy-ip-dropdown
-          :type="'agent'"
-          :disabled="!hasSelection"
-          :data="tableData"
-          :list="[]"
-          :is-cross-page-selection="isCrossPageSelection"
-          :cross-page-query-params="crossPageQueryParams"
-        ></copy-ip-dropdown>
+        <span
+          v-else
+          class="inline-flex items-center auth-lock-wrapper"
+          @click="handleAuthClick"
+          @mouseenter="authLockMouseEnter($event, false)"
+          @mousemove="authLockMouseMove($event, false)"
+          @mouseleave="authLockMouseLeave()"
+        >
+          <Button class="auth-disabled-btn">
+            <span>{{ $t("platform.nodeMan.batchOperate") }}</span>
+            <i
+              class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
+            ></i>
+          </Button>
+        </span>
+        <!-- 复制IP：无权限时置灰 + hover 带锁 + 点击申请权限 -->
+        <template v-if="hasOperateAuth">
+          <copy-ip-dropdown
+            :type="'agent'"
+            :disabled="!hasSelection"
+            :data="tableData"
+            :list="[]"
+            :is-cross-page-selection="isCrossPageSelection"
+            :cross-page-query-params="crossPageQueryParams"
+          ></copy-ip-dropdown>
+        </template>
+        <span
+          v-else
+          class="inline-flex items-center auth-lock-wrapper"
+          @click="handleAuthClick"
+          @mouseenter="authLockMouseEnter($event, false)"
+          @mousemove="authLockMouseMove($event, false)"
+          @mouseleave="authLockMouseLeave()"
+        >
+          <Button class="auth-disabled-btn">
+            <span>{{ $t('components.copyIpDropdown.copy') }}</span>
+            <i
+              class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
+            ></i>
+          </Button>
+        </span>
       </div>
       <div class="flex gap-[8px]">
         <!-- <Cascader
@@ -285,7 +321,9 @@
           fixed="right"
         >
           <template #default="{ row }">
+            <!-- 重装按钮：有权限正常点击，无权限灰色+锁hover+点击申请权限 -->
             <Button
+              v-if="hasOperateAuth"
               theme="primary"
               text
               ext-cls="reinstall"
@@ -293,7 +331,20 @@
             >
               {{ $t("platform.nodeMan.agentStatus.reinstall") }}
             </Button>
+            <span
+              v-else
+              class="inline-flex items-center auth-lock-wrapper"
+              @click="handleAuthClick"
+              @mouseenter="authLockMouseEnter($event, false)"
+              @mousemove="authLockMouseMove($event, false)"
+              @mouseleave="authLockMouseLeave()"
+            >
+              <Button theme="primary" text class="auth-disabled-text-btn">
+                {{ $t("platform.nodeMan.agentStatus.reinstall") }}
+              </Button>
+            </span>
 
+            <!-- 更多操作下拉：始终可点击打开，无权限时 Dropdown 内的 item 全部置灰+hover带锁+点击申请权限 -->
             <Dropdown
               theme="light"
               trigger="click"
@@ -305,20 +356,36 @@
               </Button>
               <template #content>
                 <Dropdown.DropdownMenu>
-                  <Dropdown.DropdownItem
-                    v-for="item in operate"
-                    :key="item.id"
-                    v-show="getOperateShow(row, item)"
-                    :disabled="getRowOperateDisabled(row, item).disabled"
-                    :class="{ 'operate-item-disabled': getRowOperateDisabled(row, item).disabled }"
-                    v-bk-tooltips="{
-                      content: getRowOperateDisabled(row, item).tooltip,
-                      disabled: !getRowOperateDisabled(row, item).disabled,
-                    }"
-                    @click.stop="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
-                  >
-                    {{ item.name }}
-                  </Dropdown.DropdownItem>
+                  <template v-if="hasOperateAuth">
+                    <Dropdown.DropdownItem
+                      v-for="item in operate"
+                      :key="item.id"
+                      v-show="getOperateShow(row, item)"
+                      :disabled="getRowOperateDisabled(row, item).disabled"
+                      :class="{ 'operate-item-disabled': getRowOperateDisabled(row, item).disabled }"
+                      v-bk-tooltips="{
+                        content: getRowOperateDisabled(row, item).tooltip,
+                        disabled: !getRowOperateDisabled(row, item).disabled,
+                      }"
+                      @click.stop="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
+                    >
+                      {{ item.name }}
+                    </Dropdown.DropdownItem>
+                  </template>
+                  <template v-else>
+                    <Dropdown.DropdownItem
+                      v-for="item in operate"
+                      :key="item.id"
+                      v-show="getOperateShow(row, item)"
+                      class="auth-lock-dropdown-item"
+                      @mouseenter="authLockMouseEnter($event, false)"
+                      @mousemove="authLockMouseMove($event, false)"
+                      @mouseleave="authLockMouseLeave()"
+                      @click.stop="handleAuthClick()"
+                    >
+                      {{ item.name }}
+                    </Dropdown.DropdownItem>
+                  </template>
                 </Dropdown.DropdownMenu>
               </template>
             </Dropdown>
@@ -372,8 +439,10 @@ import { NodeAgentService } from '@/api/modules/node_agent';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import { isNetworkUnitAssigned } from '@/common/const';
+import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
 import BkFooter from '@/pages/app/footer.vue';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
@@ -388,7 +457,16 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
-// 正则表达式
+const authStore = useAuthStore();
+
+// ===== networkunit_use_for_agent 权限控制（批量操作、复制IP、行内重装/更多操作）=====
+const {
+  hasAuth: hasOperateAuth,
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick,
+} = useAuthLock('networkunit_use_for_agent', () => mainStore.selectedBusinessId);
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 
@@ -1269,6 +1347,28 @@ onUnmounted(() => {
   &::before {
     border-color: #f0f1f5;
     background: #b2b5bd;
+  }
+}
+
+/* 无权限按钮：模拟 disabled 视觉效果但保持鼠标事件可响应 */
+.auth-lock-wrapper {
+  cursor: pointer;
+
+  .auth-disabled-btn {
+    opacity: 0.5;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
+
+  .auth-disabled-text-btn {
+    color: #c4c6cc !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+
+    &:hover {
+      color: #c4c6cc !important;
+      background: transparent !important;
+    }
   }
 }
 </style>

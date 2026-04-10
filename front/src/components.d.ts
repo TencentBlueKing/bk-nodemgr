@@ -13,6 +13,7 @@ declare module 'vue' {
     AuthButton: typeof import('./components/auth-button.vue')['default']
     AutoFitTags: typeof import('./components/auto-fit-tags.vue')['default']
     BatchEdit: typeof import('./components/batch-edit.vue')['default']
+    BizSelect: typeof import('./components/biz-select.vue')['default']
     BizSelector: typeof import('./components/biz-selector.vue')['default']
     ChooseVersionDialog: typeof import('./components/choose-version-dialog.vue')['default']
     ConfigTemplate: typeof import('./components/config-template.vue')['default']
