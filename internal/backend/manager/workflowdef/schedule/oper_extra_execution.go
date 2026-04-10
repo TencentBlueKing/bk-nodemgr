@@ -61,7 +61,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 	switch instance.Lifecycle.State {
 	case operation.StateLaunched:
 		if err := exec.preprocess(nCtx, instance, param); err != nil {
-			logger.G.Sys().
+			logger.G.Sys().Ctx(nCtx).
 				WithErr(err).
 				With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 				Error("failed to do preprocess for scheduled workflow")
@@ -75,7 +75,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 
 	case operation.StateSuccess, operation.StateFailed, operation.StateTimeout, operation.StateTerminated:
 		if err := exec.postprocess(nCtx, instance, param); err != nil {
-			logger.G.Sys().
+			logger.G.Sys().Ctx(nCtx).
 				WithErr(err).
 				With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 				Error("failed to do postprocess for scheduled workflow")
@@ -88,7 +88,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 		return nil
 
 	default:
-		logger.G.Sys().
+		logger.G.Sys().Ctx(nCtx).
 			With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 			Error("unexpected operation instance state: %s", instance.Lifecycle.State)
 
@@ -101,7 +101,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operation.InstanceBriefData, param *ExtraExecutionParam) error {
 	sw, err := exec.workflowStg.GetScheduledWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(nCtx).
 			WithErr(err).
 			With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 			Error("failed to get scheduled workflow")
@@ -120,7 +120,7 @@ func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operati
 
 	operInstList, _, err := exec.workflowStg.ListOperInstanceBriefWithoutActionInstByOperationID(nCtx, types.UnlimitedPage(), operationIDs...)
 	if err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(nCtx).
 			WithErr(err).
 			With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 			Error("failed to list operation instance by operation id")
@@ -147,7 +147,7 @@ func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operat
 	for len(parentOperationIDs) > 0 {
 		operations, _, err := exec.workflowStg.ListOperationByParentOperationID(nCtx, types.UnlimitedPage(), parentOperationIDs...)
 		if err != nil {
-			logger.G.Sys().
+			logger.G.Sys().Ctx(nCtx).
 				WithErr(err).
 				With("operation", instance.Metadata.OperationDefName, "parent-operation-ids", parentOperationIDs).
 				Error("failed to list operations by parent operation id")
@@ -168,7 +168,7 @@ func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operat
 		param.WorkflowID,
 		map[string]any{managedOperationIDKey: conv.MapKeyToSlice(managedOperationIDMap)},
 	); err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(nCtx).
 			WithErr(err).
 			With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 			Error("failed to update managed operation ids into private data")
