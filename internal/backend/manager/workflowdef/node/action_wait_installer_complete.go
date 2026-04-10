@@ -235,7 +235,7 @@ func (act *actionWaitInstallerComplete) handleInstallerResult(
 			instanceID, ActionNameWaitInstallerComplete, result)
 
 	default:
-		logger.G.Sys().With("oper-inst-id", instanceID, "state", result).Warn("installer state is not supported")
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", instanceID, "state", result).Warn("installer state is not supported")
 
 		return fmt.Errorf("unexpected installer state. state(%s)", result)
 	}
@@ -269,21 +269,21 @@ func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionS
 		std.InstanceData().OperationInstanceID,
 		ActionNameWaitInstallerComplete)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get action private data")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to get action private data")
 
 		return "", err
 	}
 
 	rawValue, exists := privateData[key]
 	if !exists {
-		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key).Debug("no receive data")
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key).Debug("no receive data")
 
 		return "", nil
 	}
 
 	value, err := conv.ToString(rawValue)
 	if err != nil {
-		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
 			Error("unexpected type for fetched value")
 
 		return "", fmt.Errorf("failed to get value for key. key(%s)", key)

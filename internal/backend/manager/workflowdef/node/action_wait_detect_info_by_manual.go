@@ -240,21 +240,21 @@ func (act *actionWaitDetectInfoByManual) tryFetchDetectInfo(std *nodeUtils.NodeA
 		std.InstanceData().OperationInstanceID,
 		ActionNameWaitDetectInfoByManual)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get action private data")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to get action private data")
 
 		return nil, err
 	}
 
 	rawValue, exists := privateData[key]
 	if !exists {
-		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key).Debug("no receive data")
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key).Debug("no receive data")
 
 		return nil, errDetectInfoNotReceived
 	}
 
 	value, ok := rawValue.(map[string]any)
 	if !ok {
-		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
 			Error("unexpected type for fetched value")
 
 		return nil, fmt.Errorf("got unexpected value from action private data. key(%s)", key)
@@ -262,7 +262,7 @@ func (act *actionWaitDetectInfoByManual) tryFetchDetectInfo(std *nodeUtils.NodeA
 
 	data := new(types.PDDetectInfo)
 	if err = conv.MapToStruct(value, data); err != nil {
-		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
+		logger.G.Sys().Ctx(std.Context()).With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
 			Error("failed to convert value to struct")
 
 		return nil, err

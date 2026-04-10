@@ -615,7 +615,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				logger.G.Sys().
+				logger.G.Sys().Ctx(timeoutCtx).
 					WithErr(err).
 					With("oper-inst-id", std.InstanceData().OperationInstanceID, "action-name", std.InstanceData().Name).
 					Error("failed to get private data")

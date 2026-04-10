@@ -164,14 +164,14 @@ func (act *actionWaitOfflineManualInstall) tryFetchInstallResult(
 		std.InstanceData().OperationInstanceID,
 		ActionNameWaitOfflineManualInstall)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get action private data")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to get action private data")
 
 		return nil, err
 	}
 
 	rawValue, exists := privateData[types.PDKeyOfflineInstallResult]
 	if !exists {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", types.PDKeyOfflineInstallResult).
 			Debug("no offline install result received")
 
@@ -180,7 +180,7 @@ func (act *actionWaitOfflineManualInstall) tryFetchInstallResult(
 
 	rawStr, ok := rawValue.(string)
 	if !ok {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", types.PDKeyOfflineInstallResult, "raw-value", rawValue).
 			Error("unexpected type for fetched value")
 
