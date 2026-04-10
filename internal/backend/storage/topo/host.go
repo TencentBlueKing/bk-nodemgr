@@ -494,6 +494,23 @@ func (s *Storage) getHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 	return hostDistributionByNetworkAreaID, nil
 }
 
+// getNetworkUnitDistributionByNetworkAreaID ...
+func (s *Storage) getNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.NetworkUnitCondition) (
+	map[int64]int64, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertNetworkUnitConditionsToOptions(conditions...)
+	networkUnitDistributionByNetworkAreaID, err := s.daoNetworkUnit.GetNetworkUnitDistributionByNetworkAreaID(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get networkunit distribution by network area id: %w", err)
+	}
+
+	return networkUnitDistributionByNetworkAreaID, nil
+}
+
 func (s *Storage) listHostWithFields(nCtx contextx.IContext, page types.Page,
 	selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
 	[]*types.Host, int64, error) {

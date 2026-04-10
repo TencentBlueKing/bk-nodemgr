@@ -797,6 +797,40 @@
         ]
       }
     },
+    "/api/v3/topo/networkunit/get_networkunit_distribution_by_networkarea_id": {
+      "post": {
+        "summary": "GetNetworkUnitDistributionByNetworkAreaID provides getting networkunit\ndistribution by networkarea id.",
+        "operationId": "Topo_GetNetworkUnitDistributionByNetworkAreaID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetNetworkUnitDistributionByNetworkAreaIDResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoGetNetworkUnitDistributionByNetworkAreaIDReq describes the HTTP request\nbody when query networkunit distribution by networkarea id in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetNetworkUnitDistributionByNetworkAreaIDReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/networkunit/list": {
       "post": {
         "summary": "NetworkUnitList provides network-unit listing.",
@@ -871,23 +905,23 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "running_proxy": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "total_proxy": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "running_agent": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "total_agent": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "is_healthy": {
@@ -936,14 +970,14 @@
           "type": "string"
         },
         "accesspoint_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "accesspoint_name": {
           "type": "string"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "endpoints": {
@@ -977,7 +1011,7 @@
           "type": "string"
         },
         "bk_biz_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_biz_name": {
@@ -1061,7 +1095,7 @@
           "type": "string"
         },
         "bk_host_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "info": {
@@ -1085,15 +1119,15 @@
       "type": "object",
       "properties": {
         "bk_biz_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_host_name": {
@@ -1139,7 +1173,7 @@
           "type": "string"
         },
         "login_port": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "login_user": {
@@ -1164,11 +1198,11 @@
           "type": "string"
         },
         "relay_callback_port": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "relay_download_port": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -1190,7 +1224,7 @@
           "type": "string"
         },
         "node_generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "proxy_tags": {
@@ -1215,15 +1249,15 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "accesspoint_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -1251,7 +1285,7 @@
           "type": "string"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkarea_name": {
@@ -1270,14 +1304,14 @@
           "type": "string"
         },
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkunit_name": {
           "type": "string"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "accesspoints": {
@@ -1297,7 +1331,7 @@
           "$ref": "#/definitions/v3Endpoints"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "custom_deploy_config": {
@@ -1316,20 +1350,20 @@
           "type": "string"
         },
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkunit_name": {
           "type": "string"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "accesspoints": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -1343,7 +1377,7 @@
           "$ref": "#/definitions/v3Endpoints"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "custom_deploy_config": {
@@ -1486,11 +1520,11 @@
       "type": "object",
       "properties": {
         "start_timestamp_sec": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "end_timestamp_sec": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -1517,14 +1551,14 @@
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "accesspoint_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -1559,7 +1593,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -1595,7 +1629,7 @@
         "bk_biz_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -1641,7 +1675,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -1746,28 +1780,28 @@
           "type": "string"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkarea_name": {
           "type": "string"
         },
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkunit_name": {
           "type": "string"
         },
         "accesspoint_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "accesspoint_name": {
           "type": "string"
         },
         "operate_time": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "operator": {
@@ -1822,21 +1856,21 @@
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_networkunit_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "accesspoint_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -1860,21 +1894,21 @@
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_networkunit_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "accesspoint_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -1961,7 +1995,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -2007,7 +2041,7 @@
         "data": {
           "type": "object",
           "additionalProperties": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -2048,12 +2082,50 @@
         "data": {
           "type": "object",
           "additionalProperties": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
       },
       "description": "TopoGetHostDistributionByNodeRoleResp describes the HTTP response body when\ndistinct host in topp service."
+    },
+    "v3TopoGetNetworkUnitDistributionByNetworkAreaIDReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoNetworkUnitListReqExactConditions"
+        }
+      },
+      "description": "TopoGetNetworkUnitDistributionByNetworkAreaIDReq describes the HTTP request\nbody when query networkunit distribution by networkarea id in topo service."
+    },
+    "v3TopoGetNetworkUnitDistributionByNetworkAreaIDResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoGetNetworkUnitDistributionByNetworkAreaIDResp describes the HTTP\nresponse body when query networkunit distribution by networkarea id in topo\nservice."
     },
     "v3TopoGraphNodeGetResp": {
       "type": "object",
@@ -2177,21 +2249,21 @@
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_networkunit_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_biz_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -2203,21 +2275,21 @@
         "bk_host_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_biz_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -2254,14 +2326,14 @@
         "bk_networkunit_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "node_generation": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -2363,7 +2435,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -2421,7 +2493,7 @@
         "items": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -2672,7 +2744,7 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       }
@@ -2710,7 +2782,7 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -2745,7 +2817,7 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       }
@@ -2783,7 +2855,7 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -2867,7 +2939,7 @@
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -2919,7 +2991,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -2964,7 +3036,7 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "bk_networkarea_name": {
@@ -3005,7 +3077,7 @@
       "type": "object",
       "properties": {
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       }
@@ -3046,7 +3118,7 @@
           "type": "string"
         },
         "bk_networkarea_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "accesspoints": {
@@ -3066,7 +3138,7 @@
           "$ref": "#/definitions/v3Endpoints"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "custom_deploy_config": {
@@ -3107,7 +3179,7 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       }
@@ -3116,7 +3188,7 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3151,7 +3223,7 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       }
@@ -3160,7 +3232,7 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3212,14 +3284,14 @@
         "bk_networkunit_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
         "bk_networkarea_id": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -3232,7 +3304,7 @@
         "generation": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -3267,7 +3339,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3320,7 +3392,7 @@
       "type": "object",
       "properties": {
         "bk_networkunit_id": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       }

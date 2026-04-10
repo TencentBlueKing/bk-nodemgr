@@ -134,6 +134,12 @@ type IHandlerNetworkUnit interface {
 	// @param networkUnitID the network unit id.
 	// @return the error.
 	DeleteNetworkUnit(nCtx contextx.IContext, networkUnitID int64) error
+
+	// GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the networkunit distribution map and error.
+	GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, condition *types.NetworkUnitCondition) (map[int64]int64, error)
 }
 
 // ===============================================================================
@@ -448,4 +454,22 @@ func (h *Handler) DeleteNetworkUnit(nCtx contextx.IContext, networkUnitID int64)
 	}
 
 	return nil
+}
+
+// GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
+func (h *Handler) GetNetworkUnitDistributionByNetworkAreaID(
+	nCtx contextx.IContext,
+	condition *types.NetworkUnitCondition,
+) (map[int64]int64, error) {
+	req := &protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.getNetworkUnitDistributionByNetworkAreaID(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }

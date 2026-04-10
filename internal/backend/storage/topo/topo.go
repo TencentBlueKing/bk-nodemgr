@@ -209,42 +209,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 
 	err = s.WrapFn(nCtx, metricOperationListNetworkUnit, func(nCtx contextx.IContext) error {
 		var err error
-		opts := make([]networkunit.OptFn, 0)
-		for _, condition := range conditions {
-			if condition == nil {
-				continue
-			}
-
-			if condition.ExactInclude != nil {
-				opts = append(opts,
-					networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
-					networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-					networkunit.WithIsDirect(condition.ExactInclude.IsDirect...),
-					networkunit.WithGeneration(condition.ExactInclude.Generation...),
-				)
-			}
-
-			if condition.ExactExclude != nil {
-				opts = append(opts,
-					networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
-					networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-					networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
-					networkunit.WithoutGeneration(condition.ExactExclude.Generation...),
-				)
-			}
-
-			if condition.FuzzyInclude != nil {
-				opts = append(opts,
-					networkunit.WithFuzzyNetworkUnitName(condition.FuzzyInclude.NetworkUnitName...),
-				)
-			}
-
-			if condition.FuzzyExclude != nil {
-				opts = append(opts,
-					networkunit.WithoutFuzzyNetworkUnitName(condition.FuzzyExclude.NetworkUnitName...),
-				)
-			}
-		}
+		opts := convertNetworkUnitConditionsToOptions(conditions...)
 
 		results, num, err = s.daoNetworkUnit.List(nCtx, page, opts...)
 
@@ -252,6 +217,25 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 	})
 
 	return results, num, err
+}
+
+// GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
+func (s *Storage) GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.NetworkUnitCondition) (
+	map[int64]int64, error) {
+
+	var (
+		networkUnitDistributionByNetworkAreaID map[int64]int64
+		err                                    error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetNetworkUnitDistributionByNetworkAreaID, func(nCtx contextx.IContext) error {
+		var err error
+		networkUnitDistributionByNetworkAreaID, err = s.getNetworkUnitDistributionByNetworkAreaID(nCtx, conditions...)
+
+		return err
+	})
+
+	return networkUnitDistributionByNetworkAreaID, err
 }
 
 // GetNetworkUnit gets networkunit by id.
@@ -360,6 +344,47 @@ func (s *Storage) checkNetworkUnitLinks(nCtx contextx.IContext, networkUnit *typ
 	}
 
 	return nil
+}
+
+func convertNetworkUnitConditionsToOptions(conditions ...*types.NetworkUnitCondition) []networkunit.OptFn {
+	opts := make([]networkunit.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
+				networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				networkunit.WithIsDirect(condition.ExactInclude.IsDirect...),
+				networkunit.WithGeneration(condition.ExactInclude.Generation...),
+			)
+		}
+
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
+				networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
+				networkunit.WithoutGeneration(condition.ExactExclude.Generation...),
+			)
+		}
+
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				networkunit.WithFuzzyNetworkUnitName(condition.FuzzyInclude.NetworkUnitName...),
+			)
+		}
+
+		if condition.FuzzyExclude != nil {
+			opts = append(opts,
+				networkunit.WithoutFuzzyNetworkUnitName(condition.FuzzyExclude.NetworkUnitName...),
+			)
+		}
+	}
+
+	return opts
 }
 
 func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, link *types.Link) error {

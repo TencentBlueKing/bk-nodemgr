@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(client *mongo.Database) *dao {
@@ -151,4 +152,43 @@ func buildDeleteManyParams(tenantID string, networkUnitIDs ...int64) []mongo.Wri
 	update := base.BuildDeleteParam()
 
 	return []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(false)}
+}
+
+// getNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
+func (d *dao) getNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, filter bson.D, aggregateOptions ...*options.AggregateOptions) (
+	[]networkUnitDistributionByNetworkAreaID, error) {
+
+	pipeline := mongo.Pipeline{}
+
+	if filter != nil && len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{{"$match", filter}})
+	}
+
+	pipeline = append(pipeline,
+		bson.D{{"$group", bson.D{{"_id", "$" + FieldKeyNetworkAreaID}, {"count", bson.D{{"$sum", 1}}}}}},
+		bson.D{{"$sort", bson.D{{"_id", 1}}}},
+	)
+
+	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).Error("failed to close cursor of networkunit distribution by network area id")
+		}
+	}()
+
+	var results []networkUnitDistributionByNetworkAreaID
+	if err = cursor.All(nCtx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// networkUnitDistributionByNetworkAreaID network unit aggregate result.
+type networkUnitDistributionByNetworkAreaID struct {
+	NetworkAreaID    int64 `bson:"_id"`
+	NetworkUnitCount int64 `bson:"count"`
 }

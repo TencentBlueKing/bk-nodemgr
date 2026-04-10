@@ -22,10 +22,10 @@ import (
 )
 
 var (
-	errNetworkUnitViewDeniedByEmptyScope = errors.New("no authorized network units")
-	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
-	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
-	errAccessPointViewDeniedByEmptyScope = errors.New("no authorized access points")
+	errNetworkUnitViewDeniedByEmptyScope  = errors.New("no authorized network units")
+	errNetworkAreaViewDeniedByEmptyScope  = errors.New("no authorized network areas")
+	errBizViewDeniedByEmptyScope          = errors.New("no authorized businesses")
+	errAccessPointViewDeniedByEmptyScope  = errors.New("no authorized access points")
 )
 
 // buildBizResources is deprecated. Use auth.BuildBizResources instead.
@@ -162,6 +162,26 @@ func narrowNetworkUnitCondition(condition *types.NetworkUnitCondition, narrowedI
 	}
 
 	condition.ExactInclude.NetworkUnitID = conv.SliceUnique(narrowedIDs)
+
+	return condition
+}
+
+func narrowNetworkUnitConditionByNetworkArea(
+	condition *types.NetworkUnitCondition, narrowedIDs []int64, scopeIsAny bool,
+) *types.NetworkUnitCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.NetworkUnitCondition{}
+	}
+
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.NetworkUnitExactFields{}
+	}
+
+	condition.ExactInclude.NetworkAreaID = conv.SliceUnique(narrowedIDs)
 
 	return condition
 }

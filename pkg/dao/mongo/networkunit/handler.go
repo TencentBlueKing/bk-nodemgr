@@ -12,6 +12,7 @@ package networkunit
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -41,6 +42,9 @@ type IHandler interface {
 
 	// DeleteMany deletes networkunit.
 	DeleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) error
+
+	// GetNetworkUnitDistributionByNetworkAreaID gets networkunit distribution by network area id.
+	GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
 }
 
 type handler struct {
@@ -231,6 +235,37 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) er
 	}
 
 	return nil
+}
+
+// GetNetworkUnitDistributionByNetworkAreaID gets networkunit distribution by network area id.
+func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to get networkunit distribution by network area id: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	filter = append(filter, tenantFilter(tenantID))
+
+	results, err := h.dao.getNetworkUnitDistributionByNetworkAreaID(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get networkunit distribution by network area id: %w", err)
+	}
+
+	networkUnitDistribution := make(map[int64]int64)
+	for _, result := range results {
+		networkUnitDistribution[result.NetworkAreaID] = result.NetworkUnitCount
+	}
+
+	return networkUnitDistribution, nil
 }
 
 func convertNetworkUnitFromTypes(networkUnit *types.NetworkUnit) *NetworkUnit {

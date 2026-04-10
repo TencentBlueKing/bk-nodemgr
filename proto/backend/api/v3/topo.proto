@@ -225,6 +225,25 @@ message TopoNetworkUnitListResp {
   Data data = 5;
 }
 
+// TopoGetNetworkUnitDistributionByNetworkAreaIDReq describes the HTTP request
+// body when query networkunit distribution by networkarea id in topo service.
+message TopoGetNetworkUnitDistributionByNetworkAreaIDReq {
+  TopoNetworkUnitListReq.ExactConditions exact_include_conditions = 1;
+}
+
+// TopoGetNetworkUnitDistributionByNetworkAreaIDResp describes the HTTP
+// response body when query networkunit distribution by networkarea id in topo
+// service.
+message TopoGetNetworkUnitDistributionByNetworkAreaIDResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  map<int64, int64> data = 5;
+}
+
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
 // in topo service.
 message TopoNetworkUnitGetReq { int64 bk_networkunit_id = 1; }
@@ -777,6 +796,18 @@ service Topo {
       returns (TopoNetworkUnitDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/networkunit/delete"
+      body : "*"
+    };
+  }
+
+  // GetNetworkUnitDistributionByNetworkAreaID provides getting networkunit
+  // distribution by networkarea id.
+  rpc GetNetworkUnitDistributionByNetworkAreaID(
+      TopoGetNetworkUnitDistributionByNetworkAreaIDReq)
+      returns (TopoGetNetworkUnitDistributionByNetworkAreaIDResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/"
+             "get_networkunit_distribution_by_networkarea_id"
       body : "*"
     };
   }

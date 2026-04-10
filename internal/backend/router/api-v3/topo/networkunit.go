@@ -226,6 +226,40 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 	return resp.GetData(), nil
 }
 
+// GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
+func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get networkunit distribution by network area id, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	condition := req.ConvertConditionsToTypes()
+	var networkAreaIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		networkAreaIDs = exactCond.GetBkNetworkareaId()
+	}
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkAreaIDs(rCtx, networkAreaIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get networkunit distribution by network area id, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowNetworkUnitConditionByNetworkArea(condition, narrowedIDs, scopeIsAny)
+
+	result, err := h.storage.GetNetworkUnitDistributionByNetworkAreaID(rCtx, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get networkunit distribution by network area id. failed to get networkunit distribution by network area id fields: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitDeleteReq)

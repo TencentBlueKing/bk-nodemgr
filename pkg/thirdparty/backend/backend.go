@@ -354,6 +354,39 @@ func (c *cli) getHostDistributionByNetworkAreaID(ctx contextx.IContext, req *pro
 	return resp, nil
 }
 
+func (c *cli) getNetworkUnitDistributionByNetworkAreaID(
+	ctx contextx.IContext,
+	req *protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDReq,
+) (*protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDResp, error) {
+
+	resp := new(protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/networkunit/get_networkunit_distribution_by_networkarea_id").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get networkunit distribution by network area id. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to get networkunit distribution by network area id, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) distinctHost(ctx contextx.IContext, req *protoBackend.TopoHostDistinctReq,
 ) (*protoBackend.TopoHostDistinctResp, error) {
 

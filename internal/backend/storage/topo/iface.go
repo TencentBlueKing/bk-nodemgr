@@ -83,6 +83,10 @@ type IStorageNetworkUnit interface {
 
 	// GetNetworkUnitIDsByAccessPoints returns NetworkUnit IDs that contain the given AccessPoint IDs.
 	GetNetworkUnitIDsByAccessPoints(nCtx contextx.IContext, accessPointIDs []int64) ([]int64, error)
+
+	// GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
+	GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.NetworkUnitCondition) (
+		map[int64]int64, error)
 }
 
 // IStorageBusiness this interface defines the operations which is only for business.

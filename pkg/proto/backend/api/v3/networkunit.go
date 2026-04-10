@@ -347,6 +347,73 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsFromTypes(condition *types.Net
 	return nil
 }
 
+// Validate check body.
+func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDReq) ConvertConditionsToTypes() *types.NetworkUnitCondition {
+	condition := &types.NetworkUnitCondition{}
+
+	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
+		condition.ExactInclude = &types.NetworkUnitExactFields{
+			NetworkUnitID: exactCond.GetBkNetworkunitId(),
+			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			IsDirect:      exactCond.GetIsDirect(),
+			Generation:    exactCond.GetGeneration(),
+		}
+	}
+
+	return condition
+}
+
+// ConvertConditionsFromTypes convert conditions from types to proto.
+func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDReq) ConvertConditionsFromTypes(condition *types.NetworkUnitCondition) error {
+	if condition == nil {
+		return nil
+	}
+
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoNetworkUnitListReq_ExactConditions{
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			IsDirect:        condition.ExactInclude.IsDirect,
+			Generation:      condition.ExactInclude.Generation,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return nil
+}
+
+// ConvertResultFromTypes converts the result from types.
+func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDResp) ConvertResultFromTypes(result map[int64]int64) {
+	if result == nil {
+		return
+	}
+
+	x.Data = result
+}
+
+// ConvertResultToTypes converts the response to types.
+func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDResp) ConvertResultToTypes() map[int64]int64 {
+	if x.GetData() == nil {
+		return map[int64]int64{}
+	}
+
+	data := x.GetData()
+
+	return data
+}
+
 // ConvertNetworkUnitsFromTypes convert networkunits from types to proto.
 func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
 
