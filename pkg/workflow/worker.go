@@ -123,7 +123,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 		operInstBriefData.Lifecycle.End(action.StateFailed)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
-			logger.G.Sys().WithErr(refreshErr).With(
+			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", operationInstanceID, "action-name", actionName).
 				Error("failed to refresh operation instance state after failed to get action instance data")
 
@@ -153,7 +153,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
 		operInstBriefData.Lifecycle.End(action.StateFailed)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
-			logger.G.Sys().WithErr(refreshErr).With(
+			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", operationInstanceID, "action-name", actionName).
 				Error("failed to refresh operation instance state after failed to do extra execution")
 
@@ -169,7 +169,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	if !operInstBriefData.Lifecycle.IsRunning() {
 		operInstBriefData.Lifecycle.Start()
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
-			logger.G.Sys().WithErr(refreshErr).With(
+			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", operationInstanceID, "action-name", actionName).
 				Error("failed to refresh operation instance state after failed to start")
 
@@ -232,7 +232,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
-			logger.G.Sys().WithErr(refreshErr).With(
+			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", operationInstanceID, "action-name", actionName).
 				Error("failed to refresh operation instance state after failed to end")
 
@@ -240,7 +240,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, refreshErr)
 		}
 
-		logger.G.Sys().With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
+		logger.G.Sys().Ctx(nCtx).With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
 			Info("updated operation instance lifecycle with terminated state")
 
 		if err = mgr.doOperExtraExecution(nCtx, operInstBriefData); err != nil {
@@ -342,7 +342,7 @@ func (mgr *manager) updateOperationInstancePrivateData(
 
 	if len(privateData) == 0 {
 		// no private data to update, skip.
-		logger.G.Sys().
+		logger.G.Sys().Ctx(ctx).
 			With("oper-inst-id", operationInstanceID, "action-name", actionName, "private-data", privateData).
 			Debug("no private data to update")
 
@@ -436,7 +436,7 @@ func (mgr *manager) executeAction(
 
 			stack := string(debug.Stack())
 
-			logger.G.Sys().
+			logger.G.Sys().Ctx(actionInstCtx.Ctx).
 				WithErr(err).
 				With("info", actionInstCtx.Data.Info(), "recover", r, "stack", stack).
 				Info("failed to execute action, recover from panic")
@@ -478,7 +478,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action
 				data.Name,
 				msgs...)
 			if err != nil {
-				logger.G.Sys().WithErr(err).With("action", data.Name).Error("failed to refresh action inst data messages")
+				logger.G.Sys().Ctx(ctx).WithErr(err).With("action", data.Name).Error("failed to refresh action inst data messages")
 			}
 
 			return
@@ -495,7 +495,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action
 				data.Name,
 				msgs...)
 			if err != nil {
-				logger.G.Sys().WithErr(err).With("action", data.Name).Error("failed to refresh action inst data messages")
+				logger.G.Sys().Ctx(ctx).WithErr(err).With("action", data.Name).Error("failed to refresh action inst data messages")
 			}
 
 			continue
@@ -508,7 +508,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	var doErr error
 
 	for retryNum := uint(0); retryNum <= actionDef.MaxRetryCount() && retryNum < engineMaxRetryLimit; retryNum++ {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(actionInstCtx.Ctx).
 			With("operation", actionInstCtx.Data.OperationDefName).
 			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 			Info("started action")
@@ -523,7 +523,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 		doErr = actionDef.Do(actionInstCtx)
 
 		if doErr != nil {
-			logger.G.Sys().
+			logger.G.Sys().Ctx(actionInstCtx.Ctx).
 				WithErr(doErr).
 				With("operation", actionInstCtx.Data.OperationDefName).
 				With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
@@ -541,7 +541,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			continue
 		}
 
-		logger.G.Sys().
+		logger.G.Sys().Ctx(actionInstCtx.Ctx).
 			With("operation", actionInstCtx.Data.OperationDefName).
 			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
 			Info("done action")
@@ -550,7 +550,7 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	}
 
 	if doErr != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(actionInstCtx.Ctx).
 			WithErr(doErr).
 			With("operation", actionInstCtx.Data.OperationDefName).
 			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name).
@@ -584,7 +584,7 @@ func (mgr *manager) doOperExtraExecution(ctx contextx.IContext, oper *operation.
 		oper.Metadata.OperationInstanceID,
 		oper.Metadata.ExtraExecutionMessages[msgIdx:]...)
 	if updateErr != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(ctx).
 			WithErr(updateErr).
 			With("operation-extra-execution", oper.Metadata.ExtraExecutionName).
 			Error("failed to refresh operation extra execution message")
