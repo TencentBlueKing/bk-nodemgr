@@ -169,7 +169,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 			Zh("强制重新注册agent-id").
 			En("force re-register agent-id").
 			Info()
-		logger.G.Sys().Info("force re-register agent id, will not reuse agent id")
+		logger.G.Sys().Ctx(std.Context()).Info("force re-register agent id, will not reuse agent id")
 
 		return nil
 	}
@@ -196,7 +196,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 			Zh("未匹配到主机, 无法复用 agent-id").
 			En("not match host, can't reuse agent-id").
 			Warn()
-		logger.G.Sys().Info("not match host, can't reuse agent id")
+		logger.G.Sys().Ctx(std.Context()).Info("not match host, can't reuse agent id")
 
 		return nil
 	}
@@ -207,7 +207,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		Zh("复用已存在的agent-id: %s", std.DeployInfo().Host.Dynamic.AgentID).
 		En("reuse existing agent-id: %s", std.DeployInfo().Host.Dynamic.AgentID).
 		Info()
-	logger.G.Sys().With("agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("find agent id, try reuse it")
+	logger.G.Sys().Ctx(std.Context()).With("agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("find agent id, try reuse it")
 
 	return nil
 }

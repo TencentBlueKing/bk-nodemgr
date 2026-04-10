@@ -129,7 +129,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).
 			Info("successfully bind host agent relation to cmdb")
 
@@ -141,7 +141,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).
 			Info("successfully bind host agent relation to db")
 
@@ -157,7 +157,7 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		En("successfully bind host agent relation, host-id(%d), agent-id(%s)", std.DeployInfo().Host.HostID, std.DeployInfo().Host.Dynamic.AgentID).
 		Info()
 
-	logger.G.Sys().
+	logger.G.Sys().Ctx(std.Context()).
 		With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).
 		Info("successfully bind host agent relation")
 

@@ -134,7 +134,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	err = polling.Do(std.Context(), func(_ int) error {
 		successList, _, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(std.Context(), taskID)
 		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to find host identifier push result")
+			logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to find host identifier push result")
 
 			return err
 		}

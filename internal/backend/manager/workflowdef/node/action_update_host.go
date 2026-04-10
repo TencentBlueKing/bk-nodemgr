@@ -120,7 +120,7 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 	}
 
 	if touchErr := act.storageHost.TouchHostOperationTime(std.Context(), std.DeployInfo().Host.HostID); touchErr != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			WithErr(touchErr).
 			With("host-id", std.DeployInfo().Host.HostID).
 			Warn("failed to touch host operation time after update host dynamic")
