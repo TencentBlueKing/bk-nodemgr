@@ -113,26 +113,26 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 	}
 	deployPolicies, total, err := act.daoDeployPolicy.ListDeployPolicies(nCtx, types.UnlimitedPage(), cond)
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("tenant-id", std.TenantID()).
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to list deploy policies")
 		return fmt.Errorf("failed to list deploy policies: %w", err)
 	}
 
 	if total == 0 {
-		logger.G.Sys().With("tenant-id", std.TenantID()).
+		logger.G.Sys().Ctx(nCtx).With("tenant-id", std.TenantID()).
 			Info("no deploy policy found")
 
 		return fmt.Errorf("no deploy policy found")
 	}
 
 	if err := act.dpMgr.Do(nCtx, deployPolicies...); err != nil {
-		logger.G.Sys().WithErr(err).With("tenant-id", std.TenantID()).
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to execute deploy policy")
 
 		return fmt.Errorf("failed to execute deploy policy: %w", err)
 	}
 
-	logger.G.Sys().With("tenant-id", std.TenantID()).
+	logger.G.Sys().Ctx(nCtx).With("tenant-id", std.TenantID()).
 		Info("executed deploy policy")
 
 	return nil

@@ -55,7 +55,9 @@ func (act *actionGenOperExecuteDeployPolicy) Name() string {
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionGenOperExecuteDeployPolicy) DisplayNameZh() string { return "生成执行部署策略任务" }
+func (act *actionGenOperExecuteDeployPolicy) DisplayNameZh() string {
+	return "生成执行部署策略任务"
+}
 
 // DisplayNameEn returns the English display name of the action.
 func (act *actionGenOperExecuteDeployPolicy) DisplayNameEn() string {
@@ -125,14 +127,14 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 
 	deployPolicies, total, err := act.daoDeployPolicy.ListDeployPolicies(nCtx, types.UnlimitedPage(), cond)
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("tenant-id", std.TenantID()).
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to list deploy policies")
 
 		return fmt.Errorf("failed to list deploy policies: %w", err)
 	}
 
 	if total == 0 {
-		logger.G.Sys().With("tenant-id", std.TenantID()).
+		logger.G.Sys().Ctx(nCtx).With("tenant-id", std.TenantID()).
 			Info("no deploy policy found that needs to be executed")
 
 		return nil
@@ -150,20 +152,20 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 	}
 	trigCtl, err := act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOrdered, meta)
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling execute deploy policy")
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling execute deploy policy")
 		return err
 	}
 
 	for dsuID, policyIDs := range dsuGroup {
 		if err = act.executeOper(std, trigCtl, policyIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("dsu-id", dsuID, "policy-ids", policyIDs).
+			logger.G.Sys().Ctx(nCtx).WithErr(err).With("dsu-id", dsuID, "policy-ids", policyIDs).
 				Error("failed to execute deploy policy")
 
 			return fmt.Errorf("failed to execute deploy policy: %w", err)
 		}
 	}
 
-	logger.G.Sys().With("action", act.Name(), "tenant-id", std.TenantID(),
+	logger.G.Sys().Ctx(nCtx).With("action", act.Name(), "tenant-id", std.TenantID(),
 		"total-policies", total, "dsu-count", len(dsuGroup)).
 		Info("executed deploy policy")
 
@@ -183,7 +185,7 @@ func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.
 
 	operCtl, err := trigCtl.CreateOperation(std.Context(), operationDef, operationParam)
 	if err != nil {
-		logger.G.Sys().
+		logger.G.Sys().Ctx(std.Context()).
 			WithErr(err).
 			With("action", act.Name(), "tenant-id", std.TenantID()).
 			Error("failed to create execute deploy policy operation")
@@ -191,7 +193,7 @@ func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.
 		return err
 	}
 
-	logger.G.Sys().
+	logger.G.Sys().Ctx(std.Context()).
 		With("action", act.Name(), "tenant-id", std.TenantID(), "operation-id", operCtl.GetOperationID()).
 		Info("created execute deploy policy operation")
 
