@@ -111,7 +111,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	if len(hosts) == 0 {
-		logger.G.Sys().With("host-ids", param.HostIDs).Info("no hosts found to sync alive process info")
+		logger.G.Sys().Ctx(std.Context()).With("host-ids", param.HostIDs).Info("no hosts found to sync alive process info")
 		return nil
 	}
 
@@ -127,7 +127,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	if len(aliveProcess) == 0 {
-		logger.G.Sys().With("host-ids", param.HostIDs).Info("hosts have no alive process need to sync")
+		logger.G.Sys().Ctx(std.Context()).With("host-ids", param.HostIDs).Info("hosts have no alive process need to sync")
 		return nil
 	}
 
@@ -138,7 +138,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	if len(procInfos) == 0 {
-		logger.G.Sys().Info("no process info need to sync")
+		logger.G.Sys().Ctx(std.Context()).Info("no process info need to sync")
 		return nil
 	}
 
@@ -160,7 +160,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 		return err
 	}
 
-	logger.G.Sys().Info("sync alive plugin process info success, process count: %d", len(procInfos))
+	logger.G.Sys().Ctx(std.Context()).Info("sync alive plugin process info success, process count: %d", len(procInfos))
 
 	return nil
 }
@@ -194,7 +194,11 @@ func aggregateHostsAndProcesses(hosts []*types.Host, processes []*types.Process)
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSyncAlivePluginProcessInfo) DisplayNameZh() string { return "同步存活插件进程信息" }
+func (act *actionSyncAlivePluginProcessInfo) DisplayNameZh() string {
+	return "同步存活插件进程信息"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionSyncAlivePluginProcessInfo) DisplayNameEn() string { return "Sync Alive Plugin Process Info" }
+func (act *actionSyncAlivePluginProcessInfo) DisplayNameEn() string {
+	return "Sync Alive Plugin Process Info"
+}

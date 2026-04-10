@@ -105,7 +105,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 
 	result, err := act.gseHandler.ListAgentState(std.Context(), agentIDs...)
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
 
 		return err
 	}
@@ -134,7 +134,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	if len(upsertHosts) == 0 {
-		logger.G.Sys().Info("no hosts to upsert")
+		logger.G.Sys().Ctx(std.Context()).Info("no hosts to upsert")
 
 		return nil
 	}
@@ -146,7 +146,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		NodeStatus:     true,
 	}, upsertHosts...)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to update host dynamic")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to update host dynamic")
 
 		return err
 	}
