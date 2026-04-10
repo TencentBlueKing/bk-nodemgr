@@ -336,7 +336,7 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 		return err
 	}
 
-	logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "field", field, "updated-count", result.MatchedCount).Info("updated field")
+	logger.G.Sys().Ctx(nCtx).With("table", orm.dao.GetTableName(), "field", field, "updated-count", result.MatchedCount).Debug("updated field")
 
 	return nil
 }
