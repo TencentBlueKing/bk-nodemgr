@@ -29,4 +29,24 @@ const (
 	attributeKeyOperationDefName    = "operation_def_name"
 
 	attributeKeyActionName = "action_name"
+
+	attributeKeySkipReason = "skip_reason"
+	attributeKeyError      = "error"
+	attributeKeyState      = "state"
+
+	spanEventActionWorkerStarted       = "action.worker.started"
+	spanEventActionDataFetching        = "action.data.fetching"
+	spanEventActionDataFetched         = "action.data.fetched"
+	spanEventActionSkipped             = "action.skipped"
+	spanEventOperationInstanceStarting = "operation_instance.starting"
+	spanEventOperationInstanceStarted  = "operation_instance.started"
+	spanEventActionLifecycleStarting   = "action.lifecycle.starting"
+	spanEventActionLifecycleStarted    = "action.lifecycle.started"
+	spanEventActionExecuting           = "action.executing"
+	spanEventActionExecutedSuccess     = "action.executed.success"
+	spanEventActionExecutedFailed      = "action.executed.failed"
+	spanEventActionLifecycleEnding     = "action.lifecycle.ending"
+	spanEventActionLifecycleEnded      = "action.lifecycle.ended"
+	spanEventOperationInstanceEnding   = "operation_instance.ending"
+	spanEventOperationInstanceEnded    = "operation_instance.ended"
 )
