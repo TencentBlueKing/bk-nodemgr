@@ -24,12 +24,3 @@ Full Changelog: [v3.0.1-alpha.16...v3.0.1-alpha.17](https://github.com/TencentBl
 
 **缺陷修复**
 - 修复前端节点历史日志页面 operation id 显示问题
-
-**升级说明**
-- Backend 服务需重启
-- Frontend 资源需更新
-- 无数据迁移需求
-
-**回滚说明**
-- 支持回滚到 v3.0.1-alpha.16
-- 回滚前需确认无业务依赖新增 API

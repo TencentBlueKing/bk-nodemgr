@@ -1,6 +1,6 @@
 ---
 name: changelog-doc
-description: Use when writing versioned bk-nodemgr changelog, release notes, release.md, upgrade notes, compatibility notes, or rollback notes from tags, diffs, PR facts, issue summaries, or reference templates. Trigger when the user asks to write changelog, 发布说明, 版本变更记录, compare `from-tag...to-tag`, add a `Full Changelog` link, or generate a reusable Node Manager release template.
+description: Use when writing versioned bk-nodemgr changelog, release notes, or release.md from tags, diffs, PR facts, issue summaries, or reference templates. Trigger when the user asks to write changelog, 发布说明, 版本变更记录, compare `from-tag...to-tag`, add a `Full Changelog` link, or generate a reusable Node Manager release template.
 ---
 
 # Changelog 文档编写 Skill
@@ -22,7 +22,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, rel
 
 - 用户要“写 changelog / release note / 发布说明 / 版本变更记录”
 - 用户给出版本号、tag 范围、PR facts 或 issue 摘要，希望整理成版本化 Markdown
-- 用户要求生成 `release.md`、升级说明、兼容性说明、已知问题、回滚说明（**所有 changelog 内容都写入 `release.md`，不分散到多个版本文件**）
+- 用户要求生成 `release.md`、兼容性说明、已知问题（**所有 changelog 内容都写入 `release.md`，不分散到多个版本文件**）
 - 用户要求参考 GitHub Releases 或外部 release note 模板，为 bk-nodemgr 生成统一格式
 - 用户明确提到 `Full Changelog` compare 链接、`from-tag...to-tag`、版本间 diff
 
@@ -34,13 +34,13 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, rel
 
 ## 核心原则
 
-- 中文主述，English technical terms 保持稳定：`Agent`、`Plugin`、`Package`、`Backend`、`Control Plane`、`Installer`、`compatibility`、`upgrade`、`rollback`
+- 中文主述，English technical terms 保持稳定：`Agent`、`Plugin`、`Package`、`Backend`、`Control Plane`、`Installer`、`compatibility`
 - 面向发布执行者和使用方写，不写研发内部实现流水账
 - **changelog 是概要，不是详细变更说明**。用户应该点击 `Full Changelog` compare 链接查看详细内容
 - 先写“影响和动作”，再写“变化内容”
 - 先基于证据归纳，再输出面向用户的结论
 - 结构固定，章节可删减，但不要自由改写顺序
-- 宁可标记 `待确认`，也不要编造版本号、日期、tag、兼容性、升级动作、回滚限制
+- 宁可标记 `待确认`，也不要编造版本号、日期、tag、兼容性
 
 ## Workflow Overview
 
@@ -48,7 +48,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, rel
 
 1. **确定范围**：确认目标版本、起止 tag、受影响组件、目标读者、是否要模板还是正文
 2. **收集证据**：按优先级读取用户资料、tag diff、现有 release/changelog 文档、PR/issue 摘要、必要实现上下文
-3. **归类变更**：收敛到固定分类：新增功能 / 功能优化 / 缺陷修复 / 兼容性 / 升级说明 / 已知问题 / 回滚说明
+3. **归类变更**：收敛到固定分类：新增功能 / 功能优化 / 缺陷修复 / 兼容性 / 已知问题
 4. **套用输出契约**：按固定 Markdown 版本块生成，不自由改章节
 5. **处理缺口**：无法确认的信息显式标记 `待确认`
 6. **审查收尾**：检查 compare link、范围、风险、动作、术语、一致性
@@ -61,7 +61,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, rel
 2. **tag diff / compare range**：`from-tag...to-tag` 的 commit 和文件变化，这是 changelog 的核心证据
 3. **仓库内模板与既有 release 文档**：`support-files/`、`docs/`、既有 `release.md`
 4. **PR / issue / 发布记录**：用于补充语义、确认影响对象
-5. **必要实现上下文**：只用于确认影响范围、兼容性、升级动作；不要把实现细节直接搬进 changelog
+5. **必要实现上下文**：只用于确认影响范围、兼容性；不要把实现细节直接搬进 changelog
 
 Fallback 规则：
 
@@ -91,13 +91,12 @@ Fallback 规则：
 - 标题下的 `Full Changelog` compare 链接；若 tag 缺失，显式写 `待确认`
 - `发布范围`
 - 至少一个变化分类：`新增功能` / `功能优化` / `缺陷修复`
-- 与发布风险相关的 `compatibility` / `升级说明` / `组件依赖与升级前置条件`
+- 与发布风险相关的 `compatibility` / `组件依赖与升级前置条件`
 
 **按需保留**
 
 - `重要提示`：有 breaking change、强制升级、额外运维动作、重大兼容性风险时保留
 - `已知问题`：确有遗留限制时保留
-- `回滚说明`：存在回滚路径、限制或操作要求时保留
 
 **删除规则**
 
@@ -137,14 +136,9 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 **组件依赖与升级前置条件**
 - [依赖的 GSE / 制品库 / 平台能力 / 操作系统条件]
 
-**升级说明**
-- [是否需要重启服务、重装 Agent、重推插件、刷新缓存]
-
 **已知问题**
 - [问题现象 / 影响范围 / 临时规避方案]
 
-**回滚说明**
-- [是否支持回滚、限制条件、操作要求]
 ```
 
 ## 章节填写规则
@@ -172,7 +166,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 
 ### compatibility / 升级 / 回滚
 
-- 优先回答最低兼容版本、OS / Arch 限制、格式兼容性、依赖关系、升级动作、是否支持灰度 rollout、是否可回滚
+- 优先回答最低兼容版本、OS / Arch 限制、格式兼容性、依赖关系、是否支持灰度 rollout
 - 这些是 changelog 和普通更新摘要的核心差异，不能一笔带过
 - 没有可靠信息时用 `待确认`，不要猜
 
@@ -191,15 +185,15 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 发布日期
 - 起止 tag
 - compatibility 结论
-- upgrade 动作
-- rollback 限制
+- compatibility 结论
+- 发布范围细节
 
 使用统一格式：
 
 ```markdown
 ⚠️ **待确认**: [问题描述]
 - 来源: [用户输入 / 仓库文档 / PR / issue / diff]
-- 需要确认: [版本号 / 起止 tag / compatibility / upgrade / rollback]
+- 需要确认: [版本号 / 起止 tag / compatibility / 发布范围细节]
 ```
 
 ## diff 使用注意事项
@@ -228,7 +222,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - [ ] 是否生成正确的 `Full Changelog` compare 链接
 - [ ] 是否写清发布范围
 - [ ] 是否区分新增 / 优化 / 修复
-- [ ] 是否覆盖 compatibility、升级动作、前置条件、回滚限制
+- [ ] 是否覆盖 compatibility 与前置条件
 - [ ] 是否对不确定信息使用 `待确认`
 - [ ] 是否避免实现细节和空泛措辞
 - [ ] 是否适合直接放入 `release.md` 或发布公告（概要定位，不是详细变更说明）
@@ -237,7 +231,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 
 这个 skill 至少应通过以下场景：
 1. **模板生成**：给定外部参考风格时，能输出可复用的 bk-nodemgr changelog 模板
-2. **事实归类**：给定变更事实时，能正确归类为新增 / 优化 / 修复，并补齐发布范围与 upgrade / compatibility 视角
+2. **事实归类**：给定变更事实时，能正确归类为新增 / 优化 / 修复，并补齐发布范围与 compatibility 视角
 3. **缺口保留**：信息不全时，保留结构并把未知信息标记为 `待确认`
 4. **diff 优先**：给定 `from-tag...to-tag` 时，先基于 diff 归纳，再输出发布结论，而不是复制 raw commits
 5. **compare link 正确**：需要 compare link 时，link text 和 URL 使用完全一致的 tag 范围
