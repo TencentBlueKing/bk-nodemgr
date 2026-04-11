@@ -1,0 +1,89 @@
+{
+  "name": "release-version-alignment",
+  "version": "2.0.0",
+  "description": "Fast path for Helm version alignment check before release tagging",
+  "dependencies": {
+    "repo_constraints": [
+      "install/AGENTS.md",
+      ".github/workflows/pr-title-lint.yml",
+      ".github/labeler.yml"
+    ],
+    "target_files": [
+      "install/helm/bk-nodemgr/Chart.yaml",
+      "install/helm/bk-nodemgr/values.yaml",
+      "install/helm/mock-server/Chart.yaml",
+      "install/helm/mock-server/values.yaml",
+      "release.md"
+    ],
+    "target_fields": {
+      "Chart.yaml": ["version", "appVersion"],
+      "values.yaml": ["image.tag"]
+    },
+    "base_branch": "master",
+    "fork_upstream_pattern": {
+      "fork": "zouxingyuks/bk-nodemgr",
+      "upstream": "TencentBlueKing/bk-nodemgr"
+    }
+  },
+  "scope": {
+    "allowed_operations": [
+      "version alignment check",
+      "minimal PR creation for missing alignment",
+      "release readiness confirmation"
+    ],
+    "forbidden_operations": [
+      "broad release planning",
+      "tag surgery or tag movement",
+      "pipeline debugging",
+      "helm template modification",
+      "chart dependency changes",
+      "non-version helm changes"
+    ]
+  },
+  "safety_rules": {
+    "issue_reference": {
+      "default": "refs #...",
+      "auto_close_only_when": "user explicitly requests auto-close after merge"
+    },
+    "branch_cleanliness": {
+      "clean_branch_required_when": "unrelated commits exist or working tree has non-helm changes",
+      "clean_branch_base": "origin/master"
+    },
+    "scope_validation": {
+      "stop_and_ask_when": [
+        "target version unclear",
+        "reference commit unclear",
+        "file scope exceeds 4 target files",
+        "request mixes version alignment with other changes"
+      ]
+    }
+  },
+  "verification": {
+    "script": "scripts/verify-alignment.sh",
+    "checks": [
+      "file scope: only 4 target helm files",
+      "version alignment: all version/appVersion/image.tag match target",
+      "diff sanity: no template or dependency changes",
+      "changelog: release.md contains entry for target version"
+    ],
+    "changelog_generation": {
+      "skill": "changelog-doc",
+      "required_before_pr": true,
+      "user_confirmation_required": true
+    }
+  },
+  "output_format": {
+    "commit_message": "feat: bump {chart-name} helm chart to {version} --issue=#{issue-number}",
+    "pr_title": "feat: bump helm release version to {version} --issue=#{issue-number}",
+    "pr_body": "## Summary\n- bump helm chart and values version to {version}\n\nrefs #{issue-number}",
+    "branch_name": "pr/helm-release-{version-suffix}"
+  },
+  "references": [
+    "references/example-pr.md",
+    "references/tag-workflow.md",
+    "install/AGENTS.md",
+    ".github/workflows/pr-title-lint.yml",
+    ".github/labeler.yml",
+    "create-github-pr/SKILL.md"
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "skill_name": "release-version-alignment",
+  "version": "2.0.0",
+  "test_cases": {
+    "should_trigger": [
+      {
+        "input": "给这个版本补一下 helm values",
+        "reason": "explicit request to supplement helm values for a version"
+      },
+      {
+        "input": "这个版本可以打 tag 了吗？",
+        "reason": "asking about release readiness, which requires version alignment check"
+      },
+      {
+        "input": "helm 版本对齐了没？",
+        "reason": "direct question about helm version alignment"
+      },
+      {
+        "input": "chart 跟镜像版本没对齐",
+        "reason": "reporting version mismatch between chart and image"
+      },
+      {
+        "input": "发版前检查一下 helm",
+        "reason": "pre-release helm check request"
+      },
+      {
+        "input": "release 后补 helm PR",
+        "reason": "follow-up helm PR after release"
+      },
+      {
+        "input": "补一下 release 遗漏的 helm 版本",
+        "reason": "fixing missing helm version from release"
+      },
+      {
+        "input": "只补 install/helm 版本，不做别的",
+        "reason": "explicit scope limitation to helm version only"
+      },
+      {
+        "input": "发版尾差一个 helm follow-up",
+        "reason": "missing helm follow-up at end of release"
+      },
+      {
+        "input": "检查下 helm 是不是漏了",
+        "reason": "checking if helm was missed"
+      },
+      {
+        "input": "helm 版本号还没跟上",
+        "reason": "helm version not yet aligned"
+      },
+      {
+        "input": "把 alpha.17 的 chart 版本补上",
+        "reason": "specific version bump request for chart"
+      },
+      {
+        "input": "chart version、appVersion、image.tag 没对齐",
+        "reason": "explicit mention of alignment fields"
+      },
+      {
+        "input": "注意不要自动关闭这个 issue",
+        "reason": "version alignment request with issue reference safety constraint"
+      }
+    ],
+    "should_not_trigger": [
+      {
+        "input": "做完整 release",
+        "reason": "broad release planning, not version alignment check"
+      },
+      {
+        "input": "修 pipeline",
+        "reason": "pipeline work, not helm version alignment"
+      },
+      {
+        "input": "改 helm template",
+        "reason": "template modification, not version-only alignment"
+      },
+      {
+        "input": "重打 tag",
+        "reason": "tag surgery, not version alignment"
+      },
+      {
+        "input": "移动 tag",
+        "reason": "tag movement, not version alignment"
+      },
+      {
+        "input": "helm 版本对齐 + 顺便改下 ingress",
+        "reason": "mixed scope: version alignment + other helm changes"
+      },
+      {
+        "input": "为什么需要 helm 版本对齐？",
+        "reason": "conceptual question, not execution request"
+      },
+      {
+        "input": "release 流程是什么？",
+        "reason": "broad release investigation, not specific alignment task"
+      },
+      {
+        "input": "CI 失败了怎么办？",
+        "reason": "CI/CD debugging, not version alignment"
+      },
+      {
+        "input": "修复 helm chart 的 bug",
+        "reason": "bug fix, not version alignment"
+      }
+    ],
+    "boundary_behavior": [
+      {
+        "scenario": "diff 超出 4 个目标文件",
+        "input": "user provides a commit that touches install/helm/bk-nodemgr/Chart.yaml, values.yaml, and also install/helm/bk-nodemgr/templates/deployment.yaml",
+        "expected_action": "stop and ask user to confirm scope before proceeding",
+        "reason": "scope exceeds version-only alignment"
+      },
+      {
+        "scenario": "用户没说 auto-close issue",
+        "input": "给这个版本补一下 helm values --issue=#1234",
+        "expected_action": "use 'refs #1234' in PR body, not 'closes #1234'",
+        "reason": "default to refs unless user explicitly wants auto-close"
+      },
+      {
+        "scenario": "用户明确要求 auto-close issue",
+        "input": "补 helm 版本，merge 后自动关闭 issue #1234",
+        "expected_action": "use 'closes #1234' in PR body",
+        "reason": "user explicitly requested auto-close"
+      },
+      {
+        "scenario": "当前分支有无关提交",
+        "input": "current branch has commits touching pkg/dao/mongo and install/helm/bk-nodemgr/Chart.yaml",
+        "expected_action": "create clean branch from origin/master, carry only helm version bump",
+        "reason": "avoid carrying unrelated history into version alignment PR"
+      },
+      {
+        "scenario": "当前分支只有目标 helm 改动",
+        "input": "current branch only has uncommitted changes to the 4 target helm files",
+        "expected_action": "continue on current branch",
+        "reason": "branch is clean, no need to create new branch"
+      },
+      {
+        "scenario": "无法确认目标版本",
+        "input": "user says 'helm 版本对齐了没' but does not provide release commit or target version",
+        "expected_action": "stop and ask user for release commit or target version",
+        "reason": "cannot proceed without clear target version"
+      },
+      {
+        "scenario": "参考 commit 不清楚版本 bump 模式",
+        "input": "reference commit only shows partial helm changes, unclear which fields should be updated",
+        "expected_action": "stop and ask user to clarify expected version bump pattern",
+        "reason": "cannot invent version bump pattern without clear evidence"
+      },
+      {
+        "scenario": "验证发现文件范围超出预期",
+        "input": "after editing, git diff master --name-only shows 5 files instead of 4",
+        "expected_action": "stop and report mismatch, do not proceed to PR creation",
+        "reason": "verification failed: file scope check"
+      },
+      {
+        "scenario": "验证发现版本不一致",
+        "input": "after editing, bk-nodemgr Chart.yaml version is v3.0.1-alpha.17 but values.yaml image.tag is v3.0.1-alpha.16",
+        "expected_action": "stop and report mismatch, do not proceed to PR creation",
+        "reason": "verification failed: version alignment check"
+      },
+      {
+        "scenario": "用户请求变成 tag 手术",
+        "input": "helm 版本对齐了，但是 tag 打早了，需要移动 tag",
+        "expected_action": "read references/tag-workflow.md and treat as different task, not version alignment",
+        "reason": "scope shifted to tag surgery"
+      },
+      {
+        "scenario": "验证发现 changelog 缺失",
+        "input": "after editing helm files, verification finds no changelog entry for v3.0.1-alpha.17 in release.md",
+        "expected_action": "stop workflow, delegate to subagent with changelog-doc skill to generate changelog, wait for user confirmation, then resume verification",
+        "reason": "changelog is required before creating release PR"
+      }
+    ],
+    "execution_quality": [
+      {
+        "aspect": "commit message format",
+        "expected": "feat: bump bk-nodemgr helm chart to vX.Y.Z-alpha.N --issue=#1234",
+        "anti_pattern": "update helm version"
+      },
+      {
+        "aspect": "PR title format",
+        "expected": "feat: bump helm release version to vX.Y.Z-alpha.N --issue=#1234",
+        "anti_pattern": "helm version alignment"
+      },
+      {
+        "aspect": "PR body format",
+        "expected": "## Summary\n- bump helm chart and values version to vX.Y.Z-alpha.N\n\nrefs #1234",
+        "anti_pattern": "Updated helm charts for release"
+      },
+      {
+        "aspect": "branch naming",
+        "expected": "pr/helm-release-alpha17",
+        "anti_pattern": "fix-helm-version"
+      },
+      {
+        "aspect": "commit atomicity",
+        "expected": "two commits: one for bk-nodemgr chart, one for mock-server chart",
+        "anti_pattern": "one commit touching all 4 files"
+      },
+      {
+        "aspect": "verification scope",
+        "expected": "check file scope, version alignment, diff sanity, and changelog existence",
+        "anti_pattern": "deep helm template analysis or dependency validation"
+      },
+      {
+        "aspect": "changelog handling",
+        "expected": "delegate to changelog-doc skill when changelog is missing, wait for user confirmation",
+        "anti_pattern": "skip changelog check or proceed without changelog"
+      }
+    ]
+  },
+  "success_criteria": {
+    "trigger_accuracy": "should correctly identify version alignment requests and reject out-of-scope requests",
+    "scope_discipline": "should stop and ask when scope is unclear or exceeds version-only alignment",
+    "safety_compliance": "should default to 'refs' for issue reference and create clean branch when history is dirty",
+    "output_quality": "should produce commit messages, PR title, and PR body that match repo conventions",
+    "verification_discipline": "should run minimal verification checks and stop on mismatch"
+  }
+}
