@@ -98,7 +98,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	)
 	defer span.End()
 
-	span.AddEvent(spanEventActionWorkerStarted)
+	span.AddEvent(spanEventActionReceived)
 
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {
@@ -111,7 +111,6 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	nCtx := contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 
 	// get operation instance.
-	span.AddEvent(spanEventActionDataFetching)
 	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, operationInstanceID)
 	if err != nil {
 		return fmt.Errorf("failed to get operation instance brief data. "+
@@ -138,7 +137,6 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
 			"oper-inst-id(%s), action-name(%s): %w", operationInstanceID, actionName, err)
 	}
-	span.AddEvent(spanEventActionDataFetched)
 
 	// record metric.
 	m := metric.NewActionProcess(actionInstData).Start()
@@ -174,7 +172,6 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 	// handle operation instance lifecycle.
 	if !operInstBriefData.Lifecycle.IsRunning() {
-		span.AddEvent(spanEventOperationInstanceStarting)
 		operInstBriefData.Lifecycle.Start()
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
@@ -184,11 +181,12 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 			return fmt.Errorf("failed to start operation instance. "+
 				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, refreshErr)
 		}
-		span.AddEvent(spanEventOperationInstanceStarted)
 	}
 
 	// handle action instance lifecycle.
-	span.AddEvent(spanEventActionLifecycleStarting)
+	span.AddEvent(spanEventActionStarted, trace.WithAttributes(
+		attribute.Bool(attributeKeyIsFirst, actionInstData.IsFirst()),
+		attribute.Bool(attributeKeyIsLast, actionInstData.IsLast())))
 	actionInstData.Lifecycle.Start()
 	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
 		return err
@@ -214,21 +212,18 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 		actionInstData.Content = preActionInstData.Content
 	}
-	span.AddEvent(spanEventActionLifecycleStarted)
 
 	// execute and wait for action done.
-	span.AddEvent(spanEventActionExecuting)
 	// nolint: contextcheck
 	executeErr := mgr.executeAndWatchAction(nCtx, actionDef, operInstBriefData, actionInstData)
 	if executeErr != nil {
-		span.AddEvent(spanEventActionExecutedFailed, trace.WithAttributes(
+		span.AddEvent(spanEventActionFailed, trace.WithAttributes(
 			attribute.String(attributeKeyError, executeErr.Error())))
 	} else {
-		span.AddEvent(spanEventActionExecutedSuccess)
+		span.AddEvent(spanEventActionSucceeded)
 	}
 
 	// updates action instance lifecycle.
-	span.AddEvent(spanEventActionLifecycleEnding)
 	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
 		return err
 	}
@@ -243,15 +238,15 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		nCtx, operationInstanceID, actionName, actionInstData.PrivateData); err != nil {
 		return err
 	}
-	span.AddEvent(spanEventActionLifecycleEnded, trace.WithAttributes(
-		attribute.String(attributeKeyState, string(actionInstData.Lifecycle.State))))
+
+	span.AddEvent(spanEventActionCompleted, trace.WithAttributes(
+		attribute.String(attributeKeyFinalState, string(actionInstData.Lifecycle.State))))
 
 	// when action done or error happens, we need to update the state of the operation instance.
 	if actionInstData.IsLast() || executeErr != nil {
 		// record oper inst metric.
 		defer metric.OperationInstanceProcessed(operInstBriefData)
 
-		span.AddEvent(spanEventOperationInstanceEnding)
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
@@ -268,8 +263,6 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		if err = mgr.doOperExtraExecution(nCtx, operInstBriefData); err != nil {
 			return fmt.Errorf("do oper-inst-id(%s) ending extra execution failed: %w", operationInstanceID, err)
 		}
-		span.AddEvent(spanEventOperationInstanceEnded, trace.WithAttributes(
-			attribute.String(attributeKeyState, string(operInstBriefData.Lifecycle.State))))
 	}
 
 	return executeErr
