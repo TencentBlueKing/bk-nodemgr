@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	// OperExtraExecutionName defines the operation instance extra execution name.
-	OperExtraExecutionName = "node_operation_extra_execution"
+	// OperExtraExecutionNameLockAndUnlockHost defines the operation instance extra execution name for locking and unlocking host.
+	OperExtraExecutionNameLockAndUnlockHost = "node_operation_extra_execution_lock_and_unlock_host"
 )
 
 // NewOperationExtraExecution creates a new operation extra execution.
@@ -48,7 +48,7 @@ type extraExecution struct {
 
 // Name returns the name of the action.
 func (exec *extraExecution) Name() string {
-	return OperExtraExecutionName
+	return OperExtraExecutionNameLockAndUnlockHost
 }
 
 // Do this func define what the action will do.
@@ -163,6 +163,16 @@ func (exec *extraExecution) Lock(
 
 // Unlock this func define what the action will do when unlocking.
 func (exec *extraExecution) Unlock(ctx context.Context, lockerName string, operationInstanceID string) error {
+	exists, err := exec.locker.Exists(ctx, lockerName)
+	if err != nil {
+		return fmt.Errorf("check lock existence by locker(%s) failed: %w", lockerName, err)
+	}
+
+	if !exists {
+		// already unlocked, return nil
+		return nil
+	}
+
 	operInstID, err := exec.locker.Get(ctx, lockerName)
 	if err != nil {
 		return fmt.Errorf("try unlock, get lock by locker(%s) failed: %w", lockerName, err)

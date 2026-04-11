@@ -82,5 +82,5 @@ func (oper *operUpgradeNode) DefaultParameters() operation.Param {
 
 // ExtraExecutionName returns the extra execution definition name.
 func (oper *operUpgradeNode) ExtraExecutionName() string {
-	return OperExtraExecutionName
+	return OperExtraExecutionNameLockAndUnlockHost
 }

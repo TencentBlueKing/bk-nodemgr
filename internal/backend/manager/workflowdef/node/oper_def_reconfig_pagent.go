@@ -84,5 +84,5 @@ func (oper *operReconfigPagent) DefaultParameters() operation.Param {
 
 // ExtraExecutionName returns the extra execution definition name.
 func (oper *operReconfigPagent) ExtraExecutionName() string {
-	return OperExtraExecutionName
+	return OperExtraExecutionNameLockAndUnlockHost
 }

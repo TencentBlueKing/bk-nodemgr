@@ -74,5 +74,5 @@ func (oper *operUninstallPagent) DefaultParameters() operation.Param {
 
 // ExtraExecutionName returns the extra execution definition name.
 func (oper *operUninstallPagent) ExtraExecutionName() string {
-	return OperExtraExecutionName
+	return OperExtraExecutionNameLockAndUnlockHost
 }

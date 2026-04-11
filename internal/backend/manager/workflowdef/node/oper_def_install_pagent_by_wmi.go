@@ -90,5 +90,5 @@ func (oper *operInstallPagentNodeByWMI) DefaultParameters() operation.Param {
 
 // ExtraExecutionName returns the extra execution definition name.
 func (oper *operInstallPagentNodeByWMI) ExtraExecutionName() string {
-	return OperExtraExecutionName
+	return OperExtraExecutionNameLockAndUnlockHost
 }

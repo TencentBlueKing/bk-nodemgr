@@ -142,6 +142,16 @@ func (life *Lifecycle) End(lastActionInstState action.State) {
 	}
 }
 
+// NeedExecutedExtraExecution checks if the lifecycle needs to execute extra execution.
+func (life *Lifecycle) NeedExecutedExtraExecution() bool {
+	switch life.State {
+	case StateLaunched, StateSuccess, StateFailed, StateTimeout, StateTerminated:
+		return true
+	default:
+		return false
+	}
+}
+
 // State defines operation instance state.
 type State string
 

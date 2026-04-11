@@ -68,8 +68,6 @@ func (mgr *manager) launchWorker() error {
 
 // do executes the action defined by actionName for the operation instance with operationInstanceID.
 // this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
-//
-// nolint: funlen,gocognit,cyclop,gocyclo,lll
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string, traceID string, spanID string) error {
 	tid, err := trace.TraceIDFromHex(traceID)
 	if err != nil {
@@ -111,29 +109,73 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// get operation instance.
 	operInstBriefData, err := mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, operationInstanceID)
 	if err != nil {
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("oper-inst-id", operationInstanceID).Error("failed to get operation instance brief data")
+
 		return fmt.Errorf("failed to get operation instance brief data. "+
 			"oper-inst-id(%s): %v", operationInstanceID, err)
 	}
 
+	// nolint: contextcheck
+	refreshMsgCtx, refreshMsgCancel := contextx.WithCancel(contextx.From(nCtx))
+	defer refreshMsgCancel()
+	go mgr.autoRefreshExtraExecutionMsg(refreshMsgCtx, operInstBriefData)
+
+	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
+		logger.G.Sys().Ctx(nCtx).WithErr(execErr).
+			With("oper-inst-id", operationInstanceID).
+			Error("failed to do operation instance extra execution before do action")
+
+		return fmt.Errorf("failed to do operation instance extra execution. oper-inst-id(%s): %v", operationInstanceID, execErr)
+	}
+
+	// nolint: contextcheck
+	actionErr := mgr.doAction(nCtx, actionDef, operInstBriefData)
+
+	// when action finished, we also need to execute the extra execution if needed, and update the operation instance state.
+	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
+		logger.G.Sys().Ctx(nCtx).WithErr(execErr).
+			With("oper-inst-id", operationInstanceID).
+			Error("failed to do operation instance extra execution after do action")
+
+		if actionErr != nil {
+			bothErr := fmt.Errorf("do action error: %v; after action finished do extra execution error: %v", actionErr, execErr)
+			logger.G.Sys().Ctx(nCtx).WithErr(bothErr).
+				With("oper-inst-id", operationInstanceID).
+				Error("failed to do action and operation instance extra execution after do action")
+
+			return fmt.Errorf("failed to do extra execution after do action.oper-inst-id(%s): both error: %v", operationInstanceID, bothErr)
+		}
+
+		return fmt.Errorf("failed to do operation instance extra execution after action execution. oper-inst-id(%s): %v",
+			operationInstanceID, execErr)
+	}
+
+	return actionErr
+}
+
+// nolint: funlen,gocognit,cyclop,gocyclo,lll
+func (mgr *manager) doAction(nCtx contextx.IContext, actionDef action.Definition, operInstBriefData *operation.InstanceBriefData) error {
+	operationInstanceID := operInstBriefData.Metadata.OperationInstanceID
+
 	// get action instance.
-	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, actionName)
+	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, actionDef.Name())
 	if err != nil {
 		// record metric.
-		metric.ActionDataNotFound(actionName)
+		metric.ActionDataNotFound(actionDef.Name())
 
 		operInstBriefData.Lifecycle.End(action.StateFailed)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
-				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				"oper-inst-id", operationInstanceID, "action-name", actionDef.Name()).
 				Error("failed to refresh operation instance state after failed to get action instance data")
 
 			return fmt.Errorf("failed to get action instance data from operation instance. "+
 				"oper-inst-id(%s), action-name(%s): %w; additionally failed to refresh operation instance state: %v",
-				operationInstanceID, actionName, err, refreshErr)
+				operationInstanceID, actionDef.Name(), err, refreshErr)
 		}
 
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
-			"oper-inst-id(%s), action-name(%s): %w", operationInstanceID, actionName, err)
+			"oper-inst-id(%s), action-name(%s): %w", operationInstanceID, actionDef.Name(), err)
 	}
 
 	// record metric.
@@ -149,38 +191,22 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return err
 	}
 
-	// handle extra execution before action executed. if retry happens, action maybe not first
-	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
-		operInstBriefData.Lifecycle.End(action.StateFailed)
-		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
-			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
-				"oper-inst-id", operationInstanceID, "action-name", actionName).
-				Error("failed to refresh operation instance state after failed to do extra execution")
-
-			return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w; "+
-				"additionally failed to refresh operation instance state: %v",
-				operationInstanceID, execErr, refreshErr)
-		}
-
-		return fmt.Errorf("do oper-inst-id(%s) starting extra execution failed: %w", operationInstanceID, execErr)
-	}
-
 	// handle operation instance lifecycle.
 	if !operInstBriefData.Lifecycle.IsRunning() {
 		operInstBriefData.Lifecycle.Start()
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
-				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				"oper-inst-id", operationInstanceID, "action-name", actionDef.Name()).
 				Error("failed to refresh operation instance state after failed to start")
 
 			return fmt.Errorf("failed to start operation instance. "+
-				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, refreshErr)
+				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionDef.Name(), refreshErr)
 		}
 	}
 
 	// handle action instance lifecycle.
 	actionInstData.Lifecycle.Start()
-	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
+	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionDef.Name(), actionInstData.Lifecycle); err != nil {
 		return err
 	}
 
@@ -210,18 +236,18 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	executeErr := mgr.executeAndWatchAction(nCtx, actionDef, operInstBriefData, actionInstData)
 
 	// updates action instance lifecycle.
-	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
+	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionDef.Name(), actionInstData.Lifecycle); err != nil {
 		return err
 	}
 
 	// updates action content.
-	if err = mgr.updateActionContent(nCtx, operationInstanceID, actionName, actionInstData.Content); err != nil {
+	if err = mgr.updateActionContent(nCtx, operationInstanceID, actionDef.Name(), actionInstData.Content); err != nil {
 		return err
 	}
 
 	// updates action instance private data.
 	if err = mgr.updateOperationInstancePrivateData(
-		nCtx, operationInstanceID, actionName, actionInstData.PrivateData); err != nil {
+		nCtx, operationInstanceID, actionDef.Name(), actionInstData.PrivateData); err != nil {
 		return err
 	}
 
@@ -233,19 +259,15 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
-				"oper-inst-id", operationInstanceID, "action-name", actionName).
+				"oper-inst-id", operationInstanceID, "action-name", actionDef.Name()).
 				Error("failed to refresh operation instance state after failed to end")
 
 			return fmt.Errorf("failed to end operation instance. "+
-				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, refreshErr)
+				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionDef.Name(), refreshErr)
 		}
 
 		logger.G.Sys().Ctx(nCtx).With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
 			Info("updated operation instance lifecycle with terminated state")
-
-		if err = mgr.doOperExtraExecution(nCtx, operInstBriefData); err != nil {
-			return fmt.Errorf("do oper-inst-id(%s) ending extra execution failed: %w", operationInstanceID, err)
-		}
 	}
 
 	return executeErr
@@ -563,12 +585,12 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 }
 
 // doOperExtraExecution executes the extra action for the operation instance.
-func (mgr *manager) doOperExtraExecution(ctx contextx.IContext, oper *operation.InstanceBriefData) error {
+func (mgr *manager) doOperExtraExecution(nCtx contextx.IContext, oper *operation.InstanceBriefData) error {
 	if oper.Metadata.ExtraExecutionName == "" {
 		return nil
 	}
 
-	if oper.Lifecycle.State == operation.StateInit || oper.Lifecycle.State == operation.StateRunning {
+	if !oper.Lifecycle.NeedExecutedExtraExecution() {
 		return nil
 	}
 
@@ -577,20 +599,75 @@ func (mgr *manager) doOperExtraExecution(ctx contextx.IContext, oper *operation.
 		return fmt.Errorf("extra action not registered, name(%s)", oper.Metadata.ExtraExecutionName)
 	}
 
-	msgIdx := len(oper.Metadata.ExtraExecutionMessages)
-	err := actionDef.Do(ctx, oper)
-	updateErr := mgr.stgOperationInstance.UpdateOperationInstanceExtraExecutionMessages(
-		ctx,
-		oper.Metadata.OperationInstanceID,
-		oper.Metadata.ExtraExecutionMessages[msgIdx:]...)
-	if updateErr != nil {
-		logger.G.Sys().Ctx(ctx).
-			WithErr(updateErr).
-			With("operation-extra-execution", oper.Metadata.ExtraExecutionName).
-			Error("failed to refresh operation extra execution message")
+	if execErr := actionDef.Do(nCtx, oper); execErr != nil {
+		oper.Lifecycle.End(action.StateFailed)
+		if refreshErr := mgr.refreshOperationInstanceState(nCtx, oper); refreshErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
+				"oper-inst-id", oper.Metadata.OperationInstanceID, "extra-execution-name", oper.Metadata.ExtraExecutionName).
+				Error("failed to refresh operation instance state after failed to execute extra execution")
+
+			return fmt.Errorf("failed to execute operation instance extra execution. "+
+				"oper-inst-id(%s), extra-execution-name(%s): %v; additionally failed to refresh operation instance state: %v",
+				oper.Metadata.OperationInstanceID, oper.Metadata.ExtraExecutionName, execErr, refreshErr)
+		}
+
+		return fmt.Errorf("failed to execute operation instance extra execution. "+
+			"oper-inst-id(%s), extra-execution-name(%s): %v",
+			oper.Metadata.OperationInstanceID, oper.Metadata.ExtraExecutionName, execErr)
 	}
 
-	return err
+	return nil
+}
+
+func (mgr *manager) autoRefreshExtraExecutionMsg(nCtx contextx.IContext, oper *operation.InstanceBriefData) {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	idx := len(oper.Metadata.ExtraExecutionMessages)
+
+	// refresh action inst data messages to storage
+	for {
+		select {
+		case <-nCtx.Done():
+			// when finished, push the rest messages to storage.
+			msgs := oper.Metadata.ExtraExecutionMessages[idx:]
+
+			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
+			// nolint: contextcheck
+			err := mgr.stgOperationInstance.UpdateOperationInstanceExtraExecutionMessages(mgr.ctx,
+				oper.Metadata.OperationInstanceID,
+				msgs...)
+			if err != nil {
+				logger.G.Sys().Ctx(nCtx).WithErr(err).
+					With("operation-extra-execution", oper.Metadata.ExtraExecutionName).
+					Error("failed to refresh operation extra execution messages")
+			}
+
+			return
+
+		case <-ticker.C:
+			msgs := oper.Metadata.ExtraExecutionMessages[idx:]
+			idx += len(msgs)
+
+			if len(msgs) == 0 {
+				continue
+			}
+
+			// need to make sure the db operation done, so in this way we use mgr.ctx instead of ctx.
+			// nolint: contextcheck
+			err := mgr.stgOperationInstance.UpdateOperationInstanceExtraExecutionMessages(
+				mgr.ctx,
+				oper.Metadata.OperationInstanceID,
+				msgs...)
+			if err != nil {
+				logger.G.Sys().Ctx(nCtx).WithErr(err).
+					With("operation-extra-execution", oper.Metadata.ExtraExecutionName).
+					Error("failed to refresh operation extra execution messages")
+			}
+
+			continue
+		}
+	}
 }
 
 func actionMessageID(operInstID, actionName string) string {
