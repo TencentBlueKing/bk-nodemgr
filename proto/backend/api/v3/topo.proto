@@ -654,6 +654,35 @@ message TopoAccessPointListResp {
   Data data = 5;
 }
 
+// TopoAccessPointListBriefReq describes the HTTP request body when list
+// accesspoint brief in topo service.
+message TopoAccessPointListBriefReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkarea_id = 1;
+    repeated int64 accesspoint_id = 2;
+  }
+  ExactConditions exact_include_conditions = 3;
+}
+
+// TopoAccessPointListBriefResp describes the HTTP response body when list
+// accesspoint brief in topo service.
+message TopoAccessPointListBriefResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated AccessPointBrief items = 2;
+  }
+  Data data = 5;
+}
+
 // TopoConstantGetReq describes the HTTP request body when get constant in topo
 // service.
 message TopoConstantGetReq {
@@ -927,6 +956,15 @@ service Topo {
       returns (TopoAccessPointListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/accesspoint/list"
+      body : "*"
+    };
+  }
+
+  // AccessPointListBrief provides brief access-point listing (no endpoints).
+  rpc AccessPointListBrief(TopoAccessPointListBriefReq)
+      returns (TopoAccessPointListBriefResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/accesspoint/list/brief"
       body : "*"
     };
   }

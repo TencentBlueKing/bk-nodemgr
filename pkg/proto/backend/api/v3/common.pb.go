@@ -692,6 +692,68 @@ func (x *AccessPoint) GetEndpoints() *Endpoints {
 	return nil
 }
 
+// AccessPointBrief describes the brief access point (no endpoints for
+// sensitivity).
+type AccessPointBrief struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	AccesspointId   *int64                 `protobuf:"varint,1,opt,name=accesspoint_id,json=accesspointId,proto3,oneof" json:"accesspoint_id"`
+	AccesspointName *string                `protobuf:"bytes,2,opt,name=accesspoint_name,json=accesspointName,proto3,oneof" json:"accesspoint_name"`
+	BkNetworkareaId *int64                 `protobuf:"varint,3,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3,oneof" json:"bk_networkarea_id"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *AccessPointBrief) Reset() {
+	*x = AccessPointBrief{}
+	mi := &file_common_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccessPointBrief) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccessPointBrief) ProtoMessage() {}
+
+func (x *AccessPointBrief) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccessPointBrief.ProtoReflect.Descriptor instead.
+func (*AccessPointBrief) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AccessPointBrief) GetAccesspointId() int64 {
+	if x != nil && x.AccesspointId != nil {
+		return *x.AccesspointId
+	}
+	return 0
+}
+
+func (x *AccessPointBrief) GetAccesspointName() string {
+	if x != nil && x.AccesspointName != nil {
+		return *x.AccesspointName
+	}
+	return ""
+}
+
+func (x *AccessPointBrief) GetBkNetworkareaId() int64 {
+	if x != nil && x.BkNetworkareaId != nil {
+		return *x.BkNetworkareaId
+	}
+	return 0
+}
+
 // NetworkUnit describes the network unit informations.
 type NetworkUnit struct {
 	state              protoimpl.MessageState         `protogen:"open.v1"`
@@ -711,7 +773,7 @@ type NetworkUnit struct {
 
 func (x *NetworkUnit) Reset() {
 	*x = NetworkUnit{}
-	mi := &file_common_proto_msgTypes[11]
+	mi := &file_common_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -723,7 +785,7 @@ func (x *NetworkUnit) String() string {
 func (*NetworkUnit) ProtoMessage() {}
 
 func (x *NetworkUnit) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[11]
+	mi := &file_common_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -736,7 +798,7 @@ func (x *NetworkUnit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkUnit.ProtoReflect.Descriptor instead.
 func (*NetworkUnit) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{11}
+	return file_common_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *NetworkUnit) GetTenantId() string {
@@ -829,7 +891,7 @@ type NetworkUnitBrief struct {
 
 func (x *NetworkUnitBrief) Reset() {
 	*x = NetworkUnitBrief{}
-	mi := &file_common_proto_msgTypes[12]
+	mi := &file_common_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -841,7 +903,7 @@ func (x *NetworkUnitBrief) String() string {
 func (*NetworkUnitBrief) ProtoMessage() {}
 
 func (x *NetworkUnitBrief) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[12]
+	mi := &file_common_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -854,7 +916,7 @@ func (x *NetworkUnitBrief) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkUnitBrief.ProtoReflect.Descriptor instead.
 func (*NetworkUnitBrief) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{12}
+	return file_common_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *NetworkUnitBrief) GetTenantId() string {
@@ -943,7 +1005,7 @@ type HostState struct {
 
 func (x *HostState) Reset() {
 	*x = HostState{}
-	mi := &file_common_proto_msgTypes[13]
+	mi := &file_common_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +1017,7 @@ func (x *HostState) String() string {
 func (*HostState) ProtoMessage() {}
 
 func (x *HostState) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[13]
+	mi := &file_common_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1030,7 @@ func (x *HostState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HostState.ProtoReflect.Descriptor instead.
 func (*HostState) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{13}
+	return file_common_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *HostState) GetNodeRole() string {
@@ -1046,7 +1108,7 @@ type HostInfo struct {
 
 func (x *HostInfo) Reset() {
 	*x = HostInfo{}
-	mi := &file_common_proto_msgTypes[14]
+	mi := &file_common_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1120,7 @@ func (x *HostInfo) String() string {
 func (*HostInfo) ProtoMessage() {}
 
 func (x *HostInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[14]
+	mi := &file_common_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1133,7 @@ func (x *HostInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HostInfo.ProtoReflect.Descriptor instead.
 func (*HostInfo) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{14}
+	return file_common_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *HostInfo) GetBkBizId() int64 {
@@ -1250,7 +1312,7 @@ type Host struct {
 
 func (x *Host) Reset() {
 	*x = Host{}
-	mi := &file_common_proto_msgTypes[15]
+	mi := &file_common_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1262,7 +1324,7 @@ func (x *Host) String() string {
 func (*Host) ProtoMessage() {}
 
 func (x *Host) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[15]
+	mi := &file_common_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1275,7 +1337,7 @@ func (x *Host) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Host.ProtoReflect.Descriptor instead.
 func (*Host) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{15}
+	return file_common_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Host) GetTenantId() string {
@@ -1339,7 +1401,7 @@ type TopoEvent struct {
 
 func (x *TopoEvent) Reset() {
 	*x = TopoEvent{}
-	mi := &file_common_proto_msgTypes[16]
+	mi := &file_common_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1351,7 +1413,7 @@ func (x *TopoEvent) String() string {
 func (*TopoEvent) ProtoMessage() {}
 
 func (x *TopoEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[16]
+	mi := &file_common_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1364,7 +1426,7 @@ func (x *TopoEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEvent.ProtoReflect.Descriptor instead.
 func (*TopoEvent) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{16}
+	return file_common_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *TopoEvent) GetTenantId() string {
@@ -1448,7 +1510,7 @@ type TimeRange struct {
 
 func (x *TimeRange) Reset() {
 	*x = TimeRange{}
-	mi := &file_common_proto_msgTypes[17]
+	mi := &file_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1460,7 +1522,7 @@ func (x *TimeRange) String() string {
 func (*TimeRange) ProtoMessage() {}
 
 func (x *TimeRange) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[17]
+	mi := &file_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1473,7 +1535,7 @@ func (x *TimeRange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TimeRange.ProtoReflect.Descriptor instead.
 func (*TimeRange) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{17}
+	return file_common_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *TimeRange) GetStartTimestampSec() int64 {
@@ -1508,7 +1570,7 @@ type PackageEvent struct {
 
 func (x *PackageEvent) Reset() {
 	*x = PackageEvent{}
-	mi := &file_common_proto_msgTypes[18]
+	mi := &file_common_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1520,7 +1582,7 @@ func (x *PackageEvent) String() string {
 func (*PackageEvent) ProtoMessage() {}
 
 func (x *PackageEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[18]
+	mi := &file_common_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1533,7 +1595,7 @@ func (x *PackageEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEvent.ProtoReflect.Descriptor instead.
 func (*PackageEvent) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{18}
+	return file_common_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PackageEvent) GetName() string {
@@ -1621,7 +1683,7 @@ type Release struct {
 
 func (x *Release) Reset() {
 	*x = Release{}
-	mi := &file_common_proto_msgTypes[19]
+	mi := &file_common_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1633,7 +1695,7 @@ func (x *Release) String() string {
 func (*Release) ProtoMessage() {}
 
 func (x *Release) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[19]
+	mi := &file_common_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1646,7 +1708,7 @@ func (x *Release) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Release.ProtoReflect.Descriptor instead.
 func (*Release) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{19}
+	return file_common_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Release) GetName() string {
@@ -1752,7 +1814,7 @@ type ReleaseAgent struct {
 
 func (x *ReleaseAgent) Reset() {
 	*x = ReleaseAgent{}
-	mi := &file_common_proto_msgTypes[20]
+	mi := &file_common_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1764,7 +1826,7 @@ func (x *ReleaseAgent) String() string {
 func (*ReleaseAgent) ProtoMessage() {}
 
 func (x *ReleaseAgent) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[20]
+	mi := &file_common_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1777,7 +1839,7 @@ func (x *ReleaseAgent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseAgent.ProtoReflect.Descriptor instead.
 func (*ReleaseAgent) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{20}
+	return file_common_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ReleaseAgent) GetRelease() *Release {
@@ -1813,7 +1875,7 @@ type ReleaseProxy struct {
 
 func (x *ReleaseProxy) Reset() {
 	*x = ReleaseProxy{}
-	mi := &file_common_proto_msgTypes[21]
+	mi := &file_common_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1825,7 +1887,7 @@ func (x *ReleaseProxy) String() string {
 func (*ReleaseProxy) ProtoMessage() {}
 
 func (x *ReleaseProxy) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[21]
+	mi := &file_common_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1838,7 +1900,7 @@ func (x *ReleaseProxy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseProxy.ProtoReflect.Descriptor instead.
 func (*ReleaseProxy) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{21}
+	return file_common_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ReleaseProxy) GetRelease() *Release {
@@ -1872,7 +1934,7 @@ type ReleasePlugin struct {
 
 func (x *ReleasePlugin) Reset() {
 	*x = ReleasePlugin{}
-	mi := &file_common_proto_msgTypes[22]
+	mi := &file_common_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1884,7 +1946,7 @@ func (x *ReleasePlugin) String() string {
 func (*ReleasePlugin) ProtoMessage() {}
 
 func (x *ReleasePlugin) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[22]
+	mi := &file_common_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1897,7 +1959,7 @@ func (x *ReleasePlugin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleasePlugin.ProtoReflect.Descriptor instead.
 func (*ReleasePlugin) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{22}
+	return file_common_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ReleasePlugin) GetRelease() *Release {
@@ -1917,7 +1979,7 @@ type ReleaseCert struct {
 
 func (x *ReleaseCert) Reset() {
 	*x = ReleaseCert{}
-	mi := &file_common_proto_msgTypes[23]
+	mi := &file_common_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1929,7 +1991,7 @@ func (x *ReleaseCert) String() string {
 func (*ReleaseCert) ProtoMessage() {}
 
 func (x *ReleaseCert) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[23]
+	mi := &file_common_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1942,7 +2004,7 @@ func (x *ReleaseCert) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseCert.ProtoReflect.Descriptor instead.
 func (*ReleaseCert) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{23}
+	return file_common_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ReleaseCert) GetRelease() *Release {
@@ -1962,7 +2024,7 @@ type ReleaseBinTool struct {
 
 func (x *ReleaseBinTool) Reset() {
 	*x = ReleaseBinTool{}
-	mi := &file_common_proto_msgTypes[24]
+	mi := &file_common_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1974,7 +2036,7 @@ func (x *ReleaseBinTool) String() string {
 func (*ReleaseBinTool) ProtoMessage() {}
 
 func (x *ReleaseBinTool) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[24]
+	mi := &file_common_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1987,7 +2049,7 @@ func (x *ReleaseBinTool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseBinTool.ProtoReflect.Descriptor instead.
 func (*ReleaseBinTool) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{24}
+	return file_common_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ReleaseBinTool) GetRelease() *Release {
@@ -2007,7 +2069,7 @@ type ReleasePluginBinTool struct {
 
 func (x *ReleasePluginBinTool) Reset() {
 	*x = ReleasePluginBinTool{}
-	mi := &file_common_proto_msgTypes[25]
+	mi := &file_common_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2019,7 +2081,7 @@ func (x *ReleasePluginBinTool) String() string {
 func (*ReleasePluginBinTool) ProtoMessage() {}
 
 func (x *ReleasePluginBinTool) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[25]
+	mi := &file_common_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2032,7 +2094,7 @@ func (x *ReleasePluginBinTool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleasePluginBinTool.ProtoReflect.Descriptor instead.
 func (*ReleasePluginBinTool) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{25}
+	return file_common_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ReleasePluginBinTool) GetRelease() *Release {
@@ -2053,7 +2115,7 @@ type Platform struct {
 
 func (x *Platform) Reset() {
 	*x = Platform{}
-	mi := &file_common_proto_msgTypes[26]
+	mi := &file_common_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2065,7 +2127,7 @@ func (x *Platform) String() string {
 func (*Platform) ProtoMessage() {}
 
 func (x *Platform) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[26]
+	mi := &file_common_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2078,7 +2140,7 @@ func (x *Platform) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Platform.ProtoReflect.Descriptor instead.
 func (*Platform) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{26}
+	return file_common_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Platform) GetOsType() string {
@@ -2108,7 +2170,7 @@ type ConfigPolicyScope struct {
 
 func (x *ConfigPolicyScope) Reset() {
 	*x = ConfigPolicyScope{}
-	mi := &file_common_proto_msgTypes[27]
+	mi := &file_common_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2120,7 +2182,7 @@ func (x *ConfigPolicyScope) String() string {
 func (*ConfigPolicyScope) ProtoMessage() {}
 
 func (x *ConfigPolicyScope) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[27]
+	mi := &file_common_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2133,7 +2195,7 @@ func (x *ConfigPolicyScope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigPolicyScope.ProtoReflect.Descriptor instead.
 func (*ConfigPolicyScope) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{27}
+	return file_common_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ConfigPolicyScope) GetBkNetworkareaId() int64 {
@@ -2189,7 +2251,7 @@ type ConfigPolicy struct {
 
 func (x *ConfigPolicy) Reset() {
 	*x = ConfigPolicy{}
-	mi := &file_common_proto_msgTypes[28]
+	mi := &file_common_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2201,7 +2263,7 @@ func (x *ConfigPolicy) String() string {
 func (*ConfigPolicy) ProtoMessage() {}
 
 func (x *ConfigPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[28]
+	mi := &file_common_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2214,7 +2276,7 @@ func (x *ConfigPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigPolicy.ProtoReflect.Descriptor instead.
 func (*ConfigPolicy) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{28}
+	return file_common_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ConfigPolicy) GetTenantId() string {
@@ -2347,7 +2409,7 @@ type ConfigPolicyEvent struct {
 
 func (x *ConfigPolicyEvent) Reset() {
 	*x = ConfigPolicyEvent{}
-	mi := &file_common_proto_msgTypes[29]
+	mi := &file_common_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2359,7 +2421,7 @@ func (x *ConfigPolicyEvent) String() string {
 func (*ConfigPolicyEvent) ProtoMessage() {}
 
 func (x *ConfigPolicyEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[29]
+	mi := &file_common_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2372,7 +2434,7 @@ func (x *ConfigPolicyEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigPolicyEvent.ProtoReflect.Descriptor instead.
 func (*ConfigPolicyEvent) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{29}
+	return file_common_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ConfigPolicyEvent) GetTenantId() string {
@@ -2449,7 +2511,7 @@ type TargetVersion struct {
 
 func (x *TargetVersion) Reset() {
 	*x = TargetVersion{}
-	mi := &file_common_proto_msgTypes[30]
+	mi := &file_common_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2461,7 +2523,7 @@ func (x *TargetVersion) String() string {
 func (*TargetVersion) ProtoMessage() {}
 
 func (x *TargetVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[30]
+	mi := &file_common_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2474,7 +2536,7 @@ func (x *TargetVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetVersion.ProtoReflect.Descriptor instead.
 func (*TargetVersion) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{30}
+	return file_common_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *TargetVersion) GetVersion() string {
@@ -2509,7 +2571,7 @@ type Error struct {
 
 func (x *Error) Reset() {
 	*x = Error{}
-	mi := &file_common_proto_msgTypes[31]
+	mi := &file_common_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2521,7 +2583,7 @@ func (x *Error) String() string {
 func (*Error) ProtoMessage() {}
 
 func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[31]
+	mi := &file_common_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2534,7 +2596,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{31}
+	return file_common_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *Error) GetSystem() string {
@@ -2570,7 +2632,7 @@ type ResourceNode struct {
 
 func (x *ResourceNode) Reset() {
 	*x = ResourceNode{}
-	mi := &file_common_proto_msgTypes[32]
+	mi := &file_common_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2582,7 +2644,7 @@ func (x *ResourceNode) String() string {
 func (*ResourceNode) ProtoMessage() {}
 
 func (x *ResourceNode) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[32]
+	mi := &file_common_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2595,7 +2657,7 @@ func (x *ResourceNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceNode.ProtoReflect.Descriptor instead.
 func (*ResourceNode) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{32}
+	return file_common_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ResourceNode) GetType() string {
@@ -2639,7 +2701,7 @@ type RelatedResourceType struct {
 
 func (x *RelatedResourceType) Reset() {
 	*x = RelatedResourceType{}
-	mi := &file_common_proto_msgTypes[33]
+	mi := &file_common_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2651,7 +2713,7 @@ func (x *RelatedResourceType) String() string {
 func (*RelatedResourceType) ProtoMessage() {}
 
 func (x *RelatedResourceType) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[33]
+	mi := &file_common_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2664,7 +2726,7 @@ func (x *RelatedResourceType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelatedResourceType.ProtoReflect.Descriptor instead.
 func (*RelatedResourceType) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{33}
+	return file_common_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *RelatedResourceType) GetSystemId() string {
@@ -2713,7 +2775,7 @@ type Action struct {
 
 func (x *Action) Reset() {
 	*x = Action{}
-	mi := &file_common_proto_msgTypes[34]
+	mi := &file_common_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2725,7 +2787,7 @@ func (x *Action) String() string {
 func (*Action) ProtoMessage() {}
 
 func (x *Action) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[34]
+	mi := &file_common_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2738,7 +2800,7 @@ func (x *Action) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Action.ProtoReflect.Descriptor instead.
 func (*Action) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{34}
+	return file_common_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *Action) GetId() string {
@@ -2774,7 +2836,7 @@ type Permission struct {
 
 func (x *Permission) Reset() {
 	*x = Permission{}
-	mi := &file_common_proto_msgTypes[35]
+	mi := &file_common_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2786,7 +2848,7 @@ func (x *Permission) String() string {
 func (*Permission) ProtoMessage() {}
 
 func (x *Permission) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[35]
+	mi := &file_common_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2799,7 +2861,7 @@ func (x *Permission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Permission.ProtoReflect.Descriptor instead.
 func (*Permission) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{35}
+	return file_common_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *Permission) GetSystem() string {
@@ -2844,7 +2906,7 @@ type NetworkPolicyEndpoint struct {
 
 func (x *NetworkPolicyEndpoint) Reset() {
 	*x = NetworkPolicyEndpoint{}
-	mi := &file_common_proto_msgTypes[36]
+	mi := &file_common_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2856,7 +2918,7 @@ func (x *NetworkPolicyEndpoint) String() string {
 func (*NetworkPolicyEndpoint) ProtoMessage() {}
 
 func (x *NetworkPolicyEndpoint) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[36]
+	mi := &file_common_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2869,7 +2931,7 @@ func (x *NetworkPolicyEndpoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkPolicyEndpoint.ProtoReflect.Descriptor instead.
 func (*NetworkPolicyEndpoint) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{36}
+	return file_common_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *NetworkPolicyEndpoint) GetName() string {
@@ -2920,7 +2982,7 @@ type NetworkPolicyService struct {
 
 func (x *NetworkPolicyService) Reset() {
 	*x = NetworkPolicyService{}
-	mi := &file_common_proto_msgTypes[37]
+	mi := &file_common_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2932,7 +2994,7 @@ func (x *NetworkPolicyService) String() string {
 func (*NetworkPolicyService) ProtoMessage() {}
 
 func (x *NetworkPolicyService) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[37]
+	mi := &file_common_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2945,7 +3007,7 @@ func (x *NetworkPolicyService) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkPolicyService.ProtoReflect.Descriptor instead.
 func (*NetworkPolicyService) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{37}
+	return file_common_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *NetworkPolicyService) GetProtocol() string {
@@ -2991,7 +3053,7 @@ type NetworkPolicy struct {
 
 func (x *NetworkPolicy) Reset() {
 	*x = NetworkPolicy{}
-	mi := &file_common_proto_msgTypes[38]
+	mi := &file_common_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3003,7 +3065,7 @@ func (x *NetworkPolicy) String() string {
 func (*NetworkPolicy) ProtoMessage() {}
 
 func (x *NetworkPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[38]
+	mi := &file_common_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3016,7 +3078,7 @@ func (x *NetworkPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkPolicy.ProtoReflect.Descriptor instead.
 func (*NetworkPolicy) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{38}
+	return file_common_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *NetworkPolicy) GetName() string {
@@ -3071,7 +3133,7 @@ type Error_Details struct {
 
 func (x *Error_Details) Reset() {
 	*x = Error_Details{}
-	mi := &file_common_proto_msgTypes[44]
+	mi := &file_common_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3083,7 +3145,7 @@ func (x *Error_Details) String() string {
 func (*Error_Details) ProtoMessage() {}
 
 func (x *Error_Details) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[44]
+	mi := &file_common_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3096,7 +3158,7 @@ func (x *Error_Details) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error_Details.ProtoReflect.Descriptor instead.
 func (*Error_Details) Descriptor() ([]byte, []int) {
-	return file_common_proto_rawDescGZIP(), []int{31, 0}
+	return file_common_proto_rawDescGZIP(), []int{32, 0}
 }
 
 func (x *Error_Details) GetCode() string {
@@ -3222,6 +3284,20 @@ var file_common_proto_rawDesc = string([]byte{
 	0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x6e, 0x64, 0x70,
 	0x6f, 0x69, 0x6e, 0x74, 0x73, 0x52, 0x09, 0x65, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x73,
 	0x42, 0x0c, 0x0a, 0x0a, 0x5f, 0x74, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x42, 0x11,
+	0x0a, 0x0f, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x5f, 0x69,
+	0x64, 0x42, 0x13, 0x0a, 0x11, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e,
+	0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x42, 0x14, 0x0a, 0x12, 0x5f, 0x62, 0x6b, 0x5f, 0x6e, 0x65,
+	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x5f, 0x69, 0x64, 0x22, 0xdd, 0x01, 0x0a,
+	0x10, 0x41, 0x63, 0x63, 0x65, 0x73, 0x73, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x42, 0x72, 0x69, 0x65,
+	0x66, 0x12, 0x2a, 0x0a, 0x0e, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x48, 0x00, 0x52, 0x0d, 0x61, 0x63, 0x63,
+	0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x49, 0x64, 0x88, 0x01, 0x01, 0x12, 0x2e, 0x0a,
+	0x10, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x5f, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x01, 0x52, 0x0f, 0x61, 0x63, 0x63, 0x65, 0x73,
+	0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x88, 0x01, 0x01, 0x12, 0x2f, 0x0a,
+	0x11, 0x62, 0x6b, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x5f,
+	0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x48, 0x02, 0x52, 0x0f, 0x62, 0x6b, 0x4e, 0x65,
+	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x64, 0x88, 0x01, 0x01, 0x42, 0x11,
 	0x0a, 0x0f, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x5f, 0x69,
 	0x64, 0x42, 0x13, 0x0a, 0x11, 0x5f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e,
 	0x74, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x42, 0x14, 0x0a, 0x12, 0x5f, 0x62, 0x6b, 0x5f, 0x6e, 0x65,
@@ -3806,7 +3882,7 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_common_proto_goTypes = []any{
 	(*Page)(nil),                  // 0: v3.Page
 	(*Business)(nil),              // 1: v3.Business
@@ -3819,40 +3895,41 @@ var file_common_proto_goTypes = []any{
 	(*PluginRuntime)(nil),         // 8: v3.PluginRuntime
 	(*CustomDeployConfig)(nil),    // 9: v3.CustomDeployConfig
 	(*AccessPoint)(nil),           // 10: v3.AccessPoint
-	(*NetworkUnit)(nil),           // 11: v3.NetworkUnit
-	(*NetworkUnitBrief)(nil),      // 12: v3.NetworkUnitBrief
-	(*HostState)(nil),             // 13: v3.HostState
-	(*HostInfo)(nil),              // 14: v3.HostInfo
-	(*Host)(nil),                  // 15: v3.Host
-	(*TopoEvent)(nil),             // 16: v3.TopoEvent
-	(*TimeRange)(nil),             // 17: v3.TimeRange
-	(*PackageEvent)(nil),          // 18: v3.PackageEvent
-	(*Release)(nil),               // 19: v3.Release
-	(*ReleaseAgent)(nil),          // 20: v3.ReleaseAgent
-	(*ReleaseProxy)(nil),          // 21: v3.ReleaseProxy
-	(*ReleasePlugin)(nil),         // 22: v3.ReleasePlugin
-	(*ReleaseCert)(nil),           // 23: v3.ReleaseCert
-	(*ReleaseBinTool)(nil),        // 24: v3.ReleaseBinTool
-	(*ReleasePluginBinTool)(nil),  // 25: v3.ReleasePluginBinTool
-	(*Platform)(nil),              // 26: v3.Platform
-	(*ConfigPolicyScope)(nil),     // 27: v3.ConfigPolicyScope
-	(*ConfigPolicy)(nil),          // 28: v3.ConfigPolicy
-	(*ConfigPolicyEvent)(nil),     // 29: v3.ConfigPolicyEvent
-	(*TargetVersion)(nil),         // 30: v3.TargetVersion
-	(*Error)(nil),                 // 31: v3.Error
-	(*ResourceNode)(nil),          // 32: v3.ResourceNode
-	(*RelatedResourceType)(nil),   // 33: v3.RelatedResourceType
-	(*Action)(nil),                // 34: v3.Action
-	(*Permission)(nil),            // 35: v3.Permission
-	(*NetworkPolicyEndpoint)(nil), // 36: v3.NetworkPolicyEndpoint
-	(*NetworkPolicyService)(nil),  // 37: v3.NetworkPolicyService
-	(*NetworkPolicy)(nil),         // 38: v3.NetworkPolicy
-	nil,                           // 39: v3.NetworkUnit.CustomDeployConfigEntry
-	nil,                           // 40: v3.NetworkUnitBrief.CustomDeployConfigEntry
-	nil,                           // 41: v3.ConfigPolicy.ConfigsStringEntry
-	nil,                           // 42: v3.ConfigPolicy.ConfigsIntEntry
-	nil,                           // 43: v3.ConfigPolicy.ConfigsBoolEntry
-	(*Error_Details)(nil),         // 44: v3.Error.Details
+	(*AccessPointBrief)(nil),      // 11: v3.AccessPointBrief
+	(*NetworkUnit)(nil),           // 12: v3.NetworkUnit
+	(*NetworkUnitBrief)(nil),      // 13: v3.NetworkUnitBrief
+	(*HostState)(nil),             // 14: v3.HostState
+	(*HostInfo)(nil),              // 15: v3.HostInfo
+	(*Host)(nil),                  // 16: v3.Host
+	(*TopoEvent)(nil),             // 17: v3.TopoEvent
+	(*TimeRange)(nil),             // 18: v3.TimeRange
+	(*PackageEvent)(nil),          // 19: v3.PackageEvent
+	(*Release)(nil),               // 20: v3.Release
+	(*ReleaseAgent)(nil),          // 21: v3.ReleaseAgent
+	(*ReleaseProxy)(nil),          // 22: v3.ReleaseProxy
+	(*ReleasePlugin)(nil),         // 23: v3.ReleasePlugin
+	(*ReleaseCert)(nil),           // 24: v3.ReleaseCert
+	(*ReleaseBinTool)(nil),        // 25: v3.ReleaseBinTool
+	(*ReleasePluginBinTool)(nil),  // 26: v3.ReleasePluginBinTool
+	(*Platform)(nil),              // 27: v3.Platform
+	(*ConfigPolicyScope)(nil),     // 28: v3.ConfigPolicyScope
+	(*ConfigPolicy)(nil),          // 29: v3.ConfigPolicy
+	(*ConfigPolicyEvent)(nil),     // 30: v3.ConfigPolicyEvent
+	(*TargetVersion)(nil),         // 31: v3.TargetVersion
+	(*Error)(nil),                 // 32: v3.Error
+	(*ResourceNode)(nil),          // 33: v3.ResourceNode
+	(*RelatedResourceType)(nil),   // 34: v3.RelatedResourceType
+	(*Action)(nil),                // 35: v3.Action
+	(*Permission)(nil),            // 36: v3.Permission
+	(*NetworkPolicyEndpoint)(nil), // 37: v3.NetworkPolicyEndpoint
+	(*NetworkPolicyService)(nil),  // 38: v3.NetworkPolicyService
+	(*NetworkPolicy)(nil),         // 39: v3.NetworkPolicy
+	nil,                           // 40: v3.NetworkUnit.CustomDeployConfigEntry
+	nil,                           // 41: v3.NetworkUnitBrief.CustomDeployConfigEntry
+	nil,                           // 42: v3.ConfigPolicy.ConfigsStringEntry
+	nil,                           // 43: v3.ConfigPolicy.ConfigsIntEntry
+	nil,                           // 44: v3.ConfigPolicy.ConfigsBoolEntry
+	(*Error_Details)(nil),         // 45: v3.Error.Details
 }
 var file_common_proto_depIdxs = []int32{
 	3,  // 0: v3.Links.cluster:type_name -> v3.Link
@@ -3865,29 +3942,29 @@ var file_common_proto_depIdxs = []int32{
 	10, // 7: v3.NetworkUnit.accesspoints:type_name -> v3.AccessPoint
 	4,  // 8: v3.NetworkUnit.links:type_name -> v3.Links
 	5,  // 9: v3.NetworkUnit.direct_endpoints:type_name -> v3.Endpoints
-	39, // 10: v3.NetworkUnit.custom_deploy_config:type_name -> v3.NetworkUnit.CustomDeployConfigEntry
+	40, // 10: v3.NetworkUnit.custom_deploy_config:type_name -> v3.NetworkUnit.CustomDeployConfigEntry
 	4,  // 11: v3.NetworkUnitBrief.links:type_name -> v3.Links
 	5,  // 12: v3.NetworkUnitBrief.direct_endpoints:type_name -> v3.Endpoints
-	40, // 13: v3.NetworkUnitBrief.custom_deploy_config:type_name -> v3.NetworkUnitBrief.CustomDeployConfigEntry
-	14, // 14: v3.Host.info:type_name -> v3.HostInfo
-	13, // 15: v3.Host.state:type_name -> v3.HostState
-	19, // 16: v3.ReleaseAgent.release:type_name -> v3.Release
-	19, // 17: v3.ReleaseProxy.release:type_name -> v3.Release
-	19, // 18: v3.ReleasePlugin.release:type_name -> v3.Release
-	19, // 19: v3.ReleaseCert.release:type_name -> v3.Release
-	19, // 20: v3.ReleaseBinTool.release:type_name -> v3.Release
-	19, // 21: v3.ReleasePluginBinTool.release:type_name -> v3.Release
-	27, // 22: v3.ConfigPolicy.scopes:type_name -> v3.ConfigPolicyScope
-	41, // 23: v3.ConfigPolicy.configs_string:type_name -> v3.ConfigPolicy.ConfigsStringEntry
-	42, // 24: v3.ConfigPolicy.configs_int:type_name -> v3.ConfigPolicy.ConfigsIntEntry
-	43, // 25: v3.ConfigPolicy.configs_bool:type_name -> v3.ConfigPolicy.ConfigsBoolEntry
-	44, // 26: v3.Error.details:type_name -> v3.Error.Details
-	32, // 27: v3.RelatedResourceType.instances:type_name -> v3.ResourceNode
-	33, // 28: v3.Action.related_resource_types:type_name -> v3.RelatedResourceType
-	34, // 29: v3.Permission.actions:type_name -> v3.Action
-	36, // 30: v3.NetworkPolicy.source:type_name -> v3.NetworkPolicyEndpoint
-	36, // 31: v3.NetworkPolicy.target:type_name -> v3.NetworkPolicyEndpoint
-	37, // 32: v3.NetworkPolicy.service:type_name -> v3.NetworkPolicyService
+	41, // 13: v3.NetworkUnitBrief.custom_deploy_config:type_name -> v3.NetworkUnitBrief.CustomDeployConfigEntry
+	15, // 14: v3.Host.info:type_name -> v3.HostInfo
+	14, // 15: v3.Host.state:type_name -> v3.HostState
+	20, // 16: v3.ReleaseAgent.release:type_name -> v3.Release
+	20, // 17: v3.ReleaseProxy.release:type_name -> v3.Release
+	20, // 18: v3.ReleasePlugin.release:type_name -> v3.Release
+	20, // 19: v3.ReleaseCert.release:type_name -> v3.Release
+	20, // 20: v3.ReleaseBinTool.release:type_name -> v3.Release
+	20, // 21: v3.ReleasePluginBinTool.release:type_name -> v3.Release
+	28, // 22: v3.ConfigPolicy.scopes:type_name -> v3.ConfigPolicyScope
+	42, // 23: v3.ConfigPolicy.configs_string:type_name -> v3.ConfigPolicy.ConfigsStringEntry
+	43, // 24: v3.ConfigPolicy.configs_int:type_name -> v3.ConfigPolicy.ConfigsIntEntry
+	44, // 25: v3.ConfigPolicy.configs_bool:type_name -> v3.ConfigPolicy.ConfigsBoolEntry
+	45, // 26: v3.Error.details:type_name -> v3.Error.Details
+	33, // 27: v3.RelatedResourceType.instances:type_name -> v3.ResourceNode
+	34, // 28: v3.Action.related_resource_types:type_name -> v3.RelatedResourceType
+	35, // 29: v3.Permission.actions:type_name -> v3.Action
+	37, // 30: v3.NetworkPolicy.source:type_name -> v3.NetworkPolicyEndpoint
+	37, // 31: v3.NetworkPolicy.target:type_name -> v3.NetworkPolicyEndpoint
+	38, // 32: v3.NetworkPolicy.service:type_name -> v3.NetworkPolicyService
 	9,  // 33: v3.NetworkUnit.CustomDeployConfigEntry.value:type_name -> v3.CustomDeployConfig
 	9,  // 34: v3.NetworkUnitBrief.CustomDeployConfigEntry.value:type_name -> v3.CustomDeployConfig
 	35, // [35:35] is the sub-list for method output_type
@@ -3914,20 +3991,21 @@ func file_common_proto_init() {
 	file_common_proto_msgTypes[14].OneofWrappers = []any{}
 	file_common_proto_msgTypes[15].OneofWrappers = []any{}
 	file_common_proto_msgTypes[16].OneofWrappers = []any{}
-	file_common_proto_msgTypes[18].OneofWrappers = []any{}
+	file_common_proto_msgTypes[17].OneofWrappers = []any{}
 	file_common_proto_msgTypes[19].OneofWrappers = []any{}
 	file_common_proto_msgTypes[20].OneofWrappers = []any{}
 	file_common_proto_msgTypes[21].OneofWrappers = []any{}
-	file_common_proto_msgTypes[27].OneofWrappers = []any{}
+	file_common_proto_msgTypes[22].OneofWrappers = []any{}
 	file_common_proto_msgTypes[28].OneofWrappers = []any{}
 	file_common_proto_msgTypes[29].OneofWrappers = []any{}
+	file_common_proto_msgTypes[30].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   45,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

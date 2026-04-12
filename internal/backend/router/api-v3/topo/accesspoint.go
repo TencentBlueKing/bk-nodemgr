@@ -71,3 +71,55 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 
 	return resp.GetData(), nil
 }
+
+// ListAccessPointBrief lists accesspoint briefs with page and conditions.
+func (h *handler) ListAccessPointBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoAccessPointListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	condition := req.ConvertConditionsToTypes()
+	var accessPointIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		accessPointIDs = exactCond.GetAccesspointId()
+	}
+
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedAccessPointIDs(rCtx, accessPointIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list accesspoint brief, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowAccessPointCondition(condition, narrowedIDs, scopeIsAny)
+
+	if req.GetOnlyCount() {
+		num, err := h.storage.CountAccessPoint(rCtx, condition)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief. failed to count accesspoint")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.TopoAccessPointListBriefResp)
+		resp.ConvertAccessPointsFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	accesspoints, num, err := h.storage.ListAccessPoint(rCtx, page, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoAccessPointListBriefResp)
+	resp.ConvertAccessPointsFromTypes(num, accesspoints)
+
+	return resp.GetData(), nil
+}

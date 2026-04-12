@@ -97,6 +97,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// accesspoint apis.
 	h.rg.POST("/accesspoint/list", restserver.Handler(h.ListAccessPoint))
+	h.rg.POST("/accesspoint/list/brief", restserver.Handler(h.ListAccessPointBrief))
 
 	// topoStg event apis.
 	h.rg.POST("/event/list", restserver.Handler(h.ListEvent))

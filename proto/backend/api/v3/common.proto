@@ -77,6 +77,14 @@ message AccessPoint {
   Endpoints endpoints = 5;
 }
 
+// AccessPointBrief describes the brief access point (no endpoints for
+// sensitivity).
+message AccessPointBrief {
+  optional int64 accesspoint_id = 1;
+  optional string accesspoint_name = 2;
+  optional int64 bk_networkarea_id = 3;
+}
+
 // NetworkUnit describes the network unit informations.
 message NetworkUnit {
   optional string tenant_id = 1;
