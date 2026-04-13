@@ -18,6 +18,7 @@
     "@blueking/login-modal": "^1.0.6",
     "@blueking/notice-component": "^2.0.7",
     "@blueking/platform-config": "^1.0.5",
+    "@blueking/release-note": "0.0.1-beta.17",
     "@blueking/table": "0.0.1-beta.42",
     "@vueuse/core": "^12.7.0",
     "@vueuse/head": "^2.0.0",

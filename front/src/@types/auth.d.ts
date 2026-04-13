@@ -1,6 +1,5 @@
 // gen-api.js 自动生成，请勿手动修改
 // AuthResource describes a single resource instance for authorization checks.
-// Aligns with internal/backend/auth.Resource structure.
 export interface AuthResource {
   // system_id is the IAM system that owns this resource (e.g. "bk_cmdb" or
   // "bk_nodemgr").

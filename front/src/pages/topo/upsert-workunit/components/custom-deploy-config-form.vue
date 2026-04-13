@@ -4,20 +4,16 @@
     label-width="130"
   >
     <div class="w-[488px]">
-      <Select v-if="osOptions.length > 0" v-model="activeOs" filterable>
-        <template #prefix>
-          <div class="w-[65px] text-center text-[12px] text-[#63656E] border-r border-r-[#C4C6CC]">
-            {{ $t('topoManager.workUnit.form.osLabel') }}
-          </div>
-        </template>
-        <Select.Option
+      <div v-if="osOptions.length > 0" class="os-tab-bar">
+        <div
           v-for="option in osOptions"
           :key="option.id"
-          :id="option.id"
-          :name="option.name"
+          :class="['os-tab-item', { 'os-tab-active': activeOs === option.id }]"
+          @click="activeOs = option.id"
         >
-        </Select.Option>
-      </Select>
+          {{ option.name }}
+        </div>
+      </div>
       <div v-else class="text-[12px] leading-[20px] text-[#979BA5]">
         {{ $t('topoManager.workUnit.form.noOsAvailable') }}
       </div>
@@ -91,7 +87,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Form, Input, Select } from 'bkui-vue';
+import { Form, Input } from 'bkui-vue';
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -198,3 +194,37 @@ watch(osOptions, (options) => {
   }
 }, { immediate: true });
 </script>
+
+<style lang="postcss" scoped>
+.os-tab-bar {
+  display: flex;
+  border-bottom: 1px solid #dcdee5;
+  gap: 0;
+}
+
+.os-tab-item {
+  padding: 6px 16px;
+  font-size: 12px;
+  line-height: 20px;
+  color: #63656e;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.2s;
+  position: relative;
+  bottom: -1px;
+
+  &:hover {
+    color: #3a84ff;
+  }
+
+  &.os-tab-active {
+    color: #3a84ff;
+    background: #fff;
+    border-color: #dcdee5;
+    border-bottom-color: #fff;
+    font-weight: 500;
+  }
+}
+</style>
