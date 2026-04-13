@@ -1481,18 +1481,9 @@
         "is_direct": {
           "type": "boolean"
         },
-        "direct_endpoints": {
-          "$ref": "#/definitions/v3Endpoints"
-        },
         "generation": {
           "type": "integer",
           "format": "int64"
-        },
-        "custom_deploy_config": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/v3CustomDeployConfig"
-          }
         }
       },
       "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."

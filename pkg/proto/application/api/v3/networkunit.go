@@ -485,14 +485,8 @@ func newEmptyNetworkUnitBrief() *NetworkUnitBrief {
 			File:    newEmptyLink(),
 			Data:    newEmptyLink(),
 		},
-		IsDirect: new(bool),
-		DirectEndpoints: &Endpoints{
-			Cluster: make([]string, 0),
-			File:    make([]string, 0),
-			Data:    make([]string, 0),
-		},
-		Generation:         new(int64),
-		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
+		IsDirect:   new(bool),
+		Generation: new(int64),
 	}
 }
 

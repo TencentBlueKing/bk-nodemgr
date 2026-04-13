@@ -117,9 +117,7 @@ message NetworkUnitBrief {
   repeated int64 accesspoints = 5;
   optional Links links = 6;
   optional bool is_direct = 7;
-  Endpoints direct_endpoints = 8;
-  optional int64 generation = 9;
-  map<string, CustomDeployConfig> custom_deploy_config = 10;
+  optional int64 generation = 8;
 }
 
 // HostState describes the host state informations. Usually contains
