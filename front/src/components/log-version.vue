@@ -1,11 +1,9 @@
 <template>
   <Dialog
     width="1105"
-    v-model:value="isShow"
-    :show-footer="false"
+    :is-show="isShow"
     ext-cls="log-version-dialog"
-    @value-change="handleValueChange"
-  >
+    @closed="isShow = false">
     <div class="log-version" v-bkloading="{ isLoading: loading }">
       <div class="log-version-left">
         <ul class="left-list">
@@ -15,11 +13,13 @@
             :key="index"
             @click="handleItemClick(index)"
           >
-            <span class="item-title">{{ item.title }}</span>
+            <div class="item-head">
+              <span class="item-title">{{ item.title }}</span>
+              <span v-if="index === current" class="item-current">
+                {{ $t("components.logVersion.current") }}
+              </span>
+            </div>
             <span class="item-date">{{ item.date }}</span>
-            <span v-if="index === current" class="item-current">
-              {{ $t("components.logVersion.current") }}
-            </span>
           </li>
         </ul>
       </div>
@@ -34,20 +34,20 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Dialog } from 'bkui-vue';
+import { marked } from 'marked';
+import xss from 'xss';
+
+import { mapVersionLogs, resolveCurrentIndex } from './log-version-helper';
 
 interface ILog {
   title: string;
   date: string;
   detail: string;
+  isCurrent: boolean;
 }
 
 // 使用defineModel定义双向绑定的isShow属性
 const isShow = defineModel('isShow', { type: Boolean });
-
-// 定义组件Emits（仅保留change事件）
-const emit = defineEmits<{
-  (e: 'change', value: boolean): void;
-}>();
 
 // 响应式变量
 const loading = ref(false);
@@ -57,13 +57,6 @@ const logList = ref<ILog[]>([]);
 
 // 计算属性 - 当前选中的日志
 const currentLog = computed(() => logList.value[active.value] || { title: '', date: '', detail: '' });
-
-// dialog显示状态变更
-const handleValueChange = (value: boolean) => {
-  emit('change', value);
-  // 同步更新isShow的值
-  isShow.value = value;
-};
 
 // 点击左侧日志项
 const handleItemClick = async (v = 0) => {
@@ -111,31 +104,27 @@ const fetchData = async (url: string, params?: Record<string, string>) => {
 
 // 获取版本日志列表
 const getVersionLogsList = async () => {
-  const data = await fetchData('version_log/version_logs_list/');
-  if (!data) return [];
-
-  return data.map((item: string[]) => ({
-    title: item[0],
-    date: item[1],
-    detail: '',
-  }));
+  const data = await fetchData('/api/v3/version_log/version_logs_list/');
+  return mapVersionLogs(data || {});
 };
 
 // 获取版本日志详情
 const getVersionLogsDetail = async () => {
-  const data = await fetchData('version_log/version_log_detail/', {
-    log_version: currentLog.value.title,
-  });
-
-  return data || '';
+  const data = await fetchData('/api/v3/version_log/changelog/' + currentLog.value.title);
+  const rawMarkdown = data?.data?.content || '';
+  
+  // Markdown → HTML + XSS filtering
+  return xss(marked(rawMarkdown, { async: false }), { stripIgnoreTagBody: true });
 };
-// 监听isShow变化
+
 watch(isShow, async (v) => {
   if (v) {
     loading.value = true;
     logList.value = await getVersionLogsList();
+    current.value = resolveCurrentIndex(logList.value);
+    active.value = current.value;
     if (logList.value.length) {
-      await handleItemClick(0);
+      await handleItemClick(active.value);
     }
     loading.value = false;
   }
@@ -148,62 +137,93 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="postcss" scoped>
+:deep(.log-version-dialog) {
+  .bk-modal-content {
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(25, 25, 41, 0.12);
+  }
+
+  .bk-modal-footer {
+    display: none;
+  }
+
+  .bk-dialog-header {
+    padding: 20px 24px 14px;
+  }
+
+  .bk-dialog-content {
+    padding: 0;
+  }
+}
+
 .log-version {
   display: flex;
-  margin: -33px -24px -26px;
+  margin: -14px -24px -24px;
+  min-height: 560px;
 
-  &.log-version-left {
+  .log-version-left {
     flex: 0 0 260px;
     background-color: #fafbfd;
     border-right: 1px solid #dcdee5;
-    padding: 40px 0;
+    padding: 18px 0;
     display: flex;
     font-size: 12px;
 
     .left-list {
-      border-top: 1px solid #dcdee5;
-      border-bottom: 1px solid #dcdee5;
-      height: 520px;
+      border-top: 1px solid #eaebf0;
+      border-bottom: 1px solid #eaebf0;
+      height: 524px;
       overflow: auto;
       display: flex;
       flex-direction: column;
       width: 100%;
 
-      &.left-list-item {
-        flex: 0 0 54px;
+      .left-list-item {
+        flex: 0 0 62px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding-left: 30px;
+        gap: 4px;
+        padding: 8px 20px 8px 24px;
         position: relative;
-        border-bottom: 1px solid #dcdee5;
+        border-bottom: 1px solid #eaebf0;
+        transition: background-color .2s ease;
 
         &:hover {
           cursor: pointer;
-          background-color: #fff;
+          background-color: #f0f5ff;
+        }
+
+        .item-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
         }
 
         .item-title {
           color: #313238;
-          font-size: 16px;
+          font-size: 15px;
+          line-height: 22px;
+          font-weight: 500;
         }
 
         .item-date {
           color: #979ba5;
+          line-height: 18px;
         }
 
         .item-current {
-          position: absolute;
-          right: 20px;
-          top: 8px;
-          background-color: #699df4;
-          border-radius: 2px;
-          width: 58px;
+          background-color: #e1ecff;
+          border-radius: 10px;
+          padding: 0 8px;
           height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #fff;
+          color: #3a84ff;
+          white-space: nowrap;
+          font-size: 12px;
         }
 
         &.item-active {
@@ -223,13 +243,72 @@ onBeforeUnmount(() => {
     }
   }
 
-  &.log-version-right {
+  .log-version-right {
     flex: 1;
-    padding: 25px 30px 50px 45px;
+    padding: 24px 32px 30px;
 
     .detail-container {
-      max-height: 525px;
+      max-height: 524px;
       overflow: auto;
+      color: #4d4f56;
+      font-size: 14px;
+      line-height: 1.75;
+
+      :deep(h1),
+      :deep(h2),
+      :deep(h3) {
+        color: #313238;
+        line-height: 1.4;
+        margin: 20px 0 10px;
+      }
+
+      :deep(h1) {
+        font-size: 22px;
+      }
+
+      :deep(h2) {
+        font-size: 18px;
+      }
+
+      :deep(h3) {
+        font-size: 16px;
+      }
+
+      :deep(p),
+      :deep(ul),
+      :deep(ol),
+      :deep(blockquote) {
+        margin: 0 0 12px;
+      }
+
+      :deep(ul),
+      :deep(ol) {
+        padding-left: 20px;
+      }
+
+      :deep(li) {
+        margin: 4px 0;
+      }
+
+      :deep(code) {
+        font-size: 13px;
+        background: #f5f7fa;
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+
+      :deep(pre) {
+        background: #f5f7fa;
+        border: 1px solid #eaebf0;
+        border-radius: 6px;
+        padding: 12px;
+        overflow: auto;
+      }
+
+      :deep(pre code) {
+        background: transparent;
+        padding: 0;
+      }
     }
   }
 }

@@ -160,6 +160,7 @@ import { logout } from '@/common/auth';
 import { parseCookies } from '@/common/util';
 import BizSelector from '@/components/biz-selector.vue';
 import Notice from '@/components/notice.vue';
+import LogVersion from '@/components/log-version.vue';
 import PermissionDialog from '@/components/permission-dialog.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
