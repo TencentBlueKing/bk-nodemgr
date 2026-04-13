@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/process"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/topo"
+	versionlog "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/version_log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,4 +55,5 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	cipher.Load(h.rg, capability)
 	auth.Load(h.rg, capability)
 	notice.Load(h.rg, capability)
+	versionlog.Load(h.rg, capability)
 }

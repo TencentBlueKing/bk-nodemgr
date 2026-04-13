@@ -1,0 +1,312 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "version_log.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "VersionLog"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/version_log/changelog/{version}": {
+      "get": {
+        "summary": "Detail returns the changelog for a specific version.",
+        "operationId": "VersionLog_Detail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3VersionLogDetailResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version",
+            "description": "version is the version identifier to fetch (e.g. \"v3.0.1-alpha.17\").",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "VersionLog"
+        ]
+      }
+    },
+    "/api/v3/version_log/version_logs_list": {
+      "get": {
+        "summary": "List returns all available version changelogs.",
+        "operationId": "VersionLog_List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3VersionLogsListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "VersionLog"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3VersionLogDetailResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3VersionLogDetailRespData"
+        }
+      },
+      "description": "VersionLogDetailResp describes the HTTP response body for version detail."
+    },
+    "v3VersionLogDetailRespData": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "version is the requested version identifier."
+        },
+        "date": {
+          "type": "string",
+          "description": "date is the release date in YYYY-MM-DD format."
+        },
+        "content": {
+          "type": "string",
+          "description": "content is the markdown-formatted changelog content."
+        }
+      }
+    },
+    "v3VersionLogEntry": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "version is the version identifier (e.g. \"v3.0.1-alpha.17\")."
+        },
+        "date": {
+          "type": "string",
+          "description": "date is the release date in YYYY-MM-DD format."
+        },
+        "is_current": {
+          "type": "boolean",
+          "description": "is_current indicates whether this is the currently running version."
+        }
+      },
+      "description": "VersionLogEntry represents a single version's changelog entry."
+    },
+    "v3VersionLogsListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3VersionLogsListRespData"
+        }
+      },
+      "description": "VersionLogsListResp describes the HTTP response body for version list."
+    },
+    "v3VersionLogsListRespData": {
+      "type": "object",
+      "properties": {
+        "version_logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3VersionLogEntry"
+          },
+          "description": "version_logs lists all available versions sorted by recency (newest\nfirst)."
+        }
+      }
+    }
+  }
+}

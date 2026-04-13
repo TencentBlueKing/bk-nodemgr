@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package v3;
+
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+import "google/api/annotations.proto";
+
+// VersionLogEntry represents a single version's changelog entry.
+message VersionLogEntry {
+  // version is the version identifier (e.g. "v3.0.1-alpha.17").
+  string version = 1;
+  // date is the release date in YYYY-MM-DD format.
+  string date = 2;
+  // is_current indicates whether this is the currently running version.
+  bool is_current = 3;
+}
+
+// VersionLogsListReq describes the HTTP request body for listing versions.
+message VersionLogsListReq {}
+
+// VersionLogsListResp describes the HTTP response body for version list.
+message VersionLogsListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // version_logs lists all available versions sorted by recency (newest
+    // first).
+    repeated VersionLogEntry version_logs = 1;
+  }
+  Data data = 5;
+}
+
+// VersionLogDetailReq describes the HTTP request body for fetching a specific
+// version's changelog.
+message VersionLogDetailReq {
+  // version is the version identifier to fetch (e.g. "v3.0.1-alpha.17").
+  string version = 1;
+}
+
+// VersionLogDetailResp describes the HTTP response body for version detail.
+message VersionLogDetailResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    // version is the requested version identifier.
+    string version = 1;
+    // date is the release date in YYYY-MM-DD format.
+    string date = 2;
+    // content is the markdown-formatted changelog content.
+    string content = 3;
+  }
+  Data data = 5;
+}
+
+// VersionLog service provides version and changelog information.
+service VersionLog {
+  // List returns all available version changelogs.
+  rpc List(VersionLogsListReq) returns (VersionLogsListResp) {
+    option (google.api.http) = {
+      get : "/api/v3/version_log/version_logs_list"
+    };
+  }
+
+  // Detail returns the changelog for a specific version.
+  rpc Detail(VersionLogDetailReq) returns (VersionLogDetailResp) {
+    option (google.api.http) = {
+      get : "/api/v3/version_log/changelog/{version}"
+    };
+  }
+}
