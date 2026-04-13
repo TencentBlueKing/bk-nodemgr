@@ -8,9 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package changelog embeds localized changelog assets.
 package changelog
 
 import "embed"
 
+// FS stores embedded changelog assets.
+//
 //go:embed zh en
 var FS embed.FS
