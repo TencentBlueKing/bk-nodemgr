@@ -15,6 +15,7 @@
 #   2 - version alignment check failed
 #   3 - diff sanity check failed
 #   4 - changelog check failed
+#   6 - gateway resource sync check failed
 #   5 - missing required argument
 
 set -euo pipefail
@@ -208,6 +209,31 @@ fi
 echo -e "${GREEN}✅ Changelog check passed${NC}"
 echo ""
 
+# Check 5: Gateway resource sync check
+echo "📋 Check 5: Gateway resource sync"
+echo "Expected: if topo swagger changed in the release evidence window, apigw/resources.yaml must also have been updated"
+
+CURRENT_DIFF_FILES=$(git diff "$BASE_BRANCH" --name-only)
+TOPO_SWAGGER_PATH="docs/api/swagger/backend/api/v3/topo.swagger.json"
+APIGW_RESOURCES_PATH="apigw/resources.yaml"
+
+if echo "$CURRENT_DIFF_FILES" | grep -qx "$TOPO_SWAGGER_PATH"; then
+  if ! echo "$CURRENT_DIFF_FILES" | grep -qx "$APIGW_RESOURCES_PATH"; then
+    echo -e "${RED}❌ Gateway resource sync check failed: $TOPO_SWAGGER_PATH changed but $APIGW_RESOURCES_PATH did not${NC}"
+    echo ""
+    echo "If the topo swagger changed for this release window, apigw/resources.yaml must be updated in the same window."
+    exit 6
+  fi
+
+  echo -e "${GREEN}✅ Gateway resource sync check passed in current diff${NC}"
+else
+  echo -e "${YELLOW}⚠️  Manual gateway resource sync review required${NC}"
+  echo "Compare the previous release version with $TARGET_VERSION as release evidence:"
+  echo "  - If $TOPO_SWAGGER_PATH changed in that version window,"
+  echo "  - Then $APIGW_RESOURCES_PATH must also have been updated in that version window."
+fi
+echo ""
+
 # Summary
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "${GREEN}✅ All verification checks passed${NC}"
@@ -219,5 +245,6 @@ echo "  Files changed: 4 (as expected)"
 echo "  Version alignment: all fields match target version"
   echo "  Diff sanity: no suspicious patterns detected"
   echo "  Changelog: entry exists in release.md"
+  echo "  Gateway resource sync: checked in current diff or explicitly left for manual release-window review"
 echo ""
 echo "Ready to commit and create PR."

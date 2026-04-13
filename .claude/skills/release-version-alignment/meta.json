@@ -64,7 +64,8 @@
       "file scope: only 4 target helm files",
       "version alignment: all version/appVersion/image.tag match target",
       "diff sanity: no template or dependency changes",
-      "changelog: release.md contains entry for target version"
+      "changelog: release.md contains entry for target version",
+      "gateway resource sync: if docs/api/swagger/backend/api/v3/topo.swagger.json changed in the target version window, apigw/resources.yaml must also have been updated in that version window"
     ],
     "changelog_generation": {
       "skill": "changelog-doc",

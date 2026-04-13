@@ -182,8 +182,23 @@ Run these checks:
    - Wait for user confirmation of the generated changelog
    - Resume verification after changelog is added
 
+5. **Gateway resource sync check:**
+   Compare the previous release version and the target release version as release evidence, not as the scope of the current Helm PR.
+
+   Expected rule:
+   - if `docs/api/swagger/backend/api/v3/topo.swagger.json` changed in that version window,
+   - then `apigw/resources.yaml` must also have been updated in the same version window.
+
+   Example:
+   - from alpha.16 to alpha.17, if the topo swagger diff is non-empty, `apigw/resources.yaml` should also show the corresponding update.
+
+   Important:
+   - this is a release-completeness check, not permission to expand the current Helm alignment PR scope
+   - do not add `apigw/resources.yaml` into the Helm follow-up PR unless the user explicitly asks for that separate fix
+   - if topo swagger changed but `apigw/resources.yaml` did not, stop and report that the release follow-up is incomplete
+
 If any check fails:
-- For file scope, version alignment, or diff sanity failures: stop and report the mismatch
+- For file scope, version alignment, diff sanity, or gateway resource sync failures: stop and report the mismatch
 - For changelog failures: delegate to subagent to generate changelog using `changelog-doc` skill, wait for user confirmation, then resume
 
 Do not over-expand verification into unrelated Helm template analysis unless the edited files themselves show a real problem.
@@ -207,7 +222,7 @@ If Step 6 Check 4 (changelog check) fails:
 3. **Wait for user confirmation** - the generated changelog must be reviewed and approved by the user
 4. **Resume from Step 6** - re-run verification after changelog is confirmed
 
-Only proceed to Step 8 (PR creation) after all checks including changelog pass.
+Only proceed to Step 8 (PR creation) after all Step 6 checks pass, including changelog and gateway resource sync validation.
 
 ### Step 8 — Create the minimal PR
 
@@ -247,12 +262,13 @@ Report at least:
 1. the reference release commit or release evidence used
 2. the target version
 3. which Helm files and fields were changed
-4. whether a clean branch was created
-5. the commit list
-6. the final branch name
-7. the PR title / base / head
-8. the PR URL
-9. whether the issue reference uses `refs` or `closes`
+4. whether the topo swagger diff requires an `apigw/resources.yaml` sync check, and the result
+5. whether a clean branch was created
+6. the commit list
+7. the final branch name
+8. the PR title / base / head
+9. the PR URL
+10. whether the issue reference uses `refs` or `closes`
 
 ## When Not to Use
 
