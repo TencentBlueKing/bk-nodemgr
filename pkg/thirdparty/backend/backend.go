@@ -685,6 +685,36 @@ func (c *cli) listNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetwo
 	return resp, nil
 }
 
+func (c *cli) listNetworkUnitBrief(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitListBriefReq,
+) (*protoBackend.TopoNetworkUnitListBriefResp, error) {
+
+	resp := new(protoBackend.TopoNetworkUnitListBriefResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/networkunit/list/brief").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list networkunit brief", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list networkunit brief failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) deleteNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitDeleteReq,
 ) (*protoBackend.TopoNetworkUnitDeleteResp, error) {
 

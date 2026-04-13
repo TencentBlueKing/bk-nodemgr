@@ -123,6 +123,13 @@ type IHandlerNetworkUnit interface {
 	// @return the network-unit list with page and the total count with filter and error.
 	ListNetworkUnit(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) ([]*types.NetworkUnit, int64, error)
 
+	// ListNetworkUnitBrief list network units brief by page and conditions.
+	// @param nCtx content, contains tenant-id.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the network-unit brief list with page and the total count with filter and error.
+	ListNetworkUnitBrief(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) ([]*types.NetworkUnit, int64, error)
+
 	// GetNetworkUnit get specific network unit.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param networkUnitID the network unit id.
@@ -442,6 +449,40 @@ func (h *Handler) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 	return result.Items, total, nil
 }
 
+// ListNetworkUnitBrief list network unit brief within specified tenant in contextx.
+func (h *Handler) ListNetworkUnitBrief(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) (
+	[]*types.NetworkUnit, int64, error) {
+
+	req := new(protoBackend.TopoNetworkUnitListBriefReq)
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	var (
+		total        int64
+		networkUnits []*types.NetworkUnit
+	)
+	executor := pageexecutor.NewPageExecutor[*types.NetworkUnit](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.NetworkUnit, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listNetworkUnitBrief(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, networkUnits = resp.ConvertNetworkUnitsToTypes()
+
+		return networkUnits, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result.Items, total, nil
+}
+
 // DeleteNetworkUnit deletes network unit within specified tenant in contextx.
 func (h *Handler) DeleteNetworkUnit(nCtx contextx.IContext, networkUnitID int64) error {
 	req := &protoBackend.TopoNetworkUnitDeleteReq{
@@ -461,6 +502,7 @@ func (h *Handler) GetNetworkUnitDistributionByNetworkAreaID(
 	nCtx contextx.IContext,
 	condition *types.NetworkUnitCondition,
 ) (map[int64]int64, error) {
+
 	req := &protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDReq{}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, err
