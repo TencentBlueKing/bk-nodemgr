@@ -187,3 +187,35 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	return resp.GetData(), nil
 }
+
+// ListNetworkUnitBrief lists network units brief.
+func (h *handler) ListNetworkUnitBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoNetworkUnitListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// special logic:
+	// networkunit request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
+	}
+
+	networkUnits, num, err := h.backendHandler.ListNetworkUnitBrief(rCtx, page, req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoNetworkUnitListBriefResp)
+	resp.ConvertNetworkUnitBriefsFromTypes(num, networkUnits)
+
+	return resp.GetData(), nil
+}

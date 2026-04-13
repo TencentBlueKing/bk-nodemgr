@@ -370,6 +370,51 @@ func (x *TopoNetworkUnitDeleteResp) ConvertNetworkUnitFromTypes(networkUnitID in
 	x.Data = data
 }
 
+// Validate check body.
+func (x *TopoNetworkUnitListBriefReq) Validate() error {
+	return validatePage(x.GetPage())
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitListBriefReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *TopoNetworkUnitListBriefReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoNetworkUnitListBriefReq) ConvertConditionsToTypes() *types.NetworkUnitCondition {
+	condition := &types.NetworkUnitCondition{}
+
+	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
+		condition.ExactInclude = &types.NetworkUnitExactFields{
+			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			NetworkUnitID: exactCond.GetBkNetworkunitId(),
+		}
+	}
+
+	return condition
+}
+
+// ConvertNetworkUnitBriefsFromTypes convert networkunit briefs from types to proto.
+func (x *TopoNetworkUnitListBriefResp) ConvertNetworkUnitBriefsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
+	items := make([]*NetworkUnitBrief, len(networkUnits))
+	for idx, networkUnit := range networkUnits {
+		item := newEmptyNetworkUnitBrief()
+		*item.BkNetworkareaId = networkUnit.NetworkAreaID
+		*item.BkNetworkunitId = networkUnit.ID
+
+		items[idx] = item
+	}
+
+	x.Data = &TopoNetworkUnitListBriefResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
 func (ap *AccessPoint) autoConvert() {
 	if ap.AccesspointId == nil {
 		ap.AccesspointId = new(int64)
