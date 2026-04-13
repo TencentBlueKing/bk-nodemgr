@@ -226,6 +226,43 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 	return resp.GetData(), nil
 }
 
+// ListNetworkUnitBrief lists network unit briefs.
+func (h *handler) ListNetworkUnitBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoNetworkUnitListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	condition := req.ConvertConditionsToTypes()
+	var unitIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		unitIDs = exactCond.GetBkNetworkunitId()
+	}
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkUnitIDs(rCtx, unitIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list networkunit brief, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowNetworkUnitCondition(condition, narrowedIDs, scopeIsAny)
+
+	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit brief")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoNetworkUnitListBriefResp)
+	resp.ConvertNetworkUnitBriefsFromTypes(num, networkUnits)
+
+	return resp.GetData(), nil
+}
 // GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
 func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDReq)

@@ -899,6 +899,40 @@
         ]
       }
     },
+    "/api/v3/topo/networkunit/list/brief": {
+      "post": {
+        "summary": "NetworkUnitListBrief provides brief network-unit listing (no sensitive\nfields).",
+        "operationId": "Topo_NetworkUnitListBrief",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitListBriefResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoNetworkUnitListBriefReq describes the HTTP request body when list\nnetwork-unit brief in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoNetworkUnitListBriefReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/networkunit/update": {
       "post": {
         "summary": "NetworkUnitUpdate provides updating an existing network-unit by id.",
@@ -1393,6 +1427,52 @@
         }
       },
       "description": "NetworkUnit describes the network unit informations."
+    },
+    "v3NetworkUnitBrief": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "accesspoints": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3Links"
+        },
+        "is_direct": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "$ref": "#/definitions/v3Endpoints"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "custom_deploy_config": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3CustomDeployConfig"
+          }
+        }
+      },
+      "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
     },
     "v3NetworkUnitDetail": {
       "type": "object",
@@ -3388,6 +3468,94 @@
         }
       },
       "description": "TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\nin topo service."
+    },
+    "v3TopoNetworkUnitListBriefReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoNetworkUnitListBriefReqExactConditions"
+        }
+      },
+      "description": "TopoNetworkUnitListBriefReq describes the HTTP request body when list\nnetwork-unit brief in topo service."
+    },
+    "v3TopoNetworkUnitListBriefReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "is_direct": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        },
+        "generation": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "v3TopoNetworkUnitListBriefResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoNetworkUnitListBriefRespData"
+        }
+      },
+      "description": "TopoNetworkUnitListBriefResp describes the HTTP response body when list\nnetwork-unit brief in topo service."
+    },
+    "v3TopoNetworkUnitListBriefRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NetworkUnitBrief"
+          }
+        }
+      }
     },
     "v3TopoNetworkUnitListReq": {
       "type": "object",

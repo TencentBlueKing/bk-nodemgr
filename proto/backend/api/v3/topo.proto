@@ -331,6 +331,36 @@ message TopoNetworkUnitDeleteResp {
   Data data = 5;
 }
 
+// TopoNetworkUnitListBriefReq describes the HTTP request body when list
+// network-unit brief in topo service.
+message TopoNetworkUnitListBriefReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkunit_id = 1;
+    repeated int64 bk_networkarea_id = 2;
+    repeated bool is_direct = 3;
+    repeated int64 generation = 4;
+  }
+  ExactConditions exact_include_conditions = 3;
+}
+
+// TopoNetworkUnitListBriefResp describes the HTTP response body when list
+// network-unit brief in topo service.
+message TopoNetworkUnitListBriefResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated NetworkUnitBrief items = 2;
+  }
+  Data data = 5;
+}
 // TopoHostExactConditions describes host exact conditions.
 message TopoHostExactConditions {
   repeated int64 bk_host_id = 1;
@@ -825,6 +855,16 @@ service Topo {
       returns (TopoNetworkUnitDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/networkunit/delete"
+      body : "*"
+    };
+  }
+
+  // NetworkUnitListBrief provides brief network-unit listing (no sensitive
+  // fields).
+  rpc NetworkUnitListBrief(TopoNetworkUnitListBriefReq)
+      returns (TopoNetworkUnitListBriefResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/list/brief"
       body : "*"
     };
   }
