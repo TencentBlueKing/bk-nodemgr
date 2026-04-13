@@ -239,9 +239,40 @@ const multiBusiness = ref<number[]>([]);
 // ===== 策略单选业务 =====
 const singleBusiness = ref<number | ''>('');
 
+const hasExplicitlyClearedMultiBusiness = () => {
+  const bizIdsJson = localStorage.getItem('bk_biz_id');
+  if (!bizIdsJson) return false;
+
+  try {
+    const bizIds = JSON.parse(bizIdsJson);
+    return Array.isArray(bizIds) && bizIds.length === 0;
+  } catch {
+    return false;
+  }
+};
+
+const hasPersistedMultiBusiness = () => {
+  const bizIdsJson = localStorage.getItem('bk_biz_id');
+  if (!bizIdsJson) return false;
+
+  try {
+    const bizIds = JSON.parse(bizIdsJson);
+    return Array.isArray(bizIds);
+  } catch {
+    return false;
+  }
+};
+
 // ===== 节点管理模块：权限加载后，多选模式无选中业务时默认选中第一个有权限的业务 =====
 watch(() => authStore.authorizedLoaded, (loaded) => {
-  if (!loaded || isSingle.value || multiBusiness.value.length > 0 || filteredBusinessList.value.length === 0) return;
+  if (
+    !loaded
+    || isSingle.value
+    || multiBusiness.value.length > 0
+    || filteredBusinessList.value.length === 0
+    || hasPersistedMultiBusiness()
+    || hasExplicitlyClearedMultiBusiness()
+  ) return;
   const action = getActionForRoute();
   if (!action) return;
   const authorizedBizIds = authStore.getAuthorizedBizIds(action);
@@ -255,6 +286,17 @@ watch(() => authStore.authorizedLoaded, (loaded) => {
     localStorage.setItem('bk_biz_id', JSON.stringify([firstAuthorized]));
   }
 }, { immediate: true });
+
+const syncMultiBusiness = (bizIds: number[] = []) => {
+  mainStore.updateCurBusiness(bizIds);
+  localStorage.setItem('bk_biz_id', JSON.stringify(bizIds));
+};
+
+// ===== 多选业务持久化 & 同步到 store =====
+watch(multiBusiness, (val) => {
+  if (isSingle.value) return;
+  syncMultiBusiness(val);
+}, { deep: true });
 
 // ===== 策略单选业务持久化 & 同步到 store =====
 watch(singleBusiness, (val) => {
@@ -384,8 +426,7 @@ const handleApplyPermission = async (bizId: number) => {
 
 // ===== 多选业务变更 =====
 const handleMultiChange = (val: number[]) => {
-  mainStore.updateCurBusiness(val);
-  localStorage.setItem('bk_biz_id', JSON.stringify(val));
+  syncMultiBusiness(val);
 };
 
 // ===== 自定义搜索方法 =====
@@ -409,19 +450,27 @@ const filterOption = (input: any, options: { id: number; name: string }) => {
   return nameMatch || idMatch;
 };
 
+const getDefaultBizId = () => businessList.value[0]?.bk_biz_id
+  ?? [...filteredBusinessList.value].sort((a, b) => a.bk_biz_id - b.bk_biz_id)[0]?.bk_biz_id;
+
+const getPersistedStrategyBizId = () => {
+  const savedBizId = localStorage.getItem('strategy_biz_id');
+  if (savedBizId) {
+    const parsedId = Number(savedBizId);
+    const exists = filteredBusinessList.value.some(b => b.bk_biz_id === parsedId);
+    if (exists) return parsedId;
+  }
+
+  return getDefaultBizId();
+};
+
 // ===== 路由切换到策略页面时，自动初始化单选业务 =====
 watch(isSingle, (val) => {
   if (val && (singleBusiness.value === '' || singleBusiness.value === undefined) && filteredBusinessList.value.length > 0) {
     sortBusinessList();
-    const savedBizId = localStorage.getItem('strategy_biz_id');
-    const defaultBiz = businessList.value[0]?.bk_biz_id
-      ?? [...filteredBusinessList.value].sort((a, b) => a.bk_biz_id - b.bk_biz_id)[0].bk_biz_id;
-    if (savedBizId) {
-      const parsedId = Number(savedBizId);
-      const exists = filteredBusinessList.value.some(b => b.bk_biz_id === parsedId);
-      singleBusiness.value = exists ? parsedId : defaultBiz;
-    } else {
-      singleBusiness.value = defaultBiz;
+    const persistedBizId = getPersistedStrategyBizId();
+    if (persistedBizId !== undefined) {
+      singleBusiness.value = persistedBizId;
     }
   }
 });
@@ -449,16 +498,9 @@ const init = () => {
 
   // 4. 策略模块：恢复/默认单选业务（排序后取第一个，没有则取id最小的）
   if (isSingle.value && filteredBusinessList.value.length > 0) {
-    const savedBizId = localStorage.getItem('strategy_biz_id');
-    // 排序后的第一个作为默认值，兜底取id最小的
-    const defaultBiz = businessList.value[0]?.bk_biz_id
-      ?? [...filteredBusinessList.value].sort((a, b) => a.bk_biz_id - b.bk_biz_id)[0].bk_biz_id;
-    if (savedBizId) {
-      const parsedId = Number(savedBizId);
-      const exists = filteredBusinessList.value.some(b => b.bk_biz_id === parsedId);
-      singleBusiness.value = exists ? parsedId : defaultBiz;
-    } else {
-      singleBusiness.value = defaultBiz;
+    const persistedBizId = getPersistedStrategyBizId();
+    if (persistedBizId !== undefined) {
+      singleBusiness.value = persistedBizId;
     }
   }
 };

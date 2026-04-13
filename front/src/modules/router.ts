@@ -356,8 +356,11 @@ export const install: UserModule = ({ app }) => {
     const authStore = useAuthStore();
     const mainStore = useMainStore();
     const permissionStore = usePermissionStore();
+    const isRuleManagerRoute = to.path.includes('rule-manager');
 
-    let selectedBizIds = [...mainStore.selectedBusinessId];
+    let selectedBizIds = isRuleManagerRoute && mainStore.strategyBizId
+      ? [mainStore.strategyBizId]
+      : [...mainStore.selectedBusinessId];
     let currentBizId = selectedBizIds[0];
     const matched = matchPageAuth(to, PAGE_AUTH_CONFIG);
     if (!matched) {
@@ -368,14 +371,23 @@ export const install: UserModule = ({ app }) => {
       matched.resourceType === 'biz'
       && (currentBizId === undefined || currentBizId === null)
     ) {
-      const cachedBiz = localStorage.getItem('bk_biz_id');
+      const cachedBiz = localStorage.getItem(isRuleManagerRoute ? 'strategy_biz_id' : 'bk_biz_id');
       if (cachedBiz) {
         try {
-          const parsed = JSON.parse(cachedBiz);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            mainStore.updateCurBusiness(parsed);
-            selectedBizIds = [...parsed];
-            [currentBizId] = parsed;
+          if (isRuleManagerRoute) {
+            const parsed = Number(cachedBiz);
+            if (!Number.isNaN(parsed) && parsed > 0) {
+              mainStore.updateStrategyBizId(parsed);
+              selectedBizIds = [parsed];
+              [currentBizId] = selectedBizIds;
+            }
+          } else {
+            const parsed = JSON.parse(cachedBiz);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              mainStore.updateCurBusiness(parsed);
+              selectedBizIds = [...parsed];
+              [currentBizId] = parsed;
+            }
           }
         } catch {
           // ignore invalid local cache

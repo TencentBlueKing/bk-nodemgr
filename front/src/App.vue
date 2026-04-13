@@ -201,17 +201,45 @@ const ensureCurrentRoutePermission = async () => {
 
   const matched = matchPageAuth(route, PAGE_AUTH_CONFIG);
   if (!matched) return;
+  const isRuleManagerRoute = route.path.includes('rule-manager');
 
-  let selectedBizIds = [...mainStore.selectedBusinessId];
+  const hasExplicitlyClearedMultiBusiness = (() => {
+    const cachedBizIds = localStorage.getItem('bk_biz_id');
+    if (!cachedBizIds) return false;
+
+    try {
+      const parsedBizIds = JSON.parse(cachedBizIds);
+      return Array.isArray(parsedBizIds) && parsedBizIds.length === 0;
+    } catch {
+      return false;
+    }
+  })();
+  const persistedStrategyBizId = (() => {
+    const cachedStrategyBizId = localStorage.getItem('strategy_biz_id');
+    if (!cachedStrategyBizId) return undefined;
+
+    const parsed = Number(cachedStrategyBizId);
+    return Number.isNaN(parsed) || parsed <= 0 ? undefined : parsed;
+  })();
+  let selectedBizIds = isRuleManagerRoute && mainStore.strategyBizId
+    ? [mainStore.strategyBizId]
+    : [...mainStore.selectedBusinessId];
   let currentBizId = selectedBizIds[0];
   if (
     matched.resourceType === 'biz'
     && mainStore.isBusinessReady
     && (currentBizId === undefined || currentBizId === null)
+    && (isRuleManagerRoute || !hasExplicitlyClearedMultiBusiness)
   ) {
-    const defaultBizId = mainStore.businessList[0]?.bk_biz_id;
+    const defaultBizId = isRuleManagerRoute
+      ? mainStore.strategyBizId || persistedStrategyBizId || mainStore.businessList[0]?.bk_biz_id
+      : mainStore.businessList[0]?.bk_biz_id;
     if (defaultBizId !== undefined && defaultBizId !== null) {
-      mainStore.updateCurBusiness([defaultBizId]);
+      if (isRuleManagerRoute) {
+        mainStore.updateStrategyBizId(defaultBizId);
+      } else {
+        mainStore.updateCurBusiness([defaultBizId]);
+      }
       selectedBizIds = [defaultBizId];
       currentBizId = defaultBizId;
     }
@@ -438,7 +466,7 @@ watch(appName, () => {
   });
 });
 watch(
-  [() => mainStore.isBusinessReady, () => mainStore.selectedBusinessId[0], () => route.fullPath],
+  [() => mainStore.isBusinessReady, () => mainStore.selectedBusinessId[0], () => mainStore.strategyBizId, () => route.fullPath],
   () => {
     void ensureCurrentRoutePermission();
   },
