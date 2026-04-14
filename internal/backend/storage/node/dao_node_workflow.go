@@ -16,10 +16,17 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
+	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	// noSuchWorkflowID is a sentinel value used when IP filter returns no results.
+	noSuchWorkflowID = "__no_such_workflow__"
 )
 
 // listNodeWorkflow lists node workflow by page and conditions.
@@ -32,7 +39,10 @@ func (s *Storage) listNodeWorkflow(nCtx contextx.IContext, page types.Page, cond
 
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime))
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	opts, err := s.convertNodeWorkflowConditionsToOptions(nCtx, conditions...)
+	if err != nil {
+		return nil, 0, err
+	}
 	if results, num, err = s.daoNodeWorkflow.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
@@ -45,7 +55,10 @@ func (s *Storage) countNodeWorkflow(nCtx contextx.IContext, conditions ...*types
 	var num int64
 	var err error
 
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	opts, err := s.convertNodeWorkflowConditionsToOptions(nCtx, conditions...)
+	if err != nil {
+		return 0, err
+	}
 	if num, err = s.daoNodeWorkflow.Count(nCtx, opts...); err != nil {
 		return 0, err
 	}
@@ -61,7 +74,10 @@ func (s *Storage) distinctNodeWorkflow(
 	var err error
 
 	result := new(types.NodeWorkflowDistinctResult)
-	opts := convertNodeWorkflowConditionsToOptions(conditions...)
+	opts, err := s.convertNodeWorkflowConditionsToOptions(nCtx, conditions...)
+	if err != nil {
+		return nil, err
+	}
 
 	gp := gopool.NewPool()
 	if request.BizID {
@@ -173,7 +189,9 @@ func (s *Storage) updateNodeWorkflowStatus(nCtx contextx.IContext, workflowID st
 }
 
 // convertNodeWorkflowConditionsToOptions converts node workflow conditions to options.
-func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCondition) []daoNodeWorkflow.OptFn {
+func (s *Storage) convertNodeWorkflowConditionsToOptions(
+	nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) ([]daoNodeWorkflow.OptFn, error) {
+
 	opts := make([]daoNodeWorkflow.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -184,14 +202,32 @@ func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCon
 			opts = append(opts, topoevent.WithOperateTimeRange(*condition.OperateTimeRange))
 		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				daoNodeWorkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
-				daoNodeWorkflow.WithBizID(condition.ExactInclude.BizID...),
-				daoNodeWorkflow.WithType(condition.ExactInclude.Type...),
-				daoNodeWorkflow.WithOperator(condition.ExactInclude.Operator...),
-				daoNodeWorkflow.WithStatus(condition.ExactInclude.Status...))
+		if condition.ExactInclude == nil {
+			continue
 		}
+
+		// Handle IP filter condition
+		if len(condition.ExactInclude.HostInnerIP) > 0 || len(condition.ExactInclude.HostInnerIPV6) > 0 {
+			triggerIDs, err := s.queryTriggerIDsByHostIP(nCtx,
+				condition.ExactInclude.HostInnerIP, condition.ExactInclude.HostInnerIPV6)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(triggerIDs) == 0 {
+				opts = append(opts, daoNodeWorkflow.WithWorkflowID(noSuchWorkflowID))
+				continue
+			}
+
+			opts = append(opts, daoNodeWorkflow.WithTriggerID(triggerIDs...))
+		}
+
+		opts = append(opts,
+			daoNodeWorkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
+			daoNodeWorkflow.WithBizID(condition.ExactInclude.BizID...),
+			daoNodeWorkflow.WithType(condition.ExactInclude.Type...),
+			daoNodeWorkflow.WithOperator(condition.ExactInclude.Operator...),
+			daoNodeWorkflow.WithStatus(condition.ExactInclude.Status...))
 
 		if condition.ExactExclude != nil {
 			opts = append(opts,
@@ -203,5 +239,61 @@ func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCon
 		}
 	}
 
+	return opts, nil
+}
+
+func buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s []string) []daoNodeDeployment.OptFn {
+	opts := make([]daoNodeDeployment.OptFn, 0)
+	if len(hostInnerIPs) > 0 {
+		opts = append(opts, daoNodeDeployment.WithInfoInnerIP(hostInnerIPs...))
+	}
+	if len(hostInnerIPV6s) > 0 {
+		opts = append(opts, daoNodeDeployment.WithInfoInnerIPV6(hostInnerIPV6s...))
+	}
+
 	return opts
+}
+
+func (s *Storage) queryTriggerIDsByHostIP(
+	nCtx contextx.IContext, hostInnerIPs, hostInnerIPV6s []string) ([]string, error) {
+
+	deployments, _, err := s.daoNodeDeployment.ListNodeDeployment(
+		nCtx, types.UnlimitedPage(), buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s)...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list node deployment by ip: %w", err)
+	}
+	if len(deployments) == 0 {
+		return nil, nil
+	}
+
+	tokens := make([]string, 0, len(deployments))
+	for _, deployment := range deployments {
+		if deployment == nil || deployment.Token == "" {
+			continue
+		}
+		tokens = append(tokens, deployment.Token)
+	}
+	if len(tokens) == 0 {
+		return nil, nil
+	}
+
+	operations, _, err := s.daoOperation.List(nCtx, types.UnlimitedPage(), daoOperation.WithInitContentToken(tokens...))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list operation by deployment token: %w", err)
+	}
+
+	triggerSet := make(map[string]struct{}, len(operations))
+	for _, op := range operations {
+		if op == nil || op.TriggerID == "" {
+			continue
+		}
+		triggerSet[op.TriggerID] = struct{}{}
+	}
+
+	triggerIDs := make([]string, 0, len(triggerSet))
+	for triggerID := range triggerSet {
+		triggerIDs = append(triggerIDs, triggerID)
+	}
+
+	return triggerIDs, nil
 }

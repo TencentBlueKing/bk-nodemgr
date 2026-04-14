@@ -23,6 +23,11 @@ func WithWorkflowID(workflowIDs ...string) OptFn {
 	return base.WithValues(FieldKeyWorkflowID, workflowIDs...)
 }
 
+// WithTriggerID filters by trigger ID.
+func WithTriggerID(triggerIDs ...string) OptFn {
+	return base.WithValues(FieldKeyTriggerID, triggerIDs...)
+}
+
 // WithoutWorkflowID filters by not contains workflow ID.
 func WithoutWorkflowID(workflowIDs ...string) OptFn {
 	return base.WithoutValues(FieldKeyWorkflowID, workflowIDs...)

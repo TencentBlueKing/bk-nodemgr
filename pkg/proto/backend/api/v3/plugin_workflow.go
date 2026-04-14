@@ -887,11 +887,13 @@ func convertPluginWorkflowConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginWorkflowExactFields{
-			HostID:     exactCond.GetBkHostId(),
-			Type:       types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
-			Status:     types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
-			WorkflowID: exactCond.GetWorkflowId(),
-			Operator:   exactCond.GetOperator(),
+			HostID:        exactCond.GetBkHostId(),
+			Type:          types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
+			Status:        types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID:    exactCond.GetWorkflowId(),
+			Operator:      exactCond.GetOperator(),
+			HostInnerIP:   exactCond.GetBkHostInnerip(),
+			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
 		}
 	}
 
@@ -918,11 +920,13 @@ func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowConditi
 
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowExactConditions{
-			BkHostId:   condition.ExactInclude.HostID,
-			WorkflowId: condition.ExactInclude.WorkflowID,
-			Type:       types.PluginWorkflowTypeListToStringList(condition.ExactInclude.Type),
-			Status:     types.PluginWorkflowStatusListToStringList(condition.ExactInclude.Status),
-			Operator:   condition.ExactInclude.Operator,
+			BkHostId:         condition.ExactInclude.HostID,
+			WorkflowId:       condition.ExactInclude.WorkflowID,
+			Type:             types.PluginWorkflowTypeListToStringList(condition.ExactInclude.Type),
+			Status:           types.PluginWorkflowStatusListToStringList(condition.ExactInclude.Status),
+			Operator:         condition.ExactInclude.Operator,
+			BkHostInnerip:    condition.ExactInclude.HostInnerIP,
+			BkHostInneripV6:  condition.ExactInclude.HostInnerIPV6,
 		}
 	}
 

@@ -42,3 +42,8 @@ func WithInstantiated(isInitantiated ...bool) OptFn {
 func WithLatestInstState(state ...string) OptFn {
 	return base.WithValues(FieldKeyLatestInstState, state...)
 }
+
+// WithInitContentToken filters by init content token.
+func WithInitContentToken(token ...string) OptFn {
+	return base.WithValues(FieldKeyInitContentToken, token...)
+}

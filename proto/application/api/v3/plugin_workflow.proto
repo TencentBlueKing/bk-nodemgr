@@ -28,6 +28,8 @@ message PluginWorkflowExactConditions {
   repeated int64 bk_host_id = 3;
   repeated string status = 4;
   repeated string operator = 5;
+  repeated string bk_host_innerip = 6;
+  repeated string bk_host_innerip_v6 = 7;
 }
 
 // PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin

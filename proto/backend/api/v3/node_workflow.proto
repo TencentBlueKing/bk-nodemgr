@@ -32,6 +32,8 @@ message NodeWorkflowExactConditions {
   repeated int64 bk_biz_id = 3;
   repeated string status = 4;
   repeated string operator = 5;
+  repeated string bk_host_innerip = 6;
+  repeated string bk_host_innerip_v6 = 7;
 }
 
 // NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow

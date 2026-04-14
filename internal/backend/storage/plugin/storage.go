@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin"
 	plugindeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
 	daoProcessConfig "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -134,6 +135,7 @@ type Storage struct {
 	daoProcess          process.IHandler
 	daoProcessConfig    daoProcessConfig.IHandler
 	daoOperation        daoOperation.IHandler
+	daoNodeDeployment   daoNodeDeployment.IHandler
 
 	monitoredWorkflows      map[string]*types.PluginWorkflow
 	monitoredWorkflowsMutex sync.RWMutex
@@ -146,6 +148,7 @@ func (s *Storage) initDao() error {
 	s.daoProcess = process.New(s.Database)
 	s.daoProcessConfig = daoProcessConfig.New(s.Database)
 	s.daoOperation = daoOperation.New(s.Database)
+	s.daoNodeDeployment = daoNodeDeployment.New(s.Database)
 
 	return nil
 }

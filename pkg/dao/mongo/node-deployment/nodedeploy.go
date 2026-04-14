@@ -51,6 +51,12 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 			Options: mongoOptions.Index().
 				SetExpireAfterSeconds(ExpireTimeSec),
 		},
+		{
+			Keys: bson.D{{Key: FieldKeyInfoInnerIPList, Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: FieldKeyInfoInnerIPV6List, Value: 1}},
+		},
 	}
 
 	return indexes

@@ -34,4 +34,7 @@ const (
 
 	// FieldKeyFinishTime is the key for finish time.
 	FieldKeyFinishTime = "data.finish_time"
+
+	// FieldKeyTriggerID is the key for trigger ID.
+	FieldKeyTriggerID = "data.trigger_id"
 )

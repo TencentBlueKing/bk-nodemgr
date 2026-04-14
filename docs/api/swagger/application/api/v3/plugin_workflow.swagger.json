@@ -594,6 +594,18 @@
           "items": {
             "type": "string"
           }
+        },
+        "bk_host_innerip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "PluginWorkflowExactConditions describes the exact conditions of plugin\nworkflow list request."

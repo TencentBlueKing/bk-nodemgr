@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -103,7 +104,11 @@ func (s *Storage) countPluginWorkflow(nCtx contextx.IContext, condition ...*type
 		return 0, basestorage.ErrNilContent()
 	}
 
-	opts := convertPluginWorkflowConditionsToOptions(condition...)
+	opts, err := s.convertPluginWorkflowConditionsToOptions(nCtx, condition...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert conditions: %w", err)
+	}
+
 	num, err := s.daoPluginWorkflow.Count(nCtx, opts...)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count plugin workflow: %w", err)
@@ -121,7 +126,11 @@ func (s *Storage) listPluginWorkflow(nCtx contextx.IContext, page types.Page, co
 	}
 
 	page.Sort = types.WithSortFields(page.Sort, types.WithFieldDesc(pluginworkflow.FieldKeyOperateTime))
-	opts := convertPluginWorkflowConditionsToOptions(condition...)
+	opts, err := s.convertPluginWorkflowConditionsToOptions(nCtx, condition...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to convert conditions: %w", err)
+	}
+
 	workflows, count, err := s.daoPluginWorkflow.List(nCtx, page, opts...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list plugin workflow: %w", err)
@@ -138,7 +147,10 @@ func (s *Storage) distinctPluginWorkflow(
 	var err error
 
 	result := new(types.PluginWorkflowDistinctResult)
-	opts := convertPluginWorkflowConditionsToOptions(conditions...)
+	opts, err := s.convertPluginWorkflowConditionsToOptions(nCtx, conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert conditions: %w", err)
+	}
 
 	gp := gopool.NewPool()
 	if request.HostID {
@@ -181,8 +193,72 @@ func (s *Storage) distinctPluginWorkflow(
 	return result, nil
 }
 
-// convertPluginWorkflowConditionsToOptions converts node workflow conditions to options.
-func convertPluginWorkflowConditionsToOptions(conditions ...*types.PluginWorkflowCondition) []pluginworkflow.OptFn {
+func buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s []string) []daoNodeDeployment.OptFn {
+	opts := make([]daoNodeDeployment.OptFn, 0)
+	if len(hostInnerIPs) > 0 {
+		opts = append(opts, daoNodeDeployment.WithInfoInnerIP(hostInnerIPs...))
+	}
+	if len(hostInnerIPV6s) > 0 {
+		opts = append(opts, daoNodeDeployment.WithInfoInnerIPV6(hostInnerIPV6s...))
+	}
+
+	return opts
+}
+
+func (s *Storage) queryHostIDsByIP(
+	nCtx contextx.IContext, hostInnerIPs, hostInnerIPV6s []string) ([]int64, error) {
+
+	deployments, _, err := s.daoNodeDeployment.ListNodeDeployment(
+		nCtx, types.UnlimitedPage(), buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s)...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list node deployment by ip: %w", err)
+	}
+	if len(deployments) == 0 {
+		return nil, nil
+	}
+
+	hostIDSet := make(map[int64]struct{}, len(deployments))
+	for _, deployment := range deployments {
+		if deployment == nil || deployment.Info == nil {
+			continue
+		}
+		if deployment.Info.Host.HostID <= 0 {
+			continue
+		}
+		hostIDSet[deployment.Info.Host.HostID] = struct{}{}
+	}
+
+	hostIDs := make([]int64, 0, len(hostIDSet))
+	for hostID := range hostIDSet {
+		hostIDs = append(hostIDs, hostID)
+	}
+
+	return hostIDs, nil
+}
+
+// handleIPFilter converts IP filter to workflow filter options.
+func (s *Storage) handleIPFilter(
+	nCtx contextx.IContext, hostInnerIP, hostInnerIPV6 []string) ([]pluginworkflow.OptFn, error) {
+
+	if len(hostInnerIP) == 0 && len(hostInnerIPV6) == 0 {
+		return nil, nil
+	}
+
+	hostIDs, err := s.queryHostIDsByIP(nCtx, hostInnerIP, hostInnerIPV6)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query host ids by ip: %w", err)
+	}
+
+	if len(hostIDs) == 0 {
+		return []pluginworkflow.OptFn{pluginworkflow.WithHostIDs(-1)}, nil
+	}
+
+	return []pluginworkflow.OptFn{pluginworkflow.WithHostIDs(hostIDs...)}, nil
+}
+
+func (s *Storage) convertPluginWorkflowConditionsToOptions(
+	nCtx contextx.IContext, conditions ...*types.PluginWorkflowCondition) ([]pluginworkflow.OptFn, error) {
+
 	opts := make([]pluginworkflow.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
@@ -194,6 +270,14 @@ func convertPluginWorkflowConditionsToOptions(conditions ...*types.PluginWorkflo
 		}
 
 		if condition.ExactInclude != nil {
+			ipOpts, err := s.handleIPFilter(nCtx, condition.ExactInclude.HostInnerIP, condition.ExactInclude.HostInnerIPV6)
+			if err != nil {
+				return nil, err
+			}
+			if ipOpts != nil {
+				opts = append(opts, ipOpts...)
+			}
+
 			opts = append(opts,
 				pluginworkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 				pluginworkflow.WithHostIDs(condition.ExactInclude.HostID...),
@@ -212,5 +296,5 @@ func convertPluginWorkflowConditionsToOptions(conditions ...*types.PluginWorkflo
 		}
 	}
 
-	return opts
+	return opts, nil
 }

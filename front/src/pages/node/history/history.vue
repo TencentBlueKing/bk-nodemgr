@@ -397,6 +397,16 @@ function getUniqueChildrenFrom <K extends keyof NodeWorkflowDistinctRespData>(
 const searchSelectData = computed(() => [
   { id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID') },
   {
+    id: 'bk_host_innerip',
+    name: t('taskDetail.search.ipv4'),
+    multiple: true,
+  },
+  {
+    id: 'bk_host_innerip_v6',
+    name: t('taskDetail.search.ipv6'),
+    multiple: true,
+  },
+  {
     id: 'type',
     name: t('platform.nodeMan.taskHistory.label.taskType'),
     children: getUniqueChildrenFrom('type', typeMap.value),
@@ -643,7 +653,28 @@ const detailHandle = (row: NodeWorkflowInfo, status?: string) => {
 watch(
   () => route.query,
   () => {
-    active.value = route.query.active as string || 'agent';
+    const newActive = route.query.active as string || 'agent';
+    
+    // 如果 URL 中没有 active 参数，主动设置一个（首次进入页面时）
+    if (!route.query.active) {
+      router.replace({
+        query: {
+          ...route.query,
+          active: 'agent',
+        },
+      });
+      return; // 等待下一次 watch 触发
+    }
+    
+    // 仅当值真的不同时才更新，避免触发循环
+    if (active.value !== newActive) {
+      active.value = newActive;
+    }
+    
+    // URL 变化时发起数据请求
+    debounceGetTaskList.cancel();
+    getTaskList();
+    getWorkflowDistinct();
   },
   { immediate: true },
 );
@@ -658,25 +689,27 @@ watch(
   },
   { immediate: true, deep: true },
 );
-// 监听 Tab 切换（立即请求，提升体验）
+// 监听 Tab 切换，只负责更新 URL
 watch(
-  () => active,
-  () => {
-    // 切换 Tab 时取消正在等待的防抖计时（如果有的话）
-    debounceGetTaskList.cancel();
-
-    // 立即获取，配合上面的 ID 检查机制，哪怕快速点击也没问题
-    getTaskList();
-    getWorkflowDistinct();
+  () => active.value,
+  (newActive) => {
+    // 仅当 URL 不同时才更新，避免循环触发
+    if (route.query.active !== newActive) {
+      router.replace({
+        query: {
+          ...route.query,
+          active: newActive,
+        },
+      });
+    }
   },
-  { immediate: true, deep: true },
 );
 watch(
   () => mainStore.selectedBusinessId,
   () => {
     getWorkflowDistinct();
   },
-  { immediate: true, deep: true },
+  { deep: true }, // 移除 immediate，避免首次加载时重复请求
 );
 </script>
 <style lang="postcss" scoped>

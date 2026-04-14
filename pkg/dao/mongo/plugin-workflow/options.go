@@ -72,3 +72,8 @@ func WithoutOperator(operator ...string) OptFn {
 func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
 	return base.WithTimeRange(FieldKeyOperateTime, timeRange.StartTime, timeRange.EndTime)
 }
+
+// WithTriggerID filters by trigger ID.
+func WithTriggerID(triggerIDs ...string) OptFn {
+	return base.WithValues(FieldKeyTriggerID, triggerIDs...)
+}

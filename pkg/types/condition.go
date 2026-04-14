@@ -434,11 +434,13 @@ type OperationCondition struct {
 
 // NodeWorkflowExactFields defines the node workflow exact fields.
 type NodeWorkflowExactFields struct {
-	WorkflowID []string
-	Type       []NodeWorkflowType
-	BizID      []int64
-	Status     []NodeWorkflowStatus
-	Operator   []string
+	WorkflowID    []string
+	Type          []NodeWorkflowType
+	BizID         []int64
+	Status        []NodeWorkflowStatus
+	Operator      []string
+	HostInnerIP   []string
+	HostInnerIPV6 []string
 }
 
 // NodeWorkflowFuzzyFields defines the node workflow fuzzy fields.
@@ -495,11 +497,13 @@ type ApplicationNodeOperationListCondition struct {
 
 // PluginWorkflowExactFields defines the plugin workflow exact fields.
 type PluginWorkflowExactFields struct {
-	WorkflowID []string
-	Type       []PluginWorkflowType
-	HostID     []int64
-	Status     []PluginWorkflowStatus
-	Operator   []string
+	WorkflowID    []string
+	Type          []PluginWorkflowType
+	HostID        []int64
+	Status        []PluginWorkflowStatus
+	Operator      []string
+	HostInnerIP   []string
+	HostInnerIPV6 []string
 }
 
 // PluginWorkflowFuzzyFields defines the plugin workflow fuzzy fields.

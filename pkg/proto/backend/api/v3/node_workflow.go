@@ -856,11 +856,13 @@ func convertNodeWorkflowConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.NodeWorkflowExactFields{
-			BizID:      exactCond.GetBkBizId(),
-			Type:       types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
-			Status:     types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
-			WorkflowID: exactCond.GetWorkflowId(),
-			Operator:   exactCond.GetOperator(),
+			BizID:         exactCond.GetBkBizId(),
+			Type:          types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
+			Status:        types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID:    exactCond.GetWorkflowId(),
+			Operator:      exactCond.GetOperator(),
+			HostInnerIP:   exactCond.GetBkHostInnerip(),
+			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
 		}
 	}
 
@@ -903,11 +905,13 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowExactConditions{
-			BkBizId:    condition.ExactInclude.BizID,
-			WorkflowId: condition.ExactInclude.WorkflowID,
-			Type:       types.NodeWorkflowTypeListToStringList(condition.ExactInclude.Type),
-			Status:     types.NodeWorkflowStatusListToStringList(condition.ExactInclude.Status),
-			Operator:   condition.ExactInclude.Operator,
+			BkBizId:         condition.ExactInclude.BizID,
+			WorkflowId:      condition.ExactInclude.WorkflowID,
+			Type:            types.NodeWorkflowTypeListToStringList(condition.ExactInclude.Type),
+			Status:          types.NodeWorkflowStatusListToStringList(condition.ExactInclude.Status),
+			Operator:        condition.ExactInclude.Operator,
+			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
+			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
 		}
 	}
 
