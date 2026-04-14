@@ -241,16 +241,6 @@ func (h *handler) ListNetworkUnitBrief(rCtx restserver.IContext) (interface{}, e
 	}
 
 	condition := req.ConvertConditionsToTypes()
-	var unitIDs []int64
-	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		unitIDs = exactCond.GetBkNetworkunitId()
-	}
-	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkUnitIDs(rCtx, unitIDs)
-	if authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list networkunit brief, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
-	}
-	condition = narrowNetworkUnitCondition(condition, narrowedIDs, scopeIsAny)
 
 	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, condition)
 	if err != nil {
@@ -263,6 +253,7 @@ func (h *handler) ListNetworkUnitBrief(rCtx restserver.IContext) (interface{}, e
 
 	return resp.GetData(), nil
 }
+
 // GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
 func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoGetNetworkUnitDistributionByNetworkAreaIDReq)

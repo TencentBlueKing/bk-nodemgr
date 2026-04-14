@@ -105,12 +105,12 @@ func (life *Lifecycle) IsTerminated() bool {
 // Launch lauch the action instance lifecycle.
 func (life *Lifecycle) Launch() {
 	life.State = StateLaunched
-	life.StartedAt = time.Now()
 }
 
 // Start starts the action instance lifecycle.
 func (life *Lifecycle) Start() {
 	life.State = StateRunning
+	life.StartedAt = time.Now()
 }
 
 // End ends the action instance lifecycle.

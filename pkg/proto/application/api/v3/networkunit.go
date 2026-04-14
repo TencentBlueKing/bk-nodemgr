@@ -405,10 +405,14 @@ func (x *TopoNetworkUnitListBriefResp) ConvertNetworkUnitBriefsFromTypes(total i
 		item := newEmptyNetworkUnitBrief()
 		*item.BkNetworkareaId = networkUnit.NetworkAreaID
 		*item.BkNetworkunitId = networkUnit.ID
-
+		*item.TenantId = networkUnit.TenantID
+		*item.BkNetworkunitName = networkUnit.Name
+		item.Accesspoints = networkUnit.AccessPoints
+		item.Links = convertLinksFromTypes(networkUnit.Links)
+		*item.IsDirect = networkUnit.IsDirect
+		*item.Generation = int64(networkUnit.Generation)
 		items[idx] = item
 	}
-
 	x.Data = &TopoNetworkUnitListBriefResp_Data{
 		Total: total,
 		Items: items,
