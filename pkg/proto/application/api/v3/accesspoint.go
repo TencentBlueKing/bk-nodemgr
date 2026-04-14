@@ -92,3 +92,53 @@ func (x *TopoAccessPointListResp) ConvertAccessPointsToTypes() (int64, []*types.
 
 	return data.GetTotal(), result
 }
+
+// Validate check body.
+func (x *TopoAccessPointListBriefReq) Validate() error {
+	return validatePage(x.GetPage())
+}
+
+// AutoConvert auto convert.
+func (x *TopoAccessPointListBriefReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *TopoAccessPointListBriefReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoAccessPointListBriefReq) ConvertConditionsToTypes() *types.AccessPointCondition {
+	condition := &types.AccessPointCondition{}
+
+	if exactCond := x.GetExactIncludeConditions(); exactCond != nil {
+		condition.ExactInclude = &types.AccessPointExactFields{
+			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			AccessPointID: exactCond.GetAccesspointId(),
+		}
+	}
+
+	return condition
+}
+
+// ConvertAccessPointsFromTypes convert accesspoint briefs from types.
+func (x *TopoAccessPointListBriefResp) ConvertAccessPointsFromTypes(total int64, accessPoints []*types.AccessPoint) {
+	items := make([]*AccessPointBrief, len(accessPoints))
+	for idx, accessPoint := range accessPoints {
+		items[idx] = convertAccessPointBriefFromTypes(accessPoint)
+	}
+
+	x.Data = &TopoAccessPointListBriefResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+func convertAccessPointBriefFromTypes(accessPoint *types.AccessPoint) *AccessPointBrief {
+	data := &AccessPointBrief{}
+	data.BkNetworkareaId = &accessPoint.NetworkAreaID
+	data.AccesspointId = &accessPoint.ID
+	data.AccesspointName = &accessPoint.Name
+
+	return data
+}

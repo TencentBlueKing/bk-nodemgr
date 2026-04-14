@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/topo/accesspoint/list/brief": {
+      "post": {
+        "summary": "AccessPointListBrief provides brief access-point listing (no endpoints).",
+        "operationId": "Topo_AccessPointListBrief",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListBriefResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoAccessPointListBriefReq describes the HTTP request body when list\naccesspoint brief in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListBriefReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/business/list": {
       "post": {
         "summary": "BusinessList provides business listing.",
@@ -1075,6 +1109,23 @@
       },
       "description": "AccessPoint describes the access point informations."
     },
+    "v3AccessPointBrief": {
+      "type": "object",
+      "properties": {
+        "accesspoint_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "accesspoint_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "AccessPointBrief describes the brief access point (no endpoints for\nsensitivity)."
+    },
     "v3Action": {
       "type": "object",
       "properties": {
@@ -1701,6 +1752,81 @@
         }
       },
       "description": "TimeRange describes the time range."
+    },
+    "v3TopoAccessPointListBriefReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoAccessPointListBriefReqExactConditions"
+        }
+      },
+      "description": "TopoAccessPointListBriefReq describes the HTTP request body when list\naccesspoint brief in topo service."
+    },
+    "v3TopoAccessPointListBriefReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "accesspoint_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "v3TopoAccessPointListBriefResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoAccessPointListBriefRespData"
+        }
+      },
+      "description": "TopoAccessPointListBriefResp describes the HTTP response body when list\naccesspoint brief in topo service."
+    },
+    "v3TopoAccessPointListBriefRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPointBrief"
+          }
+        }
+      }
     },
     "v3TopoAccessPointListReq": {
       "type": "object",
