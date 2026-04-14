@@ -65,6 +65,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/networkunit/update", restserver.Handler(h.UpdateNetworkUnit))
 	h.rg.POST("/networkunit/delete", restserver.Handler(h.DeleteNetworkUnit))
 
+	// accesspoint apis.
+	h.rg.POST("/accesspoint/list", restserver.Handler(h.ListAccessPoint))
+
 	// topo graph.
 	h.rg.POST("/graph/get", restserver.Handler(h.GetGraph))
 	h.rg.POST("/graph/node/count", restserver.Handler(h.CountGraphNode))
