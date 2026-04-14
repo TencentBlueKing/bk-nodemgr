@@ -81,17 +81,6 @@ func (h *handler) ListAccessPointBrief(rCtx restserver.IContext) (interface{}, e
 	}
 
 	condition := req.ConvertConditionsToTypes()
-	var accessPointIDs []int64
-	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		accessPointIDs = exactCond.GetAccesspointId()
-	}
-
-	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedAccessPointIDs(rCtx, accessPointIDs)
-	if authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list accesspoint brief, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
-	}
-	condition = narrowAccessPointCondition(condition, narrowedIDs, scopeIsAny)
 
 	if req.GetOnlyCount() {
 		num, err := h.storage.CountAccessPoint(rCtx, condition)
