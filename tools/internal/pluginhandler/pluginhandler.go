@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package pluginhandler provides the plugin handler interface and implementation.
 package pluginhandler
 
 import (
@@ -51,4 +52,9 @@ type IPluginFSHandler interface {
 
 // IPluginProcessHandler plugin process handler interface.
 type IPluginProcessHandler interface {
+	// RunCmd run command in plugin process handler.
+	RunCmd(ctx context.Context, cmd string, pidDir string) error
+
+	// Stop stop plugin process handler.
+	Stop(ctx context.Context, pidDir string) error
 }

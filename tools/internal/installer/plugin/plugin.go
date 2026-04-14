@@ -43,4 +43,7 @@ const (
 
 	// StepCleanTmp this is the step to clean tmp.
 	StepCleanTmp logger.Step = "clean_tmp"
+
+	// StepDebugPlugin this is the step to start a debug plugin process.
+	StepDebugPlugin logger.Step = "debug_plugin"
 )

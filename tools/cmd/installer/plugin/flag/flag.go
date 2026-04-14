@@ -14,6 +14,7 @@ package flag
 const (
 	// DeployEnv defines the deploy env flag.
 	DeployEnv = "deploy_env"
+
 	// DeployEnvS defines the deploy env short flag.
 	DeployEnvS = "e"
 
@@ -64,4 +65,13 @@ const (
 
 	// PluginPkgName defines the plugin package name flag.
 	PluginPkgName = "plugin_pkg_name"
+
+	// RunCmd defines the run command flag.
+	RunCmd = "run_cmd"
+
+	// PidDir defines the plugin pid dir flag.
+	PidDir = "pid_dir"
+
+	// DebugAction defines the debug action flag.
+	DebugAction = "debug_action"
 )

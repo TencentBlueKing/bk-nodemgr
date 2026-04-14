@@ -9,3 +9,26 @@
  */
 
 package types
+
+import "fmt"
+
+// PluginDebugAction defines the debug action type.
+type PluginDebugAction string
+
+const (
+	// PluginDebugActionStart means to start plugin debug.
+	PluginDebugActionStart PluginDebugAction = "start"
+
+	// PluginDebugActionStop means to stop plugin debug.
+	PluginDebugActionStop PluginDebugAction = "stop"
+)
+
+// Validate validates the debug action type.
+func (p PluginDebugAction) Validate() error {
+	switch p {
+	case PluginDebugActionStart, PluginDebugActionStop:
+		return nil
+	default:
+		return fmt.Errorf("invalid plugin debug action, action: %s", string(p))
+	}
+}

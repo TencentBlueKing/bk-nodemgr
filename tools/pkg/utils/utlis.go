@@ -415,3 +415,63 @@ func ListFiles(dir string) ([]string, error) {
 
 	return files, nil
 }
+
+// CollectPIDFiles returns all .pid file paths found in pidDir.
+// If pidDir is empty, a nil slice is returned without error.
+// A relative pidDir is resolved against absRootDir.
+func CollectPIDFiles(absRootDir, pidDir string) ([]string, error) {
+	pidDir = strings.TrimSpace(pidDir)
+	if pidDir == "" {
+		return nil, nil
+	}
+
+	pidDirAbs := filepath.Clean(pidDir)
+	if !filepath.IsAbs(pidDirAbs) {
+		pidDirAbs = filepath.Clean(filepath.Join(absRootDir, pidDirAbs))
+	}
+
+	if err := CheckDirPathSafe(pidDirAbs); err != nil {
+		return nil, fmt.Errorf("invalid pid dir(%s): %w", pidDirAbs, err)
+	}
+
+	entries, err := os.ReadDir(pidDirAbs)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("failed to read pid dir(%s): %w", pidDirAbs, err)
+	}
+
+	pidFiles := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		if !strings.HasSuffix(entry.Name(), ".pid") {
+			continue
+		}
+
+		pidFiles = append(pidFiles, filepath.Join(pidDirAbs, entry.Name()))
+	}
+
+	return pidFiles, nil
+}
+
+// ReadPIDFromFile reads and validates a PID from the given file.
+func ReadPIDFromFile(pidFile string) (int, error) {
+	content, err := os.ReadFile(filepath.Clean(pidFile))
+	if err != nil {
+		return 0, fmt.Errorf("failed to read pid file(%s): %w", pidFile, err)
+	}
+
+	pid, err := strconv.Atoi(strings.TrimSpace(string(content)))
+	if err != nil {
+		return 0, fmt.Errorf("invalid pid content(%s): %w", string(content), err)
+	}
+	if pid <= 1 {
+		return 0, fmt.Errorf("dangerous pid(%d)", pid)
+	}
+
+	return pid, nil
+}

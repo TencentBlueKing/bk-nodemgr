@@ -34,6 +34,7 @@ func NewPluginCommand() *cobra.Command {
 	pluginCommand.AddCommand(NewFullInstall())
 	pluginCommand.AddCommand(NewFullUninstall())
 	pluginCommand.AddCommand(NewFullUpgrade())
+	pluginCommand.AddCommand(NewFullDebug())
 
 	/*
 	 * persistent required flags.
