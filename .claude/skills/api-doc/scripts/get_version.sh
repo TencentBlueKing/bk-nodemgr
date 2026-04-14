@@ -1,16 +1,25 @@
 #!/bin/bash
-# 获取项目的最新正式版本号
-# 用于 API 文档"该接口提供版本"字段
+# 获取 API 文档使用的版本号
+# 规则遵循 issue #1442：v$ArchVer.$Major.$Minor-$Tag.$Patch[[-.]$Mark]
 
-set -e
+set -euo pipefail
 
-# 获取最新的正式版本号（排除 alpha、beta、test 等预发布版本）
-LATEST_VERSION=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+LATEST_TAG=$(git for-each-ref --sort=-creatordate --format='%(refname:short)' refs/tags | head -1)
 
-if [ -z "$LATEST_VERSION" ]; then
-    echo "未找到正式版本标签"
-    echo "提示: 可能只存在预发布版本 (alpha/beta/test)"
+if [ -z "$LATEST_TAG" ]; then
+    echo "未找到任何版本标签"
     exit 1
 fi
 
-echo "$LATEST_VERSION"
+python - "$LATEST_TAG" <<'PY'
+import re
+import sys
+
+tag = sys.argv[1]
+match = re.match(r'^(v\d+\.\d+\.\d+)-([a-zA-Z]+)\.(\d+)(?:[-.](.+))?$', tag)
+if match:
+    base_version, tag_name, patch_number, _mark = match.groups()
+    print(f"{base_version}-{tag_name}.{int(patch_number) + 1}+")
+else:
+    print(f"{tag}+")
+PY
