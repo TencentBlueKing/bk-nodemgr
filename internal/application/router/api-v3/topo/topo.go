@@ -67,6 +67,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// accesspoint apis.
 	h.rg.POST("/accesspoint/list", restserver.Handler(h.ListAccessPoint))
+	h.rg.POST("/accesspoint/list/brief", restserver.Handler(h.ListAccessPointBrief))
 
 	// topo graph.
 	h.rg.POST("/graph/get", restserver.Handler(h.GetGraph))

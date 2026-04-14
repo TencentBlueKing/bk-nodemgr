@@ -11,6 +11,8 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -38,6 +40,36 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 	}
 
 	resp := new(protoApplication.TopoAccessPointListResp)
+	resp.ConvertAccessPointsFromTypes(num, accessPoints)
+
+	return resp.GetData(), nil
+}
+
+// ListAccessPointBrief lists accesspoint briefs.
+func (h *handler) ListAccessPointBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoAccessPointListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
+	}
+
+	accessPoints, num, err := h.backendHandler.ListAccessPointBrief(rCtx, page, req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint brief")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoAccessPointListBriefResp)
 	resp.ConvertAccessPointsFromTypes(num, accessPoints)
 
 	return resp.GetData(), nil
