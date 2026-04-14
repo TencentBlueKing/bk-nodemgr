@@ -183,6 +183,26 @@ func (x *TopoAccessPointListBriefReq) ConvertConditionsToTypes() *types.AccessPo
 	return condition
 }
 
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *TopoAccessPointListBriefReq) ConvertConditionsFromTypes(condition *types.AccessPointCondition) error {
+	if condition == nil {
+		return nil
+	}
+
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &TopoAccessPointListBriefReq_ExactConditions{
+			AccesspointId:   condition.ExactInclude.AccessPointID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return fmt.Errorf("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return nil
+}
+
 // ConvertAccessPointsFromTypes convert accesspoints from types.
 func (x *TopoAccessPointListBriefResp) ConvertAccessPointsFromTypes(total int64, accessPoints []*types.AccessPoint) {
 	items := make([]*AccessPointBrief, len(accessPoints))
@@ -196,6 +216,22 @@ func (x *TopoAccessPointListBriefResp) ConvertAccessPointsFromTypes(total int64,
 	}
 }
 
+// ConvertAccessPointsToTypes convert accesspoint briefs to types.
+func (x *TopoAccessPointListBriefResp) ConvertAccessPointsToTypes() (int64, []*types.AccessPoint) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.AccessPoint, len(items))
+	for idx, item := range items {
+		result[idx] = convertAccessPointBriefToTypes(item)
+	}
+
+	return data.GetTotal(), result
+}
+
 func convertAccessPointBriefFromTypes(accessPoint *types.AccessPoint) *AccessPointBrief {
 	data := &AccessPointBrief{}
 	data.BkNetworkareaId = &accessPoint.NetworkAreaID
@@ -203,4 +239,12 @@ func convertAccessPointBriefFromTypes(accessPoint *types.AccessPoint) *AccessPoi
 	data.AccesspointName = &accessPoint.Name
 
 	return data
+}
+
+func convertAccessPointBriefToTypes(accessPoint *AccessPointBrief) *types.AccessPoint {
+	return &types.AccessPoint{
+		NetworkAreaID: accessPoint.GetBkNetworkareaId(),
+		ID:            accessPoint.GetAccesspointId(),
+		Name:          accessPoint.GetAccesspointName(),
+	}
 }

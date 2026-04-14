@@ -35,6 +35,13 @@ type IHandlerAccessPoint interface {
 	// @param condition the filter conditions.
 	// @return the access-point list with page and the total count with filter and error.
 	ListAccessPoint(nCtx contextx.IContext, page types.Page, condition *types.AccessPointCondition) ([]*types.AccessPoint, int64, error)
+
+	// ListAccessPointBrief list access point briefs by page and conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return the access-point brief list with page and the total count with filter and error.
+	ListAccessPointBrief(nCtx contextx.IContext, page types.Page, condition *types.AccessPointCondition) ([]*types.AccessPoint, int64, error)
 }
 
 // IHandlerBusiness defines the business Handler.
@@ -170,6 +177,40 @@ func (h *Handler) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.AccessPoint, error) {
 		req.Page = convertPage(page)
 		resp, err := h.cli.listAccessPoint(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, accessPoints = resp.ConvertAccessPointsToTypes()
+
+		return accessPoints, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result.Items, total, nil
+}
+
+// ListAccessPointBrief list access point brief within specified tenant in contextx.
+func (h *Handler) ListAccessPointBrief(nCtx contextx.IContext, page types.Page, condition *types.AccessPointCondition) (
+	[]*types.AccessPoint, int64, error) {
+
+	req := new(protoBackend.TopoAccessPointListBriefReq)
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	var (
+		total        int64
+		accessPoints []*types.AccessPoint
+	)
+	executor := pageexecutor.NewPageExecutor[*types.AccessPoint](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.AccessPoint, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listAccessPointBrief(nCtx, req)
 		if err != nil {
 			return nil, err
 		}
