@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/topo/accesspoint/list": {
+      "post": {
+        "summary": "AccessPointList provides access-point listing.",
+        "operationId": "Topo_AccessPointList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoAccessPointListReq describes the HTTP request body when list accesspoint\nin topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoAccessPointListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/business/list": {
       "post": {
         "summary": "BusinessList provides business listing.",
@@ -1357,6 +1391,52 @@
         "accesspoints": {
           "type": "array",
           "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3Links"
+        },
+        "is_direct": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "$ref": "#/definitions/v3Endpoints"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "custom_deploy_config": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3CustomDeployConfig"
+          }
+        }
+      },
+      "description": "NetworkUnit describes the network unit informations."
+    },
+    "v3NetworkUnitDetail": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "accesspoints": {
+          "type": "array",
+          "items": {
             "type": "object",
             "$ref": "#/definitions/v3AccessPoint"
           }
@@ -1381,7 +1461,7 @@
           }
         }
       },
-      "description": "NetworkUnit describes the network unit informations."
+      "description": "NetworkUnitDetail describes the network unit detail informations.\ncontains full access point objects."
     },
     "v3NetworkUnitGraph": {
       "type": "object",
@@ -1550,6 +1630,81 @@
         }
       },
       "description": "TimeRange describes the time range."
+    },
+    "v3TopoAccessPointListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoAccessPointListReqExactConditions"
+        }
+      },
+      "description": "TopoAccessPointListReq describes the HTTP request body when list accesspoint\nin topo service."
+    },
+    "v3TopoAccessPointListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "accesspoint_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "v3TopoAccessPointListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoAccessPointListRespData"
+        }
+      },
+      "description": "TopoAccessPointListResp describes the HTTP response body when list\naccesspoint in topo service."
+    },
+    "v3TopoAccessPointListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPoint"
+          }
+        }
+      }
     },
     "v3TopoBusinessListReq": {
       "type": "object",
@@ -3082,7 +3237,7 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3NetworkUnit"
+          "$ref": "#/definitions/v3NetworkUnitDetail"
         }
       },
       "description": "TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\nin topo service."
@@ -3147,7 +3302,7 @@
       "type": "object",
       "properties": {
         "networkunit": {
-          "$ref": "#/definitions/v3NetworkUnit"
+          "$ref": "#/definitions/v3NetworkUnitDetail"
         },
         "fields": {
           "$ref": "#/definitions/v3NetworkUnitUpdateFields"

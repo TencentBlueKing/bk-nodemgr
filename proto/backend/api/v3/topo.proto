@@ -220,7 +220,7 @@ message TopoNetworkUnitListResp {
 
   message Data {
     int64 total = 1;
-    repeated NetworkUnitBrief items = 2;
+    repeated NetworkUnit items = 2;
   }
   Data data = 5;
 }
@@ -256,7 +256,7 @@ message TopoNetworkUnitGetResp {
   string request_id = 3;
   Error error = 4;
   Permission permission = 6;
-  NetworkUnit data = 5;
+  NetworkUnitDetail data = 5;
 }
 
 // TopoNetworkUnitCreateReq describes the HTTP request body when create
@@ -297,7 +297,7 @@ message NetworkUnitUpdateFields {
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 message TopoNetworkUnitUpdateReq {
-  NetworkUnit networkunit = 1;
+  NetworkUnitDetail networkunit = 1;
   NetworkUnitUpdateFields fields = 2;
 }
 

@@ -199,7 +199,7 @@ func (x *TopoNetworkUnitGetReq) AutoConvert() {
 func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitFromTypes(
 	networkUnit *types.NetworkUnit, accessPoints []*types.AccessPoint) {
 
-	data := newEmptyNetworkUnit()
+	data := newEmptyNetworkUnitDetail()
 	*data.TenantId = networkUnit.TenantID
 	*data.BkNetworkunitId = networkUnit.ID
 	*data.BkNetworkunitName = networkUnit.Name
@@ -298,12 +298,7 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsFromTypes(condition *types.Net
 }
 
 // ConvertNetworkUnitsFromTypes convert networkunits from types to proto.
-func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit, accessPoints []*types.AccessPoint) {
-	accessPointMap := make(map[int64]*types.AccessPoint)
-	for _, accessPoints := range accessPoints {
-		accessPointMap[accessPoints.ID] = accessPoints
-	}
-
+func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
 	items := make([]*NetworkUnit, len(networkUnits))
 	for idx, networkUnit := range networkUnits {
 		item := newEmptyNetworkUnit()
@@ -316,13 +311,7 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, netw
 		item.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
 		*item.Generation = int64(networkUnit.Generation)
 		item.CustomDeployConfig = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
-
-		// convert accesspoints
-		for _, accessPointID := range networkUnit.AccessPoints {
-			if accessPoint, ok := accessPointMap[accessPointID]; ok {
-				item.Accesspoints = append(item.Accesspoints, convertAccessPointFromTypes(accessPoint))
-			}
-		}
+		item.Accesspoints = networkUnit.AccessPoints
 
 		items[idx] = item
 	}
@@ -343,17 +332,12 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 	items := data.GetItems()
 	result := make([]*types.NetworkUnit, len(items))
 	for idx, item := range items {
-		ids := make([]int64, len(item.GetAccesspoints()))
-		for subIdx, accessPoint := range item.GetAccesspoints() {
-			ids[subIdx] = accessPoint.GetAccesspointId()
-		}
-
 		result[idx] = &types.NetworkUnit{
 			TenantID:           item.GetTenantId(),
 			NetworkAreaID:      item.GetBkNetworkareaId(),
 			ID:                 item.GetBkNetworkunitId(),
 			Name:               item.GetBkNetworkunitName(),
-			AccessPoints:       ids,
+			AccessPoints:       item.GetAccesspoints(),
 			Links:              convertLinksToTypes(item.GetLinks()),
 			IsDirect:           item.GetIsDirect(),
 			DirectEndpoints:    convertEndpointToTypes(item.GetDirectEndpoints()),
@@ -404,6 +388,29 @@ func newEmptyNetworkUnit() *NetworkUnit {
 		BkNetworkunitId:   new(int64),
 		BkNetworkunitName: new(string),
 		BkNetworkareaId:   new(int64),
+		Accesspoints:      make([]int64, 0),
+		Links: &Links{
+			Cluster: newEmptyLink(),
+			File:    newEmptyLink(),
+			Data:    newEmptyLink(),
+		},
+		IsDirect: new(bool),
+		DirectEndpoints: &Endpoints{
+			Cluster: make([]string, 0),
+			File:    make([]string, 0),
+			Data:    make([]string, 0),
+		},
+		Generation:         new(int64),
+		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
+	}
+}
+
+func newEmptyNetworkUnitDetail() *NetworkUnitDetail {
+	return &NetworkUnitDetail{
+		TenantId:          new(string),
+		BkNetworkunitId:   new(int64),
+		BkNetworkunitName: new(string),
+		BkNetworkareaId:   new(int64),
 		Accesspoints:      make([]*AccessPoint, 0),
 		Links: &Links{
 			Cluster: newEmptyLink(),
@@ -416,7 +423,7 @@ func newEmptyNetworkUnit() *NetworkUnit {
 			File:    make([]string, 0),
 			Data:    make([]string, 0),
 		},
-		Generation:    new(int64),
+		Generation:         new(int64),
 		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
 	}
 }
@@ -439,7 +446,7 @@ func newEmptyNetworkUnitBrief() *NetworkUnitBrief {
 			File:    make([]string, 0),
 			Data:    make([]string, 0),
 		},
-		Generation:    new(int64),
+		Generation:         new(int64),
 		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
 	}
 }

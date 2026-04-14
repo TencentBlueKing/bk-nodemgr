@@ -196,7 +196,7 @@ func (x *TopoNetworkUnitUpdateReq) ConvertNetworkUnitFromTypes(
 	x.Fields = convertFieldsFromTypes(fields)
 
 	generation := int64(networkUnit.Generation)
-	x.Networkunit = &NetworkUnit{
+	x.Networkunit = &NetworkUnitDetail{
 		BkNetworkunitId:    &networkUnit.ID,
 		BkNetworkunitName:  &networkUnit.Name,
 		BkNetworkareaId:    &networkUnit.NetworkAreaID,
@@ -234,7 +234,7 @@ func (x *TopoNetworkUnitGetReq) AutoConvert() {
 func (x *TopoNetworkUnitGetResp) ConvertNetworkUnitFromTypes(
 	networkUnit *types.NetworkUnit, accessPoints []*types.AccessPoint) {
 
-	data := newEmptyNetworkUnit()
+	data := newEmptyNetworkUnitDetail()
 	*data.TenantId = networkUnit.TenantID
 	*data.BkNetworkunitId = networkUnit.ID
 	*data.BkNetworkunitName = networkUnit.Name
@@ -417,16 +417,17 @@ func (x *TopoGetNetworkUnitDistributionByNetworkAreaIDResp) ConvertResultToTypes
 // ConvertNetworkUnitsFromTypes convert networkunits from types to proto.
 func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsFromTypes(total int64, networkUnits []*types.NetworkUnit) {
 
-	items := make([]*NetworkUnitBrief, len(networkUnits))
+	items := make([]*NetworkUnit, len(networkUnits))
 	for idx, networkUnit := range networkUnits {
-		item := newEmptyNetworkUnitBrief()
+		item := newEmptyNetworkUnit()
 		*item.TenantId = networkUnit.TenantID
 		*item.BkNetworkunitId = networkUnit.ID
 		*item.BkNetworkunitName = networkUnit.Name
 		*item.BkNetworkareaId = networkUnit.NetworkAreaID
+		*item.IsDirect = networkUnit.IsDirect
+
 		item.Accesspoints = networkUnit.AccessPoints
 		item.Links = convertLinksFromTypes(networkUnit.Links)
-		*item.IsDirect = networkUnit.IsDirect
 		item.DirectEndpoints = convertEndpointFromTypes(networkUnit.DirectEndpoints)
 		*item.Generation = int64(networkUnit.Generation)
 		item.CustomDeployConfig = convertCustomDeployConfigFromTypes(networkUnit.CustomDeployConfig)
@@ -502,6 +503,29 @@ func (ap *AccessPoint) autoConvert() {
 
 func newEmptyNetworkUnit() *NetworkUnit {
 	return &NetworkUnit{
+		TenantId:          new(string),
+		BkNetworkunitId:   new(int64),
+		BkNetworkunitName: new(string),
+		BkNetworkareaId:   new(int64),
+		Accesspoints:      make([]int64, 0),
+		Links: &Links{
+			Cluster: newEmptyLink(),
+			File:    newEmptyLink(),
+			Data:    newEmptyLink(),
+		},
+		IsDirect: new(bool),
+		DirectEndpoints: &Endpoints{
+			Cluster: make([]string, 0),
+			File:    make([]string, 0),
+			Data:    make([]string, 0),
+		},
+		Generation:         new(int64),
+		CustomDeployConfig: make(map[string]*CustomDeployConfig, 0),
+	}
+}
+
+func newEmptyNetworkUnitDetail() *NetworkUnitDetail {
+	return &NetworkUnitDetail{
 		TenantId:          new(string),
 		BkNetworkunitId:   new(int64),
 		BkNetworkunitName: new(string),

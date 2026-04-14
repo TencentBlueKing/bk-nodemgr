@@ -206,7 +206,7 @@ message TopoNetworkUnitGetResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
-  NetworkUnit data = 4;
+  NetworkUnitDetail data = 4;
 }
 
 // TopoNetworkUnitCreateReq describes the HTTP request body when create
@@ -247,8 +247,37 @@ message NetworkUnitUpdateFields {
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 message TopoNetworkUnitUpdateReq {
-  NetworkUnit networkunit = 1;
+  NetworkUnitDetail networkunit = 1;
   NetworkUnitUpdateFields fields = 2;
+}
+
+// TopoAccessPointListReq describes the HTTP request body when list accesspoint
+// in topo service.
+message TopoAccessPointListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  message ExactConditions {
+    repeated int64 bk_networkarea_id = 1;
+    repeated int64 accesspoint_id = 2;
+  }
+  ExactConditions exact_include_conditions = 3;
+}
+
+// TopoAccessPointListResp describes the HTTP response body when list
+// accesspoint in topo service.
+message TopoAccessPointListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated AccessPoint items = 2;
+  }
+  Data data = 5;
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update
@@ -728,6 +757,15 @@ service Topo {
       returns (TopoNetworkUnitDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/networkunit/delete"
+      body : "*"
+    };
+  }
+
+  // AccessPointList provides access-point listing.
+  rpc AccessPointList(TopoAccessPointListReq)
+      returns (TopoAccessPointListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/accesspoint/list"
       body : "*"
     };
   }

@@ -1368,52 +1368,6 @@
         "accesspoints": {
           "type": "array",
           "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3AccessPoint"
-          }
-        },
-        "links": {
-          "$ref": "#/definitions/v3Links"
-        },
-        "is_direct": {
-          "type": "boolean"
-        },
-        "direct_endpoints": {
-          "$ref": "#/definitions/v3Endpoints"
-        },
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "custom_deploy_config": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/v3CustomDeployConfig"
-          }
-        }
-      },
-      "description": "NetworkUnit describes the network unit informations."
-    },
-    "v3NetworkUnitBrief": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_networkunit_name": {
-          "type": "string"
-        },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "accesspoints": {
-          "type": "array",
-          "items": {
             "type": "integer",
             "format": "int64"
           }
@@ -1438,7 +1392,53 @@
           }
         }
       },
-      "description": "NetworkUnitBrief describes the network unit brief informations.\nonly contains the access point ids."
+      "description": "NetworkUnit describes the network unit informations."
+    },
+    "v3NetworkUnitDetail": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_name": {
+          "type": "string"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "accesspoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AccessPoint"
+          }
+        },
+        "links": {
+          "$ref": "#/definitions/v3Links"
+        },
+        "is_direct": {
+          "type": "boolean"
+        },
+        "direct_endpoints": {
+          "$ref": "#/definitions/v3Endpoints"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "custom_deploy_config": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3CustomDeployConfig"
+          }
+        }
+      },
+      "description": "NetworkUnitDetail describes the network unit detail informations.\ncontains full access point objects."
     },
     "v3NetworkUnitUpdateFields": {
       "type": "object",
@@ -3384,7 +3384,7 @@
           "$ref": "#/definitions/v3Permission"
         },
         "data": {
-          "$ref": "#/definitions/v3NetworkUnit"
+          "$ref": "#/definitions/v3NetworkUnitDetail"
         }
       },
       "description": "TopoNetworkUnitGetResp describe the HTTP response body when get network-unit\nin topo service."
@@ -3472,7 +3472,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NetworkUnitBrief"
+            "$ref": "#/definitions/v3NetworkUnit"
           }
         }
       }
@@ -3481,7 +3481,7 @@
       "type": "object",
       "properties": {
         "networkunit": {
-          "$ref": "#/definitions/v3NetworkUnit"
+          "$ref": "#/definitions/v3NetworkUnitDetail"
         },
         "fields": {
           "$ref": "#/definitions/v3NetworkUnitUpdateFields"

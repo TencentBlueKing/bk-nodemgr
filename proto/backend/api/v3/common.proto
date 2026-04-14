@@ -91,6 +91,21 @@ message NetworkUnit {
   optional int64 bk_networkunit_id = 2;
   optional string bk_networkunit_name = 3;
   optional int64 bk_networkarea_id = 4;
+  repeated int64 accesspoints = 5;
+  optional Links links = 6;
+  optional bool is_direct = 7;
+  Endpoints direct_endpoints = 8;
+  optional int64 generation = 9;
+  map<string, CustomDeployConfig> custom_deploy_config = 10;
+}
+
+// NetworkUnitDetail describes the network unit detail informations.
+// contains full access point objects.
+message NetworkUnitDetail {
+  optional string tenant_id = 1;
+  optional int64 bk_networkunit_id = 2;
+  optional string bk_networkunit_name = 3;
+  optional int64 bk_networkarea_id = 4;
   repeated AccessPoint accesspoints = 5;
   optional Links links = 6;
   optional bool is_direct = 7;
