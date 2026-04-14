@@ -31,6 +31,8 @@ platform:
       assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please filter for hosts in the same area
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledRowNotRunning: This host has abnormal Agent status. Please troubleshoot and fix before operating
+      operateDisabledUnassigned: Selected hosts include nodes without assigned network unit. Please assign network unit before operating
+      operateDisabledRowUnassigned: This host has no assigned network unit. Please assign network unit before operating
       assignUnitHostCount: '{count} host(s) selected'
       assignUnitSelectPlaceholder: Select target network unit
       assignUnitSuccessTitle: Network Unit Assignment Complete

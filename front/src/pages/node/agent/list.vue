@@ -524,7 +524,8 @@ const assignUnitDisabledState = computed(() => {
   return { disabled: false, tooltip: '' };
 });
 
-const operateDisabledState = computed(() => {
+// 升级操作禁用状态：只检查 Agent 状态
+const upgradeDisabledState = computed(() => {
   const selected = selection.value;
   if (selected.length === 0) return { disabled: false, tooltip: '' };
 
@@ -539,13 +540,53 @@ const operateDisabledState = computed(() => {
   return { disabled: false, tooltip: '' };
 });
 
+// 重启操作禁用状态：检查 Agent 状态 + 管控单元
+const restartDisabledState = computed(() => {
+  const selected = selection.value;
+  if (selected.length === 0) return { disabled: false, tooltip: '' };
+
+  const hasNonRunning = selected.some((h: any) => h.node_status !== 'running');
+  if (hasNonRunning) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledNotRunning'),
+    };
+  }
+
+  const hasUnassigned = selected.some((h: any) => !isNetworkUnitAssigned(h.bk_networkunit_id));
+  if (hasUnassigned) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledUnassigned'),
+    };
+  }
+
+  return { disabled: false, tooltip: '' };
+});
+
+// 卸载操作禁用状态：检查管控单元
+const uninstallDisabledState = computed(() => {
+  const selected = selection.value;
+  if (selected.length === 0) return { disabled: false, tooltip: '' };
+
+  const hasUnassigned = selected.some((h: any) => !isNetworkUnitAssigned(h.bk_networkunit_id));
+  if (hasUnassigned) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledUnassigned'),
+    };
+  }
+
+  return { disabled: false, tooltip: '' };
+});
+
 // ---------- 常量定义 ----------
 const topoBizFilterList = computed(() => mainStore.businessList);
 const operate = computed(() => [
   { id: 'reinstall', name: t('platform.nodeMan.agentStatus.reinstall'), disabled: false, tooltip: '', show: true },
-  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: operateDisabledState.value.disabled, tooltip: operateDisabledState.value.tooltip, show: true },
-  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: operateDisabledState.value.disabled, tooltip: operateDisabledState.value.tooltip, show: true },
-  { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: false, tooltip: '', show: true },
+  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: upgradeDisabledState.value.disabled, tooltip: upgradeDisabledState.value.tooltip, show: true },
+  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: restartDisabledState.value.disabled, tooltip: restartDisabledState.value.tooltip, show: true },
+  { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: uninstallDisabledState.value.disabled, tooltip: uninstallDisabledState.value.tooltip, show: true },
   { id: 'assign_unit', name: t('platform.nodeMan.agentStatus.assignUnit'), disabled: assignUnitDisabledState.value.disabled, tooltip: assignUnitDisabledState.value.tooltip, show: true },
 ]);
 const agentInstallType = [
@@ -1036,16 +1077,24 @@ const getOperateShow = (row: Host, config: any) => {
 };
 
 const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; tooltip: string } => {
-  if (config.id === 'assign_unit' && isNetworkUnitAssigned(row.bk_networkunit_id)) {
+  if (config.id === 'assign_unit' && isNetworkUnitAssigned((row as any).bk_networkunit_id)) {
     return {
       disabled: true,
       tooltip: t('platform.nodeMan.agentStatus.assignUnitDisabledRowAssigned'),
     };
   }
-  if ((config.id === 'upgrade' || config.id === 'restart') && (row as any).node_status !== 'running') {
+  // Check Agent status first for upgrade, restart, and uninstall
+  if ((config.id === 'upgrade' || config.id === 'restart' || config.id === 'uninstall') && (row as any).node_status !== 'running') {
     return {
       disabled: true,
       tooltip: t('platform.nodeMan.agentStatus.operateDisabledRowNotRunning'),
+    };
+  }
+  // Then check network unit assignment for upgrade, restart, and uninstall
+  if ((config.id === 'upgrade' || config.id === 'restart' || config.id === 'uninstall') && !isNetworkUnitAssigned((row as any).bk_networkunit_id)) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledRowUnassigned'),
     };
   }
   return { disabled: false, tooltip: '' };

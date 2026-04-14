@@ -145,6 +145,11 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to ensure host dynamic advertise ip and export ip: %w", err)
 	}
 
+	// Validate CPU architecture before rendering deployment.
+	if err := std.DeployInfo().Host.Dynamic.NodeCPUArch.Validate(); err != nil {
+		return fmt.Errorf("failed to validate cpu arch for render: %w", err)
+	}
+
 	switch releaseType {
 	case types.ReleaseTypeAgent:
 		rlsAgent, err := act.getReleaseAgentForRender(std)

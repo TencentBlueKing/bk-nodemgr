@@ -31,6 +31,8 @@ platform:
       assignUnitDisabledMultiArea: 选中主机分属不同管控区域，请筛选同一区域的主机
       operateDisabledNotRunning: 选中主机中包含 Agent 状态异常的节点，请先排查修复后再操作
       operateDisabledRowNotRunning: 该主机 Agent 状态异常，请先排查修复后再操作
+      operateDisabledUnassigned: 选中主机中包含未分配管控单元的节点，请先分配管控单元后再操作
+      operateDisabledRowUnassigned: 该主机未分配管控单元，请先分配管控单元后再操作
       assignUnitHostCount: "已选择 {count} 台主机"
       assignUnitSelectPlaceholder: 请选择目标管控单元
       assignUnitSuccessTitle: 分配管控单元完成
