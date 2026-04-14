@@ -15,7 +15,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -23,6 +25,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
@@ -39,6 +42,7 @@ const (
 type handler struct {
 	rg                  *gin.RouterGroup
 	storageConfigPolicy configpolicy.IStorage
+	authorizer          auth.IAuthorizer
 	goAsyncPool         goasync.IHandler
 }
 
@@ -52,6 +56,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		rg:                  rg.Group("/config"),
 		storageConfigPolicy: capability.StorageConfigPolicy,
+		authorizer:          capability.Authorizer,
 		goAsyncPool:         goAsyncPool,
 	}
 }
@@ -144,6 +149,13 @@ func (h *handler) GetConfigPolicy(rCtx restserver.IContext) (interface{}, error)
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// Check permission with biz resource.
+	resources := authRouter.BuildBizResources(configPolicy.BizID)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyView, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
+
 	resp := new(protoBackend.ConfigPolicyGetResp)
 	resp.ConvertConfigPolicyFromTypes(configPolicy)
 
@@ -157,6 +169,13 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create config policy, failed to decode request body")
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	// Check permission with biz resource.
+	resources := authRouter.BuildBizResources(req.GetBkBizId())
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyManage, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to create config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
 	}
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
@@ -187,6 +206,20 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	// Get config policy to check permission.
+	policies, err := h.getConfigPolicy(rCtx, []int64{req.GetConfigpolicyId()})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy, failed to get policy info")
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	// Check permission with biz resource.
+	resources := authRouter.BuildBizResources(policies[0].BizID)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyManage, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
+
 	configPolicy := req.ConvertConfigPolicyToTypes()
 	configPolicy.TenantID = rCtx.TenantID()
 	if err := h.storageConfigPolicy.UpdateConfigPolicy(rCtx, configPolicy); err != nil {
@@ -212,6 +245,20 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
+	// Get config policies to check permission.
+	policies, err := h.getConfigPolicy(rCtx, req.GetConfigpolicyId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable config policy, failed to get policy info")
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	// Check permission with biz resources.
+	bizIDs := h.getEnableConfigPolicyBizIDs(policies)
+	resources := authRouter.BuildBizResources(bizIDs...)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyManage, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to enable config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
 
 	if err := h.storageConfigPolicy.EnableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable config policy")
@@ -234,6 +281,21 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable config policy, failed to decode request body")
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	// Get config policies to check permission.
+	policies, err := h.getConfigPolicy(rCtx, req.GetConfigpolicyId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable config policy, failed to get policy info")
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	// Check permission with biz resources.
+	bizIDs := h.getDisableConfigPolicyBizIDs(policies)
+	resources := authRouter.BuildBizResources(bizIDs...)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyManage, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to disable config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
 	}
 
 	if err := h.storageConfigPolicy.DisableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
@@ -262,6 +324,13 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 	bizID := req.GetBkBizId()
 	policyType := types.ConfigPolicyType(req.GetConfigpolicyType())
 	orderedPolicyIDs := req.GetOrderedConfigpolicyId()
+
+	// Check permission with biz resource.
+	resources := authRouter.BuildBizResources(bizID)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyManage, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to reorder priorities for config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
 
 	// list all enabled config policies for this (biz, type) scope, ordered by priority ascending.
 	all, _, err := h.storageConfigPolicy.ListConfigPolicy(rCtx, types.UnlimitedPage(), &types.ConfigPolicyCondition{
@@ -330,6 +399,14 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// Check permission with biz resources.
+	bizIDs := h.getDeleteConfigPolicyBizIDs(configpolicy)
+	resources := authRouter.BuildBizResources(bizIDs...)
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyManage, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to delete config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
+
 	// delete the config policy.
 	if err := h.storageConfigPolicy.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy")
@@ -356,6 +433,13 @@ func (h *handler) PreviewConfigPolicy(rCtx restserver.IContext) (interface{}, er
 
 	policyType := types.ConfigPolicyType(req.GetPolicyType())
 	previewHosts := req.ConvertPreviewHostsToTypes()
+
+	// Check permission with biz resource.
+	resources := authRouter.BuildBizResources(req.GetBkBizId())
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyView, resources); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to preview config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
 
 	results, err := h.storageConfigPolicy.PreviewConfigPolicy(rCtx, req.GetBkBizId(), policyType, previewHosts)
 	if err != nil {
@@ -384,6 +468,13 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, failed to convert conditions")
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	// Check permission for history view.
+	// For event list operations, we check action-level permission without specific resource IDs.
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, nil); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list policy event, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
 	}
 
 	// only count.
@@ -438,6 +529,12 @@ func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct policy event, failed to convert conditions")
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	// Check permission for history view.
+	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, nil); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to distinct policy event, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
 	}
 
 	result, err := h.storageConfigPolicy.DistinctConfigPolicyEvent(
@@ -603,4 +700,34 @@ func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64
 	}
 
 	return configpolicies, nil
+}
+
+// getEnableConfigPolicyBizIDs extracts unique biz IDs from config policies for enable operation.
+func (h *handler) getEnableConfigPolicyBizIDs(policies []*types.ConfigPolicy) []int64 {
+	bizIDs := make(map[int64]struct{})
+	for _, p := range policies {
+		bizIDs[p.BizID] = struct{}{}
+	}
+
+	return conv.MapKeyToSlice(bizIDs)
+}
+
+// getDisableConfigPolicyBizIDs extracts unique biz IDs from config policies for disable operation.
+func (h *handler) getDisableConfigPolicyBizIDs(policies []*types.ConfigPolicy) []int64 {
+	bizIDs := make(map[int64]struct{})
+	for _, p := range policies {
+		bizIDs[p.BizID] = struct{}{}
+	}
+
+	return conv.MapKeyToSlice(bizIDs)
+}
+
+// getDeleteConfigPolicyBizIDs extracts unique biz IDs from config policies for delete operation.
+func (h *handler) getDeleteConfigPolicyBizIDs(policies []*types.ConfigPolicy) []int64 {
+	bizIDs := make(map[int64]struct{})
+	for _, p := range policies {
+		bizIDs[p.BizID] = struct{}{}
+	}
+
+	return conv.MapKeyToSlice(bizIDs)
 }

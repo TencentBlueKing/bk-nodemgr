@@ -43,7 +43,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 }
 
 // BuildBizResources constructs types.AuthResource slice for business IDs.
-func BuildBizResources(bizIDs []int64) []types.AuthResource {
+func BuildBizResources(bizIDs ...int64) []types.AuthResource {
 	resources := make([]types.AuthResource, 0, len(bizIDs))
 	for _, bizID := range bizIDs {
 		resources = append(resources, types.AuthResource{

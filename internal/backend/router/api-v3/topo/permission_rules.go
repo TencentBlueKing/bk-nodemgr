@@ -22,15 +22,15 @@ import (
 )
 
 var (
-	errNetworkUnitViewDeniedByEmptyScope  = errors.New("no authorized network units")
-	errNetworkAreaViewDeniedByEmptyScope  = errors.New("no authorized network areas")
-	errBizViewDeniedByEmptyScope          = errors.New("no authorized businesses")
-	errAccessPointViewDeniedByEmptyScope  = errors.New("no authorized access points")
+	errNetworkUnitViewDeniedByEmptyScope = errors.New("no authorized network units")
+	errNetworkAreaViewDeniedByEmptyScope = errors.New("no authorized network areas")
+	errBizViewDeniedByEmptyScope         = errors.New("no authorized businesses")
+	errAccessPointViewDeniedByEmptyScope = errors.New("no authorized access points")
 )
 
 // buildBizResources is deprecated. Use auth.BuildBizResources instead.
 func buildBizResources(bizIDs []int64) []types.AuthResource {
-	return authRouter.BuildBizResources(bizIDs)
+	return authRouter.BuildBizResources(bizIDs...)
 }
 
 // buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
@@ -169,6 +169,7 @@ func narrowNetworkUnitCondition(condition *types.NetworkUnitCondition, narrowedI
 func narrowNetworkUnitConditionByNetworkArea(
 	condition *types.NetworkUnitCondition, narrowedIDs []int64, scopeIsAny bool,
 ) *types.NetworkUnitCondition {
+
 	if scopeIsAny {
 		return condition
 	}

@@ -8,7 +8,7 @@ import (
 
 // buildBizResources is deprecated. Use auth.BuildBizResources instead.
 func buildBizResources(bizIDs []int64) []types.AuthResource {
-	return authRouter.BuildBizResources(bizIDs)
+	return authRouter.BuildBizResources(bizIDs...)
 }
 
 func buildBizIDsFromTypeHosts(hosts []*types.Host) []int64 {
