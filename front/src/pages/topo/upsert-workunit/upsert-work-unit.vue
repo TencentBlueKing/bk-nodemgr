@@ -471,7 +471,7 @@ const getWorkUnit = async () => {
   // 从缓存获取当前管控区的所有管控单元
   const workUnitList = workareaStore.allWorkUnitList.get(workareaId);
   // 找到当前管控单元数据
-  const curWorkUnit = workUnitList?.find((unit: NetworkUnit) => unit.bk_networkunit_id === props.workUnitId) as NetworkUnit;
+  const curWorkUnit = workUnitList?.find((unit: NetworkUnitDetail) => unit.bk_networkunit_id === props.workUnitId) as NetworkUnitDetail;
   isDirect.value = curWorkUnit.is_direct;
   // 数据回填
   form.tenant_id = curWorkUnit.tenant_id;

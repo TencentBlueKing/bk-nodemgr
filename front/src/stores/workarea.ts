@@ -1,23 +1,23 @@
 import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
-import { onUpdated, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 import usePage from '@/composables/use-page';
 
 import type {
   TopoEventListReq,
   TopoNetworkAreaCreateReq,
   TopoNetworkAreaListReq,
-  TopoNetworkAreaStaticsRespStaticsInfo,
+  TopoNetworkAreaStatisticsRespStatisticsInfo,
   TopoNetworkAreaUpdateReq,
 } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
 
-export type INetWorkArea = NetworkArea & TopoNetworkAreaStaticsRespStaticsInfo;
+export type INetWorkArea = NetworkArea & TopoNetworkAreaStatisticsRespStatisticsInfo;
 
 export const useWorkareaStore = defineStore('workarea', () => {
   const workareaList = ref<INetWorkArea[]>([]);
   const allWorkareaList = ref<Map<number, NetworkArea>>(new Map());
-  const allWorkUnitList = ref<Map<number, NetworkUnit[]>>(new Map());
+  const allWorkUnitList = ref<Map<number, NetworkUnitDetail[]>>(new Map());
   const allAccessPointList = ref<Map<number, AccessPoint[]>>(new Map());
 
   // 收藏的管控区域
@@ -29,7 +29,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const loading = ref(false);
   const pagination = reactive({ count: 0, limit: 10, current: 1 });
 
-  const { 
+  const {
     pagination: frontPagination,
     pageConf: frontPageConf,
   } = usePage(workareaList);
@@ -77,7 +77,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
         if (!aIsFavorite && bIsFavorite) return 1;
         return b.bk_networkarea_id - a.bk_networkarea_id;
       });
-      
+
       // 设置所有数据到store
       workareaList.value = allWorkareaList;
       pagination.count = result?.total || 0;
@@ -97,13 +97,13 @@ export const useWorkareaStore = defineStore('workarea', () => {
   // 获取当前页的统计信息（不重新请求管控区域数据）
   const handleFetchCurrentPageStatistics = async () => {
     if (workareaList.value.length === 0) return;
-    
+
     // 获取当前页的数据（分页切片）
     const startIndex = (frontPageConf.current - 1) * frontPageConf.limit;
     const endIndex = startIndex + frontPageConf.limit;
     const currentPageData = workareaList.value.slice(startIndex, endIndex);
     const currentPageWorkareaIds = currentPageData.map(item => item.bk_networkarea_id);
-    
+
     if (currentPageWorkareaIds.length > 0) {
       const countData = await handleFetchWorkareaInfoCount(currentPageWorkareaIds).catch(() => []);
       const lookup = keyBy(countData, 'bk_networkarea_id');
@@ -162,7 +162,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
       // 1. 第一次请求：获取所有基础列表数据
       const result = await TopoService.NetworkAreaList(params);
       const allWorkareaList = (result?.items as INetWorkArea[]) || [];
-      
+
       // 排序所有数据
       allWorkareaList.sort((a: INetWorkArea, b: INetWorkArea) => {
         // bk_networkarea_id为0的始终排在最前面
@@ -175,7 +175,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
         if (!aIsFavorite && bIsFavorite) return 1;
         return b.bk_networkarea_id - a.bk_networkarea_id;
       });
-      
+
       // 设置所有数据到store
       workareaList.value = allWorkareaList;
       pagination.count = result?.total || 0;
@@ -206,7 +206,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
       },
     };
     const result = await TopoService.NetworkAreaList(params).catch(() => {});
-    const list = result?.items.sort((a: INetWorkArea, b: INetWorkArea) => {
+    const list = ((result?.items || []) as INetWorkArea[]).sort((a: INetWorkArea, b: INetWorkArea) => {
       // bk_networkarea_id为0的始终排在最前面
       if (a.bk_networkarea_id === 0) return -1;
       if (b.bk_networkarea_id === 0) return 1;
@@ -216,7 +216,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
       if (aIsFavorite && !bIsFavorite) return -1;
       if (!aIsFavorite && bIsFavorite) return 1;
       return b.bk_networkarea_id - a.bk_networkarea_id;
-    }) || [];
+    });
     for (const area of list) {
       allWorkareaList.value.set(area.bk_networkarea_id, area);
     }
@@ -232,15 +232,33 @@ export const useWorkareaStore = defineStore('workarea', () => {
       items: [],
     }));
     const list = result?.items || [];
-    const accessPointList = [];
+
+    const accessPointIDs = [...new Set(list.flatMap(unit => unit.accesspoints || []))];
+    const accessPointResult = accessPointIDs.length > 0
+      ? await TopoService.AccessPointList({
+        page: { offset: 0, limit: accessPointIDs.length },
+        only_count: false,
+        exact_include_conditions: {
+          accesspoint_id: accessPointIDs,
+        },
+      }).catch(() => ({ total: 0, items: [] }))
+      : { total: 0, items: [] };
+    const accessPointMap = new Map<number, AccessPoint>((accessPointResult.items || [])
+      .map(item => [item.accesspoint_id, item]));
+
     for (const unit of list) {
-      accessPointList.push(...unit.accesspoints);
+      const detailUnit: NetworkUnitDetail = {
+        ...unit,
+        accesspoints: (unit.accesspoints || [])
+          .map(accessPointID => accessPointMap.get(accessPointID))
+          .filter((item): item is AccessPoint => !!item),
+      };
 
-      allAccessPointList.value.set(unit.bk_networkunit_id, unit.accesspoints);
+      allAccessPointList.value.set(detailUnit.bk_networkunit_id, detailUnit.accesspoints);
 
-      const units = allWorkUnitList.value.get(unit.bk_networkarea_id) || [];
-      units.push(unit);
-      allWorkUnitList.value.set(unit.bk_networkarea_id, units);
+      const units = allWorkUnitList.value.get(detailUnit.bk_networkarea_id) || [];
+      units.push(detailUnit);
+      allWorkUnitList.value.set(detailUnit.bk_networkarea_id, units);
     }
   };
 

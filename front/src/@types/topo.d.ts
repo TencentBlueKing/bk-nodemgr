@@ -221,7 +221,7 @@ export interface TopoNetworkUnitGetResp {
   code: number;
   message: string;
   request_id: string;
-  data: NetworkUnit;
+  data: NetworkUnitDetail;
 }
 
 // TopoNetworkUnitCreateReq describes the HTTP request body when create
@@ -264,8 +264,37 @@ export interface NetworkUnitUpdateFields {
 // TopoNetworkUnitUpdateReq describes the HTTP request body when update
 // network-unit in topo service.
 export interface TopoNetworkUnitUpdateReq {
-  networkunit: NetworkUnit;
+  networkunit: NetworkUnitDetail;
   fields: NetworkUnitUpdateFields;
+}
+
+// TopoAccessPointListReq describes the HTTP request body when list accesspoint
+// in topo service.
+export interface TopoAccessPointListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoAccessPointListReqExactConditions;
+}
+
+export interface TopoAccessPointListReqExactConditions {
+  bk_networkarea_id: number[];
+  accesspoint_id: number[];
+}
+
+// TopoAccessPointListResp describes the HTTP response body when list
+// accesspoint in topo service.
+export interface TopoAccessPointListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoAccessPointListRespData;
+}
+
+export interface TopoAccessPointListRespData {
+  total: number;
+  items: AccessPoint[];
 }
 
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update

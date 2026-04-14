@@ -135,10 +135,10 @@ const handleEditWorkUnit = () => {
 const isShowDelete = ref(false);
 
 const curWorkarea = ref<NetworkArea>();
-const workUnitList = ref<NetworkUnit[]>([]);
+const workUnitList = ref<NetworkUnitDetail[]>([]);
 
 // eslint-disable-next-line max-len
-const curWorkUnit = computed(() => workUnitList.value.find(unit => unit.bk_networkunit_id === active.value) as NetworkUnit);
+const curWorkUnit = computed(() => workUnitList.value.find(unit => unit.bk_networkunit_id === active.value) as NetworkUnitDetail);
 
 const handleAfterDelete = async () => {
   try {

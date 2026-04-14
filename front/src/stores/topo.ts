@@ -11,20 +11,7 @@ type NetworkArea = {
   // 其他区域字段...
 };
 
-type NetworkUnit = {
-  bk_networkunit_id: number;
-  bk_networkarea_id: number;
-  bk_networkunit_name: string;
-  is_direct: boolean;
-  direct_endpoints: any;
-  accesspoints: any[];
-  links: {
-    cluster?: { accesspoint_id?: number; bk_networkunit_id?: number; bk_networkarea_id?: number };
-    file?: any;
-    data?: any;
-  };
-  generation?: number;
-  custom_deploy_config?: Record<string, CustomDeployConfig>;
+type NetworkUnit = NetworkUnitDetail & {
   status?: string;
   latency?: number[];
   running_proxy: number;
@@ -76,9 +63,27 @@ export const useTopoStore = defineStore('topo', () => {
     }));
 
     const baseUnits = unitResult?.items || [];
+    const accessPointIDs = [...new Set(baseUnits.flatMap(unit => unit.accesspoints || []))];
+    const accessPointResult = accessPointIDs.length > 0
+      ? await TopoService.AccessPointList({
+        page: { offset: 0, limit: accessPointIDs.length },
+        only_count: false,
+        exact_include_conditions: {
+          accesspoint_id: accessPointIDs,
+        },
+      }).catch(() => ({ total: 0, items: [] }))
+      : { total: 0, items: [] };
+    const accessPointMap = new Map<number, AccessPoint>((accessPointResult.items || [])
+      .map(item => [item.accesspoint_id, item]));
+    const detailedUnits = baseUnits.map(unit => ({
+      ...unit,
+      accesspoints: (unit.accesspoints || [])
+        .map(accessPointID => accessPointMap.get(accessPointID))
+        .filter((item): item is AccessPoint => !!item),
+    }));
 
     // 2. 获取所有单元ID，用于请求 proxy 和 agent 数据
-    const allUnitIds = baseUnits.map(unit => unit.bk_networkunit_id);
+    const allUnitIds = detailedUnits.map(unit => unit.bk_networkunit_id);
     // 3. 请求 proxy 和 agent 数据（调用 handleFetchTopoWorkGraphInfo）
     await handleFetchTopoWorkGraphInfo(allUnitIds);
 
@@ -89,11 +94,16 @@ export const useTopoStore = defineStore('topo', () => {
     });
 
     // 5. 给基础单元数据补充 proxy 和 agent
-    const unitsWithProxyAgent = baseUnits.map((unit) => {
+    const unitsWithProxyAgent = detailedUnits.map((unit) => {
       const proxyAgent = unitProxyAgentMap.get(unit.bk_networkunit_id) || { proxy: 0, agent: 0 };
       return {
         ...unit,
-        ...proxyAgent,
+        running_proxy: proxyAgent.proxy,
+        total_proxy: proxyAgent.proxy,
+        running_agent: proxyAgent.agent,
+        total_agent: proxyAgent.agent,
+        is_healthy: true,
+        cycle_times: [],
       };
     });
 

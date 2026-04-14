@@ -82,6 +82,21 @@ interface NetworkUnit {
   bk_networkunit_id: number;
   bk_networkunit_name: string;
   bk_networkarea_id: number;
+  accesspoints: number[];
+  links: Links;
+  is_direct: boolean;
+  direct_endpoints: Endpoints;
+  generation: number;
+  custom_deploy_config: Record<string, CustomDeployConfig>;
+}
+
+// NetworkUnitDetail describes the network unit detail informations.
+// contains full access point objects.
+interface NetworkUnitDetail {
+  tenant_id: string;
+  bk_networkunit_id: number;
+  bk_networkunit_name: string;
+  bk_networkarea_id: number;
   accesspoints: AccessPoint[];
   links: Links;
   is_direct: boolean;
