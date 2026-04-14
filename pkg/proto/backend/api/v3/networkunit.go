@@ -566,22 +566,32 @@ func (x *TopoNetworkUnitListBriefResp) ConvertNetworkUnitsToTypes() (int64, []*t
 	result := make([]*types.NetworkUnit, len(items))
 	for idx, item := range items {
 		result[idx] = &types.NetworkUnit{
+			TenantID:      item.GetTenantId(),
 			NetworkAreaID: item.GetBkNetworkareaId(),
 			ID:            item.GetBkNetworkunitId(),
 			Name:          item.GetBkNetworkunitName(),
+			AccessPoints:  item.GetAccesspoints(),
+			Links:         convertLinksToTypes(item.GetLinks()),
+			IsDirect:      item.GetIsDirect(),
+			Generation:    types.Generation(item.GetGeneration()),
 		}
-	}
 
+	}
 	return data.GetTotal(), result
 }
 
 func convertNetworkUnitBriefFromTypes(networkUnit *types.NetworkUnit) *NetworkUnitBrief {
-	data := &NetworkUnitBrief{}
-	data.BkNetworkareaId = &networkUnit.NetworkAreaID
-	data.BkNetworkunitId = &networkUnit.ID
-	data.BkNetworkunitName = &networkUnit.Name
+	item := newEmptyNetworkUnitBrief()
+	*item.BkNetworkareaId = networkUnit.NetworkAreaID
+	*item.BkNetworkunitId = networkUnit.ID
+	*item.TenantId = networkUnit.TenantID
+	*item.BkNetworkunitName = networkUnit.Name
+	item.Accesspoints = networkUnit.AccessPoints
+	item.Links = convertLinksFromTypes(networkUnit.Links)
+	*item.IsDirect = networkUnit.IsDirect
+	*item.Generation = int64(networkUnit.Generation)
 
-	return data
+	return item
 }
 
 // ConvertNetworkUnitFromTypes convert networkunit from types to proto.
