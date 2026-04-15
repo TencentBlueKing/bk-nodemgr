@@ -20,6 +20,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// formatVersion returns formatted version info.
+func formatVersion() string {
+	return fmt.Sprintf("\nVersion: %s\nBuildTime: %s\nGitHash: %s\n", Version, BuildTime, CommitSHA)
+}
+
+var (
+	// Version is version info, injected at build time.
+	Version = "debug"
+
+	// CommitSHA is git commit hash, injected at build time.
+	CommitSHA = "unknown"
+
+	// BuildTime is build timestamp, injected at build time.
+	BuildTime = "unknown"
+)
+
 func main() {
 	if err := NewRootCommand().Execute(); err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -35,7 +51,7 @@ func NewRootCommand() *cobra.Command {
 		Short:        "installer",
 		Long:         "nodemgr installer",
 		SilenceUsage: true,
-		Version:      "1.0.0",
+		Version:      formatVersion(),
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			return nil
 		},

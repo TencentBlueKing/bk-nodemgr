@@ -34,9 +34,9 @@ func main() {
 	var configPath string
 
 	serverCmd := &cobra.Command{
-		Use:     "bk_nodeman_backend",
-		Short:   "bk-nodeman backend server",
-		Long:    "bk-nodeman backend server",
+		Use:     "bk_nodemgr_backend",
+		Short:   "bk-nodemgr backend server",
+		Long:    "bk-nodemgr backend server",
 		Version: version.FormatVersion(),
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())

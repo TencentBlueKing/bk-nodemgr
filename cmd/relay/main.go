@@ -33,9 +33,9 @@ func main() {
 	var configPath string
 
 	serverCmd := &cobra.Command{
-		Use:     "bk_nodeman_relay",
-		Short:   "bk-nodeman relay server",
-		Long:    "bk-nodeman relay server",
+		Use:     "bk_nodemgr_relay",
+		Short:   "bk-nodemgr relay server",
+		Long:    "bk-nodemgr relay server",
 		Version: version.FormatVersion(),
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())

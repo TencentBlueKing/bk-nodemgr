@@ -29,9 +29,9 @@ func main() {
 	var configPath string
 
 	serverCmd := &cobra.Command{
-		Use:     "bk_nodeman_mock_server",
-		Short:   "bk-nodeman mock-server",
-		Long:    "bk-nodeman mock-server for API testing supports CMDB",
+		Use:     "bk_nodemgr_mock_server",
+		Short:   "bk-nodemgr mock-server",
+		Long:    "bk-nodemgr mock-server for API testing supports CMDB",
 		Version: version.FormatVersion(),
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())
