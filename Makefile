@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front mock-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files
+.PHONY: tidy build test pre backend application adminclient file relay front mock-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files
 
 # Target platform for docker-build-server (optional)
 # Examples:
@@ -76,6 +76,11 @@ application: | pre
 	@$(ECHO) "Building application $(VERSION)..."
 	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-application $(ROOT_DIR)/cmd/application/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-application"
+
+adminclient: | pre
+	@$(ECHO) "Building adminclient $(VERSION)..."
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-adminclient $(ROOT_DIR)/cmd/adminclient/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-adminclient"
 
 file: | pre
 	@$(ECHO) "Building file $(VERSION)..."
@@ -200,7 +205,7 @@ compress-binary:
 		$(ECHO) "UPX compression disabled. Set UPX_ENABLED=1 to enable"; \
 	fi
 
-docker-build-server: backend application file front tools scripts bintools support-files
+docker-build-server: backend application file adminclient front tools scripts bintools support-files
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/bk-nodemgr/serviced.sh $(OUTPUT_DIR)
@@ -276,7 +281,7 @@ test: | pre
 	@$(CP) -R $(ROOT_DIR)/test/build/* $(OUTPUT_DIR)/test/ 2>/dev/null || true
 	@$(ECHO) "Built successfully test"
 
-all: backend application file relay front tools scripts bintools support-files test
+all: backend application adminclient file relay front tools scripts bintools support-files test
 
 clean:
 	@$(ECHO) "Cleaning build directory..."

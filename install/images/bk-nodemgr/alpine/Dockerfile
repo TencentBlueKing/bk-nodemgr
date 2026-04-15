@@ -31,6 +31,7 @@ RUN mkdir -p \
 COPY bk-nodemgr-backend /bk-nodemgr/bin/
 COPY bk-nodemgr-application /bk-nodemgr/bin/
 COPY bk-nodemgr-file /bk-nodemgr/bin/
+COPY bk-nodemgr-adminclient /bk-nodemgr/bin/
 COPY serviced.sh /bk-nodemgr/bin/
 COPY scripts/manual/ /bk-nodemgr/script/manual
 COPY scripts/ops/ /bk-nodemgr/script/ops
