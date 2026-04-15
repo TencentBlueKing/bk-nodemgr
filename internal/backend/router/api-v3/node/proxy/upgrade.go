@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -50,7 +51,7 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, failed to generate node deployments")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	resources := buildBizResources(bizIDs)
+	resources := authRouter.BuildBizResources(bizIDs...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to upgrade proxy, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)

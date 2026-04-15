@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -39,9 +40,10 @@ func narrowAuthorizedHistoryResourceIDs(
 	action auth.Action,
 	resourceType types.AuthResourceType,
 	requestedIDs []int64,
-	buildResources func([]int64) []types.AuthResource,
+	buildResources func(...int64) []types.AuthResource,
 	emptyScopeErr error,
 ) ([]int64, bool, error) {
+
 	scope, err := authorizer.ListAuthorizedInstances(rCtx, action, resourceType)
 	if err != nil {
 		return nil, false, err
@@ -65,7 +67,7 @@ func narrowAuthorizedHistoryResourceIDs(
 	}
 
 	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
-		if checkErr := authorizer.Check(rCtx, action, buildResources(requestedIDs)); checkErr != nil {
+		if checkErr := authorizer.Check(rCtx, action, buildResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
 	}
@@ -79,6 +81,7 @@ func narrowTopoEventCondition(
 	narrowNetworkUnitIDs topoEventIDNarrower,
 	narrowAccessPointIDs topoEventIDNarrower,
 ) (*types.TopoEventCondition, error) {
+
 	if condition == nil {
 		condition = &types.TopoEventCondition{}
 	}
@@ -120,13 +123,14 @@ func narrowTopoEventCondition(
 func (h *handler) narrowAuthorizedNetworkUnitHistoryIDs(
 	rCtx restserver.IContext, requestedIDs []int64,
 ) ([]int64, bool, error) {
+
 	return narrowAuthorizedHistoryResourceIDs(
 		rCtx,
 		h.authorizer,
 		auth.ActionNetworkUnitHistoryView,
 		types.AuthResourceTypeNetworkUnit,
 		requestedIDs,
-		buildNetworkUnitResources,
+		authRouter.BuildNetworkUnitResources,
 		errNetworkUnitHistoryViewDeniedByEmptyScope,
 	)
 }
@@ -134,6 +138,7 @@ func (h *handler) narrowAuthorizedNetworkUnitHistoryIDs(
 func (h *handler) narrowAuthorizedNetworkAreaHistoryIDs(
 	rCtx restserver.IContext, requestedIDs []int64,
 ) ([]int64, bool, error) {
+
 	return narrowAuthorizedHistoryResourceIDs(
 		rCtx,
 		h.authorizer,
@@ -148,6 +153,7 @@ func (h *handler) narrowAuthorizedNetworkAreaHistoryIDs(
 func (h *handler) narrowAuthorizedAccessPointHistoryIDs(
 	rCtx restserver.IContext, requestedIDs []int64,
 ) ([]int64, bool, error) {
+
 	// AccessPoint authorization is anchored to NetworkUnit history scope.
 	var targetNetworkUnitIDs []int64
 	if len(requestedIDs) > 0 {
@@ -190,7 +196,7 @@ func (h *handler) narrowAuthorizedAccessPointHistoryIDs(
 
 	narrowedIDs := conv.SliceIntersect(requestedIDs, authorizedAccessPointIDs)
 	if len(narrowedIDs) == 0 && len(targetNetworkUnitIDs) > 0 {
-		resources := buildNetworkUnitResources(targetNetworkUnitIDs)
+		resources := authRouter.BuildNetworkUnitResources(targetNetworkUnitIDs...)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitHistoryView, resources); checkErr != nil {
 			return nil, false, checkErr
 		}

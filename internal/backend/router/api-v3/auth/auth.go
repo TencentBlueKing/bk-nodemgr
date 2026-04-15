@@ -57,7 +57,7 @@ func BuildBizResources(bizIDs ...int64) []types.AuthResource {
 }
 
 // BuildNetworkUnitResources constructs types.AuthResource slice for network unit IDs.
-func BuildNetworkUnitResources(networkUnitIDs []int64) []types.AuthResource {
+func BuildNetworkUnitResources(networkUnitIDs ...int64) []types.AuthResource {
 	resources := make([]types.AuthResource, 0, len(networkUnitIDs))
 	for _, id := range networkUnitIDs {
 		resources = append(resources, types.AuthResource{

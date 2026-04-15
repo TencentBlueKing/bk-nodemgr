@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -48,7 +49,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit, network area validation failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	networkUnitResource := buildNetworkUnitResources([]int64{networkUnit.ID})
+	networkUnitResource := authRouter.BuildNetworkUnitResources([]int64{networkUnit.ID}...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitUseForAgent, networkUnitResource); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to assign unit, networkunit permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
@@ -61,7 +62,7 @@ func (h *handler) AgentAssignUnit(rCtx restserver.IContext) (interface{}, error)
 	for bizID := range bizIDMap {
 		bizIDs = append(bizIDs, bizID)
 	}
-	resources := buildBizResources(bizIDs)
+	resources := authRouter.BuildBizResources(bizIDs...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to assign unit, agent operate permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
