@@ -23,8 +23,8 @@ import (
 // NewRootCMD creates the root command for the admin client.
 func NewRootCMD(handlerFactory func(configPath string) (backendadmin.IHandler, error)) *cobra.Command {
 	rootCMD := &cobra.Command{
-		Use:     "bk-nodeman-adminclient",
-		Short:   "bk-nodeman admin client",
+		Use:     "bk-nodemgr-adminclient",
+		Short:   "bk-nodemgr admin client",
 		Version: version.FormatVersion(),
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())

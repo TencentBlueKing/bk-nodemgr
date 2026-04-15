@@ -45,7 +45,7 @@ const (
 	defaultFileDownloadTraceServiceName = "file-server-download"
 	defaultFileDownloadIdentity         = AuthIdentityNone
 
-	defaultFileLogDir        = "/bk-nodeman/log/"
+	defaultFileLogDir        = "/bk-nodemgr/log/"
 	defaultFileLogMaxNum     = 10
 	defaultFileLogMaxSizeMB  = 200
 	defaultFileLogLevel      = "INFO"
@@ -58,7 +58,7 @@ const (
 	defaultFileEtcdUsername = "root"
 	defaultFileEtcdPassword = ""
 
-	defaultFileWorkspaceGroupFullPath = "/bk-nodeman/file/"
+	defaultFileWorkspaceGroupFullPath = "/bk-nodemgr/file/"
 
 	defaultFileCacheExpirationHours = 72
 	defaultFileCacheGCIntervalHours = 1

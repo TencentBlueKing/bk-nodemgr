@@ -25,7 +25,7 @@ func TestNewRootCMDRegistersBackendSubcommand(t *testing.T) {
 	})
 
 	require.NotNil(t, cmd)
-	assert.Equal(t, "bk-nodeman-adminclient", cmd.Use)
+	assert.Equal(t, "bk-nodemgr-adminclient", cmd.Use)
 	assert.NotNil(t, findSubcommand(cmd, "backend"))
 }
 

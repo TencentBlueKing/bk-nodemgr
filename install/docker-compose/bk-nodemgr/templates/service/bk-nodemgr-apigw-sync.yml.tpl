@@ -2,7 +2,7 @@
 name: bk-nodemgr-apigw-sync
 
 services:
-  image: mirrors.tencent.com/bk-nodeman/bk-nodemgr-apigw-sync:stage
+  image: mirrors.tencent.com/bk-nodemgr/bk-nodemgr-apigw-sync:stage
   network_mode: host
   environment:
     - BK_APIGW_NAME=bk-nodemgr
