@@ -9,9 +9,10 @@
 **步骤**:
 
 1. 确认需要编写的 API 范围
-2. 阅读模板规范 (`docs/developer/api_doc_template.md`)
-3. 查看示例参考 (`docs/developer/api_doc_example*.md`)
-4. 确定使用哪种模板变体
+2. **明确中英文分离要求**: 每个 API 必须生成 2 个文档（中文版 + 英文版）
+3. 阅读模板规范 (`docs/developer/api_doc_template.md`)
+4. 查看示例参考 (`docs/developer/api_doc_example*.md`)
+5. 确定使用哪种模板变体
 
 ## 阶段 2: 收集技术资料
 
@@ -27,11 +28,11 @@
     - 位置: `pkg/types/*.go`
     - 关注点: 业务模型结构、枚举类型和常量、验证逻辑和约束规则
 
-3. **阅读概念文档** (推荐)
+3. **阅读概念文档** (必读)
     - 位置: `docs/concepts/`
     - 关注点: 业务概念、术语、使用场景
 
-4. **查看实现代码** (可选)
+4. **查看实现代码** (必读)
     - 位置: `internal/backend/router/api-v3/`
     - 关注点: 参数校验逻辑、业务处理流程
 
@@ -52,6 +53,7 @@
 **步骤**:
 
 1. **编写描述部分**
+
    ```markdown
    ### 描述
 
@@ -59,39 +61,43 @@
    - 该接口所需权限: action_id（中文名）、action_id2（中文名2）。
    - 该接口功能描述: [一句话说明]
    ```
-   
+
    **权限格式说明**:
-   - 格式: `action_id（中文名）`
-   - 多个权限用顿号分隔: `action1（名称1）、action2（名称2）`
-   - 示例: `agent_operate（操作Agent）、networkunit_use_for_agent（使用网络单元部署Agent）`
-   - 无权限要求时写: `无`
-   - 查找方法:
-     1. 在 handler 代码中搜索 `h.authorizer.Check` 调用
-     2. 找到 `auth.ActionXxx` 常量
-     3. 在 `internal/backend/auth/action.go` 中查找对应的 action_id 和中文名
-     4. ActionDisplayName 函数返回中文名
+    - 格式: `action_id（中文名）`
+    - 多个权限用顿号分隔: `action1（名称1）、action2（名称2）`
+    - 示例: `agent_operate（操作Agent）、networkunit_use_for_agent（使用网络单元部署Agent）`
+    - 无权限要求时写: `无`
+    - 查找方法:
+        1. 在 handler 代码中搜索 `h.authorizer.Check` 调用
+        2. 找到 `auth.ActionXxx` 常量
+        3. 在 `internal/backend/auth/action.go` 中查找对应的 action_id 和中文名
+        4. ActionDisplayName 函数返回中文名
 
-2. **编写 URL**
-   ```markdown
-   ### URL
+2. **获取文件名和版本号**
 
-   POST /api/v3/[service]/[resource]/[method]
+   ```bash
+   # 获取正确的文件名
+   .claude/skills/api-doc/scripts/get_doc_filename.py <url> [method]
+
+   # 获取当前版本号
+   .claude/skills/api-doc/scripts/get_version.sh
    ```
 
-3. **编写输入参数表格**
+3. **编写 URL**
+4. **编写输入参数表格**
     - 顶层参数表格
     - 嵌套对象的子表格（使用 #### 标题）
     - 多态参数详细说明每种类型的结构
 
-4. **编写调用示例**
+5. **编写调用示例**
     - 提供真实可用的 JSON 示例
     - 对于复杂 API，提供多个场景的示例
 
-5. **编写响应示例**
+6. **编写响应示例**
     - 提供成功响应的完整 JSON
     - 包含所有重要字段
 
-6. **编写响应参数说明**
+7. **编写响应参数说明**
     - 顶层响应字段表格
     - data 对象的字段表格
     - 嵌套对象的详细说明
@@ -276,15 +282,19 @@ serena.find_symbol("SpecifyPluginParam", relative_path="pkg/types", include_body
 
 ### 准确性检查
 
-- [ ] 字段名称与 proto 定义一致
-- [ ] 字段类型与 proto 定义一致
-- [ ] 枚举值完整且正确
-- [ ] URL 路径正确
-- [ ] HTTP 方法正确
+- [ ] 文件名正确（运行 `.claude/skills/api-doc/scripts/get_doc_filename.py` 确认）
+- [ ] 版本号正确（运行 `.claude/skills/api-doc/scripts/get_version.sh` 确认）
+- [ ] 中英文文档都已生成（每个 API 应有 2 个文件）
 
 ### 完整性检查
 
 - [ ] 所有必填字段都已说明
+
+### 文件结构检查
+
+- [ ] 中文文档已生成到 `apigw/apidocs/zh/`
+- [ ] 英文文档已生成到 `apigw/apidocs/en/`
+- [ ] 文件名与 swagger operationId 一致
 - [ ] 所有可选字段都已说明
 - [ ] 嵌套对象结构完整
 - [ ] 多态参数的所有类型都已说明
