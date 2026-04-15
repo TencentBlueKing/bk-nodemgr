@@ -139,7 +139,7 @@
 <script setup lang="ts">
 import { Button, Loading, OverflowTitle, Popover, Select } from 'bkui-vue';
 import { throttle } from 'lodash';
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -207,6 +207,11 @@ const sortedNetWorkAreaList = computed(() => [...netWorkAreaList.value].sort((a,
   // 其他情况按ID从大到小排序
   return b.bk_networkarea_id - a.bk_networkarea_id;
 }));
+
+// 监听选择状态变化，持久化到 localStorage
+watch(regionList, (newVal) => {
+  localStorage.setItem('selected_workarea', JSON.stringify(newVal));
+}, { deep: true });
 
 // 收藏管控区域
 const collectList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
@@ -1056,11 +1061,19 @@ onMounted(async () => {
   // 确保收藏状态同步
   workareaStore.syncFavoriteWorkareaList();
 
-  // 如果有收藏的管控区域，则选中收藏的区域，否则选中所有区域
-  if (workareaStore.favoriteWorkareaList.length > 0) {
-    regionList.value = workareaStore.favoriteWorkareaList.map(id => Number(id));
+  // 恢复用户的选择状态（优先从 localStorage 读取）
+  const savedSelection = localStorage.getItem('selected_workarea');
+  if (savedSelection) {
+    try {
+      regionList.value = JSON.parse(savedSelection);
+    } catch (err) {
+      console.error('Failed to parse saved selection:', err);
+      // 如果解析失败，默认选中 ID=0 的默认区域
+      regionList.value = [0];
+    }
   } else {
-    regionList.value = ['all'];
+    // 如果没有保存的选择状态，默认选中 ID=0 的默认区域
+    regionList.value = [0];
   }
   try {
     // 注册插件
