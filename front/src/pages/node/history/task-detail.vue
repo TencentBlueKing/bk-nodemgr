@@ -1046,7 +1046,7 @@ const getNetworkAreaList = async () => {
 };
 // 管控单元下拉列表获取
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkunit_id: [],
     },

@@ -6,6 +6,7 @@ import { BaseNode } from '@antv/g6';
 
 import Downstream from '../../../../../public/images/downstream.svg';
 import { tableTooltip } from './table-tooltip';
+import { authCursor } from './auth-cursor';
 
 export interface IAccessPointData {
   name: string;
@@ -15,6 +16,8 @@ export interface IAccessPointData {
   bk_networkunit_id?: number;
   endpoints?: any;
   endpointsData?: any[];
+  has_unit_auth?: boolean;
+  bk_accesspoint_id?: number;
 }
 
 export default class AccessPointNode extends BaseNode {
@@ -232,6 +235,53 @@ export default class AccessPointNode extends BaseNode {
     }
   }
 
+  // 绘制无权限遮罩：星号展示 + hover 锁图标 + 点击申请权限
+  private drawAuthOverlay(container: Group) {
+    const width = this.getCalculatedWidth;
+    const height = AccessPointNode.nodeHeight;
+
+    // 半透明遮罩
+    const overlayEl = this.upsert('auth-ap-overlay', GRect, {
+      x: 0,
+      y: 0,
+      width,
+      height,
+      fill: 'rgba(255, 255, 255, 0.6)',
+      radius: 99,
+      cursor: 'pointer',
+      className: 'auth-view-btn',
+    }, container);
+
+    // 星号文字
+    this.upsert('auth-ap-star', GText, {
+      x: width / 2,
+      y: height / 2,
+      text: '***',
+      fontSize: 12,
+      fill: '#c4c6cc',
+      textAlign: 'center',
+      textBaseline: 'middle',
+      cursor: 'pointer',
+    }, container);
+
+    // 绑定 hover 锁 + 点击事件（仅绑定一次）
+    if (overlayEl && !(overlayEl as any).__bindAuthEvents) {
+      (overlayEl as any).__bindAuthEvents = true;
+
+      overlayEl.addEventListener('mouseenter', (e: any) => {
+        authCursor.show(e.clientX, e.clientY);
+      });
+
+      overlayEl.addEventListener('mousemove', (e: any) => {
+        authCursor.move(e.clientX, e.clientY);
+      });
+
+      overlayEl.addEventListener('mouseleave', () => {
+        authCursor.hide();
+      });
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public render(attr: Required<BaseNodeStyleProps>, container: Group) {
     super.render(attr, container);
@@ -241,5 +291,10 @@ export default class AccessPointNode extends BaseNode {
     this.drawAPLabel(container);
     this.drawAccessPointName(container);
     this.drawInfoIcon(container);
+
+    // 无权限时绘制遮罩和锁
+    if (this.data.has_unit_auth === false) {
+      this.drawAuthOverlay(container);
+    }
   }
 }

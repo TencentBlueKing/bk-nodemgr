@@ -11,7 +11,8 @@ type NetworkArea = {
   // 其他区域字段...
 };
 
-type NetworkUnit = NetworkUnitDetail & {
+type NetworkUnit = Omit<NetworkUnitBrief, 'accesspoints'> & {
+  accesspoints: AccessPointBrief[];
   status?: string;
   latency?: number[];
   running_proxy: number;
@@ -37,6 +38,9 @@ export const useTopoStore = defineStore('topo', () => {
     agent: number;
   }[]>([]);
 
+  // 有权限的接入点完整信息（含 endpoints），key = accesspoint_id
+  const accessPointDetailMap = ref<Map<number, AccessPoint>>(new Map());
+
   const handleFetchTopoWorkareaList = async () => {
     const params: Partial<TopoNetworkAreaListReq> = {
       page: {
@@ -50,10 +54,11 @@ export const useTopoStore = defineStore('topo', () => {
     workareaTotalCount.value = result.total;
   };
 
-  // 根据区域获取单元 + 补充 proxy 和 agent 数据（核心修改）
-  const handleFetchAllWorkUnit = async (ids: number[] = []) => {
-    // 1. 请求单元基础数据
-    const unitResult = await TopoService.NetworkUnitList({
+  // 根据区域获取单元 + 补充 proxy 和 agent 数据
+  // authorizedUnitIds: null = 全部有权限（isAny），string[] = 有权限的单元 ID 列表
+  const handleFetchAllWorkUnit = async (ids: number[] = [], authorizedUnitIds: string[] | null = []) => {
+    // 1. 请求单元基础数据（Brief，不含 direct_endpoints/custom_deploy_config）
+    const unitResult = await TopoService.NetworkUnitListBrief({
       exact_include_conditions: {
         bk_networkarea_id: ids,
       },
@@ -63,47 +68,84 @@ export const useTopoStore = defineStore('topo', () => {
     }));
 
     const baseUnits = unitResult?.items || [];
-    const accessPointIDs = [...new Set(baseUnits.flatMap(unit => unit.accesspoints || []))];
-    const accessPointResult = accessPointIDs.length > 0
-      ? await TopoService.AccessPointList({
-        page: { offset: 0, limit: accessPointIDs.length },
-        only_count: false,
-        exact_include_conditions: {
-          accesspoint_id: accessPointIDs,
-        },
-      }).catch(() => ({ total: 0, items: [] }))
-      : { total: 0, items: [] };
-    const accessPointMap = new Map<number, AccessPoint>((accessPointResult.items || [])
-      .map(item => [item.accesspoint_id, item]));
+    // null 表示全部有权限
+    const allAuthorized = authorizedUnitIds === null;
+    const authorizedSet = new Set((authorizedUnitIds || []).map(Number));
+
+    // 2. 按权限分组接入点 ID
+    const authorizedApIds: number[] = [];
+    const unauthorizedApIds: number[] = [];
+    baseUnits.forEach((unit) => {
+      (unit.accesspoints || []).forEach((apId) => {
+        if (allAuthorized || authorizedSet.has(unit.bk_networkunit_id)) {
+          authorizedApIds.push(apId);
+        } else {
+          unauthorizedApIds.push(apId);
+        }
+      });
+    });
+    const uniqueAuthorizedApIds = [...new Set(authorizedApIds)];
+    const uniqueUnauthorizedApIds = [...new Set(unauthorizedApIds)].filter(id => !uniqueAuthorizedApIds.includes(id));
+
+    // 3. 有权限的接入点用 AccessPointList（含 endpoints），无权限的用 AccessPointListBrief
+    const [authorizedApResult, unauthorizedApResult] = await Promise.all([
+      uniqueAuthorizedApIds.length > 0
+        ? TopoService.AccessPointList({
+          page: { offset: 0, limit: uniqueAuthorizedApIds.length },
+          only_count: false,
+          exact_include_conditions: { accesspoint_id: uniqueAuthorizedApIds },
+        }).catch(() => ({ total: 0, items: [] }))
+        : { total: 0, items: [] },
+      uniqueUnauthorizedApIds.length > 0
+        ? TopoService.AccessPointListBrief({
+          page: { offset: 0, limit: uniqueUnauthorizedApIds.length },
+          only_count: false,
+          exact_include_conditions: { accesspoint_id: uniqueUnauthorizedApIds },
+        }).catch(() => ({ total: 0, items: [] }))
+        : { total: 0, items: [] },
+    ]);
+
+    // 4. 合并接入点信息（AccessPointBrief 是 AccessPoint 的子集，兼容）
+    const accessPointMap = new Map<number, AccessPointBrief>();
+    const newDetailMap = new Map<number, AccessPoint>();
+    (authorizedApResult.items || []).forEach((item: AccessPoint) => {
+      accessPointMap.set(item.accesspoint_id, item);
+      newDetailMap.set(item.accesspoint_id, item);
+    });
+    (unauthorizedApResult.items || []).forEach((item: AccessPointBrief) => {
+      accessPointMap.set(item.accesspoint_id, item);
+    });
+    accessPointDetailMap.value = newDetailMap;
+
     const detailedUnits = baseUnits.map(unit => ({
       ...unit,
       accesspoints: (unit.accesspoints || [])
         .map(accessPointID => accessPointMap.get(accessPointID))
-        .filter((item): item is AccessPoint => !!item),
+        .filter((item): item is AccessPointBrief => !!item),
     }));
 
     // 2. 获取所有单元ID，用于请求 proxy 和 agent 数据
     const allUnitIds = detailedUnits.map(unit => unit.bk_networkunit_id);
     // 3. 请求 proxy 和 agent 数据（调用 handleFetchTopoWorkGraphInfo）
-    await handleFetchTopoWorkGraphInfo(allUnitIds);
+    await handleFetchTopoWorkGraphInfo(allUnitIds).catch(() => {});
 
-    // 4. 构建单元ID到 proxy/agent 的映射（方便快速查找）
-    const unitProxyAgentMap = new Map<number, { proxy: number; agent: number }>();
+    // 4. 构建单元ID到 graph info 的映射（方便快速查找）
+    const unitGraphInfoMap = new Map<number, any>();
     allWorkGraphInfos.value.forEach((info) => {
-      unitProxyAgentMap.set(info.bk_networkunit_id, info);
+      unitGraphInfoMap.set(info.bk_networkunit_id, info);
     });
 
-    // 5. 给基础单元数据补充 proxy 和 agent
+    // 5. 给基础单元数据补充 proxy、agent、延迟等信息
     const unitsWithProxyAgent = detailedUnits.map((unit) => {
-      const proxyAgent = unitProxyAgentMap.get(unit.bk_networkunit_id) || { proxy: 0, agent: 0 };
+      const graphInfo = unitGraphInfoMap.get(unit.bk_networkunit_id) || {};
       return {
         ...unit,
-        running_proxy: proxyAgent.proxy,
-        total_proxy: proxyAgent.proxy,
-        running_agent: proxyAgent.agent,
-        total_agent: proxyAgent.agent,
-        is_healthy: true,
-        cycle_times: [],
+        running_proxy: graphInfo.running_proxy ?? 0,
+        total_proxy: graphInfo.total_proxy ?? 0,
+        running_agent: graphInfo.running_agent ?? 0,
+        total_agent: graphInfo.total_agent ?? 0,
+        is_healthy: graphInfo.is_healthy ?? true,
+        cycle_times: graphInfo.cycle_times ?? [],
       };
     });
 
@@ -138,18 +180,19 @@ export const useTopoStore = defineStore('topo', () => {
       }
     });
 
-    // 第二次遍历：构建接入点数据
+    // 第二次遍历：构建接入点数据（合并 detail 中的 endpoints）
     workUnitByArea.value.forEach((unit) => {
       if (unit.accesspoints && unit.accesspoints.length > 0) {
         unit.accesspoints.forEach((apInfo) => {
           const downstreamUnits = accessPointUnitCount.get(apInfo.accesspoint_id) || 0;
+          const detail = accessPointDetailMap.value.get(apInfo.accesspoint_id);
           accessPoints.push({
             id: `accessPoint-${apInfo.accesspoint_id}`,
             bk_accesspoint_id: apInfo.accesspoint_id,
             name: apInfo.accesspoint_name,
-            bk_networkarea_id: unit.bk_networkarea_id,
+            bk_networkarea_id: apInfo.bk_networkarea_id || unit.bk_networkarea_id,
             bk_networkunit_id: unit.bk_networkunit_id,
-            endpoints: apInfo.endpoints || {},
+            endpoints: detail?.endpoints || null,
             downstreamUnits,
             type: 'internal',
           });
@@ -165,11 +208,6 @@ export const useTopoStore = defineStore('topo', () => {
     bk_server_id: item.bk_networkarea_id,
     name: `server-${item.bk_networkarea_id}`,
     bk_networkarea_id: 0,
-    endpoints: {
-      cluster: item.direct_endpoints.cluster,
-      file: item.direct_endpoints.file,
-      data: item.direct_endpoints.data,
-    },
   })));
 
   const areaDependencyMap = computed(() => {
@@ -241,6 +279,7 @@ export const useTopoStore = defineStore('topo', () => {
     allWorkareaList,
     workUnitByArea,
     accessPointData,
+    accessPointDetailMap,
     serverData,
     areaDependencyMap,
     workareaTotalCount,

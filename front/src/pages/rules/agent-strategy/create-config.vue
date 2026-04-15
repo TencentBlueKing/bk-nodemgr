@@ -311,11 +311,11 @@ const handleSingleChange = (item: any, id: string, rows: any[]) => {
   item.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
 // 管控单元下拉列表获取
-const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitList = ref<NetworkUnitBrief[]>([]);
 // eslint-disable-next-line max-len
 const filterNetworkUnitList = (id: number | string) => networkUnitList.value.filter((item: NetworkUnit) => item.bk_networkarea_id === Number(id) || item.bk_networkunit_id === -1);
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({}).catch(() => ({
+  const res = await TopoService.NetworkUnitListBrief({}).catch(() => ({
     total: 0,
     items: [],
   }));

@@ -4,7 +4,15 @@
       <template #left>
         <div class="flex items-center">
           <!-- 新建 -->
-          <Button theme="primary" class="mr-[8px]" @click="handleCreateWorkarea">
+          <Button
+            theme="primary"
+            class="mr-[8px]"
+            :class="{ 'unAuthorized': !hasCreateAuth }"
+            @click="hasCreateAuth ? handleCreateWorkarea() : createAuthClick($event)"
+            @mouseenter="createMouseEnter($event, hasCreateAuth)"
+            @mousemove="createMouseMove($event, hasCreateAuth)"
+            @mouseleave="createMouseLeave()"
+          >
             <i class="nodeman-icon nc-plus-line mr-[4.5px]"></i>
             <span>{{ $t('action.create') }}</span>
           </Button>
@@ -58,9 +66,17 @@ import type {
 import { TopoService } from '@/api/modules/topo';
 import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
+import { useAuthStore } from '@/stores/auth';
+import useAuthLock from '@/composables/use-auth-lock';
 
 const { t } = useI18n();
+const authStore = useAuthStore();
 const workareaStore = useWorkareaStore();
+
+// networkarea_create permission
+const { hasAuth: hasCreateAuth, handleMouseEnter: createMouseEnter, handleMouseMove: createMouseMove, handleMouseLeave: createMouseLeave, handleAuthClick: createAuthClick } = useAuthLock(
+  'networkarea_create', () => undefined, { resourceType: 'networkarea' },
+);
 
 // 新增/修改 workarea dialog
 const showUpsertWorkarea = ref(false);

@@ -22,6 +22,8 @@ export interface NodeWorkflowExactConditions {
   bk_biz_id: number[];
   status: string[];
   operator: string[];
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
 }
 
 // NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow

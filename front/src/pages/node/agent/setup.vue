@@ -291,7 +291,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Dialog, Form, Input, Message, Popover, Upload } from 'bkui-vue';
+import { Button, Dialog, Form, Input, Message, Popover, Select, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce, isEqual  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
@@ -463,9 +463,9 @@ const handleSingleChange = (id: string, rows: any[]) => {
 };
 
 // 管控单元下拉列表获取
-const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitList = ref<NetworkUnitBrief[]>([]);
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkarea_id: [Number(formData.bk_networkarea_id)],
     },

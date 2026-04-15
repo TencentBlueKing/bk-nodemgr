@@ -178,7 +178,7 @@ const formData = ref({
   graceful_restart_timeout_sec: 0,
 });
 
-const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitList = ref<NetworkUnitBrief[]>([]);
 const unitLoading = ref(false);
 
 const bk_networkarea_id = computed(() => {
@@ -192,7 +192,7 @@ const getNetworkUnitList = async () => {
   const areaId = bk_networkarea_id.value;
   if (!areaId) return;
   unitLoading.value = true;
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkarea_id: [areaId],
     },

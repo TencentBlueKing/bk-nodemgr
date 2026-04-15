@@ -20,6 +20,8 @@ export interface PluginWorkflowExactConditions {
   bk_host_id: number[];
   status: string[];
   operator: string[];
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
 }
 
 // PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin

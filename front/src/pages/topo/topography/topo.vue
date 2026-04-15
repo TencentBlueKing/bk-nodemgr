@@ -1,6 +1,15 @@
 <template>
   <Loading mode="spin" theme="primary" :loading="isLoading">
-    <div :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
+    <!-- 无权限页面 -->
+    <div v-if="noAreaPermission" class="forbidden-page">
+      <img class="forbidden-img" src="/images/403.png" alt="403">
+      <div class="forbidden-title">{{ $t('components.permission.noPermission') }}</div>
+      <Button theme="primary" @click="handleApplyAreaPermission">
+        {{ $t('components.permission.apply') }}
+      </Button>
+    </div>
+    <!-- 有权限：正常 topo 图 -->
+    <div v-else :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
       <!-- 下拉选择器 -->
       <Select
         class="w-[240px] absolute z-[2] m-[24px]"
@@ -13,11 +22,11 @@
         show-all
         @change="handleSelectChange"
       >
-        <Select.Group :label="$t('topoManager.topo.select.default')">
+        <Select.Group v-if="defaultNetWorkarea" :label="$t('topoManager.topo.select.default')">
           <Select.Option
-            :key="defaultNetWorkarea?.bk_networkarea_id"
-            :id="defaultNetWorkarea?.bk_networkarea_id"
-            :name="defaultNetWorkarea?.bk_networkarea_name"
+            :key="defaultNetWorkarea.bk_networkarea_id"
+            :id="defaultNetWorkarea.bk_networkarea_id"
+            :name="defaultNetWorkarea.bk_networkarea_name"
           >
             <div class="w-[180px] flex">
               <Button
@@ -27,7 +36,7 @@
                 </i>
               </Button>
               <span>
-                {{ `[${defaultNetWorkarea?.bk_networkarea_id}] ${defaultNetWorkarea?.bk_networkarea_name}` }}
+                {{ `[${defaultNetWorkarea.bk_networkarea_id}] ${defaultNetWorkarea.bk_networkarea_name}` }}
               </span>
             </div>
           </Select.Option>
@@ -38,32 +47,40 @@
             :key="item.bk_networkarea_id"
             :id="item.bk_networkarea_id"
             :name="item.bk_networkarea_name"
+            v-bk-tooltips="{
+              content: isAreaAuthorized(item.bk_networkarea_id)
+                ? `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`
+                : t('components.permission.noPermission'),
+              disabled: isAreaAuthorized(item.bk_networkarea_id) && !textOverflowMap[item.bk_networkarea_id],
+              boundary: 'parent',
+              placement: 'right',
+              offset: 10
+            }"
           >
-            <div class="w-[180px] flex favorited-item">
+            <div
+              class="w-full flex items-center topo-area-option overflow-hidden"
+              :class="{ 'unauthorized-area-row': !isAreaAuthorized(item.bk_networkarea_id) }"
+              @click="handleAreaOptionClick($event, item.bk_networkarea_id)"
+              @mouseenter="handleAreaOptionMouseEnter($event, item.bk_networkarea_id)"
+              @mousemove="handleAreaOptionMouseMove($event, item.bk_networkarea_id)"
+              @mouseleave="handleAreaOptionMouseLeave()"
+            >
               <Button
                 text
-                class="mr-[8px] w-[18px]"
+                class="mr-[8px] w-[18px] shrink-0"
                 @click.stop="handleCollect(item.bk_networkarea_id)">
                 <i
                   class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
                   v-if="collectList.includes(item.bk_networkarea_id)">
                 </i>
                 <i
-                  class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px] hidden"
+                  class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
                   v-else>
                 </i>
               </Button>
               <div
-                class="w-[154px] truncate"
-                @mouseenter="handleTextMouseenter($event, item.bk_networkarea_id)"
-                v-bk-tooltips="{
-                  content: item.bk_networkarea_name,
-                  placement: 'top',
-                  boundary: 'body',
-                  extCls: 'force-tooltip-z-index',
-                  disabled: !textOverflowMap[item.bk_networkarea_id] // 没超长就禁用 Tooltip
-                }"
-              >
+                class="truncate"
+                @mouseenter="handleTextMouseenter($event, item.bk_networkarea_id)">
                 {{ `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}` }}
               </div>
             </div>
@@ -164,8 +181,12 @@ import NetworkAreaNode from './graph-plugin/net-work-area-node';
 import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 
 import useMinLengthRef from '@/composables/use-min-length-ref';
+import useAuthLock from '@/composables/use-auth-lock';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
+import { usePermissionStore } from '@/stores/permission';
 import { useTopoStore } from '@/stores/topo';
+import { getModuleAuthorizedItems } from '@/constants/auth';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const { t } = useI18n();
@@ -176,7 +197,93 @@ const {
 const topoStore = useTopoStore();
 const mainStore = useMainStore();
 const workareaStore = useWorkareaStore();
+const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 const router = useRouter();
+
+// ===== 权限检查 =====
+const noAreaPermission = ref(false);
+
+/** 检查是否有任何区域的查看权限 */
+async function checkAreaPermission() {
+  // 确保 topoManager 模块的 authorized items 已加载
+  const topoItems = getModuleAuthorizedItems('topoManager');
+  await authStore.fetchAuthorized(topoItems, 'topoManager');
+
+  // 如果 fetchAuthorized 被锁跳过了（其他地方正在请求），等待加载完成
+  if (authStore.authorizedLoading) {
+    await new Promise<void>((resolve) => {
+      const unwatch = watch(() => authStore.authorizedLoading, (loading) => {
+        if (!loading) {
+          unwatch();
+          resolve();
+        }
+      });
+    });
+  }
+
+  const hasAny = authStore.hasAuthorizedResource('networkarea_view');
+  noAreaPermission.value = !hasAny;
+}
+
+/** 申请区域查看权限 */
+async function handleApplyAreaPermission(areaId?: number) {
+  const authItems = [
+    { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: [] },
+  ];
+  await authStore.batchVerify(authItems, undefined, areaId);
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+}
+
+/** 申请单元查看权限 */
+async function handleApplyUnitPermission(unitId: number) {
+  const authItems = [
+    { id: 'networkunit_view', action: 'networkunit_view', resourceType: 'networkunit', routes: [] },
+  ];
+  await authStore.batchVerify(authItems, undefined, unitId);
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+}
+
+// ===== 管控区域选择器权限控制（与 areaSelector 一致）=====
+const {
+  handleMouseEnter: areaAuthMouseEnter,
+  handleMouseMove: areaAuthMouseMove,
+  handleMouseLeave: areaAuthMouseLeave,
+} = useAuthLock(
+  'networkarea_view',
+  () => undefined,
+);
+
+/** 判断某个管控区域是否有权限 */
+function isAreaAuthorized(areaId: number): boolean {
+  if (!authStore.authorizedLoaded) return true;
+  return authStore.hasAuthorizedResource('networkarea_view', areaId);
+}
+
+const handleAreaOptionMouseEnter = (e: MouseEvent, areaId: number) => {
+  areaAuthMouseEnter(e, isAreaAuthorized(areaId));
+};
+const handleAreaOptionMouseMove = (e: MouseEvent, areaId: number) => {
+  areaAuthMouseMove(e, isAreaAuthorized(areaId));
+};
+const handleAreaOptionMouseLeave = () => {
+  areaAuthMouseLeave();
+};
+
+/** 点击无权限区域 → 阻止选中 + 触发权限申请 */
+const handleAreaOptionClick = (e: MouseEvent, areaId: number) => {
+  if (!isAreaAuthorized(areaId)) {
+    e.stopPropagation();
+    e.preventDefault();
+    handleApplyAreaPermission(areaId);
+  }
+};
 
 // 选择器逻辑
 const regionList = useMinLengthRef(
@@ -186,11 +293,17 @@ const regionList = useMinLengthRef(
 const netWorkAreaList = ref<Partial<any>[]>([]);
 const defaultNetWorkarea = ref<Partial<any>>();
 
-// 计算属性：排序后的其他区域列表（按照优先级顺序：默认区域第一，勾选优先级第二，收藏优先级第三，ID从大到小第四）
+// 计算属性：排序后的其他区域列表（按照优先级顺序：默认区域第一，有权限优先级第二，勾选优先级第三，收藏优先级第四，ID从大到小第五）
 const sortedNetWorkAreaList = computed(() => [...netWorkAreaList.value].sort((a, b) => {
   // bk_networkarea_id为0的始终排在最前面
   if (a.bk_networkarea_id === 0) return -1;
   if (b.bk_networkarea_id === 0) return 1;
+
+  // 有权限的区域排在前面
+  const aHasAuth = authStore.hasAuthorizedResource('networkarea_view', a.bk_networkarea_id);
+  const bHasAuth = authStore.hasAuthorizedResource('networkarea_view', b.bk_networkarea_id);
+  if (aHasAuth && !bHasAuth) return -1;
+  if (!aHasAuth && bHasAuth) return 1;
 
   // 勾选的区域排在前面（regionList中存在的区域）
   const aIsSelected = regionList.value.includes(a.bk_networkarea_id);
@@ -701,18 +814,48 @@ function handleNodeDragEnd(e: any) {
 }
 
 // ------------------ 节点点击逻辑 (保持原样) ------------------
-function handleNodeClick(evt: any) {
+async function handleNodeClick(evt: any) {
   const { target, path, canvas } = evt;
 
   // 1. 获取点击图形的 className (确认是否点了菜单热区)
   const clickedShape = path?.[0];
   const className = clickedShape?.config?.className;
 
-  // 2. 获取节点 ID (workUnit-xxx)
+  // 2. 获取节点 ID (workUnit-xxx 或 accessPoint-xxx)
   let nodeId = target.id;
   if (!nodeId && path) {
-    const nodeObj = path.find((p: any) => p.id && String(p.id).includes(workUnitPrefix));
+    const nodeObj = path.find((p: any) => p.id && (String(p.id).includes(workUnitPrefix) || String(p.id).includes('accessPoint-')));
     nodeId = nodeObj?.id;
+  }
+
+  // ==================== 无权限"查看"按钮点击逻辑 ====================
+  if (className === 'auth-view-btn' || className === 'auth-view-btn-bg') {
+    if (nodeId && nodeId.includes(workUnitPrefix)) {
+      const unitId = Number(nodeId.replace(workUnitPrefix, ''));
+      await handleApplyUnitPermission(unitId);
+    } else if (nodeId && nodeId.includes('accessPoint-')) {
+      // 接入点的权限取决于其所属单元
+      const nodeData = graph.getNodeData(nodeId);
+      const unitId = nodeData?.data?.bk_networkunit_id as number | undefined;
+      if (unitId != null) {
+        await handleApplyUnitPermission(unitId);
+      }
+    }
+    return;
+  }
+
+  // ==================== 点击无权限单元/接入点 → 触发权限申请 ====================
+  if (nodeId) {
+    const nodeData = graph.getNodeData(nodeId);
+    if (nodeData?.data?.has_unit_auth === false) {
+      const unitId = nodeId.includes(workUnitPrefix)
+        ? Number(nodeId.replace(workUnitPrefix, ''))
+        : (nodeData?.data?.bk_networkunit_id as number | undefined);
+      if (unitId != null) {
+        await handleApplyUnitPermission(unitId);
+      }
+      return;
+    }
   }
 
   // ==================== 菜单点击逻辑 ====================
@@ -749,7 +892,7 @@ function handleNodeClick(evt: any) {
     if (!nodeData) return;
 
     // 解析 ID
-    const workareaId = Number(String(nodeData.data.area).replace(workAreaPrefix, ''));
+    const workareaId = Number(String(nodeData.data?.area).replace(workAreaPrefix, ''));
     const workUnitId = Number(nodeId.replace(workUnitPrefix, ''));
 
     // 跳转到 Agent 页面（点击 Agent 跳转图标）
@@ -913,23 +1056,29 @@ const generateEdgesFromUnitData = () => {
 
 // 初始化区域数据
 const initAreaData = async () => {
-  await Promise.all([
-    handleFetchTopoWorkareaList(),
-    handleFetchAllWorkUnit(),
-  ]);
+  // 先获取区域列表（用于下拉）
+  await handleFetchTopoWorkareaList().catch(() => {});
 
+  // 获取有权限的单元 ID 列表，传给 handleFetchAllWorkUnit 以区分接入点接口
+  // null 表示全部有权限（isAny），[] 表示全部无权限
+  const authorizedIds = authStore.authorizedLoaded
+    ? authStore.getAuthorizedResourceIds('networkunit_view')
+    : [];
+
+  await handleFetchAllWorkUnit([], authorizedIds).catch(() => {});
+
+  const defaultArea = topoStore.allWorkareaList.find(item => item.bk_networkarea_id === 0);
+  defaultNetWorkarea.value = defaultArea
+    ? { bk_networkarea_id: defaultArea.bk_networkarea_id, bk_networkarea_name: defaultArea.bk_networkarea_name }
+    : undefined;
+
+  const defaultAreaId = defaultArea?.bk_networkarea_id;
   netWorkAreaList.value = topoStore.allWorkareaList
-    .filter(item => item.bk_networkarea_id !== 0)
+    .filter(item => item.bk_networkarea_id !== defaultAreaId)
     .map(item => ({
       bk_networkarea_id: item.bk_networkarea_id,
       bk_networkarea_name: item.bk_networkarea_name,
     }));
-
-  const defaultArea = topoStore.allWorkareaList.find(item => item.bk_networkarea_id === 0);
-  defaultNetWorkarea.value = {
-    bk_networkarea_id: defaultArea!.bk_networkarea_id,
-    bk_networkarea_name: defaultArea!.bk_networkarea_name,
-  };
 
   // 直接调用filterAreaNodes来设置初始的节点数据，避免重复的数据处理
   filterAreaNodes();
@@ -968,6 +1117,8 @@ function filterAreaNodes() {
     .filter(item => targetAreaIds.includes(item.bk_networkarea_id))
     .map((item) => {
       const nodeId = `workUnit-${item.bk_networkunit_id}`;
+      // 检查该单元的查看权限
+      const hasUnitAuth = authStore.hasAuthorizedResource('networkunit_view', item.bk_networkunit_id);
       return {
         id: nodeId,
         data: {
@@ -975,15 +1126,16 @@ function filterAreaNodes() {
           unitType: item.is_direct ? 'direct' : 'indirect',
           area: workAreaPrefix + item.bk_networkarea_id,
           is_direct: item.is_direct,
-          direct_endpoints: item.direct_endpoints || { cluster: ['未知'], count: 0 },
           accesspoints: item.accesspoints || [],
           links: item.links || {},
           running_proxy: item.running_proxy || 0,
           total_proxy: item.total_proxy || 0,
           running_agent: item.running_agent || 0,
           total_agent: item.total_agent || 0,
-          cycle_times: item.cycle_times || ['0', '0', '0'],
+          cycle_times: item.cycle_times || [],
           is_healthy: item.is_healthy,
+          has_unit_auth: hasUnitAuth,
+          bk_networkunit_id: item.bk_networkunit_id,
         },
         type: NodeType.NET_WORK_UNIT,
       };
@@ -993,19 +1145,23 @@ function filterAreaNodes() {
     .filter(item => targetAreaIds.includes(item.bk_networkarea_id))
     .map((item) => {
       const nodeId = `accessPoint-${item.bk_accesspoint_id}`;
+      // 接入点的权限取决于其所属单元
+      const hasUnitAuth = authStore.hasAuthorizedResource('networkunit_view', item.bk_networkunit_id);
       return {
         id: nodeId,
         data: {
-          name: item.name,
+          name: hasUnitAuth ? item.name : '***',
           downstreamUnits: item.downstreamUnits || 0,
           area: workAreaPrefix + item.bk_networkarea_id,
           bk_networkunit_id: item.bk_networkunit_id,
           type: item.type,
-          endpoints: item.endpoints,
-          endpointsData: [{
-            name: item.name,
-            endpoints: item.endpoints,
-          }],
+          // 无权限时脱敏 endpoints
+          endpoints: hasUnitAuth ? item.endpoints : {},
+          endpointsData: hasUnitAuth
+            ? [{ name: item.name, endpoints: item.endpoints }]
+            : [{ name: '***', endpoints: {} }],
+          has_unit_auth: hasUnitAuth,
+          bk_accesspoint_id: item.bk_accesspoint_id,
         },
         type: NodeType.ACCESS_POINT,
       };
@@ -1060,6 +1216,8 @@ onMounted(async () => {
   isLoading.value = true;
   // 确保收藏状态同步
   workareaStore.syncFavoriteWorkareaList();
+  // 权限检查与数据加载并行，authorized 失败不阻塞拓扑图展示
+  await checkAreaPermission().catch(() => {});
 
   // 恢复用户的选择状态（优先从 localStorage 读取）
   const savedSelection = localStorage.getItem('selected_workarea');
@@ -1100,12 +1258,39 @@ onUnmounted(() => {
 </script>
 
 <style lang="postcss" scoped>
+.forbidden-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+.forbidden-img {
+  width: 200px;
+  height: auto;
+}
+.forbidden-title {
+  margin-top: 20px;
+  font-size: 22px;
+  font-weight: 400;
+  color: #63656e;
+}
 #nodemgr-g6-container {
   width: 100%;
   position: relative;
   overflow: hidden;
 }
 .favorited-item {
+  &:hover {
+    .nc-not-favorited {
+      display: inline;
+    }
+  }
+}
+.topo-area-option {
+  min-height: 32px;
+  padding: 0 12px;
+  box-sizing: border-box;
   &:hover {
     .nc-not-favorited {
       display: inline;
@@ -1126,5 +1311,8 @@ onUnmounted(() => {
 <style>
 .force-tooltip-z-index {
   z-index: 99999 !important;
+}
+.unauthorized-area-row {
+  color: #c4c6cc !important;
 }
 </style>

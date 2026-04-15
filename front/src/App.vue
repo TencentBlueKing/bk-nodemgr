@@ -165,7 +165,7 @@ import PermissionDialog from '@/components/permission-dialog.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
-import { matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
+import { getModuleAuthorizedItems, matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
 import { i18nReady } from '@/modules/i18n';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
@@ -483,8 +483,15 @@ onBeforeMount(async () => {
   setShortcutIcon(platformConfig.favicon);
 
   await getBusinessList();
-  // 获取各 action 有权限的业务范围
-  await authStore.fetchAuthorized();
+  // 首次加载：始终加载 nodeManager（biz 选择器依赖）+ 当前路由模块的 authorized items
+  const currentModule = String(route.meta?.mainMenu || 'nodeManager');
+  const initialModules = new Set(['nodeManager', currentModule]);
+  for (const mod of initialModules) {
+    const moduleItems = getModuleAuthorizedItems(mod);
+    if (moduleItems.length) {
+      await authStore.fetchAuthorized(moduleItems, mod);
+    }
+  }
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
   bizSelectorRef.value?.init();
   mainStore.setBusinessReady();
@@ -502,6 +509,18 @@ onMounted(async () => {
     localStorage.setItem('collect_workarea', JSON.stringify([0]));
   }
 });
+
+// 路由切换时增量加载目标模块的 authorized items
+watch(
+  () => route.meta?.mainMenu,
+  async (newModule) => {
+    const moduleName = String(newModule || 'nodeManager');
+    const moduleItems = getModuleAuthorizedItems(moduleName);
+    if (moduleItems.length) {
+      await authStore.fetchAuthorized(moduleItems, moduleName);
+    }
+  },
+);
 </script>
 <style lang="postcss" scoped>
 .dropdown-item {

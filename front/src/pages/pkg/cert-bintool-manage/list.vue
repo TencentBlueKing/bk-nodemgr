@@ -2,7 +2,15 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload" class="mr-[16px]">{{ t('certBintool.upload') }}</Button>
+      <Button
+        theme="primary"
+        :class="{ 'unAuthorized': !hasUploadAuth }"
+        @click="hasUploadAuth ? handleUpload() : uploadAuthClick($event)"
+        @mouseenter="uploadMouseEnter($event, hasUploadAuth)"
+        @mousemove="uploadMouseMove($event, hasUploadAuth)"
+        @mouseleave="uploadMouseLeave()"
+        class="mr-[16px]"
+      >{{ t('certBintool.upload') }}</Button>
       <SearchSelect
         class="flex-1 bg-[#fff]"
         ref="searchSelect"
@@ -73,6 +81,11 @@
                 <Button
                   theme="primary"
                   text
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  @mouseleave="manageMouseLeave()"
                 >{{ t('certBintool.delete') }}</Button>
                 <template #content>
                   <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -121,6 +134,8 @@ import { Table, TableColumn } from '@blueking/table';
 
 import PkgUploadSideslider from '../agent-proxy-pkg/pkg-upload-sideslider.vue';
 
+import useAuthLock from '@/composables/use-auth-lock';
+
 import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
@@ -139,6 +154,19 @@ interface IFilterOption {
 const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
+
+// Package permissions
+const manageResourceId = ref<string>();
+const { hasAuth: hasUploadAuth, handleMouseEnter: uploadMouseEnter, handleMouseMove: uploadMouseMove, handleMouseLeave: uploadMouseLeave, handleAuthClick: uploadAuthClick } = useAuthLock(
+  'package_type_upload', () => currentType.value, { resourceType: 'package_type' },
+);
+const { hasAuth: hasManageAuth, handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
+  'package_manage', () => manageResourceId.value, { resourceType: 'package' },
+);
+const manageAuthClick = (e: MouseEvent, releaseType?: string) => {
+  manageResourceId.value = releaseType;
+  _manageAuthClick(e);
+};
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentType = computed(() => {

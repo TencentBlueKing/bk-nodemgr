@@ -2,7 +2,14 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload">{{ t('agentProxyPkg.upload') }}</Button>
+      <Button
+        theme="primary"
+        :class="{ 'unAuthorized': !hasUploadAuth }"
+        @click="hasUploadAuth ? handleUpload() : uploadAuthClick($event)"
+        @mouseenter="uploadMouseEnter($event, hasUploadAuth)"
+        @mousemove="uploadMouseMove($event, hasUploadAuth)"
+        @mouseleave="uploadMouseLeave()"
+      >{{ t('agentProxyPkg.upload') }}</Button>
       <SearchSelect
         class="ml-[16px] flex-1 bg-[#fff]"
         ref="searchSelect"
@@ -243,7 +250,11 @@
                   class="mr-[8px]"
                   text
                   v-if="row.enabled && !row.as_default"
-                  @click="handleSetDefaultVersion(row)"
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  @click="hasManageAuth ? handleSetDefaultVersion(row) : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  @mouseleave="manageMouseLeave()"
                 >
                   {{ t('agentProxyPkg.setDefault') }}
                 </Button>
@@ -252,7 +263,11 @@
                   class="mr-[8px]"
                   text
                   v-if="row.enabled && row.as_default"
-                  @click="handleCancelAsDefaultVersion(row)"
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  @click="hasManageAuth ? handleCancelAsDefaultVersion(row) : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  @mouseleave="manageMouseLeave()"
                 >
                   {{ t('agentProxyPkg.cancelDefault') }}
                 </Button>
@@ -267,6 +282,11 @@
                     class="mr-[8px]"
                     text
                     v-show="row.enabled"
+                    :class="{ 'unAuthorized': !hasManageAuth }"
+                    @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
+                    @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                    @mousemove="manageMouseMove($event, hasManageAuth)"
+                    @mouseleave="manageMouseLeave()"
                   >{{ t('agentProxyPkg.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -287,7 +307,11 @@
                   class="mr-[8px]"
                   text
                   v-if="!row.enabled"
-                  @click="handleEnabled(row)"
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  @click="hasManageAuth ? handleEnabled(row) : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  @mouseleave="manageMouseLeave()"
                 >{{ t('agentProxyPkg.enable') }}</Button>
                 <PopConfirm
                   theme="light"
@@ -299,6 +323,11 @@
                     theme="primary"
                     text
                     v-show="!row.enabled"
+                    :class="{ 'unAuthorized': !hasManageAuth }"
+                    @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
+                    @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                    @mousemove="manageMouseMove($event, hasManageAuth)"
+                    @mouseleave="manageMouseLeave()"
                   >{{ t('agentProxyPkg.delete') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
@@ -347,6 +376,7 @@ import { Table, TableColumn } from '@blueking/table';
 import PkgUploadSideslider from './pkg-upload-sideslider.vue';
 
 import type { Release } from '@/@types/common.d';
+import useAuthLock from '@/composables/use-auth-lock';
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions, formatTimestamp  } from '@/common/util';
@@ -382,6 +412,20 @@ type PkgOrderType = 'version' | '-version';
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+
+// Package permissions
+const manageResourceId = ref<string>();
+const { hasAuth: hasUploadAuth, handleMouseEnter: uploadMouseEnter, handleMouseMove: uploadMouseMove, handleMouseLeave: uploadMouseLeave, handleAuthClick: uploadAuthClick } = useAuthLock(
+  'package_type_upload', () => currentType.value, { resourceType: 'package_type' },
+);
+const { hasAuth: hasManageAuth, handleMouseEnter: manageMouseEnter, handleMouseMove: manageMouseMove, handleMouseLeave: manageMouseLeave, handleAuthClick: _manageAuthClick } = useAuthLock(
+  'package_manage', () => manageResourceId.value, { resourceType: 'package' },
+);
+/** 行内操作按钮点击申请权限时，先设置 resourceId 为当前行的 release_type */
+const manageAuthClick = (e: MouseEvent, releaseType?: string) => {
+  manageResourceId.value = releaseType;
+  _manageAuthClick(e);
+};
 const mainStore = useMainStore();
 const packageStore = usePackageStore();
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);

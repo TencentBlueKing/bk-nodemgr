@@ -76,6 +76,14 @@ interface AccessPoint {
   endpoints: Endpoints;
 }
 
+// AccessPointBrief describes the brief access point (no endpoints for
+// sensitivity).
+interface AccessPointBrief {
+  accesspoint_id: number;
+  accesspoint_name: string;
+  bk_networkarea_id: number;
+}
+
 // NetworkUnit describes the network unit informations.
 interface NetworkUnit {
   tenant_id: string;
@@ -115,9 +123,7 @@ interface NetworkUnitBrief {
   accesspoints: number[];
   links: Links;
   is_direct: boolean;
-  direct_endpoints: Endpoints;
   generation: number;
-  custom_deploy_config: Record<string, CustomDeployConfig>;
 }
 
 // HostState describes the host state informations. Usually contains

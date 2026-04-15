@@ -24,7 +24,7 @@
       ref="footerRef"
     >
       <Button
-        class="w-[120px] mr-[8px]"
+        class="min-w-[120px] mr-[8px]"
         theme="primary"
         :loading="submitting"
         @click="handleConfirm"

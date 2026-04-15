@@ -1,6 +1,6 @@
 import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import usePage from '@/composables/use-page';
 
 import type {
@@ -11,6 +11,7 @@ import type {
   TopoNetworkAreaUpdateReq,
 } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
+import { useAuthStore } from '@/stores/auth';
 
 export type INetWorkArea = NetworkArea & TopoNetworkAreaStatisticsRespStatisticsInfo;
 
@@ -98,11 +99,28 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const handleFetchCurrentPageStatistics = async () => {
     if (workareaList.value.length === 0) return;
 
+    const authStore = useAuthStore();
+
+    // 等待 authorized 数据加载完成
+    if (!authStore.authorizedLoaded) {
+      await new Promise<void>((resolve) => {
+        const unwatch = watch(() => authStore.authorizedLoaded, (loaded) => {
+          if (loaded) {
+            unwatch();
+            resolve();
+          }
+        }, { immediate: true });
+      });
+    }
+
     // 获取当前页的数据（分页切片）
     const startIndex = (frontPageConf.current - 1) * frontPageConf.limit;
     const endIndex = startIndex + frontPageConf.limit;
     const currentPageData = workareaList.value.slice(startIndex, endIndex);
-    const currentPageWorkareaIds = currentPageData.map(item => item.bk_networkarea_id);
+    // 只请求有权限的区域的统计信息
+    const currentPageWorkareaIds = currentPageData
+      .map(item => item.bk_networkarea_id)
+      .filter(id => authStore.hasAuthorizedResource('networkarea_view', id));
 
     if (currentPageWorkareaIds.length > 0) {
       const countData = await handleFetchWorkareaInfoCount(currentPageWorkareaIds).catch(() => []);

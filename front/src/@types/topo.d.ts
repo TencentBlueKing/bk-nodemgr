@@ -297,6 +297,35 @@ export interface TopoAccessPointListRespData {
   items: AccessPoint[];
 }
 
+// TopoAccessPointListBriefReq describes the HTTP request body when list
+// accesspoint brief in topo service.
+export interface TopoAccessPointListBriefReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoAccessPointListBriefReqExactConditions;
+}
+
+export interface TopoAccessPointListBriefReqExactConditions {
+  bk_networkarea_id: number[];
+  accesspoint_id: number[];
+}
+
+// TopoAccessPointListBriefResp describes the HTTP response body when list
+// accesspoint brief in topo service.
+export interface TopoAccessPointListBriefResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoAccessPointListBriefRespData;
+}
+
+export interface TopoAccessPointListBriefRespData {
+  total: number;
+  items: AccessPointBrief[];
+}
+
 // TopoNetworkUnitUpdateResp describes the HTTP response body when update
 // network unit in topo service.
 export interface TopoNetworkUnitUpdateResp {
@@ -331,6 +360,37 @@ export interface TopoNetworkUnitDeleteResp {
 
 export interface TopoNetworkUnitDeleteRespData {
   bk_networkunit_id: number;
+}
+
+// TopoNetworkUnitListBriefReq describes the HTTP request body when list
+// network-unit brief in topo service.
+export interface TopoNetworkUnitListBriefReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: TopoNetworkUnitListBriefReqExactConditions;
+}
+
+export interface TopoNetworkUnitListBriefReqExactConditions {
+  bk_networkunit_id: number[];
+  bk_networkarea_id: number[];
+  is_direct: boolean[];
+  generation: number[];
+}
+
+// TopoNetworkUnitListBriefResp describes the HTTP response body when list
+// network-unit brief in topo service.
+export interface TopoNetworkUnitListBriefResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoNetworkUnitListBriefRespData;
+}
+
+export interface TopoNetworkUnitListBriefRespData {
+  total: number;
+  items: NetworkUnitBrief[];
 }
 
 // TopoHostExactConditions describes host exact conditions.

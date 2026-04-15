@@ -39,8 +39,24 @@
         :key="item.bk_networkarea_id"
         :id="String(item.bk_networkarea_id)"
         :name="item.bk_networkarea_name"
+        v-bk-tooltips="{
+          content: isAreaAuthorized(item.bk_networkarea_id)
+            ? `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`
+            : t('components.permission.noPermission'),
+          disabled: isAreaAuthorized(item.bk_networkarea_id) && !textOverflowMap[item.bk_networkarea_id],
+          boundary: 'parent',
+          placement: 'right',
+          offset: 10
+        }"
       >
-        <div class="flex items-center group/item overflow-hidden">
+        <div
+          class="w-full flex items-center area-select-option overflow-hidden"
+          :class="{ 'unauthorized-area-row': !isAreaAuthorized(item.bk_networkarea_id) }"
+          @click="handleOptionClick($event, item.bk_networkarea_id)"
+          @mouseenter="handleOptionMouseEnter($event, item.bk_networkarea_id)"
+          @mousemove="handleOptionMouseMove($event, item.bk_networkarea_id)"
+          @mouseleave="handleOptionMouseLeave()"
+        >
           <Button text class="mr-2 w-[18px] shrink-0" @click.stop="handleCollect(item.bk_networkarea_id)">
             <i
               v-if="isFavorited(item.bk_networkarea_id)"
@@ -48,17 +64,12 @@
             ></i>
             <i
               v-else
-              class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[14px] opacity-0 group-hover/item:opacity-100"
+              class="nodeman-icon nc-not-favorited text-[#63656e] text-[14px] hidden"
             ></i>
           </Button>
           <div
-            class="flex-1 truncate"
+            class="truncate"
             @mouseenter="handleTextMouseenter($event, item.bk_networkarea_id)"
-            v-bk-tooltips="{
-              content: `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`,
-              disabled: !textOverflowMap[item.bk_networkarea_id],
-              boundary: 'body'
-            }"
           >
             {{ `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}` }}
           </div>
@@ -73,6 +84,9 @@ import { Button, Select } from 'bkui-vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import useAuthLock from '@/composables/use-auth-lock';
+import { useAuthStore } from '@/stores/auth';
+import { usePermissionStore } from '@/stores/permission';
 import { useTopoStore } from '@/stores/topo';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -95,7 +109,55 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const topoStore = useTopoStore();
 const workareaStore = useWorkareaStore();
+const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 
+// ===== 权限控制（参考 biz-selector 模式）=====
+const {
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+} = useAuthLock(
+  'networkarea_view',
+  () => undefined, // networkarea 不是 biz 级别，不需要 bizId
+);
+
+/** 判断某个管控区域是否有权限 */
+function isAreaAuthorized(areaId: number): boolean {
+  if (!authStore.authorizedLoaded) return false; // 未加载完成时默认无权限
+  return authStore.hasAuthorizedResource('networkarea_view', areaId);
+}
+
+const handleOptionMouseEnter = (e: MouseEvent, areaId: number) => {
+  authLockMouseEnter(e, isAreaAuthorized(areaId));
+};
+const handleOptionMouseMove = (e: MouseEvent, areaId: number) => {
+  authLockMouseMove(e, isAreaAuthorized(areaId));
+};
+const handleOptionMouseLeave = () => {
+  authLockMouseLeave();
+};
+
+/** 点击无权限区域 → 阻止选中 + 触发权限申请 */
+const handleOptionClick = (e: MouseEvent, areaId: number) => {
+  if (!isAreaAuthorized(areaId)) {
+    e.stopPropagation();
+    e.preventDefault();
+    handleApplyPermission(areaId);
+  }
+};
+
+const handleApplyPermission = async (areaId: number) => {
+  await authStore.batchVerify([
+    { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: [] },
+  ], undefined, areaId);
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+};
+
+// ===== 原有逻辑 =====
 const localLoading = ref(false);
 // 内部统一用字符串管理 ID，解决数字 0 的显示 Bug
 const internalValue = ref<any>(props.multiple ? [] : '');
@@ -104,7 +166,14 @@ const textOverflowMap = reactive<Record<number, boolean>>({});
 onMounted(async () => {
   localLoading.value = true;
   try {
-    await topoStore.handleFetchTopoWorkareaList();
+    // 并行：加载区域列表 + 权限数据
+    await Promise.all([
+      topoStore.handleFetchTopoWorkareaList(),
+      authStore.fetchAuthorized(
+        [{ action: 'networkarea_view', resource_type: 'networkarea' }],
+        'areaSelector_networkarea_view',
+      ),
+    ]);
     workareaStore.syncFavoriteWorkareaList();
 
     if (props.noLimit) {
@@ -113,21 +182,6 @@ onMounted(async () => {
     if (props.bk_networkarea_id) {
       internalValue.value = String(props.bk_networkarea_id);
     }
-    // 初始值赋值逻辑
-    // const favoriteIds = workareaStore.favoriteWorkareaList;
-    // if (props.multiple) {
-    //   // 多选：优先收藏，无收藏默认 ['all']
-    //   internalValue.value = favoriteIds.length > 0
-    //     ? favoriteIds.map(id => String(id))
-    //     : ['all'];
-    // } else {
-    //   // 单选：优先收藏第一个，无收藏默认 ''
-    //   internalValue.value = favoriteIds.length > 0
-    //     ? String(favoriteIds[0])
-    //     : '';
-    // }
-
-    // handleSelectChange(internalValue.value);
   } finally {
     localLoading.value = false;
   }
@@ -139,14 +193,23 @@ const defaultArea = computed(() => topoStore.allWorkareaList.find(i => i.bk_netw
 const sortedOtherList = computed(() => {
   const others = topoStore.allWorkareaList.filter(i => i.bk_networkarea_id !== 0);
   return [...others].sort((a, b) => {
+    // 优先级1: 有权限的排在最前面
+    const aAuth = isAreaAuthorized(a.bk_networkarea_id);
+    const bAuth = isAreaAuthorized(b.bk_networkarea_id);
+    if (aAuth && !bAuth) return -1;
+    if (!aAuth && bAuth) return 1;
+
     const aId = String(a.bk_networkarea_id);
     const bId = String(b.bk_networkarea_id);
     const aSel = props.multiple ? internalValue.value.includes(aId) : internalValue.value === aId;
     const bSel = props.multiple ? internalValue.value.includes(bId) : internalValue.value === bId;
+    // 优先级2: 选中状态
     if (aSel !== bSel) return aSel ? -1 : 1;
+    // 优先级3: 收藏状态
     if (isFavorited(a.bk_networkarea_id) !== isFavorited(b.bk_networkarea_id)) {
       return isFavorited(a.bk_networkarea_id) ? -1 : 1;
     }
+    // 优先级4: 按 ID 从小到大
     return b.bk_networkarea_id - a.bk_networkarea_id;
   });
 });
@@ -184,3 +247,23 @@ const handleSelectChange = (val: any) => {
   emit('change', rawIds, selectedRows);
 };
 </script>
+
+<style lang="postcss" scoped>
+.area-select-option {
+  min-height: 32px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  &:hover {
+    .nc-not-favorited {
+      display: inline;
+    }
+  }
+}
+</style>
+
+<style lang="postcss">
+/* 非 scoped：置灰样式需穿透 Select Option popover */
+.unauthorized-area-row {
+  color: #c4c6cc !important;
+}
+</style>

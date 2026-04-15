@@ -42,7 +42,15 @@
               v-else>
             </i>
           </Button>
-          <Button theme="primary" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
+          <span
+            v-if="!isAreaAuthorized(row.bk_networkarea_id)"
+            class="text-[#C4C6CC] cursor-pointer"
+            @click="handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_view')"
+            @mouseenter="viewMouseEnter($event, false)"
+            @mousemove="viewMouseMove($event, false)"
+            @mouseleave="viewMouseLeave()"
+          >{{ row.bk_networkarea_name }}</span>
+          <Button v-else theme="primary" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
             {{ row.bk_networkarea_name }}
           </Button>
         </template>
@@ -115,10 +123,27 @@
         :min-width="140">
         <template #default="{ row }">
           <div class="flex">
-            <Button theme="primary" text class="mr-[12px]" @click="handleEditWorkarea(row)">
+            <Button
+              theme="primary"
+              text
+              class="mr-[12px]"
+              :class="{ 'unAuthorized': !isRowEditAuth(row.bk_networkarea_id) }"
+              @click="isRowEditAuth(row.bk_networkarea_id) ? handleEditWorkarea(row) : handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_edit')"
+              @mouseenter="editMouseEnter($event, isRowEditAuth(row.bk_networkarea_id))"
+              @mousemove="editMouseMove($event, isRowEditAuth(row.bk_networkarea_id))"
+              @mouseleave="editMouseLeave()"
+            >
               {{ $t('action.edit') }}
             </Button>
-            <Button theme="primary" text @click="handleDeleteWorkarea(row.bk_networkarea_id)">
+            <Button
+              theme="primary"
+              text
+              :class="{ 'unAuthorized': !isRowDeleteAuth(row.bk_networkarea_id) }"
+              @click="isRowDeleteAuth(row.bk_networkarea_id) ? handleDeleteWorkarea(row.bk_networkarea_id) : handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_delete')"
+              @mouseenter="deleteMouseEnter($event, isRowDeleteAuth(row.bk_networkarea_id))"
+              @mousemove="deleteMouseMove($event, isRowDeleteAuth(row.bk_networkarea_id))"
+              @mouseleave="deleteMouseLeave()"
+            >
               {{ $t('action.delete') }}
             </Button>
           </div>
@@ -140,6 +165,9 @@ import { vendorMap } from '../vendorMap';
 
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import useAuthLock from '@/composables/use-auth-lock';
+import { useAuthStore } from '@/stores/auth';
+import { usePermissionStore } from '@/stores/permission';
 import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -155,7 +183,50 @@ const tableData = ref(props.list);
 const { t } = useI18n();
 const router = useRouter();
 const workareaStore = useWorkareaStore();
+const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 const sortConfig = ref({ multiple: true });
+
+// networkarea_view hover lock for name column
+const { handleMouseEnter: viewMouseEnter, handleMouseMove: viewMouseMove, handleMouseLeave: viewMouseLeave } = useAuthLock(
+  'networkarea_view', () => undefined, { resourceType: 'networkarea' },
+);
+
+// networkarea_edit / networkarea_delete permissions (hover lock)
+const { handleMouseEnter: editMouseEnter, handleMouseMove: editMouseMove, handleMouseLeave: editMouseLeave } = useAuthLock(
+  'networkarea_edit', () => undefined, { resourceType: 'networkarea' },
+);
+const { handleMouseEnter: deleteMouseEnter, handleMouseMove: deleteMouseMove, handleMouseLeave: deleteMouseLeave } = useAuthLock(
+  'networkarea_delete', () => undefined, { resourceType: 'networkarea' },
+);
+
+/** 判断某个区域是否有 view 权限 */
+function isAreaAuthorized(areaId: number): boolean {
+  if (!authStore.authorizedLoaded) return true;
+  return authStore.hasAuthorizedResource('networkarea_view', areaId);
+}
+
+/** 按行判断编辑权限（需要 view + edit） */
+function isRowEditAuth(areaId: number): boolean {
+  return isAreaAuthorized(areaId) && authStore.hasAuthorizedResource('networkarea_edit', areaId);
+}
+
+/** 按行判断删除权限（需要 view + delete） */
+function isRowDeleteAuth(areaId: number): boolean {
+  return isAreaAuthorized(areaId) && authStore.hasAuthorizedResource('networkarea_delete', areaId);
+}
+
+/** 无权限时点击触发 verify 申请 */
+async function handleAreaAuthClick(e: MouseEvent, areaId: number, action: string) {
+  e.stopPropagation();
+  await authStore.batchVerify([
+    { id: action, action, resourceType: 'networkarea', routes: [] },
+  ], undefined, areaId);
+  const detail = authStore.permissionDetail;
+  if (detail) {
+    permissionStore.showDialog(detail);
+  }
+}
 
 // 分页 - 使用store中的前端分页配置
 const pagination = computed(() => workareaStore.frontPagination);
@@ -282,3 +353,9 @@ defineExpose({
 });
 
 </script>
+
+<style lang="postcss">
+.unAuthorized {
+  color: #C4C6CC !important;
+}
+</style>

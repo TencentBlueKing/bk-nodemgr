@@ -356,36 +356,33 @@
               </Button>
               <template #content>
                 <Dropdown.DropdownMenu>
-                  <template v-if="hasOperateAuth">
-                    <Dropdown.DropdownItem
-                      v-for="item in operate"
-                      :key="item.id"
-                      v-show="getOperateShow(row, item)"
-                      :disabled="getRowOperateDisabled(row, item).disabled"
-                      :class="{ 'operate-item-disabled': getRowOperateDisabled(row, item).disabled }"
-                      v-bk-tooltips="{
-                        content: getRowOperateDisabled(row, item).tooltip,
-                        disabled: !getRowOperateDisabled(row, item).disabled,
-                      }"
-                      @click.stop="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
-                    >
-                      {{ item.name }}
-                    </Dropdown.DropdownItem>
-                  </template>
-                  <template v-else>
-                    <Dropdown.DropdownItem
-                      v-for="item in operate"
-                      :key="item.id"
-                      v-show="getOperateShow(row, item)"
-                      class="auth-lock-dropdown-item"
-                      @mouseenter="authLockMouseEnter($event, false)"
-                      @mousemove="authLockMouseMove($event, false)"
-                      @mouseleave="authLockMouseLeave()"
-                      @click.stop="handleAuthClick()"
-                    >
-                      {{ item.name }}
-                    </Dropdown.DropdownItem>
-                  </template>
+                  <!-- 有权限的操作项：正常显示和交互 -->
+                  <Dropdown.DropdownItem
+                    v-for="item in operate"
+                    :key="item.id"
+                    v-show="getOperateShow(row, item) && getItemHasAuth(item)"
+                    :disabled="getRowOperateDisabled(row, item).disabled"
+                    :class="{ 'operate-item-disabled': getRowOperateDisabled(row, item).disabled }"
+                    v-bk-tooltips="{
+                      content: getRowOperateDisabled(row, item).tooltip,
+                      disabled: !getRowOperateDisabled(row, item).disabled,
+                    }"
+                    @click.stop="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
+                  >
+                    {{ item.name }}
+                  </Dropdown.DropdownItem>
+                  <!-- 无权限的操作项：置灰+hover带锁+点击申请权限 -->
+                  <Dropdown.DropdownItem
+                    v-for="item in operate.filter(i => getOperateShow(row, i) && !getItemHasAuth(i))"
+                    :key="'noauth-' + item.id"
+                    class="auth-lock-dropdown-item"
+                    @mouseenter="getItemAuthMouseEnter(item)($event)"
+                    @mousemove="getItemAuthMouseMove(item)($event)"
+                    @mouseleave="authLockMouseLeave()"
+                    @click.stop="getItemAuthClick(item)()"
+                  >
+                    {{ item.name }}
+                  </Dropdown.DropdownItem>
                 </Dropdown.DropdownMenu>
               </template>
             </Dropdown>
@@ -459,14 +456,22 @@ const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const authStore = useAuthStore();
 
-// ===== networkunit_use_for_agent 权限控制（批量操作、复制IP、行内重装/更多操作）=====
+// ===== agent_operate 权限控制（批量操作、复制IP、行内重装/更多操作）=====
 const {
   hasAuth: hasOperateAuth,
   handleMouseEnter: authLockMouseEnter,
   handleMouseMove: authLockMouseMove,
   handleMouseLeave: authLockMouseLeave,
   handleAuthClick,
-} = useAuthLock('networkunit_use_for_agent', () => mainStore.selectedBusinessId);
+} = useAuthLock('agent_operate', () => mainStore.selectedBusinessId);
+
+// ===== networkunit_use_for_agent 权限控制（分配管控单元）=====
+const {
+  hasAuth: hasAssignUnitAuth,
+  handleMouseEnter: assignUnitAuthMouseEnter,
+  handleMouseMove: assignUnitAuthMouseMove,
+  handleAuthClick: handleAssignUnitAuthClick,
+} = useAuthLock('networkunit_use_for_agent', () => undefined);
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 
@@ -834,7 +839,7 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) =>
  * 获取管控单元列表
  */
 const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: { bk_networkunit_id: data?.bk_networkunit_id || [] },
   }).catch((err: any) => {
     console.error('获取管控单元列表失败:', err);
@@ -964,6 +969,12 @@ const loadInitialData = async () => {
     // 即使API失败，也标记为已加载完成，避免无限重试
     isInitialDataLoaded.value = true;
   }
+
+  // 单独请求分配管控单元权限（networkunit_use_for_agent），
+  // 因后端 starts_with 兼容问题需独立调用，store 层已做降级处理
+  authStore.fetchAuthorized([
+    { action: 'networkunit_use_for_agent', resource_type: 'networkunit' },
+  ]);
 };
 
 // ---------- 事件处理函数 ----------
@@ -1074,6 +1085,30 @@ const getOperateShow = (row: Host, config: any) => {
     return false;
   }
   return config.show;
+};
+
+/** 获取操作项是否有权限：assign_unit 用 networkunit_use_for_agent，其余用 agent_operate */
+const getItemHasAuth = (item: any): boolean => {
+  if (item.id === 'assign_unit') return hasAssignUnitAuth.value;
+  return hasOperateAuth.value;
+};
+
+/** 获取操作项对应的权限锁 mouseenter handler */
+const getItemAuthMouseEnter = (item: any) => (e: MouseEvent) => {
+  if (item.id === 'assign_unit') return assignUnitAuthMouseEnter(e, false);
+  return authLockMouseEnter(e, false);
+};
+
+/** 获取操作项对应的权限锁 mousemove handler */
+const getItemAuthMouseMove = (item: any) => (e: MouseEvent) => {
+  if (item.id === 'assign_unit') return assignUnitAuthMouseMove(e, false);
+  return authLockMouseMove(e, false);
+};
+
+/** 获取操作项对应的权限锁 click handler */
+const getItemAuthClick = (item: any) => () => {
+  if (item.id === 'assign_unit') return handleAssignUnitAuthClick();
+  return handleAuthClick();
 };
 
 const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; tooltip: string } => {

@@ -1,7 +1,9 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { MENU_ROUTE_AUTH_MAP } from '@/constants/auth';
 import { i18n } from '../modules/i18n';
+import { useAuthStore } from '@/stores/auth';
 
 export interface NavGroup {
   title: string;
@@ -187,6 +189,7 @@ const navList = [
 
 export default function useMenu() {
   const route = useRoute();
+  const authStore = useAuthStore();
   const currentMainMenu = computed(() => (route.meta?.mainMenu || (route.query.mainMenu as string)));
 
   const navData = computed<NavItem[]>(() => navList.map(item => ({
@@ -194,7 +197,21 @@ export default function useMenu() {
     params: {},
   })));
 
-  const subMenuData = computed(() => navData.value.find(item => item.routeName === currentMainMenu.value)?.group || []);
+  const subMenuData = computed(() => {
+    const groups = navData.value.find(item => item.routeName === currentMainMenu.value)?.group || [];
+    // Filter menu items based on authorized permissions
+    return groups
+      .map(group => ({
+        ...group,
+        children: group.children.filter((child) => {
+          const requiredAction = MENU_ROUTE_AUTH_MAP[child.routeName];
+          if (!requiredAction) return true; // No auth config, always show
+          if (!authStore.authorizedLoaded) return true; // Not loaded yet, show by default
+          return authStore.hasAuthorizedResource(requiredAction);
+        }),
+      }))
+      .filter(group => group.children.length > 0); // Remove empty groups
+  });
 
   return {
     navData,

@@ -16,7 +16,14 @@
   <div class="p-[24px]">
     <div class="flex items-center justify-between">
       <div>
-        <Button theme="primary" @click="handleCreate">
+        <Button
+          theme="primary"
+          :class="{ 'unAuthorized': !hasManageAuth }"
+          @click="hasManageAuth ? handleCreate() : handleAuthClick($event)"
+          @mouseenter="handleMouseEnter($event, hasManageAuth)"
+          @mousemove="handleMouseMove($event, hasManageAuth)"
+          @mouseleave="handleMouseLeave()"
+        >
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
           {{ $t('agentStrategy.createConfig') }}
         </Button>
@@ -164,21 +171,33 @@
                 class="mr-[8px]"
                 theme="primary"
                 text
-                @click="handleUpdate(row)"
+                :class="{ 'unAuthorized': !hasManageAuth }"
+                @click="hasManageAuth ? handleUpdate(row) : handleAuthClick($event)"
+                @mouseenter="handleMouseEnter($event, hasManageAuth)"
+                @mousemove="handleMouseMove($event, hasManageAuth)"
+                @mouseleave="handleMouseLeave()"
               >{{ $t('agentStrategy.action.edit') }}</Button>
               <Button
                 class="mr-[8px]"
                 theme="primary"
                 text
                 v-if="!row.enabled"
-                @click="handleEnabled(row)"
+                :class="{ 'unAuthorized': !hasManageAuth }"
+                @click="hasManageAuth ? handleEnabled(row) : handleAuthClick($event)"
+                @mouseenter="handleMouseEnter($event, hasManageAuth)"
+                @mousemove="handleMouseMove($event, hasManageAuth)"
+                @mouseleave="handleMouseLeave()"
               >{{ $t('agentStrategy.action.enable') }}</Button>
               <Button
                 class="mr-[8px]"
                 theme="primary"
                 text
                 v-if="row.enabled"
-                @click="handleDisabled(row)"
+                :class="{ 'unAuthorized': !hasManageAuth }"
+                @click="hasManageAuth ? handleDisabled(row) : handleAuthClick($event)"
+                @mouseenter="handleMouseEnter($event, hasManageAuth)"
+                @mousemove="handleMouseMove($event, hasManageAuth)"
+                @mouseleave="handleMouseLeave()"
               >{{ $t('agentStrategy.action.disable') }}</Button>
               <PopConfirm
                 width="360"
@@ -192,8 +211,12 @@
                 <Button
                   theme="primary"
                   text
-                  :disabled="row.enabled"
-                  @click="row.isDeletePopShow = true"
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  :disabled="row.enabled && hasManageAuth"
+                  @click="!hasManageAuth ? handleAuthClick($event) : (row.isDeletePopShow = true)"
+                  @mouseenter="handleMouseEnter($event, hasManageAuth)"
+                  @mousemove="handleMouseMove($event, hasManageAuth)"
+                  @mouseleave="handleMouseLeave()"
                   v-bk-tooltips="{
                     content: $t('agentStrategy.action.deleteDisabledTip'),
                     disabled: !row.enabled
@@ -238,6 +261,7 @@ import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import { TopoService } from '@/api/modules/topo';
 import { formatTimestamp } from '@/common/util';
+import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 
@@ -245,6 +269,13 @@ const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
 const configpolicyType = computed(() => (route.name === 'agentStrategy' ? 'config_policy_agent' : 'config_policy_proxy'));
+
+// Button-level permission: config_policy_manage for agent/proxy strategy
+const manageAction = 'config_policy_manage';
+const { hasAuth: hasManageAuth, handleMouseEnter, handleMouseMove, handleMouseLeave, handleAuthClick } = useAuthLock(
+  manageAction,
+  () => mainStore.selectedBusinessId,
+);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 255 - (mainStore.noticeShow ? 40 : 0));
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
@@ -385,9 +416,9 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {
   networkAreaList.value = res.items;
 };
 // 管控单元下拉列表获取
-const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitList = ref<NetworkUnitBrief[]>([]);
 const getNetworkUnitList = async (data: {bk_networkunit_id: number}[]) => {
-  const res = await TopoService.NetworkUnitList({
+  const res = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkunit_id: data.map((item: any) => item.bk_networkunit_id),
     },
@@ -409,12 +440,12 @@ const getParams = () => {
     },
     exact_include_conditions: {
       configpolicy_type: [configpolicyType.value],
-      biz_id: strategyBizId.value ? [strategyBizId.value] : [],
+      bk_biz_id: strategyBizId.value ? [strategyBizId.value] : [],
     } as ConfigPolicyExactConditions,
     fuzzy_include_conditions: {} as ConfigPolicyFuzzyConditions,
   };
   searchSelectValue.value.forEach((item: any) => {
-    const target = fuzzyKeys.has(item.id)
+    const target: Record<string, any> = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
     target[item.id] = item.values?.map((value: any) => value.id);
@@ -455,3 +486,9 @@ watch([
   }
 }, { immediate: true, deep: true });
 </script>
+
+<style lang="postcss">
+.unAuthorized {
+  color: #C4C6CC !important;
+}
+</style>

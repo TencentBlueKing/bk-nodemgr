@@ -4,6 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 import { cancelRequest } from '@/api/request-queue';
 import {
+  getModuleAuthorizedItems,
   handleDeferredBizAuthCheck,
   matchPageAuth,
   PAGE_AUTH_CONFIG,
@@ -364,6 +365,11 @@ export const install: UserModule = ({ app }) => {
     let currentBizId = selectedBizIds[0];
     const matched = matchPageAuth(to, PAGE_AUTH_CONFIG);
     if (!matched) {
+      return true;
+    }
+
+    // Non-biz resources: permission controlled by authorized + menu visibility, skip verify
+    if (matched.resourceType !== 'biz') {
       return true;
     }
 

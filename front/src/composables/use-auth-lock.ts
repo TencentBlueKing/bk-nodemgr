@@ -8,20 +8,22 @@ import { usePermissionStore } from '@/stores/permission';
  * 提供 hover 锁图标跟随鼠标、点击申请权限的通用逻辑
  *
  * @param action IAM action 标识（如 'agent_operate'）
- * @param getBizId 获取当前业务 ID 的函数
+ * @param getResourceId 获取资源 ID 的函数（biz 类型传 bizId，非 biz 类型可传 undefined）
  * @param options 配置项
  */
 export default function useAuthLock(
   action: string,
-  getBizIds: () => number | string | Array<string | number> | undefined,
+  getResourceId: () => number | string | Array<string | number> | undefined,
   options: {
     /** hover 锁图标水平偏移，默认 15 */
     offsetX?: number;
     /** hover 锁图标垂直偏移，默认 -5 */
     offsetY?: number;
+    /** 资源类型，默认 'biz' */
+    resourceType?: string;
   } = {},
 ) {
-  const { offsetX = 15, offsetY = -5 } = options;
+  const { offsetX = 15, offsetY = -5, resourceType = 'biz' } = options;
   const authStore = useAuthStore();
   const permissionStore = usePermissionStore();
 
@@ -70,15 +72,15 @@ export default function useAuthLock(
 
   // ===== 权限判断 =====
 
-  /** 判断当前业务是否有操作权限（computed，模板中可直接 v-if） */
+  /** 判断当前资源是否有操作权限（computed，模板中可直接 v-if） */
   const hasAuth = computed(() => {
-    if (!authStore.authorizedLoaded) return true; // 未加载完成默认有权限，避免闪烁
-    const bizIds = getBizIds();
-    if (Array.isArray(bizIds)) {
-      if (bizIds.length === 0) return true;
-      return bizIds.every(id => authStore.hasAuthorizedBiz(action, id));
+    if (!authStore.authorizedLoaded) return false; // 未加载完成默认无权限，加载完后才判断
+    const resourceId = getResourceId();
+    if (Array.isArray(resourceId)) {
+      if (resourceId.length === 0) return true;
+      return resourceId.every(id => authStore.hasAuthorizedResource(action, id));
     }
-    return authStore.hasAuthorizedBiz(action, bizIds);
+    return authStore.hasAuthorizedResource(action, resourceId);
   });
 
   // ===== 锁 hover 事件处理 =====
@@ -129,11 +131,11 @@ export default function useAuthLock(
     handleMouseLeave();
     suppressLock = true;
     setTimeout(() => { suppressLock = false; }, 500);
-    const bizIds = getBizIds();
+    const resourceId = getResourceId();
     const authItems = [
-      { id: action, action, resourceType: 'biz', routes: [] },
+      { id: action, action, resourceType, routes: [] },
     ];
-    await authStore.batchVerify(authItems, bizIds);
+    await authStore.batchVerify(authItems, resourceType === 'biz' ? resourceId : undefined, resourceType !== 'biz' ? resourceId : undefined);
     const detail = authStore.permissionDetail;
     if (detail) {
       permissionStore.showDialog(detail);

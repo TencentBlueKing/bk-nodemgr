@@ -44,6 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function batchVerify(
     authItems: PageAuthItem[],
     bkBizScope?: string | number | Array<string | number>,
+    resourceId?: string | number,
   ): Promise<boolean> {
     const bizScope = normalizeBizScope(bkBizScope);
     const bizResources = bizScope
@@ -62,6 +63,19 @@ export const useAuthStore = defineStore('auth', () => {
       // For biz-scoped actions, include the biz resource
       if (item.resourceType === 'biz' && bizResources.length > 0) {
         verifyItem.resources = bizResources;
+      } else if (item.resourceType && item.resourceType !== 'biz') {
+        // For non-biz resource types (networkarea, networkunit, etc.)
+        const resources = [];
+        if (resourceId !== undefined && resourceId !== null) {
+          resources.push({
+            system_id: getSystemIdForResourceType(item.resourceType),
+            type: item.resourceType,
+            id: String(resourceId),
+          });
+        }
+        if (resources.length > 0) {
+          verifyItem.resources = resources;
+        }
       }
 
       return verifyItem;
@@ -166,81 +180,98 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // ===== Authorized API =====
-  // action → { isAny: boolean; bizIds: Set<string> }
-  const authorizedMap = reactive<Record<string, { isAny: boolean; bizIds: Set<string> }>>({});
+  // action → { isAny: boolean; resourceIds: Set<string> }
+  const authorizedMap = reactive<Record<string, { isAny: boolean; resourceIds: Set<string> }>>({});
   const authorizedLoaded = ref(false);
   const authorizedLoading = ref(false);
+  // 已加载过的模块集合，避免重复请求
+  const loadedModules = reactive<Set<string>>(new Set());
+  // 加载失败的模块集合，该模块的 action 默认视为有权限（降级）
+  const failedModules = reactive<Set<string>>(new Set());
 
   /**
-   * 调用 /api/v3/auth/authorized 获取当前用户对各 action 有权限的业务范围
-   * @param items 要查询的 action-resource_type 对，默认查所有 biz 类型的页面权限
+   * 调用 /api/v3/auth/authorized 获取当前用户对各 action 有权限的资源范围
+   * @param items 要查询的 action-resource_type 对
+   * @param moduleName 模块名（可选），用于标记已加载模块，避免重复请求
    */
-  async function fetchAuthorized(items?: AuthorizedItem[]) {
+  async function fetchAuthorized(items?: AuthorizedItem[], moduleName?: string) {
+    // 如果指定了模块且已加载过（成功或失败都算），跳过
+    if (moduleName && (loadedModules.has(moduleName) || failedModules.has(moduleName))) return;
     if (authorizedLoading.value) return;
     authorizedLoading.value = true;
 
-    const defaultItems: AuthorizedItem[] = [
-      { action: 'agent_view', resource_type: 'biz' },
-      { action: 'agent_operate', resource_type: 'biz' },
-      { action: 'proxy_view', resource_type: 'biz' },
-      { action: 'proxy_operate', resource_type: 'biz' },
-      { action: 'plugin_view', resource_type: 'biz' },
-      { action: 'plugin_operate', resource_type: 'biz' },
-      { action: 'agent_history_view', resource_type: 'biz' },
-      { action: 'proxy_history_view', resource_type: 'biz' },
-      { action: 'plugin_history_view', resource_type: 'biz' },
-      { action: 'deploy_policy_view', resource_type: 'biz' },
-      { action: 'config_policy_view', resource_type: 'biz' },
-      { action: 'deploy_policy_history_view', resource_type: 'biz' },
-    ];
-
     try {
       const res = await AuthService.Authorized({
-        items: items || defaultItems,
+        items: items || [],
       });
 
       const results: AuthorizedResult[] = (res as any)?.results || [];
       for (const r of results) {
-        const bizIds = new Set<string>();
+        const resourceIds = new Set<string>();
         if (!r.is_any) {
-          (r.resources || []).forEach(res => bizIds.add(res.id));
+          (r.resources || []).forEach(res => resourceIds.add(res.id));
         }
-        authorizedMap[r.action] = { isAny: r.is_any, bizIds };
+        authorizedMap[r.action] = { isAny: r.is_any, resourceIds };
+      }
+      if (moduleName) {
+        loadedModules.add(moduleName);
       }
       authorizedLoaded.value = true;
     } catch (err) {
-      console.error('fetchAuthorized failed:', err);
+      console.error(`fetchAuthorized${moduleName ? ' [' + moduleName + ']' : ''} failed:`, err);
+      // 失败时仍标记为已处理，防止无限重试；failedModules 记录用于降级判断
+      if (moduleName) {
+        failedModules.add(moduleName);
+        // 降级：该模块所有 action 默认视为无权限
+        (items || []).forEach(item => {
+          authorizedMap[item.action] = { isAny: false, resourceIds: new Set() };
+        });
+      }
+      authorizedLoaded.value = true;
     } finally {
       authorizedLoading.value = false;
     }
   }
 
   /**
-   * 判断某个 action 下，指定业务是否有权限
+   * 判断某个 action 下，指定资源是否有权限
    * @param action IAM action 标识
-   * @param bizId 业务 ID
-   * @returns 有权限返回 true；未加载完成时默认 false（显示锁图标），靠 authorized 接口返回后更新
+   * @param resourceId 资源 ID（如 biz_id, networkarea_id, networkunit_id）
+   * @returns 有权限返回 true；未加载该 action 时返回 false
    */
-  function hasAuthorizedBiz(action: string, bizId?: string | number): boolean {
-    if (!action) return true; // 无 action 匹配时不做权限限制
-    if (!authorizedLoaded.value) return false; // 未加载完成时默认无权限，显示锁图标
+  function hasAuthorizedResource(action: string, resourceId?: string | number): boolean {
+    if (!action) return true;
     const entry = authorizedMap[action];
-    if (!entry) return true; // 不在查询列表中的 action，默认放行
+    if (!entry) return false; // 未查询过该 action，视为无权限（需先 fetchAuthorized）
     if (entry.isAny) return true;
-    if (bizId === undefined || bizId === null) return entry.bizIds.size > 0;
-    return entry.bizIds.has(String(bizId));
+    if (resourceId === undefined || resourceId === null) return entry.resourceIds.size > 0;
+    return entry.resourceIds.has(String(resourceId));
   }
 
   /**
-   * 获取某个 action 下有权限的所有业务 ID
-   * @param action IAM action 标识
-   * @returns isAny=true 时返回 null（表示全部），否则返回 bizId 数组
+   * 判断某个 action 下，指定业务是否有权限（兼容旧调用）
    */
-  function getAuthorizedBizIds(action: string): string[] | null {
+  function hasAuthorizedBiz(action: string, bizId?: string | number): boolean {
+    return hasAuthorizedResource(action, bizId);
+  }
+
+  /**
+   * 获取某个 action 下有权限的所有资源 ID
+   * @param action IAM action 标识
+   * @returns isAny=true 时返回 null（表示全部），否则返回资源 ID 数组
+   */
+  function getAuthorizedResourceIds(action: string): string[] | null {
     if (!authorizedLoaded.value) return null;
     const entry = authorizedMap[action];
     if (!entry || entry.isAny) return null;
-    return Array.from(entry.bizIds);
+    return Array.from(entry.resourceIds);
+  }
+
+  /**
+   * 获取某个 action 下有权限的所有业务 ID（兼容旧调用）
+   */
+  function getAuthorizedBizIds(action: string): string[] | null {
+    return getAuthorizedResourceIds(action);
   }
 
   return {
@@ -266,6 +297,8 @@ export const useAuthStore = defineStore('auth', () => {
     reset,
     fetchAuthorized,
     hasAuthorizedBiz,
+    hasAuthorizedResource,
     getAuthorizedBizIds,
+    getAuthorizedResourceIds,
   };
 });

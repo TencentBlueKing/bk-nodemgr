@@ -1,4 +1,5 @@
 import type { PermissionData } from '@/stores/permission';
+import type { AuthorizedItem } from '@/@types/auth';
 
 export interface PageAuthItem {
   id: string;
@@ -67,7 +68,7 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
 
   // topoManager — non-biz pages
   { id: 'networkarea_view', action: 'networkarea_view', resourceType: 'networkarea', routes: ['workareaDetail'] },
-  { id: 'networkunit_view', action: 'networkunit_view', resourceType: 'networkunit', routes: ['topo'] },
+  // networkunit_view 路由级校验已移除（后端 starts_with 兼容问题，由组件内权限控制替代）
   { id: 'networkarea_history_view', action: 'networkarea_history_view', resourceType: 'networkarea', routes: ['record'] },
 
   // ruleManager — biz-scoped pages
@@ -115,4 +116,87 @@ export function matchPageAuth(
 
   return config.find(item => item.routes.includes(routeName)
     && (!item.activeScopes?.length || item.activeScopes.includes(activeScope)));
+}
+
+/**
+ * 按模块分组的 authorized items 配置
+ * key = mainMenu（对应路由 meta.mainMenu）
+ * 不同模块进入时只查询该模块需要的 action-resource_type 对
+ */
+export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
+  // 节点管理：agent / proxy / plugin 相关 biz 权限
+  // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题暂不放此模块，
+  //      由使用方（如 list.vue）按需调用 fetchAuthorized 加载
+  nodeManager: [
+    { action: 'agent_view', resource_type: 'biz' },
+    { action: 'agent_operate', resource_type: 'biz' },
+    { action: 'agent_history_view', resource_type: 'biz' },
+    { action: 'proxy_view', resource_type: 'biz' },
+    { action: 'proxy_operate', resource_type: 'biz' },
+    { action: 'proxy_history_view', resource_type: 'biz' },
+    { action: 'plugin_view', resource_type: 'biz' },
+    { action: 'plugin_operate', resource_type: 'biz' },
+    { action: 'plugin_history_view', resource_type: 'biz' },
+  ],
+  // 拓扑管理：管控区域 + 管控单元权限
+  // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题不放此模块，
+  //      由使用方（agent/list.vue）按需调用 fetchAuthorized 加载
+  topoManager: [
+    { action: 'networkarea_view', resource_type: 'networkarea' },
+    { action: 'networkarea_create', resource_type: 'networkarea' },
+    { action: 'networkarea_edit', resource_type: 'networkarea' },
+    { action: 'networkarea_delete', resource_type: 'networkarea' },
+    { action: 'networkarea_history_view', resource_type: 'networkarea' },
+    { action: 'networkunit_view', resource_type: 'networkunit' },
+    { action: 'networkunit_create', resource_type: 'networkunit' },
+    { action: 'networkunit_edit', resource_type: 'networkunit' },
+    { action: 'networkunit_delete', resource_type: 'networkunit' },
+    { action: 'networkunit_history_view', resource_type: 'networkunit' },
+  ],
+  // 策略管理：config_policy / deploy_policy 相关 biz 权限
+  ruleManager: [
+    { action: 'config_policy_view', resource_type: 'biz' },
+    { action: 'config_policy_manage', resource_type: 'biz' },
+    { action: 'config_policy_history_view', resource_type: 'biz' },
+    { action: 'deploy_policy_view', resource_type: 'biz' },
+    { action: 'deploy_policy_manage', resource_type: 'biz' },
+    { action: 'deploy_policy_history_view', resource_type: 'biz' },
+  ],
+  // 包管理：package_type / package 权限
+  pkgManager: [
+    { action: 'package_type_upload', resource_type: 'package_type' },
+    { action: 'package_view', resource_type: 'package' },
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_history_view', resource_type: 'package' },
+  ],
+};
+
+/**
+ * 菜单路由名 → 所需 action 的映射
+ * authorized 返回有权限时才显示对应菜单项
+ * 未在此映射中的菜单项默认显示
+ */
+export const MENU_ROUTE_AUTH_MAP: Record<string, string> = {
+  // pkgManager sub-menus
+  agentPackageMng: 'package_view',
+  proxyPackageMng: 'package_view',
+  certPackageMng: 'package_view',
+  bintoolPackageMng: 'package_view',
+  plugin_bintoolPackageMng: 'package_view',
+  pluginPackageMng: 'package_view',
+  operationRecords: 'package_history_view',
+  // ruleManager sub-menus
+  agentStrategy: 'config_policy_view',
+  proxyStrategy: 'config_policy_view',
+  pluginStrategy: 'config_policy_view',
+  strategyTaskHistory: 'deploy_policy_history_view',
+};
+
+/**
+ * 获取指定模块的 authorized items
+ * @param moduleName 模块名（mainMenu 值）
+ * @returns 该模块需要的 action-resource_type 对列表
+ */
+export function getModuleAuthorizedItems(moduleName: string): AuthorizedItem[] {
+  return AUTHORIZED_MODULE_ITEMS[moduleName] || [];
 }

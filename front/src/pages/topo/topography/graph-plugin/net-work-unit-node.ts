@@ -10,6 +10,7 @@ import VectorDirect from '../../../../../public/images/vector-direct.svg';
 import VectorIndirect from '../../../../../public/images/vector-indirect.svg';
 import ConnectionPoint from '../../../../../public/images/connection-point.svg';
 import { textTooltip } from './text-tooltip.js';
+import { authCursor } from './auth-cursor';
 import { i18n } from '@/modules/i18n';
 
 export interface INodeData {
@@ -25,6 +26,8 @@ export interface INodeData {
   direct_endpoints?: any;
   accesspoints?: any[];
   links?: any;
+  has_unit_auth?: boolean;
+  bk_networkunit_id?: number;
 }
 
 interface SplitTextConfig {
@@ -267,7 +270,7 @@ export default class NetWorkUnitNode extends BaseNode {
       this.upsert('accesspoints', GText, {
         x: valueX,
         y: startY + 37.5,
-        text: `${accesspoints?.length || 0} ${i18n.global.t('topoManager.topo.node.count')}`,
+        text: this.data.has_unit_auth ? `${accesspoints?.length || 0} ${i18n.global.t('topoManager.topo.node.count')}` : '***',
         fontSize: 12,
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
@@ -289,20 +292,21 @@ export default class NetWorkUnitNode extends BaseNode {
       }, container);
 
       const stateWidth = isZh ? 32 : 60; // 中文32px，英文60px
+      const hasAuthForState = this.data.has_unit_auth;
       this.upsert('state-bg', 'rect', {
         x: startX + 42,
         y: startY - 3,
         width: stateWidth,
         height: 16,
-        fill: is_healthy ? NetWorkUnitNode.greenColor : NetWorkUnitNode.redColor,
+        fill: !hasAuthForState ? '#DCDEE5' : (is_healthy ? NetWorkUnitNode.greenColor : NetWorkUnitNode.redColor),
         radius: NetWorkUnitNode.badgeRadius,
         cursor: 'text',
       }, container);
       this.upsert('state', GText, {
-        x: startX + 42 + stateWidth / 2, // 在状态框中居中显示
-        y: startY + 5,
-        text: is_healthy ? i18n.global.t('topoManager.topo.node.healthy') : i18n.global.t('topoManager.topo.node.abnormal'),
-        fontSize: 10,
+        x: startX + 42 + stateWidth / 2,
+        y: !hasAuthForState ? startY + 6 : startY + 5, // *** 字符偏上，+1 补偿
+        text: !hasAuthForState ? '***' : (is_healthy ? i18n.global.t('topoManager.topo.node.healthy') : i18n.global.t('topoManager.topo.node.abnormal')),
+        fontSize: !hasAuthForState ? 8 : 10,
         fill: '#FFFFFF',
         textAlign: 'center',
         textBaseline: 'middle',
@@ -377,7 +381,7 @@ export default class NetWorkUnitNode extends BaseNode {
       this.upsert('proxy-count', GText, {
         x: valueX,
         y: startY + 37.5,
-        text: `${running_proxy} / ${total_proxy}`,
+        text: this.data.has_unit_auth ? `${running_proxy} / ${total_proxy}` : '***',
         fontSize: 12,
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
@@ -423,7 +427,7 @@ export default class NetWorkUnitNode extends BaseNode {
       this.upsert('proxy-cycle', GText, {
         x: valueX,
         y: startY + 63.5,
-        text: `${cycle_times}`,
+        text: this.data.has_unit_auth ? `${cycle_times}` : '***',
         fontSize: 12,
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
@@ -443,7 +447,7 @@ export default class NetWorkUnitNode extends BaseNode {
       this.upsert('accesspoints', GText, {
         x: valueX,
         y: startY + 89.5,
-        text: `${accesspoints?.length || 0} ${i18n.global.t('topoManager.topo.node.count')}`,
+        text: this.data.has_unit_auth ? `${accesspoints?.length || 0} ${i18n.global.t('topoManager.topo.node.count')}` : '***',
         fontSize: 12,
         fontWeight: 700,
         fill: NetWorkUnitNode.titleColor,
@@ -488,9 +492,10 @@ export default class NetWorkUnitNode extends BaseNode {
       cursor: 'text',
     }, container);
     // 数量
-    const prefix = `${running_agent}`;
-    const suffix = `${total_agent}`;
-    const textColor = running_agent > 0 ? NetWorkUnitNode.greenColor : NetWorkUnitNode.normalColor;
+    const hasAuth = this.data.has_unit_auth;
+    const prefix = hasAuth ? `${running_agent}` : '***';
+    const suffix = hasAuth ? `${total_agent}` : '';
+    const textColor = hasAuth && running_agent > 0 ? NetWorkUnitNode.greenColor : NetWorkUnitNode.normalColor;
 
     // 动态计算每段文字的 x 坐标，避免多位数字时重叠
     const agentValStartX = startX + 66;
@@ -499,9 +504,15 @@ export default class NetWorkUnitNode extends BaseNode {
     const slashX = agentValStartX + prefixWidth + 1;
     const suffixX = slashX + 7 + 1; // "/" 宽度约 7px
 
-    this.upsert('agent-val-pre', GText, { x: agentValStartX, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
-    this.upsert('agent-val-slash', GText, { x: slashX, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
-    this.upsert('agent-val-suf', GText, { x: suffixX, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text', }, container);
+    if (hasAuth) {
+      this.upsert('agent-val-pre', GText, { x: agentValStartX, y: centerY, text: prefix, fill: textColor, fontSize: 12, textBaseline: 'middle', cursor: 'text' }, container);
+      this.upsert('agent-val-slash', GText, { x: slashX, y: centerY, text: '/', fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text' }, container);
+      this.upsert('agent-val-suf', GText, { x: suffixX, y: centerY, text: suffix, fill: NetWorkUnitNode.normalColor, fontSize: 12, textBaseline: 'middle', cursor: 'text' }, container);
+    } else {
+      this.upsert('agent-val-pre', GText, { x: agentValStartX, y: centerY + 2, text: '***', fill: '#C4C6CC', fontSize: 12, textBaseline: 'middle', cursor: 'text' }, container);
+      this.upsert('agent-val-slash', GText, { x: 0, y: 0, text: '', fill: 'transparent', fontSize: 0 }, container);
+      this.upsert('agent-val-suf', GText, { x: 0, y: 0, text: '', fill: 'transparent', fontSize: 0 }, container);
+    }
 
     const linkIconAgentElement = this.upsert('linkIcon-agent', GImage, {
       x: startX + NetWorkUnitNode.nodeWidth - 43,
@@ -591,6 +602,43 @@ export default class NetWorkUnitNode extends BaseNode {
     }, container);
   }
 
+  // 绘制无权限遮罩：hover 锁 + 点击申请权限（各行星号已在 drawProxyTable/drawAgentBlock 中处理）
+  private drawAuthOverlay(container: Group) {
+    const { is_direct } = this.data;
+    const width = NetWorkUnitNode.nodeWidth;
+    const totalHeight = is_direct ? 160 : 212;
+    const contentStartY = NetWorkUnitNode.headerHeight;
+
+    // 半透明遮罩（用于拦截点击和显示锁图标）
+    const overlayEl = this.upsert('auth-overlay', GRect, {
+      x: 0,
+      y: contentStartY - 8,
+      width,
+      height: totalHeight - contentStartY + 8,
+      fill: 'rgba(255, 255, 255, 0.3)',
+      radius: [0, 0, 6, 6],
+      cursor: 'pointer',
+      className: 'auth-view-btn',
+    }, container);
+
+    // hover 锁 + 点击事件（仅绑定一次）
+    if (overlayEl && !(overlayEl as any).__bindAuthEvents) {
+      (overlayEl as any).__bindAuthEvents = true;
+
+      overlayEl.addEventListener('mouseenter', (e: any) => {
+        authCursor.show(e.clientX, e.clientY);
+      });
+
+      overlayEl.addEventListener('mousemove', (e: any) => {
+        authCursor.move(e.clientX, e.clientY);
+      });
+
+      overlayEl.addEventListener('mouseleave', () => {
+        authCursor.hide();
+      });
+    }
+  }
+
   // 主渲染函数
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public render(attr: Required<BaseNodeStyleProps>, container: Group) {
@@ -611,5 +659,10 @@ export default class NetWorkUnitNode extends BaseNode {
     
     // 4. 绘制连接点图标
     this.drawConnectionPoint(container);
+
+    // 5. 无权限时绘制遮罩和"查看"按钮
+    if (this.data.has_unit_auth === false) {
+      this.drawAuthOverlay(container);
+    }
   }
 }
