@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -47,7 +48,7 @@ func (h *handler) AgentRestart(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	bizIDs := h.getRestartNodeBizIDs(hosts)
-	resources := buildBizResources(bizIDs)
+	resources := authRouter.BuildBizResources(bizIDs...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to restart agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)

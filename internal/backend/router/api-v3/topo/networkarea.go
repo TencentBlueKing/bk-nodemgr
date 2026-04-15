@@ -73,7 +73,7 @@ func (h *handler) UpdateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaEdit,
-		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()})); authErr != nil {
+		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()}...)); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update networkarea, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
@@ -111,7 +111,7 @@ func (h *handler) GetNetworkArea(rCtx restserver.IContext) (interface{}, error) 
 	}
 
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView,
-		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()})); authErr != nil {
+		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()}...)); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get networkarea, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
@@ -165,7 +165,7 @@ func (h *handler) DeleteNetworkArea(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaDelete,
-		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()})); authErr != nil {
+		buildNetworkAreaResources([]int64{req.GetBkNetworkareaId()}...)); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to delete networkarea, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

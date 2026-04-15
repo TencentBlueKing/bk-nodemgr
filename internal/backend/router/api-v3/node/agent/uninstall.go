@@ -16,6 +16,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -51,7 +52,7 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 	}
 
 	bizIDs := h.getUninstallNodeBizIDs(hosts)
-	resources := buildBizResources(bizIDs)
+	resources := authRouter.BuildBizResources(bizIDs...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionAgentOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to uninstall agent, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)

@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -48,7 +49,7 @@ func (h *handler) ProxyUpgradeCheck(rCtx restserver.IContext) (interface{}, erro
 	for _, host := range hosts {
 		bizIDMap[host.Static.BizID] = struct{}{}
 	}
-	resources := buildBizResources(conv.MapKeyToSlice(bizIDMap))
+	resources := authRouter.BuildBizResources(conv.MapKeyToSlice(bizIDMap)...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check upgrade proxy, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)

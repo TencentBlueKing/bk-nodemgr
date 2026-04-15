@@ -12,6 +12,7 @@ package topo
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -87,7 +88,7 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	networkunit := req.GetNetworkunit()
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitEdit,
-		buildNetworkUnitResources([]int64{networkunit.GetBkNetworkunitId()})); authErr != nil {
+		authRouter.BuildNetworkUnitResources([]int64{networkunit.GetBkNetworkunitId()}...)); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update networkunit, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
@@ -152,7 +153,7 @@ func (h *handler) GetNetworkUnit(rCtx restserver.IContext) (interface{}, error) 
 	}
 
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitView,
-		buildNetworkUnitResources([]int64{req.GetBkNetworkunitId()})); authErr != nil {
+		authRouter.BuildNetworkUnitResources([]int64{req.GetBkNetworkunitId()}...)); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get networkunit, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
@@ -297,7 +298,7 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	if authErr := h.authorizer.Check(rCtx, auth.ActionNetworkUnitDelete,
-		buildNetworkUnitResources([]int64{req.GetBkNetworkunitId()})); authErr != nil {
+		authRouter.BuildNetworkUnitResources([]int64{req.GetBkNetworkunitId()}...)); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to delete networkunit, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}

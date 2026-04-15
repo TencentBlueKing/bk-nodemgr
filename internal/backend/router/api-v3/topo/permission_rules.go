@@ -34,7 +34,7 @@ func buildBizResources(bizIDs []int64) []types.AuthResource {
 }
 
 // buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
-func buildNetworkAreaResources(ids []int64) []types.AuthResource {
+func buildNetworkAreaResources(ids ...int64) []types.AuthResource {
 	resources := make([]types.AuthResource, 0, len(ids))
 	for _, id := range ids {
 		resources = append(resources, types.AuthResource{
@@ -49,7 +49,7 @@ func buildNetworkAreaResources(ids []int64) []types.AuthResource {
 
 // buildNetworkUnitResources is deprecated. Use auth.BuildNetworkUnitResources instead.
 func buildNetworkUnitResources(ids []int64) []types.AuthResource {
-	return authRouter.BuildNetworkUnitResources(ids)
+	return authRouter.BuildNetworkUnitResources(ids...)
 }
 
 func (h *handler) narrowAuthorizedNetworkUnitIDs(
@@ -122,7 +122,7 @@ func (h *handler) narrowAuthorizedNetworkAreaIDs(
 	}
 
 	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
-		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources(requestedIDs)); checkErr != nil {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
 	}
