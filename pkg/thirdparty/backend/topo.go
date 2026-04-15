@@ -560,6 +560,7 @@ func (h *Handler) GetNetworkUnitDistributionByNetworkAreaID(
 	return resp.ConvertResultToTypes(), nil
 }
 
+// RecommendNetworkUnitByNetworkSegment recommends network unit by network segment.
 func (h *Handler) RecommendNetworkUnitByNetworkSegment(
 	nCtx contextx.IContext,
 	items ...*types.NetworkUnitSegmentRecommendationItem,

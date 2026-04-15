@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package main of adminclient.
 package main
 
 import (
@@ -37,6 +38,10 @@ func main() {
 	}
 }
 
+const (
+	jwtTokenExpiration = 24 * time.Hour
+)
+
 func newBackendAdminHandler(configPath string) (backendadmin.IHandler, error) {
 	conf := config.NewBackendService()
 	if err := conf.LoadFromFile(configPath); err != nil {
@@ -52,7 +57,7 @@ func newBackendAdminHandler(configPath string) (backendadmin.IHandler, error) {
 	}
 
 	endpoint := "http://" + net.JoinHostPort(conf.AdminServer.AdvertiseIPV4, strconv.Itoa(conf.AdminServer.Port))
-	h, err := backendadmin.New(&restclient.Capability{
+	handler, err := backendadmin.New(&restclient.Capability{
 		Name:                 "backend-adminclient",
 		HTTPClient:           httpClient,
 		Discover:             restdiscovery.NewDiscovery("backendadmin", []string{endpoint}),
@@ -61,13 +66,13 @@ func newBackendAdminHandler(configPath string) (backendadmin.IHandler, error) {
 		TraceSvc:             noopTraceService{},
 	}, &backendadmin.Config{
 		RestJWTSecret:          conf.AdminServer.JWTServerConfig.SymmetricKey,
-		RestJWTTokenExpiration: 24 * time.Hour,
+		RestJWTTokenExpiration: jwtTokenExpiration,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create backendadmin handler: %w", err)
 	}
 
-	return h, nil
+	return handler, nil
 }
 
 type noopTraceService struct{}

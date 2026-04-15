@@ -180,6 +180,7 @@ func validateNetworkUnitSegmentRuleSettings(settings []*types.GlobalSettings) er
 	return nil
 }
 
+// nolint: gocognit
 func validateNetworkUnitSegmentRuleConfig(cfg types.NetworkUnitSegmentRuleConfig) error {
 	if len(cfg) == 0 {
 		return errors.New("at least one networkarea rules config is required")

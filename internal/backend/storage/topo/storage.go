@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
-	gsdao "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/globalsettings"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
@@ -109,7 +109,7 @@ type Storage struct {
 
 	daoBusiness business.IHandler
 
-	daoGlobalSettings gsdao.IHandler
+	daoGlobalSettings globalsettings.IHandler
 
 	daoHost host.IHandler
 
@@ -124,7 +124,7 @@ type Storage struct {
 
 func (s *Storage) initDao() error {
 	s.daoBusiness = business.New(s.Database)
-	s.daoGlobalSettings = gsdao.New(s.Database)
+	s.daoGlobalSettings = globalsettings.New(s.Database)
 	s.daoHost = host.New(s.Database)
 	s.daoNetworkArea = networkarea.New(s.Database)
 	s.daoNetworkUnit = networkunit.New(s.Database)

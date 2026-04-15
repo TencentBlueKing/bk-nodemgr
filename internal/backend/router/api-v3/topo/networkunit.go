@@ -279,6 +279,7 @@ func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.ICon
 	return resp.GetData(), nil
 }
 
+// nolint: gocognit
 func (h *handler) RecommendNetworkUnitByNetworkSegment(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq)
 	if err := rCtx.BindJSON(req); err != nil {

@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
-	mongobase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
@@ -286,7 +286,7 @@ func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 func (s *Storage) loadNetworkUnitSegmentRuleConfig(nCtx contextx.IContext) (types.NetworkUnitSegmentRuleConfig, error) {
 	setting, err := s.daoGlobalSettings.Get(nCtx, globalsettings.NetworkUnitSegmentRules)
 	if err != nil {
-		if errors.Is(err, mongobase.ErrRecordNoFound()) {
+		if errors.Is(err, base.ErrRecordNoFound()) {
 			return types.NetworkUnitSegmentRuleConfig{}, nil
 		}
 

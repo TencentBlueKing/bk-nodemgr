@@ -80,9 +80,9 @@ func NewNetworkUnitSegmentRulesCMD(getHandler func() backendadmin.IHandler, getA
 				return fmt.Errorf("marshal networkunit segment rules: %w", err)
 			}
 
-		_, err = fmt.Fprintln(cmd.OutOrStdout(), string(data))
+			_, err = fmt.Fprintln(cmd.OutOrStdout(), string(data))
 
-		return err
+			return err
 		},
 	})
 
@@ -92,6 +92,8 @@ func NewNetworkUnitSegmentRulesCMD(getHandler func() backendadmin.IHandler, getA
 		Short: "upsert backend networkunit segment rules",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			tenantID, loginName := getAuthInfo()
+
+			// nolint: gosec
 			content, err := os.ReadFile(rulesFile)
 			if err != nil {
 				return fmt.Errorf("read rules file: %w", err)
@@ -107,9 +109,9 @@ func NewNetworkUnitSegmentRulesCMD(getHandler func() backendadmin.IHandler, getA
 				return err
 			}
 
-		_, err = fmt.Fprintln(cmd.OutOrStdout(), "Successfully upserted networkunit segment rules")
+			_, err = fmt.Fprintln(cmd.OutOrStdout(), "Successfully upserted networkunit segment rules")
 
-		return err
+			return err
 		},
 	}
 	upsertCMD.Flags().StringVar(&rulesFile, "rules-file", "", "path to rules json file")
