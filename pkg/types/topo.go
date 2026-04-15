@@ -215,11 +215,13 @@ type NetworkUnitUpdateFields struct {
 	CustomDeployConfig bool
 }
 
+// NetworkUnitSegmentRecommendationItem represents an item of network unit segment recommendation.
 type NetworkUnitSegmentRecommendationItem struct {
 	NetworkAreaID int64
 	IP            string
 }
 
+// NetworkUnitSegmentRecommendationResult represents the result of network unit segment recommendation.
 type NetworkUnitSegmentRecommendationResult struct {
 	NetworkAreaID int64
 	IP            string

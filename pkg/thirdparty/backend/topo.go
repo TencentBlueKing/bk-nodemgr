@@ -565,6 +565,7 @@ func (h *Handler) RecommendNetworkUnitByNetworkSegment(
 	nCtx contextx.IContext,
 	items ...*types.NetworkUnitSegmentRecommendationItem,
 ) ([]*types.NetworkUnitSegmentRecommendationResult, error) {
+
 	req := &protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq{}
 	req.Items = make([]*protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq_Item, len(items))
 	for idx, item := range items {

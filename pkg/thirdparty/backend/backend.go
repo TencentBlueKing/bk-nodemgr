@@ -749,6 +749,7 @@ func (c *cli) recommendNetworkUnitByNetworkSegment(
 	ctx contextx.IContext,
 	req *protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq,
 ) (*protoBackend.TopoRecommendNetworkUnitByNetworkSegmentResp, error) {
+
 	resp := new(protoBackend.TopoRecommendNetworkUnitByNetworkSegmentResp)
 	header := c.getHeader(ctx)
 
