@@ -312,7 +312,7 @@ func (h *handler) RecommendNetworkUnitByNetworkSegment(rCtx restserver.IContext)
 				continue
 			}
 			if _, ok := authorizedAreaMap[item.NetworkAreaID]; !ok {
-				authErr = h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources([]int64{item.NetworkAreaID}))
+				authErr = h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources(item.NetworkAreaID))
 				if authErr != nil {
 					logger.G.Biz(rCtx).WithErr(authErr).Error("failed to recommend networkunit by network segment, permission denied")
 					return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
