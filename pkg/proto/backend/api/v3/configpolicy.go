@@ -239,7 +239,7 @@ func (x *ConfigPolicyCreateResp) ConvertConfigPolicyID(configPolicyID int64) {
 
 // Validate check body.
 func (x *ConfigPolicyUpdateReq) Validate() error {
-	if x.GetConfigpolicyId() <= 0 {
+	if x.GetConfigpolicyId() < 0 {
 		return fmt.Errorf("config policy id is required")
 	}
 
