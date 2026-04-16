@@ -58,7 +58,7 @@ golangci-lint --version
 
 ```bash
 # 下载 protoc
-PROTOC_VERSION=5.29.3
+PROTOC_VERSION=29.3
 curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip
 unzip protoc-${PROTOC_VERSION}-linux-x86_64.zip -d /tmp/protoc
 sudo cp /tmp/protoc/bin/protoc /usr/local/bin/

@@ -56,7 +56,6 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 	}
 	cond = narrowReleaseCondition(cond, narrowedNames, scopeIsAny, types.ReleaseTypePlugin)
 
-
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.daoReleasePlugin.CountReleasePlugin(rCtx, cond)
@@ -84,6 +83,61 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	resp := new(protoBackend.PackageReleasePluginListResp)
+	resp.ConvertReleasePluginsFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
+// ListReleasePluginBrief list plugin brief.
+func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+	// Check permission and narrow by authorized plugin names.
+	requestedNames := exactIncludeCond.Name
+	narrowedNames, scopeIsAny, authErr := h.narrowAuthorizedPackageNames(rCtx, requestedNames, types.ReleaseTypePlugin)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list plugin brief, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	cond = narrowReleaseCondition(cond, narrowedNames, scopeIsAny, types.ReleaseTypePlugin)
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoReleasePlugin.CountReleasePlugin(rCtx, cond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief. failed to count host")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PackageReleasePluginListBriefResp)
+		resp.ConvertReleasePluginsFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, page, cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin brief")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleasePluginListBriefResp)
 	resp.ConvertReleasePluginsFromTypes(num, hosts)
 
 	return resp.GetData(), nil

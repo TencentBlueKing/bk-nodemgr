@@ -257,6 +257,32 @@ message PackageReleaseProxyListResp {
   Data data = 5;
 }
 
+// PackageReleaseProxyListBriefReq describes the HTTP request body when list
+// proxy release brief.
+message PackageReleaseProxyListBriefReq {
+  Page page = 1;
+  int64 generation = 2;
+  bool only_count = 3;
+
+  PackageReleaseExactConditions exact_include_conditions = 4;
+}
+
+// PackageReleaseProxyListBriefResp describes the HTTP response body when list
+// proxy release brief.
+message PackageReleaseProxyListBriefResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleaseProxy items = 2;
+  }
+  Data data = 5;
+}
+
 // PackageReleaseProxyDistinctReq describes the HTTP request body when distinct
 // proxy release.
 message PackageReleaseProxyDistinctReq {
@@ -404,6 +430,32 @@ message PackageReleaseProxyDeleteResp {
   Permission permission = 6;
 
   message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginListBriefReq describes the HTTP request body when list
+// plugin release brief.
+message PackageReleasePluginListBriefReq {
+  Page page = 1;
+  int64 generation = 2;
+  bool only_count = 3;
+
+  PackageReleaseExactConditions exact_include_conditions = 4;
+}
+
+// PackageReleasePluginListBriefResp describes the HTTP response body when list
+// plugin release brief.
+message PackageReleasePluginListBriefResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleasePlugin items = 2;
+  }
   Data data = 5;
 }
 

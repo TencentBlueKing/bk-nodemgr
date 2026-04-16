@@ -44,7 +44,6 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.daoReleaseProxy.CountReleaseProxy(rCtx, cond)
@@ -77,6 +76,59 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
+// ListReleaseProxyBrief lists proxy releases brief with page and conditions.
+func (h *handler) ListReleaseProxyBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseProxyListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+	// Check permission.
+	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeProxy)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list release proxy brief, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoReleaseProxy.CountReleaseProxy(rCtx, cond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy brief. failed to count release proxy")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PackageReleaseProxyListBriefResp)
+		resp.ConvertReleasesFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.daoReleaseProxy.ListReleaseProxy(rCtx, page, cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy brief")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleaseProxyListBriefResp)
+	resp.ConvertReleasesFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
 // DistinctReleaseProxy distincts proxy releases.
 func (h *handler) DistinctReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseProxyDistinctReq)
@@ -97,7 +149,6 @@ func (h *handler) DistinctReleaseProxy(rCtx restserver.IContext) (interface{}, e
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to distinct proxy release, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
-
 
 	distinctField := types.ReleaseDistinctField{
 		OSType:  req.GetDistinctField().GetOsType(),
