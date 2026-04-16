@@ -131,6 +131,7 @@
           :unique-select="true"
           :placeholder="$t('platform.nodeMan.agentSearchPlaceholder')"
           @update:model-value="handleSearchSelectChange"
+          @paste.native="handleNativePaste"
         >
         </SearchSelect>
       </div>
@@ -469,6 +470,8 @@ const {
 } = useAuthLock('networkunit_use_for_agent', () => mainStore.selectedBusinessId);
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+const AGENT_ID_REG = /^0[12]/; // AgentID 以 01 或 02 开头
+const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
 
 // ---------- 响应式数据 ----------
 const tableData = ref<Host[]>([]);
@@ -615,8 +618,8 @@ const networkUnitListMap = ref(new Map<number, string>([]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 const searchSelectData = computed(() => [
-  { id: 'bk_host_innerip', name: t('platform.nodeMan.inner_ip'), multiple: true },
-  { id: 'bk_host_innerip_v6', name: t('platform.nodeMan.inner_ipv6'), multiple: true },
+  { id: 'ip', name: 'IP', multiple: true }, // 合并后的 IP 筛选
+  { id: 'area_ip', name: t('platform.nodeMan.bk_cloud_name') + 'ID:IP', multiple: true }, // 管控区域ID:IP
   { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
   {
     id: 'bk_biz_id',
@@ -802,12 +805,74 @@ const getParams = () => {
     exact_include_conditions: { bk_biz_id: mainStore.selectedBusinessId, node_role: ['agent', 'blank'] } as TopoHostExactConditions,
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
+  
   searchSelectValue.value.forEach((item: any) => {
+    // 处理合并后的 IP 字段
+    if (item.id === 'ip') {
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      
+      item.values?.forEach((value: any) => {
+        const ip = value.id;
+        if (IPV4_REG.test(ip)) {
+          ipv4List.push(ip);
+        } else if (IPV6_REG.test(ip)) {
+          ipv6List.push(ip);
+        }
+      });
+      
+      if (ipv4List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+    
+    // 处理管控区域ID:IP 组合字段
+    if (item.id === 'area_ip') {
+      const areaIds: number[] = [];
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      
+      item.values?.forEach((value: any) => {
+        const match = value.id.match(AREA_IP_REG);
+        if (match) {
+          const areaId = Number(match[1]);
+          const ip = match[2];
+          
+          if (!areaIds.includes(areaId)) {
+            areaIds.push(areaId);
+          }
+          
+          if (IPV4_REG.test(ip)) {
+            ipv4List.push(ip);
+          } else if (IPV6_REG.test(ip)) {
+            ipv6List.push(ip);
+          }
+        }
+      });
+      
+      if (areaIds.length > 0) {
+        params.exact_include_conditions.bk_networkarea_id = areaIds;
+      }
+      if (ipv4List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+    
+    // 处理其他字段
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
     target[item.id] = item.values?.map((value: any) => value.id);
   });
+  
   return params;
 };
 
@@ -968,37 +1033,154 @@ const loadInitialData = async () => {
 
 // ---------- 事件处理函数 ----------
 /**
+ * 解析多分隔符输入，支持空格、换行、分号、逗号
+ */
+const parseMultiDelimiterInput = (text: string): string[] => {
+  // 使用正则匹配多种分隔符：空格、换行、分号、逗号、竖线、顿号
+  return text
+    .split(/[\s\n;,|、]+/)
+    .map(item => item.trim())
+    .filter(item => item.length > 0);
+};
+
+/**
+ * 智能识别输入类型
+ */
+const detectInputType = (text: string): { type: 'ip' | 'area_ip' | 'agent_id' | null; value: string } => {
+  // 1. 检测管控区域ID:IP 格式
+  if (AREA_IP_REG.test(text)) {
+    return { type: 'area_ip', value: text };
+  }
+
+  // 2. 检测 AgentID（01或02开头）
+  if (AGENT_ID_REG.test(text)) {
+    return { type: 'agent_id', value: text };
+  }
+
+  // 3. 检测 IPv4
+  if (IPV4_REG.test(text)) {
+    return { type: 'ip', value: text };
+  }
+
+  // 4. 检测 IPv6
+  if (IPV6_REG.test(text)) {
+    return { type: 'ip', value: text };
+  }
+  
+  return { type: null, value: text };
+};
+
+/**
+ * 拦截原生 paste 事件，将空格分隔符转换为组件能识别的逗号
+ */
+const handleNativePaste = (event: ClipboardEvent) => {
+  const text = event.clipboardData?.getData('text');
+  if (!text) return;
+
+  // 如果包含空格但不包含组件默认分隔符，则替换空格为逗号
+  if (text.includes(' ') && !/[|,、\r\n\n]/.test(text)) {
+    event.preventDefault();
+    const normalizedText = text.replace(/\s+/g, ',');
+
+    // 手动触发粘贴
+    const target = event.target as HTMLElement;
+    if (target && target.isContentEditable) {
+      document.execCommand('insertText', false, normalizedText);
+    }
+  }
+};
+
+/**
  * 处理粘贴/快速输入的逻辑
  */
 const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
-  const text = data.length > 0 ? data[data.length - 1].id : '';
-  if (text) {
-    let targetId = '';
-    let targetName = '';
+  if (data.length === 0) return;
 
-    // 1. 自动识别 IP 类型
-    if (IPV4_REG.test(text)) {
-      targetId = 'bk_host_innerip';
-      targetName = t('platform.nodeMan.inner_ip');
-    } else if (IPV6_REG.test(text)) {
-      targetId = 'bk_host_innerip_v6';
-      targetName = t('platform.nodeMan.inner_ipv6');
-    }
+  const lastItem = data[data.length - 1];
+  
+  // 如果用户已经选择了类型（ip、area_ip、bk_agent_id），处理多分隔符输入
+  if (['ip', 'area_ip', 'bk_agent_id'].includes(lastItem.id) && lastItem.values.length > 0) {
+    // 遍历所有 values，解析每个可能包含多分隔符的值
+    const allParsedItems: string[] = [];
+    lastItem.values.forEach((value: any) => {
+      const parsedItems = parseMultiDelimiterInput(value.id);
+      allParsedItems.push(...parsedItems);
+    });
 
-    // 2. 如果匹配成功，直接构造并推入 searchSelectValue
-    if (targetId) {
-      const index = searchSelectValue.value.findIndex((item: any) => item.id === targetId);
-      if (index > -1) searchSelectValue.value.splice(index, 1);
-
-      searchSelectValue.value.push({
-        id: targetId,
-        name: targetName,
-        values: [{ id: text, name: text }],
-      });
-      // 3. 移除粘贴的文本
-      searchSelectValue.value.splice(data.length - 2, 1);
+    // 去重
+    const uniqueItems = Array.from(new Set(allParsedItems));
+    
+    if (uniqueItems.length > 0) {
+      // 替换为解析后的列表
+      lastItem.values = uniqueItems.map(item => ({ id: item, name: item }));
       return;
     }
+  }
+
+  // 如果用户直接粘贴没选择类型，自动识别
+  // SearchSelect 在多值粘贴后可能会生成多个“原始输入项”，这里从末尾聚合后统一识别。
+  const searchFieldIds = new Set(searchSelectData.value.map(item => item.id));
+  const tailRawInputIds: string[] = [];
+  for (let i = data.length - 1; i >= 0; i--) {
+    const current = data[i];
+    if (searchFieldIds.has(current.id) || current.values?.length) break;
+    tailRawInputIds.unshift(current.id);
+  }
+
+  const parsedItems = (tailRawInputIds.length > 0
+    ? tailRawInputIds
+    : [lastItem.id])
+    .flatMap(text => parseMultiDelimiterInput(text));
+  const uniqueParsedItems = Array.from(new Set(parsedItems));
+  if (uniqueParsedItems.length === 0) return;
+  
+  // 智能识别第一个项的类型
+  const firstDetection = detectInputType(uniqueParsedItems[0]);
+  if (!firstDetection.type) return;
+
+  // 验证所有项是否为同一类型
+  const allSameType = uniqueParsedItems.every(item => {
+    const detection = detectInputType(item);
+    return detection.type === firstDetection.type;
+  });
+
+  if (!allSameType) {
+    // 类型不一致，不自动识别
+    return;
+  }
+
+  // 构造目标字段
+  let targetId = '';
+  let targetName = '';
+
+  switch (firstDetection.type) {
+    case 'ip':
+      targetId = 'ip';
+      targetName = 'IP';
+      break;
+    case 'area_ip':
+      targetId = 'area_ip';
+      targetName = t('platform.nodeMan.bk_cloud_name') + 'ID:IP';
+      break;
+    case 'agent_id':
+      targetId = 'bk_agent_id';
+      targetName = 'Agent ID';
+      break;
+  }
+
+  if (targetId) {
+    // 移除末尾原始输入项 + 已存在的同类型筛选，避免重复。
+    searchSelectValue.value = searchSelectValue.value.filter((item: any) => {
+      if (item.id === targetId) return false;
+      return !tailRawInputIds.includes(item.id);
+    });
+
+    // 添加新的筛选条件
+    searchSelectValue.value.push({
+      id: targetId,
+      name: targetName,
+      values: uniqueParsedItems.map(item => ({ id: item, name: item })),
+    });
   }
 };
 const handleSearchSelectChange = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {

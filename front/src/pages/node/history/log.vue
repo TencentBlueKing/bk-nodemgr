@@ -10,9 +10,10 @@
           v-model.trim="searchSelectValue"
           :unique-select="true"
           :placeholder="isNode
-            ? $t('platform.nodeMan.log.searchNode')
+            ? $t('platform.nodeMan.historySearchPlaceholder')
             : $t('platform.nodeMan.log.searchPlugin')"
           @update:model-value="handleSearchSelectChange"
+          @paste.native="handleNativePaste"
         >
         </SearchSelect>
       </div>
@@ -347,7 +348,6 @@ const getLogText = (item: any) => (isZh.value
 const isExecutionLogError = (item: any) => item.level === 'ERROR' || getLogText(item).includes('ERROR');
 const isExecutionLogWarn = (item: any) => !isExecutionLogError(item) && (item.level === 'WARN' || getLogText(item).includes('WARN'));
 
-// 正则表达式
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 
@@ -391,6 +391,12 @@ const operateList = ref<any[]>([]); // 子任务列表
 const matchesSearchSelect = (row: any) => searchSelectValue.value.every((searchItem: any) => {
   const { id: searchField, values } = searchItem;
   const searchIds = values?.map((value: { id: string }) => value.id);
+  // 合并后的 IP 字段：同时匹配 IPv4 和 IPv6 列
+  if (searchField === 'ip') {
+    const ipList = (row.bk_host_inner_list || '').split(',').map((ip: string) => ip.trim());
+    const ipv6List = (row.bk_host_innerip_v6_list || '').split(',').map((ip: string) => ip.trim());
+    return searchIds.some(id => ipList.includes(id) || ipv6List.includes(id));
+  }
   return searchIds.includes(row[searchField]);
 });
 const filterOperateList = computed(() => operateList.value.filter(matchesSearchSelect));
@@ -540,8 +546,7 @@ const getDistinctStates = async () => {
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
-  { id: 'bk_host_inner_list', name: 'IPv4', multiple: true },
-  { id: 'bk_host_innerip_v6_list', name: 'IPv6', multiple: true },
+  { id: 'ip', name: 'IP', multiple: true },
   ...(isNode.value ? [] : [{ id: 'plugin_name', name: '插件名' }]),
   {
     id: 'state',
@@ -554,40 +559,101 @@ const searchSelectData = computed(() => [
   },
 ]);
 /**
- * 处理粘贴/快速输入的逻辑
+ * 解析多分隔符输入，支持空格、换行、分号、逗号
  */
-const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
-  const text = data.length > 0 ? data[data.length - 1].id : '';
-  if (text) {
-    let targetId = '';
-    let targetName = '';
+const parseMultiDelimiterInput = (text: string): string[] => text
+  .split(/[\s\n;,|、]+/)
+  .map(item => item.trim())
+  .filter(item => item.length > 0);
 
-    // 1. 自动识别 IP 类型
-    if (IPV4_REG.test(text)) {
-      targetId = 'bk_host_inner_list';
-      targetName = 'IPv4';
-    } else if (IPV6_REG.test(text)) {
-      targetId = 'bk_host_innerip_v6_list';
-      targetName = 'ipV6';
-    }
+/**
+ * 智能识别输入类型
+ */
+const detectInputType = (text: string): { type: 'ip' | null; value: string } => {
+  if (IPV4_REG.test(text)) return { type: 'ip', value: text };
+  if (IPV6_REG.test(text)) return { type: 'ip', value: text };
+  return { type: null, value: text };
+};
 
-    // 2. 如果匹配成功，直接构造并推入 searchSelectValue
-    if (targetId) {
-      const index = searchSelectValue.value.findIndex((item: any) => item.id === targetId);
-      if (index > -1) searchSelectValue.value.splice(index, 1);
-
-      searchSelectValue.value.push({
-        id: targetId,
-        name: targetName,
-        values: [{ id: text, name: text }],
-      });
-      // 3. 移除粘贴的文本
-      searchSelectValue.value.splice(data.length - 2, 1);
-      return;
+/**
+ * 拦截原生 paste 事件，将空格分隔符转换为组件能识别的逗号
+ */
+const handleNativePaste = (event: ClipboardEvent) => {
+  const text = event.clipboardData?.getData('text');
+  if (!text) return;
+  if (text.includes(' ') && !/[|,、\r\n\n]/.test(text)) {
+    event.preventDefault();
+    const normalizedText = text.replace(/\s+/g, ',');
+    const target = event.target as HTMLElement;
+    if (target && target.isContentEditable) {
+      document.execCommand('insertText', false, normalizedText);
     }
   }
 };
-// eslint-disable-next-line max-len
+
+/**
+ * 处理粘贴/快速输入的逻辑
+ */
+const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  if (data.length === 0) return;
+
+  const lastItem = data[data.length - 1];
+
+  if (['ip'].includes(lastItem.id) && lastItem.values.length > 0) {
+    const allParsedItems: string[] = [];
+    lastItem.values.forEach((value: any) => {
+      const parsedItems = parseMultiDelimiterInput(value.id);
+      allParsedItems.push(...parsedItems);
+    });
+    const uniqueItems = Array.from(new Set(allParsedItems));
+    if (uniqueItems.length > 0) {
+      lastItem.values = uniqueItems.map(item => ({ id: item, name: item }));
+      return;
+    }
+  }
+
+  const searchFieldIds = new Set(searchSelectData.value.map(item => item.id));
+  const tailRawInputIds: string[] = [];
+  for (let i = data.length - 1; i >= 0; i--) {
+    const current = data[i];
+    if (searchFieldIds.has(current.id) || current.values?.length) break;
+    tailRawInputIds.unshift(current.id);
+  }
+
+  const parsedItems = (tailRawInputIds.length > 0
+    ? tailRawInputIds
+    : [lastItem.id])
+    .flatMap(text => parseMultiDelimiterInput(text));
+  const uniqueParsedItems = Array.from(new Set(parsedItems));
+  if (uniqueParsedItems.length === 0) return;
+
+  const firstDetection = detectInputType(uniqueParsedItems[0]);
+  if (!firstDetection.type) return;
+
+  const allSameType = uniqueParsedItems.every(item => detectInputType(item).type === firstDetection.type);
+  if (!allSameType) return;
+
+  let targetId = '';
+  let targetName = '';
+
+  if (firstDetection.type === 'ip') {
+    targetId = 'ip';
+    targetName = 'IP';
+  }
+
+  if (targetId) {
+    searchSelectValue.value = searchSelectValue.value.filter((item: any) => {
+      if (item.id === targetId) return false;
+      return !tailRawInputIds.includes(item.id);
+    });
+    searchSelectValue.value.push({
+      id: targetId,
+      name: targetName,
+      values: uniqueParsedItems.map(item => ({ id: item, name: item })),
+    });
+  }
+};
+
 const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
   handleInputPaste(data);
 };

@@ -534,6 +534,9 @@ const handleEdit = (row: Host) => {
   sidesliderData.isShow = true;
   sidesliderData.data = row;
 };
+const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
 const fuzzyKeys = new Set([
   'bk_host_innerip',
   'bk_host_innerip_v6',
@@ -557,6 +560,56 @@ const getParams = () => {
     params.exact_include_conditions.bk_networkunit_id = [props.bkNetworkunitId];
   }
   searchSelectValue.value.forEach((item: any) => {
+    // IP 字段：自动识别 IPv4/IPv6 并分类
+    if (item.id === 'ip' && item.values?.length) {
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((value: any) => {
+        if (IPV4_REG.test(value.id)) {
+          ipv4List.push(value.id);
+        } else if (IPV6_REG.test(value.id)) {
+          ipv6List.push(value.id);
+        }
+      });
+      if (ipv4List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
+    // 管控区域ID:IP：自动拆分为 bk_networkarea_id + IP 列表
+    if (item.id === 'area_ip' && item.values?.length) {
+      const areaIds = new Set<number>();
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((value: any) => {
+        const match = AREA_IP_REG.exec(value.id);
+        if (match) {
+          const areaId = Number(match[1]);
+          const ip = match[2];
+          areaIds.add(areaId);
+          if (IPV4_REG.test(ip)) {
+            ipv4List.push(ip);
+          } else if (IPV6_REG.test(ip)) {
+            ipv6List.push(ip);
+          }
+        }
+      });
+      if (areaIds.size > 0) {
+        params.exact_include_conditions.bk_networkarea_id = Array.from(areaIds);
+      }
+      if (ipv4List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
@@ -692,12 +745,14 @@ const getHostDistinct = async () => {
     // 更新searchSelectData
     const searchSelectData = [
       {
-        name: t('topoManager.workAreaDetail.table.ipv4'),
-        id: 'bk_host_innerip',
+        name: 'IP',
+        id: 'ip',
+        multiple: true,
       },
       {
-        name: t('topoManager.workAreaDetail.table.ipv6'),
-        id: 'bk_host_innerip_v6',
+        name: `${t('platform.nodeMan.bk_cloud_name')}ID:IP`,
+        id: 'area_ip',
+        multiple: true,
       },
       {
         name: 'AgentID',

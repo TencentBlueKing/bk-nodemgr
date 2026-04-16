@@ -73,10 +73,12 @@
       <template #right>
         <SearchSelect
           class="w-[480px] bg-[#fff]"
-          :placeholder="$t('topoManager.workAreaDetail.searchSelect.placeholder')"
+          :placeholder="$t('platform.nodeMan.proxySearchPlaceholder')"
           :unique-select="true"
           v-model.trim="searchKey"
           :data="searchSelectData"
+          @update:model-value="handleSearchSelectChange"
+          @paste="handleNativePaste"
         >
         </SearchSelect>
       </template>
@@ -109,7 +111,7 @@
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -120,13 +122,12 @@ import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
-import CopyIp from '@/components/copy-ip.vue';
 import useAuthLock from '@/composables/use-auth-lock';
 import InstallProxy from '@/pages/topo/install-proxy/install-proxy.vue';
 import ReinstallProxy from '@/pages/topo/install-proxy/reinstall-proxy.vue';
 import { useMainStore } from '@/stores/main';
 
-const props = defineProps({
+defineProps({
   active: {
     type: Number,
     default: null,
@@ -143,18 +144,16 @@ const {
   handleMouseLeave: authLockMouseLeave,
   handleAuthClick,
 } = useAuthLock('proxy_operate', () => mainStore.selectedBusinessId);
+const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+const AGENT_ID_REG = /^0[12]/; // AgentID 以 01 或 02 开头
+const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
 const isProxyStatus = computed(() => route.name === 'proxy');
 // 搜索
 const searchKey = ref<ISearchValue[]>([]);
 const searchSelectData = ref<ISearchItem[]>([
-  {
-    name: t('topoManager.workAreaDetail.table.ipv4'),
-    id: 'bk_host_innerip',
-  },
-  {
-    name: t('topoManager.workAreaDetail.table.ipv6'),
-    id: 'bk_host_innerip_v6',
-  },
+  { id: 'ip', name: 'IP', multiple: true }, // 合并后的 IP 筛选
+  { id: 'area_ip', name: `${t('topoManager.workAreaDetail.table.networkArea')}ID:IP`, multiple: true }, // 管控区域ID:IP
   {
     name: 'AgentID',
     id: 'bk_agent_id',
@@ -226,6 +225,57 @@ const getParams = () => {
     params.exact_include_conditions.bk_biz_id = mainStore.selectedBusinessId;
   }
   searchKey.value.forEach((item: any) => {
+    // IP 字段：自动识别 IPv4/IPv6 并分类
+    if (item.id === 'ip' && item.values?.length) {
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((value: any) => {
+        if (IPV4_REG.test(value.id)) {
+          ipv4List.push(value.id);
+        } else if (IPV6_REG.test(value.id)) {
+          ipv6List.push(value.id);
+        }
+      });
+      if (ipv4List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
+    // 管控区域ID:IP：自动拆分为 bk_networkarea_id + IP 列表
+    if (item.id === 'area_ip' && item.values?.length) {
+      const areaIds = new Set<number>();
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((value: any) => {
+        const match = AREA_IP_REG.exec(value.id);
+        if (match) {
+          const areaId = Number(match[1]);
+          const ip = match[2];
+          areaIds.add(areaId);
+          if (IPV4_REG.test(ip)) {
+            ipv4List.push(ip);
+          } else if (IPV6_REG.test(ip)) {
+            ipv6List.push(ip);
+          }
+        }
+      });
+      if (areaIds.size > 0) {
+        params.exact_include_conditions.bk_networkarea_id = Array.from(areaIds);
+      }
+      if (ipv4List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
+    // 其他字段：保持原有 fuzzy/exact 分类逻辑
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
@@ -288,6 +338,157 @@ const handleExcludedIdsChange = (ids: number[]) => {
 
 const handleUpdateSearchSelectData = (data: any) => {
   searchSelectData.value = data;
+};
+
+/**
+ * 解析多分隔符输入，支持空格、换行、分号、逗号
+ */
+const parseMultiDelimiterInput = (text: string): string[] => text
+  // 使用正则匹配多种分隔符：空格、换行、分号、逗号、竖线、顿号
+  .split(/[\s\n;,|、]+/)
+  .map(item => item.trim())
+  .filter(item => item.length > 0);
+
+/**
+ * 智能识别输入类型
+ */
+const detectInputType = (text: string): { type: 'ip' | 'area_ip' | 'agent_id' | null; value: string } => {
+  // 1. 检测管控区域ID:IP 格式
+  if (AREA_IP_REG.test(text)) {
+    return { type: 'area_ip', value: text };
+  }
+
+  // 2. 检测 AgentID（01或02开头）
+  if (AGENT_ID_REG.test(text)) {
+    return { type: 'agent_id', value: text };
+  }
+
+  // 3. 检测 IPv4
+  if (IPV4_REG.test(text)) {
+    return { type: 'ip', value: text };
+  }
+
+  // 4. 检测 IPv6
+  if (IPV6_REG.test(text)) {
+    return { type: 'ip', value: text };
+  }
+
+  return { type: null, value: text };
+};
+
+/**
+ * 拦截原生 paste 事件，将空格分隔符转换为组件能识别的逗号
+ */
+const handleNativePaste = (event: ClipboardEvent) => {
+  const text = event.clipboardData?.getData('text');
+  if (!text) return;
+
+  // 如果包含空格但不包含组件默认分隔符，则替换空格为逗号
+  if (text.includes(' ') && !/[|,、\r\n\n]/.test(text)) {
+    event.preventDefault();
+    const normalizedText = text.replace(/\s+/g, ',');
+
+    // 手动触发粘贴
+    const target = event.target as HTMLElement;
+    if (target && target.isContentEditable) {
+      document.execCommand('insertText', false, normalizedText);
+    }
+  }
+};
+
+/**
+ * 处理粘贴/快速输入的逻辑
+ */
+const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  if (data.length === 0) return;
+
+  const lastItem = data[data.length - 1];
+
+  // 如果用户已经选择了类型（ip、area_ip、bk_agent_id），处理多分隔符输入
+  if (['ip', 'area_ip', 'bk_agent_id'].includes(lastItem.id) && lastItem.values.length > 0) {
+    // 遍历所有 values，解析每个可能包含多分隔符的值
+    const allParsedItems: string[] = [];
+    lastItem.values.forEach((value: any) => {
+      const parsedItems = parseMultiDelimiterInput(value.id);
+      allParsedItems.push(...parsedItems);
+    });
+
+    // 去重
+    const uniqueItems = Array.from(new Set(allParsedItems));
+
+    if (uniqueItems.length > 0) {
+      // 替换为解析后的列表
+      lastItem.values = uniqueItems.map(item => ({ id: item, name: item }));
+      return;
+    }
+  }
+
+  // 如果用户直接粘贴没选择类型，自动识别
+  // SearchSelect 在多值粘贴后可能会生成多个“原始输入项”，这里从末尾聚合后统一识别。
+  const searchFieldIds = new Set(searchSelectData.value.map(item => item.id));
+  const tailRawInputIds: string[] = [];
+  for (let i = data.length - 1; i >= 0; i--) {
+    const current = data[i];
+    if (searchFieldIds.has(current.id) || current.values?.length) break;
+    tailRawInputIds.unshift(current.id);
+  }
+
+  const parsedItems = (tailRawInputIds.length > 0
+    ? tailRawInputIds
+    : [lastItem.id])
+    .flatMap(text => parseMultiDelimiterInput(text));
+  const uniqueParsedItems = Array.from(new Set(parsedItems));
+  if (uniqueParsedItems.length === 0) return;
+
+  // 智能识别第一个项的类型
+  const firstDetection = detectInputType(uniqueParsedItems[0]);
+  if (!firstDetection.type) return;
+
+  // 验证所有项是否为同一类型
+  const allSameType = uniqueParsedItems.every(item => detectInputType(item).type === firstDetection.type);
+
+  if (!allSameType) {
+    // 类型不一致，不自动识别
+    return;
+  }
+
+  // 构造目标字段
+  let targetId = '';
+  let targetName = '';
+
+  switch (firstDetection.type) {
+    case 'ip':
+      targetId = 'ip';
+      targetName = 'IP';
+      break;
+    case 'area_ip':
+      targetId = 'area_ip';
+      targetName = `${t('topoManager.workAreaDetail.table.networkArea')}ID:IP`;
+      break;
+    case 'agent_id':
+      targetId = 'bk_agent_id';
+      targetName = 'Agent ID';
+      break;
+  }
+
+  if (targetId) {
+    // 移除末尾原始输入项 + 已存在的同类型筛选，避免重复。
+    searchKey.value = searchKey.value.filter((item: any) => {
+      if (item.id === targetId) return false;
+      return !tailRawInputIds.includes(item.id);
+    });
+
+    // 添加新的筛选条件
+    searchKey.value.push({
+      id: targetId,
+      name: targetName,
+      values: uniqueParsedItems.map(item => ({ id: item, name: item })),
+    });
+  }
+};
+
+const handleSearchSelectChange = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  handleInputPaste(data);
 };
 </script>
 

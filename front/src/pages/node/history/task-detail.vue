@@ -95,8 +95,9 @@
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="$t('taskDetail.searchPlaceholder')"
+        :placeholder="$t('platform.nodeMan.historySearchPlaceholder')"
         @update:model-value="handleSearchSelectChange"
+        @paste.native="handleNativePaste"
       >
       </SearchSelect>
     </div>
@@ -745,9 +746,17 @@ const filterOptionSource = reactive<Record<string, FilterOption>>({
 const loading = ref(false);
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
+
 const searchSelectData = computed(() => [
-  { id: 'bk_host_innerip', name: t('taskDetail.search.ipv4'), multiple: true },
-  { id: 'bk_host_innerip_v6', name: t('taskDetail.search.ipv6'), multiple: true },
+  { id: 'ip', name: 'IP', multiple: true },
+  {
+    id: 'area_ip',
+    name: `${t('platform.nodeMan.bk_cloud_name')}ID:IP`,
+    multiple: true,
+  },
   {
     id: 'bk_networkarea_id',
     name: t('taskDetail.search.workarea'),
@@ -779,8 +788,112 @@ const searchSelectData = computed(() => [
     multiple: true,
   },
 ]);
+/**
+ * 解析多分隔符输入，支持空格、换行、分号、逗号
+ */
+const parseMultiDelimiterInput = (text: string): string[] => text
+  .split(/[\s\n;,|、]+/)
+  .map(item => item.trim())
+  .filter(item => item.length > 0);
+
+/**
+ * 智能识别输入类型
+ */
+const detectInputType = (text: string): { type: 'ip' | 'area_ip' | null; value: string } => {
+  if (AREA_IP_REG.test(text)) return { type: 'area_ip', value: text };
+  if (IPV4_REG.test(text)) return { type: 'ip', value: text };
+  if (IPV6_REG.test(text)) return { type: 'ip', value: text };
+  return { type: null, value: text };
+};
+
+/**
+ * 拦截原生 paste 事件，将空格分隔符转换为组件能识别的逗号
+ */
+const handleNativePaste = (event: ClipboardEvent) => {
+  const text = event.clipboardData?.getData('text');
+  if (!text) return;
+  if (text.includes(' ') && !/[|,、\r\n\n]/.test(text)) {
+    event.preventDefault();
+    const normalizedText = text.replace(/\s+/g, ',');
+    const target = event.target as HTMLElement;
+    if (target && target.isContentEditable) {
+      document.execCommand('insertText', false, normalizedText);
+    }
+  }
+};
+
+/**
+ * 处理粘贴/快速输入的逻辑
+ */
+const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  if (data.length === 0) return;
+
+  const lastItem = data[data.length - 1];
+
+  if (['ip', 'area_ip'].includes(lastItem.id) && lastItem.values.length > 0) {
+    const allParsedItems: string[] = [];
+    lastItem.values.forEach((value: any) => {
+      const parsedItems = parseMultiDelimiterInput(value.id);
+      allParsedItems.push(...parsedItems);
+    });
+    const uniqueItems = Array.from(new Set(allParsedItems));
+    if (uniqueItems.length > 0) {
+      lastItem.values = uniqueItems.map(item => ({ id: item, name: item }));
+      return;
+    }
+  }
+
+  const searchFieldIds = new Set(searchSelectData.value.map(item => item.id));
+  const tailRawInputIds: string[] = [];
+  for (let i = data.length - 1; i >= 0; i--) {
+    const current = data[i];
+    if (searchFieldIds.has(current.id) || current.values?.length) break;
+    tailRawInputIds.unshift(current.id);
+  }
+
+  const parsedItems = (tailRawInputIds.length > 0
+    ? tailRawInputIds
+    : [lastItem.id])
+    .flatMap(text => parseMultiDelimiterInput(text));
+  const uniqueParsedItems = Array.from(new Set(parsedItems));
+  if (uniqueParsedItems.length === 0) return;
+
+  const firstDetection = detectInputType(uniqueParsedItems[0]);
+  if (!firstDetection.type) return;
+
+  const allSameType = uniqueParsedItems.every(item => detectInputType(item).type === firstDetection.type);
+  if (!allSameType) return;
+
+  let targetId = '';
+  let targetName = '';
+
+  switch (firstDetection.type) {
+    case 'ip':
+      targetId = 'ip';
+      targetName = 'IP';
+      break;
+    case 'area_ip':
+      targetId = 'area_ip';
+      targetName = `${t('platform.nodeMan.bk_cloud_name')}ID:IP`;
+      break;
+  }
+
+  if (targetId) {
+    searchSelectValue.value = searchSelectValue.value.filter((item: any) => {
+      if (item.id === targetId) return false;
+      return !tailRawInputIds.includes(item.id);
+    });
+    searchSelectValue.value.push({
+      id: targetId,
+      name: targetName,
+      values: uniqueParsedItems.map(item => ({ id: item, name: item })),
+    });
+  }
+};
+
 // eslint-disable-next-line max-len
 const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  handleInputPaste(data);
   // 当搜素条件的执行状态变化时，都要触发radioGroup的变化
   const stateSearchItem = data.find((item) => item.id === 'state');
   if (stateSearchItem) {
@@ -1251,10 +1364,59 @@ const getParams = () => {
       offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {} as Record<string, string[] | string>,
-    fuzzy_include_conditions: {} as Record<string, string[]>,
     workflow_id: route.params.taskId,
   };
   searchSelectValue.value.forEach((item: any) => {
+    // IP 字段：自动识别 IPv4/IPv6 并分类
+    if (item.id === 'ip' && item.values?.length) {
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((value: any) => {
+        if (IPV4_REG.test(value.id)) {
+          ipv4List.push(value.id);
+        } else if (IPV6_REG.test(value.id)) {
+          ipv6List.push(value.id);
+        }
+      });
+      if (ipv4List.length > 0) {
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
+    // 管控区域ID:IP：自动拆分为 bk_networkarea_id + IP 列表
+    if (item.id === 'area_ip' && item.values?.length) {
+      const areaIds = new Set<number>();
+      const ipv4List: string[] = [];
+      const ipv6List: string[] = [];
+      item.values.forEach((value: any) => {
+        const match = AREA_IP_REG.exec(value.id);
+        if (match) {
+          const areaId = Number(match[1]);
+          const ip = match[2];
+          areaIds.add(areaId);
+          if (IPV4_REG.test(ip)) {
+            ipv4List.push(ip);
+          } else if (IPV6_REG.test(ip)) {
+            ipv6List.push(ip);
+          }
+        }
+      });
+      if (areaIds.size > 0) {
+        params.exact_include_conditions.bk_networkarea_id = Array.from(areaIds) as any;
+      }
+      if (ipv4List.length > 0) {
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
+      }
+      if (ipv6List.length > 0) {
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
     const target = params.exact_include_conditions;
     target[item.id] = item.values?.map((value: any) => value.id);
   });

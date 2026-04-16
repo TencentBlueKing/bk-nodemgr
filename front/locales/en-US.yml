@@ -148,7 +148,9 @@ platform:
     copy: Copy
     uninstall: Uninstall
     bussinessTopology: Business Topology
-    agentSearchPlaceholder: Select IP, Agent ID, Network Area, Network Unit...
+    agentSearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
+    proxySearchPlaceholder: Enter IP, Network Area ID:IP, or Agent ID for quick search
+    historySearchPlaceholder: Enter IP or Network Area ID:IP for quick search
     inner_ip: Private IPv4
     inner_ipv6: Private IPv6
     agentId: Agent ID
