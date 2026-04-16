@@ -28,6 +28,11 @@ var (
 	ErrProcessNotInDir = errors.New("process executable path is not in the specified directory")
 )
 
+const (
+	processExitTimeout  = 5 * time.Second
+	processPollInterval = 100 * time.Millisecond
+)
+
 // TerminateProcess terminate the process by PID.
 func TerminateProcess(pid int, binaryDir string) error {
 	procInfo, err := GetProcessInfo(pid)
@@ -81,7 +86,7 @@ func terminateProcess(pid int) error {
 	// Errors here are non-fatal; we fall through to the forceful path on timeout.
 	_ = windows.GenerateConsoleCtrlEvent(windows.CTRL_BREAK_EVENT, uint32(pid))
 
-	return waitForProcessExit(pid, 5*time.Second, func(p int) error {
+	return waitForProcessExit(pid, processExitTimeout, func(p int) error {
 		handle, err := windows.OpenProcess(windows.PROCESS_TERMINATE, false, uint32(p))
 		if err != nil {
 			// If the process cannot be opened, it may have already exited.
@@ -109,7 +114,7 @@ func waitForProcessExit(pid int, timeout time.Duration, forceKill func(int) erro
 			return nil
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(processPollInterval)
 	}
 
 	return forceKill(pid)

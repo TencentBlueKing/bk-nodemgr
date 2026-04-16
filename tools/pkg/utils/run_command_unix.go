@@ -83,7 +83,7 @@ func RunCommandStreaming(ctx context.Context, workDir, name string, args []strin
 		return nil, nil, fmt.Errorf("failed to start command: %w", err)
 	}
 
-	outputCh := make(chan string, 64)
+	outputCh := make(chan string, 64) // nolint: nmd
 	errCh := make(chan error, 1)
 
 	// Waiter: block until the process exits, then close the write end of the pipe so

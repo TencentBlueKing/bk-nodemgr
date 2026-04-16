@@ -26,6 +26,11 @@ var (
 	ErrProcessNotInDir = errors.New("process executable path is not in the specified directory")
 )
 
+const (
+	processExitTimeout  = 5 * time.Second
+	processPollInterval = 100 * time.Millisecond
+)
+
 // TerminateProcess terminate the process by PID.
 func TerminateProcess(pid int, binaryDir string) error {
 	procInfo, err := GetProcessInfo(pid)
@@ -77,7 +82,7 @@ func terminateProcess(pid int) error {
 		return err
 	}
 
-	return waitForProcessExit(pid, 5*time.Second, syscall.SIGKILL)
+	return waitForProcessExit(pid, processExitTimeout, syscall.SIGKILL)
 }
 
 // waitForProcessExit waits for the process to exit within the specified timeout.
@@ -95,7 +100,7 @@ func waitForProcessExit(pid int, timeout time.Duration, finalSignal syscall.Sign
 			return nil
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(processPollInterval)
 	}
 
 	return syscall.Kill(pid, finalSignal)
