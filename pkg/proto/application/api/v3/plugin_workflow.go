@@ -72,13 +72,13 @@ func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowConditi
 
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowExactConditions{
-			BkHostId:         condition.ExactInclude.HostID,
-			WorkflowId:       condition.ExactInclude.WorkflowID,
-			Type:             types.PluginWorkflowTypeListToStringList(condition.ExactInclude.Type),
-			Status:           types.PluginWorkflowStatusListToStringList(condition.ExactInclude.Status),
-			Operator:         condition.ExactInclude.Operator,
-			BkHostInnerip:    condition.ExactInclude.HostInnerIP,
-			BkHostInneripV6:  condition.ExactInclude.HostInnerIPV6,
+			BkHostId:        condition.ExactInclude.HostID,
+			WorkflowId:      condition.ExactInclude.WorkflowID,
+			Type:            types.PluginWorkflowTypeListToStringList(condition.ExactInclude.Type),
+			Status:          types.PluginWorkflowStatusListToStringList(condition.ExactInclude.Status),
+			Operator:        condition.ExactInclude.Operator,
+			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
+			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
 		}
 	}
 
@@ -110,8 +110,8 @@ func (x *PluginWorkflowListResp) ConvertPluginWorkflowsFromTypes(num int64, work
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.Operator = workflow.Operator
-		*item.OperateTime = workflow.OperateTime.UnixMilli()
-		*item.FinishTime = workflow.FinishTime.UnixMilli()
+		*item.OperateTime = timeToUnixMilli(workflow.OperateTime)
+		*item.FinishTime = timeToUnixMilli(workflow.FinishTime)
 
 		items = append(items, item)
 	}
@@ -396,7 +396,7 @@ func (x *PluginWorkflowOperationListResp) ConvertResultFromTypes(total int64, re
 			OperationId: op.OperationID,
 			InstanceIds: op.OperInstanceIDs,
 			Operator:    op.Operator,
-			CreateTime:  op.CreateTime.UnixMilli(),
+			CreateTime:  timeToUnixMilli(op.CreateTime),
 			PluginDeploymentInfo: &PluginDeploymentInfo{
 				BkHostId:            op.HostID,
 				BkBizId:             op.BizID,
@@ -446,10 +446,10 @@ func convertPluginWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) 
 
 	return &WorkflowLifeCycle{
 		State:      string(data.State),
-		CreateTime: data.CreatedAt.UnixMilli(),
-		StartTime:  data.StartedAt.UnixMilli(),
-		EndTime:    data.EndedAt.UnixMilli(),
-		StopTime:   data.StoppedAt.UnixMilli(),
+		CreateTime: timeToUnixMilli(data.CreatedAt),
+		StartTime:  timeToUnixMilli(data.StartedAt),
+		EndTime:    timeToUnixMilli(data.EndedAt),
+		StopTime:   timeToUnixMilli(data.StoppedAt),
 	}
 }
 
@@ -503,10 +503,10 @@ func (x *PluginWorkflowOperationInstanceListResp) ConvertResultFromTypes(total i
 			ActionNames:       opinstance.Metadata.ActionNames,
 			LifeCycle: &WorkflowLifeCycle{
 				State:      string(opinstance.Lifecycle.State),
-				CreateTime: opinstance.Lifecycle.CreatedAt.UnixMilli(),
-				StartTime:  opinstance.Lifecycle.StartedAt.UnixMilli(),
-				EndTime:    opinstance.Lifecycle.EndedAt.UnixMilli(),
-				StopTime:   opinstance.Lifecycle.StoppedAt.UnixMilli(),
+				CreateTime: timeToUnixMilli(opinstance.Lifecycle.CreatedAt),
+				StartTime:  timeToUnixMilli(opinstance.Lifecycle.StartedAt),
+				EndTime:    timeToUnixMilli(opinstance.Lifecycle.EndedAt),
+				StopTime:   timeToUnixMilli(opinstance.Lifecycle.StoppedAt),
 			},
 		}
 
@@ -547,9 +547,9 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 	for actionID, v := range result.ActionInstanceDataMap {
 		lifecycle := &WorkflowLifeCycle{
 			State:      string(v.Lifecycle.State),
-			CreateTime: v.Lifecycle.CreatedAt.UnixMilli(),
-			StartTime:  v.Lifecycle.StartedAt.UnixMilli(),
-			EndTime:    v.Lifecycle.EndedAt.UnixMilli(),
+			CreateTime: timeToUnixMilli(v.Lifecycle.CreatedAt),
+			StartTime:  timeToUnixMilli(v.Lifecycle.StartedAt),
+			EndTime:    timeToUnixMilli(v.Lifecycle.EndedAt),
 		}
 
 		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))

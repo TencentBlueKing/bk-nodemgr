@@ -21,6 +21,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// timeToUnixMilli converts time.Time to Unix milliseconds, returns 0 for zero time.
+func timeToUnixMilli(t time.Time) int64 {
+	if t.IsZero() {
+		return 0
+	}
+	return t.UnixMilli()
+}
+
 func validatePage(reqPage *Page) error {
 	if reqPage == nil {
 		return nil

@@ -143,3 +143,11 @@ func ConvertPlatformFromTypes(plat platfmt.Platform) *Platform {
 		CpuArch: string(plat.Arch),
 	}
 }
+
+// timeToUnixMilli converts time.Time to Unix milliseconds, returns 0 for zero time.
+func timeToUnixMilli(t time.Time) int64 {
+	if t.IsZero() {
+		return 0
+	}
+	return t.UnixMilli()
+}

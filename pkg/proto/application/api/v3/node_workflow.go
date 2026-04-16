@@ -75,8 +75,8 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.Operator = workflow.Operator
-		*item.OperateTime = workflow.OperateTime.UnixMilli()
-		*item.FinishTime = workflow.FinishTime.UnixMilli()
+		*item.OperateTime = timeToUnixMilli(workflow.OperateTime)
+		*item.FinishTime = timeToUnixMilli(workflow.FinishTime)
 		bizNames := make([]string, 0, len(workflow.BizIDs))
 		for _, bizID := range workflow.BizIDs {
 			if name, exists := businessMap[bizID]; exists {
@@ -296,7 +296,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 			OperationId: op.OperationID,
 			InstanceIds: op.OperInstanceIDs,
 			Operator:    op.Operator,
-			CreateTime:  op.CreateTime.UnixMilli(),
+			CreateTime:  timeToUnixMilli(op.CreateTime),
 			NodeDeploymentInfo: &NodeDeploymentInfo{
 				BkHostId:            op.HostID,
 				BkBizId:             op.BizID,
@@ -349,10 +349,10 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int
 			ActionNames:       opinstance.Metadata.ActionNames,
 			LifeCycle: &WorkflowLifeCycle{
 				State:      string(opinstance.Lifecycle.State),
-				CreateTime: opinstance.Lifecycle.CreatedAt.UnixMilli(),
-				StartTime:  opinstance.Lifecycle.StartedAt.UnixMilli(),
-				EndTime:    opinstance.Lifecycle.EndedAt.UnixMilli(),
-				StopTime:   opinstance.Lifecycle.StoppedAt.UnixMilli(),
+				CreateTime: timeToUnixMilli(opinstance.Lifecycle.CreatedAt),
+				StartTime:  timeToUnixMilli(opinstance.Lifecycle.StartedAt),
+				EndTime:    timeToUnixMilli(opinstance.Lifecycle.EndedAt),
+				StopTime:   timeToUnixMilli(opinstance.Lifecycle.StoppedAt),
 			},
 		}
 	}
@@ -387,9 +387,9 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 	for actionID, v := range result.ActionInstanceDataMap {
 		lifecycle := &WorkflowLifeCycle{
 			State:      string(v.Lifecycle.State),
-			CreateTime: v.Lifecycle.CreatedAt.UnixMilli(),
-			StartTime:  v.Lifecycle.StartedAt.UnixMilli(),
-			EndTime:    v.Lifecycle.EndedAt.UnixMilli(),
+			CreateTime: timeToUnixMilli(v.Lifecycle.CreatedAt),
+			StartTime:  timeToUnixMilli(v.Lifecycle.StartedAt),
+			EndTime:    timeToUnixMilli(v.Lifecycle.EndedAt),
 		}
 
 		messages := make([]*WorkflowActionMessage_Message, len(v.Messages))
@@ -697,10 +697,10 @@ func convertNodeWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) *W
 
 	return &WorkflowLifeCycle{
 		State:      string(data.State),
-		CreateTime: data.CreatedAt.UnixMilli(),
-		StartTime:  data.StartedAt.UnixMilli(),
-		EndTime:    data.EndedAt.UnixMilli(),
-		StopTime:   data.StoppedAt.UnixMilli(),
+		CreateTime: timeToUnixMilli(data.CreatedAt),
+		StartTime:  timeToUnixMilli(data.StartedAt),
+		EndTime:    timeToUnixMilli(data.EndedAt),
+		StopTime:   timeToUnixMilli(data.StoppedAt),
 	}
 }
 
