@@ -215,6 +215,33 @@ type NetworkUnitUpdateFields struct {
 	CustomDeployConfig bool
 }
 
+type NetworkUnitSegmentRecommendationItem struct {
+	NetworkAreaID int64
+	IP            string
+}
+
+type NetworkUnitSegmentRecommendationResult struct {
+	NetworkAreaID int64
+	IP            string
+	NetworkUnitID int64
+	Message       string
+}
+
+// NetworkUnitSegmentRuleConfig represents the configuration for network unit segment rules.
+// The key is the network area ID in string format.
+type NetworkUnitSegmentRuleConfig map[string]NetworkUnitSegmentRuleAreaConfig
+
+// NetworkUnitSegmentRuleAreaConfig represents the rules for a specific network area.
+type NetworkUnitSegmentRuleAreaConfig struct {
+	Rules []NetworkUnitSegmentRule `json:"rules"`
+}
+
+// NetworkUnitSegmentRule represents a single rule mapping CIDRs to a network unit.
+type NetworkUnitSegmentRule struct {
+	CIDRs         []string `json:"cidrs"`
+	NetworkUnitID int64    `json:"bk_networkunit_id"`
+}
+
 // NewNetworkUnitUpdateFields creates a new NetworkUnitUpdateFields with all fields set to true.
 func NewNetworkUnitUpdateFields() NetworkUnitUpdateFields {
 	return NetworkUnitUpdateFields{

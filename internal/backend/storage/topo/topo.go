@@ -12,14 +12,17 @@
 package topo
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
+	mongobase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -238,6 +241,31 @@ func (s *Storage) GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IConte
 	return networkUnitDistributionByNetworkAreaID, err
 }
 
+// RecommendNetworkUnitByNetworkSegment recommends network units based on network segment rules.
+func (s *Storage) RecommendNetworkUnitByNetworkSegment(
+	nCtx contextx.IContext,
+	items ...*types.NetworkUnitSegmentRecommendationItem,
+) ([]*types.NetworkUnitSegmentRecommendationResult, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	var results []*types.NetworkUnitSegmentRecommendationResult
+	err := s.WrapFn(nCtx, metricOperationRecommendNetworkUnitByNetworkSegment, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.recommendNetworkUnitByNetworkSegment(nCtx, items...)
+
+		return err
+	})
+
+	return results, err
+}
+
 // GetNetworkUnit gets networkunit by id.
 func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error) {
 	var (
@@ -253,6 +281,78 @@ func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 	})
 
 	return data, err
+}
+
+func (s *Storage) loadNetworkUnitSegmentRuleConfig(nCtx contextx.IContext) (types.NetworkUnitSegmentRuleConfig, error) {
+	setting, err := s.daoGlobalSettings.Get(nCtx, globalsettings.NetworkUnitSegmentRules)
+	if err != nil {
+		if errors.Is(err, mongobase.ErrRecordNoFound()) {
+			return types.NetworkUnitSegmentRuleConfig{}, nil
+		}
+
+		return nil, err
+	}
+
+	if setting == nil || setting.Value == "" {
+		return types.NetworkUnitSegmentRuleConfig{}, nil
+	}
+
+	return parseNetworkUnitSegmentRuleConfig(setting.Value)
+}
+
+func (s *Storage) recommendNetworkUnitByNetworkSegment(
+	nCtx contextx.IContext,
+	items ...*types.NetworkUnitSegmentRecommendationItem,
+) ([]*types.NetworkUnitSegmentRecommendationResult, error) {
+
+	rules, err := s.loadNetworkUnitSegmentRuleConfig(nCtx)
+	if err != nil {
+		results := make([]*types.NetworkUnitSegmentRecommendationResult, len(items))
+		for idx, item := range items {
+			results[idx] = &types.NetworkUnitSegmentRecommendationResult{NetworkUnitID: -1}
+			if item != nil {
+				results[idx].NetworkAreaID = item.NetworkAreaID
+				results[idx].IP = item.IP
+			}
+			results[idx].Message = fmt.Sprintf("invalid rule config: %v", err)
+		}
+
+		return results, nil
+	}
+
+	areaIDs := make(map[int64]struct{})
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		areaIDs[item.NetworkAreaID] = struct{}{}
+	}
+
+	conditions := make([]*types.NetworkUnitCondition, 0, 1)
+	if len(areaIDs) > 0 {
+		networkAreaIDs := make([]int64, 0, len(areaIDs))
+		for areaID := range areaIDs {
+			networkAreaIDs = append(networkAreaIDs, areaID)
+		}
+		conditions = append(conditions, &types.NetworkUnitCondition{
+			ExactInclude: &types.NetworkUnitExactFields{NetworkAreaID: networkAreaIDs},
+		})
+	}
+
+	networkUnits, _, err := s.ListNetworkUnit(nCtx, types.UnlimitedPage(), conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	networkUnitAreaMap := make(map[int64]int64, len(networkUnits))
+	for _, networkUnit := range networkUnits {
+		if networkUnit == nil {
+			continue
+		}
+		networkUnitAreaMap[networkUnit.ID] = networkUnit.NetworkAreaID
+	}
+
+	return recommendNetworkUnitsBySegment(rules, items, networkUnitAreaMap)
 }
 
 // GetNetworkUnitIDsByAccessPoints returns NetworkUnit IDs that contain the given AccessPoint IDs.

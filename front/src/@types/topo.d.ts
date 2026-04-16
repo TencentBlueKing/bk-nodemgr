@@ -755,3 +755,36 @@ export interface TopoConstantGetRespData {
   os_type: string[];
 }
 
+// TopoNetworkUnitRecommendByNetworkSegmentReq describes the HTTP request body
+// when recommend network unit by network segment.
+export interface TopoNetworkUnitRecommendByNetworkSegmentReq {
+  items: TopoNetworkUnitRecommendByNetworkSegmentReqItem[];
+}
+
+export interface TopoNetworkUnitRecommendByNetworkSegmentReqItem {
+  bk_networkarea_id: number;
+  ip: string;
+}
+
+// TopoNetworkUnitRecommendByNetworkSegmentResp describes the HTTP response body
+// when recommend network unit by network segment.
+export interface TopoNetworkUnitRecommendByNetworkSegmentResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoNetworkUnitRecommendByNetworkSegmentRespData;
+}
+
+export interface TopoNetworkUnitRecommendByNetworkSegmentRespData {
+  items: TopoNetworkUnitRecommendByNetworkSegmentRespDataItem[];
+}
+
+export interface TopoNetworkUnitRecommendByNetworkSegmentRespDataItem {
+  bk_networkarea_id: number;
+  ip: string;
+  bk_networkunit_id: number;
+  message: string;
+}
+

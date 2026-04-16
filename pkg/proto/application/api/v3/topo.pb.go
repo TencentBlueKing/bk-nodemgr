@@ -2316,6 +2316,136 @@ func (x *TopoNetworkUnitListBriefResp) GetData() *TopoNetworkUnitListBriefResp_D
 	return nil
 }
 
+// TopoRecommendNetworkUnitByNetworkSegmentReq describes the HTTP request body
+// when recommend network unit by network segment in topo service.
+type TopoRecommendNetworkUnitByNetworkSegmentReq struct {
+	state         protoimpl.MessageState                              `protogen:"open.v1"`
+	Items         []*TopoRecommendNetworkUnitByNetworkSegmentReq_Item `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) Reset() {
+	*x = TopoRecommendNetworkUnitByNetworkSegmentReq{}
+	mi := &file_topo_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopoRecommendNetworkUnitByNetworkSegmentReq) ProtoMessage() {}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) ProtoReflect() protoreflect.Message {
+	mi := &file_topo_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopoRecommendNetworkUnitByNetworkSegmentReq.ProtoReflect.Descriptor instead.
+func (*TopoRecommendNetworkUnitByNetworkSegmentReq) Descriptor() ([]byte, []int) {
+	return file_topo_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) GetItems() []*TopoRecommendNetworkUnitByNetworkSegmentReq_Item {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type TopoRecommendNetworkUnitByNetworkSegmentResp struct {
+	state         protoimpl.MessageState                             `protogen:"open.v1"`
+	Code          int32                                              `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                                             `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                                             `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                                             `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Permission    *Permission                                        `protobuf:"bytes,6,opt,name=permission,proto3" json:"permission"`
+	Data          *TopoRecommendNetworkUnitByNetworkSegmentResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) Reset() {
+	*x = TopoRecommendNetworkUnitByNetworkSegmentResp{}
+	mi := &file_topo_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopoRecommendNetworkUnitByNetworkSegmentResp) ProtoMessage() {}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) ProtoReflect() protoreflect.Message {
+	mi := &file_topo_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopoRecommendNetworkUnitByNetworkSegmentResp.ProtoReflect.Descriptor instead.
+func (*TopoRecommendNetworkUnitByNetworkSegmentResp) Descriptor() ([]byte, []int) {
+	return file_topo_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) GetPermission() *Permission {
+	if x != nil {
+		return x.Permission
+	}
+	return nil
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) GetData() *TopoRecommendNetworkUnitByNetworkSegmentResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 // TopoHostExactConditions describes host exact conditions.
 type TopoHostExactConditions struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
@@ -2335,7 +2465,7 @@ type TopoHostExactConditions struct {
 
 func (x *TopoHostExactConditions) Reset() {
 	*x = TopoHostExactConditions{}
-	mi := &file_topo_proto_msgTypes[32]
+	mi := &file_topo_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2347,7 +2477,7 @@ func (x *TopoHostExactConditions) String() string {
 func (*TopoHostExactConditions) ProtoMessage() {}
 
 func (x *TopoHostExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[32]
+	mi := &file_topo_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2360,7 +2490,7 @@ func (x *TopoHostExactConditions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostExactConditions.ProtoReflect.Descriptor instead.
 func (*TopoHostExactConditions) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{32}
+	return file_topo_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *TopoHostExactConditions) GetBkHostId() []int64 {
@@ -2448,7 +2578,7 @@ type TopoHostFuzzyConditions struct {
 
 func (x *TopoHostFuzzyConditions) Reset() {
 	*x = TopoHostFuzzyConditions{}
-	mi := &file_topo_proto_msgTypes[33]
+	mi := &file_topo_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2460,7 +2590,7 @@ func (x *TopoHostFuzzyConditions) String() string {
 func (*TopoHostFuzzyConditions) ProtoMessage() {}
 
 func (x *TopoHostFuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[33]
+	mi := &file_topo_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2473,7 +2603,7 @@ func (x *TopoHostFuzzyConditions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostFuzzyConditions.ProtoReflect.Descriptor instead.
 func (*TopoHostFuzzyConditions) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{33}
+	return file_topo_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *TopoHostFuzzyConditions) GetBkHostName() []string {
@@ -2532,7 +2662,7 @@ type TopoHostListReq struct {
 
 func (x *TopoHostListReq) Reset() {
 	*x = TopoHostListReq{}
-	mi := &file_topo_proto_msgTypes[34]
+	mi := &file_topo_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2544,7 +2674,7 @@ func (x *TopoHostListReq) String() string {
 func (*TopoHostListReq) ProtoMessage() {}
 
 func (x *TopoHostListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[34]
+	mi := &file_topo_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2557,7 +2687,7 @@ func (x *TopoHostListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostListReq.ProtoReflect.Descriptor instead.
 func (*TopoHostListReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{34}
+	return file_topo_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *TopoHostListReq) GetPage() *Page {
@@ -2604,7 +2734,7 @@ type TopoHostListResp struct {
 
 func (x *TopoHostListResp) Reset() {
 	*x = TopoHostListResp{}
-	mi := &file_topo_proto_msgTypes[35]
+	mi := &file_topo_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2616,7 +2746,7 @@ func (x *TopoHostListResp) String() string {
 func (*TopoHostListResp) ProtoMessage() {}
 
 func (x *TopoHostListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[35]
+	mi := &file_topo_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2629,7 +2759,7 @@ func (x *TopoHostListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostListResp.ProtoReflect.Descriptor instead.
 func (*TopoHostListResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{35}
+	return file_topo_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *TopoHostListResp) GetCode() int32 {
@@ -2687,7 +2817,7 @@ type TopoHostSelectHostIDReq struct {
 
 func (x *TopoHostSelectHostIDReq) Reset() {
 	*x = TopoHostSelectHostIDReq{}
-	mi := &file_topo_proto_msgTypes[36]
+	mi := &file_topo_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2699,7 +2829,7 @@ func (x *TopoHostSelectHostIDReq) String() string {
 func (*TopoHostSelectHostIDReq) ProtoMessage() {}
 
 func (x *TopoHostSelectHostIDReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[36]
+	mi := &file_topo_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2712,7 +2842,7 @@ func (x *TopoHostSelectHostIDReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectHostIDReq.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectHostIDReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{36}
+	return file_topo_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *TopoHostSelectHostIDReq) GetExactIncludeConditions() *TopoHostExactConditions {
@@ -2752,7 +2882,7 @@ type TopoHostSelectHostIDResp struct {
 
 func (x *TopoHostSelectHostIDResp) Reset() {
 	*x = TopoHostSelectHostIDResp{}
-	mi := &file_topo_proto_msgTypes[37]
+	mi := &file_topo_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2764,7 +2894,7 @@ func (x *TopoHostSelectHostIDResp) String() string {
 func (*TopoHostSelectHostIDResp) ProtoMessage() {}
 
 func (x *TopoHostSelectHostIDResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[37]
+	mi := &file_topo_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2777,7 +2907,7 @@ func (x *TopoHostSelectHostIDResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectHostIDResp.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectHostIDResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{37}
+	return file_topo_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *TopoHostSelectHostIDResp) GetCode() int32 {
@@ -2835,7 +2965,7 @@ type TopoHostSelectInnerIPReq struct {
 
 func (x *TopoHostSelectInnerIPReq) Reset() {
 	*x = TopoHostSelectInnerIPReq{}
-	mi := &file_topo_proto_msgTypes[38]
+	mi := &file_topo_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2847,7 +2977,7 @@ func (x *TopoHostSelectInnerIPReq) String() string {
 func (*TopoHostSelectInnerIPReq) ProtoMessage() {}
 
 func (x *TopoHostSelectInnerIPReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[38]
+	mi := &file_topo_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2860,7 +2990,7 @@ func (x *TopoHostSelectInnerIPReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectInnerIPReq.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectInnerIPReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{38}
+	return file_topo_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *TopoHostSelectInnerIPReq) GetExactIncludeConditions() *TopoHostExactConditions {
@@ -2900,7 +3030,7 @@ type TopoHostSelectInnerIPResp struct {
 
 func (x *TopoHostSelectInnerIPResp) Reset() {
 	*x = TopoHostSelectInnerIPResp{}
-	mi := &file_topo_proto_msgTypes[39]
+	mi := &file_topo_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2912,7 +3042,7 @@ func (x *TopoHostSelectInnerIPResp) String() string {
 func (*TopoHostSelectInnerIPResp) ProtoMessage() {}
 
 func (x *TopoHostSelectInnerIPResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[39]
+	mi := &file_topo_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2925,7 +3055,7 @@ func (x *TopoHostSelectInnerIPResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectInnerIPResp.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectInnerIPResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{39}
+	return file_topo_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *TopoHostSelectInnerIPResp) GetCode() int32 {
@@ -2983,7 +3113,7 @@ type TopoHostSelectInnerIPV6Req struct {
 
 func (x *TopoHostSelectInnerIPV6Req) Reset() {
 	*x = TopoHostSelectInnerIPV6Req{}
-	mi := &file_topo_proto_msgTypes[40]
+	mi := &file_topo_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2995,7 +3125,7 @@ func (x *TopoHostSelectInnerIPV6Req) String() string {
 func (*TopoHostSelectInnerIPV6Req) ProtoMessage() {}
 
 func (x *TopoHostSelectInnerIPV6Req) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[40]
+	mi := &file_topo_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3008,7 +3138,7 @@ func (x *TopoHostSelectInnerIPV6Req) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectInnerIPV6Req.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectInnerIPV6Req) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{40}
+	return file_topo_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *TopoHostSelectInnerIPV6Req) GetExactIncludeConditions() *TopoHostExactConditions {
@@ -3048,7 +3178,7 @@ type TopoHostSelectInnerIPV6Resp struct {
 
 func (x *TopoHostSelectInnerIPV6Resp) Reset() {
 	*x = TopoHostSelectInnerIPV6Resp{}
-	mi := &file_topo_proto_msgTypes[41]
+	mi := &file_topo_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3060,7 +3190,7 @@ func (x *TopoHostSelectInnerIPV6Resp) String() string {
 func (*TopoHostSelectInnerIPV6Resp) ProtoMessage() {}
 
 func (x *TopoHostSelectInnerIPV6Resp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[41]
+	mi := &file_topo_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3073,7 +3203,7 @@ func (x *TopoHostSelectInnerIPV6Resp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectInnerIPV6Resp.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectInnerIPV6Resp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{41}
+	return file_topo_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *TopoHostSelectInnerIPV6Resp) GetCode() int32 {
@@ -3131,7 +3261,7 @@ type TopoHostSelectNetWorkareaIDAndInnerIPReq struct {
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) Reset() {
 	*x = TopoHostSelectNetWorkareaIDAndInnerIPReq{}
-	mi := &file_topo_proto_msgTypes[42]
+	mi := &file_topo_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3143,7 +3273,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) String() string {
 func (*TopoHostSelectNetWorkareaIDAndInnerIPReq) ProtoMessage() {}
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[42]
+	mi := &file_topo_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3156,7 +3286,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) ProtoReflect() protoreflect.M
 
 // Deprecated: Use TopoHostSelectNetWorkareaIDAndInnerIPReq.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectNetWorkareaIDAndInnerIPReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{42}
+	return file_topo_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) GetExactIncludeConditions() *TopoHostExactConditions {
@@ -3196,7 +3326,7 @@ type TopoHostSelectNetWorkareaIDAndInnerIPResp struct {
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) Reset() {
 	*x = TopoHostSelectNetWorkareaIDAndInnerIPResp{}
-	mi := &file_topo_proto_msgTypes[43]
+	mi := &file_topo_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3208,7 +3338,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) String() string {
 func (*TopoHostSelectNetWorkareaIDAndInnerIPResp) ProtoMessage() {}
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[43]
+	mi := &file_topo_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3221,7 +3351,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) ProtoReflect() protoreflect.
 
 // Deprecated: Use TopoHostSelectNetWorkareaIDAndInnerIPResp.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectNetWorkareaIDAndInnerIPResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{43}
+	return file_topo_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) GetCode() int32 {
@@ -3279,7 +3409,7 @@ type TopoHostSelectNetWorkareaIDAndInnerIPV6Req struct {
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) Reset() {
 	*x = TopoHostSelectNetWorkareaIDAndInnerIPV6Req{}
-	mi := &file_topo_proto_msgTypes[44]
+	mi := &file_topo_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3291,7 +3421,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) String() string {
 func (*TopoHostSelectNetWorkareaIDAndInnerIPV6Req) ProtoMessage() {}
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[44]
+	mi := &file_topo_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3304,7 +3434,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) ProtoReflect() protoreflect
 
 // Deprecated: Use TopoHostSelectNetWorkareaIDAndInnerIPV6Req.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectNetWorkareaIDAndInnerIPV6Req) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{44}
+	return file_topo_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) GetExactIncludeConditions() *TopoHostExactConditions {
@@ -3344,7 +3474,7 @@ type TopoHostSelectNetWorkareaIDAndInnerIPV6Resp struct {
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) Reset() {
 	*x = TopoHostSelectNetWorkareaIDAndInnerIPV6Resp{}
-	mi := &file_topo_proto_msgTypes[45]
+	mi := &file_topo_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3356,7 +3486,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) String() string {
 func (*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) ProtoMessage() {}
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[45]
+	mi := &file_topo_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3369,7 +3499,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) ProtoReflect() protoreflec
 
 // Deprecated: Use TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{45}
+	return file_topo_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) GetCode() int32 {
@@ -3426,7 +3556,7 @@ type TopoHostDistinctReq struct {
 
 func (x *TopoHostDistinctReq) Reset() {
 	*x = TopoHostDistinctReq{}
-	mi := &file_topo_proto_msgTypes[46]
+	mi := &file_topo_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3438,7 +3568,7 @@ func (x *TopoHostDistinctReq) String() string {
 func (*TopoHostDistinctReq) ProtoMessage() {}
 
 func (x *TopoHostDistinctReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[46]
+	mi := &file_topo_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3451,7 +3581,7 @@ func (x *TopoHostDistinctReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostDistinctReq.ProtoReflect.Descriptor instead.
 func (*TopoHostDistinctReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{46}
+	return file_topo_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *TopoHostDistinctReq) GetExactIncludeConditions() *TopoHostExactConditions {
@@ -3484,7 +3614,7 @@ type TopoHostDistinctResp struct {
 
 func (x *TopoHostDistinctResp) Reset() {
 	*x = TopoHostDistinctResp{}
-	mi := &file_topo_proto_msgTypes[47]
+	mi := &file_topo_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3496,7 +3626,7 @@ func (x *TopoHostDistinctResp) String() string {
 func (*TopoHostDistinctResp) ProtoMessage() {}
 
 func (x *TopoHostDistinctResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[47]
+	mi := &file_topo_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3509,7 +3639,7 @@ func (x *TopoHostDistinctResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostDistinctResp.ProtoReflect.Descriptor instead.
 func (*TopoHostDistinctResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{47}
+	return file_topo_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *TopoHostDistinctResp) GetCode() int32 {
@@ -3565,7 +3695,7 @@ type TopoGraphGetReq struct {
 
 func (x *TopoGraphGetReq) Reset() {
 	*x = TopoGraphGetReq{}
-	mi := &file_topo_proto_msgTypes[48]
+	mi := &file_topo_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3577,7 +3707,7 @@ func (x *TopoGraphGetReq) String() string {
 func (*TopoGraphGetReq) ProtoMessage() {}
 
 func (x *TopoGraphGetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[48]
+	mi := &file_topo_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3590,7 +3720,7 @@ func (x *TopoGraphGetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphGetReq.ProtoReflect.Descriptor instead.
 func (*TopoGraphGetReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{48}
+	return file_topo_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *TopoGraphGetReq) GetBkNetworkareaId() []int64 {
@@ -3616,7 +3746,7 @@ type TopoGraphGetResp struct {
 
 func (x *TopoGraphGetResp) Reset() {
 	*x = TopoGraphGetResp{}
-	mi := &file_topo_proto_msgTypes[49]
+	mi := &file_topo_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3628,7 +3758,7 @@ func (x *TopoGraphGetResp) String() string {
 func (*TopoGraphGetResp) ProtoMessage() {}
 
 func (x *TopoGraphGetResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[49]
+	mi := &file_topo_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3641,7 +3771,7 @@ func (x *TopoGraphGetResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphGetResp.ProtoReflect.Descriptor instead.
 func (*TopoGraphGetResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{49}
+	return file_topo_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *TopoGraphGetResp) GetCode() int32 {
@@ -3696,7 +3826,7 @@ type TopoGraphNodeCountReq struct {
 
 func (x *TopoGraphNodeCountReq) Reset() {
 	*x = TopoGraphNodeCountReq{}
-	mi := &file_topo_proto_msgTypes[50]
+	mi := &file_topo_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3708,7 +3838,7 @@ func (x *TopoGraphNodeCountReq) String() string {
 func (*TopoGraphNodeCountReq) ProtoMessage() {}
 
 func (x *TopoGraphNodeCountReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[50]
+	mi := &file_topo_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3721,7 +3851,7 @@ func (x *TopoGraphNodeCountReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeCountReq.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeCountReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{50}
+	return file_topo_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *TopoGraphNodeCountReq) GetBkNetworkunitId() []int64 {
@@ -3746,7 +3876,7 @@ type TopoGraphNodeCountResp struct {
 
 func (x *TopoGraphNodeCountResp) Reset() {
 	*x = TopoGraphNodeCountResp{}
-	mi := &file_topo_proto_msgTypes[51]
+	mi := &file_topo_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3758,7 +3888,7 @@ func (x *TopoGraphNodeCountResp) String() string {
 func (*TopoGraphNodeCountResp) ProtoMessage() {}
 
 func (x *TopoGraphNodeCountResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[51]
+	mi := &file_topo_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3771,7 +3901,7 @@ func (x *TopoGraphNodeCountResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeCountResp.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeCountResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{51}
+	return file_topo_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *TopoGraphNodeCountResp) GetCode() int32 {
@@ -3826,7 +3956,7 @@ type TopoGraphNodeGetReq struct {
 
 func (x *TopoGraphNodeGetReq) Reset() {
 	*x = TopoGraphNodeGetReq{}
-	mi := &file_topo_proto_msgTypes[52]
+	mi := &file_topo_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3838,7 +3968,7 @@ func (x *TopoGraphNodeGetReq) String() string {
 func (*TopoGraphNodeGetReq) ProtoMessage() {}
 
 func (x *TopoGraphNodeGetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[52]
+	mi := &file_topo_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3851,7 +3981,7 @@ func (x *TopoGraphNodeGetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeGetReq.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeGetReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{52}
+	return file_topo_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *TopoGraphNodeGetReq) GetBkNetworkunitId() []int64 {
@@ -3876,7 +4006,7 @@ type TopoGraphNodeGetResp struct {
 
 func (x *TopoGraphNodeGetResp) Reset() {
 	*x = TopoGraphNodeGetResp{}
-	mi := &file_topo_proto_msgTypes[53]
+	mi := &file_topo_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3888,7 +4018,7 @@ func (x *TopoGraphNodeGetResp) String() string {
 func (*TopoGraphNodeGetResp) ProtoMessage() {}
 
 func (x *TopoGraphNodeGetResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[53]
+	mi := &file_topo_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3901,7 +4031,7 @@ func (x *TopoGraphNodeGetResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeGetResp.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeGetResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{53}
+	return file_topo_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *TopoGraphNodeGetResp) GetCode() int32 {
@@ -3960,7 +4090,7 @@ type TopoEventExactConditions struct {
 
 func (x *TopoEventExactConditions) Reset() {
 	*x = TopoEventExactConditions{}
-	mi := &file_topo_proto_msgTypes[54]
+	mi := &file_topo_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3972,7 +4102,7 @@ func (x *TopoEventExactConditions) String() string {
 func (*TopoEventExactConditions) ProtoMessage() {}
 
 func (x *TopoEventExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[54]
+	mi := &file_topo_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3985,7 +4115,7 @@ func (x *TopoEventExactConditions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventExactConditions.ProtoReflect.Descriptor instead.
 func (*TopoEventExactConditions) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{54}
+	return file_topo_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *TopoEventExactConditions) GetBkNetworkareaId() []int64 {
@@ -4034,7 +4164,7 @@ type TopoEventFuzzyConditions struct {
 
 func (x *TopoEventFuzzyConditions) Reset() {
 	*x = TopoEventFuzzyConditions{}
-	mi := &file_topo_proto_msgTypes[55]
+	mi := &file_topo_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4046,7 +4176,7 @@ func (x *TopoEventFuzzyConditions) String() string {
 func (*TopoEventFuzzyConditions) ProtoMessage() {}
 
 func (x *TopoEventFuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[55]
+	mi := &file_topo_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4059,7 +4189,7 @@ func (x *TopoEventFuzzyConditions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventFuzzyConditions.ProtoReflect.Descriptor instead.
 func (*TopoEventFuzzyConditions) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{55}
+	return file_topo_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *TopoEventFuzzyConditions) GetBkNetworkareaName() []string {
@@ -4091,7 +4221,7 @@ type TopoEventListReq struct {
 
 func (x *TopoEventListReq) Reset() {
 	*x = TopoEventListReq{}
-	mi := &file_topo_proto_msgTypes[56]
+	mi := &file_topo_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4103,7 +4233,7 @@ func (x *TopoEventListReq) String() string {
 func (*TopoEventListReq) ProtoMessage() {}
 
 func (x *TopoEventListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[56]
+	mi := &file_topo_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4116,7 +4246,7 @@ func (x *TopoEventListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventListReq.ProtoReflect.Descriptor instead.
 func (*TopoEventListReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{56}
+	return file_topo_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *TopoEventListReq) GetPage() *Page {
@@ -4170,7 +4300,7 @@ type TopoEventListResp struct {
 
 func (x *TopoEventListResp) Reset() {
 	*x = TopoEventListResp{}
-	mi := &file_topo_proto_msgTypes[57]
+	mi := &file_topo_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4182,7 +4312,7 @@ func (x *TopoEventListResp) String() string {
 func (*TopoEventListResp) ProtoMessage() {}
 
 func (x *TopoEventListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[57]
+	mi := &file_topo_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4195,7 +4325,7 @@ func (x *TopoEventListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventListResp.ProtoReflect.Descriptor instead.
 func (*TopoEventListResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{57}
+	return file_topo_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *TopoEventListResp) GetCode() int32 {
@@ -4253,7 +4383,7 @@ type TopoEventDistinctReq struct {
 
 func (x *TopoEventDistinctReq) Reset() {
 	*x = TopoEventDistinctReq{}
-	mi := &file_topo_proto_msgTypes[58]
+	mi := &file_topo_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4265,7 +4395,7 @@ func (x *TopoEventDistinctReq) String() string {
 func (*TopoEventDistinctReq) ProtoMessage() {}
 
 func (x *TopoEventDistinctReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[58]
+	mi := &file_topo_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4278,7 +4408,7 @@ func (x *TopoEventDistinctReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventDistinctReq.ProtoReflect.Descriptor instead.
 func (*TopoEventDistinctReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{58}
+	return file_topo_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *TopoEventDistinctReq) GetExactIncludeConditions() *TopoEventExactConditions {
@@ -4318,7 +4448,7 @@ type TopoEventDistinctResp struct {
 
 func (x *TopoEventDistinctResp) Reset() {
 	*x = TopoEventDistinctResp{}
-	mi := &file_topo_proto_msgTypes[59]
+	mi := &file_topo_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4330,7 +4460,7 @@ func (x *TopoEventDistinctResp) String() string {
 func (*TopoEventDistinctResp) ProtoMessage() {}
 
 func (x *TopoEventDistinctResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[59]
+	mi := &file_topo_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4343,7 +4473,7 @@ func (x *TopoEventDistinctResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventDistinctResp.ProtoReflect.Descriptor instead.
 func (*TopoEventDistinctResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{59}
+	return file_topo_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *TopoEventDistinctResp) GetCode() int32 {
@@ -4400,7 +4530,7 @@ type TopoConstantGetReq struct {
 
 func (x *TopoConstantGetReq) Reset() {
 	*x = TopoConstantGetReq{}
-	mi := &file_topo_proto_msgTypes[60]
+	mi := &file_topo_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4412,7 +4542,7 @@ func (x *TopoConstantGetReq) String() string {
 func (*TopoConstantGetReq) ProtoMessage() {}
 
 func (x *TopoConstantGetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[60]
+	mi := &file_topo_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4425,7 +4555,7 @@ func (x *TopoConstantGetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoConstantGetReq.ProtoReflect.Descriptor instead.
 func (*TopoConstantGetReq) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{60}
+	return file_topo_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *TopoConstantGetReq) GetCloudVendor() bool {
@@ -4458,7 +4588,7 @@ type TopoConstantGetResp struct {
 
 func (x *TopoConstantGetResp) Reset() {
 	*x = TopoConstantGetResp{}
-	mi := &file_topo_proto_msgTypes[61]
+	mi := &file_topo_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4470,7 +4600,7 @@ func (x *TopoConstantGetResp) String() string {
 func (*TopoConstantGetResp) ProtoMessage() {}
 
 func (x *TopoConstantGetResp) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[61]
+	mi := &file_topo_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4483,7 +4613,7 @@ func (x *TopoConstantGetResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoConstantGetResp.ProtoReflect.Descriptor instead.
 func (*TopoConstantGetResp) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{61}
+	return file_topo_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *TopoConstantGetResp) GetCode() int32 {
@@ -4537,7 +4667,7 @@ type TopoBusinessListReq_ExactConditions struct {
 
 func (x *TopoBusinessListReq_ExactConditions) Reset() {
 	*x = TopoBusinessListReq_ExactConditions{}
-	mi := &file_topo_proto_msgTypes[62]
+	mi := &file_topo_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4549,7 +4679,7 @@ func (x *TopoBusinessListReq_ExactConditions) String() string {
 func (*TopoBusinessListReq_ExactConditions) ProtoMessage() {}
 
 func (x *TopoBusinessListReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[62]
+	mi := &file_topo_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4581,7 +4711,7 @@ type TopoBusinessListReq_FuzzyConditions struct {
 
 func (x *TopoBusinessListReq_FuzzyConditions) Reset() {
 	*x = TopoBusinessListReq_FuzzyConditions{}
-	mi := &file_topo_proto_msgTypes[63]
+	mi := &file_topo_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4593,7 +4723,7 @@ func (x *TopoBusinessListReq_FuzzyConditions) String() string {
 func (*TopoBusinessListReq_FuzzyConditions) ProtoMessage() {}
 
 func (x *TopoBusinessListReq_FuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[63]
+	mi := &file_topo_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4626,7 +4756,7 @@ type TopoBusinessListResp_Data struct {
 
 func (x *TopoBusinessListResp_Data) Reset() {
 	*x = TopoBusinessListResp_Data{}
-	mi := &file_topo_proto_msgTypes[64]
+	mi := &file_topo_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4638,7 +4768,7 @@ func (x *TopoBusinessListResp_Data) String() string {
 func (*TopoBusinessListResp_Data) ProtoMessage() {}
 
 func (x *TopoBusinessListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[64]
+	mi := &file_topo_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4678,7 +4808,7 @@ type TopoNetworkAreaListReq_ExactConditions struct {
 
 func (x *TopoNetworkAreaListReq_ExactConditions) Reset() {
 	*x = TopoNetworkAreaListReq_ExactConditions{}
-	mi := &file_topo_proto_msgTypes[65]
+	mi := &file_topo_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4690,7 +4820,7 @@ func (x *TopoNetworkAreaListReq_ExactConditions) String() string {
 func (*TopoNetworkAreaListReq_ExactConditions) ProtoMessage() {}
 
 func (x *TopoNetworkAreaListReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[65]
+	mi := &file_topo_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4729,7 +4859,7 @@ type TopoNetworkAreaListReq_FuzzyConditions struct {
 
 func (x *TopoNetworkAreaListReq_FuzzyConditions) Reset() {
 	*x = TopoNetworkAreaListReq_FuzzyConditions{}
-	mi := &file_topo_proto_msgTypes[66]
+	mi := &file_topo_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4741,7 +4871,7 @@ func (x *TopoNetworkAreaListReq_FuzzyConditions) String() string {
 func (*TopoNetworkAreaListReq_FuzzyConditions) ProtoMessage() {}
 
 func (x *TopoNetworkAreaListReq_FuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[66]
+	mi := &file_topo_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4774,7 +4904,7 @@ type TopoNetworkAreaListResp_Data struct {
 
 func (x *TopoNetworkAreaListResp_Data) Reset() {
 	*x = TopoNetworkAreaListResp_Data{}
-	mi := &file_topo_proto_msgTypes[67]
+	mi := &file_topo_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4786,7 +4916,7 @@ func (x *TopoNetworkAreaListResp_Data) String() string {
 func (*TopoNetworkAreaListResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkAreaListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[67]
+	mi := &file_topo_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4830,7 +4960,7 @@ type TopoNetworkAreaStatisticsResp_StatisticsInfo struct {
 
 func (x *TopoNetworkAreaStatisticsResp_StatisticsInfo) Reset() {
 	*x = TopoNetworkAreaStatisticsResp_StatisticsInfo{}
-	mi := &file_topo_proto_msgTypes[68]
+	mi := &file_topo_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4842,7 +4972,7 @@ func (x *TopoNetworkAreaStatisticsResp_StatisticsInfo) String() string {
 func (*TopoNetworkAreaStatisticsResp_StatisticsInfo) ProtoMessage() {}
 
 func (x *TopoNetworkAreaStatisticsResp_StatisticsInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[68]
+	mi := &file_topo_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4909,7 +5039,7 @@ type TopoNetworkAreaStatisticsResp_Data struct {
 
 func (x *TopoNetworkAreaStatisticsResp_Data) Reset() {
 	*x = TopoNetworkAreaStatisticsResp_Data{}
-	mi := &file_topo_proto_msgTypes[69]
+	mi := &file_topo_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4921,7 +5051,7 @@ func (x *TopoNetworkAreaStatisticsResp_Data) String() string {
 func (*TopoNetworkAreaStatisticsResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkAreaStatisticsResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[69]
+	mi := &file_topo_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4953,7 +5083,7 @@ type TopoNetworkAreaCreateResp_Data struct {
 
 func (x *TopoNetworkAreaCreateResp_Data) Reset() {
 	*x = TopoNetworkAreaCreateResp_Data{}
-	mi := &file_topo_proto_msgTypes[70]
+	mi := &file_topo_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4965,7 +5095,7 @@ func (x *TopoNetworkAreaCreateResp_Data) String() string {
 func (*TopoNetworkAreaCreateResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkAreaCreateResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[70]
+	mi := &file_topo_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4997,7 +5127,7 @@ type TopoNetworkAreaUpdateResp_Data struct {
 
 func (x *TopoNetworkAreaUpdateResp_Data) Reset() {
 	*x = TopoNetworkAreaUpdateResp_Data{}
-	mi := &file_topo_proto_msgTypes[71]
+	mi := &file_topo_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5009,7 +5139,7 @@ func (x *TopoNetworkAreaUpdateResp_Data) String() string {
 func (*TopoNetworkAreaUpdateResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkAreaUpdateResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[71]
+	mi := &file_topo_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5041,7 +5171,7 @@ type TopoNetworkAreaDeleteResp_Data struct {
 
 func (x *TopoNetworkAreaDeleteResp_Data) Reset() {
 	*x = TopoNetworkAreaDeleteResp_Data{}
-	mi := &file_topo_proto_msgTypes[72]
+	mi := &file_topo_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5053,7 +5183,7 @@ func (x *TopoNetworkAreaDeleteResp_Data) String() string {
 func (*TopoNetworkAreaDeleteResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkAreaDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[72]
+	mi := &file_topo_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5086,7 +5216,7 @@ type TopoNetworkUnitListResp_Data struct {
 
 func (x *TopoNetworkUnitListResp_Data) Reset() {
 	*x = TopoNetworkUnitListResp_Data{}
-	mi := &file_topo_proto_msgTypes[73]
+	mi := &file_topo_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5098,7 +5228,7 @@ func (x *TopoNetworkUnitListResp_Data) String() string {
 func (*TopoNetworkUnitListResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkUnitListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[73]
+	mi := &file_topo_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5137,7 +5267,7 @@ type TopoNetworkUnitCreateResp_Data struct {
 
 func (x *TopoNetworkUnitCreateResp_Data) Reset() {
 	*x = TopoNetworkUnitCreateResp_Data{}
-	mi := &file_topo_proto_msgTypes[75]
+	mi := &file_topo_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5149,7 +5279,7 @@ func (x *TopoNetworkUnitCreateResp_Data) String() string {
 func (*TopoNetworkUnitCreateResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkUnitCreateResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[75]
+	mi := &file_topo_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5182,7 +5312,7 @@ type TopoAccessPointListReq_ExactConditions struct {
 
 func (x *TopoAccessPointListReq_ExactConditions) Reset() {
 	*x = TopoAccessPointListReq_ExactConditions{}
-	mi := &file_topo_proto_msgTypes[76]
+	mi := &file_topo_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5194,7 +5324,7 @@ func (x *TopoAccessPointListReq_ExactConditions) String() string {
 func (*TopoAccessPointListReq_ExactConditions) ProtoMessage() {}
 
 func (x *TopoAccessPointListReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[76]
+	mi := &file_topo_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5234,7 +5364,7 @@ type TopoAccessPointListResp_Data struct {
 
 func (x *TopoAccessPointListResp_Data) Reset() {
 	*x = TopoAccessPointListResp_Data{}
-	mi := &file_topo_proto_msgTypes[77]
+	mi := &file_topo_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5246,7 +5376,7 @@ func (x *TopoAccessPointListResp_Data) String() string {
 func (*TopoAccessPointListResp_Data) ProtoMessage() {}
 
 func (x *TopoAccessPointListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[77]
+	mi := &file_topo_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5286,7 +5416,7 @@ type TopoAccessPointListBriefReq_ExactConditions struct {
 
 func (x *TopoAccessPointListBriefReq_ExactConditions) Reset() {
 	*x = TopoAccessPointListBriefReq_ExactConditions{}
-	mi := &file_topo_proto_msgTypes[78]
+	mi := &file_topo_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5298,7 +5428,7 @@ func (x *TopoAccessPointListBriefReq_ExactConditions) String() string {
 func (*TopoAccessPointListBriefReq_ExactConditions) ProtoMessage() {}
 
 func (x *TopoAccessPointListBriefReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[78]
+	mi := &file_topo_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5338,7 +5468,7 @@ type TopoAccessPointListBriefResp_Data struct {
 
 func (x *TopoAccessPointListBriefResp_Data) Reset() {
 	*x = TopoAccessPointListBriefResp_Data{}
-	mi := &file_topo_proto_msgTypes[79]
+	mi := &file_topo_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5350,7 +5480,7 @@ func (x *TopoAccessPointListBriefResp_Data) String() string {
 func (*TopoAccessPointListBriefResp_Data) ProtoMessage() {}
 
 func (x *TopoAccessPointListBriefResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[79]
+	mi := &file_topo_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5389,7 +5519,7 @@ type TopoNetworkUnitUpdateResp_Data struct {
 
 func (x *TopoNetworkUnitUpdateResp_Data) Reset() {
 	*x = TopoNetworkUnitUpdateResp_Data{}
-	mi := &file_topo_proto_msgTypes[80]
+	mi := &file_topo_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5401,7 +5531,7 @@ func (x *TopoNetworkUnitUpdateResp_Data) String() string {
 func (*TopoNetworkUnitUpdateResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkUnitUpdateResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[80]
+	mi := &file_topo_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5433,7 +5563,7 @@ type TopoNetworkUnitDeleteResp_Data struct {
 
 func (x *TopoNetworkUnitDeleteResp_Data) Reset() {
 	*x = TopoNetworkUnitDeleteResp_Data{}
-	mi := &file_topo_proto_msgTypes[81]
+	mi := &file_topo_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5445,7 +5575,7 @@ func (x *TopoNetworkUnitDeleteResp_Data) String() string {
 func (*TopoNetworkUnitDeleteResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkUnitDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[81]
+	mi := &file_topo_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5480,7 +5610,7 @@ type TopoNetworkUnitListBriefReq_ExactConditions struct {
 
 func (x *TopoNetworkUnitListBriefReq_ExactConditions) Reset() {
 	*x = TopoNetworkUnitListBriefReq_ExactConditions{}
-	mi := &file_topo_proto_msgTypes[82]
+	mi := &file_topo_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5492,7 +5622,7 @@ func (x *TopoNetworkUnitListBriefReq_ExactConditions) String() string {
 func (*TopoNetworkUnitListBriefReq_ExactConditions) ProtoMessage() {}
 
 func (x *TopoNetworkUnitListBriefReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[82]
+	mi := &file_topo_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5546,7 +5676,7 @@ type TopoNetworkUnitListBriefResp_Data struct {
 
 func (x *TopoNetworkUnitListBriefResp_Data) Reset() {
 	*x = TopoNetworkUnitListBriefResp_Data{}
-	mi := &file_topo_proto_msgTypes[83]
+	mi := &file_topo_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5558,7 +5688,7 @@ func (x *TopoNetworkUnitListBriefResp_Data) String() string {
 func (*TopoNetworkUnitListBriefResp_Data) ProtoMessage() {}
 
 func (x *TopoNetworkUnitListBriefResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[83]
+	mi := &file_topo_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5588,6 +5718,170 @@ func (x *TopoNetworkUnitListBriefResp_Data) GetItems() []*NetworkUnitBrief {
 	return nil
 }
 
+type TopoRecommendNetworkUnitByNetworkSegmentReq_Item struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BkNetworkareaId int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	Ip              string                 `protobuf:"bytes,2,opt,name=ip,proto3" json:"ip"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq_Item) Reset() {
+	*x = TopoRecommendNetworkUnitByNetworkSegmentReq_Item{}
+	mi := &file_topo_proto_msgTypes[86]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq_Item) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopoRecommendNetworkUnitByNetworkSegmentReq_Item) ProtoMessage() {}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq_Item) ProtoReflect() protoreflect.Message {
+	mi := &file_topo_proto_msgTypes[86]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopoRecommendNetworkUnitByNetworkSegmentReq_Item.ProtoReflect.Descriptor instead.
+func (*TopoRecommendNetworkUnitByNetworkSegmentReq_Item) Descriptor() ([]byte, []int) {
+	return file_topo_proto_rawDescGZIP(), []int{32, 0}
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq_Item) GetBkNetworkareaId() int64 {
+	if x != nil {
+		return x.BkNetworkareaId
+	}
+	return 0
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq_Item) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+type TopoRecommendNetworkUnitByNetworkSegmentResp_Data struct {
+	state         protoimpl.MessageState                                    `protogen:"open.v1"`
+	Items         []*TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data) Reset() {
+	*x = TopoRecommendNetworkUnitByNetworkSegmentResp_Data{}
+	mi := &file_topo_proto_msgTypes[87]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopoRecommendNetworkUnitByNetworkSegmentResp_Data) ProtoMessage() {}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_topo_proto_msgTypes[87]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopoRecommendNetworkUnitByNetworkSegmentResp_Data.ProtoReflect.Descriptor instead.
+func (*TopoRecommendNetworkUnitByNetworkSegmentResp_Data) Descriptor() ([]byte, []int) {
+	return file_topo_proto_rawDescGZIP(), []int{33, 0}
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data) GetItems() []*TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BkNetworkareaId int64                  `protobuf:"varint,1,opt,name=bk_networkarea_id,json=bkNetworkareaId,proto3" json:"bk_networkarea_id"`
+	Ip              string                 `protobuf:"bytes,2,opt,name=ip,proto3" json:"ip"`
+	BkNetworkunitId int64                  `protobuf:"varint,3,opt,name=bk_networkunit_id,json=bkNetworkunitId,proto3" json:"bk_networkunit_id"`
+	Message         string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) Reset() {
+	*x = TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item{}
+	mi := &file_topo_proto_msgTypes[88]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) ProtoMessage() {}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) ProtoReflect() protoreflect.Message {
+	mi := &file_topo_proto_msgTypes[88]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item.ProtoReflect.Descriptor instead.
+func (*TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) Descriptor() ([]byte, []int) {
+	return file_topo_proto_rawDescGZIP(), []int{33, 0, 0}
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) GetBkNetworkareaId() int64 {
+	if x != nil {
+		return x.BkNetworkareaId
+	}
+	return 0
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) GetBkNetworkunitId() int64 {
+	if x != nil {
+		return x.BkNetworkunitId
+	}
+	return 0
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 type TopoHostListResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
@@ -5598,7 +5892,7 @@ type TopoHostListResp_Data struct {
 
 func (x *TopoHostListResp_Data) Reset() {
 	*x = TopoHostListResp_Data{}
-	mi := &file_topo_proto_msgTypes[84]
+	mi := &file_topo_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5610,7 +5904,7 @@ func (x *TopoHostListResp_Data) String() string {
 func (*TopoHostListResp_Data) ProtoMessage() {}
 
 func (x *TopoHostListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[84]
+	mi := &file_topo_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5623,7 +5917,7 @@ func (x *TopoHostListResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostListResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostListResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{35, 0}
+	return file_topo_proto_rawDescGZIP(), []int{37, 0}
 }
 
 func (x *TopoHostListResp_Data) GetTotal() int64 {
@@ -5649,7 +5943,7 @@ type TopoHostSelectHostIDResp_Data struct {
 
 func (x *TopoHostSelectHostIDResp_Data) Reset() {
 	*x = TopoHostSelectHostIDResp_Data{}
-	mi := &file_topo_proto_msgTypes[85]
+	mi := &file_topo_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5661,7 +5955,7 @@ func (x *TopoHostSelectHostIDResp_Data) String() string {
 func (*TopoHostSelectHostIDResp_Data) ProtoMessage() {}
 
 func (x *TopoHostSelectHostIDResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[85]
+	mi := &file_topo_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5674,7 +5968,7 @@ func (x *TopoHostSelectHostIDResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectHostIDResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectHostIDResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{37, 0}
+	return file_topo_proto_rawDescGZIP(), []int{39, 0}
 }
 
 func (x *TopoHostSelectHostIDResp_Data) GetItems() []int64 {
@@ -5693,7 +5987,7 @@ type TopoHostSelectInnerIPResp_Data struct {
 
 func (x *TopoHostSelectInnerIPResp_Data) Reset() {
 	*x = TopoHostSelectInnerIPResp_Data{}
-	mi := &file_topo_proto_msgTypes[86]
+	mi := &file_topo_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5705,7 +5999,7 @@ func (x *TopoHostSelectInnerIPResp_Data) String() string {
 func (*TopoHostSelectInnerIPResp_Data) ProtoMessage() {}
 
 func (x *TopoHostSelectInnerIPResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[86]
+	mi := &file_topo_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5718,7 +6012,7 @@ func (x *TopoHostSelectInnerIPResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectInnerIPResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectInnerIPResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{39, 0}
+	return file_topo_proto_rawDescGZIP(), []int{41, 0}
 }
 
 func (x *TopoHostSelectInnerIPResp_Data) GetItems() []string {
@@ -5737,7 +6031,7 @@ type TopoHostSelectInnerIPV6Resp_Data struct {
 
 func (x *TopoHostSelectInnerIPV6Resp_Data) Reset() {
 	*x = TopoHostSelectInnerIPV6Resp_Data{}
-	mi := &file_topo_proto_msgTypes[87]
+	mi := &file_topo_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5749,7 +6043,7 @@ func (x *TopoHostSelectInnerIPV6Resp_Data) String() string {
 func (*TopoHostSelectInnerIPV6Resp_Data) ProtoMessage() {}
 
 func (x *TopoHostSelectInnerIPV6Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[87]
+	mi := &file_topo_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5762,7 +6056,7 @@ func (x *TopoHostSelectInnerIPV6Resp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostSelectInnerIPV6Resp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectInnerIPV6Resp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{41, 0}
+	return file_topo_proto_rawDescGZIP(), []int{43, 0}
 }
 
 func (x *TopoHostSelectInnerIPV6Resp_Data) GetItems() []string {
@@ -5781,7 +6075,7 @@ type TopoHostSelectNetWorkareaIDAndInnerIPResp_Data struct {
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) Reset() {
 	*x = TopoHostSelectNetWorkareaIDAndInnerIPResp_Data{}
-	mi := &file_topo_proto_msgTypes[88]
+	mi := &file_topo_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5793,7 +6087,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) String() string {
 func (*TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) ProtoMessage() {}
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[88]
+	mi := &file_topo_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5806,7 +6100,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) ProtoReflect() protoref
 
 // Deprecated: Use TopoHostSelectNetWorkareaIDAndInnerIPResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{43, 0}
+	return file_topo_proto_rawDescGZIP(), []int{45, 0}
 }
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp_Data) GetItems() []string {
@@ -5825,7 +6119,7 @@ type TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data struct {
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) Reset() {
 	*x = TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data{}
-	mi := &file_topo_proto_msgTypes[89]
+	mi := &file_topo_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5837,7 +6131,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) String() string {
 func (*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) ProtoMessage() {}
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[89]
+	mi := &file_topo_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5850,7 +6144,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) ProtoReflect() protor
 
 // Deprecated: Use TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{45, 0}
+	return file_topo_proto_rawDescGZIP(), []int{47, 0}
 }
 
 func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data) GetItems() []string {
@@ -5878,7 +6172,7 @@ type TopoHostDistinctResp_Data struct {
 
 func (x *TopoHostDistinctResp_Data) Reset() {
 	*x = TopoHostDistinctResp_Data{}
-	mi := &file_topo_proto_msgTypes[90]
+	mi := &file_topo_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5890,7 +6184,7 @@ func (x *TopoHostDistinctResp_Data) String() string {
 func (*TopoHostDistinctResp_Data) ProtoMessage() {}
 
 func (x *TopoHostDistinctResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[90]
+	mi := &file_topo_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5903,7 +6197,7 @@ func (x *TopoHostDistinctResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoHostDistinctResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoHostDistinctResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{47, 0}
+	return file_topo_proto_rawDescGZIP(), []int{49, 0}
 }
 
 func (x *TopoHostDistinctResp_Data) GetNodeRole() []string {
@@ -5986,7 +6280,7 @@ type TopoGraphGetResp_Data struct {
 
 func (x *TopoGraphGetResp_Data) Reset() {
 	*x = TopoGraphGetResp_Data{}
-	mi := &file_topo_proto_msgTypes[91]
+	mi := &file_topo_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5998,7 +6292,7 @@ func (x *TopoGraphGetResp_Data) String() string {
 func (*TopoGraphGetResp_Data) ProtoMessage() {}
 
 func (x *TopoGraphGetResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[91]
+	mi := &file_topo_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6011,7 +6305,7 @@ func (x *TopoGraphGetResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphGetResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoGraphGetResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{49, 0}
+	return file_topo_proto_rawDescGZIP(), []int{51, 0}
 }
 
 func (x *TopoGraphGetResp_Data) GetNetworkunit() []*NetworkUnitGraph {
@@ -6039,7 +6333,7 @@ type TopoGraphNodeCountResp_NodeInfo struct {
 
 func (x *TopoGraphNodeCountResp_NodeInfo) Reset() {
 	*x = TopoGraphNodeCountResp_NodeInfo{}
-	mi := &file_topo_proto_msgTypes[92]
+	mi := &file_topo_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6051,7 +6345,7 @@ func (x *TopoGraphNodeCountResp_NodeInfo) String() string {
 func (*TopoGraphNodeCountResp_NodeInfo) ProtoMessage() {}
 
 func (x *TopoGraphNodeCountResp_NodeInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[92]
+	mi := &file_topo_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6064,7 +6358,7 @@ func (x *TopoGraphNodeCountResp_NodeInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeCountResp_NodeInfo.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeCountResp_NodeInfo) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{51, 0}
+	return file_topo_proto_rawDescGZIP(), []int{53, 0}
 }
 
 func (x *TopoGraphNodeCountResp_NodeInfo) GetBkNetworkunitId() int64 {
@@ -6097,7 +6391,7 @@ type TopoGraphNodeCountResp_Data struct {
 
 func (x *TopoGraphNodeCountResp_Data) Reset() {
 	*x = TopoGraphNodeCountResp_Data{}
-	mi := &file_topo_proto_msgTypes[93]
+	mi := &file_topo_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6109,7 +6403,7 @@ func (x *TopoGraphNodeCountResp_Data) String() string {
 func (*TopoGraphNodeCountResp_Data) ProtoMessage() {}
 
 func (x *TopoGraphNodeCountResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[93]
+	mi := &file_topo_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6122,7 +6416,7 @@ func (x *TopoGraphNodeCountResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeCountResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeCountResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{51, 1}
+	return file_topo_proto_rawDescGZIP(), []int{53, 1}
 }
 
 func (x *TopoGraphNodeCountResp_Data) GetNetworkunits() []*TopoGraphNodeCountResp_NodeInfo {
@@ -6147,7 +6441,7 @@ type TopoGraphNodeGetResp_GraphNodeInfo struct {
 
 func (x *TopoGraphNodeGetResp_GraphNodeInfo) Reset() {
 	*x = TopoGraphNodeGetResp_GraphNodeInfo{}
-	mi := &file_topo_proto_msgTypes[94]
+	mi := &file_topo_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6159,7 +6453,7 @@ func (x *TopoGraphNodeGetResp_GraphNodeInfo) String() string {
 func (*TopoGraphNodeGetResp_GraphNodeInfo) ProtoMessage() {}
 
 func (x *TopoGraphNodeGetResp_GraphNodeInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[94]
+	mi := &file_topo_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6172,7 +6466,7 @@ func (x *TopoGraphNodeGetResp_GraphNodeInfo) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use TopoGraphNodeGetResp_GraphNodeInfo.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeGetResp_GraphNodeInfo) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{53, 0}
+	return file_topo_proto_rawDescGZIP(), []int{55, 0}
 }
 
 func (x *TopoGraphNodeGetResp_GraphNodeInfo) GetBkNetworkunitId() int64 {
@@ -6233,7 +6527,7 @@ type TopoGraphNodeGetResp_Data struct {
 
 func (x *TopoGraphNodeGetResp_Data) Reset() {
 	*x = TopoGraphNodeGetResp_Data{}
-	mi := &file_topo_proto_msgTypes[95]
+	mi := &file_topo_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6245,7 +6539,7 @@ func (x *TopoGraphNodeGetResp_Data) String() string {
 func (*TopoGraphNodeGetResp_Data) ProtoMessage() {}
 
 func (x *TopoGraphNodeGetResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[95]
+	mi := &file_topo_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6258,7 +6552,7 @@ func (x *TopoGraphNodeGetResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoGraphNodeGetResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoGraphNodeGetResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{53, 1}
+	return file_topo_proto_rawDescGZIP(), []int{55, 1}
 }
 
 func (x *TopoGraphNodeGetResp_Data) GetGraphNodeInfo() []*TopoGraphNodeGetResp_GraphNodeInfo {
@@ -6278,7 +6572,7 @@ type TopoEventListResp_Data struct {
 
 func (x *TopoEventListResp_Data) Reset() {
 	*x = TopoEventListResp_Data{}
-	mi := &file_topo_proto_msgTypes[96]
+	mi := &file_topo_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6290,7 +6584,7 @@ func (x *TopoEventListResp_Data) String() string {
 func (*TopoEventListResp_Data) ProtoMessage() {}
 
 func (x *TopoEventListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[96]
+	mi := &file_topo_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6303,7 +6597,7 @@ func (x *TopoEventListResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventListResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoEventListResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{57, 0}
+	return file_topo_proto_rawDescGZIP(), []int{59, 0}
 }
 
 func (x *TopoEventListResp_Data) GetTotal() int64 {
@@ -6333,7 +6627,7 @@ type TopoEventDistinctResp_Data struct {
 
 func (x *TopoEventDistinctResp_Data) Reset() {
 	*x = TopoEventDistinctResp_Data{}
-	mi := &file_topo_proto_msgTypes[97]
+	mi := &file_topo_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6345,7 +6639,7 @@ func (x *TopoEventDistinctResp_Data) String() string {
 func (*TopoEventDistinctResp_Data) ProtoMessage() {}
 
 func (x *TopoEventDistinctResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[97]
+	mi := &file_topo_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6358,7 +6652,7 @@ func (x *TopoEventDistinctResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoEventDistinctResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoEventDistinctResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{59, 0}
+	return file_topo_proto_rawDescGZIP(), []int{61, 0}
 }
 
 func (x *TopoEventDistinctResp_Data) GetBkNetworkareaId() []int64 {
@@ -6406,7 +6700,7 @@ type TopoConstantGetResp_Data struct {
 
 func (x *TopoConstantGetResp_Data) Reset() {
 	*x = TopoConstantGetResp_Data{}
-	mi := &file_topo_proto_msgTypes[98]
+	mi := &file_topo_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6418,7 +6712,7 @@ func (x *TopoConstantGetResp_Data) String() string {
 func (*TopoConstantGetResp_Data) ProtoMessage() {}
 
 func (x *TopoConstantGetResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_topo_proto_msgTypes[98]
+	mi := &file_topo_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6431,7 +6725,7 @@ func (x *TopoConstantGetResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopoConstantGetResp_Data.ProtoReflect.Descriptor instead.
 func (*TopoConstantGetResp_Data) Descriptor() ([]byte, []int) {
-	return file_topo_proto_rawDescGZIP(), []int{61, 0}
+	return file_topo_proto_rawDescGZIP(), []int{63, 0}
 }
 
 func (x *TopoConstantGetResp_Data) GetCloudVendor() []string {
@@ -6987,7 +7281,51 @@ var file_topo_proto_rawDesc = string([]byte{
 	0x74, 0x6f, 0x74, 0x61, 0x6c, 0x12, 0x2a, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x02,
 	0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72,
 	0x6b, 0x55, 0x6e, 0x69, 0x74, 0x42, 0x72, 0x69, 0x65, 0x66, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d,
-	0x73, 0x22, 0xee, 0x02, 0x0a, 0x17, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x45, 0x78,
+	0x73, 0x22, 0xbd, 0x01, 0x0a, 0x2b, 0x54, 0x6f, 0x70, 0x6f, 0x52, 0x65, 0x63, 0x6f, 0x6d, 0x6d,
+	0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x55, 0x6e, 0x69, 0x74, 0x42, 0x79,
+	0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x71, 0x12, 0x4a, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x34, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x52, 0x65, 0x63, 0x6f, 0x6d, 0x6d,
+	0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x55, 0x6e, 0x69, 0x74, 0x42, 0x79,
+	0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x71, 0x2e, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x1a, 0x42, 0x0a,
+	0x04, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x2a, 0x0a, 0x11, 0x62, 0x6b, 0x5f, 0x6e, 0x65, 0x74, 0x77,
+	0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x0f, 0x62, 0x6b, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49,
+	0x64, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69,
+	0x70, 0x22, 0xfd, 0x03, 0x0a, 0x2c, 0x54, 0x6f, 0x70, 0x6f, 0x52, 0x65, 0x63, 0x6f, 0x6d, 0x6d,
+	0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x55, 0x6e, 0x69, 0x74, 0x42, 0x79,
+	0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12,
+	0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09,
+	0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72,
+	0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73,
+	0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
+	0x12, 0x49, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x35,
+	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x52, 0x65, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e,
+	0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x55, 0x6e, 0x69, 0x74, 0x42, 0x79, 0x4e, 0x65,
+	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0xe3, 0x01, 0x0a, 0x04,
+	0x44, 0x61, 0x74, 0x61, 0x12, 0x50, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x3a, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x52, 0x65, 0x63,
+	0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x55, 0x6e, 0x69,
+	0x74, 0x42, 0x79, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67, 0x6d, 0x65, 0x6e,
+	0x74, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x49, 0x74, 0x65, 0x6d, 0x52,
+	0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x1a, 0x88, 0x01, 0x0a, 0x04, 0x49, 0x74, 0x65, 0x6d, 0x12,
+	0x2a, 0x0a, 0x11, 0x62, 0x6b, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65,
+	0x61, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f, 0x62, 0x6b, 0x4e, 0x65,
+	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x64, 0x12, 0x0e, 0x0a, 0x02, 0x69,
+	0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x70, 0x12, 0x2a, 0x0a, 0x11, 0x62,
+	0x6b, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x75, 0x6e, 0x69, 0x74, 0x5f, 0x69, 0x64,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f, 0x62, 0x6b, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72,
+	0x6b, 0x75, 0x6e, 0x69, 0x74, 0x49, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x22, 0xee, 0x02, 0x0a, 0x17, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x45, 0x78,
 	0x61, 0x63, 0x74, 0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x1c, 0x0a,
 	0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x03, 0x28,
 	0x03, 0x52, 0x08, 0x62, 0x6b, 0x48, 0x6f, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x09, 0x62,
@@ -7515,7 +7853,7 @@ var file_topo_proto_rawDesc = string([]byte{
 	0x63, 0x6c, 0x6f, 0x75, 0x64, 0x5f, 0x76, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x03,
 	0x28, 0x09, 0x52, 0x0b, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x56, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x12,
 	0x17, 0x0a, 0x07, 0x6f, 0x73, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09,
-	0x52, 0x06, 0x6f, 0x73, 0x54, 0x79, 0x70, 0x65, 0x32, 0xcb, 0x1b, 0x0a, 0x04, 0x54, 0x6f, 0x70,
+	0x52, 0x06, 0x6f, 0x73, 0x54, 0x79, 0x70, 0x65, 0x32, 0x99, 0x1d, 0x0a, 0x04, 0x54, 0x6f, 0x70,
 	0x6f, 0x12, 0x68, 0x0a, 0x0c, 0x42, 0x75, 0x73, 0x69, 0x6e, 0x65, 0x73, 0x73, 0x4c, 0x69, 0x73,
 	0x74, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x42, 0x75, 0x73, 0x69, 0x6e,
 	0x65, 0x73, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e,
@@ -7632,116 +7970,129 @@ var file_topo_proto_rawDesc = string([]byte{
 	0x69, 0x73, 0x74, 0x42, 0x72, 0x69, 0x65, 0x66, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2e, 0x82, 0xd3,
 	0xe4, 0x93, 0x02, 0x28, 0x3a, 0x01, 0x2a, 0x22, 0x23, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33,
 	0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x70, 0x6f, 0x69, 0x6e,
-	0x74, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x2f, 0x62, 0x72, 0x69, 0x65, 0x66, 0x12, 0x58, 0x0a, 0x08,
-	0x48, 0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x13, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f,
-	0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e,
-	0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52,
-	0x65, 0x73, 0x70, 0x22, 0x21, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16,
-	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73,
-	0x74, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x83, 0x01, 0x0a, 0x10, 0x48, 0x6f, 0x73, 0x74, 0x53,
-	0x65, 0x6c, 0x65, 0x63, 0x74, 0x48, 0x6f, 0x73, 0x74, 0x49, 0x44, 0x12, 0x1b, 0x2e, 0x76, 0x33,
-	0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x48,
-	0x6f, 0x73, 0x74, 0x49, 0x44, 0x52, 0x65, 0x71, 0x1a, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f,
-	0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x48, 0x6f, 0x73, 0x74,
-	0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x22, 0x34, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2e, 0x3a, 0x01,
-	0x2a, 0x22, 0x29, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f,
-	0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65,
-	0x6c, 0x65, 0x63, 0x74, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x12, 0x87, 0x01, 0x0a,
-	0x11, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72,
-	0x49, 0x50, 0x12, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74,
-	0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x71,
-	0x1a, 0x1d, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65,
-	0x6c, 0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x73, 0x70, 0x22,
-	0x35, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2f, 0x3a, 0x01, 0x2a, 0x22, 0x2a, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63,
-	0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x6e,
-	0x6e, 0x65, 0x72, 0x5f, 0x69, 0x70, 0x12, 0x8f, 0x01, 0x0a, 0x13, 0x48, 0x6f, 0x73, 0x74, 0x53,
-	0x65, 0x6c, 0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x12, 0x1e,
+	0x74, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x2f, 0x62, 0x72, 0x69, 0x65, 0x66, 0x12, 0xcb, 0x01, 0x0a,
+	0x24, 0x52, 0x65, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72,
+	0x6b, 0x55, 0x6e, 0x69, 0x74, 0x42, 0x79, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65,
+	0x67, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x2f, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x52,
+	0x65, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x55,
+	0x6e, 0x69, 0x74, 0x42, 0x79, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67, 0x6d,
+	0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x30, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f,
+	0x52, 0x65, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x64, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b,
+	0x55, 0x6e, 0x69, 0x74, 0x42, 0x79, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x53, 0x65, 0x67,
+	0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x40, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x3a,
+	0x3a, 0x01, 0x2a, 0x22, 0x35, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70,
+	0x6f, 0x2f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x75, 0x6e, 0x69, 0x74, 0x2f, 0x72, 0x65,
+	0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x64, 0x5f, 0x62, 0x79, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f,
+	0x72, 0x6b, 0x5f, 0x73, 0x65, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x58, 0x0a, 0x08, 0x48, 0x6f,
+	0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x13, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f,
+	0x48, 0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x76, 0x33,
+	0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73,
+	0x70, 0x22, 0x21, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f,
+	0x6c, 0x69, 0x73, 0x74, 0x12, 0x83, 0x01, 0x0a, 0x10, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c,
+	0x65, 0x63, 0x74, 0x48, 0x6f, 0x73, 0x74, 0x49, 0x44, 0x12, 0x1b, 0x2e, 0x76, 0x33, 0x2e, 0x54,
+	0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x48, 0x6f, 0x73,
+	0x74, 0x49, 0x44, 0x52, 0x65, 0x71, 0x1a, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f,
+	0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x48, 0x6f, 0x73, 0x74, 0x49, 0x44,
+	0x52, 0x65, 0x73, 0x70, 0x22, 0x34, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2e, 0x3a, 0x01, 0x2a, 0x22,
+	0x29, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f,
+	0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65,
+	0x63, 0x74, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x12, 0x87, 0x01, 0x0a, 0x11, 0x48,
+	0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50,
+	0x12, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65,
+	0x6c, 0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x71, 0x1a, 0x1d,
 	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65,
-	0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x71, 0x1a, 0x1f,
-	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65,
-	0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x73, 0x70, 0x22,
-	0x37, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x31, 0x3a, 0x01, 0x2a, 0x22, 0x2c, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63,
-	0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x6e,
-	0x6e, 0x65, 0x72, 0x5f, 0x69, 0x70, 0x76, 0x36, 0x12, 0xca, 0x01, 0x0a, 0x21, 0x48, 0x6f, 0x73,
-	0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72,
-	0x65, 0x61, 0x49, 0x44, 0x41, 0x6e, 0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x12, 0x2c,
-	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65,
-	0x63, 0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41,
-	0x6e, 0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x71, 0x1a, 0x2d, 0x2e, 0x76,
+	0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x73, 0x70, 0x22, 0x35, 0x82,
+	0xd3, 0xe4, 0x93, 0x02, 0x2f, 0x3a, 0x01, 0x2a, 0x22, 0x2a, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
+	0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e,
+	0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x6e, 0x6e, 0x65,
+	0x72, 0x5f, 0x69, 0x70, 0x12, 0x8f, 0x01, 0x0a, 0x13, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c,
+	0x65, 0x63, 0x74, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x12, 0x1e, 0x2e, 0x76,
+	0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74,
+	0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x71, 0x1a, 0x1f, 0x2e, 0x76,
+	0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74,
+	0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x73, 0x70, 0x22, 0x37, 0x82,
+	0xd3, 0xe4, 0x93, 0x02, 0x31, 0x3a, 0x01, 0x2a, 0x22, 0x2c, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
+	0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e,
+	0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x69, 0x6e, 0x6e, 0x65,
+	0x72, 0x5f, 0x69, 0x70, 0x76, 0x36, 0x12, 0xca, 0x01, 0x0a, 0x21, 0x48, 0x6f, 0x73, 0x74, 0x53,
+	0x65, 0x6c, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61,
+	0x49, 0x44, 0x41, 0x6e, 0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x12, 0x2c, 0x2e, 0x76,
 	0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74,
 	0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41, 0x6e, 0x64,
-	0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x73, 0x70, 0x22, 0x48, 0x82, 0xd3, 0xe4,
-	0x93, 0x02, 0x42, 0x3a, 0x01, 0x2a, 0x22, 0x3d, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
-	0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72,
-	0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72,
-	0x6b, 0x61, 0x72, 0x65, 0x61, 0x5f, 0x69, 0x64, 0x5f, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x6e, 0x6e,
-	0x65, 0x72, 0x5f, 0x69, 0x70, 0x12, 0xd2, 0x01, 0x0a, 0x23, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65,
-	0x6c, 0x65, 0x63, 0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49,
-	0x44, 0x41, 0x6e, 0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x12, 0x2e, 0x2e,
-	0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63,
-	0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41, 0x6e,
-	0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x71, 0x1a, 0x2f, 0x2e,
-	0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63,
-	0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41, 0x6e,
-	0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x73, 0x70, 0x22, 0x4a,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x44, 0x3a, 0x01, 0x2a, 0x22, 0x3f, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65,
-	0x6e, 0x61, 0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x6e, 0x65, 0x74,
-	0x77, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x5f, 0x69, 0x64, 0x5f, 0x61, 0x6e, 0x64, 0x5f,
-	0x69, 0x6e, 0x6e, 0x65, 0x72, 0x5f, 0x69, 0x70, 0x76, 0x36, 0x12, 0x68, 0x0a, 0x0c, 0x48, 0x6f,
-	0x73, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e,
-	0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74,
-	0x52, 0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73,
-	0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x25, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
-	0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x64, 0x69, 0x73, 0x74,
-	0x69, 0x6e, 0x63, 0x74, 0x12, 0x58, 0x0a, 0x08, 0x47, 0x72, 0x61, 0x70, 0x68, 0x47, 0x65, 0x74,
-	0x12, 0x13, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x47,
-	0x65, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47,
-	0x72, 0x61, 0x70, 0x68, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x21, 0x82, 0xd3, 0xe4,
-	0x93, 0x02, 0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
-	0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x2f, 0x67, 0x65, 0x74, 0x12, 0x71,
-	0x0a, 0x0e, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74,
-	0x12, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e,
-	0x6f, 0x64, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x1a, 0x2e, 0x76, 0x33,
-	0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x43, 0x6f,
-	0x75, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x28, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x22, 0x3a,
-	0x01, 0x2a, 0x22, 0x1d, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f,
-	0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x63, 0x6f, 0x75, 0x6e,
-	0x74, 0x12, 0x5c, 0x0a, 0x09, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x14,
-	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73,
-	0x74, 0x52, 0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76,
-	0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x22, 0x82, 0xd3, 0xe4,
-	0x93, 0x02, 0x1c, 0x3a, 0x01, 0x2a, 0x22, 0x17, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
-	0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x12,
-	0x6c, 0x0a, 0x0d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74,
-	0x12, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44,
-	0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x19, 0x2e, 0x76, 0x33, 0x2e,
-	0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63,
-	0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x26, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a,
-	0x22, 0x1b, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x65,
-	0x76, 0x65, 0x6e, 0x74, 0x2f, 0x64, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x12, 0x64, 0x0a,
-	0x0b, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x47, 0x65, 0x74, 0x12, 0x16, 0x2e, 0x76,
-	0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x47, 0x65,
-	0x74, 0x52, 0x65, 0x71, 0x1a, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x43, 0x6f,
-	0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x24, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x1e, 0x3a, 0x01, 0x2a, 0x22, 0x19, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
-	0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x2f,
-	0x67, 0x65, 0x74, 0x12, 0x71, 0x0a, 0x13, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68,
-	0x4e, 0x6f, 0x64, 0x65, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x12, 0x18, 0x2e, 0x76, 0x33, 0x2e,
-	0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x47, 0x65, 0x74,
-	0x52, 0x65, 0x73, 0x70, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72,
-	0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x26,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a, 0x22, 0x1b, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x2f, 0x6e, 0x6f,
-	0x64, 0x65, 0x2f, 0x67, 0x65, 0x74, 0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65,
-	0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f,
-	0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70,
-	0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x71, 0x1a, 0x2d, 0x2e, 0x76, 0x33, 0x2e,
+	0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x4e, 0x65,
+	0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41, 0x6e, 0x64, 0x49, 0x6e,
+	0x6e, 0x65, 0x72, 0x49, 0x50, 0x52, 0x65, 0x73, 0x70, 0x22, 0x48, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x42, 0x3a, 0x01, 0x2a, 0x22, 0x3d, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f,
+	0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f,
+	0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x61,
+	0x72, 0x65, 0x61, 0x5f, 0x69, 0x64, 0x5f, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x6e, 0x6e, 0x65, 0x72,
+	0x5f, 0x69, 0x70, 0x12, 0xd2, 0x01, 0x0a, 0x23, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65,
+	0x63, 0x74, 0x4e, 0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41,
+	0x6e, 0x64, 0x49, 0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x12, 0x2e, 0x2e, 0x76, 0x33,
+	0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x4e,
+	0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41, 0x6e, 0x64, 0x49,
+	0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x71, 0x1a, 0x2f, 0x2e, 0x76, 0x33,
+	0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x4e,
+	0x65, 0x74, 0x57, 0x6f, 0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x49, 0x44, 0x41, 0x6e, 0x64, 0x49,
+	0x6e, 0x6e, 0x65, 0x72, 0x49, 0x50, 0x56, 0x36, 0x52, 0x65, 0x73, 0x70, 0x22, 0x4a, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x44, 0x3a, 0x01, 0x2a, 0x22, 0x3f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33,
+	0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x73, 0x63, 0x65, 0x6e, 0x61,
+	0x72, 0x69, 0x6f, 0x2f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x5f, 0x6e, 0x65, 0x74, 0x77, 0x6f,
+	0x72, 0x6b, 0x61, 0x72, 0x65, 0x61, 0x5f, 0x69, 0x64, 0x5f, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x6e,
+	0x6e, 0x65, 0x72, 0x5f, 0x69, 0x70, 0x76, 0x36, 0x12, 0x68, 0x0a, 0x0c, 0x48, 0x6f, 0x73, 0x74,
+	0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f,
+	0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x52, 0x65,
+	0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x48, 0x6f, 0x73, 0x74, 0x44,
+	0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x25, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
+	0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2f, 0x64, 0x69, 0x73, 0x74, 0x69, 0x6e,
+	0x63, 0x74, 0x12, 0x58, 0x0a, 0x08, 0x47, 0x72, 0x61, 0x70, 0x68, 0x47, 0x65, 0x74, 0x12, 0x13,
+	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x47, 0x65, 0x74,
+	0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61,
+	0x70, 0x68, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x21, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x1b, 0x3a, 0x01, 0x2a, 0x22, 0x16, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f,
+	0x70, 0x6f, 0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x2f, 0x67, 0x65, 0x74, 0x12, 0x71, 0x0a, 0x0e,
+	0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x19,
+	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64,
+	0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x1a, 0x2e, 0x76, 0x33, 0x2e, 0x54,
+	0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x43, 0x6f, 0x75, 0x6e,
+	0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x28, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x22, 0x3a, 0x01, 0x2a,
+	0x22, 0x1d, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x67,
+	0x72, 0x61, 0x70, 0x68, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x12,
+	0x5c, 0x0a, 0x09, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x14, 0x2e, 0x76,
+	0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x52,
+	0x65, 0x71, 0x1a, 0x15, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e,
+	0x74, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x22, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x1c, 0x3a, 0x01, 0x2a, 0x22, 0x17, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f,
+	0x70, 0x6f, 0x2f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x2f, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x6c, 0x0a,
+	0x0d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x12, 0x18,
+	0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x73,
+	0x74, 0x69, 0x6e, 0x63, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f,
+	0x70, 0x6f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x44, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x52,
+	0x65, 0x73, 0x70, 0x22, 0x26, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a, 0x22, 0x1b,
+	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x65, 0x76, 0x65,
+	0x6e, 0x74, 0x2f, 0x64, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x63, 0x74, 0x12, 0x64, 0x0a, 0x0b, 0x43,
+	0x6f, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x47, 0x65, 0x74, 0x12, 0x16, 0x2e, 0x76, 0x33, 0x2e,
+	0x54, 0x6f, 0x70, 0x6f, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x47, 0x65, 0x74, 0x52,
+	0x65, 0x71, 0x1a, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x43, 0x6f, 0x6e, 0x73,
+	0x74, 0x61, 0x6e, 0x74, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x24, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x1e, 0x3a, 0x01, 0x2a, 0x22, 0x19, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
+	0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x63, 0x6f, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x2f, 0x67, 0x65,
+	0x74, 0x12, 0x71, 0x0a, 0x13, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f,
+	0x64, 0x65, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x12, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f,
+	0x70, 0x6f, 0x47, 0x72, 0x61, 0x70, 0x68, 0x4e, 0x6f, 0x64, 0x65, 0x47, 0x65, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x54, 0x6f, 0x70, 0x6f, 0x47, 0x72, 0x61, 0x70,
+	0x68, 0x4e, 0x6f, 0x64, 0x65, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x26, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a, 0x22, 0x1b, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33,
+	0x2f, 0x74, 0x6f, 0x70, 0x6f, 0x2f, 0x67, 0x72, 0x61, 0x70, 0x68, 0x2f, 0x6e, 0x6f, 0x64, 0x65,
+	0x2f, 0x67, 0x65, 0x74, 0x42, 0x47, 0x5a, 0x45, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69,
+	0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b,
+	0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69,
+	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -7756,329 +8107,341 @@ func file_topo_proto_rawDescGZIP() []byte {
 	return file_topo_proto_rawDescData
 }
 
-var file_topo_proto_msgTypes = make([]protoimpl.MessageInfo, 99)
+var file_topo_proto_msgTypes = make([]protoimpl.MessageInfo, 104)
 var file_topo_proto_goTypes = []any{
-	(*TopoBusinessListReq)(nil),                              // 0: v3.TopoBusinessListReq
-	(*TopoBusinessListResp)(nil),                             // 1: v3.TopoBusinessListResp
-	(*TopoNetworkAreaListReq)(nil),                           // 2: v3.TopoNetworkAreaListReq
-	(*TopoNetworkAreaListResp)(nil),                          // 3: v3.TopoNetworkAreaListResp
-	(*TopoNetworkAreaStatisticsReq)(nil),                     // 4: v3.TopoNetworkAreaStatisticsReq
-	(*TopoNetworkAreaStatisticsResp)(nil),                    // 5: v3.TopoNetworkAreaStatisticsResp
-	(*TopoNetworkAreaGetReq)(nil),                            // 6: v3.TopoNetworkAreaGetReq
-	(*TopoNetworkAreaGetResp)(nil),                           // 7: v3.TopoNetworkAreaGetResp
-	(*TopoNetworkAreaCreateReq)(nil),                         // 8: v3.TopoNetworkAreaCreateReq
-	(*TopoNetworkAreaCreateResp)(nil),                        // 9: v3.TopoNetworkAreaCreateResp
-	(*TopoNetworkAreaUpdateReq)(nil),                         // 10: v3.TopoNetworkAreaUpdateReq
-	(*TopoNetworkAreaUpdateResp)(nil),                        // 11: v3.TopoNetworkAreaUpdateResp
-	(*TopoNetworkAreaDeleteReq)(nil),                         // 12: v3.TopoNetworkAreaDeleteReq
-	(*TopoNetworkAreaDeleteResp)(nil),                        // 13: v3.TopoNetworkAreaDeleteResp
-	(*TopoNetworkUnitExactConditions)(nil),                   // 14: v3.TopoNetworkUnitExactConditions
-	(*TopoNetworkUnitListReq)(nil),                           // 15: v3.TopoNetworkUnitListReq
-	(*TopoNetworkUnitListResp)(nil),                          // 16: v3.TopoNetworkUnitListResp
-	(*TopoNetworkUnitGetReq)(nil),                            // 17: v3.TopoNetworkUnitGetReq
-	(*TopoNetworkUnitGetResp)(nil),                           // 18: v3.TopoNetworkUnitGetResp
-	(*TopoNetworkUnitCreateReq)(nil),                         // 19: v3.TopoNetworkUnitCreateReq
-	(*TopoNetworkUnitCreateResp)(nil),                        // 20: v3.TopoNetworkUnitCreateResp
-	(*NetworkUnitUpdateFields)(nil),                          // 21: v3.NetworkUnitUpdateFields
-	(*TopoNetworkUnitUpdateReq)(nil),                         // 22: v3.TopoNetworkUnitUpdateReq
-	(*TopoAccessPointListReq)(nil),                           // 23: v3.TopoAccessPointListReq
-	(*TopoAccessPointListResp)(nil),                          // 24: v3.TopoAccessPointListResp
-	(*TopoAccessPointListBriefReq)(nil),                      // 25: v3.TopoAccessPointListBriefReq
-	(*TopoAccessPointListBriefResp)(nil),                     // 26: v3.TopoAccessPointListBriefResp
-	(*TopoNetworkUnitUpdateResp)(nil),                        // 27: v3.TopoNetworkUnitUpdateResp
-	(*TopoNetworkUnitDeleteReq)(nil),                         // 28: v3.TopoNetworkUnitDeleteReq
-	(*TopoNetworkUnitDeleteResp)(nil),                        // 29: v3.TopoNetworkUnitDeleteResp
-	(*TopoNetworkUnitListBriefReq)(nil),                      // 30: v3.TopoNetworkUnitListBriefReq
-	(*TopoNetworkUnitListBriefResp)(nil),                     // 31: v3.TopoNetworkUnitListBriefResp
-	(*TopoHostExactConditions)(nil),                          // 32: v3.TopoHostExactConditions
-	(*TopoHostFuzzyConditions)(nil),                          // 33: v3.TopoHostFuzzyConditions
-	(*TopoHostListReq)(nil),                                  // 34: v3.TopoHostListReq
-	(*TopoHostListResp)(nil),                                 // 35: v3.TopoHostListResp
-	(*TopoHostSelectHostIDReq)(nil),                          // 36: v3.TopoHostSelectHostIDReq
-	(*TopoHostSelectHostIDResp)(nil),                         // 37: v3.TopoHostSelectHostIDResp
-	(*TopoHostSelectInnerIPReq)(nil),                         // 38: v3.TopoHostSelectInnerIPReq
-	(*TopoHostSelectInnerIPResp)(nil),                        // 39: v3.TopoHostSelectInnerIPResp
-	(*TopoHostSelectInnerIPV6Req)(nil),                       // 40: v3.TopoHostSelectInnerIPV6Req
-	(*TopoHostSelectInnerIPV6Resp)(nil),                      // 41: v3.TopoHostSelectInnerIPV6Resp
-	(*TopoHostSelectNetWorkareaIDAndInnerIPReq)(nil),         // 42: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq
-	(*TopoHostSelectNetWorkareaIDAndInnerIPResp)(nil),        // 43: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp
-	(*TopoHostSelectNetWorkareaIDAndInnerIPV6Req)(nil),       // 44: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req
-	(*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp)(nil),      // 45: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp
-	(*TopoHostDistinctReq)(nil),                              // 46: v3.TopoHostDistinctReq
-	(*TopoHostDistinctResp)(nil),                             // 47: v3.TopoHostDistinctResp
-	(*TopoGraphGetReq)(nil),                                  // 48: v3.TopoGraphGetReq
-	(*TopoGraphGetResp)(nil),                                 // 49: v3.TopoGraphGetResp
-	(*TopoGraphNodeCountReq)(nil),                            // 50: v3.TopoGraphNodeCountReq
-	(*TopoGraphNodeCountResp)(nil),                           // 51: v3.TopoGraphNodeCountResp
-	(*TopoGraphNodeGetReq)(nil),                              // 52: v3.TopoGraphNodeGetReq
-	(*TopoGraphNodeGetResp)(nil),                             // 53: v3.TopoGraphNodeGetResp
-	(*TopoEventExactConditions)(nil),                         // 54: v3.TopoEventExactConditions
-	(*TopoEventFuzzyConditions)(nil),                         // 55: v3.TopoEventFuzzyConditions
-	(*TopoEventListReq)(nil),                                 // 56: v3.TopoEventListReq
-	(*TopoEventListResp)(nil),                                // 57: v3.TopoEventListResp
-	(*TopoEventDistinctReq)(nil),                             // 58: v3.TopoEventDistinctReq
-	(*TopoEventDistinctResp)(nil),                            // 59: v3.TopoEventDistinctResp
-	(*TopoConstantGetReq)(nil),                               // 60: v3.TopoConstantGetReq
-	(*TopoConstantGetResp)(nil),                              // 61: v3.TopoConstantGetResp
-	(*TopoBusinessListReq_ExactConditions)(nil),              // 62: v3.TopoBusinessListReq.ExactConditions
-	(*TopoBusinessListReq_FuzzyConditions)(nil),              // 63: v3.TopoBusinessListReq.FuzzyConditions
-	(*TopoBusinessListResp_Data)(nil),                        // 64: v3.TopoBusinessListResp.Data
-	(*TopoNetworkAreaListReq_ExactConditions)(nil),           // 65: v3.TopoNetworkAreaListReq.ExactConditions
-	(*TopoNetworkAreaListReq_FuzzyConditions)(nil),           // 66: v3.TopoNetworkAreaListReq.FuzzyConditions
-	(*TopoNetworkAreaListResp_Data)(nil),                     // 67: v3.TopoNetworkAreaListResp.Data
-	(*TopoNetworkAreaStatisticsResp_StatisticsInfo)(nil),     // 68: v3.TopoNetworkAreaStatisticsResp.StatisticsInfo
-	(*TopoNetworkAreaStatisticsResp_Data)(nil),               // 69: v3.TopoNetworkAreaStatisticsResp.Data
-	(*TopoNetworkAreaCreateResp_Data)(nil),                   // 70: v3.TopoNetworkAreaCreateResp.Data
-	(*TopoNetworkAreaUpdateResp_Data)(nil),                   // 71: v3.TopoNetworkAreaUpdateResp.Data
-	(*TopoNetworkAreaDeleteResp_Data)(nil),                   // 72: v3.TopoNetworkAreaDeleteResp.Data
-	(*TopoNetworkUnitListResp_Data)(nil),                     // 73: v3.TopoNetworkUnitListResp.Data
-	nil,                                                      // 74: v3.TopoNetworkUnitCreateReq.CustomDeployConfigEntry
-	(*TopoNetworkUnitCreateResp_Data)(nil),                   // 75: v3.TopoNetworkUnitCreateResp.Data
-	(*TopoAccessPointListReq_ExactConditions)(nil),           // 76: v3.TopoAccessPointListReq.ExactConditions
-	(*TopoAccessPointListResp_Data)(nil),                     // 77: v3.TopoAccessPointListResp.Data
-	(*TopoAccessPointListBriefReq_ExactConditions)(nil),      // 78: v3.TopoAccessPointListBriefReq.ExactConditions
-	(*TopoAccessPointListBriefResp_Data)(nil),                // 79: v3.TopoAccessPointListBriefResp.Data
-	(*TopoNetworkUnitUpdateResp_Data)(nil),                   // 80: v3.TopoNetworkUnitUpdateResp.Data
-	(*TopoNetworkUnitDeleteResp_Data)(nil),                   // 81: v3.TopoNetworkUnitDeleteResp.Data
-	(*TopoNetworkUnitListBriefReq_ExactConditions)(nil),      // 82: v3.TopoNetworkUnitListBriefReq.ExactConditions
-	(*TopoNetworkUnitListBriefResp_Data)(nil),                // 83: v3.TopoNetworkUnitListBriefResp.Data
-	(*TopoHostListResp_Data)(nil),                            // 84: v3.TopoHostListResp.Data
-	(*TopoHostSelectHostIDResp_Data)(nil),                    // 85: v3.TopoHostSelectHostIDResp.Data
-	(*TopoHostSelectInnerIPResp_Data)(nil),                   // 86: v3.TopoHostSelectInnerIPResp.Data
-	(*TopoHostSelectInnerIPV6Resp_Data)(nil),                 // 87: v3.TopoHostSelectInnerIPV6Resp.Data
-	(*TopoHostSelectNetWorkareaIDAndInnerIPResp_Data)(nil),   // 88: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.Data
-	(*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data)(nil), // 89: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.Data
-	(*TopoHostDistinctResp_Data)(nil),                        // 90: v3.TopoHostDistinctResp.Data
-	(*TopoGraphGetResp_Data)(nil),                            // 91: v3.TopoGraphGetResp.Data
-	(*TopoGraphNodeCountResp_NodeInfo)(nil),                  // 92: v3.TopoGraphNodeCountResp.NodeInfo
-	(*TopoGraphNodeCountResp_Data)(nil),                      // 93: v3.TopoGraphNodeCountResp.Data
-	(*TopoGraphNodeGetResp_GraphNodeInfo)(nil),               // 94: v3.TopoGraphNodeGetResp.GraphNodeInfo
-	(*TopoGraphNodeGetResp_Data)(nil),                        // 95: v3.TopoGraphNodeGetResp.Data
-	(*TopoEventListResp_Data)(nil),                           // 96: v3.TopoEventListResp.Data
-	(*TopoEventDistinctResp_Data)(nil),                       // 97: v3.TopoEventDistinctResp.Data
-	(*TopoConstantGetResp_Data)(nil),                         // 98: v3.TopoConstantGetResp.Data
-	(*Page)(nil),                                             // 99: v3.Page
-	(*Error)(nil),                                            // 100: v3.Error
-	(*Permission)(nil),                                       // 101: v3.Permission
-	(*NetworkArea)(nil),                                      // 102: v3.NetworkArea
-	(*NetworkUnitDetail)(nil),                                // 103: v3.NetworkUnitDetail
-	(*AccessPoint)(nil),                                      // 104: v3.AccessPoint
-	(*Links)(nil),                                            // 105: v3.Links
-	(*Endpoints)(nil),                                        // 106: v3.Endpoints
-	(*TimeRange)(nil),                                        // 107: v3.TimeRange
-	(*Business)(nil),                                         // 108: v3.Business
-	(*NetworkUnit)(nil),                                      // 109: v3.NetworkUnit
-	(*CustomDeployConfig)(nil),                               // 110: v3.CustomDeployConfig
-	(*AccessPointBrief)(nil),                                 // 111: v3.AccessPointBrief
-	(*NetworkUnitBrief)(nil),                                 // 112: v3.NetworkUnitBrief
-	(*Host)(nil),                                             // 113: v3.Host
-	(*NetworkUnitGraph)(nil),                                 // 114: v3.NetworkUnitGraph
-	(*LinkGraph)(nil),                                        // 115: v3.LinkGraph
-	(*TopoEvent)(nil),                                        // 116: v3.TopoEvent
+	(*TopoBusinessListReq)(nil),                                    // 0: v3.TopoBusinessListReq
+	(*TopoBusinessListResp)(nil),                                   // 1: v3.TopoBusinessListResp
+	(*TopoNetworkAreaListReq)(nil),                                 // 2: v3.TopoNetworkAreaListReq
+	(*TopoNetworkAreaListResp)(nil),                                // 3: v3.TopoNetworkAreaListResp
+	(*TopoNetworkAreaStatisticsReq)(nil),                           // 4: v3.TopoNetworkAreaStatisticsReq
+	(*TopoNetworkAreaStatisticsResp)(nil),                          // 5: v3.TopoNetworkAreaStatisticsResp
+	(*TopoNetworkAreaGetReq)(nil),                                  // 6: v3.TopoNetworkAreaGetReq
+	(*TopoNetworkAreaGetResp)(nil),                                 // 7: v3.TopoNetworkAreaGetResp
+	(*TopoNetworkAreaCreateReq)(nil),                               // 8: v3.TopoNetworkAreaCreateReq
+	(*TopoNetworkAreaCreateResp)(nil),                              // 9: v3.TopoNetworkAreaCreateResp
+	(*TopoNetworkAreaUpdateReq)(nil),                               // 10: v3.TopoNetworkAreaUpdateReq
+	(*TopoNetworkAreaUpdateResp)(nil),                              // 11: v3.TopoNetworkAreaUpdateResp
+	(*TopoNetworkAreaDeleteReq)(nil),                               // 12: v3.TopoNetworkAreaDeleteReq
+	(*TopoNetworkAreaDeleteResp)(nil),                              // 13: v3.TopoNetworkAreaDeleteResp
+	(*TopoNetworkUnitExactConditions)(nil),                         // 14: v3.TopoNetworkUnitExactConditions
+	(*TopoNetworkUnitListReq)(nil),                                 // 15: v3.TopoNetworkUnitListReq
+	(*TopoNetworkUnitListResp)(nil),                                // 16: v3.TopoNetworkUnitListResp
+	(*TopoNetworkUnitGetReq)(nil),                                  // 17: v3.TopoNetworkUnitGetReq
+	(*TopoNetworkUnitGetResp)(nil),                                 // 18: v3.TopoNetworkUnitGetResp
+	(*TopoNetworkUnitCreateReq)(nil),                               // 19: v3.TopoNetworkUnitCreateReq
+	(*TopoNetworkUnitCreateResp)(nil),                              // 20: v3.TopoNetworkUnitCreateResp
+	(*NetworkUnitUpdateFields)(nil),                                // 21: v3.NetworkUnitUpdateFields
+	(*TopoNetworkUnitUpdateReq)(nil),                               // 22: v3.TopoNetworkUnitUpdateReq
+	(*TopoAccessPointListReq)(nil),                                 // 23: v3.TopoAccessPointListReq
+	(*TopoAccessPointListResp)(nil),                                // 24: v3.TopoAccessPointListResp
+	(*TopoAccessPointListBriefReq)(nil),                            // 25: v3.TopoAccessPointListBriefReq
+	(*TopoAccessPointListBriefResp)(nil),                           // 26: v3.TopoAccessPointListBriefResp
+	(*TopoNetworkUnitUpdateResp)(nil),                              // 27: v3.TopoNetworkUnitUpdateResp
+	(*TopoNetworkUnitDeleteReq)(nil),                               // 28: v3.TopoNetworkUnitDeleteReq
+	(*TopoNetworkUnitDeleteResp)(nil),                              // 29: v3.TopoNetworkUnitDeleteResp
+	(*TopoNetworkUnitListBriefReq)(nil),                            // 30: v3.TopoNetworkUnitListBriefReq
+	(*TopoNetworkUnitListBriefResp)(nil),                           // 31: v3.TopoNetworkUnitListBriefResp
+	(*TopoRecommendNetworkUnitByNetworkSegmentReq)(nil),            // 32: v3.TopoRecommendNetworkUnitByNetworkSegmentReq
+	(*TopoRecommendNetworkUnitByNetworkSegmentResp)(nil),           // 33: v3.TopoRecommendNetworkUnitByNetworkSegmentResp
+	(*TopoHostExactConditions)(nil),                                // 34: v3.TopoHostExactConditions
+	(*TopoHostFuzzyConditions)(nil),                                // 35: v3.TopoHostFuzzyConditions
+	(*TopoHostListReq)(nil),                                        // 36: v3.TopoHostListReq
+	(*TopoHostListResp)(nil),                                       // 37: v3.TopoHostListResp
+	(*TopoHostSelectHostIDReq)(nil),                                // 38: v3.TopoHostSelectHostIDReq
+	(*TopoHostSelectHostIDResp)(nil),                               // 39: v3.TopoHostSelectHostIDResp
+	(*TopoHostSelectInnerIPReq)(nil),                               // 40: v3.TopoHostSelectInnerIPReq
+	(*TopoHostSelectInnerIPResp)(nil),                              // 41: v3.TopoHostSelectInnerIPResp
+	(*TopoHostSelectInnerIPV6Req)(nil),                             // 42: v3.TopoHostSelectInnerIPV6Req
+	(*TopoHostSelectInnerIPV6Resp)(nil),                            // 43: v3.TopoHostSelectInnerIPV6Resp
+	(*TopoHostSelectNetWorkareaIDAndInnerIPReq)(nil),               // 44: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq
+	(*TopoHostSelectNetWorkareaIDAndInnerIPResp)(nil),              // 45: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp
+	(*TopoHostSelectNetWorkareaIDAndInnerIPV6Req)(nil),             // 46: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req
+	(*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp)(nil),            // 47: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp
+	(*TopoHostDistinctReq)(nil),                                    // 48: v3.TopoHostDistinctReq
+	(*TopoHostDistinctResp)(nil),                                   // 49: v3.TopoHostDistinctResp
+	(*TopoGraphGetReq)(nil),                                        // 50: v3.TopoGraphGetReq
+	(*TopoGraphGetResp)(nil),                                       // 51: v3.TopoGraphGetResp
+	(*TopoGraphNodeCountReq)(nil),                                  // 52: v3.TopoGraphNodeCountReq
+	(*TopoGraphNodeCountResp)(nil),                                 // 53: v3.TopoGraphNodeCountResp
+	(*TopoGraphNodeGetReq)(nil),                                    // 54: v3.TopoGraphNodeGetReq
+	(*TopoGraphNodeGetResp)(nil),                                   // 55: v3.TopoGraphNodeGetResp
+	(*TopoEventExactConditions)(nil),                               // 56: v3.TopoEventExactConditions
+	(*TopoEventFuzzyConditions)(nil),                               // 57: v3.TopoEventFuzzyConditions
+	(*TopoEventListReq)(nil),                                       // 58: v3.TopoEventListReq
+	(*TopoEventListResp)(nil),                                      // 59: v3.TopoEventListResp
+	(*TopoEventDistinctReq)(nil),                                   // 60: v3.TopoEventDistinctReq
+	(*TopoEventDistinctResp)(nil),                                  // 61: v3.TopoEventDistinctResp
+	(*TopoConstantGetReq)(nil),                                     // 62: v3.TopoConstantGetReq
+	(*TopoConstantGetResp)(nil),                                    // 63: v3.TopoConstantGetResp
+	(*TopoBusinessListReq_ExactConditions)(nil),                    // 64: v3.TopoBusinessListReq.ExactConditions
+	(*TopoBusinessListReq_FuzzyConditions)(nil),                    // 65: v3.TopoBusinessListReq.FuzzyConditions
+	(*TopoBusinessListResp_Data)(nil),                              // 66: v3.TopoBusinessListResp.Data
+	(*TopoNetworkAreaListReq_ExactConditions)(nil),                 // 67: v3.TopoNetworkAreaListReq.ExactConditions
+	(*TopoNetworkAreaListReq_FuzzyConditions)(nil),                 // 68: v3.TopoNetworkAreaListReq.FuzzyConditions
+	(*TopoNetworkAreaListResp_Data)(nil),                           // 69: v3.TopoNetworkAreaListResp.Data
+	(*TopoNetworkAreaStatisticsResp_StatisticsInfo)(nil),           // 70: v3.TopoNetworkAreaStatisticsResp.StatisticsInfo
+	(*TopoNetworkAreaStatisticsResp_Data)(nil),                     // 71: v3.TopoNetworkAreaStatisticsResp.Data
+	(*TopoNetworkAreaCreateResp_Data)(nil),                         // 72: v3.TopoNetworkAreaCreateResp.Data
+	(*TopoNetworkAreaUpdateResp_Data)(nil),                         // 73: v3.TopoNetworkAreaUpdateResp.Data
+	(*TopoNetworkAreaDeleteResp_Data)(nil),                         // 74: v3.TopoNetworkAreaDeleteResp.Data
+	(*TopoNetworkUnitListResp_Data)(nil),                           // 75: v3.TopoNetworkUnitListResp.Data
+	nil,                                                            // 76: v3.TopoNetworkUnitCreateReq.CustomDeployConfigEntry
+	(*TopoNetworkUnitCreateResp_Data)(nil),                         // 77: v3.TopoNetworkUnitCreateResp.Data
+	(*TopoAccessPointListReq_ExactConditions)(nil),                 // 78: v3.TopoAccessPointListReq.ExactConditions
+	(*TopoAccessPointListResp_Data)(nil),                           // 79: v3.TopoAccessPointListResp.Data
+	(*TopoAccessPointListBriefReq_ExactConditions)(nil),            // 80: v3.TopoAccessPointListBriefReq.ExactConditions
+	(*TopoAccessPointListBriefResp_Data)(nil),                      // 81: v3.TopoAccessPointListBriefResp.Data
+	(*TopoNetworkUnitUpdateResp_Data)(nil),                         // 82: v3.TopoNetworkUnitUpdateResp.Data
+	(*TopoNetworkUnitDeleteResp_Data)(nil),                         // 83: v3.TopoNetworkUnitDeleteResp.Data
+	(*TopoNetworkUnitListBriefReq_ExactConditions)(nil),            // 84: v3.TopoNetworkUnitListBriefReq.ExactConditions
+	(*TopoNetworkUnitListBriefResp_Data)(nil),                      // 85: v3.TopoNetworkUnitListBriefResp.Data
+	(*TopoRecommendNetworkUnitByNetworkSegmentReq_Item)(nil),       // 86: v3.TopoRecommendNetworkUnitByNetworkSegmentReq.Item
+	(*TopoRecommendNetworkUnitByNetworkSegmentResp_Data)(nil),      // 87: v3.TopoRecommendNetworkUnitByNetworkSegmentResp.Data
+	(*TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item)(nil), // 88: v3.TopoRecommendNetworkUnitByNetworkSegmentResp.Data.Item
+	(*TopoHostListResp_Data)(nil),                                  // 89: v3.TopoHostListResp.Data
+	(*TopoHostSelectHostIDResp_Data)(nil),                          // 90: v3.TopoHostSelectHostIDResp.Data
+	(*TopoHostSelectInnerIPResp_Data)(nil),                         // 91: v3.TopoHostSelectInnerIPResp.Data
+	(*TopoHostSelectInnerIPV6Resp_Data)(nil),                       // 92: v3.TopoHostSelectInnerIPV6Resp.Data
+	(*TopoHostSelectNetWorkareaIDAndInnerIPResp_Data)(nil),         // 93: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.Data
+	(*TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data)(nil),       // 94: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.Data
+	(*TopoHostDistinctResp_Data)(nil),                              // 95: v3.TopoHostDistinctResp.Data
+	(*TopoGraphGetResp_Data)(nil),                                  // 96: v3.TopoGraphGetResp.Data
+	(*TopoGraphNodeCountResp_NodeInfo)(nil),                        // 97: v3.TopoGraphNodeCountResp.NodeInfo
+	(*TopoGraphNodeCountResp_Data)(nil),                            // 98: v3.TopoGraphNodeCountResp.Data
+	(*TopoGraphNodeGetResp_GraphNodeInfo)(nil),                     // 99: v3.TopoGraphNodeGetResp.GraphNodeInfo
+	(*TopoGraphNodeGetResp_Data)(nil),                              // 100: v3.TopoGraphNodeGetResp.Data
+	(*TopoEventListResp_Data)(nil),                                 // 101: v3.TopoEventListResp.Data
+	(*TopoEventDistinctResp_Data)(nil),                             // 102: v3.TopoEventDistinctResp.Data
+	(*TopoConstantGetResp_Data)(nil),                               // 103: v3.TopoConstantGetResp.Data
+	(*Page)(nil),                                                   // 104: v3.Page
+	(*Error)(nil),                                                  // 105: v3.Error
+	(*Permission)(nil),                                             // 106: v3.Permission
+	(*NetworkArea)(nil),                                            // 107: v3.NetworkArea
+	(*NetworkUnitDetail)(nil),                                      // 108: v3.NetworkUnitDetail
+	(*AccessPoint)(nil),                                            // 109: v3.AccessPoint
+	(*Links)(nil),                                                  // 110: v3.Links
+	(*Endpoints)(nil),                                              // 111: v3.Endpoints
+	(*TimeRange)(nil),                                              // 112: v3.TimeRange
+	(*Business)(nil),                                               // 113: v3.Business
+	(*NetworkUnit)(nil),                                            // 114: v3.NetworkUnit
+	(*CustomDeployConfig)(nil),                                     // 115: v3.CustomDeployConfig
+	(*AccessPointBrief)(nil),                                       // 116: v3.AccessPointBrief
+	(*NetworkUnitBrief)(nil),                                       // 117: v3.NetworkUnitBrief
+	(*Host)(nil),                                                   // 118: v3.Host
+	(*NetworkUnitGraph)(nil),                                       // 119: v3.NetworkUnitGraph
+	(*LinkGraph)(nil),                                              // 120: v3.LinkGraph
+	(*TopoEvent)(nil),                                              // 121: v3.TopoEvent
 }
 var file_topo_proto_depIdxs = []int32{
-	99,  // 0: v3.TopoBusinessListReq.page:type_name -> v3.Page
-	62,  // 1: v3.TopoBusinessListReq.exact_include_conditions:type_name -> v3.TopoBusinessListReq.ExactConditions
-	63,  // 2: v3.TopoBusinessListReq.fuzzy_include_conditions:type_name -> v3.TopoBusinessListReq.FuzzyConditions
-	100, // 3: v3.TopoBusinessListResp.error:type_name -> v3.Error
-	101, // 4: v3.TopoBusinessListResp.permission:type_name -> v3.Permission
-	64,  // 5: v3.TopoBusinessListResp.data:type_name -> v3.TopoBusinessListResp.Data
-	99,  // 6: v3.TopoNetworkAreaListReq.page:type_name -> v3.Page
-	65,  // 7: v3.TopoNetworkAreaListReq.exact_include_conditions:type_name -> v3.TopoNetworkAreaListReq.ExactConditions
-	66,  // 8: v3.TopoNetworkAreaListReq.fuzzy_include_conditions:type_name -> v3.TopoNetworkAreaListReq.FuzzyConditions
-	100, // 9: v3.TopoNetworkAreaListResp.error:type_name -> v3.Error
-	101, // 10: v3.TopoNetworkAreaListResp.permission:type_name -> v3.Permission
-	67,  // 11: v3.TopoNetworkAreaListResp.data:type_name -> v3.TopoNetworkAreaListResp.Data
-	100, // 12: v3.TopoNetworkAreaStatisticsResp.error:type_name -> v3.Error
-	101, // 13: v3.TopoNetworkAreaStatisticsResp.permission:type_name -> v3.Permission
-	69,  // 14: v3.TopoNetworkAreaStatisticsResp.data:type_name -> v3.TopoNetworkAreaStatisticsResp.Data
-	102, // 15: v3.TopoNetworkAreaGetResp.data:type_name -> v3.NetworkArea
-	100, // 16: v3.TopoNetworkAreaCreateResp.error:type_name -> v3.Error
-	101, // 17: v3.TopoNetworkAreaCreateResp.permission:type_name -> v3.Permission
-	70,  // 18: v3.TopoNetworkAreaCreateResp.data:type_name -> v3.TopoNetworkAreaCreateResp.Data
-	100, // 19: v3.TopoNetworkAreaUpdateResp.error:type_name -> v3.Error
-	101, // 20: v3.TopoNetworkAreaUpdateResp.permission:type_name -> v3.Permission
-	71,  // 21: v3.TopoNetworkAreaUpdateResp.data:type_name -> v3.TopoNetworkAreaUpdateResp.Data
-	100, // 22: v3.TopoNetworkAreaDeleteResp.error:type_name -> v3.Error
-	101, // 23: v3.TopoNetworkAreaDeleteResp.permission:type_name -> v3.Permission
-	72,  // 24: v3.TopoNetworkAreaDeleteResp.data:type_name -> v3.TopoNetworkAreaDeleteResp.Data
-	99,  // 25: v3.TopoNetworkUnitListReq.page:type_name -> v3.Page
+	104, // 0: v3.TopoBusinessListReq.page:type_name -> v3.Page
+	64,  // 1: v3.TopoBusinessListReq.exact_include_conditions:type_name -> v3.TopoBusinessListReq.ExactConditions
+	65,  // 2: v3.TopoBusinessListReq.fuzzy_include_conditions:type_name -> v3.TopoBusinessListReq.FuzzyConditions
+	105, // 3: v3.TopoBusinessListResp.error:type_name -> v3.Error
+	106, // 4: v3.TopoBusinessListResp.permission:type_name -> v3.Permission
+	66,  // 5: v3.TopoBusinessListResp.data:type_name -> v3.TopoBusinessListResp.Data
+	104, // 6: v3.TopoNetworkAreaListReq.page:type_name -> v3.Page
+	67,  // 7: v3.TopoNetworkAreaListReq.exact_include_conditions:type_name -> v3.TopoNetworkAreaListReq.ExactConditions
+	68,  // 8: v3.TopoNetworkAreaListReq.fuzzy_include_conditions:type_name -> v3.TopoNetworkAreaListReq.FuzzyConditions
+	105, // 9: v3.TopoNetworkAreaListResp.error:type_name -> v3.Error
+	106, // 10: v3.TopoNetworkAreaListResp.permission:type_name -> v3.Permission
+	69,  // 11: v3.TopoNetworkAreaListResp.data:type_name -> v3.TopoNetworkAreaListResp.Data
+	105, // 12: v3.TopoNetworkAreaStatisticsResp.error:type_name -> v3.Error
+	106, // 13: v3.TopoNetworkAreaStatisticsResp.permission:type_name -> v3.Permission
+	71,  // 14: v3.TopoNetworkAreaStatisticsResp.data:type_name -> v3.TopoNetworkAreaStatisticsResp.Data
+	107, // 15: v3.TopoNetworkAreaGetResp.data:type_name -> v3.NetworkArea
+	105, // 16: v3.TopoNetworkAreaCreateResp.error:type_name -> v3.Error
+	106, // 17: v3.TopoNetworkAreaCreateResp.permission:type_name -> v3.Permission
+	72,  // 18: v3.TopoNetworkAreaCreateResp.data:type_name -> v3.TopoNetworkAreaCreateResp.Data
+	105, // 19: v3.TopoNetworkAreaUpdateResp.error:type_name -> v3.Error
+	106, // 20: v3.TopoNetworkAreaUpdateResp.permission:type_name -> v3.Permission
+	73,  // 21: v3.TopoNetworkAreaUpdateResp.data:type_name -> v3.TopoNetworkAreaUpdateResp.Data
+	105, // 22: v3.TopoNetworkAreaDeleteResp.error:type_name -> v3.Error
+	106, // 23: v3.TopoNetworkAreaDeleteResp.permission:type_name -> v3.Permission
+	74,  // 24: v3.TopoNetworkAreaDeleteResp.data:type_name -> v3.TopoNetworkAreaDeleteResp.Data
+	104, // 25: v3.TopoNetworkUnitListReq.page:type_name -> v3.Page
 	14,  // 26: v3.TopoNetworkUnitListReq.exact_include_conditions:type_name -> v3.TopoNetworkUnitExactConditions
-	100, // 27: v3.TopoNetworkUnitListResp.error:type_name -> v3.Error
-	101, // 28: v3.TopoNetworkUnitListResp.permission:type_name -> v3.Permission
-	73,  // 29: v3.TopoNetworkUnitListResp.data:type_name -> v3.TopoNetworkUnitListResp.Data
-	103, // 30: v3.TopoNetworkUnitGetResp.data:type_name -> v3.NetworkUnitDetail
-	104, // 31: v3.TopoNetworkUnitCreateReq.accesspoints:type_name -> v3.AccessPoint
-	105, // 32: v3.TopoNetworkUnitCreateReq.links:type_name -> v3.Links
-	106, // 33: v3.TopoNetworkUnitCreateReq.direct_endpoints:type_name -> v3.Endpoints
-	74,  // 34: v3.TopoNetworkUnitCreateReq.custom_deploy_config:type_name -> v3.TopoNetworkUnitCreateReq.CustomDeployConfigEntry
-	100, // 35: v3.TopoNetworkUnitCreateResp.error:type_name -> v3.Error
-	101, // 36: v3.TopoNetworkUnitCreateResp.permission:type_name -> v3.Permission
-	75,  // 37: v3.TopoNetworkUnitCreateResp.data:type_name -> v3.TopoNetworkUnitCreateResp.Data
-	103, // 38: v3.TopoNetworkUnitUpdateReq.networkunit:type_name -> v3.NetworkUnitDetail
+	105, // 27: v3.TopoNetworkUnitListResp.error:type_name -> v3.Error
+	106, // 28: v3.TopoNetworkUnitListResp.permission:type_name -> v3.Permission
+	75,  // 29: v3.TopoNetworkUnitListResp.data:type_name -> v3.TopoNetworkUnitListResp.Data
+	108, // 30: v3.TopoNetworkUnitGetResp.data:type_name -> v3.NetworkUnitDetail
+	109, // 31: v3.TopoNetworkUnitCreateReq.accesspoints:type_name -> v3.AccessPoint
+	110, // 32: v3.TopoNetworkUnitCreateReq.links:type_name -> v3.Links
+	111, // 33: v3.TopoNetworkUnitCreateReq.direct_endpoints:type_name -> v3.Endpoints
+	76,  // 34: v3.TopoNetworkUnitCreateReq.custom_deploy_config:type_name -> v3.TopoNetworkUnitCreateReq.CustomDeployConfigEntry
+	105, // 35: v3.TopoNetworkUnitCreateResp.error:type_name -> v3.Error
+	106, // 36: v3.TopoNetworkUnitCreateResp.permission:type_name -> v3.Permission
+	77,  // 37: v3.TopoNetworkUnitCreateResp.data:type_name -> v3.TopoNetworkUnitCreateResp.Data
+	108, // 38: v3.TopoNetworkUnitUpdateReq.networkunit:type_name -> v3.NetworkUnitDetail
 	21,  // 39: v3.TopoNetworkUnitUpdateReq.fields:type_name -> v3.NetworkUnitUpdateFields
-	99,  // 40: v3.TopoAccessPointListReq.page:type_name -> v3.Page
-	76,  // 41: v3.TopoAccessPointListReq.exact_include_conditions:type_name -> v3.TopoAccessPointListReq.ExactConditions
-	100, // 42: v3.TopoAccessPointListResp.error:type_name -> v3.Error
-	101, // 43: v3.TopoAccessPointListResp.permission:type_name -> v3.Permission
-	77,  // 44: v3.TopoAccessPointListResp.data:type_name -> v3.TopoAccessPointListResp.Data
-	99,  // 45: v3.TopoAccessPointListBriefReq.page:type_name -> v3.Page
-	78,  // 46: v3.TopoAccessPointListBriefReq.exact_include_conditions:type_name -> v3.TopoAccessPointListBriefReq.ExactConditions
-	100, // 47: v3.TopoAccessPointListBriefResp.error:type_name -> v3.Error
-	101, // 48: v3.TopoAccessPointListBriefResp.permission:type_name -> v3.Permission
-	79,  // 49: v3.TopoAccessPointListBriefResp.data:type_name -> v3.TopoAccessPointListBriefResp.Data
-	100, // 50: v3.TopoNetworkUnitUpdateResp.error:type_name -> v3.Error
-	101, // 51: v3.TopoNetworkUnitUpdateResp.permission:type_name -> v3.Permission
-	80,  // 52: v3.TopoNetworkUnitUpdateResp.data:type_name -> v3.TopoNetworkUnitUpdateResp.Data
-	100, // 53: v3.TopoNetworkUnitDeleteResp.error:type_name -> v3.Error
-	101, // 54: v3.TopoNetworkUnitDeleteResp.permission:type_name -> v3.Permission
-	81,  // 55: v3.TopoNetworkUnitDeleteResp.data:type_name -> v3.TopoNetworkUnitDeleteResp.Data
-	99,  // 56: v3.TopoNetworkUnitListBriefReq.page:type_name -> v3.Page
-	82,  // 57: v3.TopoNetworkUnitListBriefReq.exact_include_conditions:type_name -> v3.TopoNetworkUnitListBriefReq.ExactConditions
-	100, // 58: v3.TopoNetworkUnitListBriefResp.error:type_name -> v3.Error
-	101, // 59: v3.TopoNetworkUnitListBriefResp.permission:type_name -> v3.Permission
-	83,  // 60: v3.TopoNetworkUnitListBriefResp.data:type_name -> v3.TopoNetworkUnitListBriefResp.Data
-	99,  // 61: v3.TopoHostListReq.page:type_name -> v3.Page
-	32,  // 62: v3.TopoHostListReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 63: v3.TopoHostListReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	100, // 64: v3.TopoHostListResp.error:type_name -> v3.Error
-	101, // 65: v3.TopoHostListResp.permission:type_name -> v3.Permission
-	84,  // 66: v3.TopoHostListResp.data:type_name -> v3.TopoHostListResp.Data
-	32,  // 67: v3.TopoHostSelectHostIDReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 68: v3.TopoHostSelectHostIDReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	32,  // 69: v3.TopoHostSelectHostIDReq.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
-	100, // 70: v3.TopoHostSelectHostIDResp.error:type_name -> v3.Error
-	101, // 71: v3.TopoHostSelectHostIDResp.permission:type_name -> v3.Permission
-	85,  // 72: v3.TopoHostSelectHostIDResp.data:type_name -> v3.TopoHostSelectHostIDResp.Data
-	32,  // 73: v3.TopoHostSelectInnerIPReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 74: v3.TopoHostSelectInnerIPReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	32,  // 75: v3.TopoHostSelectInnerIPReq.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
-	100, // 76: v3.TopoHostSelectInnerIPResp.error:type_name -> v3.Error
-	101, // 77: v3.TopoHostSelectInnerIPResp.permission:type_name -> v3.Permission
-	86,  // 78: v3.TopoHostSelectInnerIPResp.data:type_name -> v3.TopoHostSelectInnerIPResp.Data
-	32,  // 79: v3.TopoHostSelectInnerIPV6Req.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 80: v3.TopoHostSelectInnerIPV6Req.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	32,  // 81: v3.TopoHostSelectInnerIPV6Req.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
-	100, // 82: v3.TopoHostSelectInnerIPV6Resp.error:type_name -> v3.Error
-	101, // 83: v3.TopoHostSelectInnerIPV6Resp.permission:type_name -> v3.Permission
-	87,  // 84: v3.TopoHostSelectInnerIPV6Resp.data:type_name -> v3.TopoHostSelectInnerIPV6Resp.Data
-	32,  // 85: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 86: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	32,  // 87: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
-	100, // 88: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.error:type_name -> v3.Error
-	101, // 89: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.permission:type_name -> v3.Permission
-	88,  // 90: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.data:type_name -> v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.Data
-	32,  // 91: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 92: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	32,  // 93: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
-	100, // 94: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.error:type_name -> v3.Error
-	101, // 95: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.permission:type_name -> v3.Permission
-	89,  // 96: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.data:type_name -> v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.Data
-	32,  // 97: v3.TopoHostDistinctReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
-	33,  // 98: v3.TopoHostDistinctReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
-	100, // 99: v3.TopoHostDistinctResp.error:type_name -> v3.Error
-	101, // 100: v3.TopoHostDistinctResp.permission:type_name -> v3.Permission
-	90,  // 101: v3.TopoHostDistinctResp.data:type_name -> v3.TopoHostDistinctResp.Data
-	100, // 102: v3.TopoGraphGetResp.error:type_name -> v3.Error
-	101, // 103: v3.TopoGraphGetResp.permission:type_name -> v3.Permission
-	91,  // 104: v3.TopoGraphGetResp.data:type_name -> v3.TopoGraphGetResp.Data
-	100, // 105: v3.TopoGraphNodeCountResp.error:type_name -> v3.Error
-	101, // 106: v3.TopoGraphNodeCountResp.permission:type_name -> v3.Permission
-	93,  // 107: v3.TopoGraphNodeCountResp.data:type_name -> v3.TopoGraphNodeCountResp.Data
-	100, // 108: v3.TopoGraphNodeGetResp.error:type_name -> v3.Error
-	101, // 109: v3.TopoGraphNodeGetResp.permission:type_name -> v3.Permission
-	95,  // 110: v3.TopoGraphNodeGetResp.data:type_name -> v3.TopoGraphNodeGetResp.Data
-	99,  // 111: v3.TopoEventListReq.page:type_name -> v3.Page
-	54,  // 112: v3.TopoEventListReq.exact_include_conditions:type_name -> v3.TopoEventExactConditions
-	55,  // 113: v3.TopoEventListReq.fuzzy_include_conditions:type_name -> v3.TopoEventFuzzyConditions
-	107, // 114: v3.TopoEventListReq.operate_time_range:type_name -> v3.TimeRange
-	100, // 115: v3.TopoEventListResp.error:type_name -> v3.Error
-	101, // 116: v3.TopoEventListResp.permission:type_name -> v3.Permission
-	96,  // 117: v3.TopoEventListResp.data:type_name -> v3.TopoEventListResp.Data
-	54,  // 118: v3.TopoEventDistinctReq.exact_include_conditions:type_name -> v3.TopoEventExactConditions
-	55,  // 119: v3.TopoEventDistinctReq.fuzzy_include_conditions:type_name -> v3.TopoEventFuzzyConditions
-	107, // 120: v3.TopoEventDistinctReq.operate_time_range:type_name -> v3.TimeRange
-	100, // 121: v3.TopoEventDistinctResp.error:type_name -> v3.Error
-	101, // 122: v3.TopoEventDistinctResp.permission:type_name -> v3.Permission
-	97,  // 123: v3.TopoEventDistinctResp.data:type_name -> v3.TopoEventDistinctResp.Data
-	100, // 124: v3.TopoConstantGetResp.error:type_name -> v3.Error
-	101, // 125: v3.TopoConstantGetResp.permission:type_name -> v3.Permission
-	98,  // 126: v3.TopoConstantGetResp.data:type_name -> v3.TopoConstantGetResp.Data
-	108, // 127: v3.TopoBusinessListResp.Data.items:type_name -> v3.Business
-	102, // 128: v3.TopoNetworkAreaListResp.Data.items:type_name -> v3.NetworkArea
-	68,  // 129: v3.TopoNetworkAreaStatisticsResp.Data.items:type_name -> v3.TopoNetworkAreaStatisticsResp.StatisticsInfo
-	109, // 130: v3.TopoNetworkUnitListResp.Data.items:type_name -> v3.NetworkUnit
-	110, // 131: v3.TopoNetworkUnitCreateReq.CustomDeployConfigEntry.value:type_name -> v3.CustomDeployConfig
-	104, // 132: v3.TopoAccessPointListResp.Data.items:type_name -> v3.AccessPoint
-	111, // 133: v3.TopoAccessPointListBriefResp.Data.items:type_name -> v3.AccessPointBrief
-	112, // 134: v3.TopoNetworkUnitListBriefResp.Data.items:type_name -> v3.NetworkUnitBrief
-	113, // 135: v3.TopoHostListResp.Data.items:type_name -> v3.Host
-	114, // 136: v3.TopoGraphGetResp.Data.networkunit:type_name -> v3.NetworkUnitGraph
-	115, // 137: v3.TopoGraphGetResp.Data.links:type_name -> v3.LinkGraph
-	92,  // 138: v3.TopoGraphNodeCountResp.Data.networkunits:type_name -> v3.TopoGraphNodeCountResp.NodeInfo
-	94,  // 139: v3.TopoGraphNodeGetResp.Data.graph_node_info:type_name -> v3.TopoGraphNodeGetResp.GraphNodeInfo
-	116, // 140: v3.TopoEventListResp.Data.items:type_name -> v3.TopoEvent
-	0,   // 141: v3.Topo.BusinessList:input_type -> v3.TopoBusinessListReq
-	2,   // 142: v3.Topo.NetworkAreaList:input_type -> v3.TopoNetworkAreaListReq
-	4,   // 143: v3.Topo.NetworkAreaStatistics:input_type -> v3.TopoNetworkAreaStatisticsReq
-	8,   // 144: v3.Topo.NetworkAreaCreate:input_type -> v3.TopoNetworkAreaCreateReq
-	6,   // 145: v3.Topo.NetworkAreaGet:input_type -> v3.TopoNetworkAreaGetReq
-	10,  // 146: v3.Topo.NetworkAreaUpdate:input_type -> v3.TopoNetworkAreaUpdateReq
-	12,  // 147: v3.Topo.NetworkAreaDelete:input_type -> v3.TopoNetworkAreaDeleteReq
-	15,  // 148: v3.Topo.NetworkUnitList:input_type -> v3.TopoNetworkUnitListReq
-	19,  // 149: v3.Topo.NetworkUnitCreate:input_type -> v3.TopoNetworkUnitCreateReq
-	17,  // 150: v3.Topo.NetworkUnitGet:input_type -> v3.TopoNetworkUnitGetReq
-	22,  // 151: v3.Topo.NetworkUnitUpdate:input_type -> v3.TopoNetworkUnitUpdateReq
-	28,  // 152: v3.Topo.NetworkUnitDelete:input_type -> v3.TopoNetworkUnitDeleteReq
-	30,  // 153: v3.Topo.NetworkUnitListBrief:input_type -> v3.TopoNetworkUnitListBriefReq
-	23,  // 154: v3.Topo.AccessPointList:input_type -> v3.TopoAccessPointListReq
-	25,  // 155: v3.Topo.AccessPointListBrief:input_type -> v3.TopoAccessPointListBriefReq
-	34,  // 156: v3.Topo.HostList:input_type -> v3.TopoHostListReq
-	36,  // 157: v3.Topo.HostSelectHostID:input_type -> v3.TopoHostSelectHostIDReq
-	38,  // 158: v3.Topo.HostSelectInnerIP:input_type -> v3.TopoHostSelectInnerIPReq
-	40,  // 159: v3.Topo.HostSelectInnerIPV6:input_type -> v3.TopoHostSelectInnerIPV6Req
-	42,  // 160: v3.Topo.HostSelectNetWorkareaIDAndInnerIP:input_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPReq
-	44,  // 161: v3.Topo.HostSelectNetWorkareaIDAndInnerIPV6:input_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req
-	46,  // 162: v3.Topo.HostDistinct:input_type -> v3.TopoHostDistinctReq
-	48,  // 163: v3.Topo.GraphGet:input_type -> v3.TopoGraphGetReq
-	50,  // 164: v3.Topo.GraphNodeCount:input_type -> v3.TopoGraphNodeCountReq
-	56,  // 165: v3.Topo.EventList:input_type -> v3.TopoEventListReq
-	58,  // 166: v3.Topo.EventDistinct:input_type -> v3.TopoEventDistinctReq
-	60,  // 167: v3.Topo.ConstantGet:input_type -> v3.TopoConstantGetReq
-	53,  // 168: v3.Topo.TopoGraphNodeGetReq:input_type -> v3.TopoGraphNodeGetResp
-	1,   // 169: v3.Topo.BusinessList:output_type -> v3.TopoBusinessListResp
-	3,   // 170: v3.Topo.NetworkAreaList:output_type -> v3.TopoNetworkAreaListResp
-	5,   // 171: v3.Topo.NetworkAreaStatistics:output_type -> v3.TopoNetworkAreaStatisticsResp
-	9,   // 172: v3.Topo.NetworkAreaCreate:output_type -> v3.TopoNetworkAreaCreateResp
-	7,   // 173: v3.Topo.NetworkAreaGet:output_type -> v3.TopoNetworkAreaGetResp
-	11,  // 174: v3.Topo.NetworkAreaUpdate:output_type -> v3.TopoNetworkAreaUpdateResp
-	13,  // 175: v3.Topo.NetworkAreaDelete:output_type -> v3.TopoNetworkAreaDeleteResp
-	16,  // 176: v3.Topo.NetworkUnitList:output_type -> v3.TopoNetworkUnitListResp
-	20,  // 177: v3.Topo.NetworkUnitCreate:output_type -> v3.TopoNetworkUnitCreateResp
-	18,  // 178: v3.Topo.NetworkUnitGet:output_type -> v3.TopoNetworkUnitGetResp
-	27,  // 179: v3.Topo.NetworkUnitUpdate:output_type -> v3.TopoNetworkUnitUpdateResp
-	29,  // 180: v3.Topo.NetworkUnitDelete:output_type -> v3.TopoNetworkUnitDeleteResp
-	31,  // 181: v3.Topo.NetworkUnitListBrief:output_type -> v3.TopoNetworkUnitListBriefResp
-	24,  // 182: v3.Topo.AccessPointList:output_type -> v3.TopoAccessPointListResp
-	26,  // 183: v3.Topo.AccessPointListBrief:output_type -> v3.TopoAccessPointListBriefResp
-	35,  // 184: v3.Topo.HostList:output_type -> v3.TopoHostListResp
-	37,  // 185: v3.Topo.HostSelectHostID:output_type -> v3.TopoHostSelectHostIDResp
-	39,  // 186: v3.Topo.HostSelectInnerIP:output_type -> v3.TopoHostSelectInnerIPResp
-	41,  // 187: v3.Topo.HostSelectInnerIPV6:output_type -> v3.TopoHostSelectInnerIPV6Resp
-	43,  // 188: v3.Topo.HostSelectNetWorkareaIDAndInnerIP:output_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPResp
-	45,  // 189: v3.Topo.HostSelectNetWorkareaIDAndInnerIPV6:output_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp
-	47,  // 190: v3.Topo.HostDistinct:output_type -> v3.TopoHostDistinctResp
-	49,  // 191: v3.Topo.GraphGet:output_type -> v3.TopoGraphGetResp
-	51,  // 192: v3.Topo.GraphNodeCount:output_type -> v3.TopoGraphNodeCountResp
-	57,  // 193: v3.Topo.EventList:output_type -> v3.TopoEventListResp
-	59,  // 194: v3.Topo.EventDistinct:output_type -> v3.TopoEventDistinctResp
-	61,  // 195: v3.Topo.ConstantGet:output_type -> v3.TopoConstantGetResp
-	53,  // 196: v3.Topo.TopoGraphNodeGetReq:output_type -> v3.TopoGraphNodeGetResp
-	169, // [169:197] is the sub-list for method output_type
-	141, // [141:169] is the sub-list for method input_type
-	141, // [141:141] is the sub-list for extension type_name
-	141, // [141:141] is the sub-list for extension extendee
-	0,   // [0:141] is the sub-list for field type_name
+	104, // 40: v3.TopoAccessPointListReq.page:type_name -> v3.Page
+	78,  // 41: v3.TopoAccessPointListReq.exact_include_conditions:type_name -> v3.TopoAccessPointListReq.ExactConditions
+	105, // 42: v3.TopoAccessPointListResp.error:type_name -> v3.Error
+	106, // 43: v3.TopoAccessPointListResp.permission:type_name -> v3.Permission
+	79,  // 44: v3.TopoAccessPointListResp.data:type_name -> v3.TopoAccessPointListResp.Data
+	104, // 45: v3.TopoAccessPointListBriefReq.page:type_name -> v3.Page
+	80,  // 46: v3.TopoAccessPointListBriefReq.exact_include_conditions:type_name -> v3.TopoAccessPointListBriefReq.ExactConditions
+	105, // 47: v3.TopoAccessPointListBriefResp.error:type_name -> v3.Error
+	106, // 48: v3.TopoAccessPointListBriefResp.permission:type_name -> v3.Permission
+	81,  // 49: v3.TopoAccessPointListBriefResp.data:type_name -> v3.TopoAccessPointListBriefResp.Data
+	105, // 50: v3.TopoNetworkUnitUpdateResp.error:type_name -> v3.Error
+	106, // 51: v3.TopoNetworkUnitUpdateResp.permission:type_name -> v3.Permission
+	82,  // 52: v3.TopoNetworkUnitUpdateResp.data:type_name -> v3.TopoNetworkUnitUpdateResp.Data
+	105, // 53: v3.TopoNetworkUnitDeleteResp.error:type_name -> v3.Error
+	106, // 54: v3.TopoNetworkUnitDeleteResp.permission:type_name -> v3.Permission
+	83,  // 55: v3.TopoNetworkUnitDeleteResp.data:type_name -> v3.TopoNetworkUnitDeleteResp.Data
+	104, // 56: v3.TopoNetworkUnitListBriefReq.page:type_name -> v3.Page
+	84,  // 57: v3.TopoNetworkUnitListBriefReq.exact_include_conditions:type_name -> v3.TopoNetworkUnitListBriefReq.ExactConditions
+	105, // 58: v3.TopoNetworkUnitListBriefResp.error:type_name -> v3.Error
+	106, // 59: v3.TopoNetworkUnitListBriefResp.permission:type_name -> v3.Permission
+	85,  // 60: v3.TopoNetworkUnitListBriefResp.data:type_name -> v3.TopoNetworkUnitListBriefResp.Data
+	86,  // 61: v3.TopoRecommendNetworkUnitByNetworkSegmentReq.items:type_name -> v3.TopoRecommendNetworkUnitByNetworkSegmentReq.Item
+	105, // 62: v3.TopoRecommendNetworkUnitByNetworkSegmentResp.error:type_name -> v3.Error
+	106, // 63: v3.TopoRecommendNetworkUnitByNetworkSegmentResp.permission:type_name -> v3.Permission
+	87,  // 64: v3.TopoRecommendNetworkUnitByNetworkSegmentResp.data:type_name -> v3.TopoRecommendNetworkUnitByNetworkSegmentResp.Data
+	104, // 65: v3.TopoHostListReq.page:type_name -> v3.Page
+	34,  // 66: v3.TopoHostListReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 67: v3.TopoHostListReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	105, // 68: v3.TopoHostListResp.error:type_name -> v3.Error
+	106, // 69: v3.TopoHostListResp.permission:type_name -> v3.Permission
+	89,  // 70: v3.TopoHostListResp.data:type_name -> v3.TopoHostListResp.Data
+	34,  // 71: v3.TopoHostSelectHostIDReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 72: v3.TopoHostSelectHostIDReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	34,  // 73: v3.TopoHostSelectHostIDReq.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
+	105, // 74: v3.TopoHostSelectHostIDResp.error:type_name -> v3.Error
+	106, // 75: v3.TopoHostSelectHostIDResp.permission:type_name -> v3.Permission
+	90,  // 76: v3.TopoHostSelectHostIDResp.data:type_name -> v3.TopoHostSelectHostIDResp.Data
+	34,  // 77: v3.TopoHostSelectInnerIPReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 78: v3.TopoHostSelectInnerIPReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	34,  // 79: v3.TopoHostSelectInnerIPReq.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
+	105, // 80: v3.TopoHostSelectInnerIPResp.error:type_name -> v3.Error
+	106, // 81: v3.TopoHostSelectInnerIPResp.permission:type_name -> v3.Permission
+	91,  // 82: v3.TopoHostSelectInnerIPResp.data:type_name -> v3.TopoHostSelectInnerIPResp.Data
+	34,  // 83: v3.TopoHostSelectInnerIPV6Req.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 84: v3.TopoHostSelectInnerIPV6Req.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	34,  // 85: v3.TopoHostSelectInnerIPV6Req.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
+	105, // 86: v3.TopoHostSelectInnerIPV6Resp.error:type_name -> v3.Error
+	106, // 87: v3.TopoHostSelectInnerIPV6Resp.permission:type_name -> v3.Permission
+	92,  // 88: v3.TopoHostSelectInnerIPV6Resp.data:type_name -> v3.TopoHostSelectInnerIPV6Resp.Data
+	34,  // 89: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 90: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	34,  // 91: v3.TopoHostSelectNetWorkareaIDAndInnerIPReq.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
+	105, // 92: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.error:type_name -> v3.Error
+	106, // 93: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.permission:type_name -> v3.Permission
+	93,  // 94: v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.data:type_name -> v3.TopoHostSelectNetWorkareaIDAndInnerIPResp.Data
+	34,  // 95: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 96: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	34,  // 97: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req.exact_exclude_conditions:type_name -> v3.TopoHostExactConditions
+	105, // 98: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.error:type_name -> v3.Error
+	106, // 99: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.permission:type_name -> v3.Permission
+	94,  // 100: v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.data:type_name -> v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp.Data
+	34,  // 101: v3.TopoHostDistinctReq.exact_include_conditions:type_name -> v3.TopoHostExactConditions
+	35,  // 102: v3.TopoHostDistinctReq.fuzzy_include_conditions:type_name -> v3.TopoHostFuzzyConditions
+	105, // 103: v3.TopoHostDistinctResp.error:type_name -> v3.Error
+	106, // 104: v3.TopoHostDistinctResp.permission:type_name -> v3.Permission
+	95,  // 105: v3.TopoHostDistinctResp.data:type_name -> v3.TopoHostDistinctResp.Data
+	105, // 106: v3.TopoGraphGetResp.error:type_name -> v3.Error
+	106, // 107: v3.TopoGraphGetResp.permission:type_name -> v3.Permission
+	96,  // 108: v3.TopoGraphGetResp.data:type_name -> v3.TopoGraphGetResp.Data
+	105, // 109: v3.TopoGraphNodeCountResp.error:type_name -> v3.Error
+	106, // 110: v3.TopoGraphNodeCountResp.permission:type_name -> v3.Permission
+	98,  // 111: v3.TopoGraphNodeCountResp.data:type_name -> v3.TopoGraphNodeCountResp.Data
+	105, // 112: v3.TopoGraphNodeGetResp.error:type_name -> v3.Error
+	106, // 113: v3.TopoGraphNodeGetResp.permission:type_name -> v3.Permission
+	100, // 114: v3.TopoGraphNodeGetResp.data:type_name -> v3.TopoGraphNodeGetResp.Data
+	104, // 115: v3.TopoEventListReq.page:type_name -> v3.Page
+	56,  // 116: v3.TopoEventListReq.exact_include_conditions:type_name -> v3.TopoEventExactConditions
+	57,  // 117: v3.TopoEventListReq.fuzzy_include_conditions:type_name -> v3.TopoEventFuzzyConditions
+	112, // 118: v3.TopoEventListReq.operate_time_range:type_name -> v3.TimeRange
+	105, // 119: v3.TopoEventListResp.error:type_name -> v3.Error
+	106, // 120: v3.TopoEventListResp.permission:type_name -> v3.Permission
+	101, // 121: v3.TopoEventListResp.data:type_name -> v3.TopoEventListResp.Data
+	56,  // 122: v3.TopoEventDistinctReq.exact_include_conditions:type_name -> v3.TopoEventExactConditions
+	57,  // 123: v3.TopoEventDistinctReq.fuzzy_include_conditions:type_name -> v3.TopoEventFuzzyConditions
+	112, // 124: v3.TopoEventDistinctReq.operate_time_range:type_name -> v3.TimeRange
+	105, // 125: v3.TopoEventDistinctResp.error:type_name -> v3.Error
+	106, // 126: v3.TopoEventDistinctResp.permission:type_name -> v3.Permission
+	102, // 127: v3.TopoEventDistinctResp.data:type_name -> v3.TopoEventDistinctResp.Data
+	105, // 128: v3.TopoConstantGetResp.error:type_name -> v3.Error
+	106, // 129: v3.TopoConstantGetResp.permission:type_name -> v3.Permission
+	103, // 130: v3.TopoConstantGetResp.data:type_name -> v3.TopoConstantGetResp.Data
+	113, // 131: v3.TopoBusinessListResp.Data.items:type_name -> v3.Business
+	107, // 132: v3.TopoNetworkAreaListResp.Data.items:type_name -> v3.NetworkArea
+	70,  // 133: v3.TopoNetworkAreaStatisticsResp.Data.items:type_name -> v3.TopoNetworkAreaStatisticsResp.StatisticsInfo
+	114, // 134: v3.TopoNetworkUnitListResp.Data.items:type_name -> v3.NetworkUnit
+	115, // 135: v3.TopoNetworkUnitCreateReq.CustomDeployConfigEntry.value:type_name -> v3.CustomDeployConfig
+	109, // 136: v3.TopoAccessPointListResp.Data.items:type_name -> v3.AccessPoint
+	116, // 137: v3.TopoAccessPointListBriefResp.Data.items:type_name -> v3.AccessPointBrief
+	117, // 138: v3.TopoNetworkUnitListBriefResp.Data.items:type_name -> v3.NetworkUnitBrief
+	88,  // 139: v3.TopoRecommendNetworkUnitByNetworkSegmentResp.Data.items:type_name -> v3.TopoRecommendNetworkUnitByNetworkSegmentResp.Data.Item
+	118, // 140: v3.TopoHostListResp.Data.items:type_name -> v3.Host
+	119, // 141: v3.TopoGraphGetResp.Data.networkunit:type_name -> v3.NetworkUnitGraph
+	120, // 142: v3.TopoGraphGetResp.Data.links:type_name -> v3.LinkGraph
+	97,  // 143: v3.TopoGraphNodeCountResp.Data.networkunits:type_name -> v3.TopoGraphNodeCountResp.NodeInfo
+	99,  // 144: v3.TopoGraphNodeGetResp.Data.graph_node_info:type_name -> v3.TopoGraphNodeGetResp.GraphNodeInfo
+	121, // 145: v3.TopoEventListResp.Data.items:type_name -> v3.TopoEvent
+	0,   // 146: v3.Topo.BusinessList:input_type -> v3.TopoBusinessListReq
+	2,   // 147: v3.Topo.NetworkAreaList:input_type -> v3.TopoNetworkAreaListReq
+	4,   // 148: v3.Topo.NetworkAreaStatistics:input_type -> v3.TopoNetworkAreaStatisticsReq
+	8,   // 149: v3.Topo.NetworkAreaCreate:input_type -> v3.TopoNetworkAreaCreateReq
+	6,   // 150: v3.Topo.NetworkAreaGet:input_type -> v3.TopoNetworkAreaGetReq
+	10,  // 151: v3.Topo.NetworkAreaUpdate:input_type -> v3.TopoNetworkAreaUpdateReq
+	12,  // 152: v3.Topo.NetworkAreaDelete:input_type -> v3.TopoNetworkAreaDeleteReq
+	15,  // 153: v3.Topo.NetworkUnitList:input_type -> v3.TopoNetworkUnitListReq
+	19,  // 154: v3.Topo.NetworkUnitCreate:input_type -> v3.TopoNetworkUnitCreateReq
+	17,  // 155: v3.Topo.NetworkUnitGet:input_type -> v3.TopoNetworkUnitGetReq
+	22,  // 156: v3.Topo.NetworkUnitUpdate:input_type -> v3.TopoNetworkUnitUpdateReq
+	28,  // 157: v3.Topo.NetworkUnitDelete:input_type -> v3.TopoNetworkUnitDeleteReq
+	30,  // 158: v3.Topo.NetworkUnitListBrief:input_type -> v3.TopoNetworkUnitListBriefReq
+	23,  // 159: v3.Topo.AccessPointList:input_type -> v3.TopoAccessPointListReq
+	25,  // 160: v3.Topo.AccessPointListBrief:input_type -> v3.TopoAccessPointListBriefReq
+	32,  // 161: v3.Topo.RecommendNetworkUnitByNetworkSegment:input_type -> v3.TopoRecommendNetworkUnitByNetworkSegmentReq
+	36,  // 162: v3.Topo.HostList:input_type -> v3.TopoHostListReq
+	38,  // 163: v3.Topo.HostSelectHostID:input_type -> v3.TopoHostSelectHostIDReq
+	40,  // 164: v3.Topo.HostSelectInnerIP:input_type -> v3.TopoHostSelectInnerIPReq
+	42,  // 165: v3.Topo.HostSelectInnerIPV6:input_type -> v3.TopoHostSelectInnerIPV6Req
+	44,  // 166: v3.Topo.HostSelectNetWorkareaIDAndInnerIP:input_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPReq
+	46,  // 167: v3.Topo.HostSelectNetWorkareaIDAndInnerIPV6:input_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Req
+	48,  // 168: v3.Topo.HostDistinct:input_type -> v3.TopoHostDistinctReq
+	50,  // 169: v3.Topo.GraphGet:input_type -> v3.TopoGraphGetReq
+	52,  // 170: v3.Topo.GraphNodeCount:input_type -> v3.TopoGraphNodeCountReq
+	58,  // 171: v3.Topo.EventList:input_type -> v3.TopoEventListReq
+	60,  // 172: v3.Topo.EventDistinct:input_type -> v3.TopoEventDistinctReq
+	62,  // 173: v3.Topo.ConstantGet:input_type -> v3.TopoConstantGetReq
+	55,  // 174: v3.Topo.TopoGraphNodeGetReq:input_type -> v3.TopoGraphNodeGetResp
+	1,   // 175: v3.Topo.BusinessList:output_type -> v3.TopoBusinessListResp
+	3,   // 176: v3.Topo.NetworkAreaList:output_type -> v3.TopoNetworkAreaListResp
+	5,   // 177: v3.Topo.NetworkAreaStatistics:output_type -> v3.TopoNetworkAreaStatisticsResp
+	9,   // 178: v3.Topo.NetworkAreaCreate:output_type -> v3.TopoNetworkAreaCreateResp
+	7,   // 179: v3.Topo.NetworkAreaGet:output_type -> v3.TopoNetworkAreaGetResp
+	11,  // 180: v3.Topo.NetworkAreaUpdate:output_type -> v3.TopoNetworkAreaUpdateResp
+	13,  // 181: v3.Topo.NetworkAreaDelete:output_type -> v3.TopoNetworkAreaDeleteResp
+	16,  // 182: v3.Topo.NetworkUnitList:output_type -> v3.TopoNetworkUnitListResp
+	20,  // 183: v3.Topo.NetworkUnitCreate:output_type -> v3.TopoNetworkUnitCreateResp
+	18,  // 184: v3.Topo.NetworkUnitGet:output_type -> v3.TopoNetworkUnitGetResp
+	27,  // 185: v3.Topo.NetworkUnitUpdate:output_type -> v3.TopoNetworkUnitUpdateResp
+	29,  // 186: v3.Topo.NetworkUnitDelete:output_type -> v3.TopoNetworkUnitDeleteResp
+	31,  // 187: v3.Topo.NetworkUnitListBrief:output_type -> v3.TopoNetworkUnitListBriefResp
+	24,  // 188: v3.Topo.AccessPointList:output_type -> v3.TopoAccessPointListResp
+	26,  // 189: v3.Topo.AccessPointListBrief:output_type -> v3.TopoAccessPointListBriefResp
+	33,  // 190: v3.Topo.RecommendNetworkUnitByNetworkSegment:output_type -> v3.TopoRecommendNetworkUnitByNetworkSegmentResp
+	37,  // 191: v3.Topo.HostList:output_type -> v3.TopoHostListResp
+	39,  // 192: v3.Topo.HostSelectHostID:output_type -> v3.TopoHostSelectHostIDResp
+	41,  // 193: v3.Topo.HostSelectInnerIP:output_type -> v3.TopoHostSelectInnerIPResp
+	43,  // 194: v3.Topo.HostSelectInnerIPV6:output_type -> v3.TopoHostSelectInnerIPV6Resp
+	45,  // 195: v3.Topo.HostSelectNetWorkareaIDAndInnerIP:output_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPResp
+	47,  // 196: v3.Topo.HostSelectNetWorkareaIDAndInnerIPV6:output_type -> v3.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp
+	49,  // 197: v3.Topo.HostDistinct:output_type -> v3.TopoHostDistinctResp
+	51,  // 198: v3.Topo.GraphGet:output_type -> v3.TopoGraphGetResp
+	53,  // 199: v3.Topo.GraphNodeCount:output_type -> v3.TopoGraphNodeCountResp
+	59,  // 200: v3.Topo.EventList:output_type -> v3.TopoEventListResp
+	61,  // 201: v3.Topo.EventDistinct:output_type -> v3.TopoEventDistinctResp
+	63,  // 202: v3.Topo.ConstantGet:output_type -> v3.TopoConstantGetResp
+	55,  // 203: v3.Topo.TopoGraphNodeGetReq:output_type -> v3.TopoGraphNodeGetResp
+	175, // [175:204] is the sub-list for method output_type
+	146, // [146:175] is the sub-list for method input_type
+	146, // [146:146] is the sub-list for extension type_name
+	146, // [146:146] is the sub-list for extension extendee
+	0,   // [0:146] is the sub-list for field type_name
 }
 
 func init() { file_topo_proto_init() }
@@ -8087,21 +8450,21 @@ func file_topo_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_topo_proto_msgTypes[68].OneofWrappers = []any{}
 	file_topo_proto_msgTypes[70].OneofWrappers = []any{}
-	file_topo_proto_msgTypes[71].OneofWrappers = []any{}
 	file_topo_proto_msgTypes[72].OneofWrappers = []any{}
-	file_topo_proto_msgTypes[75].OneofWrappers = []any{}
-	file_topo_proto_msgTypes[80].OneofWrappers = []any{}
-	file_topo_proto_msgTypes[81].OneofWrappers = []any{}
-	file_topo_proto_msgTypes[92].OneofWrappers = []any{}
+	file_topo_proto_msgTypes[73].OneofWrappers = []any{}
+	file_topo_proto_msgTypes[74].OneofWrappers = []any{}
+	file_topo_proto_msgTypes[77].OneofWrappers = []any{}
+	file_topo_proto_msgTypes[82].OneofWrappers = []any{}
+	file_topo_proto_msgTypes[83].OneofWrappers = []any{}
+	file_topo_proto_msgTypes[97].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_topo_proto_rawDesc), len(file_topo_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   99,
+			NumMessages:   104,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -940,6 +940,7 @@ components:
     networkUnit: 管控单元
     batchEditNetworkUnit: 批量编辑管控单元
     batchEditNetworkUnitDisabledTip: 当前批次存在属于不同管控区域的主机，无法批量修改
+    autoAssign: 自动分配
     hostIp: 主机IP
     innerIPv4: 内网IPv4
     innerIPv6: 内网IPv6

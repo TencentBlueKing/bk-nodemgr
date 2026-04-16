@@ -169,6 +169,25 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 	return resp.GetData(), nil
 }
 
+func (h *handler) RecommendNetworkUnitByNetworkSegment(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoRecommendNetworkUnitByNetworkSegmentReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to recommend networkunit by network segment, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	results, err := h.backendHandler.RecommendNetworkUnitByNetworkSegment(rCtx, req.ConvertItemsToTypes()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to recommend networkunit by network segment")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoRecommendNetworkUnitByNetworkSegmentResp)
+	resp.ConvertResultsFromTypes(results)
+
+	return resp.GetData(), nil
+}
+
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkUnitDeleteReq)

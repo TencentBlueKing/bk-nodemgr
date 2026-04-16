@@ -53,12 +53,12 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 		}
 
 		if len(r) == 0 {
-			return "", fmt.Errorf("failed to list default agent releases for platform. no default agent release found. platform(%v)", plat)
+			return "", fmt.Errorf("failed to list default agent releases for platform. no default agent release found. condition(%+v)", cond)
 		}
 
 		if len(r) > 1 {
 			return "", fmt.Errorf(
-				"failed to list default agent releases for platform. multiple default agent releases found. platform(%v)", plat)
+				"failed to list default agent releases for platform. multiple default agent releases found. condition(%+v)", cond)
 		}
 
 		return r[0].Version, nil
@@ -70,12 +70,12 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 		}
 
 		if len(r) == 0 {
-			return "", fmt.Errorf("failed to list default proxy releases for platform. no default proxy release found. platform(%v)", plat)
+			return "", fmt.Errorf("failed to list default proxy releases for platform. no default proxy release found. condition(%+v)", cond)
 		}
 
 		if len(r) > 1 {
 			return "", fmt.Errorf(
-				"failed to list default proxy releases for platform. multiple default proxy releases found. platform(%v)", plat)
+				"failed to list default proxy releases for platform. multiple default proxy releases found. condition(%+v)", cond)
 		}
 
 		return r[0].Version, nil
@@ -108,12 +108,12 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 		}
 
 		if len(r) == 0 {
-			return fmt.Errorf("failed to list default agent releases for platform. no default agent release found. platform(%v)", plat)
+			return fmt.Errorf("failed to list default agent releases for version. no agent release found. condition(%+v)", cond)
 		}
 
 		if len(r) > 1 {
 			return fmt.Errorf(
-				"failed to list default agent releases for platform. multiple default agent releases found. platform(%v)", plat)
+				"failed to list default agent releases for version. multiple default agent releases found. condition(%+v)", cond)
 		}
 
 		return nil
@@ -125,12 +125,12 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 		}
 
 		if len(r) == 0 {
-			return fmt.Errorf("failed to list default proxy releases for platform. no default proxy release found. platform(%v)", plat)
+			return fmt.Errorf("failed to list default proxy releases for version. no proxy release found. condition(%+v)", cond)
 		}
 
 		if len(r) > 1 {
 			return fmt.Errorf(
-				"failed to list default proxy releases for platform. multiple default proxy releases found. platform(%v)", plat)
+				"failed to list default proxy releases for version. multiple default proxy releases found. condition(%+v)", cond)
 		}
 
 		return nil

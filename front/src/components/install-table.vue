@@ -157,6 +157,17 @@
               :disabled-tip="$t('components.installTable.batchEditNetworkUnitDisabledTip')"
               @confirm="(value) => handleBatchEdit('bk_networkunit_id', value)"
             />
+            <i
+              v-if="releaseType !== 'proxy' && (isReinstall || isUpgrade) && !networkUnitLoading && !autoAssignLoading"
+              class="nodeman-icon nc-manual text-[18px] cursor-pointer ml-[5px]"
+              v-bk-tooltips="$t('components.installTable.autoAssign')"
+              @click="handleAutoAssign"
+            ></i>
+            <i
+              v-else-if="releaseType !== 'proxy' && (isReinstall || isUpgrade)"
+              class="nodeman-icon nc-manual text-[18px] cursor-not-allowed text-[#C4C6CC] ml-[5px]"
+              v-bk-tooltips="$t('components.installTable.autoAssign')"
+            ></i>
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
@@ -1115,6 +1126,40 @@ const handleBatchEdit = (field: string, value: any) => {
   });
 };
 
+const handleAutoAssign = async () => {
+  if (!tableData.value?.length) return;
+  
+  autoAssignLoading.value = true;
+  try {
+    const items = tableData.value.map((row: any) => ({
+      bk_networkarea_id: Number(row.bk_networkarea_id),
+      ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
+    }));
+    
+    const res = await TopoService.NetworkUnitRecommendByNetworkSegment({ items });
+    
+    if (res?.items) {
+      res.items.forEach((result: any, index: number) => {
+        if (index >= tableData.value!.length) return;
+        
+        const row = tableData.value![index];
+        if (result.bk_networkunit_id === -1) {
+          // 清空该行的选择
+          row.bk_networkunit_id = undefined;
+        } else {
+          // 回填推荐结果
+          row.bk_networkunit_id = String(result.bk_networkunit_id);
+        }
+        clearError(index, 'bk_networkunit_id');
+      });
+    }
+  } catch (error) {
+    console.error('Auto assign failed:', error);
+  } finally {
+    autoAssignLoading.value = false;
+  }
+};
+
 const url = location.href;
 const handleBeforeUpload = (file: File, row: any) => {
   const reader = new FileReader();
@@ -1365,6 +1410,7 @@ const networkUnitList = ref<any[]>([]);
 // 分组映射：{bk_networkarea_id: [网络单元对象数组]}
 const networkUnitGroupMap = ref<Record<number, any[]>>({});
 const networkUnitLoading = ref(false);
+const autoAssignLoading = ref(false);
 
 const getNetworkUnitList = async () => {
   networkUnitLoading.value = true;

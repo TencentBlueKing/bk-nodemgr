@@ -21,6 +21,8 @@ import (
 const (
 	// CleanTriggerIntervalSecond defines the interval of cleaning trigger records.
 	CleanTriggerIntervalSecond = "clean_trigger_interval_second"
+	// NetworkUnitSegmentRules defines the setting name for network unit segment rules.
+	NetworkUnitSegmentRules = "networkunit_segment_rules"
 )
 
 // PreDefinition returns the definition of global settings.

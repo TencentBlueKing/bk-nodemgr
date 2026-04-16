@@ -349,6 +349,42 @@ func (x *TopoNetworkUnitListResp) ConvertNetworkUnitsToTypes() (int64, []*types.
 	return data.GetTotal(), result
 }
 
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) Validate() error {
+	return nil
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) AutoConvert() {
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) ConvertItemsToTypes() []*types.NetworkUnitSegmentRecommendationItem {
+	items := x.GetItems()
+	result := make([]*types.NetworkUnitSegmentRecommendationItem, len(items))
+	for idx, item := range items {
+		result[idx] = &types.NetworkUnitSegmentRecommendationItem{
+			NetworkAreaID: item.GetBkNetworkareaId(),
+			IP:            item.GetIp(),
+		}
+	}
+
+	return result
+}
+
+func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) ConvertResultsFromTypes(
+	results []*types.NetworkUnitSegmentRecommendationResult,
+) {
+	items := make([]*TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item, len(results))
+	for idx, result := range results {
+		items[idx] = &TopoRecommendNetworkUnitByNetworkSegmentResp_Data_Item{
+			BkNetworkareaId: result.NetworkAreaID,
+			Ip:              result.IP,
+			BkNetworkunitId: result.NetworkUnitID,
+			Message:         result.Message,
+		}
+	}
+
+	x.Data = &TopoRecommendNetworkUnitByNetworkSegmentResp_Data{Items: items}
+}
+
 // Validate check body.
 func (x *TopoNetworkUnitDeleteReq) Validate() error {
 	if x.GetBkNetworkunitId() < 0 {

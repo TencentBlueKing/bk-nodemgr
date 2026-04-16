@@ -745,6 +745,39 @@ func (c *cli) deleteNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 	return resp, nil
 }
 
+func (c *cli) recommendNetworkUnitByNetworkSegment(
+	ctx contextx.IContext,
+	req *protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq,
+) (*protoBackend.TopoRecommendNetworkUnitByNetworkSegmentResp, error) {
+	resp := new(protoBackend.TopoRecommendNetworkUnitByNetworkSegmentResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/networkunit/recommend_by_network_segment").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("recommend networkunit by network segment", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf(
+			"recommend networkunit by network segment failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId(),
+		)
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEventListReq,
 ) (*protoBackend.TopoEventListResp, error) {
 

@@ -370,6 +370,38 @@ message TopoNetworkUnitListBriefResp {
   Data data = 5;
 }
 
+// TopoRecommendNetworkUnitByNetworkSegmentReq describes the HTTP request body
+// when recommend network unit by network segment in topo service.
+message TopoRecommendNetworkUnitByNetworkSegmentReq {
+  message Item {
+    int64 bk_networkarea_id = 1;
+    string ip = 2;
+  }
+
+  repeated Item items = 1;
+}
+
+message TopoRecommendNetworkUnitByNetworkSegmentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    message Item {
+      int64 bk_networkarea_id = 1;
+      string ip = 2;
+      int64 bk_networkunit_id = 3;
+      string message = 4;
+    }
+
+    repeated Item items = 1;
+  }
+
+  Data data = 5;
+}
+
 // TopoHostExactConditions describes host exact conditions.
 message TopoHostExactConditions {
   repeated int64 bk_host_id = 1;
@@ -845,6 +877,17 @@ service Topo {
       returns (TopoAccessPointListBriefResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/accesspoint/list/brief"
+      body : "*"
+    };
+  }
+
+  // RecommendNetworkUnitByNetworkSegment provides network-unit recommendation
+  // by network-segment.
+  rpc RecommendNetworkUnitByNetworkSegment(
+      TopoRecommendNetworkUnitByNetworkSegmentReq)
+      returns (TopoRecommendNetworkUnitByNetworkSegmentResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/recommend_by_network_segment"
       body : "*"
     };
   }

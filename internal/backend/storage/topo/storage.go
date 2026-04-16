@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
+	gsdao "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
@@ -61,6 +62,7 @@ const (
 	metricOperationListHostOrderByUpdateTime                 = "list_host_order_by_updatetime"
 	metricOperationCountHost                                 = "count_host"
 	metricOperationDistinctHost                              = "distinct_host"
+	metricOperationRecommendNetworkUnitByNetworkSegment      = "recommend_networkunit_by_network_segment"
 	metricOperationDeleteManyHost                            = "delete_many_host"
 	metricOperationFindHostWithDynamic                       = "find_host_with_dynamic"
 	metricOperationUpdateHostDynamicFields                   = "update_host_dynamic_fields"
@@ -107,6 +109,8 @@ type Storage struct {
 
 	daoBusiness business.IHandler
 
+	daoGlobalSettings gsdao.IHandler
+
 	daoHost host.IHandler
 
 	daoNetworkArea networkarea.IHandler
@@ -120,6 +124,7 @@ type Storage struct {
 
 func (s *Storage) initDao() error {
 	s.daoBusiness = business.New(s.Database)
+	s.daoGlobalSettings = gsdao.New(s.Database)
 	s.daoHost = host.New(s.Database)
 	s.daoNetworkArea = networkarea.New(s.Database)
 	s.daoNetworkUnit = networkunit.New(s.Database)
@@ -132,6 +137,9 @@ func (s *Storage) initDao() error {
 func (s *Storage) check() error {
 	if s.daoBusiness == nil {
 		return errors.New("dao business is nil")
+	}
+	if s.daoGlobalSettings == nil {
+		return errors.New("dao global settings is nil")
 	}
 
 	if s.daoHost == nil {

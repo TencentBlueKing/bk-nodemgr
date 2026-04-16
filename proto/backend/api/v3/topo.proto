@@ -244,6 +244,36 @@ message TopoGetNetworkUnitDistributionByNetworkAreaIDResp {
   map<int64, int64> data = 5;
 }
 
+message TopoRecommendNetworkUnitByNetworkSegmentReq {
+  message Item {
+    int64 bk_networkarea_id = 1;
+    string ip = 2;
+  }
+
+  repeated Item items = 1;
+}
+
+message TopoRecommendNetworkUnitByNetworkSegmentResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    message Item {
+      int64 bk_networkarea_id = 1;
+      string ip = 2;
+      int64 bk_networkunit_id = 3;
+      string message = 4;
+    }
+
+    repeated Item items = 1;
+  }
+
+  Data data = 5;
+}
+
 // TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
 // in topo service.
 message TopoNetworkUnitGetReq { int64 bk_networkunit_id = 1; }
@@ -877,6 +907,17 @@ service Topo {
     option (google.api.http) = {
       post : "/api/v3/topo/networkunit/"
              "get_networkunit_distribution_by_networkarea_id"
+      body : "*"
+    };
+  }
+
+  // RecommendNetworkUnitByNetworkSegment provides recommend networkunit by
+  // network segment.
+  rpc RecommendNetworkUnitByNetworkSegment(
+      TopoRecommendNetworkUnitByNetworkSegmentReq)
+      returns (TopoRecommendNetworkUnitByNetworkSegmentResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/recommend_by_network_segment"
       body : "*"
     };
   }

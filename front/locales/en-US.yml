@@ -940,6 +940,7 @@ components:
     networkUnit: Network Unit
     batchEditNetworkUnit: Batch Edit Network Unit
     batchEditNetworkUnitDisabledTip: Hosts in this batch belong to different network areas, batch editing is not available
+    autoAssign: Auto Assign
     hostIp: Host IP
     innerIPv4: Private IPv4
     innerIPv6: Private IPv6

@@ -932,6 +932,40 @@
         ]
       }
     },
+    "/api/v3/topo/networkunit/recommend_by_network_segment": {
+      "post": {
+        "summary": "RecommendNetworkUnitByNetworkSegment provides network-unit recommendation\nby network-segment.",
+        "operationId": "Topo_RecommendNetworkUnitByNetworkSegment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoRecommendNetworkUnitByNetworkSegmentResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoRecommendNetworkUnitByNetworkSegmentReq describes the HTTP request body\nwhen recommend network unit by network segment in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoRecommendNetworkUnitByNetworkSegmentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/networkunit/update": {
       "post": {
         "summary": "NetworkUnitUpdate provides updating an existing network-unit by id.",
@@ -1055,6 +1089,25 @@
         "last_operate_time": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "TopoRecommendNetworkUnitByNetworkSegmentRespDataItem": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -3626,6 +3679,67 @@
         "bk_networkunit_id": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "v3TopoRecommendNetworkUnitByNetworkSegmentReq": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoRecommendNetworkUnitByNetworkSegmentReqItem"
+          }
+        }
+      },
+      "description": "TopoRecommendNetworkUnitByNetworkSegmentReq describes the HTTP request body\nwhen recommend network unit by network segment in topo service."
+    },
+    "v3TopoRecommendNetworkUnitByNetworkSegmentReqItem": {
+      "type": "object",
+      "properties": {
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ip": {
+          "type": "string"
+        }
+      }
+    },
+    "v3TopoRecommendNetworkUnitByNetworkSegmentResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoRecommendNetworkUnitByNetworkSegmentRespData"
+        }
+      }
+    },
+    "v3TopoRecommendNetworkUnitByNetworkSegmentRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/TopoRecommendNetworkUnitByNetworkSegmentRespDataItem"
+          }
         }
       }
     }

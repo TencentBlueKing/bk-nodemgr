@@ -87,6 +87,9 @@ type IStorageNetworkUnit interface {
 	// GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
 	GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.NetworkUnitCondition) (
 		map[int64]int64, error)
+
+	RecommendNetworkUnitByNetworkSegment(nCtx contextx.IContext, items ...*types.NetworkUnitSegmentRecommendationItem) (
+		[]*types.NetworkUnitSegmentRecommendationResult, error)
 }
 
 // IStorageBusiness this interface defines the operations which is only for business.

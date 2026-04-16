@@ -11,6 +11,8 @@
 // Package types ...
 package types
 
+const GlobalSettingNameNetworkUnitSegmentRules = "networkunit_segment_rules"
+
 // GlobalSettings represents the global settings structure.
 type GlobalSettings struct {
 	SettingName string

@@ -88,6 +88,17 @@
               :disabled-tip="$t('components.installTable.batchEditNetworkUnitDisabledTip')"
               @confirm="(value: string) => handleBatchEdit(value)"
             />
+            <i
+              v-if="!networkUnitLoading && !autoAssignLoading"
+              class="nodeman-icon nc-manual text-[18px] cursor-pointer ml-[5px]"
+              v-bk-tooltips="$t('components.installTable.autoAssign')"
+              @click="handleAutoAssign"
+            ></i>
+            <i
+              v-else
+              class="nodeman-icon nc-manual text-[18px] cursor-not-allowed text-[#C4C6CC] ml-[5px]"
+              v-bk-tooltips="$t('components.installTable.autoAssign')"
+            ></i>
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
@@ -242,6 +253,49 @@ const handleBatchEdit = (value: string) => {
     }
     clearError(index, 'bk_networkunit_id');
   });
+};
+
+const autoAssignLoading = ref(false);
+
+const handleAutoAssign = async () => {
+  if (!tableData.value?.length) return;
+  
+  autoAssignLoading.value = true;
+  try {
+    const items = tableData.value.map((row: any) => ({
+      bk_networkarea_id: Number(row.bk_networkarea_id),
+      ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
+    }));
+    
+    const res = await TopoService.NetworkUnitRecommendByNetworkSegment({ items });
+    
+    if (res?.items) {
+      res.items.forEach((result: any, index: number) => {
+        if (index >= tableData.value!.length) return;
+        
+        const row = tableData.value![index];
+        if (result.bk_networkunit_id === -1) {
+          // 清空该行的选择
+          row.bk_networkunit_id = undefined;
+          row.bk_networkunit_name = undefined;
+        } else {
+          // 回填推荐结果
+          row.bk_networkunit_id = String(result.bk_networkunit_id);
+          const networkUnit = networkUnitList.value.find(
+            (unit: any) => unit.bk_networkunit_id === result.bk_networkunit_id
+          );
+          if (networkUnit) {
+            row.bk_networkunit_name = networkUnit.bk_networkunit_name;
+          }
+        }
+        clearError(index, 'bk_networkunit_id');
+      });
+    }
+  } catch (error) {
+    console.error('Auto assign failed:', error);
+  } finally {
+    autoAssignLoading.value = false;
+  }
 };
 
 const handleNetworkUnitChange = (val: string, row: any) => {

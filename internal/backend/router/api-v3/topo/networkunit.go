@@ -279,6 +279,59 @@ func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.ICon
 	return resp.GetData(), nil
 }
 
+func (h *handler) RecommendNetworkUnitByNetworkSegment(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to recommend networkunit by network segment, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	items := req.ConvertItemsToTypes()
+	requestedAreaIDs := make([]int64, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		requestedAreaIDs = append(requestedAreaIDs, item.NetworkAreaID)
+	}
+
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedNetworkAreaIDs(rCtx, requestedAreaIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to recommend networkunit by network segment, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	if !scopeIsAny {
+		authorizedAreaMap := make(map[int64]struct{}, len(narrowedIDs))
+		for _, id := range narrowedIDs {
+			authorizedAreaMap[id] = struct{}{}
+		}
+		for _, item := range items {
+			if item == nil {
+				continue
+			}
+			if _, ok := authorizedAreaMap[item.NetworkAreaID]; !ok {
+				authErr = h.authorizer.Check(rCtx, auth.ActionNetworkAreaView, buildNetworkAreaResources([]int64{item.NetworkAreaID}))
+				if authErr != nil {
+					logger.G.Biz(rCtx).WithErr(authErr).Error("failed to recommend networkunit by network segment, permission denied")
+					return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+				}
+			}
+		}
+	}
+
+	results, err := h.storage.RecommendNetworkUnitByNetworkSegment(rCtx, items...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to recommend networkunit by network segment")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoRecommendNetworkUnitByNetworkSegmentResp)
+	resp.ConvertResultsFromTypes(results)
+
+	return resp.GetData(), nil
+}
+
 // DeleteNetworkUnit deletes an existing network-unit.
 func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitDeleteReq)

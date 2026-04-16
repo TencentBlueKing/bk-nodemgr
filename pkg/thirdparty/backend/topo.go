@@ -154,6 +154,9 @@ type IHandlerNetworkUnit interface {
 	// @param condition the filter conditions.
 	// @return the networkunit distribution map and error.
 	GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, condition *types.NetworkUnitCondition) (map[int64]int64, error)
+
+	RecommendNetworkUnitByNetworkSegment(nCtx contextx.IContext, items ...*types.NetworkUnitSegmentRecommendationItem) (
+		[]*types.NetworkUnitSegmentRecommendationResult, error)
 }
 
 // ===============================================================================
@@ -555,4 +558,44 @@ func (h *Handler) GetNetworkUnitDistributionByNetworkAreaID(
 	}
 
 	return resp.ConvertResultToTypes(), nil
+}
+
+func (h *Handler) RecommendNetworkUnitByNetworkSegment(
+	nCtx contextx.IContext,
+	items ...*types.NetworkUnitSegmentRecommendationItem,
+) ([]*types.NetworkUnitSegmentRecommendationResult, error) {
+	req := &protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq{}
+	req.Items = make([]*protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq_Item, len(items))
+	for idx, item := range items {
+		if item == nil {
+			continue
+		}
+
+		req.Items[idx] = &protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq_Item{
+			BkNetworkareaId: item.NetworkAreaID,
+			Ip:              item.IP,
+		}
+	}
+
+	resp, err := h.cli.recommendNetworkUnitByNetworkSegment(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, nil
+	}
+
+	results := make([]*types.NetworkUnitSegmentRecommendationResult, len(data.GetItems()))
+	for idx, item := range data.GetItems() {
+		results[idx] = &types.NetworkUnitSegmentRecommendationResult{
+			NetworkAreaID: item.GetBkNetworkareaId(),
+			IP:            item.GetIp(),
+			NetworkUnitID: item.GetBkNetworkunitId(),
+			Message:       item.GetMessage(),
+		}
+	}
+
+	return results, nil
 }

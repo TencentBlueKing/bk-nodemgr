@@ -12,11 +12,15 @@
 package globalsettings
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/netip"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/globalsettings"
+	pkgglobalsettings "github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -147,11 +151,74 @@ func (s *Storage) GetGlobalSetting(nCtx contextx.IContext, name string) (string,
 // UpsertGlobalSettings upserts many global settings.
 func (s *Storage) UpsertGlobalSettings(nCtx contextx.IContext, settings ...*types.GlobalSettings) error {
 	return s.WrapFn(nCtx, metricOperationUpsertGlobalSettings, func(nCtx contextx.IContext) error {
+		if err := validateNetworkUnitSegmentRuleSettings(settings); err != nil {
+			return err
+		}
+
 		var err error
 		err = s.daoGlobalSettings.Upsert(nCtx, settings...)
 
 		return err
 	})
+}
+
+func validateNetworkUnitSegmentRuleSettings(settings []*types.GlobalSettings) error {
+	for _, setting := range settings {
+		if setting == nil || setting.SettingName != pkgglobalsettings.NetworkUnitSegmentRules {
+			continue
+		}
+
+		var cfg types.NetworkUnitSegmentRuleConfig
+		if err := json.Unmarshal([]byte(setting.Value), &cfg); err != nil {
+			return fmt.Errorf("invalid global setting %s: %w", pkgglobalsettings.NetworkUnitSegmentRules, err)
+		}
+		if err := validateNetworkUnitSegmentRuleConfig(cfg); err != nil {
+			return fmt.Errorf("invalid global setting %s: %w", pkgglobalsettings.NetworkUnitSegmentRules, err)
+		}
+	}
+
+	return nil
+}
+
+func validateNetworkUnitSegmentRuleConfig(cfg types.NetworkUnitSegmentRuleConfig) error {
+	if len(cfg) == 0 {
+		return errors.New("at least one networkarea rules config is required")
+	}
+
+	for areaID, areaConfig := range cfg {
+		if len(areaConfig.Rules) == 0 {
+			return fmt.Errorf("networkarea %s: rules is required", areaID)
+		}
+
+		for idx, rule := range areaConfig.Rules {
+			if len(rule.CIDRs) == 0 {
+				return fmt.Errorf("networkarea %s rule %d: cidrs is required", areaID, idx)
+			}
+			if rule.NetworkUnitID < 0 {
+				return fmt.Errorf("networkarea %s rule %d: bk_networkunit_id is required", areaID, idx)
+			}
+
+			isFallbackRule := false
+			for _, cidr := range rule.CIDRs {
+				prefix, err := netip.ParsePrefix(cidr)
+				if err != nil {
+					return fmt.Errorf("networkarea %s rule %d: invalid cidr %s: %w", areaID, idx, cidr, err)
+				}
+				if !prefix.Addr().Unmap().Is4() {
+					return fmt.Errorf("networkarea %s rule %d: IPv6 cidr is not supported", areaID, idx)
+				}
+				if prefix.Masked() == netip.MustParsePrefix("0.0.0.0/0") {
+					isFallbackRule = true
+				}
+			}
+
+			if isFallbackRule && idx != len(areaConfig.Rules)-1 {
+				return fmt.Errorf("networkarea %s rule %d: fallback rule must be the last rule", areaID, idx)
+			}
+		}
+	}
+
+	return nil
 }
 
 // DeleteGlobalSettings deletes many global settings.
