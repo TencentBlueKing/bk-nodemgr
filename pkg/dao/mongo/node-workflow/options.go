@@ -77,3 +77,13 @@ func WithoutOperator(operator ...string) OptFn {
 func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
 	return base.WithTimeRange(FieldKeyOperateTime, timeRange.StartTime, timeRange.EndTime)
 }
+
+// WithNodeRole filters by node-role.
+func WithNodeRole(nodeRoles ...string) OptFn {
+	return base.WithValues(FieldKeyNodeRoles, nodeRoles...)
+}
+
+// WithoutNodeRole filters by not contains node-role.
+func WithoutNodeRole(nodeRoles ...string) OptFn {
+	return base.WithoutValues(FieldKeyNodeRoles, nodeRoles...)
+}
