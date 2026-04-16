@@ -32,7 +32,10 @@ func (h *handler) ProxyInstallCheck(rCtx restserver.IContext) (interface{}, erro
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to check install proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	bizIDs := buildBizIDsFromTypeHosts(req.ConvertHostsToTypes())
+	bizIDs := conv.SliceUnique(
+		conv.SliceToSlice[*types.Host, int64](req.ConvertHostsToTypes(), func(host *types.Host) int64 {
+			return host.Static.BizID
+		}))
 	resources := authRouter.BuildBizResources(bizIDs...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check install proxy, permission denied")

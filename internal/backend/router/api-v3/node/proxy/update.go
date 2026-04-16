@@ -37,7 +37,10 @@ func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy, failed to get host list")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	bizIDs := buildBizIDsFromTypeHosts(hosts)
+	bizIDs := conv.SliceUnique(
+		conv.SliceToSlice[*types.Host, int64](hosts, func(host *types.Host) int64 {
+			return host.Static.BizID
+		}))
 	resources := authRouter.BuildBizResources(bizIDs...)
 	if authErr := h.authorizer.Check(rCtx, auth.ActionProxyOperate, resources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to update proxy, permission denied")
