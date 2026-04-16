@@ -68,6 +68,7 @@ import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
 import { useAuthStore } from '@/stores/auth';
 import useAuthLock from '@/composables/use-auth-lock';
+import { getModuleAuthorizedItems } from '@/constants/auth';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -194,6 +195,9 @@ watch(() => workareaStore.workareaList, () =>  {
   tableData.value = workareaStore.workareaList;
 }, { deep: true });
 onMounted(async () => {
+  // 确保 topoManager 模块权限数据已加载（statistics 接口依赖 authorized 判断有权限的区域）
+  const topoItems = getModuleAuthorizedItems('topoManager');
+  await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
   await getTableData();
 });
 

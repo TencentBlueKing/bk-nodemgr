@@ -176,16 +176,16 @@ const MENU_ROUTE_ACTION_MAP: Record<string, string> = {
   taskDetail: 'agent_history_view',
   log: 'agent_history_view',
   // ruleManager
-  agentStrategy: 'deploy_policy_view',
-  proxyStrategy: 'deploy_policy_view',
+  agentStrategy: 'config_policy_view',
+  proxyStrategy: 'config_policy_view',
   pluginStrategy: 'config_policy_view',
-  strategyTaskHistory: 'deploy_policy_history_view',
+  strategyTaskHistory: 'config_policy_history_view',
 };
 
 // 顶层导航模块 → 默认 view action（用于 403 页面时通过 mainMenu 反推）
 const MAIN_MENU_DEFAULT_ACTION: Record<string, string> = {
   nodeManager: 'agent_view',
-  ruleManager: 'deploy_policy_view',
+  ruleManager: 'config_policy_view',
 };
 
 // 缓存上次有效的 action，用于 403 等无法匹配路由名的场景
@@ -222,8 +222,14 @@ const filteredBusinessList = computed(() => mainStore.businessList);
 // ===== 业务列表（本地排序副本，不修改 store 原数组）=====
 const businessList = ref<Business[]>([]);
 
-// ===== 收藏 =====
+// ===== 收藏（同步初始化，避免硬刷新时收藏图标闪烁丢失）=====
 const collectList = ref<number[]>([]);
+(() => {
+  try {
+    const raw = localStorage.getItem('collect');
+    if (raw) collectList.value = JSON.parse(raw);
+  } catch { /* ignore */ }
+})();
 
 // ===== 多选业务 =====
 const multiBusiness = ref<number[]>([]);
@@ -464,7 +470,38 @@ watch(isSingle, (val) => {
       singleBusiness.value = persistedBizId;
     }
   }
+
+  // 从策略（单选）切回其他模块（多选）时，从 localStorage.bk_biz_id 恢复多选选中状态
+  if (!val) {
+    const bizIdsJson = localStorage.getItem('bk_biz_id');
+    if (bizIdsJson) {
+      try {
+        const bizIds = JSON.parse(bizIdsJson);
+        if (Array.isArray(bizIds)) {
+          multiBusiness.value = bizIds;
+          mainStore.updateCurBusiness(bizIds);
+          sortBusinessList();
+        }
+      } catch { /* ignore */ }
+    }
+  }
 });
+
+// 兜底：当 businessList 异步加载完成且 isSingle 已为 true 时，确保单选业务被初始化
+// （覆盖直接刷新策略页面、或 businessList 在 isSingle 之后才加载到的场景）
+watch(
+  [isSingle, () => filteredBusinessList.value.length],
+  ([single, len]) => {
+    if (single && len > 0 && (singleBusiness.value === '' || singleBusiness.value === undefined)) {
+      sortBusinessList();
+      const persistedBizId = getPersistedStrategyBizId();
+      if (persistedBizId !== undefined) {
+        singleBusiness.value = persistedBizId;
+      }
+    }
+  },
+  { immediate: true },
+);
 
 // ===== 初始化 =====
 const init = () => {

@@ -393,6 +393,37 @@ export interface TopoNetworkUnitListBriefRespData {
   items: NetworkUnitBrief[];
 }
 
+// TopoRecommendNetworkUnitByNetworkSegmentReq describes the HTTP request body
+// when recommend network unit by network segment in topo service.
+export interface TopoRecommendNetworkUnitByNetworkSegmentReq {
+  items: Item[];
+}
+
+export interface TopoRecommendNetworkUnitByNetworkSegmentReqItem {
+  bk_networkarea_id: number;
+  ip: string;
+}
+
+export interface TopoRecommendNetworkUnitByNetworkSegmentResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoRecommendNetworkUnitByNetworkSegmentRespData;
+}
+
+export interface TopoRecommendNetworkUnitByNetworkSegmentRespData {
+  items: Item[];
+}
+
+export interface DataItem {
+  bk_networkarea_id: number;
+  ip: string;
+  bk_networkunit_id: number;
+  message: string;
+}
+
 // TopoHostExactConditions describes host exact conditions.
 export interface TopoHostExactConditions {
   bk_host_id: number[];
@@ -753,38 +784,5 @@ export interface TopoConstantGetResp {
 export interface TopoConstantGetRespData {
   cloud_vendor: string[];
   os_type: string[];
-}
-
-// TopoNetworkUnitRecommendByNetworkSegmentReq describes the HTTP request body
-// when recommend network unit by network segment.
-export interface TopoNetworkUnitRecommendByNetworkSegmentReq {
-  items: TopoNetworkUnitRecommendByNetworkSegmentReqItem[];
-}
-
-export interface TopoNetworkUnitRecommendByNetworkSegmentReqItem {
-  bk_networkarea_id: number;
-  ip: string;
-}
-
-// TopoNetworkUnitRecommendByNetworkSegmentResp describes the HTTP response body
-// when recommend network unit by network segment.
-export interface TopoNetworkUnitRecommendByNetworkSegmentResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: TopoNetworkUnitRecommendByNetworkSegmentRespData;
-}
-
-export interface TopoNetworkUnitRecommendByNetworkSegmentRespData {
-  items: TopoNetworkUnitRecommendByNetworkSegmentRespDataItem[];
-}
-
-export interface TopoNetworkUnitRecommendByNetworkSegmentRespDataItem {
-  bk_networkarea_id: number;
-  ip: string;
-  bk_networkunit_id: number;
-  message: string;
 }
 

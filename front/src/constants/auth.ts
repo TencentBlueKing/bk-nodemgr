@@ -72,9 +72,9 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
   { id: 'networkarea_history_view', action: 'networkarea_history_view', resourceType: 'networkarea', routes: ['record'] },
 
   // ruleManager — biz-scoped pages
-  { id: 'deploy_policy_view', action: 'deploy_policy_view', resourceType: 'biz', routes: ['agentStrategy', 'proxyStrategy'] },
+  { id: 'config_policy_view', action: 'config_policy_view', resourceType: 'biz', routes: ['agentStrategy', 'proxyStrategy'] },
   { id: 'config_policy_view', action: 'config_policy_view', resourceType: 'biz', routes: ['pluginStrategy'] },
-  { id: 'deploy_policy_history_view', action: 'deploy_policy_history_view', resourceType: 'biz', routes: ['strategyTaskHistory'] },
+  { id: 'config_policy_history_view', action: 'config_policy_history_view', resourceType: 'biz', routes: ['strategyTaskHistory'] },
 
   // pkgManager — non-biz pages
   { id: 'package_view', action: 'package_view', resourceType: 'package_type', routes: ['agentPackageMng', 'proxyPackageMng', 'certPackageMng', 'bintoolPackageMng', 'plugin_bintoolPackageMng', 'pluginPackageMng'] },
@@ -124,6 +124,10 @@ export function matchPageAuth(
  * 不同模块进入时只查询该模块需要的 action-resource_type 对
  */
 export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
+  // 业务选择器：仅需 agent_view 判断业务级权限（所有页面共享，全局预加载）
+  bizSelector: [
+    { action: 'agent_view', resource_type: 'biz' },
+  ],
   // 节点管理：agent / proxy / plugin 相关 biz 权限
   // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题暂不放此模块，
   //      由使用方（如 list.vue）按需调用 fetchAuthorized 加载
@@ -137,6 +141,7 @@ export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
     { action: 'plugin_view', resource_type: 'biz' },
     { action: 'plugin_operate', resource_type: 'biz' },
     { action: 'plugin_history_view', resource_type: 'biz' },
+    { action: 'networkunit_view', resource_type: 'networkunit' },
   ],
   // 拓扑管理：管控区域 + 管控单元权限
   // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题不放此模块，
@@ -153,14 +158,12 @@ export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
     { action: 'networkunit_delete', resource_type: 'networkunit' },
     { action: 'networkunit_history_view', resource_type: 'networkunit' },
   ],
-  // 策略管理：config_policy / deploy_policy 相关 biz 权限
+  // 策略管理：config_policy 相关 biz 权限
   ruleManager: [
     { action: 'config_policy_view', resource_type: 'biz' },
     { action: 'config_policy_manage', resource_type: 'biz' },
     { action: 'config_policy_history_view', resource_type: 'biz' },
-    { action: 'deploy_policy_view', resource_type: 'biz' },
-    { action: 'deploy_policy_manage', resource_type: 'biz' },
-    { action: 'deploy_policy_history_view', resource_type: 'biz' },
+    { action: 'networkunit_view', resource_type: 'networkunit' },
   ],
   // 包管理：package_type / package 权限
   pkgManager: [
@@ -189,7 +192,7 @@ export const MENU_ROUTE_AUTH_MAP: Record<string, string> = {
   agentStrategy: 'config_policy_view',
   proxyStrategy: 'config_policy_view',
   pluginStrategy: 'config_policy_view',
-  strategyTaskHistory: 'deploy_policy_history_view',
+  strategyTaskHistory: 'config_policy_history_view',
 };
 
 /**

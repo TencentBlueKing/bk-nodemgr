@@ -656,13 +656,17 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
 
-    // 预处理：为 Unit→AP 的边按 source unit 的 x 坐标分 bucket，同 bucket 内分配序号
-    // 这样同一列 unit 出发的所有垂直线都归入同一组，不会被分成两部分
+    // 预处理：为 Unit→AP 的边分配序号（两种索引策略）
+    // 1. edgeIndex：按 source unit 的 x 坐标分 bucket，控制垂直线的 X 偏移
+    // 2. apEdgeIndex：按 target AP 分组，控制水平线的 Y 偏移（避免同AP多边水平线重合）
     const unitToApEdgeIndexMap = new Map<string, number>();
+    const unitToApEdgeYIndexMap = new Map<string, number>(); // 新增：按目标AP分组的Y偏移索引
     const visibleEdges = edges.filter(edge => nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string));
     
-    // 按 source unit 的 x 坐标分 bucket
+    // 按 source unit 的 x 坐标分 bucket（用于垂直线X偏移）
     const xBuckets = new Map<number, EdgeData[]>();
+    // 按 target AP 分组（用于水平线Y偏移，解决核心问题：同AP多条入边水平线重合）
+    const apBuckets = new Map<string, EdgeData[]>();
     visibleEdges.forEach((edge) => {
       const sId = edge.source as string;
       const tId = edge.target as string;
@@ -676,13 +680,25 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           }
           xBuckets.get(bucketKey)!.push(edge);
         }
+        // 按目标 AP 分组，确保连向同一AP的所有边都有唯一序号
+        if (!apBuckets.has(tId)) {
+          apBuckets.set(tId, []);
+        }
+        apBuckets.get(tId)!.push(edge);
       }
     });
     
-    // 同一 bucket 内按序号分配 edgeIndex
+    // 同一 bucket 内按序号分配 edgeIndex（控制垂直线X位置）
     xBuckets.forEach((bucketEdges) => {
       bucketEdges.forEach((edge, idx) => {
         unitToApEdgeIndexMap.set(edge.id as string, idx);
+      });
+    });
+
+    // 同一 AP 内按序号分配 apEdgeIndex（控制水平线Y位置，避免重合）
+    apBuckets.forEach((apEdges) => {
+      apEdges.forEach((edge, idx) => {
+        unitToApEdgeYIndexMap.set(edge.id as string, idx);
       });
     });
 
@@ -960,7 +976,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
         // --- 情况 B: WorkUnit 连向 AccessPoint (从连接锚点出发) ---
         if (isS_Unit && isT_AP) {
-          const edgeColor = edgeColorMap.get(edge.id as string) ?? '#C4C6CC';
+          const edgeColor = edgeColorMap.get(edge.id as string) ?? '#C4C4CC';
           return {
             ...edge,
             type: 'custom-edge',
@@ -972,6 +988,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
                 fill: edgeColor
               },
               edgeIndex: unitToApEdgeIndexMap.get(edge.id as string) ?? 0,
+              apEdgeIndex: unitToApEdgeYIndexMap.get(edge.id as string) ?? 0,
             },
           };
         }

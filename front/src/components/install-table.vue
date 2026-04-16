@@ -194,6 +194,11 @@
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
                   :disabled="releaseType === 'proxy' && option.is_direct"
+                  :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
+                  @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
+                  @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
+                  @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
+                  @mouseleave="handleUnitOptionMouseLeave()"
                   v-bk-tooltips="{
                     content: $t('topoManager.installProxy.form.tip'),
                     disabled: !(releaseType === 'proxy' && option.is_direct),
@@ -854,6 +859,7 @@ import { getDefaultLoginMode } from '@/common/util';
 import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import useTableErrors from '@/composables/use-table-errors';
+import useUnitAuth from '@/composables/use-unit-auth';
 import { useMainStore } from '@/stores/main';
 
 type VxeComponentSizeType = 'small' | 'medium' | 'large';
@@ -959,6 +965,13 @@ const rules: ValidationRules = {
 const { contentRef } = useFullScreen();
 const xTableRef = ref();
 const mainStore = useMainStore();
+const {
+  isUnitAuthorized,
+  handleOptionMouseEnter: handleUnitOptionMouseEnter,
+  handleOptionMouseMove: handleUnitOptionMouseMove,
+  handleOptionMouseLeave: handleUnitOptionMouseLeave,
+  handleOptionClick: handleUnitOptionClick,
+} = useUnitAuth();
 const businessList = computed(() => mainStore.businessList);
 const type = computed(() => (props.releaseType === 'proxy'
   ? mainStore.proxySetupType
@@ -1420,7 +1433,7 @@ const getNetworkUnitList = async () => {
         bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
       },
     }).catch((err: any) => {
-      console.log(err);
+      console.error(err);
       return {
         total: 0,
         items: [],

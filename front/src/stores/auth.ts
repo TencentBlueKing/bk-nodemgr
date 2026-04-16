@@ -188,6 +188,8 @@ export const useAuthStore = defineStore('auth', () => {
   const loadedModules = reactive<Set<string>>(new Set());
   // 加载失败的模块集合，该模块的 action 默认视为有权限（降级）
   const failedModules = reactive<Set<string>>(new Set());
+  // 当前正在进行的请求 Promise，按模块/key 独立追踪，不同模块互不阻塞
+  const pendingRequests = new Map<string, Promise<void>>();
 
   /**
    * 调用 /api/v3/auth/authorized 获取当前用户对各 action 有权限的资源范围
@@ -197,9 +199,29 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchAuthorized(items?: AuthorizedItem[], moduleName?: string) {
     // 如果指定了模块且已加载过（成功或失败都算），跳过
     if (moduleName && (loadedModules.has(moduleName) || failedModules.has(moduleName))) return;
-    if (authorizedLoading.value) return;
-    authorizedLoading.value = true;
 
+    // 用 moduleName 或 items 的 action 列表作为 key，相同 key 的请求共享 Promise
+    const requestKey = moduleName || (items || []).map(i => i.action).sort().join(',') || '_default';
+
+    // 如果同一 key 已有正在进行的请求，等待它完成
+    const existing = pendingRequests.get(requestKey);
+    if (existing) {
+      await existing;
+      return;
+    }
+
+    const request = doFetchAuthorized(items, moduleName);
+    pendingRequests.set(requestKey, request);
+    try {
+      await request;
+    } finally {
+      pendingRequests.delete(requestKey);
+    }
+  }
+
+  /** 实际执行请求的内部函数 */
+  async function doFetchAuthorized(items?: AuthorizedItem[], moduleName?: string) {
+    authorizedLoading.value = true;
     try {
       const res = await AuthService.Authorized({
         items: items || [],

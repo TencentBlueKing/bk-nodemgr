@@ -154,6 +154,7 @@ import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
 import { TopoService } from '@/api/modules/topo';
 import useAuthLock from '@/composables/use-auth-lock';
+import { getModuleAuthorizedItems } from '@/constants/auth';
 
 const {
   handleFetchAllWorkarea,
@@ -185,7 +186,6 @@ const { handleMouseEnter: viewMouseEnter, handleMouseMove: viewMouseMove, handle
 
 /** 判断某个单元是否有 view 权限 */
 function isUnitAuthorized(unitId: number): boolean {
-  if (!authStore.authorizedLoaded) return false; // 默认无权限
   return authStore.hasAuthorizedResource('networkunit_view', unitId);
 }
 
@@ -256,9 +256,8 @@ const handleWorkUnitSave = async (bk_networkunit_id: number) => {
   contentLoading.value = true;
   try {
     await fetchWorkUnits();
-    setTimeout(() => {
-      active.value = bk_networkunit_id;
-    }, 0);
+    active.value = bk_networkunit_id;
+    await loadUnitDetail();
   } catch (err) {
     console.error(err);
   } finally {
@@ -266,9 +265,8 @@ const handleWorkUnitSave = async (bk_networkunit_id: number) => {
   }
 };
 
-/** 获取管控单元数据：Brief（当前区域全部）+ Get（有权限的逐个获取详情） */
+/** 获取管控单元列表（仅 Brief，详情按需加载当前 active 单元） */
 const fetchWorkUnits = async () => {
-  // 1. Brief 接口获取当前区域所有单元基本信息（用于 tab 列表展示）
   const briefResult = await TopoService.NetworkUnitListBrief({
     exact_include_conditions: {
       bk_networkarea_id: [workAreaId],
@@ -276,37 +274,60 @@ const fetchWorkUnits = async () => {
   }).catch(() => ({ total: 0, items: [] }));
   const briefItems = (briefResult?.items || []) as NetworkUnitBrief[];
 
-  // 2. 筛选有 networkunit_view 权限的单元 ID
-  const authorizedUnitIds = briefItems
-    .map(item => item.bk_networkunit_id)
-    .filter(id => isUnitAuthorized(id));
+  workUnitList.value = briefItems.map(brief => ({
+    ...brief,
+    accesspoints: [],
+    direct_endpoints: { cluster: [], file: [], data: [] },
+    custom_deploy_config: {},
+  } as NetworkUnitDetail));
+};
 
-  // 3. 对有权限的单元并行调用 NetworkUnitGet 获取完整数据（含接入点详情）
-  const detailMap = new Map<number, NetworkUnitDetail>();
-  if (authorizedUnitIds.length > 0) {
-    const detailResults = await Promise.all(
-      authorizedUnitIds.map(id =>
-        TopoService.NetworkUnitGet({ bk_networkunit_id: id }).catch(() => null),
-      ),
-    );
-    for (const detail of detailResults) {
-      if (detail) {
-        detailMap.set((detail as NetworkUnitDetail).bk_networkunit_id, detail as NetworkUnitDetail);
+/** 加载当前 active 单元的完整详情（含接入点） */
+let loadingUnitId: number | null = null;
+const loadUnitDetail = async () => {
+  const unitId = active.value;
+  console.log('[loadUnitDetail] called, active =', unitId, 'workUnitList length =', workUnitList.value.length);
+  if (unitId == null) return;
+  // 防重复：如果正在加载同一个 unitId，跳过
+  if (loadingUnitId === unitId) {
+    console.log('[loadUnitDetail] skip, already loading unitId =', unitId);
+    return;
+  }
+  loadingUnitId = unitId;
+  const detail = await TopoService.NetworkUnitGet({ bk_networkunit_id: unitId }).catch(() => null);
+  console.log('[loadUnitDetail] NetworkUnitGet result, unitId =', unitId, 'detail =', !!detail, detail);
+  if (detail) {
+    // 兼容：get 返回 accesspoints 为空时，补充调用 accesspoint/list
+    const hasAccessPoints = detail.accesspoints && detail.accesspoints.length > 0;
+    if (!hasAccessPoints && detail.links) {
+      // 从当前单元的 links 中提取所有关联的 accesspoint_id
+      const linkedApIds = new Set<number>();
+      for (const key of ['cluster', 'file', 'data'] as const) {
+        const link = detail.links[key];
+        if (link?.accesspoint_id != null) {
+          linkedApIds.add(link.accesspoint_id);
+        }
       }
+      if (linkedApIds.size > 0) {
+        const apResult = await TopoService.AccessPointList({
+          page: { offset: 0, limit: 1 },
+          only_count: false,
+          exact_include_conditions: { bk_networkarea_id: [workAreaId], accesspoint_id: [...linkedApIds] },
+        }).catch(() => null);
+        if (apResult?.items) {
+          detail.accesspoints = apResult.items as AccessPoint[];
+        }
+      } else {
+        detail.accesspoints = [];
+      }
+      console.log('[loadUnitDetail] accesspoint/list 补充结果:', detail.accesspoints?.length || 0);
+    }
+    const idx = workUnitList.value.findIndex(u => u.bk_networkunit_id === unitId);
+    if (idx !== -1) {
+      workUnitList.value.splice(idx, 1, detail as NetworkUnitDetail);
     }
   }
-
-  // 4. 合并：有权限用完整数据，无权限用 Brief 填充
-  workUnitList.value = briefItems.map((brief) => {
-    const detail = detailMap.get(brief.bk_networkunit_id);
-    if (detail) return detail;
-    return {
-      ...brief,
-      accesspoints: [],
-      direct_endpoints: { cluster: [], file: [], data: [] },
-      custom_deploy_config: {},
-    } as NetworkUnitDetail;
-  });
+  loadingUnitId = null;
 };
 
 const fetchData = async () => {
@@ -333,19 +354,39 @@ const initData = async () => {
   // 初始化 tab焦点：使用排序后的列表（有权限优先）
   if (!route.params?.workUnit) {
     active.value = sortedWorkUnitList.value[0]?.bk_networkunit_id;
+    console.log('[initData] set active from sortedList:', sortedWorkUnitList.value[0]?.bk_networkunit_id);
   } else {
     active.value = Number(route.params.workUnit);
+    console.log('[initData] set active from route:', Number(route.params.workUnit));
   }
+  // 加载初始 active 单元的详情
+  console.log('[initData] about to call loadUnitDetail, active =', active.value);
+  await loadUnitDetail();
 };
 
 // 当排序列表变化时（如权限加载完成后重排），确保 active 仍指向有效的 panel
 watch(sortedWorkUnitList, (list) => {
+  console.log('[watch(sortedWorkUnitList)] triggered, list.length =', list.length, 'current active =', active.value);
   if (list.length > 0 && !list.some(item => item.bk_networkunit_id === active.value)) {
+    console.log('[watch(sortedWorkUnitList)] setting active =', list[0].bk_networkunit_id);
     active.value = list[0].bk_networkunit_id;
   }
 });
 
+// 切换 tab 时加载当前单元详情
+watch(active, () => {
+  loadUnitDetail();
+});
+
 onMounted(async () => {
+  // 确保 topoManager 模块权限数据已加载（页面刷新直接访问时可能未加载）
+  const topoItems = getModuleAuthorizedItems('topoManager');
+  await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
+  // 单独请求安装 Proxy 权限（networkunit_use_for_proxy），
+  // 因后端 starts_with 兼容问题需独立调用，store 层已做降级处理
+  authStore.fetchAuthorized([
+    { action: 'networkunit_use_for_proxy', resource_type: 'networkunit' },
+  ]);
   await initData();
 });
 

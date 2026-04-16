@@ -101,15 +101,21 @@ export const useWorkareaStore = defineStore('workarea', () => {
 
     const authStore = useAuthStore();
 
-    // 等待 authorized 数据加载完成
-    if (!authStore.authorizedLoaded) {
+    // 等待 authorized 数据加载完成（不仅是 authorizedLoaded=true，
+    // 还需确保 networkarea_view action 已写入 authorizedMap，
+    // 否则 hasAuthorizedResource 会全部返回 false 导致不调接口）
+    if (!authStore.authorizedLoaded || !authStore.hasAuthorizedResource('networkarea_view')) {
       await new Promise<void>((resolve) => {
-        const unwatch = watch(() => authStore.authorizedLoaded, (loaded) => {
-          if (loaded) {
-            unwatch();
-            resolve();
-          }
-        }, { immediate: true });
+        const unwatch = watch(
+          () => [authStore.authorizedLoaded, authStore.hasAuthorizedResource('networkarea_view')],
+          ([loaded, actionReady]) => {
+            if (loaded && actionReady) {
+              unwatch();
+              resolve();
+            }
+          },
+          { immediate: true },
+        );
       });
     }
 

@@ -483,9 +483,13 @@ onBeforeMount(async () => {
   setShortcutIcon(platformConfig.favicon);
 
   await getBusinessList();
-  // 首次加载：始终加载 nodeManager（biz 选择器依赖）+ 当前路由模块的 authorized items
+  // 首次加载当前路由模块的 authorized items
+  // biz 页面（nodeManager/ruleManager）额外加载 bizSelector（业务选择器依赖 agent_view）
   const currentModule = String(route.meta?.mainMenu || 'nodeManager');
-  const initialModules = new Set(['nodeManager', currentModule]);
+  const initialModules: string[] = [currentModule];
+  if (['nodeManager', 'ruleManager'].includes(currentModule)) {
+    initialModules.unshift('bizSelector');
+  }
   for (const mod of initialModules) {
     const moduleItems = getModuleAuthorizedItems(mod);
     if (moduleItems.length) {
@@ -646,6 +650,17 @@ body {
 }
 /* 无权限下拉项：置灰但可 hover 带锁 */
 .auth-lock-dropdown-item {
+  color: #c4c6cc !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+
+  &:hover {
+    color: #c4c6cc !important;
+    background-color: #f5f7fa !important;
+  }
+}
+/* 管控单元下拉无权限选项：置灰但可 hover 带锁 */
+.unauthorized-unit-row {
   color: #c4c6cc !important;
   cursor: pointer !important;
   pointer-events: auto !important;

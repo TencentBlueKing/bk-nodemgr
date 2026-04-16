@@ -96,23 +96,13 @@
               </template>
             </Popover>
           </template>
-          <Select
+          <UnitSelector
             class="w-[568px]"
             v-model="formData.bk_networkunit_id"
-            auto-focus
-            filterable
+            :options="networkUnitList"
             :disabled="!formData.bk_networkarea_id"
             @change="handleNetworkUnitChange"
-          >
-            <Select.Option
-              v-for="option in networkUnitList"
-              :key="option.bk_networkunit_id"
-              :id="String(option.bk_networkunit_id)"
-              :name="option.bk_networkunit_name"
-            >
-              [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
-            </Select.Option>
-          </Select>
+          />
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.info')"
@@ -291,7 +281,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Dialog, Form, Input, Message, Popover, Select, Upload } from 'bkui-vue';
+import { Button, Dialog, Form, Input, Message, Popover, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce, isEqual  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
@@ -309,6 +299,7 @@ import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import BizSelect from '@/components/biz-select.vue';
+import UnitSelector from '@/components/unitSelector.vue';
 import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();
@@ -330,6 +321,7 @@ const initData = {
   credit: '',
 };
 const mainStore = useMainStore();
+
 const formData = reactive({
   type: '',
   bk_biz_id: '',
@@ -438,9 +430,8 @@ const handleUpload = (data: any) => {
 const handleImport = () => {
   formData.info = excelImportData.value;
 };
-const handleNetworkUnitChange = (id: string) => {
-  formData.bk_networkunit_name = networkUnitList.value.find((item) =>
-    item.bk_networkunit_id === Number(id))?.bk_networkunit_name || '';
+const handleNetworkUnitChange = (id: string | number, row: any) => {
+  formData.bk_networkunit_name = row?.bk_networkunit_name || '';
 };
 
 const handleConfirmVersion = (data: any[]) => {

@@ -131,29 +131,15 @@
               </template>
             </Popover>
           </template>
-          <Select
+          <UnitSelector
             class="w-[488px]"
             v-model="form.bk_networkunit_id"
-            auto-focus
-            filterable
             :disabled="!form.bk_networkarea_id"
-          >
-            <Select.Option
-              v-for="option in areaUnitlist"
-              :key="option.bk_networkunit_id"
-              :id="String(option.bk_networkunit_id)"
-              :name="option.bk_networkunit_name"
-              :disabled="option.is_direct"
-              v-bk-tooltips="{
-                content: $t('topoManager.installProxy.form.tip'),
-                disabled: !option.is_direct,
-                boundary: 'parent',
-                placement: 'left'
-              }"
-            >
-              [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
-            </Select.Option>
-          </Select>
+            :disable-direct="true"
+            :direct-tip="$t('topoManager.installProxy.form.tip')"
+            :options="areaUnitlist"
+            @change="handleUnitSelectorChange"
+          />
         </Form.FormItem>
 
         <Form.FormItem
@@ -542,6 +528,10 @@ const handleSingleChange = (id: string, rows: any[]) => {
   form.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
 
+const handleUnitSelectorChange = (_id: string | number, row: any) => {
+  form.bk_networkunit_name = row?.bk_networkunit_name || '';
+};
+
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
 const getNetworkUnitList = async () => {
@@ -864,6 +854,7 @@ const handleUpload = (data: any) => {
   excelImportData.value = data.info;
 };
 onMounted(() => {
+  encryptionTool.initPublicKey();
 });
 
 const handleSetpBack = () => {

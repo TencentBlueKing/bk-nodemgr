@@ -11,9 +11,9 @@
         <Form.FormItem :label="t('agentStrategy.form.configName')" property="configpolicy_name" required>
           <Input v-model="formData.configpolicy_name"></Input>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.form.business')" property="biz_id" required>
+        <Form.FormItem :label="t('agentStrategy.form.business')" property="bk_biz_id" required>
           <Select
-            v-model="formData.biz_id"
+            v-model="formData.bk_biz_id"
             disabled
             :placeholder="t('agentStrategy.form.selectBusiness')"
           >
@@ -34,7 +34,7 @@
         >
           <Switcher v-model="formData.enabled" theme="primary"></Switcher>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.form.remark')" property="biz_id">
+        <Form.FormItem :label="t('agentStrategy.form.remark')" property="remark">
           <Input type="textarea" v-model="formData.remark" show-word-limit :maxlength="100"></Input>
         </Form.FormItem>
         <Form.FormItem :label="t('agentStrategy.form.scope')" property="scopes">
@@ -49,28 +49,14 @@
                 :multiple="false"
                 :no-limit="true"
                 @change="(id, data) => handleSingleChange(item, id, data)" />
-              <Select
+              <UnitSelector
                 v-model="item.bk_networkunit_id"
-                :prefix="t('agentStrategy.form.workUnit')"
+                :no-limit="true"
                 :disabled="item.bk_networkarea_id === '-1'"
-                auto-focus
-                filterable
-              >
-                <Select.Option :label="t('agentStrategy.form.unlimited')" value="-1"></Select.Option>
-                <Select.Group>
-                  <Select.Option
-                    v-for="option in filterNetworkUnitList(
-                      item.bk_networkarea_id
-                    )"
-                    :key="option.bk_networkunit_id"
-                    :id="String(option.bk_networkunit_id)"
-                    :name="option.bk_networkunit_name"
-                  >
-                    [{{ option.bk_networkunit_id }}]
-                    {{ option.bk_networkunit_name }}
-                  </Select.Option>
-                </Select.Group>
-              </Select>
+                :filter-by-area-id="item.bk_networkarea_id"
+                select-class="w-full"
+                @change="(id, row) => handleUnitChange(item, id, row)"
+              />
               <Select
                 v-model="item.os_type"
                 :prefix="t('agentStrategy.form.os')"
@@ -162,9 +148,7 @@ import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { NetworkArea, NetworkUnit } from '@/@types/topo';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
-import { TopoService } from '@/api/modules/topo';
 import { PACKAGE_GENERATION } from '@/common/const';
 // 导入config-template组件
 import ConfigTemplate from '@/components/config-template.vue';
@@ -202,7 +186,7 @@ const businessList = computed(() => mainStore.businessList);
 const formData = reactive({
   configpolicy_name: '',
   configpolicy_type: props.configpolicyType,
-  biz_id: mainStore.strategyBizId || 0,
+  bk_biz_id: mainStore.strategyBizId || 0,
   remark: '',
   scopes: [] as IScope[],
   configs: [] as ConfigPolicyConfigBlock[],
@@ -213,7 +197,7 @@ const initData = () => {
   formData.configpolicy_name = '';
   formData.configpolicy_type = props.configpolicyType;
   formData.remark = '';
-  formData.biz_id = mainStore.strategyBizId || 0;
+  formData.bk_biz_id = mainStore.strategyBizId || 0;
   formData.scopes = [];
   formData.configs = [];
   formData.operator = '';
@@ -231,7 +215,7 @@ const rules = {
       validator: (val: string) => val.length <= 50 && val.length >= 1,
     },
   ],
-  biz_id: [{ required: true, message: t('agentStrategy.validate.businessRequired'), trigger: 'change' }],
+  bk_biz_id: [{ required: true, message: t('agentStrategy.validate.businessRequired'), trigger: 'change' }],
 };
 
 const originData = ref(cloneDeep(formData));
@@ -280,21 +264,21 @@ const handleSubmit = async () => {
     os_type: item.os_type === '-1' ? '' : item.os_type,
     cpu_arch: item.cpu_arch === '-1' ? '' : item.cpu_arch,
   }));
-  const biz_id = formData.biz_id;
+  const bk_biz_id = formData.bk_biz_id;
   if (props.isEdit) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
-      configpolicy_id: configpolicyId.value,
       ...formData,
+      configpolicy_id: configpolicyId.value,
       scopes,
       operator: userStore.user?.username,
-      biz_id,
+      bk_biz_id,
     }).catch(() => false);
   } else {
     res = await ConfigPolicyAPIService.ConfigPolicyCreate({
       ...formData,
       scopes,
       operator: userStore.user?.username,
-      biz_id,
+      bk_biz_id,
     }).catch(() => false);
   }
   isShow.value = false;
@@ -310,16 +294,12 @@ const handleSingleChange = (item: any, id: string, rows: any[]) => {
   item.bk_networkunit_id = '';
   item.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
-// 管控单元下拉列表获取
-const networkUnitList = ref<NetworkUnitBrief[]>([]);
-// eslint-disable-next-line max-len
-const filterNetworkUnitList = (id: number | string) => networkUnitList.value.filter((item: NetworkUnit) => item.bk_networkarea_id === Number(id) || item.bk_networkunit_id === -1);
-const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitListBrief({}).catch(() => ({
-    total: 0,
-    items: [],
-  }));
-  networkUnitList.value = res.items;
+
+const handleUnitChange = (item: any, id: number | string, row: any) => {
+  item.bk_networkunit_id = id;
+  if (row) {
+    item.bk_networkunit_name = row.bk_networkunit_name;
+  }
 };
 // 操作系统和架构
 const osTypeList = ref<{ value: string; label: string }[]>();
@@ -346,14 +326,14 @@ const getPlatform = async () => {
 
 watch(() => isShow.value, () => {
   if (isShow.value) {
-    Promise.all([getNetworkUnitList(), getPlatform()]);
+    getPlatform();
     if (!props.isEdit) {
       initData();
     } else if (props.isEdit && props.configData) {
       // 编辑模式，使用props中的配置数据
       configpolicyId.value = props.configData.configpolicy_id;
       Object.assign(formData, props.configData);
-      formData.biz_id = props.configData.biz_id;
+      formData.bk_biz_id = props.configData.bk_biz_id;
       formData.scopes = props.configData.scopes.map((item: ConfigPolicyScope) => ({
         ...item,
         bk_networkarea_id: String(item.bk_networkarea_id),

@@ -35,6 +35,7 @@ declare module 'vue' {
     Settings: typeof import('./components/settings.vue')['default']
     SetupTip: typeof import('./components/setup-tip.vue')['default']
     SlideDetail: typeof import('./components/slide-detail.vue')['default']
+    UnitSelector: typeof import('./components/unitSelector.vue')['default']
     UploadExcel: typeof import('./components/upload-excel.vue')['default']
     Validate: typeof import('./components/validate.vue')['default']
     ValidateCell: typeof import('./components/validateCell.vue')['default']

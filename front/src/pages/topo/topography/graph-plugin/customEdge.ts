@@ -74,10 +74,13 @@ export default class CustomEdge extends Polyline {
         const targetX = apX + 80;
         const targetY = apY + apHeight / 2 - 5 + subEdgeYOffset;
         
-        // 从布局阶段传入的 edgeIndex 计算偏移，同一 x 范围内的边依次错开 5px
+        // 从布局阶段传入的 edgeIndex 计算偏移
+        // - edgeIndex: 按 source unit 的 x 分桶，控制垂直线 X 偏移
+        // - apEdgeIndex: 按目标 AP 分组，控制水平线 Y 偏移（避免同AP多条入边水平线重合）
         const edgeIndex = this.parsedAttributes.edgeIndex ?? 0;
+        const apEdgeIndex = this.parsedAttributes.apEdgeIndex ?? 0;
         const edgeOffset = edgeIndex * 5;
-        const yOffset = edgeIndex * 5;
+        const yOffset = apEdgeIndex * 5; // 用 apEdgeIndex 控制水平线Y偏移
         
         // 检查是否跨区域连接
         const sourceArea = sourceNodeData.data?.area;

@@ -360,7 +360,7 @@ const getNetworkUnitList = async () => {
       bk_networkunit_id: props.data.map(item => item.info.bk_networkunit_id),
     },
   }).catch((err: any) => {
-    console.log(err);
+    console.error('获取管控单元列表失败:', err);
     return {
       total: 0,
       items: [],

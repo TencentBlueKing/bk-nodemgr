@@ -274,7 +274,7 @@ const configpolicyType = computed(() => (route.name === 'agentStrategy' ? 'confi
 const manageAction = 'config_policy_manage';
 const { hasAuth: hasManageAuth, handleMouseEnter, handleMouseMove, handleMouseLeave, handleAuthClick } = useAuthLock(
   manageAction,
-  () => mainStore.selectedBusinessId,
+  () => mainStore.strategyBizId,
 );
 const maxHeight = computed(() => mainStore.windowInnerHeight - 255 - (mainStore.noticeShow ? 40 : 0));
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
@@ -467,7 +467,7 @@ const getConfigPolicyList = async () => {
   tableData.value = res.items.map((item: any) => ({
     ...item,
     biz_name: mainStore.businessList
-      .find(biz => item.biz_id === biz.bk_biz_id)
+      .find(biz => item.bk_biz_id === biz.bk_biz_id)
       ?.bk_biz_name || t('agentStrategy.table.unlimited'),
   }));
 };

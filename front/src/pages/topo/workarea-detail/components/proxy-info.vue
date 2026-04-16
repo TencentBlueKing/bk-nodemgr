@@ -3,13 +3,27 @@
     <FlexRow class="mt-[24px]">
       <template #left>
         <div class="flex items-center">
-          <!-- 安装/重装 Proxy：始终可点击，无需权限校验 -->
-          <Button
-            theme="primary"
-            :class="['mr-[8px]', 'w-[130px]', { 'btn-reinstall': hasSelection }]"
-            @click="handlePrimaryButtonClick">
-            <span>{{ primaryButtonLabel }}</span>
-          </Button>
+          <!-- 安装/重装 Proxy：需要 networkunit_use_for_proxy 权限 -->
+          <template v-if="hasInstallProxyAuth">
+            <Button
+              theme="primary"
+              :class="['mr-[8px]', 'w-[130px]', { 'btn-reinstall': hasSelection }]"
+              @click="handlePrimaryButtonClick">
+              <span>{{ primaryButtonLabel }}</span>
+            </Button>
+          </template>
+          <span
+            v-else
+            class="inline-flex items-center auth-lock-wrapper mr-[8px]"
+            @click="handleInstallAuthClick"
+            @mouseenter="installMouseEnter($event, false)"
+            @mousemove="installMouseMove($event, false)"
+            @mouseleave="installMouseLeave()"
+          >
+            <Button theme="primary" class="auth-disabled-btn w-[130px]">
+              <span>{{ primaryButtonLabel }}</span>
+            </Button>
+          </span>
           <!-- 批量操作：无权限时置灰 + hover 带锁 + 点击申请权限 -->
           <template v-if="hasProxyOperateAuth">
             <MoreAction
@@ -126,6 +140,7 @@ import useAuthLock from '@/composables/use-auth-lock';
 import InstallProxy from '@/pages/topo/install-proxy/install-proxy.vue';
 import ReinstallProxy from '@/pages/topo/install-proxy/reinstall-proxy.vue';
 import { useMainStore } from '@/stores/main';
+import { useAuthStore } from '@/stores/auth';
 
 defineProps({
   active: {
@@ -136,6 +151,17 @@ defineProps({
 const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
+const authStore = useAuthStore();
+
+// 切换到 proxy tab 且有单元 ID 时，主动加载 proxy_view / proxy_operate 权限
+watch(() => props.active, (id) => {
+  if (id) {
+    authStore.fetchAuthorized([
+      { action: 'proxy_view', resource_type: 'networkunit' },
+      { action: 'proxy_operate', resource_type: 'networkunit' },
+    ]);
+  }
+}, { immediate: true });
 // ===== proxy_operate 权限控制（批量操作、复制IP） =====
 const {
   hasAuth: hasProxyOperateAuth,
@@ -148,6 +174,15 @@ const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 const AGENT_ID_REG = /^0[12]/; // AgentID 以 01 或 02 开头
 const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
+
+// ===== networkunit_use_for_proxy 权限控制（安装/重装 Proxy） =====
+const {
+  hasAuth: hasInstallProxyAuth,
+  handleMouseEnter: installMouseEnter,
+  handleMouseMove: installMouseMove,
+  handleMouseLeave: installMouseLeave,
+  handleAuthClick: handleInstallAuthClick,
+} = useAuthLock('networkunit_use_for_proxy', () => props.active);
 const isProxyStatus = computed(() => route.name === 'proxy');
 // 搜索
 const searchKey = ref<ISearchValue[]>([]);

@@ -200,13 +200,17 @@ export default function useMenu() {
   const subMenuData = computed(() => {
     const groups = navData.value.find(item => item.routeName === currentMainMenu.value)?.group || [];
     // Filter menu items based on authorized permissions
+    // 注意：authorizedLoaded 是全局标志（任一模块加载完即 true），
+    // 但当前模块的 action 可能尚未写入 authorizedMap，
+    // 对未查询过的 action 需默认显示，避免菜单闪烁消失
     return groups
       .map(group => ({
         ...group,
         children: group.children.filter((child) => {
           const requiredAction = MENU_ROUTE_AUTH_MAP[child.routeName];
           if (!requiredAction) return true; // No auth config, always show
-          if (!authStore.authorizedLoaded) return true; // Not loaded yet, show by default
+          // action 尚未写入 authorizedMap → 该模块权限还在请求中，默认显示
+          if (!authStore.authorizedMap[requiredAction]) return true;
           return authStore.hasAuthorizedResource(requiredAction);
         }),
       }))

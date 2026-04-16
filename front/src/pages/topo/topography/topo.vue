@@ -895,6 +895,12 @@ async function handleNodeClick(evt: any) {
     const workareaId = Number(String(nodeData.data?.area).replace(workAreaPrefix, ''));
     const workUnitId = Number(nodeId.replace(workUnitPrefix, ''));
 
+    // 统一权限校验：无权限 → 触发 verify 申请（带 unit ID）
+    if (nodeData?.data?.has_unit_auth === false) {
+      await handleApplyUnitPermission(workUnitId);
+      return;
+    }
+
     // 跳转到 Agent 页面（点击 Agent 跳转图标）
     if (className === 'linkIcon-agent') {
       textTooltip.hide(true); // 立即隐藏提示气泡

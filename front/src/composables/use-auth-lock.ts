@@ -74,13 +74,17 @@ export default function useAuthLock(
 
   /** 判断当前资源是否有操作权限（computed，模板中可直接 v-if） */
   const hasAuth = computed(() => {
-    if (!authStore.authorizedLoaded) return false; // 未加载完成默认无权限，加载完后才判断
+    // 直接读取 authorizedMap[action] 确保 Vue 响应式追踪该 key
+    const entry = authStore.authorizedMap[action];
+    if (!authStore.authorizedLoaded || !entry) return false;
     const resourceId = getResourceId();
+    if (entry.isAny) return true;
     if (Array.isArray(resourceId)) {
       if (resourceId.length === 0) return true;
-      return resourceId.every(id => authStore.hasAuthorizedResource(action, id));
+      return resourceId.every(id => entry.resourceIds.has(String(id)));
     }
-    return authStore.hasAuthorizedResource(action, resourceId);
+    if (resourceId === undefined || resourceId === null) return entry.resourceIds.size > 0;
+    return entry.resourceIds.has(String(resourceId));
   });
 
   // ===== 锁 hover 事件处理 =====

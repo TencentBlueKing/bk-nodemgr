@@ -124,6 +124,11 @@
                   :key="option.bk_networkunit_id"
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
+                  :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
+                  @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
+                  @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
+                  @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
+                  @mouseleave="handleUnitOptionMouseLeave()"
                 >
                   [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
                 </Select.Option>
@@ -168,6 +173,7 @@ import { TopoService } from '@/api/modules/topo';
 import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import useTableErrors from '@/composables/use-table-errors';
+import useUnitAuth from '@/composables/use-unit-auth';
 import { useMainStore } from '@/stores/main';
 
 const tableData = defineModel<any[]>('data');
@@ -179,6 +185,13 @@ const { t } = useI18n();
 const { contentRef } = useFullScreen();
 const xTableRef = ref();
 const mainStore = useMainStore();
+const {
+  isUnitAuthorized,
+  handleOptionMouseEnter: handleUnitOptionMouseEnter,
+  handleOptionMouseMove: handleUnitOptionMouseMove,
+  handleOptionMouseLeave: handleUnitOptionMouseLeave,
+  handleOptionClick: handleUnitOptionClick,
+} = useUnitAuth();
 const businessList = computed(() => mainStore.businessList);
 
 const { getError, setError, clearError, clearAllErrors, shiftErrors } = useTableErrors();
