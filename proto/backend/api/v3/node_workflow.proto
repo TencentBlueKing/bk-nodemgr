@@ -22,6 +22,7 @@ message NodeWorkflowInfo {
   optional int64 operate_time = 9;
   optional int64 finish_time = 10;
   optional string status = 11;
+  repeated string node_role = 12;
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow
@@ -34,6 +35,7 @@ message NodeWorkflowExactConditions {
   repeated string operator = 5;
   repeated string bk_host_innerip = 6;
   repeated string bk_host_innerip_v6 = 7;
+  repeated string node_role = 8;
 }
 
 // NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow
