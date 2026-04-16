@@ -441,6 +441,7 @@ type NodeWorkflowExactFields struct {
 	Operator      []string
 	HostInnerIP   []string
 	HostInnerIPV6 []string
+	NodeRole      []string
 }
 
 // NodeWorkflowFuzzyFields defines the node workflow fuzzy fields.

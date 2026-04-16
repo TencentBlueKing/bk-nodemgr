@@ -26,6 +26,7 @@ type NodeWorkflow struct {
 	BizIDs         []int64
 	NetworkAreaIDs []int64
 	NetworkUnitIDs []int64
+	NodeRoles      []NodeRole
 	Operator       string
 	OperateTime    time.Time
 	FinishTime     time.Time
