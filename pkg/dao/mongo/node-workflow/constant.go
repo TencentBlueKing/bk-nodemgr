@@ -23,6 +23,9 @@ const (
 	// FieldKeyBizID is the key for business ID.
 	FieldKeyBizID = "data.biz_ids"
 
+	// FieldKeyNodeRoles is the key for node roles.
+	FieldKeyNodeRoles = "data.node_roles"
+
 	// FieldKeyExecuteUser is the key for execute user.
 	FieldKeyExecuteUser = "data.execute_user"
 

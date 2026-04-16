@@ -33,6 +33,7 @@ type Data struct {
 	BizIDs         []int64   `json:"biz_ids" bson:"biz_ids"`
 	NetworkAreaIDs []int64   `json:"networkarea_ids" bson:"networkarea_ids"`
 	NetworkUnitIDs []int64   `json:"networkunit_ids" bson:"networkunit_ids"`
+	NodeRoles      []string  `json:"node_roles" bson:"node_roles"`
 	Operator       string    `json:"operator" bson:"operator"`
 	OperateTime    time.Time `json:"operate_time" bson:"operate_time"`
 	FinishTime     time.Time `json:"finish_time" bson:"finish_time"`
