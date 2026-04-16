@@ -46,7 +46,6 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.daoReleaseAgent.CountReleaseAgent(rCtx, cond)
@@ -79,6 +78,53 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
+// ListReleaseAgentBrief lists agent releases brief with page and conditions.
+func (h *handler) ListReleaseAgentBrief(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseAgentListBriefReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent brief, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoReleaseAgent.CountReleaseAgent(rCtx, cond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent brief. failed to count release agent")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PackageReleaseAgentListBriefResp)
+		resp.ConvertReleasesFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent brief, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.daoReleaseAgent.ListReleaseAgent(rCtx, page, cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent brief")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleaseAgentListBriefResp)
+	resp.ConvertReleasesFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
 // DistinctReleaseAgent distinct agent releases.
 func (h *handler) DistinctReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseAgentDistinctReq)
@@ -99,7 +145,6 @@ func (h *handler) DistinctReleaseAgent(rCtx restserver.IContext) (interface{}, e
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to distinct agent release, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
-
 
 	distinctField := types.ReleaseDistinctField{
 		OSType:  req.GetDistinctField().GetOsType(),

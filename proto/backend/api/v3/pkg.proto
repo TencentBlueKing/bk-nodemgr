@@ -55,6 +55,32 @@ message PackageReleaseAgentListResp {
   Data data = 5;
 }
 
+// PackageReleaseAgentListBriefReq describes the HTTP request body when list
+// agent release brief.
+message PackageReleaseAgentListBriefReq {
+  Page page = 1;
+  int64 generation = 2;
+  bool only_count = 3;
+
+  PackageReleaseExactConditions exact_include_conditions = 4;
+}
+
+// PackageReleaseAgentListBriefResp describes the HTTP response body when list
+// agent release brief.
+message PackageReleaseAgentListBriefResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleaseAgentBrief items = 2;
+  }
+  Data data = 5;
+}
+
 // PackageReleaseAgentDistinctReq describes the HTTP request body when distinct
 // agent release.
 message PackageReleaseAgentDistinctReq {
