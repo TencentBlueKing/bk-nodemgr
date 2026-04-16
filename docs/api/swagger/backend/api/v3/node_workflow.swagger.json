@@ -907,6 +907,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request."
@@ -964,6 +970,12 @@
         },
         "status": {
           "type": "string"
+        },
+        "node_role": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "NodeWorkflowInfo describes the node workflow information."
