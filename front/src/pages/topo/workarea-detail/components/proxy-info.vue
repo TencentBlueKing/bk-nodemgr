@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -142,7 +142,7 @@ import ReinstallProxy from '@/pages/topo/install-proxy/reinstall-proxy.vue';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
 
-defineProps({
+const props = defineProps({
   active: {
     type: Number,
     default: null,
