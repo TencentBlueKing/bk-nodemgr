@@ -11,6 +11,7 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -21,6 +22,122 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type mockResolverProvider struct {
+	listInstanceByPolicyResult *ListInstanceData
+	listInstanceByPolicyErr    error
+	lastListInstanceByPolicy   *Request[ListInstanceByPolicyFilter]
+}
+
+func (m *mockResolverProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
+	return nil, nil
+}
+
+func (m *mockResolverProvider) ListAttrValue(_ contextx.IContext, _ *Request[ListAttrValueFilter]) (*ListAttrValueData, error) {
+	return nil, nil
+}
+
+func (m *mockResolverProvider) ListInstance(_ contextx.IContext, _ *Request[ListInstanceFilter]) (*ListInstanceData, error) {
+	return nil, nil
+}
+
+func (m *mockResolverProvider) FetchInstanceInfo(_ contextx.IContext, _ *Request[FetchInstanceFilter]) (*FetchInstanceInfoData, error) {
+	return nil, nil
+}
+
+func (m *mockResolverProvider) ListInstanceByPolicy(_ contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
+	m.lastListInstanceByPolicy = req
+	return m.listInstanceByPolicyResult, m.listInstanceByPolicyErr
+}
+
+func (m *mockResolverProvider) SearchInstance(_ contextx.IContext, _ *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
+	return nil, nil
+}
+
+func (m *mockResolverProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
+	return nil, nil
+}
+
+func (m *mockResolverProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
+	return nil, nil
+}
+
+func TestResolver_ListInstancesByPolicy(t *testing.T) {
+	tests := []struct {
+		name          string
+		resourceType  string
+		filter        map[string]interface{}
+		page          types.Page
+		provider      *mockResolverProvider
+		register      bool
+		wantErr       bool
+		wantErrSubstr string
+	}{
+		{
+			name:         "provider not found",
+			resourceType: "unknown",
+			filter: map[string]interface{}{
+				"expression": map[string]interface{}{"op": "any", "value": []interface{}{}},
+			},
+			page:          types.Page{Offset: 1, Limit: 2},
+			wantErr:       true,
+			wantErrSubstr: "resource type unknown not supported",
+		},
+		{
+			name:         "invalid filter map",
+			resourceType: ResourceTypePackage,
+			filter: map[string]interface{}{
+				"expression": "invalid",
+			},
+			page:          types.Page{Offset: 3, Limit: 4},
+			provider:      &mockResolverProvider{},
+			register:      true,
+			wantErr:       true,
+			wantErrSubstr: "failed to parse ListInstanceByPolicyFilter",
+		},
+		{
+			name:         "delegate to provider",
+			resourceType: ResourceTypePackage,
+			filter: map[string]interface{}{
+				"expression": map[string]interface{}{"op": "any", "value": []interface{}{}},
+			},
+			page: types.Page{Offset: 5, Limit: 6},
+			provider: &mockResolverProvider{
+				listInstanceByPolicyResult: &ListInstanceData{
+					Count:   1,
+					Results: []ResourceInstance{{ID: "plugin-a", DisplayName: "plugin-a"}},
+				},
+			},
+			register: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := NewHandler()
+			if tt.register {
+				handler.RegisterProvider(tt.resourceType, tt.provider)
+			}
+
+			result, err := handler.ListInstancesByPolicy(nil, tt.resourceType, tt.filter, tt.page)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErrSubstr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, tt.provider.listInstanceByPolicyResult, result)
+			require.NotNil(t, tt.provider.lastListInstanceByPolicy)
+			assert.Equal(t, tt.page, tt.provider.lastListInstanceByPolicy.Page)
+			assert.Equal(t, ListInstanceByPolicyFilter{
+				Expression: map[string]interface{}{"op": "any", "value": []interface{}{}},
+			}, tt.provider.lastListInstanceByPolicy.Filter)
+		})
+	}
+}
 
 // TestAttributeValueID_UnmarshalJSON tests AttributeValueID JSON deserialization.
 // According to IAM list_attr_value API, attribute value IDs support string/int/bool types.
@@ -589,7 +706,7 @@ type mockPackageProvider struct {
 
 func newMockPackageProvider(mock *mockPluginStorage) *mockPackageProvider {
 	return &mockPackageProvider{
-		PackageProvider: &PackageProvider{storage: nil},
+		PackageProvider: &PackageProvider{storage: mock},
 		mock:            mock,
 	}
 }
@@ -1048,6 +1165,69 @@ func TestPackageProvider_ListInstanceByPolicy(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.GreaterOrEqual(t, len(instances), tt.wantMinInstanceCount)
+		})
+	}
+}
+
+func TestPackageProvider_ListInstanceByPolicy_FilterByID(t *testing.T) {
+	mock := &mockPluginStorage{
+		distinctPluginNames:        []string{"plugin-a", "plugin-b"},
+		distinctPluginBinToolNames: []string{"bintool-a"},
+	}
+	provider := newMockPackageProvider(mock)
+
+	tests := []struct {
+		name    string
+		filter  map[string]interface{}
+		wantIDs []string
+	}{
+		{
+			name: "eq package id",
+			filter: map[string]interface{}{
+				"op":    "eq",
+				"field": "package.id",
+				"value": "plugin-a",
+			},
+			wantIDs: []string{"plugin-a"},
+		},
+		{
+			name: "in package id",
+			filter: map[string]interface{}{
+				"op":    "in",
+				"field": "package.id",
+				"value": []interface{}{"plugin-b", string(types.ReleaseTypeAgent)},
+			},
+			wantIDs: []string{string(types.ReleaseTypeAgent), "plugin-b"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			instances, err := provider.listInstancesForPolicy(contextx.New(context.Background()))
+			require.NoError(t, err)
+
+			result, err := evalExpressionFilter(tt.filter, ResourceTypePackage, instances, types.UnlimitedPage())
+			require.NoError(t, err)
+
+			result2, err := provider.ListInstanceByPolicy(contextx.New(context.Background()), &Request[ListInstanceByPolicyFilter]{
+				Filter: ListInstanceByPolicyFilter{Expression: tt.filter},
+				Page:   types.UnlimitedPage(),
+			})
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.NotNil(t, result2)
+
+			gotIDs := make([]string, 0, len(result.Results))
+			for _, instance := range result.Results {
+				gotIDs = append(gotIDs, instance.ID)
+			}
+			assert.Equal(t, tt.wantIDs, gotIDs)
+
+			gotProviderIDs := make([]string, 0, len(result2.Results))
+			for _, instance := range result2.Results {
+				gotProviderIDs = append(gotProviderIDs, instance.ID)
+			}
+			assert.Equal(t, tt.wantIDs, gotProviderIDs)
 		})
 	}
 }

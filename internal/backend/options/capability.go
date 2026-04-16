@@ -13,6 +13,7 @@ package options
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
@@ -105,6 +106,9 @@ type Capability struct {
 
 	// Authorizer is the IAM authorization handler for permission checks.
 	Authorizer auth.IAuthorizer
+
+	// IAMCallbackHandler is the unified handler for IAM resource callbacks.
+	IAMCallbackHandler provider.IDispatcher
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

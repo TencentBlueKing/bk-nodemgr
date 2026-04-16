@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
@@ -306,6 +307,9 @@ func (svc *Service) initialCapability() error {
 	// initial authorizer.
 	svc.Cap.Authorizer = svc.newAuthorizer()
 
+	// initial IAM callback handler.
+	svc.Cap.IAMCallbackHandler = svc.newIAMCallbackHandler()
+
 	return nil
 }
 
@@ -426,6 +430,29 @@ func (svc *Service) newAuthorizer() auth.IAuthorizer {
 	}
 
 	return auth.NewIAMV3Authorizer(svc.conf.IAMV3.SystemID, svc.Cap.IAMV3Handler)
+}
+
+// newIAMCallbackHandler creates a unified IAM callback handler with all providers registered.
+func (svc *Service) newIAMCallbackHandler() authProvider.IDispatcher {
+	handler := authProvider.NewHandler()
+
+	// Register NetworkArea provider
+	networkAreaProvider := authProvider.NewNetworkAreaProvider(svc.Cap.StorageTopo)
+	handler.RegisterProvider(authProvider.ResourceTypeNetworkArea, networkAreaProvider)
+
+	// Register NetworkUnit provider
+	networkUnitProvider := authProvider.NewNetworkUnitProvider(svc.Cap.StorageTopo)
+	handler.RegisterProvider(authProvider.ResourceTypeNetworkUnit, networkUnitProvider)
+
+	// Register PackageType provider
+	packageTypeProvider := authProvider.NewPackageTypeProvider()
+	handler.RegisterProvider(authProvider.ResourceTypePackageType, packageTypeProvider)
+
+	// Register Package provider
+	packageProvider := authProvider.NewPackageProvider(svc.Cap.StorageRelease)
+	handler.RegisterProvider(authProvider.ResourceTypePackage, packageProvider)
+
+	return handler
 }
 
 // newIAMV3Handler creates a new IAM v3 handler.

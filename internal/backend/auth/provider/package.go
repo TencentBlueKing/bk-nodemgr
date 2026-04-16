@@ -15,7 +15,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -30,16 +29,90 @@ const (
 // ResourceTypePackage is the IAM resource type for package.
 const ResourceTypePackage = "package"
 
+type packageStorage interface {
+	DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
+	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
+	DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
+	ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+		[]*types.ReleasePluginBinTool, int64, error)
+}
+
 // PackageProvider implements resource.Provider interface for package resources.
 type PackageProvider struct {
-	storage release.IStorage
+	storage packageStorage
 }
 
 // NewPackageProvider creates a new PackageProvider.
-func NewPackageProvider(storage release.IStorage) *PackageProvider {
+func NewPackageProvider(storage packageStorage) *PackageProvider {
 	return &PackageProvider{
 		storage: storage,
 	}
+}
+
+func (p *PackageProvider) listInstancesForPolicy(ctx contextx.IContext) ([]InstanceForEval, error) {
+	instances := make([]InstanceForEval, 0)
+
+	// Fixed types: agent, proxy, cert, bintool
+	fixedTypes := []struct {
+		releaseType types.ReleaseType
+		id          string
+		displayName string
+	}{
+		{types.ReleaseTypeAgent, string(types.ReleaseTypeAgent), string(types.ReleaseTypeAgent)},
+		{types.ReleaseTypeProxy, string(types.ReleaseTypeProxy), string(types.ReleaseTypeProxy)},
+		{types.ReleaseTypeCert, string(types.ReleaseTypeCert), string(types.ReleaseTypeCert)},
+		{types.ReleaseTypeBinTool, string(types.ReleaseTypeBinTool), string(types.ReleaseTypeBinTool)},
+	}
+
+	for _, ft := range fixedTypes {
+		instances = append(instances, InstanceForEval{
+			Instance: ResourceInstance{
+				ID:          ft.id,
+				DisplayName: ft.displayName,
+			},
+			Attributes: map[string]interface{}{
+				"id": ft.id,
+			},
+		})
+	}
+
+	pluginBinToolNames, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
+	if err != nil {
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
+		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
+	}
+
+	for _, name := range pluginBinToolNames {
+		instances = append(instances, InstanceForEval{
+			Instance: ResourceInstance{
+				ID:          name,
+				DisplayName: name,
+			},
+			Attributes: map[string]interface{}{
+				"id": name,
+			},
+		})
+	}
+
+	pluginNames, err := p.storage.DistinctNameReleasePlugin(ctx)
+	if err != nil {
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
+		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
+	}
+
+	for _, name := range pluginNames {
+		instances = append(instances, InstanceForEval{
+			Instance: ResourceInstance{
+				ID:          name,
+				DisplayName: name,
+			},
+			Attributes: map[string]interface{}{
+				"id": name,
+			},
+		})
+	}
+
+	return instances, nil
 }
 
 // distinctNamesWithPagination gets distinct names, sorts them, and applies pagination.
@@ -329,62 +402,9 @@ func (p *PackageProvider) addFixedTypePackages(nameSet map[string]bool, addedSet
 
 // ListInstanceByPolicy lists package instances filtered by IAM policy expression.
 func (p *PackageProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
-	instances := make([]InstanceForEval, 0)
-
-	// Fixed types: agent, proxy, cert, bintool
-	fixedTypes := []struct {
-		releaseType types.ReleaseType
-		id          string
-		displayName string
-	}{
-		{types.ReleaseTypeAgent, string(types.ReleaseTypeAgent), string(types.ReleaseTypeAgent)},
-		{types.ReleaseTypeProxy, string(types.ReleaseTypeProxy), string(types.ReleaseTypeProxy)},
-		{types.ReleaseTypeCert, string(types.ReleaseTypeCert), string(types.ReleaseTypeCert)},
-		{types.ReleaseTypeBinTool, string(types.ReleaseTypeBinTool), string(types.ReleaseTypeBinTool)},
-	}
-
-	for _, ft := range fixedTypes {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          ft.id,
-				DisplayName: ft.displayName,
-			},
-			Attributes: map[string]interface{}{},
-		})
-	}
-
-	// Plugin bintool releases - use DistinctName
-	pluginBinToolNames, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
+	instances, err := p.listInstancesForPolicy(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
-		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
-	}
-
-	for _, name := range pluginBinToolNames {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          name,
-				DisplayName: name,
-			},
-			Attributes: map[string]interface{}{},
-		})
-	}
-
-	// Plugin releases - use DistinctName
-	pluginNames, err := p.storage.DistinctNameReleasePlugin(ctx)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
-		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
-	}
-
-	for _, name := range pluginNames {
-		instances = append(instances, InstanceForEval{
-			Instance: ResourceInstance{
-				ID:          name,
-				DisplayName: name,
-			},
-			Attributes: map[string]interface{}{},
-		})
+		return nil, err
 	}
 
 	// Evaluate expression filter and apply pagination

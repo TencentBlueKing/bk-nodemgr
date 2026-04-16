@@ -14,9 +14,11 @@ package v3
 import (
 	"net/http"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
+	authProvider "github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/gin-gonic/gin"
@@ -26,7 +28,6 @@ import (
 type handler struct {
 	rg         *gin.RouterGroup
 	capability *options.Capability
-	dispatcher provider.Dispatcher
 }
 
 // newHandler creates a new handler for IAM v3 routes.
@@ -41,25 +42,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 // Load registers the IAM v3 resource callback routes.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
-
-	// Create Dispatcher for IAM resource callbacks
-	h.dispatcher = provider.NewDispatcher()
-
-	// Register NetworkArea provider
-	networkAreaProvider := provider.NewNetworkAreaProvider(capability.StorageTopo)
-	h.dispatcher.RegisterProvider(provider.ResourceTypeNetworkArea, networkAreaProvider)
-
-	// Register NetworkUnit provider
-	networkUnitProvider := provider.NewNetworkUnitProvider(capability.StorageTopo)
-	h.dispatcher.RegisterProvider(provider.ResourceTypeNetworkUnit, networkUnitProvider)
-
-	// Register PackageType provider
-	packageTypeProvider := provider.NewPackageTypeProvider()
-	h.dispatcher.RegisterProvider(provider.ResourceTypePackageType, packageTypeProvider)
-
-	// Register Package provider
-	packageProvider := provider.NewPackageProvider(capability.StorageRelease)
-	h.dispatcher.RegisterProvider(provider.ResourceTypePackage, packageProvider)
 
 	// Apply Basic Auth middleware to IAM routes
 	h.rg.Use(h.basicAuthMiddleware())
@@ -110,5 +92,38 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 
 // handleResourceCallback handles IAM resource callback requests.
 func (h *handler) handleResourceCallback(rCtx restserver.IContext) (interface{}, error) {
-	return h.dispatcher.Dispatch(rCtx)
+	// Bind request body to proto message
+	req := new(protoBackend.IAMResourceCallbackReq)
+	if err := rCtx.GContext().ShouldBindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// Extract filter as map
+	var filterMap map[string]interface{}
+	if req.GetFilter() != nil {
+		filterMap = req.GetFilter().AsMap()
+	}
+
+	// Convert and validate page parameters
+	page, err := protoBackend.ConvIAMCallbackPageToTypes(req.GetPage())
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// Get context
+	ctx := contextx.FromContext(rCtx)
+
+	// Dispatch to handler
+	result, dispatchErr := h.capability.IAMCallbackHandler.DispatchMethod(
+		ctx,
+		req.GetType(),
+		authProvider.RequestMethod(req.GetMethod()),
+		filterMap,
+		page,
+	)
+	if dispatchErr != nil {
+		return nil, resterrf.ErrWrap(resterrf.Unknown, dispatchErr)
+	}
+
+	return result, nil
 }
