@@ -83,6 +83,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		item.BkBizId = workflow.BizIDs
 		item.BkNetworkareaId = workflow.NetworkAreaIDs
 		item.BkNetworkunitId = workflow.NetworkUnitIDs
+		item.NodeRole = types.NodeRoleListToStringList(workflow.NodeRoles)
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.TriggerId = workflow.TriggerID
@@ -118,6 +119,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsToTypes() ([]*types.NodeWorkf
 			BizIDs:         item.GetBkBizId(),
 			NetworkAreaIDs: item.GetBkNetworkareaId(),
 			NetworkUnitIDs: item.GetBkNetworkunitId(),
+			NodeRoles:      types.StringListToNodeRoleList(item.GetNodeRole()),
 			Operator:       item.GetOperator(),
 			OperateTime:    time.UnixMilli(item.GetOperateTime()),
 			FinishTime:     time.UnixMilli(item.GetFinishTime()),
@@ -863,6 +865,7 @@ func convertNodeWorkflowConditionsToTypes(
 			Operator:      exactCond.GetOperator(),
 			HostInnerIP:   exactCond.GetBkHostInnerip(),
 			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
+			NodeRole:      exactCond.GetNodeRole(),
 		}
 	}
 
@@ -912,6 +915,7 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 			Operator:        condition.ExactInclude.Operator,
 			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
 			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
+			NodeRole:        condition.ExactInclude.NodeRole,
 		}
 	}
 
