@@ -831,6 +831,15 @@ service Package {
     };
   }
 
+  // ListReleaseAgentBrief lists agent release briefs.
+  rpc ListReleaseAgentBrief(PackageReleaseAgentListBriefReq)
+      returns (PackageReleaseAgentListBriefResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/agent/list/brief"
+      body : "*"
+    };
+  }
+
   // DistinctReleaseAgent distincts agent releases.
   rpc DistinctReleaseAgent(PackageReleaseAgentDistinctReq)
       returns (PackageReleaseAgentDistinctResp) {
@@ -903,6 +912,15 @@ service Package {
     };
   }
 
+  // ListReleaseProxyBrief lists proxy release briefs.
+  rpc ListReleaseProxyBrief(PackageReleaseProxyListBriefReq)
+      returns (PackageReleaseProxyListBriefResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/list/brief"
+      body : "*"
+    };
+  }
+
   // DistinctReleaseProxy distincts proxy releases.
   rpc DistinctReleaseProxy(PackageReleaseProxyDistinctReq)
       returns (PackageReleaseProxyDistinctResp) {
@@ -971,6 +989,15 @@ service Package {
       returns (PackageReleasePluginListResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/plugin/list"
+      body : "*"
+    };
+  }
+
+  // ListReleasePluginBrief lists plugin release briefs.
+  rpc ListReleasePluginBrief(PackageReleasePluginListBriefReq)
+      returns (PackageReleasePluginListBriefResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/list/brief"
       body : "*"
     };
   }

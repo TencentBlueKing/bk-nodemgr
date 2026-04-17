@@ -288,6 +288,40 @@
         ]
       }
     },
+    "/api/v3/package/release/agent/list/brief": {
+      "post": {
+        "summary": "ListReleaseAgentBrief lists agent release briefs.",
+        "operationId": "Package_ListReleaseAgentBrief",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentListBriefResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseAgentListBriefReq describes the HTTP request body when list\nagent release brief.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentListBriefReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/agent/set_as_default": {
       "post": {
         "summary": "SetAsDefaultReleaseAgent sets agent release as default.",
@@ -696,6 +730,40 @@
         ]
       }
     },
+    "/api/v3/package/release/plugin/list/brief": {
+      "post": {
+        "summary": "ListReleasePluginBrief lists plugin release briefs.",
+        "operationId": "Package_ListReleasePluginBrief",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginListBriefResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginListBriefReq describes the HTTP request body when list\nplugin release brief.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginListBriefReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/plugin/set_as_default": {
       "post": {
         "summary": "SetAsDefaultReleasePlugin sets plugin release as default.",
@@ -994,6 +1062,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseProxyListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/proxy/list/brief": {
+      "post": {
+        "summary": "ListReleaseProxyBrief lists proxy release briefs.",
+        "operationId": "Package_ListReleaseProxyBrief",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyListBriefResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseProxyListBriefReq describes the HTTP request body when list\nproxy release brief.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyListBriefReq"
             }
           }
         ],
@@ -1667,6 +1769,66 @@
     },
     "v3PackageReleaseAgentEnableRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseAgentListBriefReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleaseAgentListBriefReq describes the HTTP request body when list\nagent release brief."
+    },
+    "v3PackageReleaseAgentListBriefResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseAgentListBriefRespData"
+        }
+      },
+      "description": "PackageReleaseAgentListBriefResp describes the HTTP response body when list\nagent release brief."
+    },
+    "v3PackageReleaseAgentListBriefRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseAgentBrief"
+          }
+        }
+      }
     },
     "v3PackageReleaseAgentListReq": {
       "type": "object",
@@ -2409,6 +2571,66 @@
         }
       }
     },
+    "v3PackageReleasePluginListBriefReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleasePluginListBriefReq describes the HTTP request body when list\nplugin release brief."
+    },
+    "v3PackageReleasePluginListBriefResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginListBriefRespData"
+        }
+      },
+      "description": "PackageReleasePluginListBriefResp describes the HTTP response body when list\nplugin release brief."
+    },
+    "v3PackageReleasePluginListBriefRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleasePlugin"
+          }
+        }
+      }
+    },
     "v3PackageReleasePluginListReq": {
       "type": "object",
       "properties": {
@@ -2745,6 +2967,66 @@
     "v3PackageReleaseProxyEnableRespData": {
       "type": "object"
     },
+    "v3PackageReleaseProxyListBriefReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleaseProxyListBriefReq describes the HTTP request body when list\nproxy release brief."
+    },
+    "v3PackageReleaseProxyListBriefResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseProxyListBriefRespData"
+        }
+      },
+      "description": "PackageReleaseProxyListBriefResp describes the HTTP response body when list\nproxy release brief."
+    },
+    "v3PackageReleaseProxyListBriefRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseProxy"
+          }
+        }
+      }
+    },
     "v3PackageReleaseProxyListReq": {
       "type": "object",
       "properties": {
@@ -3034,6 +3316,31 @@
         }
       },
       "description": "ReleaseAgent describes the release agent."
+    },
+    "v3ReleaseAgentBrief": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "as_default": {
+          "type": "boolean"
+        }
+      },
+      "description": "ReleaseAgentBrief describes the brief release agent (only core fields for\nlist display)."
     },
     "v3ReleaseBinTool": {
       "type": "object",

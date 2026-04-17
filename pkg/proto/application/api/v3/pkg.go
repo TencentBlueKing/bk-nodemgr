@@ -797,6 +797,108 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsToTypes() (int64, []
 }
 
 // Validate check body.
+func (x *PackageReleasePluginListBriefReq) Validate() error {
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginListBriefReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *PackageReleasePluginListBriefReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
+}
+
+// ConvertExactIncludeConditionsToTypes convert conditions to types.
+func (x *PackageReleasePluginListBriefReq) ConvertExactIncludeConditionsToTypes() *types.ReleaseExactFields {
+	return convertReleaseExactConditionsToTypes(x.GetExactIncludeConditions())
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *PackageReleasePluginListBriefReq) ConvertConditionsFromTypes(condition *types.ReleaseCondition) error {
+	exactCond, err := convertReleaseConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+
+	return nil
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PackageReleasePluginListBriefReq) ConvertConditionsToTypes() *types.ReleaseCondition {
+	return convertReleaseConditionsToTypes(x.GetExactIncludeConditions())
+}
+
+// ConvertReleasePluginsFromTypes convert releases from types.
+func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsFromTypes(total int64, releasePlugins []*types.ReleasePlugin) {
+	items := make([]*ReleasePlugin, len(releasePlugins))
+	for idx, release := range releasePlugins {
+		item := newEmptyReleasePlugin()
+		*item.Release.Name = release.Name
+		*item.Release.Generation = int64(release.Generation)
+		*item.Release.ReleaseType = string(release.Type)
+		*item.Release.OsType = string(release.Platform.OS)
+		*item.Release.CpuArch = string(release.Platform.Arch)
+		*item.Release.Version = release.Version
+		*item.Release.FileName = release.FileName
+		item.Release.Labels = release.Labels
+		*item.Release.Enabled = release.Enabled
+		*item.Release.AsDefault = release.AsDefault
+		*item.Release.Md5 = release.MD5
+		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
+		*item.Release.Operator = release.Operator
+		items[idx] = item
+	}
+
+	x.Data = &PackageReleasePluginListBriefResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+// ConvertReleasePluginsToTypes convert releases to types.
+func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsToTypes() (int64, []*types.ReleasePlugin) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.ReleasePlugin, len(items))
+	for idx, item := range items {
+		releasePlugin := &types.ReleasePlugin{
+			Release: types.Release{
+				Name:       item.GetRelease().GetName(),
+				Generation: types.Generation(item.GetRelease().GetGeneration()),
+				Type:       types.ReleaseType(item.GetRelease().GetReleaseType()),
+				Version:    item.GetRelease().GetVersion(),
+				Platform: platfmt.Platform{
+					OS:   criteria.OSType(item.GetRelease().GetOsType()),
+					Arch: criteria.CPUArch(item.GetRelease().GetCpuArch()),
+				},
+				Labels:    item.GetRelease().GetLabels(),
+				FileName:  item.GetRelease().GetFileName(),
+				MD5:       item.GetRelease().GetMd5(),
+				Enabled:   item.GetRelease().GetEnabled(),
+				AsDefault: item.GetRelease().GetAsDefault(),
+				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
+				Operator:  item.GetRelease().GetOperator(),
+			},
+		}
+		result[idx] = releasePlugin
+	}
+
+	return data.GetTotal(), result
+}
+
+// Validate check body.
 func (x *PackageReleasePluginEnableReq) Validate() error {
 	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
 		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())

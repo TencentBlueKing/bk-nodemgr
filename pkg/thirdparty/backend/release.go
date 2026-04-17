@@ -34,6 +34,10 @@ type IHandlerRelease interface {
 
 // IHandlerReleaseAgent defines the backend Handler for release agent.
 type IHandlerReleaseAgent interface {
+	// ListReleaseAgentBrief lists agent release briefs by page and conditions.
+	ListReleaseAgentBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.ReleaseAgent, int64, error)
+
 	// ListReleaseAgent lists agent releases by page and conditions.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param gen the generation info.
@@ -100,6 +104,10 @@ type IHandlerReleaseAgent interface {
 
 // IHandlerReleaseProxy defines the backend Handler for release proxy.
 type IHandlerReleaseProxy interface {
+	// ListReleaseProxyBrief lists proxy release briefs by page and conditions.
+	ListReleaseProxyBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.ReleaseProxy, int64, error)
+
 	// ListReleaseProxy lists proxy releases by page and conditions.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param gen the generation info.
@@ -166,6 +174,10 @@ type IHandlerReleaseProxy interface {
 
 // IHandlerReleasePlugin defines the backend Handler for release plugin.
 type IHandlerReleasePlugin interface {
+	// ListReleasePluginBrief lists plugin release briefs by page and conditions.
+	ListReleasePluginBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.ReleasePlugin, int64, error)
+
 	// ListReleasePlugin lists plugin releases by page and conditions.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param gen the generation info.
@@ -287,6 +299,41 @@ func (h *Handler) ListReleaseAgent(nCtx contextx.IContext, gen types.Generation,
 	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleaseAgent, error) {
 		req.Page = convertPage(page)
 		resp, err := h.cli.listReleaseAgent(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, releases = resp.ConvertReleasesToTypes()
+
+		return releases, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result.Items, total, nil
+}
+
+// ListReleaseAgentBrief lists agent release briefs by page and conditions.
+func (h *Handler) ListReleaseAgentBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+	[]*types.ReleaseAgent, int64, error) {
+
+	req := &protoBackend.PackageReleaseAgentListBriefReq{Generation: int64(gen)}
+
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	var (
+		total    int64
+		releases []*types.ReleaseAgent
+	)
+	executor := pageexecutor.NewPageExecutor[*types.ReleaseAgent](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleaseAgent, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listReleaseAgentBrief(nCtx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -456,6 +503,41 @@ func (h *Handler) ListReleaseProxy(nCtx contextx.IContext, gen types.Generation,
 	return result.Items, total, nil
 }
 
+// ListReleaseProxyBrief lists proxy release briefs by page and conditions.
+func (h *Handler) ListReleaseProxyBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+	[]*types.ReleaseProxy, int64, error) {
+
+	req := &protoBackend.PackageReleaseProxyListBriefReq{Generation: int64(gen)}
+
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	var (
+		total    int64
+		releases []*types.ReleaseProxy
+	)
+	executor := pageexecutor.NewPageExecutor[*types.ReleaseProxy](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleaseProxy, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listReleaseProxyBrief(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, releases = resp.ConvertReleasesToTypes()
+
+		return releases, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result.Items, total, nil
+}
+
 // CountReleaseProxy counts proxy releases by conditions.
 func (h *Handler) CountReleaseProxy(nCtx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error) {
 	req := &protoBackend.PackageReleaseProxyListReq{
@@ -591,6 +673,41 @@ func (h *Handler) ListReleasePlugin(nCtx contextx.IContext, gen types.Generation
 	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleasePlugin, error) {
 		req.Page = convertPage(page)
 		resp, err := h.cli.listReleasePlugin(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, releases = resp.ConvertReleasePluginsToTypes()
+
+		return releases, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result.Items, total, nil
+}
+
+// ListReleasePluginBrief lists plugin release briefs by page and conditions.
+func (h *Handler) ListReleasePluginBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+	[]*types.ReleasePlugin, int64, error) {
+
+	req := &protoBackend.PackageReleasePluginListBriefReq{Generation: int64(gen)}
+
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	var (
+		total    int64
+		releases []*types.ReleasePlugin
+	)
+	executor := pageexecutor.NewPageExecutor[*types.ReleasePlugin](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleasePlugin, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listReleasePluginBrief(nCtx, req)
 		if err != nil {
 			return nil, err
 		}

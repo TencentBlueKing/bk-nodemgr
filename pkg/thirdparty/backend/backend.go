@@ -1899,6 +1899,37 @@ func (c *cli) listReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageR
 	return resp, nil
 }
 
+func (c *cli) listReleaseAgentBrief(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentListBriefReq,
+) (*protoBackend.PackageReleaseAgentListBriefResp, error) {
+
+	resp := new(protoBackend.PackageReleaseAgentListBriefResp)
+
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/list/brief").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list agent release brief", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list agent release brief failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) distinctReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentDistinctReq) (
 	*protoBackend.PackageReleaseAgentDistinctResp, error) {
 
@@ -2108,6 +2139,37 @@ func (c *cli) listReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageR
 	return resp, nil
 }
 
+func (c *cli) listReleaseProxyBrief(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyListBriefReq,
+) (*protoBackend.PackageReleaseProxyListBriefResp, error) {
+
+	resp := new(protoBackend.PackageReleaseProxyListBriefResp)
+
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/proxy/list/brief").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list release proxy brief", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list release proxy brief failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) distinctReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyDistinctReq) (
 	*protoBackend.PackageReleaseProxyDistinctResp, error) {
 
@@ -2310,6 +2372,37 @@ func (c *cli) listReleasePlugin(ctx contextx.IContext, req *protoBackend.Package
 
 	if resp.GetData() == nil {
 		return nil, fmt.Errorf("list release proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listReleasePluginBrief(ctx contextx.IContext, req *protoBackend.PackageReleasePluginListBriefReq,
+) (*protoBackend.PackageReleasePluginListBriefResp, error) {
+
+	resp := new(protoBackend.PackageReleasePluginListBriefResp)
+
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin/list/brief").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list release plugin brief", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list release plugin brief failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

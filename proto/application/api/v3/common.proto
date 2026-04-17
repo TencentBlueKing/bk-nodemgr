@@ -238,6 +238,16 @@ message ReleaseAgent {
   optional string change_log_en = 2;
   optional string change_log_zh = 3;
 }
+
+message ReleaseAgentBrief {
+  optional int64 generation = 1;
+  optional string os_type = 2;
+  optional string cpu_arch = 3;
+  optional string version = 4;
+  optional bool enabled = 5;
+  optional bool as_default = 6;
+}
+
 message ReleaseProxy {
   Release release = 1;
   optional string change_log_en = 2;
