@@ -35,13 +35,14 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	areaIDs, unitIDs := collectDeploymentIDs(param.NodeDeployments)
+	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:       nCtx.TenantID(),
 		WorkflowID:     workflowID,
 		TriggerID:      triggerCtl.GetTriggerID(),
 		Type:           param.Type,
 		BizIDs:         param.BizIDs,
+		NodeRoles:      nodeRoles,
 		NetworkAreaIDs: areaIDs,
 		NetworkUnitIDs: unitIDs,
 		Operator:       param.Operator,
@@ -339,13 +340,14 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	areaIDs, unitIDs := collectDeploymentIDs(param.NodeDeployments)
+	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:       nCtx.TenantID(),
 		WorkflowID:     workflowID,
 		TriggerID:      triggerCtl.GetTriggerID(),
 		Type:           param.Type,
 		BizIDs:         param.BizIDs,
+		NodeRoles:      nodeRoles,
 		NetworkAreaIDs: areaIDs,
 		NetworkUnitIDs: unitIDs,
 		Operator:       param.Operator,
@@ -453,13 +455,14 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	areaIDs, unitIDs := collectDeploymentIDs(param.NodeDeployments)
+	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:       nCtx.TenantID(),
 		WorkflowID:     workflowID,
 		TriggerID:      triggerCtl.GetTriggerID(),
 		Type:           param.Type,
 		BizIDs:         param.BizIDs,
+		NodeRoles:      nodeRoles,
 		NetworkAreaIDs: areaIDs,
 		NetworkUnitIDs: unitIDs,
 		Operator:       param.Operator,
@@ -529,13 +532,14 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	areaIDs, unitIDs := collectDeploymentIDs(param.NodeDeployments)
+	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:       nCtx.TenantID(),
 		WorkflowID:     workflowID,
 		TriggerID:      triggerCtl.GetTriggerID(),
 		Type:           param.Type,
 		BizIDs:         param.BizIDs,
+		NodeRoles:      nodeRoles,
 		NetworkAreaIDs: areaIDs,
 		NetworkUnitIDs: unitIDs,
 		Operator:       param.Operator,
@@ -608,13 +612,14 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	areaIDs, unitIDs := collectDeploymentIDs(param.NodeDeployments)
+	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
 		TenantID:       nCtx.TenantID(),
 		WorkflowID:     workflowID,
 		TriggerID:      triggerCtl.GetTriggerID(),
 		Type:           param.Type,
 		BizIDs:         param.BizIDs,
+		NodeRoles:      nodeRoles,
 		NetworkAreaIDs: areaIDs,
 		NetworkUnitIDs: unitIDs,
 		Operator:       param.Operator,
@@ -724,8 +729,9 @@ func (mgr *Manager) getUninstallOperationDef(deploy *types.NodeDeployment, opera
 	})
 }
 
-func collectDeploymentIDs(deployments []*types.NodeDeployment) ([]int64, []int64) {
+func collectDeploymentIDs(deployments []*types.NodeDeployment) ([]int64, []int64, []types.NodeRole) {
 	var areaIDs, unitIDs []int64
+	var nodeRoles []types.NodeRole
 
 	for _, deploy := range deployments {
 		if deploy.Info == nil {
@@ -738,8 +744,9 @@ func collectDeploymentIDs(deployments []*types.NodeDeployment) ([]int64, []int64
 
 		if deploy.Info.Host.Dynamic != nil {
 			unitIDs = append(unitIDs, deploy.Info.Host.Dynamic.NetworkUnitID)
+			nodeRoles = append(nodeRoles, deploy.Info.Host.Dynamic.NodeRole)
 		}
 	}
 
-	return conv.SliceUnique(areaIDs), conv.SliceUnique(unitIDs)
+	return conv.SliceUnique(areaIDs), conv.SliceUnique(unitIDs), conv.SliceUnique(nodeRoles)
 }
