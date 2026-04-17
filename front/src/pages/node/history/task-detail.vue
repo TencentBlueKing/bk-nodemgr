@@ -541,14 +541,35 @@ const timeFormatter = (
   format = 'YYYY-MM-DD HH:mm:ss',
 ) => (val ? dayjs(val).format(format) : '--');
 
-// 精确返回到历史详情页面
+// 精确返回到历史列表页面，保留筛选条件
 const handleBackToHistory = () => {
-  router.push({
-    name: 'history',
-    query: {
-      active: route.query?.active,
-    },
-  });
+  const filters = nodeManageStore.consumeHistoryFilters();
+  if (filters) {
+    // 从 store 恢复的筛选状态重建 URL query
+    const query: Record<string, string> = { active: filters.active };
+    filters.searchSelectValue.forEach((item) => {
+      if (item.values?.length) {
+        query[`f_${item.id}`] = JSON.stringify(item.values);
+      }
+    });
+    if (filters.dateStart > 0 && filters.dateEnd > 0) {
+      query.date_start = String(filters.dateStart);
+      query.date_end = String(filters.dateEnd);
+    }
+    query.page = String(filters.page);
+    query.limit = String(filters.limit);
+    if (filters.hideAutoTask) {
+      query.hide_auto = '1';
+    }
+    router.push({ name: 'history', query });
+  } else {
+    router.push({
+      name: 'history',
+      query: {
+        active: route.query?.active as string || 'agent',
+      },
+    });
+  }
 };
 
 const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;

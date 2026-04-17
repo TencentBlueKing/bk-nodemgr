@@ -190,9 +190,9 @@ import {
 import { Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { type LocationQuery, useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
@@ -222,6 +222,103 @@ const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const tableData = ref<NodeWorkflowInfo[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
+
+// URL query 与筛选状态同步
+
+/** 将当前筛选状态序列化为 URL query */
+const serializeFiltersToQuery = (): LocationQuery => {
+  const query: LocationQuery = { active: active.value };
+
+  // searchSelectValue → 每个条件序列化为 query[key] = JSON 字符串
+  searchSelectValue.value.forEach((item) => {
+    if (item.values?.length) {
+      query[`f_${item.id}`] = JSON.stringify(item.values.map((v: any) => ({ id: v.id, name: v.name })));
+    }
+  });
+
+  // dateValue
+  if (dateValue.value?.length === 2) {
+    query.date_start = String(Math.floor(new Date(dateValue.value[0]).getTime() / 1000));
+    query.date_end = String(Math.floor(new Date(dateValue.value[1]).getTime() / 1000));
+  }
+
+  // pagination
+  query.page = String(pagination.current);
+  query.limit = String(pagination.limit);
+
+  // hideAutoTask
+  if (hideAutoTask.value) {
+    query.hide_auto = '1';
+  }
+
+  return query;
+};
+
+/** 从 URL query 恢复筛选状态 */
+const restoreFiltersFromQuery = (query: LocationQuery) => {
+  isRestoringFromUrl.value = true;
+
+  // active tab
+  if (query.active && typeof query.active === 'string') {
+    active.value = query.active;
+  }
+
+  // searchSelectValue
+  const filterItems: { id: string; name: string; values: any }[] = [];
+  Object.keys(query).forEach((key) => {
+    if (key.startsWith('f_')) {
+      const filterId = key.slice(2);
+      try {
+        const values = JSON.parse(query[key] as string);
+        if (Array.isArray(values) && values.length > 0) {
+          const searchItem = searchSelectData.value.find(d => d.id === filterId);
+          filterItems.push({
+            id: filterId,
+            name: searchItem?.name || filterId,
+            values,
+          });
+        }
+      } catch { /* ignore invalid JSON */ }
+    }
+  });
+  if (filterItems.length > 0) {
+    searchSelectValue.value = filterItems;
+    // 同步 filterOptionSource
+    Object.keys(filterOptionSource).forEach((key) => {
+      filterOptionSource[key].checked = [];
+    });
+    filterItems.forEach((item) => {
+      if (filterOptionSource[item.id as filterProp]) {
+        filterOptionSource[item.id as filterProp].checked = item.values.map((v: any) => v.id) as string[];
+      }
+    });
+  }
+
+  // dateValue
+  if (query.date_start && query.date_end) {
+    const start = Number(query.date_start) * 1000;
+    const end = Number(query.date_end) * 1000;
+    if (start > 0 && end > 0) {
+      dateValue.value = [start, end];
+    }
+  }
+
+  // pagination
+  if (query.page) {
+    pagination.current = Number(query.page) || 1;
+  }
+  if (query.limit) {
+    pagination.limit = Number(query.limit) || 50;
+  }
+
+  // hideAutoTask
+  hideAutoTask.value = query.hide_auto === '1';
+
+  // 下一 tick 解除标记
+  nextTick(() => {
+    isRestoringFromUrl.value = false;
+  });
+};
 
 // tab
 const active = ref('agent');
@@ -793,6 +890,22 @@ const debounceGetTaskList = debounce(() => {
 // 跳转详情
 const detailHandle = (row: NodeWorkflowInfo, status?: string) => {
   nodeManageStore.updateCurrentRowData(row);
+  // 保存当前筛选状态到 store，返回时恢复
+  nodeManageStore.saveHistoryFilters({
+    active: active.value,
+    searchSelectValue: searchSelectValue.value.map(item => ({
+      id: item.id,
+      name: item.name,
+      values: item.values?.map((v: any) => ({ id: v.id, name: v.name })) || [],
+    })),
+    dateStart: dateValue.value?.length === 2
+      ? Math.floor(new Date(dateValue.value[0]).getTime() / 1000) : 0,
+    dateEnd: dateValue.value?.length === 2
+      ? Math.floor(new Date(dateValue.value[1]).getTime() / 1000) : 0,
+    page: pagination.current,
+    limit: pagination.limit,
+    hideAutoTask: hideAutoTask.value,
+  });
   router.push({
     name: 'taskDetail',
     params: {
@@ -804,33 +917,31 @@ const detailHandle = (row: NodeWorkflowInfo, status?: string) => {
     },
   });
 };
+// 标记是否正在恢复筛选状态（首次加载或从详情返回时），此期间不写回 URL
+const isRestoringFromUrl = ref(false);
+
+// 首次加载时从 URL 恢复筛选状态
+if (!route.query.active) {
+  router.replace({ query: { ...route.query, active: 'agent' } });
+} else {
+  restoreFiltersFromQuery(route.query);
+  // 首次加载数据
+  getTaskList();
+  getWorkflowDistinct();
+}
+
+// 监听后续 URL 变化（如浏览器后退、菜单导航、Tab 切换 router.replace）
 watch(
   () => route.query,
   () => {
     const newActive = route.query.active as string || 'agent';
-    
-    // 如果 URL 中没有 active 参数，主动设置一个（首次进入页面时）
-    if (!route.query.active) {
-      router.replace({
-        query: {
-          ...route.query,
-          active: 'agent',
-        },
-      });
-      return; // 等待下一次 watch 触发
-    }
-    
-    // 仅当值真的不同时才更新，避免触发循环
     if (active.value !== newActive) {
       active.value = newActive;
     }
-    
-    // URL 变化时发起数据请求
     debounceGetTaskList.cancel();
     getTaskList();
     getWorkflowDistinct();
   },
-  { immediate: true },
 );
 
 watch(
@@ -839,16 +950,49 @@ watch(
     () => mainStore.selectedBusinessId,
   ],
   async () => {
+    // 筛选条件变化时同步到 URL
+    if (!isRestoringFromUrl.value && route.query.active) {
+      const newQuery = serializeFiltersToQuery();
+      const currentQueryStr = JSON.stringify(route.query);
+      const newQueryStr = JSON.stringify(newQuery);
+      if (currentQueryStr !== newQueryStr) {
+        router.replace({ query: newQuery });
+      }
+    }
     await debounceGetTaskList();
   },
-  { immediate: true, deep: true },
+  { deep: true },
 );
+
+// 日期、隐藏自动任务、分页变化时同步到 URL
+watch(
+  [() => dateValue.value, () => hideAutoTask.value, () => pagination.current, () => pagination.limit],
+  () => {
+    if (!isRestoringFromUrl.value && route.query.active) {
+      const newQuery = serializeFiltersToQuery();
+      const currentQueryStr = JSON.stringify(route.query);
+      const newQueryStr = JSON.stringify(newQuery);
+      if (currentQueryStr !== newQueryStr) {
+        router.replace({ query: newQuery });
+      }
+    }
+  },
+  { deep: true },
+);
+
 // 监听 Tab 切换，只负责更新 URL
 watch(
   () => active.value,
   (newActive) => {
+    if (isRestoringFromUrl.value) return;
     // 仅当 URL 不同时才更新，避免循环触发
     if (route.query.active !== newActive) {
+      // Tab 切换时移除任务类型筛选（不同 tab 的 type 值不同）
+      const idx = searchSelectValue.value.findIndex((item: any) => item.id === 'type');
+      if (idx > -1) {
+        searchSelectValue.value.splice(idx, 1);
+        filterOptionSource.type.checked = [];
+      }
       router.replace({
         query: {
           ...route.query,
@@ -861,9 +1005,10 @@ watch(
 watch(
   () => mainStore.selectedBusinessId,
   () => {
+    getTaskList();
     getWorkflowDistinct();
   },
-  { deep: true }, // 移除 immediate，避免首次加载时重复请求
+  { deep: true },
 );
 </script>
 <style lang="postcss" scoped>
