@@ -77,8 +77,8 @@ export const PAGE_AUTH_CONFIG: PageAuthItem[] = [
   { id: 'config_policy_history_view', action: 'config_policy_history_view', resourceType: 'biz', routes: ['strategyTaskHistory'] },
 
   // pkgManager — non-biz pages
-  { id: 'package_view', action: 'package_view', resourceType: 'package_type', routes: ['agentPackageMng', 'proxyPackageMng', 'certPackageMng', 'bintoolPackageMng', 'plugin_bintoolPackageMng', 'pluginPackageMng'] },
-  { id: 'package_history_view', action: 'package_history_view', resourceType: 'package_type', routes: ['operationRecords'] },
+  { id: 'package_view', action: 'package_view', resourceType: 'package', routes: ['agentPackageMng', 'proxyPackageMng', 'certPackageMng', 'bintoolPackageMng', 'plugin_bintoolPackageMng', 'pluginPackageMng'] },
+  { id: 'package_history_view', action: 'package_history_view', resourceType: 'package', routes: ['operationRecords'] },
 ];
 
 export function normalizeHistoryActive(active: unknown): HistoryActiveScope {
@@ -165,7 +165,9 @@ export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
     { action: 'config_policy_history_view', resource_type: 'biz' },
     { action: 'networkunit_view', resource_type: 'networkunit' },
   ],
-  // 包管理：package_type / package 权限
+  // 包管理：package_type（上传按钮按包类型） + package（其他操作） 权限
+  // package_type_upload 按 package_type 查询（根据路由确定是 agent/proxy/cert 等）
+  // package_view / package_manage / package_history_view 按 package 查询
   pkgManager: [
     { action: 'package_type_upload', resource_type: 'package_type' },
     { action: 'package_view', resource_type: 'package' },

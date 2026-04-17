@@ -166,6 +166,22 @@ import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
 import { getModuleAuthorizedItems, matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
+
+/** 包管理子路由名 → 包类型 id 映射（用于 authorized/verify 传入正确的资源实例 ID） */
+const ROUTE_TO_PKG_TYPE_ID: Record<string, string> = {
+  agentPackageMng: 'agent',
+  proxyPackageMng: 'proxy',
+  certPackageMng: 'cert',
+  bintoolPackageMng: 'bintool',
+  plugin_bintoolPackageMng: 'plugin_bintool',
+  pluginPackageMng: 'plugin',
+};
+
+/** 根据当前路由名获取包类型 id（仅包管理页面有效） */
+function getPkgTypeIdFromRoute(): string | undefined {
+  const name = typeof route.name === 'string' ? route.name : undefined;
+  return name ? ROUTE_TO_PKG_TYPE_ID[name] : undefined;
+}
 import { i18nReady } from '@/modules/i18n';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
@@ -254,17 +270,20 @@ const ensureCurrentRoutePermission = async () => {
     return;
   }
 
+  const pkgTypeId = (matched.resourceType === 'package_type' || matched.resourceType === 'package')
+    ? getPkgTypeIdFromRoute() : undefined;
+
   if (
     authStore.needRefresh
     || authStore.isDifferentBiz(bizScope)
-    || !authStore.hasPermissionCache(matched.id, bizScope)
-    || authStore.isPermissionCacheExpired(matched.id, bizScope)
+    || !authStore.hasPermissionCache(matched.id, bizScope, pkgTypeId)
+    || authStore.isPermissionCacheExpired(matched.id, bizScope, pkgTypeId)
   ) {
-    const verified = await authStore.batchVerify([matched], bizScope);
+    const verified = await authStore.batchVerify([matched], bizScope, pkgTypeId);
     if (!verified) return;
   }
 
-  if (!authStore.hasPermission(matched.id, bizScope)) {
+  if (!authStore.hasPermission(matched.id, bizScope, pkgTypeId)) {
     authStore.setDeniedActionIds([matched.id]);
     router.replace({ name: '403' });
   }

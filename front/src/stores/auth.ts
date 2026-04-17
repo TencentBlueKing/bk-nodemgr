@@ -91,7 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
       const data = (resp as any)?.data ?? resp;
       const now = Date.now();
       for (const item of authItems) {
-        const cacheKey = `${item.action}:${bizScope}`;
+        const cacheKey = `${item.action}:${bizScope}:${resourceId ?? ''}`;
         permissionMap[cacheKey] = true;
         permissionTimestampMap[cacheKey] = now;
       }
@@ -110,7 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
         const now = Date.now();
 
         for (const action of denied) {
-          const cacheKey = `${action}:${bizScope}`;
+          const cacheKey = `${action}:${bizScope}:${resourceId ?? ''}`;
           permissionMap[cacheKey] = false;
           permissionTimestampMap[cacheKey] = now;
         }
@@ -132,16 +132,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function hasPermission(actionId: string, bizScope?: string | number | Array<string | number>): boolean {
-    return permissionMap[`${actionId}:${normalizeBizScope(bizScope)}`] ?? true;
+  function hasPermission(actionId: string, bizScope?: string | number | Array<string | number>, resourceId?: string | number): boolean {
+    return permissionMap[`${actionId}:${normalizeBizScope(bizScope)}:${resourceId ?? ''}`] ?? true;
   }
 
-  function hasPermissionCache(actionId: string, bizScope?: string | number | Array<string | number>): boolean {
-    return Object.prototype.hasOwnProperty.call(permissionMap, `${actionId}:${normalizeBizScope(bizScope)}`);
+  function hasPermissionCache(actionId: string, bizScope?: string | number | Array<string | number>, resourceId?: string | number): boolean {
+    return Object.prototype.hasOwnProperty.call(permissionMap, `${actionId}:${normalizeBizScope(bizScope)}:${resourceId ?? ''}`);
   }
 
-  function isPermissionCacheExpired(actionId: string, bizScope?: string | number | Array<string | number>): boolean {
-    const cacheKey = `${actionId}:${normalizeBizScope(bizScope)}`;
+  function isPermissionCacheExpired(actionId: string, bizScope?: string | number | Array<string | number>, resourceId?: string | number): boolean {
+    const cacheKey = `${actionId}:${normalizeBizScope(bizScope)}:${resourceId ?? ''}`;
     if (!Object.prototype.hasOwnProperty.call(permissionTimestampMap, cacheKey)) {
       return true;
     }
