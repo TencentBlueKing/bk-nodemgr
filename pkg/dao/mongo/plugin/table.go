@@ -26,11 +26,12 @@ var _ base.IData = &Plugin{}
 // Plugin represents the table of plugin deployment.
 // Token should be the unique key.
 type Plugin struct {
-	TenantID string `json:"tenant_id" bson:"tenant_id"`
-	Name     string `json:"name" bson:"name"`
-	Group    string `json:"group" bson:"group"`
-	PkgName  string `json:"pkg_name" bson:"pkg_name"`
-	Memo     string `json:"memo" bson:"memo"`
+	TenantID      string  `json:"tenant_id" bson:"tenant_id"`
+	Name          string  `json:"name" bson:"name"`
+	Group         string  `json:"group" bson:"group"`
+	PkgName       string  `json:"pkg_name" bson:"pkg_name"`
+	Memo          string  `json:"memo" bson:"memo"`
+	VisibleBizIDs []int64 `json:"visible_biz_ids" bson:"visible_biz_ids"`
 }
 
 // UniqueFields unique fields of the table.

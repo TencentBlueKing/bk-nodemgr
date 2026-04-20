@@ -117,18 +117,6 @@ func (h *Handler) Create(nCtx contextx.IContext, plugin *types.Plugin) error {
 	return nil
 }
 
-func convPluginFromTypes(plugin *types.Plugin) *Plugin {
-	data := &Plugin{
-		TenantID: plugin.TenantID,
-		Name:     plugin.Name,
-		Group:    plugin.Group,
-		PkgName:  plugin.PkgName,
-		Memo:     plugin.Memo,
-	}
-
-	return data
-}
-
 // Count count host by conditions.
 func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -193,18 +181,6 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.Plugin, err
 	return convertPluginToTypes(data), nil
 }
 
-func convertPluginToTypes(data *Plugin) *types.Plugin {
-	plugin := &types.Plugin{
-		TenantID: data.TenantID,
-		Name:     data.Name,
-		Group:    data.Group,
-		PkgName:  data.PkgName,
-		Memo:     data.Memo,
-	}
-
-	return plugin
-}
-
 // UpdateMemo update plugin memo by name.
 func (h *Handler) UpdateMemo(nCtx contextx.IContext, pluginName string, memo string) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -231,13 +207,37 @@ func (h *Handler) UpsertMany(nCtx contextx.IContext, plugins ...*types.Plugin) e
 		return err
 	}
 
-	datas := conv.SliceToSlice(plugins, func(plugin *types.Plugin) *Plugin {
-		return convPluginFromTypes(plugin)
-	})
+	datas := conv.SliceToSlice(plugins, convPluginFromTypes)
 
 	if err := h.tenantDao(nCtx.TenantID()).upsertMany(nCtx, datas...); err != nil {
 		return fmt.Errorf("failed to upsert many plugins: %w", err)
 	}
 
 	return nil
+}
+
+func convertPluginToTypes(data *Plugin) *types.Plugin {
+	plugin := &types.Plugin{
+		TenantID:      data.TenantID,
+		Name:          data.Name,
+		Group:         data.Group,
+		PkgName:       data.PkgName,
+		Memo:          data.Memo,
+		VisibleBizIDs: data.VisibleBizIDs,
+	}
+
+	return plugin
+}
+
+func convPluginFromTypes(plugin *types.Plugin) *Plugin {
+	data := &Plugin{
+		TenantID:      plugin.TenantID,
+		Name:          plugin.Name,
+		Group:         plugin.Group,
+		PkgName:       plugin.PkgName,
+		Memo:          plugin.Memo,
+		VisibleBizIDs: plugin.VisibleBizIDs,
+	}
+
+	return data
 }

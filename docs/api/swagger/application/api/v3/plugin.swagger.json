@@ -405,6 +405,13 @@
         },
         "memo": {
           "type": "string"
+        },
+        "visible_biz_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },
@@ -513,6 +520,13 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "visible_biz_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       }
@@ -649,7 +663,8 @@
         "plugin_name": {
           "type": "string"
         }
-      }
+      },
+      "title": "PluginOperateBasicInfo describes the basic information of a plugin operation,\nwhich"
     },
     "v3PluginOperateFullInfo": {
       "type": "object",
@@ -673,7 +688,8 @@
         "custom_config_context": {
           "type": "object"
         }
-      }
+      },
+      "title": "PluginOperateFullInfo describes the full information of a plugin operation,\nwhich"
     },
     "v3PluginSetMemoReq": {
       "type": "object",

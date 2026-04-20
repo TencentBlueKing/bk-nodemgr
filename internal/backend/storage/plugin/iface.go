@@ -25,6 +25,8 @@ type IStorage interface {
 	IDaoPlugin
 	IDaoProcess
 	IDaoProcessConfig
+
+	IDomainPlugin
 }
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
@@ -170,4 +172,13 @@ type IDaoProcessConfig interface {
 
 	// DeleteProcessConfigs delete many process config record.
 	DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error
+}
+
+// IDomainPlugin defines the plugin domain interface.
+type IDomainPlugin interface {
+	// GetPluginVisibleBizIDs get plugin visible biz ids by plugin name.
+	GetPluginVisibleBizIDs(nCtx contextx.IContext, pluginName string) ([]int64, error)
+
+	// ListVisiblePluginByBizIDs list visible plugin by biz ids.
+	ListVisiblePluginByBizIDs(nCtx contextx.IContext, bizIDs []int64) ([]*types.Plugin, error)
 }

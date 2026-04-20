@@ -10,7 +10,10 @@
 
 package plugin
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
@@ -38,4 +41,31 @@ func WithName(pluginNames ...string) OptFn {
 // WithPkgName filters by plugin-pkg-name.
 func WithPkgName(pluginPkgNames ...string) OptFn {
 	return base.WithValues(FieldKeyPkgName, pluginPkgNames...)
+}
+
+// WithVisibleBizIDs filters by visible business IDs.
+func WithVisibleBizIDs(bizIDs ...int64) OptFn {
+	values := bson.A{
+		bson.D{
+			{Key: FieldKeyVisibleBizIDs, Value: []int64{}},
+		},
+		bson.D{
+			{Key: FieldKeyVisibleBizIDs, Value: bson.D{
+				{Key: "$exists", Value: false},
+			}},
+		},
+	}
+
+	if len(bizIDs) > 0 {
+		values = append(values, bson.D{
+			{Key: FieldKeyVisibleBizIDs, Value: bizIDs},
+		})
+	}
+
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{
+			Key:   "$or",
+			Value: values,
+		})
+	}
 }

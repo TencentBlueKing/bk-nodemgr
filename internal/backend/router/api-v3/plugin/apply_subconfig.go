@@ -22,14 +22,25 @@ import (
 func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PluginApplySubConfigReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin sub config, failed to decode request body.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to decode request body.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	for _, plugin := range req.GetPlugin() {
+		pluginName := plugin.GetPluginName()
+		if authErr := h.authorizedPluginOperate(rCtx, pluginName); authErr != nil {
+			logger.G.Biz(rCtx).WithErr(authErr).
+				With("plugin-name", pluginName).
+				Error("failed to apply plugin subconfig, permission denied.")
+
+			return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+		}
 	}
 
 	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypes()...)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	workflowID, err := h.pluginMgrIface.LaunchApplyPluginSubConfig(rCtx, types.ApplyPluginSubConfigParam{
@@ -39,7 +50,7 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin sub config.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig.")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 

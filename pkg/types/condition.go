@@ -799,8 +799,9 @@ type PluginCondition struct {
 
 // PluginExactFields defines the plugin exact fields.
 type PluginExactFields struct {
-	Name  []string
-	Group []string
+	Name          []string
+	Group         []string
+	VisibleBizIDs []int64
 }
 
 // PluginFuzzyFields defines the plugin fuzzy fields.

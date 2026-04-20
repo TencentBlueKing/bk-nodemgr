@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -134,24 +135,8 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 }
 
 // Validate check body.
-func (x *PluginInstallReq) Validate() error {
-	plugins := x.GetPlugin()
-	if len(plugins) == 0 {
-		return errors.New("plugins can not be empty")
-	}
-
-	for idx := range plugins {
-		if err := plugins[idx].Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Validate check body.
 // nolint: protogetter
-func (x *PluginInstallReq_Plugin) Validate() error {
+func (x *PluginOperateFullInfo) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id can not be zero")
 	}
@@ -168,6 +153,42 @@ func (x *PluginInstallReq_Plugin) Validate() error {
 }
 
 // AutoConvert auto convert.
+func (x *PluginOperateFullInfo) AutoConvert() {}
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginOperateBasicInfo) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be zero")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginOperateBasicInfo) AutoConvert() {}
+
+// Validate check body.
+func (x *PluginInstallReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
 func (x *PluginInstallReq) AutoConvert() {
 	plugin := x.GetPlugin()
 	for idx := range plugin {
@@ -175,20 +196,12 @@ func (x *PluginInstallReq) AutoConvert() {
 	}
 }
 
-// AutoConvert auto convert.
-func (x *PluginInstallReq_Plugin) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
-
 // ConvertParamFromTypes converts param from types.
 func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
 	var err error
-	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginInstallReq_Plugin, error) {
-		item := &PluginInstallReq_Plugin{}
-		item.BkHostId = &param.HostID
+	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
+		item := &PluginOperateFullInfo{}
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
@@ -208,7 +221,7 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDe
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginInstallReq_Plugin) *types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
 			PluginName:          proc.GetPluginName(),
@@ -235,24 +248,6 @@ func (x *PluginUpgradeReq) Validate() error {
 	return nil
 }
 
-// Validate check body.
-// nolint: protogetter
-func (x *PluginUpgradeReq_Plugin) Validate() error {
-	if x.GetBkHostId() < 0 {
-		return errors.New("bk_host_id can not be zero")
-	}
-
-	if x.GetPluginName() == "" {
-		return errors.New("plugin_name can not be empty")
-	}
-
-	if x.GetVersion() == "" {
-		return errors.New("version can not be empty")
-	}
-
-	return nil
-}
-
 // AutoConvert auto convert.
 func (x *PluginUpgradeReq) AutoConvert() {
 	plugin := x.GetPlugin()
@@ -261,20 +256,12 @@ func (x *PluginUpgradeReq) AutoConvert() {
 	}
 }
 
-// AutoConvert auto convert.
-func (x *PluginUpgradeReq_Plugin) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
-
 // ConvertParamFromTypes converts param from types.
 func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDeploymentParam) error {
 	var err error
-	x.Plugin, err = conv.SliceToSliceWithError(upgradeParam, func(param *types.PluginDeploymentParam) (*PluginUpgradeReq_Plugin, error) {
-		item := &PluginUpgradeReq_Plugin{}
-		item.BkHostId = &param.HostID
+	x.Plugin, err = conv.SliceToSliceWithError(upgradeParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
+		item := &PluginOperateFullInfo{}
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
@@ -294,7 +281,7 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginUpgradeReq_Plugin) *types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              plugin.GetBkHostId(),
 			PluginName:          plugin.GetPluginName(),
@@ -321,20 +308,6 @@ func (x *PluginUninstallReq) Validate() error {
 	return nil
 }
 
-// Validate check body.
-// nolint: protogetter
-func (x *PluginUninstallReq_Plugin) Validate() error {
-	if x.GetBkHostId() < 0 {
-		return errors.New("bk_host_id can not be zero")
-	}
-
-	if x.GetPluginName() == "" {
-		return errors.New("plugin_name can not be empty")
-	}
-
-	return nil
-}
-
 // AutoConvert auto convert.
 func (x *PluginUninstallReq) AutoConvert() {
 	plugin := x.GetPlugin()
@@ -343,19 +316,11 @@ func (x *PluginUninstallReq) AutoConvert() {
 	}
 }
 
-// AutoConvert auto convert.
-func (x *PluginUninstallReq_Plugin) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
-
 // ConvertParamFromTypes converts param from types.
 func (x *PluginUninstallReq) ConvertParamFromTypes(uninstallParam ...*types.PluginDeploymentParam) {
-	x.Plugin = conv.SliceToSlice(uninstallParam, func(param *types.PluginDeploymentParam) *PluginUninstallReq_Plugin {
-		item := &PluginUninstallReq_Plugin{}
-		item.BkHostId = &param.HostID
+	x.Plugin = conv.SliceToSlice(uninstallParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
+		item := &PluginOperateBasicInfo{}
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 
 		return item
@@ -364,7 +329,7 @@ func (x *PluginUninstallReq) ConvertParamFromTypes(uninstallParam ...*types.Plug
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginUninstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginUninstallReq_Plugin) *types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:     plugin.GetBkHostId(),
 			PluginName: plugin.GetPluginName(),
@@ -388,20 +353,6 @@ func (x *PluginApplySubConfigReq) Validate() error {
 	return nil
 }
 
-// Validate check body.
-// nolint: protogetter
-func (x *PluginApplySubConfigReq_Plugin) Validate() error {
-	if x.GetBkHostId() < 0 {
-		return errors.New("bk_host_id can not be zero")
-	}
-
-	if x.GetPluginName() == "" {
-		return errors.New("plugin_name can not be empty")
-	}
-
-	return nil
-}
-
 // AutoConvert auto convert.
 func (x *PluginApplySubConfigReq) AutoConvert() {
 	plugin := x.GetPlugin()
@@ -410,21 +361,14 @@ func (x *PluginApplySubConfigReq) AutoConvert() {
 	}
 }
 
-// AutoConvert auto convert.
-func (x *PluginApplySubConfigReq_Plugin) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
-
 // ConvertParamFromTypes converts param from types.
 func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
 	var err error
-	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginApplySubConfigReq_Plugin, error) {
-		item := &PluginApplySubConfigReq_Plugin{}
-		item.BkHostId = &param.HostID
+	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
+		item := &PluginOperateFullInfo{}
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
+		item.Version = param.Version
 		item.ConfigName = param.ConfigName
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
@@ -442,10 +386,11 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginApplySubConfigReq_Plugin) *types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
 			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
 			ConfigName:          proc.GetConfigName(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}

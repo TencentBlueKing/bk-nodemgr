@@ -22,4 +22,7 @@ const (
 
 	// FieldKeyMemo the plugin memo field key.
 	FieldKeyMemo = "data.memo"
+
+	// FieldKeyVisibleBizIDs the plugin visible biz ids field key.
+	FieldKeyVisibleBizIDs = "data.visible_biz_ids"
 )

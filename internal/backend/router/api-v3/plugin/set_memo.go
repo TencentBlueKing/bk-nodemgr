@@ -25,6 +25,15 @@ func (h *handler) SetMemo(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	pluginName := req.GetPluginName()
+	if authErr := h.authorizedPluginOperate(rCtx, pluginName); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).
+			With("plugin-name", pluginName).
+			Error("failed to set plugin memo, permission denied.")
+
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	if err := h.daoPlugin.SetPluginMemo(rCtx, req.GetPluginName(), req.GetMemo()); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set plugin memo.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

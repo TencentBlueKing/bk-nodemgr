@@ -7,16 +7,20 @@ import "common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/struct.proto";
 
+// PluginOperateFullInfo describes the full information of a plugin operation,
+// which
 message PluginOperateFullInfo {
-  optional int64 bk_host_id = 1;
+  int64 bk_host_id = 1;
   string plugin_name = 2;
   string version = 3;
   repeated string config_name = 4;
   optional google.protobuf.Struct custom_config_context = 5;
 }
 
+// PluginOperateBasicInfo describes the basic information of a plugin operation,
+// which
 message PluginOperateBasicInfo {
-  optional int64 bk_host_id = 1;
+  int64 bk_host_id = 1;
   string plugin_name = 2;
 }
 
@@ -85,6 +89,7 @@ message PluginApplySubConfigResp {
 message PluginListExactConditions {
   repeated string name = 1;
   repeated string group = 2;
+  repeated int64 visible_biz_ids = 3;
 }
 
 message PluginListFuzzyConditions {

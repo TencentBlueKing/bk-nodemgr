@@ -31,16 +31,15 @@ func (x *PluginListReq) ConvertConditionsToTypes() *types.PluginCondition {
 	return convertPluginConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
 }
 
-func convertPluginConditionsToTypes(
-	exactCond *PluginListExactConditions, fuzzyCond *PluginListFuzzyConditions) *types.PluginCondition {
-
+func convertPluginConditionsToTypes(exactCond *PluginListExactConditions, fuzzyCond *PluginListFuzzyConditions) *types.PluginCondition {
 	condition := &types.PluginCondition{}
 
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginExactFields{
-			Name:  exactCond.GetName(),
-			Group: exactCond.GetGroup(),
+			Name:          exactCond.GetName(),
+			Group:         exactCond.GetGroup(),
+			VisibleBizIDs: exactCond.GetVisibleBizIds(),
 		}
 	}
 
@@ -64,8 +63,9 @@ func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginConditi
 	// exact conditions.
 	if condition.ExactInclude != nil {
 		x.ExactIncludeConditions = &PluginListExactConditions{
-			Name:  condition.ExactInclude.Name,
-			Group: condition.ExactInclude.Group,
+			Name:          condition.ExactInclude.Name,
+			Group:         condition.ExactInclude.Group,
+			VisibleBizIds: condition.ExactInclude.VisibleBizIDs,
 		}
 	}
 
@@ -115,11 +115,12 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 
 func newEmptyPlugin() *Plugin {
 	return &Plugin{
-		TenantId: new(string),
-		Name:     new(string),
-		Group:    new(string),
-		PkgName:  new(string),
-		Memo:     new(string),
+		TenantId:      new(string),
+		Name:          new(string),
+		Group:         new(string),
+		PkgName:       new(string),
+		Memo:          new(string),
+		VisibleBizIds: make([]int64, 0),
 	}
 }
 
@@ -142,12 +143,7 @@ func (x *PluginOperateFullInfo) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *PluginOperateFullInfo) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
+func (x *PluginOperateFullInfo) AutoConvert() {}
 
 // Validate check body.
 // nolint: protogetter
@@ -164,12 +160,7 @@ func (x *PluginOperateBasicInfo) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *PluginOperateBasicInfo) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
+func (x *PluginOperateBasicInfo) AutoConvert() {}
 
 // Validate check body.
 func (x *PluginInstallReq) Validate() error {
@@ -200,7 +191,7 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDe
 	var err error
 	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
 		item := &PluginOperateFullInfo{}
-		item.BkHostId = &param.HostID
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
@@ -260,7 +251,7 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 	var err error
 	x.Plugin, err = conv.SliceToSliceWithError(upgradeParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
 		item := &PluginOperateFullInfo{}
-		item.BkHostId = &param.HostID
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
@@ -316,7 +307,7 @@ func (x *PluginUninstallReq) AutoConvert() {
 func (x *PluginUninstallReq) ConvertParamFromTypes(uninstallParam ...*types.PluginDeploymentParam) {
 	x.Plugin = conv.SliceToSlice(uninstallParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
 		item := &PluginOperateBasicInfo{}
-		item.BkHostId = &param.HostID
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 
 		return item
@@ -362,8 +353,9 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 	var err error
 	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
 		item := &PluginOperateFullInfo{}
-		item.BkHostId = &param.HostID
+		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
+		item.Version = param.Version
 		item.ConfigName = param.ConfigName
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
@@ -385,6 +377,7 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymen
 		return &types.PluginDeploymentParam{
 			HostID:              plugin.GetBkHostId(),
 			PluginName:          plugin.GetPluginName(),
+			Version:             plugin.GetVersion(),
 			ConfigName:          plugin.GetConfigName(),
 			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
 		}

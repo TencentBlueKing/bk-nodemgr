@@ -7,18 +7,25 @@ import "common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/struct.proto";
 
-// PluginInstallReq describes the plugin install request.
-message PluginInstallReq {
-  message Plugin {
-    optional int64 bk_host_id = 1;
-    string plugin_name = 2;
-    string version = 3;
-    repeated string config_name = 4;
-    optional google.protobuf.Struct custom_config_context = 5;
-  }
-
-  repeated Plugin plugin = 1;
+// PluginOperateFullInfo describes the full information of a plugin operation,
+// which
+message PluginOperateFullInfo {
+  int64 bk_host_id = 1;
+  string plugin_name = 2;
+  string version = 3;
+  repeated string config_name = 4;
+  optional google.protobuf.Struct custom_config_context = 5;
 }
+
+// PluginOperateBasicInfo describes the basic information of a plugin operation,
+// which
+message PluginOperateBasicInfo {
+  int64 bk_host_id = 1;
+  string plugin_name = 2;
+}
+
+// PluginInstallReq describes the plugin install request.
+message PluginInstallReq { repeated PluginOperateFullInfo plugin = 1; }
 
 // PluginInstallResp describes the plugin install response.
 message PluginInstallResp {
@@ -33,17 +40,7 @@ message PluginInstallResp {
 }
 
 // PluginUpgradeReq describes the plugin upgrade request.
-message PluginUpgradeReq {
-  message Plugin {
-    optional int64 bk_host_id = 1;
-    string plugin_name = 2;
-    string version = 3;
-    repeated string config_name = 4;
-    optional google.protobuf.Struct custom_config_context = 5;
-  }
-
-  repeated Plugin plugin = 1;
-}
+message PluginUpgradeReq { repeated PluginOperateFullInfo plugin = 1; }
 
 // PluginUpgradeResp describes the plugin upgrade response.
 message PluginUpgradeResp {
@@ -58,14 +55,7 @@ message PluginUpgradeResp {
 }
 
 // PluginUninstallReq describes the plugin uninstall request.
-message PluginUninstallReq {
-  message Plugin {
-    optional int64 bk_host_id = 1;
-    string plugin_name = 2;
-  }
-
-  repeated Plugin plugin = 1;
-}
+message PluginUninstallReq { repeated PluginOperateBasicInfo plugin = 1; }
 
 // PluginUninstallResp describes the plugin uninstall response.
 message PluginUninstallResp {
@@ -81,16 +71,7 @@ message PluginUninstallResp {
 
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
-message PluginApplySubConfigReq {
-  message Plugin {
-    optional int64 bk_host_id = 1;
-    string plugin_name = 2;
-    repeated string config_name = 3;
-    optional google.protobuf.Struct custom_config_context = 4;
-  }
-
-  repeated Plugin plugin = 1;
-}
+message PluginApplySubConfigReq { repeated PluginOperateFullInfo plugin = 1; }
 
 // PluginApplySubConfigResp describes the plugin apply sub-configuration
 // response.
@@ -113,6 +94,7 @@ message PluginListReq {
   message ExactConditions {
     repeated string name = 1;
     repeated string group = 2;
+    repeated int64 visible_biz_ids = 3;
   }
   ExactConditions exact_include_conditions = 3;
 
@@ -137,6 +119,7 @@ message PluginListResp {
     optional string group = 3;
     optional string pkg_name = 4;
     optional string memo = 5;
+    repeated string visible_biz_ids = 6;
   }
 
   message Data {

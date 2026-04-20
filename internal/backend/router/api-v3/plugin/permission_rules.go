@@ -1,0 +1,123 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package plugin defines the router to handle the plugin request.
+package plugin
+
+import (
+	"errors"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+var (
+	errPluginOperateDeniedByEmptyScope = errors.New("no authorized plugin operates")
+	errBizViewDeniedByEmptyScope       = errors.New("no authorized businesses")
+)
+
+func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, requestedIDs []int64) ([]int64, bool, error) {
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginView, types.AuthResourceTypeBiz)
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, types.AuthResourceTypeBiz,
+	)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+
+		return nil, false, errBizViewDeniedByEmptyScope
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName string) error {
+	bizIDs, err := h.domainPlugin.GetPluginVisibleBizIDs(rCtx, pluginName)
+	if err != nil {
+		return err
+	}
+
+	// visible biz IDs is empty, means the plugin has all business permission, so we can directly return without further permission check.
+	if len(bizIDs) == 0 {
+		return nil
+	}
+
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginOperate, types.AuthResourceTypeBiz)
+	if err != nil {
+		return err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, bizIDs, types.AuthResourceTypeBiz,
+	)
+	if err != nil {
+		return err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginOperate, nil); checkErr != nil {
+			return checkErr
+		}
+
+		return errPluginOperateDeniedByEmptyScope
+	}
+
+	if scopeIsAny {
+		return nil
+	}
+
+	if len(bizIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginOperate, authRouter.BuildBizResources(bizIDs...)); checkErr != nil {
+			return checkErr
+		}
+	}
+
+	return nil
+}
+
+func narrowPluginConditionByBiz(condition *types.PluginCondition, narrowedBizIDs []int64, scopeIsAny bool) *types.PluginCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.PluginCondition{}
+	}
+
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.PluginExactFields{}
+	}
+
+	condition.ExactInclude.VisibleBizIDs = conv.SliceUnique(narrowedBizIDs)
+
+	return condition
+}

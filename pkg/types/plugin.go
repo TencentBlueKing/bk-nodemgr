@@ -23,6 +23,10 @@ type Plugin struct {
 	PkgName string
 	Group   string
 	Memo    string
+
+	// VisibleBizIDs is the list of business IDs that the plugin is visible to. This is used for permission control and UI filtering.
+	// An empty list means the plugin is visible to all business IDs.
+	VisibleBizIDs []int64
 }
 
 // PermittedOperation defines the plugin permitted operation type.

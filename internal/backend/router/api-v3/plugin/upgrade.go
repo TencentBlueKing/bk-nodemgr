@@ -26,6 +26,17 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	for _, plugin := range req.GetPlugin() {
+		pluginName := plugin.GetPluginName()
+		if authErr := h.authorizedPluginOperate(rCtx, pluginName); authErr != nil {
+			logger.G.Biz(rCtx).WithErr(authErr).
+				With("plugin-name", pluginName).
+				Error("failed to upgrade plugin, permission denied.")
+
+			return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+		}
+	}
+
 	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypes()...)
 	if err != nil {

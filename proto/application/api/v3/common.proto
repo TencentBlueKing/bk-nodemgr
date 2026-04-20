@@ -420,6 +420,7 @@ message Plugin {
   optional string group = 3;
   optional string pkg_name = 4;
   optional string memo = 5;
+  repeated int64 visible_biz_ids = 6;
 }
 
 message Error {

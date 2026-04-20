@@ -12,6 +12,7 @@
 package plugin
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin/workflow"
@@ -25,7 +26,9 @@ type handler struct {
 	rg              *gin.RouterGroup
 	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
 	daoPlugin       pluginStg.IDaoPlugin
+	domainPlugin    pluginStg.IDomainPlugin
 	pluginMgrIface  managerIface.IPluginManager
+	authorizer      auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -34,7 +37,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:              rg.Group("/plugin"),
 		daoNodeWorkflow: capability.StorageNode,
 		daoPlugin:       capability.StoragePlugin,
+		domainPlugin:    capability.StoragePlugin,
 		pluginMgrIface:  capability.Manager,
+		authorizer:      capability.Authorizer,
 	}
 }
 

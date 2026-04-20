@@ -25,10 +25,20 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	condition := req.ConvertConditionsToTypes()
+	var bizIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		bizIDs = exactCond.GetVisibleBizIds()
+	}
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForPluginView(rCtx, bizIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list plugin, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+	condition = narrowPluginConditionByBiz(condition, narrowedBizIDs, scopeIsAny)
+
 	if req.GetOnlyCount() {
-		cnt, err := h.daoPlugin.CountPlugins(
-			rCtx,
-			req.ConvertConditionsToTypes())
+		cnt, err := h.daoPlugin.CountPlugins(rCtx, condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins, failed to count plugins.")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -46,7 +56,7 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	plugins, cnt, err := h.daoPlugin.ListPlugins(rCtx, page, req.ConvertConditionsToTypes())
+	plugins, cnt, err := h.daoPlugin.ListPlugins(rCtx, page, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

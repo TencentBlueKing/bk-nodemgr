@@ -20,11 +20,11 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin"
 	plugindeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
-	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
 	daoProcessConfig "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -80,6 +80,8 @@ const (
 	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail    = "get_plugin_deployment_plugin_conf_config_files_detail"
 	metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail = "upsert_plugin_deployment_plugin_conf_config_files_detail"
 	metricOperationUpsertManyPlugins                                 = "upsert_many_plugins"
+	metricOperationGetPluginVisibleBizIDs                            = "get_plugin_visible_biz_ids"
+	metricOperationListVisiblePluginByBizIDs                         = "list_visible_plugin_by_biz_ids"
 	metricOperationGetProcessConfig                                  = "get_process_config"
 	metricOperationCreateProcessConfig                               = "create_process_config"
 	metricOperationUpsertManyProcessConfigs                          = "upsert_many_process_configs"
@@ -791,6 +793,40 @@ func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Pl
 	})
 
 	return err
+}
+
+// GetPluginVisibleBizIDs get plugin visible biz ids.
+func (s *Storage) GetPluginVisibleBizIDs(nCtx contextx.IContext, pluginName string) ([]int64, error) {
+	var (
+		err    error
+		bizIDs []int64
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetPluginVisibleBizIDs, func(nCtx contextx.IContext) error {
+		var err error
+		bizIDs, err = s.getPluginVisibleBizIDs(nCtx, pluginName)
+
+		return err
+	})
+
+	return bizIDs, err
+}
+
+// ListVisiblePluginByBizIDs list visible plugin by biz ids.
+func (s *Storage) ListVisiblePluginByBizIDs(nCtx contextx.IContext, bizIDs []int64) ([]*types.Plugin, error) {
+	var (
+		err     error
+		plugins []*types.Plugin
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListVisiblePluginByBizIDs, func(nCtx contextx.IContext) error {
+		var err error
+		plugins, err = s.listVisiblePluginByBizIDs(nCtx, bizIDs)
+
+		return err
+	})
+
+	return plugins, err
 }
 
 // ===============================================================================

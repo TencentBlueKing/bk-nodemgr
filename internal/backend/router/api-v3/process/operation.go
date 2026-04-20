@@ -16,6 +16,8 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // List defines the process list handler.
@@ -26,10 +28,29 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	condition := req.ConvertConditionsToTypes()
+	authorizedBizIDs, authErr := h.narrowAuthorizedBizIDsForPluginView(rCtx)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list processes, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	plugin, err := h.domainProcess.ListVisiblePluginByBizIDs(rCtx, authorizedBizIDs)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list processes, failed to get visible plugin by biz ids")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	pluginNames := conv.SliceToSlice(plugin, func(item *types.Plugin) string {
+		return item.Name
+	})
+
+	condition = narrowProcessConditionByPluginNames(condition, pluginNames)
+
 	if req.GetOnlyCount() {
 		cnt, err := h.daoProcess.CountProcesses(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			condition)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list processes, failed to count processes.")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -47,7 +68,7 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	processes, cnt, err := h.daoProcess.ListProcesses(rCtx, page, req.ConvertConditionsToTypes())
+	processes, cnt, err := h.daoProcess.ListProcesses(rCtx, page, condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list processes.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

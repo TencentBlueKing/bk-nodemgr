@@ -247,6 +247,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "visible_biz_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },
@@ -260,6 +267,32 @@
           }
         },
         "pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PluginListRespPlugin": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "pkg_name": {
+          "type": "string"
+        },
+        "memo": {
+          "type": "string"
+        },
+        "visible_biz_ids": {
           "type": "array",
           "items": {
             "type": "string"
@@ -381,32 +414,11 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginApplySubConfigReqPlugin"
+            "$ref": "#/definitions/v3PluginOperateFullInfo"
           }
         }
       },
       "description": "PluginApplySubConfigReq describes the plugin apply sub-configuration\nrequest."
-    },
-    "v3PluginApplySubConfigReqPlugin": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "config_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "custom_config_context": {
-          "type": "object"
-        }
-      }
     },
     "v3PluginApplySubConfigResp": {
       "type": "object",
@@ -448,35 +460,11 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginInstallReqPlugin"
+            "$ref": "#/definitions/v3PluginOperateFullInfo"
           }
         }
       },
       "description": "PluginInstallReq describes the plugin install request."
-    },
-    "v3PluginInstallReqPlugin": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "config_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "custom_config_context": {
-          "type": "object"
-        }
-      }
     },
     "v3PluginInstallResp": {
       "type": "object",
@@ -565,30 +553,48 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginListRespPlugin"
+            "$ref": "#/definitions/PluginListRespPlugin"
           }
         }
       }
     },
-    "v3PluginListRespPlugin": {
+    "v3PluginOperateBasicInfo": {
       "type": "object",
       "properties": {
-        "tenant_id": {
-          "type": "string"
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
         },
-        "name": {
-          "type": "string"
-        },
-        "group": {
-          "type": "string"
-        },
-        "pkg_name": {
-          "type": "string"
-        },
-        "memo": {
+        "plugin_name": {
           "type": "string"
         }
-      }
+      },
+      "title": "PluginOperateBasicInfo describes the basic information of a plugin operation,\nwhich"
+    },
+    "v3PluginOperateFullInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "config_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_config_context": {
+          "type": "object"
+        }
+      },
+      "title": "PluginOperateFullInfo describes the full information of a plugin operation,\nwhich"
     },
     "v3PluginSetMemoReq": {
       "type": "object",
@@ -631,23 +637,11 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginUninstallReqPlugin"
+            "$ref": "#/definitions/v3PluginOperateBasicInfo"
           }
         }
       },
       "description": "PluginUninstallReq describes the plugin uninstall request."
-    },
-    "v3PluginUninstallReqPlugin": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        }
-      }
     },
     "v3PluginUninstallResp": {
       "type": "object",
@@ -689,35 +683,11 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginUpgradeReqPlugin"
+            "$ref": "#/definitions/v3PluginOperateFullInfo"
           }
         }
       },
       "description": "PluginUpgradeReq describes the plugin upgrade request."
-    },
-    "v3PluginUpgradeReqPlugin": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "config_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "custom_config_context": {
-          "type": "object"
-        }
-      }
     },
     "v3PluginUpgradeResp": {
       "type": "object",
