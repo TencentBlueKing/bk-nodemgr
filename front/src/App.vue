@@ -517,6 +517,14 @@ onBeforeMount(async () => {
       await authStore.fetchAuthorized(moduleItems, currentModule);
     }
   }
+  // 模块 view 类加载完成后，再按需加载当前菜单页的 operate 类 action，保证「view → operate」的请求顺序
+  const currentName = typeof route.name === 'string' ? route.name : '';
+  if (currentName) {
+    const pageItems = getPageAuthorizedItems(currentName);
+    if (pageItems.length) {
+      await authStore.fetchAuthorized(pageItems, `page:${currentName}`);
+    }
+  }
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
   bizSelectorRef.value?.init();
   mainStore.setBusinessReady();
@@ -552,20 +560,31 @@ watch(
     if (moduleItems.length) {
       await authStore.fetchAuthorized(moduleItems, moduleName);
     }
+    // 模块 view 类加载完成后，串行加载当前菜单页的 operate 类 action，严格保证「view → operate」顺序
+    const currentName = typeof route.name === 'string' ? route.name : '';
+    if (currentName) {
+      const pageItems = getPageAuthorizedItems(currentName);
+      if (pageItems.length) {
+        await authStore.fetchAuthorized(pageItems, `page:${currentName}`);
+      }
+    }
   },
 );
 
-// 菜单页切换时按需加载该页所需的非 view 类 action（operate / manage / create / edit / delete / upload）
+// 菜单页切换时按需加载该页所需的非 view 类 action
+// 注：只处理「同模块内换页」场景（mainMenu 未变，route.name 变了）；
+//    切模块/首次进入统一由 watch(meta.mainMenu) 串行处理，避免两个 watch 并发打乱「view → operate」顺序
 watch(
   () => route.name,
-  async (newName) => {
+  async (newName, oldName) => {
     if (!newName || typeof newName !== 'string') return;
+    // oldName 为 undefined 说明是初次进入（首屏），由 watch(meta.mainMenu) 负责，不在这里重复加载
+    if (!oldName) return;
     const pageItems = getPageAuthorizedItems(newName);
     if (!pageItems.length) return;
     // 以 `page:<routeName>` 作为 key，避免与模块级 items 重复触发
     await authStore.fetchAuthorized(pageItems, `page:${newName}`);
   },
-  { immediate: true },
 );
 </script>
 <style lang="postcss" scoped>

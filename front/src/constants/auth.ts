@@ -196,6 +196,8 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
   // ===== nodeManager =====
   agent: [
     { action: 'agent_operate', resource_type: 'biz' },
+    // 分配管控单元按钮的权限，与 agent_operate 合并下发，避免多一次独立请求
+    { action: 'networkunit_use_for_agent', resource_type: 'networkunit' },
   ],
   proxy: [
     { action: 'proxy_operate', resource_type: 'biz' },

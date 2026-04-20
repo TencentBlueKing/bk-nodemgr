@@ -440,7 +440,6 @@ import { isNetworkUnitAssigned } from '@/common/const';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
 import BkFooter from '@/pages/app/footer.vue';
-import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
@@ -455,7 +454,6 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
-const authStore = useAuthStore();
 
 // ===== agent_operate 权限控制（批量操作、复制IP、行内重装/更多操作）=====
 const {
@@ -1034,12 +1032,7 @@ const loadInitialData = async () => {
     // 即使API失败，也标记为已加载完成，避免无限重试
     isInitialDataLoaded.value = true;
   }
-
-  // 单独请求分配管控单元权限（networkunit_use_for_agent），
-  // 因后端 starts_with 兼容问题需独立调用，store 层已做降级处理
-  authStore.fetchAuthorized([
-    { action: 'networkunit_use_for_agent', resource_type: 'networkunit' },
-  ]);
+  // 注：networkunit_use_for_agent 权限已合并到 PAGE_AUTHORIZED_ITEMS.agent，由 App.vue 统一下发
 };
 
 // ---------- 事件处理函数 ----------
