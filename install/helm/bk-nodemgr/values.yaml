@@ -636,6 +636,9 @@ application:
   ## NOTE: will be combined with the top nodeSelector in values.
   nodeSelector: {}
 
+  ## @param tolerations module pod tolerations.
+  tolerations: []
+
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
   terminationGracePeriodSeconds: 30
@@ -892,6 +895,9 @@ backend:
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
   nodeSelector: {}
+
+  ## @param tolerations module pod tolerations.
+  tolerations: []
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -1348,6 +1354,9 @@ file:
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
   nodeSelector: {}
+
+  ## @param tolerations module pod tolerations.
+  tolerations: []
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
