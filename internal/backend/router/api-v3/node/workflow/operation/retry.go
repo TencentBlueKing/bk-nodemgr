@@ -30,7 +30,7 @@ func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) 
 	workflowID := req.GetWorkflowId()
 
 	// Check permission before retry
-	if _, err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+	if err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
 		return nil, err
 	}
 

@@ -29,7 +29,7 @@ func (h *handler) GetManualInfo(rCtx restserver.IContext) (interface{}, error) {
 	workflowID, operationID := req.GetWorkflowId(), req.GetOperationId()
 
 	// Check permission
-	if _, err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+	if err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
 		return nil, err
 	}
 

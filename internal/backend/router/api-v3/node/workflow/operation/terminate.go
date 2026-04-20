@@ -29,7 +29,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 	workflowID := req.GetWorkflowId()
 
 	// Check permission before terminate
-	if _, err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+	if err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
 		return nil, err
 	}
 

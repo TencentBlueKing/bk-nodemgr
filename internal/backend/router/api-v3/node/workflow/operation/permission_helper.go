@@ -19,11 +19,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (h *handler) checkWorkflowOperatePermission(rCtx restserver.IContext, workflowID string) (*types.NodeWorkflow, error) {
+func (h *handler) checkWorkflowOperatePermission(rCtx restserver.IContext, workflowID string) error {
 	nodeWorkflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, workflowID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to check workflow operate permission, failed to get the target node workflow")
-		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+		return resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	bizIDs := nodeWorkflow.BizIDs
@@ -37,10 +37,10 @@ func (h *handler) checkWorkflowOperatePermission(rCtx restserver.IContext, workf
 
 	if authErr := h.authorizer.CheckMany(rCtx, actionResources); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check workflow operate permission, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+		return resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	return nodeWorkflow, nil
+	return nil
 }
 
 // workflowOperateActions determines which operate actions are required based on node roles.
