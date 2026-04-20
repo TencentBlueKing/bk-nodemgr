@@ -41,11 +41,9 @@ func NewNetworkUnitProvider(storage topo.IStorage) *NetworkUnitProvider {
 
 // ListAttr returns empty result as network unit has no attributes.
 func (p *NetworkUnitProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
-	data := &ListAttrData{
-		Results: []ResourceAttribute{},
-	}
+	data := ListAttrData([]ResourceAttribute{})
 
-	return data, nil
+	return &data, nil
 }
 
 // ListAttrValue returns empty result as network unit has no attribute values.

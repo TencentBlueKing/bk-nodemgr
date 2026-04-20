@@ -30,11 +30,9 @@ func NewPackageTypeProvider() *PackageTypeProvider {
 
 // ListAttr returns empty result as package type has no attributes.
 func (p *PackageTypeProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
-	data := &ListAttrData{
-		Results: []ResourceAttribute{},
-	}
+	data := ListAttrData([]ResourceAttribute{})
 
-	return data, nil
+	return &data, nil
 }
 
 // ListAttrValue returns empty result as package type has no attribute values.

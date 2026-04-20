@@ -138,11 +138,9 @@ func distinctNamesWithPagination(names []string, page types.Page) ([]string, int
 
 // ListAttr returns empty result as package has no attributes.
 func (p *PackageProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
-	data := &ListAttrData{
-		Results: []ResourceAttribute{},
-	}
+	data := ListAttrData([]ResourceAttribute{})
 
-	return data, nil
+	return &data, nil
 }
 
 // ListAttrValue returns empty result as package has no attribute values.

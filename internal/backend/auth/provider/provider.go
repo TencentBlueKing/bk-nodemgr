@@ -166,10 +166,8 @@ type IProvider interface {
 
 // ListAttrData represents the response data for ListAttr API.
 // Returns a list of resource attributes that can be used for permission configuration.
-type ListAttrData struct {
-	// Results contains the list of resource attributes
-	Results []ResourceAttribute `json:"results"`
-}
+// According to IAM official documentation, the data field should be an array directly.
+type ListAttrData []ResourceAttribute
 
 // ResourceAttribute represents a resource attribute definition.
 type ResourceAttribute struct {
