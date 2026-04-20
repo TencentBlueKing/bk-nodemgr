@@ -124,9 +124,9 @@ export function matchPageAuth(
  * 不同模块进入时只查询该模块需要的 action-resource_type 对
  */
 export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
-  // 业务选择器：仅需 agent_view 判断业务级权限（所有页面共享，全局预加载）
+  // 业务选择器：仅需 biz_access 判断业务访问权限（所有页面共享，全局预加载）
   bizSelector: [
-    { action: 'agent_view', resource_type: 'biz' },
+    { action: 'biz_access', resource_type: 'biz' },
   ],
   // 节点管理：agent / proxy / plugin 相关 biz 权限
   // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题暂不放此模块，

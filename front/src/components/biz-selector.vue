@@ -151,6 +151,9 @@ defineProps<{
 // ===== 可见性与模式 =====
 const NO_BIZ_SELECTOR_MAIN_MENUS = ['topoManager', 'pkgManager'];
 
+// 业务访问权限 action
+const BIZ_ACCESS_ACTION = 'biz_access';
+
 const isVisible = computed(() => {
   if (route.path.includes('topo-manager') || route.path.includes('pkg-manager')) return false;
   // 403/404 页面：通过 mainMenu 判断原模块是否不需要业务选择器
@@ -209,12 +212,12 @@ function getActionForRoute(): string | undefined {
   return cachedAction;
 }
 
-// 判断某个业务在当前菜单页是否有权限
+// 判断某个业务是否有访问权限（业务选择器统一检查 biz_access 权限）
 function isBizAuthorized(bizId: number): boolean {
   if (!authStore.authorizedLoaded) return true; // 未加载完成时默认有权限，避免闪烁
   const action = getActionForRoute();
   if (!action) return true; // 非 biz 路由或无映射时不做限制
-  return authStore.hasAuthorizedBiz(action, bizId);
+  return authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
 }
 
 const filteredBusinessList = computed(() => mainStore.businessList);
@@ -310,8 +313,7 @@ const {
   handleMouseMove: authLockMouseMove,
   handleMouseLeave: authLockMouseLeave,
 } = useAuthLock(
-  // action 是动态的，由路由决定，这里只是占位，实际判断在 isBizAuthorized 里
-  'agent_view',
+  BIZ_ACCESS_ACTION, // 业务选择器统一使用 biz_access 权限
   () => mainStore.selectedBusinessId[0],
 );
 
@@ -412,7 +414,7 @@ const handleApplyPermission = async (bizId: number) => {
 
   const authItems = [
     { id: action, action, resourceType: 'biz', routes: [] },
-    { id: 'biz_access', action: 'biz_access', resourceType: 'biz', routes: [] },
+    { id: BIZ_ACCESS_ACTION, action: BIZ_ACCESS_ACTION, resourceType: 'biz', routes: [] },
   ];
   await authStore.batchVerify(authItems, bizId);
   const detail = authStore.permissionDetail;
