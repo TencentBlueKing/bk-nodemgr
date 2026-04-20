@@ -41,6 +41,7 @@ func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext) 
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, nil); checkErr != nil {
 			return nil, false, checkErr
 		}
+		
 		return nil, false, errBizViewDeniedByEmptyScope
 	}
 
