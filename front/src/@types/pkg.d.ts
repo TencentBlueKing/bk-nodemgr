@@ -475,6 +475,31 @@ export interface PackageReleaseAgentListRespData {
   items: ReleaseAgent[];
 }
 
+// PackageReleaseAgentListBriefReq describes the HTTP request body when list
+// agent release brief.
+export interface PackageReleaseAgentListBriefReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleaseAgentListBriefResp describes the HTTP response body when list
+// agent release brief.
+export interface PackageReleaseAgentListBriefResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PackageReleaseAgentListBriefRespData;
+}
+
+export interface PackageReleaseAgentListBriefRespData {
+  total: number;
+  items: ReleaseAgentBrief[];
+}
+
 // PackageReleaseAgentDistinctReq describes the HTTP request body when distinct
 // agent release.
 export interface PackageReleaseAgentDistinctReq {
@@ -690,6 +715,31 @@ export interface PackageReleaseProxyListRespData {
   items: ReleaseProxy[];
 }
 
+// PackageReleaseProxyListBriefReq describes the HTTP request body when list
+// proxy release brief.
+export interface PackageReleaseProxyListBriefReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleaseProxyListBriefResp describes the HTTP response body when list
+// proxy release brief.
+export interface PackageReleaseProxyListBriefResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PackageReleaseProxyListBriefRespData;
+}
+
+export interface PackageReleaseProxyListBriefRespData {
+  total: number;
+  items: ReleaseProxy[];
+}
+
 // PackageReleaseProxyDistinctReq describes the HTTP request body when distinct
 // proxy release.
 export interface PackageReleaseProxyDistinctReq {
@@ -901,6 +951,31 @@ export interface PackageReleasePluginListResp {
 }
 
 export interface PackageReleasePluginListRespData {
+  total: number;
+  items: ReleasePlugin[];
+}
+
+// PackageReleasePluginListBriefReq describes the HTTP request body when list
+// plugin release brief.
+export interface PackageReleasePluginListBriefReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleasePluginListBriefResp describes the HTTP response body when list
+// plugin release brief.
+export interface PackageReleasePluginListBriefResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PackageReleasePluginListBriefRespData;
+}
+
+export interface PackageReleasePluginListBriefRespData {
   total: number;
   items: ReleasePlugin[];
 }

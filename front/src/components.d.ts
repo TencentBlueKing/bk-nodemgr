@@ -25,6 +25,7 @@ declare module 'vue' {
     InstallTable: typeof import('./components/install-table.vue')['default']
     InstallType: typeof import('./components/install-type.vue')['default']
     LogVersion: typeof import('./components/log-version.vue')['default']
+    NoPermission: typeof import('./components/no-permission.vue')['default']
     Notice: typeof import('./components/notice.vue')['default']
     OperateDialog: typeof import('./components/operate-dialog.vue')['default']
     PageHeader: typeof import('./components/page-header.vue')['default']

@@ -216,6 +216,9 @@ function handleGotoHome() {
 const ensureCurrentRoutePermission = async () => {
   if (route.name === '403' || route.name === '404') return;
 
+  // 包管理：路由级不做 verify/403 跳转，由 pkg/index.vue 渲染 NoPermission 占位页
+  if (route.meta?.mainMenu === 'pkgManager') return;
+
   const matched = matchPageAuth(route, PAGE_AUTH_CONFIG);
   if (!matched) return;
   const isRuleManagerRoute = route.path.includes('rule-manager');
@@ -504,15 +507,18 @@ onBeforeMount(async () => {
   await getBusinessList();
   // 首次加载当前路由模块的 authorized items
   // biz 页面（nodeManager/ruleManager）额外加载 bizSelector（业务选择器依赖 agent_view）
-  const currentModule = String(route.meta?.mainMenu || 'nodeManager');
-  const initialModules: string[] = [currentModule];
-  if (['nodeManager', 'ruleManager'].includes(currentModule)) {
-    initialModules.unshift('bizSelector');
-  }
-  for (const mod of initialModules) {
-    const moduleItems = getModuleAuthorizedItems(mod);
-    if (moduleItems.length) {
-      await authStore.fetchAuthorized(moduleItems, mod);
+  // 注：若 route.meta.mainMenu 未就绪则不兜底加载，等 watch(route.meta.mainMenu) 触发时再加载，避免重复请求
+  const currentModule = route.meta?.mainMenu ? String(route.meta.mainMenu) : '';
+  if (currentModule) {
+    const initialModules: string[] = [currentModule];
+    if (['nodeManager', 'ruleManager'].includes(currentModule)) {
+      initialModules.unshift('bizSelector');
+    }
+    for (const mod of initialModules) {
+      const moduleItems = getModuleAuthorizedItems(mod);
+      if (moduleItems.length) {
+        await authStore.fetchAuthorized(moduleItems, mod);
+      }
     }
   }
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
@@ -537,7 +543,15 @@ onMounted(async () => {
 watch(
   () => route.meta?.mainMenu,
   async (newModule) => {
-    const moduleName = String(newModule || 'nodeManager');
+    if (!newModule) return;
+    const moduleName = String(newModule);
+    // biz 类模块首次切入时同时加载 bizSelector
+    if (['nodeManager', 'ruleManager'].includes(moduleName)) {
+      const bizItems = getModuleAuthorizedItems('bizSelector');
+      if (bizItems.length) {
+        await authStore.fetchAuthorized(bizItems, 'bizSelector');
+      }
+    }
     const moduleItems = getModuleAuthorizedItems(moduleName);
     if (moduleItems.length) {
       await authStore.fetchAuthorized(moduleItems, moduleName);

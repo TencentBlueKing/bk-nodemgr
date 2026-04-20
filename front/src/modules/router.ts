@@ -25,6 +25,7 @@ import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin/plugin.vue';
 import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
 import CertBintoolMng from '@/pages/pkg/cert-bintool-manage/list.vue';
+import PkgManager from '@/pages/pkg/index.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
@@ -257,6 +258,7 @@ const routes = setupLayouts([
       {
         name: 'pkgManager',
         path: 'pkg-manager',
+        component: PkgManager,
         redirect: { name: 'agentPackageMng' },
         children: [
           {
@@ -371,46 +373,13 @@ export const install: UserModule = ({ app }) => {
 
     // Non-biz resources (package, networkarea, etc.)
     if (matched.resourceType !== 'biz') {
-      // 包管理：先加载 authorized，重定向到默认页，再触发 verify 鉴权
+      // 包管理：进入或刷新时只拉 authorized，不主动触发 verify/403 跳转
+      // 无权限时由 pkg/index.vue 渲染 NoPermission 占位页，用户点击"申请"再触发 verify 弹窗
       if (to.meta?.mainMenu === 'pkgManager') {
         const moduleName = 'pkgManager';
         const moduleItems = getModuleAuthorizedItems(moduleName);
         if (moduleItems.length && !authStore.authorizedMap['package_view']) {
           await authStore.fetchAuthorized(moduleItems, moduleName);
-        }
-
-        const routeName = typeof to.name === 'string' ? to.name : '';
-        const pkgMenuOrder = [
-          'agentPackageMng', 'proxyPackageMng', 'certPackageMng',
-          'bintoolPackageMng', 'pluginPackageMng', 'plugin_bintoolPackageMng',
-          'operationRecords',
-        ];
-        const defaultRoute = pkgMenuOrder[0];
-
-        // 当前不是默认页 → 重定向到默认页
-        if (routeName !== defaultRoute && pkgMenuOrder.includes(routeName)) {
-          return { name: defaultRoute };
-        }
-
-        // 已在默认页 → 触发 batchVerify 鉴权
-        if (
-          authStore.needRefresh
-          || !authStore.hasPermissionCache(matched.id)
-          || authStore.isPermissionCacheExpired(matched.id)
-        ) {
-          const verified = await authStore.batchVerify([matched]);
-          if (!verified) {
-            return { name: '403', query: { mainMenu: 'pkgManager' } };
-          }
-        }
-
-        if (!authStore.hasPermission(matched.id)) {
-          authStore.setDeniedActionIds([matched.id]);
-          const detail = authStore.getPermissionDetail();
-          if (detail?.actions?.length) {
-            permissionStore.showDialog(detail);
-          }
-          return { name: '403', query: { mainMenu: 'pkgManager' } };
         }
       }
 

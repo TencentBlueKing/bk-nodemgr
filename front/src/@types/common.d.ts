@@ -237,6 +237,15 @@ interface ReleaseAgent {
   change_log_zh: string;
 }
 
+interface ReleaseAgentBrief {
+  generation: number;
+  os_type: string;
+  cpu_arch: string;
+  version: string;
+  enabled: boolean;
+  as_default: boolean;
+}
+
 interface ReleaseProxy {
   release: Release;
   change_log_en: string;
