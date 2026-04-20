@@ -31,7 +31,14 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, req.GetWorkflowID())
+	workflowID := req.GetWorkflowID()
+
+	// Check permission before listing operations
+	if err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+		return nil, err
+	}
+
+	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, workflowID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get node workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -130,8 +137,15 @@ func (h *handler) DistinctOperation(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	workflowID := req.GetWorkflowID()
+
+	// Check permission before distinct operations
+	if err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+		return nil, err
+	}
+
 	// get workflow to get trigger id.
-	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, req.GetWorkflowID())
+	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, workflowID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct operation, failed to get node workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -167,6 +181,46 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Get operation to extract trigger ID and check permission
+	operationIDs := req.GetOperationId()
+	if len(operationIDs) == 0 {
+		logger.G.Biz(rCtx).Error("failed to list operation instance, no operation ID provided")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("operation_id is required"))
+	}
+
+	operation, err := h.storageWorkflow.GetOperation(rCtx, operationIDs[0])
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to get operation")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// Find workflow by trigger ID to check permission
+	// Note: We query by TriggerID since NodeWorkflowExactFields doesn't support TriggerID field
+	// This is a workaround - ideally we should add TriggerID to NodeWorkflowExactFields
+	workflows, _, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, types.UnlimitedPage())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to list workflows")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// Find workflow with matching TriggerID
+	var targetWorkflow *types.NodeWorkflow
+	for _, wf := range workflows {
+		if wf.TriggerID == operation.TriggerID {
+			targetWorkflow = wf
+			break
+		}
+	}
+	if targetWorkflow == nil {
+		logger.G.Biz(rCtx).Error("failed to list operation instance, workflow not found for trigger ID")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, fmt.Errorf("workflow not found for trigger_id: %s", operation.TriggerID))
+	}
+
+	// Check permission
+	if err := h.checkWorkflowOperatePermission(rCtx, targetWorkflow.WorkflowID); err != nil {
+		return nil, err
+	}
+
 	result, num, err := h.storageWorkflow.ListOperationInstanceBriefDataWithoutActionInst(
 		rCtx, types.UnlimitedPage(), &types.OperInstDataCondition{ExactInclude: &types.OperInstDataExactFields{
 			OperationID: req.GetOperationId(),
@@ -198,9 +252,44 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Get instance to extract operation ID
 	instance, err := h.storageWorkflow.GetOperationInstanceFullData(rCtx, req.GetOperInstId())
 	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to get instance")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// Get operation to extract trigger ID
+	operation, err := h.storageWorkflow.GetOperation(rCtx, instance.Metadata.OperationID)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to get operation")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// Find workflow by trigger ID to check permission
+	// Note: We query all workflows since NodeWorkflowExactFields doesn't support TriggerID field
+	workflows, _, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, types.UnlimitedPage())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to list workflows")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// Find workflow with matching TriggerID
+	var targetWorkflow *types.NodeWorkflow
+	for _, wf := range workflows {
+		if wf.TriggerID == operation.TriggerID {
+			targetWorkflow = wf
+			break
+		}
+	}
+	if targetWorkflow == nil {
+		logger.G.Biz(rCtx).Error("failed to get operation instance log, workflow not found for trigger ID")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, fmt.Errorf("workflow not found for trigger_id: %s", operation.TriggerID))
+	}
+
+	// Check permission
+	if err := h.checkWorkflowOperatePermission(rCtx, targetWorkflow.WorkflowID); err != nil {
+		return nil, err
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceLogGetResp)
