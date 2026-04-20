@@ -110,14 +110,14 @@ func (h *handler) handleResourceCallback(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	// Get context
-	ctx := contextx.FromContext(rCtx)
+	resourceType := req.GetType()
+	requestMethod := authProvider.RequestMethod(req.GetMethod())
 
 	// Dispatch to handler
 	result, dispatchErr := h.capability.IAMCallbackHandler.DispatchMethod(
-		ctx,
-		req.GetType(),
-		authProvider.RequestMethod(req.GetMethod()),
+		rCtx,
+		resourceType,
+		requestMethod,
 		filterMap,
 		page,
 	)
