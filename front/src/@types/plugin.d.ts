@@ -1,4 +1,6 @@
 // gen-api.js 自动生成，请勿手动修改
+// PluginOperateFullInfo describes the full information of a plugin operation,
+// which
 export interface PluginOperateFullInfo {
   bk_host_id: number;
   plugin_name: string;
@@ -7,6 +9,8 @@ export interface PluginOperateFullInfo {
   custom_config_context: Record<string, any>;
 }
 
+// PluginOperateBasicInfo describes the basic information of a plugin operation,
+// which
 export interface PluginOperateBasicInfo {
   bk_host_id: number;
   plugin_name: string;
@@ -93,6 +97,7 @@ export interface PluginApplySubConfigRespData {
 export interface PluginListExactConditions {
   name: string[];
   group: string[];
+  visible_biz_ids: number[];
 }
 
 export interface PluginListFuzzyConditions {

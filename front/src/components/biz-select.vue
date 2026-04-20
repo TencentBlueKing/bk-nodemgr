@@ -75,9 +75,9 @@ const props = withDefaults(defineProps<{
   modelValue: number | string | number[] | string[];
   /** 选择模式：单选 / 多选 */
   mode?: 'single' | 'multiple';
-  /** IAM action，传入则启用权限判断 + hover 锁 + 点击阻止 */
+  /** IAM action，仅用于点击无权限业务时申请权限（业务可访问范围统一由 biz_access 判断） */
   action?: string;
-  /** 额外需要申请的 action（如 biz_access） */
+  /** 额外需要申请的 action（默认包含 biz_access） */
   extraAuthActions?: string[];
   /** Select 自定义 class */
   selectClass?: string;
@@ -132,23 +132,22 @@ const selectedBizIds = computed(() => {
 });
 
 // ===== 权限判断 =====
+// 业务可访问范围统一通过 biz_access 判断（与菜单页 view 权限解耦）
+const BIZ_ACCESS_ACTION = 'biz_access';
 const isBizAuthorized = (bizId: number): boolean => {
-  if (!props.action) return true;
   if (!authStore.authorizedLoaded) return true; // 未加载完成时默认有权限，避免闪烁
-  return authStore.hasAuthorizedBiz(props.action, bizId);
+  return authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
 };
 
 // ===== 排序逻辑 =====
 const sortedBusinessList = computed(() => {
   const list = [...businessList.value];
   return list.sort((a, b) => {
-    // 有 action 时：有权限排前面
-    if (props.action) {
-      const aAuth = isBizAuthorized(a.bk_biz_id);
-      const bAuth = isBizAuthorized(b.bk_biz_id);
-      if (aAuth && !bAuth) return -1;
-      if (!aAuth && bAuth) return 1;
-    }
+    // 有权限的排前面（biz_access 已加载时才生效）
+    const aAuth = isBizAuthorized(a.bk_biz_id);
+    const bAuth = isBizAuthorized(b.bk_biz_id);
+    if (aAuth && !bAuth) return -1;
+    if (!aAuth && bAuth) return 1;
 
     const aIsCollected = collectList.value.includes(a.bk_biz_id);
     const bIsCollected = collectList.value.includes(b.bk_biz_id);
@@ -205,7 +204,7 @@ const {
   handleMouseMove: authLockMouseMove,
   handleMouseLeave: authLockMouseLeave,
 } = useAuthLock(
-  props.action || 'agent_view',
+  BIZ_ACCESS_ACTION,
   () => {
     if (Array.isArray(innerValue.value)) return innerValue.value as number[];
     return innerValue.value ? [Number(innerValue.value)] : [];
@@ -213,24 +212,26 @@ const {
 );
 
 const handleOptionMouseEnter = (e: MouseEvent, bizId: number) => {
-  if (!props.action) return;
   authLockMouseEnter(e, isBizAuthorized(bizId));
 };
 const handleOptionMouseMove = (e: MouseEvent, bizId: number) => {
-  if (!props.action) return;
   authLockMouseMove(e, isBizAuthorized(bizId));
 };
 const handleOptionMouseLeave = () => {
-  if (!props.action) return;
   authLockMouseLeave();
 };
 
 // ===== 点击无权限 option → 阻止选中 + 申请权限 =====
 const handleOptionClick = async (e: MouseEvent, bizId: number) => {
-  if (!props.action || isBizAuthorized(bizId)) return;
+  if (isBizAuthorized(bizId)) return;
   e.stopPropagation();
   e.preventDefault();
-  const actions = [props.action, ...props.extraAuthActions];
+  // 申请权限时：若外部指定了菜单 view action 则同时申请，再叠加 extraAuthActions（默认含 biz_access）
+  const actions = [
+    ...(props.action ? [props.action] : []),
+    ...props.extraAuthActions,
+  ];
+  if (!actions.length) return;
   const authItems = actions.map(a => ({ id: a, action: a, resourceType: 'biz', routes: [] }));
   await authStore.batchVerify(authItems, bizId);
   const detail = authStore.permissionDetail;

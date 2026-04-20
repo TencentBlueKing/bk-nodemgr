@@ -1,5 +1,6 @@
 <template>
-  <div class="p-[24px]">
+  <NoPermission v-if="!hasViewAuth" :auth-items="viewAuthItems" />
+  <div v-else class="p-[24px]">
     <div class="flex items-center">
       <DatePicker
         type="daterange"
@@ -92,8 +93,12 @@ import { Table, TableColumn } from '@blueking/table';
 
 import type { TopoEventExactConditions, TopoEventFuzzyConditions } from '@/@types/topo';
 import { filterTimeFormat, getTimeStamp } from '@/common/util';
+import NoPermission from '@/components/no-permission.vue';
+import { getModuleAuthorizedItems } from '@/constants/auth';
+import type { PageAuthItem } from '@/constants/auth';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
+import { useAuthStore } from '@/stores/auth';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const { t } = useI18n();
@@ -102,6 +107,17 @@ const {
   handleFetchAllWorkarea,
   handleFetchAllWorkUnit,
 } = useWorkareaStore();
+
+// ===== 权限判断：networkarea_history_view 无权限时展示占位页 =====
+const authStore = useAuthStore();
+const viewAuthItems: PageAuthItem[] = [
+  { id: 'networkarea_history_view', action: 'networkarea_history_view', resourceType: 'networkarea', routes: [] },
+];
+const hasViewAuth = computed(() => {
+  // authorized 尚未加载 → 先放行，避免闪烁
+  if (!authStore.authorizedMap['networkarea_history_view']) return true;
+  return authStore.hasAuthorizedResource('networkarea_history_view');
+});
 
 // 操作类型映射
 const typeMap = ref({
@@ -287,10 +303,15 @@ const fetchRecordList = async () => {
 //   ];
 // };
 
-watch([exactData, fuzzyData, operateTime], fetchRecordList);
+watch([exactData, fuzzyData, operateTime], () => {
+  if (hasViewAuth.value) fetchRecordList();
+});
 
-onMounted(() => {
-  fetchRecordList();
+onMounted(async () => {
+  // 确保 topoManager 模块权限数据已加载（刷新直接访问时可能未加载）
+  const topoItems = getModuleAuthorizedItems('topoManager');
+  await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
+  if (hasViewAuth.value) fetchRecordList();
   // initSearchList();
 });
 

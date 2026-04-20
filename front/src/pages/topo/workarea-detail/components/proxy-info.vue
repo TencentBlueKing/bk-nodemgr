@@ -153,14 +153,20 @@ const route = useRoute();
 const mainStore = useMainStore();
 const authStore = useAuthStore();
 
+const isProxyStatus = computed(() => route.name === 'proxy');
+
 // 切换到 proxy tab 且有单元 ID 时，主动加载 proxy_view / proxy_operate 权限
+// 仅「管控区域详情」场景（非节点管理 proxy 列表页）才额外加载 networkunit_use_for_proxy
 watch(() => props.active, (id) => {
-  if (id) {
-    authStore.fetchAuthorized([
-      { action: 'proxy_view', resource_type: 'networkunit' },
-      { action: 'proxy_operate', resource_type: 'networkunit' },
-    ]);
+  if (!id) return;
+  const items = [
+    { action: 'proxy_view', resource_type: 'networkunit' },
+    { action: 'proxy_operate', resource_type: 'networkunit' },
+  ];
+  if (!isProxyStatus.value) {
+    items.push({ action: 'networkunit_use_for_proxy', resource_type: 'networkunit' });
   }
+  authStore.fetchAuthorized(items);
 }, { immediate: true });
 // ===== proxy_operate 权限控制（批量操作、复制IP） =====
 const {
@@ -175,15 +181,16 @@ const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 const AGENT_ID_REG = /^0[12]/; // AgentID 以 01 或 02 开头
 const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
 
-// ===== networkunit_use_for_proxy 权限控制（安装/重装 Proxy） =====
+// ===== networkunit_use_for_proxy 权限控制（仅「管控区域详情」场景的安装/重装 Proxy 按钮） =====
+// 节点管理（route.name === 'proxy'）的安装 Proxy 按钮不做权限判断，视为始终有权限
 const {
-  hasAuth: hasInstallProxyAuth,
+  hasAuth: hasInstallProxyAuthRaw,
   handleMouseEnter: installMouseEnter,
   handleMouseMove: installMouseMove,
   handleMouseLeave: installMouseLeave,
   handleAuthClick: handleInstallAuthClick,
-} = useAuthLock('networkunit_use_for_proxy', () => props.active);
-const isProxyStatus = computed(() => route.name === 'proxy');
+} = useAuthLock('networkunit_use_for_proxy', () => props.active, { resourceType: 'networkunit' });
+const hasInstallProxyAuth = computed(() => isProxyStatus.value || hasInstallProxyAuthRaw.value);
 // 搜索
 const searchKey = ref<ISearchValue[]>([]);
 const searchSelectData = ref<ISearchItem[]>([

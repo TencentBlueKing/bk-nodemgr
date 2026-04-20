@@ -166,7 +166,8 @@ const isVisible = computed(() => {
 const isSingle = computed(() => route.path.includes('rule-manager'));
 
 // ===== 菜单路由 → authorized action 映射 =====
-// 每个菜单路由对应的 view action（用于 biz-selector 判断业务权限）
+// 该映射仅用于「点击无权限业务申请权限」时，定位需要申请哪个菜单 view action。
+// 业务可访问范围判断统一使用 biz_access（与菜单 view 权限解耦，由后端约定）。
 const MENU_ROUTE_ACTION_MAP: Record<string, string> = {
   // nodeManager
   agent: 'agent_view',
@@ -194,7 +195,7 @@ const MAIN_MENU_DEFAULT_ACTION: Record<string, string> = {
 // 缓存上次有效的 action，用于 403 等无法匹配路由名的场景
 let cachedAction: string | undefined;
 
-// 根据当前路由名获取对应的 action
+// 根据当前路由名获取对应的菜单 view action（仅用于申请权限）
 function getActionForRoute(): string | undefined {
   const name = route.name;
   if (typeof name === 'string' && MENU_ROUTE_ACTION_MAP[name]) {
@@ -215,8 +216,6 @@ function getActionForRoute(): string | undefined {
 // 判断某个业务是否有访问权限（业务选择器统一检查 biz_access 权限）
 function isBizAuthorized(bizId: number): boolean {
   if (!authStore.authorizedLoaded) return true; // 未加载完成时默认有权限，避免闪烁
-  const action = getActionForRoute();
-  if (!action) return true; // 非 biz 路由或无映射时不做限制
   return authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
 }
 
@@ -274,9 +273,8 @@ watch(() => authStore.authorizedLoaded, (loaded) => {
     || hasPersistedMultiBusiness()
     || hasExplicitlyClearedMultiBusiness()
   ) return;
-  const action = getActionForRoute();
-  if (!action) return;
-  const authorizedBizIds = authStore.getAuthorizedBizIds(action);
+  // 业务可访问范围按 biz_access 过滤
+  const authorizedBizIds = authStore.getAuthorizedBizIds(BIZ_ACCESS_ACTION);
   // authorizedBizIds === null 表示全部有权限，否则为有权限的 bizId 数组
   const firstAuthorized = authorizedBizIds === null
     ? filteredBusinessList.value[0]?.bk_biz_id

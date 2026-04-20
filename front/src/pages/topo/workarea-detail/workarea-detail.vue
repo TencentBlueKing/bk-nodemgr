@@ -149,20 +149,17 @@ import proxyInfo from './components/proxy-info.vue';
 import WorkUnitInfo from './components/work-unit-info.vue';
 
 import { useRouteSubTitle } from '@/stores/route-sub-title';
-import { useWorkareaStore } from '@/stores/workarea';
 import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
+import { useWorkareaStore } from '@/stores/workarea';
 import { TopoService } from '@/api/modules/topo';
 import useAuthLock from '@/composables/use-auth-lock';
 import { getModuleAuthorizedItems } from '@/constants/auth';
 
-const {
-  handleFetchAllWorkarea,
-} = useWorkareaStore();
-const workareaStore = useWorkareaStore();
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 const routeSubTitle = useRouteSubTitle();
+const workareaStore = useWorkareaStore();
 
 const { t } = useI18n();
 
@@ -280,47 +277,68 @@ const fetchWorkUnits = async () => {
     direct_endpoints: { cluster: [], file: [], data: [] },
     custom_deploy_config: {},
   } as NetworkUnitDetail));
+  // 把本区域管控单元写入 store，供 access-point 组件反查单元名字
+  workareaStore.allWorkUnitList.set(workAreaId, workUnitList.value);
 };
 
 /** 加载当前 active 单元的完整详情（含接入点） */
 let loadingUnitId: number | null = null;
 const loadUnitDetail = async () => {
   const unitId = active.value;
-  console.log('[loadUnitDetail] called, active =', unitId, 'workUnitList length =', workUnitList.value.length);
   if (unitId == null) return;
   // 防重复：如果正在加载同一个 unitId，跳过
-  if (loadingUnitId === unitId) {
-    console.log('[loadUnitDetail] skip, already loading unitId =', unitId);
-    return;
-  }
+  if (loadingUnitId === unitId) return;
   loadingUnitId = unitId;
   const detail = await TopoService.NetworkUnitGet({ bk_networkunit_id: unitId }).catch(() => null);
-  console.log('[loadUnitDetail] NetworkUnitGet result, unitId =', unitId, 'detail =', !!detail, detail);
   if (detail) {
-    // 兼容：get 返回 accesspoints 为空时，补充调用 accesspoint/list
-    const hasAccessPoints = detail.accesspoints && detail.accesspoints.length > 0;
-    if (!hasAccessPoints && detail.links) {
-      // 从当前单元的 links 中提取所有关联的 accesspoint_id
-      const linkedApIds = new Set<number>();
+    // 当前单元自身的接入点（下游展示用）
+    if (detail.accesspoints?.length) {
+      workareaStore.allAccessPointList.set(unitId, detail.accesspoints as AccessPoint[]);
+    }
+    // 上游接入点：access-point 组件按 bk_networkunit_id 反查 allAccessPointList 拿名字和 endpoints
+    // 从 links 提取所有 (bk_networkunit_id, accesspoint_id) 对，按 bk_networkunit_id 分组 batch 拉
+    if (detail.links) {
+      const unitToApIds = new Map<number, Set<number>>();
       for (const key of ['cluster', 'file', 'data'] as const) {
         const link = detail.links[key];
-        if (link?.accesspoint_id != null) {
-          linkedApIds.add(link.accesspoint_id);
+        if (link?.bk_networkunit_id != null && link.accesspoint_id != null) {
+          // 跳过已经在 store 里并且包含目标 accesspoint_id 的情况，避免重复请求
+          const cached = workareaStore.allAccessPointList.get(link.bk_networkunit_id);
+          if (cached?.some(ap => ap.accesspoint_id === link.accesspoint_id)) continue;
+          if (!unitToApIds.has(link.bk_networkunit_id)) {
+            unitToApIds.set(link.bk_networkunit_id, new Set());
+          }
+          unitToApIds.get(link.bk_networkunit_id)!.add(link.accesspoint_id);
         }
       }
-      if (linkedApIds.size > 0) {
+      if (unitToApIds.size > 0) {
+        const allApIds = [...unitToApIds.values()].reduce<number[]>((acc, set) => acc.concat([...set]), []);
+        // 按 accesspoint_id batch 查，不带 bk_networkarea_id 限制（支持跨区域 upstream）
         const apResult = await TopoService.AccessPointList({
-          page: { offset: 0, limit: 1 },
+          page: { offset: 0, limit: allApIds.length },
           only_count: false,
-          exact_include_conditions: { bk_networkarea_id: [workAreaId], accesspoint_id: [...linkedApIds] },
+          exact_include_conditions: { accesspoint_id: allApIds },
         }).catch(() => null);
-        if (apResult?.items) {
-          detail.accesspoints = apResult.items as AccessPoint[];
+        if (apResult?.items?.length) {
+          // 按 bk_networkunit_id 分组塞进 allAccessPointList（与 access-point.vue 反查维度一致）
+          const grouped = new Map<number, AccessPoint[]>();
+          for (const ap of apResult.items as AccessPoint[]) {
+            const unitKey = (ap as unknown as { bk_networkunit_id: number }).bk_networkunit_id;
+            if (unitKey == null) continue;
+            if (!grouped.has(unitKey)) grouped.set(unitKey, []);
+            grouped.get(unitKey)!.push(ap);
+          }
+          // 合并进 store（保留已有的，追加新的，去重）
+          for (const [unitKey, aps] of grouped) {
+            const existed = workareaStore.allAccessPointList.get(unitKey) || [];
+            const merged = [...existed];
+            for (const ap of aps) {
+              if (!merged.some(e => e.accesspoint_id === ap.accesspoint_id)) merged.push(ap);
+            }
+            workareaStore.allAccessPointList.set(unitKey, merged);
+          }
         }
-      } else {
-        detail.accesspoints = [];
       }
-      console.log('[loadUnitDetail] accesspoint/list 补充结果:', detail.accesspoints?.length || 0);
     }
     const idx = workUnitList.value.findIndex(u => u.bk_networkunit_id === unitId);
     if (idx !== -1) {
@@ -330,14 +348,34 @@ const loadUnitDetail = async () => {
   loadingUnitId = null;
 };
 
+/** 获取当前管控区域信息（只查当前区域，不拉全量）
+ *  同时把当前区域写入 workareaStore.allWorkareaList，供 access-point 组件反查区域名字
+ */
+const fetchCurrentWorkarea = async () => {
+  const result = await TopoService.NetworkAreaList({
+    page: { offset: 0, limit: 1 },
+    only_count: false,
+    exact_include_conditions: {
+      bk_networkarea_id: [workAreaId],
+      cloud_vendor: [],
+    },
+    fuzzy_include_conditions: {
+      bk_networkarea_name: [],
+    },
+  }).catch(() => ({ total: 0, items: [] }));
+  curWorkarea.value = (result?.items || [])[0];
+  if (curWorkarea.value) {
+    workareaStore.allWorkareaList.set(workAreaId, curWorkarea.value);
+  }
+};
+
 const fetchData = async () => {
   contentLoading.value = true;
   try {
     await Promise.all([
-      handleFetchAllWorkarea(),
+      fetchCurrentWorkarea(),
       fetchWorkUnits(),
     ]);
-    curWorkarea.value = workareaStore.allWorkareaList.get(workAreaId);
   } catch (err) {
     console.error(err);
   } finally {
@@ -354,21 +392,16 @@ const initData = async () => {
   // 初始化 tab焦点：使用排序后的列表（有权限优先）
   if (!route.params?.workUnit) {
     active.value = sortedWorkUnitList.value[0]?.bk_networkunit_id;
-    console.log('[initData] set active from sortedList:', sortedWorkUnitList.value[0]?.bk_networkunit_id);
   } else {
     active.value = Number(route.params.workUnit);
-    console.log('[initData] set active from route:', Number(route.params.workUnit));
   }
   // 加载初始 active 单元的详情
-  console.log('[initData] about to call loadUnitDetail, active =', active.value);
   await loadUnitDetail();
 };
 
 // 当排序列表变化时（如权限加载完成后重排），确保 active 仍指向有效的 panel
 watch(sortedWorkUnitList, (list) => {
-  console.log('[watch(sortedWorkUnitList)] triggered, list.length =', list.length, 'current active =', active.value);
   if (list.length > 0 && !list.some(item => item.bk_networkunit_id === active.value)) {
-    console.log('[watch(sortedWorkUnitList)] setting active =', list[0].bk_networkunit_id);
     active.value = list[0].bk_networkunit_id;
   }
 });

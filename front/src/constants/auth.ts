@@ -122,56 +122,46 @@ export function matchPageAuth(
  * 按模块分组的 authorized items 配置
  * key = mainMenu（对应路由 meta.mainMenu）
  * 不同模块进入时只查询该模块需要的 action-resource_type 对
+ *
+ * 设计原则：
+ * 1. 模块初始化只带「view 类」action（用于菜单/占位页判断是否无权限）
+ * 2. 非 view 类（operate/manage/create/edit/delete/upload）由具体菜单页在 onMounted 中按需调用
+ * 3. 避免跨模块 action 重复：bizSelector 专责 agent_view，nodeManager 不再重复
  */
 export const AUTHORIZED_MODULE_ITEMS: Record<string, AuthorizedItem[]> = {
   // 业务选择器：仅需 biz_access 判断业务访问权限（所有页面共享，全局预加载）
   bizSelector: [
     { action: 'biz_access', resource_type: 'biz' },
   ],
-  // 节点管理：agent / proxy / plugin 相关 biz 权限
-  // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题暂不放此模块，
-  //      由使用方（如 list.vue）按需调用 fetchAuthorized 加载
+  // 节点管理：模块内所有 view 类 biz 权限
+  // 注：业务选择器的可访问业务范围由 biz_access 统一控制，不再依赖 agent_view
+  // 注：operate/networkunit 类由具体菜单页按需调用 fetchAuthorized 加载
   nodeManager: [
     { action: 'agent_view', resource_type: 'biz' },
-    { action: 'agent_operate', resource_type: 'biz' },
-    { action: 'agent_history_view', resource_type: 'biz' },
     { action: 'proxy_view', resource_type: 'biz' },
-    { action: 'proxy_operate', resource_type: 'biz' },
-    { action: 'proxy_history_view', resource_type: 'biz' },
     { action: 'plugin_view', resource_type: 'biz' },
-    { action: 'plugin_operate', resource_type: 'biz' },
+    { action: 'agent_history_view', resource_type: 'biz' },
+    { action: 'proxy_history_view', resource_type: 'biz' },
     { action: 'plugin_history_view', resource_type: 'biz' },
-    { action: 'networkunit_view', resource_type: 'networkunit' },
   ],
-  // 拓扑管理：管控区域 + 管控单元权限
-  // 注：networkunit_use_for_agent/proxy 因后端 starts_with 兼容问题不放此模块，
-  //      由使用方（agent/list.vue）按需调用 fetchAuthorized 加载
+  // 拓扑管理：管控区域 / 管控单元 view 类权限
+  // 注：create/edit/delete 由具体菜单页（workarea/topo/workareaDetail）按需加载
   topoManager: [
     { action: 'networkarea_view', resource_type: 'networkarea' },
-    { action: 'networkarea_create', resource_type: 'networkarea' },
-    { action: 'networkarea_edit', resource_type: 'networkarea' },
-    { action: 'networkarea_delete', resource_type: 'networkarea' },
     { action: 'networkarea_history_view', resource_type: 'networkarea' },
     { action: 'networkunit_view', resource_type: 'networkunit' },
-    { action: 'networkunit_create', resource_type: 'networkunit' },
-    { action: 'networkunit_edit', resource_type: 'networkunit' },
-    { action: 'networkunit_delete', resource_type: 'networkunit' },
-    { action: 'networkunit_history_view', resource_type: 'networkunit' },
   ],
-  // 策略管理：config_policy 相关 biz 权限
+  // 策略管理：config_policy view 类 biz 权限
+  // 注：业务选择器的可访问业务范围由 biz_access 统一控制，不再依赖 agent_view
+  // 注：config_policy_manage 由具体策略页按需加载
   ruleManager: [
     { action: 'config_policy_view', resource_type: 'biz' },
-    { action: 'config_policy_manage', resource_type: 'biz' },
     { action: 'config_policy_history_view', resource_type: 'biz' },
-    { action: 'networkunit_view', resource_type: 'networkunit' },
   ],
-  // 包管理：package_type（上传按钮按包类型） + package（其他操作） 权限
-  // package_type_upload 按 package_type 查询（根据路由确定是 agent/proxy/cert 等）
-  // package_view / package_manage / package_history_view 按 package 查询
+  // 包管理：view 类
+  // 注：package_manage / package_type_upload 由具体菜单页（agent-proxy-pkg / cert-bintool-manage 等）按需加载
   pkgManager: [
-    { action: 'package_type_upload', resource_type: 'package_type' },
     { action: 'package_view', resource_type: 'package' },
-    { action: 'package_manage', resource_type: 'package' },
     { action: 'package_history_view', resource_type: 'package' },
   ],
 };
@@ -196,6 +186,83 @@ export const MENU_ROUTE_AUTH_MAP: Record<string, string> = {
   pluginStrategy: 'config_policy_view',
   strategyTaskHistory: 'config_policy_history_view',
 };
+
+/**
+ * 菜单页「按需加载」的 authorized items
+ * key = 路由 name，value = 进入该菜单页时需要额外加载的非 view 类 action 列表
+ * 进入菜单页（onMounted）时由页面主动调用 fetchAuthorized 加载
+ */
+export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
+  // ===== nodeManager =====
+  agent: [
+    { action: 'agent_operate', resource_type: 'biz' },
+  ],
+  proxy: [
+    { action: 'proxy_operate', resource_type: 'biz' },
+  ],
+  plugin: [
+    { action: 'plugin_operate', resource_type: 'biz' },
+  ],
+  // ===== topoManager =====
+  workarea: [
+    { action: 'networkarea_create', resource_type: 'networkarea' },
+    { action: 'networkarea_edit', resource_type: 'networkarea' },
+    { action: 'networkarea_delete', resource_type: 'networkarea' },
+  ],
+  workareaDetail: [
+    { action: 'networkarea_edit', resource_type: 'networkarea' },
+    { action: 'networkunit_create', resource_type: 'networkunit' },
+    { action: 'networkunit_edit', resource_type: 'networkunit' },
+    { action: 'networkunit_delete', resource_type: 'networkunit' },
+    { action: 'networkunit_history_view', resource_type: 'networkunit' },
+  ],
+  topo: [
+    { action: 'networkunit_edit', resource_type: 'networkunit' },
+  ],
+  // ===== ruleManager =====
+  agentStrategy: [
+    { action: 'config_policy_manage', resource_type: 'biz' },
+  ],
+  proxyStrategy: [
+    { action: 'config_policy_manage', resource_type: 'biz' },
+  ],
+  pluginStrategy: [
+    { action: 'config_policy_manage', resource_type: 'biz' },
+  ],
+  // ===== pkgManager =====
+  agentPackageMng: [
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_type_upload', resource_type: 'package_type' },
+  ],
+  proxyPackageMng: [
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_type_upload', resource_type: 'package_type' },
+  ],
+  certPackageMng: [
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_type_upload', resource_type: 'package_type' },
+  ],
+  bintoolPackageMng: [
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_type_upload', resource_type: 'package_type' },
+  ],
+  plugin_bintoolPackageMng: [
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_type_upload', resource_type: 'package_type' },
+  ],
+  pluginPackageMng: [
+    { action: 'package_manage', resource_type: 'package' },
+    { action: 'package_type_upload', resource_type: 'package_type' },
+  ],
+};
+
+/**
+ * 获取指定菜单页的按需 authorized items
+ * @param routeName 路由 name
+ */
+export function getPageAuthorizedItems(routeName: string): AuthorizedItem[] {
+  return PAGE_AUTHORIZED_ITEMS[routeName] || [];
+}
 
 /**
  * 获取指定模块的 authorized items

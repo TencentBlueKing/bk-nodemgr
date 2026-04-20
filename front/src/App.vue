@@ -165,7 +165,7 @@ import PermissionDialog from '@/components/permission-dialog.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
-import { getModuleAuthorizedItems, matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
+import { getModuleAuthorizedItems, getPageAuthorizedItems, matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
 
 /** 包管理子路由名 → 包类型 id 映射（用于 authorized/verify 传入正确的资源实例 ID） */
 const ROUTE_TO_PKG_TYPE_ID: Record<string, string> = {
@@ -218,6 +218,9 @@ const ensureCurrentRoutePermission = async () => {
 
   // 包管理：路由级不做 verify/403 跳转，由 pkg/index.vue 渲染 NoPermission 占位页
   if (route.meta?.mainMenu === 'pkgManager') return;
+
+  // 拓扑管理-操作记录：由 record.vue 渲染 NoPermission 占位页，不触发 verify
+  if (route.name === 'record' && route.meta?.mainMenu === 'topoManager') return;
 
   const matched = matchPageAuth(route, PAGE_AUTH_CONFIG);
   if (!matched) return;
@@ -506,19 +509,12 @@ onBeforeMount(async () => {
 
   await getBusinessList();
   // 首次加载当前路由模块的 authorized items
-  // biz 页面（nodeManager/ruleManager）额外加载 bizSelector（业务选择器依赖 agent_view）
   // 注：若 route.meta.mainMenu 未就绪则不兜底加载，等 watch(route.meta.mainMenu) 触发时再加载，避免重复请求
   const currentModule = route.meta?.mainMenu ? String(route.meta.mainMenu) : '';
   if (currentModule) {
-    const initialModules: string[] = [currentModule];
-    if (['nodeManager', 'ruleManager'].includes(currentModule)) {
-      initialModules.unshift('bizSelector');
-    }
-    for (const mod of initialModules) {
-      const moduleItems = getModuleAuthorizedItems(mod);
-      if (moduleItems.length) {
-        await authStore.fetchAuthorized(moduleItems, mod);
-      }
+    const moduleItems = getModuleAuthorizedItems(currentModule);
+    if (moduleItems.length) {
+      await authStore.fetchAuthorized(moduleItems, currentModule);
     }
   }
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
@@ -557,6 +553,19 @@ watch(
       await authStore.fetchAuthorized(moduleItems, moduleName);
     }
   },
+);
+
+// 菜单页切换时按需加载该页所需的非 view 类 action（operate / manage / create / edit / delete / upload）
+watch(
+  () => route.name,
+  async (newName) => {
+    if (!newName || typeof newName !== 'string') return;
+    const pageItems = getPageAuthorizedItems(newName);
+    if (!pageItems.length) return;
+    // 以 `page:<routeName>` 作为 key，避免与模块级 items 重复触发
+    await authStore.fetchAuthorized(pageItems, `page:${newName}`);
+  },
+  { immediate: true },
 );
 </script>
 <style lang="postcss" scoped>

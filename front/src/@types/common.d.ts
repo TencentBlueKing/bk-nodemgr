@@ -426,6 +426,7 @@ interface Plugin {
   group: string;
   pkg_name: string;
   memo: string;
+  visible_biz_ids: number[];
 }
 
 interface Error {
