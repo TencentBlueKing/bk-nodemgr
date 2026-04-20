@@ -281,11 +281,8 @@ func (p *PackageProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[
 	ids := req.Filter.IDs
 
 	if len(ids) == 0 {
-		data := &FetchInstanceInfoData{
-			Results: []InstanceInfo{},
-		}
-
-		return data, nil
+		data := FetchInstanceInfoData(nil)
+		return &data, nil
 	}
 
 	// Build name set for quick lookup
@@ -310,11 +307,9 @@ func (p *PackageProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[
 	// Check fixed types (agent, proxy, cert, bintool)
 	p.addFixedTypePackages(nameSet, addedSet, &results)
 
-	data := &FetchInstanceInfoData{
-		Results: results,
-	}
+	data := FetchInstanceInfoData(results)
 
-	return data, nil
+	return &data, nil
 }
 
 // addPluginReleases adds matching plugin releases to results.

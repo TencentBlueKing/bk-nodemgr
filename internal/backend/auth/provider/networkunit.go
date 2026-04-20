@@ -125,11 +125,8 @@ func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 	}
 
 	if len(ids) == 0 {
-		data := &FetchInstanceInfoData{
-			Results: []InstanceInfo{},
-		}
-
-		return data, nil
+		data := FetchInstanceInfoData([]InstanceInfo{})
+		return &data, nil
 	}
 
 	// Query network units by IDs
@@ -155,11 +152,9 @@ func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 		})
 	}
 
-	data := &FetchInstanceInfoData{
-		Results: results,
-	}
+	data := FetchInstanceInfoData(results)
 
-	return data, nil
+	return &data, nil
 }
 
 // ListInstanceByPolicy lists network unit instances filtered by IAM policy expression.

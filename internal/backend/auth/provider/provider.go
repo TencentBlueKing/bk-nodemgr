@@ -219,10 +219,7 @@ type ResourceInstance struct {
 
 // FetchInstanceInfoData represents the response data for FetchInstanceInfo API.
 // Returns detailed attribute information for each requested instance.
-type FetchInstanceInfoData struct {
-	// Results contains the list of instances with their detailed attributes
-	Results []InstanceInfo `json:"results"`
-}
+type FetchInstanceInfoData []InstanceInfo
 
 // InstanceInfo represents detailed information of a resource instance.
 // Contains the instance ID and all its attributes (dynamic fields based on attrs filter in request).

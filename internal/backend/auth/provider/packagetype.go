@@ -74,11 +74,8 @@ func (p *PackageTypeProvider) FetchInstanceInfo(_ contextx.IContext, req *Reques
 	ids := req.Filter.IDs
 
 	if len(ids) == 0 {
-		data := &FetchInstanceInfoData{
-			Results: []InstanceInfo{},
-		}
-
-		return data, nil
+		data := FetchInstanceInfoData(nil)
+		return &data, nil
 	}
 
 	// Convert to IAM response format
@@ -94,11 +91,9 @@ func (p *PackageTypeProvider) FetchInstanceInfo(_ contextx.IContext, req *Reques
 		}
 	}
 
-	data := &FetchInstanceInfoData{
-		Results: results,
-	}
+	data := FetchInstanceInfoData(results)
 
-	return data, nil
+	return &data, nil
 }
 
 // ListInstanceByPolicy lists package type instances filtered by IAM policy expression.

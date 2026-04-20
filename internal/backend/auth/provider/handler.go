@@ -87,6 +87,7 @@ func (h *Handler) dispatchToProvider(
 	filterMap map[string]interface{},
 	page types.Page,
 ) (interface{}, error) {
+
 	switch method {
 	case RequestMethodListAttr:
 		return h.dispatchListAttr(ctx, provider, page)
@@ -134,6 +135,7 @@ func (h *Handler) ListInstancesByPolicy(
 	filterMap map[string]interface{},
 	page types.Page,
 ) (*ListInstanceData, error) {
+
 	provider, exist := h.GetProvider(resourceType)
 	if !exist {
 		return nil, fmt.Errorf("resource type %s not supported or the provider not registered", resourceType)
@@ -242,6 +244,7 @@ func (h *Handler) dispatchListInstanceByPolicy(
 	filterMap map[string]interface{},
 	page types.Page,
 ) (*ListInstanceData, error) {
+
 	var filter ListInstanceByPolicyFilter
 	if err := conv.MapToStruct(filterMap, &filter); err != nil {
 		return nil, fmt.Errorf("failed to parse ListInstanceByPolicyFilter: %w", err)
