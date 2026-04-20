@@ -13,7 +13,6 @@ package plugin
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
@@ -96,15 +95,10 @@ func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName .
 		authorizedPlugins[plugin.Name] = struct{}{}
 	}
 
-	var noAuthorizedPlugins []string
 	for _, plugin := range pluginName {
 		if _, ok := authorizedPlugins[plugin]; !ok {
-			noAuthorizedPlugins = append(noAuthorizedPlugins, plugin)
+			return errPluginOperateDeniedByEmptyScope
 		}
-	}
-
-	if len(noAuthorizedPlugins) > 0 {
-		return fmt.Errorf("%w: %v", errPluginOperateDeniedByEmptyScope, noAuthorizedPlugins)
 	}
 
 	return nil

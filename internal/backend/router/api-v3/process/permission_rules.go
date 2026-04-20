@@ -24,7 +24,7 @@ var (
 	errBizViewDeniedByEmptyScope = errors.New("no authorized businesses")
 )
 
-func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext) ([]string, bool, error) {
+func (h *handler) narrowAuthorizedPluginNamesForView(rCtx restserver.IContext) ([]string, bool, error) {
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginView, types.AuthResourceTypeBiz)
 	if err != nil {
 		return nil, false, err
@@ -41,7 +41,7 @@ func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext) 
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, nil); checkErr != nil {
 			return nil, false, checkErr
 		}
-		
+
 		return nil, false, errBizViewDeniedByEmptyScope
 	}
 

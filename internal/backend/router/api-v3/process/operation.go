@@ -27,7 +27,7 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	condition := req.ConvertConditionsToTypes()
-	narrowedPluginName, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForPluginView(rCtx)
+	narrowedPluginName, scopeIsAny, authErr := h.narrowAuthorizedPluginNamesForView(rCtx)
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list processes, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
