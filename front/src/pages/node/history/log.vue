@@ -976,14 +976,11 @@ async function getLog() {
     logData.value.oper_inst_logs[key] = actionData;
     const { start_time, end_time, state } = actionData.life_cycle || {};
     let costTime = 0;
-    if (start_time && end_time) {
-      if (end_time <= 0 && state !== 'pending') {
-        costTime = new Date().getTime() - start_time;
-        if (start_time < 0) {
-          costTime = 0;
-        }
-      } else if (end_time > 0) {
+    if (start_time > 0) {
+      if (end_time > 0) {
         costTime = end_time - start_time;
+      } else if (state !== 'pending') {
+        costTime = new Date().getTime() - start_time;
       }
     }
     list.push({
@@ -1006,22 +1003,20 @@ async function getLog() {
   tableData.value = list;
 
   let currentKey;
+  let hasRunning = false;
   for (const [key, entry] of Object.entries(logData.value.oper_inst_logs)) {
-    if (['failed', 'timeout', 'terminated'].includes((entry as any).life_cycle?.state)) {
+    const lifeState = (entry as any).life_cycle?.state;
+    if (['failed', 'timeout', 'terminated'].includes(lifeState)) {
       currentKey = key;
       hasErrorOrTimeout.value = true;
-      isInterval.value = false;
-      break;
-    } else if ((entry as any).life_cycle?.state === 'running') {
+    } else if (lifeState === 'running') {
       currentKey = key;
-      isInterval.value = true;
-      break;
+      hasRunning = true;
+    } else {
+      currentKey = key;
     }
-    currentKey = key;
   }
-  if (currentKey && logData.value.oper_inst_logs[currentKey]?.life_cycle.state === 'success') {
-    isInterval.value = false;
-  }
+  isInterval.value = hasRunning;
 
   // 构建 allLogs：仅在额外日志包含 ERROR 时才加入日志区域展示
   const extraLogs = hasExtraError

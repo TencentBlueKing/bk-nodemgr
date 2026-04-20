@@ -1347,7 +1347,7 @@ const updataCurrentTaskInfo = async () => {
   });
   const list = res.items.map(item => ({
     ...item,
-    cost_time: item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
+    cost_time: item.finish_time > 0 ? item.finish_time - item.operate_time : new Date().getTime() - item.operate_time,
   }));
   const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
   if (findItem) {
@@ -1473,7 +1473,8 @@ const getOperateList = async () => {
     };
   });
   const isEqual = tableData.value.length === mapList.length
-    && tableData.value.every((item, index) => item.state === mapList[index]?.state);
+    && tableData.value.every((item, index) => item.state === mapList[index]?.state
+      && item.total_time_second === mapList[index]?.total_time_second);
   if (!isEqual) {
     tableData.value = mapList;
     tableData.value.forEach((item) => {
@@ -1483,6 +1484,14 @@ const getOperateList = async () => {
         isChecked = !excludedIds.value.has(item.bk_host_id);
       }
       item.checked = isChecked;
+    });
+  }
+  // 轮询期间实时更新任务头部耗时
+  const taskRow = nodeManageStore.taskHistoryTableRowData;
+  if (taskRow && taskRow.finish_time <= 0 && taskRow.operate_time > 0) {
+    nodeManageStore.updateCurrentRowData({
+      ...taskRow,
+      cost_time: new Date().getTime() - taskRow.operate_time,
     });
   }
 };
