@@ -51,6 +51,8 @@ type NodeDeployConf struct {
 	// custom.
 	LogDir         string
 	ExtraConfigDir string
+	DataIPCPort    int
+	PluginIPCPort  int
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -132,6 +134,12 @@ func (conf NodeDeployConf) GenerateNodeHomeDir(role types.NodeRole) string {
 // GenerateDataIPCPath generates the data IPC path based on the OS type.
 func (conf NodeDeployConf) GenerateDataIPCPath(role types.NodeRole) string {
 	if conf.OsType == criteria.OSWindows {
+		if conf.DataIPCPort > 0 {
+			r, _ := conv.ToString(conf.DataIPCPort)
+
+			return r
+		}
+
 		return nodeWindowsDataIPCPort
 	}
 
@@ -141,6 +149,12 @@ func (conf NodeDeployConf) GenerateDataIPCPath(role types.NodeRole) string {
 // GeneratePluginIPCPath generates the plugin IPC path based on the OS type.
 func (conf NodeDeployConf) GeneratePluginIPCPath(role types.NodeRole) string {
 	if conf.OsType == criteria.OSWindows {
+		if conf.PluginIPCPort > 0 {
+			r, _ := conv.ToString(conf.PluginIPCPort)
+
+			return r
+		}
+
 		return nodeWindowsPluginIPCPort
 	}
 

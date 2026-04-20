@@ -6,17 +6,20 @@ set cu_time=%time:~0,8%
 set script_dir=%~dp0
 cd /d %script_dir%
 
-tasklist|findstr /i "!prog_name!.exe" >nul 2>&1
+powershell -command "$expectedPath = '%script_dir%!prog_name!.exe' -replace '/', '\'; $process = Get-Process -Name '!prog_name!' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $expectedPath }; if ($process) { exit 0 } else { exit 1 }" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [%cu_date% %cu_time%] !prog_name! alread stopped
+    echo [%cu_date% %cu_time%] !prog_name! already stopped in current directory
     goto EOF
 )
 
 
-rem ֹͣ����
-taskkill /F /IM "!prog_name!.exe"
+rem 停止进程
+rem 停止进程（精确匹配路径）
+for /f "delims=" %%p in ('powershell -command "$expectedPath = '%script_dir%!prog_name!.exe' -replace '/', '\'; $process = Get-Process -Name '!prog_name!' -ErrorAction SilentlyContinue ^| Where-Object { $_.Path -eq $expectedPath }; if ($process) { $process.Id }"') do (
+    taskkill /F /PID %%p
+)
 ping -n 2 127.0.0.1 >nul 2>&1
-tasklist|findstr /i "!prog_name!.exe" >nul 2>&1
+powershell -command "$expectedPath = '%script_dir%!prog_name!.exe' -replace '/', '\'; $process = Get-Process -Name '!prog_name!' -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $expectedPath }; if ($process) { exit 0 } else { exit 1 }" >nul 2>&1
 if %errorlevel% equ 0 (
     echo [%cu_date% %cu_time%] stop !prog_name! fail
     goto EOF

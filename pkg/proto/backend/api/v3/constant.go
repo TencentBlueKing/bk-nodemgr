@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -71,7 +72,7 @@ func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(
 	nodeConf deployconstant.NodeDeployConf,
 	pluginConf deployconstant.PluginDeployConf) {
 
-	if x.Data == nil {
+	if x.GetData() == nil {
 		x.Data = &NodeConstantDeployGetResp_Data{}
 	}
 
@@ -92,6 +93,15 @@ func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(
 	if osType == criteria.OSWindows {
 		dataIPC := deployconstant.GetWindowsDefaultDataIPCPort()
 		pluginIPC := deployconstant.GetWindowsDefaultPluginIPCPort()
+
+		if nodeConf.DataIPCPort > 0 {
+			dataIPC, _ = conv.ToString(nodeConf.DataIPCPort)
+		}
+
+		if nodeConf.PluginIPCPort > 0 {
+			pluginIPC, _ = conv.ToString(nodeConf.PluginIPCPort)
+		}
+
 		x.Data.DefaultDeployConfig.NodeRuntime.DataIpc = &dataIPC
 		x.Data.DefaultDeployConfig.NodeRuntime.PluginIpc = &pluginIPC
 	}

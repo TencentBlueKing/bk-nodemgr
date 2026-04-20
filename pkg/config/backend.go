@@ -499,6 +499,8 @@ func (conf GSEDeployConf) Validate() error {
 type GSEDeployCustom struct {
 	LogDir         string `yaml:"logDir" usage:"log dir"`
 	ExtraConfigDir string `yaml:"extraConfigDir" usage:"extra config dir"`
+	DataIPCPort    int    `yaml:"dataIPCPort" usage:"data ipc port, only for windows"`
+	PluginIPCPort  int    `yaml:"pluginIPCPort" usage:"plugin ipc port, only for windows"`
 }
 
 // Validate validates the config.
