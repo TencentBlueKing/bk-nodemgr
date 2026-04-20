@@ -280,7 +280,7 @@ const handleAutoAssign = async () => {
       ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
     }));
     
-    const res = await TopoService.NetworkUnitRecommendByNetworkSegment({ items });
+    const res = await TopoService.RecommendNetworkUnitByNetworkSegment({ items });
     
     if (res?.items) {
       res.items.forEach((result: any, index: number) => {
