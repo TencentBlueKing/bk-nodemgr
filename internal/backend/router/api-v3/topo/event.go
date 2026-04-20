@@ -287,21 +287,6 @@ func (h *handler) DistinctEvent(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, failed to convert conditions to types")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	cond, err = narrowTopoEventCondition(cond,
-		func(requestedIDs []int64) ([]int64, bool, error) {
-			return h.narrowAuthorizedNetworkAreaHistoryIDs(rCtx, requestedIDs)
-		},
-		func(requestedIDs []int64) ([]int64, bool, error) {
-			return h.narrowAuthorizedNetworkUnitHistoryIDs(rCtx, requestedIDs)
-		},
-		func(requestedIDs []int64) ([]int64, bool, error) {
-			return h.narrowAuthorizedAccessPointHistoryIDs(rCtx, requestedIDs)
-		},
-	)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, err)
-	}
 
 	result, err := h.storage.DistinctTopoEvent(
 		rCtx,

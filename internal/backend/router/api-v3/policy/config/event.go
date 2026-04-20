@@ -96,12 +96,6 @@ func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// Check permission for history view.
-	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, nil); authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to distinct policy event, permission denied")
-		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
-	}
-
 	result, err := h.storageConfigPolicy.DistinctConfigPolicyEvent(
 		rCtx,
 		types.NewConfigPolicyEventDistinctRequestAllSet(),

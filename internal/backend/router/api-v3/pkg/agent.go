@@ -139,12 +139,6 @@ func (h *handler) DistinctReleaseAgent(rCtx restserver.IContext) (interface{}, e
 	cond := &types.ReleaseCondition{
 		ExactInclude: exactIncludeCond,
 	}
-	// Check permission.
-	_, _, authErr := h.narrowAuthorizedPackageNames(rCtx, nil, types.ReleaseTypeAgent)
-	if authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to distinct agent release, permission denied")
-		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
-	}
 
 	distinctField := types.ReleaseDistinctField{
 		OSType:  req.GetDistinctField().GetOsType(),
