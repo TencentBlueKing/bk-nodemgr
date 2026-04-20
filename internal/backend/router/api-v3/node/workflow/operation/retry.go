@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -28,8 +27,15 @@ func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	workflowID := req.GetWorkflowId()
+
+	// Check permission before retry
+	if _, err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+		return nil, err
+	}
+
 	err := h.nodeMgrIface.LaunchRetryNodeOperationFromLastInstance(rCtx, types.RetryNodeWorkflowOperationParam{
-		WorkflowID:   req.GetWorkflowId(),
+		WorkflowID:   workflowID,
 		RetryMod:     operation.RetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationIds(),
 	})

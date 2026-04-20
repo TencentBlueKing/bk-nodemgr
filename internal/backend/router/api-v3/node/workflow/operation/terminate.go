@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -27,8 +26,15 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	workflowID := req.GetWorkflowId()
+
+	// Check permission before terminate
+	if _, err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+		return nil, err
+	}
+
 	err := h.nodeMgrIface.TerminateNodeOperationLastInstance(rCtx, types.TerminateNodeWorkflowOperationParam{
-		WorkflowID:   req.GetWorkflowId(),
+		WorkflowID:   workflowID,
 		OperationIDs: req.GetOperationIds(),
 	})
 	if err != nil {

@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package workflow
+package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -26,13 +26,20 @@ func (h *handler) GetManualInfo(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	workflowID, operationID := req.GetWorkflowId(), req.GetOperationId()
+
+	// Check permission
+	if _, err := h.checkWorkflowOperatePermission(rCtx, workflowID); err != nil {
+		return nil, err
+	}
+
 	info, err := h.nodeMgrIface.GetOperationManualInfoFromLastInstance(rCtx, types.GetNodeWorklfowOperationManualInfoParam{
-		WorkflowID:  req.GetWorkflowId(),
-		OperationID: req.GetOperationId(),
+		WorkflowID:  workflowID,
+		OperationID: operationID,
 	})
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual info")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationManualInfoGetResp)
