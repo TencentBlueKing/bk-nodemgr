@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -278,4 +279,37 @@ func (info *InstanceInfo) UnmarshalJSON(data []byte) error {
 	info.Attributes = temp
 
 	return nil
+}
+
+// BuildIAMPath constructs IAM resource path attribute value.
+//
+// The path format follows IAM specification: "/parent_type,parent_id/"
+// This attribute is used by IAM for hierarchical authorization checks.
+//
+// Parameters:
+//   - resourceType: Parent resource type (e.g., "networkarea", "package_type")
+//   - resourceID: Parent resource ID(s), will be joined with comma if multiple
+//
+// Returns:
+//   - []string: Path array (IAM supports multiple paths, we return single-element array)
+//
+// Example:
+//
+//	BuildIAMPath("networkarea", "123") → ["/networkarea,123/"]
+//	BuildIAMPath("package_type", "plugin") → ["/package_type,plugin/"]
+//
+// Integration with iam-go-sdk:
+//
+//	This value is set as the _bk_iam_path_ attribute in resource instance info.
+//	During policy evaluation, expression.ExprCell.Eval() uses this attribute when
+//	matching IAM policy expressions with starts_with operator.
+//	The SDK automatically strips ",*/" suffix for wildcard path matching.
+//
+// See also:
+//   - expression.KeywordBKIAMPath: The attribute key constant
+//   - expression.ExprCell.Eval(): Policy expression evaluation logic
+func BuildIAMPath(resourceType string, resourceID ...string) []string {
+	return []string{
+		fmt.Sprintf("/%s,%s/", resourceType, strings.Join(resourceID, ",")),
+	}
 }

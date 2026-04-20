@@ -21,21 +21,24 @@ import (
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/gin-gonic/gin"
 )
 
 // handler holds the router group and capabilities for IAM v3 routes.
 type handler struct {
-	rg         *gin.RouterGroup
-	capability *options.Capability
+	rg           *gin.RouterGroup
+	dispatcher   authProvider.IDispatcher
+	iamV3Handler iamv3.IHandler
 }
 
 // newHandler creates a new handler for IAM v3 routes.
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// Create sub router for IAM v3 with path /v3
-		rg:         rg.Group("/v3"),
-		capability: capability,
+		rg:           rg.Group("/v3"),
+		dispatcher:   capability.AuthProviderHandler,
+		iamV3Handler: capability.IAMV3Handler,
 	}
 }
 
@@ -71,7 +74,7 @@ func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 		ctx := contextx.FromContext(c.Request.Context())
 
 		// Validate credentials using IAMV3Handler
-		if err := h.capability.IAMV3Handler.IsBasicAuthAllowed(ctx, username, password); err != nil {
+		if err := h.iamV3Handler.IsBasicAuthAllowed(ctx, username, password); err != nil {
 			c.Header("WWW-Authenticate", `Basic realm="IAM"`)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
@@ -114,7 +117,7 @@ func (h *handler) handleResourceCallback(rCtx restserver.IContext) (interface{},
 	requestMethod := authProvider.RequestMethod(req.GetMethod())
 
 	// Dispatch to handler
-	result, dispatchErr := h.capability.IAMCallbackHandler.DispatchMethod(
+	result, dispatchErr := h.dispatcher.DispatchMethod(
 		rCtx,
 		resourceType,
 		requestMethod,

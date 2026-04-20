@@ -15,8 +15,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Resolver provides reusable policy-based instance listing over registered providers.
-type Resolver interface {
+// IHandler provides the iam resource handlers.
+type IHandler interface {
+	IDispatcher
+	IAttributeEnricher
+}
+
+// IResolver provides reusable policy-based instance listing over registered providers.
+type IResolver interface {
 	RegisterProvider(resourceType string, provider IProvider)
 	GetProvider(resourceType string) (IProvider, bool)
 	ListInstancesByPolicy(
@@ -38,4 +44,48 @@ type IDispatcher interface {
 		filterMap map[string]interface{},
 		page types.Page,
 	) (interface{}, error)
+}
+
+// IAttributeEnricher provides resource attribute enrichment for authorization.
+//
+// This interface enables automatic injection of IAM-specific attributes
+// (like _bk_iam_path_) into authorization requests before sending to IAM.
+//
+// Design rationale:
+//   - Decouples attribute fetching from authorization logic
+//   - Leverages existing provider.FetchInstanceInfo implementations
+//   - Supports batch fetching for performance
+//
+// Integration with iam-go-sdk:
+//   - Attributes are set into expression.ObjectSet during policy evaluation
+//   - expression.ExprCell.Eval() uses these attributes for policy matching
+//   - Special handling for _bk_iam_path_ with starts_with operator (see SDK)
+//
+// Usage flow:
+//  1. auth.Check() calls enrichResourceAttributes() before IAM request
+//  2. enrichResourceAttributes() groups resources by (systemID, type)
+//  3. For each group, calls FetchResourceAttributes() to get attributes
+//  4. Merges fetched attributes into types.AuthResource.Attributes
+//  5. Converts to types.IAMResource and sends to IAM SDK
+type IAttributeEnricher interface {
+	// FetchResourceAttributes fetches attributes for a batch of resources.
+	//
+	// Parameters:
+	//   - ctx: Request context
+	//   - resourceType: Resource type identifier (e.g., "networkunit", "package")
+	//   - resourceIDs: List of resource IDs to fetch attributes for
+	//
+	// Returns:
+	//   - map[resourceID]map[attrKey]attrValue: Attributes by resource ID
+	//   - error: Any error during fetching
+	//
+	// Behavior:
+	//   - If a resource is not found, it should not be in the returned map
+	//   - If a resource has no attributes, it should not be in the returned map
+	//   - Empty map (not nil) should be returned if no attributes found
+	FetchResourceAttributes(
+		ctx contextx.IContext,
+		resourceType string,
+		resourceIDs []string,
+	) (map[string]map[string]interface{}, error)
 }

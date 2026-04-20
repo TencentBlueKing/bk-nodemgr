@@ -47,6 +47,8 @@ type AuthResource struct {
 	Type AuthResourceType
 	// ID is the resource instance ID.
 	ID string
+	// Attributes stores resource attributes for IAM checks (e.g. _bk_iam_path_).
+	Attributes map[string]interface{}
 }
 
 // AuthResourceTypeDisplayName returns the human-readable display name for the given resource type.

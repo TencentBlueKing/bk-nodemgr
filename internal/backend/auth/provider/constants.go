@@ -10,7 +10,10 @@
 
 package provider
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
+)
 
 // packageTypeDisplayNames maps ReleaseType to Chinese display names.
 func packageTypeDisplayNames() map[types.ReleaseType]string {
@@ -35,3 +38,16 @@ func allPackageTypes() []types.ReleaseType {
 		types.ReleaseTypePlugin,
 	}
 }
+
+// IAM special attribute keys for resource instance info.
+const (
+	// AttrIAMPath represents the resource topology path attribute.
+	// Reuses expression.KeywordBKIAMPath from iam-go-sdk for consistency.
+	// Format: []/parent_type,parent_id/"].
+	// This attribute is used by IAM for hierarchical authorization checks.
+	AttrIAMPath = expression.KeywordBKIAMPath
+
+	// AttrIAMApprover represents the resource approver attribute.
+	// Format: ["user1", "user2"].
+	AttrIAMApprover = "_bk_iam_approver_"
+)

@@ -306,11 +306,11 @@ func (svc *Service) initialCapability() error {
 		StgWorkflow:      svc.Cap.StorageWorkflow,
 	})
 
+	// initial IAM callback handler.
+	svc.Cap.AuthProviderHandler = svc.newAuthProviderHandler()
+
 	// initial authorizer.
 	svc.Cap.Authorizer = svc.newAuthorizer()
-
-	// initial IAM callback handler.
-	svc.Cap.IAMCallbackHandler = svc.newIAMCallbackHandler()
 
 	return nil
 }
@@ -431,11 +431,11 @@ func (svc *Service) newAuthorizer() auth.IAuthorizer {
 		return auth.NewNoOpAuthorizer()
 	}
 
-	return auth.NewIAMV3Authorizer(svc.conf.IAMV3.SystemID, svc.Cap.IAMV3Handler)
+	return auth.NewIAMV3Authorizer(svc.conf.IAMV3.SystemID, svc.Cap.IAMV3Handler, svc.Cap.AuthProviderHandler)
 }
 
-// newIAMCallbackHandler creates a unified IAM callback handler with all providers registered.
-func (svc *Service) newIAMCallbackHandler() authProvider.IDispatcher {
+// newAuthProviderHandler creates a unified IAM callback handler with all providers registered.
+func (svc *Service) newAuthProviderHandler() authProvider.IHandler {
 	handler := authProvider.NewHandler()
 
 	// Register NetworkArea provider

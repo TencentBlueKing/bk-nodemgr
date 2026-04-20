@@ -107,8 +107,8 @@ type Capability struct {
 	// Authorizer is the IAM authorization handler for permission checks.
 	Authorizer auth.IAuthorizer
 
-	// IAMCallbackHandler is the unified handler for IAM resource callbacks.
-	IAMCallbackHandler provider.IDispatcher
+	// AuthProviderHandler is the unified handler for auth resource provider handler.
+	AuthProviderHandler provider.IHandler
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

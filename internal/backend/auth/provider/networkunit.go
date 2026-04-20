@@ -146,7 +146,9 @@ func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 		results = append(results, InstanceInfo{
 			ID:          strconv.FormatInt(unit.ID, 10),
 			DisplayName: unit.Name,
-			Attributes:  make(map[string]interface{}),
+			Attributes: map[string]interface{}{
+				AttrIAMPath: BuildIAMPath(ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10)),
+			},
 		})
 	}
 

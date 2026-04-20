@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -61,15 +62,97 @@ func iamResourceTypeOrderKey(systemID, typ string) int {
 }
 
 type iamv3Authorizer struct {
-	systemID string
-	handler  iamv3.IHandler
+	systemID          string
+	handler           iamv3.IHandler
+	attributeEnricher provider.IAttributeEnricher
 }
 
 // NewIAMV3Authorizer creates an IAuthorizer backed by the IAM v3 handler.
-func NewIAMV3Authorizer(systemID string, handler iamv3.IHandler) IAuthorizer {
-	return &iamv3Authorizer{systemID: systemID, handler: handler}
+// If attributeEnricher is provided, it will automatically enrich resource attributes during authorization.
+func NewIAMV3Authorizer(systemID string, handler iamv3.IHandler, attributeEnricher provider.IAttributeEnricher) IAuthorizer {
+	return &iamv3Authorizer{
+		systemID:          systemID,
+		handler:           handler,
+		attributeEnricher: attributeEnricher,
+	}
 }
 
+// enrichResourceAttributes enriches resources with attributes from provider.
+// It groups resources by (systemID, type) and batch-fetches attributes for each group.
+func (authorizer *iamv3Authorizer) enrichResourceAttributes(ctx contextx.IContext, resources []types.AuthResource) []types.AuthResource {
+	// If no enricher configured, return resources as-is
+	if authorizer.attributeEnricher == nil {
+		return resources
+	}
+
+	// Group resources by (systemID, type) for batch fetching
+	grouped := groupResourcesForEnrichment(resources)
+
+	// Fetch and merge attributes for each group
+	for key, indices := range grouped {
+		authorizer.fetchAndMergeAttributes(ctx, key.resType, indices, resources)
+	}
+
+	return resources
+}
+
+// resourceKey identifies a unique (systemID, resourceType) pair for grouping.
+type resourceKey struct {
+	systemID string
+	resType  string
+}
+
+// groupResourcesForEnrichment groups resources by (systemID, type) for batch fetching.
+// Returns a map from resourceKey to slice indices in the original resources slice.
+func groupResourcesForEnrichment(resources []types.AuthResource) map[resourceKey][]int {
+	grouped := make(map[resourceKey][]int)
+	for i, r := range resources {
+		// Only enrich bk_nodemgr resources (skip CMDB resources)
+		if r.SystemID != types.SystemIDNodeMgr {
+			continue
+		}
+		key := resourceKey{systemID: r.SystemID, resType: string(r.Type)}
+		grouped[key] = append(grouped[key], i)
+	}
+
+	return grouped
+}
+
+// fetchAndMergeAttributes fetches attributes for a group of resources and merges them back.
+func (authorizer *iamv3Authorizer) fetchAndMergeAttributes(
+	ctx contextx.IContext,
+	resType string,
+	indices []int,
+	resources []types.AuthResource,
+) {
+	// Collect resource IDs
+	ids := make([]string, 0, len(indices))
+	for _, idx := range indices {
+		ids = append(ids, resources[idx].ID)
+	}
+
+	// Fetch attributes from provider
+	attrsMap, err := authorizer.attributeEnricher.FetchResourceAttributes(ctx, resType, ids)
+	if err != nil {
+		// Log error but don't fail authorization - continue without attributes
+		return
+	}
+
+	// Merge fetched attributes into resources
+	for _, idx := range indices {
+		resID := resources[idx].ID
+		if attrs, ok := attrsMap[resID]; ok && len(attrs) > 0 {
+			// Merge with existing attributes (if any)
+			if resources[idx].Attributes == nil {
+				resources[idx].Attributes = attrs
+			} else {
+				for k, v := range attrs {
+					resources[idx].Attributes[k] = v
+				}
+			}
+		}
+	}
+}
 func toIAMResources(resources []types.AuthResource) []types.IAMResource {
 	checkResources := make([]types.IAMResource, 0, len(resources))
 	for _, r := range resources {
@@ -77,7 +160,7 @@ func toIAMResources(resources []types.AuthResource) []types.IAMResource {
 			SystemID:   r.SystemID,
 			Type:       string(r.Type),
 			ID:         r.ID,
-			Attributes: map[string]interface{}{},
+			Attributes: r.Attributes,
 		})
 	}
 
@@ -284,7 +367,10 @@ func (authorizer *iamv3Authorizer) newPermissionDeniedError(
 }
 
 func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, resources []types.AuthResource) error {
-	denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, resources)
+	// Enrich resources with attributes from provider
+	enrichedResources := authorizer.enrichResourceAttributes(ctx, resources)
+
+	denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, enrichedResources)
 	if err != nil {
 		return err
 	}
@@ -300,10 +386,15 @@ func (authorizer *iamv3Authorizer) Check(ctx contextx.IContext, action Action, r
 func (authorizer *iamv3Authorizer) CheckMany(
 	ctx contextx.IContext, actionResources map[Action][]types.AuthResource,
 ) error {
+	// Enrich all resources first
+	enrichedActionResources := make(map[Action][]types.AuthResource, len(actionResources))
+	for action, resources := range actionResources {
+		enrichedActionResources[action] = authorizer.enrichResourceAttributes(ctx, resources)
+	}
 
-	deniedActionResources := make(map[Action][]types.AuthResource, len(actionResources))
-	for _, action := range sortedActions(actionResources) {
-		denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, actionResources[action])
+	deniedActionResources := make(map[Action][]types.AuthResource, len(enrichedActionResources))
+	for _, action := range sortedActions(enrichedActionResources) {
+		denied, deniedAny, err := authorizer.collectDeniedResources(ctx, action, enrichedActionResources[action])
 		if err != nil {
 			return err
 		}

@@ -25,17 +25,43 @@ type InstanceForEval struct {
 }
 
 // evalExpressionFilter evaluates IAM policy expressions against resource instances.
-// It filters instances based on the expression and applies pagination to the results.
+//
+// This function integrates with iam-go-sdk expression package to perform policy-based
+// filtering of resource instances. It is used by provider.ListInstanceByPolicy() to
+// implement IAM's list_instance_by_policy callback method.
+//
+// IAM Expression Evaluation Flow:
+//
+//	Policy Expression (from IAM)
+//	  ↓ JSON unmarshal
+//	expression.ExprCell (recursive structure with operators)
+//	  ↓ Eval(ObjectSet)
+//	expression.ObjectSet (resource type + attributes)
+//	  ↓ GetAttribute("type.field")
+//	Attribute Value (e.g., _bk_iam_path_: ["/networkarea,123/"])
+//	  ↓ Compare with policy value using operator
+//	Boolean Result (true = authorized, false = denied)
+//
+// Integration with iam-go-sdk:
+//  1. Deserializes IAM policy expression map to expression.ExprCell
+//  2. Creates expression.ObjectSet for each instance with its attributes
+//  3. Evaluates expression using ExprCell.Eval(ObjectSet)
+//  4. Filters instances based on evaluation results
+//
+// Special handling by SDK:
+//   - _bk_iam_path_ with starts_with: Strips ",*/" suffix for wildcard matching
+//   - Array values: Evaluates each element (any match = true for positive ops)
+//   - Logical operators: AND/OR recursively evaluate sub-expressions
 //
 // Parameters:
-//   - expressionMap: The IAM policy expression as a map (from IAM callback request)
-//   - resourceType: The resource type identifier (e.g., "network_area", "package")
-//   - instances: List of instances with their attributes for evaluation
-//   - page: Pagination parameters
+//   - expressionMap: IAM policy expression (from callback request filter)
+//   - resourceType: Resource type for ObjectSet.Set()
+//   - instances: Instances with attributes for evaluation
+//   - page: Pagination applied AFTER filtering
 //
 // Returns:
-//   - *ListInstanceData: Filtered and paginated results with total count
-//   - error: Any error during expression evaluation
+//   - *ListInstanceData: Filtered results with total count
+//   - error: Expression parsing or evaluation error
 //
 // Behavior:
 //   - Empty/nil expression: Returns all instances (no filtering)

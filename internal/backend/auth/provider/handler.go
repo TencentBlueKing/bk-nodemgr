@@ -47,15 +47,15 @@ func (m RequestMethod) Validate() error {
 	}
 }
 
-// Handler is the unified implementation that provides both IDispatcher and Resolver capabilities.
+// Handler is the unified implementation that provides both IDispatcher and IResolver capabilities.
 // It maintains a single provider registry and exposes different interfaces for different use cases:
 //   - IDispatcher: for HTTP callback routing (used by router layer)
-//   - Resolver: for policy-based instance listing (used by auth layer)
+//   - IResolver: for policy-based instance listing (used by auth layer)
 type Handler struct {
 	providers map[string]IProvider
 }
 
-// NewHandler creates a unified handler that implements both IDispatcher and Resolver interfaces.
+// NewHandler creates a unified handler that implements both IDispatcher and IResolver interfaces.
 func NewHandler() *Handler {
 	return &Handler{
 		providers: make(map[string]IProvider),
@@ -65,7 +65,7 @@ func NewHandler() *Handler {
 // Ensure Handler implements both interfaces at compile time.
 var (
 	_ IDispatcher = (*Handler)(nil)
-	_ Resolver    = (*Handler)(nil)
+	_ IResolver   = (*Handler)(nil)
 )
 
 // RegisterProvider registers a provider.
@@ -128,7 +128,7 @@ func (h *Handler) DispatchMethod(
 	return h.dispatchToProvider(ctx, method, provider, filterMap, page)
 }
 
-// ListInstancesByPolicy implements Resolver interface by delegating to the provider.
+// ListInstancesByPolicy implements IResolver interface by delegating to the provider.
 func (h *Handler) ListInstancesByPolicy(
 	ctx contextx.IContext,
 	resourceType string,
@@ -318,4 +318,41 @@ func (h *Handler) dispatchFetchResourceTypeSchema(
 	}
 
 	return provider.FetchResourceTypeSchema(ctx, req)
+}
+
+// FetchResourceAttributes implements IAttributeEnricher interface.
+// It fetches resource attributes by calling the provider's FetchInstanceInfo method.
+func (h *Handler) FetchResourceAttributes(
+	ctx contextx.IContext,
+	resourceType string,
+	resourceIDs []string,
+) (map[string]map[string]interface{}, error) {
+
+	provider, exists := h.GetProvider(resourceType)
+	if !exists {
+		// If provider not found, return empty map (no attributes to enrich)
+		return make(map[string]map[string]interface{}), nil
+	}
+
+	// Call FetchInstanceInfo to get resource details
+	req := &Request[FetchInstanceFilter]{
+		Filter: FetchInstanceFilter{
+			IDs: resourceIDs,
+		},
+	}
+
+	data, err := provider.FetchInstanceInfo(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch instance info for %s: %w", resourceType, err)
+	}
+
+	// Build result map: resourceID -> attributes
+	result := make(map[string]map[string]interface{}, len(*data))
+	for _, instance := range *data {
+		if len(instance.Attributes) > 0 {
+			result[instance.ID] = instance.Attributes
+		}
+	}
+
+	return result, nil
 }
