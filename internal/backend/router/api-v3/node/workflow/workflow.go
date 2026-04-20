@@ -69,13 +69,31 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// Convert conditions
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// Extract requested BizIDs
+	var bizIDs []int64
+	if exactCond := cond.ExactInclude; exactCond != nil {
+		bizIDs = exactCond.BizID
+	}
+
+	// Permission narrowing: filter by authorized business IDs
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForWorkflowList(rCtx, bizIDs, cond)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list node workflow, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	// Update condition with narrowed BizIDs
+	cond = narrowWorkflowConditionByBiz(cond, narrowedBizIDs, scopeIsAny)
+
 	// only count.
 	if req.GetOnlyCount() {
-		cond, err := req.ConvertConditionsToTypes()
-		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
-			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-		}
 		num, err := h.daoNodeWorkflow.CountNodeWorkflow(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to count workflow")
@@ -91,12 +109,6 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, invalid page info")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	cond, err := req.ConvertConditionsToTypes()
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
