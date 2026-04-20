@@ -43,9 +43,9 @@ export interface DeferredBizAuthHandler {
   refreshPermissions: () => void;
 }
 
-// IAM system IDs
-export const SYSTEM_ID_CMDB = 'bk_cmdb';
-export const SYSTEM_ID_NODEMGR = 'bk_nodemgr';
+// IAM system IDs — rendered from server-side template in index.html, with fallback defaults
+export const SYSTEM_ID_CMDB = window.PROJECT_CONFIG?.BK_IAM_SYSTEM_ID_BK_CMDB || 'bk_cmdb';
+export const SYSTEM_ID_NODEMGR = window.PROJECT_CONFIG?.BK_IAM_SYSTEM_ID_BK_NODEMGR || 'bk_nodemgr';
 
 // Resource type to system ID mapping
 export function getSystemIdForResourceType(resourceType: string): string {

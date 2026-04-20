@@ -11,6 +11,7 @@ import {
   shouldDeferBizAuthCheck,
 } from '@/constants/auth';
 import { i18n } from '@/modules/i18n';
+
 import Forbidden from '@/pages/app/403.vue';
 import NotFound from '@/pages/app/404.vue';
 import AssignUnit from '@/pages/node/agent/assign-unit.vue';
@@ -368,8 +369,51 @@ export const install: UserModule = ({ app }) => {
       return true;
     }
 
-    // Non-biz resources: permission controlled by authorized + menu visibility, skip verify
+    // Non-biz resources (package, networkarea, etc.)
     if (matched.resourceType !== 'biz') {
+      // 包管理：先加载 authorized，重定向到默认页，再触发 verify 鉴权
+      if (to.meta?.mainMenu === 'pkgManager') {
+        const moduleName = 'pkgManager';
+        const moduleItems = getModuleAuthorizedItems(moduleName);
+        if (moduleItems.length && !authStore.authorizedMap['package_view']) {
+          await authStore.fetchAuthorized(moduleItems, moduleName);
+        }
+
+        const routeName = typeof to.name === 'string' ? to.name : '';
+        const pkgMenuOrder = [
+          'agentPackageMng', 'proxyPackageMng', 'certPackageMng',
+          'bintoolPackageMng', 'pluginPackageMng', 'plugin_bintoolPackageMng',
+          'operationRecords',
+        ];
+        const defaultRoute = pkgMenuOrder[0];
+
+        // 当前不是默认页 → 重定向到默认页
+        if (routeName !== defaultRoute && pkgMenuOrder.includes(routeName)) {
+          return { name: defaultRoute };
+        }
+
+        // 已在默认页 → 触发 batchVerify 鉴权
+        if (
+          authStore.needRefresh
+          || !authStore.hasPermissionCache(matched.id)
+          || authStore.isPermissionCacheExpired(matched.id)
+        ) {
+          const verified = await authStore.batchVerify([matched]);
+          if (!verified) {
+            return { name: '403', query: { mainMenu: 'pkgManager' } };
+          }
+        }
+
+        if (!authStore.hasPermission(matched.id)) {
+          authStore.setDeniedActionIds([matched.id]);
+          const detail = authStore.getPermissionDetail();
+          if (detail?.actions?.length) {
+            permissionStore.showDialog(detail);
+          }
+          return { name: '403', query: { mainMenu: 'pkgManager' } };
+        }
+      }
+
       return true;
     }
 

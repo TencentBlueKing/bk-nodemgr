@@ -199,10 +199,11 @@ export default function useMenu() {
 
   const subMenuData = computed(() => {
     const groups = navData.value.find(item => item.routeName === currentMainMenu.value)?.group || [];
-    // Filter menu items based on authorized permissions
-    // 注意：authorizedLoaded 是全局标志（任一模块加载完即 true），
-    // 但当前模块的 action 可能尚未写入 authorizedMap，
-    // 对未查询过的 action 需默认显示，避免菜单闪烁消失
+    // 包管理：所有菜单项都显示（不按权限过滤），进入具体页面时由路由守卫做鉴权和重定向
+    if (currentMainMenu.value === 'pkgManager') {
+      return groups;
+    }
+    // 其他模块：根据 authorized 权限过滤菜单可见性
     return groups
       .map(group => ({
         ...group,

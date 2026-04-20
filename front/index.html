@@ -34,6 +34,8 @@
         const LOGIN_NAME = 'v_hyfahuang'                                   // 当前登录用户名
         const WINDOWS_WMI_PORT_DEFAULT = '{{ .WINDOWS_WMI_PORT_DEFAULT }}'     // Windows WMI 默认端口
         const UNIX_SSH_PORT_DEFAULT = '{{ .UNIX_SSH_PORT_DEFAULT }}'           // Unix SSH 默认端口
+        const BK_IAM_SYSTEM_ID_BK_NODEMGR = '{{ .BK_IAM_SYSTEM_ID_BK_NODEMGR }}'   // IAM 节点管理系统ID
+        const BK_IAM_SYSTEM_ID_BK_CMDB = '{{ .BK_IAM_SYSTEM_ID_BK_CMDB }}'         // IAM 配置平台系统ID
         return {
           BK_API_PREFIX,
           BK_SHARED_RES_BASE_JS_URL,
@@ -51,6 +53,8 @@
           LOGIN_NAME,
           WINDOWS_WMI_PORT_DEFAULT,
           UNIX_SSH_PORT_DEFAULT,
+          BK_IAM_SYSTEM_ID_BK_NODEMGR,
+          BK_IAM_SYSTEM_ID_BK_CMDB,
         }
       })()
     </script>

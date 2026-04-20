@@ -12,6 +12,7 @@ export interface NodeWorkflowInfo {
   finish_time: number;
   status: string;
   bk_biz_name: string[];
+  node_role: string[];
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow
@@ -24,6 +25,7 @@ export interface NodeWorkflowExactConditions {
   operator: string[];
   bk_host_innerip: string[];
   bk_host_innerip_v6: string[];
+  node_role: string[];
 }
 
 // NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow
