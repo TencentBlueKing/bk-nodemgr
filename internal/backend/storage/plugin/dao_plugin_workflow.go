@@ -16,9 +16,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
-	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -281,6 +281,7 @@ func (s *Storage) convertPluginWorkflowConditionsToOptions(
 			opts = append(opts,
 				pluginworkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 				pluginworkflow.WithHostIDs(condition.ExactInclude.HostID...),
+				pluginworkflow.WithBizIDs(condition.ExactInclude.BizID...),
 				pluginworkflow.WithType(condition.ExactInclude.Type...),
 				pluginworkflow.WithOperator(condition.ExactInclude.Operator...),
 				pluginworkflow.WithStatus(condition.ExactInclude.Status...))
@@ -290,6 +291,7 @@ func (s *Storage) convertPluginWorkflowConditionsToOptions(
 			opts = append(opts,
 				pluginworkflow.WithoutWorkflowID(condition.ExactExclude.WorkflowID...),
 				pluginworkflow.WithoutHostIDs(condition.ExactExclude.HostID...),
+				pluginworkflow.WithoutBizIDs(condition.ExactExclude.BizID...),
 				pluginworkflow.WithoutType(condition.ExactExclude.Type...),
 				pluginworkflow.WithoutOperator(condition.ExactExclude.Operator...),
 				pluginworkflow.WithoutStatus(condition.ExactExclude.Status...))

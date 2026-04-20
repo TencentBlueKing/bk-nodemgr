@@ -44,9 +44,19 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+
+	hosts, err := h.daoHost.DistinctHost(rCtx, types.HostDistinctRequest{BizID: true}, &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to distinct hosts.")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
 	workflowID, err := h.pluginMgrIface.LaunchApplyPluginSubConfig(rCtx, types.ApplyPluginSubConfigParam{
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
+		BizIDs:            hosts.BizID,
 		Operator:          rCtx.BKUsername(),
 		PluginDeployments: pluginDeployments,
 	})

@@ -28,8 +28,17 @@ func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	workflowID := req.GetWorkflowId()
+	if authErr := h.authorizedPluginOperate(rCtx, workflowID); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).
+			With("workflow-id", workflowID).
+			Error("failed to retry plugin workflow operation, permission denied.")
+
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	err := h.pluginMgrIface.LaunchRetryPluginOperationFromLastInstance(rCtx, types.RetryPluginWorkflowOperationParam{
-		WorkflowID:   req.GetWorkflowId(),
+		WorkflowID:   workflowID,
 		RetryMod:     operation.RetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationIds(),
 	})

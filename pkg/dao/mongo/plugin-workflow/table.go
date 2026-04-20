@@ -31,6 +31,7 @@ type Data struct {
 	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
 	Type        string    `json:"type" bson:"type"`
 	HostIDs     []int64   `json:"host_ids" bson:"host_ids"`
+	BizIDs      []int64   `json:"biz_ids" bson:"biz_ids"`
 	Operator    string    `json:"operator" bson:"operator"`
 	OperateTime time.Time `json:"operate_time" bson:"operate_time"`
 	FinishTime  time.Time `json:"finish_time" bson:"finish_time"`

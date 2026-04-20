@@ -501,6 +501,7 @@ type PluginWorkflowExactFields struct {
 	WorkflowID    []string
 	Type          []PluginWorkflowType
 	HostID        []int64
+	BizID         []int64
 	Status        []PluginWorkflowStatus
 	Operator      []string
 	HostInnerIP   []string

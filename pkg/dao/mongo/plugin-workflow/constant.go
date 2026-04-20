@@ -13,9 +13,9 @@ package pluginworkflow
 const (
 	// FieldKeyWorkflowID is the key for workflow ID.
 	FieldKeyWorkflowID = "data.workflow_id"
+
 	// FieldKeyTriggerID is the key for trigger ID.
 	FieldKeyTriggerID = "data.trigger_id"
-
 
 	// FieldKeyStatus is the key for status.
 	FieldKeyStatus = "data.status"
@@ -25,6 +25,9 @@ const (
 
 	// FieldKeyHostIDs is the key for host ID.
 	FieldKeyHostIDs = "data.host_ids"
+
+	// FieldKeyBizIDs is the key for biz ID.
+	FieldKeyBizIDs = "data.biz_ids"
 
 	// FieldKeyExecuteUser is the key for execute user.
 	FieldKeyExecuteUser = "data.execute_user"

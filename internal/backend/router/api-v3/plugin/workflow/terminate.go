@@ -27,8 +27,17 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	workflowID := req.GetWorkflowId()
+	if authErr := h.authorizedPluginOperate(rCtx, workflowID); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).
+			With("workflow-id", workflowID).
+			Error("failed to terminate plugin workflow operation, permission denied.")
+		
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	err := h.pluginMgrIface.TerminatePluginOperationLastInstance(rCtx, types.TerminatePluginWorkflowOperationParam{
-		WorkflowID:   req.GetWorkflowId(),
+		WorkflowID:   workflowID,
 		OperationIDs: req.GetOperationIds(),
 	})
 	if err != nil {

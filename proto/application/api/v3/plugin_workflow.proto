@@ -18,6 +18,7 @@ message PluginWorkflowInfo {
   optional int64 operate_time = 7;
   optional int64 finish_time = 8;
   optional string status = 9;
+  repeated int64 bk_biz_id = 10;
 }
 
 // PluginWorkflowExactConditions describes the exact conditions of plugin
@@ -30,6 +31,7 @@ message PluginWorkflowExactConditions {
   repeated string operator = 5;
   repeated string bk_host_innerip = 6;
   repeated string bk_host_innerip_v6 = 7;
+  repeated int64 bk_biz_id = 8;
 }
 
 // PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin
@@ -106,6 +108,7 @@ message PluginWorkflowOperationExactConditions {
   repeated string plugin_name = 2;
   repeated string plugin_version = 3;
   repeated string state = 4;
+  repeated int64 bk_biz_id = 5;
 }
 
 // PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of

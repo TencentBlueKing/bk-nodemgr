@@ -48,12 +48,12 @@ func WithoutType(pluginWorkflowTypes ...types.PluginWorkflowType) OptFn {
 	return base.WithoutValues(FieldKeyType, pluginWorkflowTypes...)
 }
 
-// WithHostIDs filters by biz-id.
+// WithHostIDs filters by host-id.
 func WithHostIDs(hostIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyHostIDs, hostIDs...)
 }
 
-// WithoutHostIDs filters by not contains biz-id.
+// WithoutHostIDs filters by not contains host-id.
 func WithoutHostIDs(hostID ...int64) OptFn {
 	return base.WithoutValues(FieldKeyHostIDs, hostID...)
 }
@@ -76,4 +76,14 @@ func WithOperateTimeRange(timeRange types.TimeRange) OptFn {
 // WithTriggerID filters by trigger ID.
 func WithTriggerID(triggerIDs ...string) OptFn {
 	return base.WithValues(FieldKeyTriggerID, triggerIDs...)
+}
+
+// WithBizIDs filters by biz-id.
+func WithBizIDs(bizIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyBizIDs, bizIDs...)
+}
+
+// WithoutBizIDs filters by not contains biz-id.
+func WithoutBizIDs(bizIDs ...int64) OptFn {
+	return base.WithoutValues(FieldKeyBizIDs, bizIDs...)
 }

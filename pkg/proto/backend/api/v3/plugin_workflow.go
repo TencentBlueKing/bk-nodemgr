@@ -84,6 +84,7 @@ func (x *PluginWorkflowListResp) ConvertPluginWorkflowsFromTypes(num int64, work
 		item := newEmptyPluginWorkflow()
 		*item.WorkflowId = workflow.WorkflowID
 		item.BkHostId = workflow.HostIDs
+		item.BkBizId = workflow.BizIDs
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.TriggerId = workflow.TriggerID
@@ -117,6 +118,7 @@ func (x *PluginWorkflowListResp) ConvertPluginWorkflowsToTypes() ([]*types.Plugi
 			Type:        types.PluginWorkflowType(item.GetType()),
 			Status:      types.PluginWorkflowStatus(item.GetStatus()),
 			HostIDs:     item.GetBkHostId(),
+			BizIDs:      item.GetBkBizId(),
 			Operator:    item.GetOperator(),
 			OperateTime: time.UnixMilli(item.GetOperateTime()),
 			FinishTime:  time.UnixMilli(item.GetFinishTime()),
@@ -134,6 +136,7 @@ func newEmptyPluginWorkflow() *PluginWorkflowInfo {
 		Type:        new(string),
 		TriggerId:   new(string),
 		BkHostId:    make([]int64, 0),
+		BkBizId:     make([]int64, 0),
 		Operator:    new(string),
 		OperateTime: new(int64),
 		FinishTime:  new(int64),
@@ -888,6 +891,7 @@ func convertPluginWorkflowConditionsToTypes(
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginWorkflowExactFields{
 			HostID:        exactCond.GetBkHostId(),
+			BizID:         exactCond.GetBkBizId(),
 			Type:          types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
 			Status:        types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
 			WorkflowID:    exactCond.GetWorkflowId(),
@@ -921,6 +925,7 @@ func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowConditi
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowExactConditions{
 			BkHostId:        condition.ExactInclude.HostID,
+			BkBizId:         condition.ExactInclude.BizID,
 			WorkflowId:      condition.ExactInclude.WorkflowID,
 			Type:            types.PluginWorkflowTypeListToStringList(condition.ExactInclude.Type),
 			Status:          types.PluginWorkflowStatusListToStringList(condition.ExactInclude.Status),

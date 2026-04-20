@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin/workflow"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,7 @@ type handler struct {
 	rg              *gin.RouterGroup
 	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
 	daoPlugin       pluginStg.IDaoPlugin
+	daoHost         topoStg.IStorageHost
 	domainPlugin    pluginStg.IDomainPlugin
 	pluginMgrIface  managerIface.IPluginManager
 	authorizer      auth.IAuthorizer
@@ -37,6 +39,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:              rg.Group("/plugin"),
 		daoNodeWorkflow: capability.StorageNode,
 		daoPlugin:       capability.StoragePlugin,
+		daoHost:         capability.StorageTopo,
 		domainPlugin:    capability.StoragePlugin,
 		pluginMgrIface:  capability.Manager,
 		authorizer:      capability.Authorizer,

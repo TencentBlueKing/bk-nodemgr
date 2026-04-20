@@ -45,9 +45,18 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	hosts, err := h.daoHost.DistinctHost(rCtx, types.HostDistinctRequest{BizID: true}, &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to distinct hosts.")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
 	workflowID, err := h.pluginMgrIface.LaunchInstallPlugin(rCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
+		BizIDs:            hosts.BizID,
 		Operator:          rCtx.BKUsername(),
 		PluginDeployments: pluginDeployments,
 	})

@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -40,6 +41,8 @@ type handler struct {
 	daoHost             topoStg.IStorageHost
 
 	storageWorkflow workflow.IStorage
+
+	authorizer auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -51,6 +54,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoPluginDeployment: capability.StoragePlugin,
 		daoHost:             capability.StorageTopo,
 		storageWorkflow:     capability.StorageWorkflow,
+		authorizer:          capability.Authorizer,
 	}
 }
 

@@ -85,6 +85,7 @@ type GetNodeWorklfowOperationManualInfoParam struct {
 type InstallPluginParam struct {
 	Type              PluginWorkflowType
 	HostIDs           []int64
+	BizIDs            []int64
 	Operator          string
 	PluginDeployments []*PluginDeployment
 }
@@ -93,6 +94,7 @@ type InstallPluginParam struct {
 type UpgradePluginParam struct {
 	Type              PluginWorkflowType
 	HostIDs           []int64
+	BizIDs            []int64
 	Operator          string
 	PluginDeployments []*PluginDeployment
 }
@@ -101,6 +103,7 @@ type UpgradePluginParam struct {
 type UninstallPluginParam struct {
 	Type              PluginWorkflowType
 	HostIDs           []int64
+	BizIDs            []int64
 	Operator          string
 	PluginDeployments []*PluginDeployment
 }
@@ -109,6 +112,7 @@ type UninstallPluginParam struct {
 type ApplyPluginSubConfigParam struct {
 	Type              PluginWorkflowType
 	HostIDs           []int64
+	BizIDs            []int64
 	Operator          string
 	PluginDeployments []*PluginDeployment
 }

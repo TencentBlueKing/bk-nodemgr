@@ -24,6 +24,7 @@ type PluginWorkflow struct {
 	TriggerID  string
 	Type       PluginWorkflowType
 	HostIDs    []int64
+	BizIDs     []int64
 	Operator   string
 
 	OperateTime time.Time
