@@ -141,15 +141,20 @@ func (authorizer *iamv3Authorizer) fetchAndMergeAttributes(
 	// Merge fetched attributes into resources
 	for _, idx := range indices {
 		resID := resources[idx].ID
-		if attrs, ok := attrsMap[resID]; ok && len(attrs) > 0 {
-			// Merge with existing attributes (if any)
-			if resources[idx].Attributes == nil {
-				resources[idx].Attributes = attrs
-			} else {
-				for k, v := range attrs {
-					resources[idx].Attributes[k] = v
-				}
-			}
+		attrs, ok := attrsMap[resID]
+		if !ok || len(attrs) == 0 {
+			continue
+		}
+
+		// Initialize Attributes map if nil
+		if resources[idx].Attributes == nil {
+			resources[idx].Attributes = attrs
+			continue
+		}
+
+		// Merge attributes into existing map
+		for k, v := range attrs {
+			resources[idx].Attributes[k] = v
 		}
 	}
 }
