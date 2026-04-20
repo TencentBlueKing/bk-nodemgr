@@ -13,6 +13,7 @@ package plugin
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
@@ -60,24 +61,14 @@ func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, 
 	return narrowedIDs, false, nil
 }
 
-func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName string) error {
-	bizIDs, err := h.domainPlugin.GetPluginVisibleBizIDs(rCtx, pluginName)
-	if err != nil {
-		return err
-	}
-
-	// visible biz IDs is empty, means the plugin has all business permission, so we can directly return without further permission check.
-	if len(bizIDs) == 0 {
-		return nil
-	}
-
+func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName ...string) error {
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginOperate, types.AuthResourceTypeBiz)
 	if err != nil {
 		return err
 	}
 
 	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
-		scope, bizIDs, types.AuthResourceTypeBiz,
+		scope, nil, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
 		return err
@@ -95,10 +86,25 @@ func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, pluginName s
 		return nil
 	}
 
-	if len(bizIDs) > 0 && len(narrowedIDs) == 0 {
-		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginOperate, authRouter.BuildBizResources(bizIDs...)); checkErr != nil {
-			return checkErr
+	plugins, err := h.domainPlugin.ListVisiblePluginByBizIDs(rCtx, narrowedIDs)
+	if err != nil {
+		return err
+	}
+
+	authorizedPlugins := map[string]struct{}{}
+	for _, plugin := range plugins {
+		authorizedPlugins[plugin.Name] = struct{}{}
+	}
+
+	var noAuthorizedPlugins []string
+	for _, plugin := range pluginName {
+		if _, ok := authorizedPlugins[plugin]; !ok {
+			noAuthorizedPlugins = append(noAuthorizedPlugins, plugin)
 		}
+	}
+
+	if len(noAuthorizedPlugins) > 0 {
+		return fmt.Errorf("%w: %v", errPluginOperateDeniedByEmptyScope, noAuthorizedPlugins)
 	}
 
 	return nil

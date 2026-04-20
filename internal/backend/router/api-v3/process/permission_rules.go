@@ -12,7 +12,7 @@
 package process
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,42 +20,62 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext) ([]int64, error) {
+var (
+	errBizViewDeniedByEmptyScope = errors.New("no authorized businesses")
+)
+
+func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext) ([]string, bool, error) {
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginView, types.AuthResourceTypeBiz)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	authorizedIDs := make([]int64, 0, len(scope.Resources))
-	for _, resource := range scope.Resources {
-		if resource.Type != types.AuthResourceTypeBiz {
-			continue
-		}
-
-		id, convErr := conv.ToInt64(resource.ID)
-		if convErr != nil {
-			return nil, fmt.Errorf("auth: convert authorized resource id %q: %w", resource.ID, convErr)
-		}
-		authorizedIDs = append(authorizedIDs, id)
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, nil, types.AuthResourceTypeBiz,
+	)
+	if err != nil {
+		return nil, false, err
 	}
-	authorizedIDs = conv.SliceUnique(authorizedIDs)
 
-	return authorizedIDs, nil
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+		return nil, false, errBizViewDeniedByEmptyScope
+	}
+
+	if scopeIsAny {
+		return nil, true, nil
+	}
+
+	authorizedPlugin, err := h.domainProcess.ListVisiblePluginByBizIDs(rCtx, narrowedIDs)
+	if err != nil {
+		return nil, false, err
+	}
+
+	pluginNames := conv.SliceToSlice(authorizedPlugin, func(item *types.Plugin) string {
+		return item.Name
+	})
+
+	return pluginNames, false, nil
 }
 
-func narrowProcessConditionByPluginNames(condition *types.ProcessCondition, pluginNames []string) *types.ProcessCondition {
+func narrowProcessCondition(condition *types.ProcessCondition, pluginName []string, scopeIsAny bool) *types.ProcessCondition {
 	if condition == nil {
 		condition = &types.ProcessCondition{}
 	}
 
-	pluginNames = conv.SliceUnique(pluginNames)
+	if scopeIsAny {
+		return condition
+	}
+
 	if condition.ExactInclude == nil {
 		condition.ExactInclude = &types.ProcessExactFields{
-			PluginName: pluginNames,
+			PluginName: pluginName,
 		}
 	}
 
-	condition.ExactInclude.PluginName = conv.SliceIntersect(condition.ExactInclude.PluginName, pluginNames)
+	condition.ExactInclude.PluginName = conv.SliceIntersect(condition.ExactInclude.PluginName, pluginName)
 
 	return condition
 }
