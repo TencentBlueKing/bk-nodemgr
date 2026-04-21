@@ -81,13 +81,8 @@ function formatRelatedResources(data: PermissionAction): string {
       return resource.type_name;
     }
 
-    // instances 是层级路径数组，每一层显示为 type_name: id，用斜杠连接
-    const renderedPath = instances.map((instance) => {
-      const displayValue = formatResourceInstance(instance);
-      return `${instance.type_name}: ${displayValue}`;
-    }).join('/');
-
-    return renderedPath;
+    const renderedInstances = instances.map(formatResourceInstance).join('、');
+    return `${resource.type_name}: ${renderedInstances}`;
   }).join('；');
 }
 

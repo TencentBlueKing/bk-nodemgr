@@ -24,6 +24,7 @@ declare module 'vue' {
     FlexRow: typeof import('./components/flex-row.vue')['default']
     InstallTable: typeof import('./components/install-table.vue')['default']
     InstallType: typeof import('./components/install-type.vue')['default']
+    IpSelectorDialog: typeof import('./components/ip-selector-dialog.vue')['default']
     LogVersion: typeof import('./components/log-version.vue')['default']
     NoPermission: typeof import('./components/no-permission.vue')['default']
     Notice: typeof import('./components/notice.vue')['default']
