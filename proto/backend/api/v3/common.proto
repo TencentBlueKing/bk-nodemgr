@@ -242,6 +242,8 @@ message ReleaseAgentBrief {
   optional string version = 4;
   optional bool enabled = 5;
   optional bool as_default = 6;
+  optional string change_log_en = 7;
+  optional string change_log_zh = 8;
 }
 
 // ReleaseProxy describes the release proxy.
@@ -251,8 +253,32 @@ message ReleaseProxy {
   optional string change_log_zh = 3;
 }
 
+// ReleaseProxyBrief describes the brief release proxy (only core fields for
+// list display).
+message ReleaseProxyBrief {
+  optional int64 generation = 1;
+  optional string os_type = 2;
+  optional string cpu_arch = 3;
+  optional string version = 4;
+  optional bool enabled = 5;
+  optional bool as_default = 6;
+  optional string change_log_en = 7;
+  optional string change_log_zh = 8;
+}
+
 // ReleasePlugin describes the release plugin.
 message ReleasePlugin { Release release = 1; }
+
+// ReleasePluginBrief describes the brief release plugin (only core fields for
+// list display).
+message ReleasePluginBrief {
+  optional int64 generation = 1;
+  optional string os_type = 2;
+  optional string cpu_arch = 3;
+  optional string version = 4;
+  optional bool enabled = 5;
+  optional bool as_default = 6;
+}
 
 // ReleaseCert describes the release cert.
 message ReleaseCert { Release release = 1; }

@@ -838,23 +838,9 @@ func (x *PackageReleasePluginListBriefReq) ConvertConditionsToTypes() *types.Rel
 
 // ConvertReleasePluginsFromTypes convert releases from types.
 func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsFromTypes(total int64, releasePlugins []*types.ReleasePlugin) {
-	items := make([]*ReleasePlugin, len(releasePlugins))
+	items := make([]*ReleasePluginBrief, len(releasePlugins))
 	for idx, release := range releasePlugins {
-		item := newEmptyReleasePlugin()
-		*item.Release.Name = release.Name
-		*item.Release.Generation = int64(release.Generation)
-		*item.Release.ReleaseType = string(release.Type)
-		*item.Release.OsType = string(release.Platform.OS)
-		*item.Release.CpuArch = string(release.Platform.Arch)
-		*item.Release.Version = release.Version
-		*item.Release.FileName = release.FileName
-		item.Release.Labels = release.Labels
-		*item.Release.Enabled = release.Enabled
-		*item.Release.AsDefault = release.AsDefault
-		*item.Release.Md5 = release.MD5
-		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
-		*item.Release.Operator = release.Operator
-		items[idx] = item
+		items[idx] = convertReleasePluginBriefFromTypes(&release.Release)
 	}
 
 	x.Data = &PackageReleasePluginListBriefResp_Data{
@@ -875,21 +861,14 @@ func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsToTypes() (int6
 	for idx, item := range items {
 		releasePlugin := &types.ReleasePlugin{
 			Release: types.Release{
-				Name:       item.GetRelease().GetName(),
-				Generation: types.Generation(item.GetRelease().GetGeneration()),
-				Type:       types.ReleaseType(item.GetRelease().GetReleaseType()),
-				Version:    item.GetRelease().GetVersion(),
+				Generation: types.Generation(item.GetGeneration()),
 				Platform: platfmt.Platform{
-					OS:   criteria.OSType(item.GetRelease().GetOsType()),
-					Arch: criteria.CPUArch(item.GetRelease().GetCpuArch()),
+					OS:   criteria.OSType(item.GetOsType()),
+					Arch: criteria.CPUArch(item.GetCpuArch()),
 				},
-				Labels:    item.GetRelease().GetLabels(),
-				FileName:  item.GetRelease().GetFileName(),
-				MD5:       item.GetRelease().GetMd5(),
-				Enabled:   item.GetRelease().GetEnabled(),
-				AsDefault: item.GetRelease().GetAsDefault(),
-				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
-				Operator:  item.GetRelease().GetOperator(),
+				Version:   item.GetVersion(),
+				Enabled:   item.GetEnabled(),
+				AsDefault: item.GetAsDefault(),
 			},
 		}
 		result[idx] = releasePlugin

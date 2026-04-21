@@ -2626,7 +2626,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3ReleasePlugin"
+            "$ref": "#/definitions/v3ReleasePluginBrief"
           }
         }
       }
@@ -3022,7 +3022,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3ReleaseProxy"
+            "$ref": "#/definitions/v3ReleaseProxyBrief"
           }
         }
       }
@@ -3338,6 +3338,12 @@
         },
         "as_default": {
           "type": "boolean"
+        },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
         }
       },
       "description": "ReleaseAgentBrief describes the brief release agent (only core fields for\nlist display)."
@@ -3378,6 +3384,31 @@
       },
       "description": "ReleasePluginBinTool describes the release plugin bin tool."
     },
+    "v3ReleasePluginBrief": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "as_default": {
+          "type": "boolean"
+        }
+      },
+      "description": "ReleasePluginBrief describes the brief release plugin (only core fields for\nlist display)."
+    },
     "v3ReleaseProxy": {
       "type": "object",
       "properties": {
@@ -3392,6 +3423,37 @@
         }
       },
       "description": "ReleaseProxy describes the release proxy."
+    },
+    "v3ReleaseProxyBrief": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "as_default": {
+          "type": "boolean"
+        },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
+        }
+      },
+      "description": "ReleaseProxyBrief describes the brief release proxy (only core fields for\nlist display)."
     },
     "v3ResourceNode": {
       "type": "object",

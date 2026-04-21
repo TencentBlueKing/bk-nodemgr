@@ -344,6 +344,48 @@ func convertReleaseAgentBriefToTypes(brief *ReleaseAgentBrief) *types.Release {
 	}
 }
 
+func convertReleaseProxyBriefFromTypes(release *types.Release, changeLogEN, changeLogZH string) *ReleaseProxyBrief {
+	data := &ReleaseProxyBrief{}
+	data.Generation = new(int64)
+	data.OsType = new(string)
+	data.CpuArch = new(string)
+	data.Version = new(string)
+	data.Enabled = new(bool)
+	data.AsDefault = new(bool)
+	data.ChangeLogEn = new(string)
+	data.ChangeLogZh = new(string)
+
+	*data.Generation = int64(release.Generation)
+	*data.OsType = string(release.Platform.OS)
+	*data.CpuArch = string(release.Platform.Arch)
+	*data.Version = release.Version
+	*data.Enabled = release.Enabled
+	*data.AsDefault = release.AsDefault
+	*data.ChangeLogEn = changeLogEN
+	*data.ChangeLogZh = changeLogZH
+
+	return data
+}
+
+func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBrief {
+	data := &ReleasePluginBrief{}
+	data.Generation = new(int64)
+	data.OsType = new(string)
+	data.CpuArch = new(string)
+	data.Version = new(string)
+	data.Enabled = new(bool)
+	data.AsDefault = new(bool)
+
+	*data.Generation = int64(release.Generation)
+	*data.OsType = string(release.Platform.OS)
+	*data.CpuArch = string(release.Platform.Arch)
+	*data.Version = release.Version
+	*data.Enabled = release.Enabled
+	*data.AsDefault = release.AsDefault
+
+	return data
+}
+
 // Validate check body.
 func (x *PackageReleaseAgentDistinctReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
@@ -676,26 +718,9 @@ func (x *PackageReleaseProxyListBriefReq) ConvertConditionsFromTypes(condition *
 
 // ConvertReleasesFromTypes convert releases from types.
 func (x *PackageReleaseProxyListBriefResp) ConvertReleasesFromTypes(total int64, releases []*types.ReleaseProxy) {
-	items := make([]*ReleaseProxy, len(releases))
+	items := make([]*ReleaseProxyBrief, len(releases))
 	for idx, release := range releases {
-		item := newEmptyReleaseProxy()
-		*item.Release.Name = release.Name
-		*item.Release.Generation = int64(release.Generation)
-		*item.Release.ReleaseType = string(release.Type)
-		*item.Release.OsType = string(release.Platform.OS)
-		*item.Release.CpuArch = string(release.Platform.Arch)
-		*item.Release.Version = release.Version
-		*item.Release.FileName = release.FileName
-		item.Release.Labels = release.Labels
-		*item.Release.Enabled = release.Enabled
-		*item.Release.AsDefault = release.AsDefault
-		*item.Release.Md5 = release.MD5
-		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
-		*item.Release.Operator = release.Operator
-
-		*item.ChangeLogEn = release.ChangeLogEN
-		*item.ChangeLogZh = release.ChangeLogZH
-		items[idx] = item
+		items[idx] = convertReleaseProxyBriefFromTypes(&release.Release, release.ChangeLogEN, release.ChangeLogZH)
 	}
 
 	x.Data = &PackageReleaseProxyListBriefResp_Data{
@@ -716,21 +741,14 @@ func (x *PackageReleaseProxyListBriefResp) ConvertReleasesToTypes() (int64, []*t
 	for idx, item := range items {
 		releaseProxy := &types.ReleaseProxy{
 			Release: types.Release{
-				Name:       item.GetRelease().GetName(),
-				Generation: types.Generation(item.GetRelease().GetGeneration()),
-				Type:       types.ReleaseType(item.GetRelease().GetReleaseType()),
-				Version:    item.GetRelease().GetVersion(),
+				Generation: types.Generation(item.GetGeneration()),
 				Platform: platfmt.Platform{
-					OS:   criteria.OSType(item.GetRelease().GetOsType()),
-					Arch: criteria.CPUArch(item.GetRelease().GetCpuArch()),
+					OS:   criteria.OSType(item.GetOsType()),
+					Arch: criteria.CPUArch(item.GetCpuArch()),
 				},
-				Labels:    item.GetRelease().GetLabels(),
-				FileName:  item.GetRelease().GetFileName(),
-				MD5:       item.GetRelease().GetMd5(),
-				Enabled:   item.GetRelease().GetEnabled(),
-				AsDefault: item.GetRelease().GetAsDefault(),
-				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
-				Operator:  item.GetRelease().GetOperator(),
+				Version:   item.GetVersion(),
+				Enabled:   item.GetEnabled(),
+				AsDefault: item.GetAsDefault(),
 			},
 			ReleaseAdditionInfoProxy: types.ReleaseAdditionInfoProxy{
 				ChangeLogEN: item.GetChangeLogEn(),
@@ -742,6 +760,7 @@ func (x *PackageReleaseProxyListBriefResp) ConvertReleasesToTypes() (int64, []*t
 
 	return data.GetTotal(), result
 }
+
 
 // Validate check body.
 func (x *PackageReleaseProxyDistinctReq) Validate() error {
@@ -1069,24 +1088,9 @@ func (x *PackageReleasePluginListBriefReq) ConvertConditionsFromTypes(condition 
 
 // ConvertReleasePluginsFromTypes convert releases from types.
 func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsFromTypes(total int64, releasePlugins []*types.ReleasePlugin) {
-	items := make([]*ReleasePlugin, len(releasePlugins))
+	items := make([]*ReleasePluginBrief, len(releasePlugins))
 	for idx, release := range releasePlugins {
-		item := newEmptyReleasePlugin()
-		*item.Release.Name = release.Name
-		*item.Release.Generation = int64(release.Generation)
-		*item.Release.ReleaseType = string(release.Type)
-		*item.Release.OsType = string(release.Platform.OS)
-		*item.Release.CpuArch = string(release.Platform.Arch)
-		*item.Release.Version = release.Version
-		*item.Release.FileName = release.FileName
-		item.Release.Labels = release.Labels
-		*item.Release.Enabled = release.Enabled
-		*item.Release.AsDefault = release.AsDefault
-		*item.Release.Md5 = release.MD5
-		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
-		*item.Release.Operator = release.Operator
-
-		items[idx] = item
+		items[idx] = convertReleasePluginBriefFromTypes(&release.Release)
 	}
 
 	x.Data = &PackageReleasePluginListBriefResp_Data{
@@ -1107,21 +1111,14 @@ func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsToTypes() (int6
 	for idx, item := range items {
 		releasePlugin := &types.ReleasePlugin{
 			Release: types.Release{
-				Name:       item.GetRelease().GetName(),
-				Generation: types.Generation(item.GetRelease().GetGeneration()),
-				Type:       types.ReleaseType(item.GetRelease().GetReleaseType()),
-				Version:    item.GetRelease().GetVersion(),
+				Generation: types.Generation(item.GetGeneration()),
 				Platform: platfmt.Platform{
-					OS:   criteria.OSType(item.GetRelease().GetOsType()),
-					Arch: criteria.CPUArch(item.GetRelease().GetCpuArch()),
+					OS:   criteria.OSType(item.GetOsType()),
+					Arch: criteria.CPUArch(item.GetCpuArch()),
 				},
-				Labels:    item.GetRelease().GetLabels(),
-				FileName:  item.GetRelease().GetFileName(),
-				MD5:       item.GetRelease().GetMd5(),
-				Enabled:   item.GetRelease().GetEnabled(),
-				AsDefault: item.GetRelease().GetAsDefault(),
-				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
-				Operator:  item.GetRelease().GetOperator(),
+				Version:   item.GetVersion(),
+				Enabled:   item.GetEnabled(),
+				AsDefault: item.GetAsDefault(),
 			},
 		}
 		result[idx] = releasePlugin

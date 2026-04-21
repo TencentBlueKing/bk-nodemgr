@@ -278,7 +278,7 @@ message PackageReleaseProxyListBriefResp {
 
   message Data {
     int64 total = 1;
-    repeated ReleaseProxy items = 2;
+    repeated ReleaseProxyBrief items = 2;
   }
   Data data = 5;
 }
@@ -454,7 +454,7 @@ message PackageReleasePluginListBriefResp {
 
   message Data {
     int64 total = 1;
-    repeated ReleasePlugin items = 2;
+    repeated ReleasePluginBrief items = 2;
   }
   Data data = 5;
 }
