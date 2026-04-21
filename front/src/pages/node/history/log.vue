@@ -49,7 +49,7 @@
       </bk-loading>
     </div>
     <div class="bg-[#fff] px-[24px] pb-[20px] h-full flex-1 flex flex-col">
-      <div class="h-[32px] mt-[20px]" v-if="currentOperate && !['success'].includes(currentOperate.state)">
+      <div class="h-[32px] mt-[20px]" v-if="currentOperate && ['failed', 'timeout', 'terminated'].includes(currentOperate.state)">
         <Dropdown
           theme="light"
           trigger="click"
@@ -89,6 +89,7 @@
           :data="tableData"
           :empty-text="$t('table.empty')"
           :min-width="300"
+          :auto-resize="false"
           class="w-[40%] h-full mr-[10px] bg-[#f5f7fa]"
         >
           <TableColumn :title="$t('platform.nodeMan.log.step')" min-width="200" fixed="left">
@@ -957,8 +958,12 @@ const getInstance = async () => {
 };
 const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
+const needRefreshOperateList = ref(false);
 async function getLog() {
   if (!curOperInstId.value) return;
+  hasErrorOrTimeout.value = false;
+  needRefreshOperateList.value = false;
+  logData.value.oper_inst_logs = {};
   const res: any = await serviceCaller.call('operationInstanceLogGet', {
     oper_inst_id: curOperInstId.value,
   }).catch(() => ({
@@ -1016,7 +1021,23 @@ async function getLog() {
       currentKey = key;
     }
   }
-  isInterval.value = hasRunning;
+  // 当步骤状态可能转变时（从有 running 变为无 running，或出现失败/超时/终止），
+  // 刷新操作列表获取最新整体状态，确保左侧 IP 列表和重试按钮及时更新。
+  // 使用 needRefreshOperateList 标记避免步骤间隙时每轮轮询都重复请求：
+  // hasRunning 从 true 变 false 时触发一次刷新，刷新后标记重置；
+  // 后续若仍为 false 且整体还在跑，不再重复刷新
+  if (!hasRunning && !needRefreshOperateList.value) {
+    needRefreshOperateList.value = true;
+  }
+  if (hasRunning) {
+    needRefreshOperateList.value = false;
+  }
+  if (needRefreshOperateList.value || hasErrorOrTimeout.value) {
+    await getOperateList();
+    needRefreshOperateList.value = false;
+  }
+  const operateRunning = ['running', 'launched', 'init'].includes(currentOperate.value?.state);
+  isInterval.value = hasRunning || operateRunning;
 
   // 构建 allLogs：仅在额外日志包含 ERROR 时才加入日志区域展示
   const extraLogs = hasExtraError

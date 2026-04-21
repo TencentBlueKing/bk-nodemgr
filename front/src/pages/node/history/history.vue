@@ -879,7 +879,7 @@ const getTaskList = async () => {
       ...item,
       bk_biz_name: item.bk_biz_name?.filter(item => item),
       cost_time:
-        item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
+        item.finish_time > 0 ? item.finish_time - item.operate_time : Date.now() - item.operate_time,
     };
   });
   loading.value = false;
