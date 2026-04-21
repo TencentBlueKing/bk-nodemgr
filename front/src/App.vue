@@ -276,20 +276,29 @@ const ensureCurrentRoutePermission = async () => {
     return;
   }
 
-  const pkgTypeId = (matched.resourceType === 'package_type' || matched.resourceType === 'package')
-    ? getPkgTypeIdFromRoute() : undefined;
+  // 按 resourceType 从路由提取 verify 所需的资源 ID（biz 资源由 bizScope 承载，此处不用）
+  const resourceId: string | number | undefined = (() => {
+    if (matched.resourceType === 'package_type' || matched.resourceType === 'package') {
+      return getPkgTypeIdFromRoute();
+    }
+    if (matched.resourceType === 'networkarea') {
+      // workareaDetail 路由：workarea-detail/:workarea/:workUnit?
+      return route.params?.workarea ? Number(route.params.workarea) : undefined;
+    }
+    return undefined;
+  })();
 
   if (
     authStore.needRefresh
     || authStore.isDifferentBiz(bizScope)
-    || !authStore.hasPermissionCache(matched.id, bizScope, pkgTypeId)
-    || authStore.isPermissionCacheExpired(matched.id, bizScope, pkgTypeId)
+    || !authStore.hasPermissionCache(matched.id, bizScope, resourceId)
+    || authStore.isPermissionCacheExpired(matched.id, bizScope, resourceId)
   ) {
-    const verified = await authStore.batchVerify([matched], bizScope, pkgTypeId);
+    const verified = await authStore.batchVerify([matched], bizScope, resourceId);
     if (!verified) return;
   }
 
-  if (!authStore.hasPermission(matched.id, bizScope, pkgTypeId)) {
+  if (!authStore.hasPermission(matched.id, bizScope, resourceId)) {
     authStore.setDeniedActionIds([matched.id]);
     router.replace({ name: '403' });
   }

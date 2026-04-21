@@ -88,8 +88,6 @@ export interface TopoNetworkAreaStatisticsRespStatisticsInfo {
   networkunit_count: number;
   proxy_count: number;
   agent_count: number;
-  last_operator: string;
-  last_operate_time: number;
 }
 
 export interface TopoNetworkAreaStatisticsRespData {

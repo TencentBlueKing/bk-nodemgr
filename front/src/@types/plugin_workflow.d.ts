@@ -10,6 +10,7 @@ export interface PluginWorkflowInfo {
   operate_time: number;
   finish_time: number;
   status: string;
+  bk_biz_id: number[];
 }
 
 // PluginWorkflowExactConditions describes the exact conditions of plugin
@@ -22,6 +23,7 @@ export interface PluginWorkflowExactConditions {
   operator: string[];
   bk_host_innerip: string[];
   bk_host_innerip_v6: string[];
+  bk_biz_id: number[];
 }
 
 // PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin
@@ -102,6 +104,7 @@ export interface PluginWorkflowOperationExactConditions {
   plugin_name: string[];
   plugin_version: string[];
   state: string[];
+  bk_biz_id: number[];
 }
 
 // PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of

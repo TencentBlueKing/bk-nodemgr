@@ -124,10 +124,17 @@ export const useTopoStore = defineStore('topo', () => {
         .filter((item): item is AccessPointBrief => !!item),
     }));
 
-    // 2. 获取所有单元ID，用于请求 proxy 和 agent 数据
-    const allUnitIds = detailedUnits.map(unit => unit.bk_networkunit_id);
+    // 2. 过滤出有权限的单元 ID，用于请求 proxy 和 agent 数据
+    //    无权限的单元不调用 /graph/node/get，避免后端返回 permission denied
+    const unitIdsToFetch = detailedUnits
+      .map(unit => unit.bk_networkunit_id)
+      .filter(id => allAuthorized || authorizedSet.has(id));
     // 3. 请求 proxy 和 agent 数据（调用 handleFetchTopoWorkGraphInfo）
-    await handleFetchTopoWorkGraphInfo(allUnitIds).catch(() => {});
+    if (unitIdsToFetch.length > 0) {
+      await handleFetchTopoWorkGraphInfo(unitIdsToFetch).catch(() => {});
+    } else {
+      allWorkGraphInfos.value = [];
+    }
 
     // 4. 构建单元ID到 graph info 的映射（方便快速查找）
     const unitGraphInfoMap = new Map<number, any>();
