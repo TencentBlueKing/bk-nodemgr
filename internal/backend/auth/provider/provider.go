@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -205,6 +204,15 @@ type ListInstanceData struct {
 	Results []ResourceInstance `json:"results"`
 }
 
+// newEmptyListInstanceData creates an empty ListInstanceData with zero count and empty results.
+// This is a common pattern used across all providers when returning empty result sets.
+func newEmptyListInstanceData() *ListInstanceData {
+	return &ListInstanceData{
+		Count:   0,
+		Results: []ResourceInstance{},
+	}
+}
+
 // ResourceInstance represents a resource instance in the system.
 type ResourceInstance struct {
 	// ID is the unique identifier of the resource instance
@@ -308,8 +316,31 @@ func (info *InstanceInfo) UnmarshalJSON(data []byte) error {
 // See also:
 //   - expression.KeywordBKIAMPath: The attribute key constant
 //   - expression.ExprCell.Eval(): Policy expression evaluation logic
-func BuildIAMPath(resourceType string, resourceID ...string) []string {
+func BuildIAMPath(resourceType string, resourceID string) []string {
 	return []string{
-		fmt.Sprintf("/%s,%s/", resourceType, strings.Join(resourceID, ",")),
+		fmt.Sprintf("/%s,%s/", resourceType, resourceID),
+	}
+}
+
+// buildInstanceAttributes constructs attributes map for IAM policy evaluation.
+//
+// This helper centralizes attribute construction logic used by both FetchInstanceInfo
+// and ListInstanceByPolicy to ensure consistency.
+//
+// Parameters:
+//   - parentType: Parent resource type (e.g., "networkarea", "package_type")
+//   - parentID: Parent resource ID(s), will be joined with comma if multiple
+//
+// Returns:
+//   - map[string]interface{}: Attributes map with _bk_iam_path_ populated
+//
+// Example:
+//
+//	buildInstanceAttributes("networkarea", "123") → {"_bk_iam_path_": ["/networkarea,123/"]}
+//	buildInstanceAttributes("package_type", "plugin") → {"_bk_iam_path_": ["/package_type,plugin/"]}
+func buildInstanceAttributes(instanceID string, parentType string, parentID string) map[string]interface{} {
+	return map[string]interface{}{
+		AttrID:      instanceID,
+		AttrIAMPath: BuildIAMPath(parentType, parentID),
 	}
 }

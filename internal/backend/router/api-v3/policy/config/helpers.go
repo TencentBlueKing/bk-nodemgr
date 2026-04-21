@@ -44,6 +44,7 @@ func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64
 func (h *handler) narrowAuthorizedBizIDs(
 	rCtx restserver.IContext, requestedIDs []int64,
 ) ([]int64, bool, error) {
+
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionConfigPolicyView, types.AuthResourceTypeBiz)
 	if err != nil {
 		return nil, false, err
@@ -60,6 +61,7 @@ func (h *handler) narrowAuthorizedBizIDs(
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyView, nil); checkErr != nil {
 			return nil, false, checkErr
 		}
+
 		return nil, false, fmt.Errorf("no authorized businesses for config policy view")
 	}
 
@@ -81,7 +83,9 @@ func (h *handler) narrowAuthorizedBizIDs(
 func (h *handler) narrowAuthorizedBizIDsForHistory(
 	rCtx restserver.IContext, requestedIDs []int64,
 ) ([]int64, bool, error) {
+
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionConfigPolicyHistoryView, types.AuthResourceTypeBiz)
+
 	if err != nil {
 		return nil, false, err
 	}
@@ -97,6 +101,7 @@ func (h *handler) narrowAuthorizedBizIDsForHistory(
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, nil); checkErr != nil {
 			return nil, false, checkErr
 		}
+
 		return nil, false, fmt.Errorf("no authorized businesses for config policy history view")
 	}
 
@@ -132,7 +137,9 @@ func narrowConfigPolicyCondition(condition *types.ConfigPolicyCondition, narrowe
 }
 
 // narrowConfigPolicyEventCondition narrows the config policy event condition by authorized biz IDs.
-func narrowConfigPolicyEventCondition(condition *types.ConfigPolicyEventCondition, narrowedIDs []int64, scopeIsAny bool) *types.ConfigPolicyEventCondition {
+func narrowConfigPolicyEventCondition(condition *types.ConfigPolicyEventCondition, narrowedIDs []int64, scopeIsAny bool,
+) *types.ConfigPolicyEventCondition {
+
 	if scopeIsAny {
 		return condition
 	}

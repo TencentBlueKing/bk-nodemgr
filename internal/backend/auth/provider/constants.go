@@ -41,6 +41,9 @@ func allPackageTypes() []types.ReleaseType {
 
 // IAM special attribute keys for resource instance info.
 const (
+	// AttrID represents the resource id.
+	AttrID = "id"
+
 	// AttrIAMPath represents the resource topology path attribute.
 	// Reuses expression.KeywordBKIAMPath from iam-go-sdk for consistency.
 	// Format: []/parent_type,parent_id/"].

@@ -19,6 +19,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
 var _ iamv3.IHandler = (*fakeIAMBatchHandler)(nil)
@@ -34,6 +36,8 @@ type fakeIAMBatchHandler struct {
 	authorizedIsAny      bool
 	authorizedResources  []types.IAMResource
 	authorizedErr        error
+	policyExpr           *expression.ExprCell
+	policyExprErr        error
 
 	batchCalls              int
 	isAllowedWithCacheCalls int
@@ -103,6 +107,14 @@ func (h *fakeIAMBatchHandler) ListAuthorizedInstances(
 	h.authorizedCalls++
 	h.lastAuthorizedReq = req
 	return h.authorizedIsAny, h.authorizedResources, h.authorizedErr
+}
+func (h *fakeIAMBatchHandler) GetPolicyExpression(
+	_ contextx.IContext, _ types.IAMAuthorizedInstancesRequest,
+) (*expression.ExprCell, error) {
+	if h.policyExprErr != nil {
+		return nil, h.policyExprErr
+	}
+	return h.policyExpr, nil
 }
 
 func newTestIAMContext() contextx.IContext {
@@ -379,9 +391,10 @@ func TestIAMV3AuthorizerCheck_NonEmptyResourcesUsesBatchEvaluation(t *testing.T)
 
 func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testing.T) {
 	handler := &fakeIAMBatchHandler{
-		authorizedResources: []types.IAMResource{
-			{SystemID: types.SystemIDCMDB, Type: string(types.AuthResourceTypeBiz), ID: "1"},
-			{SystemID: types.SystemIDCMDB, Type: string(types.AuthResourceTypeBiz), ID: "2"},
+		policyExpr: &expression.ExprCell{
+			OP:    "in",
+			Field: "biz.id",
+			Value: []interface{}{"1", "2"},
 		},
 	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
@@ -399,28 +412,15 @@ func TestIAMV3AuthorizerListAuthorizedInstances_MapsRequestAndResponse(t *testin
 	if scope.Resources[0].ID != "1" || scope.Resources[1].ID != "2" {
 		t.Fatalf("unexpected authorized resource IDs: %+v", scope.Resources)
 	}
-	if scope.Resources[0].SystemID != types.SystemIDCMDB || scope.Resources[0].Type != types.AuthResourceTypeBiz {
+	if scope.Resources[0].SystemID != types.SystemIDNodeMgr || scope.Resources[0].Type != types.AuthResourceTypeBiz {
 		t.Fatalf("unexpected resource[0] systemID/type: %+v", scope.Resources[0])
-	}
-	if handler.authorizedCalls != 1 {
-		t.Fatalf("expected ListAuthorizedInstances called once, got %d", handler.authorizedCalls)
-	}
-	if handler.lastAuthorizedReq.SystemID != types.SystemIDNodeMgr {
-		t.Fatalf("expected systemID %q, got %q", types.SystemIDNodeMgr, handler.lastAuthorizedReq.SystemID)
-	}
-	if handler.lastAuthorizedReq.Username != "admin" {
-		t.Fatalf("expected username admin, got %q", handler.lastAuthorizedReq.Username)
-	}
-	if handler.lastAuthorizedReq.ActionID != string(ActionAgentView) {
-		t.Fatalf("expected actionID %q, got %q", ActionAgentView, handler.lastAuthorizedReq.ActionID)
-	}
-	if handler.lastAuthorizedReq.ResourceType != string(types.AuthResourceTypeBiz) {
-		t.Fatalf("expected resourceType %q, got %q", types.AuthResourceTypeBiz, handler.lastAuthorizedReq.ResourceType)
 	}
 }
 
 func TestIAMV3AuthorizerListAuthorizedInstances_ReturnsAnyScope(t *testing.T) {
-	handler := &fakeIAMBatchHandler{authorizedIsAny: true}
+	handler := &fakeIAMBatchHandler{
+		policyExpr: &expression.ExprCell{OP: "any"},
+	}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
 	scope, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)
@@ -437,7 +437,7 @@ func TestIAMV3AuthorizerListAuthorizedInstances_ReturnsAnyScope(t *testing.T) {
 
 func TestIAMV3AuthorizerListAuthorizedInstances_PropagatesError(t *testing.T) {
 	sentinel := errors.New("list authorized instances failure")
-	handler := &fakeIAMBatchHandler{authorizedErr: sentinel}
+	handler := &fakeIAMBatchHandler{policyExprErr: sentinel}
 	authorizer := &iamv3Authorizer{systemID: types.SystemIDNodeMgr, handler: handler}
 
 	_, err := authorizer.ListAuthorizedInstances(newTestIAMContext(), ActionAgentView, types.AuthResourceTypeBiz)

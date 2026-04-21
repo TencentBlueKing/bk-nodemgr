@@ -63,12 +63,7 @@ func (p *NetworkUnitProvider) ListAttrValue(_ contextx.IContext, _ *Request[List
 func (p *NetworkUnitProvider) ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
 	// Check if parent is specified
 	if req.Filter.Parent == nil {
-		data := &ListInstanceData{
-			Count:   0,
-			Results: []ResourceInstance{},
-		}
-
-		return data, nil
+		return newEmptyListInstanceData(), nil
 	}
 
 	// Parse parent network area ID
@@ -146,9 +141,7 @@ func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 		results = append(results, InstanceInfo{
 			ID:          strconv.FormatInt(unit.ID, 10),
 			DisplayName: unit.Name,
-			Attributes: map[string]interface{}{
-				AttrIAMPath: BuildIAMPath(ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10)),
-			},
+			Attributes:  buildInstanceAttributes(strconv.FormatInt(unit.ID, 10), ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10)),
 		})
 	}
 
@@ -174,7 +167,7 @@ func (p *NetworkUnitProvider) ListInstanceByPolicy(ctx contextx.IContext, req *R
 				ID:          strconv.FormatInt(unit.ID, 10),
 				DisplayName: unit.Name,
 			},
-			Attributes: map[string]interface{}{},
+			Attributes: buildInstanceAttributes(strconv.FormatInt(unit.ID, 10), ResourceTypeNetworkArea, strconv.FormatInt(unit.NetworkAreaID, 10)),
 		})
 	}
 
@@ -186,12 +179,7 @@ func (p *NetworkUnitProvider) ListInstanceByPolicy(ctx contextx.IContext, req *R
 func (p *NetworkUnitProvider) SearchInstance(ctx contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
 	// Check if parent is specified
 	if req.Filter.Parent == nil {
-		data := &ListInstanceData{
-			Count:   0,
-			Results: []ResourceInstance{},
-		}
-
-		return data, nil
+		return newEmptyListInstanceData(), nil
 	}
 
 	// Parse parent network area ID
@@ -248,22 +236,12 @@ func (p *NetworkUnitProvider) SearchInstance(ctx contextx.IContext, req *Request
 
 // FetchInstanceList returns empty result as this is for audit center.
 func (p *NetworkUnitProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }
 
 // FetchResourceTypeSchema returns empty schema as network unit has no custom schema.
 func (p *NetworkUnitProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
 	// This method doesn't match any standard IAM callback API
 	// Return empty list for now
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }

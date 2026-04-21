@@ -11,12 +11,14 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
 // RequestMethod represents the method of the request.
@@ -149,6 +151,48 @@ func (h *Handler) ListInstancesByPolicy(
 	req := &Request[ListInstanceByPolicyFilter]{
 		Filter: filter,
 		Page:   page,
+	}
+
+	return provider.ListInstanceByPolicy(ctx, req)
+}
+
+// ListInstancesByExpression implements IResolver interface.
+// It evaluates IAM policy expression (ExprCell format) against provider instances.
+// This method is used by auth layer fallback when discrete policy parsing fails.
+func (h *Handler) ListInstancesByExpression(
+	ctx contextx.IContext,
+	resourceType string,
+	expr *expression.ExprCell,
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	provider, exist := h.GetProvider(resourceType)
+	if !exist {
+		return nil, fmt.Errorf("resource type %s not supported or the provider not registered", resourceType)
+	}
+
+	// Convert ExprCell to map for provider compatibility
+	// Note: This involves a serialization round-trip (ExprCell -> map -> ExprCell in evalExpressionFilter)
+	// but it's the minimal-change approach that reuses existing provider logic.
+	// The overhead is acceptable compared to database queries and expression evaluation.
+	expressionMap := make(map[string]interface{})
+	if expr != nil {
+		// Serialize ExprCell to JSON then deserialize to map
+		exprBytes, err := json.Marshal(expr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal expression: %w", err)
+		}
+		if err := json.Unmarshal(exprBytes, &expressionMap); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal expression to map: %w", err)
+		}
+	}
+
+	// Call provider's ListInstanceByPolicy with the expression map
+	req := &Request[ListInstanceByPolicyFilter]{
+		Filter: ListInstanceByPolicyFilter{
+			Expression: expressionMap,
+		},
+		Page: page,
 	}
 
 	return provider.ListInstanceByPolicy(ctx, req)

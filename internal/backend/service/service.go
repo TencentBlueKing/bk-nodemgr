@@ -431,11 +431,16 @@ func (svc *Service) newAuthorizer() auth.IAuthorizer {
 		return auth.NewNoOpAuthorizer()
 	}
 
-	return auth.NewIAMV3Authorizer(svc.conf.IAMV3.SystemID, svc.Cap.IAMV3Handler, svc.Cap.AuthProviderHandler)
+	return auth.NewIAMV3Authorizer(
+		svc.conf.IAMV3.SystemID,
+		svc.Cap.IAMV3Handler,
+		svc.Cap.AuthProviderHandler, // IAttributeEnricher
+		svc.Cap.AuthProviderHandler, // IResolver
+	)
 }
 
 // newAuthProviderHandler creates a unified IAM callback handler with all providers registered.
-func (svc *Service) newAuthProviderHandler() authProvider.IHandler {
+func (svc *Service) newAuthProviderHandler() *authProvider.Handler {
 	handler := authProvider.NewHandler()
 
 	// Register NetworkArea provider

@@ -152,20 +152,10 @@ func (p *PackageTypeProvider) SearchInstance(_ contextx.IContext, req *Request[S
 
 // FetchInstanceList returns empty result as this is for audit center.
 func (p *PackageTypeProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }
 
 // FetchResourceTypeSchema returns empty schema as package type has no custom schema.
 func (p *PackageTypeProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }

@@ -197,22 +197,12 @@ func (p *NetworkAreaProvider) SearchInstance(ctx contextx.IContext, req *Request
 
 // FetchInstanceList returns empty result as this is for audit center.
 func (p *NetworkAreaProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }
 
 // FetchResourceTypeSchema returns empty schema as network area has no custom schema.
 func (p *NetworkAreaProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
 	// This method doesn't match any standard IAM callback API
 	// Return empty list for now
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }

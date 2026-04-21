@@ -20,6 +20,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -52,6 +53,12 @@ type IHandler interface {
 
 	// GetApplyURL generates a permission apply URL for the given request.
 	GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) (string, error)
+
+	// GetPolicyExpression retrieves the raw IAM policy expression for a single action.
+	GetPolicyExpression(
+		ctx contextx.IContext,
+		req types.IAMAuthorizedInstancesRequest,
+	) (*expression.ExprCell, error)
 
 	// ListAuthorizedInstances queries IAM policy and resolves the authorized.
 	ListAuthorizedInstances(
@@ -418,6 +425,27 @@ func (h *Handler) GetApplyURL(ctx contextx.IContext, req types.IAMApplyRequest) 
 	}
 
 	return h.cli.getApplyURL(ctx, &application)
+}
+
+// GetPolicyExpression retrieves the raw IAM policy expression without parsing.
+func (h *Handler) GetPolicyExpression(
+	ctx contextx.IContext,
+	req types.IAMAuthorizedInstancesRequest,
+) (*expression.ExprCell, error) {
+
+	request := toAuthorizedInstancesWireRequest(req)
+
+	if err := request.Validate(); err != nil {
+		return nil, err
+	}
+
+	input := &PolicyQueryInput{
+		System:  request.System,
+		Subject: request.Subject,
+		Action:  request.Action,
+	}
+
+	return h.cli.v2PolicyQuery(ctx, input)
 }
 
 // ListAuthorizedInstances queries IAM policy and resolves the authorized

@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
 // NoOpHandler is a full bypass implementation of IHandler used when IAM v3 is
@@ -127,4 +128,16 @@ func (h *NoOpHandler) ListAuthorizedInstances(
 	logger.G.Sys().Debug("IAM v3 no-op handler: skipping ListAuthorizedInstances")
 
 	return true, []types.IAMResource{}, nil
+}
+
+// GetPolicyExpression returns nil in IAM bypass mode.
+func (h *NoOpHandler) GetPolicyExpression(
+	_ contextx.IContext,
+	_ types.IAMAuthorizedInstancesRequest,
+) (*expression.ExprCell, error) {
+
+	logger.G.Sys().Debug("IAM v3 no-op handler: skipping GetPolicyExpression")
+
+	// Return an "any" policy expression in bypass mode
+	return &expression.ExprCell{OP: "any"}, nil
 }

@@ -70,9 +70,7 @@ func (p *PackageProvider) listInstancesForPolicy(ctx contextx.IContext) ([]Insta
 				ID:          ft.id,
 				DisplayName: ft.displayName,
 			},
-			Attributes: map[string]interface{}{
-				"id": ft.id,
-			},
+			Attributes: buildInstanceAttributes(ft.id, ResourceTypePackageType, ft.id),
 		})
 	}
 
@@ -88,9 +86,7 @@ func (p *PackageProvider) listInstancesForPolicy(ctx contextx.IContext) ([]Insta
 				ID:          name,
 				DisplayName: name,
 			},
-			Attributes: map[string]interface{}{
-				"id": name,
-			},
+			Attributes: buildInstanceAttributes(name, ResourceTypePackageType, string(types.ReleaseTypePluginBinTool)),
 		})
 	}
 
@@ -106,9 +102,7 @@ func (p *PackageProvider) listInstancesForPolicy(ctx contextx.IContext) ([]Insta
 				ID:          name,
 				DisplayName: name,
 			},
-			Attributes: map[string]interface{}{
-				"id": name,
-			},
+			Attributes: buildInstanceAttributes(name, ResourceTypePackageType, string(types.ReleaseTypePlugin)),
 		})
 	}
 
@@ -161,12 +155,7 @@ func (p *PackageProvider) ListAttrValue(_ contextx.IContext, _ *Request[ListAttr
 func (p *PackageProvider) ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
 	// Check if parent is specified
 	if req.Filter.Parent == nil {
-		data := &ListInstanceData{
-			Count:   0,
-			Results: []ResourceInstance{},
-		}
-
-		return data, nil
+		return newEmptyListInstanceData(), nil
 	}
 
 	// Validate parent type
@@ -208,10 +197,7 @@ func (p *PackageProvider) ListInstance(ctx contextx.IContext, req *Request[ListI
 		return p.listPluginInstances(ctx, req.Page)
 	default:
 		// Unknown type, return empty
-		return &ListInstanceData{
-			Count:   0,
-			Results: []ResourceInstance{},
-		}, nil
+		return newEmptyListInstanceData(), nil
 	}
 }
 
@@ -330,9 +316,7 @@ func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[s
 			*results = append(*results, InstanceInfo{
 				ID:          r.Name,
 				DisplayName: r.Name,
-				Attributes: map[string]interface{}{
-					AttrIAMPath: BuildIAMPath(ResourceTypePackageType, string(types.ReleaseTypePlugin)),
-				},
+				Attributes:  buildInstanceAttributes(r.Name, ResourceTypePackageType, string(types.ReleaseTypePlugin)),
 			})
 			addedSet[r.Name] = true
 		}
@@ -363,9 +347,7 @@ func (p *PackageProvider) addPluginBinToolReleases(
 			*results = append(*results, InstanceInfo{
 				ID:          r.Name,
 				DisplayName: r.Name,
-				Attributes: map[string]interface{}{
-					AttrIAMPath: BuildIAMPath(ResourceTypePackageType, string(types.ReleaseTypePluginBinTool)),
-				},
+				Attributes:  buildInstanceAttributes(r.Name, ResourceTypePackageType, string(types.ReleaseTypePluginBinTool)),
 			})
 			addedSet[r.Name] = true
 		}
@@ -396,9 +378,7 @@ func (p *PackageProvider) addFixedTypePackages(nameSet map[string]bool, addedSet
 		*results = append(*results, InstanceInfo{
 			ID:          name,
 			DisplayName: name,
-			Attributes: map[string]interface{}{
-				AttrIAMPath: BuildIAMPath(ResourceTypePackageType, name),
-			},
+			Attributes:  buildInstanceAttributes(name, ResourceTypePackageType, name),
 		})
 		addedSet[name] = true
 	}
@@ -419,12 +399,7 @@ func (p *PackageProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Reque
 func (p *PackageProvider) SearchInstance(ctx contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
 	// Check if parent is specified
 	if req.Filter.Parent == nil {
-		data := &ListInstanceData{
-			Count:   0,
-			Results: []ResourceInstance{},
-		}
-
-		return data, nil
+		return newEmptyListInstanceData(), nil
 	}
 
 	// Validate parent type
@@ -454,10 +429,7 @@ func (p *PackageProvider) SearchInstance(ctx contextx.IContext, req *Request[Sea
 	case types.ReleaseTypePlugin:
 		return p.searchPluginInstances(ctx, keyword, req.Page)
 	default:
-		return &ListInstanceData{
-			Count:   0,
-			Results: []ResourceInstance{},
-		}, nil
+		return newEmptyListInstanceData(), nil
 	}
 }
 
@@ -479,10 +451,7 @@ func (p *PackageProvider) searchFixedType(name, keyword string) (*ListInstanceDa
 		}, nil
 	}
 
-	return &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}, nil
+	return newEmptyListInstanceData(), nil
 }
 
 // searchPluginBinToolInstances searches plugin bintool instances by keyword.
@@ -563,22 +532,12 @@ func (p *PackageProvider) searchPluginInstances(ctx contextx.IContext, keyword s
 
 // FetchInstanceList returns empty result as this is for audit center.
 func (p *PackageProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }
 
 // FetchResourceTypeSchema returns empty schema as package has no custom schema.
 func (p *PackageProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
-	}
-
-	return data, nil
+	return newEmptyListInstanceData(), nil
 }
 
 // BuildPackageResources constructs package resources for permission checks.

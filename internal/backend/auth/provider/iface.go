@@ -13,22 +13,25 @@ package provider
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
 // IHandler provides the iam resource handlers.
 type IHandler interface {
 	IDispatcher
 	IAttributeEnricher
+	IResolver
 }
 
 // IResolver provides reusable policy-based instance listing over registered providers.
 type IResolver interface {
-	RegisterProvider(resourceType string, provider IProvider)
-	GetProvider(resourceType string) (IProvider, bool)
-	ListInstancesByPolicy(
+	// ListInstancesByExpression evaluates IAM policy expression (ExprCell format) against provider instances.
+	// Used by auth layer fallback when discrete policy parsing fails.
+	// Directly accepts expression.ExprCell to avoid unnecessary map serialization round-trip.
+	ListInstancesByExpression(
 		ctx contextx.IContext,
 		resourceType string,
-		filterMap map[string]interface{},
+		expr *expression.ExprCell,
 		page types.Page,
 	) (*ListInstanceData, error)
 }

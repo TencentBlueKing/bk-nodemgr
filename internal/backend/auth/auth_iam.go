@@ -19,7 +19,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -65,15 +67,24 @@ type iamv3Authorizer struct {
 	systemID          string
 	handler           iamv3.IHandler
 	attributeEnricher provider.IAttributeEnricher
+	resolver          provider.IResolver
 }
 
 // NewIAMV3Authorizer creates an IAuthorizer backed by the IAM v3 handler.
 // If attributeEnricher is provided, it will automatically enrich resource attributes during authorization.
-func NewIAMV3Authorizer(systemID string, handler iamv3.IHandler, attributeEnricher provider.IAttributeEnricher) IAuthorizer {
+// If resolver is provided, it will be used as fallback when discrete policy parsing fails.
+func NewIAMV3Authorizer(
+	systemID string,
+	handler iamv3.IHandler,
+	attributeEnricher provider.IAttributeEnricher,
+	resolver provider.IResolver,
+) IAuthorizer {
+
 	return &iamv3Authorizer{
 		systemID:          systemID,
 		handler:           handler,
 		attributeEnricher: attributeEnricher,
+		resolver:          resolver,
 	}
 }
 
@@ -270,28 +281,31 @@ func buildIAMApplyResourceTypes(resources []types.AuthResource) []types.IAMApply
 }
 
 func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResourceType {
-	relatedRTs := make([]RelatedResourceType, 0, len(rts))
-	for _, rt := range rts {
-		instances := make([]ResourceNode, 0, len(rt.Instances))
-		for _, instance := range rt.Instances {
-			for _, node := range instance {
-				instances = append(instances, ResourceNode{
-					Type:     node.Type,
-					TypeName: types.AuthResourceTypeDisplayName(types.AuthResourceType(node.Type)),
-					ID:       node.ID,
-				})
-			}
-		}
-		relatedRTs = append(relatedRTs, RelatedResourceType{
+	return conv.SliceToSlice(rts, func(rt types.IAMApplyResourceType) RelatedResourceType {
+		return RelatedResourceType{
 			SystemID:   rt.SystemID,
 			SystemName: types.SystemDisplayName(rt.SystemID),
 			Type:       rt.Type,
 			TypeName:   types.AuthResourceTypeDisplayName(types.AuthResourceType(rt.Type)),
-			Instances:  instances,
+			Instances:  buildResourceNodes(rt.Instances),
+		}
+	})
+}
+
+func buildResourceNodes(instances []types.IAMApplyResourceInstance) []ResourceNode {
+	resourceNodes := make([]ResourceNode, 0, len(instances))
+	for _, instance := range instances {
+		nodes := conv.SliceToSlice(instance, func(node types.IAMApplyResourceNode) ResourceNode {
+			return ResourceNode{
+				Type:     node.Type,
+				TypeName: types.AuthResourceTypeDisplayName(types.AuthResourceType(node.Type)),
+				ID:       node.ID,
+			}
 		})
+		resourceNodes = append(resourceNodes, nodes...)
 	}
 
-	return relatedRTs
+	return resourceNodes
 }
 
 func (authorizer *iamv3Authorizer) collectDeniedResources(
@@ -418,11 +432,8 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 	ctx contextx.IContext, action Action, resourceType types.AuthResourceType,
 ) (AuthorizedScope, error) {
 
-	if ctx == nil {
-		return AuthorizedScope{}, errors.New("auth: ListAuthorizedInstances called with nil context")
-	}
-
-	isAny, iamResources, err := authorizer.handler.ListAuthorizedInstances(ctx, types.IAMAuthorizedInstancesRequest{
+	// Get raw policy expression from IAM
+	policyExpr, err := authorizer.handler.GetPolicyExpression(ctx, types.IAMAuthorizedInstancesRequest{
 		SystemID:     authorizer.systemID,
 		Username:     ctx.BKUsername(),
 		ActionID:     string(action),
@@ -432,5 +443,48 @@ func (authorizer *iamv3Authorizer) ListAuthorizedInstances(
 		return AuthorizedScope{}, err
 	}
 
-	return toAuthorizedScope(isAny, iamResources), nil
+	// Try fast path: parse discrete policy
+	isAny, iamResources, parseErr := policy.Parse(policyExpr, authorizer.systemID, string(resourceType))
+	if parseErr == nil {
+		// Fast path succeeded
+		return toAuthorizedScope(isAny, iamResources), nil
+	}
+
+	// Only topology resources (networkunit, package) support non-discrete policy fallback
+	switch resourceType {
+	case types.AuthResourceTypeNetworkUnit, types.AuthResourceTypePackage:
+		// These resource types support fallback to expression evaluation
+	default:
+		return AuthorizedScope{}, fmt.Errorf(
+			"resource type %s does not support non-discrete policy: %w",
+			resourceType,
+			parseErr,
+		)
+	}
+
+	// Call provider to evaluate expression against all instances
+	result, err := authorizer.resolver.ListInstancesByExpression(
+		ctx,
+		string(resourceType),
+		policyExpr,
+		types.Page{Limit: provider.MaxListInstanceByPolicyLimit},
+	)
+	if err != nil {
+		return AuthorizedScope{}, fmt.Errorf("failed to evaluate non-discrete policy: %w", err)
+	}
+
+	// Convert provider results to AuthorizedScope
+	resources := make([]types.AuthResource, 0, len(result.Results))
+	for _, inst := range result.Results {
+		resources = append(resources, types.AuthResource{
+			SystemID: authorizer.systemID,
+			Type:     resourceType,
+			ID:       inst.ID,
+		})
+	}
+
+	return AuthorizedScope{
+		IsAny:     false,
+		Resources: resources,
+	}, nil
 }

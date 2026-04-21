@@ -24,34 +24,14 @@ type InstanceForEval struct {
 	Attributes map[string]interface{} // Attributes for evaluation (includes "id", "display_name", "_bk_iam_path_", etc.)
 }
 
-// evalExpressionFilter evaluates IAM policy expressions against resource instances.
+// evalExpressionFilter evaluates IAM policy expressions (map format) against resource instances.
 //
-// This function integrates with iam-go-sdk expression package to perform policy-based
-// filtering of resource instances. It is used by provider.ListInstanceByPolicy() to
-// implement IAM's list_instance_by_policy callback method.
-//
-// IAM Expression Evaluation Flow:
-//
-//	Policy Expression (from IAM)
-//	  ↓ JSON unmarshal
-//	expression.ExprCell (recursive structure with operators)
-//	  ↓ Eval(ObjectSet)
-//	expression.ObjectSet (resource type + attributes)
-//	  ↓ GetAttribute("type.field")
-//	Attribute Value (e.g., _bk_iam_path_: ["/networkarea,123/"])
-//	  ↓ Compare with policy value using operator
-//	Boolean Result (true = authorized, false = denied)
+// This function wraps evalExprCellFilter and provides backward compatibility for IAM callback handlers
+// that receive policy expressions as map[string]interface{}.
 //
 // Integration with iam-go-sdk:
 //  1. Deserializes IAM policy expression map to expression.ExprCell
-//  2. Creates expression.ObjectSet for each instance with its attributes
-//  3. Evaluates expression using ExprCell.Eval(ObjectSet)
-//  4. Filters instances based on evaluation results
-//
-// Special handling by SDK:
-//   - _bk_iam_path_ with starts_with: Strips ",*/" suffix for wildcard matching
-//   - Array values: Evaluates each element (any match = true for positive ops)
-//   - Logical operators: AND/OR recursively evaluate sub-expressions
+//  2. Delegates to evalExprCellFilter for core evaluation logic
 //
 // Parameters:
 //   - expressionMap: IAM policy expression (from callback request filter)
@@ -65,9 +45,7 @@ type InstanceForEval struct {
 //
 // Behavior:
 //   - Empty/nil expression: Returns all instances (no filtering)
-//   - Expression with op="any": Returns all instances (SDK handles this)
-//   - Valid expression: Filters instances using ExprCell.Eval()
-//   - Pagination: Applied AFTER filtering, Count = total matches (pre-pagination)
+//   - Valid expression: Deserializes to ExprCell and delegates to evalExprCellFilter
 func evalExpressionFilter(
 	expressionMap map[string]interface{},
 	resourceType string,
@@ -90,6 +68,57 @@ func evalExpressionFilter(
 	var exprCell expression.ExprCell
 	if err := json.Unmarshal(exprBytes, &exprCell); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal expression: %w", err)
+	}
+
+	// Delegate to core evaluation logic
+	return evalExprCellFilter(&exprCell, resourceType, instances, page)
+}
+
+// evalExprCellFilter evaluates IAM policy expression (ExprCell format) against resource instances.
+//
+// This is the core evaluation logic that directly accepts expression.ExprCell.
+// It integrates with iam-go-sdk expression package to perform policy-based filtering.
+//
+// IAM Expression Evaluation Flow:
+//
+//	Policy Expression (ExprCell)
+//	  ↓ Eval(ObjectSet)
+//	expression.ObjectSet (resource type + attributes)
+//	  ↓ GetAttribute("type.field")
+//	Attribute Value (e.g., _bk_iam_path_: ["/networkarea,123/"])
+//	  ↓ Compare with policy value using operator
+//	Boolean Result (true = authorized, false = denied)
+//
+// Special handling by SDK:
+//   - _bk_iam_path_ with starts_with: Strips ",*/" suffix for wildcard matching
+//   - Array values: Evaluates each element (any match = true for positive ops)
+//   - Logical operators: AND/OR recursively evaluate sub-expressions
+//
+// Parameters:
+//   - exprCell: IAM policy expression (from IAM or auth layer)
+//   - resourceType: Resource type for ObjectSet.Set()
+//   - instances: Instances with attributes for evaluation
+//   - page: Pagination applied AFTER filtering
+//
+// Returns:
+//   - *ListInstanceData: Filtered results with total count
+//   - error: Expression evaluation error
+//
+// Behavior:
+//   - nil expression: Returns all instances (no filtering)
+//   - Expression with op="any": Returns all instances (SDK handles this)
+//   - Valid expression: Filters instances using ExprCell.Eval()
+//   - Pagination: Applied AFTER filtering, Count = total matches (pre-pagination)
+func evalExprCellFilter(
+	exprCell *expression.ExprCell,
+	resourceType string,
+	instances []InstanceForEval,
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	// Handle nil expression - return all instances
+	if exprCell == nil {
+		return paginateInstances(instances, page), nil
 	}
 
 	// Filter instances by evaluating expression
