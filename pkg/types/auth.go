@@ -58,13 +58,13 @@ func AuthResourceTypeDisplayName(art AuthResourceType) string {
 	case AuthResourceTypeBiz:
 		return "业务"
 	case AuthResourceTypeNetworkArea:
-		return "云区域"
+		return "管控区域"
 	case AuthResourceTypeNetworkUnit:
-		return "网络单元"
+		return "管控单元"
 	case AuthResourceTypePackageType:
-		return "安装包类型"
+		return "资源包类型"
 	case AuthResourceTypePackage:
-		return "安装包"
+		return "资源包"
 	default:
 		return ""
 	}
