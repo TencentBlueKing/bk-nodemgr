@@ -88,7 +88,7 @@
           </span>
         </div>
         <p class="text-[12px] border border-t-none h-full p-[16px]">
-          {{ selectedVersion?.description }}
+          {{ selectedVersion?.description || '--' }}
         </p>
       </div>
     </div>
@@ -242,7 +242,7 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig<RowVO>>({
 const getVersions = async () => {
   let res;
   if (props.releaseType === 'agent') {
-    res = await PackageService.ListReleaseAgent({
+    res = await PackageService.ListReleaseAgentBrief({
       page: { limit: 500, offset: 0 },
       generation: PACKAGE_GENERATION,
       exact_include_conditions: {
@@ -254,7 +254,7 @@ const getVersions = async () => {
       items: [],
     }));
   } else {
-    res = await PackageService.ListReleaseProxy({
+    res = await PackageService.ListReleaseProxyBrief({
       page: { limit: 500, offset: 0 },
       generation: PACKAGE_GENERATION,
       exact_include_conditions: {
@@ -269,10 +269,10 @@ const getVersions = async () => {
   const osMap: any = {};
   const filterOs = props.isCrossPageSelection ? ['_'] : props.data.map((el: any) => (el.os ? el.os : `${el.os_type}_${el.cpu_arch}`));
   res.items
-    .filter(item => filterOs?.some(os => `${item.release.os_type}_${item.release.cpu_arch}`.includes(os)))
+    .filter(item => filterOs?.some(os => `${item.os_type}_${item.cpu_arch}`.includes(os)))
     .forEach((item) => {
-      const key = `${item.release.os_type}_${item.release.cpu_arch}`;
-      const iconType = item.release.os_type === 'darwin' ? 'macos' : item.release.os_type;
+      const key = `${item.os_type}_${item.cpu_arch}`;
+      const iconType = item.os_type === 'darwin' ? 'macos' : item.os_type;
       if (!osMap[key]) {
         osMap[key] = {
           name: key,
@@ -284,17 +284,15 @@ const getVersions = async () => {
         };
       }
       const versionObj = {
-        as_default: item.release.as_default,
-        version: item.release.version,
-        disabled: !item.release.enabled,
-        lable: item.release.labels,
-        packages: [item.release.file_name],
-        os_type: item.release.os_type,
-        cpu_arch: item.release.cpu_arch,
-        description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
+        as_default: item.as_default,
+        version: item.version,
+        disabled: !item.enabled,
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
+        description: mainStore.value === 'zh-CN' ? item.change_log_zh : item.change_log_en,
       };
       osMap[key].versions.push(versionObj);
-      if (item.release.as_default) {
+      if (item.as_default) {
         osMap[key].selectedVersion = versionObj;
       }
     });

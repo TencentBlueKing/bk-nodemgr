@@ -205,8 +205,8 @@ const systemData = ref<Array<{ os: string; version: string }>>([]);
 
 const getVersions = async () => {
   const listFn = props.releaseType === 'proxy'
-    ? PackageService.ListReleaseProxy
-    : PackageService.ListReleaseAgent;
+    ? PackageService.ListReleaseProxyBrief
+    : PackageService.ListReleaseAgentBrief;
   const res = await listFn({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
@@ -216,15 +216,15 @@ const getVersions = async () => {
   }).catch(() => ({ total: 0, items: [] }));
   const osMap: Record<string, { name: string; enableVersions: any[] }> = {};
   res.items.forEach((item: any) => {
-    const key = `${item.release.os_type}_${item.release.cpu_arch}`;
+    const key = `${item.os_type}_${item.cpu_arch}`;
     if (!osMap[key]) {
       osMap[key] = { name: key, enableVersions: [] };
     }
-    if (item.release.enabled) {
+    if (item.enabled) {
       osMap[key].enableVersions.push({
-        version: item.release.version,
-        os_type: item.release.os_type,
-        cpu_arch: item.release.cpu_arch,
+        version: item.version,
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
       });
     }
   });

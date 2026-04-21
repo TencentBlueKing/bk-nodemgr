@@ -317,8 +317,8 @@ const defaultVersionMap = ref<Map<string, string>>(new Map());
 const fetchDefaultVersions = async () => {
   try {
     const service = props.releaseType === 'proxy'
-      ? PackageService.ListReleaseProxy
-      : PackageService.ListReleaseAgent;
+      ? PackageService.ListReleaseProxyBrief
+      : PackageService.ListReleaseAgentBrief;
 
     const res = await service({
       page: { limit: 500, offset: 0 },
@@ -333,12 +333,12 @@ const fetchDefaultVersions = async () => {
 
     if (res?.items) {
       res.items.forEach((item: any) => {
-        const key = `${item.release.os_type}_${item.release.cpu_arch}`;
-        if (item.release.as_default) {
-          versionMap.set(key, item.release.version);
+        const key = `${item.os_type}_${item.cpu_arch}`;
+        if (item.as_default) {
+          versionMap.set(key, item.version);
         }
         if (!firstVersionMap.has(key)) {
-          firstVersionMap.set(key, item.release.version);
+          firstVersionMap.set(key, item.version);
         }
       });
     }

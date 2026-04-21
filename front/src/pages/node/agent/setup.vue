@@ -567,7 +567,7 @@ const handleCancel = () => {
 
 // 获取版本，用来检查是否有对应架构的包版本去安装
 const getVersions = async () => {
-  const res = await PackageService.ListReleaseAgent({
+  const res = await PackageService.ListReleaseAgentBrief({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
     exact_include_conditions: {
@@ -579,18 +579,18 @@ const getVersions = async () => {
   }));
   const osMap: any = {};
   res.items.forEach((item) => {
-    const key = `${item.release.os_type}_${item.release.cpu_arch}`;
+    const key = `${item.os_type}_${item.cpu_arch}`;
     if (!osMap[key]) {
       osMap[key] = {
         name: key,
         enableVersions: [],
       };
     }
-    if (item.release.enabled) {
+    if (item.enabled) {
       osMap[key].enableVersions.push({
-        version: item.release.version,
-        os_type: item.release.os_type,
-        cpu_arch: item.release.cpu_arch,
+        version: item.version,
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
       });
     }
   });

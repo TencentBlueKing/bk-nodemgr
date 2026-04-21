@@ -737,7 +737,7 @@ export interface PackageReleaseProxyListBriefResp {
 
 export interface PackageReleaseProxyListBriefRespData {
   total: number;
-  items: ReleaseProxy[];
+  items: ReleaseProxyBrief[];
 }
 
 // PackageReleaseProxyDistinctReq describes the HTTP request body when distinct
@@ -977,7 +977,7 @@ export interface PackageReleasePluginListBriefResp {
 
 export interface PackageReleasePluginListBriefRespData {
   total: number;
-  items: ReleasePlugin[];
+  items: ReleasePluginBrief[];
 }
 
 // PackageReleasePluginEnableReq describes the HTTP request body when enable

@@ -252,9 +252,33 @@ interface ReleaseProxy {
   change_log_zh: string;
 }
 
+// ReleaseProxyBrief describes the brief release proxy (only core fields for
+// list display).
+interface ReleaseProxyBrief {
+  generation: number;
+  os_type: string;
+  cpu_arch: string;
+  version: string;
+  enabled: boolean;
+  as_default: boolean;
+  change_log_en: string;
+  change_log_zh: string;
+}
+
 // ReleasePlugin describes the release plugin.
 interface ReleasePlugin {
   release: Release;
+}
+
+// ReleasePluginBrief describes the brief release plugin (only core fields for
+// list display).
+interface ReleasePluginBrief {
+  generation: number;
+  os_type: string;
+  cpu_arch: string;
+  version: string;
+  enabled: boolean;
+  as_default: boolean;
 }
 
 // ReleaseCert describes the release cert.
