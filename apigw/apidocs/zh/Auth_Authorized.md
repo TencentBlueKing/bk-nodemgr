@@ -23,7 +23,7 @@ POST /api/v3/auth/authorized
 
 ##### action 枚举值
 
-`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、
+`biz_access`、`agent_view`、`agent_operate`、`agent_history_view`、`proxy_view`、`proxy_operate`、`proxy_history_view`、`plugin_view`、`plugin_operate`、
 `plugin_history_view`、`config_policy_view`、`config_policy_manage`、`config_policy_history_view`、`deploy_policy_view`、`deploy_policy_manage`、
 `deploy_policy_history_view`、`networkarea_view`、`networkarea_create`、`networkarea_edit`、`networkarea_delete`、`networkarea_history_view`、
 `networkunit_view`、`networkunit_create`、`networkunit_edit`、`networkunit_delete`、`networkunit_use_for_agent`、`networkunit_use_for_proxy`、
