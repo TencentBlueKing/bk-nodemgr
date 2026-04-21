@@ -15,7 +15,7 @@
   </Tab> -->
   <div class="p-[24px]">
     <div class="flex items-center justify-between">
-      <div>
+      <div class="flex items-center gap-[10px]">
         <Button
           theme="primary"
           :class="{ 'unAuthorized': !hasManageAuth }"
@@ -26,6 +26,9 @@
         >
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
           {{ $t('agentStrategy.createConfig') }}
+        </Button>
+        <Button @click="handleSortPreview">
+          {{ $t('agentStrategy.sortAndPreview') }}
         </Button>
       </div>
       <div class="">
@@ -244,9 +247,19 @@
     :config-data="currentEditConfig"
     @save="handleSave"
   />
+
+  <!-- SortPreview 排序并预览组件 -->
+  <SortPreview
+    v-model:is-show="isShowSortPreview"
+    :config-list="tableData"
+    :configpolicy-type="configpolicyType"
+    :biz-id="strategyBizId || 0"
+    @save-sort="handleSaveSort"
+  />
+
 </template>
 <script lang="ts" setup>
-import { Button, Loading, PopConfirm, Popover, SearchSelect, Sideslider, Tab, Tag } from 'bkui-vue';
+import { Button, Loading, Message, PopConfirm, Popover, SearchSelect, Tab, Tag } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -256,6 +269,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 // 导入create-config组件
 import CreateConfig from './create-config.vue';
+import SortPreview from './sort-preview.vue';
 
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
@@ -376,6 +390,17 @@ const handleCreate = () => {
   mainStore.updateConfigEditData(null);
   isShowSideslider.value = true;
 };
+
+// ===== SortPreview =====
+const isShowSortPreview = ref(false);
+const handleSortPreview = () => {
+  isShowSortPreview.value = true;
+};
+
+const handleSaveSort = async () => {
+  await getConfigPolicyList();
+};
+
 const handleEnabled = async (row: ConfigPolicy) => {
   await ConfigPolicyAPIService.ConfigPolicyEnable({
     configpolicy_id: [row.configpolicy_id],
@@ -399,6 +424,7 @@ const handleDelete = async (row: ConfigPolicy) => {
 const handleSave = async () => {
   await getConfigPolicyList();
 };
+
 const networkAreaList = ref<NetworkArea[]>([]);
 // 管控区域
 const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {

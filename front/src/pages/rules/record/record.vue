@@ -128,8 +128,7 @@ import {
   Tab,
 } from 'bkui-vue';
 import dayjs from 'dayjs';
-import { computed, inject, onMounted, reactive, ref, watch } from 'vue';
-import type { Ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import type { VxeTablePropTypes } from 'vxe-table';
@@ -165,8 +164,8 @@ const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
-// 从 App.vue 注入策略专用的单选业务 ID
-const strategyBizId = inject<Ref<number>>('strategyBizId', ref(0));
+// 从 store 获取策略专用的单选业务 ID
+const strategyBizId = computed(() => mainStore.strategyBizId);
 const tableData = ref<ConfigPolicyEvent[]>([]);
 
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
@@ -370,7 +369,11 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
   },
 });
 const getHostDistinct = async () => {
-  const res = await ConfigPolicyAPIService.ConfigPolicyEventDistinct({}).catch(() => null);
+  const res = await ConfigPolicyAPIService.ConfigPolicyEventDistinct({
+    exact_include_conditions: {
+      bk_biz_id: strategyBizId.value ? [strategyBizId.value] : [],
+    },
+  }).catch(() => null);
   if (res) {
     hostDistinct.value = res;
     Object.keys(res).forEach((key: any) => {
@@ -460,7 +463,7 @@ const getParams = () => {
       offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {
-      biz_id: strategyBizId.value ? [strategyBizId.value] : [],
+      bk_biz_id: strategyBizId.value ? [strategyBizId.value] : [],
     } as Record<string, any>,
     fuzzy_include_conditions: {} as Record<string, string[]>,
     operate_time_range: {

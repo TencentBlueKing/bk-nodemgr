@@ -2,6 +2,7 @@
   <Select
     :class="selectClass"
     v-model="internalValue"
+    :prefix="noLimit ? t('platform.nodeMan.installAgentPage.cloud_unit') : ''"
     :loading="localLoading"
     :clearable="false"
     :filterable="true"
@@ -31,7 +32,7 @@
         @mousemove="handleOptionMouseMove($event, option.bk_networkunit_id)"
         @mouseleave="handleOptionMouseLeave()"
       >
-        <span class="truncate">[{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}</span>
+        <span class="truncate">{{ `[${option.bk_networkunit_id}] ${option.bk_networkunit_name}` }}</span>
       </div>
     </Select.Option>
   </Select>

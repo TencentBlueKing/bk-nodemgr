@@ -677,8 +677,11 @@ agentStrategy:
   configStrategy: Config Strategy
   deploymentStrategy: Deployment Strategy
   createConfig: Create Config
+  previewConfig: Preview Config
+  sortAndPreview: Sort & Preview
   loading: Loading...
   table:
+    sort: Sort
     configName: Config Name
     configId: Config ID
     version: Version
@@ -719,6 +722,13 @@ agentStrategy:
     os: OS
     arch: Arch
     addScope: Add Scope
+    hostSearchPlaceholder: Enter IP/IPv6/Hostname/OS
+    selectHost: Select Hosts
+    addHost: Add Hosts
+    totalAdded: Total
+    unit: hosts
+    confirmDelete: Confirm Delete
+    confirmDeleteAllHosts: Are you sure to delete all selected hosts?
     save: Save
     submit: Submit
     cancel: Cancel
@@ -728,6 +738,17 @@ agentStrategy:
     configTip: Switch to enable modification of default config
     versionTip: Editor content changed; saving will upgrade from
     upgradeTo: to
+  preview:
+    sortConfig: Strategy Sort
+    previewStrategy: Strategy Match
+    previewConfig: Preview Config
+    selectIP: Select Target IP
+    previewMatchStrategy: Preview Matched Strategy
+    matchedPolicy: Matched Policy
+    configDetail: Config Detail
+    jsonConfigDetail: JSON Config Detail
+    saveSort: Save Sort
+    prevStep: Previous
   validate:
     configNameRequired: Config Name is required
     configNameLength: Length must be 1-50 characters
@@ -1133,4 +1154,23 @@ common:
   script: Script
   data: Data
   file: File
+  confirm: Confirm
+  cancel: Cancel
+  selectIP: Select IP
+  searchPlaceholder: Enter search criteria
+  selectedCount: '{count} host(s) selected'
+  hostID: Host ID
+  ipv4: IPv4
+  ipv6: IPv6
+  hostname: Hostname
+  networkArea: Network Area
+  osType: OS Type
+  addIP: Add IP
+  targetIP: Target IP
+  totalAdded: Total added
+  hostUnit: host(s)
+  confirmDelete: Confirm Delete
+  confirmDeleteAllHosts: Are you sure you want to delete all selected hosts?
+  cloudArea: Cloud Area
+  system: System
   tip: To modify the default configuration, you need to enable the switch first, then make the changes

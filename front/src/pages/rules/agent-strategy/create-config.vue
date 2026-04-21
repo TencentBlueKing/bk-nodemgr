@@ -104,6 +104,64 @@
             <span class="text-[14px]">{{ $t('agentStrategy.form.addScope') }}</span>
           </div>
         </Form.FormItem>
+        <Form.FormItem :label="t('作用IP')" property="IP">
+          <!-- 添加IP按钮 -->
+          <!--eslint-disable-next-line max-len -->
+          <div class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer mb-[10px]" @click="handleAddIP">
+            <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
+            <span class="text-[14px]">{{ t('agentStrategy.form.addHost') }}</span>
+          </div>
+          
+          <!-- IP列表：顶部统计和操作 -->
+          <div v-if="formData.selectedHosts.length > 0" class="ip-list-wrapper">
+            <div class="flex items-center mb-[10px]">
+              <span class="text-[14px] text-[#63656E]">
+                {{ t('agentStrategy.form.totalAdded') }} 
+                <span class="text-[#3A84FF] font-medium">{{ formData.selectedHosts.length }}</span>
+                {{ t('agentStrategy.form.unit') }}
+              </span>
+              <i class="nodeman-icon nc-edit-line text-[16px] text-[#979BA5] cursor-pointer ml-[12px]" @click="handleEditHosts"></i>
+              <i class="nodeman-icon nc-delete text-[16px] text-[#979BA5] cursor-pointer ml-[8px]" @click="handleDeleteAllHosts"></i>
+            </div>
+            
+            <!-- IP列表表格（无操作列） -->
+            <Table
+              ref="ipTableRef"
+              :data="paginatedHosts"
+              :max-height="400"
+              :pagination="ipPagination"
+              show-overflow-tooltip
+              @page-value-change="handleIpPageChange"
+              @page-limit-change="handleIpPageLimitChange"
+            >
+              <TableColumn
+                field="bk_host_innerip"
+                :title="$t('IP')"
+                :min-width="150"
+              ></TableColumn>
+              <TableColumn
+                field="bk_host_innerip_v6"
+                :title="$t('IPv6')"
+                :min-width="150"
+              ></TableColumn>
+              <TableColumn
+                field="bk_host_name"
+                :title="$t('主机名称')"
+                :min-width="150"
+              ></TableColumn>
+              <TableColumn
+                field="bk_networkarea_name"
+                :title="$t('云区域')"
+                :width="150"
+              ></TableColumn>
+              <TableColumn
+                field="os_type"
+                :title="$t('系统')"
+                :width="120"
+              ></TableColumn>
+            </Table>
+          </div>
+        </Form.FormItem>
         <Form.FormItem property="configs">
           <div class="mt-[15px]">
             <config-template
@@ -140,8 +198,18 @@
       </Button>
       <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
     </template>
+    
+    <!-- 蓝鲸IP选择器 (Vue3版本) -->
+    <IpSelector
+      mode="dialog"
+      :show-dialog="isShowIpSelector"
+      :value="ipSelectorValue"
+      @change="handleIpSelectorChange"
+      @close-dialog="isShowIpSelector = false"
+    />
   </Sideslider>
 </template>
+
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
@@ -150,8 +218,11 @@ import { useI18n } from 'vue-i18n';
 
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import { PACKAGE_GENERATION } from '@/common/const';
+import { Table, TableColumn } from '@blueking/table';
 // 导入config-template组件
 import ConfigTemplate from '@/components/config-template.vue';
+import IpSelector from '@/components/IpSelector';
+import { fetchHostDetails, setPolicyType, setStrategyBizId } from '@/services/ip-selector';
 import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 
@@ -161,6 +232,18 @@ interface IScope {
   os_type: string,
   cpu_arch: string,
 }
+
+interface ISelectedHost {
+  bk_host_id: number;
+  bk_host_innerip: string;
+  bk_host_innerip_v6: string;
+  bk_host_name: string;
+  bk_networkarea_name: string;
+  os_type: string;
+  cpu_arch: string;
+  bk_networkarea_id: number;
+}
+
 // Sideslider显示状态
 const isShow = defineModel('isShow', { type: Boolean });
 
@@ -189,6 +272,7 @@ const formData = reactive({
   bk_biz_id: mainStore.strategyBizId || 0,
   remark: '',
   scopes: [] as IScope[],
+  selectedHosts: [] as ISelectedHost[],
   configs: [] as ConfigPolicyConfigBlock[],
   operator: '',
   enabled: false,
@@ -245,6 +329,135 @@ const handleAdd = () => {
     cpu_arch: '-1',
   });
 };
+
+// IP选择器相关
+const isShowIpSelector = ref(false);
+
+// IP选择器的值（蓝鲸IP选择器数据结构）
+const ipSelectorValue = ref({
+  hostList: [],
+  nodeList: [],
+  dynamicGroupList: [],
+  serviceTemplateList: [],
+  setTemplateList: [],
+});
+
+// IP列表分页
+const ipPagination = reactive({
+  current: 1,
+  limit: 10,
+  count: 0,
+});
+
+// 从IP选择器结果提取主机列表（库返回字段：hostId, ip, ipv6, cloudArea{ id, name }, meta）
+const extractedHosts = computed(() => {
+  const hosts: ISelectedHost[] = [];
+
+  // 从hostList提取主机
+  if (ipSelectorValue.value.hostList && ipSelectorValue.value.hostList.length > 0) {
+    ipSelectorValue.value.hostList.forEach((host: any) => {
+      hosts.push({
+        bk_host_id: host.hostId ?? host.host_id,
+        bk_host_innerip: host.ip || '',
+        bk_host_innerip_v6: host.ipv6 || '',
+        bk_host_name: host.hostName || host.host_name || '',
+        bk_networkarea_name: host.cloudArea?.name || '',
+        os_type: host.osType || host.os_type || '',
+        cpu_arch: host.cpuArch || '',
+        bk_networkarea_id: host.cloudArea?.id ?? host.cloud_id ?? 0,
+      });
+    });
+  }
+
+  return hosts;
+});
+
+// 分页后的主机列表
+const paginatedHosts = computed(() => {
+  const start = (ipPagination.current - 1) * ipPagination.limit;
+  const end = start + ipPagination.limit;
+  return extractedHosts.value.slice(start, end);
+});
+
+// 监听提取的主机列表变化
+watch(extractedHosts, (newHosts) => {
+  formData.selectedHosts = newHosts;
+  ipPagination.count = newHosts.length;
+});
+
+const handleAddIP = () => {
+  setPolicyType(props.configpolicyType);
+  setStrategyBizId(mainStore.strategyBizId);
+  isShowIpSelector.value = true;
+};
+
+const handleEditHosts = () => {
+  setPolicyType(props.configpolicyType);
+  setStrategyBizId(mainStore.strategyBizId);
+  isShowIpSelector.value = true;
+};
+
+// IP选择器确认事件 — 库只返回 hostId/ip/ipv6/cloudArea/meta，需补全 host_name/os_type 等
+const handleIpSelectorChange = async (value: any) => {
+  ipPagination.current = 1;
+
+  // 用 hostId 列表查询完整主机信息，补回被库丢弃的字段
+  const hostList = value.hostList || [];
+  if (hostList.length > 0) {
+    try {
+      const detailRes = await fetchHostDetails({
+        hostList: hostList.map((h: any) => ({ hostId: h.hostId, meta: h.meta })),
+      });
+      const detailMap = new Map<number, any>();
+      (detailRes.data || []).forEach((h: any) => {
+        detailMap.set(h.host_id, h);
+      });
+      // 将完整信息合并到 hostList
+      hostList.forEach((host: any) => {
+        const detail = detailMap.get(host.hostId);
+        if (detail) {
+          host.host_name = detail.host_name;
+          host.os_type = detail.os_type;
+          host.cpu_arch = detail.cpu_arch;
+        }
+      });
+    } catch {
+      // 补全失败不影响主流程
+    }
+  }
+
+  // 整体赋值触发响应式更新
+  ipSelectorValue.value = { ...value, hostList: [...hostList] };
+};
+
+const handleDeleteAllHosts = () => {
+  InfoBox({
+    title: t('agentStrategy.form.confirmDelete'),
+    subTitle: t('agentStrategy.form.confirmDeleteAllHosts'),
+    onConfirm: () => {
+      ipSelectorValue.value = {
+        hostList: [],
+        nodeList: [],
+        dynamicGroupList: [],
+        serviceTemplateList: [],
+        setTemplateList: [],
+      };
+      formData.selectedHosts = [];
+      ipPagination.count = 0;
+      ipPagination.current = 1;
+    },
+  });
+};
+
+const handleIpPageChange = (page: number) => {
+  ipPagination.current = page;
+};
+
+const handleIpPageLimitChange = (limit: number) => {
+  ipPagination.limit = limit;
+  ipPagination.current = 1;
+};
+
 const handleDelete = (index: number) => {
   formData.scopes = formData.scopes.filter((_: any, ind: number) => ind !== index);
 };
@@ -270,6 +483,7 @@ const handleSubmit = async () => {
       ...formData,
       configpolicy_id: configpolicyId.value,
       scopes,
+      target_host_ids: extractedHosts.value.map((h) => h.bk_host_id),
       operator: userStore.user?.username,
       bk_biz_id,
     }).catch(() => false);
@@ -277,6 +491,7 @@ const handleSubmit = async () => {
     res = await ConfigPolicyAPIService.ConfigPolicyCreate({
       ...formData,
       scopes,
+      target_host_ids: extractedHosts.value.map((h) => h.bk_host_id),
       operator: userStore.user?.username,
       bk_biz_id,
     }).catch(() => false);
@@ -346,6 +561,7 @@ watch(() => isShow.value, () => {
   }
 }, { immediate: true });
 </script>
+
 <style lang="postcss" scoped>
 .form-scope {
   &:hover {

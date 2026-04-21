@@ -2,7 +2,7 @@
   <Select
     class="w-[240px] area-selector-custom"
     v-model="internalValue"
-    :prefix="noLimit ? '管控区域' : ''"
+    :prefix="noLimit ? t('platform.nodeMan.installAgentPage.cloud') : ''"
     :loading="localLoading"
     :clearable="false"
     :multiple="multiple"

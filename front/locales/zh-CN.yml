@@ -677,8 +677,11 @@ agentStrategy:
   configStrategy: 配置策略
   deploymentStrategy: 部署策略
   createConfig: 新建配置
+  previewConfig: 预览配置
+  sortAndPreview: 排序并预览
   loading: 数据加载中
   table:
+    sort: 排序
     configName: 配置名称
     configId: 配置ID
     version: 版本
@@ -719,6 +722,13 @@ agentStrategy:
     os: 操作系统
     arch: 架构
     addScope: 添加范围
+    hostSearchPlaceholder: 请输入IP/IPv6/主机名/OS名称
+    selectHost: 选择主机
+    addHost: 添加IP
+    totalAdded: 共添加
+    unit: 台
+    confirmDelete: 确认删除
+    confirmDeleteAllHosts: 确定要删除所有已选主机吗？
     save: 保存
     submit: 提交
     cancel: 取消
@@ -728,6 +738,17 @@ agentStrategy:
     configTip: 如需修改默认配置，需打开开关后修改
     versionTip: 编辑器内容有改动，保存该配置版本将会由
     upgradeTo: 升级为
+  preview:
+    sortConfig: 策略排序
+    previewStrategy: 策略匹配
+    previewConfig: 预览配置
+    selectIP: 选择作用IP
+    previewMatchStrategy: 预览匹配策略
+    matchedPolicy: 匹配策略
+    configDetail: 配置详情
+    jsonConfigDetail: Json 配置详情
+    saveSort: 保存排序
+    prevStep: 上一步
   validate:
     configNameRequired: 配置名称不能为空
     configNameLength: 配置名称长度在1-50个字符之间
@@ -1134,4 +1155,23 @@ common:
   script: 脚本
   data: 数据
   file: 文件
+  confirm: 确定
+  cancel: 取消
+  selectIP: 选择IP
+  searchPlaceholder: 请输入搜索条件
+  selectedCount: 已选择 {count} 台主机
+  hostID: 主机ID
+  ipv4: IPv4
+  ipv6: IPv6
+  hostname: 主机名称
+  networkArea: 管控区域
+  osType: 操作系统
+  addIP: 添加IP
+  targetIP: 作用IP
+  totalAdded: 共添加
+  hostUnit: 台
+  confirmDelete: 确认删除
+  confirmDeleteAllHosts: 确定要删除所有已选主机吗？
+  cloudArea: 云区域
+  system: 系统
   tip: 如需修改默认配置，需打开开关后修改
