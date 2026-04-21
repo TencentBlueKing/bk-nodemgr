@@ -322,3 +322,51 @@ type hostDistributionByNetworkAreaID struct {
 	NetworkAreaID int64 `bson:"_id"`
 	HostCount     int64 `bson:"count"`
 }
+
+// getHostDistributionByNodeVersion get host distribution by node version.
+func (d *dao) getHostDistributionByNodeVersion(nCtx contextx.IContext, filter bson.D, aggregateOptions ...*options.AggregateOptions) (
+	[]hostDistributionByNodeVersion, error) {
+
+	pipeline := mongo.Pipeline{}
+
+	if filter != nil && len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{"$match", filter},
+		})
+	}
+
+	pipeline = append(pipeline,
+		bson.D{
+			{"$group", bson.D{
+				{"_id", "$" + FieldKeyDynamicNodeVersion},
+				{"count", bson.D{{"$sum", 1}}},
+			}},
+		},
+		bson.D{
+			{"$sort", bson.D{{"_id", 1}}},
+		},
+	)
+
+	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).Error("failed to close cursor of host distribution by node version")
+		}
+	}()
+
+	var results []hostDistributionByNodeVersion
+	if err = cursor.All(nCtx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// hostDistributionByNodeVersion node version aggregate result.
+type hostDistributionByNodeVersion struct {
+	NodeVersion string `bson:"_id"`
+	HostCount   int64  `bson:"count"`
+}

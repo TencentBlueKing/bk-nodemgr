@@ -49,6 +49,7 @@ const (
 	metricOperationListAccessPoint                           = "list_accesspoint"
 	metricOperationGetHostDistributionByNodeRole             = "get_host_distribution_by_node_role"
 	metricOperationGetHostDistributionByNetworkAreaID        = "get_host_distribution_by_networkarea_id"
+	metricOperationGetHostDistributionByNodeVersion          = "get_host_distribution_by_node_version"
 	metricOperationGetHostsByAreaAndInnerIP                  = "get_hosts_by_area_and_inner_ip"
 	metricOperationExistDedicatedInstallerProxyHost          = "exist_dedicated_installer_proxy_host"
 	metricOperationGetNetworkUnitByIDs                       = "get_networkunit_by_ids"
@@ -244,4 +245,52 @@ func (s *Storage) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 	})
 
 	return results, err
+}
+
+// GetHostDistributionByNodeRole get host distribution by node role.
+func (s *Storage) GetHostDistributionByNodeRole(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[string]int64, error) {
+
+	var result map[string]int64
+
+	err := s.WrapFn(nCtx, metricOperationGetHostDistributionByNodeRole, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.getHostDistributionByNodeRole(nCtx, conditions...)
+
+		return err
+	})
+
+	return result, err
+}
+
+// GetHostDistributionByNodeVersion get host distribution by node version.
+func (s *Storage) GetHostDistributionByNodeVersion(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[string]int64, error) {
+
+	var result map[string]int64
+
+	err := s.WrapFn(nCtx, metricOperationGetHostDistributionByNodeVersion, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.getHostDistributionByNodeVersion(nCtx, conditions...)
+
+		return err
+	})
+
+	return result, err
+}
+
+// GetHostDistributionByNetworkAreaID get host distribution by network area id.
+func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[int64]int64, error) {
+
+	var result map[int64]int64
+
+	err := s.WrapFn(nCtx, metricOperationGetHostDistributionByNetworkAreaID, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.getHostDistributionByNetworkAreaID(nCtx, conditions...)
+
+		return err
+	})
+
+	return result, err
 }

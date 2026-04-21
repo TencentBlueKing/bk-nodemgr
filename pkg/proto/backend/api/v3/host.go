@@ -776,3 +776,50 @@ func (x *TopoGetHostDistributionByNetworkAreaIDReq) ConvertConditionsFromTypes(c
 
 	return nil
 }
+
+// Validate validates the request.
+func (x *TopoGetHostDistributionByNodeVersionReq) Validate() error {
+	return nil
+}
+
+// AutoConvert automatically converts the request to types.
+func (x *TopoGetHostDistributionByNodeVersionReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes converts the request to types.
+func (x *TopoGetHostDistributionByNodeVersionReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
+}
+
+// ConvertConditionsFromTypes converts the request to types.
+func (x *TopoGetHostDistributionByNodeVersionReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
+	exactIncludeCond, fuzzyIncludeCond, _, err := convertHostConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactIncludeCond
+	x.FuzzyIncludeConditions = fuzzyIncludeCond
+
+	return nil
+}
+
+// ConvertResultFromTypes converts the result from types.
+func (x *TopoGetHostDistributionByNodeVersionResp) ConvertResultFromTypes(result map[string]int64) {
+	if result == nil {
+		return
+	}
+
+	x.Data = result
+}
+
+// ConvertResultToTypes converts the response to types.
+func (x *TopoGetHostDistributionByNodeVersionResp) ConvertResultToTypes() map[string]int64 {
+	if x.GetData() == nil {
+		return map[string]int64{}
+	}
+
+	data := x.GetData()
+
+	return data
+}

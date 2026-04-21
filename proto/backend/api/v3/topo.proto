@@ -616,6 +616,25 @@ message TopoGetHostDistributionByNetworkAreaIDResp {
   map<int64, int64> data = 5;
 }
 
+// TopoGetHostDistributionByNodeVersionReq describes the HTTP request body when
+// distinct host in topp service.
+message TopoGetHostDistributionByNodeVersionReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// TopoGetHostDistributionByNodeVersionResp describes the HTTP response body
+// when distinct host in topp service.
+message TopoGetHostDistributionByNodeVersionResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  map<string, int64> data = 5;
+}
+
 // TopoEventExactConditions describes the conditions when list event
 message TopoEventExactConditions {
   repeated int64 bk_networkarea_id = 1;
@@ -1004,6 +1023,16 @@ service Topo {
       returns (TopoGetHostDistributionByNetworkAreaIDResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/host/get_host_distribution_by_networkarea_id"
+      body : "*"
+    };
+  }
+
+  // GetHostDistributionByNodeVersionReq uest provides getting host
+  // distribution by node version.
+  rpc GetHostDistributionByNodeVersion(TopoGetHostDistributionByNodeVersionReq)
+      returns (TopoGetHostDistributionByNodeVersionResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/get_host_distribution_by_node_version"
       body : "*"
     };
   }

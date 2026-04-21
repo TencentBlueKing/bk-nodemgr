@@ -494,6 +494,23 @@ func (s *Storage) getHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 	return hostDistributionByNetworkAreaID, nil
 }
 
+// getHostDistributionByNodeVersion ...
+func (s *Storage) getHostDistributionByNodeVersion(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[string]int64, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	hostDistributionByNodeVersion, err := s.daoHost.GetHostDistributionByNodeVersion(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node version: %w", err)
+	}
+
+	return hostDistributionByNodeVersion, nil
+}
+
 // getNetworkUnitDistributionByNetworkAreaID ...
 func (s *Storage) getNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.NetworkUnitCondition) (
 	map[int64]int64, error) {

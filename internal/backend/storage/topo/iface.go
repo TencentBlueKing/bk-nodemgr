@@ -185,6 +185,10 @@ type IStorageHost interface {
 	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
 		map[int64]int64, error)
 
+	// GetHostDistributionByNodeVersion get host distribution by node version.
+	GetHostDistributionByNodeVersion(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+		map[string]int64, error)
+
 	// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
 	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
 	GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error)

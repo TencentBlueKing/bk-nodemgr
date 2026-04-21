@@ -162,3 +162,30 @@ func (h *handler) GetHostDistributionByNetworkAreaID(rCtx restserver.IContext) (
 
 	return resp.GetData(), nil
 }
+
+// GetHostDistributionByNodeVersion get host distribution by node version.
+func (h *handler) GetHostDistributionByNodeVersion(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoGetHostDistributionByNodeVersionReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get host distribution by node version, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	condition := req.ConvertConditionsToTypes()
+
+	result, err := h.storage.GetHostDistributionByNodeVersion(
+		rCtx,
+		condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get host distribution by node version. failed to get host distribution by node version fields: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoGetHostDistributionByNodeVersionResp)
+
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}

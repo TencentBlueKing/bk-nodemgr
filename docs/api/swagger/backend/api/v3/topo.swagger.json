@@ -355,6 +355,40 @@
         ]
       }
     },
+    "/api/v3/topo/host/get_host_distribution_by_node_version": {
+      "post": {
+        "summary": "GetHostDistributionByNodeVersionReq uest provides getting host\ndistribution by node version.",
+        "operationId": "Topo_GetHostDistributionByNodeVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetHostDistributionByNodeVersionResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoGetHostDistributionByNodeVersionReq describes the HTTP request body when\ndistinct host in topp service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetHostDistributionByNodeVersionReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/host/list": {
       "post": {
         "summary": "HostList provides host listing.",
@@ -2337,6 +2371,47 @@
         }
       },
       "description": "TopoGetHostDistributionByNodeRoleResp describes the HTTP response body when\ndistinct host in topp service."
+    },
+    "v3TopoGetHostDistributionByNodeVersionReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        }
+      },
+      "description": "TopoGetHostDistributionByNodeVersionReq describes the HTTP request body when\ndistinct host in topp service."
+    },
+    "v3TopoGetHostDistributionByNodeVersionResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoGetHostDistributionByNodeVersionResp describes the HTTP response body\nwhen distinct host in topp service."
     },
     "v3TopoGetNetworkUnitDistributionByNetworkAreaIDReq": {
       "type": "object",

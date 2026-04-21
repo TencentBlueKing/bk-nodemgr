@@ -64,6 +64,9 @@ type IHandler interface {
 	// GetHostDistributionByNetworkAreaID get host distribution by network area id.
 	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
 
+	// GetHostDistributionByNodeVersion get host distribution by node version.
+	GetHostDistributionByNodeVersion(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error)
+
 	// ListWithFields lists hosts with fields.
 	ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error)
 
@@ -902,6 +905,36 @@ func (h *handler) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opt
 	}
 
 	return nodeRoleDistribution, nil
+}
+
+// GetHostDistributionByNodeVersion gets the host distribution by node version.
+func (h *handler) GetHostDistributionByNodeVersion(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node version: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	results, err := h.tenantDao(tenantID).getHostDistributionByNodeVersion(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node version: %w", err)
+	}
+
+	nodeVersionDistribution := make(map[string]int64)
+	for _, result := range results {
+		nodeVersionDistribution[result.NodeVersion] = result.HostCount
+	}
+
+	return nodeVersionDistribution, nil
 }
 
 // ListWithFields lists hosts with fields.
