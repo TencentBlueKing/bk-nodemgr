@@ -13,36 +13,29 @@ package step
 import (
 	"fmt"
 	"path/filepath"
-	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
-const (
-	gseReleasePkgExt = "tgz"
-)
-
-// NewDownloadFiles creates a new download files step command.
+// NewFetchConfigs creates a new fetch configs step command.
 // nolint: lll
-func NewDownloadFiles() *cobra.Command {
+func NewFetchConfigs() *cobra.Command {
 	var (
 		// required flags.
-		downloadSvrAddr string
+		callbackSvrAddr string
 		deployToken     string
-		nodeVersion     string
 
 		// pre-run.
 		persistentVars *persistent.Variables
 	)
 
 	stepCmd := &cobra.Command{
-		Use:   "download-files",
-		Short: "Download files",
+		Use:   "fetch-configs",
+		Short: "Fetch configs",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
@@ -53,25 +46,25 @@ func NewDownloadFiles() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
-			if len(downloadSvrAddrs) == 0 {
-				return fmt.Errorf("download server address is empty or invalid")
+			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
 			}
 
-			step := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr: downloadSvrAddrs,
-				NodeRole:        persistentVars.NodeRole,
-				Generation:      persistentVars.Generation,
-				DeployToken:     deployToken,
-				PkgVersion:      nodeVersion,
-				PkgSavedPath:    filepath.Join(persistentVars.DataDir, GenReleasePkgName(persistentVars.NodeRole, persistentVars.Generation, nodeVersion)),
+			step := configfetcher.NewStep(configfetcher.StepArgs{
+				CallbackSvrAddr:    callbackSvrAddrs,
+				NodeRole:           persistentVars.NodeRole,
+				Generation:         persistentVars.Generation,
+				DeployToken:        deployToken,
+				ConfigSavedDir:     persistentVars.ConfigDir,
+				CheckListSavedPath: filepath.Join(persistentVars.DataDir, "precheck.json"),
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
 				return err
 			}
 
-			fmt.Println("successfully downloaded files")
+			fmt.Println("successfully fetch configs")
 
 			return nil
 		},
@@ -80,26 +73,11 @@ func NewDownloadFiles() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&downloadSvrAddr, flag.DownloadSvrAddr, "", "download server address, for downloading release files")
-	_ = stepCmd.MarkFlagRequired(flag.DownloadSvrAddr)
+	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for fetch config files")
+	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
 
 	stepCmd.Flags().StringVar(&deployToken, flag.DeployToken, "", "deploy token, contains the details of files")
 	_ = stepCmd.MarkFlagRequired(flag.DeployToken)
 
-	stepCmd.Flags().StringVar(&nodeVersion, flag.NodeVersion, "", "node version, for downloading package version")
-	_ = stepCmd.MarkFlagRequired(flag.NodeVersion)
-
 	return stepCmd
-}
-
-// GenReleasePkgName generates release package name.
-func GenReleasePkgName(nodeRole types.NodeRole, generation types.Generation, version string) string {
-	return fmt.Sprintf(
-		"gse_%s-%d-%s-%s_%s.%s",
-		string(nodeRole),
-		int(generation),
-		version,
-		runtime.GOOS,
-		runtime.GOARCH,
-		gseReleasePkgExt)
 }

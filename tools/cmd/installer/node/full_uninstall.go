@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	flag2 "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
+	nodeFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
@@ -120,20 +120,20 @@ func NewFullUninstall() *cobra.Command {
 	 * required flags.
 	 */
 
-	fullCmd.Flags().StringVar(&callbackSvrAddr, flag2.CallbackSvrAddr, "", "callback server address")
-	_ = fullCmd.MarkFlagRequired(flag2.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, nodeFlag.CallbackSvrAddr, "", "callback server address")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.CallbackSvrAddr)
 
-	fullCmd.Flags().StringVar(&deployToken, flag2.DeployToken, "", "deploy token, contains the details of files")
-	_ = fullCmd.MarkFlagRequired(flag2.DeployToken)
+	fullCmd.Flags().StringVar(&deployToken, nodeFlag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.DeployToken)
 
-	fullCmd.Flags().StringVar(&operInstID, flag2.OperInstID, "", "operation instance id")
-	_ = fullCmd.MarkFlagRequired(flag2.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, nodeFlag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.OperInstID)
 
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
-	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().StringVar(&logDir, nodeFlag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, nodeFlag.LogToStd, false, "also output log to stdout")
 
 	return fullCmd
 }

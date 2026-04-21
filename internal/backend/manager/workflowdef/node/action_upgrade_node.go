@@ -61,8 +61,8 @@ type UpgradeParams struct {
 	InstallerWorkDir string
 	Generation       types.Generation
 	NodeRole         types.NodeRole
-	CallbackSvrAddr  string
 	DownloadSvrAddr  string
+	CallbackSvrAddr  string
 	NodeVersion      string
 	DeployToken      string
 	OperInstID       string
@@ -157,22 +157,29 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	downloadEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileDownload,
-		nodeUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
-	if err != nil {
-		return fmt.Errorf("failed to select file endpoints: %w", err)
-	}
+	var callbackSvrAddr string
 
-	callbackEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		nodeUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
-	if err != nil {
-		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
+	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		// proxy upgrade: use proxy's own relay callback address,
+		// since proxy is the relay in its own network unit.
+		proxyEndpoint := discover.Endpoint{
+			IPV4: std.DeployInfo().Host.Dynamic.AdvertiseIP,
+			IPV6: std.DeployInfo().Host.Dynamic.AdvertiseIPV6,
+			Port: int(std.DeployInfo().Host.Dynamic.RelayCallbackPort),
+		}
+		callbackSvrAddr = nodeUtils.BuildServerURLs(proxyEndpoint)
+	} else {
+		// direct-link agent upgrade: use discover callback endpoints.
+		callbackEndpoints, err := act.provider.SelectEndpoints(
+			discover.ServiceNameBackend,
+			discover.EndpointNameBackendCallback,
+			nodeUtils.DefaultEndpointSelectionCount,
+			discover.NewRoundRobinSelector())
+		if err != nil {
+			return fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		}
+
+		callbackSvrAddr = nodeUtils.BuildServerURLs(callbackEndpoints...)
 	}
 
 	upgradeParams := &UpgradeParams{
@@ -182,8 +189,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 		NodeVersion:      std.DeployInfo().Host.Dynamic.NodeVersion,
 		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  nodeUtils.BuildServerURLs(callbackEndpoints...),
-		DownloadSvrAddr:  nodeUtils.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr:  callbackSvrAddr,
 		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      std.DeployInfo().InstallerRuntime.BaseWorkDir,
@@ -205,26 +211,35 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 	return act.doUpgradeUnix(std, upgradeParams)
 }
 
+// buildUpgradeArgs builds the common upgrade args shared by Unix and Windows.
 // nolint: perfsprint
-func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
-	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
-
+func buildUpgradeArgs(param *UpgradeParams) []string {
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
 		fmt.Sprintf("--generation %d", param.Generation),
 		fmt.Sprintf("--node_role %s", param.NodeRole),
 		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
 		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
+	}
+	args = append(args,
 		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
 		fmt.Sprintf("--deploy_token %s", param.DeployToken),
 		fmt.Sprintf("--node_version %s", param.NodeVersion),
 		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
 		"--skip_download",
-	}
+	)
 	if len(param.AdditionArgs) > 0 {
 		args = append(args, param.AdditionArgs...)
 	}
+
+	return args
+}
+
+// nolint: perfsprint
+func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
+	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
+
+	args := buildUpgradeArgs(param)
 
 	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
@@ -262,22 +277,7 @@ func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder,
 func (act *actionUpgradeNode) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
-		"--skip_download",
-	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
-	}
+	args := buildUpgradeArgs(param)
 
 	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("%s %s %s >%s 2>&1",

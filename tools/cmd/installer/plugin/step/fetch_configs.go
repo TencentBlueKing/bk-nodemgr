@@ -12,34 +12,29 @@ package step
 
 import (
 	"fmt"
-	"path/filepath"
-	"runtime"
 
 	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
-// NewDownloadFiles creates a new download files step command
+// NewFetchConfigs creates a new fetch configs step command.
 // nolint: lll
-func NewDownloadFiles() *cobra.Command {
+func NewFetchConfigs() *cobra.Command {
 	var (
 		// required flags.
-		downloadSvrAddr string
 		callbackSvrAddr string
 		deployToken     string
-		pluginVersion   string
 
 		// pre-run.
 		persistentVars *persistent.Variables
 	)
 
 	stepCmd := &cobra.Command{
-		Use:   "download-files",
-		Short: "Download plugin files",
-		Long:  "Download plugin files",
+		Use:   "fetch-configs",
+		Short: "Fetch configs",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
@@ -50,31 +45,25 @@ func NewDownloadFiles() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
-			if len(downloadSvrAddrs) == 0 {
-				return fmt.Errorf("download server address is empty or invalid")
-			}
-
 			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
 			if len(callbackSvrAddrs) == 0 {
 				return fmt.Errorf("callback server address is empty or invalid")
 			}
 
-			step := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr: downloadSvrAddrs,
+			step := configfetcher.NewStep(configfetcher.StepArgs{
+				CallbackSvrAddr: callbackSvrAddrs,
 				PluginGroup:     persistentVars.PluginGroup,
 				PluginName:      persistentVars.PluginName,
 				PluginPkgName:   persistentVars.PluginPkgName,
 				DeployToken:     deployToken,
-				PkgVersion:      pluginVersion,
-				PkgSavedPath:    filepath.Join(persistentVars.DataDir, GenReleasePkgName(persistentVars.PluginName, pluginVersion)),
+				ConfigSavedDir:  persistentVars.ConfigDir,
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
 				return err
 			}
 
-			fmt.Println("successfully downloaded files")
+			fmt.Println("successfully fetch configs")
 
 			return nil
 		},
@@ -83,33 +72,11 @@ func NewDownloadFiles() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&downloadSvrAddr, pluginflag.DownloadSvrAddr, "", "download server address, for downloading release files")
-	_ = stepCmd.MarkFlagRequired(pluginflag.DownloadSvrAddr)
-
 	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginflag.CallbackSvrAddr, "", "callback server address, for downloading config files")
 	_ = stepCmd.MarkFlagRequired(pluginflag.CallbackSvrAddr)
 
 	stepCmd.Flags().StringVar(&deployToken, pluginflag.DeployToken, "", "deploy token, contains the details of files")
 	_ = stepCmd.MarkFlagRequired(pluginflag.DeployToken)
 
-	stepCmd.Flags().StringVar(&pluginVersion, pluginflag.PluginVersion, "", "plugin version")
-	_ = stepCmd.MarkFlagRequired(pluginflag.PluginVersion)
-
 	return stepCmd
-}
-
-const pluginReleasePkgExt = "tgz"
-
-// GenReleasePkgName generates release package name.
-// match the pattern with pkg/format/pluginpkg/plugin.go
-// bk-nodemgr_plugin_{generation}_{pkg-name}-{version}-{os}-{arch}.{ext}
-// TODO: generation should be a flag from command.
-func GenReleasePkgName(pluginName, version string) string {
-	return fmt.Sprintf(
-		"bk-nodemgr_plugin_2_%s-%s-%s_%s.%s",
-		pluginName,
-		version,
-		runtime.GOOS,
-		runtime.GOARCH,
-		pluginReleasePkgExt)
 }

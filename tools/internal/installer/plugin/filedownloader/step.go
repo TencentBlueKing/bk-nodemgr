@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package filedownloader download files step.
 package filedownloader
 
 import (
@@ -15,7 +16,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"runtime"
 	"time"
 
@@ -34,20 +34,17 @@ type Step struct {
 // StepArgs define args for step.
 type StepArgs struct {
 	DownloadSvrAddr []string
-	CallbackSvrAddr []string
 
-	PluginGroup    string
-	PluginName     string
-	PluginPkgName  string
-	DeployToken    string
-	PkgVersion     string
-	PkgSavedPath   string
-	ConfigSavedDir string
+	PluginGroup   string
+	PluginName    string
+	PluginPkgName string
+	DeployToken   string
+	PkgVersion    string
+	PkgSavedPath  string
 
 	// SelectDownloads set false by default, will download all things.
 	// set true, then will only download the enabled ones following.
 	SelectDownloads              bool
-	EnableDownloadConfig         bool
 	EnableDownloadReleasePackage bool
 }
 
@@ -68,15 +65,6 @@ func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(plugin.StepDownloadFiles, "start to download files. %s", step.args.String())
 
 	gp := gopool.NewPool()
-
-	if !step.args.SelectDownloads || step.args.EnableDownloadConfig {
-		// download plugin config files.
-		gp.Go(func() error {
-			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-				return step.downloadPluginConfig(ctx)
-			})
-		})
-	}
 
 	if !step.args.SelectDownloads || step.args.EnableDownloadReleasePackage {
 		// download release packages.
@@ -101,8 +89,7 @@ const (
 	maxTime = 300 * time.Second
 
 	// API paths for plugin installer file download.
-	getPluginConfigPath = "/api/v3/callback/workflow/plugin/get_main_config"
-	downloadPluginPath  = "/api/v3/download/plugin"
+	downloadPluginPath = "/api/v3/download/plugin"
 )
 
 // downloadFileMultiEndpoint tries multiple server addresses in order until one succeeds.
@@ -167,39 +154,6 @@ func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL
 		return fmt.Errorf("failed to download file. url(%s), file(%s), req-body(%+v): %w",
 			downloadURL, savedPath, reqBody, err)
 	}
-
-	return nil
-}
-
-func pluginConfName(pluginName string) string {
-	return fmt.Sprintf("%s.conf", pluginName)
-}
-
-func (step *Step) downloadPluginConfig(ctx context.Context) error {
-	type getPluginConfigReq struct {
-		OSType  string `json:"os_type"`
-		CPUArch string `json:"cpu_arch"`
-		Token   string `json:"token"`
-	}
-
-	requestBody := getPluginConfigReq{
-		OSType:  runtime.GOOS,
-		CPUArch: runtime.GOARCH,
-		Token:   step.args.DeployToken,
-	}
-
-	savedPath := filepath.Join(step.args.ConfigSavedDir, pluginConfName(step.args.PluginPkgName))
-	if err := step.downloadFileMultiEndpoint(ctx,
-		requestBody,
-		step.args.CallbackSvrAddr,
-		getPluginConfigPath,
-		savedPath); err != nil {
-		logger.Errorf(plugin.StepDownloadFiles, "failed to get config: %v", err)
-
-		return fmt.Errorf("failed to get plugin config: %w", err)
-	}
-
-	logger.Infof(plugin.StepDownloadFiles, "successfully downloaded plugin-config(%s)", savedPath)
 
 	return nil
 }

@@ -15,7 +15,7 @@ import (
 
 	"path/filepath"
 
-	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginrunner"
@@ -125,25 +125,25 @@ func NewFullDebug() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	debugCmd.Flags().StringVar(&callbackSvrAddr, pluginflag.CallbackSvrAddr, "", "callback server address, for reporting status and logs")
-	_ = debugCmd.MarkFlagRequired(pluginflag.CallbackSvrAddr)
+	debugCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for reporting status and logs")
+	_ = debugCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
 
-	debugCmd.Flags().StringVar(&deployToken, pluginflag.DeployToken, "", "deploy token, contains the details of files")
-	_ = debugCmd.MarkFlagRequired(pluginflag.DeployToken)
+	debugCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
+	_ = debugCmd.MarkFlagRequired(pluginFlag.DeployToken)
 
-	debugCmd.Flags().StringVar(&operInstID, pluginflag.OperInstID, "", "operation instance id")
-	_ = debugCmd.MarkFlagRequired(pluginflag.OperInstID)
+	debugCmd.Flags().StringVar(&operInstID, pluginFlag.OperInstID, "", "operation instance id")
+	_ = debugCmd.MarkFlagRequired(pluginFlag.OperInstID)
 
-	debugCmd.Flags().StringVar(&debugAction, pluginflag.DebugAction, "", "debug action, e.g. start or stop")
-	_ = debugCmd.MarkFlagRequired(pluginflag.DebugAction)
+	debugCmd.Flags().StringVar(&debugAction, pluginFlag.DebugAction, "", "debug action, e.g. start or stop")
+	_ = debugCmd.MarkFlagRequired(pluginFlag.DebugAction)
 
 	/*
 	 * optional flags.
 	 */
-	debugCmd.Flags().StringVar(&runCmd, pluginflag.RunCmd, "", "command to execute inside the plugin deploy directory")
-	debugCmd.Flags().StringVar(&pidDir, pluginflag.PidDir, "", "directory to save debug process pid file")
-	debugCmd.Flags().StringVar(&logDir, pluginflag.LogDir, "", "directory to save log files")
-	debugCmd.Flags().BoolVar(&logToStd, pluginflag.LogToStd, false, "also output log to stdout")
+	debugCmd.Flags().StringVar(&runCmd, pluginFlag.RunCmd, "", "command to execute inside the plugin deploy directory")
+	debugCmd.Flags().StringVar(&pidDir, pluginFlag.PidDir, "", "directory to save debug process pid file")
+	debugCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
+	debugCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
 
 	return debugCmd
 }

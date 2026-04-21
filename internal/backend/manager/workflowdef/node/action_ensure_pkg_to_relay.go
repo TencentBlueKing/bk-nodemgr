@@ -154,14 +154,15 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	filesToProcess := act.determineFilesToProcess(std, releasePkg, installerPkg)
-	if len(filesToProcess) == 0 {
-		std.InstanceData().Log().
-			Zh("无需处理安装包, 所有传输已被选项禁用").
-			En("no packages to process, all transfers disabled by options").
-			Info()
-
-		return nil
+	filesToProcess := []protoRelay.FileInfo{
+		protoRelay.FileInfo{
+			FileName: releasePkg.FileName,
+			FileMD5:  releasePkg.MD5,
+		},
+		protoRelay.FileInfo{
+			FileName: installerPkg.Info().Name,
+			FileMD5:  installerPkg.Info().MD5,
+		},
 	}
 
 	relayInfo, err := std.GetSelectedRelay()
@@ -225,28 +226,6 @@ func (act *actionEnsurePkgToRelay) getRequiredPackages(
 	}
 
 	return releasePkg, installPkg, nil
-}
-
-func (act *actionEnsurePkgToRelay) determineFilesToProcess(
-	std *nodeUtils.NodeActionStandarder, releasePkg *types.Release, installPkg fileiface.File) []protoRelay.FileInfo {
-
-	files := make([]protoRelay.FileInfo, 0)
-
-	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
-		files = append(files, protoRelay.FileInfo{
-			FileName: releasePkg.FileName,
-			FileMD5:  releasePkg.MD5,
-		})
-	}
-
-	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
-		files = append(files, protoRelay.FileInfo{
-			FileName: installPkg.Info().Name,
-			FileMD5:  installPkg.Info().MD5,
-		})
-	}
-
-	return files
 }
 
 func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeUtils.NodeActionStandarder,
@@ -472,8 +451,8 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionS
 	rt types.ReleaseType) error {
 
 	std.InstanceData().Log().
-		Zh("正在传输发布包, relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
-		En("transferring release package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
+		Zh("准备传输 release 包, relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
+		En("preparing to transfer release package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
 		Info()
 
 	transferHandler, err := act.fileHandler.LaunchTransferNode(std.Context(),
@@ -491,8 +470,8 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionS
 	}
 
 	std.InstanceData().Log().
-		Zh("已启动传输发布包, task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
-		En("launched transfer release. task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
+		Zh("已启动传输 release 包, task-id(%s)", transferHandler.GetTaskID()).
+		En("launched transfer release. task-id(%s)", transferHandler.GetTaskID()).
 		Info()
 
 	result, err := transferHandler.WaitUntilDone(std.Context())
@@ -512,8 +491,8 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionS
 	}
 
 	std.InstanceData().Log().
-		Zh("传输发布包完成, task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
-		En("transfer release done. task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
+		Zh("传输 release 包完成").
+		En("transfer release done").
 		Info()
 
 	return nil
@@ -523,8 +502,8 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 	std *nodeUtils.NodeActionStandarder) error {
 
 	std.InstanceData().Log().
-		Zh("正在传输安装器包, relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
-		En("transferring installer package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
+		Zh("准备传输 installer 包, relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
+		En("preparing to transfer installer package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID).
 		Info()
 
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(std.Context(),
@@ -540,8 +519,8 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 	}
 
 	std.InstanceData().Log().
-		Zh("已启动传输安装器, task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
-		En("launched transfer installer. task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
+		Zh("已启动传输 installer 包, task-id(%s)", transferHandler.GetTaskID()).
+		En("launched transfer installer. task-id(%s)", transferHandler.GetTaskID()).
 		Info()
 
 	result, err := transferHandler.WaitUntilDone(std.Context())
@@ -561,8 +540,8 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 	}
 
 	std.InstanceData().Log().
-		Zh("传输安装器完成, task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
-		En("transfer installer done. task-id(%s), relay-host-id(%d)", transferHandler.GetTaskID(), std.DeployInfo().RelayInfo.HostID).
+		Zh("传输 installer 包完成").
+		En("transfer installer done").
 		Info()
 
 	return nil

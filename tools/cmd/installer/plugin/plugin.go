@@ -20,6 +20,7 @@ import (
 )
 
 // NewPluginCommand creates a new plugin sub command.
+// nolint: lll
 func NewPluginCommand() *cobra.Command {
 	pluginCommand := &cobra.Command{
 		Use:   "plugin",

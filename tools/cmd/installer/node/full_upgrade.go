@@ -14,13 +14,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	flag2 "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
+	nodeFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/checkdeploy"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/noderestarter"
@@ -63,7 +64,7 @@ func NewFullUpgrade() *cobra.Command {
 		Long:  "Full upgrade process",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if downloadSvrAddr == "" && !skipDownload {
-				return fmt.Errorf("%s is required when %s is not set", flag2.DownloadSvrAddr, flag2.SkipDownload)
+				return fmt.Errorf("%s is required when %s is not set", nodeFlag.DownloadSvrAddr, nodeFlag.SkipDownload)
 			}
 
 			vars, err := persistent.GetVariables(cmd)
@@ -125,18 +126,31 @@ func NewFullUpgrade() *cobra.Command {
 				}
 
 				if err := filedownloader.NewStep(filedownloader.StepArgs{
-					DownloadSvrAddr:    downloadSvrAddrs,
-					CallbackSvrAddr:    callbackSvrAddrs,
-					NodeRole:           persistentVars.NodeRole,
-					Generation:         persistentVars.Generation,
-					DeployToken:        deployToken,
-					PkgVersion:         nodeVersion,
-					PkgSavedPath:       pkgPath,
-					ConfigSavedDir:     persistentVars.ConfigDir,
-					CheckListSavedPath: preCheckListConf,
+					DownloadSvrAddr: downloadSvrAddrs,
+					NodeRole:        persistentVars.NodeRole,
+					Generation:      persistentVars.Generation,
+					DeployToken:     deployToken,
+					PkgVersion:      nodeVersion,
+					PkgSavedPath:    pkgPath,
 				}).Run(cmd.Context()); err != nil {
 					return err
 				}
+			}
+
+			// fetch configs.
+			callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
+			}
+			if err := configfetcher.NewStep(configfetcher.StepArgs{
+				CallbackSvrAddr:    callbackSvrAddrs,
+				NodeRole:           persistentVars.NodeRole,
+				Generation:         persistentVars.Generation,
+				DeployToken:        deployToken,
+				ConfigSavedDir:     persistentVars.ConfigDir,
+				CheckListSavedPath: preCheckListConf,
+			}).Run(cmd.Context()); err != nil {
+				return err
 			}
 
 			// upgrade node.
@@ -191,27 +205,27 @@ func NewFullUpgrade() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&callbackSvrAddr, flag2.CallbackSvrAddr, "", "callback server address, for downloading config files and reporting status")
-	_ = fullCmd.MarkFlagRequired(flag2.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, nodeFlag.CallbackSvrAddr, "", "callback server address, for downloading config files and reporting status")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.CallbackSvrAddr)
 
-	fullCmd.Flags().StringVar(&deployToken, flag2.DeployToken, "", "deploy token, contains the details of files")
-	_ = fullCmd.MarkFlagRequired(flag2.DeployToken)
+	fullCmd.Flags().StringVar(&deployToken, nodeFlag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.DeployToken)
 
-	fullCmd.Flags().StringVar(&nodeVersion, flag2.NodeVersion, "", "node version, for downloading package version")
-	_ = fullCmd.MarkFlagRequired(flag2.NodeVersion)
+	fullCmd.Flags().StringVar(&nodeVersion, nodeFlag.NodeVersion, "", "node version, for downloading package version")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.NodeVersion)
 
-	fullCmd.Flags().StringVar(&operInstID, flag2.OperInstID, "", "operation instance id")
-	_ = fullCmd.MarkFlagRequired(flag2.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, nodeFlag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(nodeFlag.OperInstID)
 
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, flag2.DownloadSvrAddr, "", "download server address, for downloading release files. if skip_download is set, this can be empty")
-	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
-	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
-	fullCmd.Flags().BoolVar(&restart, flag2.Restart, false, "whether to restart node after upgrade")
-	fullCmd.Flags().BoolVar(&force, flag2.Force, false, "whether to force restart when --restart is set")
-	fullCmd.Flags().BoolVar(&skipDownload, flag2.SkipDownload, false, "whether to skip downloading files")
+	fullCmd.Flags().StringVar(&downloadSvrAddr, nodeFlag.DownloadSvrAddr, "", "download server address, for downloading release files. if skip_download is set, this can be empty")
+	fullCmd.Flags().StringVar(&logDir, nodeFlag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, nodeFlag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().BoolVar(&restart, nodeFlag.Restart, false, "whether to restart node after upgrade")
+	fullCmd.Flags().BoolVar(&force, nodeFlag.Force, false, "whether to force restart when --restart is set")
+	fullCmd.Flags().BoolVar(&skipDownload, nodeFlag.SkipDownload, false, "whether to skip downloading files")
 
 	return fullCmd
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/checkdeploy"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeinstaller"
@@ -37,7 +38,7 @@ import (
 )
 
 // NewFullInstall creates a new full install command.
-// nolint: lll, funlen, gocognit
+// nolint: lll, funlen, gocognit, gocyclo, cyclop, maintidx
 func NewFullInstall() *cobra.Command {
 	var (
 		// required flags.
@@ -134,6 +135,7 @@ func NewFullInstall() *cobra.Command {
 				}).Run(cmd.Context())
 			}()
 
+			// download release package.
 			if !skipDownload {
 				downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
 				if len(downloadSvrAddrs) == 0 {
@@ -141,13 +143,29 @@ func NewFullInstall() *cobra.Command {
 				}
 
 				if err := filedownloader.NewStep(filedownloader.StepArgs{
-					DownloadSvrAddr:    downloadSvrAddrs,
+					DownloadSvrAddr: downloadSvrAddrs,
+					NodeRole:        persistentVars.NodeRole,
+					Generation:      persistentVars.Generation,
+					DeployToken:     deployToken,
+					PkgVersion:      nodeVersion,
+					PkgSavedPath:    pkgPath,
+				}).Run(cmd.Context()); err != nil {
+					return err
+				}
+			}
+
+			// fetch configs.
+			if !skipCallback {
+				callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+				if len(callbackSvrAddrs) == 0 {
+					return fmt.Errorf("callback server address is empty or invalid")
+				}
+
+				if err := configfetcher.NewStep(configfetcher.StepArgs{
 					CallbackSvrAddr:    callbackSvrAddrs,
 					NodeRole:           persistentVars.NodeRole,
 					Generation:         persistentVars.Generation,
 					DeployToken:        deployToken,
-					PkgVersion:         nodeVersion,
-					PkgSavedPath:       pkgPath,
 					ConfigSavedDir:     persistentVars.ConfigDir,
 					CheckListSavedPath: preCheckListConf,
 				}).Run(cmd.Context()); err != nil {
@@ -261,5 +279,6 @@ func errString(err error) string {
 	if err == nil {
 		return ""
 	}
+
 	return err.Error()
 }

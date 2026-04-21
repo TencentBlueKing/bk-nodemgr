@@ -29,6 +29,9 @@ const (
 	// StepDownloadFiles this is the step to download files.
 	StepDownloadFiles logger.Step = "download_files"
 
+	// StepFetchConfigs this is the step to fetch configs.
+	StepFetchConfigs logger.Step = "fetch_configs"
+
 	// StepPreCheck this is the step to pre check.
 	StepPreCheck logger.Step = "pre_check"
 

@@ -95,7 +95,6 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionInstallPagentBySSH(nodeCap),
 		node.NewActionPagentDetectInfoByWMI(nodeCap),
 		node.NewActionInstallPagentByWMI(nodeCap),
-		node.NewActionEnableReleaseTransfer(nodeCap),
 		node.NewActionUpgradePagent(nodeCap),
 		node.NewActionUninstallNode(nodeCap),
 		node.NewActionReconfigPagent(nodeCap),

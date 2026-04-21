@@ -19,7 +19,6 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -135,12 +134,12 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
-			return act.transferRelease(std.Context(), std.DeployInfo())
+			return act.transferRelease(std)
 		})
 	}
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
-			return act.transferInstaller(std.Context(), std.DeployInfo())
+			return act.transferInstaller(std)
 		})
 	}
 	if err := gp.Wait(); err != nil {
@@ -158,7 +157,10 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info *types.DeploymentInfo) error {
+func (act *actionTransferPkgToNode) transferRelease(std *nodeUtils.NodeActionStandarder) error {
+	info := std.DeployInfo()
+	nCtx := std.Context()
+
 	var rt types.ReleaseType
 	switch info.Host.Dynamic.NodeRole {
 	case types.NodeRoleProxy:
@@ -178,6 +180,11 @@ func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info
 		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data")
 	}
 
+	std.InstanceData().Log().
+		Zh("准备传输 release 包, host-id(%d)", std.DeployInfo().Host.HostID).
+		En("preparing to transfer release package. host-id(%d)", std.DeployInfo().Host.HostID).
+		Info()
+
 	transferHandler, err := act.fileHandler.LaunchTransferNode(nCtx,
 		info.Host.Dynamic.NodeGeneration,
 		rt,
@@ -191,6 +198,11 @@ func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer release. host-id(%d): %w", info.Host.HostID, err)
 	}
+
+	std.InstanceData().Log().
+		Zh("开始传输 release 包. release-type(%s), task-id(%s)", rt, transferHandler.GetTaskID()).
+		En("start transfer release. release-type(%s), task-id(%s)", rt, transferHandler.GetTaskID()).
+		Info()
 
 	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer release")
 
@@ -212,10 +224,23 @@ func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info
 
 	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer release done")
 
+	std.InstanceData().Log().
+		Zh("传输 release 包完成").
+		En("transfer release done").
+		Info()
+
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, info *types.DeploymentInfo) error {
+func (act *actionTransferPkgToNode) transferInstaller(std *nodeUtils.NodeActionStandarder) error {
+	info := std.DeployInfo()
+	nCtx := std.Context()
+
+	std.InstanceData().Log().
+		Zh("准备传输 installer 包, host-id(%d)", std.DeployInfo().Host.HostID).
+		En("preparing to transfer installer package. host-id(%d)", std.DeployInfo().Host.HostID).
+		Info()
+
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(nCtx,
 		types.Generation2,
 		platfmt.Platform{
@@ -227,6 +252,11 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 	if err != nil {
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.Host.HostID, err)
 	}
+
+	std.InstanceData().Log().
+		Zh("开始传输 installer 安装包. task-id(%s)", transferHandler.GetTaskID()).
+		En("start transfer installer. task-id(%s)", transferHandler.GetTaskID()).
+		Info()
 
 	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer installer")
 
@@ -247,6 +277,11 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 	}
 
 	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer installer done")
+
+	std.InstanceData().Log().
+		Zh("传输 installer 安装包完成").
+		En("transfer installer done").
+		Info()
 
 	return nil
 }

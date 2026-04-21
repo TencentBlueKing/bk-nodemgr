@@ -12,10 +12,13 @@ package plugin
 
 import (
 	"fmt"
-	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	"path/filepath"
+
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginupgrader"
@@ -25,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 // NewFullUpgrade creates a new full upgrade command.
@@ -110,23 +112,34 @@ func NewFullUpgrade() *cobra.Command {
 			if len(downloadSvrAddrs) == 0 {
 				return fmt.Errorf("download server address is empty or invalid")
 			}
-
 			if err := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr:              downloadSvrAddrs,
-				CallbackSvrAddr:              callbackSvrAddrs,
-				PluginGroup:                  persistentVars.PluginGroup,
-				PluginName:                   persistentVars.PluginName,
-				PluginPkgName:                persistentVars.PluginPkgName,
-				DeployToken:                  deployToken,
-				PkgVersion:                   pluginVersion,
-				PkgSavedPath:                 pkgPath,
-				ConfigSavedDir:               persistentVars.ConfigDir,
-				SelectDownloads:              false,
-				EnableDownloadConfig:         false,
-				EnableDownloadReleasePackage: false,
+				DownloadSvrAddr: downloadSvrAddrs,
+				PluginGroup:     persistentVars.PluginGroup,
+				PluginName:      persistentVars.PluginName,
+				PluginPkgName:   persistentVars.PluginPkgName,
+				DeployToken:     deployToken,
+				PkgVersion:      pluginVersion,
+				PkgSavedPath:    pkgPath,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
+
+			// fetch configs.
+			callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
+			}
+			if err := configfetcher.NewStep(configfetcher.StepArgs{
+				CallbackSvrAddr: callbackSvrAddrs,
+				PluginGroup:     persistentVars.PluginGroup,
+				PluginName:      persistentVars.PluginName,
+				PluginPkgName:   persistentVars.PluginPkgName,
+				DeployToken:     deployToken,
+				ConfigSavedDir:  persistentVars.ConfigDir,
+			}).Run(cmd.Context()); err != nil {
+				return err
+			}
+
 			// upgrade plugin.
 			if err := pluginupgrader.NewStep(pluginupgrader.StepArgs{
 				PluginHandler: pluginHandler,
@@ -151,26 +164,26 @@ func NewFullUpgrade() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, pluginflag.DownloadSvrAddr, "", "download server address, for downloading release files and reporting status")
-	_ = fullCmd.MarkFlagRequired(pluginflag.DownloadSvrAddr)
+	fullCmd.Flags().StringVar(&downloadSvrAddr, pluginFlag.DownloadSvrAddr, "", "download server address, for downloading release files and reporting status")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.DownloadSvrAddr)
 
-	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginflag.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = fullCmd.MarkFlagRequired(pluginflag.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for downloading config files")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
 
-	fullCmd.Flags().StringVar(&deployToken, pluginflag.DeployToken, "", "deploy token, contains the details of files")
-	_ = fullCmd.MarkFlagRequired(pluginflag.DeployToken)
+	fullCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.DeployToken)
 
-	fullCmd.Flags().StringVar(&operInstID, pluginflag.OperInstID, "", "operation instance id")
-	_ = fullCmd.MarkFlagRequired(pluginflag.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, pluginFlag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.OperInstID)
 
-	fullCmd.Flags().StringVar(&pluginVersion, pluginflag.PluginVersion, "", "plugin version, for downloading package version")
-	_ = fullCmd.MarkFlagRequired(pluginflag.PluginVersion)
+	fullCmd.Flags().StringVar(&pluginVersion, pluginFlag.PluginVersion, "", "plugin version, for downloading package version")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.PluginVersion)
 
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&logDir, pluginflag.LogDir, "", "directory to save log files")
-	fullCmd.Flags().BoolVar(&logToStd, pluginflag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
 
 	return fullCmd
 }

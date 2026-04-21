@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"runtime"
 	"time"
 
@@ -35,22 +34,17 @@ type Step struct {
 
 // StepArgs define args for step.
 type StepArgs struct {
-	DownloadSvrAddr    []string
-	CallbackSvrAddr    []string
-	NodeRole           types.NodeRole
-	DeployToken        string
-	Generation         types.Generation
-	PkgVersion         string
-	PkgSavedPath       string
-	ConfigSavedDir     string
-	CheckListSavedPath string
+	DownloadSvrAddr []string
+	NodeRole        types.NodeRole
+	DeployToken     string
+	Generation      types.Generation
+	PkgVersion      string
+	PkgSavedPath    string
 
 	// SelectDownloads set false by default, will download all things.
 	// set true, then will only download the enabled ones following.
 	SelectDownloads             bool
-	EnableDownloadConfig        bool
 	EnableDownloadReleasePackge bool
-	EnableDownloadChecklist     bool
 }
 
 // String step args string message.
@@ -70,39 +64,6 @@ func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(node.StepDownloadFiles, "start to download files. %s", step.args.String())
 
 	gp := gopool.NewPool()
-
-	if !step.args.SelectDownloads || step.args.EnableDownloadConfig {
-		// download agent config files.
-		gp.Go(func() error {
-			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-				return step.downloadAgentConfig(ctx)
-			})
-		})
-
-		// download proxy config files.
-		if step.args.NodeRole == types.NodeRoleProxy {
-			gp.Go(func() error {
-				return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-					return step.downloadFileProxyConfig(ctx)
-				})
-			})
-
-			gp.Go(func() error {
-				return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-					return step.downloadDataProxyConfig(ctx)
-				})
-			})
-		}
-	}
-
-	if !step.args.SelectDownloads || step.args.EnableDownloadChecklist {
-		// download check list.
-		gp.Go(func() error {
-			return retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault()).Do(ctx, func(_ int) error {
-				return step.downloadCheckList(ctx)
-			})
-		})
-	}
 
 	if !step.args.SelectDownloads || step.args.EnableDownloadReleasePackge {
 		// download release packages.
@@ -127,10 +88,6 @@ const (
 	maxTime = 300 * time.Second
 
 	// API paths for node installer file download.
-	getAgentConfigPath      = "/api/v3/callback/workflow/node_install/get_agent_config"
-	getFileProxyConfigPath  = "/api/v3/callback/workflow/node_install/get_file_proxy_config"
-	getDataProxyConfigPath  = "/api/v3/callback/workflow/node_install/get_data_proxy_config"
-	getCheckListPath        = "/api/v3/callback/workflow/node_install/get_check_list"
 	downloadReleaseBasePath = "/api/v3/download"
 )
 
@@ -196,130 +153,6 @@ func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL
 		return fmt.Errorf("failed to download file. url(%s), file(%s), req-body(%+v): %w",
 			downloadURL, savedPath, reqBody, err)
 	}
-
-	return nil
-}
-
-func (step *Step) downloadAgentConfig(ctx context.Context) error {
-	type getAgentConfigReq struct {
-		OSType   string `json:"os_type"`
-		CPUArch  string `json:"cpu_arch"`
-		NodeRole string `json:"node_role"`
-		Token    string `json:"token"`
-	}
-
-	requestBody := getAgentConfigReq{
-		OSType:   runtime.GOOS,
-		CPUArch:  runtime.GOARCH,
-		NodeRole: string(step.args.NodeRole),
-		Token:    step.args.DeployToken,
-	}
-
-	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_agent.conf")
-	if err := step.downloadFileMultiEndpoint(ctx,
-		requestBody,
-		step.args.CallbackSvrAddr,
-		getAgentConfigPath,
-		savedPath); err != nil {
-		logger.Errorf(node.StepDownloadFiles, "failed to get agent config: %v", err)
-
-		return fmt.Errorf("failed to get agent config: %w", err)
-	}
-
-	logger.Infof(node.StepDownloadFiles, "successfully downloaded agent-config(%s)", savedPath)
-
-	return nil
-}
-
-func (step *Step) downloadFileProxyConfig(ctx context.Context) error {
-	type getFileProxyConfReq struct {
-		OSType   string `json:"os_type"`
-		CPUArch  string `json:"cpu_arch"`
-		NodeRole string `json:"node_role"`
-		Token    string `json:"token"`
-	}
-
-	requestBody := getFileProxyConfReq{
-		OSType:   runtime.GOOS,
-		CPUArch:  runtime.GOARCH,
-		NodeRole: string(step.args.NodeRole),
-		Token:    step.args.DeployToken,
-	}
-
-	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_file_proxy.conf")
-	if err := step.downloadFileMultiEndpoint(ctx,
-		requestBody,
-		step.args.CallbackSvrAddr,
-		getFileProxyConfigPath,
-		savedPath); err != nil {
-		logger.Errorf(node.StepDownloadFiles, "failed to get file proxy config: %v", err)
-
-		return fmt.Errorf("failed to get file proxy config: %w", err)
-	}
-
-	logger.Infof(node.StepDownloadFiles, "successfully downloaded file-proxy-config(%s)", savedPath)
-
-	return nil
-}
-
-func (step *Step) downloadDataProxyConfig(ctx context.Context) error {
-	type getDataProxyConfReq struct {
-		OSType   string `json:"os_type"`
-		CPUArch  string `json:"cpu_arch"`
-		NodeRole string `json:"node_role"`
-		Token    string `json:"token"`
-	}
-
-	requestBody := getDataProxyConfReq{
-		OSType:   runtime.GOOS,
-		CPUArch:  runtime.GOARCH,
-		NodeRole: string(step.args.NodeRole),
-		Token:    step.args.DeployToken,
-	}
-
-	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_data_proxy.conf")
-	if err := step.downloadFileMultiEndpoint(ctx,
-		requestBody,
-		step.args.CallbackSvrAddr,
-		getDataProxyConfigPath,
-		savedPath); err != nil {
-		logger.Errorf(node.StepDownloadFiles, "failed to get data proxy config: %v", err)
-
-		return fmt.Errorf("failed to get data proxy config: %w", err)
-	}
-
-	logger.Infof(node.StepDownloadFiles, "successfully downloaded data-proxy-config(%s)", savedPath)
-
-	return nil
-}
-
-func (step *Step) downloadCheckList(ctx context.Context) error {
-	type getCheckListReq struct {
-		OSType   string `json:"os_type"`
-		CPUArch  string `json:"cpu_arch"`
-		NodeRole string `json:"node_role"`
-		Token    string `json:"token"`
-	}
-
-	requestBody := getCheckListReq{
-		OSType:   runtime.GOOS,
-		CPUArch:  runtime.GOARCH,
-		NodeRole: string(step.args.NodeRole),
-		Token:    step.args.DeployToken,
-	}
-
-	if err := step.downloadFileMultiEndpoint(ctx,
-		requestBody,
-		step.args.CallbackSvrAddr,
-		getCheckListPath,
-		step.args.CheckListSavedPath); err != nil {
-		logger.Errorf(node.StepDownloadFiles, "failed to get check list: %v", err)
-
-		return fmt.Errorf("failed to get check list: %w", err)
-	}
-
-	logger.Infof(node.StepDownloadFiles, "successfully downloaded check-list(%s)",
-		step.args.CheckListSavedPath)
 
 	return nil
 }

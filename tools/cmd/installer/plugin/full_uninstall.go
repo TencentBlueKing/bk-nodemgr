@@ -12,7 +12,9 @@ package plugin
 
 import (
 	"fmt"
-	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	"path/filepath"
+
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
@@ -23,7 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 // NewFullUninstall creates a new full uninstall command.
@@ -119,20 +120,20 @@ func NewFullUninstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginflag.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = fullCmd.MarkFlagRequired(pluginflag.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for downloading config files")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
 
-	fullCmd.Flags().StringVar(&deployToken, pluginflag.DeployToken, "", "deploy token, contains the details of files")
-	_ = fullCmd.MarkFlagRequired(pluginflag.DeployToken)
+	fullCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.DeployToken)
 
-	fullCmd.Flags().StringVar(&operInstID, pluginflag.OperInstID, "", "operation instance id")
-	_ = fullCmd.MarkFlagRequired(pluginflag.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, pluginFlag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(pluginFlag.OperInstID)
 
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&logDir, pluginflag.LogDir, "", "directory to save log files")
-	fullCmd.Flags().BoolVar(&logToStd, pluginflag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
 
 	return fullCmd
 }
