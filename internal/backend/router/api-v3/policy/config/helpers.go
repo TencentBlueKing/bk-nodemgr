@@ -77,6 +77,43 @@ func (h *handler) narrowAuthorizedBizIDs(
 	return narrowedIDs, false, nil
 }
 
+// narrowAuthorizedBizIDsForHistory narrows the requested biz IDs to those the user is authorized to view config policy history for.
+func (h *handler) narrowAuthorizedBizIDsForHistory(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionConfigPolicyHistoryView, types.AuthResourceTypeBiz)
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, types.AuthResourceTypeBiz,
+	)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+		return nil, false, fmt.Errorf("no authorized businesses for config policy history view")
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		resources := authRouter.BuildBizResources(requestedIDs...)
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, resources); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
 // narrowConfigPolicyCondition narrows the config policy condition by authorized biz IDs.
 func narrowConfigPolicyCondition(condition *types.ConfigPolicyCondition, narrowedIDs []int64, scopeIsAny bool) *types.ConfigPolicyCondition {
 	if scopeIsAny {

@@ -39,7 +39,7 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
 		bizIDs = exactCond.GetBkBizId()
 	}
-	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDs(rCtx, bizIDs)
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHistory(rCtx, bizIDs)
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list policy event, permission denied")
 		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
