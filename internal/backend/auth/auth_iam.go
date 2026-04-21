@@ -253,9 +253,9 @@ func buildIAMApplyResourceTypes(resources []types.AuthResource) []types.IAMApply
 			instancesByKey[k] = make([]types.IAMApplyResourceInstance, 0)
 		}
 		if r.ID != "" {
-			instancesByKey[k] = append(instancesByKey[k], types.IAMApplyResourceInstance{
-				{Type: string(r.Type), ID: r.ID},
-			})
+			// Build complete topology path
+			instance := buildResourceInstancePath(r)
+			instancesByKey[k] = append(instancesByKey[k], instance)
 		}
 	}
 
@@ -278,6 +278,50 @@ func buildIAMApplyResourceTypes(resources []types.AuthResource) []types.IAMApply
 	})
 
 	return rts
+}
+
+// buildResourceInstancePath constructs complete topology path for a resource.
+//
+// For resources with parent topology (networkunit, package), this function extracts
+// the parent node from _bk_iam_path_ attribute and builds a complete path.
+//
+// For resources without parent (networkarea, package_type, biz), returns single-node path.
+//
+// Parameters:
+//   - r: Resource with optional Attributes containing _bk_iam_path_
+//
+// Returns:
+//   - types.IAMApplyResourceInstance: Complete topology path (parent nodes + current node)
+//
+// Example:
+//
+//	// networkunit with _bk_iam_path_: ["/networkarea,123/"]
+//	r := types.AuthResource{
+//		SystemID: "bk_nodemgr",
+//		Type:     "networkunit",
+//		ID:       "456",
+//		Attributes: map[string]interface{}{
+//			"_bk_iam_path_": []string{"/networkarea,123/"},
+//		},
+//	}
+//	buildResourceInstancePath(r)
+//	// → [{Type: "networkarea", ID: "123"}, {Type: "networkunit", ID: "456"}]
+func buildResourceInstancePath(r types.AuthResource) types.IAMApplyResourceInstance {
+	// Try to extract parent node from _bk_iam_path_ attribute
+	parentNode := provider.ParseParentFromIAMPath(r.Attributes)
+
+	if parentNode == nil {
+		// No parent: return single-node path
+		return types.IAMApplyResourceInstance{
+			{Type: string(r.Type), ID: r.ID},
+		}
+	}
+
+	// Has parent: return complete path [parent, current]
+	return types.IAMApplyResourceInstance{
+		*parentNode,
+		{Type: string(r.Type), ID: r.ID},
+	}
 }
 
 func buildRelatedResourceTypes(rts []types.IAMApplyResourceType) []RelatedResourceType {

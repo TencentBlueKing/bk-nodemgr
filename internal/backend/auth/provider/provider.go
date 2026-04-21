@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -319,6 +320,78 @@ func (info *InstanceInfo) UnmarshalJSON(data []byte) error {
 func BuildIAMPath(resourceType string, resourceID string) []string {
 	return []string{
 		fmt.Sprintf("/%s,%s/", resourceType, resourceID),
+	}
+}
+
+// ParseParentFromIAMPath extracts parent resource node from _bk_iam_path_ attribute.
+//
+// The _bk_iam_path_ attribute format is: ["/parent_type,parent_id/"]
+// This function parses the first path element to extract parent type and ID.
+//
+// Parameters:
+//   - attributes: Resource attributes map (should contain _bk_iam_path_ key)
+//
+// Returns:
+//   - *types.IAMApplyResourceNode: Parent node if path exists and is valid, nil otherwise
+//
+// Example:
+//
+//	attributes := map[string]interface{}{
+//		"_bk_iam_path_": []interface{}{"/networkarea,123/"},
+//	}
+//	node := ParseParentFromIAMPath(attributes)
+//	// → &types.IAMApplyResourceNode{Type: "networkarea", ID: "123"}
+func ParseParentFromIAMPath(attributes map[string]interface{}) *types.IAMApplyResourceNode {
+	if attributes == nil {
+		return nil
+	}
+
+	// Extract _bk_iam_path_ attribute
+	pathValue, ok := attributes[AttrIAMPath]
+	if !ok {
+		return nil
+	}
+
+	// _bk_iam_path_ is []string, but may be []interface{} after JSON unmarshal
+	var paths []string
+	switch v := pathValue.(type) {
+	case []string:
+		paths = v
+	case []interface{}:
+		paths = make([]string, 0, len(v))
+		for _, p := range v {
+			if s, ok := p.(string); ok {
+				paths = append(paths, s)
+			}
+		}
+	default:
+		return nil
+	}
+
+	if len(paths) == 0 {
+		return nil
+	}
+
+	// Parse first path: "/parent_type,parent_id/"
+	path := paths[0]
+	if len(path) < 3 || path[0] != '/' || path[len(path)-1] != '/' {
+		return nil
+	}
+
+	// Strip leading and trailing slashes
+	path = path[1 : len(path)-1]
+
+	// Split by comma: "parent_type,parent_id"
+	// Expected format: exactly 2 parts (type and id)
+	const expectedParts = 2
+	parts := strings.Split(path, ",")
+	if len(parts) != expectedParts {
+		return nil
+	}
+
+	return &types.IAMApplyResourceNode{
+		Type: parts[0],
+		ID:   parts[1],
 	}
 }
 
