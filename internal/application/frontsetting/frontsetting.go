@@ -65,6 +65,12 @@ type IFrontSetting interface {
 
 	// EnableNotice the front setting field.
 	EnableNotice() bool
+
+	// BKIamSystemIDBKNodemgr the front setting field.
+	BKIamSystemIDBKNodemgr() string
+
+	// BKIamSystemIDBKCmdb the front setting field.
+	BKIamSystemIDBKCmdb() string
 }
 
 var _ IFrontSetting = &FrontSetting{}
@@ -88,6 +94,9 @@ type FrontSetting struct {
 	unixSSHPortDefault    int
 
 	enableNotice bool
+
+	bkIamSystemIDBKNodemgr string
+	bkIamSystemIDBKCmdb    string
 }
 
 // Option front setting option.
@@ -120,6 +129,12 @@ type Option struct {
 
 	// EnableNotice controls whether the notice feature is enabled.
 	EnableNotice bool
+
+	// BKIamSystemIDBKNodemgr is the bk iam system id.
+	BKIamSystemIDBKNodemgr string
+
+	// BKIamSystemIDBKCmdb is the bk iam system id for cmdb.
+	BKIamSystemIDBKCmdb string
 }
 
 // Validate validate.
@@ -142,18 +157,20 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 	}
 
 	return &FrontSetting{
-		bkloginURL:            normalizeFrontValue(opt.BKLoginURL, frontValueKindURL),
-		bkRequestIDHeaderKEy:  opt.BKRequestIDHeaderKEy,
-		bkPassAnalyticsScript: opt.BKPassAnalyticsScript,
-		passwordVaultSwitch:   opt.PasswordVaultSwitch,
-		passwordVaultName:     opt.PasswordVaultName,
-		bkUserWebURL:          normalizeFrontValue(opt.BKUserWebURL, frontValueKindURL),
-		bkDomain:              normalizeFrontValue(opt.BKDomain, frontValueKindHost),
-		bkDocsCenterURL:       normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
-		bkAppNavOpenSourceURL: normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
-		windowsWMIPortDefault: opt.WindowsWMIPortDefault,
-		unixSSHPortDefault:    opt.UnixSSHPortDefault,
-		enableNotice:          opt.EnableNotice,
+		bkloginURL:             normalizeFrontValue(opt.BKLoginURL, frontValueKindURL),
+		bkRequestIDHeaderKEy:   opt.BKRequestIDHeaderKEy,
+		bkPassAnalyticsScript:  opt.BKPassAnalyticsScript,
+		passwordVaultSwitch:    opt.PasswordVaultSwitch,
+		passwordVaultName:      opt.PasswordVaultName,
+		bkUserWebURL:           normalizeFrontValue(opt.BKUserWebURL, frontValueKindURL),
+		bkDomain:               normalizeFrontValue(opt.BKDomain, frontValueKindHost),
+		bkDocsCenterURL:        normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
+		bkAppNavOpenSourceURL:  normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
+		windowsWMIPortDefault:  opt.WindowsWMIPortDefault,
+		unixSSHPortDefault:     opt.UnixSSHPortDefault,
+		enableNotice:           opt.EnableNotice,
+		bkIamSystemIDBKNodemgr: opt.BKIamSystemIDBKNodemgr,
+		bkIamSystemIDBKCmdb:    opt.BKIamSystemIDBKCmdb,
 	}, nil
 }
 
@@ -268,4 +285,14 @@ func (setting *FrontSetting) WindowsWMIPortDefault() int {
 // UnixSSHPortDefault get Unix-like OS SSH port default.
 func (setting *FrontSetting) UnixSSHPortDefault() int {
 	return setting.unixSSHPortDefault
+}
+
+// BKIamSystemIDBKNodemgr get bk_nodemgr system id in bkiam.
+func (setting *FrontSetting) BKIamSystemIDBKNodemgr() string {
+	return setting.bkIamSystemIDBKNodemgr
+}
+
+// BKIamSystemIDBKCmdb get bk_cmdb system id in bkiam.
+func (setting *FrontSetting) BKIamSystemIDBKCmdb() string {
+	return setting.bkIamSystemIDBKCmdb
 }

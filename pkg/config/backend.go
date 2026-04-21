@@ -151,19 +151,6 @@ type BackendFileCache struct {
 	RestoreOnStart bool `yaml:"restoreOnStart" usage:"restore cache entries from disk on startup"`
 }
 
-// IAMV3 the config of IAM v3 gateway config.
-type IAMV3 struct {
-	// Enable indicates whether IAM v3 is enabled.
-	// When disabled, a no-op handler will be used and all permission checks will be skipped.
-	Enable           bool `yaml:"enable" usage:"enable IAM v3 permission management"`
-	APIGatewayClient `yaml:",inline" usage:"api-gateway config of IAM v3"`
-	// SystemID is the system identifier registered in IAM.
-	SystemID string `yaml:"systemID" usage:"system ID registered in IAM v3"`
-	// CallbackPath is the callback path for IAM resource provider.
-	// This field is required when IAM v3 is enabled.
-	CallbackPath string `yaml:"callbackPath" usage:"callback path for IAM resource provider"`
-}
-
 // NewBackendService generates a new BackendService with default values.
 // nolint: funlen
 func NewBackendService() *BackendService {

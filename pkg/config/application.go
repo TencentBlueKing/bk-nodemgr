@@ -78,6 +78,10 @@ const (
 	defaultApplicationBKLoginTraceServiceName = "application-client-bklogin"
 
 	defaultApplicationConfigPolicyOptionFilePath = "/bk-nodemgr/support-files/configpolicy"
+
+	defaultApplicationIAMV3SystemID         = "bk_nodemgr"
+	defaultApplicationIAMV3CMDBSystemID     = "bk_cmdb"
+	defaultApplicationIAMV3TraceServiceName = "application-client-iam-v3"
 )
 
 // ConfigPolicyOption defines config policy option file settings.
@@ -126,6 +130,7 @@ type ApplicationService struct {
 	Log                Log                `yaml:"log" usage:"log config of application service"`
 	Tracing            Tracing            `yaml:"tracing" usage:"tracing config of file service"`
 	ConfigPolicyOption ConfigPolicyOption `yaml:"configPolicyOption" usage:"config policy option file settings"`
+	IAMV3              IAMV3              `yaml:"iamV3" usage:"IAM v3 gateway config"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -137,6 +142,15 @@ func NewApplicationService() *ApplicationService {
 			BKLogin: BKLogin{
 				TraceService: TraceService{
 					TraceServiceName: defaultApplicationBKLoginTraceServiceName,
+				},
+			},
+		},
+		IAMV3: IAMV3{
+			SystemID:     defaultApplicationIAMV3SystemID,
+			CMDBSystemID: defaultApplicationIAMV3CMDBSystemID,
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultApplicationIAMV3TraceServiceName,
 				},
 			},
 		},
@@ -390,6 +404,10 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	if _, err := envx.LoadInt("BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT", &svc.Front.UnixSSHPortDefault); err != nil {
 		return err
 	}
+
+	// iam v3 config.
+	_ = envx.LoadString("BK_IAM_SYSTEM_ID_BK_NODEMGR", &svc.IAMV3.SystemID)
+	_ = envx.LoadString("BK_IAM_SYSTEM_ID_BK_CMDB", &svc.IAMV3.CMDBSystemID)
 
 	return nil
 }

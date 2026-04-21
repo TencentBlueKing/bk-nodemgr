@@ -38,6 +38,8 @@ data:
 
     bkSaaS: {{ .Values.application.config.bkSaaS | toYaml | nindent 6 }}
 
+    iamV3: {{ .Values.application.config.iamV3 | toYaml | nindent 6 }}
+
     tracing: {{ .Values.application.config.tracing | toYaml | nindent 6 }}
 
     configPolicyOption:
@@ -96,7 +98,7 @@ data:
       traceServiceName: {{ .Values.application.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.application.config.mongodb.traceSampleRate }}
 
-  {{- if .Values.application.config.configPolicyOption.agentOption }}
+{{- if .Values.application.config.configPolicyOption.agentOption }}
   agent_option.json: |
     {{ .Values.application.config.configPolicyOption.agentOption | toJson }}
   {{- end }}

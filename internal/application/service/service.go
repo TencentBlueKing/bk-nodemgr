@@ -185,18 +185,20 @@ func (svc *Service) initialCapability() error {
 	// initial front setting.
 	svc.Cap.FrontSetting, err = frontsetting.NewFrontSetting(
 		frontsetting.Option{
-			BKLoginURL:            svc.bkloginHandler.GetLoginURL(),
-			BKRequestIDHeaderKEy:  bksaasheader.KeyBKRequestID,
-			BKPassAnalyticsScript: svc.conf.BKPaas.AnalysisScript,
-			PasswordVaultSwitch:   svc.conf.Front.PasswordVaultSwitch,
-			PasswordVaultName:     svc.conf.Front.PasswordVaultName,
-			BKUserWebURL:          svc.conf.Front.BKUserWebURL,
-			BKDomain:              svc.conf.Front.BKDomain,
-			BKDocsCenterURL:       svc.conf.Front.BKDocsCenterURL,
-			BKAppNavOpenSourceURL: svc.conf.Front.BKAppNavOpenSourceURL,
-			WindowsWMIPortDefault: svc.conf.Front.WindowsWMIPortDefault,
-			UnixSSHPortDefault:    svc.conf.Front.UnixSSHPortDefault,
-			EnableNotice:          svc.conf.Notice.Enabled,
+			BKLoginURL:             svc.bkloginHandler.GetLoginURL(),
+			BKRequestIDHeaderKEy:   bksaasheader.KeyBKRequestID,
+			BKPassAnalyticsScript:  svc.conf.BKPaas.AnalysisScript,
+			PasswordVaultSwitch:    svc.conf.Front.PasswordVaultSwitch,
+			PasswordVaultName:      svc.conf.Front.PasswordVaultName,
+			BKUserWebURL:           svc.conf.Front.BKUserWebURL,
+			BKDomain:               svc.conf.Front.BKDomain,
+			BKDocsCenterURL:        svc.conf.Front.BKDocsCenterURL,
+			BKAppNavOpenSourceURL:  svc.conf.Front.BKAppNavOpenSourceURL,
+			WindowsWMIPortDefault:  svc.conf.Front.WindowsWMIPortDefault,
+			UnixSSHPortDefault:     svc.conf.Front.UnixSSHPortDefault,
+			EnableNotice:           svc.conf.Notice.Enabled,
+			BKIamSystemIDBKNodemgr: svc.conf.IAMV3.SystemID,
+			BKIamSystemIDBKCmdb:    svc.conf.IAMV3.CMDBSystemID,
 		},
 	)
 	if err != nil {

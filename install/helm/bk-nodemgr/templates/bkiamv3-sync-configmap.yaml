@@ -18,13 +18,13 @@ data:
 
     # System configuration
     system:
-      {{- .Values.backend.config.iamV3.system | toYaml | nindent 6 }}
+      {{- .Values.iamV3.system | toYaml | nindent 6 }}
 
     # Provider configuration for IAM callbacks
     provider:
-      {{- .Values.backend.config.iamV3.provider | toYaml | nindent 6 }}
+      {{- .Values.iamV3.provider | toYaml | nindent 6 }}
 
     # CMDB system configuration (for related resources)
     cmdb:
-      {{- .Values.backend.config.iamV3.cmdb | toYaml | nindent 6 }}
+      {{- .Values.iamV3.cmdb | toYaml | nindent 6 }}
 {{- end }}

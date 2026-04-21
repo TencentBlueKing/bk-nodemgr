@@ -855,6 +855,51 @@ application:
           # the password to decrypt the certificate.
           password: ""
 
+    ## defines the IAM v3 related settings.
+    iamV3:
+      # enable indicates whether IAM v3 is enabled.
+      # When set to false, a no-op handler will be used and all permission checks will be skipped.
+      enable: false
+      # endpoints is a seed list of host:port addresses of IAM API gateway nodes.
+      endpoints:
+        - "https://example.com/api/bk-iam/prod"
+      # appCode is the BlueKing app code of NodeMan to request IAM v3 gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of NodeMan to request IAM v3 gateway.
+      appSecret: ""
+      # user is the BlueKing user of NodeMan to request IAM v3 gateway.
+      user: ""
+      # authMode is the mode to do api auth verification.
+      # it support 'oa' and 'ee' and 'at' and 'un' mode for now.
+      # 1. oa use bkTicket auth.
+      # 2. ee use bkToken auth.
+      # 3. at use accessToken auth.
+      # 4. un use no user authentication required
+      authMode: "un"
+      # accessToken is the BlueKing access token of NodeMan to request IAM v3 gateway.
+      accessToken: ""
+      # systemID is the system identifier registered in IAM v3.
+      systemID: "bk_nodemgr"
+      # cmdbSystemID is the cmdb system identifier registered in IAM v3.
+      cmdbSystemID: "bk_cmdb"
+      # callbackPath is the callback path for IAM resource provider.
+      callbackPath: "/api/v3/iam/callback"
+      # trace service name for IAM v3 client
+      traceServiceName: "application-client-iam-v3"
+      traceSampleRate: 0
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
+
     ## defines the tracing related settings.
     tracing:
       # exporter type: stdout or otlp
@@ -1259,39 +1304,10 @@ backend:
       accessToken: ""
       # systemID is the system identifier registered in IAM v3.
       systemID: "bk_nodemgr"
+      # cmdbSystemID is the cmdb system identifier registered in IAM v3.
+      cmdbSystemID: "bk_cmdb"
       # callbackPath is the callback path for IAM resource provider.
       callbackPath: "/api/v3/iam/callback"
-      system:
-        id: "bk-nodemgr"
-        name: "节点管理"
-        name_en: "NodeManager"
-        description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
-        description_en: "BlueKing Node Manager, provides node management, plugin management and other functions"
-        clients: "bk-nodemgr"
-      # Provider configuration for IAM callbacks
-      provider:
-        # The URL where IAM will call back to bk-nodemgr for resource queries
-        # Example: http://bk-nodemgr.example.com/api/v1/iam
-        host: ""
-        # Authentication method for provider callbacks
-        # Options: basic, none
-        # Default: basic
-        auth: "basic"
-        # Path for IAM callbacks.
-        path: "/api/v3/iam/v3/resource"
-      # CMDB configuration for business resource authorization
-      # These values reference CMDB's IAM resource definitions
-      cmdb:
-        # CMDB system ID registered in IAM
-        system_id: "bk_cmdb"
-        # Resource definitions from CMDB
-        resource:
-          # Business (biz) resource configuration
-          biz:
-            # Resource type ID for business in CMDB
-            resource_type_id: "biz"
-            # Instance selection ID for business picker in IAM
-            instance_selection_id: "business"
       # trace service name for IAM v3 client
       traceServiceName: "backend-client-iam-v3"
       traceSampleRate: 0
@@ -1604,6 +1620,40 @@ initPackages:
       cert: ""
       ## Agent private key (base64), used for the agent communication chain
       key: ""
+
+iamV3:
+  enabled: false
+  system:
+    id: "bk-nodemgr"
+    name: "节点管理"
+    name_en: "NodeManager"
+    description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
+    description_en: "BlueKing Node Manager, provides node management, plugin management and other functions"
+    clients: "bk-nodemgr"
+  # Provider configuration for IAM callbacks
+  provider:
+    # The URL where IAM will call back to bk-nodemgr for resource queries
+    # Example: http://bk-nodemgr.example.com/api/v1/iam
+    host: ""
+    # Authentication method for provider callbacks
+    # Options: basic, none
+    # Default: basic
+    auth: "basic"
+    # Path for IAM callbacks.
+    path: "/api/v3/iam/v3/resource"
+  # CMDB configuration for business resource authorization
+  # These values reference CMDB's IAM resource definitions
+  cmdb:
+    # CMDB system ID registered in IAM
+    system_id: "bk_cmdb"
+    # Resource definitions from CMDB
+    resource:
+      # Business (biz) resource configuration
+      biz:
+        # Resource type ID for business in CMDB
+        resource_type_id: "biz"
+        # Instance selection ID for business picker in IAM
+        instance_selection_id: "business"
 
 ## ServiceMonitor configuration
 ##
