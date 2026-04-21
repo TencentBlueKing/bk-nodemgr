@@ -11,7 +11,6 @@
 package topo
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -142,37 +141,15 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 	}
 
 	networkAreaIDs := req.GetBkNetworkareaId()
-	gp := gopool.NewPool()
-	for idx := range networkAreaIDs {
-		networkAreaID := networkAreaIDs[idx]
-
-		if _, ok := result[networkAreaID]; !ok {
-			result[networkAreaID] = &protoApplication.NetworkAreaStatistics{
-				NetworkAreaID: networkAreaID,
+	for _, id := range networkAreaIDs {
+		if _, ok := result[id]; !ok {
+			result[id] = &protoApplication.NetworkAreaStatistics{
+				NetworkAreaID: id,
 			}
 		}
-
-		gp.Go(func() error {
-			events, _, err := h.backendHandler.ListTopoEvent(rCtx, types.Page{Limit: 1}, &types.TopoEventCondition{
-				ExactInclude: &types.TopoEventExactFields{
-					NetworkAreaID: []int64{networkAreaID},
-				},
-			})
-			if err != nil {
-				return errors.Join(err, fmt.Errorf("failed to list topo event, networkunit-id: %d", networkAreaID))
-			}
-
-			if len(events) == 0 {
-				return nil
-			}
-
-			result[networkAreaID].LastOperator = events[0].Operator
-			result[networkAreaID].LastOperateTime = events[0].OperateTime
-
-			return nil
-		})
 	}
 
+	gp := gopool.NewPool()
 	// get agent host count
 	gp.Go(func() error {
 		hostDistributionByNetworkAreaID, err := h.backendHandler.GetHostDistributionByNetworkAreaID(rCtx, &types.HostCondition{

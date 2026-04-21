@@ -240,16 +240,12 @@ func (x *TopoNetworkAreaStatisticsResp) ConvertNetworkAreaStatisticsFromResult(
 			NetworkunitCount: new(int64),
 			ProxyCount:       new(int64),
 			AgentCount:       new(int64),
-			LastOperator:     new(string),
-			LastOperateTime:  new(int64),
 		}
 
 		*info.BkNetworkareaId = networkAreaID
 		*info.NetworkunitCount = networkAreaStatics.NetworkUnitCount
 		*info.ProxyCount = networkAreaStatics.ProxyCount
 		*info.AgentCount = networkAreaStatics.AgentCount
-		*info.LastOperator = networkAreaStatics.LastOperator
-		*info.LastOperateTime = networkAreaStatics.LastOperateTime.Unix()
 
 		items[idx] = info
 		idx++

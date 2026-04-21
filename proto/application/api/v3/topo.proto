@@ -85,8 +85,6 @@ message TopoNetworkAreaStatisticsResp {
     optional int64 networkunit_count = 2;
     optional int64 proxy_count = 3;
     optional int64 agent_count = 4;
-    optional string last_operator = 5;
-    optional int64 last_operate_time = 6;
   }
   message Data { repeated StatisticsInfo items = 1; }
   Data data = 5;
