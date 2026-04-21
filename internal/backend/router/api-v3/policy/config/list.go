@@ -32,6 +32,18 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
+	// Narrow authorized biz IDs.
+	var bizIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		bizIDs = exactCond.GetBkBizId()
+	}
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDs(rCtx, bizIDs)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list config policy, permission denied")
+		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
+	}
+	conditions = narrowConfigPolicyCondition(conditions, narrowedIDs, scopeIsAny)
+
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storageConfigPolicy.CountConfigPolicy(

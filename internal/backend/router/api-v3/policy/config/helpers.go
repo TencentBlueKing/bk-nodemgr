@@ -13,7 +13,11 @@ package config
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -34,4 +38,75 @@ func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64
 	}
 
 	return configpolicies, nil
+}
+
+// narrowAuthorizedBizIDs narrows the requested biz IDs to those the user is authorized to view config policies for.
+func (h *handler) narrowAuthorizedBizIDs(
+	rCtx restserver.IContext, requestedIDs []int64,
+) ([]int64, bool, error) {
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionConfigPolicyView, types.AuthResourceTypeBiz)
+	if err != nil {
+		return nil, false, err
+	}
+
+	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, types.AuthResourceTypeBiz,
+	)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !hasAuthorized {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyView, nil); checkErr != nil {
+			return nil, false, checkErr
+		}
+		return nil, false, fmt.Errorf("no authorized businesses for config policy view")
+	}
+
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		resources := authRouter.BuildBizResources(requestedIDs...)
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyView, resources); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+// narrowConfigPolicyCondition narrows the config policy condition by authorized biz IDs.
+func narrowConfigPolicyCondition(condition *types.ConfigPolicyCondition, narrowedIDs []int64, scopeIsAny bool) *types.ConfigPolicyCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.ConfigPolicyCondition{}
+	}
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.ConfigPolicyExactFields{}
+	}
+	condition.ExactInclude.BizID = conv.SliceUnique(narrowedIDs)
+
+	return condition
+}
+
+// narrowConfigPolicyEventCondition narrows the config policy event condition by authorized biz IDs.
+func narrowConfigPolicyEventCondition(condition *types.ConfigPolicyEventCondition, narrowedIDs []int64, scopeIsAny bool) *types.ConfigPolicyEventCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.ConfigPolicyEventCondition{}
+	}
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.ConfigPolicyEventExactFields{}
+	}
+	condition.ExactInclude.BizID = conv.SliceUnique(narrowedIDs)
+
+	return condition
 }

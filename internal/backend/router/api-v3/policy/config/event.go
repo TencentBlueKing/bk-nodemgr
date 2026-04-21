@@ -11,7 +11,6 @@
 package config
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -35,17 +34,23 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	// Check permission for history view.
-	// For event list operations, we check action-level permission without specific resource IDs.
-	if authErr := h.authorizer.Check(rCtx, auth.ActionConfigPolicyHistoryView, nil); authErr != nil {
+	// Narrow authorized biz IDs.
+	var bizIDs []int64
+	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
+		bizIDs = exactCond.GetBkBizId()
+	}
+	narrowedIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDs(rCtx, bizIDs)
+	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list policy event, permission denied")
 		return nil, errf.ErrWrap(errf.PermissionDenied, authErr)
 	}
+	conditions = narrowConfigPolicyEventCondition(conditions, narrowedIDs, scopeIsAny)
 
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storageConfigPolicy.CountConfigPolicyEvent(
 			rCtx,
+			conditions,
 		)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, failed to count event")
