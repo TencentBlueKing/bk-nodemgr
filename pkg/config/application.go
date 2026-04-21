@@ -79,8 +79,6 @@ const (
 
 	defaultApplicationConfigPolicyOptionFilePath = "/bk-nodemgr/support-files/configpolicy"
 
-	defaultApplicationIAMV3SystemID         = "bk_nodemgr"
-	defaultApplicationIAMV3CMDBSystemID     = "bk_cmdb"
 	defaultApplicationIAMV3TraceServiceName = "application-client-iam-v3"
 )
 
@@ -146,8 +144,8 @@ func NewApplicationService() *ApplicationService {
 			},
 		},
 		IAMV3: IAMV3{
-			SystemID:     defaultApplicationIAMV3SystemID,
-			CMDBSystemID: defaultApplicationIAMV3CMDBSystemID,
+			SystemID:     defaultIAMV3SystemID,
+			CMDBSystemID: defaultIAMV3CMDBSystemID,
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultApplicationIAMV3TraceServiceName,

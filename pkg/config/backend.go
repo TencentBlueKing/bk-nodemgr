@@ -184,6 +184,8 @@ func NewBackendService() *BackendService {
 			},
 		},
 		IAMV3: IAMV3{
+			SystemID:     defaultIAMV3SystemID,
+			CMDBSystemID: defaultIAMV3CMDBSystemID,
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultBackendIAMV3TraceServiceName,

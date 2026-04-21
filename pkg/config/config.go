@@ -876,6 +876,11 @@ type TraceService struct {
 	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate"`
 }
 
+const (
+	defaultIAMV3SystemID     = "bk_nodemgr"
+	defaultIAMV3CMDBSystemID = "bk_cmdb"
+)
+
 // IAMV3 the config of IAM v3 gateway config.
 type IAMV3 struct {
 	// Enable indicates whether IAM v3 is enabled.
