@@ -750,6 +750,8 @@ agentStrategy:
     jsonConfigDetail: JSON Config Detail
     saveSort: Save Sort
     prevStep: Previous
+    saveSuccess: Saved successfully
+    noSortData: No sort data
   validate:
     configNameRequired: Config Name is required
     configNameLength: Length must be 1-50 characters

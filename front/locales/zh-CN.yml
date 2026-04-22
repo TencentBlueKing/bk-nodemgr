@@ -750,6 +750,8 @@ agentStrategy:
     jsonConfigDetail: Json 配置详情
     saveSort: 保存排序
     prevStep: 上一步
+    saveSuccess: 保存成功
+    noSortData: 无排序数据
   validate:
     configNameRequired: 配置名称不能为空
     configNameLength: 配置名称长度在1-50个字符之间

@@ -553,11 +553,19 @@ onMounted(async () => {
 });
 
 // 路由切换时增量加载目标模块的 authorized items
+// 注：403/404 路由 meta.mainMenu 为空，此处兼容读取 query.mainMenu 兜底触发
+//     （跳转到 403 时 router.ts 会带 query.mainMenu 指明原模块，刷新后仍能正确加载原模块的 authorized）
 watch(
-  () => route.meta?.mainMenu,
-  async (newModule) => {
-    if (!newModule) return;
-    const moduleName = String(newModule);
+  () => {
+    if (route.meta?.mainMenu) return String(route.meta.mainMenu);
+    if (route.name === '403' || route.name === '404') {
+      const fallback = route.query?.mainMenu;
+      if (typeof fallback === 'string' && fallback) return fallback;
+    }
+    return '';
+  },
+  async (moduleName) => {
+    if (!moduleName) return;
     // biz 类模块首次切入时同时加载 bizSelector
     if (['nodeManager', 'ruleManager'].includes(moduleName)) {
       const bizItems = getModuleAuthorizedItems('bizSelector');
@@ -570,6 +578,8 @@ watch(
       await authStore.fetchAuthorized(moduleItems, moduleName);
     }
     // 模块 view 类加载完成后，串行加载当前菜单页的 operate 类 action，严格保证「view → operate」顺序
+    // 403/404 页面无对应菜单页 operate items，跳过
+    if (route.name === '403' || route.name === '404') return;
     const currentName = typeof route.name === 'string' ? route.name : '';
     if (currentName) {
       const pageItems = getPageAuthorizedItems(currentName);
@@ -578,6 +588,7 @@ watch(
       }
     }
   },
+  { immediate: true },
 );
 
 // 菜单页切换时按需加载该页所需的非 view 类 action
