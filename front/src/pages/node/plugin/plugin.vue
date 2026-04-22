@@ -235,6 +235,7 @@ const loadPluginList = async () => {
     const nodeNumMap = await ProcessAPIService.GetProcessDistributionByPluginName({
       exact_include_conditions: {
         plugin_name: response.items.map((item: any) => item.name),
+        bk_biz_id: mainStore.selectedBusinessId,
       },
     }).catch((err: any) => {
       console.error('获取插件数量失败:', err);

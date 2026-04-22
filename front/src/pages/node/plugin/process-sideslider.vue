@@ -256,6 +256,7 @@ import type { DistinctProcessRespData } from '@/@types/process';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
 
 
 interface FilterOption {
@@ -283,6 +284,7 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const mainStore = useMainStore();
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
@@ -399,8 +401,10 @@ const getDistinct = async () => {
   const res = await ProcessAPIService.DistinctProcess({
     exact_include_conditions: props.type === 'plugin' ? {
       plugin_name: [props.plugin.name],
+      bk_biz_id: mainStore.selectedBusinessId,
     } : {
       bk_host_id: [props.node.bk_host_id],
+      bk_biz_id: mainStore.selectedBusinessId,
     },
   });
   if (res && Object.keys(res).length > 0) {
@@ -426,8 +430,10 @@ const getParams = () => {
     page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
     exact_include_conditions: props.type === 'plugin' ? {
       plugin_name: [props.plugin.name],
+      bk_biz_id: mainStore.selectedBusinessId,
     } : {
       bk_host_id: [props.node.bk_host_id],
+      bk_biz_id: mainStore.selectedBusinessId,
     },
     fuzzy_include_conditions: {},
   };
@@ -460,6 +466,7 @@ const getProcessList = async () => {
       },
       exact_include_conditions: {
         bk_host_id: res.items.map(item => item.bk_host_id),
+        bk_biz_id: mainStore.selectedBusinessId,
       },
     }).catch((err) => {
       console.log(err);

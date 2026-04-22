@@ -442,6 +442,7 @@ interface Process {
   process_controller: ProcessController;
   process_resource: ProcessResource;
   process_monitor_policy: ProcessMonitorPolicy;
+  bk_biz_id: number;
 }
 
 interface Plugin {

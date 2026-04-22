@@ -3,6 +3,7 @@
 // query.
 export interface ProcessExactConditions {
   bk_host_id: number[];
+  bk_biz_id: number[];
   plugin_group: string[];
   node_generation: string[];
   platform_os: string[];
