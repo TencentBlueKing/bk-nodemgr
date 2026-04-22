@@ -167,6 +167,7 @@ type MongoDB struct {
 	Database      string    `yaml:"database" usage:"database of mongodb"`
 	AuthSource    string    `yaml:"authSource" usage:"auth source of mongodb"`
 	AuthMechanism string    `yaml:"authMechanism" usage:"auth mechanism of mongodb"`
+	ReplicaSet    string    `yaml:"replicaSet" usage:"replica set name of mongodb"`
 	TLS           TLSConfig `yaml:"tls" usage:"tls of mongodb"`
 	TraceService  `yaml:",inline"`
 }

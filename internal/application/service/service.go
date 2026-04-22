@@ -297,6 +297,10 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	maxConnIdleTime := mongoMaxConnIdleTime
 	maxPoolSize := mongoMaxPoolSize
 	minPoolSize := mongoMinPoolSize
+	var replicaSet *string
+	if svc.conf.MongoDB.ReplicaSet != "" {
+		replicaSet = &svc.conf.MongoDB.ReplicaSet
+	}
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -308,6 +312,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				Password:      svc.conf.MongoDB.Password,
 				PasswordSet:   true,
 			},
+			ReplicaSet:      replicaSet,
 			Hosts:           svc.conf.MongoDB.Hosts,
 			ReadPreference:  readpref.Primary(),
 			MaxConnIdleTime: &maxConnIdleTime,

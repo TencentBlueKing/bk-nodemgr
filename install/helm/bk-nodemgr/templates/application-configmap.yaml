@@ -69,6 +69,7 @@ data:
     mongodb:
       appName: {{ template "bk-nodemgr.fullname" . }}-application
       {{- if .Values.mongodb.enabled }}
+      replicaSet: {{ .Values.mongodb.replicaSetName }}
       hosts:
         - {{ template "bk-nodemgr.fullname" . }}-mongodb-headless
       username: {{ .Values.mongodb.auth.username }}
@@ -77,6 +78,7 @@ data:
       authSource: {{ .Values.mongodb.auth.database }}
       authMechanism: SCRAM-SHA-256
       {{- else }}
+      replicaSet: {{ .Values.externalMongodb.replicaSetName }}
       hosts: {{ .Values.externalMongodb.hosts | toYaml | nindent 6}}
       username: {{ .Values.externalMongodb.username }}
       password: {{ .Values.externalMongodb.password }}
