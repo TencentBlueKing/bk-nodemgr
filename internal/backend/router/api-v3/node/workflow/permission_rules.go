@@ -29,7 +29,7 @@ var (
 func workflowListBizActions(condition *types.NodeWorkflowCondition) []auth.Action {
 	// If no NodeRole filter is specified, need to check both Agent and Proxy permissions
 	if condition == nil || condition.ExactInclude == nil || len(condition.ExactInclude.NodeRole) == 0 {
-		return []auth.Action{auth.ActionAgentView, auth.ActionProxyView}
+		return []auth.Action{auth.ActionAgentHistoryView, auth.ActionProxyHistoryView}
 	}
 
 	// Pre-allocate for at most 2 actions: AgentView and ProxyView
