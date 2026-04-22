@@ -4,6 +4,7 @@
     :is-show="permissionStore.visible"
     :width="740"
     theme="primary"
+    :z-index="9000"
     @closed="permissionStore.hideDialog()"
   >
     <img class="no-permission-img" src="/images/403.png" alt="403">
@@ -39,11 +40,13 @@ import { useRoute, useRouter } from 'vue-router';
 
 import type { PermissionAction } from '@/stores/permission';
 import { usePermissionStore } from '@/stores/permission';
+import { useAuthStore } from '@/stores/auth';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const permissionStore = usePermissionStore();
+const authStore = useAuthStore();
 
 const systemName = computed(() => permissionStore.data?.system_name ?? '');
 const actions = computed(() => permissionStore.data?.actions ?? []);
@@ -133,6 +136,8 @@ function handleApply() {
       // 这里用 replace 导航回去，beforeEach 会重新 verify 权限；
       // 若用户已授权即可正常展示，未授权仍会拦截回 403（符合预期）。
       if (route.name === '403') {
+        // 清除权限缓存，确保 beforeEach 一定会重新调 batchVerify 而非使用旧的 false 缓存
+        authStore.reset();
         const from = route.query?.from;
         if (typeof from === 'string' && from && from !== route.fullPath) {
           router.replace(from);
