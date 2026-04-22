@@ -77,7 +77,7 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
+	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
 		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 
@@ -85,19 +85,11 @@ func (h *handler) narrowAuthorizedBizIDsByAction(
 		return nil, false, err
 	}
 
-	if !hasAuthorized {
-		if checkErr := h.authorizer.Check(rCtx, action, nil); checkErr != nil {
-			return nil, false, checkErr
-		}
-
-		return nil, false, errBizViewDeniedByEmptyScope
-	}
-
 	if scopeIsAny {
 		return requestedIDs, true, nil
 	}
 
-	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+	if len(narrowedIDs) == 0 {
 		if checkErr := h.authorizer.Check(rCtx, action, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}

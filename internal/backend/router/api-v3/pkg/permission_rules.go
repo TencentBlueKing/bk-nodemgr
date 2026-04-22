@@ -35,20 +35,11 @@ func (h *handler) narrowAuthorizedPackageNames(
 		return nil, false, err
 	}
 
-	narrowedNames, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsString(
+	narrowedNames, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsString(
 		scope, requestedNames, types.AuthResourceTypePackage,
 	)
 	if err != nil {
 		return nil, false, err
-	}
-
-	if !hasAuthorized {
-		// No authorized resources - trigger permission check to generate proper error.
-		if checkErr := h.authorizer.Check(rCtx, auth.ActionPackageView, nil); checkErr != nil {
-			return nil, false, checkErr
-		}
-
-		return nil, false, errPackageViewDeniedByEmptyScope
 	}
 
 	// For fixed types (agent/proxy/cert/bintool), the resource ID is the release type itself.
@@ -78,7 +69,7 @@ func (h *handler) narrowAuthorizedPackageNames(
 		return requestedNames, true, nil
 	}
 
-	if len(requestedNames) > 0 && len(narrowedNames) == 0 {
+	if len(narrowedNames) == 0 {
 		// User requested specific plugins but has no permission for any of them.
 		resources := authProvider.BuildPackageResources(requestedNames...)
 		if checkErr := h.authorizer.Check(rCtx, auth.ActionPackageView, resources); checkErr != nil {

@@ -18,30 +18,26 @@ import (
 )
 
 // nolint: nonamedreturns
-func resolveAuthorizedIDsResult[T comparable](
-	isAny bool, requestedIDs []T, authorizedIDs []T,
-) (narrowedIDs []T, scopeIsAny bool, hasAuthorized bool) {
-
+func resolveAuthorizedIDsResult[T comparable](isAny bool, requestedIDs []T, authorizedIDs []T) (narrowedIDs []T) {
 	if isAny {
-		return requestedIDs, true, true
+		return requestedIDs
 	}
 
 	if len(authorizedIDs) == 0 {
-		return nil, false, false
+		return nil
 	}
 
 	if len(requestedIDs) == 0 {
-		return authorizedIDs, false, true
+		return authorizedIDs
 	}
 
-	return conv.SliceIntersect(requestedIDs, authorizedIDs), false, true
+	return conv.SliceIntersect(requestedIDs, authorizedIDs)
 }
 
 // ResolveAuthorizedResourceIDsInt64 narrows requested IDs by authorized scope for a specific resource type.
 // nolint: nonamedreturns
-func ResolveAuthorizedResourceIDsInt64(
-	scope AuthorizedScope, requestedIDs []int64, resourceType types.AuthResourceType,
-) (narrowedIDs []int64, scopeIsAny bool, hasAuthorized bool, err error) {
+func ResolveAuthorizedResourceIDsInt64(scope AuthorizedScope, requestedIDs []int64, resourceType types.AuthResourceType) (
+	narrowedIDs []int64, scopeIsAny bool, err error) {
 
 	authorizedIDs := make([]int64, 0, len(scope.Resources))
 
@@ -52,22 +48,21 @@ func ResolveAuthorizedResourceIDsInt64(
 
 		id, convErr := conv.ToInt64(resource.ID)
 		if convErr != nil {
-			return nil, false, false, fmt.Errorf("auth: convert authorized resource id %q: %w", resource.ID, convErr)
+			return nil, false, fmt.Errorf("auth: convert authorized resource id %q: %w", resource.ID, convErr)
 		}
 		authorizedIDs = append(authorizedIDs, id)
 	}
 	authorizedIDs = conv.SliceUnique(authorizedIDs)
 
-	narrowedIDs, scopeIsAny, hasAuthorized = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
+	narrowedIDs = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
 
-	return narrowedIDs, scopeIsAny, hasAuthorized, nil
+	return narrowedIDs, scope.IsAny, nil
 }
 
 // ResolveAuthorizedResourceIDsString narrows requested IDs by authorized scope for a specific resource type.
 // nolint: nonamedreturns
-func ResolveAuthorizedResourceIDsString(
-	scope AuthorizedScope, requestedIDs []string, resourceType types.AuthResourceType,
-) (narrowedIDs []string, scopeIsAny bool, hasAuthorized bool, err error) {
+func ResolveAuthorizedResourceIDsString(scope AuthorizedScope, requestedIDs []string, resourceType types.AuthResourceType) (
+	narrowedIDs []string, scopeIsAny bool, err error) {
 
 	authorizedIDs := make([]string, 0, len(scope.Resources))
 
@@ -80,7 +75,7 @@ func ResolveAuthorizedResourceIDsString(
 	}
 	authorizedIDs = conv.SliceUnique(authorizedIDs)
 
-	narrowedIDs, scopeIsAny, hasAuthorized = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
+	narrowedIDs = resolveAuthorizedIDsResult(scope.IsAny, requestedIDs, authorizedIDs)
 
-	return narrowedIDs, scopeIsAny, hasAuthorized, nil
+	return narrowedIDs, scope.IsAny, nil
 }

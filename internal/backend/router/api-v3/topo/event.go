@@ -49,24 +49,16 @@ func narrowAuthorizedHistoryResourceIDs(
 		return nil, false, err
 	}
 
-	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(scope, requestedIDs, resourceType)
+	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(scope, requestedIDs, resourceType)
 	if err != nil {
 		return nil, false, err
-	}
-
-	if !hasAuthorized {
-		if checkErr := authorizer.Check(rCtx, action, nil); checkErr != nil {
-			return nil, false, checkErr
-		}
-
-		return nil, false, emptyScopeErr
 	}
 
 	if scopeIsAny {
 		return requestedIDs, true, nil
 	}
 
-	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+	if len(narrowedIDs) == 0 {
 		if checkErr := authorizer.Check(rCtx, action, buildResources(requestedIDs...)); checkErr != nil {
 			return nil, false, checkErr
 		}
