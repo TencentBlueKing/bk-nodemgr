@@ -23,6 +23,11 @@ func WithHostID(hostIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyHostID, hostIDs...)
 }
 
+// WithBizID filters by biz-id.
+func WithBizID(bizIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyBizID, bizIDs...)
+}
+
 // WithPluginName filters by name.
 func WithPluginName(pluginNames ...string) OptFn {
 	return base.WithValues(FieldKeyPluginName, pluginNames...)

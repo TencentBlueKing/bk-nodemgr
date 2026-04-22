@@ -28,6 +28,7 @@ var _ base.IData = &Process{}
 type Process struct {
 	TenantID      string `json:"tenant_id" bson:"tenant_id"`
 	HostID        int64  `json:"host_id" bson:"host_id"`
+	BizID         int64  `json:"biz_id" bson:"biz_id"`
 	Name          string `json:"name" bson:"name"`
 	Group         string `json:"group" bson:"group"`
 	PluginPkgName string `json:"plugin_pkg_name" bson:"plugin_pkg_name"`

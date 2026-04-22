@@ -239,6 +239,7 @@ func (controller ProcessController) Validate() error {
 type Process struct {
 	TenantID string
 	HostID   int64
+	BizID    int64
 
 	// PluginName is the name of plugin, no actually the process name.
 	PluginName string

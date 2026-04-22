@@ -74,6 +74,38 @@ func (s *Storage) updateProcessInfo(nCtx contextx.IContext, hostID int64, plugin
 }
 
 // nolint: nonamedreturns
+func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) (err error) {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(processInfoDeltas) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("process info map is empty"))
+	}
+
+	err = s.daoProcess.UpdateManyInfo(nCtx, processInfoDeltas)
+	if err != nil {
+		return fmt.Errorf("failed to batch update process info: %w", err)
+	}
+
+	return nil
+}
+
+// nolint: nonamedreturns
+func (s *Storage) updateProcessManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) (err error) {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	err = s.daoProcess.UpdateManyHostBizID(nCtx, bizID, hostID...)
+	if err != nil {
+		return fmt.Errorf("failed to update process biz id, host-id(%v): %w", hostID, err)
+	}
+
+	return nil
+}
+
+// nolint: nonamedreturns
 func (s *Storage) deleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) (err error) {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
@@ -109,45 +141,6 @@ func (s *Storage) listProcesses(nCtx contextx.IContext, page types.Page, conditi
 	return s.daoProcess.List(nCtx, page, opts...)
 }
 
-func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([]daoProcess.OptFn, error) {
-	opts := make([]daoProcess.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
-		}
-
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				daoProcess.WithHostID(condition.ExactInclude.HostID...),
-				daoProcess.WithGroup(condition.ExactInclude.PluginGroup...),
-				daoProcess.WithGeneration(condition.ExactInclude.NodeGeneration...),
-				daoProcess.WithPlatformOS(condition.ExactInclude.PlatformOS...),
-				daoProcess.WithPlatformArch(condition.ExactInclude.PlatformArch...),
-				daoProcess.WithInfoStatus(condition.ExactInclude.InfoStatus...),
-				daoProcess.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
-				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...),
-				daoProcess.WithPluginName(condition.ExactInclude.PluginName...),
-				daoProcess.WithPkgName(condition.ExactInclude.PluginPkgName...))
-		}
-
-		if condition.FuzzyInclude != nil {
-			opts = append(opts,
-				daoProcess.WithFuzzyName(condition.FuzzyInclude.Name...),
-				daoProcess.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...))
-		}
-
-		if condition.ExactExclude != nil {
-			return nil, errors.New("exact exclude is not supported")
-		}
-
-		if condition.FuzzyExclude != nil {
-			return nil, errors.New("fuzzy exclude is not supported")
-		}
-	}
-
-	return opts, nil
-}
-
 // nolint: nonamedreturns
 func (s *Storage) existProcess(nCtx contextx.IContext, hostID int64, pluginName string) (exist bool, err error) {
 	if nCtx == nil {
@@ -160,24 +153,6 @@ func (s *Storage) existProcess(nCtx contextx.IContext, hostID int64, pluginName 
 	}
 
 	return exist, nil
-}
-
-// nolint: nonamedreturns
-func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) (err error) {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
-	}
-
-	if len(processInfoDeltas) == 0 {
-		return base.ErrInvalidParam(fmt.Errorf("process info map is empty"))
-	}
-
-	err = s.daoProcess.UpdateManyInfo(nCtx, processInfoDeltas)
-	if err != nil {
-		return fmt.Errorf("failed to batch update process info: %w", err)
-	}
-
-	return nil
 }
 
 func (s *Storage) getProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
@@ -303,4 +278,44 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	}
 
 	return data, nil
+}
+
+func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([]daoProcess.OptFn, error) {
+	opts := make([]daoProcess.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				daoProcess.WithHostID(condition.ExactInclude.HostID...),
+				daoProcess.WithBizID(condition.ExactInclude.BizID...),
+				daoProcess.WithGroup(condition.ExactInclude.PluginGroup...),
+				daoProcess.WithGeneration(condition.ExactInclude.NodeGeneration...),
+				daoProcess.WithPlatformOS(condition.ExactInclude.PlatformOS...),
+				daoProcess.WithPlatformArch(condition.ExactInclude.PlatformArch...),
+				daoProcess.WithInfoStatus(condition.ExactInclude.InfoStatus...),
+				daoProcess.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
+				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...),
+				daoProcess.WithPluginName(condition.ExactInclude.PluginName...),
+				daoProcess.WithPkgName(condition.ExactInclude.PluginPkgName...))
+		}
+
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				daoProcess.WithFuzzyName(condition.FuzzyInclude.Name...),
+				daoProcess.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...))
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }

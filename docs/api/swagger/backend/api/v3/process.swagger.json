@@ -205,6 +205,10 @@
         },
         "process_monitor_policy": {
           "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -546,6 +550,13 @@
       "type": "object",
       "properties": {
         "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_biz_id": {
           "type": "array",
           "items": {
             "type": "integer",

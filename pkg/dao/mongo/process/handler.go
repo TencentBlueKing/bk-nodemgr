@@ -59,6 +59,9 @@ type IUpdater interface {
 
 	// UpdateManyInfo batch update process info by process ID.
 	UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*types.ProcessInfoDelta) error
+
+	// UpdateManyHostBizID update process biz id for host ids.
+	UpdateManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error
 }
 
 // IDistribution process distribution interface.
@@ -146,69 +149,6 @@ func (h *Handler) Create(nCtx contextx.IContext, process *types.Process) error {
 	return nil
 }
 
-func convProcessFromTypes(process *types.Process) *Process {
-	data := &Process{
-		TenantID:      process.TenantID,
-		HostID:        process.HostID,
-		Name:          process.PluginName,
-		Group:         process.PluginGroup,
-		PluginPkgName: process.PluginPkgName,
-		Generation:    int64(process.Generation),
-		Platform:      convPlatformFromTypes(process.Platform),
-		Info:          convProcessInfoFromTypes(process.Info),
-		Identity:      convProcessIdentityFromTypes(process.Identity),
-		Controller: processController{
-			StartCmd:   process.Controller.StartCmd,
-			StopCmd:    process.Controller.StopCmd,
-			RestartCmd: process.Controller.RestartCmd,
-			ReloadCmd:  process.Controller.ReloadCmd,
-			KillCmd:    process.Controller.KillCmd,
-			VersionCmd: process.Controller.VersionCmd,
-			HealthCmd:  process.Controller.HealthCmd,
-		},
-		Resource: processResource{
-			CPULimitPercent: process.Resource.CPULimitPercent,
-			MemLimitPercent: process.Resource.MemLimitPercent,
-		},
-		MonitorPolicy: processMonitorPolicy{
-			RestartType:    string(process.MonitorPolicy.RestartType),
-			StartCheckSecs: process.MonitorPolicy.StartCheckSecs,
-			StopCheckSecs:  process.MonitorPolicy.StopCheckSecs,
-			OpTimeoutSecs:  process.MonitorPolicy.OpTimeoutSecs,
-		},
-	}
-
-	return data
-}
-
-func convProcessInfoFromTypes(info types.ProcessInfo) processInfo {
-	return processInfo{
-		Pid:         info.Pid,
-		Version:     info.Version,
-		AgentID:     info.AgentID,
-		Trusteeship: info.AutoStart,
-		Status:      string(info.Status),
-	}
-}
-
-func convProcessIdentityFromTypes(identity types.ProcessIdentity) processIdentity {
-	return processIdentity{
-		Name:       identity.Name,
-		SetupPath:  identity.SetupPath,
-		PidPath:    identity.PidPath,
-		ConfigPath: identity.ConfigPath,
-		LogPath:    identity.LogPath,
-		User:       identity.User,
-	}
-}
-
-func convPlatformFromTypes(p platfmt.Platform) platform {
-	return platform{
-		OS:   string(p.OS),
-		Arch: string(p.Arch),
-	}
-}
-
 // Count count host by conditions.
 func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -273,56 +213,53 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, er
 	return convertProcessToTypes(data), nil
 }
 
-func convertProcessToTypes(data *Process) *types.Process {
-	process := &types.Process{
-		TenantID:      data.TenantID,
-		HostID:        data.HostID,
-		PluginName:    data.Name,
-		PluginPkgName: data.PluginPkgName,
-		PluginGroup:   data.Group,
-		Platform: platfmt.Platform{
-			OS:   criteria.OSType(data.Platform.OS),
-			Arch: criteria.CPUArch(data.Platform.Arch),
-		},
-		Generation: types.Generation(data.Generation),
-		Info: types.ProcessInfo{
-			Pid:       data.Info.Pid,
-			Version:   data.Info.Version,
-			AgentID:   data.Info.AgentID,
-			AutoStart: data.Info.Trusteeship,
-			Status:    types.ProcessStatus(data.Info.Status),
-		},
-		Identity: types.ProcessIdentity{
+// Update update process.
+func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %v", err)
+	}
 
-			Name:       data.Identity.Name,
-			SetupPath:  data.Identity.SetupPath,
-			PidPath:    data.Identity.PidPath,
-			ConfigPath: data.Identity.ConfigPath,
-			LogPath:    data.Identity.LogPath,
-			User:       data.Identity.User,
-		},
-		Controller: types.ProcessController{
-			StartCmd:   data.Controller.StartCmd,
-			StopCmd:    data.Controller.StopCmd,
-			RestartCmd: data.Controller.RestartCmd,
-			ReloadCmd:  data.Controller.ReloadCmd,
-			KillCmd:    data.Controller.KillCmd,
-			VersionCmd: data.Controller.VersionCmd,
-			HealthCmd:  data.Controller.HealthCmd,
-		},
-		Resource: types.ProcessResource{
-			CPULimitPercent: data.Resource.CPULimitPercent,
-			MemLimitPercent: data.Resource.MemLimitPercent,
-		},
-		MonitorPolicy: types.ProcessMonitorPolicy{
-			RestartType:    types.ProcessRestartType(data.MonitorPolicy.RestartType),
-			StartCheckSecs: data.MonitorPolicy.StartCheckSecs,
-			StopCheckSecs:  data.MonitorPolicy.StopCheckSecs,
-			OpTimeoutSecs:  data.MonitorPolicy.OpTimeoutSecs,
+	if process == nil {
+		return fmt.Errorf("process is nil")
+	}
+
+	filter := base.AliveFilter()
+	opts := []base.OptFn{
+		WithHostID(hostID),
+		WithPluginName(pluginName),
+	}
+
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	data := convProcessFromTypes(process)
+
+	updates := []*base.DocumentFieldUpdate{
+		{
+			Filter: filter,
+			Fields: map[string]any{
+				FieldKeyHostID:        data.HostID,
+				FieldKeyBizID:         data.BizID,
+				FieldKeyPluginName:    data.Name,
+				FieldKeyGroup:         data.Group,
+				FieldKeyPkgName:       data.PluginPkgName,
+				FieldKeyGeneration:    data.Generation,
+				FieldKeyPlatform:      data.Platform,
+				FieldKeyInfo:          data.Info,
+				FieldKeyIdentity:      data.Identity,
+				FieldKeyController:    data.Controller,
+				FieldKeyResource:      data.Resource,
+				FieldKeyMonitorPolicy: data.MonitorPolicy,
+			},
 		},
 	}
 
-	return process
+	if err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, updates); err != nil {
+		return fmt.Errorf("failed to update process: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateInfo update process info.
@@ -386,6 +323,29 @@ func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*t
 	return nil
 }
 
+// UpdateManyHostBizID update process biz id for host ids.
+func (h *Handler) UpdateManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %w", err)
+	}
+
+	if len(hostID) == 0 {
+		return nil
+	}
+
+	filter := base.AliveFilter()
+	filter = WithHostID(hostID...)(filter)
+
+	err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyBizID, bizID)
+	if err != nil {
+		logger.G.Sys().With("host-id", hostID).With("biz-id", bizID).WithErr(err).Error("failed to update process biz id")
+
+		return fmt.Errorf("failed to update process biz id, host-id(%v): %w", hostID, err)
+	}
+
+	return nil
+}
+
 // Delete delete process.
 func (h *Handler) Delete(nCtx contextx.IContext, hostID int64, pluginName string) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -434,54 +394,6 @@ func (h *Handler) Exist(nCtx contextx.IContext, hostID int64, pluginName string)
 	}
 
 	return exist, nil
-}
-
-// Update update process.
-func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return fmt.Errorf("failed to check tenant id: %v", err)
-	}
-
-	if process == nil {
-		return fmt.Errorf("process is nil")
-	}
-
-	filter := base.AliveFilter()
-	opts := []base.OptFn{
-		WithHostID(hostID),
-		WithPluginName(pluginName),
-	}
-
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
-	data := convProcessFromTypes(process)
-
-	updates := []*base.DocumentFieldUpdate{
-		{
-			Filter: filter,
-			Fields: map[string]any{
-				FieldKeyHostID:        data.HostID,
-				FieldKeyPluginName:    data.Name,
-				FieldKeyGroup:         data.Group,
-				FieldKeyPkgName:       data.PluginPkgName,
-				FieldKeyGeneration:    data.Generation,
-				FieldKeyPlatform:      data.Platform,
-				FieldKeyInfo:          data.Info,
-				FieldKeyIdentity:      data.Identity,
-				FieldKeyController:    data.Controller,
-				FieldKeyResource:      data.Resource,
-				FieldKeyMonitorPolicy: data.MonitorPolicy,
-			},
-		},
-	}
-
-	if err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, updates); err != nil {
-		return fmt.Errorf("failed to update process: %v", err)
-	}
-
-	return nil
 }
 
 // GetProcessDistributionByHostID gets the process distribution by host id.
@@ -691,4 +603,121 @@ func (h *Handler) DistinctPlatformOS(nCtx contextx.IContext, opts ...OptFn) ([]c
 	}
 
 	return osList, nil
+}
+
+func convertProcessToTypes(data *Process) *types.Process {
+	process := &types.Process{
+		TenantID:      data.TenantID,
+		HostID:        data.HostID,
+		BizID:         data.BizID,
+		PluginName:    data.Name,
+		PluginPkgName: data.PluginPkgName,
+		PluginGroup:   data.Group,
+		Platform: platfmt.Platform{
+			OS:   criteria.OSType(data.Platform.OS),
+			Arch: criteria.CPUArch(data.Platform.Arch),
+		},
+		Generation: types.Generation(data.Generation),
+		Info: types.ProcessInfo{
+			Pid:       data.Info.Pid,
+			Version:   data.Info.Version,
+			AgentID:   data.Info.AgentID,
+			AutoStart: data.Info.Trusteeship,
+			Status:    types.ProcessStatus(data.Info.Status),
+		},
+		Identity: types.ProcessIdentity{
+
+			Name:       data.Identity.Name,
+			SetupPath:  data.Identity.SetupPath,
+			PidPath:    data.Identity.PidPath,
+			ConfigPath: data.Identity.ConfigPath,
+			LogPath:    data.Identity.LogPath,
+			User:       data.Identity.User,
+		},
+		Controller: types.ProcessController{
+			StartCmd:   data.Controller.StartCmd,
+			StopCmd:    data.Controller.StopCmd,
+			RestartCmd: data.Controller.RestartCmd,
+			ReloadCmd:  data.Controller.ReloadCmd,
+			KillCmd:    data.Controller.KillCmd,
+			VersionCmd: data.Controller.VersionCmd,
+			HealthCmd:  data.Controller.HealthCmd,
+		},
+		Resource: types.ProcessResource{
+			CPULimitPercent: data.Resource.CPULimitPercent,
+			MemLimitPercent: data.Resource.MemLimitPercent,
+		},
+		MonitorPolicy: types.ProcessMonitorPolicy{
+			RestartType:    types.ProcessRestartType(data.MonitorPolicy.RestartType),
+			StartCheckSecs: data.MonitorPolicy.StartCheckSecs,
+			StopCheckSecs:  data.MonitorPolicy.StopCheckSecs,
+			OpTimeoutSecs:  data.MonitorPolicy.OpTimeoutSecs,
+		},
+	}
+
+	return process
+}
+
+func convProcessFromTypes(process *types.Process) *Process {
+	data := &Process{
+		TenantID:      process.TenantID,
+		HostID:        process.HostID,
+		BizID:         process.BizID,
+		Name:          process.PluginName,
+		Group:         process.PluginGroup,
+		PluginPkgName: process.PluginPkgName,
+		Generation:    int64(process.Generation),
+		Platform:      convPlatformFromTypes(process.Platform),
+		Info:          convProcessInfoFromTypes(process.Info),
+		Identity:      convProcessIdentityFromTypes(process.Identity),
+		Controller: processController{
+			StartCmd:   process.Controller.StartCmd,
+			StopCmd:    process.Controller.StopCmd,
+			RestartCmd: process.Controller.RestartCmd,
+			ReloadCmd:  process.Controller.ReloadCmd,
+			KillCmd:    process.Controller.KillCmd,
+			VersionCmd: process.Controller.VersionCmd,
+			HealthCmd:  process.Controller.HealthCmd,
+		},
+		Resource: processResource{
+			CPULimitPercent: process.Resource.CPULimitPercent,
+			MemLimitPercent: process.Resource.MemLimitPercent,
+		},
+		MonitorPolicy: processMonitorPolicy{
+			RestartType:    string(process.MonitorPolicy.RestartType),
+			StartCheckSecs: process.MonitorPolicy.StartCheckSecs,
+			StopCheckSecs:  process.MonitorPolicy.StopCheckSecs,
+			OpTimeoutSecs:  process.MonitorPolicy.OpTimeoutSecs,
+		},
+	}
+
+	return data
+}
+
+func convProcessInfoFromTypes(info types.ProcessInfo) processInfo {
+	return processInfo{
+		Pid:         info.Pid,
+		Version:     info.Version,
+		AgentID:     info.AgentID,
+		Trusteeship: info.AutoStart,
+		Status:      string(info.Status),
+	}
+}
+
+func convProcessIdentityFromTypes(identity types.ProcessIdentity) processIdentity {
+	return processIdentity{
+		Name:       identity.Name,
+		SetupPath:  identity.SetupPath,
+		PidPath:    identity.PidPath,
+		ConfigPath: identity.ConfigPath,
+		LogPath:    identity.LogPath,
+		User:       identity.User,
+	}
+}
+
+func convPlatformFromTypes(p platfmt.Platform) platform {
+	return platform{
+		OS:   string(p.OS),
+		Arch: string(p.Arch),
+	}
 }

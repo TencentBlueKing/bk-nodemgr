@@ -15,6 +15,7 @@ import (
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -31,8 +32,9 @@ const (
 // NewActionSyncHost creates a new actionSyncHost.
 func NewActionSyncHost(capability *Capability) action.Definition {
 	return &actionSyncHost{
-		cmdbHandler: capability.CMDBHandler,
-		storageHost: capability.StorageTopo,
+		cmdbHandler:    capability.CMDBHandler,
+		storageHost:    capability.StorageTopo,
+		storageProcess: capability.StoragePlugin,
 	}
 }
 
@@ -44,8 +46,9 @@ type ActionParamSyncHost struct {
 }
 
 type actionSyncHost struct {
-	cmdbHandler cmdb.IHandler
-	storageHost topoStg.IStorageHost
+	cmdbHandler    cmdb.IHandler
+	storageHost    topoStg.IStorageHost
+	storageProcess pluginStg.IDaoProcess
 }
 
 // Name returns the name of the action.
@@ -154,6 +157,10 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	if err := act.tryUpdateHostProcessBizID(std, param.BizID, cmdbData...); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -195,6 +202,28 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 	}
 
 	return updateHosts, insertHosts, deleteHostIDs, nil
+}
+
+func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64, cmdbData ...*types.Host) error {
+	hostIDs := conv.SliceToSlice(cmdbData, func(host *types.Host) int64 {
+		return host.HostID
+	})
+
+	if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), bizID, hostIDs...); err != nil {
+		std.InstanceData().Log().
+			Zh("更新主机关联的进程业务ID失败，主机ID列表: %v, 错误: %v", hostIDs, err).
+			En("failed to update process bizID related to hosts, hostIDs: %v, error: %v", hostIDs, err).
+			Error()
+
+		return err
+	}
+
+	std.InstanceData().Log().
+		Zh("成功更新主机关联的进程业务ID，主机ID列表: %v", hostIDs).
+		En("successfully updated process bizID related to hosts, hostIDs: %v", hostIDs).
+		Info()
+
+	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.

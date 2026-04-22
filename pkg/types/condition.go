@@ -717,6 +717,7 @@ type ConfigPolicyCondition struct {
 // support includes and excludes.
 type ProcessExactFields struct {
 	HostID         []int64
+	BizID          []int64
 	PluginGroup    []string
 	NodeGeneration []string
 	PlatformOS     []string

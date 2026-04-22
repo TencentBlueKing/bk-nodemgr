@@ -10,6 +10,7 @@ import "google/api/annotations.proto";
 // query.
 message ProcessExactConditions {
   repeated int64 bk_host_id = 1;
+  repeated int64 bk_biz_id = 2;
   repeated string plugin_group = 3;
   repeated string node_generation = 4;
   repeated string platform_os = 5;

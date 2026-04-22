@@ -41,6 +41,7 @@ func convertProcessConditionsToTypes(
 	if exactCond != nil {
 		condition.ExactInclude = &types.ProcessExactFields{
 			HostID:         exactCond.GetBkHostId(),
+			BizID:          exactCond.GetBkBizId(),
 			PluginGroup:    exactCond.GetPluginGroup(),
 			NodeGeneration: exactCond.GetNodeGeneration(),
 			PlatformOS:     exactCond.GetPlatformOs(),
@@ -108,6 +109,7 @@ func convFuzzyConditionsFromTypes(condition *types.ProcessCondition) *ProcessFuz
 func convExactIncludeConditionsFromTypes(condition *types.ProcessCondition) *ProcessExactConditions {
 	return &ProcessExactConditions{
 		BkHostId:       condition.ExactInclude.HostID,
+		BkBizId:        condition.ExactInclude.BizID,
 		PluginGroup:    condition.ExactInclude.PluginGroup,
 		NodeGeneration: condition.ExactInclude.NodeGeneration,
 		PlatformOs:     condition.ExactInclude.PlatformOS,
@@ -129,6 +131,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 		item := newEmptyProcess()
 		*item.TenantId = proc.TenantID
 		*item.BkHostId = proc.HostID
+		*item.BkBizId = proc.BizID
 		*item.PluginName = proc.PluginName
 		*item.PluginPkgName = proc.PluginPkgName
 		*item.PluginGroup = proc.PluginGroup
@@ -173,6 +176,7 @@ func newEmptyProcess() *ProcessListResp_Process {
 	return &ProcessListResp_Process{
 		TenantId:      new(string),
 		BkHostId:      new(int64),
+		BkBizId:       new(int64),
 		PluginName:    new(string),
 		PluginPkgName: new(string),
 		PluginGroup:   new(string),
@@ -227,6 +231,7 @@ func (x *ProcessListResp) ConvertProcessToTypes() ([]*types.Process, int64) {
 		item := &types.Process{
 			TenantID:      proc.GetTenantId(),
 			HostID:        proc.GetBkHostId(),
+			BizID:         proc.GetBkBizId(),
 			PluginName:    proc.GetPluginName(),
 			PluginPkgName: proc.GetPluginPkgName(),
 			PluginGroup:   proc.GetPluginGroup(),

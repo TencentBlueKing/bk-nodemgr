@@ -127,14 +127,17 @@ type IDaoProcess interface {
 	// UpdateProcessInfo update process.
 	UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
 
+	// UpdateManyProcessInfo batch update process info by process ID.
+	UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
+
+	// UpdateProcessManyHostBizID update process biz id for many host.
+	UpdateProcessManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error
+
 	// DeleteProcess delete process.
 	DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) error
 
 	// ExistProcess exist process.
 	ExistProcess(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
-
-	// UpdateManyProcessInfo batch update process info by process ID.
-	UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
 
 	// GetProcess get process by host id and plugin name.
 	GetProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error)

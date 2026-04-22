@@ -14,6 +14,9 @@ const (
 	// FieldKeyHostID the host id field key.
 	FieldKeyHostID = "data.host_id"
 
+	// FieldKeyBizID the biz id field key.
+	FieldKeyBizID = "data.biz_id"
+
 	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
 

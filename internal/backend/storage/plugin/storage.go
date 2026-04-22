@@ -45,50 +45,55 @@ const (
 	schedulerTaskMonitorWorkflowStatus    = "monitor_plugin_workflow_status"
 	recentMonitoredTime                   = 5 * time.Minute
 
-	metricOperationListPluginDeployment                              = "list_plugin_deployment"
-	metricOperationGetPluginWorkflowStatus                           = "get_plugin_workflow_status"
-	metricOperationCountPluginWorkflow                               = "count_plugin_workflow"
-	metricOperationListPluginWorkflow                                = "list_plugin_workflow"
-	metricOperationCountProcess                                      = "count_process"
-	metricOperationListProcess                                       = "list_process"
-	metricOperationGetProcessDistributionByHostID                    = "get_process_distribution_by_host_id"
-	metricOperationGetProcessDistributionByPluginName                = "get_process_distribution_by_plugin_name"
-	metricOperationDistinctProcess                                   = "distinct_process"
-	metricOperationCreateProcess                                     = "create_process"
-	metricOperationUpdateProcess                                     = "update_process"
-	metricOperationUpdateProcessInfo                                 = "update_process_info"
-	metricOperationDeleteProcess                                     = "delete_process"
-	metricOperationExistProcess                                      = "exist_process"
-	metricOperationUpdateManyProcessInfo                             = "update_many_process_info"
-	metricOperationGetProcess                                        = "get_process"
-	metricOperationGetPluginWorkflow                                 = "get_plugin_workflow"
-	metricOperationCreatePluginWorkflow                              = "create_plugin_workflow"
-	metricOperationUpdatePluginWorkflowStatus                        = "update_plugin_workflow_status"
-	metricOperationDistinctPluginWorkflow                            = "distinct_plugin_workflow"
-	metricOperationGetPlugin                                         = "get_plugin"
-	metricOperationCountPlugins                                      = "count_plugins"
-	metricOperationListPlugins                                       = "list_plugins"
-	metricOperationExistPluginByPluginName                           = "exist_plugin_by_plugin_name"
-	metricOperationExistDefaultPluginByPluginPkgName                 = "exist_default_plugin_by_plugin_pkg_name"
-	metricOperationSetPluginMemo                                     = "set_plugin_memo"
-	metricOperationCreatePlugin                                      = "create_plugin"
 	metricOperationGetPluginDeploymentInfo                           = "get_plugin_deployment_info"
 	metricOperationCreatePluginDeployment                            = "create_plugin_deployment"
+	metricOperationListPluginDeployment                              = "list_plugin_deployment"
 	metricOperationUpdatePluginDeploymentInfo                        = "update_plugin_deployment_info"
 	metricOperationGetPluginDeploymentPluginConf                     = "get_plugin_deployment_plugin_conf"
 	metricOperationUpdatePluginDeploymentPluginConf                  = "update_plugin_deployment_plugin_conf"
 	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail    = "get_plugin_deployment_plugin_conf_config_files_detail"
 	metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail = "upsert_plugin_deployment_plugin_conf_config_files_detail"
-	metricOperationUpsertManyPlugins                                 = "upsert_many_plugins"
-	metricOperationGetPluginVisibleBizIDs                            = "get_plugin_visible_biz_ids"
-	metricOperationListVisiblePluginByBizIDs                         = "list_visible_plugin_by_biz_ids"
-	metricOperationGetProcessConfig                                  = "get_process_config"
-	metricOperationCreateProcessConfig                               = "create_process_config"
-	metricOperationUpsertManyProcessConfigs                          = "upsert_many_process_configs"
-	metricOperationDeleteProcessConfigsByProcessUniqueKey            = "delete_process_configs_by_process_unique_key"
-	metricOperationDeleteProcessConfigs                              = "delete_process_configs"
-	metricOperationListProcessConfig                                 = "list_process_config"
-	metricOperationCountProcessConfig                                = "count_process_config"
+
+	metricOperationGetPluginWorkflow          = "get_plugin_workflow"
+	metricOperationGetPluginWorkflowStatus    = "get_plugin_workflow_status"
+	metricOperationCreatePluginWorkflow       = "create_plugin_workflow"
+	metricOperationUpdatePluginWorkflowStatus = "update_plugin_workflow_status"
+	metricOperationCountPluginWorkflow        = "count_plugin_workflow"
+	metricOperationListPluginWorkflow         = "list_plugin_workflow"
+	metricOperationDistinctPluginWorkflow     = "distinct_plugin_workflow"
+
+	metricOperationGetPlugin                         = "get_plugin"
+	metricOperationCountPlugins                      = "count_plugins"
+	metricOperationListPlugins                       = "list_plugins"
+	metricOperationExistPluginByPluginName           = "exist_plugin_by_plugin_name"
+	metricOperationExistDefaultPluginByPluginPkgName = "exist_default_plugin_by_plugin_pkg_name"
+	metricOperationSetPluginMemo                     = "set_plugin_memo"
+	metricOperationCreatePlugin                      = "create_plugin"
+	metricOperationUpsertManyPlugins                 = "upsert_many_plugins"
+	metricOperationGetPluginVisibleBizIDs            = "get_plugin_visible_biz_ids"
+	metricOperationListVisiblePluginByBizIDs         = "list_visible_plugin_by_biz_ids"
+
+	metricOperationCountProcess                       = "count_process"
+	metricOperationListProcess                        = "list_process"
+	metricOperationCreateProcess                      = "create_process"
+	metricOperationUpdateProcess                      = "update_process"
+	metricOperationUpdateProcessInfo                  = "update_process_info"
+	metricOperationUpdateManyProcessInfo              = "update_many_process_info"
+	metricOperationUpdateProcessBizID                 = "update_process_biz_id"
+	metricOperationDeleteProcess                      = "delete_process"
+	metricOperationExistProcess                       = "exist_process"
+	metricOperationGetProcess                         = "get_process"
+	metricOperationGetProcessDistributionByHostID     = "get_process_distribution_by_host_id"
+	metricOperationGetProcessDistributionByPluginName = "get_process_distribution_by_plugin_name"
+	metricOperationDistinctProcess                    = "distinct_process"
+
+	metricOperationGetProcessConfig                       = "get_process_config"
+	metricOperationCreateProcessConfig                    = "create_process_config"
+	metricOperationUpsertManyProcessConfigs               = "upsert_many_process_configs"
+	metricOperationDeleteProcessConfigsByProcessUniqueKey = "delete_process_configs_by_process_unique_key"
+	metricOperationDeleteProcessConfigs                   = "delete_process_configs"
+	metricOperationListProcessConfig                      = "list_process_config"
+	metricOperationCountProcessConfig                     = "count_process_config"
 )
 
 // NewStorage ...
@@ -916,6 +921,38 @@ func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, plugin
 	return err
 }
 
+// UpdateManyProcessInfo batch update process info by process ID.
+func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationUpdateManyProcessInfo, func(nCtx contextx.IContext) error {
+		var err error
+		err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
+
+		return err
+	})
+
+	return err
+}
+
+// UpdateProcessManyHostBizID update process biz id for many host.
+func (s *Storage) UpdateProcessManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationUpdateProcessBizID, func(nCtx contextx.IContext) error {
+		var err error
+		err = s.updateProcessManyHostBizID(nCtx, bizID, hostID...)
+
+		return err
+	})
+
+	return err
+}
+
 // DeleteProcess delete process.
 func (s *Storage) DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) error {
 	var (
@@ -947,22 +984,6 @@ func (s *Storage) ExistProcess(nCtx contextx.IContext, hostID int64, pluginName 
 	})
 
 	return exist, err
-}
-
-// UpdateManyProcessInfo batch update process info by process ID.
-func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error {
-	var (
-		err error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationUpdateManyProcessInfo, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
-
-		return err
-	})
-
-	return err
 }
 
 // GetProcess get process.

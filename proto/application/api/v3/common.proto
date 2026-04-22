@@ -436,6 +436,7 @@ message Process {
   optional ProcessController process_controller = 10;
   optional ProcessResource process_resource = 11;
   optional ProcessMonitorPolicy process_monitor_policy = 12;
+  optional int64 bk_biz_id = 13;
 }
 
 message Plugin {

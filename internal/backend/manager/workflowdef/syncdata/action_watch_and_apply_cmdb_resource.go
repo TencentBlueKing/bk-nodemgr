@@ -17,6 +17,7 @@ import (
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
@@ -39,9 +40,10 @@ const (
 // NewActionWatchCMDBResource creates a new action to watch CMDB resource changes.
 func NewActionWatchCMDBResource(capability *Capability) action.Definition {
 	return &actionWatchAndApplyCMDBResource{
-		cache:       capability.Cache,
-		cmdbHandler: capability.CMDBHandler,
-		storageTopo: capability.StorageTopo,
+		cache:          capability.Cache,
+		cmdbHandler:    capability.CMDBHandler,
+		storageTopo:    capability.StorageTopo,
+		storageProcess: capability.StoragePlugin,
 	}
 }
 
@@ -52,9 +54,10 @@ type ActionParamWatchAndApplyCMDBResource struct {
 
 // actionWatchAndApplyCMDBResource implements the action.Definition interface.
 type actionWatchAndApplyCMDBResource struct {
-	cache       cache.ICache
-	cmdbHandler cmdb.IHandler
-	storageTopo topoStg.IStorage
+	cache          cache.ICache
+	cmdbHandler    cmdb.IHandler
+	storageTopo    topoStg.IStorage
+	storageProcess pluginStg.IDaoProcess
 
 	pendingProcessEvents *safequeue.SafeQueue[*types.HostEvent]
 	waitingCreateHostMap map[int64]*types.Host
@@ -285,6 +288,15 @@ func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtil
 			std.InstanceData().Log().
 				Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 				En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
+		}
+
+		if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), event.Detail.Static.BizID, event.Detail.HostID); err != nil {
+			std.InstanceData().Log().
+				Zh("更新主机相关进程的业务id失败, 主机id: %d, biz id: %d, 错误: %v", event.Detail.HostID, event.Detail.Static.BizID, err).
+				En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v", event.Detail.HostID, event.Detail.Static.BizID, err).
 				Error()
 
 			return
