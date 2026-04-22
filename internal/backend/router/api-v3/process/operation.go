@@ -27,12 +27,16 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	condition := req.ConvertConditionsToTypes()
-	narrowedPluginName, scopeIsAny, authErr := h.narrowAuthorizedPluginNamesForView(rCtx)
+	var bizIDs []int64
+	if condition != nil && condition.ExactInclude != nil {
+		bizIDs = condition.ExactInclude.BizID
+	}
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForProcessView(rCtx, bizIDs)
 	if authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to list processes, permission denied")
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
-	condition = narrowProcessCondition(condition, narrowedPluginName, scopeIsAny)
+	condition = narrowProcessCondition(condition, narrowedBizIDs, scopeIsAny)
 
 	if req.GetOnlyCount() {
 		cnt, err := h.daoProcess.CountProcesses(

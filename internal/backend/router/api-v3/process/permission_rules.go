@@ -15,6 +15,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -24,14 +25,16 @@ var (
 	errBizViewDeniedByEmptyScope = errors.New("no authorized businesses")
 )
 
-func (h *handler) narrowAuthorizedPluginNamesForView(rCtx restserver.IContext) ([]string, bool, error) {
+// Only authenticate the business. Even if the condition parameter carries a plugin_name that does not belong to this business,
+// the business restriction will prevent querying process information outside the scope of the business.
+func (h *handler) narrowAuthorizedBizIDsForProcessView(rCtx restserver.IContext, requestedIDs []int64) ([]int64, bool, error) {
 	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginView, types.AuthResourceTypeBiz)
 	if err != nil {
 		return nil, false, err
 	}
 
 	narrowedIDs, scopeIsAny, hasAuthorized, err := auth.ResolveAuthorizedResourceIDsInt64(
-		scope, nil, types.AuthResourceTypeBiz,
+		scope, requestedIDs, types.AuthResourceTypeBiz,
 	)
 	if err != nil {
 		return nil, false, err
@@ -46,22 +49,19 @@ func (h *handler) narrowAuthorizedPluginNamesForView(rCtx restserver.IContext) (
 	}
 
 	if scopeIsAny {
-		return nil, true, nil
+		return requestedIDs, true, nil
 	}
 
-	authorizedPlugin, err := h.domainProcess.ListVisiblePluginByBizIDs(rCtx, narrowedIDs)
-	if err != nil {
-		return nil, false, err
+	if len(requestedIDs) > 0 && len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginView, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
+			return nil, false, checkErr
+		}
 	}
 
-	pluginNames := conv.SliceToSlice(authorizedPlugin, func(item *types.Plugin) string {
-		return item.Name
-	})
-
-	return pluginNames, false, nil
+	return narrowedIDs, false, nil
 }
 
-func narrowProcessCondition(condition *types.ProcessCondition, pluginName []string, scopeIsAny bool) *types.ProcessCondition {
+func narrowProcessCondition(condition *types.ProcessCondition, requestedIDs []int64, scopeIsAny bool) *types.ProcessCondition {
 	if condition == nil {
 		condition = &types.ProcessCondition{}
 	}
@@ -72,11 +72,11 @@ func narrowProcessCondition(condition *types.ProcessCondition, pluginName []stri
 
 	if condition.ExactInclude == nil {
 		condition.ExactInclude = &types.ProcessExactFields{
-			PluginName: pluginName,
+			BizID: requestedIDs,
 		}
 	}
 
-	condition.ExactInclude.PluginName = conv.SliceIntersect(condition.ExactInclude.PluginName, pluginName)
+	condition.ExactInclude.BizID = conv.SliceIntersect(condition.ExactInclude.BizID, requestedIDs)
 
 	return condition
 }
