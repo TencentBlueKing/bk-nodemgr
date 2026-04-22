@@ -682,6 +682,7 @@ agentStrategy:
   loading: Loading...
   table:
     sort: Sort
+    priority: Priority
     configName: Config Name
     configId: Config ID
     version: Version

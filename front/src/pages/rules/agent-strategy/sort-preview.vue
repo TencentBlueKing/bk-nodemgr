@@ -45,6 +45,7 @@
           :data="sortedConfigs"
           :max-height="maxTableHeight"
           :row-config="{ drag: true }"
+          :row-drag-config="rowDragConfig"
           show-overflow-tooltip
           @row-dragend="handleDragEnd"
         >
@@ -54,8 +55,8 @@
             :min-width="200"
           >
             <template #default="{ row }">
-              <div class="flex items-center">
-                <Tag class="mr-[8px]">{{ sortedConfigs.indexOf(row) + 1 }}</Tag>
+              <div class="flex items-center" :class="{ 'opacity-50': !row.enabled }">
+                <Tag class="mr-[8px]">{{ row.enabled ? enabledIndexOf(row) + 1 : '-' }}</Tag>
                 <i :class="`nodeman-icon nc-${row.enabled ? 'success' : 'incomplete'} status-icon`"></i>
                 <span>{{ row.configpolicy_name }}</span>
               </div>
@@ -66,7 +67,11 @@
             drag-sort
             width="120"
             align="right"
-          ></TableColumn>
+          >
+            <template #default="{ row }">
+              <span v-if="!row.enabled" class="text-[12px] text-[#979BA5]">{{ t('agentStrategy.table.disabled') }}</span>
+            </template>
+          </TableColumn>
         </Table>
       </div>
 
@@ -242,12 +247,31 @@ const sortTableRef = ref<any>(null);
 const sortedConfigs = ref<ConfigPolicy[]>([]);
 const saveLoading = ref(false);
 
+const rowDragConfig = {
+  disabledMethod: ({ row }: { row: ConfigPolicy }) => !row.enabled,
+  visibleMethod: ({ row }: { row: ConfigPolicy }) => row.enabled,
+};
+
+const enabledIndexOf = (row: ConfigPolicy) => {
+  let idx = 0;
+  for (const item of sortedConfigs.value) {
+    if (!item.enabled) continue;
+    if (item === row) return idx;
+    idx++;
+  }
+  return -1;
+};
+
 const handleDragEnd = () => {
   // 从 table 内部获取拖拽后的最新排序数据，同步到 sortedConfigs
   const vxeInstance = sortTableRef.value?.getVxeTableInstance?.();
   if (vxeInstance) {
     sortedConfigs.value = vxeInstance.getTableData().fullData;
   }
+  // 保证未启用的始终在最下方
+  const enabled = sortedConfigs.value.filter(item => item.enabled);
+  const disabled = sortedConfigs.value.filter(item => !item.enabled);
+  sortedConfigs.value = [...enabled, ...disabled];
 };
 
 // IP选择器
@@ -472,7 +496,9 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve) => {
 watch(() => isShow.value, (val) => {
   if (val) {
     currentStep.value = 0;
-    sortedConfigs.value = [...props.configList];
+    const enabled = props.configList.filter(item => item.enabled);
+    const disabled = props.configList.filter(item => !item.enabled);
+    sortedConfigs.value = [...enabled, ...disabled];
     selectedHosts.value = [];
     previewData.value = [];
     ipSelectorValue.value = {

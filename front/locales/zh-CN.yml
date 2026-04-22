@@ -682,6 +682,7 @@ agentStrategy:
   loading: 数据加载中
   table:
     sort: 排序
+    priority: 优先级
     configName: 配置名称
     configId: 配置ID
     version: 版本

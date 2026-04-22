@@ -64,6 +64,19 @@
         @page-value-change="pageValueChange"
       >
         <TableColumn
+          field="priority"
+          :title="$t('agentStrategy.table.priority')"
+          :min-width="80"
+          fixed="left"
+        >
+          <template #default="{ row }">
+            <Tag v-if="row.enabled" class="priority-tag">
+              {{ enabledPriorityIndex(row) + 1 }}
+            </Tag>
+            <span v-else>-</span>
+          </template>
+        </TableColumn>
+        <TableColumn
           field="configpolicy_name"
           :title="$t('agentStrategy.table.configName')"
           :min-width="150"
@@ -294,6 +307,13 @@ const maxHeight = computed(() => mainStore.windowInnerHeight - 255 - (mainStore.
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
 const loading = ref(false);
+
+// Priority: discrete index among enabled rows (0-based), theme by rank
+const enabledRows = computed(() => tableData.value.filter(row => row.enabled));
+const enabledPriorityIndex = (row: ConfigPolicy) => {
+  const idx = enabledRows.value.indexOf(row);
+  return idx >= 0 ? idx : -1;
+};
 const active = ref('');
 const panels = computed(() => [
   { name: 'configStrategy', label: t('agentStrategy.configStrategy') },
@@ -306,6 +326,7 @@ const sidesliderMode = ref<'create' | 'edit'>('create');
 const currentEditConfig = ref<ConfigPolicy | null>(null);// 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
+    'priority',
     'configpolicy_name',
     'version',
     'biz_name ',
@@ -516,5 +537,12 @@ watch([
 <style lang="postcss">
 .unAuthorized {
   color: #C4C6CC !important;
+}
+.priority-tag {
+  min-width: 28px;
+  text-align: center;
+  background: #E1ECFF !important;
+  color: #699DF4 !important;
+  border-color: #E1ECFF !important;
 }
 </style>
