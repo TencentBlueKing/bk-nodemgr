@@ -112,29 +112,27 @@ const columns = computed(() => [
 ]);
 
 function handleApply() {
-  if (applyUrl.value) {
-    const newWindow = window.open(applyUrl.value, '_blank', 'noopener,noreferrer');
-    if (newWindow) {
-      // 打开成功：关闭权限弹窗，弹出刷新提醒
-      permissionStore.hideDialog();
-      InfoBox({
-        title: t('components.permission.refreshReminder.title'),
-        subTitle: t('components.permission.refreshReminder.content'),
-        confirmText: t('components.permission.refreshReminder.refresh'),
-        cancelText: t('components.permission.refreshReminder.close'),
-        onConfirm: () => {
-          window.location.reload();
-        },
-      });
-    } else {
-      // 弹窗被浏览器拦截：保留原权限弹窗，提示用户
-      Message({
-        theme: 'warning',
-        message: t('components.permission.popupBlocked'),
-        width: 562,
-      });
-    }
+  if (!applyUrl.value) return;
+  const newWindow = window.open(applyUrl.value, '_blank', 'noopener,noreferrer');
+  // 无论是否被浏览器拦截，统一关闭权限弹窗并弹出刷新提醒
+  // 拦截时额外用 Message 告知用户手动打开
+  permissionStore.hideDialog();
+  if (!newWindow) {
+    Message({
+      theme: 'warning',
+      message: t('components.permission.popupBlocked'),
+      width: 562,
+    });
   }
+  InfoBox({
+    title: t('components.permission.refreshReminder.title'),
+    subTitle: t('components.permission.refreshReminder.content'),
+    confirmText: t('components.permission.refreshReminder.refresh'),
+    cancelText: t('components.permission.refreshReminder.close'),
+    onConfirm: () => {
+      window.location.reload();
+    },
+  });
 }
 </script>
 
