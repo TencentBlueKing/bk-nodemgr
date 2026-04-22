@@ -166,9 +166,23 @@
           <Button class="mr-[8px] w-[88px]" @click="handlePrevStep">
             {{ t('agentStrategy.preview.prevStep') }}
           </Button>
-          <Button theme="primary" class="mr-[8px] w-[88px]" :loading="saveLoading" @click="handleSaveSort">
-            {{ t('agentStrategy.preview.saveSort') }}
-          </Button>
+          <span
+            v-bk-tooltips="{
+              content: t('agentStrategy.preview.noSortData'),
+              disabled: hasEnabledConfigs,
+            }"
+            class="mr-[8px] inline-block"
+          >
+            <Button
+              theme="primary"
+              class="w-[88px]"
+              :loading="saveLoading"
+              :disabled="!hasEnabledConfigs"
+              @click="handleSaveSort"
+            >
+              {{ t('agentStrategy.preview.saveSort') }}
+            </Button>
+          </span>
           <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
         </template>
       </div>
@@ -246,6 +260,8 @@ const maxTableHeight = 500;
 const sortTableRef = ref<any>(null);
 const sortedConfigs = ref<ConfigPolicy[]>([]);
 const saveLoading = ref(false);
+// 是否存在启用的策略（保存排序按钮仅在有启用项时可用）
+const hasEnabledConfigs = computed(() => sortedConfigs.value.some(item => item.enabled));
 
 const rowDragConfig = {
   disabledMethod: ({ row }: { row: ConfigPolicy }) => !row.enabled,
