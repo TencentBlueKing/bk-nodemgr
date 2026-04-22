@@ -725,6 +725,9 @@ const getParams = () => {
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
       type: typeListMap[active.value],
+      // 按 Tab 维度过滤节点角色：agent Tab 只看 agent 任务，proxy Tab 只看 proxy 任务
+      // plugin Tab 走 PluginWorkflow 系列接口，不受此字段影响
+      ...(isNode.value ? { node_role: [active.value] } : {}),
     },
     operate_time_range: {
       start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
@@ -794,6 +797,7 @@ const getWorkflowDistinct = async () => {
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
       type: typeListMap[active.value],
+      ...(isNode.value ? { node_role: [active.value] } : {}),
     },
   };
   let res: any;

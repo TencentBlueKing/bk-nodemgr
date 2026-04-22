@@ -35,11 +35,14 @@
 import { Dialog, InfoBox, Message, Table } from 'bkui-vue';
 import { computed, h } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
 import type { PermissionAction } from '@/stores/permission';
 import { usePermissionStore } from '@/stores/permission';
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const permissionStore = usePermissionStore();
 
 const systemName = computed(() => permissionStore.data?.system_name ?? '');
@@ -125,6 +128,17 @@ function handleApply() {
     confirmText: t('components.permission.refreshReminder.refresh'),
     cancelText: t('components.permission.refreshReminder.close'),
     onConfirm: () => {
+      // 在 403 页面点"刷新"时，直接 reload 会一直停留在 403。
+      // 跳 403 时 router 已将原目标路由的 fullPath 写入 query.from，
+      // 这里用 replace 导航回去，beforeEach 会重新 verify 权限；
+      // 若用户已授权即可正常展示，未授权仍会拦截回 403（符合预期）。
+      if (route.name === '403') {
+        const from = route.query?.from;
+        if (typeof from === 'string' && from && from !== route.fullPath) {
+          router.replace(from);
+          return;
+        }
+      }
       window.location.reload();
     },
   });

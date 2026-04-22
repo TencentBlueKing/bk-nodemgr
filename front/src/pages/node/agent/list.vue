@@ -464,13 +464,7 @@ const {
   handleAuthClick,
 } = useAuthLock('agent_operate', () => mainStore.selectedBusinessId);
 
-// ===== networkunit_use_for_agent 权限控制（分配管控单元）=====
-const {
-  hasAuth: hasAssignUnitAuth,
-  handleMouseEnter: assignUnitAuthMouseEnter,
-  handleMouseMove: assignUnitAuthMouseMove,
-  handleAuthClick: handleAssignUnitAuthClick,
-} = useAuthLock('networkunit_use_for_agent', () => undefined);
+// 注：「分配管控单元」不再做前端权限校验，由后端按需返回权限错误
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 const AGENT_ID_REG = /^0[12]/; // AgentID 以 01 或 02 开头
@@ -1262,29 +1256,20 @@ const getOperateShow = (row: Host, config: any) => {
   return config.show;
 };
 
-/** 获取操作项是否有权限：assign_unit 用 networkunit_use_for_agent，其余用 agent_operate */
+/** 获取操作项是否有权限：assign_unit 不做前端校验（直接放行），其余用 agent_operate */
 const getItemHasAuth = (item: any): boolean => {
-  if (item.id === 'assign_unit') return hasAssignUnitAuth.value;
+  if (item.id === 'assign_unit') return true;
   return hasOperateAuth.value;
 };
 
 /** 获取操作项对应的权限锁 mouseenter handler */
-const getItemAuthMouseEnter = (item: any) => (e: MouseEvent) => {
-  if (item.id === 'assign_unit') return assignUnitAuthMouseEnter(e, false);
-  return authLockMouseEnter(e, false);
-};
+const getItemAuthMouseEnter = (_item: any) => (e: MouseEvent) => authLockMouseEnter(e, false);
 
 /** 获取操作项对应的权限锁 mousemove handler */
-const getItemAuthMouseMove = (item: any) => (e: MouseEvent) => {
-  if (item.id === 'assign_unit') return assignUnitAuthMouseMove(e, false);
-  return authLockMouseMove(e, false);
-};
+const getItemAuthMouseMove = (_item: any) => (e: MouseEvent) => authLockMouseMove(e, false);
 
 /** 获取操作项对应的权限锁 click handler */
-const getItemAuthClick = (item: any) => () => {
-  if (item.id === 'assign_unit') return handleAssignUnitAuthClick();
-  return handleAuthClick();
-};
+const getItemAuthClick = (_item: any) => () => handleAuthClick();
 
 const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; tooltip: string } => {
   if (config.id === 'assign_unit' && isNetworkUnitAssigned((row as any).bk_networkunit_id)) {

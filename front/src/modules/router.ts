@@ -430,7 +430,7 @@ export const install: UserModule = ({ app }) => {
     ) {
       const verified = await authStore.batchVerify([matched], bizScope);
       if (!verified) {
-        return { name: '403', query: { mainMenu: fallbackMainMenu } };
+        return { name: '403', query: { mainMenu: fallbackMainMenu, from: to.fullPath } };
       }
     }
 
@@ -443,7 +443,7 @@ export const install: UserModule = ({ app }) => {
     if (permissionDetail?.actions?.length) {
       permissionStore.showDialog(permissionDetail);
     }
-    return { name: '403', query: { mainMenu: fallbackMainMenu } };
+    return { name: '403', query: { mainMenu: fallbackMainMenu, from: to.fullPath } };
   });
   app.use(router);
 };
