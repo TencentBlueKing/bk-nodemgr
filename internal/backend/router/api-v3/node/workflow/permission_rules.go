@@ -11,17 +11,11 @@
 package workflow
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-)
-
-var (
-	errBizViewDeniedByEmptyScope = errors.New("no authorized businesses")
 )
 
 // workflowListBizActions determines which view actions are required based on node roles in the query condition.

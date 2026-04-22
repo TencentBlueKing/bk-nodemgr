@@ -17,6 +17,7 @@ import (
 )
 
 // IHandlerHost defines the host Handler.
+// nolint: interfacebloat
 type IHandlerHost interface {
 	// ListHost list host within specified tenant in contextx.
 	// @param nCtx contextx.IContext, contains tenant-id and username.

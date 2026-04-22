@@ -23,7 +23,6 @@ import (
 
 var (
 	errPluginOperateDeniedByEmptyScope = errors.New("no authorized plugin operates")
-	errBizViewDeniedByEmptyScope       = errors.New("no authorized businesses")
 )
 
 func (h *handler) narrowAuthorizedBizIDsForPluginView(rCtx restserver.IContext, requestedIDs []int64) ([]int64, bool, error) {
