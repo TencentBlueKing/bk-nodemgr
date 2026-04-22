@@ -78,6 +78,12 @@ type IHandlerHost interface {
 	// @param condition the filter conditions.
 	// @return the host distribution by node role and error.
 	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, condition *types.HostCondition) (map[int64]int64, error)
+
+	// GetHostDistributionByNodeVersion get host distribution by node version.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host distribution by node version and error.
+	GetHostDistributionByNodeVersion(nCtx contextx.IContext, condition *types.HostCondition) (map[string]int64, error)
 }
 
 // ListHost list host within specified tenant in contextx.
@@ -250,4 +256,19 @@ func (h *Handler) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 	}
 
 	return resp.GetData(), nil
+}
+
+// GetHostDistributionByNodeVersion count host within specified tenant in contextx.
+func (h *Handler) GetHostDistributionByNodeVersion(nCtx contextx.IContext, condition *types.HostCondition) (map[string]int64, error) {
+	req := &protoBackend.TopoGetHostDistributionByNodeVersionReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.getHostDistributionByNodeVersion(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }
