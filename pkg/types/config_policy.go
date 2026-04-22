@@ -11,7 +11,9 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -244,3 +246,62 @@ const (
 	// ConfigOptionDefinitionFileNamePlugin defines the config option definition file name for plugin.
 	ConfigOptionDefinitionFileNamePlugin = "plugin_option.json"
 )
+
+// FlatMapToNestedMap converts a flat map with dot-notation keys into a nested map.
+// For example, {"agent.access.enable_fake_seed": true} becomes {"agent":{"access":{"enable_fake_seed":true}}}.
+func FlatMapToNestedMap(flat map[string]any) map[string]any {
+	nested := make(map[string]any)
+	for key, value := range flat {
+		parts := strings.Split(key, ".")
+		current := nested
+		for i, part := range parts {
+			if i == len(parts)-1 {
+				current[part] = value
+			} else {
+				next, ok := current[part].(map[string]any)
+				if !ok {
+					next = make(map[string]any)
+					current[part] = next
+				}
+				current = next
+			}
+		}
+	}
+	return nested
+}
+
+// NestedMapToFlatMap converts a nested map into a flat map with dot-notation keys.
+// For example, {"agent":{"access":{"enable_fake_seed":true}}} becomes {"agent.access.enable_fake_seed": true}.
+func NestedMapToFlatMap(nested map[string]any) map[string]any {
+	flat := make(map[string]any)
+	flattenNestedMap(nested, "", flat)
+	return flat
+}
+
+func flattenNestedMap(nested map[string]any, prefix string, flat map[string]any) {
+	for key, value := range nested {
+		fullKey := key
+		if prefix != "" {
+			fullKey = prefix + "." + key
+		}
+		if sub, ok := value.(map[string]any); ok {
+			flattenNestedMap(sub, fullKey, flat)
+		} else {
+			flat[fullKey] = value
+		}
+	}
+}
+
+// MergedConfigToNestedJSON converts a flat dot-notation config map into a sorted nested JSON string.
+// Returns "{}" for nil or empty maps.
+func MergedConfigToNestedJSON(flat map[string]any) string {
+	if len(flat) == 0 {
+		return "{}"
+	}
+	nested := FlatMapToNestedMap(flat)
+	data, err := json.Marshal(nested)
+	if err != nil {
+		return "{}"
+	}
+	return string(data)
+}

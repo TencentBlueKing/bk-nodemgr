@@ -422,24 +422,8 @@
             "$ref": "#/definitions/ConfigPolicyPreviewRespMatchedPolicy"
           }
         },
-        "merged_configs_string": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "merged_configs_int": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "merged_configs_bool": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "boolean"
-          }
+        "merged_config": {
+          "type": "string"
         }
       }
     },

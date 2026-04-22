@@ -11,6 +11,7 @@
 package v3
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -634,13 +635,10 @@ func convertPreviewMatchResults(results []types.ConfigPolicyMatchResult) []*Conf
 			}
 		}
 
-		configsString, configsInt, configsBool := convertConfigPolicyConfigsFromTypes(result.MergedConfig)
 		items[i] = &ConfigPolicyPreviewResp_PreviewItem{
-			BkHostId:            result.HostID,
-			MatchedPolicies:     matchedPolicies,
-			MergedConfigsString: configsString,
-			MergedConfigsInt:    configsInt,
-			MergedConfigsBool:   configsBool,
+			BkHostId:        result.HostID,
+			MatchedPolicies: matchedPolicies,
+			MergedConfig:    types.MergedConfigToNestedJSON(result.MergedConfig),
 		}
 	}
 
@@ -670,24 +668,22 @@ func convertPreviewItemsToMatchResults(items []*ConfigPolicyPreviewResp_PreviewI
 		results = append(results, types.ConfigPolicyMatchResult{
 			HostID:          item.GetBkHostId(),
 			MatchedPolicies: matchedPolicies,
-			MergedConfig:    mergeMapsFromProto(item),
+			MergedConfig:    parseMergedConfigFromProto(item.GetMergedConfig()),
 		})
 	}
 
 	return results
 }
 
-func mergeMapsFromProto(item *ConfigPolicyPreviewResp_PreviewItem) map[string]any {
-	mergedConfig := make(map[string]any)
-	for key, value := range item.GetMergedConfigsString() {
-		mergedConfig[key] = value
-	}
-	for key, value := range item.GetMergedConfigsInt() {
-		mergedConfig[key] = value
-	}
-	for key, value := range item.GetMergedConfigsBool() {
-		mergedConfig[key] = value
+func parseMergedConfigFromProto(mergedConfigJSON string) map[string]any {
+	if mergedConfigJSON == "" {
+		return make(map[string]any)
 	}
 
-	return mergedConfig
+	var nested map[string]any
+	if err := json.Unmarshal([]byte(mergedConfigJSON), &nested); err != nil {
+		return make(map[string]any)
+	}
+
+	return types.NestedMapToFlatMap(nested)
 }

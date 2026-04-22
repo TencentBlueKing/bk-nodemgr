@@ -72,24 +72,14 @@ POST /api/v3/policy/config/preview
             "priority": 2
           }
         ],
-        "merged_configs_string": {
-          "bk_cloud_id": "0"
-        },
-        "merged_configs_int": {
-          "heartbeat_interval": 30
-        },
-        "merged_configs_bool": {
-          "enable_metrics": true
-        }
+        "merged_config": "{\"agent\":{\"access\":{\"bk_cloud_id\":\"0\"},\"heartbeat_interval\":30,\"enable_metrics\":true}}"
       }
     ],
     "unreliable_items": [
       {
         "bk_host_id": 1002,
         "matched_policies": [],
-        "merged_configs_string": {},
-        "merged_configs_int": {},
-        "merged_configs_bool": {}
+        "merged_config": "{}"
       }
     ]
   }
@@ -116,13 +106,11 @@ POST /api/v3/policy/config/preview
 
 #### data.reliable_items[n] / data.unreliable_items[n]
 
-| 参数名称                  | 参数类型   | 描述             |
-|-----------------------|--------|----------------|
-| bk_host_id            | int64  | 主机 ID          |
-| matched_policies      | array  | 命中的策略列表，按优先级顺序 |
-| merged_configs_string | object | 合并后的字符串配置键值对   |
-| merged_configs_int    | object | 合并后的整型配置键值对    |
-| merged_configs_bool   | object | 合并后的布尔配置键值对    |
+| 参数名称            | 参数类型   | 描述                                  |
+|-----------------|--------|-------------------------------------|
+| bk_host_id      | int64  | 主机 ID                               |
+| matched_policies | array  | 命中的策略列表，按优先级顺序                       |
+| merged_config   | string | 合并后的嵌套 JSON 配置，键按字典序排列，值为原始类型      |
 
 #### data.reliable_items[n].matched_policies[n]
 

@@ -18796,19 +18796,8 @@ paths:
                                     format: int64
                                   configpolicy_name:
                                     type: string
-                            merged_configs_int:
-                              type: object
-                              additionalProperties:
-                                type: integer
-                                format: int64
-                            merged_configs_bool:
-                              type: object
-                              additionalProperties:
-                                type: boolean
-                            merged_configs_string:
-                              type: object
-                              additionalProperties:
-                                type: string
+                            merged_config:
+                              type: string
                       unreliable_items:
                         type: array
                         items:
@@ -18830,19 +18819,8 @@ paths:
                                     format: int64
                                   configpolicy_name:
                                     type: string
-                            merged_configs_int:
-                              type: object
-                              additionalProperties:
-                                type: integer
-                                format: int64
-                            merged_configs_bool:
-                              type: object
-                              additionalProperties:
-                                type: boolean
-                            merged_configs_string:
-                              type: object
-                              additionalProperties:
-                                type: string
+                            merged_config:
+                              type: string
                   error:
                     type: object
                     properties:

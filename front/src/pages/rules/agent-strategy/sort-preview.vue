@@ -447,12 +447,12 @@ const isShowConfigDetail = ref(false);
 const configDetailJson = ref('');
 
 const handleViewConfigDetail = (row: ConfigPolicyPreviewRespPreviewItem) => {
-  const mergedConfig = {
-    ...row.merged_configs_string,
-    ...row.merged_configs_int,
-    ...row.merged_configs_bool,
-  };
-  configDetailJson.value = JSON.stringify(mergedConfig, null, 2);
+  try {
+    const parsed = JSON.parse(row.merged_config);
+    configDetailJson.value = JSON.stringify(parsed, null, 2);
+  } catch {
+    configDetailJson.value = row.merged_config || '{}';
+  }
   isShowConfigDetail.value = true;
 };
 

@@ -268,9 +268,7 @@ export interface ConfigPolicyPreviewRespMatchedPolicy {
 export interface ConfigPolicyPreviewRespPreviewItem {
   bk_host_id: number;
   matched_policies: MatchedPolicy[];
-  merged_configs_string: Record<string, string>;
-  merged_configs_int: Record<string, number>;
-  merged_configs_bool: Record<string, boolean>;
+  merged_config: string;
 }
 
 export interface ConfigPolicyPreviewRespData {

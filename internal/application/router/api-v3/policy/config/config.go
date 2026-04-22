@@ -457,7 +457,7 @@ func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface
 	return resp.GetData(), nil
 }
 
-// PreviewConfigPolicy previews the merged config for each host with default config applied.
+// PreviewConfigPolicy previews the merged config for each host.
 func (h *handler) PreviewConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.ConfigPolicyPreviewReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -475,81 +475,10 @@ func (h *handler) PreviewConfigPolicy(rCtx restserver.IContext) (interface{}, er
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 	}
 
-	if err = applyTemplateDefaults(result, h.configPolicyOptionSet, policyType); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to preview config policy, failed to apply template defaults")
-
-		return nil, errf.ErrWrap(errf.Aborted, err)
-	}
-
 	resp := new(protoApplication.ConfigPolicyPreviewResp)
 	resp.ConvertMatchResultsFromTypes(result)
 
 	return resp.GetData(), nil
-}
-
-func applyTemplateDefaults(
-	result *types.ConfigPolicyPreviewResult,
-	optionSet types.ConfigPolicyOptionSet,
-	policyType types.ConfigPolicyType) error {
-
-	if result == nil {
-		return nil
-	}
-
-	blocks, err := optionSet.GetOptionsByPolicyType(policyType)
-	if err != nil {
-		return err
-	}
-
-	// extract the default values from the template blocks.
-	defaults := extractTemplateDefaults(blocks)
-	if len(defaults) == 0 {
-		return nil
-	}
-
-	applyToSlice := func(results []types.ConfigPolicyMatchResult) {
-		for i := range results {
-			if results[i].MergedConfig == nil {
-				results[i].MergedConfig = make(map[string]any, len(defaults))
-			}
-			for k, v := range defaults {
-				if _, exists := results[i].MergedConfig[k]; exists {
-					continue
-				}
-				results[i].MergedConfig[k] = v
-			}
-		}
-	}
-
-	applyToSlice(result.ReliableResults)
-	applyToSlice(result.UnreliableResults)
-
-	return nil
-}
-
-func extractTemplateDefaults(blocks []types.ConfigPolicyTemplateBlock) map[string]any {
-	defaults := make(map[string]any)
-
-	for _, block := range blocks {
-		for _, item := range block.Items {
-			if isValueGroupKey(item.Key) {
-				continue
-			}
-
-			switch item.Type {
-			case types.ConfigPolicyTemplateTypeString, types.ConfigPolicyTemplateTypeStringSelect:
-				defaults[item.Key] = item.ValueString
-
-			case types.ConfigPolicyTemplateTypeInt, types.ConfigPolicyTemplateTypeIntSelect:
-				defaults[item.Key] = item.ValueInt
-
-			case types.ConfigPolicyTemplateTypeBool:
-				defaults[item.Key] = item.ValueBool
-			}
-		}
-	}
-
-	return defaults
 }
 
 func insertTemplateBlock(

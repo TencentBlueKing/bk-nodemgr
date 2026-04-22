@@ -13,7 +13,6 @@ package v3
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -614,46 +613,14 @@ func convertAppPreviewMatchResults(
 			}
 		}
 
-		configsString, configsInt, configsBool := convertMergedConfigFromTypes(result.MergedConfig)
 		items[i] = &ConfigPolicyPreviewResp_PreviewItem{
-			BkHostId:            result.HostID,
-			MatchedPolicies:     matchedPolicies,
-			MergedConfigsString: configsString,
-			MergedConfigsInt:    configsInt,
-			MergedConfigsBool:   configsBool,
+			BkHostId:        result.HostID,
+			MatchedPolicies: matchedPolicies,
+			MergedConfig:    types.MergedConfigToNestedJSON(result.MergedConfig),
 		}
 	}
 
 	return items
-}
-
-func convertMergedConfigFromTypes(configs map[string]any) (map[string]string, map[string]int64, map[string]bool) {
-	configsString := make(map[string]string)
-	configsInt := make(map[string]int64)
-	configsBool := make(map[string]bool)
-
-	for key, value := range configs {
-		if value == nil {
-			continue
-		}
-
-		switch reflect.TypeOf(value).Kind() {
-		case reflect.String:
-			configsString[key], _ = conv.ToString(value)
-
-		case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8,
-			reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
-			configsInt[key], _ = conv.ToInt64(value)
-
-		case reflect.Bool:
-			configsBool[key], _ = value.(bool)
-
-		default:
-			continue
-		}
-	}
-
-	return configsString, configsInt, configsBool
 }
 
 func newEmptyConfigPolicyConfigItem() *ConfigPolicyConfigItem {

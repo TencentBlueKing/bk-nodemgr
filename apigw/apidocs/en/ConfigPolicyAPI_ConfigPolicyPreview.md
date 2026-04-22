@@ -72,24 +72,14 @@ POST /api/v3/policy/config/preview
             "priority": 2
           }
         ],
-        "merged_configs_string": {
-          "bk_cloud_id": "0"
-        },
-        "merged_configs_int": {
-          "heartbeat_interval": 30
-        },
-        "merged_configs_bool": {
-          "enable_metrics": true
-        }
+        "merged_config": "{\"agent\":{\"access\":{\"bk_cloud_id\":\"0\"},\"heartbeat_interval\":30,\"enable_metrics\":true}}"
       }
     ],
     "unreliable_items": [
       {
         "bk_host_id": 1002,
         "matched_policies": [],
-        "merged_configs_string": {},
-        "merged_configs_int": {},
-        "merged_configs_bool": {}
+        "merged_config": "{}"
       }
     ]
   }
@@ -116,13 +106,11 @@ POST /api/v3/policy/config/preview
 
 #### data.reliable_items[n] / data.unreliable_items[n]
 
-| Parameter             | Type   | Description                              |
-|-----------------------|--------|------------------------------------------|
-| bk_host_id            | int64  | Host ID                                  |
-| matched_policies      | array  | Matched policy list, ordered by priority |
-| merged_configs_string | object | Merged string config key-value pairs     |
-| merged_configs_int    | object | Merged integer config key-value pairs    |
-| merged_configs_bool   | object | Merged boolean config key-value pairs    |
+| Parameter        | Type   | Description                                                     |
+|------------------|--------|-----------------------------------------------------------------|
+| bk_host_id       | int64  | Host ID                                                         |
+| matched_policies | array  | Matched policy list, ordered by priority                        |
+| merged_config    | string | Merged nested JSON config, keys sorted lexicographically        |
 
 #### data.reliable_items[n].matched_policies[n]
 

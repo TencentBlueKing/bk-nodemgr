@@ -221,9 +221,7 @@ message ConfigPolicyPreviewResp {
   message PreviewItem {
     int64 bk_host_id = 1;
     repeated MatchedPolicy matched_policies = 2;
-    map<string, string> merged_configs_string = 3;
-    map<string, int64> merged_configs_int = 4;
-    map<string, bool> merged_configs_bool = 5;
+    string merged_config = 3;
   }
 
   message Data {

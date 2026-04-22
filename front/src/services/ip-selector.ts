@@ -341,6 +341,7 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
       host_name: host.info?.bk_host_name || '',
       os_name: host.info?.os_type || '',
       os_type: host.info?.os_type || '',
+      cpu_arch: host.info?.cpu_arch || '',
       alive: 1,
       cloud_area: {
         id: host.info?.bk_networkarea_id || 0,
@@ -482,6 +483,7 @@ export const fetchHostDetails = async (params: any): Promise<any> => {
       host_name: host.info?.bk_host_name || '',
       os_name: host.info?.os_type || '',
       os_type: host.info?.os_type || '',
+      cpu_arch: host.info?.cpu_arch || '',
       alive: 1,
       cloud_area: {
         id: host.info?.bk_networkarea_id || 0,
@@ -548,6 +550,7 @@ export const fetchHostCheck = async (params: any): Promise<any> => {
             host_name: host.info?.bk_host_name || '',
             os_name: host.info?.os_type || '',
             os_type: host.info?.os_type || '',
+            cpu_arch: host.info?.cpu_arch || '',
             alive: 1,
             cloud_area: {
               id: host.info?.bk_networkarea_id || 0,
@@ -597,6 +600,7 @@ export const fetchHostCheck = async (params: any): Promise<any> => {
               host_name: host.info?.bk_host_name || '',
               os_name: host.info?.os_type || '',
               os_type: host.info?.os_type || '',
+              cpu_arch: host.info?.cpu_arch || '',
               alive: 1,
               cloud_area: {
                 id: host.info?.bk_networkarea_id || 0,
