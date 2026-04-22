@@ -30,6 +30,103 @@ type handler struct {
 	fileHandler    file.IHandler
 }
 
+type packageItem interface {
+	GetGeneration() int64
+	GetPlatform() *protoApplication.Platform
+	GetVersion() string
+}
+
+func buildReleaseAgentKey(item packageItem) types.ReleaseAgentKey {
+	return types.ReleaseAgentKey{
+		Generation: types.Generation(item.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(item.GetPlatform()),
+		Version:    item.GetVersion(),
+	}
+}
+
+// countDeployedBatch represents a batch of items that share the same host query condition.
+// Used exclusively by CountDeployed handlers to optimize backend queries.
+type countDeployedBatch struct {
+	sharedCondition *types.HostCondition
+	itemIndices     []int
+	versions        []string
+}
+
+// countDeployedQueryKey represents the dimensions used to query host distribution.
+// Items with the same key can be queried together in a single backend call.
+type countDeployedQueryKey struct {
+	role       types.NodeRole
+	generation int64
+	osType     string
+	cpuArch    string
+}
+
+// calCountDeployedBatch batches items by host query condition to reduce backend calls.
+// This function is specifically designed for CountDeployed handlers.
+// Do NOT reuse for other scenarios without understanding the assumptions.
+func calCountDeployedBatch[T packageItem](items []T, role types.NodeRole) []countDeployedBatch {
+	if len(items) == 0 {
+		return nil
+	}
+
+	// Step 1: Extract query keys from all items.
+	keys := make([]countDeployedQueryKey, len(items))
+	for i, item := range items {
+		keys[i] = extractCountDeployedQueryKey(item, role)
+	}
+
+	// Step 2: Batch items by query key.
+	batchIndices := make(map[countDeployedQueryKey]int)
+	batches := make([]countDeployedBatch, 0)
+
+	for i, key := range keys {
+		batchIndex, exists := batchIndices[key]
+		if !exists {
+			batchIndex = len(batches)
+			batchIndices[key] = batchIndex
+			batches = append(batches, countDeployedBatch{
+				sharedCondition: buildHostConditionForCountDeployed(key),
+				itemIndices:     []int{},
+				versions:        []string{},
+			})
+		}
+
+		batches[batchIndex].itemIndices = append(batches[batchIndex].itemIndices, i)
+		batches[batchIndex].versions = append(batches[batchIndex].versions, items[i].GetVersion())
+	}
+
+	return batches
+}
+
+// extractCountDeployedQueryKey extracts the query key from a packageItem.
+func extractCountDeployedQueryKey(item packageItem, role types.NodeRole) countDeployedQueryKey {
+	platform := item.GetPlatform()
+	osType, cpuArch := "", ""
+	if platform != nil {
+		osType = platform.GetOsType()
+		cpuArch = platform.GetCpuArch()
+	}
+
+	return countDeployedQueryKey{
+		role:       role,
+		generation: item.GetGeneration(),
+		osType:     osType,
+		cpuArch:    cpuArch,
+	}
+}
+
+// buildHostConditionForCountDeployed constructs HostCondition from query key.
+func buildHostConditionForCountDeployed(key countDeployedQueryKey) *types.HostCondition {
+	return &types.HostCondition{
+		DynamicExactInclude: &types.HostDynamicExactFields{
+			NodeRole:       []types.NodeRole{key.role},
+			NodeGeneration: []int64{key.generation},
+			OSType:         []string{key.osType},
+			Arch:           []string{key.cpuArch},
+		},
+	}
+}
+
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
@@ -247,11 +344,7 @@ func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseAgentKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseAgentKey(req)
 
 	if err := h.backendHandler.EnableReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to enable release agent")
@@ -273,11 +366,7 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseAgentKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseAgentKey(req)
 
 	if err := h.backendHandler.DisableReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to disable release agent")
@@ -299,11 +388,7 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseAgentKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseAgentKey(req)
 
 	if err := h.backendHandler.SetAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -327,11 +412,7 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseAgentKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseAgentKey(req)
 
 	if err := h.backendHandler.CancelAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -355,11 +436,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseAgentKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseAgentKey(req)
 
 	if err := h.backendHandler.DeleteReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -383,28 +460,31 @@ func (h *handler) CountDeployedReleaseAgent(rCtx restserver.IContext) (interface
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	conditions, err := req.ConvertConditionsToTypes()
-	if err != nil {
+	if _, err := req.ConvertConditionsToTypes(); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed agent release, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	results := make([]int64, len(conditions))
+	groups := calCountDeployedBatch(req.GetItems(), types.NodeRoleAgent)
+	results := make([]int64, len(req.GetItems()))
 
 	gp := gopool.NewPool()
-	for i := range conditions {
-		index := i
-		condition := conditions[i]
+	for _, group := range groups {
+		currentGroup := group
 
 		gp.Go(func() error {
-			count, err := h.backendHandler.CountHost(rCtx, condition)
+			hostDistributionByNodeVersion, err := h.backendHandler.GetHostDistributionByNodeVersion(
+				rCtx, currentGroup.sharedCondition,
+			)
 			if err != nil {
-				logger.G.Biz(rCtx).WithErr(err).Error("failed to count host")
+				logger.G.Biz(rCtx).WithErr(err).Error("failed to get host distribution by node version")
 
 				return err
 			}
 
-			results[index] = count
+			for i, version := range currentGroup.versions {
+				results[currentGroup.itemIndices[i]] = hostDistributionByNodeVersion[version]
+			}
 
 			return nil
 		})
@@ -595,11 +675,7 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseProxyKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseProxyKey(req)
 
 	if err := h.backendHandler.EnableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -615,6 +691,14 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	return resp.GetData(), nil
 }
 
+func buildReleaseProxyKey(req packageItem) types.ReleaseProxyKey {
+	return types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+}
+
 // DisableReleaseProxy disables proxy release.
 func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseProxyDisableReq)
@@ -623,11 +707,7 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseProxyKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseProxyKey(req)
 
 	if err := h.backendHandler.DisableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -651,11 +731,7 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseProxyKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseProxyKey(req)
 
 	if err := h.backendHandler.SetAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -679,11 +755,7 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseProxyKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseProxyKey(req)
 
 	if err := h.backendHandler.CancelAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -707,11 +779,7 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	key := types.ReleaseProxyKey{
-		Generation: types.Generation(req.GetGeneration()),
-		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
-		Version:    req.GetVersion(),
-	}
+	key := buildReleaseProxyKey(req)
 
 	if err := h.backendHandler.DeleteReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
@@ -735,28 +803,31 @@ func (h *handler) CountDeployedReleaseProxy(rCtx restserver.IContext) (interface
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	conditions, err := req.ConvertConditionsToTypes()
-	if err != nil {
+	if _, err := req.ConvertConditionsToTypes(); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed proxy release, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	results := make([]int64, len(conditions))
+	groups := calCountDeployedBatch(req.GetItems(), types.NodeRoleProxy)
+	results := make([]int64, len(req.GetItems()))
 
 	gp := gopool.NewPool()
-	for i := range conditions {
-		index := i
-		condition := conditions[i]
+	for _, group := range groups {
+		currentGroup := group
 
 		gp.Go(func() error {
-			count, err := h.backendHandler.CountHost(rCtx, condition)
+			hostDistributionByNodeVersion, err := h.backendHandler.GetHostDistributionByNodeVersion(
+				rCtx, currentGroup.sharedCondition,
+			)
 			if err != nil {
-				logger.G.Biz(rCtx).WithErr(err).Error("failed to count host")
+				logger.G.Biz(rCtx).WithErr(err).Error("failed to get host distribution by node version")
 
 				return err
 			}
 
-			results[index] = count
+			for i, version := range currentGroup.versions {
+				results[currentGroup.itemIndices[i]] = hostDistributionByNodeVersion[version]
+			}
 
 			return nil
 		})
