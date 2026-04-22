@@ -267,6 +267,7 @@ func FlatMapToNestedMap(flat map[string]any) map[string]any {
 			}
 		}
 	}
+
 	return nested
 }
 
@@ -275,6 +276,7 @@ func FlatMapToNestedMap(flat map[string]any) map[string]any {
 func NestedMapToFlatMap(nested map[string]any) map[string]any {
 	flat := make(map[string]any)
 	flattenNestedMap(nested, "", flat)
+
 	return flat
 }
 
@@ -303,5 +305,6 @@ func MergedConfigToNestedJSON(flat map[string]any) string {
 	if err != nil {
 		return "{}"
 	}
+
 	return string(data)
 }
