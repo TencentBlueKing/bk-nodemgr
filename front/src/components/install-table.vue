@@ -861,6 +861,7 @@ import useFullScreen from '@/composables/use-fullscreen';
 import useTableErrors from '@/composables/use-table-errors';
 import useUnitAuth from '@/composables/use-unit-auth';
 import { useMainStore } from '@/stores/main';
+import { useAuthStore } from '@/stores/auth';
 
 type VxeComponentSizeType = 'small' | 'medium' | 'large';
 interface IValidate {
@@ -965,6 +966,7 @@ const rules: ValidationRules = {
 const { contentRef } = useFullScreen();
 const xTableRef = ref();
 const mainStore = useMainStore();
+const authStore = useAuthStore();
 const {
   isUnitAuthorized,
   handleOptionMouseEnter: handleUnitOptionMouseEnter,
@@ -1538,6 +1540,11 @@ watch(tableData, () => {
 
 onMounted(async () => {
   await getHostDistinct();
+  // 加载管控单元查看权限，避免下拉选项误显示无权限样式
+  await authStore.fetchAuthorized(
+    [{ action: 'networkunit_view', resource_type: 'networkunit' }],
+    'installTable_networkunit_view',
+  );
 });
 
 watch(
