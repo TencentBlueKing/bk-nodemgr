@@ -398,11 +398,11 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 	}
 
 	var (
-		gseHandler usermanager.IHandler
+		usermgrHandler usermanager.IHandler
 	)
 
 	if tenant.GetMode() == tenant.ModeSingle {
-		gseHandler, err = usermanager.NewHandlerSingle(
+		usermgrHandler, err = usermanager.NewHandlerSingle(
 			apiGwClientCapability,
 			&usermanager.Config{
 				APIGWUserConfig: apiGWUserConfig,
@@ -412,7 +412,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 			return nil, err
 		}
 	} else {
-		gseHandler, err = usermanager.NewHandlerMultiTenant(
+		usermgrHandler, err = usermanager.NewHandlerMultiTenant(
 			apiGwClientCapability,
 			&usermanager.Config{
 				APIGWUserConfig: apiGWUserConfig,
@@ -423,7 +423,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		}
 	}
 
-	return gseHandler, nil
+	return usermgrHandler, nil
 }
 
 func (svc *Service) newAuthorizer() auth.IAuthorizer {
