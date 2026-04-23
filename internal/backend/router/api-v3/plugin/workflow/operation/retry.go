@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+// Package operation ...
+package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"

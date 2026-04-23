@@ -8,30 +8,57 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package workflow describes the workflow router.
 package workflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (h *handler) authorizedPluginOperate(rCtx restserver.IContext, workflowID string) error {
-	pluginWorkflow, err := h.daoPluginWorkflow.GetPluginWorkflow(rCtx, workflowID)
+func (h *handler) narrowAuthorizedBizIDsForPluginHistoryView(rCtx restserver.IContext, requestedIDs []int64) ([]int64, bool, error) {
+	scope, err := h.authorizer.ListAuthorizedInstances(rCtx, auth.ActionPluginHistoryView, types.AuthResourceTypeBiz)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to check workflow operate permission, failed to get the target plugin workflow")
-		return resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+		return nil, false, err
 	}
 
-	bizIDs := pluginWorkflow.BizIDs
-	resources := authRouter.BuildBizResources(bizIDs...)
-
-	if authErr := h.authorizer.Check(rCtx, auth.ActionPluginOperate, resources); authErr != nil {
-		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to check workflow operate permission, permission denied")
-		return resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	narrowedIDs, scopeIsAny, err := auth.ResolveAuthorizedResourceIDsInt64(
+		scope, requestedIDs, types.AuthResourceTypeBiz,
+	)
+	if err != nil {
+		return nil, false, err
 	}
 
-	return nil
+	if scopeIsAny {
+		return requestedIDs, true, nil
+	}
+
+	if len(narrowedIDs) == 0 {
+		if checkErr := h.authorizer.Check(rCtx, auth.ActionPluginHistoryView, authRouter.BuildBizResources(requestedIDs...)); checkErr != nil {
+			return nil, false, checkErr
+		}
+	}
+
+	return narrowedIDs, false, nil
+}
+
+func narrowPluginConditionByBiz(condition *types.PluginWorkflowCondition, narrowedBizIDs []int64, scopeIsAny bool) *types.PluginWorkflowCondition {
+	if scopeIsAny {
+		return condition
+	}
+
+	if condition == nil {
+		condition = &types.PluginWorkflowCondition{}
+	}
+
+	if condition.ExactInclude == nil {
+		condition.ExactInclude = &types.PluginWorkflowExactFields{}
+	}
+
+	condition.ExactInclude.BizID = conv.SliceUnique(narrowedBizIDs)
+
+	return condition
 }

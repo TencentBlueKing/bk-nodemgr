@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+// Package operation ...
+package operation
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -32,7 +32,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		logger.G.Biz(rCtx).WithErr(authErr).
 			With("workflow-id", workflowID).
 			Error("failed to terminate plugin workflow operation, permission denied.")
-		
+
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 

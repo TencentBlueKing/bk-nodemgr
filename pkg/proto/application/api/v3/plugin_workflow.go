@@ -694,6 +694,7 @@ func convertPluginWorkflowConditionsToTypes(
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginWorkflowExactFields{
 			HostID:        exactCond.GetBkHostId(),
+			BizID:         exactCond.GetBkBizId(),
 			Type:          types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
 			Status:        types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
 			WorkflowID:    exactCond.GetWorkflowId(),
