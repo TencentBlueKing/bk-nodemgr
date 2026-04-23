@@ -76,6 +76,7 @@ Extract only the facts you need:
 - which fields changed: `version`, `appVersion`, `image.tag`
 
 Stop searching when you have extracted:
+
 - target version string (e.g., v3.0.1-alpha.17)
 - which Helm files were updated (Chart.yaml, values.yaml)
 - which fields changed (version, appVersion, image.tag)
@@ -152,9 +153,11 @@ Read `references/example-pr.md` when you need concrete branch, commit, or PR wor
 Run these checks:
 
 1. **File scope check:**
+
    ```bash
    git diff master --name-only
    ```
+
    Expected: only the 4 Helm files, nothing else.
 
 2. **Version alignment check:**
@@ -165,17 +168,21 @@ Run these checks:
    - `mock-server/values.yaml`: `image.tag` = X.Y.Z-alpha.N
 
 3. **Diff sanity check:**
+
    ```bash
    git diff master install/helm/
    ```
+
    Expected: only version/appVersion/image.tag lines changed, no template or dependency changes.
 
 4. **Changelog check:**
+
    ```bash
    grep "## \[Version: $TARGET_VERSION\]" release.md
    ```
+
    Expected: `release.md` contains a changelog entry for the target version.
-   
+
    If the changelog entry is missing:
    - Stop the workflow
    - Delegate to a subagent with `changelog-doc` skill to generate the changelog
@@ -198,6 +205,7 @@ Run these checks:
    - if topo swagger changed but `apigw/resources.yaml` did not, stop and report that the release follow-up is incomplete
 
 If any check fails:
+
 - For file scope, version alignment, diff sanity, or gateway resource sync failures: stop and report the mismatch
 - For changelog failures: delegate to subagent to generate changelog using `changelog-doc` skill, wait for user confirmation, then resume
 
@@ -215,16 +223,60 @@ If Step 6 Check 4 (changelog check) fails:
      load_skills=["changelog-doc"],
      run_in_background=false,
      description="Generate changelog for version",
-     prompt="Generate changelog entry for version {TARGET_VERSION} in release.md. 
+     prompt="Generate changelog entry for version {TARGET_VERSION} in release.md.
              Use the changelog-doc skill to create a proper release note entry."
    )
    ```
 3. **Wait for user confirmation** - the generated changelog must be reviewed and approved by the user
 4. **Resume from Step 6** - re-run verification after changelog is confirmed
 
-Only proceed to Step 8 (PR creation) after all Step 6 checks pass, including changelog and gateway resource sync validation.
+Only proceed to Step 8 (API Gateway resource sync) after all Step 6 checks pass, including changelog and gateway resource sync validation.
 
-### Step 8 — Create the minimal PR
+### Step 8 — API Gateway resource sync
+
+If Step 6 Check 5 (gateway resource sync check) detected swagger changes that require `apigw/resources.yaml` updates:
+
+1. **Run the extraction script:**
+
+   ```bash
+   bash .claude/skills/release-version-alignment/scripts/extract-backend-swagger-changes.sh {FROM_VERSION} {TO_VERSION}
+   ```
+
+   This extracts changed backend swagger files to `.diff/{FROM_VERSION}~{TO_VERSION}/docs/api/swagger/backend/api/v3/`
+
+2. **Prompt user for manual update:**
+   Display:
+
+   ```
+   Swagger changes detected. Please update apigw/resources.yaml based on:
+   .diff/{FROM_VERSION}~{TO_VERSION}/docs/api/swagger/backend/api/v3/
+
+   Changed files:
+   - {list of changed swagger files}
+
+   After updating apigw/resources.yaml, confirm to proceed.
+   ```
+
+3. **Wait for user confirmation** - do not proceed until user confirms the update is complete
+
+4. **Commit the update:**
+
+   ```bash
+   git add apigw/resources.yaml
+   git commit -m "feat: sync apigw resources with swagger changes from {FROM_VERSION} to {TO_VERSION}"
+   ```
+
+5. **Display commit info:**
+   Show the commit hash and stats
+
+Important:
+
+- This step is **semi-automated** - extraction and commit are automatic, but the actual `apigw/resources.yaml` update requires human judgment
+- Not all swagger changes need to be synced to API Gateway
+- Users may need to adjust descriptions, permissions, or routing policies
+- If no swagger changes were detected in Step 6 Check 5, skip this step entirely
+
+### Step 9 — Create the minimal PR
 
 Before creating the PR, read:
 
@@ -248,6 +300,7 @@ Default PR body:
 
 ```md
 ## Summary
+
 - bump helm chart and values version to vX.Y.Z-alpha.N
 
 refs #1234
@@ -262,7 +315,7 @@ Report at least:
 1. the reference release commit or release evidence used
 2. the target version
 3. which Helm files and fields were changed
-4. whether the topo swagger diff requires an `apigw/resources.yaml` sync check, and the result
+4. whether the topo swagger diff requires an `apigw/resources.yaml` sync check, the result, and whether the sync was completed
 5. whether a clean branch was created
 6. the commit list
 7. the final branch name
