@@ -64,7 +64,7 @@ func (act *actionSyncAgentInfo) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionSyncAgentInfo) Timeout() time.Duration {
-	return 1 * time.Minute
+	return time.Minute * 5
 }
 
 // Tags returns the tags of the action.

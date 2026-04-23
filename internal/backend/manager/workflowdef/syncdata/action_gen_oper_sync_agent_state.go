@@ -70,7 +70,7 @@ func (act *actionGenOperSyncAgentState) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionGenOperSyncAgentState) Timeout() time.Duration {
-	return time.Second * 10 // nolint: mnd
+	return time.Minute * 10 // nolint: mnd
 }
 
 // Tags returns the tags of the action.
