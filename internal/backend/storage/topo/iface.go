@@ -174,7 +174,7 @@ type IStorageHost interface {
 	TouchHostOperationTime(nCtx contextx.IContext, hostIDs ...int64) error
 
 	// DistinctHost distincts host fields.
-	DistinctHost(nCtx contextx.IContext, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
+	DistinctHost(nCtx contextx.IContext, request types.HostDistinctSelector, conditions ...*types.HostCondition) (
 		*types.HostDistinctResult, error)
 
 	// GetHostDistributionByNodeRole get host distribution by node role.

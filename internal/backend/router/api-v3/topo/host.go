@@ -96,7 +96,7 @@ func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 
 	result, err := h.storage.DistinctHost(
 		rCtx,
-		types.NewHostDistinctRequestAllSet(),
+		types.NewHostDistinctSelectorAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields: %v", err)

@@ -176,7 +176,7 @@ func (s *Storage) CountHost(nCtx contextx.IContext, conditions ...*types.HostCon
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (s *Storage) DistinctHost(
-	nCtx contextx.IContext, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
+	nCtx contextx.IContext, request types.HostDistinctSelector, conditions ...*types.HostCondition) (
 	*types.HostDistinctResult, error) {
 
 	var data *types.HostDistinctResult
@@ -199,7 +199,7 @@ type hostDistinctTask struct {
 }
 
 func (s *Storage) buildHostDistinctTasks(
-	nCtx contextx.IContext, request types.HostDistinctRequest, data *types.HostDistinctResult, opts []host.OptFn,
+	nCtx contextx.IContext, request types.HostDistinctSelector, data *types.HostDistinctResult, opts []host.OptFn,
 ) []hostDistinctTask {
 
 	tasks := []hostDistinctTask{

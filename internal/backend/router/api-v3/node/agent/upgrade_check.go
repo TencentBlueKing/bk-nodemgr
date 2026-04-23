@@ -38,7 +38,7 @@ func (h *handler) AgentUpgradeCheck(rCtx restserver.IContext) (interface{}, erro
 	for _, host := range req.GetHost() {
 		hostIDs = append(hostIDs, host.GetBkHostId())
 	}
-	result, err := h.storageHost.DistinctHost(rCtx, types.HostDistinctRequest{BizID: true}, &types.HostCondition{
+	result, err := h.storageHost.DistinctHost(rCtx, types.HostDistinctSelector{BizID: true}, &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	})
 	if err != nil {

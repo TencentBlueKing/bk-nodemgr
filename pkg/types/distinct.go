@@ -15,8 +15,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// HostDistinctRequest describes the wanted distinct fields.
-type HostDistinctRequest struct {
+// HostDistinctSelector describes the wanted distinct fields.
+type HostDistinctSelector struct {
 	BizID         bool
 	NodeRole      bool
 	NodeStatus    bool
@@ -29,9 +29,9 @@ type HostDistinctRequest struct {
 	NetworkUnitID bool
 }
 
-// NewHostDistinctRequestAllSet creates a HostDistinctRequest with all fields set to true.
-func NewHostDistinctRequestAllSet() HostDistinctRequest {
-	return HostDistinctRequest{
+// NewHostDistinctSelectorAllSet creates a HostDistinctSelector with all fields set to true.
+func NewHostDistinctSelectorAllSet() HostDistinctSelector {
+	return HostDistinctSelector{
 		BizID:         true,
 		NodeRole:      true,
 		NodeStatus:    true,

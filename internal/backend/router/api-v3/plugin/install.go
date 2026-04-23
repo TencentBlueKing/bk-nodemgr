@@ -45,7 +45,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, err := h.daoHost.DistinctHost(rCtx, types.HostDistinctRequest{BizID: true}, &types.HostCondition{
+	hosts, err := h.daoHost.DistinctHost(rCtx, types.HostDistinctSelector{BizID: true}, &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	})
 	if err != nil {
