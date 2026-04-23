@@ -16,7 +16,7 @@
       :show-selected-icon="false"
       :clearable="false"
       filterable
-      :placeholder="t('platform.nodeMan.allBusiness')"
+      :placeholder="hasNoAuthorizedBiz() ? undefined : t('platform.nodeMan.allBusiness')"
       :popover-options="{ boundary: 'document.body', width: '235px' }"
       @toggle="handleToggle"
     >
@@ -74,7 +74,7 @@
       :show-selected-icon="false"
       multiple
       filterable
-      :placeholder="t('platform.nodeMan.allBusiness')"
+      :placeholder="hasNoAuthorizedBiz() ? undefined : t('platform.nodeMan.allBusiness')"
       :popover-options="{ boundary: 'document.body', width: '235px' }"
       @change="handleMultiChange"
       @toggle="handleToggle"
@@ -273,16 +273,13 @@ watch(() => authStore.authorizedLoaded, (loaded) => {
     || hasPersistedMultiBusiness()
     || hasExplicitlyClearedMultiBusiness()
   ) return;
-  // 业务可访问范围按 biz_access 过滤
-  const authorizedBizIds = authStore.getAuthorizedBizIds(BIZ_ACCESS_ACTION);
-  // authorizedBizIds === null 表示全部有权限，否则为有权限的 bizId 数组
-  const firstAuthorized = authorizedBizIds === null
-    ? filteredBusinessList.value[0]?.bk_biz_id
-    : filteredBusinessList.value.find(b => authorizedBizIds.includes(String(b.bk_biz_id)))?.bk_biz_id;
-  if (firstAuthorized !== undefined) {
-    multiBusiness.value = [firstAuthorized];
-    mainStore.updateCurBusiness([firstAuthorized]);
-    localStorage.setItem('bk_biz_id', JSON.stringify([firstAuthorized]));
+  // 排序后取第一个有权限的，都没权限则不选
+  sortBusinessList();
+  const defaultBizId = getDefaultBizId();
+  if (defaultBizId !== undefined) {
+    multiBusiness.value = [defaultBizId];
+    mainStore.updateCurBusiness([defaultBizId]);
+    localStorage.setItem('bk_biz_id', JSON.stringify([defaultBizId]));
   }
 }, { immediate: true });
 
@@ -335,6 +332,9 @@ const handleTextMouseenter = (e: MouseEvent, id: number) => {
 
 // ===== 收起状态显示文案 =====
 const shrinkText = computed(() => {
+  // 都没有 biz_access 权限时不显示文字
+  if (authStore.authorizedLoaded && hasNoAuthorizedBiz()) return '';
+
   if (isSingle.value) {
     if (!singleBusiness.value) return t('platform.nodeMan.all');
     const biz = mainStore.businessList.find(b => b.bk_biz_id === singleBusiness.value);
@@ -346,6 +346,16 @@ const shrinkText = computed(() => {
   const len = mainStore.selectedBusinessName.length;
   return len > 1 ? len : mainStore.selectedBusinessName[0]?.[0];
 });
+
+/** 是否没有任何业务有 biz_access 权限（true=都没权限，应隐藏文字） */
+function hasNoAuthorizedBiz(): boolean {
+  if (!authStore.authorizedLoaded) return false; // 未加载完默认有权限
+  const ids = authStore.getAuthorizedBizIds(BIZ_ACCESS_ACTION);
+  // null 表示全有权限
+  if (ids === null) return false;
+  // 有权限列表为空，或与业务列表无交集 → 都没权限
+  return !mainStore.businessList.some(b => ids.includes(String(b.bk_biz_id)));
+}
 
 // ===== 排序逻辑（拷贝后排序，不影响 store 原数组）=====
 const sortBusinessList = () => {
@@ -447,15 +457,22 @@ const filterOption = (input: any, options: { id: number; name: string }) => {
   return nameMatch || idMatch;
 };
 
-const getDefaultBizId = () => businessList.value[0]?.bk_biz_id
-  ?? [...filteredBusinessList.value].sort((a, b) => a.bk_biz_id - b.bk_biz_id)[0]?.bk_biz_id;
+const getDefaultBizId = () => {
+  // 排序后第一个就是最有权限优先级的，无权限说明都没权限
+  if (businessList.value.length === 0) return undefined;
+  const first = businessList.value[0];
+  return isBizAuthorized(first.bk_biz_id) ? first.bk_biz_id : undefined;
+};
 
 const getPersistedStrategyBizId = () => {
   const savedBizId = localStorage.getItem('strategy_biz_id');
   if (savedBizId) {
     const parsedId = Number(savedBizId);
-    const exists = filteredBusinessList.value.some(b => b.bk_biz_id === parsedId);
-    if (exists) return parsedId;
+    // 缓存值仍需有权限才用
+    if (isBizAuthorized(parsedId)) {
+      const exists = filteredBusinessList.value.some(b => b.bk_biz_id === parsedId);
+      if (exists) return parsedId;
+    }
   }
 
   return getDefaultBizId();
@@ -464,6 +481,8 @@ const getPersistedStrategyBizId = () => {
 // ===== 路由切换到策略页面时，自动初始化单选业务 =====
 watch(isSingle, (val) => {
   if (val && (singleBusiness.value === '' || singleBusiness.value === undefined) && filteredBusinessList.value.length > 0) {
+    // 权限未加载完时不初始化，等加载完后 watcher 会再触发
+    if (!authStore.authorizedLoaded) return;
     sortBusinessList();
     const persistedBizId = getPersistedStrategyBizId();
     if (persistedBizId !== undefined) {
@@ -493,6 +512,8 @@ watch(
   [isSingle, () => filteredBusinessList.value.length],
   ([single, len]) => {
     if (single && len > 0 && (singleBusiness.value === '' || singleBusiness.value === undefined)) {
+      // 权限未加载完时不初始化
+      if (!authStore.authorizedLoaded) return;
       sortBusinessList();
       const persistedBizId = getPersistedStrategyBizId();
       if (persistedBizId !== undefined) {
@@ -525,7 +546,7 @@ const init = () => {
   }
 
   // 4. 策略模块：恢复/默认单选业务（排序后取第一个，没有则取id最小的）
-  if (isSingle.value && filteredBusinessList.value.length > 0) {
+  if (isSingle.value && filteredBusinessList.value.length > 0 && authStore.authorizedLoaded) {
     const persistedBizId = getPersistedStrategyBizId();
     if (persistedBizId !== undefined) {
       singleBusiness.value = persistedBizId;

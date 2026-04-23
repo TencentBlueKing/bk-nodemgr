@@ -225,53 +225,21 @@ const ensureCurrentRoutePermission = async () => {
   const matched = matchPageAuth(route, PAGE_AUTH_CONFIG);
   if (!matched) return;
   const isRuleManagerRoute = route.path.includes('rule-manager');
+  const isNodeManagerRoute = route.path.includes('node-manager');
 
-  const hasExplicitlyClearedMultiBusiness = (() => {
-    const cachedBizIds = localStorage.getItem('bk_biz_id');
-    if (!cachedBizIds) return false;
-
-    try {
-      const parsedBizIds = JSON.parse(cachedBizIds);
-      return Array.isArray(parsedBizIds) && parsedBizIds.length === 0;
-    } catch {
-      return false;
-    }
-  })();
-  const persistedStrategyBizId = (() => {
-    const cachedStrategyBizId = localStorage.getItem('strategy_biz_id');
-    if (!cachedStrategyBizId) return undefined;
-
-    const parsed = Number(cachedStrategyBizId);
-    return Number.isNaN(parsed) || parsed <= 0 ? undefined : parsed;
-  })();
-  let selectedBizIds = isRuleManagerRoute && mainStore.strategyBizId
-    ? [mainStore.strategyBizId]
-    : [...mainStore.selectedBusinessId];
-  let currentBizId = selectedBizIds[0];
-  if (
-    matched.resourceType === 'biz'
-    && mainStore.isBusinessReady
-    && (currentBizId === undefined || currentBizId === null)
-    && (isRuleManagerRoute || !hasExplicitlyClearedMultiBusiness)
-  ) {
-    const defaultBizId = isRuleManagerRoute
-      ? mainStore.strategyBizId || persistedStrategyBizId || mainStore.businessList[0]?.bk_biz_id
-      : mainStore.businessList[0]?.bk_biz_id;
-    if (defaultBizId !== undefined && defaultBizId !== null) {
-      if (isRuleManagerRoute) {
-        mainStore.updateStrategyBizId(defaultBizId);
-      } else {
-        mainStore.updateCurBusiness([defaultBizId]);
-      }
-      selectedBizIds = [defaultBizId];
-      currentBizId = defaultBizId;
-    }
+  // 读取当前选中的业务 ID（默认选值逻辑由 biz-selector 组件负责）
+  let selectedBizIds = null;
+  if (isRuleManagerRoute) {
+    selectedBizIds = mainStore.strategyBizId ? [mainStore.strategyBizId] : null;
+  } else if (isNodeManagerRoute) {
+    selectedBizIds = mainStore.selectedBusinessId.length > 0 ? [...mainStore.selectedBusinessId] : null;
   }
+  let currentBizId = selectedBizIds ? selectedBizIds[0] : null;
 
-  const bizScope = selectedBizIds.length > 0
+  const bizScope = selectedBizIds && selectedBizIds.length > 0
     ? selectedBizIds.map(id => String(id))
     : currentBizId ? [String(currentBizId)] : undefined;
-  if (shouldDeferBizAuthCheck(matched, mainStore.isBusinessReady, currentBizId)) {
+  if (shouldDeferBizAuthCheck(matched, mainStore.isBusinessReady, currentBizId ?? undefined)) {
     authStore.refreshPermissions();
     return;
   }

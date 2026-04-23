@@ -923,6 +923,8 @@ agentProxyPkg:
 components:
   permission:
     noPermission: No permission to access or operate this resource
+    noBizPermission: No business access permission
+    noBizPermissionTip: Please select a business from the top-left business list and click to apply
     missingAction: "Missing permission: {action}"
     system: System
     requiredPermissions: Required Permissions

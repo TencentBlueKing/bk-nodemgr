@@ -923,6 +923,8 @@ agentProxyPkg:
 components:
   permission:
     noPermission: 没有权限访问或操作此资源
+    noBizPermission: 暂无任何业务访问权限
+    noBizPermissionTip: 请在左上角业务列表中选择对应业务点击申请
     missingAction: "缺少权限：{action}"
     system: 系统
     requiredPermissions: 需要申请的权限

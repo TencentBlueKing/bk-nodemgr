@@ -1,13 +1,17 @@
 <template>
   <Loading mode="spin" theme="primary" :loading="isLoading">
     <!-- 无权限页面 -->
-    <div v-if="noAreaPermission" class="forbidden-page">
-      <img class="forbidden-img" src="/images/403.png" alt="403">
-      <div class="forbidden-title">{{ $t('components.permission.noPermission') }}</div>
-      <Button theme="primary" @click="handleApplyAreaPermission">
+    <bk-exception
+      v-if="noAreaPermission"
+      class="exception-wrap-item exception-part"
+      type="403"
+      scene="part"
+      :title="$t('components.permission.noPermission')"
+    >
+      <bk-button theme="primary" text @click="handleApplyAreaPermission(defaultNetWorkarea?.bk_networkarea_id)">
         {{ $t('components.permission.apply') }}
-      </Button>
-    </div>
+      </bk-button>
+    </bk-exception>
     <!-- 有权限：正常 topo 图 -->
     <div v-else :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
       <!-- 下拉选择器 -->
@@ -1264,22 +1268,19 @@ onUnmounted(() => {
 </script>
 
 <style lang="postcss" scoped>
-.forbidden-page {
+.exception-wrap-item.exception-part {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 400px;
-}
-.forbidden-img {
-  width: 200px;
-  height: auto;
-}
-.forbidden-title {
-  margin-top: 20px;
-  font-size: 22px;
-  font-weight: 400;
-  color: #63656e;
+
+  :deep(.bk-exception-text) {
+    .bk-exception-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #313238;
+    }
+  }
 }
 #nodemgr-g6-container {
   width: 100%;

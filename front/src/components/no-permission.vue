@@ -1,38 +1,59 @@
 <template>
   <div class="no-permission-page">
-    <img class="no-permission-img" src="/images/403.png" alt="403">
-    <div class="no-permission-title">{{ t('components.permission.noPermission') }}</div>
-    <bk-button
-      theme="primary"
-      class="no-permission-btn"
-      :loading="loading"
-      @click="handleApply"
+    <bk-exception
+      class="exception-wrap-item exception-part"
+      type="403"
+      scene="part"
+      :title="title"
+      :description="description"
     >
-      {{ t('components.permission.apply') }}
-    </bk-button>
+      <!-- action 模式：带申请按钮 -->
+      <bk-button
+        v-if="type === 'action'"
+        theme="primary"
+        text
+        :loading="loading"
+        @click="handleApply"
+      >
+        {{ t('components.permission.apply') }}
+      </bk-button>
+    </bk-exception>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { PageAuthItem } from '@/constants/auth';
 import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
 
-const props = defineProps<{
-  authItems: PageAuthItem[];
+const props = withDefaults(defineProps<{
+  /** 展示类型：action=无操作权限(带申请按钮)，biz=无业务权限(带提示文字) */
+  type?: 'action' | 'biz';
+  authItems?: PageAuthItem[];
   /** biz 资源的业务范围（biz 级权限时使用） */
   bizScope?: string | number | Array<string | number>;
   /** 非 biz 资源的具体资源 ID（如 package 的 release_type、networkarea 的 areaId） */
   resourceId?: string | number;
-}>();
+}>(), {
+  type: 'action',
+  authItems: () => [],
+});
 
 const { t } = useI18n();
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 const loading = ref(false);
+
+const title = computed(() => props.type === 'biz'
+  ? t('components.permission.noBizPermission')
+  : t('components.permission.noPermission'));
+
+const description = computed(() => props.type === 'biz'
+  ? t('components.permission.noBizPermissionTip')
+  : '');
 
 async function handleApply() {
   if (!props.authItems?.length) return;
@@ -52,27 +73,27 @@ async function handleApply() {
 <style lang="postcss" scoped>
 .no-permission-page {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   min-height: 400px;
 }
 
-.no-permission-img {
-  width: 200px;
-  height: auto;
-}
+.exception-wrap-item.exception-part {
+  width: auto;
 
-.no-permission-title {
-  margin-top: 20px;
-  font-size: 22px;
-  font-weight: 400;
-  color: #63656e;
-}
+  :deep(.bk-exception-text) {
+    .bk-exception-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #313238;
+    }
 
-.no-permission-btn {
-  margin-top: 24px;
+    .bk-exception-description {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #979ba5;
+    }
+  }
 }
 </style>
-
