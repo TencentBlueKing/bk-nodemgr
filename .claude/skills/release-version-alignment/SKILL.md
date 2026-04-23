@@ -1,17 +1,28 @@
 ---
 name: release-version-alignment
-description: Use when preparing to release a version and need to ensure Helm charts are aligned with the target version. Creates a minimal PR if alignment is missing, or confirms readiness for tagging if alignment already exists. Especially useful when the user mentions version mismatch, missing Helm bumps, release readiness, chart/image alignment, or follow-up Helm work after release.
+description: Use when the user wants to initiate a new version release workflow or verify version alignment for an existing release. PRIMARY SCENARIO (80%): User expresses intent to start/prepare/publish a new version - automatically infers next version number and executes complete release preparation (Helm updates, changelog generation, API Gateway sync, PR creation). Trigger on action-oriented language about "new version", "next release", "prepare release", or "start version X" - even without explicit mention of Helm/changelog. SECONDARY SCENARIO (20%): User identifies missing or misaligned Helm version fields for a specific existing version - creates targeted alignment PR. Trigger on remedial language about "补 helm", "version not aligned", "missing chart update", or "check if ready to tag". DO NOT trigger for: Helm configuration changes unrelated to version bumps, CI/CD pipeline failures, tag surgery/rewrite, architecture changes to Helm structure, or rollback operations.
 ---
 
 # Release Version Alignment
 
-Use this skill when preparing to release a version and need to verify that Helm charts are aligned with the target release version.
+Use this skill when preparing a new version release or verifying that Helm charts are aligned with the target release version.
 
-This is a **fast path** for the version alignment check that must happen before tagging a release. If alignment is missing, create a minimal PR. If alignment already exists, confirm readiness for tagging.
+This skill handles two scenarios:
+
+1. **Primary (80%)**: Preparing a new version release - automatically infers next version and creates complete release PR
+2. **Secondary (20%)**: Version alignment check - verifies existing version alignment or creates follow-up PR
 
 ## When to Use
 
-Use this skill when the user is asking about **release version alignment or readiness**, for example:
+**Primary scenario (most common):**
+
+- `我先要出一个新版本`
+- `准备发布新版本`
+- `准备 alpha.18`
+- `开始准备下一个版本`
+- `发布新版本`
+
+**Secondary scenarios (version alignment checks):**
 
 - `给这个版本补一下 helm values`
 - `release commit 还少 helm 改动`
@@ -28,8 +39,7 @@ Use this skill when the user is asking about **release version alignment or read
 - `发版尾差一个 helm follow-up`
 - `检查下 helm 是不是漏了`
 - `helm 版本号还没跟上`
-
-Do not use this skill for broad release planning, tag repair, pipeline debugging, non-Helm release work, or requests that mix version alignment with other Helm changes.
+  Do not use this skill for broad release planning, tag repair, pipeline debugging, non-Helm release work, or requests that mix version alignment with other Helm changes.
 
 ## Fastpath Rules
 
@@ -64,9 +74,32 @@ Do not use this skill for broad release planning, tag repair, pipeline debugging
 
 ## Workflow
 
-### Step 1 — Confirm the reference commit and target version
+### Step 1 — Determine target version
 
-Read `install/AGENTS.md`, then inspect the release evidence the user points to. If the user does not provide a commit, find the nearest recent release commit that clearly shows the intended version bump pattern.
+**Scenario A: User requests "我先要出一个新版本" (primary scenario)**
+
+1. Find the latest version tag:
+
+   ```bash
+   git tag --sort=-version:refname | head -1
+   ```
+
+2. Automatically infer the next version:
+   - If latest is `v3.0.1-alpha.17` → next is `v3.0.1-alpha.18`
+   - If latest is `v3.0.1-beta.5` → next is `v3.0.1-beta.6`
+   - Pattern: increment the last numeric component
+
+3. Confirm with user (brief, one-line):
+
+   ```
+   准备 v3.0.1-alpha.18（当前最新：v3.0.1-alpha.17）
+   ```
+
+4. Proceed directly to Step 2 without waiting for explicit confirmation.
+
+**Scenario B: User provides specific version or commit (secondary scenario)**
+
+Read `install/AGENTS.md`, then inspect the user-mentioned release commit or version.
 
 Extract only the facts you need:
 
