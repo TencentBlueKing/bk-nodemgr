@@ -2,7 +2,7 @@
 apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
 kind: Job
 metadata:
-  name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync
+  name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync-{{ .Release.Revision }}
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
@@ -13,6 +13,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  ttlSecondsAfterFinished: 60
   backoffLimit: 10
   parallelism: 1
   template:
