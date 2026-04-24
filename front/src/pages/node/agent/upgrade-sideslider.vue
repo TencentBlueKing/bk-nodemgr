@@ -395,7 +395,7 @@ const handleBatchEditVersion = () => {
 
 const handleConfirmVersion = (data: any[]) => {
   systemData.value.forEach(sys => {
-    const matched = data.find(item => sys.os === `${item.os_type}_${item.cpu_arch || item.cup_arch}`);
+    const matched = data.find(item => sys.os === `${item.os_type}_${item.cpu_arch}`);
     if (matched) {
       sys.version = matched.version;
     }

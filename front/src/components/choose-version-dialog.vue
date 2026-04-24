@@ -7,7 +7,7 @@
   >
     <div class="flex h-[489px]">
       <!-- OS List -->
-      <div class="w-[275px] bg-[#F5F7FA]">
+      <div class="w-[275px] bg-[#F5F7FA] overflow-y-auto shrink-0">
         <div
           v-for="os in osVersions"
           :key="os.name"
@@ -15,19 +15,21 @@
           :class="{ 'bg-[#E1ECFF]': os.selected }"
           class="flex items-center justify-between w-full px-[12px] hover:bg-[#E1ECFF] h-[36px] cursor-pointer"
         >
-          <div>
+          <div class="flex items-center shrink-0 min-w-0">
             <i :class="[os.icon, 'mr-[6px]', { 'text-[#3A84FF]': os.selected }]"></i>
             <span :class="{ 'text-[#3A84FF]': os.selected }">{{
               os.name.replace('_', '/')
             }}</span>
           </div>
           <template v-if="os.selectedVersion?.version">
-            <Tag v-if="os.selected" theme="info" type="filled">{{
-              os.selectedVersion.version
-            }}</Tag>
-            <Tag v-else type="filled">{{
-              os.selectedVersion.version
-            }}</Tag>
+            <Tag
+              v-bk-tooltips="{ content: os.selectedVersion.version, disabled: os.selectedVersion.version.length <= 12 }"
+              :theme="os.selected ? 'info' : undefined"
+              :type="'filled'"
+              class="version-tag"
+            >
+              {{ os.selectedVersion.version }}
+            </Tag>
           </template>
         </div>
       </div>
@@ -212,7 +214,7 @@ function handleConfirm() {
   emit('confirm', osVersions.value?.map(item => ({
     version: item.selectedVersion.version,
     os_type: item.selectedVersion.os_type,
-    cup_arch: item.selectedVersion.cpu_arch,
+    cpu_arch: item.selectedVersion.cpu_arch,
   })), {
     force: force.value,
     graceful_restart_timeout_sec: graceful_restart_timeout_sec.value,
@@ -247,6 +249,17 @@ const getVersions = async () => {
       generation: PACKAGE_GENERATION,
       exact_include_conditions: {
         release_type: [props.releaseType],
+        enabled: [true],
+      },
+    }).catch(() => ({
+      total: 0,
+      items: [],
+    }));
+  } else if (props.releaseType === 'plugin') {
+    res = await PackageService.ListReleasePluginBrief({
+      page: { limit: 500, offset: 0 },
+      generation: PACKAGE_GENERATION,
+      exact_include_conditions: {
         enabled: [true],
       },
     }).catch(() => ({
@@ -289,7 +302,7 @@ const getVersions = async () => {
         disabled: !item.enabled,
         os_type: item.os_type,
         cpu_arch: item.cpu_arch,
-        description: mainStore.value === 'zh-CN' ? item.change_log_zh : item.change_log_en,
+        description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
       };
       osMap[key].versions.push(versionObj);
       if (item.as_default) {
@@ -323,3 +336,14 @@ watch(
   { immediate: true, deep: true },
 );
 </script>
+
+<style lang="postcss" scoped>
+.version-tag {
+  max-width: 120px;
+  :deep(.bk-tag-text) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+</style>

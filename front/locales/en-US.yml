@@ -9,6 +9,11 @@ platform:
   openSource: Open Source
   nodeMan:
     node: Node
+    pluginOperation:
+      form:
+        pluginName: Plugin Name
+        pluginNamePlaceholder: Enter plugin name
+        pluginNameRequired: Please enter plugin name
     agentStatus:
       title: Agent Status
       reinstall: Reinstall
@@ -292,6 +297,28 @@ pluginManagement:
         unregister: Unregistered
         init: Initialization
         unknown: Unknown
+    batchOperate: Batch Operate
+    operate:
+      install: Install
+      upgrade: Upgrade
+      reload: Reload
+      uninstall: Uninstall
+      restart: Restart
+      stop: Stop
+      operateDisabled: This operation is not yet available
+      operateSuccess: Operation executed successfully
+      restartTitle: Confirm Restart Plugin
+      batchRestartTitle: Confirm Batch Restart Plugins
+      restartSubTitle: 'Confirm restart plugin {pluginName}?'
+      batchRestartSubTitle: 'Confirm batch restart {pluginNames} and {count} plugins?'
+      uninstallTitle: Confirm Uninstall Plugin
+      batchUninstallTitle: Confirm Batch Uninstall Plugins
+      uninstallSubTitle: 'Confirm uninstall plugin {pluginName}? This action cannot be undone.'
+      batchUninstallSubTitle: 'Confirm batch uninstall {pluginNames} and {count} plugins? This action cannot be undone.'
+      stopTitle: Confirm Stop Plugin
+      batchStopTitle: Confirm Batch Stop Plugins
+      stopSubTitle: 'Confirm stop plugin {pluginName}?'
+      batchStopSubTitle: 'Confirm batch stop {pluginNames} and {count} plugins?'
 topoManager:
   workArea:
     title: Network Area
@@ -1128,6 +1155,8 @@ route:
   agentStrategy: Agent Strategy
   proxyStrategy: Proxy Strategy
   pluginStrategy: Plugin Strategy
+  createPluginOperation: Create Strategy
+  pluginOperate: Plugin Operation
   agentPackage: Agent Package
   proxyPackage: Proxy Package
   certManage: Certificate Management
@@ -1179,3 +1208,71 @@ common:
   cloudArea: Cloud Area
   system: System
   tip: To modify the default configuration, you need to enable the switch first, then make the changes
+pluginOperation:
+  title: Plugin Strategy
+  subtitle: Manage plugin installation, upgrade, reload and other operation strategies
+  createStrategy: Create Strategy
+  backToList: Back to List
+  steps:
+    deployTarget: Deploy Target
+    pluginVersion: Strategy Version
+    packageVersion: Plugin Package Version
+    paramConfig: Parameter Config
+    execPreview: Execution Preview
+  form:
+    strategyName: Strategy Name
+    strategyNamePlaceholder: Please enter strategy name
+    deployTarget: Deploy Target
+    deployTargetRequired: Please select deploy target
+    advancedOptions: Advanced Options
+
+    pluginVersion: Strategy Version
+    selectVersion: Select Version
+    staticTopoPlaceholder: Please select nodes from the left panel
+    manualInputPlaceholder: Enter IP addresses manually, separated by line breaks
+    staticTopo: Static Topology
+    manualInput: Manual Input
+  paramConfig:
+    title: Parameter Config
+    description: Configure parameters based on plugin parameter Schema
+    noPlatform: No platform version data available, please select plugin package versions first
+    noParams: No configurable parameters for this platform
+    loadFailed: 'Load failed: {msg}'
+    resetDefault: Reset to Default
+  preview:
+    title: Execution Preview
+    filterAbnormal: Filter Abnormal
+    allTab: All
+    directArea: Direct Area
+    defaultBiz: Unknown Biz
+    hostIP: Host IP
+    networkArea: Network Area
+    cloudArea: Cloud Area
+    opType: Operation Type
+    osType: OS
+    agentStatus: Agent Status
+    currentVersion: Current Version
+    targetVersion: Target Version
+    normal: Normal
+    abnormal: Abnormal
+    notInstalled: Not Installed
+    install: Install
+    upgrade: Upgrade
+    submitStrategy: Submit
+  table:
+    strategyName: Strategy Name
+    pluginName: Plugin Name
+    operationType: Operation Type
+    targetVersion: Target Version
+    creator: Creator
+    createTime: Create Time
+    status: Status
+    action: Action
+    edit: Edit
+    delete: Delete
+    enabled: Enabled
+    disabled: Disabled
+  action:
+    nextStep: Next
+    prevStep: Previous
+    cancel: Cancel

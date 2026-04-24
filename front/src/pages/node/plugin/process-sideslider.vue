@@ -6,14 +6,45 @@
     width="1200"
   >
     <div class="p-[24px]">
-      <copy-ip-dropdown
-        v-if="type === 'plugin'"
-        class="mb-[20px]"
-        :type="'agent'"
-        :disabled="!selection.length"
-        :data="processList"
-        :list="[]"
-      ></copy-ip-dropdown>
+      <!-- 操作栏：安装按钮 + 批量操作 + 复制IP -->
+      <div class="flex items-center gap-[8px] mb-[16px]">
+        <Button v-if="enabledOperations.has('install')" theme="primary" @click="handlePluginOperate('install', selection, false)">
+          {{ $t('pluginManagement.plugin.operate.install') }}
+        </Button>
+        <Dropdown
+          theme="light"
+          trigger="click"
+          :popover-options="{ clickContentAutoHide: true }"
+        >
+          <Button :disabled="!selection.length">
+            <span>{{ $t('pluginManagement.plugin.batchOperate') }}</span>
+            <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
+          </Button>
+          <template #content>
+            <Dropdown.DropdownMenu>
+              <Dropdown.DropdownItem
+                v-for="item in batchOperateList"
+                :key="item.id"
+                :disabled="item.disabled"
+                :class="{ 'operate-item-disabled': item.disabled }"
+                v-bk-tooltips="{
+                  content: item.tooltip,
+                  disabled: !item.disabled,
+                }"
+                @click.stop="!item.disabled && handlePluginOperate(item.id, selection, true)"
+              >
+                {{ item.name }}
+              </Dropdown.DropdownItem>
+            </Dropdown.DropdownMenu>
+          </template>
+        </Dropdown>
+        <copy-ip-dropdown
+          :type="'agent'"
+          :disabled="!selection.length"
+          :data="processList"
+          :list="[]"
+        ></copy-ip-dropdown>
+      </div>
       <Loading
         :title="$t('table.loading')"
         :loading="loading"
@@ -36,7 +67,7 @@
           @checkbox-all="handleSelectAllChange"
           @column-filter="handleFilter"
         >
-          <TableColumn v-if="type === 'plugin'" type="checkbox" width="60" fixed="left"></TableColumn>
+          <TableColumn type="checkbox" width="60" fixed="left"></TableColumn>
           <TableColumn
             v-if="type === 'plugin'"
             title="Host ID"
@@ -227,6 +258,44 @@
               <span>{{ row.operate_timeout_seconds }}s</span>
             </template>
           </TableColumn>
+          <!-- 操作列 -->
+          <TableColumn
+            :title="$t('pluginManagement.plugin.table.operation')"
+            field="action"
+            min-width="150"
+            fixed="right"
+          >
+            <template #default="{ row }">
+              <Button
+                v-if="enabledOperations.has('install')"
+                theme="primary"
+                text
+                @click="handlePluginOperate('install', [row])"
+              >
+                {{ $t('pluginManagement.plugin.operate.install') }}
+              </Button>
+              <Dropdown
+                theme="light"
+                trigger="click"
+                :popover-options="{ clickContentAutoHide: true }"
+              >
+                <Button class="ml-[15px]" text>
+                  <span class="nodeman-icon nc-more"></span>
+                </Button>
+                <template #content>
+                  <Dropdown.DropdownMenu>
+                    <Dropdown.DropdownItem
+                      v-for="item in getSingleOperateList(row)"
+                      :key="item.id"
+                      @click="handlePluginOperate(item.id, [row])"
+                    >
+                      {{ item.name }}
+                    </Dropdown.DropdownItem>
+                  </Dropdown.DropdownMenu>
+                </template>
+              </Dropdown>
+            </template>
+          </TableColumn>
         </Table>
       </Loading>
     </div>
@@ -239,22 +308,35 @@
       </Button>
     </template> -->
   </Sideslider>
+  <!-- 操作确认弹窗（重启） -->
+  <operate-dialog
+    v-model:is-show="operateDialogIsShow"
+    :title="operateDialogData.title"
+    :type="operateDialogData.type"
+    :sub-title="operateDialogData.subTitle"
+    @confirm="handleOperateConfirm"
+  ></operate-dialog>
 </template>
 <script lang="ts" setup>
 import {
   Button,
+  Dropdown,
   InfoBox,
   Loading,
+  Message,
   Sideslider,
 } from 'bkui-vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
 import type { DistinctProcessRespData } from '@/@types/process';
+import { PluginAPIService } from '@/api/modules/plugin';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
+import OperateDialog from '@/components/operate-dialog.vue';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 
@@ -273,6 +355,11 @@ const props = defineProps({
     type: String,
     default: 'plugin',
   },
+  /** 节点类型，用于 IP 选择器过滤：'agent' | 'proxy' | 不传则不过滤 */
+  nodeType: {
+    type: String,
+    default: '',
+  },
   plugin: {
     type: Object,
     default: () => ({}),
@@ -284,7 +371,122 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const router = useRouter();
 const mainStore = useMainStore();
+
+// ---------- 操作相关 ----------
+// 需要跳转到单独页面配置的操作: 安装、升级、重载
+const needPageOperations = ['install', 'upgrade', 'reload'];
+
+// 已启用的操作 — 从接口动态获取
+const enabledOperations = ref(new Set<string>());
+
+const loadPermittedOperations = async () => {
+  const res = await PluginAPIService.ListPluginPermittedOperation({
+    page: { limit: 100, offset: 0 },
+  }).catch(() => ({ operations: [] }));
+  const ops = new Set<string>();
+  (res?.operations || []).forEach((op: any) => {
+    (op.permissions || op.permission || []).forEach((p: string) => {
+      ops.add(p);
+      if (p === 'reconfigv') ops.add('reload');
+    });
+  });
+  enabledOperations.value = ops;
+};
+
+// 批量操作列表 — 只显示有权限的操作
+const allOperations = [
+  // { id: 'install', nameKey: 'pluginManagement.plugin.operate.install' },
+  { id: 'upgrade', nameKey: 'pluginManagement.plugin.operate.upgrade' },
+  { id: 'reload', nameKey: 'pluginManagement.plugin.operate.reload' },
+  { id: 'uninstall', nameKey: 'pluginManagement.plugin.operate.uninstall' },
+  { id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' },
+  { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' },
+];
+
+const batchOperateList = computed(() =>
+  allOperations
+    .filter(op => enabledOperations.value.has(op.id))
+    .map(op => ({ id: op.id, name: t(op.nameKey), disabled: true, tooltip: t('pluginManagement.plugin.operate.operateDisabled') })),
+);
+
+// 单行操作列表（安装有独立按钮，更多里放升级/重载/卸载/重启/停止）— 只显示有权限的
+const getSingleOperateList = (row: any) => {
+  const ops = row.plugin_group === 'strategy'
+    ? [{ id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' }, { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' }]
+    : allOperations.filter(op => op.id !== 'install');
+  return ops
+    .filter(op => enabledOperations.value.has(op.id))
+    .map(op => ({ id: op.id, name: t(op.nameKey) }));
+};
+
+// 操作确认弹窗
+const operateDialogIsShow = ref(false);
+const operateDialogData = reactive({ type: '', title: '', subTitle: '' });
+
+// 处理插件操作
+const handlePluginOperate = (operateType: string, data: any[], batch = false) => {
+  const pluginName = props.plugin?.name || '';
+  const count = data.length;
+
+  if (needPageOperations.includes(operateType)) {
+    // 安装/升级/重载 → 关闭侧边栏，跳转到配置页面
+    isShow.value = false;
+    router.push({
+      name: 'pluginOperate',
+      query: {
+        operationType: operateType,
+        pluginName,
+        ...(props.nodeType ? { type: props.nodeType } : {}),
+      },
+    });
+  } else if (operateType === 'restart') {
+    // 重启 → 使用 operate-dialog
+    operateDialogIsShow.value = true;
+    operateDialogData.type = 'restart';
+    operateDialogData.title = batch
+      ? t('pluginManagement.plugin.operate.batchRestartTitle')
+      : t('pluginManagement.plugin.operate.restartTitle');
+    operateDialogData.subTitle = batch
+      ? t('pluginManagement.plugin.operate.batchRestartSubTitle', { pluginNames: pluginName, count })
+      : t('pluginManagement.plugin.operate.restartSubTitle', { pluginName });
+  } else if (operateType === 'uninstall') {
+    // 卸载 → InfoBox 确认
+    InfoBox({
+      title: batch
+        ? t('pluginManagement.plugin.operate.batchUninstallTitle')
+        : t('pluginManagement.plugin.operate.uninstallTitle'),
+      subTitle: batch
+        ? t('pluginManagement.plugin.operate.batchUninstallSubTitle', { pluginNames: pluginName, count })
+        : t('pluginManagement.plugin.operate.uninstallSubTitle', { pluginName }),
+      onConfirm: () => {
+        // TODO: 调用卸载接口
+        Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
+      },
+    });
+  } else if (operateType === 'stop') {
+    // 停止 → InfoBox 确认
+    InfoBox({
+      title: batch
+        ? t('pluginManagement.plugin.operate.batchStopTitle')
+        : t('pluginManagement.plugin.operate.stopTitle'),
+      subTitle: batch
+        ? t('pluginManagement.plugin.operate.batchStopSubTitle', { pluginNames: pluginName, count })
+        : t('pluginManagement.plugin.operate.stopSubTitle', { pluginName }),
+      onConfirm: () => {
+        // TODO: 调用停止接口
+        Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
+      },
+    });
+  }
+};
+
+// 操作弹窗确认 (重启)
+const handleOperateConfirm = (extraData: any = {}) => {
+  // TODO: 调用重启接口
+  Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
+};
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
@@ -510,6 +712,7 @@ watch(
   () => isShow.value,
   async () => {
     if (isShow.value) {
+      loadPermittedOperations();
       await getProcessList();
       if (processList.value.length > 0) {
         getDistinct();
@@ -562,6 +765,15 @@ watch(
   &::before {
     border-color: #f0f1f5;
     background: #b2b5bd;
+  }
+}
+.operate-item-disabled {
+  color: #c4c6cc !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+
+  &:hover {
+    background-color: transparent !important;
   }
 }
 

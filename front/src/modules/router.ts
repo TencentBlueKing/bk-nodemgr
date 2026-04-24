@@ -29,6 +29,7 @@ import PkgManager from '@/pages/pkg/index.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
+import PluginOperation from '@/pages/rules/plugin-operation/index.vue';
 import Rules from '@/pages/rules/index.vue';
 import RulesRecord from '@/pages/rules/record/record.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
@@ -116,6 +117,17 @@ const routes = setupLayouts([
               title: i18n.global.t('route.plugin'),
               subTitle: i18n.global.t('route.pluginSubtitle'),
               back: false,
+            },
+          },
+          {
+            name: 'pluginOperate',
+            path: 'plugin/operate',
+            component: () => import('@/pages/rules/plugin-operation/create.vue'),
+            meta: {
+              title: i18n.global.t('route.pluginOperate'),
+              back: true,
+              mainMenu: 'nodeManager',
+              parentName: 'plugin',
             },
           },
           {
@@ -234,11 +246,22 @@ const routes = setupLayouts([
           {
             name: 'pluginStrategy',
             path: 'pluginStrategy',
-            component: Rules,
+            component: PluginOperation,
             meta: {
               title: i18n.global.t('route.pluginStrategy'),
               back: false,
               mainMenu: 'ruleManager',
+            },
+          },
+          {
+            name: 'createPluginOperation',
+            path: 'pluginStrategy/create',
+            component: () => import('@/pages/rules/plugin-operation/create.vue'),
+            meta: {
+              title: i18n.global.t('route.createPluginOperation'),
+              back: true,
+              mainMenu: 'ruleManager',
+              parentName: 'pluginStrategy',
             },
           },
           {

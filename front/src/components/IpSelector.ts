@@ -45,7 +45,8 @@ const Service = {
   fetchTopologyHost: async (params: any) => {
     try {
       const result = await IpSelectorService.fetchHostsByNodes(params);
-      return { data: result.data || [], total: result.total || 0 };
+      const data = result.data || [];
+      return { data, total: result.total || 0 };
     } catch (error) {
       console.error('[IpSelector] fetchTopologyHost error:', error);
       return { data: [], total: 0 };
@@ -73,7 +74,8 @@ const Service = {
   fetchHostInfoByHostId: async (params: any) => {
     try {
       const result = await IpSelectorService.fetchHostDetails(params);
-      return result.data || [];
+      const data = result.data || [];
+      return data;
     } catch (error) {
       console.error('[IpSelector] fetchHostInfoByHostId error:', error);
       return [];
@@ -87,7 +89,8 @@ const Service = {
   fetchInputParseHostList: async (params: any) => {
     try {
       const result = await IpSelectorService.fetchHostCheck(params);
-      return result.data?.valid || [];
+      const data = result.data?.valid || [];
+      return data;
     } catch (error) {
       console.error('[IpSelector] fetchInputParseHostList error:', error);
       return [];
@@ -151,7 +154,7 @@ const Service = {
 const IpSelector = createFactory({
   // 组件版本
   version: '1.0.0',
-  // 需要支持的面板
+  // 需要支持的面板：静态拓扑 + 手动输入
   panelList: ['staticTopo', 'manualInput'],
   // 面板选项的值是否唯一
   unqiuePanelValue: false,
@@ -162,7 +165,7 @@ const IpSelector = createFactory({
   // 主机表格每页条数
   hostTablePageSize: 10,
   // 主机列表显示列
-  hostTableRenderColumnList: ['ip', 'ipv6', 'hostName', 'cloudArea', 'osName'],
+  hostTableRenderColumnList: ['ip', 'ipv6', 'hostName', 'cloudArea', 'osName', 'alive'],
   // 主机预览字段
   hostViewFieldRender: (host: any) => host.host_id,
 

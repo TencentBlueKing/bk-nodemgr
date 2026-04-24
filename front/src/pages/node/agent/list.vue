@@ -412,6 +412,7 @@
     <processSideslider
       v-model:is-show="isShowSideslider"
       type="node"
+      node-type="agent"
       :node="currentAgent"
     ></processSideslider>
   </div>

@@ -205,6 +205,7 @@
       :show-dialog="isShowIpSelector"
       :value="ipSelectorValue"
       @change="handleIpSelectorChange"
+      :keep-host-field-output="true"
       @close-dialog="isShowIpSelector = false"
     />
   </Sideslider>
@@ -222,7 +223,7 @@ import { Table, TableColumn } from '@blueking/table';
 // 导入config-template组件
 import ConfigTemplate from '@/components/config-template.vue';
 import IpSelector from '@/components/IpSelector';
-import { fetchHostDetails, setPolicyType, setStrategyBizId } from '@/services/ip-selector';
+import { setPolicyType, setStrategyBizId } from '@/services/ip-selector';
 import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 
@@ -397,37 +398,10 @@ const handleEditHosts = () => {
   isShowIpSelector.value = true;
 };
 
-// IP选择器确认事件 — 库只返回 hostId/ip/ipv6/cloudArea/meta，需补全 host_name/os_type 等
-const handleIpSelectorChange = async (value: any) => {
+// IP选择器确认事件 — keep-host-field-output=true 已保留完整字段，无需再调 host/list 补全
+const handleIpSelectorChange = (value: any) => {
   ipPagination.current = 1;
-
-  // 用 hostId 列表查询完整主机信息，补回被库丢弃的字段
-  const hostList = value.hostList || [];
-  if (hostList.length > 0) {
-    try {
-      const detailRes = await fetchHostDetails({
-        hostList: hostList.map((h: any) => ({ hostId: h.hostId, meta: h.meta })),
-      });
-      const detailMap = new Map<number, any>();
-      (detailRes.data || []).forEach((h: any) => {
-        detailMap.set(h.host_id, h);
-      });
-      // 将完整信息合并到 hostList
-      hostList.forEach((host: any) => {
-        const detail = detailMap.get(host.hostId);
-        if (detail) {
-          host.host_name = detail.host_name;
-          host.os_type = detail.os_type;
-          host.cpu_arch = detail.cpu_arch;
-        }
-      });
-    } catch {
-      // 补全失败不影响主流程
-    }
-  }
-
-  // 整体赋值触发响应式更新
-  ipSelectorValue.value = { ...value, hostList: [...hostList] };
+  ipSelectorValue.value = value;
 };
 
 const handleDeleteAllHosts = () => {

@@ -279,6 +279,7 @@
     <processSideslider
       v-model:is-show="isShowSideslider"
       type="node"
+      node-type="proxy"
       :node="currentProxy"
     ></processSideslider>
   </div>

@@ -9,6 +9,11 @@ platform:
   openSource: 开源社区
   nodeMan:
     node: 节点
+    pluginOperation:
+      form:
+        pluginName: 插件名称
+        pluginNamePlaceholder: 请输入插件名称
+        pluginNameRequired: 请填写插件名称
     agentStatus:
       title: Agent 状态
       reinstall: 重装
@@ -292,6 +297,28 @@ pluginManagement:
         unregister: 未注册
         init: 初始化
         unknown: 未知
+    batchOperate: 批量操作
+    operate:
+      install: 安装
+      upgrade: 升级
+      reload: 重载
+      uninstall: 卸载
+      restart: 重启
+      stop: 停止
+      operateDisabled: 该操作暂未开放
+      operateSuccess: 操作执行成功
+      restartTitle: 确认重启插件
+      batchRestartTitle: 确认批量重启插件
+      restartSubTitle: '确认重启插件 {pluginName}？'
+      batchRestartSubTitle: '确认批量重启 {pluginNames} 等 {count} 个插件？'
+      uninstallTitle: 确认卸载插件
+      batchUninstallTitle: 确认批量卸载插件
+      uninstallSubTitle: '确认卸载插件 {pluginName}？卸载后不可恢复。'
+      batchUninstallSubTitle: '确认批量卸载 {pluginNames} 等 {count} 个插件？卸载后不可恢复。'
+      stopTitle: 确认停止插件
+      batchStopTitle: 确认批量停止插件
+      stopSubTitle: '确认停止插件 {pluginName}？'
+      batchStopSubTitle: '确认批量停止 {pluginNames} 等 {count} 个插件？'
 topoManager:
   workArea:
     title: 管控区域
@@ -1131,6 +1158,8 @@ route:
   proxyStrategy: Proxy策略
   proxyStrategySubtitle: Proxy策略描述了Proxy节点的配置信息
   pluginStrategy: 插件策略
+  createPluginOperation: 新建策略
+  pluginOperate: 插件操作
   agentPackage: Agent包管理
   proxyPackage: Proxy包管理
   certManage: 证书管理
@@ -1180,3 +1209,71 @@ common:
   cloudArea: 云区域
   system: 系统
   tip: 如需修改默认配置，需打开开关后修改
+pluginOperation:
+  title: 插件策略
+  subtitle: 管理插件的安装、升级、重载等操作策略
+  createStrategy: 新建策略
+  backToList: 返回列表
+  steps:
+    deployTarget: 部署目标
+    pluginVersion: 策略版本
+    packageVersion: 插件包版本
+    paramConfig: 参数配置
+    execPreview: 执行预览
+  form:
+    strategyName: 策略名称
+    strategyNamePlaceholder: 请输入策略名称
+    deployTarget: 部署目标
+    deployTargetRequired: 请选择部署目标
+    advancedOptions: 高级选项
+
+    pluginVersion: 策略版本
+    selectVersion: 选择版本
+    staticTopoPlaceholder: 请在左侧选择节点
+    manualInputPlaceholder: 请手动输入IP地址，多个IP以换行分隔
+    staticTopo: 静态拓扑
+    manualInput: 手动输入
+  paramConfig:
+    title: 参数配置
+    description: 根据插件参数 Schema 配置参数
+    noPlatform: 暂无平台版本数据，请先在部署目标中选择插件包版本
+    noParams: 该平台暂无可配置参数
+    loadFailed: 加载失败：{msg}
+    resetDefault: 恢复默认值
+  preview:
+    title: 执行预览
+    filterAbnormal: 筛选异常的
+    allTab: 全部
+    directArea: 直连区域
+    defaultBiz: 未知业务
+    hostIP: 主机IP
+    networkArea: 管控区域
+    cloudArea: 所属区域
+    opType: 操作类型
+    osType: 操作系统
+    agentStatus: Agent状态
+    currentVersion: 当前版本
+    targetVersion: 目标版本
+    normal: 正常
+    abnormal: 异常
+    notInstalled: 未安装
+    install: 安装
+    upgrade: 升级
+    submitStrategy: 提交
+  table:
+    strategyName: 策略名称
+    pluginName: 插件名称
+    operationType: 操作类型
+    targetVersion: 目标版本
+    creator: 创建人
+    createTime: 创建时间
+    status: 状态
+    action: 操作
+    edit: 编辑
+    delete: 删除
+    enabled: 已启用
+    disabled: 已停用
+  action:
+    nextStep: 下一步
+    prevStep: 上一步
+    cancel: 取消

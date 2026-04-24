@@ -34,3 +34,15 @@
   left: 50% !important;
   transform: translate(-50%, -60%) scaleY(1) rotate(45deg) !important;
 }
+
+/* IP 选择器分页行高修正 */
+.bk-ip-selector,
+.bk-ip-selector-box,
+.bk-ip-selector-preview-dialog,
+.bk-ip-selector-change-confirm,
+.host-table-column-setting-popover,
+[data-bkpop-container="true"] {
+  .bk-page .bk-page-total-small {
+    line-height: 34px !important;
+  }
+}

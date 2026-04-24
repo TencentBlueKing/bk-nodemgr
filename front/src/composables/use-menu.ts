@@ -110,11 +110,11 @@ const navList = [
             icon: 'nodeman-icon nc-proxycelve',
             title: i18n.global.t('route.proxyStrategy'),
           },
-          // {
-          //   routeName: 'pluginStrategy',
-          //   icon: 'nodeman-icon nc-plug-in',
-          //   title: i18n.global.t('route.pluginStrategy'),
-          // },
+          {
+            routeName: 'pluginStrategy',
+            icon: 'nodeman-icon nc-plug-in',
+            title: i18n.global.t('route.pluginStrategy'),
+          },
         ],
       },
       {
