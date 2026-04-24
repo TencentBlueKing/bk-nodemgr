@@ -1017,15 +1017,13 @@ const loadInitialData = async () => {
     return;
   }
 
-  try {
-    // 【修复点】并行执行三个基础请求，但只执行一次
-    await getHostDistinct();
-    isInitialDataLoaded.value = true; // 标记基础数据已加载完成
-  } catch (error) {
-    console.error('加载初始化数据失败:', error);
-    // 即使API失败，也标记为已加载完成，避免无限重试
-    isInitialDataLoaded.value = true;
-  }
+  // 【优化】异步加载筛选条件数据，不阻塞表格渲染
+  getHostDistinct().catch((error) => {
+    console.error('加载筛选条件数据失败:', error);
+  });
+
+  // 立即标记为已加载，允许表格数据加载
+  isInitialDataLoaded.value = true;
   // 注：networkunit_use_for_agent 权限已合并到 PAGE_AUTHORIZED_ITEMS.agent，由 App.vue 统一下发
 };
 
