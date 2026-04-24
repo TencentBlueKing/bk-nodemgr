@@ -201,12 +201,21 @@
     <Dialog
       :is-show="isShowConfigDetail"
       :title="t('agentStrategy.preview.jsonConfigDetail')"
-      width="600"
+      width="680"
       @closed="isShowConfigDetail = false"
       @confirm="isShowConfigDetail = false"
     >
-      <div class="p-[16px]">
-        <pre class="bg-[#F5F7FA] p-[16px] rounded-[4px] text-[13px] text-[#313238] overflow-auto max-h-[500px] whitespace-pre-wrap">{{ configDetailJson }}</pre>
+      <div class="json-editor-wrapper">
+        <div class="json-editor-body" ref="jsonEditorRef">
+          <table class="json-editor-table" cellpadding="0" cellspacing="0">
+            <tbody>
+              <tr v-for="(line, index) in configDetailLines" :key="index" :class="{ 'json-line-active': activeLine === index }" @click="activeLine = index">
+                <td class="json-line-num">{{ index + 1 }}</td>
+                <td class="json-line-content"><pre v-html="line"></pre></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </Dialog>
   </Sideslider>
@@ -445,11 +454,43 @@ const handlePreviewPageLimitChange = (limit: number) => {
 // 配置详情弹窗
 const isShowConfigDetail = ref(false);
 const configDetailJson = ref('');
+const activeLine = ref(-1);
+
+/** 将 JSON 字符串按行拆分并语法高亮，括号按层级黄紫交替 */
+const configDetailLines = computed(() => {
+  const raw = configDetailJson.value;
+  if (!raw) return [];
+  const lines = raw.split('\n');
+  const bracketColors = ['json-bracket-y', 'json-bracket-p']; // 黄/紫交替
+
+  let depth = 0;
+  const highlight = (text: string) => text
+    .replace(/"([^"]+)"(\s*:)/g, '<span class="json-key">"$1"</span>$2')
+    .replace(/:\s*"([^"]*)"/g, ':  <span class="json-string">"$1"</span>')
+    .replace(/:\s*(true|false)/g, ':  <span class="json-bool">$1</span>')
+    .replace(/:\s*(-?\d+\.?\d*)/g, ':  <span class="json-num">$1</span>')
+    .replace(/:(\s*)([{\[])/g, ':  $2')
+    .replace(/\b(null)\b/g, '<span class="json-null">$1</span>')
+    // 括号：开括号先用当前depth着色再++，闭括号先--用新depth着色
+    .replace(/[{}\[\]]/g, (match) => {
+      let cls;
+      if (match === '{' || match === '[') {
+        cls = bracketColors[depth % 2];
+        depth++;
+      } else {
+        depth--;
+        cls = bracketColors[depth % 2];
+      }
+      return `<span class="${cls}">${match}</span>`;
+    });
+  return lines.map((line) => highlight(line));
+});
 
 const handleViewConfigDetail = (row: ConfigPolicyPreviewRespPreviewItem) => {
+  activeLine.value = -1;
   try {
     const parsed = JSON.parse(row.merged_config);
-    configDetailJson.value = JSON.stringify(parsed, null, 2);
+    configDetailJson.value = JSON.stringify(parsed, null, 4);
   } catch {
     configDetailJson.value = row.merged_config || '{}';
   }
@@ -551,5 +592,78 @@ watch(() => isShow.value, (val) => {
     border-color: #90A4B2;
     background: #e2e7eb;
   }
+}
+
+/* JSON 代码编辑器样式 */
+.json-editor-wrapper {
+  border: 1px solid #dcdee5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.json-editor-body {
+  max-height: 480px;
+  overflow: auto;
+  background: #1e1e1e;
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    &:hover { background: rgba(255, 255, 255, 0.25); }
+  }
+}
+.json-editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  tr {
+    cursor: pointer;
+    transition: background 0.1s;
+    &:hover { background: rgba(255, 255, 255, 0.04); }
+  }
+}
+.json-line-num {
+  width: 48px;
+  min-width: 48px;
+  text-align: right;
+  padding: 0 10px;
+  user-select: none;
+  vertical-align: top;
+  line-height: 24px;
+  font-size: 12px;
+  font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+  color: #6a737d;
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+}
+.json-line-content {
+  vertical-align: top;
+  padding: 0 16px;
+  pre {
+    margin: 0;
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 24px;
+    color: #d4d4d4;
+    white-space: pre;
+    tab-size: 2;
+  }
+}
+/* JSON 语法高亮颜色 - v-html 注入内容需 :deep 穿透 */
+:deep(.json-key)     { color: #9cdcfe; }  /* 属性名 - 浅蓝 */
+:deep(.json-string)  { color: #ce9178; }  /* 字符串值 - 橙色 */
+:deep(.json-bool)    { color: #569cd6; }  /* 布尔值 - 蓝色 */
+:deep(.json-num)     { color: #b5cea8; }  /* 数字 - 绿色 */
+:deep(.json-null)    { color: #569cd6; }  /* null - 蓝色 */
+/* 括号按层级交替：第1层黄、第2层紫、第3层黄... */
+:deep(.json-bracket-y) { color: #ffd700; }
+:deep(.json-bracket-p) { color: #d197d9; }
+
+/* 点击行高亮 */
+.json-line-active {
+  background: rgba(255, 255, 255, 0.08) !important;
+  .json-line-num { color: #d4d4d4; }
 }
 </style>
