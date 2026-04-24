@@ -77,7 +77,7 @@ spec:
       {{- end }}
       metric: nodemgr-backend-metric
   endpoints:
-    - port: metric
+    - port: info-http
       path: /metrics
       {{- if .Values.serviceMonitor.interval }}
       interval: {{ .Values.serviceMonitor.interval }}
@@ -127,7 +127,7 @@ spec:
       {{- end }}
       metric: nodemgr-file-metric
   endpoints:
-    - port: metric
+    - port: info-http
       path: /metrics
       {{- if .Values.serviceMonitor.interval }}
       interval: {{ .Values.serviceMonitor.interval }}
