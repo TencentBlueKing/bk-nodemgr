@@ -761,7 +761,6 @@ func (x *PackageReleaseProxyListBriefResp) ConvertReleasesToTypes() (int64, []*t
 	return data.GetTotal(), result
 }
 
-
 // Validate check body.
 func (x *PackageReleaseProxyDistinctReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
@@ -1259,8 +1258,14 @@ func (x *PackageReleasePluginDeleteReq) SetIdentifer(name string, gen types.Gene
 
 // Validate check body.
 func (x *PackageReleasePluginGetConfigVariablesReq) Validate() error {
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	if len(x.GetPlatforms()) == 0 {
+		return fmt.Errorf("platforms cannot be empty")
+	}
+
+	for _, plat := range x.GetPlatforms() {
+		if !ConvertPlatformToTypes(plat).Validate() {
+			return fmt.Errorf("failed to validate platform, plat(%+v)", plat)
+		}
 	}
 
 	return nil
@@ -1270,55 +1275,143 @@ func (x *PackageReleasePluginGetConfigVariablesReq) Validate() error {
 func (x *PackageReleasePluginGetConfigVariablesReq) AutoConvert() {
 }
 
-// GetIdentifier get identifier.
-func (x *PackageReleasePluginGetConfigVariablesReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
-	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PackageReleasePluginGetConfigVariablesReq) ConvertConditionsToTypes() *types.ReleaseCondition {
+	platforms := make([]platfmt.Platform, 0, len(x.GetPlatforms()))
+	for _, platform := range x.GetPlatforms() {
+		platforms = append(platforms, ConvertPlatformToTypes(platform))
+	}
+
+	cond := &types.ReleaseCondition{}
+	cond.ExactInclude = &types.ReleaseExactFields{
+		Name:       []string{x.GetName()},
+		Version:    []string{x.GetVersion()},
+		Generation: []types.Generation{types.Generation(x.GetGeneration())},
+		Platform:   platforms,
+	}
+
+	return cond
+}
+
+// ConvertConfigVariablesToTypes convert config variables to types.
+func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesToTypes() map[string][]*types.PluginPkgConfigTemplate {
+	data := x.GetData().GetConfigVariables()
+
+	result := make(map[string][]*types.PluginPkgConfigTemplate, len(data))
+	for key, value := range data {
+		result[key] = conv.SliceToSlice(
+			value.GetItems(),
+			func(variable *ConfigVariables) *types.PluginPkgConfigTemplate {
+				result := &types.PluginPkgConfigTemplate{
+					Name:          variable.GetName(),
+					FilePath:      variable.GetFilePath(),
+					SourcePath:    variable.GetSourcePath(),
+					IsMainConfig:  variable.GetIsMainConfig(),
+					SourceContent: variable.GetSourceContent(),
+					Variables:     make(map[string]*types.PluginPkgConfigTemplateProperty),
+				}
+
+				for key, property := range variable.GetVariables() {
+					result.Variables[key] = convertPluginPkgConfigTemplatePropertyToTypes(property)
+				}
+
+				return result
+			})
+	}
+
+	return result
 }
 
 // ConvertConfigVariablesFromTypes convert config variables from types.
-func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(plugin *types.ReleasePlugin) {
+func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(plugins []*types.ReleasePlugin) error {
 	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{}
 
-	if plugin == nil {
-		return
+	if len(plugins) == 0 {
+		return nil
 	}
 
-	x.Data.ConfigVariables = conv.SliceToSlice(
-		plugin.ReleaseAdditionInfoPlugin.ConfigTemplates,
-		func(variable types.PluginPkgConfigTemplate) *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables {
-			result := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables{
-				Name:          variable.Name,
-				FilePath:      variable.FilePath,
-				SourcePath:    variable.SourcePath,
-				IsMainConfig:  variable.IsMainConfig,
-				SourceContent: variable.SourceContent,
-				Variables:     make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property),
+	configVariables := make(map[string]*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList, len(plugins))
+	for _, plugin := range plugins {
+		if plugin.ConfigTemplates == nil {
+			continue
+		}
+
+		variables := make([]*ConfigVariables, 0, len(plugin.ConfigTemplates))
+		for _, configTemplate := range plugin.ConfigTemplates {
+			variable := &ConfigVariables{
+				Name:          configTemplate.Name,
+				FilePath:      configTemplate.FilePath,
+				SourcePath:    configTemplate.SourcePath,
+				IsMainConfig:  configTemplate.IsMainConfig,
+				SourceContent: configTemplate.SourceContent,
+				Variables:     make(map[string]*ConfigVariables_Property),
 			}
 
-			for key, property := range variable.Variables {
-				result.Variables[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
+			for key, property := range configTemplate.Variables {
+				variable.Variables[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
 			}
 
-			return result
-		},
-	)
+			variables = append(variables, variable)
+		}
+
+		key := plugin.Platform.String()
+		if _, exists := configVariables[key]; exists {
+			return fmt.Errorf("duplicate platform %s in query results", key)
+		}
+
+		configVariables[key] = &PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList{
+			Items: variables,
+		}
+	}
+
+	x.Data.ConfigVariables = configVariables
+
+	return nil
 }
 
-func convertPluginPkgConfigTemplatePropertyFromTypes(
-	property *types.PluginPkgConfigTemplateProperty,
-) *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
+func convertPluginPkgConfigTemplatePropertyToTypes(
+	property *ConfigVariables_Property,
+) *types.PluginPkgConfigTemplateProperty {
 
 	if property == nil {
 		return nil
 	}
 
-	result := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property{
+	result := &types.PluginPkgConfigTemplateProperty{
 		Title:         property.Title,
 		Type:          property.Type,
 		Required:      property.Required,
 		Description:   property.Description,
 		DescriptionEn: property.DescriptionEn,
-		Properties:    make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property),
+		Properties:    make(map[string]*types.PluginPkgConfigTemplateProperty),
+	}
+
+	for key, child := range property.Properties {
+		result.Properties[key] = convertPluginPkgConfigTemplatePropertyToTypes(child)
+	}
+
+	if property.Default != nil {
+		result.Default = property.Default.AsInterface()
+	}
+
+	return result
+}
+
+func convertPluginPkgConfigTemplatePropertyFromTypes(
+	property *types.PluginPkgConfigTemplateProperty,
+) *ConfigVariables_Property {
+
+	if property == nil {
+		return nil
+	}
+
+	result := &ConfigVariables_Property{
+		Title:         property.Title,
+		Type:          property.Type,
+		Required:      property.Required,
+		Description:   property.Description,
+		DescriptionEn: property.DescriptionEn,
+		Properties:    make(map[string]*ConfigVariables_Property),
 	}
 
 	for key, child := range property.Properties {

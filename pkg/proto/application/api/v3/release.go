@@ -1013,8 +1013,14 @@ func (x *PackageReleaseProxyCountDeployedResp) ConvertResultFromTypes(results []
 
 // Validate check body.
 func (x *PackageReleasePluginGetConfigVariablesReq) Validate() error {
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	if len(x.GetPlatforms()) == 0 {
+		return fmt.Errorf("platforms cannot be empty")
+	}
+
+	for _, plat := range x.GetPlatforms() {
+		if !ConvertPlatformToTypes(plat).Validate() {
+			return fmt.Errorf("failed to validate platform, plat(%+v)", plat)
+		}
 	}
 
 	return nil
@@ -1025,53 +1031,59 @@ func (x *PackageReleasePluginGetConfigVariablesReq) AutoConvert() {
 }
 
 // GetIdentifier gets identifier for plugin release.
-func (x *PackageReleasePluginGetConfigVariablesReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
-	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+func (x *PackageReleasePluginGetConfigVariablesReq) GetIdentifier() (string, string, types.Generation, []platfmt.Platform) {
+	plats := conv.SliceToSlice(x.GetPlatforms(), ConvertPlatformToTypes)
+
+	return x.GetName(), x.GetVersion(), types.Generation(x.GetGeneration()), plats
 }
 
 // ConvertConfigVariablesFromTypes converts config variables from types.
-func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(configTemplates []types.PluginPkgConfigTemplate) {
-	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{}
-
+func (x *PackageReleasePluginGetConfigVariablesResp) ConvertConfigVariablesFromTypes(configTemplates map[string][]*types.PluginPkgConfigTemplate) {
 	if len(configTemplates) == 0 {
 		return
 	}
 
-	x.Data.ConfigVariables = conv.SliceToSlice(
-		configTemplates,
-		func(variable types.PluginPkgConfigTemplate) *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables {
-			result := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables{
-				Name:          variable.Name,
-				FilePath:      variable.FilePath,
-				SourcePath:    variable.SourcePath,
-				IsMainConfig:  variable.IsMainConfig,
-				SourceContent: variable.SourceContent,
-				Variables:     make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property),
-			}
+	variables := make(map[string]*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList, len(configTemplates))
+	for plat, configTemplate := range configTemplates {
+		variables[plat] = &PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList{
+			Items: conv.SliceToSlice(configTemplate, func(template *types.PluginPkgConfigTemplate) *ConfigVariables {
+				result := &ConfigVariables{
+					Name:          template.Name,
+					FilePath:      template.FilePath,
+					SourcePath:    template.SourcePath,
+					IsMainConfig:  template.IsMainConfig,
+					SourceContent: template.SourceContent,
+					Variables:     make(map[string]*ConfigVariables_Property),
+				}
 
-			for key, property := range variable.Variables {
-				result.Variables[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
-			}
+				for key, property := range template.Variables {
+					result.Variables[key] = convertPluginPkgConfigTemplatePropertyFromTypes(property)
+				}
 
-			return result
-		},
-	)
+				return result
+			}),
+		}
+	}
+
+	x.Data = &PackageReleasePluginGetConfigVariablesResp_Data{
+		ConfigVariables: variables,
+	}
 }
 
 func convertPluginPkgConfigTemplatePropertyFromTypes(property *types.PluginPkgConfigTemplateProperty,
-) *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
+) *ConfigVariables_Property {
 
 	if property == nil {
 		return nil
 	}
 
-	result := &PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property{
+	result := &ConfigVariables_Property{
 		Title:         property.Title,
 		Type:          property.Type,
 		Required:      property.Required,
 		Description:   property.Description,
 		DescriptionEn: property.DescriptionEn,
-		Properties:    make(map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property),
+		Properties:    make(map[string]*ConfigVariables_Property),
 	}
 
 	for key, child := range property.Properties {

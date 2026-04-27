@@ -6770,7 +6770,7 @@ type PackageReleasePluginGetConfigVariablesReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Generation    int64                  `protobuf:"varint,1,opt,name=generation,proto3" json:"generation"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name"`
-	Platform      *Platform              `protobuf:"bytes,3,opt,name=platform,proto3" json:"platform"`
+	Platforms     []*Platform            `protobuf:"bytes,3,rep,name=platforms,proto3" json:"platforms"`
 	Version       string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -6820,9 +6820,9 @@ func (x *PackageReleasePluginGetConfigVariablesReq) GetName() string {
 	return ""
 }
 
-func (x *PackageReleasePluginGetConfigVariablesReq) GetPlatform() *Platform {
+func (x *PackageReleasePluginGetConfigVariablesReq) GetPlatforms() []*Platform {
 	if x != nil {
-		return x.Platform
+		return x.Platforms
 	}
 	return nil
 }
@@ -6832,6 +6832,91 @@ func (x *PackageReleasePluginGetConfigVariablesReq) GetVersion() string {
 		return x.Version
 	}
 	return ""
+}
+
+// ConfigVariables describes the config variables of plugin release.
+type ConfigVariables struct {
+	state         protoimpl.MessageState               `protogen:"open.v1"`
+	Name          string                               `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
+	FilePath      string                               `protobuf:"bytes,2,opt,name=file_path,json=filePath,proto3" json:"file_path"`
+	SourcePath    string                               `protobuf:"bytes,3,opt,name=source_path,json=sourcePath,proto3" json:"source_path"`
+	IsMainConfig  bool                                 `protobuf:"varint,4,opt,name=is_main_config,json=isMainConfig,proto3" json:"is_main_config"`
+	SourceContent string                               `protobuf:"bytes,5,opt,name=source_content,json=sourceContent,proto3" json:"source_content"`
+	Variables     map[string]*ConfigVariables_Property `protobuf:"bytes,6,rep,name=variables,proto3" json:"variables" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfigVariables) Reset() {
+	*x = ConfigVariables{}
+	mi := &file_pkg_proto_msgTypes[95]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfigVariables) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfigVariables) ProtoMessage() {}
+
+func (x *ConfigVariables) ProtoReflect() protoreflect.Message {
+	mi := &file_pkg_proto_msgTypes[95]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfigVariables.ProtoReflect.Descriptor instead.
+func (*ConfigVariables) Descriptor() ([]byte, []int) {
+	return file_pkg_proto_rawDescGZIP(), []int{95}
+}
+
+func (x *ConfigVariables) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ConfigVariables) GetFilePath() string {
+	if x != nil {
+		return x.FilePath
+	}
+	return ""
+}
+
+func (x *ConfigVariables) GetSourcePath() string {
+	if x != nil {
+		return x.SourcePath
+	}
+	return ""
+}
+
+func (x *ConfigVariables) GetIsMainConfig() bool {
+	if x != nil {
+		return x.IsMainConfig
+	}
+	return false
+}
+
+func (x *ConfigVariables) GetSourceContent() string {
+	if x != nil {
+		return x.SourceContent
+	}
+	return ""
+}
+
+func (x *ConfigVariables) GetVariables() map[string]*ConfigVariables_Property {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
 }
 
 // PackageReleasePluginGetConfigVariablesResp describes the HTTP response body
@@ -6850,7 +6935,7 @@ type PackageReleasePluginGetConfigVariablesResp struct {
 
 func (x *PackageReleasePluginGetConfigVariablesResp) Reset() {
 	*x = PackageReleasePluginGetConfigVariablesResp{}
-	mi := &file_pkg_proto_msgTypes[95]
+	mi := &file_pkg_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6862,7 +6947,7 @@ func (x *PackageReleasePluginGetConfigVariablesResp) String() string {
 func (*PackageReleasePluginGetConfigVariablesResp) ProtoMessage() {}
 
 func (x *PackageReleasePluginGetConfigVariablesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[95]
+	mi := &file_pkg_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6875,7 +6960,7 @@ func (x *PackageReleasePluginGetConfigVariablesResp) ProtoReflect() protoreflect
 
 // Deprecated: Use PackageReleasePluginGetConfigVariablesResp.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginGetConfigVariablesResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{95}
+	return file_pkg_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *PackageReleasePluginGetConfigVariablesResp) GetCode() int32 {
@@ -6931,7 +7016,7 @@ type PackageReleaseCertListReq struct {
 
 func (x *PackageReleaseCertListReq) Reset() {
 	*x = PackageReleaseCertListReq{}
-	mi := &file_pkg_proto_msgTypes[96]
+	mi := &file_pkg_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6943,7 +7028,7 @@ func (x *PackageReleaseCertListReq) String() string {
 func (*PackageReleaseCertListReq) ProtoMessage() {}
 
 func (x *PackageReleaseCertListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[96]
+	mi := &file_pkg_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6956,7 +7041,7 @@ func (x *PackageReleaseCertListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseCertListReq.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertListReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{96}
+	return file_pkg_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *PackageReleaseCertListReq) GetGeneration() int64 {
@@ -6982,7 +7067,7 @@ type PackageReleaseCertListResp struct {
 
 func (x *PackageReleaseCertListResp) Reset() {
 	*x = PackageReleaseCertListResp{}
-	mi := &file_pkg_proto_msgTypes[97]
+	mi := &file_pkg_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6994,7 +7079,7 @@ func (x *PackageReleaseCertListResp) String() string {
 func (*PackageReleaseCertListResp) ProtoMessage() {}
 
 func (x *PackageReleaseCertListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[97]
+	mi := &file_pkg_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7007,7 +7092,7 @@ func (x *PackageReleaseCertListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseCertListResp.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertListResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{97}
+	return file_pkg_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *PackageReleaseCertListResp) GetCode() int32 {
@@ -7063,7 +7148,7 @@ type PackageReleaseCertDeleteReq struct {
 
 func (x *PackageReleaseCertDeleteReq) Reset() {
 	*x = PackageReleaseCertDeleteReq{}
-	mi := &file_pkg_proto_msgTypes[98]
+	mi := &file_pkg_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7075,7 +7160,7 @@ func (x *PackageReleaseCertDeleteReq) String() string {
 func (*PackageReleaseCertDeleteReq) ProtoMessage() {}
 
 func (x *PackageReleaseCertDeleteReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[98]
+	mi := &file_pkg_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7088,7 +7173,7 @@ func (x *PackageReleaseCertDeleteReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseCertDeleteReq.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertDeleteReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{98}
+	return file_pkg_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *PackageReleaseCertDeleteReq) GetGeneration() int64 {
@@ -7114,7 +7199,7 @@ type PackageReleaseCertDeleteResp struct {
 
 func (x *PackageReleaseCertDeleteResp) Reset() {
 	*x = PackageReleaseCertDeleteResp{}
-	mi := &file_pkg_proto_msgTypes[99]
+	mi := &file_pkg_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7126,7 +7211,7 @@ func (x *PackageReleaseCertDeleteResp) String() string {
 func (*PackageReleaseCertDeleteResp) ProtoMessage() {}
 
 func (x *PackageReleaseCertDeleteResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[99]
+	mi := &file_pkg_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7139,7 +7224,7 @@ func (x *PackageReleaseCertDeleteResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseCertDeleteResp.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertDeleteResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{99}
+	return file_pkg_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *PackageReleaseCertDeleteResp) GetCode() int32 {
@@ -7194,7 +7279,7 @@ type PackageReleaseCertDownloadReq struct {
 
 func (x *PackageReleaseCertDownloadReq) Reset() {
 	*x = PackageReleaseCertDownloadReq{}
-	mi := &file_pkg_proto_msgTypes[100]
+	mi := &file_pkg_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7206,7 +7291,7 @@ func (x *PackageReleaseCertDownloadReq) String() string {
 func (*PackageReleaseCertDownloadReq) ProtoMessage() {}
 
 func (x *PackageReleaseCertDownloadReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[100]
+	mi := &file_pkg_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7219,7 +7304,7 @@ func (x *PackageReleaseCertDownloadReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseCertDownloadReq.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertDownloadReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{100}
+	return file_pkg_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *PackageReleaseCertDownloadReq) GetGeneration() int64 {
@@ -7240,7 +7325,7 @@ type PackageReleaseBinToolListReq struct {
 
 func (x *PackageReleaseBinToolListReq) Reset() {
 	*x = PackageReleaseBinToolListReq{}
-	mi := &file_pkg_proto_msgTypes[101]
+	mi := &file_pkg_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7252,7 +7337,7 @@ func (x *PackageReleaseBinToolListReq) String() string {
 func (*PackageReleaseBinToolListReq) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[101]
+	mi := &file_pkg_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7265,7 +7350,7 @@ func (x *PackageReleaseBinToolListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseBinToolListReq.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolListReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{101}
+	return file_pkg_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *PackageReleaseBinToolListReq) GetGeneration() int64 {
@@ -7291,7 +7376,7 @@ type PackageReleaseBinToolListResp struct {
 
 func (x *PackageReleaseBinToolListResp) Reset() {
 	*x = PackageReleaseBinToolListResp{}
-	mi := &file_pkg_proto_msgTypes[102]
+	mi := &file_pkg_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7303,7 +7388,7 @@ func (x *PackageReleaseBinToolListResp) String() string {
 func (*PackageReleaseBinToolListResp) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[102]
+	mi := &file_pkg_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7316,7 +7401,7 @@ func (x *PackageReleaseBinToolListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseBinToolListResp.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolListResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{102}
+	return file_pkg_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *PackageReleaseBinToolListResp) GetCode() int32 {
@@ -7372,7 +7457,7 @@ type PackageReleaseBinToolDeleteReq struct {
 
 func (x *PackageReleaseBinToolDeleteReq) Reset() {
 	*x = PackageReleaseBinToolDeleteReq{}
-	mi := &file_pkg_proto_msgTypes[103]
+	mi := &file_pkg_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7384,7 +7469,7 @@ func (x *PackageReleaseBinToolDeleteReq) String() string {
 func (*PackageReleaseBinToolDeleteReq) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolDeleteReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[103]
+	mi := &file_pkg_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7397,7 +7482,7 @@ func (x *PackageReleaseBinToolDeleteReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseBinToolDeleteReq.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolDeleteReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{103}
+	return file_pkg_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *PackageReleaseBinToolDeleteReq) GetGeneration() int64 {
@@ -7423,7 +7508,7 @@ type PackageReleaseBinToolDeleteResp struct {
 
 func (x *PackageReleaseBinToolDeleteResp) Reset() {
 	*x = PackageReleaseBinToolDeleteResp{}
-	mi := &file_pkg_proto_msgTypes[104]
+	mi := &file_pkg_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7435,7 +7520,7 @@ func (x *PackageReleaseBinToolDeleteResp) String() string {
 func (*PackageReleaseBinToolDeleteResp) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolDeleteResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[104]
+	mi := &file_pkg_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7448,7 +7533,7 @@ func (x *PackageReleaseBinToolDeleteResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseBinToolDeleteResp.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolDeleteResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{104}
+	return file_pkg_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *PackageReleaseBinToolDeleteResp) GetCode() int32 {
@@ -7503,7 +7588,7 @@ type PackageReleaseBinToolDownloadReq struct {
 
 func (x *PackageReleaseBinToolDownloadReq) Reset() {
 	*x = PackageReleaseBinToolDownloadReq{}
-	mi := &file_pkg_proto_msgTypes[105]
+	mi := &file_pkg_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7515,7 +7600,7 @@ func (x *PackageReleaseBinToolDownloadReq) String() string {
 func (*PackageReleaseBinToolDownloadReq) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolDownloadReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[105]
+	mi := &file_pkg_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7528,7 +7613,7 @@ func (x *PackageReleaseBinToolDownloadReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseBinToolDownloadReq.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolDownloadReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{105}
+	return file_pkg_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *PackageReleaseBinToolDownloadReq) GetGeneration() int64 {
@@ -7549,7 +7634,7 @@ type PackageReleasePluginBinToolListReq struct {
 
 func (x *PackageReleasePluginBinToolListReq) Reset() {
 	*x = PackageReleasePluginBinToolListReq{}
-	mi := &file_pkg_proto_msgTypes[106]
+	mi := &file_pkg_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7561,7 +7646,7 @@ func (x *PackageReleasePluginBinToolListReq) String() string {
 func (*PackageReleasePluginBinToolListReq) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[106]
+	mi := &file_pkg_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7574,7 +7659,7 @@ func (x *PackageReleasePluginBinToolListReq) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use PackageReleasePluginBinToolListReq.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolListReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{106}
+	return file_pkg_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *PackageReleasePluginBinToolListReq) GetGeneration() int64 {
@@ -7600,7 +7685,7 @@ type PackageReleasePluginBinToolListResp struct {
 
 func (x *PackageReleasePluginBinToolListResp) Reset() {
 	*x = PackageReleasePluginBinToolListResp{}
-	mi := &file_pkg_proto_msgTypes[107]
+	mi := &file_pkg_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7612,7 +7697,7 @@ func (x *PackageReleasePluginBinToolListResp) String() string {
 func (*PackageReleasePluginBinToolListResp) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[107]
+	mi := &file_pkg_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7625,7 +7710,7 @@ func (x *PackageReleasePluginBinToolListResp) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use PackageReleasePluginBinToolListResp.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolListResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{107}
+	return file_pkg_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *PackageReleasePluginBinToolListResp) GetCode() int32 {
@@ -7682,7 +7767,7 @@ type PackageReleasePluginBinToolDeleteReq struct {
 
 func (x *PackageReleasePluginBinToolDeleteReq) Reset() {
 	*x = PackageReleasePluginBinToolDeleteReq{}
-	mi := &file_pkg_proto_msgTypes[108]
+	mi := &file_pkg_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7694,7 +7779,7 @@ func (x *PackageReleasePluginBinToolDeleteReq) String() string {
 func (*PackageReleasePluginBinToolDeleteReq) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolDeleteReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[108]
+	mi := &file_pkg_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7707,7 +7792,7 @@ func (x *PackageReleasePluginBinToolDeleteReq) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use PackageReleasePluginBinToolDeleteReq.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolDeleteReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{108}
+	return file_pkg_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *PackageReleasePluginBinToolDeleteReq) GetGeneration() int64 {
@@ -7740,7 +7825,7 @@ type PackageReleasePluginBinToolDeleteResp struct {
 
 func (x *PackageReleasePluginBinToolDeleteResp) Reset() {
 	*x = PackageReleasePluginBinToolDeleteResp{}
-	mi := &file_pkg_proto_msgTypes[109]
+	mi := &file_pkg_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7752,7 +7837,7 @@ func (x *PackageReleasePluginBinToolDeleteResp) String() string {
 func (*PackageReleasePluginBinToolDeleteResp) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolDeleteResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[109]
+	mi := &file_pkg_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7765,7 +7850,7 @@ func (x *PackageReleasePluginBinToolDeleteResp) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use PackageReleasePluginBinToolDeleteResp.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolDeleteResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{109}
+	return file_pkg_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *PackageReleasePluginBinToolDeleteResp) GetCode() int32 {
@@ -7822,7 +7907,7 @@ type PackageReleasePluginBinToolDownloadReq struct {
 
 func (x *PackageReleasePluginBinToolDownloadReq) Reset() {
 	*x = PackageReleasePluginBinToolDownloadReq{}
-	mi := &file_pkg_proto_msgTypes[110]
+	mi := &file_pkg_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7834,7 +7919,7 @@ func (x *PackageReleasePluginBinToolDownloadReq) String() string {
 func (*PackageReleasePluginBinToolDownloadReq) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolDownloadReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[110]
+	mi := &file_pkg_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7847,7 +7932,7 @@ func (x *PackageReleasePluginBinToolDownloadReq) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use PackageReleasePluginBinToolDownloadReq.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolDownloadReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{110}
+	return file_pkg_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *PackageReleasePluginBinToolDownloadReq) GetGeneration() int64 {
@@ -7874,7 +7959,7 @@ type FileChunk struct {
 
 func (x *FileChunk) Reset() {
 	*x = FileChunk{}
-	mi := &file_pkg_proto_msgTypes[111]
+	mi := &file_pkg_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7886,7 +7971,7 @@ func (x *FileChunk) String() string {
 func (*FileChunk) ProtoMessage() {}
 
 func (x *FileChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[111]
+	mi := &file_pkg_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7899,7 +7984,7 @@ func (x *FileChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileChunk.ProtoReflect.Descriptor instead.
 func (*FileChunk) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{111}
+	return file_pkg_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *FileChunk) GetContent() []byte {
@@ -7925,7 +8010,7 @@ type PackageEventExactConditions struct {
 
 func (x *PackageEventExactConditions) Reset() {
 	*x = PackageEventExactConditions{}
-	mi := &file_pkg_proto_msgTypes[112]
+	mi := &file_pkg_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7937,7 +8022,7 @@ func (x *PackageEventExactConditions) String() string {
 func (*PackageEventExactConditions) ProtoMessage() {}
 
 func (x *PackageEventExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[112]
+	mi := &file_pkg_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7950,7 +8035,7 @@ func (x *PackageEventExactConditions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventExactConditions.ProtoReflect.Descriptor instead.
 func (*PackageEventExactConditions) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{112}
+	return file_pkg_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *PackageEventExactConditions) GetGeneration() []int64 {
@@ -8011,7 +8096,7 @@ type PackageEventFuzzyConditions struct {
 
 func (x *PackageEventFuzzyConditions) Reset() {
 	*x = PackageEventFuzzyConditions{}
-	mi := &file_pkg_proto_msgTypes[113]
+	mi := &file_pkg_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8023,7 +8108,7 @@ func (x *PackageEventFuzzyConditions) String() string {
 func (*PackageEventFuzzyConditions) ProtoMessage() {}
 
 func (x *PackageEventFuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[113]
+	mi := &file_pkg_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8036,7 +8121,7 @@ func (x *PackageEventFuzzyConditions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventFuzzyConditions.ProtoReflect.Descriptor instead.
 func (*PackageEventFuzzyConditions) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{113}
+	return file_pkg_proto_rawDescGZIP(), []int{114}
 }
 
 // PackageEventListReq describes the HTTP request body when list event in
@@ -8054,7 +8139,7 @@ type PackageEventListReq struct {
 
 func (x *PackageEventListReq) Reset() {
 	*x = PackageEventListReq{}
-	mi := &file_pkg_proto_msgTypes[114]
+	mi := &file_pkg_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8066,7 +8151,7 @@ func (x *PackageEventListReq) String() string {
 func (*PackageEventListReq) ProtoMessage() {}
 
 func (x *PackageEventListReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[114]
+	mi := &file_pkg_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8079,7 +8164,7 @@ func (x *PackageEventListReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventListReq.ProtoReflect.Descriptor instead.
 func (*PackageEventListReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{114}
+	return file_pkg_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *PackageEventListReq) GetPage() *Page {
@@ -8133,7 +8218,7 @@ type PackageEventListResp struct {
 
 func (x *PackageEventListResp) Reset() {
 	*x = PackageEventListResp{}
-	mi := &file_pkg_proto_msgTypes[115]
+	mi := &file_pkg_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8145,7 +8230,7 @@ func (x *PackageEventListResp) String() string {
 func (*PackageEventListResp) ProtoMessage() {}
 
 func (x *PackageEventListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[115]
+	mi := &file_pkg_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8158,7 +8243,7 @@ func (x *PackageEventListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventListResp.ProtoReflect.Descriptor instead.
 func (*PackageEventListResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{115}
+	return file_pkg_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *PackageEventListResp) GetCode() int32 {
@@ -8216,7 +8301,7 @@ type PackageEventDistinctReq struct {
 
 func (x *PackageEventDistinctReq) Reset() {
 	*x = PackageEventDistinctReq{}
-	mi := &file_pkg_proto_msgTypes[116]
+	mi := &file_pkg_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8228,7 +8313,7 @@ func (x *PackageEventDistinctReq) String() string {
 func (*PackageEventDistinctReq) ProtoMessage() {}
 
 func (x *PackageEventDistinctReq) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[116]
+	mi := &file_pkg_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8241,7 +8326,7 @@ func (x *PackageEventDistinctReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventDistinctReq.ProtoReflect.Descriptor instead.
 func (*PackageEventDistinctReq) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{116}
+	return file_pkg_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *PackageEventDistinctReq) GetExactIncludeConditions() *PackageEventExactConditions {
@@ -8281,7 +8366,7 @@ type PackageEventDistinctResp struct {
 
 func (x *PackageEventDistinctResp) Reset() {
 	*x = PackageEventDistinctResp{}
-	mi := &file_pkg_proto_msgTypes[117]
+	mi := &file_pkg_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8293,7 +8378,7 @@ func (x *PackageEventDistinctResp) String() string {
 func (*PackageEventDistinctResp) ProtoMessage() {}
 
 func (x *PackageEventDistinctResp) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[117]
+	mi := &file_pkg_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8306,7 +8391,7 @@ func (x *PackageEventDistinctResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventDistinctResp.ProtoReflect.Descriptor instead.
 func (*PackageEventDistinctResp) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{117}
+	return file_pkg_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *PackageEventDistinctResp) GetCode() int32 {
@@ -8369,7 +8454,7 @@ type PackageUploadOriginAgentResp_Data struct {
 
 func (x *PackageUploadOriginAgentResp_Data) Reset() {
 	*x = PackageUploadOriginAgentResp_Data{}
-	mi := &file_pkg_proto_msgTypes[118]
+	mi := &file_pkg_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8381,7 +8466,7 @@ func (x *PackageUploadOriginAgentResp_Data) String() string {
 func (*PackageUploadOriginAgentResp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginAgentResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[118]
+	mi := &file_pkg_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8485,7 +8570,7 @@ type PackageUploadOriginServerResp_Data struct {
 
 func (x *PackageUploadOriginServerResp_Data) Reset() {
 	*x = PackageUploadOriginServerResp_Data{}
-	mi := &file_pkg_proto_msgTypes[119]
+	mi := &file_pkg_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8497,7 +8582,7 @@ func (x *PackageUploadOriginServerResp_Data) String() string {
 func (*PackageUploadOriginServerResp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginServerResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[119]
+	mi := &file_pkg_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8601,7 +8686,7 @@ type PackageUploadOriginProxyResp_Data struct {
 
 func (x *PackageUploadOriginProxyResp_Data) Reset() {
 	*x = PackageUploadOriginProxyResp_Data{}
-	mi := &file_pkg_proto_msgTypes[120]
+	mi := &file_pkg_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8613,7 +8698,7 @@ func (x *PackageUploadOriginProxyResp_Data) String() string {
 func (*PackageUploadOriginProxyResp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginProxyResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[120]
+	mi := &file_pkg_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8714,7 +8799,7 @@ type PackageUploadOriginCertResp_Data struct {
 
 func (x *PackageUploadOriginCertResp_Data) Reset() {
 	*x = PackageUploadOriginCertResp_Data{}
-	mi := &file_pkg_proto_msgTypes[121]
+	mi := &file_pkg_proto_msgTypes[122]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8726,7 +8811,7 @@ func (x *PackageUploadOriginCertResp_Data) String() string {
 func (*PackageUploadOriginCertResp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginCertResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[121]
+	mi := &file_pkg_proto_msgTypes[122]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8807,7 +8892,7 @@ type PackageUploadOriginBinToolResp_Data struct {
 
 func (x *PackageUploadOriginBinToolResp_Data) Reset() {
 	*x = PackageUploadOriginBinToolResp_Data{}
-	mi := &file_pkg_proto_msgTypes[122]
+	mi := &file_pkg_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8819,7 +8904,7 @@ func (x *PackageUploadOriginBinToolResp_Data) String() string {
 func (*PackageUploadOriginBinToolResp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginBinToolResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[122]
+	mi := &file_pkg_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8914,7 +8999,7 @@ type PackageUploadOriginPluginV2Resp_Data struct {
 
 func (x *PackageUploadOriginPluginV2Resp_Data) Reset() {
 	*x = PackageUploadOriginPluginV2Resp_Data{}
-	mi := &file_pkg_proto_msgTypes[123]
+	mi := &file_pkg_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8926,7 +9011,7 @@ func (x *PackageUploadOriginPluginV2Resp_Data) String() string {
 func (*PackageUploadOriginPluginV2Resp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginPluginV2Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[123]
+	mi := &file_pkg_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9070,7 +9155,7 @@ type PackageUploadOriginExternalPluginV2Resp_Data struct {
 
 func (x *PackageUploadOriginExternalPluginV2Resp_Data) Reset() {
 	*x = PackageUploadOriginExternalPluginV2Resp_Data{}
-	mi := &file_pkg_proto_msgTypes[124]
+	mi := &file_pkg_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9082,7 +9167,7 @@ func (x *PackageUploadOriginExternalPluginV2Resp_Data) String() string {
 func (*PackageUploadOriginExternalPluginV2Resp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginExternalPluginV2Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[124]
+	mi := &file_pkg_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9225,7 +9310,7 @@ type PackageUploadOriginPluginV3Resp_Data struct {
 
 func (x *PackageUploadOriginPluginV3Resp_Data) Reset() {
 	*x = PackageUploadOriginPluginV3Resp_Data{}
-	mi := &file_pkg_proto_msgTypes[125]
+	mi := &file_pkg_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9237,7 +9322,7 @@ func (x *PackageUploadOriginPluginV3Resp_Data) String() string {
 func (*PackageUploadOriginPluginV3Resp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginPluginV3Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[125]
+	mi := &file_pkg_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9367,7 +9452,7 @@ type PackageUploadOriginPluginBinToolResp_Data struct {
 
 func (x *PackageUploadOriginPluginBinToolResp_Data) Reset() {
 	*x = PackageUploadOriginPluginBinToolResp_Data{}
-	mi := &file_pkg_proto_msgTypes[126]
+	mi := &file_pkg_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9379,7 +9464,7 @@ func (x *PackageUploadOriginPluginBinToolResp_Data) String() string {
 func (*PackageUploadOriginPluginBinToolResp_Data) ProtoMessage() {}
 
 func (x *PackageUploadOriginPluginBinToolResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[126]
+	mi := &file_pkg_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9460,7 +9545,7 @@ type PackageUploadOriginPluginBinToolResp_Data_V2Info struct {
 
 func (x *PackageUploadOriginPluginBinToolResp_Data_V2Info) Reset() {
 	*x = PackageUploadOriginPluginBinToolResp_Data_V2Info{}
-	mi := &file_pkg_proto_msgTypes[127]
+	mi := &file_pkg_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9472,7 +9557,7 @@ func (x *PackageUploadOriginPluginBinToolResp_Data_V2Info) String() string {
 func (*PackageUploadOriginPluginBinToolResp_Data_V2Info) ProtoMessage() {}
 
 func (x *PackageUploadOriginPluginBinToolResp_Data_V2Info) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[127]
+	mi := &file_pkg_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9504,7 +9589,7 @@ type PackageUploadOriginPluginBinToolResp_Data_V3Info struct {
 
 func (x *PackageUploadOriginPluginBinToolResp_Data_V3Info) Reset() {
 	*x = PackageUploadOriginPluginBinToolResp_Data_V3Info{}
-	mi := &file_pkg_proto_msgTypes[128]
+	mi := &file_pkg_proto_msgTypes[129]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9516,7 +9601,7 @@ func (x *PackageUploadOriginPluginBinToolResp_Data_V3Info) String() string {
 func (*PackageUploadOriginPluginBinToolResp_Data_V3Info) ProtoMessage() {}
 
 func (x *PackageUploadOriginPluginBinToolResp_Data_V3Info) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[128]
+	mi := &file_pkg_proto_msgTypes[129]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9547,7 +9632,7 @@ type PackagePublishReleasePluginV2Resp_Data struct {
 
 func (x *PackagePublishReleasePluginV2Resp_Data) Reset() {
 	*x = PackagePublishReleasePluginV2Resp_Data{}
-	mi := &file_pkg_proto_msgTypes[129]
+	mi := &file_pkg_proto_msgTypes[130]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9559,7 +9644,7 @@ func (x *PackagePublishReleasePluginV2Resp_Data) String() string {
 func (*PackagePublishReleasePluginV2Resp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleasePluginV2Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[129]
+	mi := &file_pkg_proto_msgTypes[130]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9583,7 +9668,7 @@ type PackagePublishReleaseExternalPluginV2Resp_Data struct {
 
 func (x *PackagePublishReleaseExternalPluginV2Resp_Data) Reset() {
 	*x = PackagePublishReleaseExternalPluginV2Resp_Data{}
-	mi := &file_pkg_proto_msgTypes[130]
+	mi := &file_pkg_proto_msgTypes[131]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9595,7 +9680,7 @@ func (x *PackagePublishReleaseExternalPluginV2Resp_Data) String() string {
 func (*PackagePublishReleaseExternalPluginV2Resp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleaseExternalPluginV2Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[130]
+	mi := &file_pkg_proto_msgTypes[131]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9619,7 +9704,7 @@ type PackagePublishReleasePluginV3Resp_Data struct {
 
 func (x *PackagePublishReleasePluginV3Resp_Data) Reset() {
 	*x = PackagePublishReleasePluginV3Resp_Data{}
-	mi := &file_pkg_proto_msgTypes[131]
+	mi := &file_pkg_proto_msgTypes[132]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9631,7 +9716,7 @@ func (x *PackagePublishReleasePluginV3Resp_Data) String() string {
 func (*PackagePublishReleasePluginV3Resp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleasePluginV3Resp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[131]
+	mi := &file_pkg_proto_msgTypes[132]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9655,7 +9740,7 @@ type PackagePublishReleaseAgentResp_Data struct {
 
 func (x *PackagePublishReleaseAgentResp_Data) Reset() {
 	*x = PackagePublishReleaseAgentResp_Data{}
-	mi := &file_pkg_proto_msgTypes[132]
+	mi := &file_pkg_proto_msgTypes[133]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9667,7 +9752,7 @@ func (x *PackagePublishReleaseAgentResp_Data) String() string {
 func (*PackagePublishReleaseAgentResp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleaseAgentResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[132]
+	mi := &file_pkg_proto_msgTypes[133]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9691,7 +9776,7 @@ type PackagePublishReleaseProxyResp_Data struct {
 
 func (x *PackagePublishReleaseProxyResp_Data) Reset() {
 	*x = PackagePublishReleaseProxyResp_Data{}
-	mi := &file_pkg_proto_msgTypes[133]
+	mi := &file_pkg_proto_msgTypes[134]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9703,7 +9788,7 @@ func (x *PackagePublishReleaseProxyResp_Data) String() string {
 func (*PackagePublishReleaseProxyResp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleaseProxyResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[133]
+	mi := &file_pkg_proto_msgTypes[134]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9727,7 +9812,7 @@ type PackagePublishReleaseCertResp_Data struct {
 
 func (x *PackagePublishReleaseCertResp_Data) Reset() {
 	*x = PackagePublishReleaseCertResp_Data{}
-	mi := &file_pkg_proto_msgTypes[134]
+	mi := &file_pkg_proto_msgTypes[135]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9739,7 +9824,7 @@ func (x *PackagePublishReleaseCertResp_Data) String() string {
 func (*PackagePublishReleaseCertResp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleaseCertResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[134]
+	mi := &file_pkg_proto_msgTypes[135]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9763,7 +9848,7 @@ type PackagePublishReleaseBinToolResp_Data struct {
 
 func (x *PackagePublishReleaseBinToolResp_Data) Reset() {
 	*x = PackagePublishReleaseBinToolResp_Data{}
-	mi := &file_pkg_proto_msgTypes[135]
+	mi := &file_pkg_proto_msgTypes[136]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9775,7 +9860,7 @@ func (x *PackagePublishReleaseBinToolResp_Data) String() string {
 func (*PackagePublishReleaseBinToolResp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleaseBinToolResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[135]
+	mi := &file_pkg_proto_msgTypes[136]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9799,7 +9884,7 @@ type PackagePublishReleasePluginBinToolResp_Data struct {
 
 func (x *PackagePublishReleasePluginBinToolResp_Data) Reset() {
 	*x = PackagePublishReleasePluginBinToolResp_Data{}
-	mi := &file_pkg_proto_msgTypes[136]
+	mi := &file_pkg_proto_msgTypes[137]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9811,7 +9896,7 @@ func (x *PackagePublishReleasePluginBinToolResp_Data) String() string {
 func (*PackagePublishReleasePluginBinToolResp_Data) ProtoMessage() {}
 
 func (x *PackagePublishReleasePluginBinToolResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[136]
+	mi := &file_pkg_proto_msgTypes[137]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9837,7 +9922,7 @@ type PackageReleaseAgentListResp_Data struct {
 
 func (x *PackageReleaseAgentListResp_Data) Reset() {
 	*x = PackageReleaseAgentListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[137]
+	mi := &file_pkg_proto_msgTypes[138]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9849,7 +9934,7 @@ func (x *PackageReleaseAgentListResp_Data) String() string {
 func (*PackageReleaseAgentListResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[137]
+	mi := &file_pkg_proto_msgTypes[138]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9889,7 +9974,7 @@ type PackageReleaseAgentListBriefResp_Data struct {
 
 func (x *PackageReleaseAgentListBriefResp_Data) Reset() {
 	*x = PackageReleaseAgentListBriefResp_Data{}
-	mi := &file_pkg_proto_msgTypes[138]
+	mi := &file_pkg_proto_msgTypes[139]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9901,7 +9986,7 @@ func (x *PackageReleaseAgentListBriefResp_Data) String() string {
 func (*PackageReleaseAgentListBriefResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentListBriefResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[138]
+	mi := &file_pkg_proto_msgTypes[139]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9939,7 +10024,7 @@ type PackageReleaseAgentSetLabelsManyResp_Data struct {
 
 func (x *PackageReleaseAgentSetLabelsManyResp_Data) Reset() {
 	*x = PackageReleaseAgentSetLabelsManyResp_Data{}
-	mi := &file_pkg_proto_msgTypes[139]
+	mi := &file_pkg_proto_msgTypes[140]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9951,7 +10036,7 @@ func (x *PackageReleaseAgentSetLabelsManyResp_Data) String() string {
 func (*PackageReleaseAgentSetLabelsManyResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentSetLabelsManyResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[139]
+	mi := &file_pkg_proto_msgTypes[140]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9975,7 +10060,7 @@ type PackageReleaseAgentEnableResp_Data struct {
 
 func (x *PackageReleaseAgentEnableResp_Data) Reset() {
 	*x = PackageReleaseAgentEnableResp_Data{}
-	mi := &file_pkg_proto_msgTypes[140]
+	mi := &file_pkg_proto_msgTypes[141]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9987,7 +10072,7 @@ func (x *PackageReleaseAgentEnableResp_Data) String() string {
 func (*PackageReleaseAgentEnableResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentEnableResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[140]
+	mi := &file_pkg_proto_msgTypes[141]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10011,7 +10096,7 @@ type PackageReleaseAgentDisableResp_Data struct {
 
 func (x *PackageReleaseAgentDisableResp_Data) Reset() {
 	*x = PackageReleaseAgentDisableResp_Data{}
-	mi := &file_pkg_proto_msgTypes[141]
+	mi := &file_pkg_proto_msgTypes[142]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10023,7 +10108,7 @@ func (x *PackageReleaseAgentDisableResp_Data) String() string {
 func (*PackageReleaseAgentDisableResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentDisableResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[141]
+	mi := &file_pkg_proto_msgTypes[142]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10047,7 +10132,7 @@ type PackageReleaseAgentSetAsDefaultResp_Data struct {
 
 func (x *PackageReleaseAgentSetAsDefaultResp_Data) Reset() {
 	*x = PackageReleaseAgentSetAsDefaultResp_Data{}
-	mi := &file_pkg_proto_msgTypes[142]
+	mi := &file_pkg_proto_msgTypes[143]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10059,7 +10144,7 @@ func (x *PackageReleaseAgentSetAsDefaultResp_Data) String() string {
 func (*PackageReleaseAgentSetAsDefaultResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentSetAsDefaultResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[142]
+	mi := &file_pkg_proto_msgTypes[143]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10083,7 +10168,7 @@ type PackageReleaseAgentCancelAsDefaultResp_Data struct {
 
 func (x *PackageReleaseAgentCancelAsDefaultResp_Data) Reset() {
 	*x = PackageReleaseAgentCancelAsDefaultResp_Data{}
-	mi := &file_pkg_proto_msgTypes[143]
+	mi := &file_pkg_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10095,7 +10180,7 @@ func (x *PackageReleaseAgentCancelAsDefaultResp_Data) String() string {
 func (*PackageReleaseAgentCancelAsDefaultResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentCancelAsDefaultResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[143]
+	mi := &file_pkg_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10119,7 +10204,7 @@ type PackageReleaseAgentDeleteResp_Data struct {
 
 func (x *PackageReleaseAgentDeleteResp_Data) Reset() {
 	*x = PackageReleaseAgentDeleteResp_Data{}
-	mi := &file_pkg_proto_msgTypes[144]
+	mi := &file_pkg_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10131,7 +10216,7 @@ func (x *PackageReleaseAgentDeleteResp_Data) String() string {
 func (*PackageReleaseAgentDeleteResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[144]
+	mi := &file_pkg_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10158,7 +10243,7 @@ type PackageReleaseAgentCountDeployedReq_Item struct {
 
 func (x *PackageReleaseAgentCountDeployedReq_Item) Reset() {
 	*x = PackageReleaseAgentCountDeployedReq_Item{}
-	mi := &file_pkg_proto_msgTypes[145]
+	mi := &file_pkg_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10170,7 +10255,7 @@ func (x *PackageReleaseAgentCountDeployedReq_Item) String() string {
 func (*PackageReleaseAgentCountDeployedReq_Item) ProtoMessage() {}
 
 func (x *PackageReleaseAgentCountDeployedReq_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[145]
+	mi := &file_pkg_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10216,7 +10301,7 @@ type PackageReleaseAgentCountDeployedResp_Data struct {
 
 func (x *PackageReleaseAgentCountDeployedResp_Data) Reset() {
 	*x = PackageReleaseAgentCountDeployedResp_Data{}
-	mi := &file_pkg_proto_msgTypes[146]
+	mi := &file_pkg_proto_msgTypes[147]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10228,7 +10313,7 @@ func (x *PackageReleaseAgentCountDeployedResp_Data) String() string {
 func (*PackageReleaseAgentCountDeployedResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseAgentCountDeployedResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[146]
+	mi := &file_pkg_proto_msgTypes[147]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10261,7 +10346,7 @@ type PackageReleaseProxyListResp_Data struct {
 
 func (x *PackageReleaseProxyListResp_Data) Reset() {
 	*x = PackageReleaseProxyListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[147]
+	mi := &file_pkg_proto_msgTypes[148]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10273,7 +10358,7 @@ func (x *PackageReleaseProxyListResp_Data) String() string {
 func (*PackageReleaseProxyListResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[147]
+	mi := &file_pkg_proto_msgTypes[148]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10313,7 +10398,7 @@ type PackageReleaseProxyListBriefResp_Data struct {
 
 func (x *PackageReleaseProxyListBriefResp_Data) Reset() {
 	*x = PackageReleaseProxyListBriefResp_Data{}
-	mi := &file_pkg_proto_msgTypes[148]
+	mi := &file_pkg_proto_msgTypes[149]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10325,7 +10410,7 @@ func (x *PackageReleaseProxyListBriefResp_Data) String() string {
 func (*PackageReleaseProxyListBriefResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyListBriefResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[148]
+	mi := &file_pkg_proto_msgTypes[149]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10363,7 +10448,7 @@ type PackageReleaseProxySetLabelsManyResp_Data struct {
 
 func (x *PackageReleaseProxySetLabelsManyResp_Data) Reset() {
 	*x = PackageReleaseProxySetLabelsManyResp_Data{}
-	mi := &file_pkg_proto_msgTypes[149]
+	mi := &file_pkg_proto_msgTypes[150]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10375,7 +10460,7 @@ func (x *PackageReleaseProxySetLabelsManyResp_Data) String() string {
 func (*PackageReleaseProxySetLabelsManyResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxySetLabelsManyResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[149]
+	mi := &file_pkg_proto_msgTypes[150]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10399,7 +10484,7 @@ type PackageReleaseProxyEnableResp_Data struct {
 
 func (x *PackageReleaseProxyEnableResp_Data) Reset() {
 	*x = PackageReleaseProxyEnableResp_Data{}
-	mi := &file_pkg_proto_msgTypes[150]
+	mi := &file_pkg_proto_msgTypes[151]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10411,7 +10496,7 @@ func (x *PackageReleaseProxyEnableResp_Data) String() string {
 func (*PackageReleaseProxyEnableResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyEnableResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[150]
+	mi := &file_pkg_proto_msgTypes[151]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10435,7 +10520,7 @@ type PackageReleaseProxyDisableResp_Data struct {
 
 func (x *PackageReleaseProxyDisableResp_Data) Reset() {
 	*x = PackageReleaseProxyDisableResp_Data{}
-	mi := &file_pkg_proto_msgTypes[151]
+	mi := &file_pkg_proto_msgTypes[152]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10447,7 +10532,7 @@ func (x *PackageReleaseProxyDisableResp_Data) String() string {
 func (*PackageReleaseProxyDisableResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyDisableResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[151]
+	mi := &file_pkg_proto_msgTypes[152]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10471,7 +10556,7 @@ type PackageReleaseProxySetAsDefaultResp_Data struct {
 
 func (x *PackageReleaseProxySetAsDefaultResp_Data) Reset() {
 	*x = PackageReleaseProxySetAsDefaultResp_Data{}
-	mi := &file_pkg_proto_msgTypes[152]
+	mi := &file_pkg_proto_msgTypes[153]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10483,7 +10568,7 @@ func (x *PackageReleaseProxySetAsDefaultResp_Data) String() string {
 func (*PackageReleaseProxySetAsDefaultResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxySetAsDefaultResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[152]
+	mi := &file_pkg_proto_msgTypes[153]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10507,7 +10592,7 @@ type PackageReleaseProxyCancelAsDefaultResp_Data struct {
 
 func (x *PackageReleaseProxyCancelAsDefaultResp_Data) Reset() {
 	*x = PackageReleaseProxyCancelAsDefaultResp_Data{}
-	mi := &file_pkg_proto_msgTypes[153]
+	mi := &file_pkg_proto_msgTypes[154]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10519,7 +10604,7 @@ func (x *PackageReleaseProxyCancelAsDefaultResp_Data) String() string {
 func (*PackageReleaseProxyCancelAsDefaultResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyCancelAsDefaultResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[153]
+	mi := &file_pkg_proto_msgTypes[154]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10543,7 +10628,7 @@ type PackageReleaseProxyDeleteResp_Data struct {
 
 func (x *PackageReleaseProxyDeleteResp_Data) Reset() {
 	*x = PackageReleaseProxyDeleteResp_Data{}
-	mi := &file_pkg_proto_msgTypes[154]
+	mi := &file_pkg_proto_msgTypes[155]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10555,7 +10640,7 @@ func (x *PackageReleaseProxyDeleteResp_Data) String() string {
 func (*PackageReleaseProxyDeleteResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[154]
+	mi := &file_pkg_proto_msgTypes[155]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10582,7 +10667,7 @@ type PackageReleaseProxyCountDeployedReq_Item struct {
 
 func (x *PackageReleaseProxyCountDeployedReq_Item) Reset() {
 	*x = PackageReleaseProxyCountDeployedReq_Item{}
-	mi := &file_pkg_proto_msgTypes[155]
+	mi := &file_pkg_proto_msgTypes[156]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10594,7 +10679,7 @@ func (x *PackageReleaseProxyCountDeployedReq_Item) String() string {
 func (*PackageReleaseProxyCountDeployedReq_Item) ProtoMessage() {}
 
 func (x *PackageReleaseProxyCountDeployedReq_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[155]
+	mi := &file_pkg_proto_msgTypes[156]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10640,7 +10725,7 @@ type PackageReleaseProxyCountDeployedResp_Data struct {
 
 func (x *PackageReleaseProxyCountDeployedResp_Data) Reset() {
 	*x = PackageReleaseProxyCountDeployedResp_Data{}
-	mi := &file_pkg_proto_msgTypes[156]
+	mi := &file_pkg_proto_msgTypes[157]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10652,7 +10737,7 @@ func (x *PackageReleaseProxyCountDeployedResp_Data) String() string {
 func (*PackageReleaseProxyCountDeployedResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseProxyCountDeployedResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[156]
+	mi := &file_pkg_proto_msgTypes[157]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10685,7 +10770,7 @@ type PackageReleasePluginListResp_Data struct {
 
 func (x *PackageReleasePluginListResp_Data) Reset() {
 	*x = PackageReleasePluginListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[157]
+	mi := &file_pkg_proto_msgTypes[158]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10697,7 +10782,7 @@ func (x *PackageReleasePluginListResp_Data) String() string {
 func (*PackageReleasePluginListResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[157]
+	mi := &file_pkg_proto_msgTypes[158]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10737,7 +10822,7 @@ type PackageReleasePluginListBriefResp_Data struct {
 
 func (x *PackageReleasePluginListBriefResp_Data) Reset() {
 	*x = PackageReleasePluginListBriefResp_Data{}
-	mi := &file_pkg_proto_msgTypes[158]
+	mi := &file_pkg_proto_msgTypes[159]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10749,7 +10834,7 @@ func (x *PackageReleasePluginListBriefResp_Data) String() string {
 func (*PackageReleasePluginListBriefResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginListBriefResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[158]
+	mi := &file_pkg_proto_msgTypes[159]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10787,7 +10872,7 @@ type PackageReleasePluginEnableResp_Data struct {
 
 func (x *PackageReleasePluginEnableResp_Data) Reset() {
 	*x = PackageReleasePluginEnableResp_Data{}
-	mi := &file_pkg_proto_msgTypes[159]
+	mi := &file_pkg_proto_msgTypes[160]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10799,7 +10884,7 @@ func (x *PackageReleasePluginEnableResp_Data) String() string {
 func (*PackageReleasePluginEnableResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginEnableResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[159]
+	mi := &file_pkg_proto_msgTypes[160]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10823,7 +10908,7 @@ type PackageReleasePluginDisableResp_Data struct {
 
 func (x *PackageReleasePluginDisableResp_Data) Reset() {
 	*x = PackageReleasePluginDisableResp_Data{}
-	mi := &file_pkg_proto_msgTypes[160]
+	mi := &file_pkg_proto_msgTypes[161]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10835,7 +10920,7 @@ func (x *PackageReleasePluginDisableResp_Data) String() string {
 func (*PackageReleasePluginDisableResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginDisableResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[160]
+	mi := &file_pkg_proto_msgTypes[161]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10859,7 +10944,7 @@ type PackageReleasePluginSetAsDefaultResp_Data struct {
 
 func (x *PackageReleasePluginSetAsDefaultResp_Data) Reset() {
 	*x = PackageReleasePluginSetAsDefaultResp_Data{}
-	mi := &file_pkg_proto_msgTypes[161]
+	mi := &file_pkg_proto_msgTypes[162]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10871,7 +10956,7 @@ func (x *PackageReleasePluginSetAsDefaultResp_Data) String() string {
 func (*PackageReleasePluginSetAsDefaultResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginSetAsDefaultResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[161]
+	mi := &file_pkg_proto_msgTypes[162]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10895,7 +10980,7 @@ type PackageReleasePluginCancelAsDefaultResp_Data struct {
 
 func (x *PackageReleasePluginCancelAsDefaultResp_Data) Reset() {
 	*x = PackageReleasePluginCancelAsDefaultResp_Data{}
-	mi := &file_pkg_proto_msgTypes[162]
+	mi := &file_pkg_proto_msgTypes[163]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10907,7 +10992,7 @@ func (x *PackageReleasePluginCancelAsDefaultResp_Data) String() string {
 func (*PackageReleasePluginCancelAsDefaultResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginCancelAsDefaultResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[162]
+	mi := &file_pkg_proto_msgTypes[163]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10931,7 +11016,7 @@ type PackageReleasePluginDeleteResp_Data struct {
 
 func (x *PackageReleasePluginDeleteResp_Data) Reset() {
 	*x = PackageReleasePluginDeleteResp_Data{}
-	mi := &file_pkg_proto_msgTypes[163]
+	mi := &file_pkg_proto_msgTypes[164]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10943,7 +11028,7 @@ func (x *PackageReleasePluginDeleteResp_Data) String() string {
 func (*PackageReleasePluginDeleteResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[163]
+	mi := &file_pkg_proto_msgTypes[164]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10959,16 +11044,152 @@ func (*PackageReleasePluginDeleteResp_Data) Descriptor() ([]byte, []int) {
 	return file_pkg_proto_rawDescGZIP(), []int{92, 0}
 }
 
+type ConfigVariables_Property struct {
+	state         protoimpl.MessageState               `protogen:"open.v1"`
+	Title         string                               `protobuf:"bytes,1,opt,name=title,proto3" json:"title"`
+	Type          string                               `protobuf:"bytes,2,opt,name=type,proto3" json:"type"`
+	Required      bool                                 `protobuf:"varint,3,opt,name=required,proto3" json:"required"`
+	Default       *structpb.Value                      `protobuf:"bytes,4,opt,name=default,proto3" json:"default"`
+	Description   string                               `protobuf:"bytes,5,opt,name=description,proto3" json:"description"`
+	DescriptionEn string                               `protobuf:"bytes,6,opt,name=description_en,json=descriptionEn,proto3" json:"description_en"`
+	Properties    map[string]*ConfigVariables_Property `protobuf:"bytes,7,rep,name=properties,proto3" json:"properties" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfigVariables_Property) Reset() {
+	*x = ConfigVariables_Property{}
+	mi := &file_pkg_proto_msgTypes[165]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfigVariables_Property) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfigVariables_Property) ProtoMessage() {}
+
+func (x *ConfigVariables_Property) ProtoReflect() protoreflect.Message {
+	mi := &file_pkg_proto_msgTypes[165]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfigVariables_Property.ProtoReflect.Descriptor instead.
+func (*ConfigVariables_Property) Descriptor() ([]byte, []int) {
+	return file_pkg_proto_rawDescGZIP(), []int{95, 0}
+}
+
+func (x *ConfigVariables_Property) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *ConfigVariables_Property) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *ConfigVariables_Property) GetRequired() bool {
+	if x != nil {
+		return x.Required
+	}
+	return false
+}
+
+func (x *ConfigVariables_Property) GetDefault() *structpb.Value {
+	if x != nil {
+		return x.Default
+	}
+	return nil
+}
+
+func (x *ConfigVariables_Property) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *ConfigVariables_Property) GetDescriptionEn() string {
+	if x != nil {
+		return x.DescriptionEn
+	}
+	return ""
+}
+
+func (x *ConfigVariables_Property) GetProperties() map[string]*ConfigVariables_Property {
+	if x != nil {
+		return x.Properties
+	}
+	return nil
+}
+
+type PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*ConfigVariables     `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList) Reset() {
+	*x = PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList{}
+	mi := &file_pkg_proto_msgTypes[168]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList) ProtoMessage() {}
+
+func (x *PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList) ProtoReflect() protoreflect.Message {
+	mi := &file_pkg_proto_msgTypes[168]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList.ProtoReflect.Descriptor instead.
+func (*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList) Descriptor() ([]byte, []int) {
+	return file_pkg_proto_rawDescGZIP(), []int{96, 0}
+}
+
+func (x *PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList) GetItems() []*ConfigVariables {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
 type PackageReleasePluginGetConfigVariablesResp_Data struct {
-	state           protoimpl.MessageState                                             `protogen:"open.v1"`
-	ConfigVariables []*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables `protobuf:"bytes,1,rep,name=config_variables,json=configVariables,proto3" json:"config_variables"`
+	state           protoimpl.MessageState                                                     `protogen:"open.v1"`
+	ConfigVariables map[string]*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList `protobuf:"bytes,1,rep,name=config_variables,json=configVariables,proto3" json:"config_variables" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
 func (x *PackageReleasePluginGetConfigVariablesResp_Data) Reset() {
 	*x = PackageReleasePluginGetConfigVariablesResp_Data{}
-	mi := &file_pkg_proto_msgTypes[164]
+	mi := &file_pkg_proto_msgTypes[169]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10980,7 +11201,7 @@ func (x *PackageReleasePluginGetConfigVariablesResp_Data) String() string {
 func (*PackageReleasePluginGetConfigVariablesResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginGetConfigVariablesResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[164]
+	mi := &file_pkg_proto_msgTypes[169]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10993,188 +11214,12 @@ func (x *PackageReleasePluginGetConfigVariablesResp_Data) ProtoReflect() protore
 
 // Deprecated: Use PackageReleasePluginGetConfigVariablesResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginGetConfigVariablesResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{95, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{96, 1}
 }
 
-func (x *PackageReleasePluginGetConfigVariablesResp_Data) GetConfigVariables() []*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables {
+func (x *PackageReleasePluginGetConfigVariablesResp_Data) GetConfigVariables() map[string]*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList {
 	if x != nil {
 		return x.ConfigVariables
-	}
-	return nil
-}
-
-type PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables struct {
-	state         protoimpl.MessageState                                                               `protogen:"open.v1"`
-	Name          string                                                                               `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
-	FilePath      string                                                                               `protobuf:"bytes,2,opt,name=file_path,json=filePath,proto3" json:"file_path"`
-	SourcePath    string                                                                               `protobuf:"bytes,3,opt,name=source_path,json=sourcePath,proto3" json:"source_path"`
-	IsMainConfig  bool                                                                                 `protobuf:"varint,4,opt,name=is_main_config,json=isMainConfig,proto3" json:"is_main_config"`
-	SourceContent string                                                                               `protobuf:"bytes,5,opt,name=source_content,json=sourceContent,proto3" json:"source_content"`
-	Variables     map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property `protobuf:"bytes,6,rep,name=variables,proto3" json:"variables" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) Reset() {
-	*x = PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables{}
-	mi := &file_pkg_proto_msgTypes[165]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) ProtoMessage() {}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[165]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables.ProtoReflect.Descriptor instead.
-func (*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{95, 0, 0}
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) GetFilePath() string {
-	if x != nil {
-		return x.FilePath
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) GetSourcePath() string {
-	if x != nil {
-		return x.SourcePath
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) GetIsMainConfig() bool {
-	if x != nil {
-		return x.IsMainConfig
-	}
-	return false
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) GetSourceContent() string {
-	if x != nil {
-		return x.SourceContent
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables) GetVariables() map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
-	if x != nil {
-		return x.Variables
-	}
-	return nil
-}
-
-type PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property struct {
-	state         protoimpl.MessageState                                                               `protogen:"open.v1"`
-	Title         string                                                                               `protobuf:"bytes,1,opt,name=title,proto3" json:"title"`
-	Type          string                                                                               `protobuf:"bytes,2,opt,name=type,proto3" json:"type"`
-	Required      bool                                                                                 `protobuf:"varint,3,opt,name=required,proto3" json:"required"`
-	Default       *structpb.Value                                                                      `protobuf:"bytes,4,opt,name=default,proto3" json:"default"`
-	Description   string                                                                               `protobuf:"bytes,5,opt,name=description,proto3" json:"description"`
-	DescriptionEn string                                                                               `protobuf:"bytes,6,opt,name=description_en,json=descriptionEn,proto3" json:"description_en"`
-	Properties    map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property `protobuf:"bytes,7,rep,name=properties,proto3" json:"properties" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) Reset() {
-	*x = PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property{}
-	mi := &file_pkg_proto_msgTypes[166]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) ProtoMessage() {}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[166]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property.ProtoReflect.Descriptor instead.
-func (*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{95, 0, 0, 0}
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetType() string {
-	if x != nil {
-		return x.Type
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetRequired() bool {
-	if x != nil {
-		return x.Required
-	}
-	return false
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetDefault() *structpb.Value {
-	if x != nil {
-		return x.Default
-	}
-	return nil
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetDescriptionEn() string {
-	if x != nil {
-		return x.DescriptionEn
-	}
-	return ""
-}
-
-func (x *PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property) GetProperties() map[string]*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property {
-	if x != nil {
-		return x.Properties
 	}
 	return nil
 }
@@ -11189,7 +11234,7 @@ type PackageReleaseCertListResp_Data struct {
 
 func (x *PackageReleaseCertListResp_Data) Reset() {
 	*x = PackageReleaseCertListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[169]
+	mi := &file_pkg_proto_msgTypes[171]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11201,7 +11246,7 @@ func (x *PackageReleaseCertListResp_Data) String() string {
 func (*PackageReleaseCertListResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseCertListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[169]
+	mi := &file_pkg_proto_msgTypes[171]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11214,7 +11259,7 @@ func (x *PackageReleaseCertListResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageReleaseCertListResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertListResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{97, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{98, 0}
 }
 
 func (x *PackageReleaseCertListResp_Data) GetTotal() int64 {
@@ -11239,7 +11284,7 @@ type PackageReleaseCertDeleteResp_Data struct {
 
 func (x *PackageReleaseCertDeleteResp_Data) Reset() {
 	*x = PackageReleaseCertDeleteResp_Data{}
-	mi := &file_pkg_proto_msgTypes[170]
+	mi := &file_pkg_proto_msgTypes[172]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11251,7 +11296,7 @@ func (x *PackageReleaseCertDeleteResp_Data) String() string {
 func (*PackageReleaseCertDeleteResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseCertDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[170]
+	mi := &file_pkg_proto_msgTypes[172]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11264,7 +11309,7 @@ func (x *PackageReleaseCertDeleteResp_Data) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use PackageReleaseCertDeleteResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleaseCertDeleteResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{99, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{100, 0}
 }
 
 type PackageReleaseBinToolListResp_Data struct {
@@ -11277,7 +11322,7 @@ type PackageReleaseBinToolListResp_Data struct {
 
 func (x *PackageReleaseBinToolListResp_Data) Reset() {
 	*x = PackageReleaseBinToolListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[171]
+	mi := &file_pkg_proto_msgTypes[173]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11289,7 +11334,7 @@ func (x *PackageReleaseBinToolListResp_Data) String() string {
 func (*PackageReleaseBinToolListResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[171]
+	mi := &file_pkg_proto_msgTypes[173]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11302,7 +11347,7 @@ func (x *PackageReleaseBinToolListResp_Data) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use PackageReleaseBinToolListResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolListResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{102, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{103, 0}
 }
 
 func (x *PackageReleaseBinToolListResp_Data) GetTotal() int64 {
@@ -11327,7 +11372,7 @@ type PackageReleaseBinToolDeleteResp_Data struct {
 
 func (x *PackageReleaseBinToolDeleteResp_Data) Reset() {
 	*x = PackageReleaseBinToolDeleteResp_Data{}
-	mi := &file_pkg_proto_msgTypes[172]
+	mi := &file_pkg_proto_msgTypes[174]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11339,7 +11384,7 @@ func (x *PackageReleaseBinToolDeleteResp_Data) String() string {
 func (*PackageReleaseBinToolDeleteResp_Data) ProtoMessage() {}
 
 func (x *PackageReleaseBinToolDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[172]
+	mi := &file_pkg_proto_msgTypes[174]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11352,7 +11397,7 @@ func (x *PackageReleaseBinToolDeleteResp_Data) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use PackageReleaseBinToolDeleteResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleaseBinToolDeleteResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{104, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{105, 0}
 }
 
 type PackageReleasePluginBinToolListResp_Data struct {
@@ -11365,7 +11410,7 @@ type PackageReleasePluginBinToolListResp_Data struct {
 
 func (x *PackageReleasePluginBinToolListResp_Data) Reset() {
 	*x = PackageReleasePluginBinToolListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[173]
+	mi := &file_pkg_proto_msgTypes[175]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11377,7 +11422,7 @@ func (x *PackageReleasePluginBinToolListResp_Data) String() string {
 func (*PackageReleasePluginBinToolListResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[173]
+	mi := &file_pkg_proto_msgTypes[175]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11390,7 +11435,7 @@ func (x *PackageReleasePluginBinToolListResp_Data) ProtoReflect() protoreflect.M
 
 // Deprecated: Use PackageReleasePluginBinToolListResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolListResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{107, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{108, 0}
 }
 
 func (x *PackageReleasePluginBinToolListResp_Data) GetTotal() int64 {
@@ -11415,7 +11460,7 @@ type PackageReleasePluginBinToolDeleteResp_Data struct {
 
 func (x *PackageReleasePluginBinToolDeleteResp_Data) Reset() {
 	*x = PackageReleasePluginBinToolDeleteResp_Data{}
-	mi := &file_pkg_proto_msgTypes[174]
+	mi := &file_pkg_proto_msgTypes[176]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11427,7 +11472,7 @@ func (x *PackageReleasePluginBinToolDeleteResp_Data) String() string {
 func (*PackageReleasePluginBinToolDeleteResp_Data) ProtoMessage() {}
 
 func (x *PackageReleasePluginBinToolDeleteResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[174]
+	mi := &file_pkg_proto_msgTypes[176]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11440,7 +11485,7 @@ func (x *PackageReleasePluginBinToolDeleteResp_Data) ProtoReflect() protoreflect
 
 // Deprecated: Use PackageReleasePluginBinToolDeleteResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageReleasePluginBinToolDeleteResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{109, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{110, 0}
 }
 
 type PackageEventListResp_Data struct {
@@ -11453,7 +11498,7 @@ type PackageEventListResp_Data struct {
 
 func (x *PackageEventListResp_Data) Reset() {
 	*x = PackageEventListResp_Data{}
-	mi := &file_pkg_proto_msgTypes[175]
+	mi := &file_pkg_proto_msgTypes[177]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11465,7 +11510,7 @@ func (x *PackageEventListResp_Data) String() string {
 func (*PackageEventListResp_Data) ProtoMessage() {}
 
 func (x *PackageEventListResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[175]
+	mi := &file_pkg_proto_msgTypes[177]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11478,7 +11523,7 @@ func (x *PackageEventListResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventListResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageEventListResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{115, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{116, 0}
 }
 
 func (x *PackageEventListResp_Data) GetTotal() int64 {
@@ -11509,7 +11554,7 @@ type PackageEventDistinctResp_Data struct {
 
 func (x *PackageEventDistinctResp_Data) Reset() {
 	*x = PackageEventDistinctResp_Data{}
-	mi := &file_pkg_proto_msgTypes[176]
+	mi := &file_pkg_proto_msgTypes[178]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11521,7 +11566,7 @@ func (x *PackageEventDistinctResp_Data) String() string {
 func (*PackageEventDistinctResp_Data) ProtoMessage() {}
 
 func (x *PackageEventDistinctResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_pkg_proto_msgTypes[176]
+	mi := &file_pkg_proto_msgTypes[178]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11534,7 +11579,7 @@ func (x *PackageEventDistinctResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PackageEventDistinctResp_Data.ProtoReflect.Descriptor instead.
 func (*PackageEventDistinctResp_Data) Descriptor() ([]byte, []int) {
-	return file_pkg_proto_rawDescGZIP(), []int{117, 0}
+	return file_pkg_proto_rawDescGZIP(), []int{118, 0}
 }
 
 func (x *PackageEventDistinctResp_Data) GetReleaseType() []string {
@@ -13066,98 +13111,99 @@ var file_pkg_proto_rawDesc = string([]byte{
 	0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x61,
 	0x74, 0x66, 0x6f, 0x72, 0x6d, 0x52, 0x08, 0x70, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x12,
 	0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0xa3, 0x01, 0x0a, 0x29, 0x50, 0x61,
+	0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0xa5, 0x01, 0x0a, 0x29, 0x50, 0x61,
 	0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67,
 	0x69, 0x6e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61,
 	0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x71, 0x12, 0x1e, 0x0a, 0x0a, 0x67, 0x65, 0x6e, 0x65, 0x72,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x67, 0x65, 0x6e,
 	0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x28, 0x0a, 0x08, 0x70,
-	0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e,
-	0x76, 0x33, 0x2e, 0x50, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x52, 0x08, 0x70, 0x6c, 0x61,
-	0x74, 0x66, 0x6f, 0x72, 0x6d, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
-	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x22,
-	0x98, 0x0a, 0x0a, 0x2a, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61,
-	0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12,
-	0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f,
-	0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a,
-	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65,
-	0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e,
-	0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x2e, 0x0a, 0x0a,
-	0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x0e, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
-	0x52, 0x0a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x47, 0x0a, 0x04,
-	0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x33, 0x2e, 0x76, 0x33, 0x2e,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x2a, 0x0a, 0x09, 0x70,
+	0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c,
+	0x2e, 0x76, 0x33, 0x2e, 0x50, 0x6c, 0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x52, 0x09, 0x70, 0x6c,
+	0x61, 0x74, 0x66, 0x6f, 0x72, 0x6d, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69,
+	0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f,
+	0x6e, 0x22, 0xc7, 0x05, 0x0a, 0x0f, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69,
+	0x61, 0x62, 0x6c, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c,
+	0x65, 0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69,
+	0x6c, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0x5f, 0x70, 0x61, 0x74, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73, 0x6f, 0x75,
+	0x72, 0x63, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x24, 0x0a, 0x0e, 0x69, 0x73, 0x5f, 0x6d, 0x61,
+	0x69, 0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x0c, 0x69, 0x73, 0x4d, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x25, 0x0a,
+	0x0e, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e,
+	0x74, 0x65, 0x6e, 0x74, 0x12, 0x40, 0x0a, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
+	0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x76, 0x33, 0x2e, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x56, 0x61, 0x72,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x09, 0x76, 0x61, 0x72,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x1a, 0xf6, 0x02, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x70, 0x65,
+	0x72, 0x74, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a,
+	0x08, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x08, 0x72, 0x65, 0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x12, 0x30, 0x0a, 0x07, 0x64, 0x65, 0x66,
+	0x61, 0x75, 0x6c, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x52, 0x07, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x12, 0x20, 0x0a, 0x0b, 0x64,
+	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x0a,
+	0x0e, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x6e, 0x18,
+	0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x45, 0x6e, 0x12, 0x4c, 0x0a, 0x0a, 0x70, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69,
+	0x65, 0x73, 0x18, 0x07, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2c, 0x2e, 0x76, 0x33, 0x2e, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x50, 0x72,
+	0x6f, 0x70, 0x65, 0x72, 0x74, 0x79, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69, 0x65,
+	0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0a, 0x70, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69,
+	0x65, 0x73, 0x1a, 0x5b, 0x0a, 0x0f, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69, 0x65, 0x73,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x32, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x50, 0x72, 0x6f, 0x70,
+	0x65, 0x72, 0x74, 0x79, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x1a,
+	0x5a, 0x0a, 0x0e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6b, 0x65, 0x79, 0x12, 0x32, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61,
+	0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x79,
+	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0xdc, 0x04, 0x0a, 0x2a,
 	0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c,
 	0x75, 0x67, 0x69, 0x6e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72,
-	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52,
-	0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x82, 0x08, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x6e,
-	0x0a, 0x10, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c,
-	0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x43, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61,
-	0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67,
-	0x69, 0x6e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61,
-	0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x0f, 0x63,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x1a, 0x89,
-	0x07, 0x0a, 0x0f, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c,
-	0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x70,
-	0x61, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x50,
-	0x61, 0x74, 0x68, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x5f, 0x70, 0x61,
-	0x74, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
-	0x50, 0x61, 0x74, 0x68, 0x12, 0x24, 0x0a, 0x0e, 0x69, 0x73, 0x5f, 0x6d, 0x61, 0x69, 0x6e, 0x5f,
-	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0c, 0x69, 0x73,
-	0x4d, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x25, 0x0a, 0x0e, 0x73, 0x6f,
-	0x75, 0x72, 0x63, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x18, 0x05, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x0d, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
-	0x74, 0x12, 0x70, 0x0a, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x18, 0x06,
-	0x20, 0x03, 0x28, 0x0b, 0x32, 0x52, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67,
-	0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47, 0x65,
-	0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62,
-	0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62,
-	0x6c, 0x65, 0x73, 0x1a, 0xd7, 0x03, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x79,
-	0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65,
-	0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x72, 0x65,
-	0x71, 0x75, 0x69, 0x72, 0x65, 0x64, 0x12, 0x30, 0x0a, 0x07, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c,
-	0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52,
-	0x07, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63,
-	0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64,
-	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x64, 0x65,
-	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x6e, 0x18, 0x06, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x45,
-	0x6e, 0x12, 0x7c, 0x0a, 0x0a, 0x70, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69, 0x65, 0x73, 0x18,
-	0x07, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x5c, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61,
-	0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47,
-	0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
-	0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65,
-	0x72, 0x74, 0x79, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69, 0x65, 0x73, 0x45, 0x6e,
-	0x74, 0x72, 0x79, 0x52, 0x0a, 0x70, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69, 0x65, 0x73, 0x1a,
-	0x8b, 0x01, 0x0a, 0x0f, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x69, 0x65, 0x73, 0x45, 0x6e,
-	0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x62, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x4c, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67,
-	0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47, 0x65,
-	0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72,
-	0x74, 0x79, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x1a, 0x8a, 0x01,
-	0x0a, 0x0e, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b,
-	0x65, 0x79, 0x12, 0x62, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x4c, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65,
-	0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47, 0x65, 0x74, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72,
-	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x74, 0x79, 0x52,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f,
+	0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18,
+	0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f,
+	0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x2e, 0x0a, 0x0a, 0x70, 0x65, 0x72, 0x6d,
+	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x76,
+	0x33, 0x2e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x70, 0x65,
+	0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x47, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x33, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b,
+	0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e,
+	0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c,
+	0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74,
+	0x61, 0x1a, 0x40, 0x0a, 0x13, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61,
+	0x62, 0x6c, 0x65, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x29, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x76, 0x33, 0x2e, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x05, 0x69, 0x74,
+	0x65, 0x6d, 0x73, 0x1a, 0x84, 0x02, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x73, 0x0a, 0x10,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x48, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b,
+	0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e,
+	0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c,
+	0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x2e, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79,
+	0x52, 0x0f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
+	0x73, 0x1a, 0x86, 0x01, 0x0a, 0x14, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61, 0x72, 0x69,
+	0x61, 0x62, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x58, 0x0a, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x42, 0x2e, 0x76, 0x33,
+	0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x50,
+	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x56, 0x61,
+	0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x52,
 	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x3b, 0x0a, 0x19, 0x50, 0x61,
 	0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x43, 0x65, 0x72, 0x74,
 	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1e, 0x0a, 0x0a, 0x67, 0x65, 0x6e, 0x65, 0x72,
@@ -13990,558 +14036,562 @@ func file_pkg_proto_rawDescGZIP() []byte {
 	return file_pkg_proto_rawDescData
 }
 
-var file_pkg_proto_msgTypes = make([]protoimpl.MessageInfo, 177)
+var file_pkg_proto_msgTypes = make([]protoimpl.MessageInfo, 179)
 var file_pkg_proto_goTypes = []any{
-	(*PackageUploadOriginAgentReq)(nil),                                              // 0: v3.PackageUploadOriginAgentReq
-	(*PackageUploadOriginAgentResp)(nil),                                             // 1: v3.PackageUploadOriginAgentResp
-	(*PackageUploadOriginServerReq)(nil),                                             // 2: v3.PackageUploadOriginServerReq
-	(*PackageUploadOriginServerResp)(nil),                                            // 3: v3.PackageUploadOriginServerResp
-	(*PackageUploadOriginProxyReq)(nil),                                              // 4: v3.PackageUploadOriginProxyReq
-	(*PackageUploadOriginProxyResp)(nil),                                             // 5: v3.PackageUploadOriginProxyResp
-	(*PackageUploadOriginCertReq)(nil),                                               // 6: v3.PackageUploadOriginCertReq
-	(*PackageUploadOriginCertResp)(nil),                                              // 7: v3.PackageUploadOriginCertResp
-	(*PackageUploadOriginBinToolReq)(nil),                                            // 8: v3.PackageUploadOriginBinToolReq
-	(*PackageUploadOriginBinToolResp)(nil),                                           // 9: v3.PackageUploadOriginBinToolResp
-	(*PackageUploadOriginPluginV2Req)(nil),                                           // 10: v3.PackageUploadOriginPluginV2Req
-	(*PackageUploadOriginPluginV2Resp)(nil),                                          // 11: v3.PackageUploadOriginPluginV2Resp
-	(*PackageUploadOriginExternalPluginV2Req)(nil),                                   // 12: v3.PackageUploadOriginExternalPluginV2Req
-	(*PackageUploadOriginExternalPluginV2Resp)(nil),                                  // 13: v3.PackageUploadOriginExternalPluginV2Resp
-	(*PackageUploadOriginPluginV3Req)(nil),                                           // 14: v3.PackageUploadOriginPluginV3Req
-	(*PackageUploadOriginPluginV3Resp)(nil),                                          // 15: v3.PackageUploadOriginPluginV3Resp
-	(*PackageUploadOriginPluginBinToolReq)(nil),                                      // 16: v3.PackageUploadOriginPluginBinToolReq
-	(*PackageUploadOriginPluginBinToolResp)(nil),                                     // 17: v3.PackageUploadOriginPluginBinToolResp
-	(*PackagePublishReleasePluginV2Req)(nil),                                         // 18: v3.PackagePublishReleasePluginV2Req
-	(*PackagePublishReleasePluginV2Resp)(nil),                                        // 19: v3.PackagePublishReleasePluginV2Resp
-	(*PackagePublishReleaseExternalPluginV2Req)(nil),                                 // 20: v3.PackagePublishReleaseExternalPluginV2Req
-	(*PackagePublishReleaseExternalPluginV2Resp)(nil),                                // 21: v3.PackagePublishReleaseExternalPluginV2Resp
-	(*PackagePublishReleasePluginV3Req)(nil),                                         // 22: v3.PackagePublishReleasePluginV3Req
-	(*PackagePublishReleasePluginV3Resp)(nil),                                        // 23: v3.PackagePublishReleasePluginV3Resp
-	(*PackagePublishReleaseAgentReq)(nil),                                            // 24: v3.PackagePublishReleaseAgentReq
-	(*PackagePublishReleaseAgentResp)(nil),                                           // 25: v3.PackagePublishReleaseAgentResp
-	(*PackagePublishReleaseProxyReq)(nil),                                            // 26: v3.PackagePublishReleaseProxyReq
-	(*PackagePublishReleaseProxyResp)(nil),                                           // 27: v3.PackagePublishReleaseProxyResp
-	(*PackagePublishReleaseCertReq)(nil),                                             // 28: v3.PackagePublishReleaseCertReq
-	(*PackagePublishReleaseCertResp)(nil),                                            // 29: v3.PackagePublishReleaseCertResp
-	(*PackagePublishReleaseBinToolReq)(nil),                                          // 30: v3.PackagePublishReleaseBinToolReq
-	(*PackagePublishReleaseBinToolResp)(nil),                                         // 31: v3.PackagePublishReleaseBinToolResp
-	(*PackagePublishReleasePluginBinToolReq)(nil),                                    // 32: v3.PackagePublishReleasePluginBinToolReq
-	(*PackagePublishReleasePluginBinToolResp)(nil),                                   // 33: v3.PackagePublishReleasePluginBinToolResp
-	(*PackageReleaseExactConditions)(nil),                                            // 34: v3.PackageReleaseExactConditions
-	(*PackageReleaseDistinctField)(nil),                                              // 35: v3.PackageReleaseDistinctField
-	(*PackageReleaseDistinctData)(nil),                                               // 36: v3.PackageReleaseDistinctData
-	(*PackageReleaseAgentListReq)(nil),                                               // 37: v3.PackageReleaseAgentListReq
-	(*PackageReleaseAgentListResp)(nil),                                              // 38: v3.PackageReleaseAgentListResp
-	(*PackageReleaseAgentListBriefReq)(nil),                                          // 39: v3.PackageReleaseAgentListBriefReq
-	(*PackageReleaseAgentListBriefResp)(nil),                                         // 40: v3.PackageReleaseAgentListBriefResp
-	(*PackageReleaseAgentDistinctReq)(nil),                                           // 41: v3.PackageReleaseAgentDistinctReq
-	(*PackageReleaseAgentDistinctResp)(nil),                                          // 42: v3.PackageReleaseAgentDistinctResp
-	(*PackageReleaseAgentSetLabelsManyReq)(nil),                                      // 43: v3.PackageReleaseAgentSetLabelsManyReq
-	(*PackageReleaseAgentSetLabelsManyResp)(nil),                                     // 44: v3.PackageReleaseAgentSetLabelsManyResp
-	(*PackageReleaseAgentEnableReq)(nil),                                             // 45: v3.PackageReleaseAgentEnableReq
-	(*PackageReleaseAgentEnableResp)(nil),                                            // 46: v3.PackageReleaseAgentEnableResp
-	(*PackageReleaseAgentDisableReq)(nil),                                            // 47: v3.PackageReleaseAgentDisableReq
-	(*PackageReleaseAgentDisableResp)(nil),                                           // 48: v3.PackageReleaseAgentDisableResp
-	(*PackageReleaseAgentSetAsDefaultReq)(nil),                                       // 49: v3.PackageReleaseAgentSetAsDefaultReq
-	(*PackageReleaseAgentSetAsDefaultResp)(nil),                                      // 50: v3.PackageReleaseAgentSetAsDefaultResp
-	(*PackageReleaseAgentCancelAsDefaultReq)(nil),                                    // 51: v3.PackageReleaseAgentCancelAsDefaultReq
-	(*PackageReleaseAgentCancelAsDefaultResp)(nil),                                   // 52: v3.PackageReleaseAgentCancelAsDefaultResp
-	(*PackageReleaseAgentDeleteReq)(nil),                                             // 53: v3.PackageReleaseAgentDeleteReq
-	(*PackageReleaseAgentDeleteResp)(nil),                                            // 54: v3.PackageReleaseAgentDeleteResp
-	(*PackageReleaseAgentCountDeployedReq)(nil),                                      // 55: v3.PackageReleaseAgentCountDeployedReq
-	(*PackageReleaseAgentCountDeployedResp)(nil),                                     // 56: v3.PackageReleaseAgentCountDeployedResp
-	(*PackageReleaseAgentDownloadReq)(nil),                                           // 57: v3.PackageReleaseAgentDownloadReq
-	(*PackageReleaseProxyListReq)(nil),                                               // 58: v3.PackageReleaseProxyListReq
-	(*PackageReleaseProxyListResp)(nil),                                              // 59: v3.PackageReleaseProxyListResp
-	(*PackageReleaseProxyListBriefReq)(nil),                                          // 60: v3.PackageReleaseProxyListBriefReq
-	(*PackageReleaseProxyListBriefResp)(nil),                                         // 61: v3.PackageReleaseProxyListBriefResp
-	(*PackageReleaseProxyDistinctReq)(nil),                                           // 62: v3.PackageReleaseProxyDistinctReq
-	(*PackageReleaseProxyDistinctResp)(nil),                                          // 63: v3.PackageReleaseProxyDistinctResp
-	(*PackageReleaseProxySetLabelsManyReq)(nil),                                      // 64: v3.PackageReleaseProxySetLabelsManyReq
-	(*PackageReleaseProxySetLabelsManyResp)(nil),                                     // 65: v3.PackageReleaseProxySetLabelsManyResp
-	(*PackageReleaseProxyEnableReq)(nil),                                             // 66: v3.PackageReleaseProxyEnableReq
-	(*PackageReleaseProxyEnableResp)(nil),                                            // 67: v3.PackageReleaseProxyEnableResp
-	(*PackageReleaseProxyDisableReq)(nil),                                            // 68: v3.PackageReleaseProxyDisableReq
-	(*PackageReleaseProxyDisableResp)(nil),                                           // 69: v3.PackageReleaseProxyDisableResp
-	(*PackageReleaseProxySetAsDefaultReq)(nil),                                       // 70: v3.PackageReleaseProxySetAsDefaultReq
-	(*PackageReleaseProxySetAsDefaultResp)(nil),                                      // 71: v3.PackageReleaseProxySetAsDefaultResp
-	(*PackageReleaseProxyCancelAsDefaultReq)(nil),                                    // 72: v3.PackageReleaseProxyCancelAsDefaultReq
-	(*PackageReleaseProxyCancelAsDefaultResp)(nil),                                   // 73: v3.PackageReleaseProxyCancelAsDefaultResp
-	(*PackageReleaseProxyDeleteReq)(nil),                                             // 74: v3.PackageReleaseProxyDeleteReq
-	(*PackageReleaseProxyDeleteResp)(nil),                                            // 75: v3.PackageReleaseProxyDeleteResp
-	(*PackageReleaseProxyCountDeployedReq)(nil),                                      // 76: v3.PackageReleaseProxyCountDeployedReq
-	(*PackageReleaseProxyCountDeployedResp)(nil),                                     // 77: v3.PackageReleaseProxyCountDeployedResp
-	(*PackageReleaseProxyDownloadReq)(nil),                                           // 78: v3.PackageReleaseProxyDownloadReq
-	(*PackageReleasePluginListReq)(nil),                                              // 79: v3.PackageReleasePluginListReq
-	(*PackageReleasePluginListResp)(nil),                                             // 80: v3.PackageReleasePluginListResp
-	(*PackageReleasePluginListBriefReq)(nil),                                         // 81: v3.PackageReleasePluginListBriefReq
-	(*PackageReleasePluginListBriefResp)(nil),                                        // 82: v3.PackageReleasePluginListBriefResp
-	(*PackageReleasePluginEnableReq)(nil),                                            // 83: v3.PackageReleasePluginEnableReq
-	(*PackageReleasePluginEnableResp)(nil),                                           // 84: v3.PackageReleasePluginEnableResp
-	(*PackageReleasePluginDisableReq)(nil),                                           // 85: v3.PackageReleasePluginDisableReq
-	(*PackageReleasePluginDisableResp)(nil),                                          // 86: v3.PackageReleasePluginDisableResp
-	(*PackageReleasePluginSetAsDefaultReq)(nil),                                      // 87: v3.PackageReleasePluginSetAsDefaultReq
-	(*PackageReleasePluginSetAsDefaultResp)(nil),                                     // 88: v3.PackageReleasePluginSetAsDefaultResp
-	(*PackageReleasePluginCancelAsDefaultReq)(nil),                                   // 89: v3.PackageReleasePluginCancelAsDefaultReq
-	(*PackageReleasePluginCancelAsDefaultResp)(nil),                                  // 90: v3.PackageReleasePluginCancelAsDefaultResp
-	(*PackageReleasePluginDeleteReq)(nil),                                            // 91: v3.PackageReleasePluginDeleteReq
-	(*PackageReleasePluginDeleteResp)(nil),                                           // 92: v3.PackageReleasePluginDeleteResp
-	(*PackageReleasePluginDownloadReq)(nil),                                          // 93: v3.PackageReleasePluginDownloadReq
-	(*PackageReleasePluginGetConfigVariablesReq)(nil),                                // 94: v3.PackageReleasePluginGetConfigVariablesReq
-	(*PackageReleasePluginGetConfigVariablesResp)(nil),                               // 95: v3.PackageReleasePluginGetConfigVariablesResp
-	(*PackageReleaseCertListReq)(nil),                                                // 96: v3.PackageReleaseCertListReq
-	(*PackageReleaseCertListResp)(nil),                                               // 97: v3.PackageReleaseCertListResp
-	(*PackageReleaseCertDeleteReq)(nil),                                              // 98: v3.PackageReleaseCertDeleteReq
-	(*PackageReleaseCertDeleteResp)(nil),                                             // 99: v3.PackageReleaseCertDeleteResp
-	(*PackageReleaseCertDownloadReq)(nil),                                            // 100: v3.PackageReleaseCertDownloadReq
-	(*PackageReleaseBinToolListReq)(nil),                                             // 101: v3.PackageReleaseBinToolListReq
-	(*PackageReleaseBinToolListResp)(nil),                                            // 102: v3.PackageReleaseBinToolListResp
-	(*PackageReleaseBinToolDeleteReq)(nil),                                           // 103: v3.PackageReleaseBinToolDeleteReq
-	(*PackageReleaseBinToolDeleteResp)(nil),                                          // 104: v3.PackageReleaseBinToolDeleteResp
-	(*PackageReleaseBinToolDownloadReq)(nil),                                         // 105: v3.PackageReleaseBinToolDownloadReq
-	(*PackageReleasePluginBinToolListReq)(nil),                                       // 106: v3.PackageReleasePluginBinToolListReq
-	(*PackageReleasePluginBinToolListResp)(nil),                                      // 107: v3.PackageReleasePluginBinToolListResp
-	(*PackageReleasePluginBinToolDeleteReq)(nil),                                     // 108: v3.PackageReleasePluginBinToolDeleteReq
-	(*PackageReleasePluginBinToolDeleteResp)(nil),                                    // 109: v3.PackageReleasePluginBinToolDeleteResp
-	(*PackageReleasePluginBinToolDownloadReq)(nil),                                   // 110: v3.PackageReleasePluginBinToolDownloadReq
-	(*FileChunk)(nil),                                                                // 111: v3.FileChunk
-	(*PackageEventExactConditions)(nil),                                              // 112: v3.PackageEventExactConditions
-	(*PackageEventFuzzyConditions)(nil),                                              // 113: v3.PackageEventFuzzyConditions
-	(*PackageEventListReq)(nil),                                                      // 114: v3.PackageEventListReq
-	(*PackageEventListResp)(nil),                                                     // 115: v3.PackageEventListResp
-	(*PackageEventDistinctReq)(nil),                                                  // 116: v3.PackageEventDistinctReq
-	(*PackageEventDistinctResp)(nil),                                                 // 117: v3.PackageEventDistinctResp
-	(*PackageUploadOriginAgentResp_Data)(nil),                                        // 118: v3.PackageUploadOriginAgentResp.Data
-	(*PackageUploadOriginServerResp_Data)(nil),                                       // 119: v3.PackageUploadOriginServerResp.Data
-	(*PackageUploadOriginProxyResp_Data)(nil),                                        // 120: v3.PackageUploadOriginProxyResp.Data
-	(*PackageUploadOriginCertResp_Data)(nil),                                         // 121: v3.PackageUploadOriginCertResp.Data
-	(*PackageUploadOriginBinToolResp_Data)(nil),                                      // 122: v3.PackageUploadOriginBinToolResp.Data
-	(*PackageUploadOriginPluginV2Resp_Data)(nil),                                     // 123: v3.PackageUploadOriginPluginV2Resp.Data
-	(*PackageUploadOriginExternalPluginV2Resp_Data)(nil),                             // 124: v3.PackageUploadOriginExternalPluginV2Resp.Data
-	(*PackageUploadOriginPluginV3Resp_Data)(nil),                                     // 125: v3.PackageUploadOriginPluginV3Resp.Data
-	(*PackageUploadOriginPluginBinToolResp_Data)(nil),                                // 126: v3.PackageUploadOriginPluginBinToolResp.Data
-	(*PackageUploadOriginPluginBinToolResp_Data_V2Info)(nil),                         // 127: v3.PackageUploadOriginPluginBinToolResp.Data.V2Info
-	(*PackageUploadOriginPluginBinToolResp_Data_V3Info)(nil),                         // 128: v3.PackageUploadOriginPluginBinToolResp.Data.V3Info
-	(*PackagePublishReleasePluginV2Resp_Data)(nil),                                   // 129: v3.PackagePublishReleasePluginV2Resp.Data
-	(*PackagePublishReleaseExternalPluginV2Resp_Data)(nil),                           // 130: v3.PackagePublishReleaseExternalPluginV2Resp.Data
-	(*PackagePublishReleasePluginV3Resp_Data)(nil),                                   // 131: v3.PackagePublishReleasePluginV3Resp.Data
-	(*PackagePublishReleaseAgentResp_Data)(nil),                                      // 132: v3.PackagePublishReleaseAgentResp.Data
-	(*PackagePublishReleaseProxyResp_Data)(nil),                                      // 133: v3.PackagePublishReleaseProxyResp.Data
-	(*PackagePublishReleaseCertResp_Data)(nil),                                       // 134: v3.PackagePublishReleaseCertResp.Data
-	(*PackagePublishReleaseBinToolResp_Data)(nil),                                    // 135: v3.PackagePublishReleaseBinToolResp.Data
-	(*PackagePublishReleasePluginBinToolResp_Data)(nil),                              // 136: v3.PackagePublishReleasePluginBinToolResp.Data
-	(*PackageReleaseAgentListResp_Data)(nil),                                         // 137: v3.PackageReleaseAgentListResp.Data
-	(*PackageReleaseAgentListBriefResp_Data)(nil),                                    // 138: v3.PackageReleaseAgentListBriefResp.Data
-	(*PackageReleaseAgentSetLabelsManyResp_Data)(nil),                                // 139: v3.PackageReleaseAgentSetLabelsManyResp.Data
-	(*PackageReleaseAgentEnableResp_Data)(nil),                                       // 140: v3.PackageReleaseAgentEnableResp.Data
-	(*PackageReleaseAgentDisableResp_Data)(nil),                                      // 141: v3.PackageReleaseAgentDisableResp.Data
-	(*PackageReleaseAgentSetAsDefaultResp_Data)(nil),                                 // 142: v3.PackageReleaseAgentSetAsDefaultResp.Data
-	(*PackageReleaseAgentCancelAsDefaultResp_Data)(nil),                              // 143: v3.PackageReleaseAgentCancelAsDefaultResp.Data
-	(*PackageReleaseAgentDeleteResp_Data)(nil),                                       // 144: v3.PackageReleaseAgentDeleteResp.Data
-	(*PackageReleaseAgentCountDeployedReq_Item)(nil),                                 // 145: v3.PackageReleaseAgentCountDeployedReq.Item
-	(*PackageReleaseAgentCountDeployedResp_Data)(nil),                                // 146: v3.PackageReleaseAgentCountDeployedResp.Data
-	(*PackageReleaseProxyListResp_Data)(nil),                                         // 147: v3.PackageReleaseProxyListResp.Data
-	(*PackageReleaseProxyListBriefResp_Data)(nil),                                    // 148: v3.PackageReleaseProxyListBriefResp.Data
-	(*PackageReleaseProxySetLabelsManyResp_Data)(nil),                                // 149: v3.PackageReleaseProxySetLabelsManyResp.Data
-	(*PackageReleaseProxyEnableResp_Data)(nil),                                       // 150: v3.PackageReleaseProxyEnableResp.Data
-	(*PackageReleaseProxyDisableResp_Data)(nil),                                      // 151: v3.PackageReleaseProxyDisableResp.Data
-	(*PackageReleaseProxySetAsDefaultResp_Data)(nil),                                 // 152: v3.PackageReleaseProxySetAsDefaultResp.Data
-	(*PackageReleaseProxyCancelAsDefaultResp_Data)(nil),                              // 153: v3.PackageReleaseProxyCancelAsDefaultResp.Data
-	(*PackageReleaseProxyDeleteResp_Data)(nil),                                       // 154: v3.PackageReleaseProxyDeleteResp.Data
-	(*PackageReleaseProxyCountDeployedReq_Item)(nil),                                 // 155: v3.PackageReleaseProxyCountDeployedReq.Item
-	(*PackageReleaseProxyCountDeployedResp_Data)(nil),                                // 156: v3.PackageReleaseProxyCountDeployedResp.Data
-	(*PackageReleasePluginListResp_Data)(nil),                                        // 157: v3.PackageReleasePluginListResp.Data
-	(*PackageReleasePluginListBriefResp_Data)(nil),                                   // 158: v3.PackageReleasePluginListBriefResp.Data
-	(*PackageReleasePluginEnableResp_Data)(nil),                                      // 159: v3.PackageReleasePluginEnableResp.Data
-	(*PackageReleasePluginDisableResp_Data)(nil),                                     // 160: v3.PackageReleasePluginDisableResp.Data
-	(*PackageReleasePluginSetAsDefaultResp_Data)(nil),                                // 161: v3.PackageReleasePluginSetAsDefaultResp.Data
-	(*PackageReleasePluginCancelAsDefaultResp_Data)(nil),                             // 162: v3.PackageReleasePluginCancelAsDefaultResp.Data
-	(*PackageReleasePluginDeleteResp_Data)(nil),                                      // 163: v3.PackageReleasePluginDeleteResp.Data
-	(*PackageReleasePluginGetConfigVariablesResp_Data)(nil),                          // 164: v3.PackageReleasePluginGetConfigVariablesResp.Data
-	(*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables)(nil),          // 165: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables
-	(*PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property)(nil), // 166: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property
-	nil,                                     // 167: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.VariablesEntry
-	nil,                                     // 168: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property.PropertiesEntry
-	(*PackageReleaseCertListResp_Data)(nil), // 169: v3.PackageReleaseCertListResp.Data
-	(*PackageReleaseCertDeleteResp_Data)(nil),          // 170: v3.PackageReleaseCertDeleteResp.Data
-	(*PackageReleaseBinToolListResp_Data)(nil),         // 171: v3.PackageReleaseBinToolListResp.Data
-	(*PackageReleaseBinToolDeleteResp_Data)(nil),       // 172: v3.PackageReleaseBinToolDeleteResp.Data
-	(*PackageReleasePluginBinToolListResp_Data)(nil),   // 173: v3.PackageReleasePluginBinToolListResp.Data
-	(*PackageReleasePluginBinToolDeleteResp_Data)(nil), // 174: v3.PackageReleasePluginBinToolDeleteResp.Data
-	(*PackageEventListResp_Data)(nil),                  // 175: v3.PackageEventListResp.Data
-	(*PackageEventDistinctResp_Data)(nil),              // 176: v3.PackageEventDistinctResp.Data
-	(*Error)(nil),                                      // 177: v3.Error
-	(*Permission)(nil),                                 // 178: v3.Permission
-	(*Platform)(nil),                                   // 179: v3.Platform
-	(*Page)(nil),                                       // 180: v3.Page
-	(*TimeRange)(nil),                                  // 181: v3.TimeRange
-	(*ReleaseAgent)(nil),                               // 182: v3.ReleaseAgent
-	(*ReleaseAgentBrief)(nil),                          // 183: v3.ReleaseAgentBrief
-	(*ReleaseProxy)(nil),                               // 184: v3.ReleaseProxy
-	(*ReleaseProxyBrief)(nil),                          // 185: v3.ReleaseProxyBrief
-	(*ReleasePlugin)(nil),                              // 186: v3.ReleasePlugin
-	(*ReleasePluginBrief)(nil),                         // 187: v3.ReleasePluginBrief
-	(*structpb.Value)(nil),                             // 188: google.protobuf.Value
-	(*ReleaseCert)(nil),                                // 189: v3.ReleaseCert
-	(*ReleaseBinTool)(nil),                             // 190: v3.ReleaseBinTool
-	(*ReleasePluginBinTool)(nil),                       // 191: v3.ReleasePluginBinTool
-	(*PackageEvent)(nil),                               // 192: v3.PackageEvent
+	(*PackageUploadOriginAgentReq)(nil),                                    // 0: v3.PackageUploadOriginAgentReq
+	(*PackageUploadOriginAgentResp)(nil),                                   // 1: v3.PackageUploadOriginAgentResp
+	(*PackageUploadOriginServerReq)(nil),                                   // 2: v3.PackageUploadOriginServerReq
+	(*PackageUploadOriginServerResp)(nil),                                  // 3: v3.PackageUploadOriginServerResp
+	(*PackageUploadOriginProxyReq)(nil),                                    // 4: v3.PackageUploadOriginProxyReq
+	(*PackageUploadOriginProxyResp)(nil),                                   // 5: v3.PackageUploadOriginProxyResp
+	(*PackageUploadOriginCertReq)(nil),                                     // 6: v3.PackageUploadOriginCertReq
+	(*PackageUploadOriginCertResp)(nil),                                    // 7: v3.PackageUploadOriginCertResp
+	(*PackageUploadOriginBinToolReq)(nil),                                  // 8: v3.PackageUploadOriginBinToolReq
+	(*PackageUploadOriginBinToolResp)(nil),                                 // 9: v3.PackageUploadOriginBinToolResp
+	(*PackageUploadOriginPluginV2Req)(nil),                                 // 10: v3.PackageUploadOriginPluginV2Req
+	(*PackageUploadOriginPluginV2Resp)(nil),                                // 11: v3.PackageUploadOriginPluginV2Resp
+	(*PackageUploadOriginExternalPluginV2Req)(nil),                         // 12: v3.PackageUploadOriginExternalPluginV2Req
+	(*PackageUploadOriginExternalPluginV2Resp)(nil),                        // 13: v3.PackageUploadOriginExternalPluginV2Resp
+	(*PackageUploadOriginPluginV3Req)(nil),                                 // 14: v3.PackageUploadOriginPluginV3Req
+	(*PackageUploadOriginPluginV3Resp)(nil),                                // 15: v3.PackageUploadOriginPluginV3Resp
+	(*PackageUploadOriginPluginBinToolReq)(nil),                            // 16: v3.PackageUploadOriginPluginBinToolReq
+	(*PackageUploadOriginPluginBinToolResp)(nil),                           // 17: v3.PackageUploadOriginPluginBinToolResp
+	(*PackagePublishReleasePluginV2Req)(nil),                               // 18: v3.PackagePublishReleasePluginV2Req
+	(*PackagePublishReleasePluginV2Resp)(nil),                              // 19: v3.PackagePublishReleasePluginV2Resp
+	(*PackagePublishReleaseExternalPluginV2Req)(nil),                       // 20: v3.PackagePublishReleaseExternalPluginV2Req
+	(*PackagePublishReleaseExternalPluginV2Resp)(nil),                      // 21: v3.PackagePublishReleaseExternalPluginV2Resp
+	(*PackagePublishReleasePluginV3Req)(nil),                               // 22: v3.PackagePublishReleasePluginV3Req
+	(*PackagePublishReleasePluginV3Resp)(nil),                              // 23: v3.PackagePublishReleasePluginV3Resp
+	(*PackagePublishReleaseAgentReq)(nil),                                  // 24: v3.PackagePublishReleaseAgentReq
+	(*PackagePublishReleaseAgentResp)(nil),                                 // 25: v3.PackagePublishReleaseAgentResp
+	(*PackagePublishReleaseProxyReq)(nil),                                  // 26: v3.PackagePublishReleaseProxyReq
+	(*PackagePublishReleaseProxyResp)(nil),                                 // 27: v3.PackagePublishReleaseProxyResp
+	(*PackagePublishReleaseCertReq)(nil),                                   // 28: v3.PackagePublishReleaseCertReq
+	(*PackagePublishReleaseCertResp)(nil),                                  // 29: v3.PackagePublishReleaseCertResp
+	(*PackagePublishReleaseBinToolReq)(nil),                                // 30: v3.PackagePublishReleaseBinToolReq
+	(*PackagePublishReleaseBinToolResp)(nil),                               // 31: v3.PackagePublishReleaseBinToolResp
+	(*PackagePublishReleasePluginBinToolReq)(nil),                          // 32: v3.PackagePublishReleasePluginBinToolReq
+	(*PackagePublishReleasePluginBinToolResp)(nil),                         // 33: v3.PackagePublishReleasePluginBinToolResp
+	(*PackageReleaseExactConditions)(nil),                                  // 34: v3.PackageReleaseExactConditions
+	(*PackageReleaseDistinctField)(nil),                                    // 35: v3.PackageReleaseDistinctField
+	(*PackageReleaseDistinctData)(nil),                                     // 36: v3.PackageReleaseDistinctData
+	(*PackageReleaseAgentListReq)(nil),                                     // 37: v3.PackageReleaseAgentListReq
+	(*PackageReleaseAgentListResp)(nil),                                    // 38: v3.PackageReleaseAgentListResp
+	(*PackageReleaseAgentListBriefReq)(nil),                                // 39: v3.PackageReleaseAgentListBriefReq
+	(*PackageReleaseAgentListBriefResp)(nil),                               // 40: v3.PackageReleaseAgentListBriefResp
+	(*PackageReleaseAgentDistinctReq)(nil),                                 // 41: v3.PackageReleaseAgentDistinctReq
+	(*PackageReleaseAgentDistinctResp)(nil),                                // 42: v3.PackageReleaseAgentDistinctResp
+	(*PackageReleaseAgentSetLabelsManyReq)(nil),                            // 43: v3.PackageReleaseAgentSetLabelsManyReq
+	(*PackageReleaseAgentSetLabelsManyResp)(nil),                           // 44: v3.PackageReleaseAgentSetLabelsManyResp
+	(*PackageReleaseAgentEnableReq)(nil),                                   // 45: v3.PackageReleaseAgentEnableReq
+	(*PackageReleaseAgentEnableResp)(nil),                                  // 46: v3.PackageReleaseAgentEnableResp
+	(*PackageReleaseAgentDisableReq)(nil),                                  // 47: v3.PackageReleaseAgentDisableReq
+	(*PackageReleaseAgentDisableResp)(nil),                                 // 48: v3.PackageReleaseAgentDisableResp
+	(*PackageReleaseAgentSetAsDefaultReq)(nil),                             // 49: v3.PackageReleaseAgentSetAsDefaultReq
+	(*PackageReleaseAgentSetAsDefaultResp)(nil),                            // 50: v3.PackageReleaseAgentSetAsDefaultResp
+	(*PackageReleaseAgentCancelAsDefaultReq)(nil),                          // 51: v3.PackageReleaseAgentCancelAsDefaultReq
+	(*PackageReleaseAgentCancelAsDefaultResp)(nil),                         // 52: v3.PackageReleaseAgentCancelAsDefaultResp
+	(*PackageReleaseAgentDeleteReq)(nil),                                   // 53: v3.PackageReleaseAgentDeleteReq
+	(*PackageReleaseAgentDeleteResp)(nil),                                  // 54: v3.PackageReleaseAgentDeleteResp
+	(*PackageReleaseAgentCountDeployedReq)(nil),                            // 55: v3.PackageReleaseAgentCountDeployedReq
+	(*PackageReleaseAgentCountDeployedResp)(nil),                           // 56: v3.PackageReleaseAgentCountDeployedResp
+	(*PackageReleaseAgentDownloadReq)(nil),                                 // 57: v3.PackageReleaseAgentDownloadReq
+	(*PackageReleaseProxyListReq)(nil),                                     // 58: v3.PackageReleaseProxyListReq
+	(*PackageReleaseProxyListResp)(nil),                                    // 59: v3.PackageReleaseProxyListResp
+	(*PackageReleaseProxyListBriefReq)(nil),                                // 60: v3.PackageReleaseProxyListBriefReq
+	(*PackageReleaseProxyListBriefResp)(nil),                               // 61: v3.PackageReleaseProxyListBriefResp
+	(*PackageReleaseProxyDistinctReq)(nil),                                 // 62: v3.PackageReleaseProxyDistinctReq
+	(*PackageReleaseProxyDistinctResp)(nil),                                // 63: v3.PackageReleaseProxyDistinctResp
+	(*PackageReleaseProxySetLabelsManyReq)(nil),                            // 64: v3.PackageReleaseProxySetLabelsManyReq
+	(*PackageReleaseProxySetLabelsManyResp)(nil),                           // 65: v3.PackageReleaseProxySetLabelsManyResp
+	(*PackageReleaseProxyEnableReq)(nil),                                   // 66: v3.PackageReleaseProxyEnableReq
+	(*PackageReleaseProxyEnableResp)(nil),                                  // 67: v3.PackageReleaseProxyEnableResp
+	(*PackageReleaseProxyDisableReq)(nil),                                  // 68: v3.PackageReleaseProxyDisableReq
+	(*PackageReleaseProxyDisableResp)(nil),                                 // 69: v3.PackageReleaseProxyDisableResp
+	(*PackageReleaseProxySetAsDefaultReq)(nil),                             // 70: v3.PackageReleaseProxySetAsDefaultReq
+	(*PackageReleaseProxySetAsDefaultResp)(nil),                            // 71: v3.PackageReleaseProxySetAsDefaultResp
+	(*PackageReleaseProxyCancelAsDefaultReq)(nil),                          // 72: v3.PackageReleaseProxyCancelAsDefaultReq
+	(*PackageReleaseProxyCancelAsDefaultResp)(nil),                         // 73: v3.PackageReleaseProxyCancelAsDefaultResp
+	(*PackageReleaseProxyDeleteReq)(nil),                                   // 74: v3.PackageReleaseProxyDeleteReq
+	(*PackageReleaseProxyDeleteResp)(nil),                                  // 75: v3.PackageReleaseProxyDeleteResp
+	(*PackageReleaseProxyCountDeployedReq)(nil),                            // 76: v3.PackageReleaseProxyCountDeployedReq
+	(*PackageReleaseProxyCountDeployedResp)(nil),                           // 77: v3.PackageReleaseProxyCountDeployedResp
+	(*PackageReleaseProxyDownloadReq)(nil),                                 // 78: v3.PackageReleaseProxyDownloadReq
+	(*PackageReleasePluginListReq)(nil),                                    // 79: v3.PackageReleasePluginListReq
+	(*PackageReleasePluginListResp)(nil),                                   // 80: v3.PackageReleasePluginListResp
+	(*PackageReleasePluginListBriefReq)(nil),                               // 81: v3.PackageReleasePluginListBriefReq
+	(*PackageReleasePluginListBriefResp)(nil),                              // 82: v3.PackageReleasePluginListBriefResp
+	(*PackageReleasePluginEnableReq)(nil),                                  // 83: v3.PackageReleasePluginEnableReq
+	(*PackageReleasePluginEnableResp)(nil),                                 // 84: v3.PackageReleasePluginEnableResp
+	(*PackageReleasePluginDisableReq)(nil),                                 // 85: v3.PackageReleasePluginDisableReq
+	(*PackageReleasePluginDisableResp)(nil),                                // 86: v3.PackageReleasePluginDisableResp
+	(*PackageReleasePluginSetAsDefaultReq)(nil),                            // 87: v3.PackageReleasePluginSetAsDefaultReq
+	(*PackageReleasePluginSetAsDefaultResp)(nil),                           // 88: v3.PackageReleasePluginSetAsDefaultResp
+	(*PackageReleasePluginCancelAsDefaultReq)(nil),                         // 89: v3.PackageReleasePluginCancelAsDefaultReq
+	(*PackageReleasePluginCancelAsDefaultResp)(nil),                        // 90: v3.PackageReleasePluginCancelAsDefaultResp
+	(*PackageReleasePluginDeleteReq)(nil),                                  // 91: v3.PackageReleasePluginDeleteReq
+	(*PackageReleasePluginDeleteResp)(nil),                                 // 92: v3.PackageReleasePluginDeleteResp
+	(*PackageReleasePluginDownloadReq)(nil),                                // 93: v3.PackageReleasePluginDownloadReq
+	(*PackageReleasePluginGetConfigVariablesReq)(nil),                      // 94: v3.PackageReleasePluginGetConfigVariablesReq
+	(*ConfigVariables)(nil),                                                // 95: v3.ConfigVariables
+	(*PackageReleasePluginGetConfigVariablesResp)(nil),                     // 96: v3.PackageReleasePluginGetConfigVariablesResp
+	(*PackageReleaseCertListReq)(nil),                                      // 97: v3.PackageReleaseCertListReq
+	(*PackageReleaseCertListResp)(nil),                                     // 98: v3.PackageReleaseCertListResp
+	(*PackageReleaseCertDeleteReq)(nil),                                    // 99: v3.PackageReleaseCertDeleteReq
+	(*PackageReleaseCertDeleteResp)(nil),                                   // 100: v3.PackageReleaseCertDeleteResp
+	(*PackageReleaseCertDownloadReq)(nil),                                  // 101: v3.PackageReleaseCertDownloadReq
+	(*PackageReleaseBinToolListReq)(nil),                                   // 102: v3.PackageReleaseBinToolListReq
+	(*PackageReleaseBinToolListResp)(nil),                                  // 103: v3.PackageReleaseBinToolListResp
+	(*PackageReleaseBinToolDeleteReq)(nil),                                 // 104: v3.PackageReleaseBinToolDeleteReq
+	(*PackageReleaseBinToolDeleteResp)(nil),                                // 105: v3.PackageReleaseBinToolDeleteResp
+	(*PackageReleaseBinToolDownloadReq)(nil),                               // 106: v3.PackageReleaseBinToolDownloadReq
+	(*PackageReleasePluginBinToolListReq)(nil),                             // 107: v3.PackageReleasePluginBinToolListReq
+	(*PackageReleasePluginBinToolListResp)(nil),                            // 108: v3.PackageReleasePluginBinToolListResp
+	(*PackageReleasePluginBinToolDeleteReq)(nil),                           // 109: v3.PackageReleasePluginBinToolDeleteReq
+	(*PackageReleasePluginBinToolDeleteResp)(nil),                          // 110: v3.PackageReleasePluginBinToolDeleteResp
+	(*PackageReleasePluginBinToolDownloadReq)(nil),                         // 111: v3.PackageReleasePluginBinToolDownloadReq
+	(*FileChunk)(nil),                                                      // 112: v3.FileChunk
+	(*PackageEventExactConditions)(nil),                                    // 113: v3.PackageEventExactConditions
+	(*PackageEventFuzzyConditions)(nil),                                    // 114: v3.PackageEventFuzzyConditions
+	(*PackageEventListReq)(nil),                                            // 115: v3.PackageEventListReq
+	(*PackageEventListResp)(nil),                                           // 116: v3.PackageEventListResp
+	(*PackageEventDistinctReq)(nil),                                        // 117: v3.PackageEventDistinctReq
+	(*PackageEventDistinctResp)(nil),                                       // 118: v3.PackageEventDistinctResp
+	(*PackageUploadOriginAgentResp_Data)(nil),                              // 119: v3.PackageUploadOriginAgentResp.Data
+	(*PackageUploadOriginServerResp_Data)(nil),                             // 120: v3.PackageUploadOriginServerResp.Data
+	(*PackageUploadOriginProxyResp_Data)(nil),                              // 121: v3.PackageUploadOriginProxyResp.Data
+	(*PackageUploadOriginCertResp_Data)(nil),                               // 122: v3.PackageUploadOriginCertResp.Data
+	(*PackageUploadOriginBinToolResp_Data)(nil),                            // 123: v3.PackageUploadOriginBinToolResp.Data
+	(*PackageUploadOriginPluginV2Resp_Data)(nil),                           // 124: v3.PackageUploadOriginPluginV2Resp.Data
+	(*PackageUploadOriginExternalPluginV2Resp_Data)(nil),                   // 125: v3.PackageUploadOriginExternalPluginV2Resp.Data
+	(*PackageUploadOriginPluginV3Resp_Data)(nil),                           // 126: v3.PackageUploadOriginPluginV3Resp.Data
+	(*PackageUploadOriginPluginBinToolResp_Data)(nil),                      // 127: v3.PackageUploadOriginPluginBinToolResp.Data
+	(*PackageUploadOriginPluginBinToolResp_Data_V2Info)(nil),               // 128: v3.PackageUploadOriginPluginBinToolResp.Data.V2Info
+	(*PackageUploadOriginPluginBinToolResp_Data_V3Info)(nil),               // 129: v3.PackageUploadOriginPluginBinToolResp.Data.V3Info
+	(*PackagePublishReleasePluginV2Resp_Data)(nil),                         // 130: v3.PackagePublishReleasePluginV2Resp.Data
+	(*PackagePublishReleaseExternalPluginV2Resp_Data)(nil),                 // 131: v3.PackagePublishReleaseExternalPluginV2Resp.Data
+	(*PackagePublishReleasePluginV3Resp_Data)(nil),                         // 132: v3.PackagePublishReleasePluginV3Resp.Data
+	(*PackagePublishReleaseAgentResp_Data)(nil),                            // 133: v3.PackagePublishReleaseAgentResp.Data
+	(*PackagePublishReleaseProxyResp_Data)(nil),                            // 134: v3.PackagePublishReleaseProxyResp.Data
+	(*PackagePublishReleaseCertResp_Data)(nil),                             // 135: v3.PackagePublishReleaseCertResp.Data
+	(*PackagePublishReleaseBinToolResp_Data)(nil),                          // 136: v3.PackagePublishReleaseBinToolResp.Data
+	(*PackagePublishReleasePluginBinToolResp_Data)(nil),                    // 137: v3.PackagePublishReleasePluginBinToolResp.Data
+	(*PackageReleaseAgentListResp_Data)(nil),                               // 138: v3.PackageReleaseAgentListResp.Data
+	(*PackageReleaseAgentListBriefResp_Data)(nil),                          // 139: v3.PackageReleaseAgentListBriefResp.Data
+	(*PackageReleaseAgentSetLabelsManyResp_Data)(nil),                      // 140: v3.PackageReleaseAgentSetLabelsManyResp.Data
+	(*PackageReleaseAgentEnableResp_Data)(nil),                             // 141: v3.PackageReleaseAgentEnableResp.Data
+	(*PackageReleaseAgentDisableResp_Data)(nil),                            // 142: v3.PackageReleaseAgentDisableResp.Data
+	(*PackageReleaseAgentSetAsDefaultResp_Data)(nil),                       // 143: v3.PackageReleaseAgentSetAsDefaultResp.Data
+	(*PackageReleaseAgentCancelAsDefaultResp_Data)(nil),                    // 144: v3.PackageReleaseAgentCancelAsDefaultResp.Data
+	(*PackageReleaseAgentDeleteResp_Data)(nil),                             // 145: v3.PackageReleaseAgentDeleteResp.Data
+	(*PackageReleaseAgentCountDeployedReq_Item)(nil),                       // 146: v3.PackageReleaseAgentCountDeployedReq.Item
+	(*PackageReleaseAgentCountDeployedResp_Data)(nil),                      // 147: v3.PackageReleaseAgentCountDeployedResp.Data
+	(*PackageReleaseProxyListResp_Data)(nil),                               // 148: v3.PackageReleaseProxyListResp.Data
+	(*PackageReleaseProxyListBriefResp_Data)(nil),                          // 149: v3.PackageReleaseProxyListBriefResp.Data
+	(*PackageReleaseProxySetLabelsManyResp_Data)(nil),                      // 150: v3.PackageReleaseProxySetLabelsManyResp.Data
+	(*PackageReleaseProxyEnableResp_Data)(nil),                             // 151: v3.PackageReleaseProxyEnableResp.Data
+	(*PackageReleaseProxyDisableResp_Data)(nil),                            // 152: v3.PackageReleaseProxyDisableResp.Data
+	(*PackageReleaseProxySetAsDefaultResp_Data)(nil),                       // 153: v3.PackageReleaseProxySetAsDefaultResp.Data
+	(*PackageReleaseProxyCancelAsDefaultResp_Data)(nil),                    // 154: v3.PackageReleaseProxyCancelAsDefaultResp.Data
+	(*PackageReleaseProxyDeleteResp_Data)(nil),                             // 155: v3.PackageReleaseProxyDeleteResp.Data
+	(*PackageReleaseProxyCountDeployedReq_Item)(nil),                       // 156: v3.PackageReleaseProxyCountDeployedReq.Item
+	(*PackageReleaseProxyCountDeployedResp_Data)(nil),                      // 157: v3.PackageReleaseProxyCountDeployedResp.Data
+	(*PackageReleasePluginListResp_Data)(nil),                              // 158: v3.PackageReleasePluginListResp.Data
+	(*PackageReleasePluginListBriefResp_Data)(nil),                         // 159: v3.PackageReleasePluginListBriefResp.Data
+	(*PackageReleasePluginEnableResp_Data)(nil),                            // 160: v3.PackageReleasePluginEnableResp.Data
+	(*PackageReleasePluginDisableResp_Data)(nil),                           // 161: v3.PackageReleasePluginDisableResp.Data
+	(*PackageReleasePluginSetAsDefaultResp_Data)(nil),                      // 162: v3.PackageReleasePluginSetAsDefaultResp.Data
+	(*PackageReleasePluginCancelAsDefaultResp_Data)(nil),                   // 163: v3.PackageReleasePluginCancelAsDefaultResp.Data
+	(*PackageReleasePluginDeleteResp_Data)(nil),                            // 164: v3.PackageReleasePluginDeleteResp.Data
+	(*ConfigVariables_Property)(nil),                                       // 165: v3.ConfigVariables.Property
+	nil,                                                                    // 166: v3.ConfigVariables.VariablesEntry
+	nil,                                                                    // 167: v3.ConfigVariables.Property.PropertiesEntry
+	(*PackageReleasePluginGetConfigVariablesResp_ConfigVariablesList)(nil), // 168: v3.PackageReleasePluginGetConfigVariablesResp.ConfigVariablesList
+	(*PackageReleasePluginGetConfigVariablesResp_Data)(nil),                // 169: v3.PackageReleasePluginGetConfigVariablesResp.Data
+	nil,                                     // 170: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariablesEntry
+	(*PackageReleaseCertListResp_Data)(nil), // 171: v3.PackageReleaseCertListResp.Data
+	(*PackageReleaseCertDeleteResp_Data)(nil),          // 172: v3.PackageReleaseCertDeleteResp.Data
+	(*PackageReleaseBinToolListResp_Data)(nil),         // 173: v3.PackageReleaseBinToolListResp.Data
+	(*PackageReleaseBinToolDeleteResp_Data)(nil),       // 174: v3.PackageReleaseBinToolDeleteResp.Data
+	(*PackageReleasePluginBinToolListResp_Data)(nil),   // 175: v3.PackageReleasePluginBinToolListResp.Data
+	(*PackageReleasePluginBinToolDeleteResp_Data)(nil), // 176: v3.PackageReleasePluginBinToolDeleteResp.Data
+	(*PackageEventListResp_Data)(nil),                  // 177: v3.PackageEventListResp.Data
+	(*PackageEventDistinctResp_Data)(nil),              // 178: v3.PackageEventDistinctResp.Data
+	(*Error)(nil),                                      // 179: v3.Error
+	(*Permission)(nil),                                 // 180: v3.Permission
+	(*Platform)(nil),                                   // 181: v3.Platform
+	(*Page)(nil),                                       // 182: v3.Page
+	(*TimeRange)(nil),                                  // 183: v3.TimeRange
+	(*ReleaseAgent)(nil),                               // 184: v3.ReleaseAgent
+	(*ReleaseAgentBrief)(nil),                          // 185: v3.ReleaseAgentBrief
+	(*ReleaseProxy)(nil),                               // 186: v3.ReleaseProxy
+	(*ReleaseProxyBrief)(nil),                          // 187: v3.ReleaseProxyBrief
+	(*ReleasePlugin)(nil),                              // 188: v3.ReleasePlugin
+	(*ReleasePluginBrief)(nil),                         // 189: v3.ReleasePluginBrief
+	(*structpb.Value)(nil),                             // 190: google.protobuf.Value
+	(*ReleaseCert)(nil),                                // 191: v3.ReleaseCert
+	(*ReleaseBinTool)(nil),                             // 192: v3.ReleaseBinTool
+	(*ReleasePluginBinTool)(nil),                       // 193: v3.ReleasePluginBinTool
+	(*PackageEvent)(nil),                               // 194: v3.PackageEvent
 }
 var file_pkg_proto_depIdxs = []int32{
-	177, // 0: v3.PackageUploadOriginAgentResp.error:type_name -> v3.Error
-	178, // 1: v3.PackageUploadOriginAgentResp.permission:type_name -> v3.Permission
-	118, // 2: v3.PackageUploadOriginAgentResp.data:type_name -> v3.PackageUploadOriginAgentResp.Data
-	177, // 3: v3.PackageUploadOriginServerResp.error:type_name -> v3.Error
-	178, // 4: v3.PackageUploadOriginServerResp.permission:type_name -> v3.Permission
-	119, // 5: v3.PackageUploadOriginServerResp.data:type_name -> v3.PackageUploadOriginServerResp.Data
-	177, // 6: v3.PackageUploadOriginProxyResp.error:type_name -> v3.Error
-	178, // 7: v3.PackageUploadOriginProxyResp.permission:type_name -> v3.Permission
-	120, // 8: v3.PackageUploadOriginProxyResp.data:type_name -> v3.PackageUploadOriginProxyResp.Data
-	177, // 9: v3.PackageUploadOriginCertResp.error:type_name -> v3.Error
-	178, // 10: v3.PackageUploadOriginCertResp.permission:type_name -> v3.Permission
-	121, // 11: v3.PackageUploadOriginCertResp.data:type_name -> v3.PackageUploadOriginCertResp.Data
-	177, // 12: v3.PackageUploadOriginBinToolResp.error:type_name -> v3.Error
-	178, // 13: v3.PackageUploadOriginBinToolResp.permission:type_name -> v3.Permission
-	122, // 14: v3.PackageUploadOriginBinToolResp.data:type_name -> v3.PackageUploadOriginBinToolResp.Data
-	177, // 15: v3.PackageUploadOriginPluginV2Resp.error:type_name -> v3.Error
-	178, // 16: v3.PackageUploadOriginPluginV2Resp.permission:type_name -> v3.Permission
-	123, // 17: v3.PackageUploadOriginPluginV2Resp.data:type_name -> v3.PackageUploadOriginPluginV2Resp.Data
-	177, // 18: v3.PackageUploadOriginExternalPluginV2Resp.error:type_name -> v3.Error
-	178, // 19: v3.PackageUploadOriginExternalPluginV2Resp.permission:type_name -> v3.Permission
-	124, // 20: v3.PackageUploadOriginExternalPluginV2Resp.data:type_name -> v3.PackageUploadOriginExternalPluginV2Resp.Data
-	177, // 21: v3.PackageUploadOriginPluginV3Resp.error:type_name -> v3.Error
-	178, // 22: v3.PackageUploadOriginPluginV3Resp.permission:type_name -> v3.Permission
-	125, // 23: v3.PackageUploadOriginPluginV3Resp.data:type_name -> v3.PackageUploadOriginPluginV3Resp.Data
-	126, // 24: v3.PackageUploadOriginPluginBinToolResp.data:type_name -> v3.PackageUploadOriginPluginBinToolResp.Data
-	177, // 25: v3.PackagePublishReleasePluginV2Resp.error:type_name -> v3.Error
-	178, // 26: v3.PackagePublishReleasePluginV2Resp.permission:type_name -> v3.Permission
-	129, // 27: v3.PackagePublishReleasePluginV2Resp.data:type_name -> v3.PackagePublishReleasePluginV2Resp.Data
-	177, // 28: v3.PackagePublishReleaseExternalPluginV2Resp.error:type_name -> v3.Error
-	178, // 29: v3.PackagePublishReleaseExternalPluginV2Resp.permission:type_name -> v3.Permission
-	130, // 30: v3.PackagePublishReleaseExternalPluginV2Resp.data:type_name -> v3.PackagePublishReleaseExternalPluginV2Resp.Data
-	177, // 31: v3.PackagePublishReleasePluginV3Resp.error:type_name -> v3.Error
-	178, // 32: v3.PackagePublishReleasePluginV3Resp.permission:type_name -> v3.Permission
-	131, // 33: v3.PackagePublishReleasePluginV3Resp.data:type_name -> v3.PackagePublishReleasePluginV3Resp.Data
-	177, // 34: v3.PackagePublishReleaseAgentResp.error:type_name -> v3.Error
-	178, // 35: v3.PackagePublishReleaseAgentResp.permission:type_name -> v3.Permission
-	132, // 36: v3.PackagePublishReleaseAgentResp.data:type_name -> v3.PackagePublishReleaseAgentResp.Data
-	177, // 37: v3.PackagePublishReleaseProxyResp.error:type_name -> v3.Error
-	178, // 38: v3.PackagePublishReleaseProxyResp.permission:type_name -> v3.Permission
-	133, // 39: v3.PackagePublishReleaseProxyResp.data:type_name -> v3.PackagePublishReleaseProxyResp.Data
-	177, // 40: v3.PackagePublishReleaseCertResp.error:type_name -> v3.Error
-	178, // 41: v3.PackagePublishReleaseCertResp.permission:type_name -> v3.Permission
-	134, // 42: v3.PackagePublishReleaseCertResp.data:type_name -> v3.PackagePublishReleaseCertResp.Data
-	177, // 43: v3.PackagePublishReleaseBinToolResp.error:type_name -> v3.Error
-	178, // 44: v3.PackagePublishReleaseBinToolResp.permission:type_name -> v3.Permission
-	135, // 45: v3.PackagePublishReleaseBinToolResp.data:type_name -> v3.PackagePublishReleaseBinToolResp.Data
-	136, // 46: v3.PackagePublishReleasePluginBinToolResp.data:type_name -> v3.PackagePublishReleasePluginBinToolResp.Data
-	179, // 47: v3.PackageReleaseExactConditions.platform:type_name -> v3.Platform
-	180, // 48: v3.PackageReleaseAgentListReq.page:type_name -> v3.Page
+	179, // 0: v3.PackageUploadOriginAgentResp.error:type_name -> v3.Error
+	180, // 1: v3.PackageUploadOriginAgentResp.permission:type_name -> v3.Permission
+	119, // 2: v3.PackageUploadOriginAgentResp.data:type_name -> v3.PackageUploadOriginAgentResp.Data
+	179, // 3: v3.PackageUploadOriginServerResp.error:type_name -> v3.Error
+	180, // 4: v3.PackageUploadOriginServerResp.permission:type_name -> v3.Permission
+	120, // 5: v3.PackageUploadOriginServerResp.data:type_name -> v3.PackageUploadOriginServerResp.Data
+	179, // 6: v3.PackageUploadOriginProxyResp.error:type_name -> v3.Error
+	180, // 7: v3.PackageUploadOriginProxyResp.permission:type_name -> v3.Permission
+	121, // 8: v3.PackageUploadOriginProxyResp.data:type_name -> v3.PackageUploadOriginProxyResp.Data
+	179, // 9: v3.PackageUploadOriginCertResp.error:type_name -> v3.Error
+	180, // 10: v3.PackageUploadOriginCertResp.permission:type_name -> v3.Permission
+	122, // 11: v3.PackageUploadOriginCertResp.data:type_name -> v3.PackageUploadOriginCertResp.Data
+	179, // 12: v3.PackageUploadOriginBinToolResp.error:type_name -> v3.Error
+	180, // 13: v3.PackageUploadOriginBinToolResp.permission:type_name -> v3.Permission
+	123, // 14: v3.PackageUploadOriginBinToolResp.data:type_name -> v3.PackageUploadOriginBinToolResp.Data
+	179, // 15: v3.PackageUploadOriginPluginV2Resp.error:type_name -> v3.Error
+	180, // 16: v3.PackageUploadOriginPluginV2Resp.permission:type_name -> v3.Permission
+	124, // 17: v3.PackageUploadOriginPluginV2Resp.data:type_name -> v3.PackageUploadOriginPluginV2Resp.Data
+	179, // 18: v3.PackageUploadOriginExternalPluginV2Resp.error:type_name -> v3.Error
+	180, // 19: v3.PackageUploadOriginExternalPluginV2Resp.permission:type_name -> v3.Permission
+	125, // 20: v3.PackageUploadOriginExternalPluginV2Resp.data:type_name -> v3.PackageUploadOriginExternalPluginV2Resp.Data
+	179, // 21: v3.PackageUploadOriginPluginV3Resp.error:type_name -> v3.Error
+	180, // 22: v3.PackageUploadOriginPluginV3Resp.permission:type_name -> v3.Permission
+	126, // 23: v3.PackageUploadOriginPluginV3Resp.data:type_name -> v3.PackageUploadOriginPluginV3Resp.Data
+	127, // 24: v3.PackageUploadOriginPluginBinToolResp.data:type_name -> v3.PackageUploadOriginPluginBinToolResp.Data
+	179, // 25: v3.PackagePublishReleasePluginV2Resp.error:type_name -> v3.Error
+	180, // 26: v3.PackagePublishReleasePluginV2Resp.permission:type_name -> v3.Permission
+	130, // 27: v3.PackagePublishReleasePluginV2Resp.data:type_name -> v3.PackagePublishReleasePluginV2Resp.Data
+	179, // 28: v3.PackagePublishReleaseExternalPluginV2Resp.error:type_name -> v3.Error
+	180, // 29: v3.PackagePublishReleaseExternalPluginV2Resp.permission:type_name -> v3.Permission
+	131, // 30: v3.PackagePublishReleaseExternalPluginV2Resp.data:type_name -> v3.PackagePublishReleaseExternalPluginV2Resp.Data
+	179, // 31: v3.PackagePublishReleasePluginV3Resp.error:type_name -> v3.Error
+	180, // 32: v3.PackagePublishReleasePluginV3Resp.permission:type_name -> v3.Permission
+	132, // 33: v3.PackagePublishReleasePluginV3Resp.data:type_name -> v3.PackagePublishReleasePluginV3Resp.Data
+	179, // 34: v3.PackagePublishReleaseAgentResp.error:type_name -> v3.Error
+	180, // 35: v3.PackagePublishReleaseAgentResp.permission:type_name -> v3.Permission
+	133, // 36: v3.PackagePublishReleaseAgentResp.data:type_name -> v3.PackagePublishReleaseAgentResp.Data
+	179, // 37: v3.PackagePublishReleaseProxyResp.error:type_name -> v3.Error
+	180, // 38: v3.PackagePublishReleaseProxyResp.permission:type_name -> v3.Permission
+	134, // 39: v3.PackagePublishReleaseProxyResp.data:type_name -> v3.PackagePublishReleaseProxyResp.Data
+	179, // 40: v3.PackagePublishReleaseCertResp.error:type_name -> v3.Error
+	180, // 41: v3.PackagePublishReleaseCertResp.permission:type_name -> v3.Permission
+	135, // 42: v3.PackagePublishReleaseCertResp.data:type_name -> v3.PackagePublishReleaseCertResp.Data
+	179, // 43: v3.PackagePublishReleaseBinToolResp.error:type_name -> v3.Error
+	180, // 44: v3.PackagePublishReleaseBinToolResp.permission:type_name -> v3.Permission
+	136, // 45: v3.PackagePublishReleaseBinToolResp.data:type_name -> v3.PackagePublishReleaseBinToolResp.Data
+	137, // 46: v3.PackagePublishReleasePluginBinToolResp.data:type_name -> v3.PackagePublishReleasePluginBinToolResp.Data
+	181, // 47: v3.PackageReleaseExactConditions.platform:type_name -> v3.Platform
+	182, // 48: v3.PackageReleaseAgentListReq.page:type_name -> v3.Page
 	34,  // 49: v3.PackageReleaseAgentListReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 50: v3.PackageReleaseAgentListResp.error:type_name -> v3.Error
-	178, // 51: v3.PackageReleaseAgentListResp.permission:type_name -> v3.Permission
-	137, // 52: v3.PackageReleaseAgentListResp.data:type_name -> v3.PackageReleaseAgentListResp.Data
-	180, // 53: v3.PackageReleaseAgentListBriefReq.page:type_name -> v3.Page
+	179, // 50: v3.PackageReleaseAgentListResp.error:type_name -> v3.Error
+	180, // 51: v3.PackageReleaseAgentListResp.permission:type_name -> v3.Permission
+	138, // 52: v3.PackageReleaseAgentListResp.data:type_name -> v3.PackageReleaseAgentListResp.Data
+	182, // 53: v3.PackageReleaseAgentListBriefReq.page:type_name -> v3.Page
 	34,  // 54: v3.PackageReleaseAgentListBriefReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 55: v3.PackageReleaseAgentListBriefResp.error:type_name -> v3.Error
-	178, // 56: v3.PackageReleaseAgentListBriefResp.permission:type_name -> v3.Permission
-	138, // 57: v3.PackageReleaseAgentListBriefResp.data:type_name -> v3.PackageReleaseAgentListBriefResp.Data
+	179, // 55: v3.PackageReleaseAgentListBriefResp.error:type_name -> v3.Error
+	180, // 56: v3.PackageReleaseAgentListBriefResp.permission:type_name -> v3.Permission
+	139, // 57: v3.PackageReleaseAgentListBriefResp.data:type_name -> v3.PackageReleaseAgentListBriefResp.Data
 	34,  // 58: v3.PackageReleaseAgentDistinctReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
 	35,  // 59: v3.PackageReleaseAgentDistinctReq.distinct_field:type_name -> v3.PackageReleaseDistinctField
-	177, // 60: v3.PackageReleaseAgentDistinctResp.error:type_name -> v3.Error
-	178, // 61: v3.PackageReleaseAgentDistinctResp.permission:type_name -> v3.Permission
+	179, // 60: v3.PackageReleaseAgentDistinctResp.error:type_name -> v3.Error
+	180, // 61: v3.PackageReleaseAgentDistinctResp.permission:type_name -> v3.Permission
 	36,  // 62: v3.PackageReleaseAgentDistinctResp.data:type_name -> v3.PackageReleaseDistinctData
 	34,  // 63: v3.PackageReleaseAgentSetLabelsManyReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 64: v3.PackageReleaseAgentSetLabelsManyResp.error:type_name -> v3.Error
-	178, // 65: v3.PackageReleaseAgentSetLabelsManyResp.permission:type_name -> v3.Permission
-	139, // 66: v3.PackageReleaseAgentSetLabelsManyResp.data:type_name -> v3.PackageReleaseAgentSetLabelsManyResp.Data
-	179, // 67: v3.PackageReleaseAgentEnableReq.platform:type_name -> v3.Platform
-	177, // 68: v3.PackageReleaseAgentEnableResp.error:type_name -> v3.Error
-	178, // 69: v3.PackageReleaseAgentEnableResp.permission:type_name -> v3.Permission
-	140, // 70: v3.PackageReleaseAgentEnableResp.data:type_name -> v3.PackageReleaseAgentEnableResp.Data
-	179, // 71: v3.PackageReleaseAgentDisableReq.platform:type_name -> v3.Platform
-	177, // 72: v3.PackageReleaseAgentDisableResp.error:type_name -> v3.Error
-	178, // 73: v3.PackageReleaseAgentDisableResp.permission:type_name -> v3.Permission
-	141, // 74: v3.PackageReleaseAgentDisableResp.data:type_name -> v3.PackageReleaseAgentDisableResp.Data
-	179, // 75: v3.PackageReleaseAgentSetAsDefaultReq.platform:type_name -> v3.Platform
-	177, // 76: v3.PackageReleaseAgentSetAsDefaultResp.error:type_name -> v3.Error
-	178, // 77: v3.PackageReleaseAgentSetAsDefaultResp.permission:type_name -> v3.Permission
-	142, // 78: v3.PackageReleaseAgentSetAsDefaultResp.data:type_name -> v3.PackageReleaseAgentSetAsDefaultResp.Data
-	179, // 79: v3.PackageReleaseAgentCancelAsDefaultReq.platform:type_name -> v3.Platform
-	177, // 80: v3.PackageReleaseAgentCancelAsDefaultResp.error:type_name -> v3.Error
-	178, // 81: v3.PackageReleaseAgentCancelAsDefaultResp.permission:type_name -> v3.Permission
-	143, // 82: v3.PackageReleaseAgentCancelAsDefaultResp.data:type_name -> v3.PackageReleaseAgentCancelAsDefaultResp.Data
-	179, // 83: v3.PackageReleaseAgentDeleteReq.platform:type_name -> v3.Platform
-	177, // 84: v3.PackageReleaseAgentDeleteResp.error:type_name -> v3.Error
-	178, // 85: v3.PackageReleaseAgentDeleteResp.permission:type_name -> v3.Permission
-	144, // 86: v3.PackageReleaseAgentDeleteResp.data:type_name -> v3.PackageReleaseAgentDeleteResp.Data
-	145, // 87: v3.PackageReleaseAgentCountDeployedReq.items:type_name -> v3.PackageReleaseAgentCountDeployedReq.Item
-	177, // 88: v3.PackageReleaseAgentCountDeployedResp.error:type_name -> v3.Error
-	178, // 89: v3.PackageReleaseAgentCountDeployedResp.permission:type_name -> v3.Permission
-	146, // 90: v3.PackageReleaseAgentCountDeployedResp.data:type_name -> v3.PackageReleaseAgentCountDeployedResp.Data
-	179, // 91: v3.PackageReleaseAgentDownloadReq.platform:type_name -> v3.Platform
-	180, // 92: v3.PackageReleaseProxyListReq.page:type_name -> v3.Page
+	179, // 64: v3.PackageReleaseAgentSetLabelsManyResp.error:type_name -> v3.Error
+	180, // 65: v3.PackageReleaseAgentSetLabelsManyResp.permission:type_name -> v3.Permission
+	140, // 66: v3.PackageReleaseAgentSetLabelsManyResp.data:type_name -> v3.PackageReleaseAgentSetLabelsManyResp.Data
+	181, // 67: v3.PackageReleaseAgentEnableReq.platform:type_name -> v3.Platform
+	179, // 68: v3.PackageReleaseAgentEnableResp.error:type_name -> v3.Error
+	180, // 69: v3.PackageReleaseAgentEnableResp.permission:type_name -> v3.Permission
+	141, // 70: v3.PackageReleaseAgentEnableResp.data:type_name -> v3.PackageReleaseAgentEnableResp.Data
+	181, // 71: v3.PackageReleaseAgentDisableReq.platform:type_name -> v3.Platform
+	179, // 72: v3.PackageReleaseAgentDisableResp.error:type_name -> v3.Error
+	180, // 73: v3.PackageReleaseAgentDisableResp.permission:type_name -> v3.Permission
+	142, // 74: v3.PackageReleaseAgentDisableResp.data:type_name -> v3.PackageReleaseAgentDisableResp.Data
+	181, // 75: v3.PackageReleaseAgentSetAsDefaultReq.platform:type_name -> v3.Platform
+	179, // 76: v3.PackageReleaseAgentSetAsDefaultResp.error:type_name -> v3.Error
+	180, // 77: v3.PackageReleaseAgentSetAsDefaultResp.permission:type_name -> v3.Permission
+	143, // 78: v3.PackageReleaseAgentSetAsDefaultResp.data:type_name -> v3.PackageReleaseAgentSetAsDefaultResp.Data
+	181, // 79: v3.PackageReleaseAgentCancelAsDefaultReq.platform:type_name -> v3.Platform
+	179, // 80: v3.PackageReleaseAgentCancelAsDefaultResp.error:type_name -> v3.Error
+	180, // 81: v3.PackageReleaseAgentCancelAsDefaultResp.permission:type_name -> v3.Permission
+	144, // 82: v3.PackageReleaseAgentCancelAsDefaultResp.data:type_name -> v3.PackageReleaseAgentCancelAsDefaultResp.Data
+	181, // 83: v3.PackageReleaseAgentDeleteReq.platform:type_name -> v3.Platform
+	179, // 84: v3.PackageReleaseAgentDeleteResp.error:type_name -> v3.Error
+	180, // 85: v3.PackageReleaseAgentDeleteResp.permission:type_name -> v3.Permission
+	145, // 86: v3.PackageReleaseAgentDeleteResp.data:type_name -> v3.PackageReleaseAgentDeleteResp.Data
+	146, // 87: v3.PackageReleaseAgentCountDeployedReq.items:type_name -> v3.PackageReleaseAgentCountDeployedReq.Item
+	179, // 88: v3.PackageReleaseAgentCountDeployedResp.error:type_name -> v3.Error
+	180, // 89: v3.PackageReleaseAgentCountDeployedResp.permission:type_name -> v3.Permission
+	147, // 90: v3.PackageReleaseAgentCountDeployedResp.data:type_name -> v3.PackageReleaseAgentCountDeployedResp.Data
+	181, // 91: v3.PackageReleaseAgentDownloadReq.platform:type_name -> v3.Platform
+	182, // 92: v3.PackageReleaseProxyListReq.page:type_name -> v3.Page
 	34,  // 93: v3.PackageReleaseProxyListReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 94: v3.PackageReleaseProxyListResp.error:type_name -> v3.Error
-	178, // 95: v3.PackageReleaseProxyListResp.permission:type_name -> v3.Permission
-	147, // 96: v3.PackageReleaseProxyListResp.data:type_name -> v3.PackageReleaseProxyListResp.Data
-	180, // 97: v3.PackageReleaseProxyListBriefReq.page:type_name -> v3.Page
+	179, // 94: v3.PackageReleaseProxyListResp.error:type_name -> v3.Error
+	180, // 95: v3.PackageReleaseProxyListResp.permission:type_name -> v3.Permission
+	148, // 96: v3.PackageReleaseProxyListResp.data:type_name -> v3.PackageReleaseProxyListResp.Data
+	182, // 97: v3.PackageReleaseProxyListBriefReq.page:type_name -> v3.Page
 	34,  // 98: v3.PackageReleaseProxyListBriefReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 99: v3.PackageReleaseProxyListBriefResp.error:type_name -> v3.Error
-	178, // 100: v3.PackageReleaseProxyListBriefResp.permission:type_name -> v3.Permission
-	148, // 101: v3.PackageReleaseProxyListBriefResp.data:type_name -> v3.PackageReleaseProxyListBriefResp.Data
+	179, // 99: v3.PackageReleaseProxyListBriefResp.error:type_name -> v3.Error
+	180, // 100: v3.PackageReleaseProxyListBriefResp.permission:type_name -> v3.Permission
+	149, // 101: v3.PackageReleaseProxyListBriefResp.data:type_name -> v3.PackageReleaseProxyListBriefResp.Data
 	34,  // 102: v3.PackageReleaseProxyDistinctReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
 	35,  // 103: v3.PackageReleaseProxyDistinctReq.distinct_field:type_name -> v3.PackageReleaseDistinctField
-	177, // 104: v3.PackageReleaseProxyDistinctResp.error:type_name -> v3.Error
-	178, // 105: v3.PackageReleaseProxyDistinctResp.permission:type_name -> v3.Permission
+	179, // 104: v3.PackageReleaseProxyDistinctResp.error:type_name -> v3.Error
+	180, // 105: v3.PackageReleaseProxyDistinctResp.permission:type_name -> v3.Permission
 	36,  // 106: v3.PackageReleaseProxyDistinctResp.data:type_name -> v3.PackageReleaseDistinctData
 	34,  // 107: v3.PackageReleaseProxySetLabelsManyReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 108: v3.PackageReleaseProxySetLabelsManyResp.error:type_name -> v3.Error
-	178, // 109: v3.PackageReleaseProxySetLabelsManyResp.permission:type_name -> v3.Permission
-	149, // 110: v3.PackageReleaseProxySetLabelsManyResp.data:type_name -> v3.PackageReleaseProxySetLabelsManyResp.Data
-	179, // 111: v3.PackageReleaseProxyEnableReq.platform:type_name -> v3.Platform
-	177, // 112: v3.PackageReleaseProxyEnableResp.error:type_name -> v3.Error
-	178, // 113: v3.PackageReleaseProxyEnableResp.permission:type_name -> v3.Permission
-	150, // 114: v3.PackageReleaseProxyEnableResp.data:type_name -> v3.PackageReleaseProxyEnableResp.Data
-	179, // 115: v3.PackageReleaseProxyDisableReq.platform:type_name -> v3.Platform
-	177, // 116: v3.PackageReleaseProxyDisableResp.error:type_name -> v3.Error
-	178, // 117: v3.PackageReleaseProxyDisableResp.permission:type_name -> v3.Permission
-	151, // 118: v3.PackageReleaseProxyDisableResp.data:type_name -> v3.PackageReleaseProxyDisableResp.Data
-	179, // 119: v3.PackageReleaseProxySetAsDefaultReq.platform:type_name -> v3.Platform
-	177, // 120: v3.PackageReleaseProxySetAsDefaultResp.error:type_name -> v3.Error
-	178, // 121: v3.PackageReleaseProxySetAsDefaultResp.permission:type_name -> v3.Permission
-	152, // 122: v3.PackageReleaseProxySetAsDefaultResp.data:type_name -> v3.PackageReleaseProxySetAsDefaultResp.Data
-	179, // 123: v3.PackageReleaseProxyCancelAsDefaultReq.platform:type_name -> v3.Platform
-	177, // 124: v3.PackageReleaseProxyCancelAsDefaultResp.error:type_name -> v3.Error
-	178, // 125: v3.PackageReleaseProxyCancelAsDefaultResp.permission:type_name -> v3.Permission
-	153, // 126: v3.PackageReleaseProxyCancelAsDefaultResp.data:type_name -> v3.PackageReleaseProxyCancelAsDefaultResp.Data
-	179, // 127: v3.PackageReleaseProxyDeleteReq.platform:type_name -> v3.Platform
-	177, // 128: v3.PackageReleaseProxyDeleteResp.error:type_name -> v3.Error
-	178, // 129: v3.PackageReleaseProxyDeleteResp.permission:type_name -> v3.Permission
-	154, // 130: v3.PackageReleaseProxyDeleteResp.data:type_name -> v3.PackageReleaseProxyDeleteResp.Data
-	155, // 131: v3.PackageReleaseProxyCountDeployedReq.items:type_name -> v3.PackageReleaseProxyCountDeployedReq.Item
-	177, // 132: v3.PackageReleaseProxyCountDeployedResp.error:type_name -> v3.Error
-	178, // 133: v3.PackageReleaseProxyCountDeployedResp.permission:type_name -> v3.Permission
-	156, // 134: v3.PackageReleaseProxyCountDeployedResp.data:type_name -> v3.PackageReleaseProxyCountDeployedResp.Data
-	179, // 135: v3.PackageReleaseProxyDownloadReq.platform:type_name -> v3.Platform
-	180, // 136: v3.PackageReleasePluginListReq.page:type_name -> v3.Page
+	179, // 108: v3.PackageReleaseProxySetLabelsManyResp.error:type_name -> v3.Error
+	180, // 109: v3.PackageReleaseProxySetLabelsManyResp.permission:type_name -> v3.Permission
+	150, // 110: v3.PackageReleaseProxySetLabelsManyResp.data:type_name -> v3.PackageReleaseProxySetLabelsManyResp.Data
+	181, // 111: v3.PackageReleaseProxyEnableReq.platform:type_name -> v3.Platform
+	179, // 112: v3.PackageReleaseProxyEnableResp.error:type_name -> v3.Error
+	180, // 113: v3.PackageReleaseProxyEnableResp.permission:type_name -> v3.Permission
+	151, // 114: v3.PackageReleaseProxyEnableResp.data:type_name -> v3.PackageReleaseProxyEnableResp.Data
+	181, // 115: v3.PackageReleaseProxyDisableReq.platform:type_name -> v3.Platform
+	179, // 116: v3.PackageReleaseProxyDisableResp.error:type_name -> v3.Error
+	180, // 117: v3.PackageReleaseProxyDisableResp.permission:type_name -> v3.Permission
+	152, // 118: v3.PackageReleaseProxyDisableResp.data:type_name -> v3.PackageReleaseProxyDisableResp.Data
+	181, // 119: v3.PackageReleaseProxySetAsDefaultReq.platform:type_name -> v3.Platform
+	179, // 120: v3.PackageReleaseProxySetAsDefaultResp.error:type_name -> v3.Error
+	180, // 121: v3.PackageReleaseProxySetAsDefaultResp.permission:type_name -> v3.Permission
+	153, // 122: v3.PackageReleaseProxySetAsDefaultResp.data:type_name -> v3.PackageReleaseProxySetAsDefaultResp.Data
+	181, // 123: v3.PackageReleaseProxyCancelAsDefaultReq.platform:type_name -> v3.Platform
+	179, // 124: v3.PackageReleaseProxyCancelAsDefaultResp.error:type_name -> v3.Error
+	180, // 125: v3.PackageReleaseProxyCancelAsDefaultResp.permission:type_name -> v3.Permission
+	154, // 126: v3.PackageReleaseProxyCancelAsDefaultResp.data:type_name -> v3.PackageReleaseProxyCancelAsDefaultResp.Data
+	181, // 127: v3.PackageReleaseProxyDeleteReq.platform:type_name -> v3.Platform
+	179, // 128: v3.PackageReleaseProxyDeleteResp.error:type_name -> v3.Error
+	180, // 129: v3.PackageReleaseProxyDeleteResp.permission:type_name -> v3.Permission
+	155, // 130: v3.PackageReleaseProxyDeleteResp.data:type_name -> v3.PackageReleaseProxyDeleteResp.Data
+	156, // 131: v3.PackageReleaseProxyCountDeployedReq.items:type_name -> v3.PackageReleaseProxyCountDeployedReq.Item
+	179, // 132: v3.PackageReleaseProxyCountDeployedResp.error:type_name -> v3.Error
+	180, // 133: v3.PackageReleaseProxyCountDeployedResp.permission:type_name -> v3.Permission
+	157, // 134: v3.PackageReleaseProxyCountDeployedResp.data:type_name -> v3.PackageReleaseProxyCountDeployedResp.Data
+	181, // 135: v3.PackageReleaseProxyDownloadReq.platform:type_name -> v3.Platform
+	182, // 136: v3.PackageReleasePluginListReq.page:type_name -> v3.Page
 	34,  // 137: v3.PackageReleasePluginListReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 138: v3.PackageReleasePluginListResp.error:type_name -> v3.Error
-	178, // 139: v3.PackageReleasePluginListResp.permission:type_name -> v3.Permission
-	157, // 140: v3.PackageReleasePluginListResp.data:type_name -> v3.PackageReleasePluginListResp.Data
-	180, // 141: v3.PackageReleasePluginListBriefReq.page:type_name -> v3.Page
+	179, // 138: v3.PackageReleasePluginListResp.error:type_name -> v3.Error
+	180, // 139: v3.PackageReleasePluginListResp.permission:type_name -> v3.Permission
+	158, // 140: v3.PackageReleasePluginListResp.data:type_name -> v3.PackageReleasePluginListResp.Data
+	182, // 141: v3.PackageReleasePluginListBriefReq.page:type_name -> v3.Page
 	34,  // 142: v3.PackageReleasePluginListBriefReq.exact_include_conditions:type_name -> v3.PackageReleaseExactConditions
-	177, // 143: v3.PackageReleasePluginListBriefResp.error:type_name -> v3.Error
-	178, // 144: v3.PackageReleasePluginListBriefResp.permission:type_name -> v3.Permission
-	158, // 145: v3.PackageReleasePluginListBriefResp.data:type_name -> v3.PackageReleasePluginListBriefResp.Data
-	179, // 146: v3.PackageReleasePluginEnableReq.platform:type_name -> v3.Platform
-	177, // 147: v3.PackageReleasePluginEnableResp.error:type_name -> v3.Error
-	178, // 148: v3.PackageReleasePluginEnableResp.permission:type_name -> v3.Permission
-	159, // 149: v3.PackageReleasePluginEnableResp.data:type_name -> v3.PackageReleasePluginEnableResp.Data
-	179, // 150: v3.PackageReleasePluginDisableReq.platform:type_name -> v3.Platform
-	177, // 151: v3.PackageReleasePluginDisableResp.error:type_name -> v3.Error
-	178, // 152: v3.PackageReleasePluginDisableResp.permission:type_name -> v3.Permission
-	160, // 153: v3.PackageReleasePluginDisableResp.data:type_name -> v3.PackageReleasePluginDisableResp.Data
-	179, // 154: v3.PackageReleasePluginSetAsDefaultReq.platform:type_name -> v3.Platform
-	177, // 155: v3.PackageReleasePluginSetAsDefaultResp.error:type_name -> v3.Error
-	178, // 156: v3.PackageReleasePluginSetAsDefaultResp.permission:type_name -> v3.Permission
-	161, // 157: v3.PackageReleasePluginSetAsDefaultResp.data:type_name -> v3.PackageReleasePluginSetAsDefaultResp.Data
-	179, // 158: v3.PackageReleasePluginCancelAsDefaultReq.platform:type_name -> v3.Platform
-	177, // 159: v3.PackageReleasePluginCancelAsDefaultResp.error:type_name -> v3.Error
-	178, // 160: v3.PackageReleasePluginCancelAsDefaultResp.permission:type_name -> v3.Permission
-	162, // 161: v3.PackageReleasePluginCancelAsDefaultResp.data:type_name -> v3.PackageReleasePluginCancelAsDefaultResp.Data
-	179, // 162: v3.PackageReleasePluginDeleteReq.platform:type_name -> v3.Platform
-	177, // 163: v3.PackageReleasePluginDeleteResp.error:type_name -> v3.Error
-	178, // 164: v3.PackageReleasePluginDeleteResp.permission:type_name -> v3.Permission
-	163, // 165: v3.PackageReleasePluginDeleteResp.data:type_name -> v3.PackageReleasePluginDeleteResp.Data
-	179, // 166: v3.PackageReleasePluginDownloadReq.platform:type_name -> v3.Platform
-	179, // 167: v3.PackageReleasePluginGetConfigVariablesReq.platform:type_name -> v3.Platform
-	177, // 168: v3.PackageReleasePluginGetConfigVariablesResp.error:type_name -> v3.Error
-	178, // 169: v3.PackageReleasePluginGetConfigVariablesResp.permission:type_name -> v3.Permission
-	164, // 170: v3.PackageReleasePluginGetConfigVariablesResp.data:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data
-	177, // 171: v3.PackageReleaseCertListResp.error:type_name -> v3.Error
-	178, // 172: v3.PackageReleaseCertListResp.permission:type_name -> v3.Permission
-	169, // 173: v3.PackageReleaseCertListResp.data:type_name -> v3.PackageReleaseCertListResp.Data
-	177, // 174: v3.PackageReleaseCertDeleteResp.error:type_name -> v3.Error
-	178, // 175: v3.PackageReleaseCertDeleteResp.permission:type_name -> v3.Permission
-	170, // 176: v3.PackageReleaseCertDeleteResp.data:type_name -> v3.PackageReleaseCertDeleteResp.Data
-	177, // 177: v3.PackageReleaseBinToolListResp.error:type_name -> v3.Error
-	178, // 178: v3.PackageReleaseBinToolListResp.permission:type_name -> v3.Permission
-	171, // 179: v3.PackageReleaseBinToolListResp.data:type_name -> v3.PackageReleaseBinToolListResp.Data
-	177, // 180: v3.PackageReleaseBinToolDeleteResp.error:type_name -> v3.Error
-	178, // 181: v3.PackageReleaseBinToolDeleteResp.permission:type_name -> v3.Permission
-	172, // 182: v3.PackageReleaseBinToolDeleteResp.data:type_name -> v3.PackageReleaseBinToolDeleteResp.Data
-	177, // 183: v3.PackageReleasePluginBinToolListResp.error:type_name -> v3.Error
-	178, // 184: v3.PackageReleasePluginBinToolListResp.permission:type_name -> v3.Permission
-	173, // 185: v3.PackageReleasePluginBinToolListResp.data:type_name -> v3.PackageReleasePluginBinToolListResp.Data
-	177, // 186: v3.PackageReleasePluginBinToolDeleteResp.error:type_name -> v3.Error
-	178, // 187: v3.PackageReleasePluginBinToolDeleteResp.permission:type_name -> v3.Permission
-	174, // 188: v3.PackageReleasePluginBinToolDeleteResp.data:type_name -> v3.PackageReleasePluginBinToolDeleteResp.Data
-	180, // 189: v3.PackageEventListReq.page:type_name -> v3.Page
-	112, // 190: v3.PackageEventListReq.exact_include_conditions:type_name -> v3.PackageEventExactConditions
-	113, // 191: v3.PackageEventListReq.fuzzy_include_conditions:type_name -> v3.PackageEventFuzzyConditions
-	181, // 192: v3.PackageEventListReq.operate_time_range:type_name -> v3.TimeRange
-	177, // 193: v3.PackageEventListResp.error:type_name -> v3.Error
-	178, // 194: v3.PackageEventListResp.permission:type_name -> v3.Permission
-	175, // 195: v3.PackageEventListResp.data:type_name -> v3.PackageEventListResp.Data
-	112, // 196: v3.PackageEventDistinctReq.exact_include_conditions:type_name -> v3.PackageEventExactConditions
-	113, // 197: v3.PackageEventDistinctReq.fuzzy_include_conditions:type_name -> v3.PackageEventFuzzyConditions
-	181, // 198: v3.PackageEventDistinctReq.operate_time_range:type_name -> v3.TimeRange
-	177, // 199: v3.PackageEventDistinctResp.error:type_name -> v3.Error
-	178, // 200: v3.PackageEventDistinctResp.permission:type_name -> v3.Permission
-	176, // 201: v3.PackageEventDistinctResp.data:type_name -> v3.PackageEventDistinctResp.Data
-	179, // 202: v3.PackageUploadOriginAgentResp.Data.platforms:type_name -> v3.Platform
-	179, // 203: v3.PackageUploadOriginServerResp.Data.platforms:type_name -> v3.Platform
-	179, // 204: v3.PackageUploadOriginProxyResp.Data.platforms:type_name -> v3.Platform
-	179, // 205: v3.PackageUploadOriginBinToolResp.Data.agent_platforms:type_name -> v3.Platform
-	179, // 206: v3.PackageUploadOriginBinToolResp.Data.proxy_platforms:type_name -> v3.Platform
-	179, // 207: v3.PackageUploadOriginPluginV2Resp.Data.platforms:type_name -> v3.Platform
-	179, // 208: v3.PackageUploadOriginExternalPluginV2Resp.Data.platforms:type_name -> v3.Platform
-	179, // 209: v3.PackageUploadOriginPluginV3Resp.Data.platforms:type_name -> v3.Platform
-	127, // 210: v3.PackageUploadOriginPluginBinToolResp.Data.v2:type_name -> v3.PackageUploadOriginPluginBinToolResp.Data.V2Info
-	128, // 211: v3.PackageUploadOriginPluginBinToolResp.Data.v3:type_name -> v3.PackageUploadOriginPluginBinToolResp.Data.V3Info
-	179, // 212: v3.PackageUploadOriginPluginBinToolResp.Data.V2Info.platforms:type_name -> v3.Platform
-	179, // 213: v3.PackageUploadOriginPluginBinToolResp.Data.V3Info.platforms:type_name -> v3.Platform
-	182, // 214: v3.PackageReleaseAgentListResp.Data.items:type_name -> v3.ReleaseAgent
-	183, // 215: v3.PackageReleaseAgentListBriefResp.Data.items:type_name -> v3.ReleaseAgentBrief
-	179, // 216: v3.PackageReleaseAgentCountDeployedReq.Item.platform:type_name -> v3.Platform
-	184, // 217: v3.PackageReleaseProxyListResp.Data.items:type_name -> v3.ReleaseProxy
-	185, // 218: v3.PackageReleaseProxyListBriefResp.Data.items:type_name -> v3.ReleaseProxyBrief
-	179, // 219: v3.PackageReleaseProxyCountDeployedReq.Item.platform:type_name -> v3.Platform
-	186, // 220: v3.PackageReleasePluginListResp.Data.items:type_name -> v3.ReleasePlugin
-	187, // 221: v3.PackageReleasePluginListBriefResp.Data.items:type_name -> v3.ReleasePluginBrief
-	165, // 222: v3.PackageReleasePluginGetConfigVariablesResp.Data.config_variables:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables
-	167, // 223: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.variables:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.VariablesEntry
-	188, // 224: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property.default:type_name -> google.protobuf.Value
-	168, // 225: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property.properties:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property.PropertiesEntry
-	166, // 226: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.VariablesEntry.value:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property
-	166, // 227: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property.PropertiesEntry.value:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariables.Property
-	189, // 228: v3.PackageReleaseCertListResp.Data.items:type_name -> v3.ReleaseCert
-	190, // 229: v3.PackageReleaseBinToolListResp.Data.items:type_name -> v3.ReleaseBinTool
-	191, // 230: v3.PackageReleasePluginBinToolListResp.Data.items:type_name -> v3.ReleasePluginBinTool
-	192, // 231: v3.PackageEventListResp.Data.items:type_name -> v3.PackageEvent
-	0,   // 232: v3.Package.UploadOriginAgent:input_type -> v3.PackageUploadOriginAgentReq
-	2,   // 233: v3.Package.UploadOriginServer:input_type -> v3.PackageUploadOriginServerReq
-	4,   // 234: v3.Package.UploadOriginProxy:input_type -> v3.PackageUploadOriginProxyReq
-	6,   // 235: v3.Package.UploadOriginCert:input_type -> v3.PackageUploadOriginCertReq
-	8,   // 236: v3.Package.UploadOriginBinTool:input_type -> v3.PackageUploadOriginBinToolReq
-	16,  // 237: v3.Package.UploadOriginPluginBinTool:input_type -> v3.PackageUploadOriginPluginBinToolReq
-	24,  // 238: v3.Package.PublishReleaseAgent:input_type -> v3.PackagePublishReleaseAgentReq
-	26,  // 239: v3.Package.PublishReleaseProxy:input_type -> v3.PackagePublishReleaseProxyReq
-	28,  // 240: v3.Package.PublishReleaseCert:input_type -> v3.PackagePublishReleaseCertReq
-	30,  // 241: v3.Package.PublishReleaseBinTool:input_type -> v3.PackagePublishReleaseBinToolReq
-	32,  // 242: v3.Package.PublishReleasePluginBinTool:input_type -> v3.PackagePublishReleasePluginBinToolReq
-	114, // 243: v3.Package.PackageEventList:input_type -> v3.PackageEventListReq
-	116, // 244: v3.Package.PackageEventDistinct:input_type -> v3.PackageEventDistinctReq
-	10,  // 245: v3.Package.UploadOriginPluginV2:input_type -> v3.PackageUploadOriginPluginV2Req
-	12,  // 246: v3.Package.UploadOriginExternalPluginV2:input_type -> v3.PackageUploadOriginExternalPluginV2Req
-	14,  // 247: v3.Package.UploadOriginPluginV3:input_type -> v3.PackageUploadOriginPluginV3Req
-	18,  // 248: v3.Package.PublishReleasePluginV2:input_type -> v3.PackagePublishReleasePluginV2Req
-	20,  // 249: v3.Package.PublishReleaseExternalPluginV2:input_type -> v3.PackagePublishReleaseExternalPluginV2Req
-	22,  // 250: v3.Package.PublishReleasePluginV3:input_type -> v3.PackagePublishReleasePluginV3Req
-	37,  // 251: v3.Package.ListReleaseAgent:input_type -> v3.PackageReleaseAgentListReq
-	39,  // 252: v3.Package.ListReleaseAgentBrief:input_type -> v3.PackageReleaseAgentListBriefReq
-	41,  // 253: v3.Package.DistinctReleaseAgent:input_type -> v3.PackageReleaseAgentDistinctReq
-	43,  // 254: v3.Package.SetReleaseAgentLabelsMany:input_type -> v3.PackageReleaseAgentSetLabelsManyReq
-	45,  // 255: v3.Package.EnableReleaseAgent:input_type -> v3.PackageReleaseAgentEnableReq
-	47,  // 256: v3.Package.DisableReleaseAgent:input_type -> v3.PackageReleaseAgentDisableReq
-	49,  // 257: v3.Package.SetAsDefaultReleaseAgent:input_type -> v3.PackageReleaseAgentSetAsDefaultReq
-	51,  // 258: v3.Package.CancelAsDefaultReleaseAgent:input_type -> v3.PackageReleaseAgentCancelAsDefaultReq
-	53,  // 259: v3.Package.DeleteReleaseAgent:input_type -> v3.PackageReleaseAgentDeleteReq
-	55,  // 260: v3.Package.CountDeployedReleasedAgent:input_type -> v3.PackageReleaseAgentCountDeployedReq
-	57,  // 261: v3.Package.DownloadReleaseAgent:input_type -> v3.PackageReleaseAgentDownloadReq
-	58,  // 262: v3.Package.ListReleaseProxy:input_type -> v3.PackageReleaseProxyListReq
-	60,  // 263: v3.Package.ListReleaseProxyBrief:input_type -> v3.PackageReleaseProxyListBriefReq
-	62,  // 264: v3.Package.DistinctReleaseProxy:input_type -> v3.PackageReleaseProxyDistinctReq
-	64,  // 265: v3.Package.SetReleaseProxyLabelsMany:input_type -> v3.PackageReleaseProxySetLabelsManyReq
-	66,  // 266: v3.Package.EnableReleaseProxy:input_type -> v3.PackageReleaseProxyEnableReq
-	68,  // 267: v3.Package.DisableReleaseProxy:input_type -> v3.PackageReleaseProxyDisableReq
-	70,  // 268: v3.Package.SetAsDefaultReleaseProxy:input_type -> v3.PackageReleaseProxySetAsDefaultReq
-	72,  // 269: v3.Package.CancelAsDefaultReleaseProxy:input_type -> v3.PackageReleaseProxyCancelAsDefaultReq
-	74,  // 270: v3.Package.DeleteReleaseProxy:input_type -> v3.PackageReleaseProxyDeleteReq
-	76,  // 271: v3.Package.CountDeployedReleasedProxy:input_type -> v3.PackageReleaseProxyCountDeployedReq
-	78,  // 272: v3.Package.DownloadReleaseProxy:input_type -> v3.PackageReleaseProxyDownloadReq
-	79,  // 273: v3.Package.ListReleasePlugin:input_type -> v3.PackageReleasePluginListReq
-	81,  // 274: v3.Package.ListReleasePluginBrief:input_type -> v3.PackageReleasePluginListBriefReq
-	83,  // 275: v3.Package.EnableReleasePlugin:input_type -> v3.PackageReleasePluginEnableReq
-	85,  // 276: v3.Package.DisableReleasePlugin:input_type -> v3.PackageReleasePluginDisableReq
-	87,  // 277: v3.Package.SetAsDefaultReleasePlugin:input_type -> v3.PackageReleasePluginSetAsDefaultReq
-	89,  // 278: v3.Package.CancelAsDefaultReleasePlugin:input_type -> v3.PackageReleasePluginCancelAsDefaultReq
-	91,  // 279: v3.Package.DeleteReleasePlugin:input_type -> v3.PackageReleasePluginDeleteReq
-	93,  // 280: v3.Package.DownloadReleasePlugin:input_type -> v3.PackageReleasePluginDownloadReq
-	94,  // 281: v3.Package.GetConfigVariablesReleasePlugin:input_type -> v3.PackageReleasePluginGetConfigVariablesReq
-	96,  // 282: v3.Package.ListReleaseCert:input_type -> v3.PackageReleaseCertListReq
-	98,  // 283: v3.Package.DeleteReleaseCert:input_type -> v3.PackageReleaseCertDeleteReq
-	100, // 284: v3.Package.DownloadReleaseCert:input_type -> v3.PackageReleaseCertDownloadReq
-	101, // 285: v3.Package.ListReleaseBinTool:input_type -> v3.PackageReleaseBinToolListReq
-	103, // 286: v3.Package.DeleteReleaseBinTool:input_type -> v3.PackageReleaseBinToolDeleteReq
-	105, // 287: v3.Package.DownloadReleaseBinTool:input_type -> v3.PackageReleaseBinToolDownloadReq
-	106, // 288: v3.Package.ListReleasePluginBinTool:input_type -> v3.PackageReleasePluginBinToolListReq
-	108, // 289: v3.Package.DeleteReleasePluginBinTool:input_type -> v3.PackageReleasePluginBinToolDeleteReq
-	110, // 290: v3.Package.DownloadReleasePluginBinTool:input_type -> v3.PackageReleasePluginBinToolDownloadReq
-	1,   // 291: v3.Package.UploadOriginAgent:output_type -> v3.PackageUploadOriginAgentResp
-	3,   // 292: v3.Package.UploadOriginServer:output_type -> v3.PackageUploadOriginServerResp
-	5,   // 293: v3.Package.UploadOriginProxy:output_type -> v3.PackageUploadOriginProxyResp
-	7,   // 294: v3.Package.UploadOriginCert:output_type -> v3.PackageUploadOriginCertResp
-	9,   // 295: v3.Package.UploadOriginBinTool:output_type -> v3.PackageUploadOriginBinToolResp
-	17,  // 296: v3.Package.UploadOriginPluginBinTool:output_type -> v3.PackageUploadOriginPluginBinToolResp
-	25,  // 297: v3.Package.PublishReleaseAgent:output_type -> v3.PackagePublishReleaseAgentResp
-	27,  // 298: v3.Package.PublishReleaseProxy:output_type -> v3.PackagePublishReleaseProxyResp
-	29,  // 299: v3.Package.PublishReleaseCert:output_type -> v3.PackagePublishReleaseCertResp
-	31,  // 300: v3.Package.PublishReleaseBinTool:output_type -> v3.PackagePublishReleaseBinToolResp
-	33,  // 301: v3.Package.PublishReleasePluginBinTool:output_type -> v3.PackagePublishReleasePluginBinToolResp
-	115, // 302: v3.Package.PackageEventList:output_type -> v3.PackageEventListResp
-	117, // 303: v3.Package.PackageEventDistinct:output_type -> v3.PackageEventDistinctResp
-	11,  // 304: v3.Package.UploadOriginPluginV2:output_type -> v3.PackageUploadOriginPluginV2Resp
-	13,  // 305: v3.Package.UploadOriginExternalPluginV2:output_type -> v3.PackageUploadOriginExternalPluginV2Resp
-	15,  // 306: v3.Package.UploadOriginPluginV3:output_type -> v3.PackageUploadOriginPluginV3Resp
-	19,  // 307: v3.Package.PublishReleasePluginV2:output_type -> v3.PackagePublishReleasePluginV2Resp
-	21,  // 308: v3.Package.PublishReleaseExternalPluginV2:output_type -> v3.PackagePublishReleaseExternalPluginV2Resp
-	23,  // 309: v3.Package.PublishReleasePluginV3:output_type -> v3.PackagePublishReleasePluginV3Resp
-	38,  // 310: v3.Package.ListReleaseAgent:output_type -> v3.PackageReleaseAgentListResp
-	40,  // 311: v3.Package.ListReleaseAgentBrief:output_type -> v3.PackageReleaseAgentListBriefResp
-	42,  // 312: v3.Package.DistinctReleaseAgent:output_type -> v3.PackageReleaseAgentDistinctResp
-	44,  // 313: v3.Package.SetReleaseAgentLabelsMany:output_type -> v3.PackageReleaseAgentSetLabelsManyResp
-	46,  // 314: v3.Package.EnableReleaseAgent:output_type -> v3.PackageReleaseAgentEnableResp
-	48,  // 315: v3.Package.DisableReleaseAgent:output_type -> v3.PackageReleaseAgentDisableResp
-	50,  // 316: v3.Package.SetAsDefaultReleaseAgent:output_type -> v3.PackageReleaseAgentSetAsDefaultResp
-	52,  // 317: v3.Package.CancelAsDefaultReleaseAgent:output_type -> v3.PackageReleaseAgentCancelAsDefaultResp
-	54,  // 318: v3.Package.DeleteReleaseAgent:output_type -> v3.PackageReleaseAgentDeleteResp
-	56,  // 319: v3.Package.CountDeployedReleasedAgent:output_type -> v3.PackageReleaseAgentCountDeployedResp
-	111, // 320: v3.Package.DownloadReleaseAgent:output_type -> v3.FileChunk
-	59,  // 321: v3.Package.ListReleaseProxy:output_type -> v3.PackageReleaseProxyListResp
-	61,  // 322: v3.Package.ListReleaseProxyBrief:output_type -> v3.PackageReleaseProxyListBriefResp
-	63,  // 323: v3.Package.DistinctReleaseProxy:output_type -> v3.PackageReleaseProxyDistinctResp
-	65,  // 324: v3.Package.SetReleaseProxyLabelsMany:output_type -> v3.PackageReleaseProxySetLabelsManyResp
-	67,  // 325: v3.Package.EnableReleaseProxy:output_type -> v3.PackageReleaseProxyEnableResp
-	69,  // 326: v3.Package.DisableReleaseProxy:output_type -> v3.PackageReleaseProxyDisableResp
-	71,  // 327: v3.Package.SetAsDefaultReleaseProxy:output_type -> v3.PackageReleaseProxySetAsDefaultResp
-	73,  // 328: v3.Package.CancelAsDefaultReleaseProxy:output_type -> v3.PackageReleaseProxyCancelAsDefaultResp
-	75,  // 329: v3.Package.DeleteReleaseProxy:output_type -> v3.PackageReleaseProxyDeleteResp
-	77,  // 330: v3.Package.CountDeployedReleasedProxy:output_type -> v3.PackageReleaseProxyCountDeployedResp
-	111, // 331: v3.Package.DownloadReleaseProxy:output_type -> v3.FileChunk
-	80,  // 332: v3.Package.ListReleasePlugin:output_type -> v3.PackageReleasePluginListResp
-	82,  // 333: v3.Package.ListReleasePluginBrief:output_type -> v3.PackageReleasePluginListBriefResp
-	84,  // 334: v3.Package.EnableReleasePlugin:output_type -> v3.PackageReleasePluginEnableResp
-	86,  // 335: v3.Package.DisableReleasePlugin:output_type -> v3.PackageReleasePluginDisableResp
-	88,  // 336: v3.Package.SetAsDefaultReleasePlugin:output_type -> v3.PackageReleasePluginSetAsDefaultResp
-	90,  // 337: v3.Package.CancelAsDefaultReleasePlugin:output_type -> v3.PackageReleasePluginCancelAsDefaultResp
-	92,  // 338: v3.Package.DeleteReleasePlugin:output_type -> v3.PackageReleasePluginDeleteResp
-	111, // 339: v3.Package.DownloadReleasePlugin:output_type -> v3.FileChunk
-	95,  // 340: v3.Package.GetConfigVariablesReleasePlugin:output_type -> v3.PackageReleasePluginGetConfigVariablesResp
-	97,  // 341: v3.Package.ListReleaseCert:output_type -> v3.PackageReleaseCertListResp
-	99,  // 342: v3.Package.DeleteReleaseCert:output_type -> v3.PackageReleaseCertDeleteResp
-	111, // 343: v3.Package.DownloadReleaseCert:output_type -> v3.FileChunk
-	102, // 344: v3.Package.ListReleaseBinTool:output_type -> v3.PackageReleaseBinToolListResp
-	104, // 345: v3.Package.DeleteReleaseBinTool:output_type -> v3.PackageReleaseBinToolDeleteResp
-	111, // 346: v3.Package.DownloadReleaseBinTool:output_type -> v3.FileChunk
-	107, // 347: v3.Package.ListReleasePluginBinTool:output_type -> v3.PackageReleasePluginBinToolListResp
-	109, // 348: v3.Package.DeleteReleasePluginBinTool:output_type -> v3.PackageReleasePluginBinToolDeleteResp
-	111, // 349: v3.Package.DownloadReleasePluginBinTool:output_type -> v3.FileChunk
-	291, // [291:350] is the sub-list for method output_type
-	232, // [232:291] is the sub-list for method input_type
-	232, // [232:232] is the sub-list for extension type_name
-	232, // [232:232] is the sub-list for extension extendee
-	0,   // [0:232] is the sub-list for field type_name
+	179, // 143: v3.PackageReleasePluginListBriefResp.error:type_name -> v3.Error
+	180, // 144: v3.PackageReleasePluginListBriefResp.permission:type_name -> v3.Permission
+	159, // 145: v3.PackageReleasePluginListBriefResp.data:type_name -> v3.PackageReleasePluginListBriefResp.Data
+	181, // 146: v3.PackageReleasePluginEnableReq.platform:type_name -> v3.Platform
+	179, // 147: v3.PackageReleasePluginEnableResp.error:type_name -> v3.Error
+	180, // 148: v3.PackageReleasePluginEnableResp.permission:type_name -> v3.Permission
+	160, // 149: v3.PackageReleasePluginEnableResp.data:type_name -> v3.PackageReleasePluginEnableResp.Data
+	181, // 150: v3.PackageReleasePluginDisableReq.platform:type_name -> v3.Platform
+	179, // 151: v3.PackageReleasePluginDisableResp.error:type_name -> v3.Error
+	180, // 152: v3.PackageReleasePluginDisableResp.permission:type_name -> v3.Permission
+	161, // 153: v3.PackageReleasePluginDisableResp.data:type_name -> v3.PackageReleasePluginDisableResp.Data
+	181, // 154: v3.PackageReleasePluginSetAsDefaultReq.platform:type_name -> v3.Platform
+	179, // 155: v3.PackageReleasePluginSetAsDefaultResp.error:type_name -> v3.Error
+	180, // 156: v3.PackageReleasePluginSetAsDefaultResp.permission:type_name -> v3.Permission
+	162, // 157: v3.PackageReleasePluginSetAsDefaultResp.data:type_name -> v3.PackageReleasePluginSetAsDefaultResp.Data
+	181, // 158: v3.PackageReleasePluginCancelAsDefaultReq.platform:type_name -> v3.Platform
+	179, // 159: v3.PackageReleasePluginCancelAsDefaultResp.error:type_name -> v3.Error
+	180, // 160: v3.PackageReleasePluginCancelAsDefaultResp.permission:type_name -> v3.Permission
+	163, // 161: v3.PackageReleasePluginCancelAsDefaultResp.data:type_name -> v3.PackageReleasePluginCancelAsDefaultResp.Data
+	181, // 162: v3.PackageReleasePluginDeleteReq.platform:type_name -> v3.Platform
+	179, // 163: v3.PackageReleasePluginDeleteResp.error:type_name -> v3.Error
+	180, // 164: v3.PackageReleasePluginDeleteResp.permission:type_name -> v3.Permission
+	164, // 165: v3.PackageReleasePluginDeleteResp.data:type_name -> v3.PackageReleasePluginDeleteResp.Data
+	181, // 166: v3.PackageReleasePluginDownloadReq.platform:type_name -> v3.Platform
+	181, // 167: v3.PackageReleasePluginGetConfigVariablesReq.platforms:type_name -> v3.Platform
+	166, // 168: v3.ConfigVariables.variables:type_name -> v3.ConfigVariables.VariablesEntry
+	179, // 169: v3.PackageReleasePluginGetConfigVariablesResp.error:type_name -> v3.Error
+	180, // 170: v3.PackageReleasePluginGetConfigVariablesResp.permission:type_name -> v3.Permission
+	169, // 171: v3.PackageReleasePluginGetConfigVariablesResp.data:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data
+	179, // 172: v3.PackageReleaseCertListResp.error:type_name -> v3.Error
+	180, // 173: v3.PackageReleaseCertListResp.permission:type_name -> v3.Permission
+	171, // 174: v3.PackageReleaseCertListResp.data:type_name -> v3.PackageReleaseCertListResp.Data
+	179, // 175: v3.PackageReleaseCertDeleteResp.error:type_name -> v3.Error
+	180, // 176: v3.PackageReleaseCertDeleteResp.permission:type_name -> v3.Permission
+	172, // 177: v3.PackageReleaseCertDeleteResp.data:type_name -> v3.PackageReleaseCertDeleteResp.Data
+	179, // 178: v3.PackageReleaseBinToolListResp.error:type_name -> v3.Error
+	180, // 179: v3.PackageReleaseBinToolListResp.permission:type_name -> v3.Permission
+	173, // 180: v3.PackageReleaseBinToolListResp.data:type_name -> v3.PackageReleaseBinToolListResp.Data
+	179, // 181: v3.PackageReleaseBinToolDeleteResp.error:type_name -> v3.Error
+	180, // 182: v3.PackageReleaseBinToolDeleteResp.permission:type_name -> v3.Permission
+	174, // 183: v3.PackageReleaseBinToolDeleteResp.data:type_name -> v3.PackageReleaseBinToolDeleteResp.Data
+	179, // 184: v3.PackageReleasePluginBinToolListResp.error:type_name -> v3.Error
+	180, // 185: v3.PackageReleasePluginBinToolListResp.permission:type_name -> v3.Permission
+	175, // 186: v3.PackageReleasePluginBinToolListResp.data:type_name -> v3.PackageReleasePluginBinToolListResp.Data
+	179, // 187: v3.PackageReleasePluginBinToolDeleteResp.error:type_name -> v3.Error
+	180, // 188: v3.PackageReleasePluginBinToolDeleteResp.permission:type_name -> v3.Permission
+	176, // 189: v3.PackageReleasePluginBinToolDeleteResp.data:type_name -> v3.PackageReleasePluginBinToolDeleteResp.Data
+	182, // 190: v3.PackageEventListReq.page:type_name -> v3.Page
+	113, // 191: v3.PackageEventListReq.exact_include_conditions:type_name -> v3.PackageEventExactConditions
+	114, // 192: v3.PackageEventListReq.fuzzy_include_conditions:type_name -> v3.PackageEventFuzzyConditions
+	183, // 193: v3.PackageEventListReq.operate_time_range:type_name -> v3.TimeRange
+	179, // 194: v3.PackageEventListResp.error:type_name -> v3.Error
+	180, // 195: v3.PackageEventListResp.permission:type_name -> v3.Permission
+	177, // 196: v3.PackageEventListResp.data:type_name -> v3.PackageEventListResp.Data
+	113, // 197: v3.PackageEventDistinctReq.exact_include_conditions:type_name -> v3.PackageEventExactConditions
+	114, // 198: v3.PackageEventDistinctReq.fuzzy_include_conditions:type_name -> v3.PackageEventFuzzyConditions
+	183, // 199: v3.PackageEventDistinctReq.operate_time_range:type_name -> v3.TimeRange
+	179, // 200: v3.PackageEventDistinctResp.error:type_name -> v3.Error
+	180, // 201: v3.PackageEventDistinctResp.permission:type_name -> v3.Permission
+	178, // 202: v3.PackageEventDistinctResp.data:type_name -> v3.PackageEventDistinctResp.Data
+	181, // 203: v3.PackageUploadOriginAgentResp.Data.platforms:type_name -> v3.Platform
+	181, // 204: v3.PackageUploadOriginServerResp.Data.platforms:type_name -> v3.Platform
+	181, // 205: v3.PackageUploadOriginProxyResp.Data.platforms:type_name -> v3.Platform
+	181, // 206: v3.PackageUploadOriginBinToolResp.Data.agent_platforms:type_name -> v3.Platform
+	181, // 207: v3.PackageUploadOriginBinToolResp.Data.proxy_platforms:type_name -> v3.Platform
+	181, // 208: v3.PackageUploadOriginPluginV2Resp.Data.platforms:type_name -> v3.Platform
+	181, // 209: v3.PackageUploadOriginExternalPluginV2Resp.Data.platforms:type_name -> v3.Platform
+	181, // 210: v3.PackageUploadOriginPluginV3Resp.Data.platforms:type_name -> v3.Platform
+	128, // 211: v3.PackageUploadOriginPluginBinToolResp.Data.v2:type_name -> v3.PackageUploadOriginPluginBinToolResp.Data.V2Info
+	129, // 212: v3.PackageUploadOriginPluginBinToolResp.Data.v3:type_name -> v3.PackageUploadOriginPluginBinToolResp.Data.V3Info
+	181, // 213: v3.PackageUploadOriginPluginBinToolResp.Data.V2Info.platforms:type_name -> v3.Platform
+	181, // 214: v3.PackageUploadOriginPluginBinToolResp.Data.V3Info.platforms:type_name -> v3.Platform
+	184, // 215: v3.PackageReleaseAgentListResp.Data.items:type_name -> v3.ReleaseAgent
+	185, // 216: v3.PackageReleaseAgentListBriefResp.Data.items:type_name -> v3.ReleaseAgentBrief
+	181, // 217: v3.PackageReleaseAgentCountDeployedReq.Item.platform:type_name -> v3.Platform
+	186, // 218: v3.PackageReleaseProxyListResp.Data.items:type_name -> v3.ReleaseProxy
+	187, // 219: v3.PackageReleaseProxyListBriefResp.Data.items:type_name -> v3.ReleaseProxyBrief
+	181, // 220: v3.PackageReleaseProxyCountDeployedReq.Item.platform:type_name -> v3.Platform
+	188, // 221: v3.PackageReleasePluginListResp.Data.items:type_name -> v3.ReleasePlugin
+	189, // 222: v3.PackageReleasePluginListBriefResp.Data.items:type_name -> v3.ReleasePluginBrief
+	190, // 223: v3.ConfigVariables.Property.default:type_name -> google.protobuf.Value
+	167, // 224: v3.ConfigVariables.Property.properties:type_name -> v3.ConfigVariables.Property.PropertiesEntry
+	165, // 225: v3.ConfigVariables.VariablesEntry.value:type_name -> v3.ConfigVariables.Property
+	165, // 226: v3.ConfigVariables.Property.PropertiesEntry.value:type_name -> v3.ConfigVariables.Property
+	95,  // 227: v3.PackageReleasePluginGetConfigVariablesResp.ConfigVariablesList.items:type_name -> v3.ConfigVariables
+	170, // 228: v3.PackageReleasePluginGetConfigVariablesResp.Data.config_variables:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariablesEntry
+	168, // 229: v3.PackageReleasePluginGetConfigVariablesResp.Data.ConfigVariablesEntry.value:type_name -> v3.PackageReleasePluginGetConfigVariablesResp.ConfigVariablesList
+	191, // 230: v3.PackageReleaseCertListResp.Data.items:type_name -> v3.ReleaseCert
+	192, // 231: v3.PackageReleaseBinToolListResp.Data.items:type_name -> v3.ReleaseBinTool
+	193, // 232: v3.PackageReleasePluginBinToolListResp.Data.items:type_name -> v3.ReleasePluginBinTool
+	194, // 233: v3.PackageEventListResp.Data.items:type_name -> v3.PackageEvent
+	0,   // 234: v3.Package.UploadOriginAgent:input_type -> v3.PackageUploadOriginAgentReq
+	2,   // 235: v3.Package.UploadOriginServer:input_type -> v3.PackageUploadOriginServerReq
+	4,   // 236: v3.Package.UploadOriginProxy:input_type -> v3.PackageUploadOriginProxyReq
+	6,   // 237: v3.Package.UploadOriginCert:input_type -> v3.PackageUploadOriginCertReq
+	8,   // 238: v3.Package.UploadOriginBinTool:input_type -> v3.PackageUploadOriginBinToolReq
+	16,  // 239: v3.Package.UploadOriginPluginBinTool:input_type -> v3.PackageUploadOriginPluginBinToolReq
+	24,  // 240: v3.Package.PublishReleaseAgent:input_type -> v3.PackagePublishReleaseAgentReq
+	26,  // 241: v3.Package.PublishReleaseProxy:input_type -> v3.PackagePublishReleaseProxyReq
+	28,  // 242: v3.Package.PublishReleaseCert:input_type -> v3.PackagePublishReleaseCertReq
+	30,  // 243: v3.Package.PublishReleaseBinTool:input_type -> v3.PackagePublishReleaseBinToolReq
+	32,  // 244: v3.Package.PublishReleasePluginBinTool:input_type -> v3.PackagePublishReleasePluginBinToolReq
+	115, // 245: v3.Package.PackageEventList:input_type -> v3.PackageEventListReq
+	117, // 246: v3.Package.PackageEventDistinct:input_type -> v3.PackageEventDistinctReq
+	10,  // 247: v3.Package.UploadOriginPluginV2:input_type -> v3.PackageUploadOriginPluginV2Req
+	12,  // 248: v3.Package.UploadOriginExternalPluginV2:input_type -> v3.PackageUploadOriginExternalPluginV2Req
+	14,  // 249: v3.Package.UploadOriginPluginV3:input_type -> v3.PackageUploadOriginPluginV3Req
+	18,  // 250: v3.Package.PublishReleasePluginV2:input_type -> v3.PackagePublishReleasePluginV2Req
+	20,  // 251: v3.Package.PublishReleaseExternalPluginV2:input_type -> v3.PackagePublishReleaseExternalPluginV2Req
+	22,  // 252: v3.Package.PublishReleasePluginV3:input_type -> v3.PackagePublishReleasePluginV3Req
+	37,  // 253: v3.Package.ListReleaseAgent:input_type -> v3.PackageReleaseAgentListReq
+	39,  // 254: v3.Package.ListReleaseAgentBrief:input_type -> v3.PackageReleaseAgentListBriefReq
+	41,  // 255: v3.Package.DistinctReleaseAgent:input_type -> v3.PackageReleaseAgentDistinctReq
+	43,  // 256: v3.Package.SetReleaseAgentLabelsMany:input_type -> v3.PackageReleaseAgentSetLabelsManyReq
+	45,  // 257: v3.Package.EnableReleaseAgent:input_type -> v3.PackageReleaseAgentEnableReq
+	47,  // 258: v3.Package.DisableReleaseAgent:input_type -> v3.PackageReleaseAgentDisableReq
+	49,  // 259: v3.Package.SetAsDefaultReleaseAgent:input_type -> v3.PackageReleaseAgentSetAsDefaultReq
+	51,  // 260: v3.Package.CancelAsDefaultReleaseAgent:input_type -> v3.PackageReleaseAgentCancelAsDefaultReq
+	53,  // 261: v3.Package.DeleteReleaseAgent:input_type -> v3.PackageReleaseAgentDeleteReq
+	55,  // 262: v3.Package.CountDeployedReleasedAgent:input_type -> v3.PackageReleaseAgentCountDeployedReq
+	57,  // 263: v3.Package.DownloadReleaseAgent:input_type -> v3.PackageReleaseAgentDownloadReq
+	58,  // 264: v3.Package.ListReleaseProxy:input_type -> v3.PackageReleaseProxyListReq
+	60,  // 265: v3.Package.ListReleaseProxyBrief:input_type -> v3.PackageReleaseProxyListBriefReq
+	62,  // 266: v3.Package.DistinctReleaseProxy:input_type -> v3.PackageReleaseProxyDistinctReq
+	64,  // 267: v3.Package.SetReleaseProxyLabelsMany:input_type -> v3.PackageReleaseProxySetLabelsManyReq
+	66,  // 268: v3.Package.EnableReleaseProxy:input_type -> v3.PackageReleaseProxyEnableReq
+	68,  // 269: v3.Package.DisableReleaseProxy:input_type -> v3.PackageReleaseProxyDisableReq
+	70,  // 270: v3.Package.SetAsDefaultReleaseProxy:input_type -> v3.PackageReleaseProxySetAsDefaultReq
+	72,  // 271: v3.Package.CancelAsDefaultReleaseProxy:input_type -> v3.PackageReleaseProxyCancelAsDefaultReq
+	74,  // 272: v3.Package.DeleteReleaseProxy:input_type -> v3.PackageReleaseProxyDeleteReq
+	76,  // 273: v3.Package.CountDeployedReleasedProxy:input_type -> v3.PackageReleaseProxyCountDeployedReq
+	78,  // 274: v3.Package.DownloadReleaseProxy:input_type -> v3.PackageReleaseProxyDownloadReq
+	79,  // 275: v3.Package.ListReleasePlugin:input_type -> v3.PackageReleasePluginListReq
+	81,  // 276: v3.Package.ListReleasePluginBrief:input_type -> v3.PackageReleasePluginListBriefReq
+	83,  // 277: v3.Package.EnableReleasePlugin:input_type -> v3.PackageReleasePluginEnableReq
+	85,  // 278: v3.Package.DisableReleasePlugin:input_type -> v3.PackageReleasePluginDisableReq
+	87,  // 279: v3.Package.SetAsDefaultReleasePlugin:input_type -> v3.PackageReleasePluginSetAsDefaultReq
+	89,  // 280: v3.Package.CancelAsDefaultReleasePlugin:input_type -> v3.PackageReleasePluginCancelAsDefaultReq
+	91,  // 281: v3.Package.DeleteReleasePlugin:input_type -> v3.PackageReleasePluginDeleteReq
+	93,  // 282: v3.Package.DownloadReleasePlugin:input_type -> v3.PackageReleasePluginDownloadReq
+	94,  // 283: v3.Package.GetConfigVariablesReleasePlugin:input_type -> v3.PackageReleasePluginGetConfigVariablesReq
+	97,  // 284: v3.Package.ListReleaseCert:input_type -> v3.PackageReleaseCertListReq
+	99,  // 285: v3.Package.DeleteReleaseCert:input_type -> v3.PackageReleaseCertDeleteReq
+	101, // 286: v3.Package.DownloadReleaseCert:input_type -> v3.PackageReleaseCertDownloadReq
+	102, // 287: v3.Package.ListReleaseBinTool:input_type -> v3.PackageReleaseBinToolListReq
+	104, // 288: v3.Package.DeleteReleaseBinTool:input_type -> v3.PackageReleaseBinToolDeleteReq
+	106, // 289: v3.Package.DownloadReleaseBinTool:input_type -> v3.PackageReleaseBinToolDownloadReq
+	107, // 290: v3.Package.ListReleasePluginBinTool:input_type -> v3.PackageReleasePluginBinToolListReq
+	109, // 291: v3.Package.DeleteReleasePluginBinTool:input_type -> v3.PackageReleasePluginBinToolDeleteReq
+	111, // 292: v3.Package.DownloadReleasePluginBinTool:input_type -> v3.PackageReleasePluginBinToolDownloadReq
+	1,   // 293: v3.Package.UploadOriginAgent:output_type -> v3.PackageUploadOriginAgentResp
+	3,   // 294: v3.Package.UploadOriginServer:output_type -> v3.PackageUploadOriginServerResp
+	5,   // 295: v3.Package.UploadOriginProxy:output_type -> v3.PackageUploadOriginProxyResp
+	7,   // 296: v3.Package.UploadOriginCert:output_type -> v3.PackageUploadOriginCertResp
+	9,   // 297: v3.Package.UploadOriginBinTool:output_type -> v3.PackageUploadOriginBinToolResp
+	17,  // 298: v3.Package.UploadOriginPluginBinTool:output_type -> v3.PackageUploadOriginPluginBinToolResp
+	25,  // 299: v3.Package.PublishReleaseAgent:output_type -> v3.PackagePublishReleaseAgentResp
+	27,  // 300: v3.Package.PublishReleaseProxy:output_type -> v3.PackagePublishReleaseProxyResp
+	29,  // 301: v3.Package.PublishReleaseCert:output_type -> v3.PackagePublishReleaseCertResp
+	31,  // 302: v3.Package.PublishReleaseBinTool:output_type -> v3.PackagePublishReleaseBinToolResp
+	33,  // 303: v3.Package.PublishReleasePluginBinTool:output_type -> v3.PackagePublishReleasePluginBinToolResp
+	116, // 304: v3.Package.PackageEventList:output_type -> v3.PackageEventListResp
+	118, // 305: v3.Package.PackageEventDistinct:output_type -> v3.PackageEventDistinctResp
+	11,  // 306: v3.Package.UploadOriginPluginV2:output_type -> v3.PackageUploadOriginPluginV2Resp
+	13,  // 307: v3.Package.UploadOriginExternalPluginV2:output_type -> v3.PackageUploadOriginExternalPluginV2Resp
+	15,  // 308: v3.Package.UploadOriginPluginV3:output_type -> v3.PackageUploadOriginPluginV3Resp
+	19,  // 309: v3.Package.PublishReleasePluginV2:output_type -> v3.PackagePublishReleasePluginV2Resp
+	21,  // 310: v3.Package.PublishReleaseExternalPluginV2:output_type -> v3.PackagePublishReleaseExternalPluginV2Resp
+	23,  // 311: v3.Package.PublishReleasePluginV3:output_type -> v3.PackagePublishReleasePluginV3Resp
+	38,  // 312: v3.Package.ListReleaseAgent:output_type -> v3.PackageReleaseAgentListResp
+	40,  // 313: v3.Package.ListReleaseAgentBrief:output_type -> v3.PackageReleaseAgentListBriefResp
+	42,  // 314: v3.Package.DistinctReleaseAgent:output_type -> v3.PackageReleaseAgentDistinctResp
+	44,  // 315: v3.Package.SetReleaseAgentLabelsMany:output_type -> v3.PackageReleaseAgentSetLabelsManyResp
+	46,  // 316: v3.Package.EnableReleaseAgent:output_type -> v3.PackageReleaseAgentEnableResp
+	48,  // 317: v3.Package.DisableReleaseAgent:output_type -> v3.PackageReleaseAgentDisableResp
+	50,  // 318: v3.Package.SetAsDefaultReleaseAgent:output_type -> v3.PackageReleaseAgentSetAsDefaultResp
+	52,  // 319: v3.Package.CancelAsDefaultReleaseAgent:output_type -> v3.PackageReleaseAgentCancelAsDefaultResp
+	54,  // 320: v3.Package.DeleteReleaseAgent:output_type -> v3.PackageReleaseAgentDeleteResp
+	56,  // 321: v3.Package.CountDeployedReleasedAgent:output_type -> v3.PackageReleaseAgentCountDeployedResp
+	112, // 322: v3.Package.DownloadReleaseAgent:output_type -> v3.FileChunk
+	59,  // 323: v3.Package.ListReleaseProxy:output_type -> v3.PackageReleaseProxyListResp
+	61,  // 324: v3.Package.ListReleaseProxyBrief:output_type -> v3.PackageReleaseProxyListBriefResp
+	63,  // 325: v3.Package.DistinctReleaseProxy:output_type -> v3.PackageReleaseProxyDistinctResp
+	65,  // 326: v3.Package.SetReleaseProxyLabelsMany:output_type -> v3.PackageReleaseProxySetLabelsManyResp
+	67,  // 327: v3.Package.EnableReleaseProxy:output_type -> v3.PackageReleaseProxyEnableResp
+	69,  // 328: v3.Package.DisableReleaseProxy:output_type -> v3.PackageReleaseProxyDisableResp
+	71,  // 329: v3.Package.SetAsDefaultReleaseProxy:output_type -> v3.PackageReleaseProxySetAsDefaultResp
+	73,  // 330: v3.Package.CancelAsDefaultReleaseProxy:output_type -> v3.PackageReleaseProxyCancelAsDefaultResp
+	75,  // 331: v3.Package.DeleteReleaseProxy:output_type -> v3.PackageReleaseProxyDeleteResp
+	77,  // 332: v3.Package.CountDeployedReleasedProxy:output_type -> v3.PackageReleaseProxyCountDeployedResp
+	112, // 333: v3.Package.DownloadReleaseProxy:output_type -> v3.FileChunk
+	80,  // 334: v3.Package.ListReleasePlugin:output_type -> v3.PackageReleasePluginListResp
+	82,  // 335: v3.Package.ListReleasePluginBrief:output_type -> v3.PackageReleasePluginListBriefResp
+	84,  // 336: v3.Package.EnableReleasePlugin:output_type -> v3.PackageReleasePluginEnableResp
+	86,  // 337: v3.Package.DisableReleasePlugin:output_type -> v3.PackageReleasePluginDisableResp
+	88,  // 338: v3.Package.SetAsDefaultReleasePlugin:output_type -> v3.PackageReleasePluginSetAsDefaultResp
+	90,  // 339: v3.Package.CancelAsDefaultReleasePlugin:output_type -> v3.PackageReleasePluginCancelAsDefaultResp
+	92,  // 340: v3.Package.DeleteReleasePlugin:output_type -> v3.PackageReleasePluginDeleteResp
+	112, // 341: v3.Package.DownloadReleasePlugin:output_type -> v3.FileChunk
+	96,  // 342: v3.Package.GetConfigVariablesReleasePlugin:output_type -> v3.PackageReleasePluginGetConfigVariablesResp
+	98,  // 343: v3.Package.ListReleaseCert:output_type -> v3.PackageReleaseCertListResp
+	100, // 344: v3.Package.DeleteReleaseCert:output_type -> v3.PackageReleaseCertDeleteResp
+	112, // 345: v3.Package.DownloadReleaseCert:output_type -> v3.FileChunk
+	103, // 346: v3.Package.ListReleaseBinTool:output_type -> v3.PackageReleaseBinToolListResp
+	105, // 347: v3.Package.DeleteReleaseBinTool:output_type -> v3.PackageReleaseBinToolDeleteResp
+	112, // 348: v3.Package.DownloadReleaseBinTool:output_type -> v3.FileChunk
+	108, // 349: v3.Package.ListReleasePluginBinTool:output_type -> v3.PackageReleasePluginBinToolListResp
+	110, // 350: v3.Package.DeleteReleasePluginBinTool:output_type -> v3.PackageReleasePluginBinToolDeleteResp
+	112, // 351: v3.Package.DownloadReleasePluginBinTool:output_type -> v3.FileChunk
+	293, // [293:352] is the sub-list for method output_type
+	234, // [234:293] is the sub-list for method input_type
+	234, // [234:234] is the sub-list for extension type_name
+	234, // [234:234] is the sub-list for extension extendee
+	0,   // [0:234] is the sub-list for field type_name
 }
 
 func init() { file_pkg_proto_init() }
@@ -14550,7 +14600,6 @@ func file_pkg_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_pkg_proto_msgTypes[118].OneofWrappers = []any{}
 	file_pkg_proto_msgTypes[119].OneofWrappers = []any{}
 	file_pkg_proto_msgTypes[120].OneofWrappers = []any{}
 	file_pkg_proto_msgTypes[121].OneofWrappers = []any{}
@@ -14559,13 +14608,14 @@ func file_pkg_proto_init() {
 	file_pkg_proto_msgTypes[124].OneofWrappers = []any{}
 	file_pkg_proto_msgTypes[125].OneofWrappers = []any{}
 	file_pkg_proto_msgTypes[126].OneofWrappers = []any{}
+	file_pkg_proto_msgTypes[127].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pkg_proto_rawDesc), len(file_pkg_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   177,
+			NumMessages:   179,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

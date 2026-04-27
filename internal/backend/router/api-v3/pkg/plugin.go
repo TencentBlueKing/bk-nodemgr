@@ -495,25 +495,26 @@ func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (int
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	name, gen, plat, version := req.GetIdentifier()
-	key := types.ReleasePluginKey{
-		Name:       name,
-		Generation: gen,
-		Platform:   plat,
-		Version:    version,
-	}
-	plugin, err := h.daoReleasePlugin.GetReleasePlugin(rCtx, key)
+	cond := req.ConvertConditionsToTypes()
+	plugins, _, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
-			With("name", name, "gen", gen, "platform", plat, "version", version).
+			With("name", req.GetName(), "gen", req.GetGeneration(), "platform", req.GetPlatforms(), "version", req.GetVersion()).
 			Error("failed to get release plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	resp := new(protoBackend.PackageReleasePluginGetConfigVariablesResp)
-	resp.ConvertConfigVariablesFromTypes(plugin)
+	if err := resp.ConvertConfigVariablesFromTypes(plugins); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("name", req.GetName(), "gen", req.GetGeneration(), "platform", req.GetPlatforms(), "version", req.GetVersion()).
+			Error("failed to convert config variables of release plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
 
 	return resp.GetData(), nil
 }

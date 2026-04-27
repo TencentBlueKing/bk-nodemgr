@@ -17,6 +17,7 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -228,7 +229,8 @@ type IHandlerReleasePlugin interface {
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param key the release plugin key.
 	// @return the plugin release config variables and error.
-	GetConfigVariablesReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) ([]types.PluginPkgConfigTemplate, error)
+	GetConfigVariablesReleasePlugin(nCtx contextx.IContext, name, version string, gen types.Generation, platforms []platfmt.Platform) (
+		map[string][]*types.PluginPkgConfigTemplate, error)
 }
 
 // IHandlerReleaseCert defines the backend Handler for release cert.
@@ -786,14 +788,18 @@ func (h *Handler) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleaseP
 }
 
 // GetConfigVariablesReleasePlugin gets plugin release config variables.
-func (h *Handler) GetConfigVariablesReleasePlugin(nCtx contextx.IContext,
-	key types.ReleasePluginKey) ([]types.PluginPkgConfigTemplate, error) {
+func (h *Handler) GetConfigVariablesReleasePlugin(nCtx contextx.IContext, name, version string, gen types.Generation, platforms []platfmt.Platform) (
+	map[string][]*types.PluginPkgConfigTemplate, error) {
+
+	plats := conv.SliceToSlice(platforms, func(item platfmt.Platform) *protoBackend.Platform {
+		return protoBackend.ConvertPlatformFromTypes(item)
+	})
 
 	req := &protoBackend.PackageReleasePluginGetConfigVariablesReq{
-		Name:       key.Name,
-		Generation: int64(key.Generation),
-		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
-		Version:    key.Version,
+		Name:       name,
+		Generation: int64(gen),
+		Platforms:  plats,
+		Version:    version,
 	}
 
 	resp, err := h.cli.getConfigVariablesReleasePlugin(nCtx, req)
@@ -801,65 +807,7 @@ func (h *Handler) GetConfigVariablesReleasePlugin(nCtx contextx.IContext,
 		return nil, err
 	}
 
-	data := resp.GetData()
-	if data == nil {
-		return nil, nil
-	}
-
-	items := data.GetConfigVariables()
-	result := make([]types.PluginPkgConfigTemplate, len(items))
-	for idx, item := range items {
-		result[idx] = types.PluginPkgConfigTemplate{
-			Name:          item.GetName(),
-			FilePath:      item.GetFilePath(),
-			SourcePath:    item.GetSourcePath(),
-			IsMainConfig:  item.GetIsMainConfig(),
-			SourceContent: item.GetSourceContent(),
-			Variables:     convertPluginPkgConfigTemplatePropertiesFromProto(item.GetVariables()),
-		}
-	}
-
-	return result, nil
-}
-
-func convertPluginPkgConfigTemplatePropertiesFromProto(
-	properties map[string]*protoBackend.PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property,
-) map[string]*types.PluginPkgConfigTemplateProperty {
-
-	if len(properties) == 0 {
-		return make(map[string]*types.PluginPkgConfigTemplateProperty)
-	}
-
-	result := make(map[string]*types.PluginPkgConfigTemplateProperty, len(properties))
-	for key, property := range properties {
-		result[key] = convertPluginPkgConfigTemplatePropertyFromProto(property)
-	}
-
-	return result
-}
-
-func convertPluginPkgConfigTemplatePropertyFromProto(
-	property *protoBackend.PackageReleasePluginGetConfigVariablesResp_Data_ConfigVariables_Property,
-) *types.PluginPkgConfigTemplateProperty {
-
-	if property == nil {
-		return nil
-	}
-
-	result := &types.PluginPkgConfigTemplateProperty{
-		Title:         property.GetTitle(),
-		Type:          property.GetType(),
-		Required:      property.GetRequired(),
-		Description:   property.GetDescription(),
-		DescriptionEn: property.GetDescriptionEn(),
-		Properties:    convertPluginPkgConfigTemplatePropertiesFromProto(property.GetProperties()),
-	}
-
-	if property.GetDefault() != nil {
-		result.Default = property.GetDefault().AsInterface()
-	}
-
-	return result
+	return resp.ConvertConfigVariablesToTypes(), nil
 }
 
 // ===============================================================================

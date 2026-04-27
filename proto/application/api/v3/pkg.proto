@@ -1065,8 +1065,28 @@ message PackageReleasePluginDownloadReq {
 message PackageReleasePluginGetConfigVariablesReq {
   int64 generation = 1;
   string name = 2;
-  Platform platform = 3;
+  repeated Platform platforms = 3;
   string version = 4;
+}
+
+// ConfigVariables describes the config variables of plugin release.
+message ConfigVariables {
+  message Property {
+    string title = 1;
+    string type = 2;
+    bool required = 3;
+    google.protobuf.Value default = 4;
+    string description = 5;
+    string description_en = 6;
+    map<string, Property> properties = 7;
+  }
+
+  string name = 1;
+  string file_path = 2;
+  string source_path = 3;
+  bool is_main_config = 4;
+  string source_content = 5;
+  map<string, Property> variables = 6;
 }
 
 // PackageReleasePluginGetConfigVariablesResp describes the HTTP response body
@@ -1078,27 +1098,8 @@ message PackageReleasePluginGetConfigVariablesResp {
   Error error = 4;
   Permission permission = 6;
 
-  message Data {
-    message ConfigVariables {
-      message Property {
-        string title = 1;
-        string type = 2;
-        bool required = 3;
-        google.protobuf.Value default = 4;
-        string description = 5;
-        string description_en = 6;
-        map<string, Property> properties = 7;
-      }
-
-      string name = 1;
-      string file_path = 2;
-      string source_path = 3;
-      bool is_main_config = 4;
-      string source_content = 5;
-      map<string, Property> variables = 6;
-    }
-    repeated ConfigVariables config_variables = 1;
-  }
+  message ConfigVariablesList { repeated ConfigVariables items = 1; }
+  message Data { map<string, ConfigVariablesList> config_variables = 1; }
   Data data = 5;
 }
 

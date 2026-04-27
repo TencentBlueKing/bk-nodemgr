@@ -1201,32 +1201,6 @@
         }
       }
     },
-    "DataConfigVariables": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "file_path": {
-          "type": "string"
-        },
-        "source_path": {
-          "type": "string"
-        },
-        "is_main_config": {
-          "type": "boolean"
-        },
-        "source_content": {
-          "type": "string"
-        },
-        "variables": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/ConfigVariablesProperty"
-          }
-        }
-      }
-    },
     "ErrorDetails": {
       "type": "object",
       "properties": {
@@ -1235,6 +1209,18 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "PackageReleasePluginGetConfigVariablesRespConfigVariablesList": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigVariables"
+          }
         }
       }
     },
@@ -1291,6 +1277,33 @@
           }
         }
       }
+    },
+    "v3ConfigVariables": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "is_main_config": {
+          "type": "boolean"
+        },
+        "source_content": {
+          "type": "string"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ConfigVariablesProperty"
+          }
+        }
+      },
+      "description": "ConfigVariables describes the config variables of plugin release."
     },
     "v3Error": {
       "type": "object",
@@ -2525,8 +2538,12 @@
         "name": {
           "type": "string"
         },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
         },
         "version": {
           "type": "string"
@@ -2563,10 +2580,9 @@
       "type": "object",
       "properties": {
         "config_variables": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/DataConfigVariables"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PackageReleasePluginGetConfigVariablesRespConfigVariablesList"
           }
         }
       }

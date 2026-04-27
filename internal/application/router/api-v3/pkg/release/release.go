@@ -1130,13 +1130,8 @@ func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (int
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	name, gen, plat, version := req.GetIdentifier()
-	configVariables, err := h.backendHandler.GetConfigVariablesReleasePlugin(rCtx, types.ReleasePluginKey{
-		Name:       name,
-		Generation: gen,
-		Platform:   plat,
-		Version:    version,
-	})
+	name, version, gen, plat := req.GetIdentifier()
+	configVariables, err := h.backendHandler.GetConfigVariablesReleasePlugin(rCtx, name, version, gen, plat)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("name", name, "gen", gen, "plat", plat, "version", version).
