@@ -33,8 +33,7 @@ type IPeriodicTask interface {
 type Config struct {
 	Locker locker.MutexFactory
 
-	StgGlobalSetting globalsettings.IStorage
-	StgWorkflow      workflow.IStorage
+	StgWorkflow workflow.IStorage
 }
 
 // PeriodicTask defines a watcher manager.
@@ -43,7 +42,6 @@ type PeriodicTask struct {
 	mu        sync.Mutex
 	conf      Config
 	scheduler scheduler.Scheduler
-	gs        globalsettings.IGlobalSettings
 }
 
 // NewPeriodicTask creates a new watcher manager.
@@ -59,12 +57,6 @@ func NewPeriodicTask(conf Config) *PeriodicTask {
 // Start starts the watcher manager.
 func (pt *PeriodicTask) Start(nCtx contextx.IContext) error {
 	logger.G.Sys().Info("started backend periodic task manager")
-
-	var err error
-	pt.gs, err = globalsettings.NewGlobalSettings(nCtx, pt.conf.StgGlobalSetting)
-	if err != nil {
-		return err
-	}
 
 	if err := pt.registerTasks(nCtx); err != nil {
 		return err
@@ -87,7 +79,7 @@ func (pt *PeriodicTask) registerTasks(ctx contextx.IContext) error {
 	periodicTasks := []*scheduler.Task{
 		scheduler.NewTask(
 			periodicTaskNameCleanTrigger,
-			pt.gs.Get(ctx, globalsettings.CleanTriggerIntervalSecond, scheduler.Every1m),
+			globalsettings.Get(ctx, globalsettings.CleanTriggerIntervalSecond, scheduler.Every1m),
 			periodicTaskTimeoutCleanTrigger,
 			pt.CleanTrigger,
 		),

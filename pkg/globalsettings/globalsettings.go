@@ -16,30 +16,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IGlobalSettings defines the interface for global settings.
-type IGlobalSettings interface {
-	// ListAll list all global settings.
-	ListAll(ctx contextx.IContext) ([]*types.GlobalSettings, int64, error)
-
-	// Get gets a global settings by setting name return default value if not exist.
-	Get(ctx contextx.IContext, name string, defaultValue string) string
-
-	// Upsert update or insert a global settings.
-	Upsert(ctx contextx.IContext, name, value string) error
-
-	// Delete delete global settings.
-	Delete(ctx contextx.IContext, names ...string) error
+// Handler defines the singleton for global settings.
+type Handler struct {
+	stg IStorage
 }
 
-// GlobalSettings defines the singleton for global settings.
-type GlobalSettings struct {
-	stgGlobalSettings IStorage
-}
-
-// NewGlobalSettings creates a new instance of GlobalSettings.
-func NewGlobalSettings(ctx contextx.IContext, stgGlobalSettings IStorage) (*GlobalSettings, error) {
-	gs := &GlobalSettings{stgGlobalSettings: stgGlobalSettings}
-	if err := gs.init(ctx); err != nil {
+// NewHandler creates a new instance of Handler.
+func NewHandler(nCtx contextx.IContext, stg IStorage) (*Handler, error) {
+	gs := &Handler{stg: stg}
+	if err := gs.registerPreDefinition(nCtx); err != nil {
 		return nil, err
 	}
 
@@ -47,9 +32,9 @@ func NewGlobalSettings(ctx contextx.IContext, stgGlobalSettings IStorage) (*Glob
 }
 
 // Init initializes the global settings with predefined values.
-func (gs *GlobalSettings) init(nCtx contextx.IContext) error {
+func (h *Handler) registerPreDefinition(nCtx contextx.IContext) error {
 	for _, setting := range PreDefinition() {
-		exist, err := gs.stgGlobalSettings.ExistGlobalSettings(nCtx, setting.SettingName)
+		exist, err := h.stg.ExistGlobalSettings(nCtx, setting.SettingName)
 		if err != nil {
 			return err
 		}
@@ -58,7 +43,7 @@ func (gs *GlobalSettings) init(nCtx contextx.IContext) error {
 			continue
 		}
 
-		err = gs.stgGlobalSettings.UpsertGlobalSettings(nCtx, setting)
+		err = h.stg.UpsertGlobalSettings(nCtx, setting)
 		if err != nil {
 			return err
 		}
@@ -68,21 +53,21 @@ func (gs *GlobalSettings) init(nCtx contextx.IContext) error {
 }
 
 // ListAll retrieves global settings with pagination and conditions.
-func (gs *GlobalSettings) ListAll(ctx contextx.IContext) ([]*types.GlobalSettings, int64, error) {
-	if gs.stgGlobalSettings == nil {
+func (h *Handler) ListAll(nCtx contextx.IContext) ([]*types.GlobalSettings, int64, error) {
+	if h.stg == nil {
 		return nil, 0, ErrUninitialized()
 	}
 
-	return gs.stgGlobalSettings.ListGlobalSettings(ctx, types.UnlimitedPage(), nil)
+	return h.stg.ListGlobalSettings(nCtx, types.UnlimitedPage(), nil)
 }
 
 // Get retrieves a global setting by its name, returning a default value if not found.
-func (gs *GlobalSettings) Get(ctx contextx.IContext, name, defaultValue string) string {
-	if gs.stgGlobalSettings == nil {
+func (h *Handler) Get(nCtx contextx.IContext, name, defaultValue string) string {
+	if h.stg == nil {
 		return defaultValue
 	}
 
-	exist, err := gs.stgGlobalSettings.ExistGlobalSettings(ctx, name)
+	exist, err := h.stg.ExistGlobalSettings(nCtx, name)
 	if err != nil {
 		return defaultValue
 	}
@@ -91,7 +76,7 @@ func (gs *GlobalSettings) Get(ctx contextx.IContext, name, defaultValue string) 
 		return defaultValue
 	}
 
-	value, err := gs.stgGlobalSettings.GetGlobalSetting(ctx, name)
+	value, err := h.stg.GetGlobalSetting(nCtx, name)
 	if err != nil {
 		return defaultValue
 	}
@@ -100,22 +85,22 @@ func (gs *GlobalSettings) Get(ctx contextx.IContext, name, defaultValue string) 
 }
 
 // Upsert updates or inserts a global settings.
-func (gs *GlobalSettings) Upsert(ctx contextx.IContext, name, value string) error {
-	if gs.stgGlobalSettings == nil {
+func (h *Handler) Upsert(nCtx contextx.IContext, name, value string) error {
+	if h.stg == nil {
 		return ErrUninitialized()
 	}
 
-	return gs.stgGlobalSettings.UpsertGlobalSettings(ctx, &types.GlobalSettings{
+	return h.stg.UpsertGlobalSettings(nCtx, &types.GlobalSettings{
 		SettingName: name,
 		Value:       value,
 	})
 }
 
 // Delete deletes global settings by names.
-func (gs *GlobalSettings) Delete(ctx contextx.IContext, names ...string) error {
-	if gs.stgGlobalSettings == nil {
+func (h *Handler) Delete(nCtx contextx.IContext, names ...string) error {
+	if h.stg == nil {
 		return ErrUninitialized()
 	}
 
-	return gs.stgGlobalSettings.DeleteGlobalSettings(ctx, names...)
+	return h.stg.DeleteGlobalSettings(nCtx, names...)
 }

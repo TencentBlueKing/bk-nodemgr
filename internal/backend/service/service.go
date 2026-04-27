@@ -48,6 +48,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
@@ -291,6 +292,11 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to initial storages: %w", err)
 	}
 
+	// initial global settings.
+	if err = globalsettings.Register(svc.ctx, svc.Cap.StorageGlobalSettings); err != nil {
+		return fmt.Errorf("failed to initial global settings: %w", err)
+	}
+
 	// initial locker factory.
 	svc.Cap.LockerFactory = redsync.New(svc.Cap.RedisClient)
 
@@ -301,9 +307,8 @@ func (svc *Service) initialCapability() error {
 
 	// initial period task.
 	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
-		Locker:           svc.Cap.LockerFactory,
-		StgGlobalSetting: svc.Cap.StorageGlobalSettings,
-		StgWorkflow:      svc.Cap.StorageWorkflow,
+		Locker:      svc.Cap.LockerFactory,
+		StgWorkflow: svc.Cap.StorageWorkflow,
 	})
 
 	// initial IAM callback handler.
