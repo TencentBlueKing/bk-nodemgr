@@ -73,6 +73,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/extra/redisotel/v9"
@@ -94,6 +95,8 @@ const (
 	mongoMaxPoolSize     = uint64(500)
 	mongoMinPoolSize     = uint64(5)
 	mongoMaxConnIdleTime = 3 * time.Minute
+
+	serverName = "backend"
 )
 
 // Service defines a apigwserver that provides backend services.
@@ -1199,6 +1202,9 @@ func (svc *Service) initTracing() error {
 			ExporterType: tracing.ExporterType(svc.conf.Tracing.ExporterType),
 		},
 		Environment: system.GetEnv(),
+		Namespace:   serverName,
+		InstanceID:  svc.conf.Tracing.InstanceID,
+		Version:     version.Version().Version,
 	}
 
 	if tracingConf.Exporter.ExporterType == tracing.ExporterTypeOTLP {

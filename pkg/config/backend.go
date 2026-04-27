@@ -525,6 +525,7 @@ func (access *Access) Validate() error {
 
 // Tracing defines the tracing configuration for nodemgr system.
 type Tracing struct {
+	InstanceID   string            `yaml:"instanceID" usage:"instance id of tracing system"`
 	ExporterType string            `yaml:"exporterType" usage:"exporter type of tracing system"`
 	OTLPEndpoint string            `yaml:"otlpEndpoint" usage:"otlp endpoint of tracing system"`
 	OTLPInsecure bool              `yaml:"otlpInsecure" usage:"otlp insecure of tracing system"`
