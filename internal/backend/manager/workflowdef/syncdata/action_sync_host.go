@@ -114,11 +114,21 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		dbData, _, err = act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
+		selection := &types.HostFieldSelection{
+			// in compare logic we only need the host_id field.
+			HostID:        true,
+			NetworkAreaID: false,
+			InnerIPList:   false,
+			InnerIPV6List: false,
+		}
+
+		condition := &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				BizID: []int64{param.BizID},
 			},
-		})
+		}
+
+		dbData, _, err = act.storageHost.ListHostWithFields(std.Context(), types.UnlimitedPage(), selection, condition)
 		if err != nil {
 			return fmt.Errorf("list host from db failed: %w", err)
 		}
