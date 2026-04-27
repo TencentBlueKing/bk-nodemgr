@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -69,8 +70,8 @@ func (mgr *manager) launchWorker() error {
 // do executes the action defined by actionName for the operation instance with operationInstanceID.
 // this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
 //
-// nolint: funlen,gocognit,cyclop,gocyclo,lll
-func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string, traceID string, spanID string) error {
+// nolint: funlen,gocognit,cyclop,gocyclo,lll,nonamedreturns
+func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string, traceID string, spanID string) (err error) {
 	tid, err := trace.TraceIDFromHex(traceID)
 	if err != nil {
 		logger.G.Sys().With("trace-id", traceID).WithErr(err).Error("get invalid trace id")
@@ -96,7 +97,15 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 			attribute.String(attributeKeyOperationInstanceID, operationInstanceID)),
 		trace.WithSpanKind(trace.SpanKindConsumer),
 	)
-	defer span.End()
+	defer func() {
+		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
+		} else {
+			span.SetStatus(codes.Ok, "")
+		}
+		span.End()
+	}()
 
 	span.AddEvent(spanEventActionReceived)
 

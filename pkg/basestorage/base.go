@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -239,7 +240,10 @@ func (s *Storage) WrapFn(nCtx contextx.IContext, fnName string, fn func(contextx
 	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("%s %s", spanNamePrefix, fnName))
 	defer func() {
 		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
 			span.RecordError(err)
+		} else {
+			span.SetStatus(codes.Ok, "")
 		}
 
 		span.End()

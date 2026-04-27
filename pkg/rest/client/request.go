@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -457,6 +458,13 @@ func (r *Request) Do() (result *Result) {
 		span.SetAttributes(
 			attribute.Int(attributeHTTPResponseStatusCode, result.StatusCode),
 		)
+
+		// Set span status based on HTTP status code
+		if result.StatusCode >= http.StatusBadRequest {
+			span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", result.StatusCode))
+		} else {
+			span.SetStatus(codes.Ok, "")
+		}
 
 		span.End()
 	}()

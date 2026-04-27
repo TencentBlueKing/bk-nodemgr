@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -304,7 +305,8 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 	return nil
 }
 
-func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) error {
+// nolint: nonamedreturns
+func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) (err error) {
 	traceCtx, span := handler.tracerProvider.Tracer(scopeNameTrigger).Start(nCtx,
 		fmt.Sprintf("%s %s", spanNamePrefixTrigger, trigCtl.GetTriggerCategory()),
 		trace.WithSpanKind(trace.SpanKindInternal),
@@ -312,7 +314,15 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 			attribute.String(attributeKeyTriggerID, trigCtl.GetTriggerID()),
 			attribute.String(attributeKeyTriggerCategory, string(trigCtl.GetTriggerCategory())),
 		))
-	defer span.End()
+	defer func() {
+		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
+		} else {
+			span.SetStatus(codes.Ok, "")
+		}
+		span.End()
+	}()
 
 	// set trace context
 	nCtx = contextx.FromContext(traceCtx)

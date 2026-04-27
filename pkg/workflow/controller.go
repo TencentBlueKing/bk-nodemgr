@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -468,9 +469,8 @@ func (ctl *controller) GetOperationInstanceID() string {
 }
 
 // LaunchOperationInstance launches the operation instance.
-// nolint: funlen
-func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
-	var err error
+// nolint: funlen,nonamedreturns
+func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err error) {
 	// record metric.
 	m := metric.NewOperationInstanceLaunch(ctl.operInstanceBriefData).Start()
 	defer m.End(err)
@@ -503,7 +503,15 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 			attribute.String(attributeKeyOperationInstanceID, ctl.operInstanceBriefData.Metadata.OperationInstanceID),
 		),
 	)
-	defer span.End()
+	defer func() {
+		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
+		} else {
+			span.SetStatus(codes.Ok, "")
+		}
+		span.End()
+	}()
 
 	signatures := make([]*tasks.Signature, len(actionNames))
 	for idx, actionName := range actionNames {
