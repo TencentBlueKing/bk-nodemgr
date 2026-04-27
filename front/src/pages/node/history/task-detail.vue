@@ -401,7 +401,8 @@ type taskType =
   | 'install_agent'
   | 'install_plugin'
   | 'upgrade_agent'
-  | 'upgrade_plugin';
+  | 'upgrade_plugin'
+  | 'assign_proxy_unit';
 type filterProp = 'state' | 'node_version';
 
 const { t } = useI18n();
@@ -491,6 +492,7 @@ const typeMap = computed(() => ({
   reconfig_proxy: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy'),
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
+  assign_proxy_unit: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
 }));
 
 const networkAreaListMap = ref(new Map<number, string>([]));

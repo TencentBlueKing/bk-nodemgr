@@ -33,6 +33,9 @@ type INodeManager interface {
 	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
 	LaunchUninstallNode(ctx contextx.IContext, param types.UninstallNodeParam) (string, error)
 
+	// LaunchAssignProxyUnit launch a task to assign proxy unit. returns the workflow-id.
+	LaunchAssignProxyUnit(ctx contextx.IContext, param types.AssignProxyUnitParam) (string, error)
+
 	// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
 	LaunchRetryNodeOperationFromLastInstance(ctx contextx.IContext, param types.RetryNodeWorkflowOperationParam) error
 

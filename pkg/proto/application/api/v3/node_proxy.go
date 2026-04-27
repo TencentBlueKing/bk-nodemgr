@@ -900,3 +900,30 @@ func (x *NodeProxyUpgradeCheckResp) ConvertResultFromTypes(results []*types.Node
 		Results: items,
 	}
 }
+
+// Validate check body.
+func (x *NodeProxyAssignUnitReq) Validate() error {
+	if len(x.GetBkHostId()) == 0 {
+		return errors.New("bk_host_id can not be empty")
+	}
+
+	if x.GetBkNetworkunitId() <= 0 {
+		return errors.New("bk_networkunit_id must be > 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyAssignUnitReq) AutoConvert() {}
+
+// ConvertResult converts the assign unit result to the response.
+// ConvertResult converts the assign unit result from types struct.
+func (x *NodeProxyAssignUnitResp) ConvertResult(result *types.NodeProxyAssignUnitResult) {
+	x.Data = &NodeProxyAssignUnitResp_Data{
+		SuccessCount:  result.SuccessCount,
+		FailedCount:   result.FailedCount,
+		FailedReasons: result.FailedReasons,
+		WorkflowId:    result.WorkflowID,
+	}
+}

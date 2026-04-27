@@ -231,3 +231,16 @@ type NodeAgentUpgradeCheckParam struct {
 	NetworkUnitID int64
 	CPUArch       string
 }
+
+// NodeAgentAssignUnitParam describes the node agent assign unit parameter.
+type NodeAgentAssignUnitParam struct {
+	HostIDs       []int64
+	NetworkUnitID int64
+}
+
+// NodeAgentAssignUnitResult describes the node agent assign unit result.
+type NodeAgentAssignUnitResult struct {
+	SuccessCount int64
+	FailedCount  int64
+	FailedReasons []string
+}

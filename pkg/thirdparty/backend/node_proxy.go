@@ -73,6 +73,12 @@ type IHandlerNodeProxy interface {
 		params []*types.NodeProxyUpgradeCheckParam,
 		targetVersions []*types.TargetVersion,
 	) ([]*types.NodeProxyUpgradeCheckResult, error)
+
+	// AssignUnitProxy batch-assigns a network unit to proxy hosts.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param param the assign unit param.
+	// @return the assign unit result and error.
+	AssignUnitProxy(nCtx contextx.IContext, param *types.NodeProxyAssignUnitParam) (*types.NodeProxyAssignUnitResult, error)
 }
 
 // InstallProxy install node proxy.
@@ -186,4 +192,26 @@ func (h *Handler) CheckUpgradeProxy(
 	}
 
 	return resp.ConvertResultToTypes(), nil
+}
+
+// AssignUnitProxy batch-assigns a network unit to proxy hosts.
+func (h *Handler) AssignUnitProxy(nCtx contextx.IContext, param *types.NodeProxyAssignUnitParam) (
+	*types.NodeProxyAssignUnitResult, error) {
+
+	req := new(protoBackend.NodeProxyAssignUnitReq)
+	req.ConvertParamFromTypes(param)
+
+	resp, err := h.cli.assignUnitNodeProxy(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to assign unit proxy: %w", err)
+	}
+
+	data := resp.GetData()
+
+	return &types.NodeProxyAssignUnitResult{
+		SuccessCount:  data.GetSuccessCount(),
+		FailedCount:   data.GetFailedCount(),
+		FailedReasons: data.GetFailedReasons(),
+		WorkflowID:    data.GetWorkflowId(),
+	}, nil
 }

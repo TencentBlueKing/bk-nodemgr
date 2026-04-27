@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp } from '@/@types/node_proxy';
+import type { NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp } from '@/@types/node_proxy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -25,5 +25,7 @@ export const NodeProxyService = {
   NodeProxyInstallCheck: async <Request = NodeProxyInstallCheckReq, ResponseData = NodeProxyInstallCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/install_check')(params, config),
   // NodeProxyUpgradeCheck checks node proxy upgrade.
   NodeProxyUpgradeCheck: async <Request = NodeProxyUpgradeCheckReq, ResponseData = NodeProxyUpgradeCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/upgrade_check')(params, config),
+  // NodeProxyAssignUnit assigns network unit to node proxy.
+  NodeProxyAssignUnit: async <Request = NodeProxyAssignUnitReq, ResponseData = NodeProxyAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/assign_unit')(params, config),
 };
 

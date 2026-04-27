@@ -58,6 +58,14 @@ type UninstallNodeParam struct {
 	NodeDeployments []*NodeDeployment
 }
 
+// AssignProxyUnitParam assign proxy unit param.
+type AssignProxyUnitParam struct {
+	Type            NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*NodeDeployment
+}
+
 // RetryNodeWorkflowOperationParam retry node workflow operation param.
 type RetryNodeWorkflowOperationParam struct {
 	WorkflowID   string

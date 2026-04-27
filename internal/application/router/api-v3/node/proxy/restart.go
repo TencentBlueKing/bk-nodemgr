@@ -28,7 +28,7 @@ func (h *handler) Restart(rCtx restserver.IContext) (interface{}, error) {
 	workflowID, err := h.backendHandler.RestartProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart proxy")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy restart")

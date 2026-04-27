@@ -107,6 +107,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionResolveOfflineDetectInfo(nodeCap),
 		node.NewActionWaitOfflineManualInstall(nodeCap),
 		node.NewActionInjectNodeCustomDeployConfig(nodeCap),
+		node.NewActionAssignProxyInfo(nodeCap),
 	); err != nil {
 		return err
 	}

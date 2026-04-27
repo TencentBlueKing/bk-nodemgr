@@ -11,6 +11,7 @@
               ref="assignUnitTableRef"
               v-model:data="formData.info"
               :max-height="640"
+              :disable-direct="false"
             ></assign-unit-table>
           </Loading>
         </Form.FormItem>

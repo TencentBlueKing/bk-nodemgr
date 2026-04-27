@@ -291,3 +291,24 @@ export interface NodeProxyUpgradeCheckResult {
   category: string;
 }
 
+// NodeProxyAssignUnitReq describes the node proxy assign unit request.
+export interface NodeProxyAssignUnitReq {
+  bk_host_id: number[];
+  bk_networkunit_id: number;
+}
+
+// NodeProxyAssignUnitResp describes the node proxy assign unit response.
+export interface NodeProxyAssignUnitResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeProxyAssignUnitRespData;
+}
+
+export interface NodeProxyAssignUnitRespData {
+  success_count: number;
+  failed_count: number;
+  failed_reasons: string[];
+}

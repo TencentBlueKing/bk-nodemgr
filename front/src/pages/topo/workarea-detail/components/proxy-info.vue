@@ -30,7 +30,9 @@
               :data="selectTableData"
               placement="bottom-start"
               :batch="true"
+              :has-auth="hasProxyOperateAuth"
               @reinstall="handleReinstall"
+              @assign-unit="handleAssignUnit"
               :is-cross-page-selection="isCrossPageSelection"
               :cross-page-query-params="crossPageQueryParams"
             >
@@ -99,6 +101,7 @@
     </FlexRow>
     <!-- table -->
     <DetailTable
+      ref="detailTableRef"
       v-model:search-select-value="searchKey"
       :bk-networkunit-id="active"
       :is-batch-reinstall="batchReinstall"
@@ -108,6 +111,7 @@
       @update-cross-page="handleUpdateCrossPage"
       @excluded-ids-change="handleExcludedIdsChange"
       @update-search-select-data="handleUpdateSearchSelectData"
+      @assign-unit="handleAssignUnit"
       @auth-click="handleAuthClick">
     </DetailTable>
   </div>
@@ -121,11 +125,17 @@
     :is-cross-page-selection="isCrossPageSelection"
     :params="crossPageQueryParams"
   />
+  <AssignUnit
+    v-model:is-show="isShowAssignUnit"
+    :data="assignUnitData"
+    :is-cross-page-selection="isCrossPageSelection"
+    :params="crossPageQueryParams"
+  />
 </template>
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -139,6 +149,7 @@ import type {
 import useAuthLock from '@/composables/use-auth-lock';
 import InstallProxy from '@/pages/topo/install-proxy/install-proxy.vue';
 import ReinstallProxy from '@/pages/topo/install-proxy/reinstall-proxy.vue';
+import AssignUnit from '@/pages/topo/install-proxy/assign-unit.vue';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
 
@@ -341,6 +352,12 @@ const isShowInstallProxy = ref(false);
 const handleInstallProxy = () => {
   isShowInstallProxy.value = true;
 };
+const isShowAssignUnit = ref(false);
+const assignUnitData = ref<Host[]>([]);
+const handleAssignUnit = (row?: Host) => {
+  assignUnitData.value = row ? [row] : selectTableData.value;
+  isShowAssignUnit.value = true;
+};
 
 // 计算属性：是否有勾选主机
 const hasSelection = computed(() => {
@@ -532,6 +549,22 @@ const handleInputPaste = (data: { id: string; name: string; values: { id: string
 const handleSearchSelectChange = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
   handleInputPaste(data);
 };
+
+// DetailTable ref for refreshing list
+const detailTableRef = ref<InstanceType<typeof DetailTable>>();
+
+// Listen for assign unit success event to refresh list
+const handleAssignUnitSuccess = () => {
+  detailTableRef.value?.handleUpdate?.();
+};
+
+onMounted(() => {
+  window.addEventListener('proxy-assign-unit-success', handleAssignUnitSuccess);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('proxy-assign-unit-success', handleAssignUnitSuccess);
+});
 </script>
 
 <style lang="postcss" scoped>

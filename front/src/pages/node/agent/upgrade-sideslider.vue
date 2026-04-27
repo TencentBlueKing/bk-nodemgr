@@ -65,7 +65,7 @@
         </Form.FormItem>
 
         <Form.FormItem
-          :label="$t('topoManager.installProxy.form.info')"
+          :label="$t('platform.nodeMan.agentStatus.hostInfo')"
           property=""
           label-width="100"
           required

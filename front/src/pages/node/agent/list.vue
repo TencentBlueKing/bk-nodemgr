@@ -538,6 +538,14 @@ const upgradeDisabledState = computed(() => {
     };
   }
 
+  const hasUnassigned = selected.some((h: any) => !isNetworkUnitAssigned(h.bk_networkunit_id));
+  if (hasUnassigned) {
+    return {
+      disabled: true,
+      tooltip: t('platform.nodeMan.agentStatus.operateDisabledUnassigned'),
+    };
+  }
+
   return { disabled: false, tooltip: '' };
 });
 
@@ -1279,14 +1287,14 @@ const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; too
       tooltip: t('platform.nodeMan.agentStatus.assignUnitDisabledRowAssigned'),
     };
   }
-  // Check Agent status first for upgrade, restart, and uninstall
+  // Check Agent status for upgrade, restart, and uninstall
   if ((config.id === 'upgrade' || config.id === 'restart' || config.id === 'uninstall') && (row as any).node_status !== 'running') {
     return {
       disabled: true,
       tooltip: t('platform.nodeMan.agentStatus.operateDisabledRowNotRunning'),
     };
   }
-  // Then check network unit assignment for upgrade, restart, and uninstall
+  // Check network unit assignment for upgrade, restart, and uninstall
   if ((config.id === 'upgrade' || config.id === 'restart' || config.id === 'uninstall') && !isNetworkUnitAssigned((row as any).bk_networkunit_id)) {
     return {
       disabled: true,

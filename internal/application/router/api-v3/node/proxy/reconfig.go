@@ -28,7 +28,7 @@ func (h *handler) Reconfig(rCtx restserver.IContext) (interface{}, error) {
 	workflowID, err := h.backendHandler.ReconfigProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig proxy")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy reconfig")

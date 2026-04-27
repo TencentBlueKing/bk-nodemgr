@@ -578,6 +578,28 @@ func (x *NodeProxyUninstallResp) GetWorkflowID() string {
 	return data.GetWorkflowId()
 }
 
+// Validate checks that the request body is valid.
+func (x *NodeProxyAssignUnitReq) Validate() error {
+	if len(x.GetBkHostId()) == 0 {
+		return errors.New("bk_host_id can not be empty")
+	}
+
+	if x.GetBkNetworkunitId() < 0 {
+		return errors.New("bk_networkunit_id must be greater than or equal to 0")
+	}
+
+	return nil
+}
+
+// AutoConvert is a no-op for assign unit requests.
+func (x *NodeProxyAssignUnitReq) AutoConvert() {}
+
+// ConvertParamFromTypes converts param from types.
+func (x *NodeProxyAssignUnitReq) ConvertParamFromTypes(param *types.NodeProxyAssignUnitParam) {
+	x.BkHostId = param.HostIDs
+	x.BkNetworkunitId = param.NetworkUnitID
+}
+
 // Validate check body.
 func (x *NodeProxyInstallCheckReq) Validate() error {
 	hosts := x.GetHost()

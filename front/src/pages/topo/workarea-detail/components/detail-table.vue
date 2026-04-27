@@ -253,6 +253,7 @@
                 :data="[row]"
                 :has-auth="hasProxyOperateAuth"
                 @reinstall="handleReinstall(row)"
+                @assign-unit="emit('assignUnit', row)"
                 @auth-click="authLockHandleAuthClick()"
                 @auth-lock-enter="authLockMouseEnter($event, false)"
                 @auth-lock-move="authLockMouseMove($event, false)"
@@ -332,7 +333,7 @@ const props = defineProps({
     default: true,
   },
 });
-const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData', 'authClick']);
+const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData', 'authClick', 'assignUnit']);
 
 const { t } = useI18n();
 const route = useRoute();
@@ -858,6 +859,11 @@ watch(
   },
   { deep: true },
 );
+
+// Expose methods for parent component
+defineExpose({
+  handleUpdate,
+});
 </script>
 <style lang="postcss" scoped>
 .status-icon::before {

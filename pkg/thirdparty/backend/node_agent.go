@@ -67,12 +67,11 @@ type IHandlerNodeAgent interface {
 	// @return the restarting workflow-ids and error.
 	UninstallAgent(nCtx contextx.IContext, uninstallParam *types.NodeAgentUninstallParam) (string, error)
 
-	// AssignUnitAgent batch-assigns a network unit to unassigned hosts.
+	// AssignUnitAgent batch-assigns a network unit to hosts.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
-	// @param hostIDs the host IDs to assign.
-	// @param networkUnitID the target network unit ID.
-	// @return success count, failed count, failed reasons, and error.
-	AssignUnitAgent(nCtx contextx.IContext, hostIDs []int64, networkUnitID int64) (int64, int64, []string, error)
+	// @param param the assign unit param.
+	// @return the assign unit result and error.
+	AssignUnitAgent(nCtx contextx.IContext, param *types.NodeAgentAssignUnitParam) (*types.NodeAgentAssignUnitResult, error)
 }
 
 // InstallAgent node agent.
@@ -179,21 +178,23 @@ func (h *Handler) UninstallAgent(nCtx contextx.IContext, reconfigParam *types.No
 	return resp.GetWorkflowID(), nil
 }
 
-// AssignUnitAgent batch-assigns a network unit to unassigned hosts.
-func (h *Handler) AssignUnitAgent(nCtx contextx.IContext, hostIDs []int64, networkUnitID int64) (
-	int64, int64, []string, error) {
+// AssignUnitAgent batch-assigns a network unit to hosts.
+func (h *Handler) AssignUnitAgent(nCtx contextx.IContext, param *types.NodeAgentAssignUnitParam) (
+	*types.NodeAgentAssignUnitResult, error) {
 
-	req := &protoBackend.NodeAgentAssignUnitReq{
-		BkHostId:        hostIDs,
-		BkNetworkunitId: networkUnitID,
-	}
+	req := new(protoBackend.NodeAgentAssignUnitReq)
+	req.ConvertParamFromTypes(param)
 
 	resp, err := h.cli.assignUnitNodeAgent(nCtx, req)
 	if err != nil {
-		return 0, 0, nil, fmt.Errorf("failed to assign unit agent: %w", err)
+		return nil, fmt.Errorf("failed to assign unit agent: %w", err)
 	}
 
 	data := resp.GetData()
 
-	return data.GetSuccessCount(), data.GetFailedCount(), data.GetFailedReasons(), nil
+	return &types.NodeAgentAssignUnitResult{
+		SuccessCount:  data.GetSuccessCount(),
+		FailedCount:   data.GetFailedCount(),
+		FailedReasons: data.GetFailedReasons(),
+	}, nil
 }

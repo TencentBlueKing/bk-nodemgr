@@ -10,31 +10,6 @@
       :row-config="{ isHover: true, useKey: true }"
       round
     >
-      <!-- 主机 IP -->
-      <VxeColgroup align="center">
-        <template #header>
-          <span>{{ $t('components.installTable.hostIp') }}</span>
-        </template>
-        <VxeColumn
-          field="bk_host_innerip"
-          :title="$t('components.installTable.innerIPv4')"
-          :min-width="150"
-        >
-          <template #default="{ row }">
-            <Input v-model.trim="row.bk_host_innerip" :disabled="true" />
-          </template>
-        </VxeColumn>
-        <VxeColumn
-          field="bk_host_innerip_v6"
-          :title="$t('components.installTable.innerIPv6')"
-          :min-width="150"
-        >
-          <template #default="{ row }">
-            <Input v-model.trim="row.bk_host_innerip_v6" :disabled="true" />
-          </template>
-        </VxeColumn>
-      </VxeColgroup>
-
       <!-- 业务属性 -->
       <VxeColgroup :title="$t('components.installTable.bizProperty')" align="center">
         <VxeColumn
@@ -73,6 +48,7 @@
           </template>
         </VxeColumn>
         <VxeColumn
+          v-if="!hideNetworkUnit"
           field="bk_networkunit_id"
           :title="$t('components.installTable.networkUnit')"
           :min-width="150"
@@ -88,17 +64,6 @@
               :disabled-tip="$t('components.installTable.batchEditNetworkUnitDisabledTip')"
               @confirm="(value: string) => handleBatchEdit(value)"
             />
-            <i
-              v-if="!networkUnitLoading && !autoAssignLoading"
-              class="nodeman-icon nc-manual text-[18px] cursor-pointer ml-[5px]"
-              v-bk-tooltips="$t('components.installTable.autoAssign')"
-              @click="handleAutoAssign"
-            ></i>
-            <i
-              v-else
-              class="nodeman-icon nc-manual text-[18px] cursor-not-allowed text-[#C4C6CC] ml-[5px]"
-              v-bk-tooltips="$t('components.installTable.autoAssign')"
-            ></i>
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
@@ -124,17 +89,62 @@
                   :key="option.bk_networkunit_id"
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
+                  :disabled="disableDirect && option.is_direct"
                   :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
                   @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
                   @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
                   @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
                   @mouseleave="handleUnitOptionMouseLeave()"
+                  v-bk-tooltips="{
+                    content: $t('topoManager.installProxy.form.tip'),
+                    disabled: !(disableDirect && option.is_direct),
+                    boundary: 'parent',
+                    placement: 'left',
+                  }"
                 >
                   [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
                 </Select.Option>
               </Select>
               <div v-else class="h-[32px] w-full rounded-[2px] bg-[#F5F7FA]"></div>
             </ValidateCell>
+          </template>
+        </VxeColumn>
+      </VxeColgroup>
+
+      <!-- 主机 IP -->
+      <VxeColgroup align="center">
+        <template #header>
+          <span>{{ $t('components.installTable.hostIp') }}</span>
+        </template>
+        <VxeColumn
+          field="bk_host_innerip"
+          :title="$t('components.installTable.innerIPv4')"
+          :min-width="150"
+        >
+          <template #default="{ row }">
+            <Input v-model.trim="row.bk_host_innerip" :disabled="true" />
+          </template>
+        </VxeColumn>
+        <VxeColumn
+          field="bk_host_innerip_v6"
+          :title="$t('components.installTable.innerIPv6')"
+          :min-width="150"
+        >
+          <template #default="{ row }">
+            <Input v-model.trim="row.bk_host_innerip_v6" :disabled="true" />
+          </template>
+        </VxeColumn>
+      </VxeColgroup>
+
+      <!-- 主机属性 -->
+      <VxeColgroup :title="$t('components.installTable.hostAttr')" align="center">
+        <VxeColumn
+          field="os_type"
+          :title="$t('components.installTable.osType')"
+          :min-width="120"
+        >
+          <template #default="{ row }">
+            <Input v-model.trim="row.os_type" :disabled="true" />
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -180,6 +190,8 @@ const tableData = defineModel<any[]>('data');
 
 defineProps({
   maxHeight: { type: Number, default: 640 },
+  hideNetworkUnit: { type: Boolean, default: false },
+  disableDirect: { type: Boolean, default: true },
 });
 const { t } = useI18n();
 const { contentRef } = useFullScreen();
@@ -240,7 +252,7 @@ const getNetworkUnitList = async () => {
   }
 };
 
-const getNetworkUnitsByAreaId = (bkNetworkAreaId: number) => networkUnitGroupMap.value[bkNetworkAreaId] || [];
+const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => networkUnitGroupMap.value[Number(bkNetworkAreaId)] || [];
 
 const isSameNetworkArea = computed(() => {
   if (!tableData.value?.length) return false;
@@ -254,6 +266,8 @@ const networkUnitBatchOptions = computed(() => {
   return getNetworkUnitsByAreaId(areaId).map((unit: any) => ({
     id: String(unit.bk_networkunit_id),
     name: `[${unit.bk_networkunit_id}] ${unit.bk_networkunit_name}`,
+    disabled: disableDirect && unit.is_direct,
+    disabledTip: disableDirect ? t('topoManager.installProxy.form.tip') : '',
   }));
 });
 
@@ -266,49 +280,6 @@ const handleBatchEdit = (value: string) => {
     }
     clearError(index, 'bk_networkunit_id');
   });
-};
-
-const autoAssignLoading = ref(false);
-
-const handleAutoAssign = async () => {
-  if (!tableData.value?.length) return;
-  
-  autoAssignLoading.value = true;
-  try {
-    const items = tableData.value.map((row: any) => ({
-      bk_networkarea_id: Number(row.bk_networkarea_id),
-      ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
-    }));
-    
-    const res = await TopoService.RecommendNetworkUnitByNetworkSegment({ items });
-    
-    if (res?.items) {
-      res.items.forEach((result: any, index: number) => {
-        if (index >= tableData.value!.length) return;
-        
-        const row = tableData.value![index];
-        if (result.bk_networkunit_id === -1) {
-          // 清空该行的选择
-          row.bk_networkunit_id = undefined;
-          row.bk_networkunit_name = undefined;
-        } else {
-          // 回填推荐结果
-          row.bk_networkunit_id = String(result.bk_networkunit_id);
-          const networkUnit = networkUnitList.value.find(
-            (unit: any) => unit.bk_networkunit_id === result.bk_networkunit_id
-          );
-          if (networkUnit) {
-            row.bk_networkunit_name = networkUnit.bk_networkunit_name;
-          }
-        }
-        clearError(index, 'bk_networkunit_id');
-      });
-    }
-  } catch (error) {
-    console.error('Auto assign failed:', error);
-  } finally {
-    autoAssignLoading.value = false;
-  }
 };
 
 const handleNetworkUnitChange = (val: string, row: any) => {

@@ -302,44 +302,44 @@
             </Table>
           </div>
         </Form.FormItem>
-        <div class="flex mt-[32px] ml-[90px] gap-[8px]">
-          <!-- <Button
-            v-if="excelImportData.length && form.info.length === 0"
-            class="w-[100px]"
-            theme="primary"
-            @click="handleImport">
-            {{ $t('platform.nodeMan.installAgentPage.excelImport') }}
-          </Button> -->
-          <Button
-            theme="primary"
-            class="w-[120px]"
-            :disabled="systemData.length === 0"
-            v-bk-tooltips="{
-              content: t('installProxy.noAvailableVersionTip'),
-              disabled: systemData.length > 0
-            }"
-            @click="handleConfirm"
-          >
-            <span>
-              {{ $t("topoManager.installProxy.button.install") }}
-            </span>
-            <span
-              class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
-            >
-              {{ form.info.length }}
-            </span>
-          </Button>
-          <!-- <Button
-            v-if="excelImportData.length && form.method === '1' && form.info.length > 0"
-            class="w-[88px]"
-            @click="handleSetpBack">
-            {{ '上一步' }}
-          </Button> -->
-          <Button @click="handleBeforeClose">
-            {{ $t("action.cancel") }}
-          </Button>
-        </div>
       </Form>
+      <div class="flex mt-[32px] ml-[110px]">
+        <!-- <Button
+          v-if="excelImportData.length && form.info.length === 0"
+          class="w-[100px]"
+          theme="primary"
+          @click="handleImport">
+          {{ $t('platform.nodeMan.installAgentPage.excelImport') }}
+        </Button> -->
+        <Button
+          theme="primary"
+          class="mr-[8px] w-[120px]"
+          :disabled="systemData.length === 0"
+          v-bk-tooltips="{
+            content: t('installProxy.noAvailableVersionTip'),
+            disabled: systemData.length > 0
+          }"
+          @click="handleConfirm"
+        >
+          <span>
+            {{ $t("topoManager.installProxy.button.install") }}
+          </span>
+          <span
+            class="ml-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
+          >
+            {{ form.info.length }}
+          </span>
+        </Button>
+        <!-- <Button
+          v-if="excelImportData.length && form.method === '1' && form.info.length > 0"
+          class="w-[88px]"
+          @click="handleSetpBack">
+          {{ '上一步' }}
+        </Button> -->
+        <Button @click="handleBeforeClose">
+          {{ $t("action.cancel") }}
+        </Button>
+      </div>
     </div>
     <proxy-preview
       v-model:is-show="isShowPreview"

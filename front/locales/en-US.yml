@@ -33,7 +33,7 @@ platform:
       assignUnit: Assign Network Unit
       assignUnitDisabledAssigned: Selected hosts include nodes already assigned to a network unit. Please deselect or filter for unassigned hosts
       assignUnitDisabledRowAssigned: This host is already assigned to a network unit
-      assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please filter for hosts in the same area
+      assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please select hosts from the same area
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledRowNotRunning: This host has abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledUnassigned: Selected hosts include nodes without assigned network unit. Please assign network unit before operating
@@ -48,6 +48,7 @@ platform:
       handleLater: Handle Later
       upgradeMode: Upgrade Mode
       goUpgrade: Go Upgrade/Rollback
+      hostInfo: Host Information
       timeout: Timeout
       forceUpgrade: Force Upgrade
       gracefulUpgrade: Graceful Upgrade
@@ -67,6 +68,13 @@ platform:
       assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
     proxyStatus:
       title: Proxy Status
+      assignUnitDisabledAssigned: Selected hosts include nodes already assigned to a network unit. Please deselect or filter for unassigned hosts
+      assignUnitDisabledRowAssigned: This host is already assigned to a network unit
+      assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please select hosts from the same area
+      operateDisabledNotRunning: Selected hosts include nodes with abnormal Proxy status. Please troubleshoot and fix before operating
+      operateDisabledRowNotRunning: This host has abnormal Proxy status. Please troubleshoot and fix before operating
+      operateDisabledUnassigned: Selected hosts include nodes without assigned network unit. Please assign network unit before operating
+      operateDisabledRowUnassigned: This host has no assigned network unit. Please assign network unit before operating
     installAgent: Install Agent
     reinstallAgent: Reinstall Agent
     installAgentPage:
@@ -225,6 +233,7 @@ platform:
         reconfig_proxy: Proxy Reconfiguration
         restart_proxy: Proxy Restart
         uninstall_proxy: Proxy Uninstallation
+        assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
         upgrade_plugin: Plugin Upgrade
       statusType:
@@ -408,6 +417,7 @@ topoManager:
       unload: Uninstall
       overload: Reload Config
       restart: Restart
+      assignUnit: Assign Network Unit
     dialogTitle:
       upgrade: Confirm upgrade to the latest version?
       unload: Confirm uninstall current Proxy?
@@ -1139,6 +1149,14 @@ installProxy:
   validationFailed: Verification failed
   relayPortRequired: Please fill in the relay callback port and relay download port
   portMustBeValidRange: Port must be an integer between 1 and 65535
+  goAssign: Go Assign
+  assignUnit: Assign Network Unit
+  confirmAssignUnit: Confirm Assign Network Unit
+  confirmAssignUnitSubTitle: Assigning network unit to proxy will trigger plugin installation workflow. Continue?
+  pleaseSelectNetworkUnit: Please select network unit for all hosts
+  assignUnitSuccess: Successfully assigned {count} hosts
+  assignUnitPartialSuccess: Successfully assigned {success} hosts, failed {failed} hosts
+  assignUnitFailed: Failed to assign network unit
 route:
   agentStatus: Agent Status
   installAgent: Install Agent

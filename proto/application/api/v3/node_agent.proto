@@ -245,6 +245,7 @@ message UploadAgentTemplateResp {
   Data data = 1;
 }
 
+// NodeAgent is the service for node agent.
 service NodeAgent {
   // NodeAgentInstall installs node agent.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
@@ -305,6 +306,7 @@ service NodeAgent {
     };
   }
 
+  // UploadAgentTemplate uploads agent template.
   rpc UploadAgentTemplate(UploadAgentTemplateReq)
       returns (UploadAgentTemplateResp) {
     option (google.api.http) = {

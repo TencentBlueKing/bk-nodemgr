@@ -246,6 +246,7 @@ message NodeAgentAssignUnitResp {
   Data data = 5;
 }
 
+// NodeAgent is the service for node agent.
 service NodeAgent {
   // NodeAgentInstall installs node agent.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {

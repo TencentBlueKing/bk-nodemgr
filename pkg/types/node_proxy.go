@@ -259,3 +259,17 @@ type NodeProxyUpgradeCheckParam struct {
 	NetworkUnitID int64
 	CPUArch       string
 }
+
+// NodeProxyAssignUnitParam describes the node proxy assign unit parameter.
+type NodeProxyAssignUnitParam struct {
+	HostIDs       []int64
+	NetworkUnitID int64
+}
+
+// NodeProxyAssignUnitResult describes the node proxy assign unit result.
+type NodeProxyAssignUnitResult struct {
+	SuccessCount int64
+	FailedCount  int64
+	FailedReasons []string
+	WorkflowID    string
+}

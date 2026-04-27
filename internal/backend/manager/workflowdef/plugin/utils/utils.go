@@ -238,7 +238,7 @@ func GeneratePluginInstallerServerEndpoints(
 		})
 	}
 	if len(callbackEndpoints) == 0 {
-		return nil, nil, fmt.Errorf("no available proxy found")
+		return callbackEndpoints, nil, nil
 	}
 
 	// shuffle callback endpoints.

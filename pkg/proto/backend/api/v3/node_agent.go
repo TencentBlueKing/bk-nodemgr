@@ -35,6 +35,12 @@ func (x *NodeAgentAssignUnitReq) Validate() error {
 // AutoConvert is a no-op for assign unit requests.
 func (x *NodeAgentAssignUnitReq) AutoConvert() {}
 
+// ConvertParamFromTypes converts param from types.
+func (x *NodeAgentAssignUnitReq) ConvertParamFromTypes(param *types.NodeAgentAssignUnitParam) {
+	x.BkHostId = param.HostIDs
+	x.BkNetworkunitId = param.NetworkUnitID
+}
+
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
 	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *NodeAgentInstallReq_TargetVersion) string {

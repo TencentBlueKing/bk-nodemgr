@@ -212,7 +212,8 @@ type taskType =
   | 'install_agent'
   | 'install_plugin'
   | 'upgrade_agent'
-  | 'upgrade_plugin';
+  | 'upgrade_plugin'
+  | 'assign_proxy_unit';
 type filterProp = 'type' | 'operator' | 'status';
 
 const { t } = useI18n();
@@ -434,6 +435,9 @@ const typeMap = computed(() => ({
   },
   uninstall_proxy: {
     text: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
+  },
+  assign_proxy_unit: {
+    text: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
   },
   install_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
@@ -710,7 +714,7 @@ const getTimestampInSeconds = (originalDate: string) => {
 };
 const isNode = computed(() => ['agent', 'proxy'].includes(active.value));
 const agentType = ['install_agent', 'upgrade_agent', 'reconfig_agent', 'restart_agent', 'uninstall_agent'];
-const proxyType = ['install_proxy', 'upgrade_proxy', 'reconfig_proxy', 'restart_proxy', 'uninstall_proxy'];
+const proxyType = ['install_proxy', 'upgrade_proxy', 'reconfig_proxy', 'restart_proxy', 'uninstall_proxy', 'assign_proxy_unit'];
 const typeListMap = {
   agent: agentType,
   proxy: proxyType,

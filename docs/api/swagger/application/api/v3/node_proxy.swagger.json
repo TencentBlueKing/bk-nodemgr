@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/node/proxy/assign_unit": {
+      "post": {
+        "summary": "NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.",
+        "operationId": "NodeProxy_NodeProxyAssignUnit",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyAssignUnitResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyAssignUnitReq describes the request body for batch-assigning\na network unit to proxy hosts.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyAssignUnitReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/install": {
       "post": {
         "summary": "NodeProxyInstall installs node proxy.",
@@ -362,6 +396,54 @@
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
           }
+        }
+      }
+    },
+    "v3NodeProxyAssignUnitReq": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "NodeProxyAssignUnitReq describes the request body for batch-assigning\na network unit to proxy hosts."
+    },
+    "v3NodeProxyAssignUnitResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyAssignUnitRespData"
+        }
+      },
+      "description": "NodeProxyAssignUnitResp describes the response for batch-assigning\na network unit to proxy hosts."
+    },
+    "v3NodeProxyAssignUnitRespData": {
+      "type": "object",
+      "properties": {
+        "success_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "workflow_id": {
+          "type": "string"
         }
       }
     },

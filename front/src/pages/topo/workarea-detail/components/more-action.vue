@@ -16,8 +16,13 @@
           <Dropdown.DropdownItem
             v-for="(item, index) in dropMenuList"
             :key="index"
-            :class="{ 'auth-lock-dropdown-item': !hasAuth }"
-            @mousedown="handleClickDropMenu(item.value)"
+            :disabled="getItemDisabled(item).disabled"
+            :class="{ 'auth-lock-dropdown-item': !hasAuth, 'operate-item-disabled': getItemDisabled(item).disabled }"
+            v-bk-tooltips="{
+              content: getItemDisabled(item).tooltip,
+              disabled: !getItemDisabled(item).disabled,
+            }"
+            @mousedown="!getItemDisabled(item).disabled && handleClickDropMenu(item.value)"
             @mouseenter="!hasAuth && emit('authLockEnter', $event)"
             @mousemove="!hasAuth && emit('authLockMove', $event)"
             @mouseleave="!hasAuth && emit('authLockLeave')"
@@ -56,6 +61,7 @@ import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+import { isNetworkUnitAssigned } from '@/common/const';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { TopoService } from '@/api/modules/topo';
 import UpgradeSideslider from '@/pages/node/agent/upgrade-sideslider.vue';
@@ -99,7 +105,7 @@ const props = defineProps({
     default: true,
   },
 });
-const emit = defineEmits(['reinstall', 'authClick', 'authLockEnter', 'authLockMove', 'authLockLeave']);
+const emit = defineEmits(['reinstall', 'assignUnit', 'authClick', 'authLockEnter', 'authLockMove', 'authLockLeave']);
 const { t } = useI18n();
 const router = useRouter();
 
@@ -125,7 +131,84 @@ const dropMenuList = ref<{
     label: t('topoManager.workAreaDetail.dropdown.unload'),
     value: 'unload',
   },
+  {
+    label: t('topoManager.workAreaDetail.dropdown.assignUnit'),
+    value: 'assignUnit',
+  },
 ]);
+
+// Item disabled logic based on network unit assignment
+const getItemDisabled = (item: { value: string }): { disabled: boolean; tooltip: string } => {
+  const data = props.data;
+  if (data.length === 0) return { disabled: false, tooltip: '' };
+
+  if (props.batch) {
+    // Batch mode: check across all selected hosts
+    if (item.value === 'assignUnit') {
+      const hasAssigned = data.some((h: any) => isNetworkUnitAssigned(h.bk_networkunit_id));
+      if (hasAssigned) {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.assignUnitDisabledAssigned'),
+        };
+      }
+      const areaIds = new Set(data.map((h: any) => h.bk_networkarea_id));
+      if (areaIds.size > 1) {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.assignUnitDisabledMultiArea'),
+        };
+      }
+    }
+
+    if (item.value === 'upgrade' || item.value === 'restart' || item.value === 'unload') {
+      const hasNotRunning = data.some((h: any) => h.node_status !== 'running');
+      if (hasNotRunning) {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.operateDisabledNotRunning'),
+        };
+      }
+      const hasUnassigned = data.some((h: any) => !isNetworkUnitAssigned(h.bk_networkunit_id));
+      if (hasUnassigned) {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.operateDisabledUnassigned'),
+        };
+      }
+    }
+  } else {
+    // Row mode: check single host
+    if (item.value === 'assignUnit') {
+      const row = data[0] as any;
+      if (isNetworkUnitAssigned(row?.bk_networkunit_id)) {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.assignUnitDisabledRowAssigned'),
+        };
+      }
+    }
+
+    if (item.value === 'upgrade' || item.value === 'restart' || item.value === 'unload') {
+      const row = data[0] as any;
+      if (row?.node_status !== 'running') {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.operateDisabledRowNotRunning'),
+        };
+      }
+      if (!isNetworkUnitAssigned(row?.bk_networkunit_id)) {
+        return {
+          disabled: true,
+          tooltip: t('platform.nodeMan.proxyStatus.operateDisabledRowUnassigned'),
+        };
+      }
+    }
+  }
+
+  return { disabled: false, tooltip: '' };
+};
+
 // action dialog map
 const confirmConfigMap = {
   reinstall: {
@@ -180,6 +263,8 @@ const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
   }
   if (action === 'reinstall') {
     emit('reinstall');
+  } else if (action === 'assignUnit') {
+    emit('assignUnit');
   } else {
     let operateData = props.data;
     let batch = props.batch;
@@ -330,6 +415,15 @@ const handleUpgrade = async (versionList: any[]) => {
 
   &:hover {
     background-color: #f0f1f5 !important;
+  }
+}
+/* 因业务规则禁用的菜单项 */
+.operate-item-disabled {
+  color: #c4c6cc !important;
+  cursor: not-allowed !important;
+
+  &:hover {
+    background-color: transparent !important;
   }
 }
 </style>

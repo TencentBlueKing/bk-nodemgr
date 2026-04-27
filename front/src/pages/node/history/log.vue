@@ -496,6 +496,7 @@ const typeMap = computed(() => ({
   reconfig_proxy: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy'),
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
+  assign_proxy_unit: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
 }));
 
 const timeFormatter = (

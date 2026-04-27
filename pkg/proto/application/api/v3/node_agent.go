@@ -652,11 +652,12 @@ func (x *NodeAgentAssignUnitReq) Validate() error {
 }
 
 // ConvertResult populates the response from result values.
-func (x *NodeAgentAssignUnitResp) ConvertResult(successCount, failedCount int64, failedReasons []string) {
+// ConvertResult converts the assign unit result from types struct.
+func (x *NodeAgentAssignUnitResp) ConvertResult(result *types.NodeAgentAssignUnitResult) {
 	x.Data = &NodeAgentAssignUnitResp_Data{
-		SuccessCount:  successCount,
-		FailedCount:   failedCount,
-		FailedReasons: failedReasons,
+		SuccessCount:  result.SuccessCount,
+		FailedCount:   result.FailedCount,
+		FailedReasons: result.FailedReasons,
 	}
 }
 

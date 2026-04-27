@@ -62,4 +62,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/update", restserver.Handler(h.Update))
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 	h.rg.POST("/install_check", restserver.Handler(h.ProxyInstallCheck))
+	h.rg.POST("/assign_unit", restserver.Handler(h.AssignProxyUnit))
 }

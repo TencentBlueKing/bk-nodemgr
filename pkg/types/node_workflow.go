@@ -86,6 +86,9 @@ const (
 
 	// NodeWorkflowTypeRestartProxy is the operation type for restart proxy.
 	NodeWorkflowTypeRestartProxy NodeWorkflowType = "restart_proxy"
+
+	// NodeWorkflowTypeAssignProxyUnit is the operation type for assign proxy unit.
+	NodeWorkflowTypeAssignProxyUnit NodeWorkflowType = "assign_proxy_unit"
 )
 
 // Validate checks if the NodeWorkflowType is valid.
@@ -95,7 +98,8 @@ func (nwo NodeWorkflowType) Validate() error {
 		NodeWorkflowTypeUpgradeAgent, NodeWorkflowTypeUpgradeProxy,
 		NodeWorkflowTypeReconfigAgent, NodeWorkflowTypeReconfigProxy,
 		NodeWorkflowTypeRestartAgent, NodeWorkflowTypeRestartProxy,
-		NodeWorkflowTypeUninstallAgent, NodeWorkflowTypeUninstallProxy:
+		NodeWorkflowTypeUninstallAgent, NodeWorkflowTypeUninstallProxy,
+		NodeWorkflowTypeAssignProxyUnit:
 		return nil
 	default:
 		return fmt.Errorf("invalid node workflow oper type, oper-type(%s)", nwo)

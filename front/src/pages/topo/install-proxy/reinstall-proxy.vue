@@ -52,7 +52,7 @@
           v-if="isTargetShow && form.method !== 'offline'"
           :label="t('installProxy.installSource')"
           property="proxy_install_origin"
-          label-width="110"
+          label-width="90"
           required
         >
           <Cascader
@@ -65,7 +65,7 @@
         <Form.FormItem
           v-if="isTargetShow"
           property="relay_callback_port"
-          label-width="110"
+          label-width="90"
           required
         >
           <template #label>
@@ -95,7 +95,7 @@
         <Form.FormItem
           v-if="isTargetShow"
           property="relay_download_port"
-          label-width="110"
+          label-width="90"
           required
         >
           <template #label>
@@ -122,7 +122,7 @@
           </template>
           <Input class="w-[488px]" v-model="form.relay_download_port" />
         </Form.FormItem>
-        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="110" required v-if="isTargetShow">
+        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
             <Table :data="systemData" :border="true" :empty-text="t('installProxy.noAvailableVersion')">
               <TableColumn
@@ -149,8 +149,6 @@
           </div>
         </Form.FormItem>
       </Form>
-    </div>
-    <template #footer>
       <div class="flex mt-[32px] ml-[90px]">
         <Button
           theme="primary"
@@ -166,7 +164,7 @@
             {{ $t("topoManager.installProxy.button.install") }}
           </span>
           <span
-            class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
+            class="ml-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
           >
             {{ form.info.length }}
           </span>
@@ -175,7 +173,7 @@
           {{ $t("action.cancel") }}
         </Button>
       </div>
-    </template>
+    </div>
     <proxy-preview
       v-model:is-show="isShowPreview"
       :data="previewData"

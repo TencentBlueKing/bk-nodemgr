@@ -28,7 +28,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	workflowID, err := h.backendHandler.InstallProxy(rCtx, req.ConvertProxyParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy")
-		return nil, err
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy install")

@@ -681,6 +681,88 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	return workflowID, nil
 }
 
+// LaunchAssignProxyUnit launch a task to assign proxy unit. returns the workflow-id.
+func (mgr *Manager) LaunchAssignProxyUnit(nCtx contextx.IContext, param types.AssignProxyUnitParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		TenantID:       nCtx.TenantID(),
+		WorkflowID:     workflowID,
+		TriggerID:      triggerCtl.GetTriggerID(),
+		Type:           param.Type,
+		BizIDs:         param.BizIDs,
+		NodeRoles:      nodeRoles,
+		NetworkAreaIDs: areaIDs,
+		NetworkUnitIDs: unitIDs,
+		Operator:       param.Operator,
+		OperateTime:    time.Now(),
+		Status:         types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
+		Info("launching assign proxy unit")
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range param.NodeDeployments {
+		deploy := nodeDeploy
+
+		gp.Go(func() error {
+			if err := mgr.conf.StorageNode.CreateNodeDeployment(nCtx, deploy); err != nil {
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID(), "token", deploy.Token).
+					Error("failed to launch assign proxy unit, failed to create node deployment")
+
+				return err
+			}
+
+			operationDef := node.NewOperAssignProxyUnit(node.OperParamAssignProxyUnit{
+				Token:             deploy.Token,
+				Operator:          param.Operator,
+				NetworkUnitID:     deploy.Info.Host.Dynamic.NetworkUnitID,
+				RelayCallbackPort: deploy.Info.Host.Dynamic.RelayCallbackPort,
+				RelayDownloadPort: deploy.Info.Host.Dynamic.RelayDownloadPort,
+				ProxyTags:         types.ProxyTagListToStringList(deploy.Info.Host.Dynamic.ProxyTags),
+			})
+			operationParam := operationDef.DefaultParameters()
+
+			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+			if err != nil {
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					Error("failed to launch assign proxy unit, failed to create operation")
+
+				return err
+			}
+
+			logger.G.Biz(nCtx).
+				With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+				Info("launched assign proxy unit")
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch assign proxy unit task: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
 func (mgr *Manager) getReconfigOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
 	// proxy node, use direct link.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {

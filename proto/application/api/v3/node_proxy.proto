@@ -269,6 +269,26 @@ message NodeProxyUpgradeCheckResult {
   string category = 5;
 }
 
+// NodeProxyAssignUnitReq describes the request body for batch-assigning
+// a network unit to proxy hosts.
+message NodeProxyAssignUnitReq {
+  repeated int64 bk_host_id = 1;
+  int64 bk_networkunit_id = 2;
+}
+
+// NodeProxyAssignUnitResp describes the response for batch-assigning
+// a network unit to proxy hosts.
+message NodeProxyAssignUnitResp {
+  message Data {
+    int64 success_count = 1;
+    int64 failed_count = 2;
+    repeated string failed_reasons = 3;
+    string workflow_id = 4;
+  }
+  Data data = 1;
+}
+
+// NodeProxy describes the node proxy service.
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
   rpc NodeProxyInstall(NodeProxyInstallReq) returns (NodeProxyInstallResp) {
@@ -333,6 +353,15 @@ service NodeProxy {
       returns (NodeProxyUpgradeCheckResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/upgrade_check"
+      body : "*"
+    };
+  }
+
+  // NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.
+  rpc NodeProxyAssignUnit(NodeProxyAssignUnitReq)
+      returns (NodeProxyAssignUnitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/assign_unit"
       body : "*"
     };
   }

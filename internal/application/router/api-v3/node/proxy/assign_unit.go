@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package agent
+package proxy
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -18,28 +18,29 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// AssignUnit batch-assigns a network unit to unassigned hosts.
+// AssignUnit batch-assigns a network unit to unassigned proxy hosts.
 func (h *handler) AssignUnit(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeAgentAssignUnitReq)
+	req := new(protoApplication.NodeProxyAssignUnitReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit agent, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.AssignUnitAgent(
-		rCtx, &types.NodeAgentAssignUnitParam{
+	result, err := h.backendHandler.AssignUnitProxy(
+		rCtx, &types.NodeProxyAssignUnitParam{
 			HostIDs:       req.GetBkHostId(),
 			NetworkUnitID: req.GetBkNetworkunitId(),
 		})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit agent")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to assign unit proxy")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	logger.G.Biz(rCtx).With("success_count", result.SuccessCount).With("failed_count", result.FailedCount).
-		Info("batch assign unit completed")
+		With("workflow_id", result.WorkflowID).
+		Info("batch assign unit proxy completed")
 
-	resp := new(protoApplication.NodeAgentAssignUnitResp)
+	resp := new(protoApplication.NodeProxyAssignUnitResp)
 	resp.ConvertResult(result)
 
 	return resp.GetData(), nil
