@@ -656,49 +656,94 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
 
-    // 预处理：为 Unit→AP 的边分配序号（两种索引策略）
-    // 1. edgeIndex：按 source unit 的 x 坐标分 bucket，控制垂直线的 X 偏移
-    // 2. apEdgeIndex：按 target AP 分组，控制水平线的 Y 偏移（避免同AP多边水平线重合）
+    // 预处理：为 Unit→AP 的边分配 edgeIndex（控制垂直线 X 偏移）
+    // 全局按 source unit 的 x 坐标排序后统一分配，保持所有垂直线间距一致
     const unitToApEdgeIndexMap = new Map<string, number>();
-    const unitToApEdgeYIndexMap = new Map<string, number>(); // 新增：按目标AP分组的Y偏移索引
     const visibleEdges = edges.filter(edge => nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string));
-    
-    // 按 source unit 的 x 坐标分 bucket（用于垂直线X偏移）
+
+    // 收集所有 Unit→AP 的边（同时保留 xBuckets 供后续 optimizeEdgeStyle 使用）
+    const unitToApEdges: EdgeData[] = [];
     const xBuckets = new Map<number, EdgeData[]>();
-    // 按 target AP 分组（用于水平线Y偏移，解决核心问题：同AP多条入边水平线重合）
-    const apBuckets = new Map<string, EdgeData[]>();
     visibleEdges.forEach((edge) => {
       const sId = edge.source as string;
       const tId = edge.target as string;
       if (sId.startsWith('workUnit-') && tId.startsWith('accessPoint-')) {
+        unitToApEdges.push(edge);
         const sourceInfo = nodeLayoutInfo.get(sId);
         if (sourceInfo) {
-          // 以 source unit 的 x 坐标作为 bucket key（同一列 unit 的 x 相同）
           const bucketKey = sourceInfo.x;
           if (!xBuckets.has(bucketKey)) {
             xBuckets.set(bucketKey, []);
           }
           xBuckets.get(bucketKey)!.push(edge);
         }
-        // 按目标 AP 分组，确保连向同一AP的所有边都有唯一序号
-        if (!apBuckets.has(tId)) {
-          apBuckets.set(tId, []);
-        }
-        apBuckets.get(tId)!.push(edge);
       }
     });
-    
-    // 同一 bucket 内按序号分配 edgeIndex（控制垂直线X位置）
-    xBuckets.forEach((bucketEdges) => {
-      bucketEdges.forEach((edge, idx) => {
-        unitToApEdgeIndexMap.set(edge.id as string, idx);
-      });
+
+    // 按 source unit 的 x 坐标排序，全局分配 edgeIndex
+    unitToApEdges.sort((a, b) => {
+      const aX = nodeLayoutInfo.get(a.source as string)?.x ?? 0;
+      const bX = nodeLayoutInfo.get(b.source as string)?.x ?? 0;
+      return aX - bX;
+    });
+    unitToApEdges.forEach((edge, idx) => {
+      unitToApEdgeIndexMap.set(edge.id as string, idx);
     });
 
-    // 同一 AP 内按序号分配 apEdgeIndex（控制水平线Y位置，避免重合）
-    apBuckets.forEach((apEdges) => {
-      apEdges.forEach((edge, idx) => {
-        unitToApEdgeYIndexMap.set(edge.id as string, idx);
+    // 按 source unit 分组，按 anchorY 排序后分配阶梯式 unitYOffset
+    // 设计原则：同一水平（anchorY 相同）的单元，水平线可能交叉重合，需要错开
+    // 第二个单元的 baseOffset = 第一个单元的最大子边跨度 + UNIT_GAP
+    const unitToApYIndexMap = new Map<string, number>();
+    const unitEdgeGroups = new Map<string, EdgeData[]>();
+    unitToApEdges.forEach((edge) => {
+      const sId = edge.source as string;
+      if (!unitEdgeGroups.has(sId)) unitEdgeGroups.set(sId, []);
+      unitEdgeGroups.get(sId)!.push(edge);
+    });
+
+    const UNIT_GAP = 5; // 不同冲突单元之间的额外间距（px），和同一单元内子边间距一致
+    const SUB_EDGE_GAP = 5; // 同一单元内子边间距（px）
+    const unitHeight = 214; // 单元节点高度（与 customEdge.ts 保持一致）
+
+    // 收集所有 unit 的 anchorY，全局按 anchorY 排序后分配偏移
+    const unitAnchorInfos: { unitId: string; anchorY: number; edgeCount: number }[] = [];
+    unitEdgeGroups.forEach((edges, unitId) => {
+      const unitY = nodeLayoutInfo.get(unitId)?.y ?? 0;
+      const anchorY = unitY + unitHeight + 5;
+      unitAnchorInfos.push({ unitId, anchorY, edgeCount: edges.length });
+    });
+
+    // 按 anchorY 排序
+    unitAnchorInfos.sort((a, b) => a.anchorY - b.anchorY);
+
+    let currentGroupOffset = 0;
+    let lastAnchorY = -Infinity;
+    let lastUnitSpan = 0;
+
+    unitAnchorInfos.forEach(({ unitId, anchorY, edgeCount }) => {
+      // 当前单元的线跨度 = (edgeCount - 1) * SUB_EDGE_GAP
+      const unitSpan = Math.max(edgeCount - 1, 0) * SUB_EDGE_GAP;
+      // 当前单元的最小子边偏移（可能为负数）
+      const unitMinSubOffset = unitSpan > 0 ? -unitSpan / 2 : 0;
+
+      // 判断是否与上一个单元在同一水平（anchorY 相同或非常接近）
+      if (Math.abs(anchorY - lastAnchorY) < 1) {
+        // 同一水平：累加偏移，确保当前单元的最小子边线也在前面单元线的下方
+        // 前面单元最后一条线的相对位置 = currentGroupOffset + lastUnitSpan/2 (当lastUnitSpan>0) 或 currentGroupOffset (当lastUnitSpan=0)
+        // 简化为：currentGroupOffset 需要增加的量 = (lastUnitSpan/2 - unitMinSubOffset) + UNIT_GAP
+        // 当 lastUnitSpan=0 时，lastUnitSpan/2=0，增量 = -unitMinSubOffset + UNIT_GAP
+        const neededIncrement = Math.max(lastUnitSpan, 0) / 2 - unitMinSubOffset + UNIT_GAP;
+        currentGroupOffset += Math.max(lastUnitSpan + UNIT_GAP, neededIncrement);
+      } else {
+        // 不同水平：重置
+        currentGroupOffset = 0;
+      }
+      lastAnchorY = anchorY;
+      lastUnitSpan = unitSpan;
+
+      const edgesInUnit = unitEdgeGroups.get(unitId)!;
+      edgesInUnit.forEach((edge) => {
+        unitToApYIndexMap.set(edge.id as string, currentGroupOffset);
       });
     });
 
@@ -824,10 +869,10 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
 
-    // 计算所有垂直线的实际 midX
+    // 计算所有垂直线的实际 midX（使用与 customEdge.ts 一致的 edgeIndex）
     const allVertLineMidXs: { midX: number; edgeId: string }[] = [];
     xBuckets.forEach((bucketEdges) => {
-      bucketEdges.forEach((edge, idx) => {
+      bucketEdges.forEach((edge) => {
         const tId = edge.target as string;
         const sId = edge.source as string;
         const targetInfo = nodeLayoutInfo.get(tId);
@@ -837,7 +882,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           const sourceArea = nodeAreaMap.get(sId) ?? '';
           const targetArea = nodeAreaMap.get(tId) ?? '';
           const isCrossArea = sourceArea !== targetArea && sourceArea !== '' && targetArea !== '';
-          
+
           let isOnAreaBorder = false;
           if (isCrossArea) {
             const targetAreaBounds = areaBoundsMap.get(targetArea);
@@ -849,12 +894,12 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
               isOnAreaBorder = isApNearAreaRight && isUnitNearAreaLeft;
             }
           }
-          
-          // 跨区域时增加额外间距（两种情况独立处理）
-          // 1. 普通跨区域：+15
-          // 2. 跨区域且在区域边界上：+50
-          const crossAreaOffset = isCrossArea ? (isOnAreaBorder ? 50 : 15) : 0;
-          const midX = apX + 80 + 40 + idx * 5 + crossAreaOffset;
+
+          // 跨区域标记保留，但不再额外增加垂直线X偏移
+          // 所有垂直线统一按 edgeIndex * 5px 间距排列
+          const crossAreaOffset = 0;
+          const edgeIndex = unitToApEdgeIndexMap.get(edge.id as string) ?? 0;
+          const midX = apX + 80 + 40 + edgeIndex * 5 + crossAreaOffset;
           allVertLineMidXs.push({ midX, edgeId: edge.id as string });
         }
       });
@@ -988,7 +1033,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
                 fill: edgeColor
               },
               edgeIndex: unitToApEdgeIndexMap.get(edge.id as string) ?? 0,
-              apEdgeIndex: unitToApEdgeYIndexMap.get(edge.id as string) ?? 0,
+              unitYIndex: unitToApYIndexMap.get(edge.id as string) ?? 0,
             },
           };
         }

@@ -291,19 +291,16 @@ export interface NodeProxyUpgradeCheckResult {
   category: string;
 }
 
-// NodeProxyAssignUnitReq describes the node proxy assign unit request.
+// NodeProxyAssignUnitReq describes the request body for batch-assigning
+// a network unit to proxy hosts.
 export interface NodeProxyAssignUnitReq {
   bk_host_id: number[];
   bk_networkunit_id: number;
 }
 
-// NodeProxyAssignUnitResp describes the node proxy assign unit response.
+// NodeProxyAssignUnitResp describes the response for batch-assigning
+// a network unit to proxy hosts.
 export interface NodeProxyAssignUnitResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
   data: NodeProxyAssignUnitRespData;
 }
 
@@ -311,4 +308,6 @@ export interface NodeProxyAssignUnitRespData {
   success_count: number;
   failed_count: number;
   failed_reasons: string[];
+  workflow_id: string;
 }
+

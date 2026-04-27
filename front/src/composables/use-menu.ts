@@ -1,9 +1,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { MENU_ROUTE_AUTH_MAP } from '@/constants/auth';
 import { i18n } from '../modules/i18n';
-import { useAuthStore } from '@/stores/auth';
 
 export interface NavGroup {
   title: string;
@@ -189,7 +187,6 @@ const navList = [
 
 export default function useMenu() {
   const route = useRoute();
-  const authStore = useAuthStore();
   const currentMainMenu = computed(() => (route.meta?.mainMenu || (route.query.mainMenu as string)));
 
   const navData = computed<NavItem[]>(() => navList.map(item => ({
@@ -199,23 +196,8 @@ export default function useMenu() {
 
   const subMenuData = computed(() => {
     const groups = navData.value.find(item => item.routeName === currentMainMenu.value)?.group || [];
-    // 包管理：所有菜单项都显示（不按权限过滤），进入具体页面时由路由守卫做鉴权和重定向
-    if (currentMainMenu.value === 'pkgManager') {
-      return groups;
-    }
-    // 其他模块：根据 authorized 权限过滤菜单可见性
-    return groups
-      .map(group => ({
-        ...group,
-        children: group.children.filter((child) => {
-          const requiredAction = MENU_ROUTE_AUTH_MAP[child.routeName];
-          if (!requiredAction) return true; // No auth config, always show
-          // action 尚未写入 authorizedMap → 该模块权限还在请求中，默认显示
-          if (!authStore.authorizedMap[requiredAction]) return true;
-          return authStore.hasAuthorizedResource(requiredAction);
-        }),
-      }))
-      .filter(group => group.children.length > 0); // Remove empty groups
+    // 所有模块：菜单始终显示，无权限时由路由守卫跳转 403 占位页
+    return groups;
   });
 
   return {

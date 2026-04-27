@@ -720,3 +720,27 @@ body {
   }
 }
 </style>
+<style lang="postcss">
+
+/* 无权限按钮：模拟 disabled 视觉效果但保持鼠标事件可响应 */
+.auth-lock-wrapper {
+  cursor: pointer;
+
+  .auth-disabled-btn {
+    opacity: 0.5;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
+
+  .auth-disabled-text-btn {
+    color: #c4c6cc !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+
+    &:hover {
+      color: #c4c6cc !important;
+      background: transparent !important;
+    }
+  }
+}
+</style>

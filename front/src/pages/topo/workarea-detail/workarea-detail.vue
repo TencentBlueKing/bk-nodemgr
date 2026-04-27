@@ -299,6 +299,8 @@ const loadUnitDetail = async () => {
     // 从 links 提取所有 (bk_networkunit_id, accesspoint_id) 对，按 bk_networkunit_id 分组 batch 拉
     if (detail.links) {
       const unitToApIds = new Map<number, Set<number>>();
+      // 建立 accesspoint_id -> bk_networkunit_id 映射，避免依赖后端 AccessPoint 响应中的 bk_networkunit_id
+      const apIdToUnitId = new Map<number, number>();
       for (const key of ['cluster', 'file', 'data'] as const) {
         const link = detail.links[key];
         if (link?.bk_networkunit_id != null && link.accesspoint_id != null) {
@@ -309,6 +311,7 @@ const loadUnitDetail = async () => {
             unitToApIds.set(link.bk_networkunit_id, new Set());
           }
           unitToApIds.get(link.bk_networkunit_id)!.add(link.accesspoint_id);
+          apIdToUnitId.set(link.accesspoint_id, link.bk_networkunit_id);
         }
       }
       if (unitToApIds.size > 0) {
@@ -323,7 +326,7 @@ const loadUnitDetail = async () => {
           // 按 bk_networkunit_id 分组塞进 allAccessPointList（与 access-point.vue 反查维度一致）
           const grouped = new Map<number, AccessPoint[]>();
           for (const ap of apResult.items as AccessPoint[]) {
-            const unitKey = (ap as unknown as { bk_networkunit_id: number }).bk_networkunit_id;
+            const unitKey = apIdToUnitId.get(ap.accesspoint_id);
             if (unitKey == null) continue;
             if (!grouped.has(unitKey)) grouped.set(unitKey, []);
             grouped.get(unitKey)!.push(ap);
@@ -337,6 +340,51 @@ const loadUnitDetail = async () => {
             }
             workareaStore.allAccessPointList.set(unitKey, merged);
           }
+        }
+      }
+      // 补充加载上游区域和单元名称，供 access-point 组件反查完整路径
+      const upstreamAreaIds = new Set<number>();
+      const upstreamUnitIds = new Set<number>();
+      for (const key of ['cluster', 'file', 'data'] as const) {
+        const link = detail.links[key];
+        if (link?.bk_networkarea_id != null && !workareaStore.allWorkareaList.has(link.bk_networkarea_id)) {
+          upstreamAreaIds.add(link.bk_networkarea_id);
+        }
+        if (link?.bk_networkunit_id != null) {
+          const cached = workareaStore.allWorkUnitList.get(link.bk_networkarea_id);
+          if (!cached?.some(u => u.bk_networkunit_id === link.bk_networkunit_id)) {
+            upstreamUnitIds.add(link.bk_networkunit_id);
+          }
+        }
+      }
+      if (upstreamAreaIds.size > 0) {
+        const areaRes = await TopoService.NetworkAreaList({
+          page: { offset: 0, limit: upstreamAreaIds.size },
+          only_count: false,
+          exact_include_conditions: { bk_networkarea_id: Array.from(upstreamAreaIds) },
+        }).catch(() => ({ items: [] }));
+        for (const area of areaRes.items || []) {
+          workareaStore.allWorkareaList.set(area.bk_networkarea_id, area);
+        }
+      }
+      if (upstreamUnitIds.size > 0) {
+        const unitRes = await TopoService.NetworkUnitListBrief({
+          page: { offset: 0, limit: upstreamUnitIds.size },
+          only_count: false,
+          exact_include_conditions: { bk_networkunit_id: Array.from(upstreamUnitIds) },
+        }).catch(() => ({ items: [] }));
+        const grouped = new Map<number, any[]>();
+        for (const unit of unitRes.items || []) {
+          if (!grouped.has(unit.bk_networkarea_id)) grouped.set(unit.bk_networkarea_id, []);
+          grouped.get(unit.bk_networkarea_id)!.push(unit);
+        }
+        for (const [areaId, units] of grouped) {
+          const existed = workareaStore.allWorkUnitList.get(areaId) || [];
+          const merged = [...existed];
+          for (const unit of units) {
+            if (!merged.some(u => u.bk_networkunit_id === unit.bk_networkunit_id)) merged.push(unit);
+          }
+          workareaStore.allWorkUnitList.set(areaId, merged);
         }
       }
     }

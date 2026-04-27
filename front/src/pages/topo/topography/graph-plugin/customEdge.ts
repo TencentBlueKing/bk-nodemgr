@@ -25,16 +25,9 @@ export default class CustomEdge extends Polyline {
     const keyPathStyle = super.getKeyPath(attributes) as any;
     
     // 检查是否有布局算法设置的startPoint和endPoint
-    const startPoint = this.parsedAttributes.startPoint;
-    const endPoint = this.parsedAttributes.endPoint;
-    
-    // 如果布局算法设置了具体的起点和终点，直接使用（主要是AP->Unit的水平直线）
-    if (startPoint && endPoint) {
-      return [
-        ['M', startPoint[0], startPoint[1]],
-        ['L', endPoint[0], endPoint[1]]
-      ];
-    }
+    const attrs = this.parsedAttributes as any;
+    const startPoint = attrs.startPoint;
+    const endPoint = attrs.endPoint;
     
     // 获取源节点和目标节点ID
     const sourceNodeId = this.parsedAttributes.sourceNode;
@@ -42,6 +35,16 @@ export default class CustomEdge extends Polyline {
     
     // 检查是否是Unit->AP的边（需要L型路径）
     const isUnitToAPEdge = sourceNodeId?.startsWith('workUnit-') && targetNodeId?.startsWith('accessPoint-');
+    
+    // 如果布局算法设置了具体的起点和终点，直接使用（仅对AP->Unit的水平直线）
+    // Unit->AP 边不走这个短路，因为布局算法给所有边都设置了 startPoint/endPoint，
+    // 但 Unit->AP 需要自定义的 L 型路径（带偏移避免重合）
+    if (!isUnitToAPEdge && startPoint && endPoint) {
+      return [
+        ['M', startPoint[0], startPoint[1]],
+        ['L', endPoint[0], endPoint[1]]
+      ];
+    }
     
     // 对Unit->AP的边应用L型路径
     if (isUnitToAPEdge && this.context && this.context.graph) {
@@ -55,7 +58,7 @@ export default class CustomEdge extends Polyline {
         const totalSubEdges = (edgeData?.data as any)?.totalSubEdges ?? 1;
         // 纵向偏移：多条子边时，以中心为基准上下分布，间距3px
         const subEdgeYOffset = totalSubEdges > 1
-          ? (subIndex - (totalSubEdges - 1) / 2) * 3
+          ? (subIndex - (totalSubEdges - 1) / 2) * 5
           : 0;
 
         // 计算锚点坐标
@@ -65,22 +68,19 @@ export default class CustomEdge extends Polyline {
         const unitHeight = sourceNodeData.data?.is_direct ? 162 : 214;
         
         const anchorX = unitX + unitWidth / 2;
-        const anchorY = unitY + unitHeight + 5 + subEdgeYOffset;
+        const anchorY = unitY + unitHeight + 5;
         
         const apX = targetNodeData.style?.x || 0;
         const apY = targetNodeData.style?.y || 0;
         const apHeight = 30;
         
-        const targetX = apX + 80;
-        const targetY = apY + apHeight / 2 - 5 + subEdgeYOffset;
+        // 从布局阶段传入的 edgeIndex 计算偏移（声明在使用前）
+        // edgeIndex: 按 source unit 的 x 排序，控制垂直线 X 偏移
+        const edgeIndex = attrs.edgeIndex ?? 0;
+        const edgeOffset = edgeIndex * 5;     // 垂直线X偏移间距
         
-        // 从布局阶段传入的 edgeIndex 计算偏移
-        // - edgeIndex: 按 source unit 的 x 分桶，控制垂直线 X 偏移
-        // - apEdgeIndex: 按目标 AP 分组，控制水平线 Y 偏移（避免同AP多条入边水平线重合）
-        const edgeIndex = this.parsedAttributes.edgeIndex ?? 0;
-        const apEdgeIndex = this.parsedAttributes.apEdgeIndex ?? 0;
-        const edgeOffset = edgeIndex * 5;
-        const yOffset = apEdgeIndex * 5; // 用 apEdgeIndex 控制水平线Y偏移
+        const targetX = apX + 80;
+        const targetY = apY + apHeight / 2 - 5;
         
         // 检查是否跨区域连接
         const sourceArea = sourceNodeData.data?.area;
@@ -103,15 +103,19 @@ export default class CustomEdge extends Polyline {
           }
         }
         
-        // 跨区域时增加额外间距（两种情况独立处理）
-        // 1. 普通跨区域：+15，避免垂直线与其他区域的元素重叠
-        // 2. 跨区域且在区域边界上：+50，垂直线需要绕过区域边界
-        const crossAreaOffset = isCrossArea ? (isOnAreaBorder ? 50 : 15) : 0;
+        // 跨区域标记保留（供其他逻辑使用），但不再额外增加垂直线X偏移
+        // 所有垂直线统一按 edgeIndex * 5px 间距排列
+        const crossAreaOffset = 0;
         
-        // 统一垂直线X坐标：接入点targetX + 40 + 偏移量 + 跨区域偏移
+        // 统一垂直线X坐标：接入点targetX + 40 + 偏移量
         const midX = targetX + 40 + edgeOffset + crossAreaOffset;
         
-        const firstVerticalY = anchorY + 15 + yOffset;   // 从锚点向下15px（缩短了）+ 垂直偏移
+        // 基于布局阶段按 source unit 分配的 unitYIndex 计算偏移（已是 px 值），
+        // 让不同单元的边在 firstVerticalY 上错开固定间距，
+        // 避免不同单元 anchorY 相同时第一段水平线重合
+        const unitYOffset = attrs.unitYIndex ?? 0;
+        const firstVerticalY = anchorY + 15 + subEdgeYOffset + unitYOffset;
+        
         
         // 圆弧半径（自适应）
         const maxRadius = 8;

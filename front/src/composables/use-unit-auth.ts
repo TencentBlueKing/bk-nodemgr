@@ -10,7 +10,7 @@ import { usePermissionStore } from '@/stores/permission';
  * - 无权限选项：灰色文字 + hover 锁图标跟随鼠标 + 点击阻止选中并触发权限申请
  * - 有权限选项：正常交互
  */
-export default function useUnitAuth() {
+export default function useUnitAuth(action = 'networkunit_view') {
   const authStore = useAuthStore();
   const permissionStore = usePermissionStore();
 
@@ -18,12 +18,12 @@ export default function useUnitAuth() {
     handleMouseEnter: authLockMouseEnter,
     handleMouseMove: authLockMouseMove,
     handleMouseLeave: authLockMouseLeave,
-  } = useAuthLock('networkunit_view', () => undefined, { resourceType: 'networkunit' });
+  } = useAuthLock(action, () => undefined, { resourceType: 'networkunit' });
 
-  /** 判断某个管控单元是否有 view 权限 */
+  /** 判断某个管控单元是否有权限 */
   function isUnitAuthorized(unitId: number | string): boolean {
     if (!authStore.authorizedLoaded) return true; // 未加载完成时默认有权限，避免闪烁
-    return authStore.hasAuthorizedResource('networkunit_view', unitId);
+    return authStore.hasAuthorizedResource(action, unitId);
   }
 
   /** 下拉选项 mouseenter：无权限时显示锁 */
@@ -50,10 +50,10 @@ export default function useUnitAuth() {
     }
   }
 
-  /** 申请管控单元查看权限 */
+  /** 申请管控单元权限 */
   async function handleApplyUnitPermission(unitId: number | string) {
     const authItems = [
-      { id: 'networkunit_view', action: 'networkunit_view', resourceType: 'networkunit', routes: [] },
+      { id: action, action, resourceType: 'networkunit', routes: [] },
     ];
     await authStore.batchVerify(authItems, undefined, unitId);
     const detail = authStore.permissionDetail;

@@ -23,6 +23,7 @@ export const NodeAgentService = {
   NodeAgentInstallCheck: async <Request = NodeAgentInstallCheckReq, ResponseData = NodeAgentInstallCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/install_check')(params, config),
   // NodeAgentUpgradeCheck checks node agent upgrade.
   NodeAgentUpgradeCheck: async <Request = NodeAgentUpgradeCheckReq, ResponseData = NodeAgentUpgradeCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/upgrade_check')(params, config),
+  // UploadAgentTemplate uploads agent template.
   UploadAgentTemplate: async <Request = UploadAgentTemplateReq, ResponseData = UploadAgentTemplateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/upload_template')(params, config),
   // NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.
   NodeAgentAssignUnit: async <Request = NodeAgentAssignUnitReq, ResponseData = NodeAgentAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/assign_unit')(params, config),

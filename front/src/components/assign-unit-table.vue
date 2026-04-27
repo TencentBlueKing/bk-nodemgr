@@ -203,7 +203,7 @@ const {
   handleOptionMouseMove: handleUnitOptionMouseMove,
   handleOptionMouseLeave: handleUnitOptionMouseLeave,
   handleOptionClick: handleUnitOptionClick,
-} = useUnitAuth();
+} = useUnitAuth('networkunit_use_for_agent');
 const businessList = computed(() => mainStore.businessList);
 
 const { getError, setError, clearError, clearAllErrors, shiftErrors } = useTableErrors();

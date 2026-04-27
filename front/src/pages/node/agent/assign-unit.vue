@@ -24,14 +24,28 @@
       ]"
       ref="footerRef"
     >
-      <Button
-        class="min-w-[120px] mr-[8px]"
-        theme="primary"
-        :loading="submitting"
-        @click="handleConfirm"
+      <template v-if="hasAssignUnitAuth">
+        <Button
+          class="min-w-[120px] mr-[8px]"
+          theme="primary"
+          :loading="submitting"
+          @click="handleConfirm"
+        >
+          <span>{{ $t('platform.nodeMan.agentStatus.assignUnitConfirmBtn', { count: formData.info.length }) }}</span>
+        </Button>
+      </template>
+      <span
+        v-else
+        class="inline-flex items-center auth-lock-wrapper mr-[8px]"
+        @click="handleAuthClick"
+        @mouseenter="authLockMouseEnter($event, false)"
+        @mousemove="authLockMouseMove($event, false)"
+        @mouseleave="authLockMouseLeave()"
       >
-        <span>{{ $t('platform.nodeMan.agentStatus.assignUnitConfirmBtn', { count: formData.info.length }) }}</span>
-      </Button>
+        <Button theme="primary" class="auth-disabled-btn min-w-[120px]">
+          <span>{{ $t('platform.nodeMan.agentStatus.assignUnitConfirmBtn', { count: formData.info.length }) }}</span>
+        </Button>
+      </span>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
 
@@ -59,11 +73,21 @@ import { UNASSIGNED_NETWORK_UNIT } from '@/common/const';
 import { resolveLoginMode } from '@/common/util';
 import AssignUnitTable from '@/components/assign-unit-table.vue';
 import OperateDialog from '@/components/operate-dialog.vue';
+import useAuthLock from '@/composables/use-auth-lock';
 import { useNodeManageStore } from '@/stores/node-manage';
 
 const { t } = useI18n();
 const router = useRouter();
 const nodeManageStore = useNodeManageStore();
+
+// ===== networkunit_use_for_agent 权限控制（分配管控单元确认按钮） =====
+const {
+  hasAuth: hasAssignUnitAuth,
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick,
+} = useAuthLock('networkunit_use_for_agent', () => undefined, { resourceType: 'networkunit' });
 
 const formData = reactive({
   info: [] as any[],
@@ -277,3 +301,5 @@ onUnmounted(() => {
   }
 });
 </script>
+
+

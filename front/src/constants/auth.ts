@@ -203,6 +203,9 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
   plugin: [
     { action: 'plugin_operate', resource_type: 'biz' },
   ],
+  assignUnit: [
+    { action: 'networkunit_use_for_agent', resource_type: 'networkunit' },
+  ],
   // ===== topoManager =====
   workarea: [
     { action: 'networkarea_create', resource_type: 'networkarea' },
