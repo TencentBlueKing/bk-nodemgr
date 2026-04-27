@@ -27,6 +27,8 @@ import (
 const (
 	// ActionNameSyncHost defines the action name.
 	ActionNameSyncHost = "sync_host"
+
+	syncHostDBBatchSize = 500
 )
 
 // NewActionSyncHost creates a new actionSyncHost.
@@ -155,20 +157,60 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 			len(updateHosts), len(insertHosts), len(deleteHostIDs)).
 		Info()
 
-	if err = act.storageHost.UpsertManyHostStatic(std.Context(), updateHosts...); err != nil {
+	if err = batchHandleHosts(updateHosts, syncHostDBBatchSize, func(hosts ...*types.Host) error {
+		return act.storageHost.UpsertManyHostStatic(std.Context(), hosts...)
+	}); err != nil {
 		return err
 	}
 
-	if err = act.storageHost.UpsertManyHost(std.Context(), insertHosts...); err != nil {
+	if err = batchHandleHosts(insertHosts, syncHostDBBatchSize, func(hosts ...*types.Host) error {
+		return act.storageHost.UpsertManyHost(std.Context(), hosts...)
+	}); err != nil {
 		return err
 	}
 
-	if err = act.storageHost.DeleteManyHost(std.Context(), deleteHostIDs...); err != nil {
+	if err = batchHandleHostIDs(deleteHostIDs, syncHostDBBatchSize, func(hostIDs ...int64) error {
+		return act.storageHost.DeleteManyHost(std.Context(), hostIDs...)
+	}); err != nil {
 		return err
 	}
 
 	if err := act.tryUpdateHostProcessBizID(std, param.BizID, cmdbData...); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func batchHandleHosts(hosts []*types.Host, batchSize int, fn func(hosts ...*types.Host) error) error {
+	if batchSize <= 0 {
+		batchSize = syncHostDBBatchSize
+	}
+
+	hostLen := len(hosts)
+
+	for start := 0; start < hostLen; start += batchSize {
+		end := min(start+batchSize, hostLen)
+		if err := fn(hosts[start:end]...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func batchHandleHostIDs(hostIDs []int64, batchSize int, fn func(hostIDs ...int64) error) error {
+	if batchSize <= 0 {
+		batchSize = syncHostDBBatchSize
+	}
+
+	hostIDLen := len(hostIDs)
+
+	for start := 0; start < hostIDLen; start += batchSize {
+		end := min(start+batchSize, hostIDLen)
+		if err := fn(hostIDs[start:end]...); err != nil {
+			return err
+		}
 	}
 
 	return nil
