@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -29,8 +30,10 @@ const (
 	// ActionNameGenOperSyncHost defines the action name.
 	ActionNameGenOperSyncHost = "gen_oper_sync_host"
 
-	//
 	syncHostMaxDays = 1
+
+	// execute operations is a fast operation, sow we can set a higher limit.
+	executeOperLimit = 100
 )
 
 // NewActionGenOperSyncHost this action will create host sync operation for all business.
@@ -129,7 +132,8 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to parse %s: %w", globalsettings.OperSyncHostMaxConcurrencyNum, err)
 	}
 	if maxConcurrencyNum <= 0 {
-		return fmt.Errorf("%s must be positive, got %d", globalsettings.OperSyncHostMaxConcurrencyNum, maxConcurrencyNum)
+		return fmt.Errorf("%s must be positive, got %d",
+			globalsettings.OperSyncHostMaxConcurrencyNum, maxConcurrencyNum)
 	}
 
 	ctx.Data.Log().
@@ -156,10 +160,27 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		En("created sync host operation trigger, clean policy is %d days", syncHostMaxDays).
 		Info()
 
-	for _, biz := range bizs {
-		if err = act.executeOper(std, trigCtl, biz); err != nil {
-			return err
-		}
+	gp := gopool.NewPool()
+	gp.SetLimit(executeOperLimit)
+
+	for idx := range bizs {
+		biz := bizs[idx]
+		gp.Go(func() error {
+			if err = act.executeOper(std, trigCtl, biz); err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		ctx.Data.Log().
+			Zh("生成同步主机任务失败").
+			En("failed to generate sync host operations").
+			Error()
+
+		return fmt.Errorf("failed to generate sync host operations: %w", err)
 	}
 
 	ctx.Data.Log().
@@ -168,18 +189,22 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		Info()
 
 	if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync host operations")
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).
+			With("action", act.Name()).Error("failed to run trigger for handling sync host operations")
 
 		return err
 	}
 
-	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("executed sync host operation for %d business", len(bizs))
+	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).
+		Info("executed sync host operation for %d business", len(bizs))
 
 	return nil
 }
 
 // executeOper create an operation to sync all host from cmdb and then execute it.
-func (act *actionGenOperSyncHost) executeOper(std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, biz *types.Business) error {
+func (act *actionGenOperSyncHost) executeOper(
+	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, biz *types.Business) error {
+
 	operationDef := NewOperSyncHost(OperParamSyncHost{
 		TenantID: biz.TenantID,
 		Operator: std.Operator(),
@@ -200,7 +225,8 @@ func (act *actionGenOperSyncHost) executeOper(std *syncDataUtils.SyncDataActionS
 	}
 
 	logger.G.Sys().Ctx(std.Context()).
-		With("action", act.Name(), "tenant-id", biz.TenantID, "biz-id", biz.BizID, "operation-id", operCtl.GetOperationID()).
+		With("action", act.Name(), "tenant-id", biz.TenantID,
+			"biz-id", biz.BizID, "operation-id", operCtl.GetOperationID()).
 		Info("created sync host operation for business")
 
 	return nil
