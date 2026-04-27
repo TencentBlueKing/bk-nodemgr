@@ -292,9 +292,9 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to initial storages: %w", err)
 	}
 
-	// initial global settings.
-	if err = globalsettings.Register(svc.ctx, svc.Cap.StorageGlobalSettings); err != nil {
-		return fmt.Errorf("failed to initial global settings: %w", err)
+	// register global setting.
+	if err = svc.registerGlobalSetting(); err != nil {
+		return fmt.Errorf("failed to register global setting: %w", err)
 	}
 
 	// initial locker factory.
@@ -714,6 +714,26 @@ func (svc *Service) initialStorages() error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create asymmetric encryption storage: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) registerGlobalSetting() error {
+	storageGlobalSettings, err := globalsettingsStorage.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create global settings storage: %w", err)
+	}
+
+	if err := storageGlobalSettings.Start(svc.ctx); err != nil {
+		return fmt.Errorf("failed to start the storage of globalsetting: %w", err)
+	}
+
+	// initial global settings.
+	if err := globalsettings.Register(svc.ctx, storageGlobalSettings); err != nil {
+		return fmt.Errorf("failed to initial global settings: %w", err)
 	}
 
 	return nil

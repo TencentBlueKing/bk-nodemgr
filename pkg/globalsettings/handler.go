@@ -18,9 +18,12 @@ import (
 )
 
 // nolint: gochecknoglobals
-var handler struct {
+var handler = struct {
 	sync.Once
 	IHandler
+}{
+	Once:     sync.Once{},
+	IHandler: nil,
 }
 
 // Register registers the global settings handler.
