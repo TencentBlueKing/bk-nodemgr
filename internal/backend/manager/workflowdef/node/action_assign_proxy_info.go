@@ -69,7 +69,7 @@ func (act *actionAssignProxyInfo) DisplayNameEn() string {
 
 // Version returns the version of the action.
 func (act *actionAssignProxyInfo) Version() string {
-	return "v1.0.0"
+	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
