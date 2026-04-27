@@ -23,6 +23,10 @@ const (
 	CleanTriggerIntervalSecond = "clean_trigger_interval_second"
 	// NetworkUnitSegmentRules defines the setting name for network unit segment rules.
 	NetworkUnitSegmentRules = "networkunit_segment_rules"
+	// OperSyncAgentInfoMaxConcurrencyNum defines the max concurrency setting for sync agent info operations.
+	OperSyncAgentInfoMaxConcurrencyNum = "oper_sync_agent_info_max_concurrency_num"
+	// DefaultOperSyncAgentInfoMaxConcurrencyNum defines the default max concurrency for sync agent info operations.
+	DefaultOperSyncAgentInfoMaxConcurrencyNum = "100"
 	// OperSyncHostMaxConcurrencyNum defines the max concurrency setting for sync host operations.
 	OperSyncHostMaxConcurrencyNum = "oper_sync_host_max_concurrency_num"
 	// DefaultOperSyncHostMaxConcurrencyNum defines the default max concurrency for sync host operations.
@@ -35,6 +39,10 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: CleanTriggerIntervalSecond,
 			Value:       scheduler.Every1m,
+		},
+		{
+			SettingName: OperSyncAgentInfoMaxConcurrencyNum,
+			Value:       DefaultOperSyncAgentInfoMaxConcurrencyNum,
 		},
 		{
 			SettingName: OperSyncHostMaxConcurrencyNum,

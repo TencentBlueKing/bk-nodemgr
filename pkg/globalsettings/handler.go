@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// nolint: gochecknoglobals
 var handler struct {
 	sync.Once
 	IHandler
