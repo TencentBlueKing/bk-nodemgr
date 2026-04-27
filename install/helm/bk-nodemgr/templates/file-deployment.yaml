@@ -101,6 +101,10 @@ spec:
           env:
             - name: NODEMGR-MODULE
               value: file
+            - name: BK_NODEMGR_TRACING_INSTANCEID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           ports:
             - name: info-http
               containerPort: {{ .Values.file.config.infoServer.port }}
