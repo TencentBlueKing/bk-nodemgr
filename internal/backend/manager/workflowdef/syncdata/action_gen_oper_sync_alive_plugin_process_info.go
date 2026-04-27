@@ -11,6 +11,7 @@
 package syncdata
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -18,6 +19,7 @@ import (
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -105,6 +107,19 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 	if err := std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
+	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
+		std.Context(),
+		globalsettings.OperSyncAlivePluginProcessInfoMaxConcurrencyNum,
+		globalsettings.DefaultOperSyncAlivePluginProcessInfoMaxConcurrencyNum,
+	))
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %w",
+			globalsettings.OperSyncAlivePluginProcessInfoMaxConcurrencyNum, err)
+	}
+	if maxConcurrencyNum <= 0 {
+		return fmt.Errorf("%s must be positive, got %d",
+			globalsettings.OperSyncAlivePluginProcessInfoMaxConcurrencyNum, maxConcurrencyNum)
+	}
 
 	var trigCtl workflow.ITriggerCtl
 	executor := pageexecutor.NewPageExecutor[*types.Host](syncAlivePluginProcessStatusMaxPageSize, 1*time.Hour)
@@ -129,13 +144,17 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 
 		if trigCtl == nil {
 			// create trigger for handling sync alive plugin process info operations.
-			meta := trigger.NewMetadataOnce()
+			meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
 			meta.CleanPolicy = trigger.MetadataCleanPolicy{
 				MaxDays: 1,
 			}
-			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
+			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOrdered, meta)
 			if err != nil {
-				logger.G.Sys().Ctx(nCtx).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync alive plugin process info operations")
+				logger.G.Sys().Ctx(nCtx).
+					WithErr(err).
+					With("action", act.Name()).
+					Error("failed to create trigger for handling sync alive plugin process info operations")
+
 				return nil, err
 			}
 		}
@@ -154,12 +173,18 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 
 	if trigCtl != nil {
 		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync alive plugin process info operations")
+			logger.G.Sys().Ctx(std.Context()).
+				WithErr(err).
+				With("action", act.Name()).
+				Error("failed to run trigger for handling sync alive plugin process info operations")
+
 			return err
 		}
 	}
 
-	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("executed sync alive plugin process info operation for %d hosts", result.Total)
+	logger.G.Sys().Ctx(std.Context()).
+		With("action", act.Name()).
+		Info("executed sync alive plugin process info operation for %d hosts", result.Total)
 
 	return nil
 }
