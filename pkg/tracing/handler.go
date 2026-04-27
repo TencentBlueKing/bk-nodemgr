@@ -86,6 +86,7 @@ func (h *Handler) NewService(config ServiceConfig) (IService, error) {
 			semconv.ServiceInstanceIDKey.String(h.conf.InstanceID),
 			semconv.ServiceVersionKey.String(h.conf.Version),
 			semconv.DeploymentEnvironmentKey.String(h.conf.Environment),
+			ServiceCategoryKey.String(config.ServiceCategory),
 		),
 	)
 	if err != nil {

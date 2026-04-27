@@ -143,8 +143,9 @@ func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Ser
 
 	var err error
 	svr.tracerSvc, err = tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svr.opts.TraceServiceName,
-		SampleRate:  svr.opts.TraceSampleRate,
+		ServiceName:     svr.opts.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryHTTP,
+		SampleRate:      svr.opts.TraceSampleRate,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tracer service: %w", err)

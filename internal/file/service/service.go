@@ -199,8 +199,9 @@ func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
 	}
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svc.conf.Repo.TraceServiceName,
-		SampleRate:  svc.conf.Repo.TraceSampleRate,
+		ServiceName:     svc.conf.Repo.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryHTTP,
+		SampleRate:      svc.conf.Repo.TraceSampleRate,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to new trace service: %w", err)
@@ -634,8 +635,9 @@ func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*rest
 	}
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: conf.TraceServiceName,
-		SampleRate:  conf.TraceSampleRate,
+		ServiceName:     conf.TraceServiceName,
+		ServiceCategory: tracing.ServiceCategoryHTTP,
+		SampleRate:      conf.TraceSampleRate,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to new trace service: %w", err)

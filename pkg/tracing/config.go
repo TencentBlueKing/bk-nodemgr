@@ -56,6 +56,9 @@ type ServiceConfig struct {
 	// service name
 	ServiceName string
 
+	// service category
+	ServiceCategory ServiceCategory
+
 	// sampling rate
 	SampleRate float64
 }
