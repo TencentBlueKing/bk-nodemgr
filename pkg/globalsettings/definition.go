@@ -27,6 +27,10 @@ const (
 	OperSyncAgentInfoMaxConcurrencyNum = "oper_sync_agent_info_max_concurrency_num"
 	// DefaultOperSyncAgentInfoMaxConcurrencyNum defines the default max concurrency for sync agent info operations.
 	DefaultOperSyncAgentInfoMaxConcurrencyNum = "100"
+	// OperSyncAgentStateMaxConcurrencyNum defines the max concurrency setting for sync agent state operations.
+	OperSyncAgentStateMaxConcurrencyNum = "oper_sync_agent_state_max_concurrency_num"
+	// DefaultOperSyncAgentStateMaxConcurrencyNum defines the default max concurrency for sync agent state operations.
+	DefaultOperSyncAgentStateMaxConcurrencyNum = "100"
 	// OperSyncHostMaxConcurrencyNum defines the max concurrency setting for sync host operations.
 	OperSyncHostMaxConcurrencyNum = "oper_sync_host_max_concurrency_num"
 	// DefaultOperSyncHostMaxConcurrencyNum defines the default max concurrency for sync host operations.
@@ -43,6 +47,10 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: OperSyncAgentInfoMaxConcurrencyNum,
 			Value:       DefaultOperSyncAgentInfoMaxConcurrencyNum,
+		},
+		{
+			SettingName: OperSyncAgentStateMaxConcurrencyNum,
+			Value:       DefaultOperSyncAgentStateMaxConcurrencyNum,
 		},
 		{
 			SettingName: OperSyncHostMaxConcurrencyNum,

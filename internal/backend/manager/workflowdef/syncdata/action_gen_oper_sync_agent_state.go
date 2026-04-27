@@ -11,12 +11,14 @@
 package syncdata
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -102,6 +104,18 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
+	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
+		std.Context(),
+		globalsettings.OperSyncAgentStateMaxConcurrencyNum,
+		globalsettings.DefaultOperSyncAgentStateMaxConcurrencyNum,
+	))
+	if err != nil {
+		return fmt.Errorf("failed to parse %s: %w", globalsettings.OperSyncAgentStateMaxConcurrencyNum, err)
+	}
+	if maxConcurrencyNum <= 0 {
+		return fmt.Errorf("%s must be positive, got %d",
+			globalsettings.OperSyncAgentStateMaxConcurrencyNum, maxConcurrencyNum)
+	}
 
 	var trigCtl workflow.ITriggerCtl
 	executor := pageexecutor.NewPageExecutor[*types.Host](syncAgentStateMaxPageSize, 1*time.Hour)
@@ -124,11 +138,11 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 
 		if trigCtl == nil {
 			// create trigger for handling sync agent state operations.
-			meta := trigger.NewMetadataOnce()
+			meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
 			meta.CleanPolicy = trigger.MetadataCleanPolicy{
 				MaxDays: 1,
 			}
-			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
+			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOrdered, meta)
 			if err != nil {
 				logger.G.Sys().Ctx(nCtx).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync agent state operations")
 
