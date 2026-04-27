@@ -20623,8 +20623,19 @@ paths:
                                     format: int64
                                   configpolicy_name:
                                     type: string
-                            merged_config:
-                              type: string
+                            merged_configs_int:
+                              type: object
+                              additionalProperties:
+                                type: integer
+                                format: int64
+                            merged_configs_bool:
+                              type: object
+                              additionalProperties:
+                                type: boolean
+                            merged_configs_string:
+                              type: object
+                              additionalProperties:
+                                type: string
                       unreliable_items:
                         type: array
                         items:
@@ -20646,8 +20657,19 @@ paths:
                                     format: int64
                                   configpolicy_name:
                                     type: string
-                            merged_config:
-                              type: string
+                            merged_configs_int:
+                              type: object
+                              additionalProperties:
+                                type: integer
+                                format: int64
+                            merged_configs_bool:
+                              type: object
+                              additionalProperties:
+                                type: boolean
+                            merged_configs_string:
+                              type: object
+                              additionalProperties:
+                                type: string
                   error:
                     type: object
                     properties:
@@ -24042,6 +24064,163 @@ paths:
           name: default
           method: post
           path: /api/v3/package/release/proxy/list/brief
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/assign_unit:
+    post:
+      operationId: NodeProxy_NodeProxyAssignUnit
+      description: NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.
+      tags:
+        - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                      failed_count:
+                        type: integer
+                        format: int64
+                      success_count:
+                        type: integer
+                        format: int64
+                      failed_reasons:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  NodeProxyAssignUnitResp describes the response for batch-assigning
+                  a network unit to proxy hosts.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_host_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                bk_networkunit_id:
+                  type: integer
+                  format: int64
+              description: |-
+                NodeProxyAssignUnitReq describes the request body for batch-assigning
+                a network unit to proxy hosts.
+        required: true
+        description: |-
+          NodeProxyAssignUnitReq describes the request body for batch-assigning
+          a network unit to proxy hosts.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/assign_unit
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
