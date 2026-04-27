@@ -40,6 +40,7 @@ func Init(conf Config) error {
 }
 
 // G get the global tracing globalHandler.
+// nolint: contextcheck
 func G() IHandler {
 	if globalHandler.IHandler == nil {
 		_ = Init(DefaultConfig())

@@ -95,6 +95,7 @@ func NewHandler(option HandlerOption) (*Handler, error) {
 				// The first line of the stack trace is of the form "goroutine N [status]:",
 				// but by the time the panic reaches here the goroutine may no longer exist,
 				// and its status will have changed. Trim out the misleading line.
+				// nolint: gocritic
 				if line := bytes.IndexByte(stack[:], '\n'); line >= 0 {
 					stack = stack[line+1:]
 				}
