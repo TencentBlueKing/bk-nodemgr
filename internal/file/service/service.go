@@ -16,7 +16,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -765,19 +764,13 @@ func (svc *Service) GracefulShutdown() error {
 }
 
 func (svc *Service) initTracing() error {
-	// Read instanceID from environment variable if set
-	instanceID := svc.conf.Tracing.InstanceID
-	if envInstanceID := os.Getenv("BK_NODEMGR_TRACING_INSTANCEID"); envInstanceID != "" {
-		instanceID = envInstanceID
-	}
-
 	tracingConf := tracing.Config{
 		Exporter: tracing.ExporterConfig{
 			ExporterType: tracing.ExporterType(svc.conf.Tracing.ExporterType),
 		},
 		Environment: system.GetEnv(),
 		Namespace:   serverName,
-		InstanceID:  instanceID,
+		InstanceID:  svc.conf.Tracing.InstanceID,
 		Version:     version.Version().Version,
 	}
 
