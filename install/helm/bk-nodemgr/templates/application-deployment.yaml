@@ -242,7 +242,7 @@ spec:
             sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/application_conf.yaml
 
             if [ -n "{{ .Values.application.config.tracing.instanceID }}" ]; then
-              TRACING_INSTANCEID={{ .Values.application.config.tracing.instanceID }}
+              TRACING_INSTANCEID={{ .Values.application.config.tracing.instanceID | quote }}
             fi
             sed -i "s/__TRACING_INSTANCEID__/${TRACING_INSTANCEID}/g" {{ .Values.common.etcPath }}/application_conf.yaml
 
