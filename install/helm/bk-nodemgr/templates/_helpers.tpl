@@ -38,7 +38,7 @@ Return the proper bk-nodemgr replica count
 {{ include "bk-nodemgr.replicaCount" ( dict "module" .Values.path.to.module ) }}
 */}}
 {{- define "bk-nodemgr.replicaCount" -}}
-{{- if gt .root.replicaCount 1.0 }}
+{{- if gt (float64 .root.replicaCount) 1.0 }}
 {{- .root.replicaCount -}}
 {{- else -}}
 {{- .module.replicaCount -}}
