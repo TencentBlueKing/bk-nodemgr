@@ -40,6 +40,8 @@ data:
 
     iamV3: {{ .Values.application.config.iamV3 | toYaml | nindent 6 }}
 
+    notice: {{ .Values.application.config.notice | toYaml | nindent 6 }}
+
     tracing: {{ .Values.application.config.tracing | toYaml | nindent 6 }}
 
     configPolicyOption:
