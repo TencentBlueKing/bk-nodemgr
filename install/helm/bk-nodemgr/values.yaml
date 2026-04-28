@@ -1345,6 +1345,8 @@ backend:
 
     ## defines the tracing related settings.
     tracing:
+      # instance id for tracing system (defaults to pod name in k8s)
+      instanceID: ""
       # exporter type: stdout or otlp
       exporterType: "stdout"
       # otlp endpoint configuration
@@ -1525,6 +1527,8 @@ file:
 
     ## defines the tracing related settings.
     tracing:
+      # instance id for tracing system (defaults to pod name in k8s)
+      instanceID: ""
       # exporter type: stdout or otlp
       exporterType: "stdout"
       # otlp endpoint configuration
