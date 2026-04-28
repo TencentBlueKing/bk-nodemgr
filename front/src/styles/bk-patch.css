@@ -29,7 +29,7 @@
 }
 
 /* 覆盖checkbox ::after 对勾样式（IP选择器dialog模式挂载在body下，无法加父级限定） */
-.bk-form-checkbox.is-checked .bk-checkbox:after {
+.bk-form-checkbox.is-checked .bk-checkbox:after, .ip-selector-table-page-check .all-checked[data-v-ccffb4d4]::after {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -60%) scaleY(1) rotate(45deg) !important;

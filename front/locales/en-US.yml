@@ -1254,6 +1254,7 @@ pluginOperation:
     selectVersion: Select Version
     staticTopoPlaceholder: Please select nodes from the left panel
     manualInputPlaceholder: Enter IP addresses manually, separated by line breaks
+    manualInputBizTip: Manually entered IPs/hosts must belong to the current business, otherwise they may not be found
     staticTopo: Static Topology
     manualInput: Manual Input
   paramConfig:

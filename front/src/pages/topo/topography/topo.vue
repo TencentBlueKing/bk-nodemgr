@@ -8,7 +8,7 @@
       scene="part"
       :title="$t('components.permission.noPermission')"
     >
-      <bk-button theme="primary" text @click="handleApplyAreaPermission(defaultNetWorkarea?.bk_networkarea_id)">
+      <bk-button theme="primary" @click="handleApplyAreaPermission(defaultNetWorkarea?.bk_networkarea_id)">
         {{ $t('components.permission.apply') }}
       </bk-button>
     </bk-exception>

@@ -47,18 +47,24 @@
               :id="String(option.bk_networkunit_id)"
               :name="`[${option.bk_networkunit_id}] ${option.bk_networkunit_name}`"
               :disabled="option.is_direct"
-              :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
-              @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
-              @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
-              @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
-              @mouseleave="handleUnitOptionMouseLeave()"
               v-bk-tooltips="{
-                content: $t('topoManager.installProxy.form.tip'),
-                disabled: !option.is_direct,
-                boundary: 'parent',
-                placement: 'left',
-              }"
-            />
+                  content: $t('topoManager.installProxy.form.tip'),
+                  disabled: !option.is_direct,
+                  boundary: 'parent',
+                  placement: 'left',
+                }"
+            >
+              <div
+                class="w-[488px] h-[32px] flex items-center -mx-[12px] px-[12px]"
+                :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
+                @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
+                @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
+                @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
+                @mouseleave="handleUnitOptionMouseLeave()"
+              >
+                [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
+              </div>
+            </Select.Option>
           </Select>
         </Form.FormItem>
       </Form>
@@ -105,7 +111,7 @@ const {
   handleOptionMouseMove: handleUnitOptionMouseMove,
   handleOptionMouseLeave: handleUnitOptionMouseLeave,
   handleOptionClick: handleUnitOptionClick,
-} = useUnitAuth();
+} = useUnitAuth('networkunit_use_for_proxy');
 
 interface Props {
   isShow: boolean;

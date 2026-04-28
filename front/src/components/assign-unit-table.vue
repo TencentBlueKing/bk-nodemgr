@@ -51,7 +51,7 @@
           v-if="!hideNetworkUnit"
           field="bk_networkunit_id"
           :title="$t('components.installTable.networkUnit')"
-          :min-width="150"
+          :width="220"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.networkUnit') }}</span>
@@ -69,6 +69,7 @@
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <Select
                 v-if="!networkUnitLoading"
+                class="w-[220px]"
                 v-model="row.bk_networkunit_id"
                 auto-focus
                 filterable
@@ -90,11 +91,6 @@
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
                   :disabled="disableDirect && option.is_direct"
-                  :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
-                  @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
-                  @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
-                  @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
-                  @mouseleave="handleUnitOptionMouseLeave()"
                   v-bk-tooltips="{
                     content: $t('topoManager.installProxy.form.tip'),
                     disabled: !(disableDirect && option.is_direct),
@@ -102,7 +98,16 @@
                     placement: 'left',
                   }"
                 >
-                  [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
+                  <div
+                    class="w-[220px] h-[32px] flex items-center -mx-[12px] px-[12px]"
+                    :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
+                    @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
+                    @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
+                    @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
+                    @mouseleave="handleUnitOptionMouseLeave()"
+                  >
+                    [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
+                  </div>
                 </Select.Option>
               </Select>
               <div v-else class="h-[32px] w-full rounded-[2px] bg-[#F5F7FA]"></div>
@@ -188,7 +193,7 @@ import { useMainStore } from '@/stores/main';
 
 const tableData = defineModel<any[]>('data');
 
-defineProps({
+const props = defineProps({
   maxHeight: { type: Number, default: 640 },
   hideNetworkUnit: { type: Boolean, default: false },
   disableDirect: { type: Boolean, default: true },
@@ -266,8 +271,8 @@ const networkUnitBatchOptions = computed(() => {
   return getNetworkUnitsByAreaId(areaId).map((unit: any) => ({
     id: String(unit.bk_networkunit_id),
     name: `[${unit.bk_networkunit_id}] ${unit.bk_networkunit_name}`,
-    disabled: disableDirect && unit.is_direct,
-    disabledTip: disableDirect ? t('topoManager.installProxy.form.tip') : '',
+    disabled: props.disableDirect && unit.is_direct,
+    disabledTip: props.disableDirect ? t('topoManager.installProxy.form.tip') : '',
   }));
 });
 

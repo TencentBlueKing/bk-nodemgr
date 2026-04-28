@@ -463,8 +463,7 @@ onMounted(async () => {
   // 确保 topoManager 模块权限数据已加载（页面刷新直接访问时可能未加载）
   const topoItems = getModuleAuthorizedItems('topoManager');
   await authStore.fetchAuthorized(topoItems, 'topoManager').catch(() => {});
-  // 单独请求安装 Proxy 权限（networkunit_use_for_proxy），
-  // 因后端 starts_with 兼容问题需独立调用，store 层已做降级处理
+  // 单独请求安装 Proxy 权限（networkunit_use_for_proxy）
   authStore.fetchAuthorized([
     { action: 'networkunit_use_for_proxy', resource_type: 'networkunit' },
   ]);

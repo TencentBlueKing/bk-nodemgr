@@ -22,6 +22,10 @@
 
       <!-- 部署目标 -->
       <Form.FormItem :label="deployTargetLabel" property="selectedHosts" required>
+        <!-- 手动输入提示：需在业务范围内 -->
+        <div class="text-[12px] text-[#979BA5] mb-[8px]">
+          {{ $t('pluginOperation.form.manualInputBizTip') }}
+        </div>
         <div class="deploy-target-wrapper">
           <!-- IP 选择器组件 — section 模式 -->
           <IpSelector
@@ -170,7 +174,9 @@ const loadPluginList = async () => {
   pluginListLoading.value = true;
   const res = await PluginAPIService.ListPlugins({
     page: { limit: 500, offset: 0 },
-    exact_include_conditions: {} as any,
+    exact_include_conditions: {
+      visible_biz_ids: mainStore.selectedBusinessId,
+    } as any,
     fuzzy_include_conditions: {} as any,
   }).catch(() => ({ total: 0, items: [] }));
   pluginOptions.value = (res.items || []).map((p: any) => ({ name: p.name }));
@@ -245,18 +251,20 @@ const showAdvanced = ref(false);
 
 // 系统/架构列表 — 由 plugin release 动态拼接
 const systemData = ref<{ os: string; version: string }[]>([]);
+// 系统/架构数据是否已加载过（防止重复调接口）
 const systemLoaded = ref(false);
 
-
-
 const loadSystemArch = async () => {
+  // 已加载过则直接返回，避免重复请求
   if (systemLoaded.value) return;
   systemLoaded.value = true;
-  const res = await PackageService.ListReleasePlugin({
+  const pluginName = formData.value.pluginName;
+  const res = await PackageService.ListReleasePluginBrief({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
     exact_include_conditions: {
       enabled: [true],
+      ...(pluginName ? { name: [pluginName] } : {}),
     },
   }).catch(() => ({ total: 0, items: [] }));
 
@@ -265,12 +273,12 @@ const loadSystemArch = async () => {
   const defaultVersionMap = new Map<string, string>();
 
   items.forEach((item: any) => {
-    if (item.release?.os_type && item.release?.cpu_arch) {
-      const key = `${item.release.os_type}_${item.release.cpu_arch}`;
+    if (item.os_type && item.cpu_arch) {
+      const key = `${item.os_type}_${item.cpu_arch}`;
       osSet.add(key);
       // 记录默认版本
-      if (item.release.as_default && !defaultVersionMap.has(key)) {
-        defaultVersionMap.set(key, item.release.version);
+      if (item.as_default && !defaultVersionMap.has(key)) {
+        defaultVersionMap.set(key, item.version);
       }
     }
   });
@@ -284,7 +292,6 @@ const loadSystemArch = async () => {
   const firstDefault = systemData.value.find(s => s.version);
   if (firstDefault && !formData.value.selectedVersion) {
     formData.value.selectedVersion = firstDefault.version;
-    formData.value.platform = firstDefault.os;
   }
 };
 
@@ -301,7 +308,13 @@ watch(
     }
   },
 );
-
+watch(() => formData.value.pluginName, () => {
+  // 切换插件时重置加载标志并清空旧数据，重新拉取对应插件的系统/架构列表
+  systemLoaded.value = false;
+  systemData.value = [];
+  formData.value.selectedVersion = '';
+  loadSystemArch();
+});
 const isShowDialog = ref(false);
 const dialogData = ref<{ os: string; version: string }[]>([{ os: '', version: '' }]);
 const isBatch = ref(false);
@@ -333,7 +346,6 @@ const handleConfirmVersion = (data: any[]) => {
   const firstSelected = systemData.value.find(s => s.version);
   if (firstSelected) {
     formData.value.selectedVersion = firstSelected.version;
-    formData.value.platform = firstSelected.os; // 如 'linux_x86_64'
   }
 };
 
@@ -359,7 +371,7 @@ defineExpose({ validate, systemData });
 
 .deploy-target-wrapper {
   width: 100%;
-  height: 600px;
+  height: 632px;
 }
 
 

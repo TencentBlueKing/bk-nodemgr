@@ -1255,6 +1255,7 @@ pluginOperation:
     selectVersion: 选择版本
     staticTopoPlaceholder: 请在左侧选择节点
     manualInputPlaceholder: 请手动输入IP地址，多个IP以换行分隔
+    manualInputBizTip: 手动输入的 IP/主机需属于当前业务，否则可能无法查询到
     staticTopo: 静态拓扑
     manualInput: 手动输入
   paramConfig:

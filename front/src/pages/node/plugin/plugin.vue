@@ -380,7 +380,9 @@ const loading = ref(false);
 const getParams = () => {
   const params = {
     page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
-    exact_include_conditions: {},
+    exact_include_conditions: {
+      visible_biz_ids: mainStore.selectedBusinessId,
+    } as any,
     fuzzy_include_conditions: {} as Record<string, string[]>,
   };
   return params;

@@ -11,7 +11,6 @@
       <bk-button
         v-if="type === 'action'"
         theme="primary"
-        text
         :loading="loading"
         @click="handleApply"
       >

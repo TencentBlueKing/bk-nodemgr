@@ -62,14 +62,28 @@
 
     <!-- 底部操作按钮 -->
     <div class="footer fixed bottom-0 left-0 right-0 h-[48px] bg-[#fff] border-t border-[#DCDEE5] flex items-center pl-[84px] pr-[24px] z-[100]">
+      <!-- 有权限：正常提交按钮 -->
       <Button
-        v-if="currentStep === stepList.length - 1"
+        v-if="currentStep === stepList.length - 1 && hasPluginOperateAuth"
         class="mr-[8px] w-[88px]"
         theme="primary"
         @click="handleSubmit"
       >
         {{ $t('pluginOperation.preview.submitStrategy') }}
       </Button>
+      <!-- 无权限：灰色 + hover 锁 + 点击申请权限 -->
+      <span
+        v-else-if="currentStep === stepList.length - 1"
+        class="inline-flex items-center auth-lock-wrapper mr-[8px]"
+        @click="handleAuthClick"
+        @mouseenter="authLockMouseEnter($event, false)"
+        @mousemove="authLockMouseMove($event, false)"
+        @mouseleave="authLockMouseLeave()"
+      >
+        <Button class="auth-disabled-btn w-[88px]">
+          {{ $t('pluginOperation.preview.submitStrategy') }}
+        </Button>
+      </span>
       <Button
         v-if="currentStep < stepList.length - 1"
         class="mr-[8px] w-[88px]"
@@ -104,12 +118,22 @@ import StepDeployTarget from './steps/step-deploy-target.vue';
 import StepExecPreview from './steps/step-exec-preview.vue';
 import StepParamConfig from './steps/step-param-config.vue';
 
+import useAuthLock from '@/composables/use-auth-lock';
 import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
+
+// ===== plugin_operate 权限控制（提交按钮）=====
+const {
+  hasAuth: hasPluginOperateAuth,
+  handleMouseEnter: authLockMouseEnter,
+  handleMouseMove: authLockMouseMove,
+  handleMouseLeave: authLockMouseLeave,
+  handleAuthClick,
+} = useAuthLock('plugin_operate', () => mainStore.selectedBusinessId);
 
 const currentStep = ref(0);
 // 从路由 query 获取操作类型和插件名称
@@ -150,7 +174,6 @@ const formData = reactive({
   pluginName: currentPluginName.value,
   selectedHosts: [] as any[],
   selectedVersion: '',
-  platform: '', // 用户选择的操作系统平台，如 'linux_x86_64'
   paramConfig: {} as Record<string, any>,
 });
 

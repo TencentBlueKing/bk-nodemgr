@@ -165,6 +165,7 @@ interface HostInfo {
   advertise_ip_v6: string;
   relay_callback_port: number;
   relay_download_port: number;
+  bk_addressing: string;
 }
 
 // Host describes the host informations.

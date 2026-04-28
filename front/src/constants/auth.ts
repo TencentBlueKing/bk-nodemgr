@@ -199,6 +199,7 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
   ],
   proxy: [
     { action: 'proxy_operate', resource_type: 'biz' },
+    { action: 'networkunit_use_for_proxy', resource_type: 'networkunit' },
   ],
   plugin: [
     { action: 'plugin_operate', resource_type: 'biz' },
