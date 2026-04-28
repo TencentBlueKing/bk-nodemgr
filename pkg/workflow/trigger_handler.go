@@ -459,7 +459,7 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 	}
 
 	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
-		operation.StateInit, operation.StateLaunched, operation.StateRunning)
+		operation.StateLaunched, operation.StateRunning)
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +515,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 	}
 
 	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
-		operation.StateInit, operation.StateLaunched, operation.StateRunning)
+		operation.StateLaunched, operation.StateRunning)
 	if err != nil {
 		return nil, err
 	}

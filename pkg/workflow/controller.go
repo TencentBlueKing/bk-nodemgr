@@ -505,7 +505,7 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 	)
 	defer func() {
 		if err != nil {
-			span.SetStatus(codes.Error, err.Error())
+			span.SetStatus(codes.Error, fmt.Sprintf("launch operation instance failed: %s", err))
 			span.RecordError(err)
 		} else {
 			span.SetStatus(codes.Ok, "")
@@ -543,12 +543,24 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 		}
 	}
 
-	chain, err := tasks.NewChain(signatures...)
-	if err != nil {
+	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("send chain to machinery")
+
+	// update state.
+	ctl.operInstanceBriefData.Lifecycle.Launch()
+	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
+		nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
+		logger.G.Sys().
+			WithErr(err).
+			With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+			Error("failed to update operation instance lifecycle")
+
 		return err
 	}
 
-	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("send chain to machinery")
+	chain, err := tasks.NewChain(signatures...)
+	if err != nil {
+		return fmt.Errorf("failed to create chain: %w", err)
+	}
 
 	if _, err = ctl.mgr.server.SendChainWithContext(traceCtx, chain); err != nil {
 		ctl.operInstanceBriefData.Lifecycle.End(action.StateFailed)
@@ -569,18 +581,6 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 		}
 
 		return fmt.Errorf("failed to send chain to machinery: %w", err)
-	}
-
-	// update state.
-	ctl.operInstanceBriefData.Lifecycle.Launch()
-	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
-		nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
-		logger.G.Sys().
-			WithErr(err).
-			With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
-			Error("failed to update operation instance lifecycle")
-
-		return err
 	}
 
 	return nil
