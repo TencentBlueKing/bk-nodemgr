@@ -44,7 +44,9 @@ data:
 
     notice: {{ .Values.application.config.notice | toYaml | nindent 6 }}
 
-    tracing: {{ .Values.application.config.tracing | toYaml | nindent 6 }}
+    tracing:
+      {{- omit .Values.application.config.tracing "instanceID" | toYaml | nindent 6 }}
+      instanceID: "__TRACING_INSTANCEID__"
 
     configPolicyOption:
       filePath: {{ .Values.application.config.configPolicyOption.filePath | quote }}

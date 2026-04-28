@@ -149,5 +149,7 @@ data:
 
     access: {{ .Values.backend.config.access | toYaml | nindent 6 }}
 
-    tracing: {{ .Values.backend.config.tracing | toYaml | nindent 6 }}
+    tracing:
+      {{- omit .Values.backend.config.tracing "instanceID" | toYaml | nindent 6 }}
+      instanceID: "__TRACING_INSTANCEID__"
 {{- end }}

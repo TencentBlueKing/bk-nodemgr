@@ -97,7 +97,9 @@ data:
       traceServiceName: {{ .Values.file.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.file.config.mongodb.traceSampleRate }}
 
-    tracing: {{ .Values.file.config.tracing | toYaml | nindent 6 }}
+    tracing:
+      {{- omit .Values.file.config.tracing "instanceID" | toYaml | nindent 6 }}
+      instanceID: "__TRACING_INSTANCEID__"
 
     repo: {{ .Values.file.config.repo | toYaml | nindent 6 }}
 {{- end }}
