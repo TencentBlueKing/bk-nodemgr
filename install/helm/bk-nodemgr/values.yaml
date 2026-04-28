@@ -855,6 +855,9 @@ application:
           # the password to decrypt the certificate.
           password: ""
 
+    bkPaaS:
+      analysisScript: ""
+
     ## defines the IAM v3 related settings.
     iamV3:
       # enable indicates whether IAM v3 is enabled.
