@@ -1,5 +1,5 @@
 {{- if and .Values.file.enabled (.Values.initPackages.enabled | default false) (or (not (.Values.initPackages.installOnly | default true)) .Release.IsInstall) }}
-apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ template "bk-nodemgr.fullname" . }}-file-init-packages-{{ (toYaml (dict "file" .Values.file "backendFile" .Values.backend.config.file "image" .Values.image "global" .Values.global) | sha256sum | trunc 8) }}

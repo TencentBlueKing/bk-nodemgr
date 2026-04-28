@@ -1,5 +1,5 @@
 {{- if .Values.backend.config.iamV3.enable }}
-apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-sync-{{ .Release.Revision }}

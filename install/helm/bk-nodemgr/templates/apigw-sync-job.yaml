@@ -1,5 +1,5 @@
 {{- if .Values.apigwSync.enabled }}
-apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync-{{ .Release.Revision }}
