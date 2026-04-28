@@ -90,6 +90,15 @@
           :min-width="130">
         </TableColumn>
         <TableColumn
+          :label="t('platform.nodeMan.addressing_mode')"
+          field="bk_addressing"
+          show-overflow="tooltip"
+          :min-width="120">
+          <template #default="{ row }">
+            {{ row.bk_addressing === 'dynamic' ? t('platform.nodeMan.addressing_dynamic') : row.bk_addressing === 'static' ? t('platform.nodeMan.addressing_static') : '--' }}
+          </template>
+        </TableColumn>
+        <TableColumn
           :label="$t('installProxy.exportIP')"
           field="export_ip"
           show-overflow="tooltip"

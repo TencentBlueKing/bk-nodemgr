@@ -166,6 +166,9 @@ platform:
     historySearchPlaceholder: Enter IP or Network Area ID:IP for quick search
     inner_ip: Private IPv4
     inner_ipv6: Private IPv6
+    addressing_mode: Addressing Mode
+    addressing_dynamic: Dynamic
+    addressing_static: Static
     agentId: Agent ID
     bk_biz_id: Business
     bk_cloud_name: Network Area
@@ -1027,6 +1030,9 @@ components:
     exportIP: Export IP
     exportIPTooltip: Used for data transmission and policy verification with upstream GSE services. For public cloud servers, this is typically the public IP or NAT IP. Please fill in according to your actual setup
     hostAttr: Host Attributes
+    addressingMode: Addressing Mode
+    addressingDynamic: Dynamic
+    addressingStatic: Static
     serviceIP: Service IP
     serviceIPTooltip: Service IP for downstream GSE Agents to connect to. Defaults to the internal IP if left blank
     loginInfo: Login Info

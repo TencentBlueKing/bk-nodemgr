@@ -290,6 +290,7 @@
     },
     "/api/v3/node/agent/upload_template": {
       "post": {
+        "summary": "UploadAgentTemplate uploads agent template.",
         "operationId": "NodeAgent_UploadAgentTemplate",
         "responses": {
           "200": {

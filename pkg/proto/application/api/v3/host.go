@@ -80,6 +80,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.AdvertiseIpV6 = host.Dynamic.AdvertiseIPV6
 		*item.Info.RelayCallbackPort = host.Dynamic.RelayCallbackPort
 		*item.Info.RelayDownloadPort = host.Dynamic.RelayDownloadPort
+		*item.Info.BkAddressing = string(host.Static.Addressing)
 
 		*item.State.NodeRole = string(host.Dynamic.NodeRole)
 		*item.State.NodeStatus = string(host.Dynamic.NodeStatus)
@@ -130,6 +131,7 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			OuterIPV6List: info.GetBkHostOuteripV6List(),
 			Mac:           info.GetBkMac(),
 			OSType:        info.GetOsType(),
+			Addressing:    types.Addressing(info.GetBkAddressing()),
 		}
 		host.Dynamic = &types.HostDynamic{
 			AgentID:           state.GetBkAgentId(),
@@ -280,6 +282,7 @@ func newEmptyHost() *Host {
 			AdvertiseIpV6:       new(string),
 			RelayCallbackPort:   new(int64),
 			RelayDownloadPort:   new(int64),
+			BkAddressing:        new(string),
 		},
 		State: &HostState{
 			NodeRole:       new(string),

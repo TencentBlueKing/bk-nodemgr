@@ -316,6 +316,37 @@
           </template>
         </VxeColumn>
         <VxeColumn
+          field="bk_addressing"
+          :title="$t('components.installTable.addressingMode')"
+          :min-width="120"
+          :visible="settings.checked.includes('bk_addressing')"
+        >
+          <template #header>
+            <span class="mr-[5px]">{{ $t('components.installTable.addressingMode') }}</span>
+            <BatchEdit
+              v-if="!isReinstall && !isUpgrade"
+              :title="$t('components.installTable.addressingMode')"
+              type="select"
+              :options="addressingOptions"
+              @confirm="(value) => handleBatchEdit('bk_addressing', value)"
+            />
+          </template>
+          <template #default="{ row }">
+            <Select
+              v-model="row.bk_addressing"
+              auto-focus
+              :disabled="isReinstall || isUpgrade"
+            >
+              <Select.Option
+                v-for="option in addressingOptions"
+                :key="option.id"
+                :id="option.id"
+                :name="option.name"
+              />
+            </Select>
+          </template>
+        </VxeColumn>
+        <VxeColumn
           field="os_type"
           :title="$t('components.installTable.osType')"
           :min-width="120"
@@ -883,6 +914,7 @@ const props = defineProps({
       fields: [
         { title: '内网 IPv4', field: 'bk_host_innerip' },
         { title: '内网 IPv6', field: 'bk_host_innerip_v6' },
+        { title: '寻址方式', field: 'bk_addressing' },
         { title: '操作系统', field: 'os_type' },
         { title: '登录 IP', field: 'login_ip' },
         { title: '登录端口', field: 'login_port' },
@@ -893,6 +925,7 @@ const props = defineProps({
       checked: [
         'bk_host_innerip',
         'bk_host_innerip_v6',
+        'bk_addressing',
         'os_type',
         'login_port',
         'login_ip',
@@ -1029,6 +1062,10 @@ const datasourceList = ref<{ id: string; name: string }[]>([]);
 // Values use Go-style arch names (e.g. "amd64") to match what the backend API and
 // host.info.cpu_arch return, enabling pre-fill for reinstall scenarios.
 const cpuArchOptions = ref<{ id: string; name: string }[]>([]);
+const addressingOptions = ref([
+  { id: 'static', name: t('components.installTable.addressingStatic') },
+  { id: 'dynamic', name: t('components.installTable.addressingDynamic') },
+]);
 const authenticationTypes = ref([
   { id: 'password', name: t('components.installTable.password') },
   { id: 'keyfile', name: t('components.installTable.keyfile') },

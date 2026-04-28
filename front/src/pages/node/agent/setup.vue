@@ -339,6 +339,7 @@ const settings = reactive({
   fields: [
     { title: t('components.installTable.innerIPv4'), field: 'bk_host_innerip' },
     { title: t('components.installTable.innerIPv6'), field: 'bk_host_innerip_v6' },
+    { title: t('components.installTable.addressingMode'), field: 'bk_addressing' },
     { title: t('components.installTable.osType'), field: 'os_type' },
     { title: t('components.installTable.loginIP'), field: 'login_ip' },
     { title: t('components.installTable.port'), field: 'login_port' },
@@ -349,6 +350,7 @@ const settings = reactive({
   checked: [
     'bk_host_innerip',
     'bk_host_innerip_v6',
+    'bk_addressing',
     'os_type',
     'login_port',
     'login_ip',

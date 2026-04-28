@@ -740,7 +740,7 @@ watch(
           item.bk_networkarea_name || props.data.bk_networkarea_name,
         bk_networkunit_name:
           item.bk_networkunit_name || props.data.bk_networkunit_name,
-        bk_addressing: 'static',
+        bk_addressing: item.bk_addressing || 'static',
         checked: false,
         __row_id: genRowID(),
       }));

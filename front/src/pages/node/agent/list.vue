@@ -229,6 +229,15 @@
           :min-width="150"
         ></TableColumn>
         <TableColumn
+          field="bk_addressing"
+          :title="t('platform.nodeMan.addressing_mode')"
+          :min-width="120"
+        >
+          <template #default="{ row }">
+            {{ row.bk_addressing === 'dynamic' ? t('platform.nodeMan.addressing_dynamic') : row.bk_addressing === 'static' ? t('platform.nodeMan.addressing_static') : '--' }}
+          </template>
+        </TableColumn>
+        <TableColumn
           field="bk_agent_id"
           :title="t('platform.nodeMan.agentId')"
           :min-width="320"

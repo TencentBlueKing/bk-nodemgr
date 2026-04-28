@@ -166,6 +166,9 @@ platform:
     historySearchPlaceholder: 输入IP、管控区域ID:IP快速搜索
     inner_ip: 内网IPv4
     inner_ipv6: 内网IPv6
+    addressing_mode: 寻址方式
+    addressing_dynamic: 动态
+    addressing_static: 静态
     agentId: Agent ID
     bk_biz_id: 归属业务
     bk_cloud_name: 管控区域
@@ -1027,6 +1030,9 @@ components:
     exportIP: 出口IP
     exportIPTooltip: 用于与上游GSE服务的数据传输和策略验证，如果是公有云服务器，一般为公网IP或NAT IP，请根据实际情况填写
     hostAttr: 主机属性
+    addressingMode: 寻址方式
+    addressingDynamic: 动态
+    addressingStatic: 静态
     serviceIP: 服务IP
     serviceIPTooltip: 用于提供给下游GSE Agent连接的服务IP，默认不填写则为内网IP
     loginInfo: 登录信息

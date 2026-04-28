@@ -164,6 +164,7 @@ message HostInfo {
   optional string advertise_ip_v6 = 21;
   optional int64 relay_callback_port = 22;
   optional int64 relay_download_port = 23;
+  optional string bk_addressing = 24;
 }
 
 // Host describes the host informations.
