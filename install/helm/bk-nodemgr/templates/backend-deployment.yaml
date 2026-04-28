@@ -101,10 +101,6 @@ spec:
           env:
             - name: NODEMGR-MODULE
               value: backend
-            - name: BK_NODEMGR_TRACING_INSTANCEID
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
           ports:
             - name: info-http
               containerPort: {{ .Values.backend.config.infoServer.port }}
@@ -277,6 +273,11 @@ spec:
             sed -i "s/__ADVERTISE_IPV4__/${ADVERTISE_IPV4}/g" {{ .Values.common.etcPath }}/backend_conf.yaml
             sed -i "s/__ADVERTISE_IPV6__/${ADVERTISE_IPV6}/g" {{ .Values.common.etcPath }}/backend_conf.yaml
 
+            if [ -n "{{ .Values.backend.config.tracing.instanceID }}" ]; then
+              TRACING_INSTANCEID={{ .Values.backend.config.tracing.instanceID }}
+            fi
+            sed -i "s/__TRACING_INSTANCEID__/${TRACING_INSTANCEID}/g" {{ .Values.common.etcPath }}/backend_conf.yaml
+
             echo "local module init done"
             EOF
           env:
@@ -288,6 +289,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIPs
+          - name: TRACING_INSTANCEID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           volumeMounts:
             - name: {{ template "bk-nodemgr.fullname" . }}-backend-config
               mountPath: /tmp
