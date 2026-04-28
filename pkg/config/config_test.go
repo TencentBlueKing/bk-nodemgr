@@ -11,10 +11,56 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestApplicationService_LoadFromFileReadsHelmRenderedKeys(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`runMode: debug
+tenantMode: single
+bkPaaS:
+  analysisScript: "<script>window.bkAnalytics=true</script>"
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	svc := NewApplicationService()
+	require.NoError(t, svc.LoadFromFile(configPath))
+
+	assert.Equal(t, RunModeDebug, svc.RunMode)
+	assert.Equal(t, "<script>window.bkAnalytics=true</script>", svc.BKPaas.AnalysisScript)
+}
+
+func TestApplicationService_LoadFromFileKeepsLegacyModeKeyCompatible(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`mode: debug
+tenantMode: single
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	svc := NewApplicationService()
+	require.NoError(t, svc.LoadFromFile(configPath))
+
+	assert.Equal(t, RunModeDebug, svc.RunMode)
+}
+
+func TestApplicationService_LoadFromFilePrefersRunModeOverLegacyMode(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "application_conf.yaml")
+	configContent := []byte(`runMode: release
+mode: debug
+tenantMode: single
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	svc := NewApplicationService()
+	require.NoError(t, svc.LoadFromFile(configPath))
+
+	assert.Equal(t, RunModeRelease, svc.RunMode)
+}
 
 func TestRedisType_Validate(t *testing.T) {
 	tests := []struct {

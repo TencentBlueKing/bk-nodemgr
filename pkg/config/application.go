@@ -112,7 +112,7 @@ func (n *Notice) Validate() error {
 
 // ApplicationService the config of application service.
 type ApplicationService struct {
-	RunMode            RunMode            `yaml:"mode" usage:"run mode of service"`
+	RunMode            RunMode            `yaml:"runMode" usage:"run mode of service"`
 	TenantMode         tenant.Mode        `yaml:"tenantMode" usage:"tenant mode of service"`
 	BKSaas             BKSaas             `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
