@@ -35,6 +35,9 @@ const (
 	// syncAgentStateMaxPageSize defines the max page size for page executor.
 	// gse list api has a limit of 1000, we can accept one action execute 5 loops.
 	syncAgentStateMaxPageSize = 5000
+
+	// syncAgentStateCreateOperConcurrencyLimit defines the concurrency limit for creating sync agent state operations.
+	syncAgentStateCreateOperConcurrencyLimit = 100
 )
 
 // NewActionGenOperSyncAgentState this action will create host sync operation for all business.
@@ -150,7 +153,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	gp := gopool.NewPool()
-	gp.SetLimit(100)
+	gp.SetLimit(syncAgentStateCreateOperConcurrencyLimit)
 	for idx := range bizs {
 		biz := bizs[idx]
 
