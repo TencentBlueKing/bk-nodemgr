@@ -520,7 +520,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 	}
 
 	if nextTime.After(time.Now()) {
-		return nil, nil
+		return make([]IOperationInstanceCtl, 0), nil
 	}
 
 	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
