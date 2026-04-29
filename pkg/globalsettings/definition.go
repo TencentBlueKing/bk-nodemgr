@@ -23,22 +23,26 @@ const (
 	CleanTriggerIntervalSecond = "clean_trigger_interval_second"
 	// NetworkUnitSegmentRules defines the setting name for network unit segment rules.
 	NetworkUnitSegmentRules = "networkunit_segment_rules"
+
 	// OperSyncAgentInfoMaxConcurrencyNum defines the max concurrency setting for sync agent info operations.
 	OperSyncAgentInfoMaxConcurrencyNum = "oper_sync_agent_info_max_concurrency_num"
-	// DefaultOperSyncAgentInfoMaxConcurrencyNum defines the default max concurrency for sync agent info operations.
-	DefaultOperSyncAgentInfoMaxConcurrencyNum = "100"
+	// OperSyncAgentInfoMaxConcurrencyNumDefault defines the default max concurrency for sync agent info operations.
+	OperSyncAgentInfoMaxConcurrencyNumDefault = "100"
+
 	// OperSyncAgentStateMaxConcurrencyNum defines the max concurrency setting for sync agent state operations.
 	OperSyncAgentStateMaxConcurrencyNum = "oper_sync_agent_state_max_concurrency_num"
-	// DefaultOperSyncAgentStateMaxConcurrencyNum defines the default max concurrency for sync agent state operations.
-	DefaultOperSyncAgentStateMaxConcurrencyNum = "100"
+	// OperSyncAgentStateMaxConcurrencyNumDefault defines the default max concurrency for sync agent state operations.
+	OperSyncAgentStateMaxConcurrencyNumDefault = "100"
+
 	// OperSyncAlivePluginProcessInfoMaxConcurrencyNum defines the max concurrency setting for sync alive plugin process info operations.
 	OperSyncAlivePluginProcessInfoMaxConcurrencyNum = "oper_sync_alive_plugin_process_info_max_concurrency_num"
-	// DefaultOperSyncAlivePluginProcessInfoMaxConcurrencyNum defines the default max concurrency for sync alive plugin process info operations.
-	DefaultOperSyncAlivePluginProcessInfoMaxConcurrencyNum = "100"
+	// OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault defines the default max concurrency for sync alive plugin process info operations.
+	OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault = "100"
+
 	// OperSyncHostMaxConcurrencyNum defines the max concurrency setting for sync host operations.
 	OperSyncHostMaxConcurrencyNum = "oper_sync_host_max_concurrency_num"
-	// DefaultOperSyncHostMaxConcurrencyNum defines the default max concurrency for sync host operations.
-	DefaultOperSyncHostMaxConcurrencyNum = "100"
+	// OperSyncHostMaxConcurrencyNumDefault defines the default max concurrency for sync host operations.
+	OperSyncHostMaxConcurrencyNumDefault = "100"
 )
 
 // PreDefinition returns the definition of global settings.
@@ -50,19 +54,19 @@ func PreDefinition() []*types.GlobalSettings {
 		},
 		{
 			SettingName: OperSyncAgentInfoMaxConcurrencyNum,
-			Value:       DefaultOperSyncAgentInfoMaxConcurrencyNum,
+			Value:       OperSyncAgentInfoMaxConcurrencyNumDefault,
 		},
 		{
 			SettingName: OperSyncAgentStateMaxConcurrencyNum,
-			Value:       DefaultOperSyncAgentStateMaxConcurrencyNum,
+			Value:       OperSyncAgentStateMaxConcurrencyNumDefault,
 		},
 		{
 			SettingName: OperSyncAlivePluginProcessInfoMaxConcurrencyNum,
-			Value:       DefaultOperSyncAlivePluginProcessInfoMaxConcurrencyNum,
+			Value:       OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault,
 		},
 		{
 			SettingName: OperSyncHostMaxConcurrencyNum,
-			Value:       DefaultOperSyncHostMaxConcurrencyNum,
+			Value:       OperSyncHostMaxConcurrencyNumDefault,
 		},
 	}
 }

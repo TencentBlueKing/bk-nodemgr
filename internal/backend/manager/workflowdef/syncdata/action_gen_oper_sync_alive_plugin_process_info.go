@@ -110,7 +110,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
 		std.Context(),
 		globalsettings.OperSyncAlivePluginProcessInfoMaxConcurrencyNum,
-		globalsettings.DefaultOperSyncAlivePluginProcessInfoMaxConcurrencyNum,
+		globalsettings.OperSyncAlivePluginProcessInfoMaxConcurrencyNumDefault,
 	))
 	if err != nil {
 		return fmt.Errorf("failed to parse %s: %w",

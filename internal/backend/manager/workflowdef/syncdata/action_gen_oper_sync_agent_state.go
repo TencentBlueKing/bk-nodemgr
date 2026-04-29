@@ -107,7 +107,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	maxConcurrencyNum, err := conv.ToInt64(globalsettings.Get(
 		std.Context(),
 		globalsettings.OperSyncAgentStateMaxConcurrencyNum,
-		globalsettings.DefaultOperSyncAgentStateMaxConcurrencyNum,
+		globalsettings.OperSyncAgentStateMaxConcurrencyNumDefault,
 	))
 	if err != nil {
 		return fmt.Errorf("failed to parse %s: %w", globalsettings.OperSyncAgentStateMaxConcurrencyNum, err)
