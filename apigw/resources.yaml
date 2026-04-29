@@ -1985,6 +1985,8 @@ paths:
                                   type: string
                                 export_ip_v6:
                                   type: string
+                                bk_addressing:
+                                  type: string
                                 advertise_ip_v6:
                                   type: string
                                 bk_networkarea_id:
