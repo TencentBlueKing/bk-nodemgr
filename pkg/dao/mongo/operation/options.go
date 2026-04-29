@@ -33,6 +33,11 @@ func WithParentOperationID(parentID ...string) OptFn {
 	return base.WithValues(FieldKeyParentOperationID, parentID...)
 }
 
+// WithParentOperInstID filter by parent operation instance id.
+func WithParentOperInstID(parentID ...string) OptFn {
+	return base.WithValues(FieldKeyParentOperInstID, parentID...)
+}
+
 // WithInstantiated filter by isInitantiated.
 func WithInstantiated(isInitantiated ...bool) OptFn {
 	return base.WithValues(FieldKeyOperationInstantiated, isInitantiated...)

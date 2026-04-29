@@ -28,7 +28,7 @@ type InstanceMetadata struct {
 	OperationID            string
 	ActionNames            []string
 	ParentOperationID      string
-	Index                  int
+	ParentOperInstID       string
 	Timeout                time.Duration
 	InitContent            map[string]any
 	ExtraExecutionName     string

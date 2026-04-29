@@ -18,6 +18,9 @@ const (
 	// FieldKeyParentOperationID the parent_operation_id field key.
 	FieldKeyParentOperationID = "data.parameters.parent_operation_id"
 
+	// FieldKeyParentOperInstID the parent_oper_inst_id field key.
+	FieldKeyParentOperInstID = "data.parameters.parent_oper_inst_id"
+
 	// FieldKeyTriggerID the trigger_id field key.
 	FieldKeyTriggerID = "data.trigger_id"
 

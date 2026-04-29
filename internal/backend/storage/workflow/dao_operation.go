@@ -96,6 +96,21 @@ func (s *Storage) listOperationByParentOperationID(
 	return s.daoOperation.List(nCtx, page, operation.WithParentOperationID(parentOperationID...))
 }
 
+// listOperationByParentOperInstID lists operation by parent operation instance id.
+func (s *Storage) listOperationByParentOperInstID(nCtx contextx.IContext, page types.Page, parentOperInstID ...string) (
+	[]*workoper.Operation, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	if len(parentOperInstID) == 0 {
+		return nil, 0, basestorage.ErrEmptyOperationID()
+	}
+
+	return s.daoOperation.List(nCtx, page, operation.WithParentOperInstID(parentOperInstID...))
+}
+
 // deleteOperationsByTriggerID deletes operations by trigger ids.
 func (s *Storage) deleteOperationsByTriggerID(nCtx contextx.IContext, triggerID ...string) error {
 	if nCtx == nil {

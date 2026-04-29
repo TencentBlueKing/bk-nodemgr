@@ -326,6 +326,7 @@ func convertOperationToDB(oper *operation.Operation) *Operation {
 func convertParamFromDB(param Parameters) operation.Param {
 	return operation.Param{
 		ParentOperationID: param.ParentOperationID,
+		ParentOperInstID:  param.ParentOperInstID,
 		Timeout:           param.Timeout,
 		InitContent:       param.InitContent,
 		RetryStartPoint:   param.RetryStartPoint,
@@ -335,6 +336,7 @@ func convertParamFromDB(param Parameters) operation.Param {
 func convertParamToDB(param operation.Param) Parameters {
 	return Parameters{
 		ParentOperationID: param.ParentOperationID,
+		ParentOperInstID:  param.ParentOperInstID,
 		Timeout:           param.Timeout,
 		InitContent:       param.InitContent,
 		RetryStartPoint:   param.RetryStartPoint,

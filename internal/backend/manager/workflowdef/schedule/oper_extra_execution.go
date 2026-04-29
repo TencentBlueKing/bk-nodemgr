@@ -140,11 +140,30 @@ func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operati
 }
 
 func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operation.InstanceBriefData, param *ExtraExecutionParam) error {
-	// get all managed operations.
-	parentOperationIDs := []string{instance.Metadata.OperationID}
+	// get current scheduled operation instance.
+	subOperations, _, err := exec.workflowStg.ListOperationByParentOperInstID(nCtx, types.UnlimitedPage(), instance.Metadata.OperationInstanceID)
+	if err != nil {
+		logger.G.Sys().Ctx(nCtx).
+			WithErr(err).
+			With("operation", instance.Metadata.OperationDefName, "parent-oper-inst-id", instance.Metadata.OperationInstanceID).
+			Error("failed to list operations by parent operation instance id")
+
+		return err
+	}
+
+	// get all managed sub operations.
 	managedOperationIDMap := make(map[string]struct{}, 0)
-	for len(parentOperationIDs) > 0 {
-		operations, _, err := exec.workflowStg.ListOperationByParentOperationID(nCtx, types.UnlimitedPage(), parentOperationIDs...)
+	for len(subOperations) > 0 {
+		for _, sub := range subOperations {
+			managedOperationIDMap[sub.OperationID] = struct{}{}
+		}
+
+		parentOperationIDs := make([]string, 0)
+		for _, sub := range subOperations {
+			parentOperationIDs = append(parentOperationIDs, sub.OperationID)
+		}
+
+		subOperations, _, err = exec.workflowStg.ListOperationByParentOperationID(nCtx, types.UnlimitedPage(), parentOperationIDs...)
 		if err != nil {
 			logger.G.Sys().Ctx(nCtx).
 				WithErr(err).
@@ -152,12 +171,6 @@ func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operat
 				Error("failed to list operations by parent operation id")
 
 			return err
-		}
-
-		parentOperationIDs = make([]string, 0)
-		for _, operation := range operations {
-			parentOperationIDs = append(parentOperationIDs, operation.OperationID)
-			managedOperationIDMap[operation.OperationID] = struct{}{}
 		}
 	}
 

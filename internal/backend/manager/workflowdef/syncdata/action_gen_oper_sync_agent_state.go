@@ -194,6 +194,7 @@ func (act *actionGenOperSyncAgentState) executeOper(
 
 	operationParam := operationDef.DefaultParameters()
 	operationParam.ParentOperationID = std.InstanceData().OperationID
+	operationParam.ParentOperInstID = std.InstanceData().OperationInstanceID
 
 	operCtl, err := trigCtl.CreateOperation(std.Context(), operationDef, operationParam)
 	if err != nil {

@@ -59,7 +59,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 			Keys: bson.D{{Key: FieldKeyInitContentToken, Value: 1}},
 		},
 		{
-			Keys: bson.D{{Key: FieldKeyParentOperationID, Value: 1}},
+			Keys: bson.D{{Key: FieldKeyParentOperInstID, Value: 1}},
 		},
 	}
 }

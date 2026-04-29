@@ -66,6 +66,7 @@ const (
 	metricOperationDistinctOperation                               = "distinct_operation"
 	metricOperationListOperationByOperationID                      = "list_operation_by_operation_id"
 	metricOperationListOperationByParentOperationID                = "list_operation_by_parent_operation_id"
+	metricOperationListOperationByParentOperInstID                 = "list_operation_by_parent_oper_inst_id"
 	metricOperationListNeedInstantiateOperationByTriggerID         = "list_need_instantiate_operation_by_trigger_id"
 	metricOperationExistNeedInstantiateOperationByTriggerID        = "exist_need_instantiate_operation_by_trigger_id"
 	metricOperationDeleteOperationsByTriggerID                     = "delete_operations_by_trigger_id"
@@ -595,6 +596,30 @@ func (s *Storage) ListOperationByParentOperationID(
 			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations by parent operation id")
 
 			return fmt.Errorf("failed to list operations by parent operation id, parent-ids(%v): %w", parentID, err)
+		}
+
+		return nil
+	})
+
+	return opers, num, err
+}
+
+// ListOperationByParentOperInstID lists operation by parent operation instance ID.
+func (s *Storage) ListOperationByParentOperInstID(
+	nCtx contextx.IContext, page types.Page, parentID ...string) ([]*workoper.Operation, int64, error) {
+
+	var (
+		opers []*workoper.Operation
+		num   int64
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListOperationByParentOperInstID, func(nCtx contextx.IContext) error {
+		var err error
+		if opers, num, err = s.listOperationByParentOperInstID(nCtx, page, parentID...); err != nil {
+			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations by parent operation instance id")
+
+			return fmt.Errorf("failed to list operations by parent operation instance id, parent-ids(%v): %w", parentID, err)
 		}
 
 		return nil

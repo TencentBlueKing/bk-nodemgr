@@ -304,10 +304,17 @@ func (ctl *controller) UpdateLastTriggeredTime(nCtx contextx.IContext) error {
 }
 
 // UpdateOperationRetryFlag updates the operation retry flag.
+// nolint: gocognit
 func (ctl *controller) UpdateOperationRetryFlag(nCtx contextx.IContext, mode operation.RetryMode, operationID ...string) error {
 	operations, _, err := ctl.mgr.stgOperation.ListOperationByOperationID(nCtx, operationID...)
 	if err != nil {
 		return err
+	}
+
+	for _, oper := range operations {
+		if err := oper.CheckEnforceability(); err != nil {
+			return err
+		}
 	}
 
 	gp := gopool.NewPool()
@@ -616,6 +623,9 @@ func (ctl *controller) generateOperationInstance(nCtx contextx.IContext) (*opera
 	}
 
 	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, inst.InstanceBriefData.Metadata.OperationInstanceID)
+	if len(ctl.oper.InstanceIDs) > operation.MaxInstanceNum {
+		ctl.oper.InstanceIDs = ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-operation.MaxInstanceNum:]
+	}
 	ctl.oper.LatestInstBriefData = &inst.InstanceBriefData
 	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
 		return nil, err
@@ -661,6 +671,9 @@ func (ctl *controller) generateRetryOperationInstance(nCtx contextx.IContext) (*
 	}
 
 	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, retryInstance.InstanceBriefData.Metadata.OperationInstanceID)
+	if len(ctl.oper.InstanceIDs) > operation.MaxInstanceNum {
+		ctl.oper.InstanceIDs = ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-operation.MaxInstanceNum:]
+	}
 	ctl.oper.RetryFlags[len(ctl.oper.RetryFlags)-1].RetryInstanceID = retryInstance.Metadata.OperationInstanceID
 	ctl.oper.LatestInstBriefData = &retryInstance.InstanceBriefData
 	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
@@ -825,8 +838,8 @@ func (ctl *controller) createOperationInstanceBase(_ contextx.IContext, stateDec
 				OperationDefName:       ctl.oper.Definition.Name(),
 				OperationID:            ctl.oper.OperationID,
 				ActionNames:            actionNames,
-				Index:                  len(ctl.oper.InstanceIDs),
 				ParentOperationID:      ctl.oper.Param.ParentOperationID,
+				ParentOperInstID:       ctl.oper.Param.ParentOperInstID,
 				Timeout:                ctl.oper.Param.Timeout,
 				InitContent:            ctl.oper.Param.InitContent,
 				ExtraExecutionName:     ctl.oper.Definition.ExtraExecutionName(),

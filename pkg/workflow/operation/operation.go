@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	maxInstanceNum = 100
+	// MaxInstanceNum is the max instance num.
+	MaxInstanceNum = 100
 )
 
 // RetryMode defines the retry mode.
@@ -53,7 +54,7 @@ type Operation struct {
 
 // CheckEnforceability checks the enforceability of operation.
 func (o *Operation) CheckEnforceability() error {
-	if len(o.InstanceIDs) >= maxInstanceNum {
+	if len(o.InstanceIDs) >= MaxInstanceNum {
 		return fmt.Errorf("operation can not be executed, instances num %d", len(o.InstanceIDs))
 	}
 
@@ -90,6 +91,7 @@ func (o *Operation) GetLastRetryFlag() *RetryFlag {
 // Param defines the operation param.
 type Param struct {
 	ParentOperationID string
+	ParentOperInstID  string
 	Timeout           time.Duration
 	InitContent       map[string]any
 	RetryStartPoint   map[string]bool

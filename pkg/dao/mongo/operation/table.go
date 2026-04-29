@@ -47,6 +47,7 @@ type DefSnapshot struct {
 // Parameters represents the snapshot of the operation definition.
 type Parameters struct {
 	ParentOperationID string          `json:"parent_operation_id" bson:"parent_operation_id"`
+	ParentOperInstID  string          `json:"parent_oper_inst_id" bson:"parent_oper_inst_id"`
 	Timeout           time.Duration   `json:"timeout" bson:"timeout"`
 	InitContent       map[string]any  `json:"init_content" bson:"init_content"`
 	RetryStartPoint   map[string]bool `json:"retry_start_point" bson:"retry_start_point" `
@@ -61,9 +62,9 @@ type RetryFlag struct {
 
 // InstBriefData represents the brief data of an operation instance.
 type InstBriefData struct {
-	OperInstID                string                   `json:"oper_inst_id" bson:"oper_inst_id"`
-	LifeCycle                 *LifeCycle               `json:"life_cycle" bson:"life_cycle"`
-	LatestActionInstBriefData *ActionInstBriefData     `json:"latest_action_inst_brief_data" bson:"latest_action_inst_brief_data"`
+	OperInstID                string               `json:"oper_inst_id" bson:"oper_inst_id"`
+	LifeCycle                 *LifeCycle           `json:"life_cycle" bson:"life_cycle"`
+	LatestActionInstBriefData *ActionInstBriefData `json:"latest_action_inst_brief_data" bson:"latest_action_inst_brief_data"`
 }
 
 // ActionInstBriefData represents the brief data of an action instance.
