@@ -48,7 +48,7 @@
             </Button>
             <Button
               @click="handleBatchRemove"
-              :disabled="!selection.length || !selection.find(item => item.category === 'error')"
+              :disabled="!originData.length || !originData.find((item: any) => item.category === 'error')"
             >
               {{ $t('platform.nodeMan.preview.button.batchRemove') }}
             </Button>
@@ -403,7 +403,7 @@ const handleAllConfirm = () => {
 
 const handleBatchRemove = () => {
   originData.value = originData.value.filter(
-    (item: any) => !(item.category === 'error' && item.checked),
+    (item: any) => item.category !== 'error',
   );
   tabKey.value = Date.now();
 };
