@@ -40,6 +40,7 @@ POST /api/v3/node/proxy/install
 | advertise_ip | string | No | Advertise IPv4 address |
 | advertise_ip_v6 | string | No | Advertise IPv6 address |
 | re_register | bool | No | Re-register host, default false |
+| install_pre_ordered_plugins | bool | No | Whether to install pre-ordered plugins, default true |
 | proxy_tags | array[string] | No | Proxy tags: dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel |
 | proxy_install_origin_unit_id | int64 | No | Origin network unit ID for installation |
 | credit_expired_interval_sec | int64 | No | Credential expiry interval in seconds, default 86400 |
@@ -71,7 +72,8 @@ POST /api/v3/node/proxy/install
             "login_user": "root",
             "login_mode": "password",
             "login_password": "your_password",
-            "export_ip": "10.0.0.1"
+            "export_ip": "10.0.0.1",
+            "install_pre_ordered_plugins": true
         }
     ],
     "target_version": [

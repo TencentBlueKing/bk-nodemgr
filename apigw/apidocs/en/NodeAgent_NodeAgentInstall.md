@@ -34,6 +34,7 @@ POST /api/v3/node/agent/install
 | os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
 | bk_host_id | int64 | No | Host ID, -1 means not specified |
 | re_register | bool | No | Whether to re-register, default is false |
+| install_pre_ordered_plugins | bool | No | Whether to install pre-ordered plugins, default is true |
 
 **Parameter Notes**:
 - `bk_addressing`: Addressing mode
@@ -71,7 +72,8 @@ Batch install agents for Linux systems using password login.
       "login_password": "your_password",
       "bk_networkunit_id": 1,
       "os_type": "linux",
-      "re_register": false
+      "re_register": false,
+      "install_pre_ordered_plugins": true
     }
   ],
   "target_version": [

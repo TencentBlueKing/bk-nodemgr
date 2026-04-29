@@ -40,6 +40,7 @@ POST /api/v3/node/proxy/install
 | advertise_ip | string | 否 | 广播IPv4地址 |
 | advertise_ip_v6 | string | 否 | 广播IPv6地址 |
 | re_register | bool | 否 | 是否重新注册，默认 false |
+| install_pre_ordered_plugins | bool | 否 | 是否安装预设插件，默认 true |
 | proxy_tags | array[string] | 否 | Proxy标签，可选值：dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel |
 | proxy_install_origin_unit_id | int64 | 否 | 安装来源网络单元ID |
 | credit_expired_interval_sec | int64 | 否 | 凭证有效期（秒），默认 86400 |
@@ -71,7 +72,8 @@ POST /api/v3/node/proxy/install
             "login_user": "root",
             "login_mode": "password",
             "login_password": "your_password",
-            "export_ip": "10.0.0.1"
+            "export_ip": "10.0.0.1",
+            "install_pre_ordered_plugins": true
         }
     ],
     "target_version": [

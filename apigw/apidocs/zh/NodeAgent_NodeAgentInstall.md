@@ -34,6 +34,7 @@ POST /api/v3/node/agent/install
 | os_type | string | 是 | 操作系统类型（枚举值：linux、windows、darwin） |
 | bk_host_id | int64 | 否 | 主机ID，-1表示未指定 |
 | re_register | bool | 否 | 是否重新注册，默认false |
+| install_pre_ordered_plugins | bool | 否 | 是否安装预设插件，默认true |
 
 **参数说明**：
 - `bk_addressing`：寻址方式
@@ -71,7 +72,8 @@ POST /api/v3/node/agent/install
       "login_password": "your_password",
       "bk_networkunit_id": 1,
       "os_type": "linux",
-      "re_register": false
+      "re_register": false,
+      "install_pre_ordered_plugins": true
     }
   ],
   "target_version": [
