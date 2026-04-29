@@ -14,14 +14,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -33,15 +33,16 @@ const (
 	ActionNameGenOperSyncAgentState = "gen_oper_sync_agent_state"
 
 	// syncAgentStateMaxPageSize defines the max page size for page executor.
-	// In the scenario of 40,000 hosts, a single request for 1,000 hosts requires 400 table lookups.
-	syncAgentStateMaxPageSize = 1000
+	// gse list api has a limit of 1000, we can accept one action execute 5 loops.
+	syncAgentStateMaxPageSize = 5000
 )
 
 // NewActionGenOperSyncAgentState this action will create host sync operation for all business.
 func NewActionGenOperSyncAgentState(capability *Capability) action.Definition {
 	return &actionGenOperSyncAgentState{
-		topoStg:     capability.StorageTopo,
+		hostStg:     capability.StorageTopo,
 		workflowCtl: capability.WorkflowCtl,
+		businessStg: capability.StorageTopo,
 	}
 }
 
@@ -51,8 +52,9 @@ type ActionParamGenOperSyncAgentState struct {
 }
 
 type actionGenOperSyncAgentState struct {
-	topoStg     topoStg.IStorageHost
+	hostStg     topoStg.IStorageHost
 	workflowCtl workflow.IController
+	businessStg topoStg.IStorageBusiness
 }
 
 // Name returns the name of the action.
@@ -117,41 +119,100 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 			globalsettings.OperSyncAgentStateMaxConcurrencyNum, maxConcurrencyNum)
 	}
 
-	var trigCtl workflow.ITriggerCtl
-	executor := pageexecutor.NewPageExecutor[*types.Host](syncAgentStateMaxPageSize, 1*time.Hour)
+	bizs, _, err := act.businessStg.ListBusinesses(std.Context(), types.UnlimitedPage())
+	if err != nil {
+		return err
+	}
+	ctx.Data.Log().
+		Zh("查询到 %d 个业务需要生成 Agent 状态更新任务", len(bizs)).
+		En("found %d businesses need sync agent state operation", len(bizs)).
+		Info()
+
+	if len(bizs) == 0 {
+		ctx.Data.Log().
+			Zh("没有需要更新 Agent 状态的业务，跳过生成任务").
+			En("no business needs sync agent state operation, skip generating operations").
+			Info()
+
+		return nil
+	}
+
+	// create trigger for handling sync agent state operations.
+	meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
+	meta.CleanPolicy = trigger.MetadataCleanPolicy{
+		MaxDays: 1,
+	}
+	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOrdered, meta)
+	if err != nil {
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to create trigger for handling sync agent state operations")
+
+		return err
+	}
+
+	gp := gopool.NewPool()
+	gp.SetLimit(100)
+	for idx := range bizs {
+		biz := bizs[idx]
+
+		gp.Go(func() error {
+			result, err := act.createOperForBusiness(std, trigCtl, biz)
+			if err != nil {
+				return fmt.Errorf("failed to create sync agent state operations for business %d: %w", biz.BizID, err)
+			}
+
+			ctx.Data.Log().
+				Zh("已为业务 %d 的 %d 台主机执行同步 Agent 状态任务", biz.BizID, result.Total).
+				En("executed sync agent state operation for %d hosts in business %d", result.Total, biz.BizID).
+				Info()
+
+			return nil
+		})
+	}
+
+	if err = gp.Wait(); err != nil {
+		ctx.Data.Log().
+			Zh("生成同步 Agent 状态任务失败").
+			En("failed to generate sync agent state operations").
+			Error()
+
+		return fmt.Errorf("failed to generate sync agent state operations: %w", err)
+	}
+
+	if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).
+			With("action", act.Name()).
+			Error("failed to run trigger for handling sync agent state operations")
+
+		return err
+	}
+
+	return nil
+}
+
+func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils.SyncDataActionStandarder,
+	trigCtl workflow.ITriggerCtl, biz *types.Business) (*pageexecutor.PageResult[*types.Host], error) {
+
+	executor := pageexecutor.NewPageExecutor[*types.Host](syncAgentStateMaxPageSize, act.Timeout())
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		// find nodes and sync agent state. skip the empty-agent-id nodes.
 		cond := &types.HostCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				BizID: []int64{biz.BizID},
+			},
 			DynamicExactExclude: &types.HostDynamicExactFields{
 				AgentID: []string{""},
 			},
 		}
 
-		hosts, err := act.topoStg.FindHostWithDynamic(nCtx, p, cond)
+		hosts, err := act.hostStg.FindHostWithDynamic(nCtx, p, cond)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(hosts) == 0 {
-			return nil, nil
-		}
-
-		if trigCtl == nil {
-			// create trigger for handling sync agent state operations.
-			meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
-			meta.CleanPolicy = trigger.MetadataCleanPolicy{
-				MaxDays: 1,
-			}
-			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOrdered, meta)
-			if err != nil {
-				logger.G.Sys().Ctx(nCtx).WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync agent state operations")
-
+		if len(hosts) > 0 {
+			if err = act.executeOper(std, trigCtl, hosts...); err != nil {
 				return nil, err
 			}
-		}
-
-		if err = act.executeOper(std, trigCtl, hosts...); err != nil {
-			return nil, err
 		}
 
 		return hosts, nil
@@ -159,20 +220,10 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 
 	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if trigCtl != nil {
-		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync agent state operations")
-
-			return err
-		}
-	}
-
-	logger.G.Sys().Ctx(std.Context()).With("action", act.Name()).Info("executed sync agent state operation for %d hosts", result.Total)
-
-	return nil
+	return result, nil
 }
 
 // executeOper create an operation to sync agent state for the given hosts and then execute it.
