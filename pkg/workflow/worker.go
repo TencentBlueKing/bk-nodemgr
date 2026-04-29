@@ -178,7 +178,7 @@ func (mgr *manager) doAction(nCtx contextx.IContext, actionDef action.Definition
 		// record metric.
 		metric.ActionDataNotFound(actionDef.Name())
 
-		operInstBriefData.Lifecycle.End(action.StateFailed)
+		operInstBriefData.Lifecycle.EndByActionState(action.StateFailed)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", operationInstanceID, "action-name", actionDef.Name()).
@@ -286,7 +286,7 @@ func (mgr *manager) doAction(nCtx contextx.IContext, actionDef action.Definition
 		// record oper inst metric.
 		defer metric.OperationInstanceProcessed(operInstBriefData)
 
-		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
+		operInstBriefData.Lifecycle.EndByActionState(actionInstData.Lifecycle.State)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, operInstBriefData); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", operationInstanceID, "action-name", actionDef.Name()).
@@ -630,7 +630,7 @@ func (mgr *manager) doOperExtraExecution(nCtx contextx.IContext, oper *operation
 	}
 
 	if execErr := actionDef.Do(nCtx, oper); execErr != nil {
-		oper.Lifecycle.End(action.StateFailed)
+		oper.Lifecycle.EndByActionState(action.StateFailed)
 		if refreshErr := mgr.refreshOperationInstanceState(nCtx, oper); refreshErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(refreshErr).With(
 				"oper-inst-id", oper.Metadata.OperationInstanceID, "extra-execution-name", oper.Metadata.ExtraExecutionName).

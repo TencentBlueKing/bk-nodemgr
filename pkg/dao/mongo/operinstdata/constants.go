@@ -20,6 +20,9 @@ const (
 	// FieldKeyLifeCycle is the field name for life cycle.
 	FieldKeyLifeCycle = "data.life_cycle"
 
+	// FieldKeyLifeCycleStartedAt is the field name for life cycle started at.
+	FieldKeyLifeCycleStartedAt = "data.life_cycle.started_at"
+
 	// FieldKeyLatestActionInstBriefData is the field name for latest action inst brief data.
 	FieldKeyLatestActionInstBriefData = "data.latest_action_inst_brief_data"
 

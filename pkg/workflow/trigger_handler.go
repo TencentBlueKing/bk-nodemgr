@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
@@ -133,13 +134,17 @@ func (handler *triggerHandler) Stop() {
 const (
 	defaultTimeout = 1 * time.Minute
 
-	onceTriggersSyncAndCheckIntervalDefault     = 1 * time.Second
-	orderedTriggersSyncAndCheckIntervalDefault  = 1 * time.Second
-	periodicTriggersSyncAndCheckIntervalDefault = 1 * time.Second
+	onceTriggersSyncAndCheckIntervalDefault         = 1 * time.Second
+	orderedTriggersSyncAndCheckIntervalDefault      = 1 * time.Second
+	periodicTriggersSyncAndCheckIntervalDefault     = 1 * time.Second
+	checkAccumulateOperationInstanceIntervalDefault = 1 * time.Minute
 
-	taskIDSyncAndCheckOnceTrigger     = "sync_and_check_once_trigger"
-	taskIDSyncAndCheckOrderedTrigger  = "sync_and_check_ordered_trigger"
-	taskIDSyncAndCheckPeriodicTrigger = "sync_and_check_periodic_trigger"
+	taskIDSyncAndCheckOnceTrigger          = "sync_and_check_once_trigger"
+	taskIDSyncAndCheckOrderedTrigger       = "sync_and_check_ordered_trigger"
+	taskIDSyncAndCheckPeriodicTrigger      = "sync_and_check_periodic_trigger"
+	taskIDCheckAccumulateOperationInstance = "check_accumulate_operation_instance"
+
+	checkAccumulateOperationInstanceUpdateConcurrency = 100
 )
 
 func (handler *triggerHandler) initSchedulerTasks() {
@@ -189,6 +194,18 @@ func (handler *triggerHandler) initSchedulerTasks() {
 				}
 
 				if err := handler.executeTriggerList(nCtx, handler.periodicTriggers.get()); err != nil {
+					return err
+				}
+
+				return nil
+			},
+		),
+		scheduler.NewTask(
+			taskIDCheckAccumulateOperationInstance,
+			checkAccumulateOperationInstanceIntervalDefault,
+			defaultTimeout,
+			func(nCtx contextx.IContext) error {
+				if err := handler.checkAccumulateOperationInstance(nCtx); err != nil {
 					return err
 				}
 
@@ -584,4 +601,84 @@ func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, t
 	}
 
 	return gp.Wait()
+}
+
+func (handler *triggerHandler) checkAccumulateOperationInstance(nCtx contextx.IContext) error {
+	condition := types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			State: []operation.State{operation.StateLaunched, operation.StateRunning},
+		},
+		LifeCycleStartedAtTimeRange: &types.TimeRange{
+			// If it starts before the start time of the previous life cycle, you need to determine whether it is abnormal data.
+			EndTime: time.Now().Add(-checkAccumulateOperationInstanceIntervalDefault),
+		},
+	}
+
+	maxPageSize := 5000
+
+	queryExecutor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](maxPageSize, time.Minute)
+	queryFn := func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
+		operationInstanceBriefData, _, err := handler.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInst(nCtx, p, &condition)
+		if err != nil {
+			return nil, err
+		}
+
+		return operationInstanceBriefData, err
+	}
+
+	pageResult, err := queryExecutor.Execute(nCtx, types.UnlimitedPage(), queryFn)
+	if err != nil {
+		return fmt.Errorf("failed to list operation instance, err: %w", err)
+	}
+
+	checkPoint := time.Now()
+	needEndWithTimeout := make([]*operation.InstanceBriefData, 0)
+	for _, item := range pageResult.Items {
+		// theoretical end time = started time + timeout
+		theoreticalEndAt := item.Lifecycle.StartedAt.Add(item.Metadata.Timeout)
+
+		// This operation instance has crossed the theoretical endpoint and needs to be marked for a timeout
+		if checkPoint.After(theoreticalEndAt) {
+			item.Lifecycle.End(operation.StateTimeout)
+			needEndWithTimeout = append(needEndWithTimeout, item)
+		}
+	}
+
+	logger.G.Sys().Ctx(nCtx).With(
+		"candidate-count", len(pageResult.Items),
+		"timeout-count", len(needEndWithTimeout),
+		"check-point", checkPoint,
+	).Info("checked accumulated operation instances")
+
+	gp := gopool.NewPool()
+	gp.SetLimit(checkAccumulateOperationInstanceUpdateConcurrency)
+	for idx := range needEndWithTimeout {
+		item := needEndWithTimeout[idx]
+		gp.Go(func() error {
+			err := handler.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(nCtx, item.Metadata.OperationInstanceID, item.Lifecycle)
+			if err != nil {
+				logger.G.Sys().Ctx(nCtx).WithErr(err).With(
+					"oper-inst-id", item.Metadata.OperationInstanceID,
+					"operation-id", item.Metadata.OperationID,
+					"trigger-id", item.Metadata.TriggerID,
+					"started-at", item.Lifecycle.StartedAt,
+				).Error("failed to update the needed timeout operation instance's lifecycle")
+
+				return fmt.Errorf("failed to update the needed timeout operation instance's lifecycle, err: %w", err)
+			}
+
+			return nil
+		})
+	}
+
+	if err = gp.Wait(); err != nil {
+		return err
+	}
+
+	logger.G.Sys().Ctx(nCtx).With(
+		"timeout-count", len(needEndWithTimeout),
+		"check-point", checkPoint,
+	).Info("updated timeout operation instance lifecycle")
+
+	return nil
 }

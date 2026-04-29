@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -66,7 +65,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 				With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 				Error("failed to do preprocess for scheduled workflow")
 
-			instance.Lifecycle.End(action.StateFailed)
+			instance.Lifecycle.End(operation.StateFailed)
 
 			return err
 		}
@@ -80,7 +79,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 				With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 				Error("failed to do postprocess for scheduled workflow")
 
-			instance.Lifecycle.End(action.StateFailed)
+			instance.Lifecycle.End(operation.StateFailed)
 
 			return err
 		}
@@ -92,7 +91,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 			With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 			Error("unexpected operation instance state: %s", instance.Lifecycle.State)
 
-		instance.Lifecycle.End(action.StateFailed)
+		instance.Lifecycle.End(operation.StateFailed)
 
 		return fmt.Errorf("unexpected operation instance state: %s", instance.Lifecycle.State)
 	}

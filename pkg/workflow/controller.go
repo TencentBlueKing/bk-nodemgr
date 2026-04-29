@@ -563,7 +563,7 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 	}
 
 	if _, err = ctl.mgr.server.SendChainWithContext(traceCtx, chain); err != nil {
-		ctl.operInstanceBriefData.Lifecycle.End(action.StateFailed)
+		ctl.operInstanceBriefData.Lifecycle.EndByActionState(action.StateFailed)
 		if updateErr := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
 			nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); updateErr != nil {
 			logger.G.Sys().

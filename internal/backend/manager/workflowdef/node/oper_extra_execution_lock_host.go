@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -89,7 +88,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 				Zh("锁定节点失败: %v", err).
 				En("lock host failed: %v", err).
 				Error()
-			instance.Lifecycle.End(action.StateFailed)
+			instance.Lifecycle.End(operation.StateFailed)
 
 			return err
 		}
@@ -108,7 +107,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 				Zh("解锁节点失败: %v", err).
 				En("unlock host failed: %v", err).
 				Error()
-			instance.Lifecycle.End(action.StateFailed)
+			instance.Lifecycle.End(operation.StateFailed)
 
 			return fmt.Errorf("unlock host by locker(%s) failed: %w", lockerName, err)
 		}
@@ -124,7 +123,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 			Zh("操作实例状态异常: %s", instance.Lifecycle.State).
 			En("unexpected operation instance state: %s", instance.Lifecycle.State).
 			Error()
-		instance.Lifecycle.End(action.StateFailed)
+		instance.Lifecycle.End(operation.StateFailed)
 
 		return fmt.Errorf("unexpected operation instance state: %s", instance.Lifecycle.State)
 	}

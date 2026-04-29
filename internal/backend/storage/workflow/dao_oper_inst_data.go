@@ -449,6 +449,10 @@ func convertOperInstDataConditionsToOptions(conditions ...*types.OperInstDataCon
 			continue
 		}
 
+		if condition.LifeCycleStartedAtTimeRange != nil {
+			opts = append(opts, operinstdata.WithLifeCycleStartedAtTimeRange(*condition.LifeCycleStartedAtTimeRange))
+		}
+
 		if condition.ExactInclude != nil {
 			opts = append(opts,
 				operinstdata.WithTriggerID(condition.ExactInclude.TriggerID...),
@@ -456,6 +460,23 @@ func convertOperInstDataConditionsToOptions(conditions ...*types.OperInstDataCon
 				operinstdata.WithOperInstID(condition.ExactInclude.OperInstID...),
 				operinstdata.WithState(condition.ExactInclude.State...),
 			)
+		}
+
+		if condition.ExactExclude != nil {
+			opts = append(opts,
+				operinstdata.WithoutTriggerID(condition.ExactExclude.TriggerID...),
+				operinstdata.WithoutOperationID(condition.ExactExclude.OperationID...),
+				operinstdata.WithoutOperInstID(condition.ExactExclude.OperInstID...),
+				operinstdata.WithoutState(condition.ExactExclude.State...),
+			)
+		}
+
+		// nolint: revive
+		if condition.FuzzyInclude != nil {
+		}
+
+		// nolint: revive
+		if condition.FuzzyExclude != nil {
 		}
 	}
 

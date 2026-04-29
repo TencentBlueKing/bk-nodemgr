@@ -13,6 +13,7 @@ package operinstdata
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -21,20 +22,45 @@ type OptFn = base.OptFn
 
 // WithOperInstID filter by operation instance id.
 func WithOperInstID(id ...string) OptFn {
-	return base.WithStringValues(FieldKeyOperInstID, id...)
+	return base.WithValues(FieldKeyOperInstID, id...)
+}
+
+// WithoutOperInstID filter by not contains operation instance id.
+func WithoutOperInstID(id ...string) OptFn {
+	return base.WithoutValues(FieldKeyOperInstID, id...)
 }
 
 // WithOperationID filter by operation id.
 func WithOperationID(id ...string) OptFn {
-	return base.WithStringValues(FieldKeyOperationID, id...)
+	return base.WithValues(FieldKeyOperationID, id...)
+}
+
+// WithoutOperationID filter by not contains operation id.
+func WithoutOperationID(id ...string) OptFn {
+	return base.WithoutValues(FieldKeyOperationID, id...)
 }
 
 // WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
-	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
+	return base.WithValues(FieldKeyTriggerID, triggerID...)
+}
+
+// WithoutTriggerID filter by not contains trigger id.
+func WithoutTriggerID(triggerID ...string) OptFn {
+	return base.WithoutValues(FieldKeyTriggerID, triggerID...)
 }
 
 // WithState filter by state.
 func WithState(states ...operation.State) OptFn {
-	return base.WithStringValues(FieldKeyState, operation.StateListToStringList(states)...)
+	return base.WithValues(FieldKeyState, operation.StateListToStringList(states)...)
+}
+
+// WithoutState filter by not contains state.
+func WithoutState(states ...operation.State) OptFn {
+	return base.WithoutValues(FieldKeyState, operation.StateListToStringList(states)...)
+}
+
+// WithLifeCycleStartedAtTimeRange filter by life cycle start at time.
+func WithLifeCycleStartedAtTimeRange(timeRange types.TimeRange) OptFn {
+	return base.WithTimeRange(FieldKeyLifeCycleStartedAt, timeRange.StartTime, timeRange.EndTime)
 }

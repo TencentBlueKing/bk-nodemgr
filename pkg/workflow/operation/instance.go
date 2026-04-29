@@ -113,33 +113,35 @@ func (life *Lifecycle) Start() {
 	life.State = StateRunning
 }
 
-// End ends the action instance lifecycle.
-func (life *Lifecycle) End(lastActionInstState action.State) {
-	life.EndedAt = time.Now()
+// EndByActionState ends the action instance lifecycle.
+func (life *Lifecycle) EndByActionState(lastActionInstState action.State) {
+	var state State
 
 	switch lastActionInstState {
 	case action.StateSuccess, action.StateSkipped:
-		life.State = StateSuccess
-
+		state = StateSuccess
 	case action.StateFailed:
-		life.State = StateFailed
-
+		state = StateFailed
 	case action.StateTimeout:
-		life.State = StateTimeout
-
+		state = StateTimeout
 	case action.StateTerminated:
-		life.State = StateTerminated
-
+		state = StateTerminated
 	case action.StateRunning:
-		life.State = StateRunning
-
+		state = StateRunning
 	case action.StatePending:
 		// TODO: implement me.
-		life.State = StateFailed
-
+		state = StateFailed
 	default:
-		life.State = StateFailed
+		state = StateFailed
 	}
+
+	life.End(state)
+}
+
+// End ends the action instance lifecycle.
+func (life *Lifecycle) End(state State) {
+	life.EndedAt = time.Now()
+	life.State = state
 }
 
 // NeedExecutedExtraExecution checks if the lifecycle needs to execute extra execution.

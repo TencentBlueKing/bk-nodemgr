@@ -394,6 +394,9 @@ type OperInstDataFuzzyFields struct{}
 
 // OperInstDataCondition defines the workflow operation instance data condition.
 type OperInstDataCondition struct {
+	// life cycle started at time range will be used whatever condition type is.
+	LifeCycleStartedAtTimeRange *TimeRange
+
 	// will be used when condition type is included in exact mode.
 	ExactInclude *OperInstDataExactFields
 
