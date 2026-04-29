@@ -98,16 +98,23 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	agentIDs := make([]string, 0, len(param.Hosts))
-	for _, host := range param.Hosts {
-		agentIDs = append(agentIDs, host.AgentID)
-	}
+	agentIDs := conv.SliceToSlice(param.Hosts, func(hostIDAgentID *HostIDAgentID) string {
+		return hostIDAgentID.AgentID
+	})
 
-	result, err := act.gseHandler.ListAgentState(std.Context(), agentIDs...)
-	if err != nil {
-		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
+	result := make([]*types.AgentState, 0, len(agentIDs))
+	for start := 0; start < len(agentIDs); start += gse.ListAgentStatePageSize {
+		end := min(start+gse.ListAgentStatePageSize, len(agentIDs))
 
-		return err
+		batchAgentIDs := agentIDs[start:end]
+		batchResult, err := act.gseHandler.ListAgentState(std.Context(), batchAgentIDs...)
+		if err != nil {
+			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("agent-ids", batchAgentIDs).Error("failed to list agent state")
+
+			return err
+		}
+
+		result = append(result, batchResult...)
 	}
 
 	agentStates, err := conv.SliceToMap(result, func(state *types.AgentState) string { return state.AgentID })

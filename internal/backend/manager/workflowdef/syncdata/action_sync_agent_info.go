@@ -98,16 +98,23 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	agentIDs := make([]string, 0, len(param.Hosts))
-	for _, host := range param.Hosts {
-		agentIDs = append(agentIDs, host.AgentID)
-	}
+	agentIDs := conv.SliceToSlice(param.Hosts, func(hostIDAgentID *HostIDAgentID) string {
+		return hostIDAgentID.AgentID
+	})
 
-	result, err := act.gseHandler.ListAgentInfo(std.Context(), agentIDs...)
-	if err != nil {
-		logger.G.Sys().Ctx(std.Context()).WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent info")
+	result := make([]*types.AgentInfo, 0, len(agentIDs))
+	for start := 0; start < len(agentIDs); start += gse.ListAgentInfoPageSize {
+		end := min(start+gse.ListAgentInfoPageSize, len(agentIDs))
 
-		return err
+		batchAgentIDs := agentIDs[start:end]
+		batchResult, err := act.gseHandler.ListAgentInfo(std.Context(), batchAgentIDs...)
+		if err != nil {
+			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("agent-ids", batchAgentIDs).Error("failed to list agent info")
+
+			return err
+		}
+
+		result = append(result, batchResult...)
 	}
 
 	agentInfos, err := conv.SliceToMap(result, func(state *types.AgentInfo) string { return state.AgentID })
@@ -115,15 +122,14 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	upsertHosts := make([]*types.Host, len(param.Hosts))
-	for idx := range param.Hosts {
-		host := param.Hosts[idx]
+	upsertHosts := make([]*types.Host, 0, len(param.Hosts))
+	for _, host := range param.Hosts {
 		agentInfo, ok := agentInfos[host.AgentID]
 		if !ok {
 			continue
 		}
 
-		upsertHosts[idx] = &types.Host{
+		upsertHosts = append(upsertHosts, &types.Host{
 			HostID: host.HostID,
 			Dynamic: &types.HostDynamic{
 				NodeStatus:     agentInfo.NodeStatus,
@@ -133,7 +139,7 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 				NodeCPUArch:    agentInfo.Arch,
 				NodeOsType:     agentInfo.OSType,
 			},
-		}
+		})
 	}
 
 	if len(upsertHosts) == 0 {
