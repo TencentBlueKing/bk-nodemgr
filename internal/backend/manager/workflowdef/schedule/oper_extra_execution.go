@@ -124,12 +124,13 @@ func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operati
 		return nil
 	}
 
-	pe := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](operationListMaxPageSize, operationListTimeout)
-	result, err := pe.Execute(nCtx, types.UnlimitedPage(), func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
+	executor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](operationListMaxPageSize, operationListTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
 		operInsts, _, err := exec.workflowStg.ListOperInstanceBriefWithoutActionInstByOperationID(nCtx, p, operationIDs...)
 
 		return operInsts, err
-	})
+	}
+	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		logger.G.Sys().Ctx(nCtx).
 			WithErr(err).
@@ -153,12 +154,13 @@ func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operati
 
 func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operation.InstanceBriefData, param *ExtraExecutionParam) error {
 	// get current scheduled operation instance.
-	pe := pageexecutor.NewPageExecutor[*operation.Operation](operationListMaxPageSize, operationListTimeout)
-	result, err := pe.Execute(nCtx, types.UnlimitedPage(), func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
+	executor := pageexecutor.NewPageExecutor[*operation.Operation](operationListMaxPageSize, operationListTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
 		operations, _, err := exec.workflowStg.ListOperationByParentOperInstID(nCtx, p, instance.Metadata.OperationInstanceID)
 
 		return operations, err
-	})
+	}
+	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		logger.G.Sys().Ctx(nCtx).
 			WithErr(err).
@@ -181,11 +183,12 @@ func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operat
 			parentOperationIDs = append(parentOperationIDs, sub.OperationID)
 		}
 
-		result, err := pe.Execute(nCtx, types.UnlimitedPage(), func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
+		fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
 			operations, _, err := exec.workflowStg.ListOperationByParentOperationID(nCtx, p, parentOperationIDs...)
 
 			return operations, err
-		})
+		}
+		result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 		if err != nil {
 			logger.G.Sys().Ctx(nCtx).
 				WithErr(err).
