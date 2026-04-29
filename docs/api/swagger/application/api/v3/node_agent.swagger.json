@@ -460,6 +460,9 @@
         },
         "re_register": {
           "type": "boolean"
+        },
+        "install_pre_ordered_plugins": {
+          "type": "boolean"
         }
       },
       "description": "AgentInstallInfo ..."

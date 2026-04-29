@@ -160,6 +160,8 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 			LoginKeyFile:    host.LoginKeyFile,
 			BkNetworkunitId: &host.NetworkUnitID,
 			OsType:          host.OSType,
+			ReRegister:               host.ReRegister,
+			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
 		}
 	}
 

@@ -144,6 +144,16 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	tenantID := nCtx.TenantID()
 	deployInfo := std.DeployInfo()
 
+	// Skip this action if InstallPreOrderedPlugins is disabled.
+	if !deployInfo.InstallOptions.InstallPreOrderedPlugins {
+		std.InstanceData().Log().
+			Zh("未开启安装预设插件, 跳过此操作").
+			En("install pre-ordered plugins is disabled, skip this action").
+			Info()
+
+		return nil
+	}
+
 	preOrderedPlugins := getPreOrderedPlugins()
 	if len(preOrderedPlugins) == 0 {
 		std.InstanceData().Log().

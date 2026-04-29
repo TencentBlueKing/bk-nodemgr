@@ -318,6 +318,7 @@ const initData = {
   bk_networkunit_id: '',
   bk_biz_id: '',
   re_register: false,
+  install_pre_ordered_plugins: true,
   credit: '',
 };
 const mainStore = useMainStore();
@@ -346,6 +347,8 @@ const settings = reactive({
     { title: t('components.installTable.account'), field: 'login_user' },
     { title: t('components.installTable.authMethod'), field: 'login_mode' },
     { title: t('components.installTable.passwordKey'), field: 'credit' },
+    { title: t('components.installTable.installPreOrderedPlugins'), field: 'install_pre_ordered_plugins' },
+    { title: t('components.installTable.reRegisterAgentId'), field: 're_register' },
   ],
   checked: [
     'bk_host_innerip',

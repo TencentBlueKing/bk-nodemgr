@@ -128,6 +128,7 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 			ExportIP:                 host.GetExportIp(),
 			AdvertiseIP:              host.GetAdvertiseIp(),
 			ReRegister:               host.GetReRegister(),
+			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
 			ProxyTags:                types.StringListToProxyTagList(host.GetProxyTags()),
 			ProxyInstallOriginUnitID: host.GetProxyInstallOriginUnitId(),
 			CreditExpiredIntervalSec: host.GetCreditExpiredIntervalSec(),

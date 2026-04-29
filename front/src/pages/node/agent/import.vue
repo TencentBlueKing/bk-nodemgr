@@ -158,6 +158,7 @@ const initData = {
   bk_biz_id: '',
   bk_host_id: '',
   re_register: false,
+  install_pre_ordered_plugins: true,
   credit: '',
 };
 const formData = reactive({
@@ -209,6 +210,8 @@ const tableSetting = reactive({
     { title: t('platform.nodeMan.installAgentPage.loginUser'), field: 'login_user' },
     { title: t('platform.nodeMan.installAgentPage.loginMode'), field: 'login_mode' },
     { title: t('platform.nodeMan.installAgentPage.passwordKey'), field: 'credit' },
+    { title: t('components.installTable.installPreOrderedPlugins'), field: 'install_pre_ordered_plugins' },
+    { title: t('components.installTable.reRegisterAgentId'), field: 're_register' },
   ],
   checked: [
     'bk_biz_id',
@@ -412,6 +415,7 @@ onMounted(async () => {
     }
 
     formData.info = allHosts.map((host: any) => ({
+      ...initData,
       ...host.state,
       ...host.info,
       ...host,
@@ -424,6 +428,7 @@ onMounted(async () => {
   } else {
     // 本页选择模式：使用原有数据
     formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
+      ...initData,
       target_version: state?.node_version,
       ...rest,
       bk_networkunit_id: normalizeNetworkUnitId(info.bk_networkunit_id),

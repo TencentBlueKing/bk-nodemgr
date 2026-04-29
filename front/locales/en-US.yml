@@ -1056,6 +1056,11 @@ components:
     creditValid: Valid; click to modify
     inputPassword: Enter password
     enabledSerive: Enabled Services
+    installSettings: Install Settings
+    installPreOrderedPlugins: Preset Plugins
+    installPreOrderedPluginsTooltip: Automatically install preset plugins during installation
+    reRegisterAgentId: Re-register AgentID
+    reRegisterAgentIdTooltip: Re-register AgentID during installation
     ipv4ValidMessage: Invalid Private IPv4
     ipv6ValidMessage: Invalid Private IPv6
     osTypeValidMessage: Select OS

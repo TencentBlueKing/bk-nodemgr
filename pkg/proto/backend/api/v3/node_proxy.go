@@ -62,6 +62,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 			ExportIp:                 host.ExportIP,
 			AdvertiseIp:              host.AdvertiseIP,
 			ReRegister:               host.ReRegister,
+			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
 			ProxyTags:                types.ProxyTagListToStringList(host.ProxyTags),
 			ProxyInstallOriginUnitId: host.ProxyInstallOriginUnitID,
 			CreditExpiredIntervalSec: host.CreditExpiredIntervalSec,

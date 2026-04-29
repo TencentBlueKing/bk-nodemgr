@@ -34,6 +34,7 @@ type NodeProxyInstallHost struct {
 	ExportIP                 string
 	AdvertiseIP              string
 	ReRegister               bool
+	InstallPreOrderedPlugins bool
 	ProxyTags                []ProxyTag
 	ProxyInstallOriginUnitID int64
 	CreditExpiredIntervalSec int64

@@ -138,6 +138,8 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 			LoginKeyFile:  host.GetLoginKeyFile(),
 			NetworkUnitID: host.GetBkNetworkunitId(),
 			OSType:        host.GetOsType(),
+			ReRegister:               host.GetReRegister(),
+			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
 		}
 	}
 

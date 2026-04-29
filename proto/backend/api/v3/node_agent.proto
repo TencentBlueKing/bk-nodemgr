@@ -24,6 +24,7 @@ message NodeAgentInstallReq {
     string os_type = 12;
     optional int64 bk_host_id = 13;
     bool re_register = 14;
+    bool install_pre_ordered_plugins = 15;
   }
   repeated Host host = 1;
   message TargetVersion {

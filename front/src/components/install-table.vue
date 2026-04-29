@@ -700,6 +700,81 @@
         </VxeColumn>
       </VxeColgroup>
 
+      <!-- 安装设置 -->
+      <VxeColgroup
+        :title="$t('components.installTable.installSettings')"
+        align="center"
+      >
+        <VxeColumn
+          :min-width="120"
+          field="install_pre_ordered_plugins"
+          :visible="settings.checked.includes('install_pre_ordered_plugins')"
+        >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.installPreOrderedPlugins') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.installPreOrderedPluginsTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <template #default="{ row }">
+            <Switcher
+              theme="primary"
+              v-model="row.install_pre_ordered_plugins"
+            ></Switcher>
+          </template>
+        </VxeColumn>
+        <VxeColumn
+          :min-width="150"
+          field="re_register"
+          :visible="settings.checked.includes('re_register')"
+        >
+          <template #header>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="280"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ $t('components.installTable.reRegisterAgentId') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.reRegisterAgentIdTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
+          <template #default="{ row }">
+            <Switcher
+              theme="primary"
+              v-model="row.re_register"
+            ></Switcher>
+          </template>
+        </VxeColumn>
+      </VxeColgroup>
+
       <!-- 开启的服务 -->
       <VxeColgroup
         :title="$t('components.installTable.enabledSerive')"
@@ -921,6 +996,8 @@ const props = defineProps({
         { title: '登录账号', field: 'login_user' },
         { title: '认证方式', field: 'login_mode' },
         { title: '密码 / 密钥', field: 'credit' },
+        { title: '安装预设插件', field: 'install_pre_ordered_plugins' },
+        { title: '重新注册AgentID', field: 're_register' },
       ],
       checked: [
         'bk_host_innerip',
@@ -967,6 +1044,7 @@ const initData = {
   bk_biz_id: '',
   bk_host_id: '',
   re_register: false,
+  install_pre_ordered_plugins: true,
   credit: '',
   export_ip: '',
   advertise_ip: '',

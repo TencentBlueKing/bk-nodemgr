@@ -185,9 +185,10 @@ func (h *handler) generateInstallNodeDeployments(
 					},
 					CurrentVersionSupports: types.DeploymentVersionSupports{},
 					InstallOptions: types.DeploymentInstallOptions{
-						ReRegister:    reqHost.GetReRegister(),
-						DirectInstall: networkUnit.IsDirect,
-						IsManual:      isManual,
+						ReRegister:               reqHost.GetReRegister(),
+						InstallPreOrderedPlugins: reqHost.GetInstallPreOrderedPlugins(),
+						DirectInstall:            networkUnit.IsDirect,
+						IsManual:                 isManual,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},

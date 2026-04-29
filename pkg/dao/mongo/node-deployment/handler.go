@@ -195,10 +195,11 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			LogDir:         info.BaseRuntime.LogDir,
 		},
 		InstallOptions: types.DeploymentInstallOptions{
-			ReRegister:    info.InstallOptions.ReRegister,
-			DirectInstall: info.InstallOptions.DirectInstall,
-			IsManual:      info.InstallOptions.IsManual,
-			IsOffline:     info.InstallOptions.IsOffline,
+			ReRegister:               info.InstallOptions.ReRegister,
+			InstallPreOrderedPlugins: info.InstallOptions.InstallPreOrderedPlugins,
+			DirectInstall:            info.InstallOptions.DirectInstall,
+			IsManual:                 info.InstallOptions.IsManual,
+			IsOffline:                info.InstallOptions.IsOffline,
 		},
 		ReconfigOptions: types.DeploymentReconfigOptions{
 			DirectLink:           info.ReconfigOptions.DirectLink,
@@ -437,10 +438,11 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			LogDir:         info.BaseRuntime.LogDir,
 		},
 		InstallOptions: InstallOptions{
-			ReRegister:    info.InstallOptions.ReRegister,
-			DirectInstall: info.InstallOptions.DirectInstall,
-			IsManual:      info.InstallOptions.IsManual,
-			IsOffline:     info.InstallOptions.IsOffline,
+			ReRegister:               info.InstallOptions.ReRegister,
+			InstallPreOrderedPlugins: info.InstallOptions.InstallPreOrderedPlugins,
+			DirectInstall:            info.InstallOptions.DirectInstall,
+			IsManual:                 info.InstallOptions.IsManual,
+			IsOffline:                info.InstallOptions.IsOffline,
 		},
 		ReconfigOptions: ReconfigOptions{
 			DirectLink:           info.ReconfigOptions.DirectLink,
