@@ -533,7 +533,11 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
 			Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
 
-		operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), trigCtl.GetTriggerID())
+		operList, count, err := handler.mgr.stgOperation.ListOperation(nCtx, types.UnlimitedPage(), &types.OperationCondition{
+			ExactInclude: &types.OperationExactFields{
+				TriggerID: []string{trigCtl.GetTriggerID()},
+			},
+		})
 		if err != nil {
 			return nil, err
 		}

@@ -60,7 +60,6 @@ const (
 	metricOperationSwitchScheduledWorkflow                         = "switch_scheduled_workflow"
 	metricOperationGetOperation                                    = "get_operation"
 	metricOperationUpsertOperation                                 = "upsert_operation"
-	metricOperationListOperationByTriggerID                        = "list_operation_by_trigger_id"
 	metricOperationListOperation                                   = "list_operation"
 	metricOperationCountOperation                                  = "count_operation"
 	metricOperationDistinctOperation                               = "distinct_operation"
@@ -467,31 +466,6 @@ func (s *Storage) UpsertOperation(nCtx contextx.IContext, operation *workoper.Op
 
 		return nil
 	})
-}
-
-// ListOperationByTriggerID lists operation by trigger id.
-func (s *Storage) ListOperationByTriggerID(
-	nCtx contextx.IContext, page types.Page, triggerID ...string) (
-	[]*workoper.Operation, int64, error) {
-
-	var (
-		opers []*workoper.Operation
-		num   int64
-		err   error
-	)
-
-	err = s.WrapFn(nCtx, metricOperationListOperationByTriggerID, func(nCtx contextx.IContext) error {
-		var err error
-		if opers, num, err = s.listOperationByTriggerID(nCtx, page, triggerID...); err != nil {
-			logger.G.Sys().WithErr(err).With("trigger-ids", triggerID).Error("failed to list operations by trigger id")
-
-			return fmt.Errorf("failed to list operations by trigger id, trigger-ids(%v): %w", triggerID, err)
-		}
-
-		return nil
-	})
-
-	return opers, num, err
 }
 
 // ListOperation lists operation by page and condition.

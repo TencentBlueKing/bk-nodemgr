@@ -54,19 +54,6 @@ func (s *Storage) upsertOperation(nCtx contextx.IContext, operation *workoper.Op
 	return s.daoOperation.Upsert(nCtx, operation)
 }
 
-// listOperationByTriggerID lists operation by triggerID.
-func (s *Storage) listOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID ...string) ([]*workoper.Operation, int64, error) {
-	if nCtx == nil {
-		return nil, 0, basestorage.ErrNilContent()
-	}
-
-	if len(triggerID) == 0 {
-		return nil, 0, basestorage.ErrEmptyOperationID()
-	}
-
-	return s.daoOperation.List(nCtx, page, operation.WithTriggerID(triggerID...))
-}
-
 // listOperation lists operation.
 func (s *Storage) listOperationByOperationID(nCtx contextx.IContext, operationID ...string) ([]*workoper.Operation, int64, error) {
 	if nCtx == nil {

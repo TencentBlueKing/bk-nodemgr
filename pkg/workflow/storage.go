@@ -55,9 +55,6 @@ type IStorageOperation interface {
 	// GetOperation gets operation.
 	GetOperation(ctx contextx.IContext, operationID string) (*operation.Operation, error)
 
-	// ListOperationByTriggerID lists operation.
-	ListOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) ([]*operation.Operation, int64, error)
-
 	// ListOperation lists operation by page and condition.
 	ListOperation(ctx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) ([]*operation.Operation, int64, error)
 
