@@ -39,7 +39,7 @@ extraDeploy: []
 image:
   registry: "hub.bktencent.com"
   repository: blueking/bk-nodemgr-server
-  tag: v3.0.1-alpha.21
+  tag: v3.0.1-alpha.22
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
