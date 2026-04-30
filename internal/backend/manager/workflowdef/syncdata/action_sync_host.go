@@ -157,19 +157,19 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 			len(updateHosts), len(insertHosts), len(deleteHostIDs)).
 		Info()
 
-	if err = batchHandleHosts(updateHosts, syncHostDBBatchSize, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(updateHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpsertManyHostStatic(std.Context(), hosts...)
 	}); err != nil {
 		return err
 	}
 
-	if err = batchHandleHosts(insertHosts, syncHostDBBatchSize, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(insertHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpsertManyHost(std.Context(), hosts...)
 	}); err != nil {
 		return err
 	}
 
-	if err = batchHandleHostIDs(deleteHostIDs, syncHostDBBatchSize, func(hostIDs ...int64) error {
+	if err = batchHandleHostIDs(deleteHostIDs, func(hostIDs ...int64) error {
 		return act.storageHost.DeleteManyHost(std.Context(), hostIDs...)
 	}); err != nil {
 		return err
@@ -182,15 +182,11 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func batchHandleHosts(hosts []*types.Host, batchSize int, fn func(hosts ...*types.Host) error) error {
-	if batchSize <= 0 {
-		batchSize = syncHostDBBatchSize
-	}
-
+func batchHandleHosts(hosts []*types.Host, fn func(hosts ...*types.Host) error) error {
 	hostLen := len(hosts)
 
-	for start := 0; start < hostLen; start += batchSize {
-		end := min(start+batchSize, hostLen)
+	for start := 0; start < hostLen; start += syncHostDBBatchSize {
+		end := min(start+syncHostDBBatchSize, hostLen)
 		if err := fn(hosts[start:end]...); err != nil {
 			return err
 		}
@@ -199,15 +195,11 @@ func batchHandleHosts(hosts []*types.Host, batchSize int, fn func(hosts ...*type
 	return nil
 }
 
-func batchHandleHostIDs(hostIDs []int64, batchSize int, fn func(hostIDs ...int64) error) error {
-	if batchSize <= 0 {
-		batchSize = syncHostDBBatchSize
-	}
-
+func batchHandleHostIDs(hostIDs []int64, fn func(hostIDs ...int64) error) error {
 	hostIDLen := len(hostIDs)
 
-	for start := 0; start < hostIDLen; start += batchSize {
-		end := min(start+batchSize, hostIDLen)
+	for start := 0; start < hostIDLen; start += syncHostDBBatchSize {
+		end := min(start+syncHostDBBatchSize, hostIDLen)
 		if err := fn(hostIDs[start:end]...); err != nil {
 			return err
 		}

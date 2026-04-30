@@ -67,7 +67,7 @@ func (act *actionSyncAlivePluginProcessInfo) Description() string {
 
 // Timeout returns the timeout of this action.
 func (act *actionSyncAlivePluginProcessInfo) Timeout() time.Duration {
-	return 10 * time.Minute
+	return 10 * time.Minute // nolint: mnd
 }
 
 // MaxRetryCount returns the max retry count of this action.

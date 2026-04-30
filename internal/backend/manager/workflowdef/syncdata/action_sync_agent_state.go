@@ -146,7 +146,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = batchHandleHosts(upsertHosts, syncHostDBBatchSize, func(hosts ...*types.Host) error {
+	err = batchHandleHosts(upsertHosts, func(hosts ...*types.Host) error {
 		return act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
 			NodeRole:       true,
 			NodeGeneration: true,

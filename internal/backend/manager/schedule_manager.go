@@ -75,6 +75,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 	}
 }
 
+// nolint: gocognit
 func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
 

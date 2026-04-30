@@ -64,7 +64,7 @@ func (act *actionSyncNetworkArea) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionSyncNetworkArea) Timeout() time.Duration {
-	return 10 * time.Minute
+	return 10 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.

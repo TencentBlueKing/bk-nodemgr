@@ -22,7 +22,7 @@ const (
 	OperDefNameSyncHost = "sync_host"
 
 	// OperDefNameSyncHostTimeout defines the timeout for each sync host operation.
-	OperDefNameSyncHostTimeout = 10 * time.Minute
+	OperDefNameSyncHostTimeout = 30 * time.Minute
 )
 
 // NewOperSyncHost new an operation.
