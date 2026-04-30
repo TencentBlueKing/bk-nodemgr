@@ -146,12 +146,14 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
-		NodeRole:       true,
-		NodeGeneration: true,
-		NodeVersion:    true,
-		NodeStatus:     true,
-	}, upsertHosts...)
+	err = batchHandleHosts(upsertHosts, syncHostDBBatchSize, func(hosts ...*types.Host) error {
+		return act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
+			NodeRole:       true,
+			NodeGeneration: true,
+			NodeVersion:    true,
+			NodeStatus:     true,
+		}, hosts...)
+	})
 	if err != nil {
 		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to update host dynamic")
 
