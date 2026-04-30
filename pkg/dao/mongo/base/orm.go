@@ -580,6 +580,20 @@ type DocumentFieldUpdate struct {
 	Fields map[string]any
 }
 
+// BuildChangedFieldFilter appends field change predicates to an existing update filter.
+func BuildChangedFieldFilter(filter bson.D, fields map[string]any) bson.D {
+	if len(fields) == 0 {
+		return filter
+	}
+
+	changedConditions := make(bson.A, 0, len(fields))
+	for field, value := range fields {
+		changedConditions = append(changedConditions, bson.D{{Key: field, Value: bson.D{{Key: "$ne", Value: value}}}})
+	}
+
+	return append(filter, bson.E{Key: "$or", Value: changedConditions})
+}
+
 // UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
 func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
 	if len(updates) == 0 {

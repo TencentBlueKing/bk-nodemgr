@@ -749,9 +749,10 @@ func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostD
 			return base.ErrInvalidItemInParamList()
 		}
 
+		updates := generateHostDynamicUpdates(fields, host)
 		docs = append(docs, &base.DocumentFieldUpdate{
-			Filter: bson.D{bson.E{Key: FieldKeyHostID, Value: host.HostID}},
-			Fields: generateHostDynamicUpdates(fields, host),
+			Filter: buildHostDynamicFieldUpdateFilter(host.HostID, updates),
+			Fields: updates,
 		})
 	}
 
@@ -762,6 +763,10 @@ func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostD
 	}
 
 	return nil
+}
+
+func buildHostDynamicFieldUpdateFilter(hostID int64, updates map[string]any) bson.D {
+	return base.BuildChangedFieldFilter(bson.D{{Key: FieldKeyHostID, Value: hostID}}, updates)
 }
 
 // nolint: gocognit, gocyclo, cyclop
