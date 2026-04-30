@@ -173,14 +173,21 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		})
 	}
 
-	if trigCtl != nil {
-		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
-			logger.G.Sys().Ctx(std.Context()).WithErr(err).
-				With("action", act.Name()).
-				Error("failed to run trigger for handling sync agent info operations")
+	if err = gp.Wait(); err != nil {
+		ctx.Data.Log().
+			Zh("生成同步 Agent 信息任务失败").
+			En("failed to generate sync agent info operations").
+			Error()
 
-			return err
-		}
+		return fmt.Errorf("failed to generate sync agent info operations: %w", err)
+	}
+
+	if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).
+			With("action", act.Name()).
+			Error("failed to run trigger for handling sync agent info operations")
+
+		return err
 	}
 
 	return nil
