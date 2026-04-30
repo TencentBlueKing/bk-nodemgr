@@ -266,7 +266,7 @@ func (h *Handler) ListWithoutActInst(nCtx contextx.IContext, page types.Page, op
 	}
 
 	if num == 0 {
-		return nil, 0, nil
+		return []*operation.InstanceBriefData{}, 0, nil
 	}
 
 	field := FieldOfActionData
