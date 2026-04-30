@@ -21,38 +21,42 @@
         fixed="left"
         :min-width="280">
         <template #default="{ row }">
-          <Button
-            v-if="row.bk_networkarea_id === 0"
-            text
-            class="mr-[12px]">
-            <i class="nodeman-icon nc-collect text-[#C4C6CC] text-[18px]">
-            </i>
-          </Button>
-          <Button
-            v-else
-            text
-            class="mr-[12px]"
-            @click.stop="handleCollect(row.bk_networkarea_id)">
-            <i
-              class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-              v-if="collectList.includes(row.bk_networkarea_id)">
-            </i>
-            <i
-              class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px]"
-              v-else>
-            </i>
-          </Button>
-          <span
-            v-if="!isAreaAuthorized(row.bk_networkarea_id)"
-            class="text-[#C4C6CC] cursor-pointer"
-            @click="handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_view')"
-            @mouseenter="viewMouseEnter($event, false)"
-            @mousemove="viewMouseMove($event, false)"
-            @mouseleave="viewMouseLeave()"
-          >{{ row.bk_networkarea_name }}</span>
-          <Button v-else theme="primary" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
-            {{ row.bk_networkarea_name }}
-          </Button>
+          <div class="flex items-center min-w-0">
+            <Button
+              v-if="row.bk_networkarea_id === 0"
+              text
+              class="mr-[12px] shrink-0">
+              <i class="nodeman-icon nc-collect text-[#C4C6CC] text-[18px]">
+              </i>
+            </Button>
+            <Button
+              v-else
+              text
+              class="mr-[12px] shrink-0"
+              @click.stop="handleCollect(row.bk_networkarea_id)">
+              <i
+                class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+                v-if="collectList.includes(row.bk_networkarea_id)">
+              </i>
+              <i
+                class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px]"
+                v-else>
+              </i>
+            </Button>
+            <span
+              v-if="!isAreaAuthorized(row.bk_networkarea_id)"
+              class="text-[#C4C6CC] cursor-pointer truncate"
+              @click="handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_view')"
+              @mouseenter="viewMouseEnter($event, false)"
+              @mousemove="viewMouseMove($event, false)"
+              @mouseleave="viewMouseLeave()"
+            >{{ row.bk_networkarea_name }}</span>
+            <span
+              v-else
+              class="text-[#3A84FF] cursor-pointer truncate"
+              @click="handleToWorkareaDetail(row.bk_networkarea_id)"
+            >{{ row.bk_networkarea_name }}</span>
+          </div>
         </template>
       </TableColumn>
       <TableColumn
