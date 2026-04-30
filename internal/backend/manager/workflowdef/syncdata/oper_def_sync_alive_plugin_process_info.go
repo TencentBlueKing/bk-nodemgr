@@ -17,8 +17,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncAlivePluginProcessInfo defines the operation def name.
-const OperDefNameSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
+const (
+	// OperDefNameSyncAlivePluginProcessInfo defines the operation def name.
+	OperDefNameSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
+
+	// OperDefNameSyncAlivePluginProcessInfoTimeout defines the timeout for each sync alive plugin process info operation.
+	OperDefNameSyncAlivePluginProcessInfoTimeout = 10 * time.Minute
+)
 
 // NewOperSyncAlivePluginProcessInfo new an operation.
 func NewOperSyncAlivePluginProcessInfo(param OperParamSyncAlivePluginProcessInfo) operation.Definition {
@@ -53,7 +58,7 @@ func (oper *operSyncAlivePluginProcessInfo) ActionDefNames() []string {
 // DefaultParameters returns the default parameters.
 func (oper *operSyncAlivePluginProcessInfo) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:     10 * time.Minute, // nolint:mnd
+		Timeout:     OperDefNameSyncAlivePluginProcessInfoTimeout,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

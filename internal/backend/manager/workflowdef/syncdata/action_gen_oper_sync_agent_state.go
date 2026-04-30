@@ -143,7 +143,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	// create trigger for handling sync agent state operations.
 	meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
 	meta.CleanPolicy = trigger.MetadataCleanPolicy{
-		MaxDays: 1,
+		MaxDays: syncDataCleanPolicyMaxDays(OperDefNameSyncAgentStateTimeout),
 	}
 	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOrdered, meta)
 	if err != nil {

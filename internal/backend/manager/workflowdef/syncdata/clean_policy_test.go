@@ -19,18 +19,80 @@ import (
 func TestSyncDataCleanPolicyMaxDaysUsesFractionalDays(t *testing.T) {
 	t.Parallel()
 
-	timeout := 10 * time.Minute
-	maxDays := syncDataCleanPolicyMaxDays(timeout)
-	if maxDays <= 0 {
-		t.Fatalf("expected positive clean policy max days, got %f", maxDays)
+	tests := []struct {
+		name    string
+		timeout time.Duration
+	}{
+		{name: "sync agent info", timeout: OperDefNameSyncAgentInfoTimeout},
+		{name: "sync agent state", timeout: OperDefNameSyncAgentStateTimeout},
+		{name: "sync alive plugin process info", timeout: OperDefNameSyncAlivePluginProcessInfoTimeout},
+		{name: "sync host", timeout: OperDefNameSyncHostTimeout},
 	}
 
-	if maxDays >= 1 {
-		t.Fatalf("expected sub-day clean policy max days, got %f", maxDays)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			maxDays := syncDataCleanPolicyMaxDays(test.timeout)
+			if maxDays <= 0 {
+				t.Fatalf("expected positive clean policy max days, got %f", maxDays)
+			}
+
+			if maxDays >= 1 {
+				t.Fatalf("expected sub-day clean policy max days, got %f", maxDays)
+			}
+
+			expectedMaxDays := test.timeout.Hours() * syncDataCleanPolicyTimeoutMultiplier / syncDataCleanPolicyHoursPerDay
+			if math.Abs(maxDays-expectedMaxDays) > 0.000001 {
+				t.Fatalf("expected clean policy max days %f, got %f", expectedMaxDays, maxDays)
+			}
+		})
+	}
+}
+
+func TestSyncDataOperationCleanPolicyTimeouts(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		operation  string
+		maxDays    float64
+		wantMaxDay float64
+	}{
+		{
+			name:       "sync agent info",
+			operation:  OperDefNameSyncAgentInfo,
+			maxDays:    syncDataCleanPolicyMaxDays(OperDefNameSyncAgentInfoTimeout),
+			wantMaxDay: syncDataCleanPolicyMaxDays(NewOperSyncAgentInfo(OperParamSyncAgentInfo{}).DefaultParameters().Timeout),
+		},
+		{
+			name:       "sync agent state",
+			operation:  OperDefNameSyncAgentState,
+			maxDays:    syncDataCleanPolicyMaxDays(OperDefNameSyncAgentStateTimeout),
+			wantMaxDay: syncDataCleanPolicyMaxDays(NewOperSyncAgentState(OperParamSyncAgentState{}).DefaultParameters().Timeout),
+		},
+		{
+			name:       "sync alive plugin process info",
+			operation:  OperDefNameSyncAlivePluginProcessInfo,
+			maxDays:    syncDataCleanPolicyMaxDays(OperDefNameSyncAlivePluginProcessInfoTimeout),
+			wantMaxDay: syncDataCleanPolicyMaxDays(NewOperSyncAlivePluginProcessInfo(OperParamSyncAlivePluginProcessInfo{}).DefaultParameters().Timeout),
+		},
+		{
+			name:       "sync host",
+			operation:  OperDefNameSyncHost,
+			maxDays:    syncDataCleanPolicyMaxDays(OperDefNameSyncHostTimeout),
+			wantMaxDay: syncDataCleanPolicyMaxDays(NewOperSyncHost(OperParamSyncHost{}).DefaultParameters().Timeout),
+		},
 	}
 
-	expectedMaxDays := timeout.Hours() * syncDataCleanPolicyTimeoutMultiplier / syncDataCleanPolicyHoursPerDay
-	if math.Abs(maxDays-expectedMaxDays) > 0.000001 {
-		t.Fatalf("expected clean policy max days %f, got %f", expectedMaxDays, maxDays)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if math.Abs(test.maxDays-test.wantMaxDay) > 0.000001 {
+				t.Fatalf("expected clean policy for operation %s to be %f, got %f",
+					test.operation, test.wantMaxDay, test.maxDays)
+			}
+		})
 	}
 }

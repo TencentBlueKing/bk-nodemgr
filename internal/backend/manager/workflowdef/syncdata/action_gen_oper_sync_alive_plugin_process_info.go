@@ -146,7 +146,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 			// create trigger for handling sync alive plugin process info operations.
 			meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
 			meta.CleanPolicy = trigger.MetadataCleanPolicy{
-				MaxDays: 1,
+				MaxDays: syncDataCleanPolicyMaxDays(OperDefNameSyncAlivePluginProcessInfoTimeout),
 			}
 			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOrdered, meta)
 			if err != nil {

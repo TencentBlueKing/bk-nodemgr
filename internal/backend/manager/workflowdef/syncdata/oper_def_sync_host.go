@@ -17,8 +17,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncHost defines the operation def name.
-const OperDefNameSyncHost = "sync_host"
+const (
+	// OperDefNameSyncHost defines the operation def name.
+	OperDefNameSyncHost = "sync_host"
+
+	// OperDefNameSyncHostTimeout defines the timeout for each sync host operation.
+	OperDefNameSyncHostTimeout = 10 * time.Minute
+)
 
 // NewOperSyncHost new an operation.
 func NewOperSyncHost(param OperParamSyncHost) operation.Definition {
@@ -53,7 +58,7 @@ func (oper *operSyncHost) ActionDefNames() []string {
 // DefaultParameters returns the default parameters.
 func (oper *operSyncHost) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:     10 * time.Minute, // nolint:mnd
+		Timeout:     OperDefNameSyncHostTimeout,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

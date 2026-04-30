@@ -21,6 +21,6 @@ const (
 )
 
 func syncDataCleanPolicyMaxDays(timeout time.Duration) float64 {
-	// This is trigger retention after the trigger becomes inactive, not child operation execution SLA.
+	// This is trigger retention after the trigger becomes inactive, derived from generated operation timeout.
 	return timeout.Hours() * syncDataCleanPolicyTimeoutMultiplier / syncDataCleanPolicyHoursPerDay
 }

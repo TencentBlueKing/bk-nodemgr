@@ -17,8 +17,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncAgentInfo defines the operation def name.
-const OperDefNameSyncAgentInfo = "sync_agent_info"
+const (
+	// OperDefNameSyncAgentInfo defines the operation def name.
+	OperDefNameSyncAgentInfo = "sync_agent_info"
+
+	// OperDefNameSyncAgentInfoTimeout defines the timeout for each sync agent info operation.
+	OperDefNameSyncAgentInfoTimeout = 10 * time.Minute
+)
 
 // NewOperSyncAgentInfo new an operation.
 func NewOperSyncAgentInfo(param OperParamSyncAgentInfo) operation.Definition {
@@ -53,7 +58,7 @@ func (oper *operSyncAgentInfo) ActionDefNames() []string {
 // DefaultParameters returns the default parameters.
 func (oper *operSyncAgentInfo) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:     10 * time.Minute, // nolint:mnd
+		Timeout:     OperDefNameSyncAgentInfoTimeout,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }

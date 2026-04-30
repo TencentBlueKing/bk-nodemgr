@@ -30,8 +30,6 @@ const (
 	// ActionNameGenOperSyncHost defines the action name.
 	ActionNameGenOperSyncHost = "gen_oper_sync_host"
 
-	syncHostMaxDays = 1
-
 	// execute operations is a fast operation, sow we can set a higher limit.
 	executeOperLimit = 100
 )
@@ -143,8 +141,9 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 
 	// create trigger for handling sync host operations.
 	meta := trigger.NewMetadataOrdered(int(maxConcurrencyNum))
+	cleanPolicyMaxDays := syncDataCleanPolicyMaxDays(OperDefNameSyncHostTimeout)
 	meta.CleanPolicy = trigger.MetadataCleanPolicy{
-		MaxDays: syncHostMaxDays,
+		MaxDays: cleanPolicyMaxDays,
 	}
 	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOrdered, meta)
 	if err != nil {
@@ -156,8 +155,8 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 	ctx.Data.Log().
-		Zh("已创建同步主机任务触发器，清理周期为 %d 天", syncHostMaxDays).
-		En("created sync host operation trigger, clean policy is %d days", syncHostMaxDays).
+		Zh("已创建同步主机任务触发器，清理周期为 %.4f 天", cleanPolicyMaxDays).
+		En("created sync host operation trigger, clean policy is %.4f days", cleanPolicyMaxDays).
 		Info()
 
 	gp := gopool.NewPool()
