@@ -62,4 +62,7 @@ const (
 
 	// Every1h defines the schedule interval of every 1 hour.
 	Every1h = Every + "1h"
+
+	// Every10h defines the schedule interval of every 10 hours.
+	Every10h = Every + "10h"
 )

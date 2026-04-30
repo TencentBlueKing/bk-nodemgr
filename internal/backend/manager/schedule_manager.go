@@ -290,7 +290,7 @@ func (mgr *Manager) syncScheduledWorkflow(nCtx contextx.IContext, sw *types.Sche
 }
 
 func (mgr *Manager) initSWSyncTenant(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncTenant, scheduler.Every+"10m")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncTenant, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncTenant(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -318,7 +318,7 @@ func (mgr *Manager) syncSWSyncBizAndHost(nCtx contextx.IContext, sw *types.Sched
 }
 
 func (mgr *Manager) initSWSyncNetworkArea(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncNetworkArea, scheduler.Every+"10m")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncNetworkArea, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -332,7 +332,7 @@ func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.Sche
 }
 
 func (mgr *Manager) initSWSyncAgentState(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAgentState, scheduler.Every+"10m")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAgentState, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -346,7 +346,7 @@ func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.Sched
 }
 
 func (mgr *Manager) initSWSyncAliveAgentInfo(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAliveAgentInfo, scheduler.Every+"10h")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAliveAgentInfo, scheduler.Every10h)
 }
 
 func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -360,7 +360,7 @@ func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.S
 }
 
 func (mgr *Manager) initSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAlivePluginProcessInfo, scheduler.Every+"10m")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAlivePluginProcessInfo, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -374,7 +374,7 @@ func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw 
 }
 
 func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowWatchAndApplyCMDBResource, scheduler.Every+"10s")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowWatchAndApplyCMDBResource, scheduler.Every10s)
 }
 
 func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -388,7 +388,7 @@ func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *t
 }
 
 func (mgr *Manager) initSWExecuteDeployPolicy(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowExecuteDeployPolicy, scheduler.Every+"1h")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowExecuteDeployPolicy, scheduler.Every1h)
 }
 
 func (mgr *Manager) syncSWExecuteDeployPolicy(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
