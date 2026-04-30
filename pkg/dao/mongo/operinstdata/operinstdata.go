@@ -54,6 +54,12 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		{
 			Keys: bson.D{{Key: FieldKeyOperationID, Value: 1}},
 		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyTriggerID, Value: 1},
+				{Key: FieldKeyState, Value: 1},
+			},
+		},
 	}
 }
 
