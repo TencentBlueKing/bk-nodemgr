@@ -70,7 +70,7 @@ func (act *actionSyncHost) Description() string {
 
 // Timeout returns the timeout of this action.
 func (act *actionSyncHost) Timeout() time.Duration {
-	return 5 * time.Minute // nolint: mnd
+	return 10 * time.Minute // nolint: mnd
 }
 
 // MaxRetryCount returns the max retry count of this action.

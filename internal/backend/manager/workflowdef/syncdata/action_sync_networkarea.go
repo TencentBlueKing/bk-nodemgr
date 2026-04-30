@@ -11,8 +11,9 @@
 package syncdata
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -63,7 +64,7 @@ func (act *actionSyncNetworkArea) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionSyncNetworkArea) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 10 * time.Minute
 }
 
 // Tags returns the tags of the action.

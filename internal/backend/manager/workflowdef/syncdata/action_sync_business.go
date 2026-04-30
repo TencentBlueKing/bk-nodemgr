@@ -11,8 +11,9 @@
 package syncdata
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -64,7 +65,7 @@ func (act *actionSyncBusiness) Description() string {
 
 // Timeout returns the timeout of this action.
 func (act *actionSyncBusiness) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 10 * time.Minute
 }
 
 // MaxRetryCount returns the max retry count of this action.

@@ -80,7 +80,7 @@ func (act *actionWatchAndApplyCMDBResource) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionWatchAndApplyCMDBResource) Timeout() time.Duration {
-	return time.Minute * 1 // nolint: mnd
+	return 10 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.

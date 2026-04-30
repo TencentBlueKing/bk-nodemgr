@@ -64,7 +64,7 @@ func (act *actionSyncAgentState) Description() string {
 
 // Timeout returns the timeout of this action.
 func (act *actionSyncAgentState) Timeout() time.Duration {
-	return time.Minute * 5 // nolint: mnd
+	return 10 * time.Minute // nolint: mnd
 }
 
 // MaxRetryCount returns the max retry count of this action.
