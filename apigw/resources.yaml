@@ -15891,9 +15891,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -15991,6 +16006,8 @@ paths:
                         type: integer
                         title: credit expired interval in seconds, default is 86400 (24 hours)
                         format: int64
+                      install_pre_ordered_plugins:
+                        type: boolean
                       proxy_install_origin_unit_id:
                         type: integer
                         format: int64
@@ -16090,9 +16107,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16221,9 +16253,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16352,9 +16399,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16475,9 +16537,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16634,9 +16711,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16781,9 +16873,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16857,6 +16964,8 @@ paths:
                         format: int64
                       bk_host_innerip_v6:
                         type: string
+                      install_pre_ordered_plugins:
+                        type: boolean
                 is_manual:
                   type: boolean
                 target_version:
@@ -16944,7 +17053,9 @@ paths:
                                   items:
                                     type: string
                               description: NodeAgentInstallCheckMatchedItem describes the matched item for node.
-                          description: NodeAgentInstallCheckResult describes the check result for node agent\ninstallation.
+                          description: |-
+                            NodeAgentInstallCheckResult describes the check result for node agent
+                            installation.
                   error:
                     type: object
                     properties:
@@ -16984,9 +17095,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -16994,7 +17120,9 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: NodeAgentInstallCheckResp describes the response for node agent installation\ncheck.
+                description: |-
+                  NodeAgentInstallCheckResp describes the response for node agent installation
+                  check.
           description: A successful response.
         default:
           content:
@@ -17124,9 +17252,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -17255,9 +17398,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -17386,9 +17544,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -17512,9 +17685,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -20286,7 +20474,9 @@ paths:
                                   items:
                                     type: string
                               description: NodeProxyInstallCheckMatchedItem describes the matched item for proxy node.
-                          description: NodeProxyInstallCheckResult describes the check result for node proxy\ninstallation.
+                          description: |-
+                            NodeProxyInstallCheckResult describes the check result for node proxy
+                            installation.
                   error:
                     type: object
                     properties:
@@ -20326,9 +20516,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -20336,7 +20541,9 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: NodeProxyInstallCheckResp describes the response for node proxy installation\ncheck.
+                description: |-
+                  NodeProxyInstallCheckResp describes the response for node proxy installation
+                  check.
           description: A successful response.
         default:
           content:
@@ -21075,9 +21282,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -21085,7 +21307,9 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: NodeAgentAssignUnitResp describes the response for batch-assigning\na network unit.
+                description: |-
+                  NodeAgentAssignUnitResp describes the response for batch-assigning
+                  a network unit.
           description: A successful response.
         default:
           content:
@@ -21121,9 +21345,13 @@ paths:
                 bk_networkunit_id:
                   type: integer
                   format: int64
-              description: NodeAgentAssignUnitReq describes the request body for batch-assigning\na network unit to hosts.
+              description: |-
+                NodeAgentAssignUnitReq describes the request body for batch-assigning
+                a network unit to hosts.
         required: true
-        description: NodeAgentAssignUnitReq describes the request body for batch-assigning\na network unit to hosts.
+        description: |-
+          NodeAgentAssignUnitReq describes the request body for batch-assigning
+          a network unit to hosts.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -21194,8 +21422,12 @@ paths:
                                   type: array
                                   items:
                                     type: string
-                              description: NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade\ncheck.
-                          description: NodeAgentUpgradeCheckResult describes the check result for node agent\nupgrade.
+                              description: |-
+                                NodeAgentUpgradeCheckMatchedItem describes the matched item for upgrade
+                                check.
+                          description: |-
+                            NodeAgentUpgradeCheckResult describes the check result for node agent
+                            upgrade.
                   error:
                     type: object
                     properties:
@@ -21235,9 +21467,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -21245,7 +21492,9 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: NodeAgentUpgradeCheckResp describes the response for node agent upgrade\ncheck.
+                description: |-
+                  NodeAgentUpgradeCheckResp describes the response for node agent upgrade
+                  check.
           description: A successful response.
         default:
           content:
@@ -21370,8 +21619,12 @@ paths:
                                   type: array
                                   items:
                                     type: string
-                              description: NodeProxyUpgradeCheckMatchedItem describes the matched item for proxy upgrade\ncheck.
-                          description: NodeProxyUpgradeCheckResult describes the check result for node proxy\nupgrade.
+                              description: |-
+                                NodeProxyUpgradeCheckMatchedItem describes the matched item for proxy upgrade
+                                check.
+                          description: |-
+                            NodeProxyUpgradeCheckResult describes the check result for node proxy
+                            upgrade.
                   error:
                     type: object
                     properties:
@@ -21411,9 +21664,24 @@ paths:
                                 properties:
                                   type:
                                     type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
                                   system_id:
                                     type: string
                                   type_name:
+                                    type: string
+                                  system_name:
                                     type: string
                       apply_url:
                         type: string
@@ -21421,7 +21689,9 @@ paths:
                         type: string
                   request_id:
                     type: string
-                description: NodeProxyUpgradeCheckResp describes the response for node proxy upgrade\ncheck.
+                description: |-
+                  NodeProxyUpgradeCheckResp describes the response for node proxy upgrade
+                  check.
           description: A successful response.
         default:
           content:
