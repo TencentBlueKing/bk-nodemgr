@@ -97,6 +97,7 @@ func (h *handler) generateInstallNodeDeployments(
 
 	// if this install is manual
 	isManual := req.GetIsManual()
+	enableCompatibilityMode := req.GetEnableCompatibilityMode()
 	reqHosts := req.GetHost()
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
@@ -189,6 +190,7 @@ func (h *handler) generateInstallNodeDeployments(
 						InstallPreOrderedPlugins: reqHost.GetInstallPreOrderedPlugins(),
 						DirectInstall:            networkUnit.IsDirect,
 						IsManual:                 isManual,
+						EnableCompatibilityMode:  enableCompatibilityMode,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},

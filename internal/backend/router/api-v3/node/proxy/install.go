@@ -101,6 +101,7 @@ func (h *handler) generateInstallNodeDeployments(
 	isManual := req.GetIsManual()
 	// isOffline means there is no network to the control unit during install; user executes offline package manually.
 	isOffline := req.GetIsOffline()
+	enableCompatibilityMode := req.GetEnableCompatibilityMode()
 	// skipSSH is true when no SSH-based operations are needed (manual or offline modes).
 	skipSSH := isManual || isOffline
 	reqHosts := req.GetHost()
@@ -210,6 +211,7 @@ func (h *handler) generateInstallNodeDeployments(
 						DirectInstall:            installOriginUnit.IsDirect,
 						IsManual:                 isManual,
 						IsOffline:                isOffline,
+						EnableCompatibilityMode:  enableCompatibilityMode,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},
