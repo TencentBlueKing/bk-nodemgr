@@ -1605,6 +1605,12 @@ onUnmounted(() => {
     background: #ea3636;
   }
 }
+.nc-damaged {
+  &::before {
+    border-color: #ffe6e6;
+    background: #ea3636;
+  }
+}
 .nc-unknown {
   &::before {
     border-color: #f0f1f5;
