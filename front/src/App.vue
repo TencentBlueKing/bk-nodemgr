@@ -1,6 +1,6 @@
 <template>
   <div v-if="i18nReady" :class="['w-full', 'h-full', 'flex', 'flex-col', { 'notice-show': noticeShow }]">
-    <notice v-if="noticeShow" :api-url="apiUrl" @show-alert-change="showAlertChange" />
+    <notice v-if="enableNotice" :api-url="apiUrl" @show-alert-change="showAlertChange" />
     <Navigation
       class="flex-1"
       navigation-type="top-bottom"
@@ -274,6 +274,7 @@ const ensureCurrentRoutePermission = async () => {
 
 // 切换通知
 const apiUrl = '/api/v3/notice/announcements/current';
+const enableNotice = window.PROJECT_CONFIG?.ENABLE_NOTICE === 'true';
 const noticeShow = computed(() => mainStore.noticeShow);
 function showAlertChange(isShow: boolean) {
   mainStore.updateNoticeShow(isShow);
