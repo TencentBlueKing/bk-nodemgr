@@ -710,6 +710,9 @@
         },
         "is_offline": {
           "type": "boolean"
+        },
+        "enable_compatibility_mode": {
+          "type": "boolean"
         }
       },
       "description": "NodeProxyInstallReq describes the node proxy install request."

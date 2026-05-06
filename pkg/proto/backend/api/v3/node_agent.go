@@ -147,19 +147,19 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 	hostsParam := make([]*NodeAgentInstallReq_Host, len(installParam.NodeAgentInstallHosts))
 	for idx, host := range installParam.NodeAgentInstallHosts {
 		hostsParam[idx] = &NodeAgentInstallReq_Host{
-			BkHostId:        &host.HostID,
-			BkBizId:         &host.BizID,
-			BkHostInnerip:   host.InnerIP,
-			BkHostInneripV6: host.InnerIPV6,
-			BkAddressing:    string(host.Addressing),
-			LoginIp:         host.LoginIP,
-			LoginPort:       &host.LoginPort,
-			LoginUser:       host.LoginUser,
-			LoginMode:       string(host.LoginMode),
-			LoginPassword:   host.LoginPassword,
-			LoginKeyFile:    host.LoginKeyFile,
-			BkNetworkunitId: &host.NetworkUnitID,
-			OsType:          host.OSType,
+			BkHostId:                 &host.HostID,
+			BkBizId:                  &host.BizID,
+			BkHostInnerip:            host.InnerIP,
+			BkHostInneripV6:          host.InnerIPV6,
+			BkAddressing:             string(host.Addressing),
+			LoginIp:                  host.LoginIP,
+			LoginPort:                &host.LoginPort,
+			LoginUser:                host.LoginUser,
+			LoginMode:                string(host.LoginMode),
+			LoginPassword:            host.LoginPassword,
+			LoginKeyFile:             host.LoginKeyFile,
+			BkNetworkunitId:          &host.NetworkUnitID,
+			OsType:                   host.OSType,
 			ReRegister:               host.ReRegister,
 			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
 		}
@@ -177,6 +177,7 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 	x.TargetVersion = targetVersion
 	x.Host = hostsParam
 	x.IsManual = installParam.IsManual
+	x.EnableCompatibilityMode = installParam.EnableCompatibilityMode
 }
 
 // ConvertResultToComm ...

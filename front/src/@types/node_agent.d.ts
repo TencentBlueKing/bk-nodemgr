@@ -24,6 +24,7 @@ export interface NodeAgentInstallReq {
   info: AgentInstallInfo[];
   target_version: TargetVersion[];
   is_manual: boolean;
+  enable_compatibility_mode: boolean;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

@@ -576,6 +576,9 @@
         },
         "is_manual": {
           "type": "boolean"
+        },
+        "enable_compatibility_mode": {
+          "type": "boolean"
         }
       },
       "description": "NodeAgentInstallReq describes the node agent install request."

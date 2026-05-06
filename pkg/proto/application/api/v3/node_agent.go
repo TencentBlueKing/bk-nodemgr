@@ -125,19 +125,19 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 
 	for idx, host := range hosts {
 		hostsParam[idx] = &types.NodeAgentInstallHost{
-			HostID:        host.GetBkHostId(),
-			BizID:         host.GetBkBizId(),
-			InnerIP:       host.GetBkHostInnerip(),
-			InnerIPV6:     host.GetBkHostInneripV6(),
-			Addressing:    types.Addressing(host.GetBkAddressing()),
-			LoginIP:       host.GetLoginIp(),
-			LoginPort:     int64(host.GetLoginPort()),
-			LoginUser:     host.GetLoginUser(),
-			LoginMode:     types.LoginMode(host.GetLoginMode()),
-			LoginPassword: host.GetLoginPassword(),
-			LoginKeyFile:  host.GetLoginKeyFile(),
-			NetworkUnitID: host.GetBkNetworkunitId(),
-			OSType:        host.GetOsType(),
+			HostID:                   host.GetBkHostId(),
+			BizID:                    host.GetBkBizId(),
+			InnerIP:                  host.GetBkHostInnerip(),
+			InnerIPV6:                host.GetBkHostInneripV6(),
+			Addressing:               types.Addressing(host.GetBkAddressing()),
+			LoginIP:                  host.GetLoginIp(),
+			LoginPort:                host.GetLoginPort(),
+			LoginUser:                host.GetLoginUser(),
+			LoginMode:                types.LoginMode(host.GetLoginMode()),
+			LoginPassword:            host.GetLoginPassword(),
+			LoginKeyFile:             host.GetLoginKeyFile(),
+			NetworkUnitID:            host.GetBkNetworkunitId(),
+			OSType:                   host.GetOsType(),
 			ReRegister:               host.GetReRegister(),
 			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
 		}
@@ -158,6 +158,7 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 		NodeAgentInstallHosts:    hostsParam,
 		NodeInstallTargetVersion: targetVersion,
 		IsManual:                 x.GetIsManual(),
+		EnableCompatibilityMode:  x.GetEnableCompatibilityMode(),
 	}
 }
 

@@ -36,6 +36,7 @@ export interface NodeProxyInstallReq {
   target_version: TargetVersion[];
   is_manual: boolean;
   is_offline: boolean;
+  enable_compatibility_mode: boolean;
 }
 
 // NodeProxyInstallResp describes the node proxy install response.

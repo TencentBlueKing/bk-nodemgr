@@ -149,10 +149,11 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 	}
 
 	return &types.NodeProxyInstallParam{
-		Hosts:         hostsParam,
-		TargetVersion: targetVersion,
-		IsManual:      x.GetIsManual(),
-		IsOffline:     x.GetIsOffline(),
+		Hosts:                   hostsParam,
+		TargetVersion:           targetVersion,
+		IsManual:                x.GetIsManual(),
+		IsOffline:               x.GetIsOffline(),
+		EnableCompatibilityMode: x.GetEnableCompatibilityMode(),
 	}
 }
 
