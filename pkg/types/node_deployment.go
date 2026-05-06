@@ -96,6 +96,7 @@ type DeploymentInstallOptions struct {
 	DirectInstall            bool
 	IsManual                 bool
 	IsOffline                bool
+	EnableCompatibilityMode  bool
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.

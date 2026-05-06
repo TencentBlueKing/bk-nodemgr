@@ -45,10 +45,11 @@ type NodeProxyInstallHost struct {
 
 // NodeProxyInstallParam describes the node proxy install parameter.
 type NodeProxyInstallParam struct {
-	Hosts         []*NodeProxyInstallHost
-	TargetVersion []*TargetVersion
-	IsManual      bool
-	IsOffline     bool
+	Hosts                   []*NodeProxyInstallHost
+	TargetVersion           []*TargetVersion
+	IsManual                bool
+	IsOffline               bool
+	EnableCompatibilityMode bool
 }
 
 // NodeProxyUpgradeHost describes the node proxy upgrade host.
@@ -269,8 +270,8 @@ type NodeProxyAssignUnitParam struct {
 
 // NodeProxyAssignUnitResult describes the node proxy assign unit result.
 type NodeProxyAssignUnitResult struct {
-	SuccessCount int64
-	FailedCount  int64
+	SuccessCount  int64
+	FailedCount   int64
 	FailedReasons []string
 	WorkflowID    string
 }

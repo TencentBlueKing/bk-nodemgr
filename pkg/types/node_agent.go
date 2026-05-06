@@ -18,21 +18,21 @@ import (
 
 // NodeAgentInstallHost describes the node agent install host.
 type NodeAgentInstallHost struct {
-	HostID                    int64
-	BizID                     int64
-	InnerIP                   string
-	InnerIPV6                 string
-	Addressing                Addressing
-	LoginIP                   string
-	LoginPort                 int64
-	LoginUser                 string
-	LoginMode                 LoginMode
-	LoginPassword             string
-	LoginKeyFile              string
-	NetworkUnitID             int64
-	OSType                    string
-	ReRegister                bool
-	InstallPreOrderedPlugins  bool
+	HostID                   int64
+	BizID                    int64
+	InnerIP                  string
+	InnerIPV6                string
+	Addressing               Addressing
+	LoginIP                  string
+	LoginPort                int64
+	LoginUser                string
+	LoginMode                LoginMode
+	LoginPassword            string
+	LoginKeyFile             string
+	NetworkUnitID            int64
+	OSType                   string
+	ReRegister               bool
+	InstallPreOrderedPlugins bool
 }
 
 // NodeAgentInstallParam describes the node agent install parameter.
@@ -40,6 +40,7 @@ type NodeAgentInstallParam struct {
 	NodeAgentInstallHosts    []*NodeAgentInstallHost
 	NodeInstallTargetVersion []*TargetVersion
 	IsManual                 bool
+	EnableCompatibilityMode  bool
 }
 
 // NodeAgentUpgradeHost describes the node agent upgrade host.
@@ -242,7 +243,7 @@ type NodeAgentAssignUnitParam struct {
 
 // NodeAgentAssignUnitResult describes the node agent assign unit result.
 type NodeAgentAssignUnitResult struct {
-	SuccessCount int64
-	FailedCount  int64
+	SuccessCount  int64
+	FailedCount   int64
 	FailedReasons []string
 }
