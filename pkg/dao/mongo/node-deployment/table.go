@@ -106,6 +106,7 @@ type InstallOptions struct {
 	DirectInstall            bool `json:"direct_install" bson:"direct_install"`
 	IsManual                 bool `json:"is_manual" bson:"is_manual"`
 	IsOffline                bool `json:"is_offline" bson:"is_offline"`
+	EnableCompatibilityMode  bool `json:"enable_compatibility_mode" bson:"enable_compatibility_mode"`
 }
 
 // UpgradeOptions this is the options for node upgrade.

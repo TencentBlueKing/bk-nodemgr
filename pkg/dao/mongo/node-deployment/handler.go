@@ -200,6 +200,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			DirectInstall:            info.InstallOptions.DirectInstall,
 			IsManual:                 info.InstallOptions.IsManual,
 			IsOffline:                info.InstallOptions.IsOffline,
+			EnableCompatibilityMode:  info.InstallOptions.EnableCompatibilityMode,
 		},
 		ReconfigOptions: types.DeploymentReconfigOptions{
 			DirectLink:           info.ReconfigOptions.DirectLink,
@@ -443,6 +444,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			DirectInstall:            info.InstallOptions.DirectInstall,
 			IsManual:                 info.InstallOptions.IsManual,
 			IsOffline:                info.InstallOptions.IsOffline,
+			EnableCompatibilityMode:  info.InstallOptions.EnableCompatibilityMode,
 		},
 		ReconfigOptions: ReconfigOptions{
 			DirectLink:           info.ReconfigOptions.DirectLink,
