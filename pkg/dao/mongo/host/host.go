@@ -80,6 +80,14 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 				{Key: base.FieldKeyIsDeleted, Value: false},
 			}),
 		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyDynamicAgentID, Value: 1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
 	}
 }
 
