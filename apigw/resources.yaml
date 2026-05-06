@@ -16016,6 +16016,8 @@ paths:
                   type: boolean
                 is_offline:
                   type: boolean
+                enable_compatibility_mode:
+                  type: boolean
                 target_version:
                   type: array
                   items:
@@ -16967,6 +16969,8 @@ paths:
                       install_pre_ordered_plugins:
                         type: boolean
                 is_manual:
+                  type: boolean
+                enable_compatibility_mode:
                   type: boolean
                 target_version:
                   type: array
