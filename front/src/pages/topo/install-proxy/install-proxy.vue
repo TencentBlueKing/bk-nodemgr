@@ -375,7 +375,7 @@
 <script lang="ts" setup>
 import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Popover, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
-import { cloneDeep, isEqual } from 'lodash';
+import { cloneDeep } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -681,14 +681,7 @@ const handleChange = async (value: string) => {
   }
 };
 
-const originData = ref<any>();
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
-  // 没有修改，直接关闭
-  if (isEqual(form, originData.value)) {
-    resolve(true);
-    isShow.value = false;
-    return;
-  }
   InfoBox({
     title: t('installProxy.confirmClose'),
     infoType: 'warning',
@@ -918,7 +911,6 @@ watch(() => isShow.value, async () => {
       proxy_install_origin: [],
     });
   }
-  originData.value = cloneDeep(form);
 });
 watch(
   () => form.bk_networkarea_id,
