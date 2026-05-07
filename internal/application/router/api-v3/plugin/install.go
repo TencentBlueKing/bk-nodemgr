@@ -25,7 +25,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallPlugin(rCtx, req.ConvertParamToTypes()...)
+	workflowID, err := h.backendHandler.InstallPlugin(rCtx, req.ConvertInstallParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

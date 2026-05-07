@@ -38,8 +38,9 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
+	installParam := req.ConvertInstallParamToTypes()
 	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypes()...)
+		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), installParam.Plugins...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

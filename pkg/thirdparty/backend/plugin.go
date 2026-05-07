@@ -35,7 +35,7 @@ type IHandlerPlugin interface {
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param installParam the install param.
 	// @return the installing workflow-ids and error.
-	InstallPlugin(nCtx contextx.IContext, installParam ...*types.PluginDeploymentParam) (string, error)
+	InstallPlugin(nCtx contextx.IContext, installParam *types.PluginInstallParam) (string, error)
 
 	// UpgradePlugin upgrade plugin.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -95,9 +95,9 @@ func (h *Handler) ListPlugins(nCtx contextx.IContext, page types.Page, condition
 }
 
 // InstallPlugin install plugin.
-func (h *Handler) InstallPlugin(nCtx contextx.IContext, installParam ...*types.PluginDeploymentParam) (string, error) {
+func (h *Handler) InstallPlugin(nCtx contextx.IContext, installParam *types.PluginInstallParam) (string, error) {
 	req := new(protoBackend.PluginInstallReq)
-	if err := req.ConvertParamFromTypes(installParam...); err != nil {
+	if err := req.ConvertParamFromTypes(installParam); err != nil {
 		return "", err
 	}
 

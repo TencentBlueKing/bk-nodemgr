@@ -462,6 +462,9 @@
             "type": "object",
             "$ref": "#/definitions/v3PluginOperateFullInfo"
           }
+        },
+        "enable_compatibility_mode": {
+          "type": "boolean"
         }
       },
       "description": "PluginInstallReq describes the plugin install request."

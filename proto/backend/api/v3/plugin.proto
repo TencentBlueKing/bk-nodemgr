@@ -25,7 +25,10 @@ message PluginOperateBasicInfo {
 }
 
 // PluginInstallReq describes the plugin install request.
-message PluginInstallReq { repeated PluginOperateFullInfo plugin = 1; }
+message PluginInstallReq {
+  repeated PluginOperateFullInfo plugin = 1;
+  bool enable_compatibility_mode = 2;
+}
 
 // PluginInstallResp describes the plugin install response.
 message PluginInstallResp {

@@ -6763,6 +6763,8 @@ paths:
             schema:
               type: object
               properties:
+                enable_compatibility_mode:
+                  type: boolean
                 plugin:
                   type: array
                   items:

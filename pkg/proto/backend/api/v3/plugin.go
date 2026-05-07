@@ -197,9 +197,11 @@ func (x *PluginInstallReq) AutoConvert() {
 }
 
 // ConvertParamFromTypes converts param from types.
-func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
+func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInstallParam) error {
 	var err error
-	x.Plugin, err = conv.SliceToSliceWithError(installParam, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
+	x.EnableCompatibilityMode = installParam.EnableCompatibilityMode
+
+	x.Plugin, err = conv.SliceToSliceWithError(installParam.Plugins, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
 		item := &PluginOperateFullInfo{}
 		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
@@ -219,15 +221,24 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDe
 	return nil
 }
 
+// ConvertInstallParamToTypes converts install param to types.
+func (x *PluginInstallReq) ConvertInstallParamToTypes() *types.PluginInstallParam {
+	return &types.PluginInstallParam{
+		Plugins:                 x.ConvertParamToTypes(),
+		EnableCompatibilityMode: x.GetEnableCompatibilityMode(),
+	}
+}
+
 // ConvertParamToTypes converts param to types.
 func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:              proc.GetBkHostId(),
-			PluginName:          proc.GetPluginName(),
-			Version:             proc.GetVersion(),
-			ConfigName:          proc.GetConfigName(),
-			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+			HostID:                  proc.GetBkHostId(),
+			PluginName:              proc.GetPluginName(),
+			Version:                 proc.GetVersion(),
+			ConfigName:              proc.GetConfigName(),
+			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
+			EnableCompatibilityMode: x.GetEnableCompatibilityMode(),
 		}
 	})
 }

@@ -19,6 +19,7 @@ export interface PluginOperateBasicInfo {
 // PluginInstallReq describes the plugin install request.
 export interface PluginInstallReq {
   plugin: PluginOperateFullInfo[];
+  enable_compatibility_mode: boolean;
 }
 
 // PluginInstallResp describes the plugin install response.
@@ -168,4 +169,3 @@ export interface DataOperation {
   name: string;
   permission: string[];
 }
-
