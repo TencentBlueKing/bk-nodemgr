@@ -109,8 +109,8 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if host.Dynamic.LoginUser == "" {
-		return fmt.Errorf("host login user is empty, host-id(%d)", host.HostID)
+	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
+		return err
 	}
 
 	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())

@@ -130,6 +130,10 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
+		if err = pluginUtils.EnsureHostLoginUser(std, targetHost); err != nil {
+			return err
+		}
+
 		gp.Go(func() error {
 			std.InstanceData().Log().
 				Zh("开始传输发布包").
@@ -262,10 +266,6 @@ func (act *actionTransferPluginPkgToNode) pushOfflinePluginConfig(
 	std *pluginUtils.PluginActionStandarder,
 	targetHost *types.Host,
 ) error {
-
-	if targetHost.Dynamic.LoginUser == "" {
-		return fmt.Errorf("host login user is empty, host-id(%d)", targetHost.HostID)
-	}
 
 	var configDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {

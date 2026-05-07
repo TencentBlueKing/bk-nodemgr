@@ -167,8 +167,8 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	// TODO: 接入配置管理
-	if host.Dynamic.LoginUser == "" {
-		return fmt.Errorf("host login user is empty, host-id(%d)", host.HostID)
+	if err = pluginUtils.EnsureHostLoginUser(std, host); err != nil {
+		return err
 	}
 
 	std.DeployInfo().Process.Identity = types.ProcessIdentity{
