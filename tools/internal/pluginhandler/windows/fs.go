@@ -27,6 +27,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/throttle"
 )
 
 const (
@@ -276,7 +277,7 @@ func (handler *PluginHandler) extractTgz(ctx context.Context, sourceAbsPath stri
 				R: tarReader,
 				N: maxDecompressedSize,
 			}
-			if _, err := io.Copy(outFile, limitedReader); err != nil {
+			if _, err := throttle.Copy(outFile, limitedReader); err != nil {
 				_ = outFile.Close()
 
 				return fmt.Errorf("write file content failed, path(%s): %v", targetRelativePath, err)
