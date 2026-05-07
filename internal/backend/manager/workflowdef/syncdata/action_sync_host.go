@@ -17,7 +17,9 @@ import (
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -242,6 +244,14 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 		if host.Static.SyncedAgentID != "" {
 			host.Dynamic.AgentID = host.Static.SyncedAgentID
 		}
+
+		defaultUser, err := criteria.DefaultAdminUser(criteria.OSType(host.Static.OSType))
+		if err != nil {
+			logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default user for new host")
+		}
+
+		host.Dynamic.LoginUser = string(defaultUser)
+
 		insertHosts = append(insertHosts, host)
 	}
 
