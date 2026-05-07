@@ -4,7 +4,7 @@
  *
  * 支持两种使用场景：
  * 1. 策略管理：通过 setType / setBizId 限定策略类型和业务，
- *    自动按 node_role 过滤（agent→['agent','blank']，proxy→['proxy','blank']）
+ *    自动按 node_role 过滤（agent→['agent','blank']，proxy→['proxy']）
  * 2. 插件手动拓扑：不设置策略参数，走通用查询路径
  */
 
@@ -708,7 +708,12 @@ export const fetchHostDetails = async (params: any): Promise<any> => {
     const res = await TopoService.HostList({
       page: { offset: 0, limit: ids.length },
       only_count: false,
-      exact_include_conditions: { bk_host_id: ids },
+      exact_include_conditions: {
+        bk_host_id: ids,
+        ...(Array.isArray(params.node_role) && params.node_role.length > 0
+          ? { node_role: params.node_role }
+          : {}),
+      },
       fuzzy_include_conditions: {},
     });
 

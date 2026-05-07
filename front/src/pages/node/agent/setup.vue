@@ -421,7 +421,13 @@ const handleExcelImport = () => {
   isShowExcelImport.value = true;
 };
 const handleExcelImportConfirm = () => {
-  formData.info = [...formData.info, ...excelImportData.value];
+  // 导入数据覆盖当前表格：过滤掉空行（无 ipv4 且无 ipv6 的行）
+  const newRows = (excelImportData.value as any[]).filter((row: any) => {
+    return row.bk_host_innerip || row.bk_host_innerip_v6;
+  });
+
+  // 直接使用导入数据覆盖当前表格
+  formData.info = newRows.length > 0 ? newRows : [cloneDeep(initData)];
   isShowExcelImport.value = false;
   uploadExcelRef.value?.handleDelete();
 };
@@ -430,7 +436,7 @@ const handleExcelImportCancel = () => {
   uploadExcelRef.value?.handleDelete();
 };
 const handleUpload = (data: any) => {
-  excelImportData.value = data.info;
+  excelImportData.value = data?.info || [];
 };
 const handleImport = () => {
   formData.info = excelImportData.value;

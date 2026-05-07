@@ -739,6 +739,7 @@ agentStrategy:
     os: 操作系统
     arch: 架构
   action:
+    view: 查看
     edit: 编辑
     enable: 启用
     disable: 停用
@@ -775,6 +776,7 @@ agentStrategy:
     cancel: 取消
     edit: 编辑
     create: 新建
+    viewTitle: "查看{role}配置"
     configTitle: "{action} {role} 配置"
     configTip: 如需修改默认配置，需打开开关后修改
     versionTip: 编辑器内容有改动，保存该配置版本将会由
@@ -792,6 +794,13 @@ agentStrategy:
     prevStep: 上一步
     saveSuccess: 保存成功
     noSortData: 无排序数据
+    networkArea: 管控区域
+    networkUnit: 管控单元
+    cpuArch: CPU 架构
+    osType: 操作系统
+    reliableYes: 可靠
+    reliableNo: 不可靠
+    reliableTip: 不可靠原因：缺少IP、管控区域、管控单元、操作系统或CPU架构中的某个信息，无法精确匹配策略
   validate:
     configNameRequired: 配置名称不能为空
     configNameLength: 配置名称长度在1-50个字符之间
@@ -922,6 +931,7 @@ rulesRecord:
     disable: 禁用
     update: 更新
     delete: 删除
+    reorderPriorities: 重排优先级
   configTypeMap:
     agent: Agent 策略
     proxy: Proxy 策略
@@ -1101,6 +1111,8 @@ components:
     tip: "仅支持 .xlsx 类型文件，下载"
     templateFile: 模板文件
     error: 上传失败
+    success: 上传成功
+    failed: 上传失败
 footer:
   desktop: 蓝鲸桌面
   linksBk: 联系BK助手

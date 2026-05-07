@@ -10,6 +10,7 @@
     collapse-tags
     :show-all="multiple"
     :all-option-id="multiple ? 'all' : undefined"
+    :disabled="disabled"
     @change="handleSelectChange"
   >
     <Select.Option v-if="noLimit" label="不限" value="-1"></Select.Option>

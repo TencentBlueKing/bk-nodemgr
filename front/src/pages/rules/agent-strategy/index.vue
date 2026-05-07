@@ -192,7 +192,7 @@
                 @mouseenter="handleMouseEnter($event, hasManageAuth)"
                 @mousemove="handleMouseMove($event, hasManageAuth)"
                 @mouseleave="handleMouseLeave()"
-              >{{ $t('agentStrategy.action.edit') }}</Button>
+              >{{ $t('agentStrategy.action.view') }}</Button>
               <Button
                 class="mr-[8px]"
                 theme="primary"
@@ -256,9 +256,10 @@
   <CreateConfig
     v-model:is-show="isShowSideslider"
     :configpolicy-type="configpolicyType"
-    :is-edit="sidesliderMode === 'edit'"
+    :mode="sidesliderMode"
     :config-data="currentEditConfig"
     @save="handleSave"
+    @request-edit="handleRequestEdit"
   />
 
   <!-- SortPreview 排序并预览组件 -->
@@ -268,6 +269,7 @@
     :configpolicy-type="configpolicyType"
     :biz-id="strategyBizId || 0"
     @save-sort="handleSaveSort"
+    @view-policy="handleViewPolicy"
   />
 
 </template>
@@ -322,7 +324,7 @@ const panels = computed(() => [
 
 // Sideslider控制变量
 const isShowSideslider = ref(false);
-const sidesliderMode = ref<'create' | 'edit'>('create');
+const sidesliderMode = ref<'create' | 'edit' | 'view'>('create');
 const currentEditConfig = ref<ConfigPolicy | null>(null);// 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
@@ -399,7 +401,7 @@ const handleUpdate = async (row: ConfigPolicy) => {
   const res = await ConfigPolicyAPIService.ConfigPolicyGet({
     configpolicy_id: row.configpolicy_id,
   });
-  sidesliderMode.value = 'edit';
+  sidesliderMode.value = 'view';
   currentEditConfig.value = { ...res };
   mainStore.updateConfigEditData({ ...res });
   isShowSideslider.value = true;
@@ -412,6 +414,11 @@ const handleCreate = () => {
   isShowSideslider.value = true;
 };
 
+// 查看模式下点击编辑按钮，切换到编辑模式
+const handleRequestEdit = () => {
+  sidesliderMode.value = 'edit';
+};
+
 // ===== SortPreview =====
 const isShowSortPreview = ref(false);
 const handleSortPreview = () => {
@@ -420,6 +427,21 @@ const handleSortPreview = () => {
 
 const handleSaveSort = async () => {
   await getConfigPolicyList();
+};
+
+// 从 sort-preview 点击策略名称跳转到查看页
+const handleViewPolicy = async (configpolicyId: number) => {
+  try {
+    const res = await ConfigPolicyAPIService.ConfigPolicyGet({
+      configpolicy_id: configpolicyId,
+    });
+    sidesliderMode.value = 'view';
+    currentEditConfig.value = { ...res };
+    mainStore.updateConfigEditData({ ...res });
+    isShowSideslider.value = true;
+  } catch {
+    // error handled by fetch interceptor
+  }
 };
 
 const handleEnabled = async (row: ConfigPolicy) => {

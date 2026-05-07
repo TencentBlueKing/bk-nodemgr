@@ -23,12 +23,12 @@
           label-width="110"
           required
         >
-          <!-- <template #label>
+          <template #label>
             <div class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.info') }}</div>
             <Button text theme="primary" @click="handleExcelImport">
               {{ $t('platform.nodeMan.installAgentPage.excelImport') }}
             </Button>
-          </template> -->
+          </template>
           <install-table
             ref="installTableRef"
             v-model:data="form.info"
@@ -36,7 +36,7 @@
             :current-settings="settings"
             :max-height="520"
           >
-            <UploadExcel @upload="handleUpload" v-if="form.method === '1'"></UploadExcel>
+            <UploadExcel type="proxy" @upload="handleUpload" v-if="form.method === '1'"></UploadExcel>
           </install-table>
         </Form.FormItem>
         <Form.FormItem
@@ -357,7 +357,7 @@
       :width="1048"
       :title="t('installProxy.excelImport')"
       @closed="handleExcelImportCancel">
-      <UploadExcel ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
+      <UploadExcel type="proxy" ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
       <template #footer>
         <Button
           :disabled="!uploadExcelRef?.curFile?.data"
@@ -840,7 +840,19 @@ const handleExcelImport = () => {
   isShowExcelImport.value = true;
 };
 const handleExcelImportConfirm = () => {
-  form.info = [...form.info, ...excelImportData.value];
+  // 导入数据覆盖当前表格：过滤掉空行（无 ipv4 且无 ipv6 的行），布尔字段缺省补 true
+  const boolDefaults = { dedicated_installer: true, cluster_tunnel: true, file_tunnel: true, data_tunnel: true };
+  const newRows = (excelImportData.value as any[]).filter((row: any) => {
+    return row.bk_host_innerip || row.bk_host_innerip_v6;
+  }).map((row: any) => {
+    for (const key of Object.keys(boolDefaults)) {
+      if (row[key] == null) row[key] = boolDefaults[key as keyof typeof boolDefaults];
+    }
+    return row;
+  });
+
+  // 直接使用导入数据覆盖当前表格
+  form.info = newRows.length > 0 ? newRows : [cloneDeep(initData)];
   isShowExcelImport.value = false;
   uploadExcelRef.value?.handleDelete();
 };
@@ -849,7 +861,7 @@ const handleExcelImportCancel = () => {
   uploadExcelRef.value?.handleDelete();
 };
 const handleUpload = (data: any) => {
-  excelImportData.value = data.info;
+  excelImportData.value = data?.info || [];
 };
 onMounted(() => {
   encryptionTool.initPublicKey();

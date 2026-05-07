@@ -739,6 +739,7 @@ agentStrategy:
     os: OS
     arch: Arch
   action:
+    view: View
     edit: Edit
     enable: Enable
     disable: Disable
@@ -775,6 +776,7 @@ agentStrategy:
     cancel: Cancel
     edit: Edit
     create: Create
+    viewTitle: "View {role} Config"
     configTitle: "{action} {role} Config"
     configTip: Switch to enable modification of default config
     versionTip: Editor content changed; saving will upgrade from
@@ -792,6 +794,13 @@ agentStrategy:
     prevStep: Previous
     saveSuccess: Saved successfully
     noSortData: No sort data
+    networkArea: Network Area
+    networkUnit: Network Unit
+    cpuArch: CPU Architecture
+    osType: OS
+    reliableYes: Reliable
+    reliableNo: Unreliable
+    reliableTip: 'Unreliable reason: Missing some information among IP, network area, network unit, OS, or CPU architecture, making it impossible to match policies precisely'
   validate:
     configNameRequired: Config Name is required
     configNameLength: Length must be 1-50 characters
@@ -922,6 +931,7 @@ rulesRecord:
     disable: Disable
     update: Update
     delete: Delete
+    reorderPriorities: Reorder Priorities
   configTypeMap:
     agent: Agent Strategy
     proxy: Proxy Strategy
@@ -1101,6 +1111,8 @@ components:
     tip: 'Supports .xlsx only,'
     templateFile: Template File
     error: Upload failed
+    success: Upload successful
+    failed: Upload failed
 footer:
   desktop: BlueKing Desktop
   linksBk: Contact BK Assistant

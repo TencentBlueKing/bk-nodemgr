@@ -73,7 +73,6 @@
           field="version"
           :title="$t('rulesRecord.version')"
           min-width="130"
-          sortable
           :filter="filterOptionSource.version"
         >
           <template #default="{ row }">
@@ -267,6 +266,7 @@ const operateMap = computed(() => ({
   disable: t('rulesRecord.action.disable'),
   update: t('rulesRecord.action.update'),
   delete: t('rulesRecord.action.delete'),
+  reorder_priorities: t('rulesRecord.action.reorderPriorities'),
 }));
 // 配置类型映射
 const configMap = computed(() => ({

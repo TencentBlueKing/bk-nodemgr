@@ -112,25 +112,77 @@
             <Table
               ref="previewTableRef"
               :data="paginatedPreviewData"
-              :max-height="300"
+              :max-height="600"
               :pagination="previewPagination"
+              :span-method="reliableSpanMethod"
               show-overflow-tooltip
               @page-value-change="handlePreviewPageChange"
               @page-limit-change="handlePreviewPageLimitChange"
             >
               <TableColumn
+                field="reliable"
+                title=""
+                :width="100"
+                fixed="left"
+              >
+                <template #default="{ row }">
+                  <div class="cursor-pointer" v-bk-tooltips="{
+                    content: t('agentStrategy.preview.reliableTip'),
+                    disabled: row.reliable
+                  }">
+                    <Tag :theme="row.reliable ? 'success' : 'warning'" >
+                      {{ row.reliable ? t('agentStrategy.preview.reliableYes') : t('agentStrategy.preview.reliableNo') }}
+                    </Tag>
+                  </div>
+                </template>
+              </TableColumn>
+              <TableColumn
                 field="bk_host_id"
                 title="Host ID"
-                :min-width="100"
+                :width="100"
+                fixed="left"
+              ></TableColumn>
+              <TableColumn
+                field="bk_host_innerip"
+                title="IP"
+                :min-width="130"
+              ></TableColumn>
+              <TableColumn
+                field="bk_networkarea_name"
+                :title="t('agentStrategy.preview.networkArea')"
+                :min-width="120"
+              ></TableColumn>
+              <TableColumn
+                field="bk_networkunit_name"
+                :title="t('agentStrategy.preview.networkUnit')"
+                :min-width="120"
+              ></TableColumn>
+              <TableColumn
+                field="os_type"
+                :title="t('agentStrategy.preview.osType')"
+                :width="100"
+              ></TableColumn>
+              <TableColumn
+                field="cpu_arch"
+                :title="t('agentStrategy.preview.cpuArch')"
+                :width="100"
               ></TableColumn>
               <TableColumn
                 field="matched_policies"
                 :title="t('agentStrategy.preview.matchedPolicy')"
-                :min-width="200"
+                :min-width="180"
+                fixed="right"
               >
                 <template #default="{ row }">
                   <span v-if="row.matched_policies?.length">
-                    {{ row.matched_policies.map((p: any) => p.configpolicy_name).join(', ') }}
+                    <Button
+                      v-for="(policy, idx) in row.matched_policies"
+                      :key="policy.configpolicy_id"
+                      text
+                      theme="primary"
+                      size="small"
+                      @click="handleViewPolicy(policy.configpolicy_id)"
+                    >{{ policy.configpolicy_name }}{{ Number(idx) < row.matched_policies.length - 1 ? '、' : '' }}</Button>
                   </span>
                   <span v-else>-</span>
                 </template>
@@ -138,7 +190,8 @@
               <TableColumn
                 field="action"
                 :title="$t('table.action')"
-                :min-width="100"
+                :width="100"
+                fixed="right"
               >
                 <template #default="{ row }">
                   <Button
@@ -190,6 +243,7 @@
 
     <!-- 蓝鲸IP选择器 -->
     <IpSelector
+      v-if="isShowIpSelector"
       mode="dialog"
       :show-dialog="isShowIpSelector"
       :value="ipSelectorValue"
@@ -231,7 +285,8 @@ import { Table, TableColumn } from '@blueking/table';
 import type { ConfigPolicyPreviewRespPreviewItem } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import IpSelector from '@/components/IpSelector';
-import { fetchHostDetails, setPolicyType, setStrategyBizId } from '@/services/ip-selector';
+import { setPolicyType, setStrategyBizId } from '@/services/ip-selector';
+import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 
 interface ISelectedHost {
@@ -240,9 +295,11 @@ interface ISelectedHost {
   bk_host_innerip_v6: string;
   bk_host_name: string;
   bk_networkarea_name: string;
+  bk_networkunit_name: string;
   os_type: string;
   cpu_arch: string;
   bk_networkarea_id: number;
+  bk_networkunit_id: number;
 }
 
 const isShow = defineModel('isShow', { type: Boolean });
@@ -253,7 +310,7 @@ const props = defineProps<{
   bizId: number;
 }>();
 
-const emit = defineEmits(['save-sort']);
+const emit = defineEmits(['save-sort', 'view-policy']);
 const { t } = useI18n();
 const mainStore = useMainStore();
 
@@ -345,32 +402,43 @@ const handleClearHosts = () => {
 
 // IP选择器变化事件（dialog模式：选择即生效+即时预览）
 const handleIpSelectorChange = async (value: any) => {
-  // 用 hostId 列表查询完整主机信息，补回被库丢弃的字段
   const hostList = value.hostList || [];
-  if (hostList.length > 0) {
+  const ids = hostList.map((h: any) => h.hostId || h.host_id).filter(Boolean);
+
+  if (ids.length > 0) {
     try {
-      const detailRes = await fetchHostDetails({
-        hostList: hostList.map((h: any) => ({ hostId: h.hostId, meta: h.meta })),
+      const res = await TopoService.HostList({
+        page: { offset: 0, limit: ids.length },
+        only_count: false,
+        exact_include_conditions: {
+          bk_host_id: ids,
+          node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'] 
+        },
+        fuzzy_include_conditions: {},
       });
-      const detailMap = new Map<number, any>();
-      (detailRes.data || []).forEach((h: any) => {
-        detailMap.set(h.host_id, h);
-      });
-      hostList.forEach((host: any) => {
-        const detail = detailMap.get(host.hostId);
-        if (detail) {
-          host.host_name = detail.host_name;
-          host.os_type = detail.os_type;
-          host.cpu_arch = detail.cpu_arch;
-        }
+      selectedHosts.value = (res.items || []).map((item: any) => {
+        const info = item?.info || {};
+        return {
+          bk_host_id: item.bk_host_id,
+          bk_host_innerip: info.bk_host_innerip_list?.join(',') || '',
+          bk_host_innerip_v6: info.bk_host_innerip_v6_list?.join(',') || '',
+          bk_host_name: info.bk_host_name || '',
+          bk_networkarea_name: info.bk_networkarea_name || '',
+          bk_networkunit_name: info.bk_networkunit_name || '',
+          os_type: info.os_type || '',
+          cpu_arch: info.cpu_arch || '',
+          bk_networkarea_id: info.bk_networkarea_id || 0,
+          bk_networkunit_id: info.bk_networkunit_id || 0,
+        };
       });
     } catch {
-      // 补全失败不影响主流程
+      selectedHosts.value = [];
     }
+  } else {
+    selectedHosts.value = [];
   }
 
   ipSelectorValue.value = { ...value, hostList: [...hostList] };
-  extractHosts();
   // 选择变化后即时触发预览
   if (selectedHosts.value.length > 0) {
     fetchPreviewMatchStrategy();
@@ -380,25 +448,6 @@ const handleIpSelectorChange = async (value: any) => {
 // IP选择器关闭
 const handleIpSelectorClose = () => {
   isShowIpSelector.value = false;
-};
-
-const extractHosts = () => {
-  const hosts: ISelectedHost[] = [];
-  if (ipSelectorValue.value.hostList && ipSelectorValue.value.hostList.length > 0) {
-    ipSelectorValue.value.hostList.forEach((host: any) => {
-      hosts.push({
-        bk_host_id: host.hostId || host.host_id || host.bk_host_id,
-        bk_host_innerip: host.ip || host.bk_host_innerip,
-        bk_host_innerip_v6: host.ipv6 || host.bk_host_innerip_v6 || '',
-        bk_host_name: host.hostName || host.host_name || host.bk_host_name || '',
-        bk_networkarea_name: host.cloudArea?.name || host.cloud_area?.name || host.bk_cloud_name || '',
-        os_type: host.osName || host.os_name || host.os_type || '',
-        cpu_arch: host.cpuArch || host.cpu_arch || '',
-        bk_networkarea_id: host.cloudArea?.id || host.cloud_area?.id || host.cloudId || host.cloud_id || host.bk_cloud_id || 0,
-      });
-    });
-  }
-  selectedHosts.value = hosts;
 };
 
 // 预览匹配策略
@@ -416,6 +465,23 @@ const paginatedPreviewData = computed(() => {
   return previewData.value.slice(start, end);
 });
 
+/** 合并 reliable 列的同类单元格（数据已按 reliable 排序：true 在前，false 在后） */
+const reliableSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
+  if (column.field !== 'reliable') return { rowspan: 1, colspan: 1 };
+  const rows = visibleData;
+  // 找到连续相同 reliable 值的范围
+  const currentValue = row.reliable;
+  let start = _rowIndex;
+  while (start > 0 && rows[start - 1].reliable === currentValue) start--;
+  let end = _rowIndex;
+  while (end < rows.length - 1 && rows[end + 1].reliable === currentValue) end++;
+  const rowspan = end - start + 1;
+  if (_rowIndex === start) {
+    return { rowspan, colspan: 1 };
+  }
+  return { rowspan: 0, colspan: 0 };
+};
+
 const fetchPreviewMatchStrategy = async () => {
   previewLoading.value = true;
   try {
@@ -424,13 +490,35 @@ const fetchPreviewMatchStrategy = async () => {
       policy_type: props.configpolicyType,
       hosts: selectedHosts.value.map(host => ({
         bk_host_id: host.bk_host_id,
-        bk_networkunit_id: 0,
+        bk_networkunit_id: host.bk_networkunit_id || 0,
         bk_networkarea_id: host.bk_networkarea_id || 0,
         os_type: host.os_type || '',
         cpu_arch: host.cpu_arch || '',
       })),
     });
-    const items = [...(res.reliable_items || []), ...(res.unreliable_items || [])];
+    // 构建 hostId -> selectedHost 映射，用于补充主机信息
+    const hostMap = new Map<number, ISelectedHost>();
+    selectedHosts.value.forEach(h => hostMap.set(h.bk_host_id, h));
+
+    const reliableItems = (res.reliable_items || []).map((item: any) => ({
+      ...item,
+      reliable: true,
+      bk_host_innerip: hostMap.get(item.bk_host_id)?.bk_host_innerip || '',
+      bk_networkarea_name: hostMap.get(item.bk_host_id)?.bk_networkarea_name || '',
+      bk_networkunit_name: hostMap.get(item.bk_host_id)?.bk_networkunit_name || '',
+      os_type: hostMap.get(item.bk_host_id)?.os_type || '',
+      cpu_arch: hostMap.get(item.bk_host_id)?.cpu_arch || '',
+    }));
+    const unreliableItems = (res.unreliable_items || []).map((item: any) => ({
+      ...item,
+      reliable: false,
+      bk_host_innerip: hostMap.get(item.bk_host_id)?.bk_host_innerip || '',
+      bk_networkarea_name: hostMap.get(item.bk_host_id)?.bk_networkarea_name || '',
+      bk_networkunit_name: hostMap.get(item.bk_host_id)?.bk_networkunit_name || '',
+      os_type: hostMap.get(item.bk_host_id)?.os_type || '',
+      cpu_arch: hostMap.get(item.bk_host_id)?.cpu_arch || '',
+    }));
+    const items = [...reliableItems, ...unreliableItems];
     previewData.value = items;
     previewPagination.count = items.length;
     previewPagination.current = 1;
@@ -495,6 +583,12 @@ const handleViewConfigDetail = (row: ConfigPolicyPreviewRespPreviewItem) => {
     configDetailJson.value = row.merged_config || '{}';
   }
   isShowConfigDetail.value = true;
+};
+
+// 点击匹配策略名称，跳转到策略查看页
+const handleViewPolicy = (configpolicyId: number) => {
+  isShow.value = false;
+  emit('view-policy', configpolicyId);
 };
 
 // 步骤导航
