@@ -26,6 +26,10 @@
 |Conventions:write regression/behavior tests when a real new requirement or bugfix provides the acceptance scenario|avoid high-maintenance tests that mirror implementation steps instead of protecting stable behavior/user-visible outcomes
 |Conventions:use pkg/logger for structured logging
 |Conventions:frontend package manager=pnpm@9.8.0|eslint extends @blueking/eslint-config-bk/tsvue3 with import sorting and type-import rules
+|Conventions:assumption discipline=do not silently choose among materially different interpretations; after retrieval, ask one precise question if ambiguity affects API/behavior/data model
+|Conventions:simplicity first=minimum code that satisfies requested behavior; no speculative features/configuration/abstractions; if implementation grows unexpectedly, simplify before expanding
+|Conventions:surgical changes=every changed line must trace to the request; do not refactor/reformat adjacent code; only remove unused code introduced by current change
+|Conventions:goal-driven execution=convert work into verifiable success criteria; bugfix requires reproduction/validation path; feature requires behavior check; multi-step work maps step→verification
 |OCP:extend by addition, not mutation|anchor:{internal/*/router/api-v3,internal/backend/auth,pkg/proto/*}|pattern:{new-subpackage,new-constant,new-interface-impl,additive-proto,new-method}|ban:{patching-stable-signatures,rename/remove-proto-fields}
 |SRP:one unit=one reason to change|anchor:{internal/<service>,internal/*/router/api-v3,internal/backend/auth,pkg}|pattern:{domain-split,service-private-internal,shared-only-in-pkg}|signal:{multiple-change-reasons,file-sprawl}
 |ISP:depend on minimal interfaces only|anchor:{internal/backend/auth,pkg/proto/*}|pattern:{small-interfaces,domain-split-services}|ban:{catch-all-interfaces,methods-unused-by-implementors}
