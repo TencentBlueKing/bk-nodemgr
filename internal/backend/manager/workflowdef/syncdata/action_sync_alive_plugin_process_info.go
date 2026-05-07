@@ -11,6 +11,7 @@
 package syncdata
 
 import (
+	"slices"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -128,22 +129,17 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	if len(aliveProcess) > 0 {
-		underControlledProcInfos, lostControlledProcInfos, err := act.checkAliveProcess(std.Context(), hosts, aliveProcess)
+		needUpdateProcInfos, err := act.checkAliveProcess(std.Context(), hosts, aliveProcess)
 		if err != nil {
 			return err
 		}
 
-		if err = act.processStg.UpdateManyProcessInfo(std.Context(), underControlledProcInfos); err != nil {
-			return err
-		}
-
-		if err = act.processStg.UpdateManyProcessInfo(std.Context(), lostControlledProcInfos); err != nil {
+		if err = act.processStg.UpdateManyProcessInfo(std.Context(), needUpdateProcInfos); err != nil {
 			return err
 		}
 
 		logger.G.Sys().Ctx(std.Context()).
-			With("under-controlled-proc-infos", len(underControlledProcInfos),
-				"lost-controlled-proc-infos", len(lostControlledProcInfos)).
+			With("need-update-proc-infos", len(needUpdateProcInfos)).
 			Info("sync alive plugin process info success")
 	}
 
@@ -151,7 +147,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 }
 
 func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.IContext, hosts []*types.Host,
-	aliveProcess []*types.Process) ([]*types.ProcessInfoDelta, []*types.ProcessInfoDelta, error) {
+	aliveProcess []*types.Process) ([]*types.ProcessInfoDelta, error) {
 
 	hostIDAgentIDMap := make(map[int64]string)
 	agentIDHostIDMap := make(map[string]int64)
@@ -179,7 +175,7 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 
 	procInfos, err := act.gseHandler.QueryMultiProcessInfoMany(nCtx, pluginNameAgentIDList...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	underControlledProcInfos := make([]*types.ProcessInfoDelta, 0)
@@ -225,7 +221,9 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 		lostControlledProcInfos = append(lostControlledProcInfos, processInfoDelta)
 	}
 
-	return underControlledProcInfos, lostControlledProcInfos, nil
+	needUpdateProcInfos := slices.Concat(underControlledProcInfos, lostControlledProcInfos)
+
+	return needUpdateProcInfos, nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
