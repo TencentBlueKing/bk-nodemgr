@@ -83,8 +83,8 @@ const props = withDefaults(defineProps<{
   type: 'agent',
 });
 const uploader = ref(null);
-const url = computed(() => `${window.location.origin}/api/v3/node/${props.type}/upload_template`);
-const downloadUrl = computed(() => `${window.location.origin}/api/v3/node/${props.type}/download_template`);
+const url = computed(() => `${window.location.origin}/api/v3/node/${props.type}/install_template/upload`);
+const downloadUrl = computed(() => `${window.location.origin}/api/v3/node/${props.type}/install_template/download`);
 const curFile = reactive({
   file: null as File | null,
   progress: 0,
