@@ -134,7 +134,9 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 			return err
 		}
 
-		if err = act.processStg.UpdateManyProcessInfo(std.Context(), needUpdateProcInfos); err != nil {
+		if err = batchHandleProcessInfoDeltas(needUpdateProcInfos, func(processInfoDeltas ...*types.ProcessInfoDelta) error {
+			return act.processStg.UpdateManyProcessInfo(std.Context(), processInfoDeltas)
+		}); err != nil {
 			return err
 		}
 
@@ -224,6 +226,20 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 	needUpdateProcInfos := slices.Concat(underControlledProcInfos, lostControlledProcInfos)
 
 	return needUpdateProcInfos, nil
+}
+
+func batchHandleProcessInfoDeltas(processInfoDeltas []*types.ProcessInfoDelta,
+	fn func(processInfoDeltas ...*types.ProcessInfoDelta) error) error {
+
+	processInfoDeltaLen := len(processInfoDeltas)
+	for start := 0; start < processInfoDeltaLen; start += syncHostDBBatchSize {
+		end := min(start+syncHostDBBatchSize, processInfoDeltaLen)
+		if err := fn(processInfoDeltas[start:end]...); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
