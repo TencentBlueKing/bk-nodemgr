@@ -803,6 +803,35 @@ func (h *Handler) QueryMultiProcessInfoMany(
 		return make(map[string][]types.ProcessInfo), nil
 	}
 
+	processInfoMap := make(map[string][]types.ProcessInfo)
+	for _, item := range procNameAgentIDMap {
+		for start := 0; start < len(item.AgentIDList); start += queryMultiProcessInfoPageSize {
+			end := min(start+queryMultiProcessInfoPageSize, len(item.AgentIDList))
+			batchProcessInfoMap, err := h.queryMultiProcessInfoMany(nCtx, &types.ProcessAgentGroup{
+				PluginName:  item.PluginName,
+				ProcessName: item.ProcessName,
+				AgentIDList: item.AgentIDList[start:end],
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			for processName, infos := range batchProcessInfoMap {
+				processInfoMap[processName] = append(processInfoMap[processName], infos...)
+			}
+		}
+	}
+
+	return processInfoMap, nil
+}
+
+func (h *Handler) queryMultiProcessInfoMany(
+	nCtx contextx.IContext, procNameAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error) {
+
+	if len(procNameAgentIDMap) == 0 {
+		return make(map[string][]types.ProcessInfo), nil
+	}
+
 	operateProcReqs := make([]*procOperateReq, 0, len(procNameAgentIDMap))
 	for _, item := range procNameAgentIDMap {
 		operateProcReqs = append(operateProcReqs, &procOperateReq{

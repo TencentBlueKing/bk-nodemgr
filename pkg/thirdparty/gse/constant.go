@@ -11,6 +11,10 @@
 package gse
 
 const (
+	// queryMultiProcessInfoPageSize the page size of query multi process info.
+	// notice: This is not a mandatory value, but a recommended value
+	queryMultiProcessInfoPageSize = 30000
+
 	// ListAgentStatePageSize the page size of list agent state.
 	ListAgentStatePageSize = 1000
 
