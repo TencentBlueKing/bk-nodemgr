@@ -95,6 +95,8 @@ func (os OSType) String() string {
 }
 
 // StringListToOSTypeList converts a string list to a os type list.
+//
+// Deprecated: use conv.SliceToSliceWithError instead.
 func StringListToOSTypeList(stringList []string) ([]OSType, error) {
 	data := make([]OSType, len(stringList))
 	for idx, osType := range stringList {
@@ -108,6 +110,8 @@ func StringListToOSTypeList(stringList []string) ([]OSType, error) {
 }
 
 // OSTypeListToStringList converts a os type list to a string list.
+//
+// Deprecated: use conv.SliceToSlice instead.
 func OSTypeListToStringList(osTypeList []OSType) []string {
 	data := make([]string, len(osTypeList))
 	for idx, osType := range osTypeList {

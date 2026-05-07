@@ -130,6 +130,8 @@ func (arch CPUArch) ToPkgArch() string {
 }
 
 // StringListToCPUArchList converts a string list to a cpu arch list.
+//
+// Deprecated: use conv.SliceToSliceWithError instead.
 func StringListToCPUArchList(stringList []string) ([]CPUArch, error) {
 	data := make([]CPUArch, len(stringList))
 	for idx, cpuArch := range stringList {
@@ -143,6 +145,8 @@ func StringListToCPUArchList(stringList []string) ([]CPUArch, error) {
 }
 
 // CPUArchListToStringList converts a os type list to a string list.
+//
+// Deprecated: use conv.SliceToSlice instead.
 func CPUArchListToStringList(cpuArchTypeList []CPUArch) []string {
 	data := make([]string, len(cpuArchTypeList))
 	for idx, cpuArchType := range cpuArchTypeList {
