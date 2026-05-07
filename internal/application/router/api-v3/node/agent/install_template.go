@@ -34,6 +34,20 @@ const (
 	templateFileName = "agent_install_template.xlsx"
 )
 
+const (
+	colNameInnerIP                  = "内网 IPv4"
+	colNameInnerIPV6                = "内网 IPv6（可选，和内网 IPv4 二选一）"
+	colNameAddressing               = "寻址方式"
+	colNameOSType                   = "操作系统"
+	colNameLoginIP                  = "登录IP"
+	colNameLoginPort                = "登录端口"
+	colNameLoginUser                = "登录用户"
+	colNameLoginMode                = "登录方式"
+	colNameCredit                   = "密钥/密码"
+	colNameInstallPreOrderedPlugins = "安装预设插件"
+	colNameReRegister               = "重新注册AgentID"
+)
+
 // parsedInfo describes the parsed information from the uploaded agent install template file.
 type parsedInfo struct {
 	InnerIP                  string
@@ -60,7 +74,7 @@ type column struct {
 func getColumns() []column {
 	return []column{
 		{
-			name: "内网 IPv4",
+			name: colNameInnerIP,
 			parse: func(info *parsedInfo, v string) error {
 				info.InnerIP = v
 
@@ -71,7 +85,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "内网 IPv6（可选，和内网 IPv4 二选一）",
+			name: colNameInnerIPV6,
 			parse: func(info *parsedInfo, v string) error {
 				info.InnerIPV6 = v
 
@@ -82,7 +96,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "寻址方式",
+			name: colNameAddressing,
 			parse: func(info *parsedInfo, v string) error {
 				info.Addressing = types.Addressing(v)
 				if err := info.Addressing.Validate(); err != nil {
@@ -96,7 +110,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "操作系统",
+			name: colNameOSType,
 			parse: func(info *parsedInfo, v string) error {
 				info.OsType = criteria.OSType(v)
 				if err := info.OsType.Validate(); err != nil {
@@ -110,7 +124,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "登录IP",
+			name: colNameLoginIP,
 			parse: func(info *parsedInfo, v string) error {
 				info.LoginIP = v
 
@@ -121,7 +135,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "登录端口",
+			name: colNameLoginPort,
 			parse: func(info *parsedInfo, v string) error {
 				port, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
@@ -136,7 +150,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "登录用户",
+			name: colNameLoginUser,
 			parse: func(info *parsedInfo, v string) error {
 				info.LoginUser = v
 
@@ -147,7 +161,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "登录方式",
+			name: colNameLoginMode,
 			parse: func(info *parsedInfo, v string) error {
 				info.LoginMode = types.LoginMode(v)
 				if err := info.LoginMode.Validate(); err != nil {
@@ -161,7 +175,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "密钥/密码",
+			name: colNameCredit,
 			parse: func(info *parsedInfo, v string) error {
 				info.Credit = v
 
@@ -172,7 +186,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "安装预设插件",
+			name: colNameInstallPreOrderedPlugins,
 			parse: func(info *parsedInfo, v string) error {
 				if v == "" {
 					return nil
@@ -194,7 +208,7 @@ func getColumns() []column {
 			},
 		},
 		{
-			name: "重新注册AgentID",
+			name: colNameReRegister,
 			parse: func(info *parsedInfo, v string) error {
 				if v == "" {
 					return nil
@@ -384,6 +398,10 @@ func parseTemplateToInfos(file io.Reader) ([]parsedInfo, error) {
 	}
 
 	columns := getColumns()
+	if err := validateHeader(rows[0], columns); err != nil {
+		return nil, err
+	}
+
 	infos := make([]parsedInfo, len(rows)-1)
 	for rowIdx, row := range rows[1:] {
 		var info parsedInfo
@@ -399,6 +417,19 @@ func parseTemplateToInfos(file io.Reader) ([]parsedInfo, error) {
 	}
 
 	return infos, nil
+}
+
+func validateHeader(header []string, columns []column) error {
+	if len(header) != len(columns) {
+		return fmt.Errorf("invalid template header. want(%d) got(%d)", len(columns), len(header))
+	}
+	for idx, col := range columns {
+		if header[idx] != col.name {
+			return fmt.Errorf("invalid template header. col(%d) want(%q) got(%q)", idx+1, col.name, header[idx])
+		}
+	}
+
+	return nil
 }
 
 func convertParsedInfosToData(parsedInfos []parsedInfo) *protoApplication.UploadAgentInstallTemplateResp_Data {
