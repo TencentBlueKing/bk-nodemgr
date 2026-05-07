@@ -285,6 +285,14 @@ type ProcessInfoDelta struct {
 	ProcessInfo ProcessInfo
 }
 
+// GetUniqueKey gets the unique key of the process info delta.
+func (processInfoDelta *ProcessInfoDelta) GetUniqueKey() ProcessUniqueKey {
+	return ProcessUniqueKey{
+		Name:   processInfoDelta.PluginName,
+		HostID: processInfoDelta.HostID,
+	}
+}
+
 // ProcessAgentGroup process agent group.
 type ProcessAgentGroup struct {
 	PluginName  string
