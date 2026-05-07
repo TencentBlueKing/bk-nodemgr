@@ -577,11 +577,11 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(requests []*AgentInst
 }
 
 // AutoConvert auto convert.
-func (x *UploadAgentTemplateReq) AutoConvert() {
+func (x *UploadAgentInstallTemplateReq) AutoConvert() {
 }
 
 // Validate check body.
-func (x *UploadAgentTemplateReq) Validate() error {
+func (x *UploadAgentInstallTemplateReq) Validate() error {
 	return nil
 }
 

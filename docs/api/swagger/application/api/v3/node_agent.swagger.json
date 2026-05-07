@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/node/agent/install_template/upload": {
+      "post": {
+        "summary": "UploadAgentInstallTemplate uploads agent install template.",
+        "operationId": "NodeAgent_UploadAgentInstallTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadAgentInstallTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadAgentInstallTemplateReq is the request for upload agent install\ntemplate file.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadAgentInstallTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/reconfig": {
       "post": {
         "summary": "NodeAgentReconfig reconfigs node agent.",
@@ -287,40 +321,6 @@
           "NodeAgent"
         ]
       }
-    },
-    "/api/v3/node/agent/upload_template": {
-      "post": {
-        "summary": "UploadAgentTemplate uploads agent template.",
-        "operationId": "NodeAgent_UploadAgentTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3UploadAgentTemplateResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "UploadAgentTemplateReq is the request for upload agent tempalte file.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3UploadAgentTemplateReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeAgent"
-        ]
-      }
     }
   },
   "definitions": {
@@ -466,6 +466,46 @@
         }
       },
       "description": "AgentInstallInfo ..."
+    },
+    "v3AgentInstallParsedInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string"
+        },
+        "credit": {
+          "type": "string"
+        },
+        "bk_addressing": {
+          "type": "string"
+        },
+        "install_pre_ordered_plugins": {
+          "type": "boolean"
+        },
+        "re_register": {
+          "type": "boolean"
+        }
+      },
+      "description": "AgentInstallParsedInfo describes the result for agent install template file\nparsed info."
     },
     "v3AgentUpgradeCheckInfo": {
       "type": "object",
@@ -1086,37 +1126,6 @@
         }
       }
     },
-    "v3ParsedInfo": {
-      "type": "object",
-      "properties": {
-        "bk_host_innerip": {
-          "type": "string"
-        },
-        "bk_host_inner_ip_v6": {
-          "type": "string"
-        },
-        "os_type": {
-          "type": "string"
-        },
-        "login_ip": {
-          "type": "string"
-        },
-        "login_port": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "login_user": {
-          "type": "string"
-        },
-        "login_mode": {
-          "type": "string"
-        },
-        "credit": {
-          "type": "string"
-        }
-      },
-      "description": "ParsedInfo describes the result for tempalte file parsed info."
-    },
     "v3Permission": {
       "type": "object",
       "properties": {
@@ -1193,32 +1202,28 @@
         }
       }
     },
-    "v3UploadAgentTemplateReq": {
+    "v3UploadAgentInstallTemplateReq": {
       "type": "object",
-      "description": "UploadAgentTemplateReq is the request for upload agent tempalte file."
+      "description": "UploadAgentInstallTemplateReq is the request for upload agent install\ntemplate file."
     },
-    "v3UploadAgentTemplateResp": {
+    "v3UploadAgentInstallTemplateResp": {
       "type": "object",
       "properties": {
         "data": {
-          "$ref": "#/definitions/v3UploadAgentTemplateRespData"
+          "$ref": "#/definitions/v3UploadAgentInstallTemplateRespData"
         }
       },
-      "description": "UploadAgentTemplateResp ..."
+      "description": "UploadAgentInstallTemplateResp ..."
     },
-    "v3UploadAgentTemplateRespData": {
+    "v3UploadAgentInstallTemplateRespData": {
       "type": "object",
       "properties": {
         "info": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3ParsedInfo"
+            "$ref": "#/definitions/v3AgentInstallParsedInfo"
           }
-        },
-        "total_count": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     }

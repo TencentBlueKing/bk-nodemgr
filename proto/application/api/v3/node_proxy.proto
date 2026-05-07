@@ -290,6 +290,39 @@ message NodeProxyAssignUnitResp {
   Data data = 1;
 }
 
+// UploadProxyInstallTemplateReq is the request for upload proxy install
+// template file.
+message UploadProxyInstallTemplateReq {}
+
+// ProxyInstallParsedInfo describes the result for proxy install template file
+// parsed info.
+message ProxyInstallParsedInfo {
+  string bk_host_innerip = 1;
+  string bk_host_innerip_v6 = 2;
+  string export_ip = 3;
+  string bk_addressing = 4;
+  string os_type = 5;
+  string login_ip = 6;
+  int64 login_port = 7;
+  string login_user = 8;
+  string login_mode = 9;
+  string credit = 10;
+  string cpu_arch = 11;
+  string advertise_ip = 12;
+  optional bool install_pre_ordered_plugins = 13;
+  optional bool re_register = 14;
+  optional bool dedicated_installer = 15;
+  optional bool cluster_tunnel = 16;
+  optional bool file_tunnel = 17;
+  optional bool data_tunnel = 18;
+}
+
+// UploadProxyInstallTemplateResp ...
+message UploadProxyInstallTemplateResp {
+  message Data { repeated ProxyInstallParsedInfo info = 1; }
+  Data data = 1;
+}
+
 // NodeProxy describes the node proxy service.
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
@@ -364,6 +397,15 @@ service NodeProxy {
       returns (NodeProxyAssignUnitResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/assign_unit"
+      body : "*"
+    };
+  }
+
+  // UploadProxyInstallTemplate uploads proxy install template.
+  rpc UploadProxyInstallTemplate(UploadProxyInstallTemplateReq)
+      returns (UploadProxyInstallTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/install_template/upload"
       body : "*"
     };
   }

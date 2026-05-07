@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/node/proxy/install_template/upload": {
+      "post": {
+        "summary": "UploadProxyInstallTemplate uploads proxy install template.",
+        "operationId": "NodeProxy_UploadProxyInstallTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadProxyInstallTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadProxyInstallTemplateReq is the request for upload proxy install\ntemplate file.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadProxyInstallTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/reconfig": {
       "post": {
         "summary": "NodeProxyReconfig reconfigs node proxy.",
@@ -1235,6 +1269,67 @@
       },
       "description": "ProxyInstallCheckInfo describes the node proxy install check parameter."
     },
+    "v3ProxyInstallParsedInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "export_ip": {
+          "type": "string"
+        },
+        "bk_addressing": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string"
+        },
+        "credit": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "advertise_ip": {
+          "type": "string"
+        },
+        "install_pre_ordered_plugins": {
+          "type": "boolean"
+        },
+        "re_register": {
+          "type": "boolean"
+        },
+        "dedicated_installer": {
+          "type": "boolean"
+        },
+        "cluster_tunnel": {
+          "type": "boolean"
+        },
+        "file_tunnel": {
+          "type": "boolean"
+        },
+        "data_tunnel": {
+          "type": "boolean"
+        }
+      },
+      "description": "ProxyInstallParsedInfo describes the result for proxy install template file\nparsed info."
+    },
     "v3ProxyUpgradeCheckInfo": {
       "type": "object",
       "properties": {
@@ -1304,6 +1399,31 @@
         },
         "os_type": {
           "type": "string"
+        }
+      }
+    },
+    "v3UploadProxyInstallTemplateReq": {
+      "type": "object",
+      "description": "UploadProxyInstallTemplateReq is the request for upload proxy install\ntemplate file."
+    },
+    "v3UploadProxyInstallTemplateResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v3UploadProxyInstallTemplateRespData"
+        }
+      },
+      "description": "UploadProxyInstallTemplateResp ..."
+    },
+    "v3UploadProxyInstallTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "info": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ProxyInstallParsedInfo"
+          }
         }
       }
     }

@@ -223,27 +223,29 @@ message NodeAgentUpgradeCheckResult {
   string category = 5;
 }
 
-// UploadAgentTemplateReq is the request for upload agent tempalte file.
-message UploadAgentTemplateReq {}
+// UploadAgentInstallTemplateReq is the request for upload agent install
+// template file.
+message UploadAgentInstallTemplateReq {}
 
-// ParsedInfo describes the result for tempalte file parsed info.
-message ParsedInfo {
+// AgentInstallParsedInfo describes the result for agent install template file
+// parsed info.
+message AgentInstallParsedInfo {
   string bk_host_innerip = 1;
-  string bk_host_inner_ip_v6 = 2;
+  string bk_host_innerip_v6 = 2;
   string os_type = 3;
   string login_ip = 4;
   int64 login_port = 5;
   string login_user = 6;
   string login_mode = 7;
   string credit = 8;
+  string bk_addressing = 9;
+  optional bool install_pre_ordered_plugins = 10;
+  optional bool re_register = 11;
 }
 
-// UploadAgentTemplateResp ...
-message UploadAgentTemplateResp {
-  message Data {
-    repeated ParsedInfo info = 1;
-    int64 total_count = 2;
-  }
+// UploadAgentInstallTemplateResp ...
+message UploadAgentInstallTemplateResp {
+  message Data { repeated AgentInstallParsedInfo info = 1; }
   Data data = 1;
 }
 
@@ -308,11 +310,11 @@ service NodeAgent {
     };
   }
 
-  // UploadAgentTemplate uploads agent template.
-  rpc UploadAgentTemplate(UploadAgentTemplateReq)
-      returns (UploadAgentTemplateResp) {
+  // UploadAgentInstallTemplate uploads agent install template.
+  rpc UploadAgentInstallTemplate(UploadAgentInstallTemplateReq)
+      returns (UploadAgentInstallTemplateResp) {
     option (google.api.http) = {
-      post : "/api/v3/node/agent/upload_template"
+      post : "/api/v3/node/agent/install_template/upload"
       body : "*"
     };
   }
