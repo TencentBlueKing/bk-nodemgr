@@ -1,96 +1,26 @@
-# TYPES KNOWLEDGE BASE
-
-## OVERVIEW
-
-`pkg/types` is the single source of truth for shared domain data structures across all services. It defines business-layer payloads (structs, enums, conditions, distinct selectors, manager params) that flow between API handlers, storage, workflow engine, and third-party adapters. Proto structs must be converted to/from these types at the boundary — see `pkg/proto/*/README.md`.
-
-## WHERE TO LOOK
-
-| File | Purpose |
-|------|---------|
-| `host.go` | `Host`, `HostStatic`, `HostDynamic` — core host model with addressing, status, role, proxy tags |
-| `topo.go` | `Business`, `NetworkArea`, `NetworkUnit`, `AccessPoint`, `Links` — topology primitives |
-| `scope.go` | `Scope`, `Target` — scope types (topo/service-template/set-template/instance/dynamic-group) for targeting hosts |
-| `release.go` | `Release` and variants (`ReleaseAgent`, `ReleaseProxy`, `ReleaseCert`, `ReleasePlugin`, etc.) — package release metadata |
-| `plugin.go` | `Plugin` struct and plugin group constants |
-| `config_policy.go` | `ConfigPolicy`, `ConfigPolicyScope`, `ConfigPolicyTemplate` — configuration policy model |
-| `deploy_policy.go` | `DeployPolicy`, `DeploySpec` — deployment policy with agent/proxy/plugin spec variants |
-| `node_deployment.go` | `NodeDeployment`, `DeploymentInfo`, `NodeConf`, `TargetVersion` — per-node deployment state |
-| `plugin_deployment.go` | `PluginDeployment`, `PluginDeploymentInfo`, `PluginConfigDetail` — per-plugin deployment state |
-| `node_workflow.go` | `NodeWorkflow` — node operation workflow with type/status enums |
-| `plugin_workflow.go` | `PluginWorkflow` — plugin operation workflow with type/status enums |
-| `scheduled_workflow.go` | `ScheduledWorkflow` — scheduled/recurring workflow definitions |
-| `node_agent.go` | Install/upgrade/restart/reconfig/uninstall param structs for agent operations |
-| `node_proxy.go` | Install/upgrade/restart/reconfig/update/uninstall param structs for proxy operations |
-| `manager.go` | High-level manager action params (`InstallNodeParam`, `UpgradePluginParam`, `ExecuteDeployPolicyParam`, etc.) |
-| `gse.go` | GSE integration types: `AgentState`, `ScriptResult`, `TransferDetail`, `OperateAgent`, `GSEVersionFormatter` |
-| `process.go` | `Process`, `ProcessSpec`, `ProcessController`, `ProcessConfig` — process management model |
-| `network_policy.go` | `NetworkPolicy`, `NetworkPolicyEndpoint`, `NetworkPolicyService` — network access policy |
-| `condition.go` | Query condition structs (`*ExactFields`, `*FuzzyFields`, `*Condition`) for every domain entity |
-| `distinct.go` | Distinct/aggregation request and result types (`*DistinctRequest`, `*DistinctResult`) |
-| `page.go` | `Page` struct with sort/limit/offset and helpers (`UnlimitedPage`, `SingleItemPage`) |
-| `constant.go` | Release version/name constants (`ReleaseNameAgent`, `ReleaseNameProxy`, etc.) |
-| `generation.go` | `Generation` enum (All/1/2) for agent generation selection |
-| `cipher.go` | `Cipher` struct and `CipherKeyType` enum (AES256, RSA, SM2, SM4) |
-| `upload.go` | `Upload` and origin package detail structs for file upload categorization |
-| `tenant.go` | `Tenant` struct for multi-tenant context |
-| `relay.go` | `RelayInfo` struct for relay service metadata |
-| `host_event.go` | `HostEvent` — CMDB host change event model |
-| `topo_event.go` | `TopoEvent` — topology change event model |
-| `config_policy_event.go` | `ConfigPolicyEvent` — config policy change event model |
-| `package_event.go` | `PackageEvent` — package lifecycle event model |
-| `operinst_private_data.go` | Operation instance private data keys and `PDDetectInfo` struct |
-| `graph.go` | `GraphNodeInfo` — workflow graph visualization node |
-| `service_instance.go` | `ServiceInstance` — CMDB service instance reference |
-
-## CONVENTIONS
-
-### Enum Pattern
-
-Domain enums are defined as named `string` (or `int64`) types with `const` blocks and always include:
-1. A `Validate()` method that checks against valid values
-2. `*ListToStringList` / `StringListTo*List` conversion helpers for API serialization
-
-```go
-type NodeStatus string
-const (
-    NodeStatusRunning NodeStatus = "running"
-    // ...
-)
-func (s NodeStatus) Validate() error { ... }
-func NodeStatusListToStringList(list []NodeStatus) []string { ... }
-func StringListToNodeStatusList(list []string) []NodeStatus { ... }
-```
-
-### Scope Union Type
-
-`Scope` uses a union pattern — exactly one inner scope variant is non-nil. Use `NewScopeWith*` constructors and `scope.Type()` / `scope.Get*Scope()` accessors; never set fields directly.
-
-### Condition Structs
-
-Every queryable entity has a triple of condition structs in `condition.go`:
-- `*ExactFields` — exact-match filter fields
-- `*FuzzyFields` — fuzzy/regex filter fields
-- `*Condition` — combines exact, fuzzy, `TimeRange`, and `Page`
-
-These map directly to DAO `OptFn` filter chains in `pkg/dao/mongo`.
-
-### Distinct Selectors
-
-`distinct.go` pairs each domain entity with `*DistinctRequest` (bool fields selecting which columns to aggregate) and `*DistinctResult` (aggregation output). Use `New*AllSet()` constructors for full-column aggregation.
-
-### Manager Params
-
-`manager.go` contains high-level action parameter structs consumed by `internal/*/manager`. These are the entry point for service-level operations (install/upgrade/restart/uninstall nodes and plugins, execute deploy policies).
-
-### DeploySpec Union Type
-
-`DeploySpec` in `deploy_policy.go` follows the same union pattern as `Scope` — use `NewDeploySpecWith*` constructors and `deploySpec.Type()` / `deploySpec.Get*Param()` accessors.
-
-## ANTI-PATTERNS
-
-- Do not add service-specific business logic to type files — keep validation limited to structural/value correctness.
-- Do not use proto-generated structs as business-layer types — convert at the boundary via `pkg/proto/*` helpers.
-- Do not expose raw third-party API structures (CMDB, GSE, etc.) — adapter types in `gse.go`, `cmdb.go` are the internal projection; raw API shapes live in `pkg/thirdparty/`.
-- Do not duplicate condition or distinct structs — follow the existing `*ExactFields` / `*FuzzyFields` / `*Condition` triple pattern.
-- Do not construct `Scope` or `DeploySpec` by setting fields directly — always use the `NewScopeWith*` / `NewDeploySpecWith*` constructors.
+|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
+|Required Tools:serena (semantic code ops)|context7 (3rd-party docs)|sequential-thinking (decisions)
+|Language Policy:Chinese for Q&A|English for code/docs/tech discussions
+|Compression Rule:Follow references/AGENTS-compression-guide.md (pipe-index format, concise, no prose/code blocks)
+|Scope:pkg/types
+|Overview:Shared business-layer domain contracts for bk-nodemgr services; owns structs/enums/query contracts/operation params that flow handler→service/manager→storage/workflow→proto response
+|Boundary:pkg/proto subpackages convert wire models↔pkg/types at transport edge|pkg/dao/mongo consumes condition/distinct/page contracts|internal service packages own business orchestration and policy decisions
+|Structure:pkg/types:{host.go,topo.go,scope.go,release.go,plugin.go,config_policy.go,deploy_policy.go,node_deployment.go,plugin_deployment.go,node_workflow.go,plugin_workflow.go,scheduled_workflow.go,node_agent.go,node_proxy.go,manager.go,gse.go,cmdb.go,process.go,network_policy.go,condition.go,distinct.go,page.go,event files,README.md}
+|Where to look:core inventory:{host.go,topo.go,scope.go,tenant.go,service_instance.go}:host/topology/scope/tenant references
+|Where to look:package+plugin:{release.go,plugin.go,upload.go,package_event.go}:release metadata, plugin groups, upload package categorization, package lifecycle events
+|Where to look:deployment:{deploy_policy.go,node_deployment.go,plugin_deployment.go,config_policy.go,network_policy.go}:policy/spec/state/config/network domain models
+|Where to look:workflow:{node_workflow.go,plugin_workflow.go,scheduled_workflow.go,graph.go,operinst_private_data.go}:operation workflow models and visualization/private-data keys
+|Where to look:operation params:{node_agent.go,node_proxy.go,manager.go}:manager input contracts for install/upgrade/restart/reconfig/update/uninstall/execute policy flows
+|Where to look:query contracts:{condition.go,distinct.go,page.go}:DAO filtering, aggregation selectors, pagination/sort helpers
+|Where to look:external projections:{gse.go,cmdb.go,notice.go,iam.go,relay.go}:internal projections of third-party concepts; raw SDK/API shapes stay in pkg/thirdparty
+|Conventions:domain type first=business code should depend on pkg/types instead of pb structs or raw third-party structs
+|Conventions:validation scope=structural/value correctness only; service-specific policy and cross-entity business rules stay in internal/<service>
+|Conventions:enum pattern=named string/int64 type→const block→Validate() when externally selectable→list/string conversion helpers when API serialization needs them
+|Conventions:union type pattern=exactly one branch set; use NewScopeWithX and NewDeploySpecWithX constructors plus Type()/GetX accessors; never set union fields directly
+|Conventions:condition pattern=EntityExactFields+EntityFuzzyFields+EntityCondition with TimeRange/Page as needed; map to pkg/dao/mongo OptFn chains
+|Conventions:distinct pattern=EntityDistinctRequest/Selector bool fields + EntityDistinctResult slice fields + NewXAllSet constructor for all-column aggregation
+|Conventions:page pattern=Page carries sort/limit/offset; use UnlimitedPage/SingleItemPage helpers instead of magic limits
+|Conventions:naming alignment=same concept name across proto,pkg/types,DAO,front docs; grep existing terms before adding synonyms
+|How to add type:find analogous entity in this package→extend domain struct/enum/query contracts→update pkg/proto converters if transport-visible→update DAO/service callers only through existing layer boundaries
+|Anti-patterns:no service-specific business logic|no direct proto structs as business types|no raw CMDB/GSE/IAM shapes in service code|no duplicate query/distinct helpers|no direct Scope/DeploySpec field construction|no speculative pkg/common abstractions
+|Verification:go test ./pkg/types|if converter touched:go test ./pkg/proto/...|if DAO query contract touched:go test ./pkg/dao/mongo/...
