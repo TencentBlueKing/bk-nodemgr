@@ -155,11 +155,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 
 	pluginConf.TemplateRenderer = pluginRelease.TemplateRendererType
 	pluginConf.SystemConfigContext = renderContext
-	if err := act.fillConfigDetails(pluginRelease, pluginConf); err != nil {
-		std.InstanceData().Log().Zh("补充配置详情失败: %v", err).
-			En("failed to fill config details: %v", err).
-			Error()
-
+	if err := act.fillConfigDetails(std, pluginRelease, pluginConf); err != nil {
 		return fmt.Errorf("failed to fill config details: %w", err)
 	}
 
@@ -170,7 +166,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	return nil
 }
 
-func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(pluginRelease *types.ReleasePlugin,
+func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *pluginUtils.PluginActionStandarder, pluginRelease *types.ReleasePlugin,
 	pluginConf *types.PluginDeploymentPluginConf) error {
 
 	templateMap := make(map[string]types.PluginPkgConfigTemplate, len(pluginRelease.ConfigTemplates))
@@ -192,6 +188,11 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(pluginRel
 	for idx, detail := range pluginConf.ConfigFilesDetail {
 		tpl, ok := templateMap[detail.Name]
 		if !ok {
+
+			std.InstanceData().Log().Zh("未匹配到模板, config-file-name(%s), plugin-name(%s)", detail.Name, pluginRelease.Name).
+				En("no matched template, config-file-name(%s), plugin-name(%s)", detail.Name, pluginRelease.Name).
+				Error()
+
 			return fmt.Errorf("no matched template for config detail, name(%s)", detail.Name)
 		}
 
