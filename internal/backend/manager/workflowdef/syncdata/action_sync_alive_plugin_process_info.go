@@ -192,7 +192,6 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 			}
 
 			underControlledProcInfos = append(underControlledProcInfos, processInfoDelta)
-
 		}
 	}
 
