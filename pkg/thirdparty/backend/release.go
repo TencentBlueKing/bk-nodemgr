@@ -791,14 +791,10 @@ func (h *Handler) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleaseP
 func (h *Handler) GetConfigVariablesReleasePlugin(nCtx contextx.IContext, name, version string, gen types.Generation, platforms []platfmt.Platform) (
 	map[string][]*types.PluginPkgConfigTemplate, error) {
 
-	plats := conv.SliceToSlice(platforms, func(item platfmt.Platform) *protoBackend.Platform {
-		return protoBackend.ConvertPlatformFromTypes(item)
-	})
-
 	req := &protoBackend.PackageReleasePluginGetConfigVariablesReq{
 		Name:       name,
 		Generation: int64(gen),
-		Platforms:  plats,
+		Platforms:  conv.SliceToSlice(platforms, protoBackend.ConvertPlatformFromTypes),
 		Version:    version,
 	}
 
