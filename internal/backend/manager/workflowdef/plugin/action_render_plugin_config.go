@@ -115,22 +115,16 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("plugin deployment plugin conf is nil")
 	}
 
-	renderContext, err := act.generateConfigContext(pluginConf)
-	if err != nil {
+	if err := act.renderPluginConf(std, pluginConf); err != nil {
 		return fmt.Errorf("failed to generate config context: %w", err)
-	}
-
-	if err = act.renderConfig(std, pluginConf, renderContext); err != nil {
-		return fmt.Errorf("failed to render config: %w", err)
 	}
 
 	if err := act.daoPluginDeployment.UpdatePluginDeploymentPluginConf(std.Context(), std.Token(), pluginConf); err != nil {
 		return fmt.Errorf("failed to update plugin deployment plugin conf: %w", err)
 	}
 
-	configs := make([]*types.ProcessConfig, 0, len(pluginConf.ConfigFilesDetail))
-	for _, detail := range pluginConf.ConfigFilesDetail {
-		configs = append(configs, &types.ProcessConfig{
+	configs := conv.SliceToSlice(pluginConf.ConfigFilesDetail, func(detail *types.PluginConfigDetail) *types.ProcessConfig {
+		return &types.ProcessConfig{
 			Name:         detail.Name,
 			ProcessName:  std.DeployInfo().Process.PluginName,
 			HostID:       std.DeployInfo().Process.HostID,
@@ -138,8 +132,9 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 			Content:      detail.Content,
 			MD5:          crypter.MD5Sum(detail.Content),
 			FilePath:     detail.FilePath,
-		})
-	}
+		}
+	})
+
 	if err = act.daoProcessConfig.UpsertProcessConfigs(std.Context(), configs...); err != nil {
 		return fmt.Errorf("failed to upsert process configs: %w", err)
 	}
@@ -152,23 +147,34 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionRenderPluginConfig) renderConfig(
-	std *pluginUtils.PluginActionStandarder,
-	pluginConf *types.PluginDeploymentPluginConf,
-	renderContext map[string]any) error {
+func (act *actionRenderPluginConfig) renderPluginConf(std *pluginUtils.PluginActionStandarder, pluginConf *types.PluginDeploymentPluginConf) error {
+	customContext := pluginConf.CustomConfigContext
+	systemContext := pluginConf.SystemConfigContext
+	renderContext := make(map[string]any)
 
-	renderer, err := renderer.NewRenderer(pluginConf.TemplateRenderer)
+	std.InstanceData().Log().
+		Zh("插件模板类型为(%s)", pluginConf.TemplateRenderer).
+		En("plugin template type is(%s)", pluginConf.TemplateRenderer).
+		Info()
+
+	switch pluginConf.TemplateRenderer {
+	case types.TemplateRendererTypeJinja2:
+		maps.Copy(renderContext, systemContext)
+		maps.Copy(renderContext, customContext)
+	case types.TemplateRendererTypeGoTemplate:
+		maps.Copy(renderContext, systemContext)
+		renderContext[keyCustomContext] = customContext
+	default:
+		return fmt.Errorf("unsupported template renderer type: %s", pluginConf.TemplateRenderer)
+	}
+
+	renderHandler, err := renderer.NewRenderer(pluginConf.TemplateRenderer)
 	if err != nil {
 		return fmt.Errorf("failed to create template renderer: %w", err)
 	}
 
-	std.InstanceData().Log().
-		Zh("开始渲染插件配置, template-renderer-type(%s)", pluginConf.TemplateRenderer).
-		En("start render plugin config, template-renderer-type(%s)", pluginConf.TemplateRenderer).
-		Info()
-
 	for idx := range pluginConf.ConfigFilesDetail {
-		pluginConf.ConfigFilesDetail[idx].Content, err = renderer.Render(pluginConf.ConfigFilesDetail[idx].Content, renderContext)
+		pluginConf.ConfigFilesDetail[idx].Content, err = renderHandler.Render(pluginConf.ConfigFilesDetail[idx].Content, renderContext)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to render config template")
 			return fmt.Errorf("failed to render sub config template: %w", err)
@@ -185,25 +191,6 @@ func (act *actionRenderPluginConfig) renderConfig(
 	}
 
 	return nil
-}
-
-func (act *actionRenderPluginConfig) generateConfigContext(pluginConf *types.PluginDeploymentPluginConf) (map[string]any, error) {
-	customContext := pluginConf.CustomConfigContext
-	systemContext := pluginConf.SystemConfigContext
-	result := make(map[string]any)
-
-	switch pluginConf.TemplateRenderer {
-	case types.TemplateRendererTypeJinja2:
-		maps.Copy(result, systemContext)
-		maps.Copy(result, customContext)
-	case types.TemplateRendererTypeGoTemplate:
-		maps.Copy(result, systemContext)
-		result[keyCustomContext] = customContext
-	default:
-		return nil, fmt.Errorf("unsupported template renderer type: %s", pluginConf.TemplateRenderer)
-	}
-
-	return result, nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
