@@ -796,6 +796,12 @@ func (h *Handler) parseQueryProcResult(operateProcResultResp getProcOperateResul
 }
 
 // QueryMultiProcessInfoMany query multiple process info for many agents.
+//
+// Name mapping in GSE:
+//   - meta.name / labels.procName: nodemgr pluginName.
+//   - spec.identity.procName: programName, the real OS process name from process identity.
+//
+// The returned map is keyed by meta.name, so callers can use the key as pluginName.
 func (h *Handler) QueryMultiProcessInfoMany(
 	nCtx contextx.IContext, procNameAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error) {
 
@@ -816,8 +822,8 @@ func (h *Handler) QueryMultiProcessInfoMany(
 				return nil, err
 			}
 
-			for processName, infos := range batchProcessInfoMap {
-				processInfoMap[processName] = append(processInfoMap[processName], infos...)
+			for pluginName, infos := range batchProcessInfoMap {
+				processInfoMap[pluginName] = append(processInfoMap[pluginName], infos...)
 			}
 		}
 	}
@@ -867,6 +873,8 @@ func (h *Handler) queryMultiProcessInfoMany(
 	processInfoMap := make(map[string][]types.ProcessInfo)
 	for agentID, infos := range procInfoMap {
 		for _, info := range infos {
+			// For this GSE API, info.ProcessName carries meta.name/pluginName,
+			// not spec.identity.procName/programName.
 			processInfoMap[info.ProcessName] = append(processInfoMap[info.ProcessName], types.ProcessInfo{
 				AutoStart: info.IsAuto,
 				AgentID:   agentID,
