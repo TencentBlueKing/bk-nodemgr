@@ -558,7 +558,6 @@ func (s *Storage) getRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 }
 
 func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (map[int64]int64, error) {
-
 	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
