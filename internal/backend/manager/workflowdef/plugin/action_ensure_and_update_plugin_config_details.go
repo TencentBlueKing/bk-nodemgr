@@ -188,7 +188,6 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 	for idx, detail := range pluginConf.ConfigFilesDetail {
 		tpl, ok := templateMap[detail.Name]
 		if !ok {
-
 			std.InstanceData().Log().Zh("未匹配到模板, config-file-name(%s), plugin-name(%s)", detail.Name, pluginRelease.Name).
 				En("no matched template, config-file-name(%s), plugin-name(%s)", detail.Name, pluginRelease.Name).
 				Error()
