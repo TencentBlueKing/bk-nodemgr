@@ -22,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -29,9 +30,6 @@ import (
 const (
 	// ActionNameRenderPluginDeployment defines the action name.
 	ActionNameRenderPluginDeployment = "render_plugin_deployment"
-
-	// systemUser in gse system user mean use current login user to operate process.
-	systemUser = "system"
 )
 
 // NewActionRenderPluginDeployment ...
@@ -182,7 +180,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 
 	// windows use user direct need provide password, so we use system user to operate the process.
 	if host.Dynamic.NodeOsType == criteria.OSWindows {
-		std.DeployInfo().Process.Identity.User = systemUser
+		std.DeployInfo().Process.Identity.User = gse.WindowsOperateUser
 	}
 
 	// TODO: 接入配置管理
