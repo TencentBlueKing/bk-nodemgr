@@ -399,4 +399,5 @@ type HostFieldSelection struct {
 	NetworkAreaID bool
 	InnerIPList   bool
 	InnerIPV6List bool
+	LoginUser     bool
 }
