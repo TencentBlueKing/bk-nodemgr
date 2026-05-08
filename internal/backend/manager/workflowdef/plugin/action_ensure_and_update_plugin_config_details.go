@@ -156,8 +156,8 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 	pluginConf.TemplateRenderer = pluginRelease.TemplateRendererType
 	pluginConf.SystemConfigContext = renderContext
 	if err := act.fillConfigDetails(pluginRelease, pluginConf); err != nil {
-		std.InstanceData().Log().Zh("补充配置详情失败: %s", err).
-			En("failed to fill config details: %s", err).
+		std.InstanceData().Log().Zh("补充配置详情失败: %v", err).
+			En("failed to fill config details: %v", err).
 			Error()
 
 		return fmt.Errorf("failed to fill config details: %w", err)

@@ -116,7 +116,7 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 	}
 
 	if err := act.renderPluginConf(std, pluginConf); err != nil {
-		return fmt.Errorf("failed to generate config context: %w", err)
+		return fmt.Errorf("failed to render plugin conf: %w", err)
 	}
 
 	if err := act.daoPluginDeployment.UpdatePluginDeploymentPluginConf(std.Context(), std.Token(), pluginConf); err != nil {
