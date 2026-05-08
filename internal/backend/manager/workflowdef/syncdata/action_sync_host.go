@@ -12,6 +12,7 @@ package syncdata
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -119,11 +120,12 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	gp.Go(func() error {
 		selection := &types.HostFieldSelection{
-			// in compare logic we only need the host_id field.
+			// Sync only needs host_id for comparison and login_user for repair.
 			HostID:        true,
 			NetworkAreaID: false,
 			InnerIPList:   false,
 			InnerIPV6List: false,
+			LoginUser:     true,
 		}
 
 		condition := &types.HostCondition{
@@ -173,6 +175,13 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	if err = batchHandleHostIDs(deleteHostIDs, func(hostIDs ...int64) error {
 		return act.storageHost.DeleteManyHost(std.Context(), hostIDs...)
+	}); err != nil {
+		return err
+	}
+
+	loginUserRepairHosts := act.fillDefaultLoginUsers(ctx, slices.Concat(updateHosts, insertHosts), dbData)
+	if err = batchHandleHosts(loginUserRepairHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{LoginUser: true}, hosts...)
 	}); err != nil {
 		return err
 	}
@@ -245,17 +254,45 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 			host.Dynamic.AgentID = host.Static.SyncedAgentID
 		}
 
-		defaultUser, err := criteria.DefaultAdminUser(criteria.OSType(host.Static.OSType))
-		if err != nil {
-			logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default user for new host")
-		}
-
-		host.Dynamic.LoginUser = string(defaultUser)
-
 		insertHosts = append(insertHosts, host)
 	}
 
 	return updateHosts, insertHosts, deleteHostIDs, nil
+}
+
+func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, hosts, dbData []*types.Host) []*types.Host {
+	dbHostMap := make(map[int64]*types.Host, len(dbData))
+	for _, host := range dbData {
+		dbHostMap[host.HostID] = host
+	}
+
+	backfillHosts := make([]*types.Host, 0)
+	for _, host := range hosts {
+		if dbHost, exists := dbHostMap[host.HostID]; exists && dbHost.Dynamic.LoginUser != "" {
+			host.Dynamic.LoginUser = dbHost.Dynamic.LoginUser
+			continue
+		}
+
+		if host.Dynamic.LoginUser != "" {
+			continue
+		}
+
+		defaultUser, err := criteria.DefaultAdminUser(criteria.OSType(host.Static.OSType))
+		if err != nil {
+			logger.G.Sys().With("host-id", host.HostID).WithErr(err).Warn("failed to get default user for synced host")
+			continue
+		}
+
+		host.Dynamic.LoginUser = string(defaultUser)
+		backfillHosts = append(backfillHosts, host)
+	}
+
+	ctx.Data.Log().
+		Zh("主机登录用户修复完成，需修补 %d 台", len(backfillHosts)).
+		En("host login user repair done, %d hosts need repair", len(backfillHosts)).
+		Info()
+
+	return backfillHosts
 }
 
 func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64, cmdbData ...*types.Host) error {
