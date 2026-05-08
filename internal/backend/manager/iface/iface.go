@@ -66,6 +66,12 @@ type IPluginManager interface {
 
 	// TerminatePluginOperationLastInstance terminate operation from last instance.
 	TerminatePluginOperationLastInstance(ctx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
+
+	// LaunchRestartProcess launch a task to restart process. returns the workflow-id.
+	LaunchRestartProcess(ctx contextx.IContext, param types.RestartProcessParam) (string, error)
+
+	// LaunchStopProcess launch a task to stop process. returns the workflow-id.
+	LaunchStopProcess(ctx contextx.IContext, param types.StopProcessParam) (string, error)
 }
 
 // ISyncManager defines the SyncManager interface.

@@ -57,5 +57,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
 	h.rg.POST("/set_memo", restserver.Handler(h.SetMemo))
 
+	h.rg.POST("/restart", restserver.Handler(h.Restart))
+	h.rg.POST("/stop", restserver.Handler(h.Stop))
+
 	workflow.Load(h.rg, capability)
 }

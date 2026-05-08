@@ -192,6 +192,10 @@ type IStorageHost interface {
 	// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
 	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
 	GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error)
+
+	// GetHostBizMapping gets host biz mapping.
+	// Returns a map with host ID as key and biz ID as value.
+	GetHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (map[int64]int64, error)
 }
 
 // IStorageDomainGse this interface defines the operations which is only for domain gse.

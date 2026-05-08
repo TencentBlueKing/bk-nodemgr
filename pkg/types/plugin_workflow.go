@@ -48,11 +48,14 @@ const (
 	// PluginWorkflowTypeReconfig is the operation type for reconfig plugin.
 	PluginWorkflowTypeReconfig PluginWorkflowType = "reconfig_plugin"
 
-	// PluginWorkflowTypeRestart is the operation type for restart plugin.
-	PluginWorkflowTypeRestart PluginWorkflowType = "restart_plugin"
-
 	// PluginWorkflowTypeApplyPluginSubConfig is the operation type for apply plugin sub config.
 	PluginWorkflowTypeApplyPluginSubConfig = "apply_plugin_subconfig"
+
+	// PluginWorkflowTypeRestart is the operation type for restart plugin.
+	PluginWorkflowTypeRestart PluginWorkflowType = "restart_process"
+
+	// PluginWorkflowTypeStop is the operation type for stop plugin.
+	PluginWorkflowTypeStop PluginWorkflowType = "stop_process"
 )
 
 // Validate validates the plugin workflow type.
@@ -61,7 +64,9 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 	case PluginWorkflowTypeInstall,
 		PluginWorkflowTypeUpgrade,
 		PluginWorkflowTypeReconfig,
-		PluginWorkflowTypeRestart:
+		PluginWorkflowTypeApplyPluginSubConfig,
+		PluginWorkflowTypeRestart,
+		PluginWorkflowTypeStop:
 		return nil
 	default:
 		return fmt.Errorf("invalid plugin workflow type: %s", pluginWorkflowType)

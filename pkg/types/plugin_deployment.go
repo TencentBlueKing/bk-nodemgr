@@ -128,6 +128,7 @@ type PluginDeploymentTransferOptions struct {
 // PluginDeploymentParam defines the parameters for plugin deployment.
 type PluginDeploymentParam struct {
 	HostID                  int64
+	BizID                   int64
 	PluginName              string
 	Version                 string
 	ConfigName              []string
@@ -157,12 +158,12 @@ func (p *PluginDeploymentParam) Validate() error {
 
 // NewPluginDeploymentsByParams create base plugin deployments by params.
 func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeploymentTransferOptions, params ...*PluginDeploymentParam) (
-	[]*PluginDeployment, []int64, error) {
+	[]*PluginDeployment, []int64, []int64, error) {
 
 	pluginDeployments := make([]*PluginDeployment, 0, len(params))
 	for _, param := range params {
 		if err := param.Validate(); err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		conf := &PluginDeploymentPluginConf{
@@ -177,6 +178,7 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 			Process: Process{
 				TenantID:   tenantID,
 				HostID:     param.HostID,
+				BizID:      param.BizID,
 				PluginName: param.PluginName,
 			},
 			InstallOptions: PluginDeploymentInstallOptions{
@@ -196,7 +198,13 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 	}
 	hostIDs := conv.MapKeyToSlice(hostIDMap)
 
-	return pluginDeployments, hostIDs, nil
+	bizIDMap := make(map[int64]struct{})
+	for _, param := range params {
+		bizIDMap[param.BizID] = struct{}{}
+	}
+	bizIDs := conv.MapKeyToSlice(bizIDMap)
+
+	return pluginDeployments, hostIDs, bizIDs, nil
 }
 
 // DefaultPluginDeploymentTransferOptions return the default plugin deployment transfer options.

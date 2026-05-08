@@ -38,25 +38,23 @@ func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypes()...)
+	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall plugin, failed to get host biz mapping.")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
+		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, err := h.daoHost.DistinctHost(rCtx, types.HostDistinctRequest{BizID: true}, &types.HostCondition{
-		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
-	})
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall plugin, failed to distinct hosts.")
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-	}
-
 	workflowID, err := h.pluginMgrIface.LaunchUninstallPlugin(rCtx, types.UninstallPluginParam{
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
-		BizIDs:            hosts.BizID,
+		BizIDs:            bizIDs,
 		Operator:          rCtx.BKUsername(),
 		PluginDeployments: pluginDeployments,
 	})

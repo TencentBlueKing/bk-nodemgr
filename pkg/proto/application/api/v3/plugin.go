@@ -440,3 +440,93 @@ func (x *PluginListPermittedOperationResp) ConvertPluginPermittedOperationsFromT
 		return item
 	})
 }
+
+// Validate check body.
+func (x *PluginRestartReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginRestartReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginRestartReq) ConvertParamFromTypes(restartParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(restartParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
+		item := &PluginOperateBasicInfo{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginRestartReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// Validate check body.
+func (x *PluginStopReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginStopReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginStopReq) ConvertParamFromTypes(stopParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(stopParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
+		item := &PluginOperateBasicInfo{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginStopReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}

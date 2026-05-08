@@ -396,6 +396,7 @@ const (
 // HostFieldSelection represents field selection options for host queries.
 type HostFieldSelection struct {
 	HostID        bool
+	BizID         bool
 	NetworkAreaID bool
 	InnerIPList   bool
 	InnerIPV6List bool

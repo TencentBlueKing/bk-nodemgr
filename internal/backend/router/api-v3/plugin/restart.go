@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package plugin defines the router to handle the plugin request.
 package plugin
 
 import (
@@ -19,55 +20,55 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Install defines the handler to install plugin.
-func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PluginInstallReq)
+// Restart defines the handler to restart plugin.
+func (h *handler) Restart(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginRestartReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to decode request body.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart plugin, failed to decode request body.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginOperateFullInfo) string {
+	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginOperateBasicInfo) string {
 		return item.GetPluginName()
 	})
 	if authErr := h.authorizedPluginOperate(rCtx, pluginName...); authErr != nil {
 		logger.G.Biz(rCtx).WithErr(authErr).
 			With("plugin-name", pluginName).
-			Error("failed to install plugin, permission denied.")
+			Error("failed to restart plugin, permission denied.")
 
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
 	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to get host biz mapping.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart plugin, failed to get host biz mapping.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.pluginMgrIface.LaunchInstallPlugin(rCtx, types.InstallPluginParam{
-		Type:              types.PluginWorkflowTypeInstall,
+	workflowID, err := h.pluginMgrIface.LaunchRestartProcess(rCtx, types.RestartProcessParam{
+		Type:              types.PluginWorkflowTypeRestart,
 		HostIDs:           hostIDs,
 		BizIDs:            bizIDs,
 		Operator:          rCtx.BKUsername(),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to restart plugin.")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	respData := &protoBackend.PluginInstallResp_Data{
+	respData := &protoBackend.PluginRestartResp_Data{
 		WorkflowId: workflowID,
 	}
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install plugin workflow")
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched restart plugin workflow")
 
 	return respData, nil
 }

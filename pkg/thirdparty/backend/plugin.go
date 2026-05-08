@@ -61,6 +61,18 @@ type IHandlerPlugin interface {
 	// @param memo the plugin memo.
 	// @return the error.
 	SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error
+
+	// RestartPlugin restart plugin.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param restartParam the restart param.
+	// @return the restarting workflow-ids and error.
+	RestartPlugin(nCtx contextx.IContext, restartParam ...*types.PluginDeploymentParam) (string, error)
+
+	// StopPlugin stop plugin.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param stopParam the stop param.
+	// @return the stopping workflow-ids and error.
+	StopPlugin(nCtx contextx.IContext, stopParam ...*types.PluginDeploymentParam) (string, error)
 }
 
 // CountPlugins count plugins.
@@ -163,4 +175,30 @@ func (h *Handler) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo 
 	}
 
 	return nil
+}
+
+// RestartPlugin restart plugin.
+func (h *Handler) RestartPlugin(nCtx contextx.IContext, restartParam ...*types.PluginDeploymentParam) (string, error) {
+	req := new(protoBackend.PluginRestartReq)
+	req.ConvertParamFromTypes(restartParam...)
+
+	resp, err := h.cli.restartPlugin(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
+}
+
+// StopPlugin stop plugin.
+func (h *Handler) StopPlugin(nCtx contextx.IContext, stopParam ...*types.PluginDeploymentParam) (string, error) {
+	req := new(protoBackend.PluginStopReq)
+	req.ConvertParamFromTypes(stopParam...)
+
+	resp, err := h.cli.stopPlugin(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
 }

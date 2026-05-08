@@ -194,6 +194,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 
 			deployParams = append(deployParams, &types.PluginDeploymentParam{
 				HostID:     deployInfo.Host.HostID,
+				BizID:      deployInfo.Host.Static.BizID,
 				PluginName: name,
 				Version:    version,
 				IsOffline:  deployInfo.InstallOptions.IsOffline,
@@ -213,7 +214,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	}
 
 	// create plugin deployments.
-	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(tenantID, pluginTransferOpts, deployParams...)
+	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(tenantID, pluginTransferOpts, deployParams...)
 	if err != nil {
 		return fmt.Errorf("failed to create plugin deployments by params: %w", err)
 	}
@@ -221,6 +222,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	workflowID, err := act.pluginMgrIface.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
+		BizIDs:            bizIDs,
 		PluginDeployments: pluginDeployments,
 		Operator:          nCtx.BKUsername(),
 	})

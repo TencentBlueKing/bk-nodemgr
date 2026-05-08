@@ -988,6 +988,9 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.HostID {
 		fields = append(fields, FieldKeyHostID)
 	}
+	if selection.BizID {
+		fields = append(fields, FieldKeyStaticBizID)
+	}
 	if selection.NetworkAreaID {
 		fields = append(fields, FieldKeyStaticNetworkAreaID)
 	}

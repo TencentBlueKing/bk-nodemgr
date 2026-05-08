@@ -3289,6 +3289,88 @@ func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.Plug
 	return resp, nil
 }
 
+func (c *cli) setPluginMemo(ctx contextx.IContext, req *protoBackend.PluginSetMemoReq) error {
+	resp := new(protoBackend.PluginSetMemoResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/set_memo").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set plugin memo failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) restartPlugin(ctx contextx.IContext, req *protoBackend.PluginRestartReq) (*protoBackend.PluginRestartResp, error) {
+	resp := new(protoBackend.PluginRestartResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/restart").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("restart plugin", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("restart plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) stopPlugin(ctx contextx.IContext, req *protoBackend.PluginStopReq) (*protoBackend.PluginStopResp, error) {
+	resp := new(protoBackend.PluginStopResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/stop").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("stop plugin", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("stop plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Process Related Interfaces
 // ===============================================================================
@@ -3681,30 +3763,6 @@ func (c *cli) terminatePluginWorkflowOperation(ctx contextx.IContext, req *proto
 
 	if code := resp.GetCode(); code != CodeOK {
 		return fmt.Errorf("terminate plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	return nil
-}
-
-func (c *cli) setPluginMemo(ctx contextx.IContext, req *protoBackend.PluginSetMemoReq) error {
-	resp := new(protoBackend.PluginSetMemoResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/plugin/set_memo").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("set plugin memo failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 

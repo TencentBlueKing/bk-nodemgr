@@ -324,6 +324,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		Process: types.Process{
 			TenantID:      info.Process.TenantID,
 			HostID:        info.Process.HostID,
+			BizID:         info.Process.BizID,
 			PluginName:    info.Process.Name,
 			PluginGroup:   info.Process.Group,
 			PluginPkgName: info.Process.PkgName,
@@ -413,6 +414,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 		Process: process{
 			TenantID: info.Process.TenantID,
 			HostID:   info.Process.HostID,
+			BizID:    info.Process.BizID,
 			Name:     info.Process.PluginName,
 			Group:    info.Process.PluginGroup,
 			PkgName:  info.Process.PluginPkgName,

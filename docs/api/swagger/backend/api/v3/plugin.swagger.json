@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/plugin/restart": {
+      "post": {
+        "summary": "RestartPlugin restarts the plugin process on specified hosts.",
+        "operationId": "Plugin_RestartPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginRestartResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginRestartReq describes the plugin restart request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginRestartReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/set_memo": {
       "post": {
         "summary": "SetPluginMemo sets the memo for a plugin.",
@@ -144,6 +178,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PluginSetMemoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
+    "/api/v3/plugin/stop": {
+      "post": {
+        "summary": "StopPlugin stops the plugin process on specified hosts.",
+        "operationId": "Plugin_StopPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginStopResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginStopReq describes the plugin stop request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginStopReq"
             }
           }
         ],
@@ -599,6 +667,52 @@
       },
       "title": "PluginOperateFullInfo describes the full information of a plugin operation,\nwhich"
     },
+    "v3PluginRestartReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginOperateBasicInfo"
+          }
+        }
+      },
+      "description": "PluginRestartReq describes the plugin restart request."
+    },
+    "v3PluginRestartResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginRestartRespData"
+        }
+      },
+      "description": "PluginRestartResp describes the plugin restart response."
+    },
+    "v3PluginRestartRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
     "v3PluginSetMemoReq": {
       "type": "object",
       "properties": {
@@ -632,6 +746,52 @@
         }
       },
       "description": "PluginSetMemoResp describes the plugin set memo response."
+    },
+    "v3PluginStopReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginOperateBasicInfo"
+          }
+        }
+      },
+      "description": "PluginStopReq describes the plugin stop request."
+    },
+    "v3PluginStopResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginStopRespData"
+        }
+      },
+      "description": "PluginStopResp describes the plugin stop response."
+    },
+    "v3PluginStopRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
     },
     "v3PluginUninstallReq": {
       "type": "object",

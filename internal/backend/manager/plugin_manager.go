@@ -44,6 +44,7 @@ func (mgr *Manager) LaunchInstallPlugin(
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
 		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
 		Operator:    param.Operator,
 		OperateTime: time.Now(),
 		Status:      types.PluginWorkflowStatusRunning,
@@ -139,6 +140,7 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
 		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
 		Operator:    param.Operator,
 		OperateTime: time.Now(),
 		Status:      types.PluginWorkflowStatusRunning,
@@ -227,6 +229,7 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
 		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
 		Operator:    param.Operator,
 		OperateTime: time.Now(),
 		Status:      types.PluginWorkflowStatusRunning,
@@ -315,6 +318,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
 		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
 		Operator:    param.Operator,
 		OperateTime: time.Now(),
 		Status:      types.PluginWorkflowStatusRunning,
@@ -376,6 +380,184 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 	}
 
 	return workflowID, nil
+}
+
+// LaunchRestartProcess launch a task to restart process. returns the workflow-id.
+func (mgr *Manager) LaunchRestartProcess(nCtx contextx.IContext, param types.RestartProcessParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createRestartProcessOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch restart process task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createRestartProcessOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPluginRestartOperationDef(deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("operation-id", operCtl.GetOperationID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to launch restart process task.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("plugin-token", deploy.Token).
+		Info("launched restart process task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPluginRestartOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+	return plugin.NewOperRestartProcess(plugin.OperParamRestartProcess{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
+}
+
+// LaunchStopProcess launch a task to stop process. returns the workflow-id.
+func (mgr *Manager) LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createStopProcessOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch stop process task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createStopProcessOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getProcessStopOperationDef(deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("operation-id", operCtl.GetOperationID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to launch stop process task.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("plugin-token", deploy.Token).
+		Info("launched stop process task.")
+
+	return nil
+}
+
+func (mgr *Manager) getProcessStopOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+	return plugin.NewOperStopProcess(plugin.OperParamStopProcess{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
 }
 
 // LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.

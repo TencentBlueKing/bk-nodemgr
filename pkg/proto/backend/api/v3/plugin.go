@@ -243,6 +243,27 @@ func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 	})
 }
 
+// ConvertParamToTypes converts param to types.
+func (x *PluginInstallReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:              proc.GetBkHostId(),
+			BizID:               hostBizMapping[proc.GetBkHostId()],
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginInstallReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateFullInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
 // Validate check body.
 func (x *PluginUpgradeReq) Validate() error {
 	plugins := x.GetPlugin()
@@ -303,6 +324,27 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 	})
 }
 
+// ConvertParamToTypes converts param to types.
+func (x *PluginUpgradeReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:              proc.GetBkHostId(),
+			BizID:               hostBizMapping[proc.GetBkHostId()],
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginUpgradeReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateFullInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
 // Validate check body.
 func (x *PluginUninstallReq) Validate() error {
 	plugins := x.GetPlugin()
@@ -345,6 +387,24 @@ func (x *PluginUninstallReq) ConvertParamToTypes() []*types.PluginDeploymentPara
 			HostID:     plugin.GetBkHostId(),
 			PluginName: plugin.GetPluginName(),
 		}
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginUninstallReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+			BizID:      hostBizMapping[plugin.GetBkHostId()],
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginUninstallReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateBasicInfo) int64 {
+		return item.GetBkHostId()
 	})
 }
 
@@ -408,6 +468,27 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymen
 	})
 }
 
+// ConvertParamToTypes converts param to types.
+func (x *PluginApplySubConfigReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:              proc.GetBkHostId(),
+			BizID:               hostBizMapping[proc.GetBkHostId()],
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginApplySubConfigReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateFullInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
 // Validate check body.
 func (x *PluginSetMemoReq) Validate() error {
 	if x.GetPluginName() == "" {
@@ -419,3 +500,129 @@ func (x *PluginSetMemoReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PluginSetMemoReq) AutoConvert() {}
+
+// Validate check body.
+func (x *PluginRestartReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginRestartReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginRestartReq) ConvertParamFromTypes(restartParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(restartParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
+		item := &PluginOperateBasicInfo{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginRestartReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginRestartReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+			BizID:      hostBizMapping[plugin.GetBkHostId()],
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginRestartReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateBasicInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
+// Validate check body.
+func (x *PluginStopReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginStopReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginStopReq) ConvertParamFromTypes(stopParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(stopParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
+		item := &PluginOperateBasicInfo{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginStopReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginStopReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+			BizID:      hostBizMapping[plugin.GetBkHostId()],
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginStopReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateBasicInfo) int64 {
+		return item.GetBkHostId()
+	})
+}

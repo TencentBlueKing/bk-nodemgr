@@ -161,6 +161,36 @@ message PluginListPermittedOperationResp {
   Data data = 5;
 }
 
+// PluginRestartReq describes the plugin restart request.
+message PluginRestartReq { repeated PluginOperateBasicInfo plugin = 1; }
+
+// PluginRestartResp describes the plugin restart response.
+message PluginRestartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// PluginStopReq describes the plugin stop request.
+message PluginStopReq { repeated PluginOperateBasicInfo plugin = 1; }
+
+// PluginStopResp describes the plugin stop response.
+message PluginStopResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 service PluginAPI {
   // InstallPlugin installs a plugin on specified hosts.
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
@@ -218,6 +248,22 @@ service PluginAPI {
       returns (PluginListPermittedOperationResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/list_permitted_operations"
+      body : "*"
+    };
+  }
+
+  // RestartPlugin restarts the plugin process on specified hosts.
+  rpc RestartPlugin(PluginRestartReq) returns (PluginRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/restart"
+      body : "*"
+    };
+  }
+
+  // StopPlugin stops the plugin process on specified hosts.
+  rpc StopPlugin(PluginStopReq) returns (PluginStopResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/stop"
       body : "*"
     };
   }

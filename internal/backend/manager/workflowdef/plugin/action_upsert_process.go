@@ -118,6 +118,7 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 	process := types.Process{
 		TenantID:   nCtx.TenantID(),
 		HostID:     std.DeployInfo().Process.HostID,
+		BizID:      std.DeployInfo().Process.BizID,
 		PluginName: std.DeployInfo().Process.PluginName,
 		Platform:   platfmt.UnknownPlatform(),
 		Info: types.ProcessInfo{
