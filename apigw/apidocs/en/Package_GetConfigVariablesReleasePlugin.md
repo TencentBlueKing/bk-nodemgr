@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1+.
+- API Version: v3.0.1-alpha.22+.
 - Required Permission: None.
 - API Function: Query plugin configuration variable templates, supporting grouped return of configuration template information by platform.
 
