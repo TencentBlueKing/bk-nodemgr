@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -562,6 +563,7 @@ func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (ma
 		return nil, basestorage.ErrNilContent()
 	}
 
+	hostIDs = conv.SliceUnique(hostIDs)
 	selection := &types.HostFieldSelection{
 		HostID: true,
 		BizID:  true,
@@ -582,6 +584,12 @@ func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (ma
 		}
 
 		hostBizMapping[host.HostID] = host.Static.BizID
+	}
+
+	for _, id := range hostIDs {
+		if _, ok := hostBizMapping[id]; !ok {
+			return nil, fmt.Errorf("host id %d not found in host biz mapping result", id)
+		}
 	}
 
 	return hostBizMapping, nil

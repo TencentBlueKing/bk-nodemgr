@@ -63,6 +63,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 	switch pluginWorkflowType {
 	case PluginWorkflowTypeInstall,
 		PluginWorkflowTypeUpgrade,
+		PluginWorkflowTypeUninstall,
 		PluginWorkflowTypeReconfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
 		PluginWorkflowTypeRestart,
