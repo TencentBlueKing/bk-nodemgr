@@ -178,8 +178,8 @@ func (h *handler) generateInstallNodeDeployments(
 						Static: &types.HostStatic{
 							BizID:         reqHost.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,
-							InnerIPList:   []string{reqHost.GetBkHostInnerip()},
-							InnerIPV6List: []string{reqHost.GetBkHostInneripV6()},
+						InnerIPList:   reqHost.GetBkHostInnerip(),
+						InnerIPV6List: reqHost.GetBkHostInneripV6(),
 							OSType:        reqHost.GetOsType(),
 							Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 						},

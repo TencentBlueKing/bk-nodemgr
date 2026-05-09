@@ -10,8 +10,8 @@ import "google/api/annotations.proto";
 message AgentInstallInfo {
   string bk_addressing = 1;
   optional int64 bk_biz_id = 2;
-  string bk_host_innerip = 3;
-  string bk_host_innerip_v6 = 4;
+  repeated string bk_host_innerip = 3;
+  repeated string bk_host_innerip_v6 = 4;
   string login_ip = 5;
   optional int64 login_port = 6;
   string login_user = 7;

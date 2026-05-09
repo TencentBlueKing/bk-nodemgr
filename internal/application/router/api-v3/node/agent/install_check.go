@@ -33,7 +33,7 @@ func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	resp := new(protoApplication.NodeAgentInstallCheckResp)
-	resp.ConvertResultFromTypes(req.GetHost(), result)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

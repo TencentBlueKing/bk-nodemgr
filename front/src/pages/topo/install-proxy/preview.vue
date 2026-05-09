@@ -487,6 +487,8 @@ const handleSetup = async () => {
       return {
         ...rest,
         ...(item.bk_host_id ? { bk_host_id: item.bk_host_id } : {}),
+        bk_host_innerip: item.bk_host_innerip ? item.bk_host_innerip.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean) : [],
+        bk_host_innerip_v6: item.bk_host_innerip_v6 ? item.bk_host_innerip_v6.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean) : [],
       };
     }),
     target_version: props.data.target_version || [],
@@ -517,8 +519,8 @@ const installCheck = async () => {
   const requestHosts = originData.value.map((item: any) => ({
     ...(item.bk_host_id ? { bk_host_id: item.bk_host_id } : {}),
     bk_biz_id: Number(item.bk_biz_id),
-    ...(item.bk_host_innerip ? { bk_host_innerip_list: item.bk_host_innerip.split(';').filter(Boolean) } : {}),
-    ...(item.bk_host_innerip_v6 ? { bk_host_innerip_v6_list: item.bk_host_innerip_v6.split(';').filter(Boolean) } : {}),
+    ...(item.bk_host_innerip ? { bk_host_innerip_list: item.bk_host_innerip.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean) } : {}),
+    ...(item.bk_host_innerip_v6 ? { bk_host_innerip_v6_list: item.bk_host_innerip_v6.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean) } : {}),
     bk_networkunit_id: Number(item.bk_networkunit_id),
   }));
   const res = await NodeProxyService.NodeProxyInstallCheck({

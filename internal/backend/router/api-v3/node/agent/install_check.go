@@ -60,7 +60,7 @@ func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, erro
 	return resp.GetData(), nil
 }
 
-// nolint: funlen,gocognit,gocyclo,cyclop
+// nolint: funlen,gocognit,gocyclo,cyclop,maintidx,nestif
 func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.NodeAgentInstallCheckReq_Host) (
 	[]*types.NodeAgentInstallCheckResult, error) {
 
@@ -105,7 +105,10 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		matchedNetworkUnit, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
 		if !ok {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status: types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
+				Status:    types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
+				MessageEn: "Networkunit does not exist",
+				MessageZh: "所属管控单元不存在",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -113,7 +116,10 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 
 		if !checker.validateNetworkUnit(host.GetBkNetworkunitId()) {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status: types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
+				Status:    types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
+				MessageEn: "Networkunit lacks available installation proxy nodes",
+				MessageZh: "所属管控单元缺少可用的安装代理proxy节点",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -123,9 +129,38 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		if reqHostID < 0 {
 			// check if inner ip duplicated.
 			if matchedHost, exist := checker.hasInnerIP(matchedNetworkUnit.NetworkAreaID, host.GetBkHostInneripList()); exist {
+				// verify all request IPs belong to the same matched host.
+				if !allIPsBelongToHost(host.GetBkHostInneripList(), matchedHost.Static.InnerIPList) {
+					results[idx] = &types.NodeAgentInstallCheckResult{
+						Status:    types.NodeAgentInstallCheckStatusMismatchedInnerIP,
+						Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Inner IPV4 does not match CMDB configuration",
+						MessageZh: "内网IPV4与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
+				// check biz-id matches.
+				if host.GetBkBizId() != matchedHost.Static.BizID {
+					results[idx] = &types.NodeAgentInstallCheckResult{
+						Status:    types.NodeAgentInstallCheckStatusMismatchedBizID,
+						Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Business ID does not match CMDB configuration",
+						MessageZh: "所属业务与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
 				results[idx] = &types.NodeAgentInstallCheckResult{
-					Status:  types.NodeAgentInstallCheckStatusDuplicatedInnerIP,
-					Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+					Status:    types.NodeAgentInstallCheckStatusDuplicatedInnerIP,
+					Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+					MessageEn: "Inner IPV4 already exists in networkarea, will reinstall this host",
+					MessageZh: "内网IPV4在该管控区域下已经存在, 将重装该主机",
+					Category:  types.InstallCheckCategoryNeedConfirm,
 				}
 
 				continue
@@ -133,9 +168,38 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 
 			// check if inner ipv6 duplicated.
 			if matchedHost, exist := checker.hasInnerIPV6(matchedNetworkUnit.NetworkAreaID, host.GetBkHostInneripV6List()); exist {
+				// verify all request IPv6s belong to the same matched host.
+				if !allIPsBelongToHost(host.GetBkHostInneripV6List(), matchedHost.Static.InnerIPV6List) {
+					results[idx] = &types.NodeAgentInstallCheckResult{
+						Status:    types.NodeAgentInstallCheckStatusMismatchedInnerIPV6,
+						Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Inner IPV6 does not match CMDB configuration",
+						MessageZh: "内网IPV6与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
+				// check biz-id matches.
+				if host.GetBkBizId() != matchedHost.Static.BizID {
+					results[idx] = &types.NodeAgentInstallCheckResult{
+						Status:    types.NodeAgentInstallCheckStatusMismatchedBizID,
+						Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Business ID does not match CMDB configuration",
+						MessageZh: "所属业务与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
 				results[idx] = &types.NodeAgentInstallCheckResult{
-					Status:  types.NodeAgentInstallCheckStatusDuplicatedInnerIPV6,
-					Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+					Status:    types.NodeAgentInstallCheckStatusDuplicatedInnerIPV6,
+					Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+					MessageEn: "Inner IPV6 already exists in networkarea, will reinstall this host",
+					MessageZh: "内网IPV6在该管控区域下已经存在, 将重装该主机",
+					Category:  types.InstallCheckCategoryNeedConfirm,
 				}
 
 				continue
@@ -143,7 +207,10 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 
 			// register to CMDB and install.
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status: types.NodeAgentInstallCheckStatusRegisterToCMDBAndInstall,
+				Status:    types.NodeAgentInstallCheckStatusRegisterToCMDBAndInstall,
+				MessageEn: "Import node to CMDB and install Agent",
+				MessageZh: "将节点导入CMDB并安装Agent",
+				Category:  types.InstallCheckCategoryRegisterToCMDBAndInstall,
 			}
 
 			continue
@@ -153,7 +220,10 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		matchedHost, ok := checker.getHost(reqHostID)
 		if !ok {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status: types.NodeAgentInstallCheckStatusHostNotFound,
+				Status:    types.NodeAgentInstallCheckStatusHostNotFound,
+				MessageEn: "Host does not exist",
+				MessageZh: "该主机不存在",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -162,8 +232,11 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		// check node-role.
 		if matchedHost.Dynamic.NodeRole == types.NodeRoleProxy {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusInvalidNodeRole,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeAgentInstallCheckStatusInvalidNodeRole,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Node role does not allow Agent installation, please uninstall the node first",
+				MessageZh: "节点角色不允许安装Agent, 请先卸载节点",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -172,8 +245,11 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		// check biz-id.
 		if host.GetBkBizId() != matchedHost.Static.BizID {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusMismatchedBizID,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeAgentInstallCheckStatusMismatchedBizID,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Business ID does not match CMDB configuration",
+				MessageZh: "所属业务与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -182,8 +258,11 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		// check networkarea-id.
 		if matchedNetworkUnit.NetworkAreaID != matchedHost.Static.NetworkAreaID {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusMismatchedNetworkAreaID,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeAgentInstallCheckStatusMismatchedNetworkAreaID,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Networkarea ID does not match CMDB configuration",
+				MessageZh: "所属管控区域与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -203,8 +282,11 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		}
 		if !allFound {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusMismatchedInnerIP,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeAgentInstallCheckStatusMismatchedInnerIP,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Inner IPV4 does not match CMDB configuration",
+				MessageZh: "内网IPV4与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -224,17 +306,33 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		}
 		if !allFound {
 			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusMismatchedInnerIPV6,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeAgentInstallCheckStatusMismatchedInnerIPV6,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Inner IPV6 does not match CMDB configuration",
+				MessageZh: "内网IPV6与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
 		}
 
 		// normal install.
-		results[idx] = &types.NodeAgentInstallCheckResult{
-			Status:  types.NodeAgentInstallCheckStatusNormalInstall,
-			Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+		if host.GetBkNetworkunitId() != matchedHost.Dynamic.NetworkUnitID {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:    types.NodeAgentInstallCheckStatusNormalInstall,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Install Agent into networkunit",
+				MessageZh: "安装节点到新的管控单元",
+				Category:  types.InstallCheckCategoryNeedConfirm,
+			}
+		} else {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:    types.NodeAgentInstallCheckStatusNormalInstall,
+				Matched:   types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Install Agent",
+				MessageZh: "安装Agent",
+				Category:  types.InstallCheckCategoryNormalInstall,
+			}
 		}
 	}
 
@@ -421,4 +519,19 @@ func (ic *installChecker) fetchHosts(nCtx contextx.IContext, hostIDList []int64,
 	}
 
 	return hosts, nil
+}
+
+// allIPsBelongToHost checks if all given IPs exist in the host's IP list.
+func allIPsBelongToHost(givenIPs []string, hostIPs []string) bool {
+	hostIPSet := make(map[string]struct{}, len(hostIPs))
+	for _, ip := range hostIPs {
+		hostIPSet[ip] = struct{}{}
+	}
+	for _, ip := range givenIPs {
+		if _, ok := hostIPSet[ip]; !ok {
+			return false
+		}
+	}
+
+	return true
 }

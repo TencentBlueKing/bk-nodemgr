@@ -23,8 +23,8 @@ POST /api/v3/node/agent/install
 |-----------------------------|----------------|----------|----------------------------------------------------------------------------------------------------------|
 | bk_addressing               | string         | Yes      | Addressing mode (enum values: dynamic, static)                                                           |
 | bk_biz_id                   | int64          | No       | Business ID, -1 means not specified                                                                      |
-| bk_host_innerip             | string         | Yes      | Host inner network IPv4 address, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
-| bk_host_innerip_v6          | string         | No       | Host inner network IPv6 address, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
+| bk_host_innerip             | array[string]  | Yes      | Host inner network IPv4 address list, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
+| bk_host_innerip_v6          | array[string]  | No       | Host inner network IPv6 address list, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
 | login_ip                    | string         | Yes      | Login IP address                                                                                         |
 | login_port                  | int64          | No       | Login port, -1 means not specified, must be greater than 0                                               |
 | login_user                  | string         | Yes      | Login username                                                                                           |
@@ -66,7 +66,7 @@ Batch install agents for Linux systems using password login.
     {
       "bk_addressing": "static",
       "bk_biz_id": 100,
-      "bk_host_innerip": "127.0.0.1",
+      "bk_host_innerip": ["127.0.0.1"],
       "login_ip": "127.0.0.1",
       "login_port": 22,
       "login_user": "root",

@@ -91,8 +91,15 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 // Validate check body.
 // nolint: protogetter
 func (x *NodeProxyInstallHost) Validate() error {
-	if x.GetBkHostInnerip() == "" && x.GetBkHostInneripV6() == "" {
+	if len(x.GetBkHostInnerip()) == 0 && len(x.GetBkHostInneripV6()) == 0 {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
+	}
+
+	if err := validateIPList(x.GetBkHostInnerip(), "bk_host_innerip"); err != nil {
+		return err
+	}
+	if err := validateIPList(x.GetBkHostInneripV6(), "bk_host_innerip_v6"); err != nil {
+		return err
 	}
 
 	if err := types.Addressing(x.GetBkAddressing()).Validate(); err != nil {
@@ -628,16 +635,11 @@ func (x *NodeProxyInstallCheckReq_Host) Validate() error {
 		return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
 	}
 
-	for _, ip := range x.GetBkHostInneripList() {
-		if ip == "" {
-			return errors.New("bk_host_innerip_list can not contain empty string")
-		}
+	if err := validateIPList(x.GetBkHostInneripList(), "bk_host_innerip_list"); err != nil {
+		return err
 	}
-
-	for _, ipv6 := range x.GetBkHostInneripV6List() {
-		if ipv6 == "" {
-			return errors.New("bk_host_innerip_v6_list can not contain empty string")
-		}
+	if err := validateIPList(x.GetBkHostInneripV6List(), "bk_host_innerip_v6_list"); err != nil {
+		return err
 	}
 
 	return nil
@@ -710,7 +712,10 @@ func (x *NodeProxyInstallCheckResp) ConvertResultFromTypes(results []*types.Node
 	items := make([]*NodeProxyInstallCheckResult, len(results))
 	for idx, result := range results {
 		item := &NodeProxyInstallCheckResult{
-			Status: string(result.Status),
+			Status:    string(result.Status),
+			MessageEn: result.MessageEn,
+			MessageZh: result.MessageZh,
+			Category:  result.Category,
 		}
 
 		if result.Matched != nil {
@@ -745,7 +750,10 @@ func (x *NodeProxyInstallCheckResp) ConvertResultToTypes() []*types.NodeProxyIns
 	items := make([]*types.NodeProxyInstallCheckResult, len(data.GetResults()))
 	for idx, result := range data.GetResults() {
 		item := &types.NodeProxyInstallCheckResult{
-			Status: types.NodeProxyInstallCheckStatus(result.GetStatus()),
+			Status:    types.NodeProxyInstallCheckStatus(result.GetStatus()),
+			MessageEn: result.GetMessageEn(),
+			MessageZh: result.GetMessageZh(),
+			Category:  result.GetCategory(),
 		}
 
 		if matched := result.GetMatched(); matched != nil {

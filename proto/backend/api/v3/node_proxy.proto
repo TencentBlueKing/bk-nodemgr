@@ -12,8 +12,8 @@ message NodeProxyInstallHost {
   int64 bk_networkunit_id = 2;
   optional int64 bk_host_id = 3;
   string bk_addressing = 4;
-  string bk_host_innerip = 5;
-  string bk_host_innerip_v6 = 6;
+  repeated string bk_host_innerip = 5;
+  repeated string bk_host_innerip_v6 = 6;
   string os_type = 7;
   string login_ip = 8;
   int64 login_port = 9;
@@ -246,6 +246,9 @@ message NodeProxyInstallCheckMatchedItem {
 message NodeProxyInstallCheckResult {
   string status = 1;
   NodeProxyInstallCheckMatchedItem matched = 2;
+  string message_en = 3;
+  string message_zh = 4;
+  string category = 5;
 }
 
 // NodeProxyUpgradeCheckReq describes the node proxy upgrade check request.

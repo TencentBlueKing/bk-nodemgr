@@ -23,8 +23,8 @@ POST /api/v3/node/agent/install
 |-----------------------------|--------|----|-------------------------------------------|
 | bk_addressing               | string | 是  | 寻址方式（枚举值：dynamic、static）                  |
 | bk_biz_id                   | int64  | 否  | 业务ID，-1表示未指定                              |
-| bk_host_innerip             | string | 是  | 主机内网IPv4地址，与bk_host_innerip_v6至少填写一个      |
-| bk_host_innerip_v6          | string | 否  | 主机内网IPv6地址，与bk_host_innerip至少填写一个         |
+| bk_host_innerip             | array[string] | 是  | 主机内网IPv4地址列表，与bk_host_innerip_v6至少填写一个      |
+| bk_host_innerip_v6          | array[string] | 否  | 主机内网IPv6地址列表，与bk_host_innerip至少填写一个         |
 | login_ip                    | string | 是  | 登录IP地址                                    |
 | login_port                  | int64  | 否  | 登录端口，-1表示未指定，必须大于0                        |
 | login_user                  | string | 是  | 登录用户名                                     |
@@ -66,7 +66,7 @@ POST /api/v3/node/agent/install
     {
       "bk_addressing": "static",
       "bk_biz_id": 100,
-      "bk_host_innerip": "127.0.0.1",
+      "bk_host_innerip": ["127.0.0.1"],
       "login_ip": "127.0.0.1",
       "login_port": 22,
       "login_user": "root",

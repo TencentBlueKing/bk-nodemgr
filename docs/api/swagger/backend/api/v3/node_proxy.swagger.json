@@ -590,6 +590,15 @@
         },
         "matched": {
           "$ref": "#/definitions/v3NodeProxyInstallCheckMatchedItem"
+        },
+        "message_en": {
+          "type": "string"
+        },
+        "message_zh": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
         }
       },
       "description": "NodeProxyInstallCheckResult describes the check result for node proxy\ninstallation."
@@ -613,10 +622,16 @@
           "type": "string"
         },
         "bk_host_innerip": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "bk_host_innerip_v6": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "os_type": {
           "type": "string"

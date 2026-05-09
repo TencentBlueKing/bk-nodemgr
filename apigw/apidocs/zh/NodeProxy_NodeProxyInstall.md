@@ -26,8 +26,8 @@ POST /api/v3/node/proxy/install
 | bk_networkunit_id            | int64         | 是  | 网络单元ID                                                                       |
 | bk_host_id                   | int64         | 否  | 主机ID，-1 表示未指定（自动注册时不填）                                                       |
 | bk_addressing                | string        | 是  | 寻址方式：dynamic（动态）/ static（静态）                                                 |
-| bk_host_innerip              | string        | 否  | 内网IPv4地址                                                                     |
-| bk_host_innerip_v6           | string        | 否  | 内网IPv6地址                                                                     |
+| bk_host_innerip              | array[string] | 否  | 内网IPv4地址列表                                                                   |
+| bk_host_innerip_v6           | array[string] | 否  | 内网IPv6地址列表                                                                   |
 | os_type                      | string        | 是  | 操作系统类型：linux / windows / darwin                                              |
 | cpu_arch                     | string        | 否  | CPU架构：386 / arm / arm64 / amd64                                              |
 | login_ip                     | string        | 是  | 登录IP                                                                         |
@@ -65,7 +65,7 @@ POST /api/v3/node/proxy/install
       "bk_biz_id": 2,
       "bk_networkunit_id": 1,
       "bk_addressing": "dynamic",
-      "bk_host_innerip": "10.0.0.1",
+      "bk_host_innerip": ["10.0.0.1"],
       "os_type": "linux",
       "cpu_arch": "amd64",
       "login_ip": "10.0.0.1",

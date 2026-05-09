@@ -46,8 +46,15 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 // Validate check body.
 // nolint: protogetter
 func (x *NodeProxyInstallHost) Validate() error {
-	if x.GetBkHostInnerip() == "" && x.GetBkHostInneripV6() == "" {
+	if len(x.GetBkHostInnerip()) == 0 && len(x.GetBkHostInneripV6()) == 0 {
 		return errors.New("bk_innerip and bk_inneripv6 can not be empty at the same time")
+	}
+
+	if err := validateIPList(x.GetBkHostInnerip(), "bk_host_innerip"); err != nil {
+		return err
+	}
+	if err := validateIPList(x.GetBkHostInneripV6(), "bk_host_innerip_v6"); err != nil {
+		return err
 	}
 
 	if err := types.Addressing(x.GetBkAddressing()).Validate(); err != nil {
@@ -574,16 +581,11 @@ func (x *ProxyInstallCheckInfo) Validate() error {
 		return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
 	}
 
-	for _, ip := range x.GetBkHostInneripList() {
-		if ip == "" {
-			return errors.New("bk_host_innerip_list can not contain empty string")
-		}
+	if err := validateIPList(x.GetBkHostInneripList(), "bk_host_innerip_list"); err != nil {
+		return err
 	}
-
-	for _, ipv6 := range x.GetBkHostInneripV6List() {
-		if ipv6 == "" {
-			return errors.New("bk_host_innerip_v6_list can not contain empty string")
-		}
+	if err := validateIPList(x.GetBkHostInneripV6List(), "bk_host_innerip_v6_list"); err != nil {
+		return err
 	}
 
 	return nil
@@ -636,92 +638,19 @@ func (x *NodeProxyInstallCheckReq) ConvertParamToTypes() []*types.NodeProxyInsta
 	return infoParam
 }
 
-const (
-	proxyInstallCheckResultCategoryNormalInstall            = "normal_install"
-	proxyInstallCheckResultCategoryRegisterToCMDBAndInstall = "register_to_cmdb_and_install"
-	proxyInstallCheckResultCategoryNeedConfirm              = "need_confirm"
-	proxyInstallCheckResultCategoryError                    = "error"
-)
-
 // ConvertResultFromTypes convert result from types.
-// nolint: cyclop
-func (x *NodeProxyInstallCheckResp) ConvertResultFromTypes(requests []*ProxyInstallCheckInfo, results []*types.NodeProxyInstallCheckResult) {
-	if requests == nil || results == nil || len(requests) != len(results) {
+func (x *NodeProxyInstallCheckResp) ConvertResultFromTypes(results []*types.NodeProxyInstallCheckResult) {
+	if results == nil {
 		return
 	}
 
-	total := len(requests)
-
-	items := make([]*NodeProxyInstallCheckResult, total)
-	for idx := range total {
-		request := requests[idx]
-		result := results[idx]
-		_ = request
-
+	items := make([]*NodeProxyInstallCheckResult, len(results))
+	for idx, result := range results {
 		item := &NodeProxyInstallCheckResult{
-			Status: string(result.Status),
-		}
-
-		switch result.Status {
-		case types.NodeProxyInstallCheckStatusDuplicatedInnerIP:
-			item.MessageEn = "Inner IPV4 already exists in networkarea, will reinstall this host as Proxy"
-			item.MessageZh = "内网IPV4在该管控区域下已经存在, 将重装该主机为Proxy"
-			item.Category = proxyInstallCheckResultCategoryNeedConfirm
-
-		case types.NodeProxyInstallCheckStatusDuplicatedInnerIPV6:
-			item.MessageEn = "Inner IPV6 already exists in networkarea, will reinstall this host as Proxy"
-			item.MessageZh = "内网IPV6在该管控区域下已经存在, 将重装该主机为Proxy"
-			item.Category = proxyInstallCheckResultCategoryNeedConfirm
-
-		case types.NodeProxyInstallCheckStatusHostNotFound:
-			item.MessageEn = "Host does not exist"
-			item.MessageZh = "该主机不存在"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusNetworkUnitNotFound:
-			item.MessageEn = "Networkunit does not exist"
-			item.MessageZh = "所属管控单元不存在"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusMismatchedInnerIP:
-			item.MessageEn = "Inner IPV4 does not match CMDB configuration"
-			item.MessageZh = "内网IPV4与CMDB配置不符"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusMismatchedInnerIPV6:
-			item.MessageEn = "Inner IPV6 does not match CMDB configuration"
-			item.MessageZh = "内网IPV6与CMDB配置不符"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusMismatchedBizID:
-			item.MessageEn = "Business ID does not match CMDB configuration"
-			item.MessageZh = "所属业务与CMDB配置不符"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusMismatchedNetworkAreaID:
-			item.MessageEn = "Networkarea ID does not match CMDB configuration"
-			item.MessageZh = "所属管控区域与CMDB配置不符"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusInvalidNodeRole:
-			item.MessageEn = "Node role does not allow Proxy installation, please uninstall the Agent first"
-			item.MessageZh = "节点角色不允许安装Proxy, 请先卸载Agent"
-			item.Category = proxyInstallCheckResultCategoryError
-
-		case types.NodeProxyInstallCheckStatusRegisterToCMDBAndInstall:
-			item.MessageEn = "Import node to CMDB and install Proxy"
-			item.MessageZh = "将节点导入CMDB并安装Proxy"
-			item.Category = proxyInstallCheckResultCategoryRegisterToCMDBAndInstall
-
-		case types.NodeProxyInstallCheckStatusNormalInstall:
-			item.MessageEn = "Install Proxy"
-			item.MessageZh = "安装Proxy"
-			item.Category = proxyInstallCheckResultCategoryNormalInstall
-
-		default:
-			item.MessageEn = fmt.Sprintf("Unknown error %s", result.Status)
-			item.MessageZh = fmt.Sprintf("未知错误 %s", result.Status)
-			item.Category = proxyInstallCheckResultCategoryError
+			Status:    string(result.Status),
+			MessageEn: result.MessageEn,
+			MessageZh: result.MessageZh,
+			Category:  result.Category,
 		}
 
 		if result.Matched != nil {

@@ -20,8 +20,8 @@ import (
 type NodeAgentInstallHost struct {
 	HostID                   int64
 	BizID                    int64
-	InnerIP                  string
-	InnerIPV6                string
+	InnerIP                  []string
+	InnerIPV6                []string
 	Addressing               Addressing
 	LoginIP                  string
 	LoginPort                int64
@@ -172,10 +172,21 @@ func ConvertHostToNodeAgentInstallCheckMatchedItem(host *Host) *NodeAgentInstall
 	}
 }
 
+// InstallCheckCategory constants.
+const (
+	InstallCheckCategoryNormalInstall            = "normal_install"
+	InstallCheckCategoryRegisterToCMDBAndInstall = "register_to_cmdb_and_install"
+	InstallCheckCategoryNeedConfirm              = "need_confirm"
+	InstallCheckCategoryError                    = "error"
+)
+
 // NodeAgentInstallCheckResult describes the node agent install check result.
 type NodeAgentInstallCheckResult struct {
-	Status  NodeAgentInstallCheckStatus
-	Matched *NodeAgentInstallCheckMatchedItem
+	Status    NodeAgentInstallCheckStatus
+	Matched   *NodeAgentInstallCheckMatchedItem
+	MessageEn string
+	MessageZh string
+	Category  string
 }
 
 // NodeAgentUpgradeCheckStatus describes the node agent upgrade check status.

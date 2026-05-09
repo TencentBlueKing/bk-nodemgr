@@ -26,8 +26,8 @@ POST /api/v3/node/proxy/install
 | bk_networkunit_id            | int64         | Yes      | Network unit ID                                                              |
 | bk_host_id                   | int64         | No       | Host ID, -1 means unspecified (omit for auto-registration)                   |
 | bk_addressing                | string        | Yes      | Addressing mode: dynamic / static                                            |
-| bk_host_innerip              | string        | No       | Inner IPv4 address                                                           |
-| bk_host_innerip_v6           | string        | No       | Inner IPv6 address                                                           |
+| bk_host_innerip              | array[string] | No       | Inner IPv4 address list                                                      |
+| bk_host_innerip_v6           | array[string] | No       | Inner IPv6 address list                                                      |
 | os_type                      | string        | Yes      | OS type: linux / windows / darwin                                            |
 | cpu_arch                     | string        | No       | CPU architecture: 386 / arm / arm64 / amd64                                  |
 | login_ip                     | string        | Yes      | Login IP                                                                     |
@@ -65,7 +65,7 @@ POST /api/v3/node/proxy/install
       "bk_biz_id": 2,
       "bk_networkunit_id": 1,
       "bk_addressing": "dynamic",
-      "bk_host_innerip": "10.0.0.1",
+      "bk_host_innerip": ["10.0.0.1"],
       "os_type": "linux",
       "cpu_arch": "amd64",
       "login_ip": "10.0.0.1",

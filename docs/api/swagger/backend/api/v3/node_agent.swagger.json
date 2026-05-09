@@ -553,6 +553,15 @@
         },
         "matched": {
           "$ref": "#/definitions/v3NodeAgentInstallCheckMatchedItem"
+        },
+        "message_en": {
+          "type": "string"
+        },
+        "message_zh": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
         }
       },
       "description": "NodeAgentInstallCheckResult describes the check result for node agent\ninstallation."
@@ -594,10 +603,16 @@
           "format": "int64"
         },
         "bk_host_innerip": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "bk_host_innerip_v6": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "login_ip": {
           "type": "string"

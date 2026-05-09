@@ -54,7 +54,7 @@ func (h *handler) ProxyInstallCheck(rCtx restserver.IContext) (interface{}, erro
 	return resp.GetData(), nil
 }
 
-// nolint: funlen,gocognit,gocyclo,cyclop
+// nolint: funlen,gocognit,gocyclo,cyclop,maintidx,nestif
 func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyInstallCheckReq_Host) (
 	[]*types.NodeProxyInstallCheckResult, error) {
 
@@ -92,7 +92,10 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 		matchedNetworkUnit, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
 		if !ok {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status: types.NodeProxyInstallCheckStatusNetworkUnitNotFound,
+				Status:    types.NodeProxyInstallCheckStatusNetworkUnitNotFound,
+				MessageEn: "Networkunit does not exist",
+				MessageZh: "所属管控单元不存在",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -100,23 +103,84 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 
 		if reqHostID < 0 {
 			if matchedHost, exist := checker.hasInnerIP(matchedNetworkUnit.NetworkAreaID, host.GetBkHostInneripList()); exist {
+				// verify all request IPs belong to the same matched host.
+				if !allIPsBelongToHost(host.GetBkHostInneripList(), matchedHost.Static.InnerIPList) {
+					results[idx] = &types.NodeProxyInstallCheckResult{
+						Status:    types.NodeProxyInstallCheckStatusMismatchedInnerIP,
+						Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Inner IPV4 does not match CMDB configuration",
+						MessageZh: "内网IPV4与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
+				// check biz-id matches.
+				if host.GetBkBizId() != matchedHost.Static.BizID {
+					results[idx] = &types.NodeProxyInstallCheckResult{
+						Status:    types.NodeProxyInstallCheckStatusMismatchedBizID,
+						Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Business ID does not match CMDB configuration",
+						MessageZh: "所属业务与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
 				results[idx] = &types.NodeProxyInstallCheckResult{
-					Status:  types.NodeProxyInstallCheckStatusDuplicatedInnerIP,
-					Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+					Status:    types.NodeProxyInstallCheckStatusDuplicatedInnerIP,
+					Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+					MessageEn: "Inner IPV4 already exists in networkarea, will reinstall this host as Proxy",
+					MessageZh: "内网IPV4在该管控区域下已经存在, 将重装该主机为Proxy",
+					Category:  types.InstallCheckCategoryNeedConfirm,
 				}
 
 				continue
 			}
 			if matchedHost, exist := checker.hasInnerIPV6(matchedNetworkUnit.NetworkAreaID, host.GetBkHostInneripV6List()); exist {
+				// verify all request IPv6s belong to the same matched host.
+				if !allIPsBelongToHost(host.GetBkHostInneripV6List(), matchedHost.Static.InnerIPV6List) {
+					results[idx] = &types.NodeProxyInstallCheckResult{
+						Status:    types.NodeProxyInstallCheckStatusMismatchedInnerIPV6,
+						Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Inner IPV6 does not match CMDB configuration",
+						MessageZh: "内网IPV6与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
+				// check biz-id matches.
+				if host.GetBkBizId() != matchedHost.Static.BizID {
+					results[idx] = &types.NodeProxyInstallCheckResult{
+						Status:    types.NodeProxyInstallCheckStatusMismatchedBizID,
+						Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+						MessageEn: "Business ID does not match CMDB configuration",
+						MessageZh: "所属业务与CMDB配置不符",
+						Category:  types.InstallCheckCategoryError,
+					}
+
+					continue
+				}
+
 				results[idx] = &types.NodeProxyInstallCheckResult{
-					Status:  types.NodeProxyInstallCheckStatusDuplicatedInnerIPV6,
-					Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+					Status:    types.NodeProxyInstallCheckStatusDuplicatedInnerIPV6,
+					Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+					MessageEn: "Inner IPV6 already exists in networkarea, will reinstall this host as Proxy",
+					MessageZh: "内网IPV6在该管控区域下已经存在, 将重装该主机为Proxy",
+					Category:  types.InstallCheckCategoryNeedConfirm,
 				}
 
 				continue
 			}
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status: types.NodeProxyInstallCheckStatusRegisterToCMDBAndInstall,
+				Status:    types.NodeProxyInstallCheckStatusRegisterToCMDBAndInstall,
+				MessageEn: "Import node to CMDB and install Proxy",
+				MessageZh: "将节点导入CMDB并安装Proxy",
+				Category:  types.InstallCheckCategoryRegisterToCMDBAndInstall,
 			}
 
 			continue
@@ -125,7 +189,10 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 		matchedHost, ok := checker.getHost(reqHostID)
 		if !ok {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status: types.NodeProxyInstallCheckStatusHostNotFound,
+				Status:    types.NodeProxyInstallCheckStatusHostNotFound,
+				MessageEn: "Host does not exist",
+				MessageZh: "该主机不存在",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -133,8 +200,11 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 
 		if matchedHost.Dynamic.NodeRole == types.NodeRoleAgent {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status:  types.NodeProxyInstallCheckStatusInvalidNodeRole,
-				Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeProxyInstallCheckStatusInvalidNodeRole,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Node role does not allow Proxy installation, please uninstall the Agent first",
+				MessageZh: "节点角色不允许安装Proxy, 请先卸载Agent",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -142,8 +212,11 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 
 		if host.GetBkBizId() != matchedHost.Static.BizID {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status:  types.NodeProxyInstallCheckStatusMismatchedBizID,
-				Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeProxyInstallCheckStatusMismatchedBizID,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Business ID does not match CMDB configuration",
+				MessageZh: "所属业务与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -151,8 +224,11 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 
 		if matchedNetworkUnit.NetworkAreaID != matchedHost.Static.NetworkAreaID {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status:  types.NodeProxyInstallCheckStatusMismatchedNetworkAreaID,
-				Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeProxyInstallCheckStatusMismatchedNetworkAreaID,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Networkarea ID does not match CMDB configuration",
+				MessageZh: "所属管控区域与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -171,8 +247,11 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 		}
 		if !allFound {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status:  types.NodeProxyInstallCheckStatusMismatchedInnerIP,
-				Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeProxyInstallCheckStatusMismatchedInnerIP,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Inner IPV4 does not match CMDB configuration",
+				MessageZh: "内网IPV4与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
@@ -191,16 +270,32 @@ func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBac
 		}
 		if !allFound {
 			results[idx] = &types.NodeProxyInstallCheckResult{
-				Status:  types.NodeProxyInstallCheckStatusMismatchedInnerIPV6,
-				Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				Status:    types.NodeProxyInstallCheckStatusMismatchedInnerIPV6,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Inner IPV6 does not match CMDB configuration",
+				MessageZh: "内网IPV6与CMDB配置不符",
+				Category:  types.InstallCheckCategoryError,
 			}
 
 			continue
 		}
 
-		results[idx] = &types.NodeProxyInstallCheckResult{
-			Status:  types.NodeProxyInstallCheckStatusNormalInstall,
-			Matched: types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+		if host.GetBkNetworkunitId() != matchedHost.Dynamic.NetworkUnitID {
+			results[idx] = &types.NodeProxyInstallCheckResult{
+				Status:    types.NodeProxyInstallCheckStatusNormalInstall,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Install Proxy into networkunit",
+				MessageZh: "安装Proxy到新的管控单元",
+				Category:  types.InstallCheckCategoryNeedConfirm,
+			}
+		} else {
+			results[idx] = &types.NodeProxyInstallCheckResult{
+				Status:    types.NodeProxyInstallCheckStatusNormalInstall,
+				Matched:   types.ConvertHostToNodeProxyInstallCheckMatchedItem(matchedHost),
+				MessageEn: "Install Proxy",
+				MessageZh: "安装Proxy",
+				Category:  types.InstallCheckCategoryNormalInstall,
+			}
 		}
 	}
 
@@ -351,4 +446,19 @@ func (ic *proxyInstallChecker) fetchHosts(nCtx contextx.IContext, hostIDList []i
 	}
 
 	return hosts, nil
+}
+
+// allIPsBelongToHost checks if all given IPs exist in the host's IP list.
+func allIPsBelongToHost(givenIPs []string, hostIPs []string) bool {
+	hostIPSet := make(map[string]struct{}, len(hostIPs))
+	for _, ip := range hostIPs {
+		hostIPSet[ip] = struct{}{}
+	}
+	for _, ip := range givenIPs {
+		if _, ok := hostIPSet[ip]; !ok {
+			return false
+		}
+	}
+
+	return true
 }

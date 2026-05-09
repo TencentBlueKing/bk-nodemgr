@@ -20,8 +20,8 @@ import (
 type NodeProxyInstallHost struct {
 	HostID                   int64
 	BizID                    int64
-	InnerIP                  string
-	InnerIPV6                string
+	InnerIP                  []string
+	InnerIPV6                []string
 	Addressing               Addressing
 	LoginIP                  string
 	LoginPort                int64
@@ -201,8 +201,11 @@ func ConvertHostToNodeProxyInstallCheckMatchedItem(host *Host) *NodeProxyInstall
 
 // NodeProxyInstallCheckResult describes the node proxy install check result.
 type NodeProxyInstallCheckResult struct {
-	Status  NodeProxyInstallCheckStatus
-	Matched *NodeProxyInstallCheckMatchedItem
+	Status    NodeProxyInstallCheckStatus
+	Matched   *NodeProxyInstallCheckMatchedItem
+	MessageEn string
+	MessageZh string
+	Category  string
 }
 
 // NodeProxyUpgradeCheckStatus describes the node proxy upgrade check status.

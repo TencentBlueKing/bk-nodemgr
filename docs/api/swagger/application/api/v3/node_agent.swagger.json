@@ -422,10 +422,16 @@
           "format": "int64"
         },
         "bk_host_innerip": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "bk_host_innerip_v6": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "login_ip": {
           "type": "string"

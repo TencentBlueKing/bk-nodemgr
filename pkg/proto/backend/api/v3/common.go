@@ -14,12 +14,24 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
+
+// validateIPList checks that every element in the list is a valid IP address.
+func validateIPList(ipList []string, fieldName string) error {
+	for _, ip := range ipList {
+		if net.ParseIP(ip) == nil {
+			return fmt.Errorf("%s contains invalid IP address: %q", fieldName, ip)
+		}
+	}
+
+	return nil
+}
 
 const (
 	// backendPagingListTimeout defines the timeout for paging list requests

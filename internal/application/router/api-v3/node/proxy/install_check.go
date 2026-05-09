@@ -32,7 +32,7 @@ func (h *handler) InstallCheck(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	resp := new(protoApplication.NodeProxyInstallCheckResp)
-	resp.ConvertResultFromTypes(req.GetHost(), result)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

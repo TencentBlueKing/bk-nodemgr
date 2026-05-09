@@ -3,8 +3,8 @@
 export interface AgentInstallInfo {
   bk_addressing: string;
   bk_biz_id: number;
-  bk_host_innerip: string;
-  bk_host_innerip_v6: string;
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
   login_ip: string;
   login_port: number;
   login_user: string;
