@@ -6944,6 +6944,8 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
+                enable_compatibility_mode:
+                  type: boolean
               description: PluginInstallReq describes the plugin install request.
         required: true
         description: PluginInstallReq describes the plugin install request.
@@ -15992,12 +15994,16 @@ paths:
                       advertise_ip_v6:
                         type: string
                       bk_host_innerip:
-                        type: string
+                        type: array
+                        items:
+                          type: string
                       bk_networkunit_id:
                         type: integer
                         format: int64
                       bk_host_innerip_v6:
-                        type: string
+                        type: array
+                        items:
+                          type: string
                       relay_callback_port:
                         type: integer
                         format: int64
@@ -16018,8 +16024,6 @@ paths:
                   type: boolean
                 is_offline:
                   type: boolean
-                enable_compatibility_mode:
-                  type: boolean
                 target_version:
                   type: array
                   items:
@@ -16031,6 +16035,8 @@ paths:
                         type: string
                       cpu_arch:
                         type: string
+                enable_compatibility_mode:
+                  type: boolean
               description: NodeProxyInstallReq describes the node proxy install request.
         required: true
         description: NodeProxyInstallReq describes the node proxy install request.
@@ -16962,17 +16968,19 @@ paths:
                       login_password:
                         type: string
                       bk_host_innerip:
-                        type: string
+                        type: array
+                        items:
+                          type: string
                       bk_networkunit_id:
                         type: integer
                         format: int64
                       bk_host_innerip_v6:
-                        type: string
+                        type: array
+                        items:
+                          type: string
                       install_pre_ordered_plugins:
                         type: boolean
                 is_manual:
-                  type: boolean
-                enable_compatibility_mode:
                   type: boolean
                 target_version:
                   type: array
@@ -16985,6 +16993,8 @@ paths:
                         type: string
                       cpu_arch:
                         type: string
+                enable_compatibility_mode:
+                  type: boolean
               description: NodeAgentInstallReq describes the node agent install request.
         required: true
         description: NodeAgentInstallReq describes the node agent install request.
@@ -17059,6 +17069,12 @@ paths:
                                   items:
                                     type: string
                               description: NodeAgentInstallCheckMatchedItem describes the matched item for node.
+                            category:
+                              type: string
+                            message_en:
+                              type: string
+                            message_zh:
+                              type: string
                           description: |-
                             NodeAgentInstallCheckResult describes the check result for node agent
                             installation.
@@ -20480,6 +20496,12 @@ paths:
                                   items:
                                     type: string
                               description: NodeProxyInstallCheckMatchedItem describes the matched item for proxy node.
+                            category:
+                              type: string
+                            message_en:
+                              type: string
+                            message_zh:
+                              type: string
                           description: |-
                             NodeProxyInstallCheckResult describes the check result for node proxy
                             installation.
@@ -22252,20 +22274,28 @@ paths:
                     type: object
                     properties:
                       config_variables:
-                        type: array
-                        items:
+                        type: object
+                        additionalProperties:
                           type: object
                           properties:
-                            name:
-                              type: string
-                            file_path:
-                              type: string
-                            source_path:
-                              type: string
-                            is_main_config:
-                              type: boolean
-                            source_content:
-                              type: string
+                            items:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                  file_path:
+                                    type: string
+                                  variables:
+                                    type: object
+                                  source_path:
+                                    type: string
+                                  is_main_config:
+                                    type: boolean
+                                  source_content:
+                                    type: string
+                                description: ConfigVariables describes the config variables of plugin release.
                   error:
                     type: object
                     properties:
@@ -22354,6 +22384,36 @@ paths:
                   message:
                     type: string
           description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: string
+                platforms:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      os_type:
+                        type: string
+                      cpu_arch:
+                        type: string
+                    description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+              description: |-
+                PackageReleasePluginGetConfigVariablesReq describes the HTTP request body
+                when get config variables of plugin release.
+        required: true
+        description: |-
+          PackageReleasePluginGetConfigVariablesReq describes the HTTP request body
+          when get config variables of plugin release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -24499,6 +24559,298 @@ paths:
           name: default
           method: post
           path: /api/v3/node/proxy/assign_unit
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/restart:
+    post:
+      operationId: Plugin_RestartPlugin
+      description: RestartPlugin restarts the plugin process on specified hosts.
+      tags:
+        - Plugin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: PluginRestartResp describes the plugin restart response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plugin:
+                  type: array
+                  items:
+                    type: object
+                    title: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which
+                    properties:
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      plugin_name:
+                        type: string
+              description: PluginRestartReq describes the plugin restart request.
+        required: true
+        description: PluginRestartReq describes the plugin restart request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/restart
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/stop:
+    post:
+      operationId: Plugin_StopPlugin
+      description: StopPlugin stops the plugin process on specified hosts.
+      tags:
+        - Plugin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: PluginStopResp describes the plugin stop response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plugin:
+                  type: array
+                  items:
+                    type: object
+                    title: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which
+                    properties:
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      plugin_name:
+                        type: string
+              description: PluginStopReq describes the plugin stop request.
+        required: true
+        description: PluginStopReq describes the plugin stop request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/stop
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
