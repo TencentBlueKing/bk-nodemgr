@@ -247,12 +247,13 @@ func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 func (x *PluginInstallReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:              proc.GetBkHostId(),
-			BizID:               hostBizMapping[proc.GetBkHostId()],
-			PluginName:          proc.GetPluginName(),
-			Version:             proc.GetVersion(),
-			ConfigName:          proc.GetConfigName(),
-			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+			HostID:                  proc.GetBkHostId(),
+			BizID:                   hostBizMapping[proc.GetBkHostId()],
+			PluginName:              proc.GetPluginName(),
+			Version:                 proc.GetVersion(),
+			ConfigName:              proc.GetConfigName(),
+			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
+			EnableCompatibilityMode: x.GetEnableCompatibilityMode(),
 		}
 	})
 }
