@@ -32,7 +32,7 @@ func NewActionUpdateProcess(capability *Capability) action.Definition {
 	return &actUpdateProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoProcess:          capability.StoragePlugin,
-		gseHandlerProc:      capability.GSEHandler,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
 

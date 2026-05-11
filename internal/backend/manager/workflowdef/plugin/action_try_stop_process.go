@@ -36,7 +36,7 @@ func NewActionTryStopProcess(capability *Capability) action.Definition {
 		daoPluginDeployment: capability.StoragePlugin,
 		daoProcess:          capability.StoragePlugin,
 		daoHost:             capability.StorageTopo,
-		gseHandlerProc:      capability.GSEHandler,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
 

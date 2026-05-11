@@ -791,8 +791,8 @@ func Test_Handler_ReloadProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.TrusteeshipAndReloadProcess(tt.args.nCtx, tt.args.processSpec)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.TrusteeshipAndReloadProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReloadProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -856,8 +856,8 @@ func Test_Handler_RestartProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.TrusteeshipAndRestartProcess(tt.args.nCtx, tt.args.processSpec)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.TrusteeshipAndRestartProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RestartProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -921,8 +921,8 @@ func Test_Handler_StartProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.TrusteeshipAndStartProcess(tt.args.nCtx, tt.args.processSpec)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.TrusteeshipAndStartProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StartProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -986,8 +986,8 @@ func Test_Handler_StopProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.UnTrusteeshipAndStopProcess(tt.args.nCtx, tt.args.processSpec)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.UnTrusteeshipAndStopProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StopProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1051,8 +1051,8 @@ func Test_Handler_TrusteeshipProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.TrusteeshipProcess(tt.args.nCtx, tt.args.processSpec)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.TrusteeshipProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TrusteeshipProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1116,8 +1116,8 @@ func Test_Handler_UnTrusteeshipProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.UnTrusteeshipProcess(tt.args.nCtx, tt.args.processSpec)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.UnTrusteeshipProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnTrusteeshipProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1169,8 +1169,8 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.QueryMultiProcessInfoMany(tt.args.nCtx, tt.args.procNameAgentIDMap...)
+			handlerProc := testClient(t).NewHandlerProc()
+			got, err := handlerProc.QueryMultiProcessInfoMany(tt.args.nCtx, tt.args.procNameAgentIDMap...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("QueryMultiProcessInfoMany() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -33,7 +33,7 @@ const (
 func NewActionStartProcess(capability *Capability) action.Definition {
 	return &actStartProcess{
 		daoPluginDeployment: capability.StoragePlugin,
-		gseHandlerProc:      capability.GSEHandler,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
 

@@ -32,7 +32,7 @@ func NewActionDeleteProcess(capability *Capability) action.Definition {
 	return &actDeleteProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoProcess:          capability.StoragePlugin,
-		gseHandlerProc:      capability.GSEHandler,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
 

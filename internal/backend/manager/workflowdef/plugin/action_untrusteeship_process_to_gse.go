@@ -31,7 +31,7 @@ const (
 func NewActionUnTrusteeshipProcess(capability *Capability) action.Definition {
 	return &actUnTrusteeshipProcess{
 		daoPluginDeployment: capability.StoragePlugin,
-		gseHandlerProc:      capability.GSEHandler,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
 

@@ -33,9 +33,9 @@ const (
 // NewActionSyncAlivePluginProcessInfo creates a new syncAgentInfo.
 func NewActionSyncAlivePluginProcessInfo(capability *Capability) action.Definition {
 	return &actionSyncAlivePluginProcessInfo{
-		gseHandler: capability.GSEHandler,
-		hostStg:    capability.StorageTopo,
-		processStg: capability.StoragePlugin,
+		gseHandlerProc: capability.GSEHandler.NewHandlerProc(),
+		hostStg:        capability.StorageTopo,
+		processStg:     capability.StoragePlugin,
 	}
 }
 
@@ -47,9 +47,9 @@ type ActionParamSyncAlivePluginProcessInfo struct {
 }
 
 type actionSyncAlivePluginProcessInfo struct {
-	gseHandler gse.IHandler
-	hostStg    topoStg.IStorageHost
-	processStg plugin.IDaoProcess
+	gseHandlerProc gse.IHandlerProc
+	hostStg        topoStg.IStorageHost
+	processStg     plugin.IDaoProcess
 }
 
 // Name returns the name of the action.
@@ -175,7 +175,7 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 		})
 	}
 
-	procInfos, err := act.gseHandler.QueryMultiProcessInfoMany(nCtx, pluginNameAgentIDList...)
+	procInfos, err := act.gseHandlerProc.QueryMultiProcessInfoMany(nCtx, pluginNameAgentIDList...)
 	if err != nil {
 		return nil, err
 	}

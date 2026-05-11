@@ -33,7 +33,7 @@ const (
 func NewActionReloadProcess(capability *Capability) action.Definition {
 	return &actionReloadProcess{
 		daoPluginDeployment: capability.StoragePlugin,
-		gseHandlerProc:      capability.GSEHandler,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(),
 	}
 }
 
