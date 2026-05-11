@@ -234,7 +234,19 @@ const collectList = ref<number[]>([]);
 })();
 
 // ===== 多选业务 =====
-const multiBusiness = ref<number[]>([]);
+// 直接从 localStorage 恢复，不依赖外部 init() 调用（因为 App.vue onBeforeMount 时 bizSelectorRef.value 可能为 undefined）
+const multiBusiness = ref<number[]>((() => {
+  try {
+    const saved = localStorage.getItem('bk_biz_id');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch { /* ignore */ }
+  return [];
+})());
 
 // ===== 策略单选业务 =====
 const singleBusiness = ref<number | ''>('');
@@ -388,6 +400,21 @@ const sortBusinessList = () => {
   });
 };
 
+// ===== 业务列表数据就绪后立即排序填充 options，确保 Select 的 tag 能正确渲染 =====
+// 这是解决刷新后业务选择器不显示已选业务的关键：即使 multiBusiness 从 localStorage 恢复了 [12]，
+// 如果 businessList（options）为空，Select 也无法渲染 tag
+watch(filteredBusinessList, (list) => {
+  if (list.length > 0) {
+    sortBusinessList();
+    // 业务列表从 API 返回后，重新同步 selectedBusinessName
+    // 因为 multiBusiness 在声明时从 localStorage 恢复时，mainStore.businessList 可能还是空的，
+    // 导致 selectedBusinessName 为 [undefined]，shrinkText 显示为空
+    if (!isSingle.value && multiBusiness.value.length > 0) {
+      syncMultiBusiness(multiBusiness.value);
+    }
+  }
+}, { immediate: true });
+
 // ===== 下拉展开时排序 =====
 const handleToggle = () => {
   sortBusinessList();
@@ -525,6 +552,7 @@ watch(
 );
 
 // ===== 初始化 =====
+// 注意：init() 现在仅作为兜底，核心恢复逻辑已在 multiBusiness 声明时和 filteredBusinessList watcher 中完成
 const init = () => {
   // 1. 恢复收藏列表
   const collectsJson = localStorage.getItem('collect');
@@ -532,16 +560,13 @@ const init = () => {
     collectList.value = JSON.parse(collectsJson);
   }
 
-  // 2. 恢复多选业务
-  const bizIdsJson = localStorage.getItem('bk_biz_id');
-  if (bizIdsJson) {
-    const bizIds = JSON.parse(bizIdsJson);
-    multiBusiness.value = bizIds;
-    mainStore.updateCurBusiness(bizIds);
+  // 2. 多选业务已在 multiBusiness 声明时从 localStorage 恢复，此处仅同步 store（兜底）
+  if (multiBusiness.value.length > 0) {
+    mainStore.updateCurBusiness(multiBusiness.value);
   }
 
-  // 3. 排序
-  if (filteredBusinessList.value.length > 0) {
+  // 3. 排序（filteredBusinessList watcher 已保证 businessList 填充，此处兜底）
+  if (filteredBusinessList.value.length > 0 && businessList.value.length === 0) {
     sortBusinessList();
   }
 

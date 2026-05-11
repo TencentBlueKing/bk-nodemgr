@@ -64,7 +64,7 @@
           </TableColumn>
           <TableColumn
             field="tag"
-            min-width="96"
+            min-width="100"
           >
             <template #default="{ row }">
               <Tag v-if="row.as_default">{{ $t('components.chooseVersion.DefaultVersion') }}</Tag>

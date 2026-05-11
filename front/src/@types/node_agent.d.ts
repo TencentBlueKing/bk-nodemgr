@@ -244,30 +244,34 @@ export interface NodeAgentUpgradeCheckResult {
   category: string;
 }
 
-// UploadAgentTemplateReq is the request for upload agent tempalte file.
-export interface UploadAgentTemplateReq {
+// UploadAgentInstallTemplateReq is the request for upload agent install
+// template file.
+export interface UploadAgentInstallTemplateReq {
 }
 
-// ParsedInfo describes the result for tempalte file parsed info.
-export interface ParsedInfo {
+// AgentInstallParsedInfo describes the result for agent install template file
+// parsed info.
+export interface AgentInstallParsedInfo {
   bk_host_innerip: string;
-  bk_host_inner_ip_v6: string;
+  bk_host_innerip_v6: string;
   os_type: string;
   login_ip: string;
   login_port: number;
   login_user: string;
   login_mode: string;
   credit: string;
+  bk_addressing: string;
+  install_pre_ordered_plugins: boolean;
+  re_register: boolean;
 }
 
-// UploadAgentTemplateResp ...
-export interface UploadAgentTemplateResp {
-  data: UploadAgentTemplateRespData;
+// UploadAgentInstallTemplateResp ...
+export interface UploadAgentInstallTemplateResp {
+  data: UploadAgentInstallTemplateRespData;
 }
 
-export interface UploadAgentTemplateRespData {
-  info: ParsedInfo[];
-  total_count: number;
+export interface UploadAgentInstallTemplateRespData {
+  info: AgentInstallParsedInfo[];
 }
 
 // NodeAgentAssignUnitReq describes the request body for batch-assigning

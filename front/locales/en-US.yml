@@ -239,6 +239,11 @@ platform:
         assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
         upgrade_plugin: Plugin Upgrade
+        uninstall_plugin: Plugin Uninstallation
+        reconfig_plugin: Plugin Reconfiguration
+        apply_plugin_subconfig: Plugin Apply Sub-Config
+        restart_plugin: Plugin Restart
+        stop_plugin: Plugin Stop
       statusType:
         running: Running
         failed: Failed
@@ -317,6 +322,7 @@ pluginManagement:
       uninstall: Uninstall
       restart: Restart
       stop: Stop
+      reinstall: Reinstall
       operateDisabled: This operation is not yet available
       operateSuccess: Operation executed successfully
       restartTitle: Confirm Restart Plugin
@@ -331,6 +337,18 @@ pluginManagement:
       batchStopTitle: Confirm Batch Stop Plugins
       stopSubTitle: 'Confirm stop plugin {pluginName}?'
       batchStopSubTitle: 'Confirm batch stop {pluginNames} and {count} plugins?'
+      plugin: Plugin
+      of: "'s"
+      processes: ' processes?'
+      confirmBatchOperate: 'Confirm batch operate '
+      unrecoverable: ' This action cannot be undone.'
+      selectProcessHint: 'Please select plugin processes to {action}'
+      actionUninstall: uninstall
+      actionRestart: restart
+      actionStop: stop
+      selectionConfirmUninstall: 'Confirm batch uninstall {detail} ({count} processes in total)? This action cannot be undone.'
+      selectionConfirmRestart: 'Confirm batch restart {detail} ({count} processes in total)?'
+      selectionConfirmStop: 'Confirm batch stop {detail} ({count} processes in total)?'
 topoManager:
   workArea:
     title: Network Area
@@ -1096,9 +1114,6 @@ components:
   logVersion:
     current: Current
   operateDialog:
-    reloadConfig: Reload Config
-    forceRestart: Force Restart
-    gracefulRestart: Graceful Restart
     gracefulTime: Timeout
     seconds: s
   setting:

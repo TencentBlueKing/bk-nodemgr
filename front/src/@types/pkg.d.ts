@@ -1107,26 +1107,12 @@ export interface PackageReleasePluginDownloadReq {
 export interface PackageReleasePluginGetConfigVariablesReq {
   generation: number;
   name: string;
-  platform: Platform;
+  platforms: Platform[];
   version: string;
 }
 
-// PackageReleasePluginGetConfigVariablesResp describes the HTTP response body
-// when get config variables of plugin release.
-export interface PackageReleasePluginGetConfigVariablesResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleasePluginGetConfigVariablesRespData;
-}
-
-export interface PackageReleasePluginGetConfigVariablesRespData {
-  config_variables: ConfigVariables[];
-}
-
-export interface DataConfigVariables {
+// ConfigVariables describes the config variables of plugin release.
+export interface ConfigVariables {
   name: string;
   file_path: string;
   source_path: string;
@@ -1143,6 +1129,25 @@ export interface ConfigVariablesProperty {
   description: string;
   description_en: string;
   properties: Record<string, Property>;
+}
+
+// PackageReleasePluginGetConfigVariablesResp describes the HTTP response body
+// when get config variables of plugin release.
+export interface PackageReleasePluginGetConfigVariablesResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PackageReleasePluginGetConfigVariablesRespData;
+}
+
+export interface PackageReleasePluginGetConfigVariablesRespConfigVariablesList {
+  items: ConfigVariables[];
+}
+
+export interface PackageReleasePluginGetConfigVariablesRespData {
+  config_variables: Record<string, ConfigVariablesList>;
 }
 
 // PackageReleaseCertListReq describes the HTTP request body when list cert

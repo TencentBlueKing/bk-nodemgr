@@ -31,7 +31,7 @@
               class="arrow-icon"
               :class="{ 'is-collapsed': !item.expanded }"
             />
-            <span class="platform-name">{{ item.platform.replace('_', ' ') }}</span>
+            <span class="platform-name">{{ item.platform.replace('_', '/') }}</span>
             <span class="platform-version">({{ item.version }})</span>
           </div>
 
@@ -124,6 +124,8 @@ const loadingAll = ref(false);
 const formRefMap = ref<Map<number, InstanceType<typeof BkSchemaForm> | null>>(new Map());
 /** 每个平台的表单初始值（用于恢复默认） */
 const initialFormValues = ref<Record<string, Record<string, any>>>({});
+/** 每个平台的配置模板名称列表（platform → config_name[]） */
+const configNamesMap = ref<Record<string, string[]>>({});
 
 /**
  * 将后端返回的 ConfigVariables Property 递归转换为 bkui-form JSON Schema 格式
@@ -254,53 +256,6 @@ function resetFormValues(index: number) {
   formValues.value[item.platform] = { ...initialFormValues.value[item.platform] };
 }
 
-/** 加载单个平台的配置变量 schema */
-async function loadItemSchema(item: FormItem): Promise<void> {
-  if (!props.pluginName || !item.version) return;
-
-  item.loading = true;
-  item.error = '';
-
-  try {
-    const res = await PackageService.GetConfigVariablesReleasePlugin({
-      generation: PACKAGE_GENERATION,
-      name: props.pluginName,
-      platform: { os_type: item.osType, cpu_arch: item.cpuArch },
-      version: item.version,
-    });
-
-    const configVars = res?.config_variables || [];
-    let schema: any = null;
-    if (configVars.length > 0) {
-      const mainConfig = configVars.find((cv: any) => cv.is_main_config) || configVars[0];
-      schema = convertToSchema(mainConfig.variables || {});
-      if (schema) {
-        item.schema = schema;
-        item.empty = false;
-        item.expanded = true; // 有参数时默认展开
-      } else {
-        item.empty = true;
-      }
-    } else {
-      item.empty = true;
-    }
-
-    // 初始化该平台的表单值 & 保存初始值（用于恢复默认）
-    if (!formValues.value[item.platform]) {
-      const defaults = extractDefaults(schema);
-      formValues.value[item.platform] = { ...defaults };
-      initialFormValues.value[item.platform] = { ...defaults };
-    }
-  } catch (e: any) {
-    console.error(`Failed to load config variables for ${item.platform}:`, e);
-    item.error = t('pluginOperation.paramConfig.loadFailed', { msg: e?.message || '' });
-    item.empty = true;
-  } finally {
-    item.loaded = true;
-    item.loading = false;
-  }
-}
-
 /** 将 'linux_x86_64' 解析为 { osType, cpuArch } */
 function parsePlatform(platform: string): { osType: string; cpuArch: string } {
   const idx = platform.indexOf('_');
@@ -308,7 +263,42 @@ function parsePlatform(platform: string): { osType: string; cpuArch: string } {
   return { osType: platform.substring(0, idx), cpuArch: platform.substring(idx + 1) };
 }
 
-/** 初始化所有平台的表单项并并行加载 */
+/** 将前端平台标识 'linux_x86_64' 转为后端返回的 key 格式 'linux/x86_64' */
+function platformToKey(platform: string): string {
+  const { osType, cpuArch } = parsePlatform(platform);
+  return cpuArch ? `${osType}/${cpuArch}` : osType;
+}
+
+/** 处理单个平台的配置变量数据，生成 schema 并初始化表单值 */
+function applyConfigToItem(item: FormItem, configVars: any[]): void {
+  // 收集该 platform 下所有配置模板的 name（用于提交时传 config_name）
+  const names = configVars.map((cv: any) => cv.name).filter(Boolean);
+  if (names.length > 0) {
+    configNamesMap.value[item.platform] = names;
+  }
+
+  if (configVars && configVars.length > 0) {
+    const mainConfig = configVars.find((cv: any) => cv.is_main_config) || configVars[0];
+    const schema = convertToSchema(mainConfig.variables || {});
+    if (schema) {
+      item.schema = schema;
+      item.empty = false;
+      item.expanded = true;
+    } else {
+      item.empty = true;
+    }
+  } else {
+    item.empty = true;
+  }
+
+  if (!formValues.value[item.platform]) {
+    const defaults = extractDefaults(item.schema);
+    formValues.value[item.platform] = { ...defaults };
+    initialFormValues.value[item.platform] = { ...defaults };
+  }
+}
+
+/** 一次性加载所有平台的配置变量 schema（新版接口支持 platforms 数组批量查询） */
 async function loadAllSchemas() {
   // 清空旧数据
   formItems.length = 0;
@@ -337,11 +327,37 @@ async function loadAllSchemas() {
     });
   }
 
-  // 并行加载所有平台的 schema
   try {
-    await Promise.all(formItems.map(item => loadItemSchema(item)));
-  } catch {
-    // 单项失败已在 loadItemSchema 中处理
+    // 一次调用传入所有 platforms，获取所有平台的配置变量
+    const platforms = formItems.map(item => ({
+      os_type: item.osType,
+      cpu_arch: item.cpuArch,
+    }));
+    const res = await PackageService.GetConfigVariablesReleasePlugin({
+      generation: PACKAGE_GENERATION,
+      name: props.pluginName,
+      platforms,
+      version: formItems[0].version,
+    });
+
+    // 从返回的 Record<string, ConfigVariablesList> 中按平台 key 提取
+    const configVariablesMap = res?.config_variables || {};
+    for (const item of formItems) {
+      const key = platformToKey(item.platform);
+      const configList = configVariablesMap[key];
+      const configVars = configList?.items || [];
+      applyConfigToItem(item, configVars);
+      item.loaded = true;
+      item.loading = false;
+    }
+  } catch (e: any) {
+    console.error('Failed to load config variables:', e);
+    for (const item of formItems) {
+      item.error = t('pluginOperation.paramConfig.loadFailed', { msg: e?.message || '' });
+      item.empty = true;
+      item.loaded = true;
+      item.loading = false;
+    }
   }
 
   loadingAll.value = false;
@@ -362,7 +378,7 @@ const validate = async (): Promise<boolean> => {
   return allValid;
 };
 
-defineExpose({ validate, load: loadAllSchemas });
+defineExpose({ validate, load: loadAllSchemas, configNamesMap });
 </script>
 
 <style lang="postcss" scoped>

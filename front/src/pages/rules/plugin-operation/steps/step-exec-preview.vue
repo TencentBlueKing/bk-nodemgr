@@ -48,6 +48,7 @@
               </template>
             </TableColumn>
             <TableColumn
+              v-if="showTargetVersion"
               field="targetVersion"
               :title="$t('pluginOperation.preview.targetVersion')"
               :min-width="120"
@@ -82,6 +83,7 @@ const props = defineProps<{
     selectedVersion: string;
     paramConfig: Record<string, any>;
   };
+  operationType?: string;
 }>();
 
 const activeTab = ref('all');
@@ -90,11 +92,27 @@ const activeTab = ref('all');
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableMaxHeight = computed(() => mainStore.windowInnerHeight - 380 - (mainStore.noticeShow ? 40 : 0));
 
+// 操作类型标签映射
+const opTypeLabel = computed(() => {
+  const map: Record<string, string> = {
+    install: t('pluginManagement.plugin.operate.install'),
+    upgrade: t('pluginManagement.plugin.operate.upgrade'),
+    reload: t('pluginManagement.plugin.operate.reload'),
+    restart: t('pluginManagement.plugin.operate.restart'),
+    stop: t('pluginManagement.plugin.operate.stop'),
+    reinstall: t('pluginManagement.plugin.operate.reinstall'),
+  };
+  return map[props.operationType || ''] || t('pluginManagement.plugin.operate.install');
+});
+
+// 重启/停止操作不需要显示目标版本列
+const showTargetVersion = computed(() => !['restart', 'stop'].includes(props.operationType || ''));
+
 // 预览数据 — 基于选中的主机生成
 const previewData = computed(() => props.formData.selectedHosts.map((host: any) => ({
   ip: host.ip || host.bk_host_innerip || '—',
   networkArea: host.cloud_area?.name || t('pluginOperation.preview.directArea'),
-  opType: t('pluginOperation.preview.install'),
+  opType: opTypeLabel.value,
   osType: host.os_name || host.os_type || '—',
   agentStatus: host.alive ?? 1,
   agentStatusLabel: host.alive === 1 ? t('pluginOperation.preview.normal') : t('pluginOperation.preview.abnormal'),

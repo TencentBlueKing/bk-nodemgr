@@ -155,13 +155,17 @@
       :title="operateDialogData.title"
       :type="operateDialogData.type"
       :sub-title="operateDialogData.subTitle"
+      :data="pendingOperateData"
+      :columns="operateDialogColumns"
+      :status-map="processStatusTextMap"
+      :selection-confirm-formatter="selectionConfirmFormatter"
       @confirm="handleOperateConfirm"
     ></operate-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown, InfoBox, Loading, Message } from 'bkui-vue';
+import { Button, Dropdown, Loading, Message } from 'bkui-vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -234,9 +238,9 @@ const pageValueChange = async (current: number) => {
 };
 
 // ---------- 操作相关 ----------
-// 需要跳转到单独页面配置自定义参数的操作: 安装、升级、重载
+// 需要跳转到单独页面配置自定义参数的操作: 安装、重装、升级、重载
 // 无需跳转的操作: 卸载、重启、停止
-const needPageOperations = ['install', 'upgrade', 'reload'];
+const needPageOperations = ['install', 'reinstall', 'upgrade', 'reload'];
 
 // 已启用的操作 — 从接口动态获取
 const enabledOperations = ref(new Set<string>());
@@ -251,14 +255,16 @@ const loadPermittedOperations = async () => {
       ops.add(p);
       // 接口返回 reconfigv 对应前端 reload 操作
       if (p === 'reconfigv') ops.add('reload');
+      // 接口返回 install 权限时，同时启用 reinstall（重装）操作
+      if (p === 'install') ops.add('reinstall');
     });
   });
   enabledOperations.value = ops;
 };
 
-// 批量操作列表 (default组) — 只显示有权限的操作
+// 所有操作列表（单行操作使用） — 只显示有权限的操作
 const allOperations = [
-  { id: 'install', nameKey: 'pluginManagement.plugin.operate.install' },
+  { id: 'reinstall', nameKey: 'pluginManagement.plugin.operate.reinstall' },
   { id: 'upgrade', nameKey: 'pluginManagement.plugin.operate.upgrade' },
   { id: 'reload', nameKey: 'pluginManagement.plugin.operate.reload' },
   { id: 'uninstall', nameKey: 'pluginManagement.plugin.operate.uninstall' },
@@ -266,9 +272,10 @@ const allOperations = [
   { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' },
 ];
 
+// 批量操作列表 — 排除 upgrade 和 reinstall（仅单行操作可用）
 const batchOperateList = computed(() =>
   allOperations
-    .filter(op => enabledOperations.value.has(op.id))
+    .filter(op => enabledOperations.value.has(op.id) && !['upgrade', 'reinstall'].includes(op.id))
     .map(op => ({ id: op.id, name: t(op.nameKey) })),
 );
 
@@ -288,67 +295,174 @@ const operateDialogData = reactive({ type: '', title: '', subTitle: '' });
 const pendingOperateData = ref<any[]>([]);
 const pendingOperateType = ref('');
 
-// 处理插件操作
-const handlePluginOperate = (operateType: string, data: any[], batch = false) => {
-  const pluginNames = [...new Set(data.map((item: any) => item.name))].join(', ');
-  const count = data.length;
+// 操作弹窗表格列配置（展示受影响的插件进程列表，与进程侧边栏一致）
+const operateDialogColumns = [
+  { field: 'plugin_name', label: t('pluginManagement.plugin.table.pluginName'), minWidth: 250 },
+  { field: 'bk_host_id', label: 'Host ID', minWidth: 200 },
+  { field: 'status', label: t('pluginManagement.plugin.process.processStatus'), minWidth: 200 },
+];
 
+// 进程状态映射（用于 operate-dialog 的 status 列渲染）
+const processStatusTextMap = computed(() => ({
+  running: t('pluginManagement.plugin.process.status.running'),
+  stopped: t('pluginManagement.plugin.process.status.stopped'),
+  unregister: t('pluginManagement.plugin.process.status.unregister'),
+  init: t('pluginManagement.plugin.process.status.init'),
+}));
+
+// 勾选确认提示格式化：按插件分组展示 host_id
+const selectionConfirmFormatter = (selectedRows: any[]) => {
+  if (selectedRows.length === 0) return '';
+  // 按 plugin_name 分组，拼装 "插件A的host1, host2、插件B的host3"
+  const groupMap = new Map<string, string[]>();
+  selectedRows.forEach((row: any) => {
+    const name = row.plugin_name || '';
+    const hostId = String(row.bk_host_id || '');
+    if (!groupMap.has(name)) groupMap.set(name, []);
+    groupMap.get(name)!.push(hostId);
+  });
+  const detail = [...groupMap.entries()]
+    .map(([name, ids]) => `${name}(${ids.join(', ')})`)
+    .join('、');
+  const count = selectedRows.length;
+
+  // 根据操作类型选择对应的完整模板
+  const keyMap: Record<string, string> = {
+    uninstall: 'pluginManagement.plugin.operate.selectionConfirmUninstall',
+    restart: 'pluginManagement.plugin.operate.selectionConfirmRestart',
+    stop: 'pluginManagement.plugin.operate.selectionConfirmStop',
+  };
+  const key = keyMap[pendingOperateType.value] || keyMap.restart;
+  return t(key, { detail, count });
+};
+
+// 处理插件操作
+const handlePluginOperate = async (operateType: string, data: any[], batch = false) => {
   if (needPageOperations.includes(operateType)) {
-    // 安装/升级/重载 → 跳转到配置页面
+    // 安装/重装/升级/重载 → 跳转到配置页面
+    const pluginName = data[0]?.name || '';
+
+    // 重装/升级单行操作：从 process/list 获取主机和版本信息回填
+    let prefillHosts = '';
+    let prefillVersions = '';
+    if ((operateType === 'reinstall' || operateType === 'upgrade') && !batch && pluginName) {
+      const processRes = await ProcessAPIService.ListProcesses({
+        page: { limit: 500, offset: 0 },
+        exact_include_conditions: {
+          plugin_name: [pluginName],
+          bk_biz_id: mainStore.selectedBusinessId || [],
+        } as any,
+      }).catch(() => ({ total: 0, items: [] }));
+
+      const processItems = (processRes.items || []).map((item: any) => ({
+        ...item,
+        ...item.platform,
+        ...item.process_info,
+        ...item.process_identity,
+        ...item.process_controller,
+      }));
+
+      // 提取去重的主机ID（IP选择器通过 fetchHostDetails 自动回填完整信息）
+      const hostIdSet = new Set<number>();
+      processItems.forEach((item: any) => {
+        if (item.bk_host_id) hostIdSet.add(item.bk_host_id);
+      });
+      prefillHosts = JSON.stringify([...hostIdSet]);
+
+      // 提取版本映射（os_type_cpu_arch → version）
+      const versionMap = new Map<string, string>();
+      processItems.forEach((item: any) => {
+        const osType = item.os_type || '';
+        const cpuArch = item.cpu_arch || '';
+        const version = item.version || '';
+        if (osType && cpuArch && version) {
+          const key = `${osType}_${cpuArch}`;
+          // 只取第一个匹配的版本（同平台可能有多个版本，取进程当前版本）
+          if (!versionMap.has(key)) {
+            versionMap.set(key, version);
+          }
+        }
+      });
+      prefillVersions = JSON.stringify(Object.fromEntries(versionMap));
+    }
+
     router.push({
       name: 'pluginOperate',
       query: {
         operationType: operateType,
-        pluginName: data[0]?.name || '',
+        pluginName,
+        ...(prefillHosts ? { prefillHosts } : {}),
+        ...(prefillVersions ? { prefillVersions } : {}),
       },
     });
-  } else if (operateType === 'restart') {
-    // 重启 → 使用 operate-dialog
-    pendingOperateData.value = data;
+  } else if (operateType === 'restart' || operateType === 'uninstall' || operateType === 'stop') {
+    // 重启/卸载/停止 → 先获取进程数据，再展示 operate-dialog
     pendingOperateType.value = operateType;
-    operateDialogIsShow.value = true;
-    operateDialogData.type = 'restart';
-    operateDialogData.title = batch
-      ? t('pluginManagement.plugin.operate.batchRestartTitle')
-      : t('pluginManagement.plugin.operate.restartTitle');
-    operateDialogData.subTitle = batch
-      ? t('pluginManagement.plugin.operate.batchRestartSubTitle', { pluginNames, count })
-      : t('pluginManagement.plugin.operate.restartSubTitle', { pluginName: pluginNames });
-  } else if (operateType === 'uninstall') {
-    // 卸载 → 使用 InfoBox 确认
-    InfoBox({
-      title: batch
+    operateDialogData.type = operateType;
+    // 根据插件名获取进程列表
+    const pluginNameList = [...new Set(data.map((item: any) => item.name))];
+    const processRes = await ProcessAPIService.ListProcesses({
+      page: { limit: 500, offset: 0 },
+      exact_include_conditions: {
+        plugin_name: pluginNameList,
+        bk_biz_id: mainStore.selectedBusinessId,
+      },
+    }).catch(() => ({ total: 0, items: [] }));
+
+    pendingOperateData.value = (processRes.items || []).map((item: any) => ({
+      ...item,
+      ...item.platform,
+      ...item.process_info,
+      ...item.process_identity,
+      ...item.process_controller,
+    }));
+
+    if (operateType === 'restart') {
+      operateDialogData.title = batch
+        ? t('pluginManagement.plugin.operate.batchRestartTitle')
+        : t('pluginManagement.plugin.operate.restartTitle');
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionRestart') });
+    } else if (operateType === 'uninstall') {
+      operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchUninstallTitle')
-        : t('pluginManagement.plugin.operate.uninstallTitle'),
-      subTitle: batch
-        ? t('pluginManagement.plugin.operate.batchUninstallSubTitle', { pluginNames, count })
-        : t('pluginManagement.plugin.operate.uninstallSubTitle', { pluginName: pluginNames }),
-      onConfirm: () => {
-        // TODO: 调用卸载接口
-        Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
-      },
-    });
-  } else if (operateType === 'stop') {
-    // 停止 → 使用 InfoBox 确认
-    InfoBox({
-      title: batch
+        : t('pluginManagement.plugin.operate.uninstallTitle');
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionUninstall') });
+    } else {
+      operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchStopTitle')
-        : t('pluginManagement.plugin.operate.stopTitle'),
-      subTitle: batch
-        ? t('pluginManagement.plugin.operate.batchStopSubTitle', { pluginNames, count })
-        : t('pluginManagement.plugin.operate.stopSubTitle', { pluginName: pluginNames }),
-      onConfirm: () => {
-        // TODO: 调用停止接口
-        Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
-      },
-    });
+        : t('pluginManagement.plugin.operate.stopTitle');
+      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStop') });
+    }
+    operateDialogIsShow.value = true;
   }
 };
 
-// 操作弹窗确认 (重启)
-const handleOperateConfirm = (extraData: any = {}) => {
-  // TODO: 调用重启接口
-  Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
+// 操作弹窗确认（重启/卸载/停止）
+const handleOperateConfirm = async (extraData: any = {}) => {
+  // 使用弹窗中勾选的行，若无勾选则使用全部
+  const data = extraData.selection?.length ? extraData.selection : pendingOperateData.value;
+  const operateType = pendingOperateType.value;
+  let res: any;
+
+  const pluginParams = data.map((item: any) => ({ bk_host_id: item.bk_host_id, plugin_name: item.plugin_name }));
+
+  if (operateType === 'uninstall') {
+    res = await PluginAPIService.UninstallPlugin({ plugin: pluginParams });
+  } else if (operateType === 'stop') {
+    res = await PluginAPIService.StopPlugin({ plugin: pluginParams });
+  } else {
+    // 默认重启
+    res = await PluginAPIService.RestartPlugin({ plugin: pluginParams });
+  }
+
+  if (res?.workflow_id) {
+    Message({ theme: 'success', message: t('pluginManagement.plugin.operate.operateSuccess') });
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: res.workflow_id },
+      query: { active: 'plugin' },
+    });
+  }
 };
 
 // 跳转插件包管理

@@ -42,6 +42,7 @@
         ref="deployTargetRef"
         v-model:formData="formData"
         :initial-plugin-name="currentPluginName"
+        :operation-type="operationType"
       />
 
       <!-- 步骤2: 参数配置 -->
@@ -55,8 +56,9 @@
 
       <!-- 步骤3: 执行预览 -->
       <StepExecPreview
-        v-show="currentStep === 2"
+        v-show="currentStep === lastStepIndex"
         :form-data="formData"
+        :operation-type="operationType"
       />
     </div>
 
@@ -119,6 +121,7 @@ import StepExecPreview from './steps/step-exec-preview.vue';
 import StepParamConfig from './steps/step-param-config.vue';
 
 import useAuthLock from '@/composables/use-auth-lock';
+import { scrollToFirstErrorByClassNames } from '@/common/util';
 import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();
@@ -146,6 +149,9 @@ const operationTypeLabel = computed(() => {
     install: t('pluginManagement.plugin.operate.install'),
     upgrade: t('pluginManagement.plugin.operate.upgrade'),
     reload: t('pluginManagement.plugin.operate.reload'),
+    restart: t('pluginManagement.plugin.operate.restart'),
+    stop: t('pluginManagement.plugin.operate.stop'),
+    reinstall: t('pluginManagement.plugin.operate.reinstall'),
   };
   return map[operationType.value] || t('pluginOperation.createStrategy');
 });
@@ -163,11 +169,23 @@ const paramConfigRef = ref<InstanceType<typeof StepParamConfig> | null>(null);
 
 const contentHeight = computed(() => `${mainStore.windowInnerHeight - 160 - 48 - (mainStore.noticeShow ? 40 : 0)}px`);
 
-const stepList = computed(() => [
-  { key: 'deployTarget', label: t('pluginOperation.steps.deployTarget') },
-  { key: 'paramConfig', label: t('pluginOperation.steps.paramConfig') },
-  { key: 'execPreview', label: t('pluginOperation.steps.execPreview') },
-]);
+// 重启和停止操作不需要参数配置步骤
+const isSimpleOperation = computed(() => ['restart', 'stop'].includes(operationType.value));
+// 最后一步的步骤索引（简单操作跳过参数配置，只有2步）
+const lastStepIndex = computed(() => stepList.value.length - 1);
+
+const stepList = computed(() => {
+  const steps = [
+    { key: 'deployTarget', label: t('pluginOperation.steps.deployTarget') },
+    { key: 'paramConfig', label: t('pluginOperation.steps.paramConfig') },
+    { key: 'execPreview', label: t('pluginOperation.steps.execPreview') },
+  ];
+  if (isSimpleOperation.value) {
+    // 重启/停止：跳过参数配置
+    return steps.filter(s => s.key !== 'paramConfig');
+  }
+  return steps;
+});
 
 const formData = reactive({
   strategyName: '', // 保留字段兼容 model 类型
@@ -196,14 +214,25 @@ const handleStepClick = (index: number) => {
 
 const handleNext = async () => {
   if (currentStep.value === 0) {
-    // 校验第一步
+    // 校验第一步（部署目标）
     const valid = await deployTargetRef.value?.validate();
-    if (!valid) return;
+    if (!valid) {
+      scrollToFirstErrorByClassNames();
+      return;
+    }
+  }
+  if (currentStep.value === 1 && !isSimpleOperation.value) {
+    // 校验第二步（参数配置），重启/停止跳过此步骤
+    const valid = await paramConfigRef.value?.validate();
+    if (!valid) {
+      scrollToFirstErrorByClassNames();
+      return;
+    }
   }
   if (currentStep.value < stepList.value.length - 1) {
     currentStep.value += 1;
     // 进入参数配置步骤时，加载各平台的配置变量
-    if (currentStep.value === 1) {
+    if (!isSimpleOperation.value && currentStep.value === 1) {
       paramConfigRef.value?.load();
     }
   }
@@ -227,22 +256,73 @@ const handleSubmit = async () => {
       return;
     }
 
-    // 构造插件参数
+    // 获取参数配置相关信息
+    const configNamesMap = paramConfigRef.value?.configNamesMap || {};
+    const paramConfig = formData.paramConfig || {};
+    // 获取每个平台的版本映射（platform → version）
+    const systemData = deployTargetRef.value?.systemData || [];
+    const versionMap: Record<string, string> = {};
+    systemData.forEach((item: { os: string; version: string }) => {
+      if (item.os && item.version) {
+        versionMap[item.os] = item.version;
+      }
+    });
+
+    // 构建平台匹配：用 host 的 os_type + cpu_arch 拼接成 platform key（如 "linux_x86_64"）精确匹配
+    const allPlatformKeys = [...new Set([...Object.keys(paramConfig), ...Object.keys(versionMap), ...Object.keys(configNamesMap)])];
+    const getMatchedPlatform = (osType: string, cpuArch: string): string => {
+      if (osType && cpuArch) {
+        const platformKey = `${osType}_${cpuArch}`;
+        if (allPlatformKeys.includes(platformKey)) {
+          return platformKey;
+        }
+      }
+      // 回退：尝试用 os_type 前缀匹配
+      if (osType) {
+        const matched = allPlatformKeys.find(key => key.startsWith(`${osType}_`));
+        if (matched) return matched;
+      }
+      return allPlatformKeys[0] || '';
+    };
+
+    // 构造插件参数：每个 host 带上对应 platform 的 version、config_name 和 custom_config_context
     const pluginName = formData.pluginName?.trim() || currentPluginName.value;
-    const pluginPayload = hosts.map((host: any) => ({
-      bk_host_id: host.bk_host_id || host.host_id,
-      plugin_name: pluginName,
-      version: formData.selectedVersion || '',
-      config_name: [pluginName],
-      custom_config_context: formData.paramConfig || {},
-    }));
+    const pluginPayload = hosts.map((host: any) => {
+      const hostOsType = host.os_type || '';
+      const hostCpuArch = host.cpu_arch || '';
+      const matchedPlatform = getMatchedPlatform(hostOsType, hostCpuArch);
+      return {
+        bk_host_id: host.bk_host_id || host.host_id,
+        plugin_name: pluginName,
+        version: versionMap[matchedPlatform] || formData.selectedVersion || '',
+        config_name: configNamesMap[matchedPlatform] || [],
+        custom_config_context: paramConfig[matchedPlatform] || {},
+      };
+    });
 
     let res: { workflow_id: string };
     // 根据操作类型调用不同 API
     if (operationType.value === 'upgrade') {
       res = await PluginAPIService.UpgradePlugin({ plugin: pluginPayload });
+    } else if (operationType.value === 'restart') {
+      // 重启只需 bk_host_id + plugin_name
+      res = await PluginAPIService.RestartPlugin({
+        plugin: hosts.map((host: any) => ({
+          bk_host_id: host.bk_host_id || host.host_id,
+          plugin_name: pluginName,
+        })),
+      });
+    } else if (operationType.value === 'stop') {
+      // 停止只需 bk_host_id + plugin_name
+      res = await PluginAPIService.StopPlugin({
+        plugin: hosts.map((host: any) => ({
+          bk_host_id: host.bk_host_id || host.host_id,
+          plugin_name: pluginName,
+        })),
+      });
     } else {
-      res = await PluginAPIService.InstallPlugin({ plugin: pluginPayload });
+      // 默认安装/重装（重装也调 InstallPlugin，由后端判断已有插件时执行重装逻辑）
+      res = await PluginAPIService.InstallPlugin({ plugin: pluginPayload, enable_compatibility_mode: false });
     }
 
     // 安装/升级成功 → 跳转到任务详情

@@ -170,3 +170,41 @@ export interface DataOperation {
   permission: string[];
 }
 
+// PluginRestartReq describes the plugin restart request.
+export interface PluginRestartReq {
+  plugin: PluginOperateBasicInfo[];
+}
+
+// PluginRestartResp describes the plugin restart response.
+export interface PluginRestartResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PluginRestartRespData;
+}
+
+export interface PluginRestartRespData {
+  workflow_id: string;
+}
+
+// PluginStopReq describes the plugin stop request.
+export interface PluginStopReq {
+  plugin: PluginOperateBasicInfo[];
+}
+
+// PluginStopResp describes the plugin stop response.
+export interface PluginStopResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PluginStopRespData;
+}
+
+export interface PluginStopRespData {
+  workflow_id: string;
+}
+

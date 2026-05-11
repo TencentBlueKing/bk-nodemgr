@@ -399,10 +399,23 @@ interface IWorkflowStatisticsInfo {
 }
 type taskType =
   | 'install_agent'
-  | 'install_plugin'
   | 'upgrade_agent'
+  | 'reconfig_agent'
+  | 'restart_agent'
+  | 'uninstall_agent'
+  | 'install_proxy'
+  | 'upgrade_proxy'
+  | 'reconfig_proxy'
+  | 'restart_proxy'
+  | 'uninstall_proxy'
+  | 'assign_proxy_unit'
+  | 'install_plugin'
   | 'upgrade_plugin'
-  | 'assign_proxy_unit';
+  | 'uninstall_plugin'
+  | 'reconfig_plugin'
+  | 'apply_plugin_subconfig'
+  | 'restart_plugin'
+  | 'stop_plugin';
 type filterProp = 'state' | 'node_version';
 
 const { t } = useI18n();
@@ -481,9 +494,7 @@ const statusMap = computed(() => ({
 }));
 const typeMap = computed(() => ({
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
-  install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
   upgrade_agent: t('platform.nodeMan.taskHistory.taskType.upgrade_agent'),
-  upgrade_plugin: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
   reconfig_agent: t('platform.nodeMan.taskHistory.taskType.reconfig_agent'),
   restart_agent: t('platform.nodeMan.taskHistory.taskType.restart_agent'),
   uninstall_agent: t('platform.nodeMan.taskHistory.taskType.uninstall_agent'),
@@ -493,6 +504,13 @@ const typeMap = computed(() => ({
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
   assign_proxy_unit: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
+  install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
+  upgrade_plugin: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
+  uninstall_plugin: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin'),
+  reconfig_plugin: t('platform.nodeMan.taskHistory.taskType.reconfig_plugin'),
+  apply_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
+  restart_plugin: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
+  stop_plugin: t('platform.nodeMan.taskHistory.taskType.stop_plugin'),
 }));
 
 const networkAreaListMap = ref(new Map<number, string>([]));
@@ -1386,7 +1404,9 @@ const getParams = () => {
       limit: pagination.limit,
       offset: (pagination.current - 1) * pagination.limit,
     },
-    exact_include_conditions: {} as Record<string, string[] | string>,
+    exact_include_conditions: {
+      bk_biz_id: mainStore.selectedBusinessId || [],
+    } as Record<string, any>,
     workflow_id: route.params.taskId,
   };
   searchSelectValue.value.forEach((item: any) => {

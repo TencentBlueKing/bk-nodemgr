@@ -239,6 +239,11 @@ platform:
         assign_proxy_unit: Proxy 分配管控单元
         install_plugin: 插件安装
         upgrade_plugin: 插件升级
+        uninstall_plugin: 插件卸载
+        reconfig_plugin: 插件重载配置
+        apply_plugin_subconfig: 插件应用子配置
+        restart_plugin: 插件重启
+        stop_plugin: 插件停止
       statusType:
         running: 执行中
         failed: 失败
@@ -317,6 +322,7 @@ pluginManagement:
       uninstall: 卸载
       restart: 重启
       stop: 停止
+      reinstall: 重装
       operateDisabled: 该操作暂未开放
       operateSuccess: 操作执行成功
       restartTitle: 确认重启插件
@@ -331,6 +337,18 @@ pluginManagement:
       batchStopTitle: 确认批量停止插件
       stopSubTitle: '确认停止插件 {pluginName}？'
       batchStopSubTitle: '确认批量停止 {pluginNames} 等 {count} 个插件？'
+      plugin: 插件
+      of: 的
+      processes: 等进程？
+      confirmBatchOperate: 确认批量操作
+      unrecoverable: 卸载后不可恢复。
+      selectProcessHint: '请勾选需要{action}的插件进程'
+      actionUninstall: 卸载
+      actionRestart: 重启
+      actionStop: 停止
+      selectionConfirmUninstall: '确认批量卸载 {detail} 等 {count} 个进程？卸载后不可恢复。'
+      selectionConfirmRestart: '确认批量重启 {detail} 等 {count} 个进程？'
+      selectionConfirmStop: '确认批量停止 {detail} 等 {count} 个进程？'
 topoManager:
   workArea:
     title: 管控区域
@@ -1096,9 +1114,6 @@ components:
   logVersion:
     current: 当前版本
   operateDialog:
-    reloadConfig: 同时重载配置
-    forceRestart: 强制重启
-    gracefulRestart: 无损重启
     gracefulTime: 超时时间
     seconds: 秒
   setting:

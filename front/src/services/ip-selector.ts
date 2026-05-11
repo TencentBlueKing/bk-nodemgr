@@ -215,6 +215,7 @@ const mapHostItem = (item: any) => {
     host_name: info?.bk_host_name || '',
     os_name: info?.os_type || '',
     os_type: info?.os_type || '',
+    cpu_arch: info?.cpu_arch || '',
     alive: agentAlive,
     cloud_area: { id: networkAreaId, name: info?.bk_networkarea_name || '' },
     cloud_id: networkAreaId,
@@ -710,9 +711,7 @@ export const fetchHostDetails = async (params: any): Promise<any> => {
       only_count: false,
       exact_include_conditions: {
         bk_host_id: ids,
-        ...(Array.isArray(params.node_role) && params.node_role.length > 0
-          ? { node_role: params.node_role }
-          : {}),
+        node_role: resolveNodeRoleFilter(),
       },
       fuzzy_include_conditions: {},
     });
@@ -772,6 +771,12 @@ export const fetchHostCheck = async (params: any): Promise<any> => {
   }
 
   try {
+    // 与静态拓扑选择一致，根据 agent_view/proxy_view 权限过滤 node_role
+    const nodeRoleFilter = resolveNodeRoleFilter();
+    if (nodeRoleFilter.length > 0) {
+      exact.node_role = nodeRoleFilter;
+    }
+
     const res = await listHosts({
       page: { limit: 200, offset: 0 },
       exact,

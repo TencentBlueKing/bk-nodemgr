@@ -165,7 +165,7 @@ const IpSelector = createFactory({
   // 主机表格每页条数
   hostTablePageSize: 10,
   // 主机列表显示列
-  hostTableRenderColumnList: ['ip', 'ipv6', 'hostName', 'cloudArea', 'osName', 'alive'],
+  hostTableRenderColumnList: ['ip', 'ipv6', 'hostName', 'cloudArea', 'osName', 'cpuArch', 'alive'],
   // 主机预览字段
   hostViewFieldRender: (host: any) => host.host_id,
 
