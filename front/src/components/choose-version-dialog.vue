@@ -55,14 +55,20 @@
           <TableColumn
             field="version"
             fixed="left"
-            min-width="138"
+            :min-width="hasDefaultVersion ? 138 : 230"
             sortable
           >
             <template #header>
-              <span class="text-[14px]">{{ $t('components.chooseVersion.AgentVersion') }}</span>
+              <span class="text-[14px]">{{ versionColumnTitle }}</span>
+            </template>
+            <template #default="{ row }">
+              <span v-bk-tooltips="{ content: row.version, disabled: !row.version || row.version.length <= 15 }">
+                {{ row.version }}
+              </span>
             </template>
           </TableColumn>
           <TableColumn
+            v-if="hasDefaultVersion"
             field="tag"
             min-width="100"
           >
@@ -183,6 +189,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  pluginName: {
+    type: String,
+    default: '',
+  },
 });
 const emit = defineEmits(['confirm', 'cancel']);
 const { t } = useI18n();
@@ -196,6 +206,19 @@ const selectedVersion = ref<any>();
 const selectedRadio = computed(() => selectedVersion.value.version || '');
 const force = ref(false); // 是否强制升级
 const graceful_restart_timeout_sec = ref(120);
+
+// 当前 OS 下是否有默认版本标签，没有则隐藏 tag 列
+const hasDefaultVersion = computed(() => selectedOs.value?.versions?.some((v: any) => v.as_default) ?? false);
+
+// 根据 releaseType 动态显示版本列标题
+const versionColumnTitle = computed(() => {
+  const typeMap: Record<string, string> = {
+    agent: t('components.chooseVersion.AgentVersion'),
+    plugin: t('components.chooseVersion.PluginVersion'),
+    proxy: t('components.chooseVersion.ProxyVersion'),
+  };
+  return typeMap[props.releaseType] || t('components.chooseVersion.AgentVersion');
+});
 
 function selectOs(os: IOsversion) {
   if (!props.batch) return;
@@ -261,6 +284,7 @@ const getVersions = async () => {
       generation: PACKAGE_GENERATION,
       exact_include_conditions: {
         enabled: [true],
+        ...(props.pluginName ? { name: [props.pluginName] } : {}),
       },
     }).catch(() => ({
       total: 0,

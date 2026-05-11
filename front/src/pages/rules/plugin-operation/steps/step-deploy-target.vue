@@ -104,6 +104,7 @@
       :data="dialogData"
       :batch="isBatch"
       :release-type="'plugin'"
+      :plugin-name="formData.pluginName"
       @confirm="handleConfirmVersion"
     />
   </div>

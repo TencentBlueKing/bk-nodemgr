@@ -1011,6 +1011,8 @@ components:
   chooseVersion:
     title: 按操作系统选定版本
     AgentVersion: Agent 版本
+    PluginVersion: Plugin 版本
+    ProxyVersion: Proxy 版本
     DefaultVersion: 默认版本
     versionInfoTitle: "{version} 的详细信息"
     forceUpgrade: 强制升级

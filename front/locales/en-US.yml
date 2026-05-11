@@ -1011,6 +1011,8 @@ components:
   chooseVersion:
     title: Select Version by OS
     AgentVersion: Agent Version
+    PluginVersion: Plugin Version
+    ProxyVersion: Proxy Version
     DefaultVersion: Default
     versionInfoTitle: '{version} Details'
     forceUpgrade: Force Upgrade
