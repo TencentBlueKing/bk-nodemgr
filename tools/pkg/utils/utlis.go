@@ -475,3 +475,12 @@ func ReadPIDFromFile(pidFile string) (int, error) {
 
 	return pid, nil
 }
+
+// ErrString returns the error message string if err is not nil, otherwise returns an empty string.
+func ErrString(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	return err.Error()
+}

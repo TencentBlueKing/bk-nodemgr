@@ -15,25 +15,25 @@ import (
 	"path/filepath"
 
 	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/v2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/plugininstaller"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginuninstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginv2installer"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginv2uninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
-// NewFullInstall creates a new full install command.
-// nolint: lll, funlen, gocognit
-func NewFullInstall() *cobra.Command {
+// NewFullInstallV2 creates a new full install V2 command.
+// nolint: lll, funlen, gocognit, gocyclo
+func NewFullInstallV2() *cobra.Command {
 	var (
 		// required flags.
 		downloadSvrAddr string
@@ -51,13 +51,13 @@ func NewFullInstall() *cobra.Command {
 		// pre-run.
 		persistentVars *persistent.Variables
 		pkgPath        string
-		pluginHandler  pluginhandler.IPluginHandler
+		pluginHandler  pluginv2handler.IPluginV2Handler
 	)
 
 	fullCmd := &cobra.Command{
-		Use:   "full-install",
-		Short: "Full install plugin",
-		Long:  "Full install plugin",
+		Use:   "full-install-v2",
+		Short: "Full install V2 plugin",
+		Long:  "Full install compatible plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if downloadSvrAddr == "" && !skipDownload {
 				return fmt.Errorf("%s is required when %s is not set", pluginFlag.DownloadSvrAddr, pluginFlag.SkipDownload)
@@ -79,7 +79,7 @@ func NewFullInstall() *cobra.Command {
 				logDir = filepath.Join(persistentVars.DataDir, "logs")
 			}
 
-			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
+			pluginHandler, err = v2handler.NewPluginV2Handler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}
@@ -165,14 +165,14 @@ func NewFullInstall() *cobra.Command {
 			}
 
 			// uninstall plugin.
-			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
+			if err := pluginv2uninstaller.NewStep(pluginv2uninstaller.StepArgs{
 				PluginHandler: pluginHandler,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
 
 			// install plugin.
-			if err := plugininstaller.NewStep(plugininstaller.StepArgs{
+			if err := pluginv2installer.NewStep(pluginv2installer.StepArgs{
 				PluginHandler: pluginHandler,
 				PkgPath:       pkgPath,
 				SrcConfigDir:  persistentVars.ConfigDir,

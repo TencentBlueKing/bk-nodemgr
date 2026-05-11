@@ -15,54 +15,41 @@ import (
 	"path/filepath"
 
 	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/v2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/plugininstaller"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginuninstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginv2uninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
-// NewFullInstall creates a new full install command.
-// nolint: lll, funlen, gocognit
-func NewFullInstall() *cobra.Command {
+// NewFullUninstallV2 creates a new full uninstall V2 command.
+func NewFullUninstallV2() *cobra.Command {
 	var (
 		// required flags.
-		downloadSvrAddr string
 		callbackSvrAddr string
 		deployToken     string
 		operInstID      string
-		pluginVersion   string
 
 		// optional flags.
 		logDir       string
 		logToStd     bool
 		skipCallback bool
-		skipDownload bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
-		pkgPath        string
-		pluginHandler  pluginhandler.IPluginHandler
+		pluginHandler  pluginv2handler.IPluginV2Handler
 	)
 
 	fullCmd := &cobra.Command{
-		Use:   "full-install",
-		Short: "Full install plugin",
-		Long:  "Full install plugin",
+		Use:   "full-uninstall-v2",
+		Short: "Full uninstall V2 plugin",
+		Long:  "Full uninstall V2 plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			if downloadSvrAddr == "" && !skipDownload {
-				return fmt.Errorf("%s is required when %s is not set", pluginFlag.DownloadSvrAddr, pluginFlag.SkipDownload)
-			}
-
 			if callbackSvrAddr == "" && !skipCallback {
 				return fmt.Errorf("%s is required when %s is not set", pluginFlag.CallbackSvrAddr, pluginFlag.SkipCallback)
 			}
@@ -73,13 +60,11 @@ func NewFullInstall() *cobra.Command {
 			}
 			persistentVars = vars
 
-			pkgPath = filepath.Join(persistentVars.DataDir, step.GenReleasePkgName(persistentVars.PluginName, pluginVersion))
-
 			if logDir == "" {
 				logDir = filepath.Join(persistentVars.DataDir, "logs")
 			}
 
-			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
+			pluginHandler, err = v2handler.NewPluginV2Handler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}
@@ -95,6 +80,7 @@ func NewFullInstall() *cobra.Command {
 				if len(callbackSvrAddrs) == 0 {
 					return fmt.Errorf("callback server address is empty or invalid")
 				}
+
 				var err error
 				logURLs, err = reportLogURLs(callbackSvrAddrs)
 				if err != nil {
@@ -126,56 +112,8 @@ func NewFullInstall() *cobra.Command {
 				}).Run(cmd.Context())
 			}()
 
-			// download files.
-			if !skipDownload {
-				downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
-				if len(downloadSvrAddrs) == 0 {
-					return fmt.Errorf("download server address is empty or invalid")
-				}
-				if err := filedownloader.NewStep(filedownloader.StepArgs{
-					DownloadSvrAddr: downloadSvrAddrs,
-					PluginGroup:     persistentVars.PluginGroup,
-					PluginName:      persistentVars.PluginName,
-					PluginPkgName:   persistentVars.PluginPkgName,
-					DeployToken:     deployToken,
-					PkgVersion:      pluginVersion,
-					PkgSavedPath:    pkgPath,
-				}).Run(cmd.Context()); err != nil {
-					return err
-				}
-			}
-
-			// fetch configs.
-			if !skipCallback {
-				callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
-				if len(callbackSvrAddrs) == 0 {
-					return fmt.Errorf("callback server address is empty or invalid")
-				}
-
-				if err := configfetcher.NewStep(configfetcher.StepArgs{
-					CallbackSvrAddr: callbackSvrAddrs,
-					PluginGroup:     persistentVars.PluginGroup,
-					PluginName:      persistentVars.PluginName,
-					PluginPkgName:   persistentVars.PluginPkgName,
-					DeployToken:     deployToken,
-					ConfigSavedDir:  persistentVars.ConfigDir,
-				}).Run(cmd.Context()); err != nil {
-					return err
-				}
-			}
-
-			// uninstall plugin.
-			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
+			if err := pluginv2uninstaller.NewStep(pluginv2uninstaller.StepArgs{
 				PluginHandler: pluginHandler,
-			}).Run(cmd.Context()); err != nil {
-				return err
-			}
-
-			// install plugin.
-			if err := plugininstaller.NewStep(plugininstaller.StepArgs{
-				PluginHandler: pluginHandler,
-				PkgPath:       pkgPath,
-				SrcConfigDir:  persistentVars.ConfigDir,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -198,8 +136,6 @@ func NewFullInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, pluginFlag.DownloadSvrAddr, "", "download server address. if skip_download is set, this can be empty")
-
 	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
 
 	fullCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
@@ -208,15 +144,11 @@ func NewFullInstall() *cobra.Command {
 	fullCmd.Flags().StringVar(&operInstID, pluginFlag.OperInstID, "", "operation instance id")
 	_ = fullCmd.MarkFlagRequired(pluginFlag.OperInstID)
 
-	fullCmd.Flags().StringVar(&pluginVersion, pluginFlag.PluginVersion, "", "plugin version, for downloading package version")
-	_ = fullCmd.MarkFlagRequired(pluginFlag.PluginVersion)
-
 	/*
 	 * optional flags.
 	 */
 	fullCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
-	fullCmd.Flags().BoolVar(&skipDownload, pluginFlag.SkipDownload, false, "whether to skip downloading files")
 	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
