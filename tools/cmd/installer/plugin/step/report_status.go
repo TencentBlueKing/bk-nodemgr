@@ -13,7 +13,7 @@ package step
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -59,17 +59,17 @@ func NewReportStatus() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for reporting data")
-	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
+	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for reporting data")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
 
-	stepCmd.Flags().StringVar(&deployToken, flag.DeployToken, "", "deploy token, contains the details of this process")
-	_ = stepCmd.MarkFlagRequired(flag.DeployToken)
+	stepCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of this process")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.DeployToken)
 
-	stepCmd.Flags().StringVar(&status, flag.Status, "", "status to report, start, running, success, failed, timeout, skip")
-	_ = stepCmd.MarkFlagRequired(flag.Status)
+	stepCmd.Flags().StringVar(&status, pluginFlag.Status, "", "status to report, start, running, success, failed, timeout, skip")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.Status)
 
-	stepCmd.Flags().StringVar(&operInstID, flag.OperInstID, "", "operation instance id")
-	_ = stepCmd.MarkFlagRequired(flag.OperInstID)
+	stepCmd.Flags().StringVar(&operInstID, pluginFlag.OperInstID, "", "operation instance id")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.OperInstID)
 
 	return stepCmd
 }

@@ -1,5 +1,3 @@
-//go:build linux || darwin || freebsd || aix
-
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -10,13 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package v2handler
+// Package handler provides a multi-platform factory for the V2 plugin handler.
+package handler
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler/unix"
 )
 
-func newPluginV2Handler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginV2Handler, error) {
-	return unix.NewPluginV2Handler(rootAbsDir, pluginGroup, pluginName)
+// NewPluginHandler creates a platform-specific V2 handler.
+func NewPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginHandler, error) {
+	return newPluginHandler(rootAbsDir, pluginGroup, pluginName)
 }

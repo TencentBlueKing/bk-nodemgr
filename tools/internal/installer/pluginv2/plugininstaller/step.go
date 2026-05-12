@@ -8,14 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package pluginv2installer this package is used to install bk-nodemgr plugins in a V2 way.
-package pluginv2installer
+// Package plugininstaller this package is used to install bk-nodemgr plugins in a V2 way.
+package plugininstaller
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
@@ -27,7 +27,7 @@ type Step struct {
 
 // StepArgs args for step.
 type StepArgs struct {
-	PluginHandler pluginv2handler.IPluginV2Handler
+	PluginHandler pluginv2handler.IPluginHandler
 
 	PkgPath      string
 	SrcConfigDir string
@@ -45,34 +45,34 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to install plugin.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(plugin.StepInstallPlugin, "start to install plugin. %s", step.args.String())
+	logger.Infof(pluginv2.StepInstallPlugin, "start to install plugin. %s", step.args.String())
 
 	// 1. init file-system architecture.
 	if err := step.args.PluginHandler.FS().Init(); err != nil {
-		logger.Errorf(plugin.StepInstallPlugin, "failed to init file-system: %v", err)
+		logger.Errorf(pluginv2.StepInstallPlugin, "failed to init file-system: %v", err)
 
 		return err
 	}
-	logger.Info(plugin.StepInstallPlugin, "inited file-system")
+	logger.Info(pluginv2.StepInstallPlugin, "inited file-system")
 
 	// 2. unpack release package file into installed file-system.
 	if err := step.args.PluginHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, false); err != nil {
-		logger.Errorf(plugin.StepInstallPlugin, "failed to unpack release pkg: %v", err)
+		logger.Errorf(pluginv2.StepInstallPlugin, "failed to unpack release pkg: %v", err)
 
 		return err
 	}
 
-	logger.Info(plugin.StepInstallPlugin, "unpacked release pkg")
+	logger.Info(pluginv2.StepInstallPlugin, "unpacked release pkg")
 
 	// 3. copy config files to installed file-system.
 	if err := step.args.PluginHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
-		logger.Errorf(plugin.StepInstallPlugin, "failed to copy config dir: %v", err)
+		logger.Errorf(pluginv2.StepInstallPlugin, "failed to copy config dir: %v", err)
 
 		return err
 	}
-	logger.Info(plugin.StepInstallPlugin, "copied config dir")
+	logger.Info(pluginv2.StepInstallPlugin, "copied config dir")
 
-	logger.Info(plugin.StepInstallPlugin, "installed plugin")
+	logger.Info(pluginv2.StepInstallPlugin, "installed plugin")
 
 	return nil
 }

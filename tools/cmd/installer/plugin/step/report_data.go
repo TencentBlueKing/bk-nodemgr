@@ -13,7 +13,7 @@ package step
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
@@ -54,11 +54,11 @@ func NewReportData() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&callbackSvrAddr, flag.CallbackSvrAddr, "", "callback server address, for reporting data")
-	_ = stepCmd.MarkFlagRequired(flag.CallbackSvrAddr)
+	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for reporting data")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
 
-	stepCmd.Flags().StringVar(&deployToken, flag.DeployToken, "", "deploy token, contains the details of this process")
-	_ = stepCmd.MarkFlagRequired(flag.DeployToken)
+	stepCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of this process")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.DeployToken)
 
 	return stepCmd
 }

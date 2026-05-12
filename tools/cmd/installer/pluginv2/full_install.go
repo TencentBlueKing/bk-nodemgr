@@ -8,22 +8,22 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package plugin
+package pluginv2
 
 import (
 	"fmt"
 	"path/filepath"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/v2handler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginv2installer"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginv2uninstaller"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/step"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/configfetcher"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/plugininstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/pluginuninstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -31,9 +31,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewFullInstallV2 creates a new full install V2 command.
+// NewFullInstall creates a new full install command.
 // nolint: lll, funlen, gocognit, gocyclo
-func NewFullInstallV2() *cobra.Command {
+func NewFullInstall() *cobra.Command {
 	var (
 		// required flags.
 		downloadSvrAddr string
@@ -51,13 +51,13 @@ func NewFullInstallV2() *cobra.Command {
 		// pre-run.
 		persistentVars *persistent.Variables
 		pkgPath        string
-		pluginHandler  pluginv2handler.IPluginV2Handler
+		pluginHandler  pluginv2handler.IPluginHandler
 	)
 
 	fullCmd := &cobra.Command{
-		Use:   "full-install-v2",
+		Use:   "full-install",
 		Short: "Full install V2 plugin",
-		Long:  "Full install compatible plugin",
+		Long:  "Full install V2 plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if downloadSvrAddr == "" && !skipDownload {
 				return fmt.Errorf("%s is required when %s is not set", pluginFlag.DownloadSvrAddr, pluginFlag.SkipDownload)
@@ -79,7 +79,7 @@ func NewFullInstallV2() *cobra.Command {
 				logDir = filepath.Join(persistentVars.DataDir, "logs")
 			}
 
-			pluginHandler, err = v2handler.NewPluginV2Handler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
+			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}
@@ -165,14 +165,14 @@ func NewFullInstallV2() *cobra.Command {
 			}
 
 			// uninstall plugin.
-			if err := pluginv2uninstaller.NewStep(pluginv2uninstaller.StepArgs{
+			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
 				PluginHandler: pluginHandler,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
 
 			// install plugin.
-			if err := pluginv2installer.NewStep(pluginv2installer.StepArgs{
+			if err := plugininstaller.NewStep(plugininstaller.StepArgs{
 				PluginHandler: pluginHandler,
 				PkgPath:       pkgPath,
 				SrcConfigDir:  persistentVars.ConfigDir,
@@ -220,4 +220,12 @@ func NewFullInstallV2() *cobra.Command {
 	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
+}
+
+func errString(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	return err.Error()
 }

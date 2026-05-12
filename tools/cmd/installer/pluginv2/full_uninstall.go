@@ -8,18 +8,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package plugin
+package pluginv2
 
 import (
 	"fmt"
 	"path/filepath"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/v2handler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginv2uninstaller"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/pluginuninstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -28,7 +29,7 @@ import (
 )
 
 // NewFullUninstallV2 creates a new full uninstall V2 command.
-func NewFullUninstallV2() *cobra.Command {
+func NewFullUninstall() *cobra.Command {
 	var (
 		// required flags.
 		callbackSvrAddr string
@@ -42,11 +43,11 @@ func NewFullUninstallV2() *cobra.Command {
 
 		// pre-run.
 		persistentVars *persistent.Variables
-		pluginHandler  pluginv2handler.IPluginV2Handler
+		pluginHandler  pluginv2handler.IPluginHandler
 	)
 
 	fullCmd := &cobra.Command{
-		Use:   "full-uninstall-v2",
+		Use:   "full-uninstall",
 		Short: "Full uninstall V2 plugin",
 		Long:  "Full uninstall V2 plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
@@ -64,7 +65,7 @@ func NewFullUninstallV2() *cobra.Command {
 				logDir = filepath.Join(persistentVars.DataDir, "logs")
 			}
 
-			pluginHandler, err = v2handler.NewPluginV2Handler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
+			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}
@@ -108,7 +109,7 @@ func NewFullUninstallV2() *cobra.Command {
 				}).Run(cmd.Context())
 			}()
 
-			if err := pluginv2uninstaller.NewStep(pluginv2uninstaller.StepArgs{
+			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
 				PluginHandler: pluginHandler,
 			}).Run(cmd.Context()); err != nil {
 				return err
@@ -129,20 +130,20 @@ func NewFullUninstallV2() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
+	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginV2Flag.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
 
-	fullCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
-	_ = fullCmd.MarkFlagRequired(pluginFlag.DeployToken)
+	fullCmd.Flags().StringVar(&deployToken, pluginV2Flag.DeployToken, "", "deploy token, contains the details of files")
+	_ = fullCmd.MarkFlagRequired(pluginV2Flag.DeployToken)
 
-	fullCmd.Flags().StringVar(&operInstID, pluginFlag.OperInstID, "", "operation instance id")
-	_ = fullCmd.MarkFlagRequired(pluginFlag.OperInstID)
+	fullCmd.Flags().StringVar(&operInstID, pluginV2Flag.OperInstID, "", "operation instance id")
+	_ = fullCmd.MarkFlagRequired(pluginV2Flag.OperInstID)
 
 	/*
 	 * optional flags.
 	 */
-	fullCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
-	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
-	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
+	fullCmd.Flags().StringVar(&logDir, pluginV2Flag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, pluginV2Flag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().BoolVar(&skipCallback, pluginV2Flag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
 }

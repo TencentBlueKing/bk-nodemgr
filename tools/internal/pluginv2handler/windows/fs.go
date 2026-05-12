@@ -38,10 +38,10 @@ const (
 	tmpFilePrefix = ".bknm_tmp_"
 )
 
-var _ pluginv2handler.IPluginV2FSHandler = &PluginV2Handler{}
+var _ pluginv2handler.IPluginFSHandler = &PluginHandler{}
 
-// Init implement pluginv2handler.IPluginV2FSHandler.
-func (handler *PluginV2Handler) Init() error {
+// Init implement pluginv2handler.IPluginFSHandler.
+func (handler *PluginHandler) Init() error {
 	if err := handler.mkdirAll(handler.setupDir); err != nil {
 		return fmt.Errorf("failed to make setup-dir(%s): %w", handler.setupDir, err)
 	}
@@ -57,15 +57,15 @@ func (handler *PluginV2Handler) Init() error {
 	return nil
 }
 
-// CheckIntegrity implement pluginv2handler.IPluginV2FSHandler.
-func (handler *PluginV2Handler) CheckIntegrity(_ context.Context) error {
+// CheckIntegrity implement pluginv2handler.IPluginFSHandler.
+func (handler *PluginHandler) CheckIntegrity(_ context.Context) error {
 	return nil
 }
 
-// Purge implement pluginv2handler.IPluginV2FSHandler.
+// Purge implement pluginv2handler.IPluginFSHandler.
 // In compatible mode plugins/ is shared by all plugins, so only the current plugin's
 // own files are removed: bin/<pluginName>, etc/<pluginName>, etc/<pluginName>.conf.
-func (handler *PluginV2Handler) Purge(_ context.Context) error {
+func (handler *PluginHandler) Purge(_ context.Context) error {
 	pathsToRemove := []string{
 		filepath.Join(handler.binDir, handler.pluginName),
 		filepath.Join(handler.etcDir, handler.pluginName),
@@ -81,13 +81,13 @@ func (handler *PluginV2Handler) Purge(_ context.Context) error {
 	return nil
 }
 
-// Clean implement pluginv2handler.IPluginV2FSHandler.
-func (handler *PluginV2Handler) Clean(_ context.Context) error {
+// Clean implement pluginv2handler.IPluginFSHandler.
+func (handler *PluginHandler) Clean(_ context.Context) error {
 	return handler.cleanAllTmpFiles()
 }
 
-// UnpackReleasePackage implement pluginv2handler.IPluginV2FSHandler.
-func (handler *PluginV2Handler) UnpackReleasePackage(ctx context.Context, releasePkgAbsPath string, keepOldFileAsTmp bool) error {
+// UnpackReleasePackage implement pluginv2handler.IPluginFSHandler.
+func (handler *PluginHandler) UnpackReleasePackage(ctx context.Context, releasePkgAbsPath string, keepOldFileAsTmp bool) error {
 	if err := handler.checkDirWritable(handler.setupDir); err != nil {
 		return fmt.Errorf("setup dir is not writable: %w", err)
 	}
@@ -103,8 +103,8 @@ func (handler *PluginV2Handler) UnpackReleasePackage(ctx context.Context, releas
 	return nil
 }
 
-// CopyConfigDir implement pluginv2handler.IPluginV2FSHandler.
-func (handler *PluginV2Handler) CopyConfigDir(ctx context.Context, configFileAbsDir string) error {
+// CopyConfigDir implement pluginv2handler.IPluginFSHandler.
+func (handler *PluginHandler) CopyConfigDir(ctx context.Context, configFileAbsDir string) error {
 	if err := filepath.Walk(configFileAbsDir, func(path string, info os.FileInfo, err error) error {
 		select {
 		case <-ctx.Done():
@@ -145,7 +145,7 @@ func (handler *PluginV2Handler) CopyConfigDir(ctx context.Context, configFileAbs
 	return nil
 }
 
-func (handler *PluginV2Handler) checkDirWritable(targetRelativeDir string) error {
+func (handler *PluginHandler) checkDirWritable(targetRelativeDir string) error {
 	testRelativePath := filepath.Join(targetRelativeDir, handler.genTmpFileName("write_test"))
 
 	// nolint: gosec
@@ -160,11 +160,11 @@ func (handler *PluginV2Handler) checkDirWritable(targetRelativeDir string) error
 	return nil
 }
 
-func (handler *PluginV2Handler) genTmpFileName(tag string) string {
+func (handler *PluginHandler) genTmpFileName(tag string) string {
 	return tmpFilePrefix + tag + "_" + strconv.FormatInt(time.Now().Unix(), 10)
 }
 
-func (handler *PluginV2Handler) checkPathInFS(relativePath string) error {
+func (handler *PluginHandler) checkPathInFS(relativePath string) error {
 	absPath := handler.getAbsPath(relativePath)
 
 	relPath, err := filepath.Rel(handler.rootAbsDir, absPath)
@@ -179,7 +179,7 @@ func (handler *PluginV2Handler) checkPathInFS(relativePath string) error {
 	return nil
 }
 
-func (handler *PluginV2Handler) removeFile(relativePath string) error {
+func (handler *PluginHandler) removeFile(relativePath string) error {
 	if err := handler.checkPathInFS(relativePath); err != nil {
 		return fmt.Errorf("will not remove path outside FS. file(%s): %w", relativePath, err)
 	}
@@ -192,7 +192,7 @@ func (handler *PluginV2Handler) removeFile(relativePath string) error {
 
 	return nil
 }
-func (handler *PluginV2Handler) makeBinFilesExecutable() error {
+func (handler *PluginHandler) makeBinFilesExecutable() error {
 	binFiles, err := utils.ListFiles(handler.getAbsPath(handler.binDir))
 	if err != nil {
 		return fmt.Errorf("failed to list bin files. dir(%s): %w", handler.binDir, err)
@@ -209,7 +209,7 @@ func (handler *PluginV2Handler) makeBinFilesExecutable() error {
 
 // extractTgz extract tgz file to target relative-dir.
 // nolint: gocognit,funlen
-func (handler *PluginV2Handler) extractTgz(ctx context.Context, sourceAbsPath string, targetRelativeDir string, keepOldFileAsTmp bool) (err error) {
+func (handler *PluginHandler) extractTgz(ctx context.Context, sourceAbsPath string, targetRelativeDir string, keepOldFileAsTmp bool) (err error) {
 	// nolint: gosec
 	sourceFile, err := os.Open(sourceAbsPath)
 	if err != nil {
@@ -303,7 +303,7 @@ func (handler *PluginV2Handler) extractTgz(ctx context.Context, sourceAbsPath st
 	return nil
 }
 
-func (handler *PluginV2Handler) cleanAllTmpFiles() error {
+func (handler *PluginHandler) cleanAllTmpFiles() error {
 	if err := filepath.Walk(handler.rootAbsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

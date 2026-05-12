@@ -18,9 +18,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 )
 
-// NewPluginV2Handler creates a new pluginv2Handler for plugin.
-func NewPluginV2Handler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginV2Handler, error) {
-	handler := &PluginV2Handler{
+// NewPluginHandler creates a new plugin handler for plugin.
+func NewPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginHandler, error) {
+	handler := &PluginHandler{
 		rootAbsDir:  rootAbsDir,
 		pluginName:  pluginName,
 		pluginGroup: pluginGroup,
@@ -32,10 +32,10 @@ func NewPluginV2Handler(rootAbsDir, pluginGroup, pluginName string) (pluginv2han
 	return handler, nil
 }
 
-var _ pluginv2handler.IPluginV2Handler = &PluginV2Handler{}
+var _ pluginv2handler.IPluginHandler = &PluginHandler{}
 
-// PluginV2Handler provides the windows plugin handler.
-type PluginV2Handler struct {
+// PluginHandler provides the windows plugin handler.
+type PluginHandler struct {
 	rootAbsDir string
 
 	pluginName  string
@@ -46,24 +46,24 @@ type PluginV2Handler struct {
 	etcDir   string
 }
 
-// Group implement pluginv2handler.IPluginV2Handler.
-func (handler *PluginV2Handler) Group() string {
+// Group implement pluginv2handler.IPluginHandler.
+func (handler *PluginHandler) Group() string {
 	return handler.pluginGroup
 }
 
-// FS implement pluginv2handler.IPluginV2Handler.
-func (handler *PluginV2Handler) FS() pluginv2handler.IPluginV2FSHandler {
+// FS implement pluginv2handler.IPluginHandler.
+func (handler *PluginHandler) FS() pluginv2handler.IPluginFSHandler {
 	return handler
 }
 
-// Process implement pluginv2handler.IPluginV2Handler.
-func (handler *PluginV2Handler) Process() pluginv2handler.IPluginV2ProcessHandler {
+// Process implement pluginv2handler.IPluginHandler.
+func (handler *PluginHandler) Process() pluginv2handler.IPluginProcessHandler {
 	return handler
 }
 
 // initConfigs initializes the configurations via root-abs-dir.
 // All plugins share a single 'plugins' directory with merged bin/ and etc/ subdirectories.
-func (handler *PluginV2Handler) initConfigs() error {
+func (handler *PluginHandler) initConfigs() error {
 	handler.setupDir = "plugins"
 	handler.binDir = filepath.Join(handler.setupDir, "bin")
 	handler.etcDir = filepath.Join(handler.setupDir, "etc")

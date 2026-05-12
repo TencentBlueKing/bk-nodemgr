@@ -817,6 +817,8 @@ linters-settings:
         alias: iamv3
       - pkg: github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag
         alias: pluginFlag
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag
+        alias: pluginV2Flag
       - pkg: github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag
         alias: nodeFlag
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings

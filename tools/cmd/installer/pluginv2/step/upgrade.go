@@ -13,17 +13,16 @@ package step
 import (
 	"fmt"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/plugininstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/spf13/cobra"
 )
 
-// NewInstall creates a new install step command.
-// nolint: lll
-func NewInstall() *cobra.Command {
+// NewUpgrade creates a new upgrade step command.
+func NewUpgrade() *cobra.Command {
 	var (
 		// required flags.
 		pkgPath string
@@ -34,9 +33,9 @@ func NewInstall() *cobra.Command {
 	)
 
 	stepCmd := &cobra.Command{
-		Use:   "install",
-		Short: "Install plugin",
-		Long:  "Install plugin",
+		Use:   "upgrade",
+		Short: "Upgrade plugin",
+		Long:  "Upgrade plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
@@ -44,15 +43,16 @@ func NewInstall() *cobra.Command {
 			}
 			persistentVars = vars
 
-			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, "", vars.PluginName)
+			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}
 
 			return nil
 		},
+
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := plugininstaller.NewStep(plugininstaller.StepArgs{
+			step := pluginupgrader.NewStep(pluginupgrader.StepArgs{
 				PluginHandler: pluginHandler,
 				PkgPath:       pkgPath,
 				SrcConfigDir:  persistentVars.ConfigDir,
@@ -62,17 +62,16 @@ func NewInstall() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("successfully installed.\n")
+			fmt.Println("successfully upgraded")
 
 			return nil
 		},
 	}
-
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&pkgPath, pluginFlag.PkgFile, "", "path to release package file to install")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.PkgFile)
+	stepCmd.Flags().StringVar(&pkgPath, pluginV2Flag.PkgFile, "", "path to release package file to install")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.PkgFile)
 
 	return stepCmd
 }

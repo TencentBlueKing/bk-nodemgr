@@ -16,19 +16,19 @@ import (
 )
 
 // IPluginV2Handler plugin compatible handler interface.
-type IPluginV2Handler interface {
+type IPluginHandler interface {
 	// Group return plugin group.
 	Group() string
 
 	// FS return plugin file system handler.
-	FS() IPluginV2FSHandler
+	FS() IPluginFSHandler
 
 	// Process return plugin process handler.
-	Process() IPluginV2ProcessHandler
+	Process() IPluginProcessHandler
 }
 
-// IPluginV2FSHandler plugin compatible file system handler interface.
-type IPluginV2FSHandler interface {
+// IPluginFSHandler plugin compatible file system handler interface.
+type IPluginFSHandler interface {
 	// CheckIntegrity check the integrity of plugin file system.
 	CheckIntegrity(ctx context.Context) error
 
@@ -50,11 +50,5 @@ type IPluginV2FSHandler interface {
 	Clean(ctx context.Context) error
 }
 
-// IPluginV2ProcessHandler plugin compatible process handler interface.
-type IPluginV2ProcessHandler interface {
-	// RunCmd run command in plugin process handler.
-	RunCmd(ctx context.Context, cmd string, pidDir string) error
-
-	// Stop stop plugin process handler.
-	Stop(ctx context.Context, pidDir string) error
-}
+// IPluginProcessHandler plugin compatible process handler interface.
+type IPluginProcessHandler interface {}

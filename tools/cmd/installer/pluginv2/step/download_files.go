@@ -15,9 +15,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -83,17 +83,17 @@ func NewDownloadFiles() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&downloadSvrAddr, pluginFlag.DownloadSvrAddr, "", "download server address, for downloading release files")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.DownloadSvrAddr)
+	stepCmd.Flags().StringVar(&downloadSvrAddr, pluginV2Flag.DownloadSvrAddr, "", "download server address, for downloading release files")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.DownloadSvrAddr)
 
-	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
+	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginV2Flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.CallbackSvrAddr)
 
-	stepCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.DeployToken)
+	stepCmd.Flags().StringVar(&deployToken, pluginV2Flag.DeployToken, "", "deploy token, contains the details of files")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.DeployToken)
 
-	stepCmd.Flags().StringVar(&pluginVersion, pluginFlag.PluginVersion, "", "plugin version")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.PluginVersion)
+	stepCmd.Flags().StringVar(&pluginVersion, pluginV2Flag.PluginVersion, "", "plugin version")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.PluginVersion)
 
 	return stepCmd
 }

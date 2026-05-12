@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2"
 	"github.com/spf13/cobra"
 )
 
@@ -63,6 +64,7 @@ func NewRootCommand() *cobra.Command {
 	// sub commands.
 	rootCmd.AddCommand(node.NewNodeCommand())
 	rootCmd.AddCommand(plugin.NewPluginCommand())
+	rootCmd.AddCommand(pluginv2.NewPluginCommand())
 
 	return rootCmd
 }

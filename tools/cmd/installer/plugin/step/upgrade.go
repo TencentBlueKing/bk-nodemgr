@@ -12,7 +12,8 @@ package step
 
 import (
 	"fmt"
-	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+
+	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginupgrader"
@@ -69,8 +70,8 @@ func NewUpgrade() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&pkgPath, pluginflag.PkgFile, "", "path to release package file to install")
-	_ = stepCmd.MarkFlagRequired(pluginflag.PkgFile)
+	stepCmd.Flags().StringVar(&pkgPath, pluginFlag.PkgFile, "", "path to release package file to install")
+	_ = stepCmd.MarkFlagRequired(pluginFlag.PkgFile)
 
 	return stepCmd
 }

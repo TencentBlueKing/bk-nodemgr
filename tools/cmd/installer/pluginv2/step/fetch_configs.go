@@ -13,9 +13,9 @@ package step
 import (
 	"fmt"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -72,11 +72,11 @@ func NewFetchConfigs() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
+	stepCmd.Flags().StringVar(&callbackSvrAddr, pluginV2Flag.CallbackSvrAddr, "", "callback server address, for downloading config files")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.CallbackSvrAddr)
 
-	stepCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.DeployToken)
+	stepCmd.Flags().StringVar(&deployToken, pluginV2Flag.DeployToken, "", "deploy token, contains the details of files")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.DeployToken)
 
 	return stepCmd
 }

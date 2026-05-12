@@ -1,5 +1,3 @@
-//go:build windows
-
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -10,13 +8,30 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package v2handler
+// Package step provides the step sub commands.
+package step
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler/windows"
+	"github.com/spf13/cobra"
 )
 
-func newPluginV2Handler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginV2Handler, error) {
-	return windows.NewPluginV2Handler(rootAbsDir, pluginGroup, pluginName)
+// NewStepCommand creates a new step sub command.
+func NewStepCommand() *cobra.Command {
+	stepCommand := &cobra.Command{
+		Use:   "step",
+		Short: "Step command",
+		Long:  "Step command",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return cmd.Help()
+		},
+	}
+
+	stepCommand.AddCommand(NewInstall())
+	stepCommand.AddCommand(NewDownloadFiles())
+	stepCommand.AddCommand(NewReportData())
+	stepCommand.AddCommand(NewReportStatus())
+	stepCommand.AddCommand(NewUninstall())
+	stepCommand.AddCommand(NewUpgrade())
+
+	return stepCommand
 }

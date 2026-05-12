@@ -1,3 +1,5 @@
+//go:build windows
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -8,14 +10,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package v2handler provides a multi-platform factory for the V2 plugin handler.
-package v2handler
+package handler
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler/windows"
 )
 
-// NewPluginV2Handler creates a platform-specific V2 handler.
-func NewPluginV2Handler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginV2Handler, error) {
-	return newPluginV2Handler(rootAbsDir, pluginGroup, pluginName)
+func newPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginHandler, error) {
+	return windows.NewPluginHandler(rootAbsDir, pluginGroup, pluginName)
 }

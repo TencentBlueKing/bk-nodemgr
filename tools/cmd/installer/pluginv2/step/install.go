@@ -13,11 +13,11 @@ package step
 import (
 	"fmt"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/plugininstaller"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/plugininstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ func NewInstall() *cobra.Command {
 		pkgPath string
 
 		// pre-run.
-		pluginHandler  pluginhandler.IPluginHandler
+		pluginHandler  pluginv2handler.IPluginHandler
 		persistentVars *persistent.Variables
 	)
 
@@ -71,8 +71,8 @@ func NewInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	stepCmd.Flags().StringVar(&pkgPath, pluginFlag.PkgFile, "", "path to release package file to install")
-	_ = stepCmd.MarkFlagRequired(pluginFlag.PkgFile)
+	stepCmd.Flags().StringVar(&pkgPath, pluginV2Flag.PkgFile, "", "path to release package file to install")
+	_ = stepCmd.MarkFlagRequired(pluginV2Flag.PkgFile)
 
 	return stepCmd
 }

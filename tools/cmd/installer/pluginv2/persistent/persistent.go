@@ -16,7 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
 	"github.com/spf13/cobra"
 )
 
@@ -63,40 +63,40 @@ func (vars Variables) EnsureDirs() error {
 
 // GetVariables get the persistent vars.
 func GetVariables(cmd *cobra.Command) (*Variables, error) {
-	deployEnv, err := cmd.Flags().GetString(pluginFlag.DeployEnv)
+	deployEnv, err := cmd.Flags().GetString(pluginV2Flag.DeployEnv)
 	if err != nil {
 		return nil, err
 	}
 
-	pluginName, err := cmd.Flags().GetString(pluginFlag.PluginName)
+	pluginName, err := cmd.Flags().GetString(pluginV2Flag.PluginName)
 	if err != nil {
 		return nil, err
 	}
 
-	pluginGroup, err := cmd.Flags().GetString(pluginFlag.PluginGroup)
+	pluginGroup, err := cmd.Flags().GetString(pluginV2Flag.PluginGroup)
 	if err != nil {
 		return nil, err
 	}
 
-	pluginPkgName, err := cmd.Flags().GetString(pluginFlag.PluginPkgName)
+	pluginPkgName, err := cmd.Flags().GetString(pluginV2Flag.PluginPkgName)
 	if err != nil {
 		return nil, err
 	}
 
-	baseDeployDir, err := cmd.Flags().GetString(pluginFlag.BaseDeployDir)
+	baseDeployDir, err := cmd.Flags().GetString(pluginV2Flag.BaseDeployDir)
 	if err != nil {
 		return nil, err
 	}
 	if baseDeployDir == "" {
-		return nil, fmt.Errorf("%s is empty", pluginFlag.BaseDeployDir)
+		return nil, fmt.Errorf("%s is empty", pluginV2Flag.BaseDeployDir)
 	}
 
-	baseWorkDir, err := cmd.Flags().GetString(pluginFlag.BaseWorkDir)
+	baseWorkDir, err := cmd.Flags().GetString(pluginV2Flag.BaseWorkDir)
 	if err != nil {
 		return nil, err
 	}
 	if baseWorkDir == "" {
-		return nil, fmt.Errorf("%s is empty", pluginFlag.BaseWorkDir)
+		return nil, fmt.Errorf("%s is empty", pluginV2Flag.BaseWorkDir)
 	}
 
 	return &Variables{

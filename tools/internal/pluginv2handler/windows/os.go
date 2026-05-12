@@ -22,15 +22,15 @@ import (
 )
 
 // mkdirAll make all directories with relative-path.
-func (handler *PluginV2Handler) mkdirAll(relativePath string) error {
+func (handler *PluginHandler) mkdirAll(relativePath string) error {
 	return os.MkdirAll(handler.getAbsPath(relativePath), mkdirMode)
 }
 
-func (handler *PluginV2Handler) getAbsPath(relativePath string) string {
+func (handler *PluginHandler) getAbsPath(relativePath string) string {
 	return filepath.Clean(filepath.Join(handler.rootAbsDir, relativePath))
 }
 
-func (handler *PluginV2Handler) statFile(relativePath string) (os.FileInfo, error) {
+func (handler *PluginHandler) statFile(relativePath string) (os.FileInfo, error) {
 	absPath := handler.getAbsPath(relativePath)
 
 	info, err := os.Stat(absPath)
@@ -41,7 +41,7 @@ func (handler *PluginV2Handler) statFile(relativePath string) (os.FileInfo, erro
 	return info, nil
 }
 
-func (handler *PluginV2Handler) openFileForWrite(relativePath string) (*os.File, error) {
+func (handler *PluginHandler) openFileForWrite(relativePath string) (*os.File, error) {
 	if err := handler.checkPathInFS(relativePath); err != nil {
 		return nil, fmt.Errorf("will not open path outside FS. file(%s): %w", relativePath, err)
 	}
@@ -61,7 +61,7 @@ func (handler *PluginV2Handler) openFileForWrite(relativePath string) (*os.File,
 	return file, nil
 }
 
-func (handler *PluginV2Handler) renameFileAsTmpFileIfExists(relativePath string) error {
+func (handler *PluginHandler) renameFileAsTmpFileIfExists(relativePath string) error {
 	if err := handler.checkPathInFS(relativePath); err != nil {
 		return fmt.Errorf("will not rename path outside FS. file(%s): %w", relativePath, err)
 	}
@@ -84,7 +84,7 @@ func (handler *PluginV2Handler) renameFileAsTmpFileIfExists(relativePath string)
 	return os.Rename(absPath, tmpFileAbsPath)
 }
 
-func (handler *PluginV2Handler) overwriteFile(file io.Reader, targetRelativePath string) (err error) {
+func (handler *PluginHandler) overwriteFile(file io.Reader, targetRelativePath string) (err error) {
 	targetAbsPath := handler.getAbsPath(targetRelativePath)
 	if err := os.MkdirAll(filepath.Dir(targetAbsPath), mkdirMode); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (handler *PluginV2Handler) overwriteFile(file io.Reader, targetRelativePath
 	return nil
 }
 
-func (handler *PluginV2Handler) removeAll(relativePath string) error {
+func (handler *PluginHandler) removeAll(relativePath string) error {
 	if err := handler.checkPathInFS(relativePath); err != nil {
 		return fmt.Errorf("will not remove path outside FS. file(%s): %w", relativePath, err)
 	}

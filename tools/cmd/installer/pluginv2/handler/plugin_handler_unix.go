@@ -1,4 +1,4 @@
-//go:build windows
+//go:build linux || darwin || freebsd || aix
 
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
@@ -10,11 +10,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package windows provides the plugin process handler implementation for windows system.
-package windows
+package handler
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler/unix"
 )
 
-var _ pluginv2handler.IPluginProcessHandler = &PluginHandler{}
+func newPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginv2handler.IPluginHandler, error) {
+	return unix.NewPluginHandler(rootAbsDir, pluginGroup, pluginName)
+}

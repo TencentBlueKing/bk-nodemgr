@@ -8,14 +8,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package pluginv2uninstaller is used to uninstall bk-nodemgr plugins in a V2 way.
-package pluginv2uninstaller
+// Package pluginuninstaller is used to uninstall bk-nodemgr plugins in a V2 way.
+package pluginuninstaller
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
@@ -27,7 +27,7 @@ type Step struct {
 
 // StepArgs define args for step.
 type StepArgs struct {
-	PluginHandler pluginv2handler.IPluginV2Handler
+	PluginHandler pluginv2handler.IPluginHandler
 }
 
 // NewStep new a step.
@@ -37,15 +37,15 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to uninstall plugin.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Info(plugin.StepUninstallPlugin, "start to uninstall compatible plugin")
+	logger.Info(pluginv2.StepUninstallPlugin, "start to uninstall v2 plugin")
 
 	if err := step.args.PluginHandler.FS().Purge(ctx); err != nil {
-		logger.Errorf(plugin.StepUninstallPlugin, "failed to purge file-system: %v", err)
+		logger.Errorf(pluginv2.StepUninstallPlugin, "failed to purge file-system: %v", err)
 
 		return fmt.Errorf("failed to purge file-system: %w", err)
 	}
 
-	logger.Info(plugin.StepUninstallPlugin, "uninstalled compatible plugin")
+	logger.Info(pluginv2.StepUninstallPlugin, "uninstalled v2 plugin")
 
 	return nil
 }

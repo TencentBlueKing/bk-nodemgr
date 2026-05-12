@@ -8,24 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package plugin provides plugin related commands.
-package plugin
+// Package pluginv2 provides plugin v2 related commands.
+package pluginv2
 
 import (
 	"runtime"
 
-	pluginFlag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
+	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/step"
 	"github.com/spf13/cobra"
 )
 
-// NewPluginCommand creates a new plugin sub command.
+// NewPluginCommand creates a new plugin v2 sub command.
 // nolint: lll
 func NewPluginCommand() *cobra.Command {
 	pluginCommand := &cobra.Command{
-		Use:   "plugin",
-		Short: "Plugin command",
-		Long:  "Plugin command",
+		Use:   "pluginv2",
+		Short: "Plugin v2 command",
+		Long:  "Plugin v2 command",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
 		},
@@ -34,23 +34,21 @@ func NewPluginCommand() *cobra.Command {
 	pluginCommand.AddCommand(step.NewStepCommand())
 	pluginCommand.AddCommand(NewFullInstall())
 	pluginCommand.AddCommand(NewFullUninstall())
-	pluginCommand.AddCommand(NewFullUpgrade())
-	pluginCommand.AddCommand(NewFullDebug())
 
 	/*
 	 * persistent required flags.
 	 */
-	pluginCommand.PersistentFlags().StringP(pluginFlag.DeployEnv, pluginFlag.DeployEnvS, "", "the deploy environment which to operate at")
-	_ = pluginCommand.MarkFlagRequired(pluginFlag.DeployEnv)
+	pluginCommand.PersistentFlags().StringP(pluginV2Flag.DeployEnv, pluginV2Flag.DeployEnvS, "", "the deploy environment which to operate at")
+	_ = pluginCommand.MarkFlagRequired(pluginV2Flag.DeployEnv)
 
 	/*
 	 * persistent optional flags.
 	 */
-	pluginCommand.PersistentFlags().String(pluginFlag.PluginName, "", "plugin name")
-	pluginCommand.PersistentFlags().String(pluginFlag.PluginGroup, "", "plugin group, this will be used to build the plugin directory")
-	pluginCommand.PersistentFlags().String(pluginFlag.PluginPkgName, "", "plugin package name, this will be used to download the plugin package")
-	pluginCommand.PersistentFlags().String(pluginFlag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
-	pluginCommand.PersistentFlags().String(pluginFlag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
+	pluginCommand.PersistentFlags().String(pluginV2Flag.PluginName, "", "plugin name")
+	pluginCommand.PersistentFlags().String(pluginV2Flag.PluginGroup, "", "plugin group, this will be used to build the plugin directory")
+	pluginCommand.PersistentFlags().String(pluginV2Flag.PluginPkgName, "", "plugin package name, this will be used to download the plugin package")
+	pluginCommand.PersistentFlags().String(pluginV2Flag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
+	pluginCommand.PersistentFlags().String(pluginV2Flag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
 
 	return pluginCommand
 }
