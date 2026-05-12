@@ -19,7 +19,6 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -119,7 +118,7 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 
 	std.InstanceData().Log().
 		Zh("开始传输插件包到节点").
-		En("transfer plugin pkg to node start.").
+		En("transfer plugin pkg to node start").
 		Info()
 
 	nCtx := std.Context()
@@ -135,58 +134,48 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 		}
 
 		gp.Go(func() error {
-			std.InstanceData().Log().
-				Zh("开始传输发布包").
-				En("transfer release start.").
-				Info()
-			defer std.InstanceData().Log().
-				Zh("传输发布包完成").
-				En("transfer release done.").
-				Info()
-
-			return act.transferRelease(nCtx, std.DeployInfo(), targetHost)
+			return act.transferRelease(std, targetHost)
 		})
 
 		gp.Go(func() error {
-			return act.pushOfflinePluginConfig(nCtx, std, targetHost)
+			return act.pushOfflinePluginConfig(std, targetHost)
 		})
 	}
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
-			std.InstanceData().Log().
-				Zh("开始传输安装器").
-				En("transfer installer start.").
-				Info()
-			defer std.InstanceData().Log().
-				Zh("传输安装器完成").
-				En("transfer installer done.").
-				Info()
-
-			return act.transferInstaller(nCtx, std.DeployInfo(), targetHost)
+			return act.transferInstaller(std, targetHost)
 		})
 	}
 
 	if err := gp.Wait(); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("host-id", targetHost.HostID).Error("failed to transfer plugin pkg to node.")
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("host-id", targetHost.HostID).Error("failed to transfer plugin pkg to node")
 		return err
 	}
 
-	logger.G.Biz(nCtx).With("host-id", targetHost.HostID).Info("transfer plugin pkg to node all done.")
+	logger.G.Sys().Ctx(nCtx).With("host-id", targetHost.HostID).Info("transfer plugin pkg to node all done")
 	std.InstanceData().Log().
 		Zh("传输插件包到节点全部完成").
-		En("transfer plugin pkg to node all done.").
+		En("transfer plugin pkg to node all done").
 		Info()
 
 	return nil
 }
 
-func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
+func (act *actionTransferPluginPkgToNode) transferRelease(std *pluginUtils.PluginActionStandarder, targetHost *types.Host) error {
+	info := std.DeployInfo()
+	nCtx := std.Context()
+
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
 		dataDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName)
 	} else {
 		dataDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName)
 	}
+
+	std.InstanceData().Log().
+		Zh("准备传输发布包, host-id(%d)", targetHost.HostID).
+		En("preparing to transfer release package. host-id(%d)", targetHost.HostID).
+		Info()
 
 	transferHandler, err := act.fileHandler.LaunchTransferPlugin(
 		nCtx,
@@ -200,7 +189,12 @@ func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext
 		return fmt.Errorf("failed to launch transfer release, host-id(%d): %w", targetHost.HostID, err)
 	}
 
-	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer release.")
+	std.InstanceData().Log().
+		Zh("开始传输发布包. task-id(%s)", transferHandler.GetTaskID()).
+		En("start transfer release. task-id(%s)", transferHandler.GetTaskID()).
+		Info()
+
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer release")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
@@ -218,12 +212,25 @@ func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext
 			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer release done.")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer release done")
+
+	std.InstanceData().Log().
+		Zh("传输发布包完成").
+		En("transfer release done").
+		Info()
 
 	return nil
 }
 
-func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
+func (act *actionTransferPluginPkgToNode) transferInstaller(std *pluginUtils.PluginActionStandarder, targetHost *types.Host) error {
+	info := std.DeployInfo()
+	nCtx := std.Context()
+
+	std.InstanceData().Log().
+		Zh("准备传输安装器, host-id(%d)", targetHost.HostID).
+		En("preparing to transfer installer package. host-id(%d)", targetHost.HostID).
+		Info()
+
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(nCtx,
 		types.Generation2,
 		platfmt.Platform{
@@ -236,7 +243,12 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 		return fmt.Errorf("failed to launch transfer installer, host-id(%d): %w", targetHost.HostID, err)
 	}
 
-	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer installer.")
+	std.InstanceData().Log().
+		Zh("开始传输安装器. task-id(%s)", transferHandler.GetTaskID()).
+		En("start transfer installer. task-id(%s)", transferHandler.GetTaskID()).
+		Info()
+
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer installer")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
@@ -254,7 +266,12 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer installer done.")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer installer done")
+
+	std.InstanceData().Log().
+		Zh("传输安装器完成").
+		En("transfer installer done").
+		Info()
 
 	return nil
 }
@@ -262,19 +279,21 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 // pushOfflinePluginConfig pushes plugin config files to ConfigDir via GSE in offline mode.
 // In offline mode, installer cannot callback to fetch config, so we push it beforehand.
 func (act *actionTransferPluginPkgToNode) pushOfflinePluginConfig(
-	nCtx contextx.IContext,
 	std *pluginUtils.PluginActionStandarder,
 	targetHost *types.Host,
 ) error {
 
+	info := std.DeployInfo()
+	nCtx := std.Context()
+
 	var configDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		configDir = winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data", "plugin", std.DeployInfo().Process.PluginPkgName, "config")
+		configDir = winpath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName, "config")
 	} else {
-		configDir = filepath.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data", "plugin", std.DeployInfo().Process.PluginPkgName, "config")
+		configDir = filepath.Join(info.InstallerRuntime.WorkDir, "data", "plugin", info.Process.PluginPkgName, "config")
 	}
 
-	if err := pluginUtils.CheckDirPathSafe(configDir, std.DeployInfo().Process.Platform.OS); err != nil {
+	if err := pluginUtils.CheckDirPathSafe(configDir, info.Process.Platform.OS); err != nil {
 		return fmt.Errorf("check config store dir safe failed, dir(%s): %w", configDir, err)
 	}
 

@@ -207,9 +207,9 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	// if in offline mode or indirect unit, disable select downloads.
+	// if in offline mode or indirect unit or proxy install, disable select downloads.
 	pluginTransferOpts := types.DefaultPluginDeploymentTransferOptions()
-	if deployInfo.InstallOptions.IsOffline || !deployInfo.InstallOptions.DirectInstall {
+	if deployInfo.InstallOptions.IsOffline || !deployInfo.InstallOptions.DirectInstall || deployInfo.Host.Dynamic.NodeRole == types.NodeRoleProxy {
 		pluginTransferOpts.SelectDownloads = false
 	}
 
