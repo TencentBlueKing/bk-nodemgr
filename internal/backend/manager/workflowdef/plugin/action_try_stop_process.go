@@ -123,14 +123,14 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 
 	if !exist {
 		std.InstanceData().Log().
-			Zh("进程不存在, 无需停止进程").
-			En("process not exist, no need to stop the process.").
+			Zh("进程在数据库中不存在, 无需停止进程").
+			En("process not exist in database, no need to stop the process.").
 			Info()
 
 		return nil
 	}
 
-	process, err := pluginUtils.GetActualExistingProcess(
+	dbProcess, err := pluginUtils.GetActualExistingProcess(
 		nCtx,
 		act.daoProcess,
 		act.daoHost,
@@ -138,33 +138,53 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 		std.DeployInfo().Process.PluginName,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get process info: %w", err)
+		return fmt.Errorf("failed to get process info from database: %w", err)
 	}
 
-	if process.Info.Status != types.ProcessStatusRunning {
+	hostProcessInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, std.DeployInfo().Process.PluginName,
+		std.DeployInfo().Process.Identity.Name, dbProcess.Info.AgentID)
+	if err != nil {
 		std.InstanceData().Log().
-			Zh("数据库中记录的进程状态未运行(%s), 无需停止进程", process.Info.Status).
-			En("process status recorded in database is not running(%s), no need to stop the process", process.Info.Status).
+			Zh("查询主机上进程信息失败, agent-id(%s), plugin-name(%s), program-name(%s): %s",
+				dbProcess.Info.AgentID, std.DeployInfo().Process.PluginName,
+				std.DeployInfo().Process.Identity.Name, err.Error()).
+			En("failed to query process info from gse, agent-id(%s), plugin-name(%s), program-name(%s): %s",
+				dbProcess.Info.AgentID, std.DeployInfo().Process.PluginName,
+				std.DeployInfo().Process.Identity.Name, err.Error()).
+			Error()
+
+		return fmt.Errorf("failed to query process info from gse: %w", err)
+	}
+
+	if hostProcessInfo.Status != types.ProcessStatusRunning {
+		std.InstanceData().Log().
+			Zh("主机上进程状态(%s)不为运行中, 无需停止进程",
+				dbProcess.HostID, hostProcessInfo.Status).
+			En("host process status(%s) is not running, no need to stop the process",
+				dbProcess.HostID, hostProcessInfo.Status).
 			Info()
 
 		return nil
 	}
 
 	std.InstanceData().Log().
-		Zh("数据库中记录的进程状态为运行中, 尝试执行停止插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
-			process.PluginName, process.HostID, process.Controller.StopCmd).
-		En("process status recorded in database is running, try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
-			process.PluginName, process.HostID, process.Controller.StopCmd).
+		Zh("主机上进程状态为运行中, 尝试执行停止插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
+			dbProcess.PluginName, dbProcess.HostID, dbProcess.Controller.StopCmd).
+		En("process status recorded in database is running, try to executed stop plugin process, "+
+			"plugin-name(%s), host-id(%d), cmd(%s)",
+			dbProcess.PluginName, dbProcess.HostID, dbProcess.Controller.StopCmd).
 		Info()
+
 	std.InstanceData().Log().
-		Zh("数据库中的进程记录, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
+		Zh("主机上进程状态, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			hostProcessInfo.Pid, hostProcessInfo.Version, hostProcessInfo.AgentID,
+			hostProcessInfo.AutoStart, hostProcessInfo.Status).
 		En("process record in database, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
+			hostProcessInfo.Pid, hostProcessInfo.Version, hostProcessInfo.AgentID,
+			hostProcessInfo.AutoStart, hostProcessInfo.Status).
 		Info()
 
-	processSpec := process.ToProcessSpec()
-
+	processSpec := dbProcess.ToProcessSpec()
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
 		std.InstanceData().Log().
