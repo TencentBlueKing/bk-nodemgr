@@ -631,10 +631,10 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'status',
       'pid',
       'version',
-      'agent_id',
-      ...(props.type === 'plugin' ? ['bk_host_id', 'plugin_group', 'bk_host_innerip', 'bk_host_innerip_v6'] : ['os_type', 'cpu_arch']),
+      ...(props.type === 'plugin' ? ['bk_host_id', 'bk_host_innerip', 'bk_host_innerip_v6'] : ['os_type', 'cpu_arch']),
+      'action',
     ],
-    disabled: [''],
+    disabled: ['action'],
   },
   `nodeMng-${props.type}-status-sideslider`,
 );

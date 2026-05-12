@@ -12,7 +12,7 @@
       @change="handleChange"
     >
       <template #trigger>
-        <Button theme="primary" text>
+        <Button theme="primary" text :disabled="!isEdit">
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
           <span class="text-[14px]">{{ $t('common.addConfigItem') }}</span>
         </Button>
@@ -47,12 +47,14 @@
           <Input
             v-if="item.type === 0"
             v-model="item.value_string"
+            :disabled="!isEdit"
             @change="updateValue"
           />
           <Input
             v-if="item.type === 1"
             v-model="item.value_int"
             type="number"
+            :disabled="!isEdit"
             @change="updateValue"
           />
           <Switcher
@@ -60,22 +62,26 @@
             v-model="item.value_bool"
             theme="primary"
             show-text
+            :disabled="!isEdit"
             @change="updateValue"
           />
           <Select
             v-else-if="item.type === 3"
             v-model="item.value_string"
             :list="getList(index, ind, 'string')"
+            :disabled="!isEdit"
             @change="updateValue"
           ></Select>
           <Select
             v-else-if="item.type === 4"
             v-model="item.value_int"
             :list="getList(index, ind, 'number')"
+            :disabled="!isEdit"
             @change="updateValue"
           ></Select>
         </div>
         <Button
+          v-if="isEdit"
           class="absolute right-[20px] hidden deleteBtn w-[50px]"
           text
           @click="handleDelete(`${temp.id}-${item.id}`)">
@@ -173,11 +179,13 @@ const getList = (
 
 // 获取配置
 const getConfigs = async () => {
-  if (props.isEdit && props.configs) {
+  // 查看/编辑模式且已有配置数据时，直接使用传入的 configs
+  if (props.configs?.length) {
     configTemplates.value = cloneDeep(props.configs);
     updateConfigTemplates(configTemplates.value);
     return;
   }
+  // 新建模式，从接口获取配置模板
   const res = await ConfigPolicyAPIService.ConfigPolicyTemplate({
     configpolicy_type: props.configpolicyType,
   }).catch(() => ({
