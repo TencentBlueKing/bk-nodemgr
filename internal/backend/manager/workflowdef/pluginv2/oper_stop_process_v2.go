@@ -1,0 +1,72 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package pluginv2
+
+import (
+	"time"
+
+	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+)
+
+const (
+	// OperDefNameStopProcessV2 the name of the operation definition.
+	OperDefNameStopProcessV2 = "stop_process_v2"
+)
+
+// NewOperStopProcessV2 new an operation.
+func NewOperStopProcessV2(param OperParamStopProcessV2) operation.Definition {
+	return &operStopProcessV2{param: param}
+}
+
+type operStopProcessV2 struct {
+	param OperParamStopProcessV2
+}
+
+// OperParamStopProcessV2 defines the parameters for operStopProcessV2.
+type OperParamStopProcessV2 struct {
+	pluginV2Utils.PluginActionStandardParam `json:",inline"`
+}
+
+// Name returns the name.
+func (oper *operStopProcessV2) Name() string {
+	return OperDefNameStopProcessV2
+}
+
+// ActionDefNames returns the action def names.
+func (oper *operStopProcessV2) ActionDefNames() []string {
+	return []string{
+		ActionNameFetchPluginProcessV2,
+		ActionNameCheckPluginProcessAliveV2,
+		ActionNameStopProcessV2,
+		ActionNameUpdateProcessV2,
+	}
+}
+
+// DefaultParameters returns the default parameters.
+func (oper *operStopProcessV2) DefaultParameters() operation.Param {
+	return operation.Param{
+		Timeout:     10 * time.Minute, // nolint: mnd
+		InitContent: conv.StructToMapIgnoreError(oper.param),
+		RetryStartPoint: map[string]bool{
+			ActionNameFetchPluginProcessV2:      true,
+			ActionNameCheckPluginProcessAliveV2: true,
+			ActionNameStopProcessV2:             true,
+			ActionNameUpdateProcessV2:           true,
+		},
+	}
+}
+
+// ExtraExecutionName returns the extra execution definition name.
+func (oper *operStopProcessV2) ExtraExecutionName() string {
+	return ""
+}

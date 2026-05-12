@@ -56,6 +56,7 @@ type IPluginManager interface {
 	TerminatePluginOperationLastInstance(nCtx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
 
 	iPluginManagerPlugin
+	iPluginManagerPluginV2
 }
 
 // iPluginManagerPlugin defines the PluginManager sub interface for.
@@ -77,6 +78,15 @@ type iPluginManagerPlugin interface {
 
 	// LaunchStopProcess launch a task to stop process. returns the workflow-id.
 	LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error)
+}
+
+// iPluginManagerPluginV2 defines the PluginManager sub interface for v2.
+type iPluginManagerPluginV2 interface {
+	// LaunchInstallPluginV2 launch a task to install v2 plugin. returns the workflow-id.
+	LaunchInstallPluginV2(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
+
+	// LaunchUninstallPluginV2 launch a task to uninstall v2 plugin. returns the workflow-id.
+	LaunchUninstallPluginV2(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error)
 }
 
 // ISyncManager defines the SyncManager interface.
