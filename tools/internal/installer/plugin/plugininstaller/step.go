@@ -72,7 +72,7 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 	logger.Info(plugin.StepInstallPlugin, "copied config dir")
 
-	logger.Info(plugin.StepInstallPlugin, "installed node")
+	logger.Info(plugin.StepInstallPlugin, "installed plugin")
 
 	return nil
 }
