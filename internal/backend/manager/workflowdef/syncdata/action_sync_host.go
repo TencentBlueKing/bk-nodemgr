@@ -227,7 +227,8 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 	deleteHostIDs := make([]int64, 0)
 
 	// Convert CMDB data into maps for quick lookup
-	cmdbHostMap, err := conv.SliceToMap(cmdbData, func(host *types.Host) int64 {
+	// some time we will meet duplicate hostid, but this is acceptable, we will update it in the next loop.
+	cmdbHostMap, err := conv.SliceToMapIgnore(cmdbData, func(host *types.Host) int64 {
 		return host.HostID
 	})
 	if err != nil {

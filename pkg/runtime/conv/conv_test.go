@@ -1309,6 +1309,102 @@ func TestSliceToMap(t *testing.T) {
 	}
 }
 
+// TestSliceToMapIgnore tests SliceToMapIgnore.
+func TestSliceToMapIgnore(t *testing.T) {
+	type args[V any, K comparable] struct {
+		s  []V
+		fn func(V) K
+	}
+	type testCase[V any, K comparable] struct {
+		name    string
+		args    args[V, K]
+		want    map[K]V
+		wantErr bool
+	}
+
+	strKeyFn := func(v string) string { return v }
+	uppercaseKeyFn := func(v string) string { return strings.ToUpper(v) }
+	firstCharKeyFn := func(v string) string { return string(v[0]) }
+	emptyKeyFn := func(v string) string { return "" }
+	panicFn := func(v string) string {
+		if len(v) == 0 {
+			panic("empty string")
+		}
+		return v
+	}
+
+	tests := []testCase[string, string]{
+		{
+			name:    "nil slice",
+			args:    args[string, string]{s: nil, fn: strKeyFn},
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "empty slice",
+			args:    args[string, string]{s: []string{}, fn: strKeyFn},
+			want:    map[string]string{},
+			wantErr: false,
+		},
+		{
+			name:    "nil function",
+			args:    args[string, string]{s: []string{"a", "b"}, fn: nil},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "basic case - identity key function",
+			args:    args[string, string]{s: []string{"a", "b", "c"}, fn: strKeyFn},
+			want:    map[string]string{"a": "a", "b": "b", "c": "c"},
+			wantErr: false,
+		},
+		{
+			name:    "transformation - uppercase keys",
+			args:    args[string, string]{s: []string{"a", "b", "c"}, fn: uppercaseKeyFn},
+			want:    map[string]string{"A": "a", "B": "b", "C": "c"},
+			wantErr: false,
+		},
+		{
+			name:    "duplicate keys keep latest value",
+			args:    args[string, string]{s: []string{"apple", "apricot", "banana"}, fn: firstCharKeyFn},
+			want:    map[string]string{"a": "apricot", "b": "banana"},
+			wantErr: false,
+		},
+		{
+			name:    "all empty keys keep latest value",
+			args:    args[string, string]{s: []string{"a", "b", "c"}, fn: emptyKeyFn},
+			want:    map[string]string{"": "c"},
+			wantErr: false,
+		},
+		{
+			name:    "function panics with empty string",
+			args:    args[string, string]{s: []string{"a", "", "c"}, fn: panicFn},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "single element",
+			args:    args[string, string]{s: []string{"solo"}, fn: strKeyFn},
+			want:    map[string]string{"solo": "solo"},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SliceToMapIgnore(tt.args.s, tt.args.fn)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SliceToMapIgnore() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !assert.Equal(t, tt.want, got) {
+				t.Errorf("SliceToMapIgnore() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestEmpty tests the Empty function.
 func TestEmpty(t *testing.T) {
 	tests := []struct {

@@ -456,6 +456,31 @@ func SliceToMap[K comparable, V any](s []V, fn func(V) K) (m map[K]V, err error)
 	return m, nil
 }
 
+// SliceToMapIgnore converts a slice to a map using a key extraction function.
+// Returns error if duplicate keys are detected.
+// nolint: nonamedreturns,varnamelen
+func SliceToMapIgnore[K comparable, V any](s []V, fn func(V) K) (m map[K]V, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic: %v", r)
+		}
+
+		if err != nil {
+			m = nil
+		}
+	}()
+
+	m = make(map[K]V, len(s))
+
+	for _, v := range s {
+		key := fn(v)
+
+		m[key] = v
+	}
+
+	return m, nil
+}
+
 // IsEmpty checks if a given value is "empty".
 func IsEmpty(given any) bool {
 	if given == nil {
