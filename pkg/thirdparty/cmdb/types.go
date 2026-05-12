@@ -61,7 +61,7 @@ const (
 type Page struct {
 	Start int    `json:"start"`
 	Limit int    `json:"limit"`
-	Sort  string `json:"sort"`
+	Sort  string `json:"sort,omitempty"`
 }
 
 // HostInfo describe the information of single host.
