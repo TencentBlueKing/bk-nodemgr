@@ -122,7 +122,7 @@ func NewFullInstallV2() *cobra.Command {
 					CallbackSvrAddr: callbackSvrAddrs,
 					SkipCallback:    skipCallback,
 					StatusFilePath:  statusFilePath,
-					ErrorMessage:    utils.ErrString(runErr),
+					ErrorMessage:    errString(runErr),
 				}).Run(cmd.Context())
 			}()
 

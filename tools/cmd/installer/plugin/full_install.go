@@ -122,7 +122,7 @@ func NewFullInstall() *cobra.Command {
 					CallbackSvrAddr: callbackSvrAddrs,
 					SkipCallback:    skipCallback,
 					StatusFilePath:  statusFilePath,
-					ErrorMessage:    utils.ErrString(runErr),
+					ErrorMessage:    errString(runErr),
 				}).Run(cmd.Context())
 			}()
 
@@ -220,4 +220,12 @@ func NewFullInstall() *cobra.Command {
 	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
+}
+
+func errString(err error) string {
+	if err == nil {
+		return ""
+	}
+
+	return err.Error()
 }

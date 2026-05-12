@@ -94,7 +94,6 @@ func NewFullUninstallV2() *cobra.Command {
 			}
 			defer lHandler.Stop()
 
-			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
 			defer func() {
 				state := types.ProcessStateSuccess
 				if runErr != nil {
@@ -106,9 +105,6 @@ func NewFullUninstallV2() *cobra.Command {
 					OperInstID:      operInstID,
 					Status:          state,
 					CallbackSvrAddr: callbackSvrAddrs,
-					SkipCallback:    skipCallback,
-					StatusFilePath:  statusFilePath,
-					ErrorMessage:    utils.ErrString(runErr),
 				}).Run(cmd.Context())
 			}()
 
@@ -118,13 +114,10 @@ func NewFullUninstallV2() *cobra.Command {
 				return err
 			}
 
-			dataFilePath := filepath.Join(persistentVars.DataDir, "installer.data.json")
+			// report data.
 			if err := datareporter.NewStep(datareporter.StepArgs{
 				CallbackSvrAddr: callbackSvrAddrs,
 				Token:           deployToken,
-				OperInstID:      operInstID,
-				SkipCallback:    skipCallback,
-				DataFilePath:    dataFilePath,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
