@@ -422,6 +422,7 @@ const handleSelectChange = ({
   checked: boolean;
   row: any;
 }) => {
+  if (!row) return;
   setRowCheckedByHostId(row.bk_host_id, checked);
   emit('selectChange', selection.value);
 };

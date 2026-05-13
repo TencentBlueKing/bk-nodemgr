@@ -1049,6 +1049,7 @@ const isIndeterminate = computed(() => {
 
 // 1. 处理单行勾选
 const handleRowCheck = (checked: boolean, row: any) => {
+  if (!row) return;
   row.checked = checked;
   if (isCrossPageSelection.value) {
     if (!checked) excludedIds.value.add(row.bk_host_id);

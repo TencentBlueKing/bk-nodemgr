@@ -742,6 +742,7 @@ const setRowCheckedByHostId = (hostId: number, checked: boolean) => {
 
 // 1. 处理单行勾选
 const handleRowCheck = (checked: boolean, row: any) => {
+  if (!row) return;
   setRowCheckedByHostId(row.bk_host_id, checked);
   if (isCrossPageSelection.value) {
     if (!checked) {
@@ -1349,11 +1350,11 @@ const handleOperate = async (type: string, data: Host[], batch = false) => {
   router.push({ name: 'agentEdit' });
 };
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
-  setRowCheckedByHostId(row.bk_host_id, checked);
+  if (row) setRowCheckedByHostId(row.bk_host_id, checked);
 };
 
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  tableData.value.forEach((item: any) => (item.checked = checked));
+  tableData.value.forEach((item: any) => { if (item) item.checked = checked; });
 };
 
 const operateJob = async (extraData: any = {}) => {

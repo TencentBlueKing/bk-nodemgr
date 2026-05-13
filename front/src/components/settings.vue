@@ -167,4 +167,8 @@ defineExpose({
 .bk-checkbox ~ .bk-checkbox {
   margin-left: 0;
 }
+
+.nodeman-icon nc-setting {
+  color: #c4c6cc;
+}
 </style>

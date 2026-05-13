@@ -382,11 +382,11 @@ const active = ref('all');
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
-  row.checked = checked;
+  if (row) row.checked = checked;
 };
 
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  tableData.value.forEach((item: any) => (item.checked = checked));
+  tableData.value.forEach((item: any) => { if (item) item.checked = checked; });
 };
 
 const handleConfirmRow = (row: any) => {

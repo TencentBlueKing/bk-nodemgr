@@ -72,9 +72,23 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
+// 模块级缓存，确保 createForm() 只执行一次
+import type { Component } from 'vue';
+
 import createForm from '@blueking/bkui-form';
 import '@blueking/bkui-form/dist/style.css';
+
+let _cachedForm: Component | null = null;
+function getOrCreateForm(): Component {
+  if (!_cachedForm) {
+    _cachedForm = createForm();
+  }
+  return _cachedForm;
+}
+</script>
+
+<script lang="ts" setup>
 import { DownShape } from 'bkui-vue/lib/icon';
 import { Loading } from 'bkui-vue';
 import { reactive, ref } from 'vue';
@@ -85,7 +99,8 @@ import { PACKAGE_GENERATION } from '@/common/const';
 
 const { t, locale } = useI18n();
 
-const BkSchemaForm = createForm();
+// 在 setup 上下文中初始化（首次），后续实例复用缓存
+const BkSchemaForm = getOrCreateForm();
 
 const props = defineProps({
   /** 插件名称 */
@@ -121,7 +136,8 @@ const formItems = reactive<FormItem[]>([]);
 /** 是否全部在初始加载 */
 const loadingAll = ref(false);
 /** BkSchemaForm 实例引用（按索引存储） */
-const formRefMap = ref<Map<number, InstanceType<typeof BkSchemaForm> | null>>(new Map());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const formRefMap = ref<Map<number, any>>(new Map());
 /** 每个平台的表单初始值（用于恢复默认） */
 const initialFormValues = ref<Record<string, Record<string, any>>>({});
 /** 每个平台的配置模板名称列表（platform → config_name[]） */
@@ -154,6 +170,10 @@ function convertToSchema(variables: Record<string, any>): any {
 
     if (field.type === 'number' || field.type === 'integer') {
       field.type = 'number';
+    }
+    // 后端用 'bool'，JSON Schema 标准要求是 'boolean'
+    if (field.type === 'bool') {
+      field.type = 'boolean';
     }
 
     // 处理数组类型：后端用 properties 描述元素结构，bkui-form 需要 items
@@ -196,6 +216,12 @@ function convertToSchema(variables: Record<string, any>): any {
       }
       field.properties = childProps;
       if (childRequired.length > 0) field.required = childRequired;
+      // 让嵌套 object 以带标题和边框的分组形式展示，而不是被打平
+      field['ui:group'] = {
+        showTitle: true,
+        border: true,
+        type: 'card',
+      };
     }
 
     return field;

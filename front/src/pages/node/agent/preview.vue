@@ -560,12 +560,12 @@ const handleSelectChange = ({
   checked: boolean;
   row: any;
 }) => {
-  row.checked = checked;
+  if (row) row.checked = checked;
 };
 
 // 表格全选
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  tableData.value.forEach((item: any) => (item.checked = checked));
+  tableData.value.forEach((item: any) => { if (item) item.checked = checked; });
 };
 const handleAllConfirm = async () => {
   const duplicatedItems = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));

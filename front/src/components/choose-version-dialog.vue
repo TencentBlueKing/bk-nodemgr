@@ -222,19 +222,19 @@ const versionColumnTitle = computed(() => {
 
 function selectOs(os: IOsversion) {
   if (!props.batch) return;
-  osVersions.value?.forEach((o: IOsversion) => (o.selected = false));
-  os.selected = true;
+  osVersions.value?.forEach((o: IOsversion) => { if (o) o.selected = false; });
+  if (os) os.selected = true;
   selectedOs.value = os;
-  selectedVersion.value = os.selectedVersion || os.versions[0];
+  selectedVersion.value = os?.selectedVersion || os?.versions?.[0];
 }
 
 const handleChange = (val: string) => {
-  selectedVersion.value = selectedOs.value?.versions.find((item: any) => item.version === val);
-  const findOs = osVersions.value?.find(item => item.name === selectedOs.value.name);
-  findOs.selectedVersion = selectedVersion.value;
+  selectedVersion.value = selectedOs.value?.versions?.find((item: any) => item.version === val);
+  const findOs = osVersions.value?.find(item => item.name === selectedOs.value?.name);
+  if (findOs) findOs.selectedVersion = selectedVersion.value;
 };
 function handleConfirm() {
-  emit('confirm', osVersions.value?.map(item => ({
+  emit('confirm', osVersions.value?.filter(item => item?.selectedVersion).map(item => ({
     version: item.selectedVersion.version,
     os_type: item.selectedVersion.os_type,
     cpu_arch: item.selectedVersion.cpu_arch,
@@ -347,9 +347,9 @@ watch(
         selectedOs.value = osVersions.value?.[0];
       }
       if (props.data?.[0]?.version && !props.batch) {
-        selectedVersion.value = selectedOs.value?.versions.find(item => item.version === props.data?.[0]?.version);
+        selectedVersion.value = selectedOs.value?.versions?.find(item => item.version === props.data?.[0]?.version);
       } else {
-        selectedVersion.value = selectedOs.value?.versions.find(item => item.as_default) || selectedOs.value?.versions[0];
+        selectedVersion.value = selectedOs.value?.versions?.find(item => item.as_default) || selectedOs.value?.versions?.[0];
       }
       if (selectedOs.value) {
         selectedOs.value.selected = true;

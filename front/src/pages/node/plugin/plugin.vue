@@ -201,10 +201,10 @@ const pluginList = ref<any[]>([]);
 // 表格选中
 const selection = computed(() => pluginList.value.filter((item: any) => item.checked));
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
-  row.checked = checked;
+  if (row) row.checked = checked;
 };
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  pluginList.value.forEach((item: any) => (item.checked = checked));
+  pluginList.value.forEach((item: any) => { if (item) item.checked = checked; });
 };
 
 // 表格

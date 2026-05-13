@@ -133,13 +133,13 @@ function handleCancel() {
 }
 
 function handleSelectChange({ checked, row }: { checked: boolean; row: any }) {
-  row.checked = checked;
+  if (row) row.checked = checked;
   syncSelection();
 }
 
 function handleSelectAllChange({ checked }: { checked: boolean }) {
   props.data.forEach((row: any) => {
-    row.checked = checked;
+    if (row) row.checked = checked;
   });
   syncSelection();
 }
@@ -155,7 +155,7 @@ watch(
     if (isShow.value) {
       // 重置勾选状态
       props.data.forEach((row: any) => {
-        row.checked = false;
+        if (row) row.checked = false;
       });
       selection.value = [];
     }

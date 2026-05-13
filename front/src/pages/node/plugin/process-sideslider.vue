@@ -61,6 +61,7 @@
           @checkbox-all="handleSelectAllChange"
           @column-filter="handleFilter"
         >
+          
           <TableColumn type="checkbox" width="60" fixed="left"></TableColumn>
           <TableColumn
             v-if="type === 'plugin'"
@@ -256,7 +257,7 @@
           <TableColumn
             :title="$t('pluginManagement.plugin.table.operation')"
             field="action"
-            min-width="150"
+            min-width="100"
             fixed="right"
           >
             <template #default="{ row }">
@@ -453,13 +454,13 @@ const batchOperateList = computed(() => {
     .map(op => ({ id: op.id, name: t(op.nameKey) }));
 });
 
-// 单行操作列表 — 只显示有权限的
+// 单行操作列表 — 只显示有权限的（重装已作为独立按钮，故排除）
 const getSingleOperateList = (row: any) => {
   const ops = row.plugin_group === 'strategy'
     ? [{ id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' }, { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' }]
     : allOperations;
   return ops
-    .filter(op => enabledOperations.value.has(op.id))
+    .filter(op => op.id !== 'reinstall' && enabledOperations.value.has(op.id))
     .map(op => ({ id: op.id, name: t(op.nameKey) }));
 };
 
@@ -527,12 +528,16 @@ const handlePluginOperate = (operateType: string, data: any[], batch = false) =>
       });
       prefillHosts = JSON.stringify([...hostIdSet]);
 
-      // 提取版本映射（os_type_cpu_arch → version）
+      // 提取版本映射（os_type_cpu_arch → version），version 字段可能包含 BuildTime/GitHash 等信息
+      // 只截取第一行纯 Version 部分（如 "v3.0.1-alpha-7-27-gdce6b11f-26-03.18"）
       const versionMap = new Map<string, string>();
       data.forEach((item: any) => {
         const osType = item.os_type || '';
         const cpuArch = item.cpu_arch || '';
-        const version = item.version || '';
+        const rawVersion = item.version || '';
+        // version 字段格式为 "Version: xxx\nBuildTime: ...\nGitHash: ..."，只取 Version 行的值
+        const versionMatch = rawVersion.match(/^Version:\s*(.+?)(?:\r?\n|$)/m);
+        const version = versionMatch ? versionMatch[1].trim() : rawVersion;
         if (osType && cpuArch && version) {
           const key = `${osType}_${cpuArch}`;
           if (!versionMap.has(key)) versionMap.set(key, version);
@@ -710,11 +715,11 @@ const handlePrimaryButtonClick = () => {
 };
 
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
-  row.checked = checked;
+  if (row) row.checked = checked;
 };
 
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  processList.value.forEach((item: any) => (item.checked = checked));
+  processList.value.forEach((item: any) => { if (item) item.checked = checked; });
 };
 
 // 筛选
@@ -955,6 +960,56 @@ watch(
 .vxe-table--tooltip-wrapper {
   &.process-table {
     z-index: 2004 !important;
+  }
+}
+
+/* 插件进程表格 — 内置设置面板样式覆盖 */
+.tippy-box[data-theme~='bk-vxe-table-setting-column-theme'] {
+  min-width: 540px !important;
+  .field-list-wrapper {
+    /* flex + 弹性宽度：短项两列并排，长项自动撑满换行独占一行 */
+    .bk-checkbox-group {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      column-gap: 20px;
+      row-gap: 4px;
+    }
+    .field-list-item {
+      /* flex-grow:1 让短项平分剩余空间(两列)；max-width 限制最多占一半；
+         min-width 比一半略大：当文本撑超过一半时，下一项放不下被挤换行，长项独占一行 */
+      flex: 1 1 auto;
+      min-width: calc(50% - 10px);
+      max-width: 100%;
+      width: auto !important;
+      height: auto !important;
+      min-height: 32px;
+      padding: 6px 8px;
+      margin: 0 !important;
+      box-sizing: border-box;
+      align-items: flex-start !important;
+      border-radius: 4px;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: #f5f7fa;
+      }
+
+      .bk-checkbox {
+        align-items: flex-start;
+        /* checkbox 方框与多行文字的顶部对齐 */
+        .bk-checkbox-input {
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+      }
+      .bk-checkbox-label {
+        white-space: normal !important;
+        word-break: break-word;
+        line-height: 1.5;
+        font-size: 13px;
+        color: #63656e;
+      }
+    }
   }
 }
 </style>
