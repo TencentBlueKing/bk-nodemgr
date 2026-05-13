@@ -37,12 +37,12 @@ func convertProcessConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ProcessExactFields{
-			HostID:         exactCond.GetBkHostId(),
-			BizID:          exactCond.GetBkBizId(),
-			PluginGroup:    exactCond.GetPluginGroup(),
-			NodeGeneration: exactCond.GetNodeGeneration(),
-			PlatformOS:     exactCond.GetPlatformOs(),
-			PlatformArch:   exactCond.GetPlatformArch(),
+			HostID:       exactCond.GetBkHostId(),
+			BizID:        exactCond.GetBkBizId(),
+			PluginGroup:  exactCond.GetPluginGroup(),
+			Generation:   exactCond.GetGeneration(),
+			PlatformOS:   exactCond.GetPlatformOs(),
+			PlatformArch: exactCond.GetPlatformArch(),
 			InfoStatus: conv.SliceToSlice[string, types.ProcessStatus](exactCond.GetStatus(), func(status string) types.ProcessStatus {
 				return types.ProcessStatus(status)
 			}),

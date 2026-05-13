@@ -25,6 +25,8 @@ type IStorage interface {
 	IDaoPlugin
 	IDaoProcess
 	IDaoProcessConfig
+	IDaoProcessV2
+	IDaoProcessV2Config
 
 	IDomainPlugin
 }
@@ -175,6 +177,74 @@ type IDaoProcessConfig interface {
 
 	// DeleteProcessConfigs delete many process config record.
 	DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error
+}
+
+// IDaoProcessV2 defines the process dao interface.
+// nolint: interfacebloat
+type IDaoProcessV2 interface {
+	// CountProcessesV2 count processes.
+	CountProcessesV2(nCtx contextx.IContext, condition ...*types.ProcessCondition) (int64, error)
+
+	// ListProcessesV2 list processes.
+	ListProcessesV2(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, int64, error)
+
+	// CreateProcessV2 create process.
+	CreateProcessV2(nCtx contextx.IContext, process *types.Process) error
+
+	// UpdateProcessV2 update process.
+	UpdateProcessV2(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error
+
+	// UpdateProcessV2Info update process.
+	UpdateProcessV2Info(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
+
+	// UpdateManyProcessV2Info batch update process info by process ID.
+	UpdateManyProcessV2Info(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
+
+	// UpdateProcessV2ManyHostBizID update process biz id for many host.
+	UpdateProcessV2ManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) error
+
+	// DeleteProcessV2 delete process.
+	DeleteProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) error
+
+	// ExistProcessV2 exist process.
+	ExistProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
+
+	// GetProcessV2 get process by host id and plugin name.
+	GetProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error)
+
+	// GetProcessV2DistributionByHostID get process distribution by host ID.
+	GetProcessV2DistributionByHostID(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[int64]int64, error)
+
+	// GetProcessV2DistributionByPluginName get process distribution by plugin name.
+	GetProcessV2DistributionByPluginName(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[string]int64, error)
+
+	// DistinctProcessV2 get distinct process.
+	DistinctProcessV2(nCtx contextx.IContext, request types.ProcessDistinctSelector, condition ...*types.ProcessCondition) (
+		*types.ProcessDistinctResult, error)
+}
+
+// IDaoProcessV2Config defines the process config dao interface.
+type IDaoProcessV2Config interface {
+	// CreateProcessV2Config create process config record.
+	CreateProcessV2Config(nCtx contextx.IContext, config *types.ProcessConfig) error
+
+	// GetProcessV2Config get process config record.
+	GetProcessV2Config(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error)
+
+	// CountProcessV2Configs count process config records.
+	CountProcessV2Configs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error)
+
+	// ListProcessV2Configs list process config records.
+	ListProcessV2Configs(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) ([]*types.ProcessConfig, int64, error)
+
+	// UpsertProcessV2Configs upsert many process config record.
+	UpsertProcessV2Configs(nCtx contextx.IContext, configs ...*types.ProcessConfig) error
+
+	// DeleteProcessV2ConfigsByProcessUniqueKey delete many process config record by process unique key.
+	DeleteProcessV2ConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error
+
+	// DeleteProcessV2Configs delete many process config record.
+	DeleteProcessV2Configs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error
 }
 
 // IDomainPlugin defines the plugin domain interface.

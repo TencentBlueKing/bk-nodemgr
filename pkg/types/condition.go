@@ -719,17 +719,17 @@ type ConfigPolicyCondition struct {
 // ProcessExactFields defines the process exact fields.
 // support includes and excludes.
 type ProcessExactFields struct {
-	HostID         []int64
-	BizID          []int64
-	PluginGroup    []string
-	NodeGeneration []string
-	PlatformOS     []string
-	PlatformArch   []string
-	InfoStatus     []ProcessStatus
-	InfoAgentID    []string
-	InfoVersion    []string
-	PluginName     []string
-	PluginPkgName  []string
+	HostID        []int64
+	BizID         []int64
+	PluginGroup   []string
+	Generation    []int64
+	PlatformOS    []string
+	PlatformArch  []string
+	InfoStatus    []ProcessStatus
+	InfoAgentID   []string
+	InfoVersion   []string
+	PluginName    []string
+	PluginPkgName []string
 }
 
 // ProcessFuzzyFields defines the process fuzzy fields.

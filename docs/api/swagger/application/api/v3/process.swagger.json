@@ -539,10 +539,11 @@
             "type": "string"
           }
         },
-        "node_generation": {
+        "generation": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "integer",
+            "format": "int64"
           }
         },
         "platform_os": {

@@ -16,11 +16,11 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	daoProcessConfig "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config"
+	daoProcessV2Config "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-v2-config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) createProcessConfig(nCtx contextx.IContext, processConfig *types.ProcessConfig) error {
+func (s *Storage) createProcessV2Config(nCtx contextx.IContext, processConfig *types.ProcessConfig) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -29,7 +29,7 @@ func (s *Storage) createProcessConfig(nCtx contextx.IContext, processConfig *typ
 		return base.ErrInvalidParam(fmt.Errorf("processConfig is nil"))
 	}
 
-	err := s.daoProcessConfig.Create(nCtx, processConfig)
+	err := s.daoProcessV2Config.Create(nCtx, processConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create processConfig: %w", err)
 	}
@@ -37,7 +37,7 @@ func (s *Storage) createProcessConfig(nCtx contextx.IContext, processConfig *typ
 	return nil
 }
 
-func (s *Storage) upsertProcessConfigs(nCtx contextx.IContext, processConfigs ...*types.ProcessConfig) error {
+func (s *Storage) upsertProcessV2Configs(nCtx contextx.IContext, processConfigs ...*types.ProcessConfig) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -46,7 +46,7 @@ func (s *Storage) upsertProcessConfigs(nCtx contextx.IContext, processConfigs ..
 		return base.ErrInvalidParam(fmt.Errorf("processConfigs is empty"))
 	}
 
-	err := s.daoProcessConfig.UpsertMany(nCtx, processConfigs...)
+	err := s.daoProcessV2Config.UpsertMany(nCtx, processConfigs...)
 	if err != nil {
 		return fmt.Errorf("failed to upsert processConfigs: %w", err)
 	}
@@ -54,7 +54,7 @@ func (s *Storage) upsertProcessConfigs(nCtx contextx.IContext, processConfigs ..
 	return nil
 }
 
-func (s *Storage) deleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error {
+func (s *Storage) deleteProcessV2ConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -69,8 +69,8 @@ func (s *Storage) deleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 		}
 	}
 
-	err := s.daoProcessConfig.DeleteMany(
-		nCtx, daoProcessConfig.WithProcessUniqueKeys(processUniqueKeys...))
+	err := s.daoProcessV2Config.DeleteMany(
+		nCtx, daoProcessV2Config.WithProcessUniqueKeys(processUniqueKeys...))
 	if err != nil {
 		return fmt.Errorf("failed to delete processConfigs by processUniqueKey: %w", err)
 	}
@@ -78,7 +78,7 @@ func (s *Storage) deleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	return nil
 }
 
-func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error {
+func (s *Storage) deleteProcessV2Configs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -91,11 +91,11 @@ func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey 
 		return base.ErrInvalidParam(fmt.Errorf("names is empty"))
 	}
 
-	err := s.daoProcessConfig.DeleteMany(
+	err := s.daoProcessV2Config.DeleteMany(
 		nCtx,
-		daoProcessConfig.WithProcessName(processUniqueKey.Name),
-		daoProcessConfig.WithHostID(processUniqueKey.HostID),
-		daoProcessConfig.WithName(names...),
+		daoProcessV2Config.WithProcessName(processUniqueKey.Name),
+		daoProcessV2Config.WithHostID(processUniqueKey.HostID),
+		daoProcessV2Config.WithName(names...),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to delete processConfigs: %w", err)
@@ -104,7 +104,7 @@ func (s *Storage) deleteProcessConfigs(nCtx contextx.IContext, processUniqueKey 
 	return nil
 }
 
-func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error) {
+func (s *Storage) getProcessV2Config(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -117,7 +117,7 @@ func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 		return nil, base.ErrInvalidParam(fmt.Errorf("name is empty"))
 	}
 
-	config, err := s.daoProcessConfig.Get(nCtx, processUniqueKey.HostID, processUniqueKey.Name, name)
+	config, err := s.daoProcessV2Config.Get(nCtx, processUniqueKey.HostID, processUniqueKey.Name, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get processConfig: %w", err)
 	}
@@ -125,17 +125,17 @@ func (s *Storage) getProcessConfig(nCtx contextx.IContext, processUniqueKey *typ
 	return config, nil
 }
 
-func (s *Storage) countProcessConfigs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error) {
+func (s *Storage) countProcessV2Configs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error) {
 	if nCtx == nil {
 		return 0, base.ErrInvalidContext()
 	}
 
-	opts, err := convertProcessConfigConditionsToOptions(conditions...)
+	opts, err := convertProcessV2ConfigConditionsToOptions(conditions...)
 	if err != nil {
 		return 0, err
 	}
 
-	cnt, err := s.daoProcessConfig.Count(nCtx, opts...)
+	cnt, err := s.daoProcessV2Config.Count(nCtx, opts...)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count processConfigs: %w", err)
 	}
@@ -143,19 +143,19 @@ func (s *Storage) countProcessConfigs(nCtx contextx.IContext, conditions ...*typ
 	return cnt, nil
 }
 
-func (s *Storage) listProcessConfigs(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) (
+func (s *Storage) listProcessV2Configs(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) (
 	[]*types.ProcessConfig, int64, error) {
 
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
 
-	opts, err := convertProcessConfigConditionsToOptions(conditions...)
+	opts, err := convertProcessV2ConfigConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	configs, cnt, err := s.daoProcessConfig.List(nCtx, page, opts...)
+	configs, cnt, err := s.daoProcessV2Config.List(nCtx, page, opts...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list processConfigs: %w", err)
 	}
@@ -163,8 +163,8 @@ func (s *Storage) listProcessConfigs(nCtx contextx.IContext, page types.Page, co
 	return configs, cnt, nil
 }
 
-func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigCondition) ([]daoProcessConfig.OptFn, error) {
-	opts := make([]daoProcessConfig.OptFn, 0)
+func convertProcessV2ConfigConditionsToOptions(conditions ...*types.ProcessConfigCondition) ([]daoProcessV2Config.OptFn, error) {
+	opts := make([]daoProcessV2Config.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
 			continue
@@ -172,10 +172,10 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
-				daoProcessConfig.WithName(condition.ExactInclude.Name...),
-				daoProcessConfig.WithProcessName(condition.ExactInclude.ProcessName...),
-				daoProcessConfig.WithHostID(condition.ExactInclude.HostID...),
-				daoProcessConfig.WithIsMainConfig(condition.ExactInclude.IsMainConfig...),
+				daoProcessV2Config.WithName(condition.ExactInclude.Name...),
+				daoProcessV2Config.WithProcessName(condition.ExactInclude.ProcessName...),
+				daoProcessV2Config.WithHostID(condition.ExactInclude.HostID...),
+				daoProcessV2Config.WithIsMainConfig(condition.ExactInclude.IsMainConfig...),
 			)
 		}
 
@@ -185,9 +185,9 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 
 		if condition.ExactExclude != nil {
 			opts = append(opts,
-				daoProcessConfig.WithoutName(condition.ExactExclude.Name...),
-				daoProcessConfig.WithoutProcessName(condition.ExactExclude.ProcessName...),
-				daoProcessConfig.WithoutHostID(condition.ExactExclude.HostID...),
+				daoProcessV2Config.WithoutName(condition.ExactExclude.Name...),
+				daoProcessV2Config.WithoutProcessName(condition.ExactExclude.ProcessName...),
+				daoProcessV2Config.WithoutHostID(condition.ExactExclude.HostID...),
 			)
 		}
 

@@ -5,7 +5,7 @@ export interface ProcessExactConditions {
   bk_host_id: number[];
   bk_biz_id: number[];
   plugin_group: string[];
-  node_generation: string[];
+  generation: number[];
   platform_os: string[];
   platform_arch: string[];
   status: string[];

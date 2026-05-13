@@ -40,12 +40,12 @@ func convertProcessConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ProcessExactFields{
-			HostID:         exactCond.GetBkHostId(),
-			BizID:          exactCond.GetBkBizId(),
-			PluginGroup:    exactCond.GetPluginGroup(),
-			NodeGeneration: exactCond.GetNodeGeneration(),
-			PlatformOS:     exactCond.GetPlatformOs(),
-			PlatformArch:   exactCond.GetPlatformArch(),
+			HostID:       exactCond.GetBkHostId(),
+			BizID:        exactCond.GetBkBizId(),
+			PluginGroup:  exactCond.GetPluginGroup(),
+			Generation:   exactCond.GetGeneration(),
+			PlatformOS:   exactCond.GetPlatformOs(),
+			PlatformArch: exactCond.GetPlatformArch(),
 			InfoStatus: conv.SliceToSlice[string, types.ProcessStatus](exactCond.GetStatus(), func(status string) types.ProcessStatus {
 				return types.ProcessStatus(status)
 			}),
@@ -108,12 +108,12 @@ func convFuzzyConditionsFromTypes(condition *types.ProcessCondition) *ProcessFuz
 
 func convExactIncludeConditionsFromTypes(condition *types.ProcessCondition) *ProcessExactConditions {
 	return &ProcessExactConditions{
-		BkHostId:       condition.ExactInclude.HostID,
-		BkBizId:        condition.ExactInclude.BizID,
-		PluginGroup:    condition.ExactInclude.PluginGroup,
-		NodeGeneration: condition.ExactInclude.NodeGeneration,
-		PlatformOs:     condition.ExactInclude.PlatformOS,
-		PlatformArch:   condition.ExactInclude.PlatformArch,
+		BkHostId:     condition.ExactInclude.HostID,
+		BkBizId:      condition.ExactInclude.BizID,
+		PluginGroup:  condition.ExactInclude.PluginGroup,
+		Generation:   condition.ExactInclude.Generation,
+		PlatformOs:   condition.ExactInclude.PlatformOS,
+		PlatformArch: condition.ExactInclude.PlatformArch,
 		Status: conv.SliceToSlice[types.ProcessStatus, string](condition.ExactInclude.InfoStatus, func(status types.ProcessStatus) string {
 			return string(status)
 		}),

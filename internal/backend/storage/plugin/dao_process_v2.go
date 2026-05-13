@@ -16,12 +16,12 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	daoProcess "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
+	daoProcessV2 "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-v2"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) error {
+func (s *Storage) createProcessV2(nCtx contextx.IContext, process *types.Process) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -30,7 +30,7 @@ func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) 
 		return base.ErrInvalidParam(fmt.Errorf("process is nil"))
 	}
 
-	err := s.daoProcess.Create(nCtx, process)
+	err := s.daoProcessV2.Create(nCtx, process)
 	if err != nil {
 		return fmt.Errorf("failed to create process: %w", err)
 	}
@@ -38,7 +38,7 @@ func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) 
 	return nil
 }
 
-func (s *Storage) updateProcess(nCtx contextx.IContext, process *types.Process, hostID int64, pluginName string) error {
+func (s *Storage) updateProcessV2(nCtx contextx.IContext, process *types.Process, hostID int64, pluginName string) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -47,7 +47,7 @@ func (s *Storage) updateProcess(nCtx contextx.IContext, process *types.Process, 
 		return base.ErrInvalidParam(fmt.Errorf("process is nil"))
 	}
 
-	err := s.daoProcess.Update(nCtx, hostID, pluginName, process)
+	err := s.daoProcessV2.Update(nCtx, hostID, pluginName, process)
 	if err != nil {
 		return fmt.Errorf("failed to update process: %w", err)
 	}
@@ -56,7 +56,7 @@ func (s *Storage) updateProcess(nCtx contextx.IContext, process *types.Process, 
 }
 
 // nolint: nonamedreturns
-func (s *Storage) updateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) (err error) {
+func (s *Storage) updateProcessV2Info(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) (err error) {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -65,7 +65,7 @@ func (s *Storage) updateProcessInfo(nCtx contextx.IContext, hostID int64, plugin
 		return base.ErrInvalidParam(fmt.Errorf("process info is nil"))
 	}
 
-	err = s.daoProcess.UpdateInfo(nCtx, hostID, pluginName, processInfo)
+	err = s.daoProcessV2.UpdateInfo(nCtx, hostID, pluginName, processInfo)
 	if err != nil {
 		return fmt.Errorf("failed to update process info: %w", err)
 	}
@@ -74,7 +74,7 @@ func (s *Storage) updateProcessInfo(nCtx contextx.IContext, hostID int64, plugin
 }
 
 // nolint: nonamedreturns
-func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) (err error) {
+func (s *Storage) updateManyProcessV2Info(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) (err error) {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -83,7 +83,7 @@ func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processInfoDelta
 		return base.ErrInvalidParam(fmt.Errorf("process info map is empty"))
 	}
 
-	err = s.daoProcess.UpdateManyInfo(nCtx, processInfoDeltas)
+	err = s.daoProcessV2.UpdateManyInfo(nCtx, processInfoDeltas)
 	if err != nil {
 		return fmt.Errorf("failed to batch update process info: %w", err)
 	}
@@ -92,12 +92,12 @@ func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processInfoDelta
 }
 
 // nolint: nonamedreturns
-func (s *Storage) updateProcessManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) (err error) {
+func (s *Storage) updateProcessV2ManyHostBizID(nCtx contextx.IContext, bizID int64, hostID ...int64) (err error) {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	err = s.daoProcess.UpdateManyHostBizID(nCtx, bizID, hostID...)
+	err = s.daoProcessV2.UpdateManyHostBizID(nCtx, bizID, hostID...)
 	if err != nil {
 		return fmt.Errorf("failed to update process biz id, host-id(%v): %w", hostID, err)
 	}
@@ -106,12 +106,12 @@ func (s *Storage) updateProcessManyHostBizID(nCtx contextx.IContext, bizID int64
 }
 
 // nolint: nonamedreturns
-func (s *Storage) deleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) (err error) {
+func (s *Storage) deleteProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (err error) {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	err = s.daoProcess.Delete(nCtx, hostID, pluginName)
+	err = s.daoProcessV2.Delete(nCtx, hostID, pluginName)
 	if err != nil {
 		return fmt.Errorf("failed to delete process: %w", err)
 	}
@@ -119,35 +119,35 @@ func (s *Storage) deleteProcess(nCtx contextx.IContext, hostID int64, pluginName
 	return nil
 }
 
-func (s *Storage) countProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error) {
-	var opts []daoProcess.OptFn
+func (s *Storage) countProcessesV2(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error) {
+	var opts []daoProcessV2.OptFn
 	var err error
 
-	if opts, err = convertProcessConditionsToOptions(conditions...); err != nil {
+	if opts, err = convertProcessV2ConditionsToOptions(conditions...); err != nil {
 		return 0, err
 	}
 
-	return s.daoProcess.Count(nCtx, opts...)
+	return s.daoProcessV2.Count(nCtx, opts...)
 }
 
-func (s *Storage) listProcesses(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error) {
-	var opts []daoProcess.OptFn
+func (s *Storage) listProcessesV2(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error) {
+	var opts []daoProcessV2.OptFn
 	var err error
 
-	if opts, err = convertProcessConditionsToOptions(conditions...); err != nil {
+	if opts, err = convertProcessV2ConditionsToOptions(conditions...); err != nil {
 		return nil, 0, err
 	}
 
-	return s.daoProcess.List(nCtx, page, opts...)
+	return s.daoProcessV2.List(nCtx, page, opts...)
 }
 
 // nolint: nonamedreturns
-func (s *Storage) existProcess(nCtx contextx.IContext, hostID int64, pluginName string) (exist bool, err error) {
+func (s *Storage) existProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (exist bool, err error) {
 	if nCtx == nil {
 		return false, base.ErrInvalidContext()
 	}
 
-	exist, err = s.daoProcess.Exist(nCtx, hostID, pluginName)
+	exist, err = s.daoProcessV2.Exist(nCtx, hostID, pluginName)
 	if err != nil {
 		return false, fmt.Errorf("failed to count process: %w", err)
 	}
@@ -155,12 +155,12 @@ func (s *Storage) existProcess(nCtx contextx.IContext, hostID int64, pluginName 
 	return exist, nil
 }
 
-func (s *Storage) getProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
+func (s *Storage) getProcessV2(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	process, err := s.daoProcess.Get(nCtx, daoProcess.WithHostID(hostID), daoProcess.WithPluginName(pluginName))
+	process, err := s.daoProcessV2.Get(nCtx, daoProcessV2.WithHostID(hostID), daoProcessV2.WithPluginName(pluginName))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get process: %w", err)
 	}
@@ -168,33 +168,33 @@ func (s *Storage) getProcess(nCtx contextx.IContext, hostID int64, pluginName st
 	return process, nil
 }
 
-func (s *Storage) getProcessDistributionByHostID(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (map[int64]int64, error) {
+func (s *Storage) getProcessV2DistributionByHostID(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (map[int64]int64, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	opts, err := convertProcessConditionsToOptions(conditions...)
+	opts, err := convertProcessV2ConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, err
 	}
 
-	dist, err := s.daoProcess.GetProcessDistributionByHostID(nCtx, opts...)
+	dist, err := s.daoProcessV2.GetProcessDistributionByHostID(nCtx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get process distribution: %w", err)
 	}
 
 	return dist, nil
 }
-func (s *Storage) getProcessDistributionByPluginName(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (map[string]int64, error) {
+func (s *Storage) getProcessV2DistributionByPluginName(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (map[string]int64, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
-	opts, err := convertProcessConditionsToOptions(conditions...)
+	opts, err := convertProcessV2ConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, err
 	}
 
-	dist, err := s.daoProcess.GetProcessDistributionByPluginName(nCtx, opts...)
+	dist, err := s.daoProcessV2.GetProcessDistributionByPluginName(nCtx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get process distribution: %w", err)
 	}
@@ -202,15 +202,15 @@ func (s *Storage) getProcessDistributionByPluginName(nCtx contextx.IContext, con
 	return dist, nil
 }
 
-// distinctProcess distinct process.
-func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, conditions ...*types.ProcessCondition) (
+// distinctProcessV2 distinct process.
+func (s *Storage) distinctProcessV2(nCtx contextx.IContext, request types.ProcessDistinctSelector, conditions ...*types.ProcessCondition) (
 	*types.ProcessDistinctResult, error) {
 
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	opts, err := convertProcessConditionsToOptions(conditions...)
+	opts, err := convertProcessV2ConditionsToOptions(conditions...)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.OSType {
 		gp.Go(func() error {
 			var err error
-			data.OSType, err = s.daoProcess.DistinctPlatformOS(nCtx, opts...)
+			data.OSType, err = s.daoProcessV2.DistinctPlatformOS(nCtx, opts...)
 
 			return err
 		})
@@ -228,7 +228,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.CPUArch {
 		gp.Go(func() error {
 			var err error
-			data.CPUArch, err = s.daoProcess.DistinctCPUArch(nCtx, opts...)
+			data.CPUArch, err = s.daoProcessV2.DistinctCPUArch(nCtx, opts...)
 
 			return err
 		})
@@ -236,7 +236,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.Version {
 		gp.Go(func() error {
 			var err error
-			data.Version, err = s.daoProcess.DistinctInfoVersion(nCtx, opts...)
+			data.Version, err = s.daoProcessV2.DistinctInfoVersion(nCtx, opts...)
 
 			return err
 		})
@@ -244,7 +244,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.Status {
 		gp.Go(func() error {
 			var err error
-			data.Status, err = s.daoProcess.DistinctInfoStatus(nCtx, opts...)
+			data.Status, err = s.daoProcessV2.DistinctInfoStatus(nCtx, opts...)
 
 			return err
 		})
@@ -252,7 +252,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.PluginName {
 		gp.Go(func() error {
 			var err error
-			data.PluginName, err = s.daoProcess.DistinctPluginName(nCtx, opts...)
+			data.PluginName, err = s.daoProcessV2.DistinctPluginName(nCtx, opts...)
 
 			return err
 		})
@@ -260,7 +260,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.PluginGroup {
 		gp.Go(func() error {
 			var err error
-			data.PluginGroup, err = s.daoProcess.DistinctGroup(nCtx, opts...)
+			data.PluginGroup, err = s.daoProcessV2.DistinctGroup(nCtx, opts...)
 
 			return err
 		})
@@ -268,7 +268,7 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	if request.PluginPkgName {
 		gp.Go(func() error {
 			var err error
-			data.PluginPkgName, err = s.daoProcess.DistinctPkgName(nCtx, opts...)
+			data.PluginPkgName, err = s.daoProcessV2.DistinctPkgName(nCtx, opts...)
 
 			return err
 		})
@@ -280,8 +280,8 @@ func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessD
 	return data, nil
 }
 
-func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([]daoProcess.OptFn, error) {
-	opts := make([]daoProcess.OptFn, 0)
+func convertProcessV2ConditionsToOptions(conditions ...*types.ProcessCondition) ([]daoProcessV2.OptFn, error) {
+	opts := make([]daoProcessV2.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
 			continue
@@ -289,23 +289,23 @@ func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
-				daoProcess.WithHostID(condition.ExactInclude.HostID...),
-				daoProcess.WithBizID(condition.ExactInclude.BizID...),
-				daoProcess.WithGroup(condition.ExactInclude.PluginGroup...),
-				daoProcess.WithGeneration(condition.ExactInclude.Generation...),
-				daoProcess.WithPlatformOS(condition.ExactInclude.PlatformOS...),
-				daoProcess.WithPlatformArch(condition.ExactInclude.PlatformArch...),
-				daoProcess.WithInfoStatus(condition.ExactInclude.InfoStatus...),
-				daoProcess.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
-				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...),
-				daoProcess.WithPluginName(condition.ExactInclude.PluginName...),
-				daoProcess.WithPkgName(condition.ExactInclude.PluginPkgName...))
+				daoProcessV2.WithHostID(condition.ExactInclude.HostID...),
+				daoProcessV2.WithBizID(condition.ExactInclude.BizID...),
+				daoProcessV2.WithGroup(condition.ExactInclude.PluginGroup...),
+				daoProcessV2.WithGeneration(condition.ExactInclude.Generation...),
+				daoProcessV2.WithPlatformOS(condition.ExactInclude.PlatformOS...),
+				daoProcessV2.WithPlatformArch(condition.ExactInclude.PlatformArch...),
+				daoProcessV2.WithInfoStatus(condition.ExactInclude.InfoStatus...),
+				daoProcessV2.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
+				daoProcessV2.WithInfoVersion(condition.ExactInclude.InfoVersion...),
+				daoProcessV2.WithPluginName(condition.ExactInclude.PluginName...),
+				daoProcessV2.WithPkgName(condition.ExactInclude.PluginPkgName...))
 		}
 
 		if condition.FuzzyInclude != nil {
 			opts = append(opts,
-				daoProcess.WithFuzzyName(condition.FuzzyInclude.Name...),
-				daoProcess.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...))
+				daoProcessV2.WithFuzzyName(condition.FuzzyInclude.Name...),
+				daoProcessV2.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...))
 		}
 
 		if condition.ExactExclude != nil {

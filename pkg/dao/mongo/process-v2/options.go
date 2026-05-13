@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package process
+package processv2
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
