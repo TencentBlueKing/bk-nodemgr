@@ -16,6 +16,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -35,6 +36,7 @@ func NewActionVersionCompatCheck(capability *Capability) action.Definition {
 	return &actionVersionCompatCheck{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageRelease:        capability.StorageRelease,
 
 		operateAgentSupportedLowestVersionFmt: types.NewGSEVersionFormatter(agentOperateRestartLowestVersion),
 	}
@@ -48,6 +50,7 @@ type ActionParamVersionCompatCheck struct {
 type actionVersionCompatCheck struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageRelease        release.IStorage
 
 	operateAgentSupportedLowestVersionFmt types.GSEVersionFormatter
 }
@@ -119,6 +122,35 @@ func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) error {
 			err = errors.Join(storeErr, err)
 		}
 	}()
+
+	if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
+		// we'll automatically use the system information to select the default version,
+		// when NodeVersion is empty.
+		releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
+		if err != nil {
+			std.InstanceData().Log().
+				Zh("转换节点角色到发布类型失败, 错误: %v", err).
+				En("failed to convert node role to release type. err: %v", err).
+				Error()
+
+			return err
+		}
+
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: releaseType,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
+		})
+		if err != nil {
+			return err
+		}
+		std.InstanceData().Log().
+			Zh("自动选择目标版本, 使用系统默认版本. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Info()
+	}
 
 	// check if this node version is >= lowest version which supports the soft restart through cluster.
 	versionFormatter := types.NewGSEVersionFormatter(std.DeployInfo().Host.Dynamic.NodeVersion)

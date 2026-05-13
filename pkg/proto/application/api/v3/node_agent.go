@@ -230,10 +230,6 @@ func (x *NodeAgentUpgradeHost) Validate() error {
 		return errors.New("bk_host_id must be equal or greater than 0")
 	}
 
-	if x.GetTargetVersion() == "" {
-		return errors.New("target_version can not be empty")
-	}
-
 	return nil
 }
 
