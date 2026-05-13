@@ -1,7 +1,7 @@
 <template>
   <div
     class="validate-cell"
-    :class="{ 'bk-form-error': shouldShowError }"
+    :class="{ 'validate-cell--error': shouldShowError }"
     @focusin="handleFocus"
     @focusout="handleBlur"
   >
@@ -10,10 +10,10 @@
 
     <!--
       错误提示图标
-      v-if="shouldShowError": 聚焦时隐藏图标，失焦且有错误时显示
+      使用 v-show 而非 v-if，避免 DOM 增减导致 VxeTable 重新计算列宽
     -->
     <div
-      v-if="shouldShowError"
+      v-show="shouldShowError"
       class="error-indicator"
       ref="triggerRef"
       @mouseenter="handleMouseEnter"
@@ -101,7 +101,7 @@ const handleMouseLeave = () => {
 .validate-cell :deep(.bk-upload) {
   width: 100%;
 }
-.validate-cell.bk-form-error {
+.validate-cell--error {
   &::v-deep(.bk-input--text),
   &::v-deep(.bk-textarea),
   &::v-deep(.bk-select-tag),
@@ -110,6 +110,10 @@ const handleMouseLeave = () => {
     color: #ea3636 !important;
     background-color: #fff0f0 !important;
     .bk-input--suffix-icon { background-color: #fff0f0 !important; }
+    /* 聚焦时底部装饰线也置为红色 */
+    &::after {
+      background-color: #ea3636 !important;
+    }
   }
 }
 .error-indicator {

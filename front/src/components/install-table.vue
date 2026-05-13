@@ -1691,4 +1691,13 @@ defineExpose({ tableValidate, showSetting });
   height: 56px !important;
   font-size: 12px !important;
 }
+
+/* 防止校验状态变化导致 VxeTable 列宽重算、右侧出现空白列 */
+::v-deep(.vxe-table--body-wrapper),
+::v-deep(.vxe-table--header-wrapper) {
+  overflow-x: hidden;
+}
+::v-deep(.vxe-body--column .vxe-cell) {
+  overflow: visible;
+}
 </style>
