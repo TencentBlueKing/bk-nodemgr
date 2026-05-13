@@ -30,12 +30,13 @@ const (
 
 	attributeKeyActionName = "action_name"
 
-	attributeKeySkipReason = "skip_reason"
-	attributeKeyError      = "error"
-	attributeKeyRetryCount = "retry_count"
-	attributeKeyIsFirst    = "is_first"
-	attributeKeyIsLast     = "is_last"
-	attributeKeyFinalState = "final_state"
+	attributeKeySkipReason  = "skip_reason"
+	attributeKeyError       = "error"
+	attributeKeyRetryCount  = "retry_count"
+	attributeKeyRetryReason = "retry_reason"
+	attributeKeyIsFirst     = "is_first"
+	attributeKeyIsLast      = "is_last"
+	attributeKeyFinalState  = "final_state"
 
 	spanEventActionReceived  = "action.received"
 	spanEventActionSkipped   = "action.skipped"
@@ -43,4 +44,5 @@ const (
 	spanEventActionFailed    = "action.failed"
 	spanEventActionSucceeded = "action.succeeded"
 	spanEventActionCompleted = "action.completed"
+	spanEventActionRetry     = "action.retry"
 )

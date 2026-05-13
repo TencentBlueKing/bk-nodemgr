@@ -432,7 +432,7 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 		Data: actionInstData,
 	}
 
-	go mgr.executeAction(doResult, actionInstCtx, actionDef) // nolint:contextcheck
+	go mgr.executeAction(nCtx, doResult, actionInstCtx, actionDef) // nolint:contextcheck
 
 	select {
 	case err := <-doResult:
@@ -477,11 +477,10 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 	}
 }
 
-func (mgr *manager) executeAction(
-	doResult chan error, actionInstCtx *action.InstanceContext, actionDef action.Definition) {
+func (mgr *manager) executeAction(nCtx contextx.IContext, doResult chan error,
+	actionInstCtx *action.InstanceContext, actionDef action.Definition) {
 
 	var err error
-
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New("action panic")
@@ -507,7 +506,7 @@ func (mgr *manager) executeAction(
 
 	go mgr.autoRefreshActionDataMsg(ctx, actionInstCtx.Data)
 
-	err = mgr.callActionDefWithRetry(actionInstCtx, actionDef)
+	err = mgr.callActionDefWithRetry(nCtx, actionInstCtx, actionDef)
 }
 
 func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action.InstanceData) {
@@ -556,9 +555,12 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action
 }
 
 // callActionDefWithRetry do action with retry.
-func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext, actionDef action.Definition) error {
-	var doErr error
+func (mgr *manager) callActionDefWithRetry(nCtx contextx.IContext, actionInstCtx *action.InstanceContext,
+	actionDef action.Definition) error {
 
+	span := trace.SpanFromContext(nCtx)
+
+	var doErr error
 	for retryNum := uint(0); retryNum <= actionDef.MaxRetryCount() && retryNum < engineMaxRetryLimit; retryNum++ {
 		logger.G.Sys().Ctx(actionInstCtx.Ctx).
 			With("operation", actionInstCtx.Data.OperationDefName).
@@ -582,7 +584,17 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 				Error("failed to do action")
 
 			if retryNum < actionDef.MaxRetryCount() && retryNum+1 < engineMaxRetryLimit {
-				actionInstCtx.Data.Log().Zh("步骤执行失败, 即将重试: %v", doErr).En("action failed, about to retry: %v", doErr).Warn()
+				actionInstCtx.Data.Log().
+					Zh("步骤执行失败, 即将重试: %v", doErr).
+					En("action failed, about to retry: %v", doErr).
+					Warn()
+
+				span.AddEvent(spanEventActionRetry,
+					trace.WithAttributes(
+						attribute.Int(attributeKeyRetryCount, int(retryNum)),
+						attribute.String(attributeKeyRetryReason, doErr.Error()),
+					),
+				)
 			}
 
 			delayFn := actionDef.DelayFn()
