@@ -29,14 +29,14 @@ const (
 )
 
 func main() {
-	// configPath of backend service.
+	// configPath of relay service.
 	var configPath string
 
 	serverCmd := &cobra.Command{
 		Use:     "bk_nodemgr_relay",
 		Short:   "bk-nodemgr relay server",
 		Long:    "bk-nodemgr relay server",
-		Version: version.FormatVersion(),
+		Version: version.VERSION,
 		PreRun: func(_ *cobra.Command, _ []string) {
 			fmt.Println(version.GetStartInfo())
 		},
@@ -93,6 +93,7 @@ func main() {
 	serverCmd.PersistentFlags().StringVarP(
 		&configPath, "config", "c", "", "path of service config file",
 	)
+	serverCmd.SetVersionTemplate("{{.Version}}\n")
 
 	err := serverCmd.MarkPersistentFlagRequired("config")
 	if err != nil {
