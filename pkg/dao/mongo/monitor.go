@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	defaultSlowTime = 1 * time.Second
+	// DefaultSlowTime is the default threshold for slow requests.
+	DefaultSlowTime = 1 * time.Second
 )
 
 func defaultDurationMSBuckets() []float64 {
@@ -46,7 +47,7 @@ type Monitor struct {
 // NewMonitor return a new monitor.
 func NewMonitor(name string, opts ...OptFunc) *Monitor {
 	monitor := &Monitor{
-		slowTime:          defaultSlowTime,
+		slowTime:          DefaultSlowTime,
 		durationMSBuckets: defaultDurationMSBuckets(),
 	}
 
