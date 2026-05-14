@@ -112,8 +112,10 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	return operations, num, nil
 }
 
+// ListWithoutParameters lists operation without parameters.
 func (h *handler) ListWithoutParameters(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*operation.Operation, int64, error) {
+
 	if err := page.Validate(); err != nil {
 		return nil, 0, err
 	}
