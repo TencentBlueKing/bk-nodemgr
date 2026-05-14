@@ -24,6 +24,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // IDao this is a common dao to dao some common crud.
@@ -120,6 +122,30 @@ func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...strin
 
 			return 1
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "get"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if dataPoint == nil {
+					return 0
+				}
+
+				return 1
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -168,6 +194,30 @@ func (orm *Orm[P, T]) Exist(nCtx contextx.IContext, filter bson.D) (exist bool, 
 
 			return 1
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "exist"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if err != nil {
+					return 0
+				}
+
+				return 1
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -212,6 +262,30 @@ func (orm *Orm[P, T]) CreateMany(nCtx contextx.IContext, datas []P) (err error) 
 
 			return len(result.InsertedIDs)
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "create_many"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(datas)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return len(result.InsertedIDs)
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -253,6 +327,30 @@ func (orm *Orm[P, T]) Create(nCtx contextx.IContext, data P) (err error) {
 
 			return 1
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "create"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, 1),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if err != nil {
+					return 0
+				}
+
+				return 1
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -329,6 +427,30 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 
 			return int(result.ModifiedCount)
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "update_field"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return int(result.ModifiedCount)
+			}()),
+		))
 	}()
 
 	// update field.
@@ -355,6 +477,24 @@ func (orm *Orm[P, T]) Count(nCtx contextx.IContext, filter bson.D) (num int64, e
 
 			return 1
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "count"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int64(attrKeyORMResultCount, num),
+		))
 	}()
 
 	if nCtx == nil {
@@ -378,6 +518,24 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 	metric := orm.metric().start(daomongo.MetricOperationFind, len(filter))
 	defer func() {
 		metric.end(err, len(dataPoints))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "list"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+		))
 	}()
 
 	if nCtx == nil {
@@ -425,6 +583,24 @@ func (orm *Orm[P, T]) DistinctString(
 	metric := orm.metric().start(daomongo.MetricOperationDistinct, len(filter))
 	defer func() {
 		metric.end(err, len(values))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "distinct_string"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(values)),
+		))
 	}()
 
 	if values, err = orm.dao.GetClient().Distinct(nCtx, key, filter, distinctOpt); err != nil {
@@ -451,6 +627,24 @@ func (orm *Orm[P, T]) DistinctInt64(
 	metric := orm.metric().start(daomongo.MetricOperationDistinct, len(filter))
 	defer func() {
 		metric.end(err, len(values))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "distinct_int64"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(values)),
+		))
 	}()
 
 	if values, err = orm.dao.GetClient().Distinct(nCtx, key, filter, distinctOpt); err != nil {
@@ -483,6 +677,30 @@ func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err err
 
 			return int(result.MatchedCount)
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "delete_many"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(models)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return int(result.MatchedCount)
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -516,6 +734,30 @@ func (orm *Orm[P, T]) HardDelete(nCtx contextx.IContext, filter bson.D) (err err
 
 			return int(result.DeletedCount)
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "hard_delete"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return int(result.DeletedCount)
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -553,6 +795,30 @@ func (orm *Orm[P, T]) HardDeleteMany(nCtx contextx.IContext, filter bson.D) (err
 
 			return int(result.DeletedCount)
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "hard_delete_many"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return int(result.DeletedCount)
+			}()),
+		))
 	}()
 
 	if nCtx == nil {
@@ -612,6 +878,30 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*Docume
 
 			return int(result.MatchedCount)
 		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "update_fields_bulk"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(updates)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return int(result.MatchedCount)
+			}()),
+		))
 	}()
 
 	models := make([]mongo.WriteModel, 0, len(updates))
