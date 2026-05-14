@@ -70,7 +70,7 @@
                 :popover-options="{
                   clickContentAutoHide: true,
                 }">
-                <span id="siteHelp" class="header-icon !text-[16px]">
+                <span id="siteHelp" class="header-icon !text-[18px]">
                   <i class="nodeman-icon nc-help-document-fill"></i>
                 </span>
                 <template #content>
@@ -87,7 +87,7 @@
                 </template>
               </Dropdown>
               <!-- 用户设置 -->
-              <bk-popover
+              <!-- <bk-popover
                 theme="light"
                 :arrow="false"
                 placement="bottom-start"
@@ -102,7 +102,37 @@
                     <li class="dropdown-item cursor-pointer" @click="logout">{{ t('platform.logout') }}</li>
                   </ul>
                 </template>
-              </bk-popover>
+              </bk-popover> -->
+              <BkLoginUserinfo :userinfo="userinfo">
+                <template #default>
+                  <div class="flex items-center gap-[5px] cursor-pointer">
+                    <bk-user-display-name :user-id="currentUser"></bk-user-display-name>
+                  </div>
+                </template>
+                <template #action>
+                  <ActionItem @click="handleClick('personalCenter')">
+                    <template #icon>
+                      <i class="nodeman-icon nc-authority"></i>
+                    </template>
+                    <span class="text-[12px]">{{ t('platform.personalCenter') }}</span>
+                  </ActionItem>
+                  <ActionItem @click="handleClick('permissionCenter')">
+                    <template #icon>
+                      <i class="nodeman-icon nc-user"></i>
+                    </template>
+                    <span class="text-[12px]">{{ t('platform.permissionCenter') }}</span>
+                  </ActionItem>
+                  <ActionItem
+                    theme="danger"
+                    @click="logout"
+                  >
+                    <template #icon>
+                      <i class="nodeman-icon nc-export"></i>
+                    </template>
+                    <span class="text-[12px]">{{ t('platform.logout') }}</span>
+                  </ActionItem>
+                </template>
+              </BkLoginUserinfo>
             </div>
           </template>
         </FlexRow>
@@ -146,7 +176,6 @@
 
 <script setup lang="ts">
 import { Dropdown, Menu, Navigation } from 'bkui-vue';
-import { AngleUpFill } from 'bkui-vue/lib/icon';
 import { debounce } from 'lodash';
 import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -166,6 +195,9 @@ import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
 import { getModuleAuthorizedItems, getPageAuthorizedItems, matchPageAuth, PAGE_AUTH_CONFIG, shouldDeferBizAuthCheck } from '@/constants/auth';
+import BkUserDisplayName from '@blueking/bk-user-display-name';
+import BkLoginUserinfo, { ActionItem } from '@blueking/login-userinfo';
+import('@blueking/login-userinfo/vue3/vue3.css');
 
 /** 包管理子路由名 → 包类型 id 映射（用于 authorized/verify 传入正确的资源实例 ID） */
 const ROUTE_TO_PKG_TYPE_ID: Record<string, string> = {
@@ -449,6 +481,23 @@ async function handleChangeLang(item) {
     }
   }
 }
+// 个人中心
+const currentUser = computed(() => window.PROJECT_CONFIG.LOGIN_NAME);
+const userinfo = ref({
+  name: window.PROJECT_CONFIG.BK_USERNAME,
+  email: window.PROJECT_CONFIG.USER_EMAIL,
+  organization: window.PROJECT_CONFIG.BK_TENANT,
+  timezone: window.PROJECT_CONFIG.USER_TIMEZONE,
+});
+const handleClick = (id: string) => {
+  if (id === 'personalCenter') {
+    const url = window.PROJECT_CONFIG?.BK_USER_SAAS_HOST;
+    if (url) window.open(url);
+  } else if (id === 'permissionCenter') {
+    const url = window.PROJECT_CONFIG?.BK_IAM_SAAS_HOST;
+    if (url) window.open(url);
+  }
+};
 // 设置title
 watch(appName, () => {
   // https://github.com/vueuse/head
@@ -506,6 +555,18 @@ onBeforeMount(async () => {
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
   bizSelectorRef.value?.init();
   mainStore.setBusinessReady();
+  if (window.PROJECT_CONFIG.BK_APIGW_BASE_URL) {
+    BkUserDisplayName.configure({
+      // 必填，租户 ID
+      tenantId: window.PROJECT_CONFIG.BK_TENANT,
+      // 必填，网关地址
+      apiBaseUrl: window.PROJECT_CONFIG.BK_APIGW_BASE_URL,
+      // 可选，缓存时间，单位为毫秒, 默认 5 分钟, 只对单一值生效
+      cacheDuration: 1000 * 60 * 5,
+      // 可选，当输入为空时，显示的文本，默认为 '--'
+      emptyText: '--'
+    });
+  }
 });
 onMounted(async () => {
   mainStore.updateWindowInnerHeight(window.innerHeight);
@@ -581,6 +642,22 @@ watch(
   &:hover {
     background-color: #eaf3ff;
     color: #3a84ff;
+  }
+}
+:deep(.bk-login-userinfo) {
+  cursor: pointer;
+  font-size: 14px;
+  &:hover {
+    color: #d3d9e4;
+  }
+  &.is-active {
+    color: #d3d9e4;
+  }
+  .bk-login-userinfo-panel {
+    right: 10px;
+    top: 60px;
+    z-index: 9999;
+    position: fixed !important;
   }
 }
 </style>

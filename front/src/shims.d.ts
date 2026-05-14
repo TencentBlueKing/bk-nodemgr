@@ -21,6 +21,12 @@ declare interface Window {
     UNIX_SSH_PORT_DEFAULT: string,
     BK_IAM_SYSTEM_ID_BK_NODEMGR: string,
     BK_IAM_SYSTEM_ID_BK_CMDB: string,
+    BK_IAM_SAAS_HOST: string,
+    BK_USER_SAAS_HOST: string,
+    USER_TIMEZONE: string,
+    BK_APIGW_BASE_URL: string,
+    BK_USERNAME: string,
+    USER_EMAIL: string,
   }
   loginModal: Object
 }

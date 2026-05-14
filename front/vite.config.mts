@@ -45,7 +45,14 @@ export default ({ mode }: { mode: string }) => {
 
     plugins: [
       // https://github.com/vitejs/vite-plugin-vue/tree/main/packages/plugin-vue
-      Vue(),
+      Vue({
+        template: {
+          compilerOptions: {
+            // bk-user-display-name 是 Web Component（Custom Element），不作为 Vue 组件解析
+            isCustomElement: tag => tag === 'bk-user-display-name',
+          },
+        },
+      }),
 
       // https://github.com/vitejs/vite-plugin-vue/tree/main/packages/plugin-vue-jsx
       VueJsx(),

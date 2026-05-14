@@ -31,11 +31,17 @@
         const BK_TENANT = '{{ .BK_TENANT }}'                                   // 租户ID
         const ENABLE_NOTICE = '{{ .ENABLE_NOTICE }}'                           // 通知功能开关
         const APP_VERSION = '{{ .APP_VERSION }}'                               // 版本
-        const LOGIN_NAME = '{{ .LOGIN_NAME }}'                                  // 当前登录用户名
+        const LOGIN_NAME = '{{ .LOGIN_NAME }}'                                 // 当前登录用户名, 可直接用于展示
         const WINDOWS_WMI_PORT_DEFAULT = '{{ .WINDOWS_WMI_PORT_DEFAULT }}'     // Windows WMI 默认端口
         const UNIX_SSH_PORT_DEFAULT = '{{ .UNIX_SSH_PORT_DEFAULT }}'           // Unix SSH 默认端口
         const BK_IAM_SYSTEM_ID_BK_NODEMGR = '{{ .BK_IAM_SYSTEM_ID_BK_NODEMGR }}'   // IAM 节点管理系统ID
         const BK_IAM_SYSTEM_ID_BK_CMDB = '{{ .BK_IAM_SYSTEM_ID_BK_CMDB }}'         // IAM 配置平台系统ID
+        const BK_IAM_SAAS_HOST = '{{ .BK_IAM_SAAS_HOST }}'                     // 权限中心地址
+        const BK_USER_SAAS_HOST  = '{{ .BK_USER_SAAS_HOST  }}'                 // 用户中心地址
+        const USER_TIMEZONE = '{{ USER_TIMEZONE }}'                            // 用户时区
+        const BK_APIGW_BASE_URL = '{{ BK_APIGW_BASE_URL }}'                    // 网关地址 
+        const BK_USERNAME = '{{ BK_USERNAME }}'                                // BK_USERNAME
+        const USER_EMAIL = '{{ USER_EMAIL }}'                                  // 邮箱
         return {
           BK_API_PREFIX,
           BK_SHARED_RES_BASE_JS_URL,
@@ -55,6 +61,12 @@
           UNIX_SSH_PORT_DEFAULT,
           BK_IAM_SYSTEM_ID_BK_NODEMGR,
           BK_IAM_SYSTEM_ID_BK_CMDB,
+          BK_IAM_SAAS_HOST,
+          BK_USER_SAAS_HOST,
+          USER_TIMEZONE,
+          BK_APIGW_BASE_URL,
+          BK_USERNAME,
+          USER_EMAIL,
         }
       })()
     </script>

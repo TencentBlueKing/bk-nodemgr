@@ -2,6 +2,8 @@ platform:
   name: Node Management
   title: BK Nodemgr
   logout: Logout
+  personalCenter: Personal Center
+  permissionCenter: Permission Center
   onCall: BK-helper
   productDoc: Documentation
   releaseNotes: Release Notes

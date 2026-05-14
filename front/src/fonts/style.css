@@ -23,8 +23,14 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
   -moz-osx-font-smoothing: grayscale;
 }
 
+.nc-export:before {
+	content: "\e1bb";
+}
 .nc-check-circle-fill:before {
 	content: "\e186";
+}
+.nc-user:before {
+	content: "\e1ba";
 }
 .nc-alicloud:before {
 	content: "\e101";
@@ -250,6 +256,9 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 }
 .nc-xiazai:before {
 	content: "\e158";
+}
+.nc-authority:before {
+	content: "\e1b9";
 }
 .nc-switchon:before {
 	content: "\e159";

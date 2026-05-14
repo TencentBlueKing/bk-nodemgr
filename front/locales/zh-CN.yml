@@ -2,6 +2,8 @@ platform:
   name: 节点管理
   title: 蓝鲸节点管理
   logout: 退出登录
+  personalCenter: 个人中心
+  permissionCenter: 权限中心
   onCall: 联系BK助手
   productDoc: 产品文档
   releaseNotes: 版本日志
