@@ -90,10 +90,14 @@ Common templates:
 ### Draft Issue Content
 
 Based on the change analysis, draft:
-- **Title**: Concise summary (e.g., "Refactor bklogin brokers with typed structs")
 - **Template**: Choose the most appropriate template
-- **Body**: Fill template fields based on changes
-- **Labels**: Suggest labels (e.g., `kind/features`, `module/pkg`)
+- **Template title prefix**: Read the template's `title:` value and preserve it exactly (for example, `feature_request.yml` uses `[FEATURE]: `). The final issue title must start with that prefix unless the user explicitly asks otherwise.
+- **Title**: Concise issue summary after the template prefix. Use Chinese for bk-nodemgr issue titles by default because the public issue templates are bilingual with Chinese-first labels.
+- **Body language**: Write the issue body in Chinese by default for bk-nodemgr. Keep proper nouns, code identifiers, package names, labels, and technical keywords in English where natural.
+- **Body structure**: Fill the selected template fields in the same order as the template, using the template's Chinese-first field labels where practical.
+- **Labels**: Suggest labels from the selected issue template and any clearly applicable project labels (e.g., `kind/features`, `module/pkg`).
+
+Why this matters: GitHub issue forms provide default title prefixes and Chinese-first field labels, but `gh issue create` does not automatically apply the template contract when passing a custom `--title` and `--body`. The agent must carry the template prefix and language convention into the draft explicitly.
 
 ### ✅ Checkpoint 1: Confirm Issue
 
@@ -101,12 +105,14 @@ Present to user:
 
 ```
 I'll create an issue with:
-- Title: [proposed title]
 - Template: [template name]
+- Template title prefix: [exact template title prefix]
+- Title: [proposed title including prefix]
+- Language: Chinese by default for bk-nodemgr issues
 - Labels: [suggested labels]
 
 Body:
-[formatted body content]
+[formatted body content using selected template fields]
 
 Should I proceed? (yes/no, or suggest changes)
 ```
@@ -126,6 +132,14 @@ gh issue create \
 ```
 
 Capture the issue URL and number from output.
+
+Immediately verify the created issue:
+
+```bash
+gh issue view [issue-number] --repo [owner/repo] --json title,body,labels,url
+```
+
+Confirm the returned title still includes the template prefix and the body language matches the confirmed draft. If it does not, update the issue before continuing to PR drafting.
 
 ## Step 3: Read PR Conventions
 
@@ -194,9 +208,10 @@ Examples:
 Determine PR body language based on:
 1. **Issue language**: If linked issue uses Chinese, PR body should use Chinese
 2. **User request**: If user explicitly requests a language, follow it
-3. **Default**: English for international visibility
+3. **Project convention**: For bk-nodemgr, prefer Chinese PR bodies when the issue is Chinese
+4. **Fallback default**: English only when the issue/user/project convention does not indicate a localized language
 
-**Note**: PR title MUST remain English (regex requirement), but body can be localized.
+**Note**: PR title MUST remain English (regex requirement), but issue titles do not use the PR title regex. Do not apply the PR title format to GitHub issue titles; issue titles must follow the selected issue template's `title:` prefix.
 
 **Body (English template)**:
 
