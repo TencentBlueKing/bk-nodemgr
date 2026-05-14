@@ -751,7 +751,6 @@ func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostD
 
 		updates := generateHostDynamicUpdates(fields, host)
 		docs = append(docs, &base.DocumentFieldUpdate{
-			Filter: buildHostDynamicFieldUpdateFilter(host.HostID, updates),
 			Fields: updates,
 		})
 	}
