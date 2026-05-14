@@ -67,8 +67,8 @@ func (s *Storage) listOperationByOperationID(nCtx contextx.IContext, operationID
 	return s.daoOperation.List(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
 }
 
-// listOperationByParentOperationID lists operation by parent operation id.
-func (s *Storage) listOperationByParentOperationID(
+// listOperationWithoutParametersByParentOperationID lists operation without parameters by parent operation id.
+func (s *Storage) listOperationWithoutParametersByParentOperationID(
 	nCtx contextx.IContext, page types.Page, parentOperationID ...string) (
 	[]*workoper.Operation, int64, error) {
 
@@ -80,11 +80,11 @@ func (s *Storage) listOperationByParentOperationID(
 		return nil, 0, basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.List(nCtx, page, operation.WithParentOperationID(parentOperationID...))
+	return s.daoOperation.ListWithoutParameters(nCtx, page, operation.WithParentOperationID(parentOperationID...))
 }
 
-// listOperationByParentOperInstID lists operation by parent operation instance id.
-func (s *Storage) listOperationByParentOperInstID(nCtx contextx.IContext, page types.Page, parentOperInstID ...string) (
+// listOperationWithoutParametersByParentOperInstID lists operation without parameters by parent operation instance id.
+func (s *Storage) listOperationWithoutParametersByParentOperInstID(nCtx contextx.IContext, page types.Page, parentOperInstID ...string) (
 	[]*workoper.Operation, int64, error) {
 
 	if nCtx == nil {
@@ -95,7 +95,7 @@ func (s *Storage) listOperationByParentOperInstID(nCtx contextx.IContext, page t
 		return nil, 0, basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.List(nCtx, page, operation.WithParentOperInstID(parentOperInstID...))
+	return s.daoOperation.ListWithoutParameters(nCtx, page, operation.WithParentOperInstID(parentOperInstID...))
 }
 
 // deleteOperationsByTriggerID deletes operations by trigger ids.

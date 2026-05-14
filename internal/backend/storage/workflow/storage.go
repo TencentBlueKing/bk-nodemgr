@@ -43,57 +43,57 @@ const (
 	taskTimeout       = 20 * time.Second
 	syncOperationTask = "sync stopping operation inst"
 
-	metricOperationCreateTrigger                                   = "create_trigger"
-	metricOperationUpdateTrigger                                   = "update_trigger"
-	metricOperationSwitchTriggerAlive                              = "switch_trigger_alive"
-	metricOperationGetTrigger                                      = "get_trigger"
-	metricOperationListAliveTrigger                                = "list_alive_trigger"
-	metricOperationListTrigger                                     = "list_trigger"
-	metricOperationDeleteTriggers                                  = "delete_triggers"
-	metricOperationExistTrigger                                    = "exist_trigger"
-	metricOperationListScheduledWorkflow                           = "list_scheduled_workflow"
-	metricOperationCountScheduledWorkflow                          = "count_scheduled_workflow"
-	metricOperationGetScheduledWorkflow                            = "get_scheduled_workflow"
-	metricOperationCreateScheduledWorkflow                         = "create_scheduled_workflow"
-	metricOperationUpdateScheduledWorkflowTriggerID                = "update_scheduled_workflow_trigger_id"
-	metricOperationUpdateScheduledWorkflowPrivateData              = "update_scheduled_workflow_private_data"
-	metricOperationSwitchScheduledWorkflow                         = "switch_scheduled_workflow"
-	metricOperationGetOperation                                    = "get_operation"
-	metricOperationUpsertOperation                                 = "upsert_operation"
-	metricOperationListOperation                                   = "list_operation"
-	metricOperationCountOperation                                  = "count_operation"
-	metricOperationDistinctOperation                               = "distinct_operation"
-	metricOperationListOperationByOperationID                      = "list_operation_by_operation_id"
-	metricOperationListOperationByParentOperationID                = "list_operation_by_parent_operation_id"
-	metricOperationListOperationByParentOperInstID                 = "list_operation_by_parent_oper_inst_id"
-	metricOperationListNeedInstantiateOperationByTriggerID         = "list_need_instantiate_operation_by_trigger_id"
-	metricOperationExistNeedInstantiateOperationByTriggerID        = "exist_need_instantiate_operation_by_trigger_id"
-	metricOperationDeleteOperationsByTriggerID                     = "delete_operations_by_trigger_id"
-	metricOperationPullOperationInstanceIDsFromOperation           = "pull_operation_instance_ids_from_operation"
-	metricOperationUpdateOperationLatestInstBriefData              = "update_operation_latest_inst_brief_data"
-	metricOperationUpdateOperInstActionStatus                      = "update_oper_inst_action_status"
-	metricOperationGetActionInstanceData                           = "get_action_instance_data"
-	metricOperationGetActionInstanceLifecycle                      = "get_action_instance_lifecycle"
-	metricOperationGetActionInstancePrivateData                    = "get_action_instance_private_data"
-	metricOperationUpdateActionInstanceLifecycle                   = "update_action_instance_lifecycle"
-	metricOperationPushActionInstanceMessage                       = "push_action_instance_message"
-	metricOperationGetOperationInstanceFullData                    = "get_operation_instance_full_data"
-	metricOperationGetOperationInstanceBriefData                   = "get_operation_instance_brief_data"
-	metricOperationListOperationInstanceBriefDataWithoutActionInst = "list_operation_instance_brief_data_without_action_inst_by_condition"
-	metricOperationCountOperationInstance                          = "count_operation_instance"
-	metricOperationExistOperationInstance                          = "exist_operation_instance"
-	metricOperationListOperationInstanceBriefByOperationID         = "list_operation_instance_brief_without_action_inst_by_operation_id"
-	metricOperationListOperationInstanceBriefByTriggerID           = "list_operation_instance_brief_without_action_inst_by_trigger_id"
-	metricOperationGetLatestOperationInstanceStatusDistribution    = "get_latest_operation_instance_status_distribution_by_trigger_id"
-	metricOperationUpsertOperationInstanceData                     = "upsert_operation_instance_data"
-	metricOperationUpdateOperationInstanceLifecycle                = "update_operation_instance_lifecycle"
-	metricOperationUpdateOperationLatestActionInstBriefData        = "update_operation_latest_action_inst_brief_data"
-	metricOperationUpdateOperationInstanceExtraExecutionMessages   = "update_operation_instance_extra_execution_messages"
-	metricOperationUpsertOperInstStop                              = "upsert_oper_inst_stop"
-	metricOperationUpdateActionInstanceContent                     = "update_action_instance_content"
-	metricOperationUpsertActionInstancePrivateData                 = "upsert_action_instance_private_data"
-	metricOperationDeleteOperationInstances                        = "delete_operation_instances"
-	metricOperationDeleteOperationInstancesByTriggerID             = "delete_operation_instances_by_trigger_id"
+	metricOperationCreateTrigger                                     = "create_trigger"
+	metricOperationUpdateTrigger                                     = "update_trigger"
+	metricOperationSwitchTriggerAlive                                = "switch_trigger_alive"
+	metricOperationGetTrigger                                        = "get_trigger"
+	metricOperationListAliveTrigger                                  = "list_alive_trigger"
+	metricOperationListTrigger                                       = "list_trigger"
+	metricOperationDeleteTriggers                                    = "delete_triggers"
+	metricOperationExistTrigger                                      = "exist_trigger"
+	metricOperationListScheduledWorkflow                             = "list_scheduled_workflow"
+	metricOperationCountScheduledWorkflow                            = "count_scheduled_workflow"
+	metricOperationGetScheduledWorkflow                              = "get_scheduled_workflow"
+	metricOperationCreateScheduledWorkflow                           = "create_scheduled_workflow"
+	metricOperationUpdateScheduledWorkflowTriggerID                  = "update_scheduled_workflow_trigger_id"
+	metricOperationUpdateScheduledWorkflowPrivateData                = "update_scheduled_workflow_private_data"
+	metricOperationSwitchScheduledWorkflow                           = "switch_scheduled_workflow"
+	metricOperationGetOperation                                      = "get_operation"
+	metricOperationUpsertOperation                                   = "upsert_operation"
+	metricOperationListOperation                                     = "list_operation"
+	metricOperationCountOperation                                    = "count_operation"
+	metricOperationDistinctOperation                                 = "distinct_operation"
+	metricOperationListOperationByOperationID                        = "list_operation_by_operation_id"
+	metricOperationListOperationWithoutParametersByParentOperationID = "list_operation_without_parameters_by_parent_operation_id"
+	metricOperationListOperationWithoutParametersByParentOperInstID  = "list_operation_without_parameters_by_parent_oper_inst_id"
+	metricOperationListNeedInstantiateOperationByTriggerID           = "list_need_instantiate_operation_by_trigger_id"
+	metricOperationExistNeedInstantiateOperationByTriggerID          = "exist_need_instantiate_operation_by_trigger_id"
+	metricOperationDeleteOperationsByTriggerID                       = "delete_operations_by_trigger_id"
+	metricOperationPullOperationInstanceIDsFromOperation             = "pull_operation_instance_ids_from_operation"
+	metricOperationUpdateOperationLatestInstBriefData                = "update_operation_latest_inst_brief_data"
+	metricOperationUpdateOperInstActionStatus                        = "update_oper_inst_action_status"
+	metricOperationGetActionInstanceData                             = "get_action_instance_data"
+	metricOperationGetActionInstanceLifecycle                        = "get_action_instance_lifecycle"
+	metricOperationGetActionInstancePrivateData                      = "get_action_instance_private_data"
+	metricOperationUpdateActionInstanceLifecycle                     = "update_action_instance_lifecycle"
+	metricOperationPushActionInstanceMessage                         = "push_action_instance_message"
+	metricOperationGetOperationInstanceFullData                      = "get_operation_instance_full_data"
+	metricOperationGetOperationInstanceBriefData                     = "get_operation_instance_brief_data"
+	metricOperationListOperationInstanceBriefDataWithoutActionInst   = "list_operation_instance_brief_data_without_action_inst_by_condition"
+	metricOperationCountOperationInstance                            = "count_operation_instance"
+	metricOperationExistOperationInstance                            = "exist_operation_instance"
+	metricOperationListOperationInstanceBriefByOperationID           = "list_operation_instance_brief_without_action_inst_by_operation_id"
+	metricOperationListOperationInstanceBriefByTriggerID             = "list_operation_instance_brief_without_action_inst_by_trigger_id"
+	metricOperationGetLatestOperationInstanceStatusDistribution      = "get_latest_operation_instance_status_distribution_by_trigger_id"
+	metricOperationUpsertOperationInstanceData                       = "upsert_operation_instance_data"
+	metricOperationUpdateOperationInstanceLifecycle                  = "update_operation_instance_lifecycle"
+	metricOperationUpdateOperationLatestActionInstBriefData          = "update_operation_latest_action_inst_brief_data"
+	metricOperationUpdateOperationInstanceExtraExecutionMessages     = "update_operation_instance_extra_execution_messages"
+	metricOperationUpsertOperInstStop                                = "upsert_oper_inst_stop"
+	metricOperationUpdateActionInstanceContent                       = "update_action_instance_content"
+	metricOperationUpsertActionInstancePrivateData                   = "upsert_action_instance_private_data"
+	metricOperationDeleteOperationInstances                          = "delete_operation_instances"
+	metricOperationDeleteOperationInstancesByTriggerID               = "delete_operation_instances_by_trigger_id"
 )
 
 // NewStorage creates a new workflow storage.
@@ -554,8 +554,8 @@ func (s *Storage) ListOperationByOperationID(
 	return opers, num, err
 }
 
-// ListOperationByParentOperationID lists operation by parent operation ID.
-func (s *Storage) ListOperationByParentOperationID(
+// ListOperationWithoutParametersByParentOperationID lists operation without parameters by parent operation ID.
+func (s *Storage) ListOperationWithoutParametersByParentOperationID(
 	nCtx contextx.IContext, page types.Page, parentID ...string) ([]*workoper.Operation, int64, error) {
 
 	var (
@@ -564,12 +564,12 @@ func (s *Storage) ListOperationByParentOperationID(
 		err   error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationListOperationByParentOperationID, func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperationListOperationWithoutParametersByParentOperationID, func(nCtx contextx.IContext) error {
 		var err error
-		if opers, num, err = s.listOperationByParentOperationID(nCtx, page, parentID...); err != nil {
-			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations by parent operation id")
+		if opers, num, err = s.listOperationWithoutParametersByParentOperationID(nCtx, page, parentID...); err != nil {
+			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations without parameters by parent operation id")
 
-			return fmt.Errorf("failed to list operations by parent operation id, parent-ids(%v): %w", parentID, err)
+			return fmt.Errorf("failed to list operations without parameters by parent operation id, parent-ids(%v): %w", parentID, err)
 		}
 
 		return nil
@@ -578,8 +578,8 @@ func (s *Storage) ListOperationByParentOperationID(
 	return opers, num, err
 }
 
-// ListOperationByParentOperInstID lists operation by parent operation instance ID.
-func (s *Storage) ListOperationByParentOperInstID(
+// ListOperationWithoutParametersByParentOperInstID lists operation without parameters by parent operation instance ID.
+func (s *Storage) ListOperationWithoutParametersByParentOperInstID(
 	nCtx contextx.IContext, page types.Page, parentID ...string) ([]*workoper.Operation, int64, error) {
 
 	var (
@@ -588,12 +588,12 @@ func (s *Storage) ListOperationByParentOperInstID(
 		err   error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationListOperationByParentOperInstID, func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperationListOperationWithoutParametersByParentOperInstID, func(nCtx contextx.IContext) error {
 		var err error
-		if opers, num, err = s.listOperationByParentOperInstID(nCtx, page, parentID...); err != nil {
-			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations by parent operation instance id")
+		if opers, num, err = s.listOperationWithoutParametersByParentOperInstID(nCtx, page, parentID...); err != nil {
+			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations without parameters by parent operation instance id")
 
-			return fmt.Errorf("failed to list operations by parent operation instance id, parent-ids(%v): %w", parentID, err)
+			return fmt.Errorf("failed to list operations without parameters by parent operation instance id, parent-ids(%v): %w", parentID, err)
 		}
 
 		return nil

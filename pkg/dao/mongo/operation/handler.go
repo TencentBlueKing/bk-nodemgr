@@ -26,12 +26,17 @@ import (
 )
 
 // IHandler operation handler interface.
+// nolint: interfacebloat
 type IHandler interface {
 	// Upsert insert or update an operation.
 	Upsert(nCtx contextx.IContext, operation *operation.Operation) error
 
 	// List list operation by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
+
+	// ListWithoutParameters list operation without parameters.
+	ListWithoutParameters(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+		[]*operation.Operation, int64, error)
 
 	// Count count process by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
@@ -95,6 +100,36 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	findOpt := base.ParsePage(page)
 
 	datas, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	operations := make([]*operation.Operation, len(datas))
+	for idx, data := range datas {
+		operations[idx] = convertOperationFromDB(data)
+	}
+
+	return operations, num, nil
+}
+
+func (h *handler) ListWithoutParameters(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*operation.Operation, int64, error) {
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.dao.Count(nCtx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	field := FieldOfParameters
+	datas, err := h.dao.findWithoutFields(nCtx, filter, page, field)
 	if err != nil {
 		return nil, 0, err
 	}

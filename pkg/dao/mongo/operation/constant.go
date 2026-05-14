@@ -38,4 +38,7 @@ const (
 
 	// FieldKeyInitContentToken is the key for init_content.token field.
 	FieldKeyInitContentToken = "data.parameters.init_content.token"
+
+	// FieldOfParameters is the field name for parameters.
+	FieldOfParameters = "parameters"
 )

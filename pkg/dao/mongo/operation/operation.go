@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -60,6 +61,9 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		},
 		{
 			Keys: bson.D{{Key: FieldKeyParentOperInstID, Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: FieldKeyParentOperationID, Value: 1}},
 		},
 	}
 }
@@ -196,4 +200,34 @@ type operationLatestInstStatusDistribution struct {
 		Status    *string `bson:"status"`
 	} `bson:"_id"`
 	Count int64 `bson:"count"`
+}
+
+// findWithoutFields find without fields.
+func (d *dao) findWithoutFields(nCtx contextx.IContext, filter bson.D, page types.Page, fields ...string) (
+	[]*Operation, error) {
+
+	projection := bson.D{}
+	for _, field := range fields {
+		projection = append(projection, bson.E{Key: field, Value: 0})
+	}
+	findOptions := base.ParsePage(page)
+	findOptions = findOptions.SetProjection(projection)
+
+	result, err := d.client.Find(nCtx, filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	datas := make([]*Operation, 0)
+	for result.Next(nCtx) {
+		table := &TableOperation{}
+		if err := result.Decode(table); err != nil {
+			logger.G.Sys().WithErr(err).Warn("failed to decode operation")
+
+			continue
+		}
+		datas = append(datas, table.Data)
+	}
+
+	return datas, nil
 }

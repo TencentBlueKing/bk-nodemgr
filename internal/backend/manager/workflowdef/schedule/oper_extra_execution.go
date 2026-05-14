@@ -156,7 +156,7 @@ func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operat
 	// get current scheduled operation instance.
 	executor := pageexecutor.NewPageExecutor[*operation.Operation](operationListMaxPageSize, operationListTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
-		operations, _, err := exec.workflowStg.ListOperationByParentOperInstID(nCtx, p, instance.Metadata.OperationInstanceID)
+		operations, _, err := exec.workflowStg.ListOperationWithoutParametersByParentOperInstID(nCtx, p, instance.Metadata.OperationInstanceID)
 
 		return operations, err
 	}
@@ -184,7 +184,7 @@ func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operat
 		}
 
 		fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
-			operations, _, err := exec.workflowStg.ListOperationByParentOperationID(nCtx, p, parentOperationIDs...)
+			operations, _, err := exec.workflowStg.ListOperationWithoutParametersByParentOperationID(nCtx, p, parentOperationIDs...)
 
 			return operations, err
 		}
