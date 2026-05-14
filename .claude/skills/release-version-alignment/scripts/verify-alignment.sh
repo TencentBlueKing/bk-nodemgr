@@ -211,17 +211,21 @@ echo ""
 
 # Check 5: Gateway resource sync check
 echo "📋 Check 5: Gateway resource sync"
-echo "Expected: if topo swagger changed in the release evidence window, apigw/resources.yaml must also have been updated"
+echo "Expected: if backend swagger files changed in the release evidence window, apigw/resources.yaml may need the matching gateway-visible contract update"
 
 CURRENT_DIFF_FILES=$(git diff "$BASE_BRANCH" --name-only)
-TOPO_SWAGGER_PATH="docs/api/swagger/backend/api/v3/topo.swagger.json"
+SWAGGER_PATH_RE='^docs/api/swagger/backend/api/v3/.*\.swagger\.json$'
 APIGW_RESOURCES_PATH="apigw/resources.yaml"
+CHANGED_SWAGGER_FILES=$(echo "$CURRENT_DIFF_FILES" | grep -E "$SWAGGER_PATH_RE" || true)
 
-if echo "$CURRENT_DIFF_FILES" | grep -qx "$TOPO_SWAGGER_PATH"; then
+if [ -n "$CHANGED_SWAGGER_FILES" ]; then
   if ! echo "$CURRENT_DIFF_FILES" | grep -qx "$APIGW_RESOURCES_PATH"; then
-    echo -e "${RED}❌ Gateway resource sync check failed: $TOPO_SWAGGER_PATH changed but $APIGW_RESOURCES_PATH did not${NC}"
+    echo -e "${RED}❌ Gateway resource sync check failed: backend swagger changed but $APIGW_RESOURCES_PATH did not${NC}"
     echo ""
-    echo "If the topo swagger changed for this release window, apigw/resources.yaml must be updated in the same window."
+    echo "Changed backend swagger files:"
+    echo "$CHANGED_SWAGGER_FILES"
+    echo ""
+    echo "Review whether these changes affect API Gateway-visible contracts before creating the release PR."
     exit 6
   fi
 
@@ -229,8 +233,8 @@ if echo "$CURRENT_DIFF_FILES" | grep -qx "$TOPO_SWAGGER_PATH"; then
 else
   echo -e "${YELLOW}⚠️  Manual gateway resource sync review required${NC}"
   echo "Compare the previous release version with $TARGET_VERSION as release evidence:"
-  echo "  - If $TOPO_SWAGGER_PATH changed in that version window,"
-  echo "  - Then $APIGW_RESOURCES_PATH must also have been updated in that version window."
+  echo "  - If any docs/api/swagger/backend/api/v3/*.swagger.json file changed in that version window,"
+  echo "  - Then decide whether $APIGW_RESOURCES_PATH must also be updated in that version window."
 fi
 echo ""
 

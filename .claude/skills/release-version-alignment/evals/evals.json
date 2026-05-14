@@ -170,10 +170,10 @@
         "reason": "changelog is required before creating release PR"
       },
       {
-        "scenario": "topo swagger 有变更但 apigw/resources.yaml 未同步",
-        "input": "when comparing the previous release version with v3.0.1-alpha.17, docs/api/swagger/backend/api/v3/topo.swagger.json has a diff but apigw/resources.yaml does not",
+        "scenario": "backend swagger 有变更但 apigw/resources.yaml 未同步",
+        "input": "when comparing the previous release version with v3.0.1-alpha.17, docs/api/swagger/backend/api/v3/node_proxy.swagger.json changes NodeProxyUpgradeReq.target_version but apigw/resources.yaml does not",
         "expected_action": "stop and report that apigw/resources.yaml was not updated in time for the version change; treat it as incomplete release follow-up rather than silently proceeding",
-        "reason": "topo swagger changes must be reflected in apigw/resources.yaml within the same version window"
+        "reason": "gateway-visible backend swagger changes must be reflected in apigw/resources.yaml within the same version window"
       }
     ],
     "execution_quality": [
@@ -204,7 +204,7 @@
       },
       {
         "aspect": "verification scope",
-        "expected": "check file scope, version alignment, diff sanity, changelog existence, and topo swagger to apigw/resources.yaml sync when the swagger diff changed",
+        "expected": "check file scope, version alignment, diff sanity, changelog existence, and backend swagger to apigw/resources.yaml sync when gateway-visible swagger changed",
         "anti_pattern": "deep helm template analysis or dependency validation"
       },
       {
@@ -219,6 +219,6 @@
     "scope_discipline": "should stop and ask when scope is unclear or exceeds version-only alignment",
     "safety_compliance": "should default to 'refs' for issue reference and create clean branch when history is dirty",
     "output_quality": "should produce commit messages, PR title, and PR body that match repo conventions",
-    "verification_discipline": "should run minimal verification checks, including topo swagger to apigw/resources.yaml sync validation, and stop on mismatch"
+    "verification_discipline": "should run minimal verification checks, including backend swagger to apigw/resources.yaml sync validation, and stop on mismatch"
   }
 }

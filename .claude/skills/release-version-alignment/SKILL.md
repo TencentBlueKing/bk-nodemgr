@@ -226,16 +226,17 @@ Run these checks:
    Compare the previous release version and the target release version as release evidence, not as the scope of the current Helm PR.
 
    Expected rule:
-   - if `docs/api/swagger/backend/api/v3/topo.swagger.json` changed in that version window,
-   - then `apigw/resources.yaml` must also have been updated in the same version window.
+   - list every changed file matching `docs/api/swagger/backend/api/v3/*.swagger.json` in that version window
+   - if any changed backend swagger file changes a gateway-visible contract (path, method, operationId, request/response schema, auth/resource extension, permission metadata, or description published through `apigw/resources.yaml`), then `apigw/resources.yaml` must also be updated in the same version window
+   - `topo.swagger.json` is only one example; do not treat it as the only swagger file that can require API Gateway sync
 
    Example:
-   - from alpha.16 to alpha.17, if the topo swagger diff is non-empty, `apigw/resources.yaml` should also show the corresponding update.
+   - from alpha.N to alpha.N+1, if `node_proxy.swagger.json` changes `NodeProxyUpgradeReq.target_version`, `apigw/resources.yaml` must show the corresponding request schema update
 
    Important:
-   - this is a release-completeness check, not permission to expand the current Helm alignment PR scope
-   - do not add `apigw/resources.yaml` into the Helm follow-up PR unless the user explicitly asks for that separate fix
-   - if topo swagger changed but `apigw/resources.yaml` did not, stop and report that the release follow-up is incomplete
+   - this is a release-completeness check, not permission to silently expand a Helm-only PR scope
+   - first report the changed backend swagger files and the exact API Gateway impact decision
+   - if a gateway-visible swagger change lacks an `apigw/resources.yaml` update, stop and report the release follow-up as incomplete; only add `apigw/resources.yaml` after the user confirms the scope or the user already asked for a complete release PR
 
 If any check fails:
 
@@ -348,7 +349,7 @@ Report at least:
 1. the reference release commit or release evidence used
 2. the target version
 3. which Helm files and fields were changed
-4. whether the topo swagger diff requires an `apigw/resources.yaml` sync check, the result, and whether the sync was completed
+4. which backend swagger files changed, whether they require an `apigw/resources.yaml` sync check, the result, and whether the sync was completed
 5. whether a clean branch was created
 6. the commit list
 7. the final branch name
