@@ -23,7 +23,6 @@ import (
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -112,15 +111,6 @@ func (h *handler) generatesUpgradeNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeProxyUpgradeReq, typeHosts map[int64]*types.Host,
 ) ([]*types.NodeDeployment, []int64, error) {
 
-	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
-	for idx, version := range req.GetTargetVersion() {
-		targetVersions[idx] = types.TargetVersion{
-			OsType:  criteria.OSType(version.GetOsType()),
-			CPUArch: criteria.CPUArch(version.GetCpuArch()),
-			Version: version.GetVersion(),
-		}
-	}
-
 	// build biz id list.
 	bizIDMap := make(map[int64]struct{})
 	for _, host := range typeHosts {
@@ -152,8 +142,10 @@ func (h *handler) generatesUpgradeNodeDeployments(
 				ForceRestart:           reqHost.GetForce(),
 				GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
 			},
-			TargetVersion: targetVersions,
 		})
+
+		// set target version.
+		nodeDeployment.Info.Host.Dynamic.NodeVersion = reqHost.GetTargetVersion()
 
 		nodeDeployments[idx] = nodeDeployment
 	}

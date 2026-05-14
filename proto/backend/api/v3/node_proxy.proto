@@ -62,13 +62,13 @@ message NodeProxyInstallResp {
 message NodeProxyUpgradeReq {
   message Host {
     int64 bk_host_id = 1;
-    bool force = 2;
-    int64 graceful_restart_timeout_sec = 3;
-    optional int64 bk_networkunit_id = 4;
-    string cpu_arch = 5;
+    string target_version = 2;
+    bool force = 3;
+    int64 graceful_restart_timeout_sec = 4;
+    optional int64 bk_networkunit_id = 5;
+    string cpu_arch = 6;
   }
   repeated Host host = 1;
-  repeated TargetVersion target_version = 2;
 }
 
 // NodeProxyUpgradeResp describes the node proxy upgrade response.

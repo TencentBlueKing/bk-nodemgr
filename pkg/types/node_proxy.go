@@ -58,13 +58,13 @@ type NodeProxyUpgradeHost struct {
 	NetworkUnitID          int64
 	CPUArch                string
 	Force                  bool
+	TargetVersion          string
 	GracefulRestartTimeout time.Duration
 }
 
 // NodeProxyUpgradeParam describes the node proxy upgrade parameter.
 type NodeProxyUpgradeParam struct {
-	Hosts         []*NodeProxyUpgradeHost
-	TargetVersion []*TargetVersion
+	Hosts []*NodeProxyUpgradeHost
 }
 
 // NodeProxyRestartHost describes the node proxy restart host.

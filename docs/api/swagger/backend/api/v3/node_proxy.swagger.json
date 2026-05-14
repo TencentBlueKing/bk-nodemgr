@@ -1175,13 +1175,6 @@
             "type": "object",
             "$ref": "#/definitions/v3NodeProxyUpgradeReqHost"
           }
-        },
-        "target_version": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3TargetVersion"
-          }
         }
       },
       "description": "NodeProxyUpgradeReq describes the node proxy upgrade request."
@@ -1192,6 +1185,9 @@
         "bk_host_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "target_version": {
+          "type": "string"
         },
         "force": {
           "type": "boolean"

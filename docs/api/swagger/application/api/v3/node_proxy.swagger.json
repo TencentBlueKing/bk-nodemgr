@@ -1155,6 +1155,9 @@
           "type": "integer",
           "format": "int64"
         },
+        "target_version": {
+          "type": "string"
+        },
         "force": {
           "type": "boolean"
         },
@@ -1179,13 +1182,6 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3NodeProxyUpgradeHost"
-          }
-        },
-        "target_version": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3TargetVersion"
           }
         }
       },

@@ -55,6 +55,7 @@ export interface NodeProxyInstallRespData {
 
 export interface NodeProxyUpgradeHost {
   bk_host_id: number;
+  target_version: string;
   force: boolean;
   graceful_restart_timeout_sec: number;
   bk_networkunit_id: number;
@@ -64,7 +65,6 @@ export interface NodeProxyUpgradeHost {
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
 export interface NodeProxyUpgradeReq {
   host: NodeProxyUpgradeHost[];
-  target_version: TargetVersion[];
 }
 
 // NodeProxyUpgradeResp describes the node proxy upgrade response.

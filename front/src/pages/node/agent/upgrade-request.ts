@@ -45,9 +45,9 @@ export const buildUpgradeCheckParams = (
   host: hosts.map(host => ({
     bk_host_id: host.bk_host_id,
     cpu_arch: host.cpu_arch ?? '',
+    target_version: host.target_version ?? '',
     ...maybeNetworkUnitField(host.bk_networkunit_id ?? formData.networkUnitId),
   })),
-  target_version: formData.targetVersions,
 });
 
 export const buildExecuteUpgradeParams = (
@@ -55,24 +55,22 @@ export const buildExecuteUpgradeParams = (
   hosts: UpgradeRequestHost[],
   formData: UpgradeRequestFormData,
 ) => {
-  const baseHosts = hosts.map(host => ({
-    bk_host_id: host.bk_host_id,
-    cpu_arch: host.cpu_arch ?? '',
-    force: formData.force,
-    graceful_restart_timeout_sec: formData.gracefulRestartTimeoutSec,
-    ...maybeNetworkUnitField(host.bk_networkunit_id ?? formData.networkUnitId),
-  }));
-
-  if (releaseType === 'proxy') {
-    return {
-      host: baseHosts,
-      target_version: formData.targetVersions,
-    };
-  }
-
   const versionMap = new Map(
     formData.targetVersions.map(item => [`${item.os_type}:${item.cpu_arch}`, item.version]),
   );
+
+  if (releaseType === 'proxy') {
+    return {
+      host: hosts.map(host => ({
+        bk_host_id: host.bk_host_id,
+        cpu_arch: host.cpu_arch ?? '',
+        target_version: versionMap.get(`${host.os_type ?? ''}:${host.cpu_arch ?? ''}`) ?? '',
+        force: formData.force,
+        graceful_restart_timeout_sec: formData.gracefulRestartTimeoutSec,
+        ...maybeNetworkUnitField(host.bk_networkunit_id ?? formData.networkUnitId),
+      })),
+    };
+  }
 
   return {
     host: hosts.map(host => ({

@@ -208,23 +208,13 @@ func (x *NodeProxyUpgradeReq) ConvertParamToTypes() *types.NodeProxyUpgradeParam
 			NetworkUnitID:          host.GetBkNetworkunitId(),
 			CPUArch:                host.GetCpuArch(),
 			Force:                  host.GetForce(),
+			TargetVersion:          host.GetTargetVersion(),
 			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
 		}
 	}
 
-	versions := x.GetTargetVersion()
-	targetVersion := make([]*types.TargetVersion, len(versions))
-	for idx, version := range versions {
-		targetVersion[idx] = &types.TargetVersion{
-			Version: version.GetVersion(),
-			CPUArch: criteria.CPUArch(version.GetCpuArch()),
-			OsType:  criteria.OSType(version.GetOsType()),
-		}
-	}
-
 	return &types.NodeProxyUpgradeParam{
-		Hosts:         hostsParam,
-		TargetVersion: targetVersion,
+		Hosts: hostsParam,
 	}
 }
 

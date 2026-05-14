@@ -381,13 +381,22 @@ const handleUpgrade = async (versionList: any[]) => {
   if (props.isCrossPageSelection) {
     operateData = crossPageHostIdData.value;
   }
+  // 按 os_type_cpu_arch 建立版本映射
+  const versionMap = new Map<string, string>();
+  versionList.forEach((v: any) => {
+    versionMap.set(`${v.os_type}_${v.cpu_arch}`, v.version);
+  });
   const params = {
-    host: operateData?.map(item => ({
-      bk_host_id: item.bk_host_id,
-      force: false,
-      graceful_restart_timeout_sec: 0,
-    })),
-    target_version: versionList,
+    host: operateData?.map((item: any) => {
+      const host = typeof item === 'number' ? { os_type: '', cpu_arch: '' } : (item.info ?? item);
+      const key = `${host.os_type}_${host.cpu_arch}`;
+      return {
+        bk_host_id: typeof item === 'number' ? item : item.bk_host_id,
+        target_version: versionMap.get(key) || '',
+        force: false,
+        graceful_restart_timeout_sec: 0,
+      };
+    }),
   };
   const result = await NodeProxyService.NodeProxyUpgrade(params).catch(() => ({
     workflow_id: '',
