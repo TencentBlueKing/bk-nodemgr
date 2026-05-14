@@ -116,6 +116,9 @@ type ApplicationService struct {
 	TenantMode         tenant.Mode        `yaml:"tenantMode" usage:"tenant mode of service"`
 	BKSaas             BKSaas             `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
+	BKIamSaaSHost      string             `yaml:"bkIamSaaSHost" usage:"bk iam saas host of application service"`
+	BKUserSaaSHost     string             `yaml:"bkUserSaaSHost" usage:"bk user saas host of application service"`
+	BKAPIGWBaseURL     string             `yaml:"bkAPIGWBaseURL" usage:"bk apigw base url of application service"`
 	Front              Front              `yaml:"front" usage:"front config of application service"`
 	Backend            Backend            `yaml:"backend" usage:"backend gateway config"`
 	Notice             Notice             `yaml:"notice" usage:"notice gateway config"`
@@ -284,6 +287,9 @@ func (svc *ApplicationService) LoadFromEnv() error {
 
 	// bk PaaS
 	_ = envx.LoadString("BK_PAAS_ANALYSIS_SCRIPT", &svc.BKPaas.AnalysisScript)
+	_ = envx.LoadString("BK_IAM_SAAS_HOST", &svc.BKIamSaaSHost)
+	_ = envx.LoadString("BK_USER_SAAS_HOST", &svc.BKUserSaaSHost)
+	_ = envx.LoadString("BK_APIGW_BASE_URL", &svc.BKAPIGWBaseURL)
 
 	// backend.
 	if err := envx.MustLoadString("BKPAAS_APP_ID", &svc.Backend.AppCode); err != nil {

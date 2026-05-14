@@ -28,6 +28,9 @@ type testFrontSetting struct{}
 func (testFrontSetting) BKLoginURL() string                   { return "https://bklogin.example.com" }
 func (testFrontSetting) BKRequestIDHeaderKey() string         { return "X-Request-Id" }
 func (testFrontSetting) BKPassAnalyticsScript() template.HTML { return "" }
+func (testFrontSetting) BKIamSaaSHost() string                { return "" }
+func (testFrontSetting) BKUserSaaSHost() string               { return "" }
+func (testFrontSetting) BKAPIGWBaseURL() string               { return "" }
 func (testFrontSetting) PasswordVaultSwitch() bool            { return false }
 func (testFrontSetting) PasswordVaultName() string            { return "" }
 func (testFrontSetting) BKUserWebURL() string                 { return "https://bkuser.example.com" }
@@ -37,6 +40,8 @@ func (testFrontSetting) BKAppNavOpenSourceURL() string        { return "https://
 func (testFrontSetting) WindowsWMIPortDefault() int           { return 445 }
 func (testFrontSetting) UnixSSHPortDefault() int              { return 36000 }
 func (testFrontSetting) EnableNotice() bool                   { return false }
+func (testFrontSetting) BKIamSystemIDBKNodemgr() string       { return "" }
+func (testFrontSetting) BKIamSystemIDBKCmdb() string          { return "" }
 
 var _ frontsetting.IFrontSetting = testFrontSetting{}
 

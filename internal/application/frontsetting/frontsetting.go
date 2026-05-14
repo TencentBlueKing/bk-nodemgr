@@ -48,6 +48,15 @@ type IFrontSetting interface {
 	// BKUserWebURL the front setting field.
 	BKUserWebURL() string
 
+	// BKIamSaaSHost the front setting field.
+	BKIamSaaSHost() string
+
+	// BKUserSaaSHost the front setting field.
+	BKUserSaaSHost() string
+
+	// BKAPIGWBaseURL the front setting field.
+	BKAPIGWBaseURL() string
+
 	// BKDomain the front setting field.
 	BKDomain() string
 
@@ -84,7 +93,10 @@ type FrontSetting struct {
 	passwordVaultSwitch bool
 	passwordVaultName   string
 
-	bkUserWebURL string
+	bkUserWebURL   string
+	bkIamSaaSHost  string
+	bkUserSaaSHost string
+	bkAPIGWBaseURL string
 
 	bkDomain              string
 	bkDocsCenterURL       string
@@ -111,6 +123,15 @@ type Option struct {
 
 	// BKUserWebURL is the URL of bk user web service.
 	BKUserWebURL string
+
+	// BKIamSaaSHost is the host of bk iam saas.
+	BKIamSaaSHost string
+
+	// BKUserSaaSHost is the host of bk user saas.
+	BKUserSaaSHost string
+
+	// BKAPIGWBaseURL is the base url of bk apigw.
+	BKAPIGWBaseURL string
 
 	// BKDomain is the domain of bk platform.
 	BKDomain string
@@ -163,6 +184,9 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		passwordVaultSwitch:    opt.PasswordVaultSwitch,
 		passwordVaultName:      opt.PasswordVaultName,
 		bkUserWebURL:           normalizeFrontValue(opt.BKUserWebURL, frontValueKindURL),
+		bkIamSaaSHost:          opt.BKIamSaaSHost,
+		bkUserSaaSHost:         opt.BKUserSaaSHost,
+		bkAPIGWBaseURL:         opt.BKAPIGWBaseURL,
 		bkDomain:               normalizeFrontValue(opt.BKDomain, frontValueKindHost),
 		bkDocsCenterURL:        normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
 		bkAppNavOpenSourceURL:  normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
@@ -255,6 +279,21 @@ func (setting *FrontSetting) PasswordVaultName() string {
 // BKUserWebURL get bk user web url.
 func (setting *FrontSetting) BKUserWebURL() string {
 	return setting.bkUserWebURL
+}
+
+// BKIamSaaSHost get bk iam saas host.
+func (setting *FrontSetting) BKIamSaaSHost() string {
+	return setting.bkIamSaaSHost
+}
+
+// BKUserSaaSHost get bk user saas host.
+func (setting *FrontSetting) BKUserSaaSHost() string {
+	return setting.bkUserSaaSHost
+}
+
+// BKAPIGWBaseURL get bk apigw base url.
+func (setting *FrontSetting) BKAPIGWBaseURL() string {
+	return setting.bkAPIGWBaseURL
 }
 
 // BKDomain get bk domain.
