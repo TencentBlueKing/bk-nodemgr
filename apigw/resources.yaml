@@ -16786,23 +16786,14 @@ paths:
                       bk_host_id:
                         type: integer
                         format: int64
+                      target_version:
+                        type: string
                       bk_networkunit_id:
                         type: integer
                         format: int64
                       graceful_restart_timeout_sec:
                         type: integer
                         format: int64
-                target_version:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      os_type:
-                        type: string
-                      version:
-                        type: string
-                      cpu_arch:
-                        type: string
               description: NodeProxyUpgradeReq describes the node proxy upgrade request.
         required: true
         description: NodeProxyUpgradeReq describes the node proxy upgrade request.
