@@ -22,7 +22,7 @@ import (
 
 const (
 	// DefaultSlowTime is the default threshold for slow requests.
-	DefaultSlowTime = 1 * time.Second
+	DefaultSlowTime = 100 * time.Millisecond
 )
 
 func defaultDurationMSBuckets() []float64 {
