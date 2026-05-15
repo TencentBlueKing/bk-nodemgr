@@ -6763,8 +6763,6 @@ paths:
             schema:
               type: object
               properties:
-                enable_compatibility_mode:
-                  type: boolean
                 plugin:
                   type: array
                   items:
@@ -6786,6 +6784,8 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
+                enable_compatibility_mode:
+                  type: boolean
               description: |-
                 PluginApplySubConfigReq describes the plugin apply sub-configuration
                 request.
