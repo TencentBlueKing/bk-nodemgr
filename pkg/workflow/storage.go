@@ -64,13 +64,13 @@ type IStorageOperation interface {
 	// ListOperationByOperationID lists operation by operation ID.
 	ListOperationByOperationID(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, int64, error)
 
-	// ListOperationWithoutParametersByParentOperationID lists operation without parameters by parent operation ID.
-	ListOperationWithoutParametersByParentOperationID(ctx contextx.IContext, page types.Page, parentID ...string) (
-		[]*operation.Operation, int64, error)
+	// ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
+	ListOperationIDByParentOperationID(ctx contextx.IContext, page types.Page, parentID ...string) (
+		[]string, error)
 
-	// ListOperationWithoutParametersByParentOperInstID lists operation without parameters by parent operation instance ID.
-	ListOperationWithoutParametersByParentOperInstID(ctx contextx.IContext, page types.Page, parentID ...string) (
-		[]*operation.Operation, int64, error)
+	// ListOperationIDByParentOperInstID lists operation IDs by parent operation instance ID.
+	ListOperationIDByParentOperInstID(ctx contextx.IContext, page types.Page, parentID ...string) (
+		[]string, error)
 
 	// ListEmptyOperationByTriggerID lists empty operation.
 	ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)

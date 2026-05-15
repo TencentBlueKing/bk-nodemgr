@@ -64,8 +64,8 @@ const (
 	metricOperationCountOperation                                    = "count_operation"
 	metricOperationDistinctOperation                                 = "distinct_operation"
 	metricOperationListOperationByOperationID                        = "list_operation_by_operation_id"
-	metricOperationListOperationWithoutParametersByParentOperationID = "list_operation_without_parameters_by_parent_operation_id"
-	metricOperationListOperationWithoutParametersByParentOperInstID  = "list_operation_without_parameters_by_parent_oper_inst_id"
+	metricOperationListOperationIDByParentOperationID            = "list_operation_id_by_parent_operation_id"
+	metricOperationListOperationIDByParentOperInstID             = "list_operation_id_by_parent_oper_inst_id"
 	metricOperationListNeedInstantiateOperationByTriggerID           = "list_need_instantiate_operation_by_trigger_id"
 	metricOperationExistNeedInstantiateOperationByTriggerID          = "exist_need_instantiate_operation_by_trigger_id"
 	metricOperationDeleteOperationsByTriggerID                       = "delete_operations_by_trigger_id"
@@ -554,52 +554,50 @@ func (s *Storage) ListOperationByOperationID(
 	return opers, num, err
 }
 
-// ListOperationWithoutParametersByParentOperationID lists operation without parameters by parent operation ID.
-func (s *Storage) ListOperationWithoutParametersByParentOperationID(
-	nCtx contextx.IContext, page types.Page, parentID ...string) ([]*workoper.Operation, int64, error) {
+// ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
+func (s *Storage) ListOperationIDByParentOperationID(
+	nCtx contextx.IContext, page types.Page, parentID ...string) ([]string, error) {
 
 	var (
-		opers []*workoper.Operation
-		num   int64
-		err   error
+		ids []string
+		err error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationListOperationWithoutParametersByParentOperationID, func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperationListOperationIDByParentOperationID, func(nCtx contextx.IContext) error {
 		var err error
-		if opers, num, err = s.listOperationWithoutParametersByParentOperationID(nCtx, page, parentID...); err != nil {
-			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations without parameters by parent operation id")
+		if ids, err = s.listOperationIDByParentOperationID(nCtx, page, parentID...); err != nil {
+			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operation ids by parent operation id")
 
-			return fmt.Errorf("failed to list operations without parameters by parent operation id, parent-ids(%v): %w", parentID, err)
+			return fmt.Errorf("failed to list operation ids by parent operation id, parent-ids(%v): %w", parentID, err)
 		}
 
 		return nil
 	})
 
-	return opers, num, err
+	return ids, err
 }
 
-// ListOperationWithoutParametersByParentOperInstID lists operation without parameters by parent operation instance ID.
-func (s *Storage) ListOperationWithoutParametersByParentOperInstID(
-	nCtx contextx.IContext, page types.Page, parentID ...string) ([]*workoper.Operation, int64, error) {
+// ListOperationIDByParentOperInstID lists operation IDs by parent operation instance ID.
+func (s *Storage) ListOperationIDByParentOperInstID(
+	nCtx contextx.IContext, page types.Page, parentID ...string) ([]string, error) {
 
 	var (
-		opers []*workoper.Operation
-		num   int64
-		err   error
+		ids []string
+		err error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationListOperationWithoutParametersByParentOperInstID, func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperationListOperationIDByParentOperInstID, func(nCtx contextx.IContext) error {
 		var err error
-		if opers, num, err = s.listOperationWithoutParametersByParentOperInstID(nCtx, page, parentID...); err != nil {
-			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations without parameters by parent operation instance id")
+		if ids, err = s.listOperationIDByParentOperInstID(nCtx, page, parentID...); err != nil {
+			logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operation ids by parent operation instance id")
 
-			return fmt.Errorf("failed to list operations without parameters by parent operation instance id, parent-ids(%v): %w", parentID, err)
+			return fmt.Errorf("failed to list operation ids by parent operation instance id, parent-ids(%v): %w", parentID, err)
 		}
 
 		return nil
 	})
 
-	return opers, num, err
+	return ids, err
 }
 
 // ListNeedInstantiateOperationByTriggerID lists operations need to be instantiated by trigger id.

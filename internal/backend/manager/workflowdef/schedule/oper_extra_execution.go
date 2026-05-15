@@ -154,50 +154,43 @@ func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operati
 
 func (exec *extraExecution) postprocess(nCtx contextx.IContext, instance *operation.InstanceBriefData, param *ExtraExecutionParam) error {
 	// get current scheduled operation instance.
-	executor := pageexecutor.NewPageExecutor[*operation.Operation](operationListMaxPageSize, operationListTimeout)
-	fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
-		operations, _, err := exec.workflowStg.ListOperationWithoutParametersByParentOperInstID(nCtx, p, instance.Metadata.OperationInstanceID)
-
-		return operations, err
+	executor := pageexecutor.NewPageExecutor[string](operationListMaxPageSize, operationListTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
+		return exec.workflowStg.ListOperationIDByParentOperInstID(nCtx, p, instance.Metadata.OperationInstanceID)
 	}
 	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		logger.G.Sys().Ctx(nCtx).
 			WithErr(err).
 			With("operation", instance.Metadata.OperationDefName, "parent-oper-inst-id", instance.Metadata.OperationInstanceID).
-			Error("failed to list operations by parent operation instance id")
+			Error("failed to list operation ids by parent operation instance id")
 
 		return err
 	}
 
 	// get all managed sub operations.
-	subOperations := result.Items
+	subOperationIDs := result.Items
 	managedOperationIDMap := make(map[string]struct{}, 0)
-	for len(subOperations) > 0 {
-		for _, sub := range subOperations {
-			managedOperationIDMap[sub.OperationID] = struct{}{}
+	for len(subOperationIDs) > 0 {
+		for _, opID := range subOperationIDs {
+			managedOperationIDMap[opID] = struct{}{}
 		}
 
-		parentOperationIDs := make([]string, 0)
-		for _, sub := range subOperations {
-			parentOperationIDs = append(parentOperationIDs, sub.OperationID)
-		}
+		parentOperationIDs := subOperationIDs
 
-		fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.Operation, error) {
-			operations, _, err := exec.workflowStg.ListOperationWithoutParametersByParentOperationID(nCtx, p, parentOperationIDs...)
-
-			return operations, err
+		fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
+			return exec.workflowStg.ListOperationIDByParentOperationID(nCtx, p, parentOperationIDs...)
 		}
 		result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 		if err != nil {
 			logger.G.Sys().Ctx(nCtx).
 				WithErr(err).
 				With("operation", instance.Metadata.OperationDefName, "parent-operation-ids", parentOperationIDs).
-				Error("failed to list operations by parent operation id")
+				Error("failed to list operation ids by parent operation id")
 
 			return err
 		}
-		subOperations = result.Items
+		subOperationIDs = result.Items
 	}
 
 	// update managed operation ids into private data.

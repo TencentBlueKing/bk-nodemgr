@@ -34,9 +34,13 @@ type IHandler interface {
 	// List list operation by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
 
-	// ListWithoutParameters list operation without parameters.
-	ListWithoutParameters(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
-		[]*operation.Operation, int64, error)
+	// ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
+	ListOperationIDByParentOperationID(nCtx contextx.IContext, page types.Page, parentID ...string) (
+		[]string, error)
+
+	// ListOperationIDByParentOperInstID lists operation IDs by parent operation instance ID.
+	ListOperationIDByParentOperInstID(nCtx contextx.IContext, page types.Page, parentID ...string) (
+		[]string, error)
 
 	// Count count process by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
@@ -112,36 +116,52 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	return operations, num, nil
 }
 
-// ListWithoutParameters lists operation without parameters.
-func (h *handler) ListWithoutParameters(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
-	[]*operation.Operation, int64, error) {
+// ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
+func (h *handler) ListOperationIDByParentOperationID(nCtx contextx.IContext, page types.Page, parentID ...string) (
+	[]string, error) {
 
 	if err := page.Validate(); err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
+	filter = WithParentOperationID(parentID...)(filter)
 
-	num, err := h.dao.Count(nCtx, filter)
+	datas, err := h.dao.List(nCtx, filter, base.ParsePage(page), FieldKeyOperationID)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	field := FieldOfParameters
-	datas, err := h.dao.findWithoutFields(nCtx, filter, page, field)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	operations := make([]*operation.Operation, len(datas))
+	operationIDs := make([]string, len(datas))
 	for idx, data := range datas {
-		operations[idx] = convertOperationFromDB(data)
+		operationIDs[idx] = data.OperationID
 	}
 
-	return operations, num, nil
+	return operationIDs, nil
+}
+
+// ListOperationIDByParentOperInstID lists operation IDs by parent operation instance ID.
+func (h *handler) ListOperationIDByParentOperInstID(nCtx contextx.IContext, page types.Page, parentID ...string) (
+	[]string, error) {
+
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	filter = WithParentOperInstID(parentID...)(filter)
+
+	datas, err := h.dao.List(nCtx, filter, base.ParsePage(page), FieldKeyOperationID)
+	if err != nil {
+		return nil, err
+	}
+
+	operationIDs := make([]string, len(datas))
+	for idx, data := range datas {
+		operationIDs[idx] = data.OperationID
+	}
+
+	return operationIDs, nil
 }
 
 // Count count operation by conditions.

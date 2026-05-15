@@ -67,35 +67,35 @@ func (s *Storage) listOperationByOperationID(nCtx contextx.IContext, operationID
 	return s.daoOperation.List(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
 }
 
-// listOperationWithoutParametersByParentOperationID lists operation without parameters by parent operation id.
-func (s *Storage) listOperationWithoutParametersByParentOperationID(
+// listOperationIDByParentOperationID lists operation IDs by parent operation id.
+func (s *Storage) listOperationIDByParentOperationID(
 	nCtx contextx.IContext, page types.Page, parentOperationID ...string) (
-	[]*workoper.Operation, int64, error) {
+	[]string, error) {
 
 	if nCtx == nil {
-		return nil, 0, basestorage.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if len(parentOperationID) == 0 {
-		return nil, 0, basestorage.ErrEmptyOperationID()
+		return nil, basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.ListWithoutParameters(nCtx, page, operation.WithParentOperationID(parentOperationID...))
+	return s.daoOperation.ListOperationIDByParentOperationID(nCtx, page, parentOperationID...)
 }
 
-// listOperationWithoutParametersByParentOperInstID lists operation without parameters by parent operation instance id.
-func (s *Storage) listOperationWithoutParametersByParentOperInstID(nCtx contextx.IContext, page types.Page, parentOperInstID ...string) (
-	[]*workoper.Operation, int64, error) {
+// listOperationIDByParentOperInstID lists operation IDs by parent operation instance id.
+func (s *Storage) listOperationIDByParentOperInstID(nCtx contextx.IContext, page types.Page, parentOperInstID ...string) (
+	[]string, error) {
 
 	if nCtx == nil {
-		return nil, 0, basestorage.ErrNilContent()
+		return nil, basestorage.ErrNilContent()
 	}
 
 	if len(parentOperInstID) == 0 {
-		return nil, 0, basestorage.ErrEmptyOperationID()
+		return nil, basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.ListWithoutParameters(nCtx, page, operation.WithParentOperInstID(parentOperInstID...))
+	return s.daoOperation.ListOperationIDByParentOperInstID(nCtx, page, parentOperInstID...)
 }
 
 // deleteOperationsByTriggerID deletes operations by trigger ids.
