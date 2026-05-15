@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -48,7 +49,7 @@ var _ frontsetting.IFrontSetting = testFrontSetting{}
 type testBKLoginHandler struct {
 	authType string
 
-	webUserInfo *bksaasbklogin.WebUserInfo
+	webUserInfo *types.WebUserInfo
 	webUserErr  error
 
 	gotToken string
@@ -60,7 +61,7 @@ func (h *testBKLoginHandler) Verify(_ contextx.IContext, _ string) (string, stri
 }
 func (h *testBKLoginHandler) GetAuthIdentity() *bksaasbklogin.AuthIdentity { return nil }
 func (h *testBKLoginHandler) GetAuthType() string                          { return h.authType }
-func (h *testBKLoginHandler) GetWebUserInfo(_ contextx.IContext, token string) (*bksaasbklogin.WebUserInfo, error) {
+func (h *testBKLoginHandler) GetWebUserInfo(_ contextx.IContext, token string) (*types.WebUserInfo, error) {
 	h.gotToken = token
 
 	return h.webUserInfo, h.webUserErr
@@ -104,7 +105,7 @@ func TestHandlerIndexInjectLoginNameByAuthType(t *testing.T) {
 
 			bkHandler := &testBKLoginHandler{
 				authType:    tt.authType,
-				webUserInfo: &bksaasbklogin.WebUserInfo{Username: tt.username},
+				webUserInfo: &types.WebUserInfo{LoginName: tt.username},
 			}
 
 			h := &handler{

@@ -72,8 +72,3 @@ type GetUserInfoByBKTokenReq struct {
 type GetUserInfoByBKTokenResp struct {
 	Username string `json:"username"`
 }
-
-// WebUserInfo is the unified web user info for the web login scenario.
-type WebUserInfo struct {
-	Username string
-}

@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
@@ -72,13 +73,27 @@ func (h *handler) Index(ctx *gin.Context) {
 	// Get login name from bklogin API for display purposes only.
 	// This is not used for actual authentication logic.
 	// Returns empty string if auth cookie is missing or GetWebUserInfo call fails.
-	loginName := ""
+	var (
+		bkUsername   = ""
+		loginName    = ""
+		userTimeZone = ""
+		userEmail    = ""
+	)
 	token, cookieErr := ctx.Cookie(h.bkloginHandler.GetAuthType())
 	if cookieErr == nil && token != "" {
 		nCtx, cancel := contextx.WithTimeout(contextx.New(ctx.Request.Context()), webUserInfoTimeout)
 		defer cancel()
-		if info, err := h.bkloginHandler.GetWebUserInfo(nCtx, token); err == nil {
-			loginName = info.Username
+
+		info, err := h.bkloginHandler.GetWebUserInfo(nCtx, token)
+		if err != nil {
+			logger.G.Biz(nCtx).Warn("failed to get web user info")
+		}
+
+		if info != nil {
+			loginName = info.LoginName
+			userTimeZone = info.TimeZone
+			userEmail = info.Email
+			bkUsername = info.BKUsername
 		}
 	}
 
@@ -86,11 +101,12 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_LOGIN_URL":                h.frontSetting.BKLoginURL(),
 		"BK_REQUEST_ID_HEADER_KEY":    h.frontSetting.BKRequestIDHeaderKey(),
 		"BK_PASS_ANALYTICS_SCRIPT":    h.frontSetting.BKPassAnalyticsScript(),
+		"BK_USERNAME":                 bkUsername,
 		"BK_IAM_SAAS_HOST":            h.frontSetting.BKIamSaaSHost(),
 		"BK_USER_SAAS_HOST":           h.frontSetting.BKUserSaaSHost(),
 		"BK_APIGW_BASE_URL":           h.frontSetting.BKAPIGWBaseURL(),
-		"USER_TIMEZONE":               "utc",
-		"USER_EMAIL":                  "",
+		"USER_TIMEZONE":               userTimeZone,
+		"USER_EMAIL":                  userEmail,
 		"PASSWORD_VAULT_SWITCH":       h.frontSetting.PasswordVaultSwitch(),
 		"PASSWORD_VAULT_NAME":         h.frontSetting.PasswordVaultName(),
 		"BK_USER_WEB_URL":             h.frontSetting.BKUserWebURL(),

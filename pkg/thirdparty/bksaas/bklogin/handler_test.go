@@ -93,8 +93,8 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetWebUserInfo() error = %v", err)
 		}
-		if info.Username != "ticket_user" {
-			t.Fatalf("GetWebUserInfo() username = %s, want %s", info.Username, "ticket_user")
+		if info.LoginName != "ticket_user" {
+			t.Fatalf("GetWebUserInfo() username = %s, want %s", info.LoginName, "ticket_user")
 		}
 	})
 
@@ -111,8 +111,8 @@ func TestHandlerGetWebUserInfo(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetWebUserInfo() error = %v", err)
 		}
-		if info.Username != "token_user" {
-			t.Fatalf("GetWebUserInfo() username = %s, want %s", info.Username, "token_user")
+		if info.LoginName != "token_user" {
+			t.Fatalf("GetWebUserInfo() username = %s, want %s", info.LoginName, "token_user")
 		}
 	})
 

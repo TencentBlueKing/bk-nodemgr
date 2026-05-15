@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IHandler defines the handler interface.
@@ -34,7 +35,7 @@ type IHandler interface {
 	GetAuthType() string
 
 	// GetWebUserInfo returns the unified web user info for the web login scenario.
-	GetWebUserInfo(nCtx contextx.IContext, token string) (*WebUserInfo, error)
+	GetWebUserInfo(nCtx contextx.IContext, token string) (*types.WebUserInfo, error)
 }
 
 // Handler the Handler of cmdb.
@@ -139,33 +140,35 @@ func (h *Handler) GetLoginURL() string {
 
 // GetWebUserInfo returns the unified web user info for the web login scenario.
 // It abstracts the bk_ticket/bk_token branch and guarantees username is non-empty on success.
-func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*WebUserInfo, error) {
+func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*types.WebUserInfo, error) {
 	if nCtx == nil {
 		return nil, errors.New("failed to get web user info: invalid context")
 	}
 
-	var username string
-
+	info := new(types.WebUserInfo)
 	switch h.conf.AuthType {
 	case CookieKeyBKTicket:
 		resp, err := h.cli.getUserInfoByBKTicket(nCtx, &GetUserInfoByBKTicketReq{BKTicket: token})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get web user info by bk_ticket: %w", err)
 		}
-		username = resp.Username
+		info.BKUsername = resp.Username
+		info.LoginName = resp.Username
 	case CookieKeyBKToken:
 		resp, err := h.cli.getUserInfoByBKToken(nCtx, &GetUserInfoByBKTokenReq{BKToken: token})
 		if err != nil {
 			return nil, fmt.Errorf("failed to get web user info by bk_token: %w", err)
 		}
-		username = resp.Username
+		info.BKUsername = resp.Username
+		info.LoginName = resp.Username
+
 	default:
 		return nil, fmt.Errorf("failed to get web user info: unsupported auth type: %s", h.conf.AuthType)
 	}
 
-	if username == "" {
+	if info.LoginName == "" {
 		return nil, errors.New("failed to get web user info: username is empty")
 	}
 
-	return &WebUserInfo{Username: username}, nil
+	return info, nil
 }
