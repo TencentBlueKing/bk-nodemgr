@@ -106,7 +106,8 @@
               <BkLoginUserinfo :userinfo="userinfo">
                 <template #default>
                   <div class="flex items-center gap-[5px] cursor-pointer">
-                    <bk-user-display-name :user-id="currentUser"></bk-user-display-name>
+                    <span v-if="!bkUserName">{{ currentUser }}</span>
+                    <bk-user-display-name v-else :user-id="bkUserName"></bk-user-display-name>
                   </div>
                 </template>
                 <template #action>
@@ -483,6 +484,7 @@ async function handleChangeLang(item) {
 }
 // 个人中心
 const currentUser = computed(() => window.PROJECT_CONFIG.LOGIN_NAME);
+const bkUserName = computed(() => window.PROJECT_CONFIG.BK_USERNAME);
 const userinfo = ref({
   name: window.PROJECT_CONFIG.BK_USERNAME,
   email: window.PROJECT_CONFIG.USER_EMAIL,
