@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	pluginBaseDirName   = "plugin"
+	// PluginBaseDirName is the base directory name for plugin.
+	PluginBaseDirName   = "plugin"
 	pluginConfigDirName = "etc"
 	pluginRunDirName    = "run"
 	pluginDataDirName   = "data"
@@ -117,7 +118,7 @@ func (conf PluginDeployConf) generateDefaultHostIDPath() string {
 
 // GeneratePluginDeployDir generates the deploy dir for the deployment configuration.
 func (conf PluginDeployConf) GeneratePluginDeployDir() string {
-	return tool.JoinPath(conf.OsType, conf.BaseDeployDir, system.GetEnv(), pluginBaseDirName)
+	return tool.JoinPath(conf.OsType, conf.BaseDeployDir, system.GetEnv(), PluginBaseDirName)
 }
 
 // GeneratePluginHomeDir generates the plugin home directory based on plugin group and plugin name.

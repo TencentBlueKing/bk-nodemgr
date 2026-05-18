@@ -12,7 +12,6 @@ package deployconstant
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -131,6 +130,12 @@ func (conf NodeDeployConf) GenerateNodeHomeDir(role types.NodeRole) string {
 	return tool.JoinPath(conf.OsType, conf.GenerateDeployDir(), string(role))
 }
 
+// GenerateDataDir generates the data dir path based on the OS type.
+// only for unix system, for windows system, it will be empty.
+func (conf NodeDeployConf) GenerateDataDir(role types.NodeRole) string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDeployDir(), string(role), nodeLibDirName)
+}
+
 // GenerateDataIPCPath generates the data IPC path based on the OS type.
 func (conf NodeDeployConf) GenerateDataIPCPath(role types.NodeRole) string {
 	if conf.OsType == criteria.OSWindows {
@@ -143,7 +148,7 @@ func (conf NodeDeployConf) GenerateDataIPCPath(role types.NodeRole) string {
 		return nodeWindowsDataIPCPort
 	}
 
-	return filepath.Join(conf.GenerateDeployDir(), string(role), nodeLibDirName, nodeUnixDataIPCName)
+	return tool.JoinPath(conf.OsType, conf.GenerateDataDir(role), nodeUnixDataIPCName)
 }
 
 // GeneratePluginIPCPath generates the plugin IPC path based on the OS type.
@@ -158,5 +163,5 @@ func (conf NodeDeployConf) GeneratePluginIPCPath(role types.NodeRole) string {
 		return nodeWindowsPluginIPCPort
 	}
 
-	return filepath.Join(conf.GenerateDeployDir(), string(role), nodeLibDirName, nodeUnixPluginIPCName)
+	return tool.JoinPath(conf.OsType, conf.GenerateDataDir(role), nodeUnixPluginIPCName)
 }
