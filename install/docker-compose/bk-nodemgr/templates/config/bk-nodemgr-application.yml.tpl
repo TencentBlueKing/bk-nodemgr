@@ -21,6 +21,12 @@ front:
   windowsWMIPortDefault: __BK_NODEMGR_APPLICATION_WINDOWS_WMI_PORT_DEFAULT__
   # default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
   unixSSHPortDefault: __BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT__
+  # bk iam saas host.
+  bkIamSaaSHost: __BK_NODEMGR_APPLICATION_IAM_SAAS_HOST__
+  # bk user saas host.
+  bkUserSaaSHost: __BK_NODEMGR_APPLICATION_USER_SAAS_HOST__
+  # bk api gateway base url.
+  bkAPIGWBaseURL: __BK_NODEMGR_APPLICATION_API_GW_BASE_URL__
 
 # infoServer defines self info http server settings.
 infoServer:
