@@ -106,8 +106,7 @@
               <BkLoginUserinfo :userinfo="userinfo">
                 <template #default>
                   <div class="flex items-center gap-[5px] cursor-pointer">
-                    <span v-if="!bkUserName">{{ currentUser }}</span>
-                    <bk-user-display-name v-else :user-id="bkUserName"></bk-user-display-name>
+                    <UserNameDisplay :name="bkUserName" />
                   </div>
                 </template>
                 <template #action>
@@ -200,6 +199,8 @@ import BkUserDisplayName from '@blueking/bk-user-display-name';
 import BkLoginUserinfo, { ActionItem } from '@blueking/login-userinfo';
 import('@blueking/login-userinfo/vue3/vue3.css');
 
+import UserNameDisplay from '@/components/user-name-display.vue';
+
 /** 包管理子路由名 → 包类型 id 映射（用于 authorized/verify 传入正确的资源实例 ID） */
 const ROUTE_TO_PKG_TYPE_ID: Record<string, string> = {
   agentPackageMng: 'agent',
@@ -229,6 +230,16 @@ const router = useRouter();
 
 // 用户store
 const userStore = useUserStore();
+
+// 同步初始化 BkUserDisplayName（必须在任何 <bk-user-display-name> 渲染之前调用）
+if (window.PROJECT_CONFIG.BK_APIGW_BASE_URL && window.PROJECT_CONFIG.BK_TENANT) {
+  BkUserDisplayName.configure({
+    tenantId: window.PROJECT_CONFIG.BK_TENANT,
+    apiBaseUrl: window.PROJECT_CONFIG.BK_APIGW_BASE_URL,
+    cacheDuration: 1000 * 60 * 5,
+    emptyText: window.PROJECT_CONFIG.LOGIN_NAME || '--',
+  });
+}
 
 // 导航配置
 const { navData, subMenuData } = useMenu();
@@ -557,18 +568,6 @@ onBeforeMount(async () => {
   // 初始化业务选择器（恢复收藏、多选业务、排序、策略默认业务）
   bizSelectorRef.value?.init();
   mainStore.setBusinessReady();
-  if (window.PROJECT_CONFIG.BK_APIGW_BASE_URL) {
-    BkUserDisplayName.configure({
-      // 必填，租户 ID
-      tenantId: window.PROJECT_CONFIG.BK_TENANT,
-      // 必填，网关地址
-      apiBaseUrl: window.PROJECT_CONFIG.BK_APIGW_BASE_URL,
-      // 可选，缓存时间，单位为毫秒, 默认 5 分钟, 只对单一值生效
-      cacheDuration: 1000 * 60 * 5,
-      // 可选，当输入为空时，显示的文本，默认为 '--'
-      emptyText: '--'
-    });
-  }
 });
 onMounted(async () => {
   mainStore.updateWindowInnerHeight(window.innerHeight);

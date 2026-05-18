@@ -66,7 +66,7 @@
           field="operator"
           show-overflow="tooltip">
           <template #default="{ row }">
-            {{ row.operator || '--' }}
+            <UserNameDisplay :name="row.operator" />
           </template>
         </TableColumn>
         <TableColumn

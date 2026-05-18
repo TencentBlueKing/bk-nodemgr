@@ -59,7 +59,11 @@
           field="creator"
           :title="$t('pluginOperation.table.creator')"
           :min-width="120"
-        />
+        >
+          <template #default="{ row }">
+            <UserNameDisplay :name="row.creator" />
+          </template>
+        </TableColumn>
         <TableColumn
           field="create_time"
           :title="$t('pluginOperation.table.createTime')"

@@ -155,7 +155,11 @@
           :title="$t('agentStrategy.table.operator')"
           :min-width="120"
           show-overflow="tooltip"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            <UserNameDisplay :name="row.operator" />
+          </template>
+        </TableColumn>
         <TableColumn
           field="updated_time"
           :title="$t('agentStrategy.table.updateTime')"

@@ -104,7 +104,11 @@
           :title="$t('rulesRecord.operator')"
           min-width="150"
           :filter="filterOptionSource.operator"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            <UserNameDisplay :name="row.operator" />
+          </template>
+        </TableColumn>
         <TableColumn
           field="operate_time"
           :title="$t('rulesRecord.operateTime')"

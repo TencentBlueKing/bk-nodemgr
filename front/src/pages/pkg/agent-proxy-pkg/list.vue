@@ -192,7 +192,11 @@
             :title="t('agentProxyPkg.uploader')"
             :min-width="120"
             :filter="filterOptionSource.operator"
-          ></TableColumn>
+          >
+            <template #default="{ row }">
+              <UserNameDisplay :name="row.operator" />
+            </template>
+          </TableColumn>
           <TableColumn
             field="updated_at"
             :title="t('agentProxyPkg.uploadTime')"

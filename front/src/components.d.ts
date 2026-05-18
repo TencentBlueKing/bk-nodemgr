@@ -38,6 +38,7 @@ declare module 'vue' {
     SlideDetail: typeof import('./components/slide-detail.vue')['default']
     UnitSelector: typeof import('./components/unitSelector.vue')['default']
     UploadExcel: typeof import('./components/upload-excel.vue')['default']
+    UserNameDisplay: typeof import('./components/user-name-display.vue')['default']
     Validate: typeof import('./components/validate.vue')['default']
     ValidateCell: typeof import('./components/validateCell.vue')['default']
     ValidateInput: typeof import('./components/validate-input.vue')['default']

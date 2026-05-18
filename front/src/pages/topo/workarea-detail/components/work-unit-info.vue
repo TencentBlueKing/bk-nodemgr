@@ -41,7 +41,7 @@
         @mouseleave="historyMouseLeave()"
         @click="!hasHistoryViewAuth && historyAuthClick($event)"
       >
-        {{ eventInfo.operator || '--' }}<span v-if="!hasHistoryViewAuth" class="auth-asterisk">*</span>
+        <UserNameDisplay :name="eventInfo.operator" /><span v-if="!hasHistoryViewAuth" class="auth-asterisk">*</span>
       </div>
     </div>
     <!-- 更新时间 -->
