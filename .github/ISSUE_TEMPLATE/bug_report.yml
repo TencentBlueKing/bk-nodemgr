@@ -1,7 +1,7 @@
 name: Bug 报告 / Bug Report
 description: 提交一个缺陷报告 / Submit a bug report
 title: "[Bug]: "
-labels: ["bug"]
+labels: ["product/backlog","kind/features"]
 body:
   - type: markdown
     attributes:
