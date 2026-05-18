@@ -5887,6 +5887,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     platform_os:
                       type: array
                       items:
@@ -5900,10 +5905,6 @@ paths:
                       items:
                         type: string
                     platform_arch:
-                      type: array
-                      items:
-                        type: string
-                    node_generation:
                       type: array
                       items:
                         type: string
@@ -6080,6 +6081,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     platform_os:
                       type: array
                       items:
@@ -6093,10 +6099,6 @@ paths:
                       items:
                         type: string
                     platform_arch:
-                      type: array
-                      items:
-                        type: string
-                    node_generation:
                       type: array
                       items:
                         type: string
@@ -6277,6 +6279,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     platform_os:
                       type: array
                       items:
@@ -6290,10 +6297,6 @@ paths:
                       items:
                         type: string
                     platform_arch:
-                      type: array
-                      items:
-                        type: string
-                    node_generation:
                       type: array
                       items:
                         type: string
@@ -6591,6 +6594,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     platform_os:
                       type: array
                       items:
@@ -6604,10 +6612,6 @@ paths:
                       items:
                         type: string
                     platform_arch:
-                      type: array
-                      items:
-                        type: string
-                    node_generation:
                       type: array
                       items:
                         type: string
