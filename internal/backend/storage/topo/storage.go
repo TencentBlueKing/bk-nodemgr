@@ -80,6 +80,7 @@ const (
 	metricOperationGetNetworkUnitCustomDeployConfig          = "get_networkunit_custom_deploy_config"
 	metricOperationGetNetworkUnitIDsByAccessPoints           = "get_networkunit_ids_by_accesspoints"
 	metricOperationGetHostBizMapping                         = "get_host_biz_mapping"
+	metricOperationExistHost                                 = "exist_host"
 )
 
 // NewStorage ...
@@ -298,15 +299,29 @@ func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 }
 
 // GetHostBizMapping gets host biz mapping.
-func (s *Storage) GetHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (map[int64]int64, error) {
+func (s *Storage) GetHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]int64, error) {
 	var hostBizMapping map[int64]int64
 
 	err := s.WrapFn(nCtx, metricOperationGetHostBizMapping, func(nCtx contextx.IContext) error {
 		var err error
-		hostBizMapping, err = s.getHostBizMapping(nCtx, hostIDs)
+		hostBizMapping, err = s.getHostBizMapping(nCtx, hostIDs...)
 
 		return err
 	})
 
 	return hostBizMapping, err
+}
+
+// ExistHost checks if the host exists by host id.
+func (s *Storage) ExistHost(nCtx contextx.IContext, hostID int64) (bool, error) {
+	var exist bool
+
+	err := s.WrapFn(nCtx, metricOperationExistHost, func(nCtx contextx.IContext) error {
+		var err error
+		exist, err = s.existHost(nCtx, hostID)
+
+		return err
+	})
+
+	return exist, err
 }

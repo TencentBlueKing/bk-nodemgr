@@ -574,7 +574,7 @@ func (s *Storage) getRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 	return results, err
 }
 
-func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (map[int64]int64, error) {
+func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]int64, error) {
 	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -609,4 +609,17 @@ func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (ma
 	}
 
 	return hostBizMapping, nil
+}
+
+func (s *Storage) existHost(nCtx contextx.IContext, hostID int64) (bool, error) {
+	if nCtx == nil {
+		return false, basestorage.ErrNilContent()
+	}
+
+	exists, err := s.daoHost.Exist(nCtx, host.WithHostID(hostID))
+	if err != nil {
+		return false, fmt.Errorf("failed to check exist host: %w", err)
+	}
+
+	return exists, nil
 }

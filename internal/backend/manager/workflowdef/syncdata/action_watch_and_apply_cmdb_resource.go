@@ -37,6 +37,10 @@ const (
 	cacheKeyPrefix      = "bknm:backend:cc:resource:cursor:"
 )
 
+var (
+	errGetHostFromCMDBNoFound = errors.New("get host from cmdb no found")
+)
+
 // NewActionWatchCMDBResource creates a new action to watch CMDB resource changes.
 func NewActionWatchCMDBResource(capability *Capability) action.Definition {
 	return &actionWatchAndApplyCMDBResource{
@@ -247,6 +251,7 @@ func (act *actionWatchAndApplyCMDBResource) applyHostEvent(std *syncDataUtils.Sy
 }
 
 // handleHostResource this func defines how to handle the host resource event.
+// nolint: funlen, gocognit, nestif
 func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
@@ -273,30 +278,88 @@ func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtil
 
 		return
 	case types.EventTypeUpdate:
-		dbHost, err := act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
+		exists, err := act.storageTopo.ExistHost(std.Context(), event.Detail.HostID)
 		if err != nil {
 			std.InstanceData().Log().
-				Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
-				En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+				Zh("检查主机是否存在失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to check host existence, host id: %d, error: %v", event.Detail.HostID, err).
 				Error()
 
 			return
 		}
 
-		event.Detail.Static.BizID = dbHost.Static.BizID
-		if err := act.storageTopo.UpsertManyHostStatic(std.Context(), event.Detail); err != nil {
+		var (
+			hostID int64
+			bizID  int64
+		)
+		if !exists {
 			std.InstanceData().Log().
-				Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
-				En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
-				Error()
+				Zh("主机不存在于本地数据库, 尝试从CMDB获取主机信息, 主机id: %d", event.Detail.HostID).
+				En("host not found in local db, try to get host info from cmdb, host id: %d", event.Detail.HostID).
+				Info()
 
-			return
+			cond := &types.HostStaticExactCondition{
+				StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}},
+			}
+			host, err := act.getHostFromCMDBByHostID(std.Context(), cond)
+			if err != nil {
+				if errors.Is(err, errGetHostFromCMDBNoFound) {
+					std.InstanceData().Log().
+						Zh("通过主机id从CMDB未找到主机信息, 跳过主机关联关系信息更新, 主机id: %d", event.Detail.HostID).
+						En("host info not found in cmdb by host id, skip host relation info update, host id: %d", event.Detail.HostID).
+						Info()
+
+					return
+				}
+
+				std.InstanceData().Log().
+					Zh("通过主机id从CMDB获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+					En("failed to get host info from cmdb by host id, host id: %d, error: %v", event.Detail.HostID, err).
+					Error()
+
+				return
+			}
+
+			if err := act.storageTopo.UpsertManyHostStatic(std.Context(), host); err != nil {
+				std.InstanceData().Log().
+					Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+					En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+					Error()
+
+				return
+			}
+
+			hostID = host.HostID
+			bizID = host.Static.BizID
+		} else {
+			hostBizMap, err := act.storageTopo.GetHostBizMapping(std.Context(), event.Detail.HostID)
+			if err != nil {
+				std.InstanceData().Log().
+					Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+					En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+					Error()
+
+				return
+			}
+
+			event.Detail.Static.BizID = hostBizMap[event.Detail.HostID]
+			if err := act.storageTopo.UpsertManyHostStatic(std.Context(), event.Detail); err != nil {
+				std.InstanceData().Log().
+					Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+					En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+					Error()
+
+				return
+			}
+
+			hostID = event.Detail.HostID
+			bizID = event.Detail.Static.BizID
 		}
 
-		if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), event.Detail.Static.BizID, event.Detail.HostID); err != nil {
+		if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), bizID, hostID); err != nil {
 			std.InstanceData().Log().
-				Zh("更新主机相关进程的业务id失败, 主机id: %d, biz id: %d, 错误: %v", event.Detail.HostID, event.Detail.Static.BizID, err).
-				En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v", event.Detail.HostID, event.Detail.Static.BizID, err).
+				Zh("更新主机相关进程的业务id失败, 主机id: %d, biz id: %d, 错误: %v", hostID, bizID, err).
+				En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v", hostID, bizID, err).
 				Error()
 
 			return
@@ -322,6 +385,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtil
 // handleHostRelationResource this func defines how to handle the host relation resource event.
 // if the host relation is deleted, it means the host is need deleted
 // host event will handle the delete logic, so we can ignore the delete event of host relation.
+// nolint: funlen, gocognit, nestif
 func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
@@ -346,22 +410,72 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *sync
 
 		return
 	case types.EventTypeUpdate:
-		dbHost, err := act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
+		exists, err := act.storageTopo.ExistHost(std.Context(), event.Detail.HostID)
 		if err != nil {
 			std.InstanceData().Log().
-				Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
-				En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+				Zh("检查主机是否存在失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to check host existence, host id: %d, error: %v", event.Detail.HostID, err).
 				Error()
 
 			return
 		}
 
-		dbHost.Static.BizID = event.Detail.Static.BizID
-		err = act.storageTopo.UpsertManyHostStatic(std.Context(), dbHost)
-		if err != nil {
+		var host *types.Host
+		if !exists {
+			std.InstanceData().Log().
+				Zh("主机不存在于本地数据库, 尝试从CMDB获取主机信息, 主机id: %d", event.Detail.HostID).
+				En("host not found in local db, try to get host info from cmdb, host id: %d", event.Detail.HostID).
+				Info()
+
+			cond := &types.HostStaticExactCondition{
+				StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}, BizID: []int64{event.Detail.Static.BizID}},
+			}
+			host, err = act.getHostFromCMDBByHostID(std.Context(), cond)
+			if err != nil {
+				if errors.Is(err, errGetHostFromCMDBNoFound) {
+					std.InstanceData().Log().
+						Zh("通过主机id从CMDB未找到主机信息, 跳过主机关联关系信息更新, 主机id: %d", event.Detail.HostID).
+						En("host info not found in cmdb by host id, skip host relation info update, host id: %d", event.Detail.HostID).
+						Info()
+
+					return
+				}
+
+				std.InstanceData().Log().
+					Zh("通过主机id从CMDB获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+					En("failed to get host info from cmdb by host id, host id: %d, error: %v", event.Detail.HostID, err).
+					Error()
+
+				return
+			}
+		} else {
+			host, err = act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
+			if err != nil {
+				std.InstanceData().Log().
+					Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+					En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+					Error()
+
+				return
+			}
+
+			host.Static.BizID = event.Detail.Static.BizID
+		}
+
+		if err = act.storageTopo.UpsertManyHostStatic(std.Context(), host); err != nil {
 			std.InstanceData().Log().
 				Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 				En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
+		}
+
+		// when the host is transferred to a new business, the related process records must also reflect the new biz id.
+		if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), host.Static.BizID, event.Detail.HostID); err != nil {
+			std.InstanceData().Log().
+				Zh("更新主机相关进程的业务id失败, 主机id: %d, biz id: %d, 错误: %v", event.Detail.HostID, host.Static.BizID, err).
+				En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v", event.Detail.HostID, host.Static.BizID, err).
 				Error()
 
 			return
@@ -371,6 +485,21 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *sync
 	default:
 		return
 	}
+}
+
+func (act *actionWatchAndApplyCMDBResource) getHostFromCMDBByHostID(ctx contextx.IContext, cond *types.HostStaticExactCondition) (
+	*types.Host, error) {
+
+	host, err := act.cmdbHandler.FindHostWithCondition(ctx, types.UnlimitedPage(), cond)
+	if err != nil {
+		return nil, fmt.Errorf("find host by host id from cmdb failed: %w", err)
+	}
+
+	if len(host) == 0 || host[0] == nil {
+		return nil, errGetHostFromCMDBNoFound
+	}
+
+	return host[0], nil
 }
 
 // getCursor retrieves the cursor for the given key from the cache.

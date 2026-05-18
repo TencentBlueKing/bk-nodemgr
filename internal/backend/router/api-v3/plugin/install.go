@@ -38,7 +38,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs())
+	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs()...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to get host biz mapping.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

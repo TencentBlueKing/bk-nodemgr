@@ -198,7 +198,10 @@ type IStorageHost interface {
 
 	// GetHostBizMapping gets host biz mapping.
 	// Returns a map with host ID as key and biz ID as value.
-	GetHostBizMapping(nCtx contextx.IContext, hostIDs []int64) (map[int64]int64, error)
+	GetHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]int64, error)
+
+	// ExistHost checks if the host exists by host id.
+	ExistHost(nCtx contextx.IContext, hostID int64) (bool, error)
 }
 
 // IStorageDomainGse this interface defines the operations which is only for domain gse.
