@@ -251,7 +251,7 @@ func (mgr *Manager) registerDefPlugin() error {
 // registerDefPluginV2 registers the definitions for plugin v2.
 // nolint: lll
 func (mgr *Manager) registerDefPluginV2() error {
-	_ = &pluginv2.Capability{
+	pluginCap := &pluginv2.Capability{
 		CMDBHandler:         mgr.conf.CmdbHandler,
 		GSEHandler:          mgr.conf.GSEHandler,
 		FileHandler:         mgr.conf.FileHandler,
@@ -266,7 +266,19 @@ func (mgr *Manager) registerDefPluginV2() error {
 	}
 
 	// register action defs.
-	if err := mgr.workflowMgr.RegisterActions(); err != nil {
+	if err := mgr.workflowMgr.RegisterActions(
+		pluginv2.NewActionTransferPluginPkgToNodeV2(pluginCap),
+		pluginv2.NewActionRenderPluginDeploymentV2(pluginCap),
+		pluginv2.NewActionWaitPluginInstallerCompleteV2(pluginCap),
+		pluginv2.NewActionInstallPluginV2(pluginCap),
+		pluginv2.NewActionUpgradePluginV2(pluginCap),
+		pluginv2.NewActionUninstallPluginV2(pluginCap),
+		pluginv2.NewActionPushPluginConfigV2(pluginCap),
+		pluginv2.NewActionEnsureAndUpdatePluginConfigDetailsV2(pluginCap),
+		pluginv2.NewActionUnTrusteeshipProcessV2(pluginCap),
+		pluginv2.NewActionVerifyPluginAvailabilityV2(pluginCap),
+		pluginv2.NewActionInjectPluginBaseRuntimeV2(pluginCap),
+	); err != nil {
 		return err
 	}
 
