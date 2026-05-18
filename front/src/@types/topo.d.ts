@@ -639,31 +639,6 @@ export interface TopoGraphGetRespData {
   links: LinkGraph[];
 }
 
-// TopoGraphNodeCountReq describes the HTTP request body when get node count
-export interface TopoGraphNodeCountReq {
-  bk_networkunit_id: number[];
-}
-
-// TopoGraphNodeCountResp describes the HTTP response body when get node count
-export interface TopoGraphNodeCountResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: TopoGraphNodeCountRespData;
-}
-
-export interface TopoGraphNodeCountRespNodeInfo {
-  bk_networkunit_id: number;
-  proxy: number;
-  agent: number;
-}
-
-export interface TopoGraphNodeCountRespData {
-  networkunits: NodeInfo[];
-}
-
 // TopoGraphNodeGetReq describes the HTTP request body when get node
 export interface TopoGraphNodeGetReq {
   bk_networkunit_id: number[];

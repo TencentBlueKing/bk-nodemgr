@@ -72,7 +72,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// topo graph.
 	h.rg.POST("/graph/get", restserver.Handler(h.GetGraph))
-	h.rg.POST("/graph/node/count", restserver.Handler(h.CountGraphNode))
 	h.rg.POST("/graph/node/get", restserver.Handler(h.GetGraphNode))
 
 	// topo event apis.

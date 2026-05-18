@@ -45,43 +45,10 @@ func (x *TopoGraphGetResp) ConvertNetworkUnitsToTypes(networkUnits []*types.Netw
 	}
 }
 
-// Validate check body.
-func (x *TopoGraphNodeCountReq) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *TopoGraphNodeCountReq) AutoConvert() {
-}
-
 // NetworkUnitInfo describes the informations in one networkunit.
 type NetworkUnitInfo struct {
 	Proxy int64
 	Agent int64
-}
-
-// ConvertNetworkUnitInfoResult convert networkunitinfos from result to proto.
-func (x *TopoGraphNodeCountResp) ConvertNetworkUnitInfoResult(networkUnitInfos map[int64]*NetworkUnitInfo) {
-	items := make([]*TopoGraphNodeCountResp_NodeInfo, len(networkUnitInfos))
-	idx := 0
-	for networkUnitID, networkUnitInfo := range networkUnitInfos {
-		info := &TopoGraphNodeCountResp_NodeInfo{
-			BkNetworkunitId: new(int64),
-			Proxy:           new(int64),
-			Agent:           new(int64),
-		}
-
-		*info.BkNetworkunitId = networkUnitID
-		*info.Proxy = networkUnitInfo.Proxy
-		*info.Agent = networkUnitInfo.Agent
-
-		items[idx] = info
-		idx++
-	}
-
-	x.Data = &TopoGraphNodeCountResp_Data{
-		Networkunits: items,
-	}
 }
 
 func convertLinks(networkUnits []*types.NetworkUnit) []*LinkGraph {

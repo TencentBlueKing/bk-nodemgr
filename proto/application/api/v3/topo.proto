@@ -606,27 +606,6 @@ message TopoGraphGetResp {
   Data data = 5;
 }
 
-// TopoGraphNodeCountReq describes the HTTP request body when get node count
-message TopoGraphNodeCountReq { repeated int64 bk_networkunit_id = 1; }
-
-// TopoGraphNodeCountResp describes the HTTP response body when get node count
-message TopoGraphNodeCountResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message NodeInfo {
-    optional int64 bk_networkunit_id = 1;
-    optional int64 proxy = 2;
-    optional int64 agent = 3;
-  }
-
-  message Data { repeated NodeInfo networkunits = 1; }
-  Data data = 5;
-}
-
 // TopoGraphNodeGetReq describes the HTTP request body when get node
 message TopoGraphNodeGetReq { repeated int64 bk_networkunit_id = 1; }
 
@@ -959,14 +938,6 @@ service Topo {
   rpc GraphGet(TopoGraphGetReq) returns (TopoGraphGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/graph/get"
-      body : "*"
-    };
-  }
-
-  // GraphNodeCount provides getting graph node count.
-  rpc GraphNodeCount(TopoGraphNodeCountReq) returns (TopoGraphNodeCountResp) {
-    option (google.api.http) = {
-      post : "/api/v3/topo/graph/node/count"
       body : "*"
     };
   }

@@ -88,21 +88,6 @@ func (d *dao) create(nCtx contextx.IContext, networkUnit *NetworkUnit) (int64, e
 	return newSequence, nil
 }
 
-func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, networkunits []*NetworkUnit) error {
-	models := buildUpdateManyParams(tenantID, networkunits)
-
-	result, err := d.client.BulkWrite(nCtx, models)
-	if err != nil {
-		return err
-	}
-
-	if result.MatchedCount > 0 {
-		logger.G.Sys().With("matched-count", result.MatchedCount).Info("updated networkunits")
-	}
-
-	return nil
-}
-
 func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkUnitIDs ...int64) error {
 	models := buildDeleteManyParams(tenantID, networkUnitIDs...)
 
@@ -131,23 +116,6 @@ func tenantFilter(tenantID string) bson.E {
 		}}
 }
 
-// buildUpdateManyParams build update many params.
-func buildUpdateManyParams(tenantID string, networkUnits []*NetworkUnit) []mongo.WriteModel {
-	models := make([]mongo.WriteModel, 0)
-
-	for _, networkUnit := range networkUnits {
-		filter := append(base.AliveFilter(),
-			bson.E{Key: FieldKeyNetworkUnitID, Value: networkUnit.NetworkUnitID},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID})
-
-		update := base.BuildUpsertParam(networkUnit)
-
-		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
-	}
-
-	return models
-}
-
 // buildDeleteManyParams build delete many params.
 func buildDeleteManyParams(tenantID string, networkUnitIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
@@ -165,13 +133,13 @@ func (d *dao) getNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, 
 
 	pipeline := mongo.Pipeline{}
 
-	if filter != nil && len(filter) > 0 {
-		pipeline = append(pipeline, bson.D{{"$match", filter}})
+	if len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: filter}})
 	}
 
 	pipeline = append(pipeline,
-		bson.D{{"$group", bson.D{{"_id", "$" + FieldKeyNetworkAreaID}, {"count", bson.D{{"$sum", 1}}}}}},
-		bson.D{{"$sort", bson.D{{"_id", 1}}}},
+		bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$" + FieldKeyNetworkAreaID}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
 	)
 
 	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)

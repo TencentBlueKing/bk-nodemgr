@@ -254,39 +254,6 @@
         ]
       }
     },
-    "/api/v3/topo/graph/node/count": {
-      "post": {
-        "summary": "GraphNodeCount provides getting graph node count.",
-        "operationId": "Topo_GraphNodeCount",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3TopoGraphNodeCountResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3TopoGraphNodeCountReq"
-            }
-          }
-        ],
-        "tags": [
-          "Topo"
-        ]
-      }
-    },
     "/api/v3/topo/graph/node/get": {
       "post": {
         "summary": "TopoGraphNodeGetReq provides graph node getting.",
@@ -1010,23 +977,6 @@
         },
         "message": {
           "type": "string"
-        }
-      }
-    },
-    "TopoGraphNodeCountRespNodeInfo": {
-      "type": "object",
-      "properties": {
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "proxy": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "agent": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -2378,56 +2328,6 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3LinkGraph"
-          }
-        }
-      }
-    },
-    "v3TopoGraphNodeCountReq": {
-      "type": "object",
-      "properties": {
-        "bk_networkunit_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "title": "TopoGraphNodeCountReq describes the HTTP request body when get node count"
-    },
-    "v3TopoGraphNodeCountResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3TopoGraphNodeCountRespData"
-        }
-      },
-      "title": "TopoGraphNodeCountResp describes the HTTP response body when get node count"
-    },
-    "v3TopoGraphNodeCountRespData": {
-      "type": "object",
-      "properties": {
-        "networkunits": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/TopoGraphNodeCountRespNodeInfo"
           }
         }
       }
