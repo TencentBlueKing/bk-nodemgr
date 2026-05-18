@@ -21,6 +21,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+const (
+	getGraphNodeGPLimit = 10
+)
+
 // GetGraphNode get graph node.
 func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoGraphNodeGetReq)
@@ -53,20 +57,15 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	for _, networkUnitID := range networkUnitIDs {
 		result[networkUnitID] = &protoBackend.GraphNodeInfo{
 			BkNetworkunitID: networkUnitID,
-			IsHealthy:       true,
+			IsHealthy:       false,
 		}
 	}
 
 	// count agent, proxy and check health.
 	gp := gopool.NewPool()
-
+	gp.SetLimit(getGraphNodeGPLimit)
 	h.countAgents(rCtx, gp, result, networkUnitIDs)
-
-	for _, networkUnitID := range networkUnitIDs {
-		id := networkUnitID
-
-		h.processProxies(rCtx, gp, result, id)
-	}
+	h.processProxies(rCtx, gp, result, networkUnitIDs)
 
 	// wait until all servers stopped.
 	if err := gp.Wait(); err != nil {
@@ -124,29 +123,23 @@ func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result m
 	})
 }
 
-func (h *handler) processProxies(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*protoBackend.GraphNodeInfo, id int64) {
+func (h *handler) processProxies(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*protoBackend.GraphNodeInfo, ids []int64) {
 	gp.Go(func() error {
-		proxyData, err := h.getProxyData(rCtx, id)
+		proxyDatas, err := h.getProxyDatas(rCtx, ids)
 		if err != nil {
-			return fmt.Errorf("failed to get proxy data, networkunit-id(%d): %w", id, err)
+			return fmt.Errorf("failed to get proxy data: %w", err)
 		}
 
-		result[id].TotalProxy = proxyData.totalProxy
-		result[id].RunningProxy = proxyData.runningProxy
+		for id, proxyData := range proxyDatas {
+			result[id].TotalProxy = proxyData.totalProxy
+			result[id].RunningProxy = proxyData.runningProxy
+			result[id].CycleTimes = proxyData.connCycleTime
 
-		// if proxy is not running or required tag is not empty, set node unhealthy
-		if proxyData.runningProxy == 0 || len(proxyData.requiredTagSet) > 0 {
-			result[id].IsHealthy = false
-
-			return nil
+			// healthy networkunit should have running proxy and satisfied all required tags.
+			if proxyData.runningProxy > 0 && len(proxyData.requiredTagSet) == 0 {
+				result[id].IsHealthy = true
+			}
 		}
-
-		// get cycle times
-		cycleTimes, err := h.getAgentCycleTimes(rCtx, proxyData.agentIDs)
-		if err != nil {
-			return fmt.Errorf("failed to get agent cycle times, networkunit-id(%d): %w", id, err)
-		}
-		result[id].CycleTimes = cycleTimes
 
 		return nil
 	})
@@ -156,13 +149,17 @@ type proxyData struct {
 	totalProxy     int64
 	runningProxy   int64
 	requiredTagSet map[types.ProxyTag]struct{}
-	agentIDs       []string
+	connCycleTime  []string
 }
 
-func (h *handler) getProxyData(rCtx restserver.IContext, networkUnitID int64) (*proxyData, error) {
-	proxies, totalProxy, err := h.storage.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+func (h *handler) getProxyDatas(rCtx restserver.IContext, networkUnitIDs []int64) (map[int64]*proxyData, error) {
+	if len(networkUnitIDs) == 0 {
+		return make(map[int64]*proxyData), nil
+	}
+
+	proxies, _, err := h.storage.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
 		DynamicExactInclude: &types.HostDynamicExactFields{
-			NetworkUnitID: []int64{networkUnitID},
+			NetworkUnitID: networkUnitIDs,
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 		},
 	})
@@ -170,29 +167,35 @@ func (h *handler) getProxyData(rCtx restserver.IContext, networkUnitID int64) (*
 		return nil, err
 	}
 
-	// fill required tag set.
-	// if no tag required, it will be empty, which means all tags are required
-	allRequiredTags := types.AllProxyTag()
-	requiredTagSet := make(map[types.ProxyTag]struct{}, len(allRequiredTags))
-	for _, tag := range allRequiredTags {
-		requiredTagSet[tag] = struct{}{}
-	}
-
-	data := &proxyData{
-		totalProxy:     totalProxy,
-		runningProxy:   0,
-		requiredTagSet: requiredTagSet,
-		agentIDs:       make([]string, 0),
-	}
-
+	result := make(map[int64]*proxyData)
 	for _, proxy := range proxies {
+		if _, ok := result[proxy.Dynamic.NetworkUnitID]; !ok {
+			// fill required tag set.
+			// if no tag required, it will be empty, which means all tags are required.
+			requiredTagSet := make(map[types.ProxyTag]struct{})
+			for _, tag := range types.AllProxyTag() {
+				requiredTagSet[tag] = struct{}{}
+			}
+
+			result[proxy.Dynamic.NetworkUnitID] = &proxyData{
+				totalProxy:     0,
+				runningProxy:   0,
+				requiredTagSet: requiredTagSet,
+				connCycleTime:  make([]string, 0),
+			}
+		}
+
+		data := result[proxy.Dynamic.NetworkUnitID]
+		data.totalProxy++
+
 		if proxy.Dynamic.NodeStatus != types.NodeStatusRunning {
 			continue
 		}
 
-		// count running proxy
 		data.runningProxy++
-		data.agentIDs = append(data.agentIDs, proxy.Dynamic.AgentID)
+		if proxy.Dynamic.ConnCycleTime != "" {
+			data.connCycleTime = append(data.connCycleTime, proxy.Dynamic.ConnCycleTime)
+		}
 
 		// if no tag required, skip
 		if len(data.requiredTagSet) == 0 {
@@ -204,23 +207,5 @@ func (h *handler) getProxyData(rCtx restserver.IContext, networkUnitID int64) (*
 		}
 	}
 
-	return data, nil
-}
-
-func (h *handler) getAgentCycleTimes(rCtx restserver.IContext, agentIDs []string) ([]string, error) {
-	if len(agentIDs) == 0 {
-		return []string{}, nil
-	}
-
-	agentInfos, err := h.gseHandler.ListAgentInfo(rCtx, agentIDs...)
-	if err != nil {
-		return nil, err
-	}
-
-	cycleTimes := make([]string, len(agentInfos))
-	for idx, info := range agentInfos {
-		cycleTimes[idx] = info.ConnCycleTime
-	}
-
-	return cycleTimes, nil
+	return result, nil
 }
