@@ -138,6 +138,7 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 				NodeVersion:    agentInfo.Version,
 				NodeCPUArch:    agentInfo.Arch,
 				NodeOsType:     agentInfo.OSType,
+				ConnCycleTime:  agentInfo.ConnCycleTime,
 			},
 		})
 	}
@@ -156,6 +157,7 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 			NodeVersion:    true,
 			NodeCPUArch:    true,
 			NodeOsType:     true,
+			ConnCycleTime:  true,
 		}, hosts...)
 	})
 	if err != nil {

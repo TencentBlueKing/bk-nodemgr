@@ -151,6 +151,9 @@ type HostDynamic struct {
 
 	// ProxyInstallOriginUnitID represents the origin network unit id where this proxy is installed.
 	ProxyInstallOriginUnitID int64
+
+	// ConnCycleTime represents the connection cycle time of the agent reported by GSE.
+	ConnCycleTime string
 }
 
 // ProxySupportInstaller returns whether this node support installer.
@@ -226,6 +229,8 @@ type HostDynamicFields struct {
 
 	RelayDownloadPort bool
 	RelayCallbackPort bool
+
+	ConnCycleTime bool
 }
 
 // ProxyTag represents a proxy tag.

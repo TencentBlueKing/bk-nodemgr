@@ -76,6 +76,7 @@ type HostDynamic struct {
 	AdvertiseIPV6            string   `json:"advertise_ipv6" bson:"advertise_ipv6"`
 	RelayDownloadPort        int64    `json:"relay_download_port" bson:"relay_download_port"`
 	RelayCallbackPort        int64    `json:"relay_callback_port" bson:"relay_callback_port"`
+	ConnCycleTime            string   `json:"conn_cycle_time" bson:"conn_cycle_time"`
 }
 
 var _ base.IData = &Host{}

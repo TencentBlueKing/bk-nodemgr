@@ -548,6 +548,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			RelayDownloadPort:        host.Dynamic.RelayDownloadPort,
 			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
 			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
+			ConnCycleTime:            host.Dynamic.ConnCycleTime,
 		}
 	}
 
@@ -627,6 +628,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			RelayDownloadPort:        host.Dynamic.RelayDownloadPort,
 			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
 			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
+			ConnCycleTime:            host.Dynamic.ConnCycleTime,
 		}
 	}
 
@@ -847,6 +849,10 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 
 	if fields.ProxyInstallOriginUnitID {
 		updates[FieldKeyDynamicProxyInstallOriginUnitID] = host.Dynamic.ProxyInstallOriginUnitID
+	}
+
+	if fields.ConnCycleTime {
+		updates[FieldKeyDynamicConnCycleTime] = host.Dynamic.ConnCycleTime
 	}
 
 	return updates
