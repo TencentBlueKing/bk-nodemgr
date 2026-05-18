@@ -1,0 +1,48 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package pluginv2 this package provide plugin v2 relate action definition.
+package pluginv2
+
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+)
+
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// thridparty handler.
+	CMDBHandler cmdb.IHandler
+	GSEHandler  gse.IHandler
+	FileHandler file.IHandler
+
+	// stroage.
+	StorageTopo         topoStg.IStorage
+	StorageRelease      release.IStorage
+	StorageNode         nodeStg.IStorage
+	StorageWorkflow     workflow.IStorage
+	StoragePlugin       pluginStg.IStorage
+	StorageHostCredit   credit.IStorageHostCredit
+	StorageConfigPolicy configpolicy.IStorage
+
+	// discover provider.
+	DiscoverProvider discover.Provider
+}
+
+const procNameSpaceNodeMan = "nodeman"

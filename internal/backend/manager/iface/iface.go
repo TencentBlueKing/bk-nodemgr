@@ -49,6 +49,17 @@ type INodeManager interface {
 
 // IPluginManager defines the PluginManager interface.
 type IPluginManager interface {
+	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
+	LaunchRetryPluginOperationFromLastInstance(nCtx contextx.IContext, param types.RetryPluginWorkflowOperationParam) error
+
+	// TerminatePluginOperationLastInstance terminate operation from last instance.
+	TerminatePluginOperationLastInstance(nCtx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
+
+	iPluginManagerPlugin
+}
+
+// iPluginManagerPlugin defines the PluginManager sub interface for.
+type iPluginManagerPlugin interface {
 	// LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
 	LaunchInstallPlugin(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
 
@@ -59,19 +70,13 @@ type IPluginManager interface {
 	LaunchUninstallPlugin(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error)
 
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
-	LaunchApplyPluginSubConfig(ctx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
-
-	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
-	LaunchRetryPluginOperationFromLastInstance(ctx contextx.IContext, param types.RetryPluginWorkflowOperationParam) error
-
-	// TerminatePluginOperationLastInstance terminate operation from last instance.
-	TerminatePluginOperationLastInstance(ctx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
+	LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
 
 	// LaunchRestartProcess launch a task to restart process. returns the workflow-id.
-	LaunchRestartProcess(ctx contextx.IContext, param types.RestartProcessParam) (string, error)
+	LaunchRestartProcess(nCtx contextx.IContext, param types.RestartProcessParam) (string, error)
 
 	// LaunchStopProcess launch a task to stop process. returns the workflow-id.
-	LaunchStopProcess(ctx contextx.IContext, param types.StopProcessParam) (string, error)
+	LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error)
 }
 
 // ISyncManager defines the SyncManager interface.

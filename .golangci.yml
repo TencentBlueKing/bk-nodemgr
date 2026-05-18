@@ -766,6 +766,10 @@ linters-settings:
         alias: nodeUtils
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils
         alias: pluginUtils
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2
+        alias: pluginv2
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils
+        alias: pluginV2Utils
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils
         alias: syncDataUtils
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow

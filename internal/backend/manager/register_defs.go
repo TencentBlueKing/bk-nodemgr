@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 )
@@ -32,6 +33,10 @@ func (mgr *Manager) registerDefinitions() error {
 
 	if err := mgr.registerDefPlugin(); err != nil {
 		return fmt.Errorf("failed to register def plugin: %w", err)
+	}
+
+	if err := mgr.registerDefPluginV2(); err != nil {
+		return fmt.Errorf("failed to register def plugin v2: %w", err)
 	}
 
 	if err := mgr.registerDefSchedule(); err != nil {
@@ -237,6 +242,31 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionFetchProcessSubConfigIntoDeployment(pluginCap),
 		plugin.NewActionInjectPluginCustomDeployConfig(pluginCap),
 	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// registerDefPluginV2 registers the definitions for plugin v2.
+// nolint: lll
+func (mgr *Manager) registerDefPluginV2() error {
+	_ = &pluginv2.Capability{
+		CMDBHandler:         mgr.conf.CmdbHandler,
+		GSEHandler:          mgr.conf.GSEHandler,
+		FileHandler:         mgr.conf.FileHandler,
+		StorageTopo:         mgr.conf.StorageTopo,
+		StorageRelease:      mgr.conf.StorageRelease,
+		StorageNode:         mgr.conf.StorageNode,
+		StorageWorkflow:     mgr.conf.StorageWorkflow,
+		StoragePlugin:       mgr.conf.StoragePlugin,
+		StorageHostCredit:   mgr.conf.StorageHostCredit,
+		StorageConfigPolicy: mgr.conf.StorageConfigPolicy,
+		DiscoverProvider:    mgr.conf.Provider,
+	}
+
+	// register action defs.
+	if err := mgr.workflowMgr.RegisterActions(); err != nil {
 		return err
 	}
 
