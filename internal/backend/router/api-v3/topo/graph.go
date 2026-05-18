@@ -60,10 +60,10 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	// count agent, proxy and check health.
 	gp := gopool.NewPool()
 
+	h.countAgents(rCtx, gp, result, networkUnitIDs)
+
 	for _, networkUnitID := range networkUnitIDs {
 		id := networkUnitID
-
-		h.countAgents(rCtx, gp, result, id)
 
 		h.processProxies(rCtx, gp, result, id)
 	}
@@ -80,36 +80,45 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*protoBackend.GraphNodeInfo, id int64) {
+func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*protoBackend.GraphNodeInfo, ids []int64) {
+	if len(ids) == 0 {
+		return
+	}
+
 	// count total agent
 	gp.Go(func() error {
-		totalAgents, err := h.storage.CountHost(rCtx, &types.HostCondition{
+		totalAgents, err := h.storage.CountHostGroupByNetworkUnitID(rCtx, &types.HostCondition{
 			DynamicExactInclude: &types.HostDynamicExactFields{
-				NetworkUnitID: []int64{id},
+				NetworkUnitID: ids,
 				NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("failed to count total agent, networkunit-id(%d): %w", id, err)
+			return fmt.Errorf("failed to count total agent: %w", err)
 		}
-		result[id].TotalAgent = totalAgents
+
+		for id, totalAgentCount := range totalAgents {
+			result[id].TotalAgent = totalAgentCount
+		}
 
 		return nil
 	})
 
 	// count running agent
 	gp.Go(func() error {
-		runningAgents, err := h.storage.CountHost(rCtx, &types.HostCondition{
+		runningAgents, err := h.storage.CountHostGroupByNetworkUnitID(rCtx, &types.HostCondition{
 			DynamicExactInclude: &types.HostDynamicExactFields{
-				NetworkUnitID: []int64{id},
+				NetworkUnitID: ids,
 				NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 				NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("failed to count running agent, networkunit-id(%d): %w", id, err)
+			return fmt.Errorf("failed to count running agent: %w", err)
 		}
-		result[id].RunningAgent = runningAgents
+		for id, runningAgentCount := range runningAgents {
+			result[id].RunningAgent = runningAgentCount
+		}
 
 		return nil
 	})

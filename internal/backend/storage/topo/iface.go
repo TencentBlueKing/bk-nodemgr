@@ -160,6 +160,9 @@ type IStorageHost interface {
 	// CountHost counts hosts by conditions.
 	CountHost(nCtx contextx.IContext, conditions ...*types.HostCondition) (int64, error)
 
+	// CountHostGroupByNetworkUnitID counts hosts by networkunit-id.
+	CountHostGroupByNetworkUnitID(nCtx contextx.IContext, conditions ...*types.HostCondition) (map[int64]int64, error)
+
 	// GetHostByID gets host by id.
 	GetHostByID(nCtx contextx.IContext, hostID int64) (*types.Host, error)
 

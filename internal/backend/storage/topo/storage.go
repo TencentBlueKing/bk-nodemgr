@@ -62,6 +62,7 @@ const (
 	metricOperationListHost                                  = "list_host"
 	metricOperationListHostOrderByUpdateTime                 = "list_host_order_by_updatetime"
 	metricOperationCountHost                                 = "count_host"
+	metricOperationCountHostGroupByNetworkUnitID             = "count_host_group_by_networkunit_id"
 	metricOperationDistinctHost                              = "distinct_host"
 	metricOperationRecommendNetworkUnitByNetworkSegment      = "recommend_networkunit_by_network_segment"
 	metricOperationDeleteManyHost                            = "delete_many_host"

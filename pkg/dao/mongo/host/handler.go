@@ -34,6 +34,9 @@ type IHandler interface {
 	// Count count hosts by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
+	// CountGroupByNetworkUnitID count hosts by networkunit id.
+	CountGroupByNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
+
 	// Exist check a host exist by conditions.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
 
@@ -189,6 +192,26 @@ func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 	}
 
 	return h.tenantDao(tenantID).Count(nCtx, filter)
+}
+
+// CountGroupByNetworkUnitID count hosts by networkunit id.
+func (h *handler) CountGroupByNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).CountGroupByInt64(nCtx, filter, FieldKeyDynamicNetworkUnitID)
 }
 
 // Exist count host by conditions.

@@ -71,6 +71,12 @@ type IOrm[P DataPoint[T], T any] interface {
 	// Count count the number of given data.
 	Count(nCtx contextx.IContext, filter bson.D) (int64, error)
 
+	// CountGroupByInt64 count the number of given data group by given field.
+	CountGroupByInt64(nCtx contextx.IContext, filter bson.D, field string) (dataPoints map[int64]int64, err error)
+
+	// CountGroupByString count the number of given data group by given field.
+	CountGroupByString(nCtx contextx.IContext, filter bson.D, field string) (dataPoints map[string]int64, err error)
+
 	// List list the data by given filter.
 	List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions, field ...string) ([]P, error)
 
@@ -510,6 +516,149 @@ func (orm *Orm[P, T]) Count(nCtx contextx.IContext, filter bson.D) (num int64, e
 	}
 
 	return num, nil
+}
+
+// CountGroupByInt64 this is a common operation for mongo db.
+func (orm *Orm[P, T]) CountGroupByInt64(nCtx contextx.IContext, filter bson.D, field string) (dataPoints map[int64]int64, err error) {
+	// record metric.
+	metric := orm.metric().start(daomongo.MetricOperationCountDucuments, len(filter))
+	defer func() {
+		metric.end(err, len(dataPoints))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "count_group_by_int64"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+		))
+	}()
+
+	result, err := orm.countGroupByField(nCtx, filter, field)
+	if err != nil {
+		return nil, err
+	}
+
+	dataPoints = make(map[int64]int64)
+	for key, total := range result {
+		key, ok := key.(int64)
+		if !ok {
+			return nil, fmt.Errorf("invalid field(%s) type(%T)", field, key)
+		}
+
+		dataPoints[key] = total
+	}
+
+	return dataPoints, nil
+}
+
+// CountGroupByString count the number of given data group by given field.
+func (orm *Orm[P, T]) CountGroupByString(nCtx contextx.IContext, filter bson.D, field string) (dataPoints map[string]int64, err error) {
+	// record metric.
+	metric := orm.metric().start(daomongo.MetricOperationCountDucuments, len(filter))
+	defer func() {
+		metric.end(err, len(dataPoints))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "count_group_by_string"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+		))
+	}()
+
+	if nCtx == nil {
+		return nil, errors.New("context is nil")
+	}
+
+	result, err := orm.countGroupByField(nCtx, filter, field)
+	if err != nil {
+		return nil, err
+	}
+
+	dataPoints = make(map[string]int64)
+	for key, total := range result {
+		key, ok := key.(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid field(%s) type(%T)", field, key)
+		}
+
+		dataPoints[key] = total
+	}
+
+	return dataPoints, nil
+}
+
+// GroupByResult represents the result of a group-by operation on a field.
+type GroupByResult struct {
+	ID    any   `bson:"_id"`
+	Total int64 `bson:"count"`
+}
+
+func (orm *Orm[P, T]) countGroupByField(nCtx contextx.IContext, filter bson.D, field string) (dataPoints map[any]int64, err error) {
+	if nCtx == nil {
+		return nil, errors.New("context is nil")
+	}
+
+	pipeline := mongo.Pipeline{}
+	if len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{Key: "$match", Value: filter},
+		})
+	}
+	pipeline = append(pipeline,
+		bson.D{
+			{Key: "$group", Value: bson.D{
+				{Key: "_id", Value: "$" + field},
+				{Key: "count", Value: bson.D{
+					{Key: "$sum", Value: 1},
+				}},
+			}},
+		},
+	)
+
+	cursor, err := orm.dao.GetClient().Aggregate(nCtx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count group by field(%s): %w", field, err)
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).Error("failed to close cursor of count group by field")
+		}
+	}()
+
+	var results []GroupByResult
+	if err = cursor.All(nCtx, &results); err != nil {
+		return nil, fmt.Errorf("failed to count group by field(%s): %w", field, err)
+	}
+
+	dataPoints = make(map[any]int64)
+	for _, res := range results {
+		dataPoints[res.ID] = res.Total
+	}
+
+	return dataPoints, nil
 }
 
 // List this is a common operation for mongo db.

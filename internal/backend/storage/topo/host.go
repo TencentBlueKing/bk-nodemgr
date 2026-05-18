@@ -173,6 +173,22 @@ func (s *Storage) CountHost(nCtx contextx.IContext, conditions ...*types.HostCon
 	return num, err
 }
 
+// CountHostGroupByNetworkUnitID counts host by network unit id.
+func (s *Storage) CountHostGroupByNetworkUnitID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[int64]int64, error) {
+
+	var data map[int64]int64
+	err := s.WrapFn(nCtx, metricOperationCountHostGroupByNetworkUnitID, func(nCtx contextx.IContext) error {
+		opts := convertHostConditionsToOptions(conditions...)
+		var err error
+		data, err = s.daoHost.CountGroupByNetworkUnitID(nCtx, opts...)
+
+		return err
+	})
+
+	return data, err
+}
+
 // DistinctHost distinct host fields.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
