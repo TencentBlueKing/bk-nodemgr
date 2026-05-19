@@ -19,7 +19,7 @@ import (
 
 // TableName scheduled workflow table name.
 func TableName(tenantID string) string {
-	return fmt.Sprintf("process_config_v2_%s", tenantID)
+	return fmt.Sprintf("process_v2_config_%s", tenantID)
 }
 
 var _ base.IData = &ProcessConfig{}
