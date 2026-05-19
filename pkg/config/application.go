@@ -18,7 +18,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/envx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"gopkg.in/yaml.v2"
 )
@@ -236,12 +235,11 @@ func (svc *ApplicationService) Load(filePath string) error {
 	// default options.
 	svc.RunMode = RunModeRelease
 
-	var err error
 	if filePath == "" {
-		err = svc.LoadFromEnv()
-	} else {
-		err = svc.LoadFromFile(filePath)
+		return fmt.Errorf("failed to load config: file path is empty")
 	}
+
+	err := svc.LoadFromFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -250,165 +248,6 @@ func (svc *ApplicationService) Load(filePath string) error {
 	if svc.Front.BKAppNavOpenSourceURL == "" {
 		svc.Front.BKAppNavOpenSourceURL = defaultApplicationFrontBKAppNavOpenSourceURL
 	}
-
-	return nil
-}
-
-// LoadFromEnv loads config from environment variables.
-// nolint: gocyclo, cyclop, funlen, gocognit
-func (svc *ApplicationService) LoadFromEnv() error {
-	// run mode.
-	var runMode string
-	if err := envx.MustLoadString("NODEMAN_MODE", &runMode); err != nil {
-		return err
-	}
-	svc.RunMode = RunMode(runMode)
-
-	var tenantMode string
-	if err := envx.MustLoadString("NODEMAN_TENANT_MODE", &tenantMode); err != nil {
-		return err
-	}
-	svc.TenantMode = tenant.Mode(tenantMode)
-
-	// bk SaaS.
-	if err := envx.MustLoadString("BK_BKSAAS_BKLOGIN_LOGIN_URL", &svc.BKSaas.BKLogin.LoginURL); err != nil {
-		return err
-	}
-	if _, err := envx.LoadBool("BK_BKSAAS_BKLOGIN_TLS_INSECURE_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
-		return err
-	}
-	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_CERT", &svc.Backend.TLS.CertFile)
-	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_KEY", &svc.Backend.TLS.KeyFile)
-	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_CA", &svc.Backend.TLS.CAFile)
-	_ = envx.LoadString("BK_BKSAAS_BKLOGIN_TLS_PASSWORD", &svc.Backend.TLS.Password)
-
-	// bk PaaS
-	_ = envx.LoadString("BK_PAAS_ANALYSIS_SCRIPT", &svc.BKPaas.AnalysisScript)
-	_ = envx.LoadString("BK_IAM_SAAS_HOST", &svc.BKIamSaaSHost)
-	_ = envx.LoadString("BK_USER_SAAS_HOST", &svc.BKUserSaaSHost)
-	_ = envx.LoadString("BK_APIGW_BASE_URL", &svc.BKAPIGWBaseURL)
-
-	// backend.
-	if err := envx.MustLoadString("BKPAAS_APP_ID", &svc.Backend.AppCode); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("BKPAAS_APP_SECRET", &svc.Backend.AppSecret); err != nil {
-		return err
-	}
-	_ = envx.MustLoadString("NODEMAN_BACKEND_USER", &svc.Backend.User)
-	_ = envx.MustLoadString("NODEMAN_BACKEND_AUTH_MODE", &svc.Backend.AuthMode)
-	_ = envx.MustLoadString("NODEMAN_BACKEND_ACCESS_TOKEN", &svc.Backend.AccessToken)
-	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
-		return err
-	}
-
-	if _, err := envx.LoadBool("NODEMAN_BACKEND_TLS_INSECURE_SKIP_VERIFY", &svc.Backend.TLS.InsecureSkipVerify); err != nil {
-		return err
-	}
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CERT", &svc.Backend.TLS.CertFile)
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_KEY", &svc.Backend.TLS.KeyFile)
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CA", &svc.Backend.TLS.CAFile)
-	_ = envx.LoadString("NODEMAN_BACKEND_TLS_PASSWORD", &svc.Backend.TLS.Password)
-
-	// notice.
-	if _, err := envx.LoadBool("NODEMAN_NOTICE_ENABLED", &svc.Notice.Enabled); err != nil {
-		return err
-	}
-	// Only load Notice configuration when enabled.
-	// nolint: nestif
-	if svc.Notice.Enabled {
-		if err := envx.MustLoadString("NODEMAN_NOTICE_APP_CODE", &svc.Notice.AppCode); err != nil {
-			return err
-		}
-		if err := envx.MustLoadString("NODEMAN_NOTICE_APP_SECRET", &svc.Notice.AppSecret); err != nil {
-			return err
-		}
-		if err := envx.MustLoadString("NODEMAN_NOTICE_USER", &svc.Notice.User); err != nil {
-			return err
-		}
-		if err := envx.MustLoadString("NODEMAN_NOTICE_AUTH_MODE", &svc.Notice.AuthMode); err != nil {
-			return err
-		}
-		_ = envx.MustLoadString("NODEMAN_NOTICE_ACCESS_TOKEN", &svc.Notice.AccessToken)
-		if _, err := envx.LoadBool("NODEMAN_NOTICE_TLS_INSECURE_SKIP_VERIFY", &svc.Notice.TLS.InsecureSkipVerify); err != nil {
-			return err
-		}
-		_ = envx.LoadString("NODEMAN_NOTICE_TLS_CERT", &svc.Notice.TLS.CertFile)
-		_ = envx.LoadString("NODEMAN_NOTICE_TLS_KEY", &svc.Notice.TLS.KeyFile)
-		_ = envx.LoadString("NODEMAN_NOTICE_TLS_CA", &svc.Notice.TLS.CAFile)
-		_ = envx.LoadString("NODEMAN_NOTICE_TLS_PASSWORD", &svc.Notice.TLS.Password)
-	}
-
-	// etcd
-	var etcdEndpoints string
-	if err := envx.MustLoadString("NODEMAN_ETCD_ENDPOINTS", &etcdEndpoints); err != nil {
-		return err
-	}
-	svc.Etcd.Endpoints = strings.Split(etcdEndpoints, ",")
-	if err := envx.MustLoadString("NODEMAN_ETCD_USERNAME", &svc.Etcd.Username); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("NODEMAN_ETCD_PASSWORD", &svc.Etcd.Password); err != nil {
-		return err
-	}
-	_ = envx.LoadString("NODEMAN_ETCD_CERT", &svc.Etcd.TLS.CertFile)
-	_ = envx.LoadString("NODEMAN_ETCD_KEY", &svc.Etcd.TLS.KeyFile)
-	_ = envx.LoadString("NODEMAN_ETCD_CA", &svc.Etcd.TLS.CAFile)
-
-	// mongodb.
-	var mongoDBHosts string
-	if err := envx.MustLoadString("NODEMAN_MONGODB_HOSTS", &mongoDBHosts); err != nil {
-		return err
-	}
-	svc.MongoDB.Hosts = strings.Split(mongoDBHosts, ",")
-
-	if err := envx.MustLoadString("NODEMAN_MONGODB_USERNAME", &svc.MongoDB.Username); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("NODEMAN_MONGODB_PASSWORD", &svc.MongoDB.Password); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("NODEMAN_MONGODB_DATABASE", &svc.MongoDB.Database); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("NODEMAN_MONGODB_AUTH_SOURCE", &svc.MongoDB.AuthSource); err != nil {
-		return err
-	}
-	if err := envx.MustLoadString("NODEMAN_MONGODB_AUTH_MECHANISM", &svc.MongoDB.AuthMechanism); err != nil {
-		return err
-	}
-
-	// http_server.
-	_ = envx.LoadString("NODEMAN_HTTPSVR_BIND_IP", &svc.BasicServer.BindIP)
-	if _, err := envx.LoadInt("NODEMAN_HTTPSVR_PORT", &svc.BasicServer.Port); err != nil {
-		return err
-	}
-
-	// log.
-	_ = envx.LoadString("NODEMAN_LOG_DIR", &svc.Log.Dir)
-	_ = envx.LoadString("NODEMAN_LOG_LEVEL", (*string)(&svc.Log.Level))
-	if _, err := envx.LoadInt("NODEMAN_LOG_MAX_NUM", &svc.Log.MaxNum); err != nil {
-		return err
-	}
-	if _, err := envx.LoadInt("NODEMAN_LOG_MAX_SIZE_MB", &svc.Log.MaxSizeMB); err != nil {
-		return err
-	}
-
-	// front config.
-	_ = envx.LoadString("BK_NODEMGR_APPLICATION_USER_WEB_URL", &svc.Front.BKUserWebURL)
-	_ = envx.LoadString("BK_NODEMGR_APPLICATION_DOMAIN", &svc.Front.BKDomain)
-	_ = envx.LoadString("BK_NODEMGR_APPLICATION_DOCS_CENTER_URL", &svc.Front.BKDocsCenterURL)
-	_ = envx.LoadString("BK_NODEMGR_APPLICATION_NAV_OPEN_SOURCE_URL", &svc.Front.BKAppNavOpenSourceURL)
-	if _, err := envx.LoadInt("BK_NODEMGR_APPLICATION_WINDOWS_WMI_PORT_DEFAULT", &svc.Front.WindowsWMIPortDefault); err != nil {
-		return err
-	}
-	if _, err := envx.LoadInt("BK_NODEMGR_APPLICATION_UNIX_SSH_PORT_DEFAULT", &svc.Front.UnixSSHPortDefault); err != nil {
-		return err
-	}
-
-	// iam v3 config.
-	_ = envx.LoadString("BK_IAM_SYSTEM_ID_BK_NODEMGR", &svc.IAMV3.SystemID)
-	_ = envx.LoadString("BK_IAM_SYSTEM_ID_BK_CMDB", &svc.IAMV3.CMDBSystemID)
 
 	return nil
 }
