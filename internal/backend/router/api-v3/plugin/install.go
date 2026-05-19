@@ -44,11 +44,30 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	workflowID, err := h.installPlugin(rCtx, req, hostBizMapping)
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	if err := h.ensurePluginV2(rCtx, req, hostBizMapping); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	}
+
+	respData := &protoBackend.PluginInstallResp_Data{
+		WorkflowId: workflowID,
+	}
+
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install plugin workflow")
+
+	return respData, nil
+}
+
+func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64) (string, error) {
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		return "", err
 	}
 
 	workflowID, err := h.pluginMgrIface.LaunchInstallPlugin(rCtx, types.InstallPluginParam{
@@ -60,14 +79,33 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	})
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin.")
-		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+		return "", err
 	}
 
-	respData := &protoBackend.PluginInstallResp_Data{
-		WorkflowId: workflowID,
+	return workflowID, nil
+}
+
+func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.PluginInstallReq,
+	hostBizMapping map[int64]int64) error {
+
+	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
+		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
+		return err
 	}
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install plugin workflow")
+	_, err = h.pluginMgrIface.LaunchInstallPluginV2(rCtx, types.InstallPluginParam{
+		Type:              types.PluginWorkflowTypeInstallV2,
+		HostIDs:           hostIDs,
+		BizIDs:            bizIDs,
+		Operator:          rCtx.BKUsername(),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin v2.")
+		return err
+	}
 
-	return respData, nil
+	return nil
 }

@@ -189,14 +189,13 @@ func (x *PluginInstallReq) AutoConvert() {
 // ConvertParamFromTypes converts param from types.
 func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInstallParam) error {
 	var err error
-	x.EnableCompatibilityMode = installParam.EnableCompatibilityMode
-
 	x.Plugin, err = conv.SliceToSliceWithError(installParam.Plugins, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
 		item := &PluginOperateFullInfo{}
 		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
+		item.EnableCompatibilityMode = param.EnableCompatibilityMode
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -214,20 +213,21 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInsta
 // ConvertInstallParamToTypes converts install param to types.
 func (x *PluginInstallReq) ConvertInstallParamToTypes() *types.PluginInstallParam {
 	return &types.PluginInstallParam{
-		Plugins:                 x.ConvertParamToTypes(),
-		EnableCompatibilityMode: x.GetEnableCompatibilityMode(),
+		Plugins: x.ConvertParamToTypes(),
 	}
+
 }
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:              plugin.GetBkHostId(),
-			PluginName:          plugin.GetPluginName(),
-			Version:             plugin.GetVersion(),
-			ConfigName:          plugin.GetConfigName(),
-			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
+			HostID:                  plugin.GetBkHostId(),
+			PluginName:              plugin.GetPluginName(),
+			Version:                 plugin.GetVersion(),
+			ConfigName:              plugin.GetConfigName(),
+			CustomConfigContext:     plugin.GetCustomConfigContext().AsMap(),
+			EnableCompatibilityMode: plugin.GetEnableCompatibilityMode(),
 		}
 	})
 }
@@ -265,6 +265,7 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
+		item.EnableCompatibilityMode = param.EnableCompatibilityMode
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -280,11 +281,12 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:              plugin.GetBkHostId(),
-			PluginName:          plugin.GetPluginName(),
-			Version:             plugin.GetVersion(),
-			ConfigName:          plugin.GetConfigName(),
-			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
+			HostID:                  plugin.GetBkHostId(),
+			PluginName:              plugin.GetPluginName(),
+			Version:                 plugin.GetVersion(),
+			ConfigName:              plugin.GetConfigName(),
+			CustomConfigContext:     plugin.GetCustomConfigContext().AsMap(),
+			EnableCompatibilityMode: plugin.GetEnableCompatibilityMode(),
 		}
 	})
 }
@@ -367,6 +369,7 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
+		item.EnableCompatibilityMode = param.EnableCompatibilityMode
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -385,11 +388,12 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:              plugin.GetBkHostId(),
-			PluginName:          plugin.GetPluginName(),
-			Version:             plugin.GetVersion(),
-			ConfigName:          plugin.GetConfigName(),
-			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
+			HostID:                  plugin.GetBkHostId(),
+			PluginName:              plugin.GetPluginName(),
+			Version:                 plugin.GetVersion(),
+			ConfigName:              plugin.GetConfigName(),
+			CustomConfigContext:     plugin.GetCustomConfigContext().AsMap(),
+			EnableCompatibilityMode: plugin.GetEnableCompatibilityMode(),
 		}
 	})
 }

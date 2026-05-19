@@ -56,6 +56,15 @@ const (
 
 	// PluginWorkflowTypeStop is the operation type for stop plugin.
 	PluginWorkflowTypeStop PluginWorkflowType = "stop_plugin"
+
+	// PluginWorkflowTypeInstallV2 is the operation type for install plugin v2.
+	PluginWorkflowTypeInstallV2 PluginWorkflowType = "install_plugin_v2"
+
+	// PluginWorkflowTypeUninstallV2 is the operation type for uninstall plugin v2.
+	PluginWorkflowTypeUninstallV2 PluginWorkflowType = "uninstall_plugin_v2"
+
+	// PluginWorkflowTypeMigrateV2 is the operation type for migrate plugin v2.
+	PluginWorkflowTypeMigrateV2 PluginWorkflowType = "migrate_plugin_v2"
 )
 
 // Validate validates the plugin workflow type.

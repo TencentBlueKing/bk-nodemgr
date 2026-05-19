@@ -392,7 +392,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 	}
 
 	workflowID, err := act.pluginMgrIface.LaunchInstallPluginV2(nCtx, types.InstallPluginParam{
-		Type:              types.PluginWorkflowTypeInstall,
+		Type:              types.PluginWorkflowTypeInstallV2,
 		HostIDs:           hostIDs,
 		BizIDs:            bizIDs,
 		PluginDeployments: pluginDeployments,
