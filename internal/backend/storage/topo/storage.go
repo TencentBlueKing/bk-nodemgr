@@ -313,12 +313,12 @@ func (s *Storage) GetHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (m
 }
 
 // ExistHost checks if the host exists by host id.
-func (s *Storage) ExistHost(nCtx contextx.IContext, hostID int64) (bool, error) {
+func (s *Storage) ExistHost(nCtx contextx.IContext, conditions ...*types.HostCondition) (bool, error) {
 	var exist bool
 
 	err := s.WrapFn(nCtx, metricOperationExistHost, func(nCtx contextx.IContext) error {
 		var err error
-		exist, err = s.existHost(nCtx, hostID)
+		exist, err = s.existHost(nCtx, conditions...)
 
 		return err
 	})

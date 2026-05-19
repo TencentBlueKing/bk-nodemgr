@@ -278,7 +278,8 @@ func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtil
 
 		return
 	case types.EventTypeUpdate:
-		exists, err := act.storageTopo.ExistHost(std.Context(), event.Detail.HostID)
+		staticExactFields := &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}}
+		exists, err := act.storageTopo.ExistHost(std.Context(), &types.HostCondition{StaticExactInclude: staticExactFields})
 		if err != nil {
 			std.InstanceData().Log().
 				Zh("检查主机是否存在失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -298,10 +299,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostResource(std *syncDataUtil
 				En("host not found in local db, try to get host info from cmdb, host id: %d", event.Detail.HostID).
 				Info()
 
-			cond := &types.HostStaticExactCondition{
-				StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}},
-			}
-			host, err := act.getHostFromCMDBByHostID(std.Context(), cond)
+			host, err := act.getHostFromCMDBByHostID(std.Context(), &types.HostStaticExactCondition{StaticExactInclude: staticExactFields})
 			if err != nil {
 				if errors.Is(err, errGetHostFromCMDBNoFound) {
 					std.InstanceData().Log().
@@ -410,7 +408,8 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *sync
 
 		return
 	case types.EventTypeUpdate:
-		exists, err := act.storageTopo.ExistHost(std.Context(), event.Detail.HostID)
+		cond := &types.HostCondition{StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}}}
+		exists, err := act.storageTopo.ExistHost(std.Context(), cond)
 		if err != nil {
 			std.InstanceData().Log().
 				Zh("检查主机是否存在失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).

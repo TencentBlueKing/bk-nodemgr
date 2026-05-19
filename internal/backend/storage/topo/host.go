@@ -611,12 +611,17 @@ func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (m
 	return hostBizMapping, nil
 }
 
-func (s *Storage) existHost(nCtx contextx.IContext, hostID int64) (bool, error) {
+func (s *Storage) existHost(nCtx contextx.IContext, conditions ...*types.HostCondition) (bool, error) {
 	if nCtx == nil {
 		return false, basestorage.ErrNilContent()
 	}
 
-	exists, err := s.daoHost.Exist(nCtx, host.WithHostID(hostID))
+	if len(conditions) == 0 {
+		return false, errors.New("at least one condition is required to check exist host")
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	exists, err := s.daoHost.Exist(nCtx, opts...)
 	if err != nil {
 		return false, fmt.Errorf("failed to check exist host: %w", err)
 	}
