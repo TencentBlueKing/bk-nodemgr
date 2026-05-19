@@ -110,13 +110,13 @@
                   </div>
                 </template>
                 <template #action>
-                  <ActionItem @click="handleClick('personalCenter')">
+                  <ActionItem v-if="BK_USER_SAAS_HOST" @click="handleClick('personalCenter')">
                     <template #icon>
                       <i class="nodeman-icon nc-authority"></i>
                     </template>
                     <span class="text-[12px]">{{ t('platform.personalCenter') }}</span>
                   </ActionItem>
-                  <ActionItem @click="handleClick('permissionCenter')">
+                  <ActionItem v-if="BK_IAM_SAAS_HOST" @click="handleClick('permissionCenter')">
                     <template #icon>
                       <i class="nodeman-icon nc-user"></i>
                     </template>
@@ -235,7 +235,8 @@ const userStore = useUserStore();
 if (window.PROJECT_CONFIG.BK_APIGW_BASE_URL && window.PROJECT_CONFIG.BK_TENANT) {
   BkUserDisplayName.configure({
     tenantId: window.PROJECT_CONFIG.BK_TENANT,
-    apiBaseUrl: window.PROJECT_CONFIG.BK_APIGW_BASE_URL,
+    // 后端 URL 带尾缀 /，去掉尾部 / 避免拼接路径时出现 //
+    apiBaseUrl: window.PROJECT_CONFIG.BK_APIGW_BASE_URL.replace(/\/$/, ''),
     cacheDuration: 1000 * 60 * 5,
     emptyText: window.PROJECT_CONFIG.LOGIN_NAME || '--',
   });
@@ -494,7 +495,8 @@ async function handleChangeLang(item) {
   }
 }
 // 个人中心
-const currentUser = computed(() => window.PROJECT_CONFIG.LOGIN_NAME);
+const BK_USER_SAAS_HOST = computed(() => window.PROJECT_CONFIG?.BK_USER_SAAS_HOST);
+const BK_IAM_SAAS_HOST = computed(() => window.PROJECT_CONFIG?.BK_IAM_SAAS_HOST);
 const bkUserName = computed(() => window.PROJECT_CONFIG.BK_USERNAME);
 const userinfo = ref({
   name: window.PROJECT_CONFIG.BK_USERNAME,
