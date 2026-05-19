@@ -673,6 +673,15 @@ type Front struct {
 
 	// UnixSSHPortDefault is the default port for Unix-like OS (Linux, AIX, Darwin, etc.) SSH connection.
 	UnixSSHPortDefault int `yaml:"unixSSHPortDefault" usage:"default port for Unix-like OS SSH connection"`
+
+	// BKIamSaaSHost is the host of bk iam saas.
+	BKIamSaaSHost string `yaml:"bkIamSaaSHost" usage:"bk iam saas host of application service"`
+
+	// BKUserSaaSHost is the host of bk user saas.
+	BKUserSaaSHost string `yaml:"bkUserSaaSHost" usage:"bk user saas host of application service"`
+
+	// BKAPIGWHost is the host of bk apigw.
+	BKAPIGWBaseURL string `yaml:"bkAPIGWBaseURL" usage:"bk apigw base url of application service"`
 }
 
 // Validate validates the config.

@@ -116,9 +116,6 @@ type ApplicationService struct {
 	TenantMode         tenant.Mode        `yaml:"tenantMode" usage:"tenant mode of service"`
 	BKSaas             BKSaas             `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
-	BKIamSaaSHost      string             `yaml:"bkIamSaaSHost" usage:"bk iam saas host of application service"`
-	BKUserSaaSHost     string             `yaml:"bkUserSaaSHost" usage:"bk user saas host of application service"`
-	BKAPIGWBaseURL     string             `yaml:"bkAPIGWBaseURL" usage:"bk apigw base url of application service"`
 	Front              Front              `yaml:"front" usage:"front config of application service"`
 	Backend            Backend            `yaml:"backend" usage:"backend gateway config"`
 	Notice             Notice             `yaml:"notice" usage:"notice gateway config"`
