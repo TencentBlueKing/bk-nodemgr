@@ -146,6 +146,16 @@ func (params *NodeCommonParams) Validate() error {
 	return nil
 }
 
+func (params *NodeCommonParams) buildArgs() []string {
+	return []string{
+		fmt.Sprintf("--%s %s", nodeFlagDeployEnv, params.DeployEnv),
+		fmt.Sprintf("--%s %d", nodeFlagGeneration, params.Generation),
+		fmt.Sprintf("--%s %s", nodeFlagNodeRole, params.NodeRole),
+		fmt.Sprintf("--%s %s", nodeFlagBaseWorkDir, params.BaseWorkDir),
+		fmt.Sprintf("--%s %s", nodeFlagBaseDeployDir, params.BaseDeployDir),
+	}
+}
+
 // NodeInstallParams defines the params for a full node install command.
 type NodeInstallParams struct {
 	NodeCommonParams
@@ -183,6 +193,34 @@ func (params *NodeInstallParams) Validate() error {
 		params.SkipDownload,
 		params.SkipCallback,
 	)
+}
+
+func (params *NodeInstallParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = append(args,
+		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
+		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+	)
+	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
+	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+
+	return append(args, params.AdditionArgs...)
+}
+
+func (params *NodeInstallParams) buildServerFirstArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
+	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
+	args = append(args,
+		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
+		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+	)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+
+	return append(args, params.AdditionArgs...)
 }
 
 // NodeUpgradeParams defines the params for a full node upgrade command.
@@ -232,6 +270,31 @@ func (params *NodeUpgradeParams) Validate() error {
 	return nil
 }
 
+func (params *NodeUpgradeParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	if params.SkipDownload {
+		args = append(args,
+			fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, params.CallbackSvrAddr),
+			fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+			fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
+			fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+		)
+	} else {
+		args = append(args,
+			fmt.Sprintf("--%s %s", nodeFlagDownloadSvrAddr, params.DownloadSvrAddr),
+			fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, params.CallbackSvrAddr),
+			fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+			fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
+			fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+		)
+	}
+	if params.SkipDownload {
+		args = append(args, fmt.Sprintf("--%s", nodeFlagSkipDownload))
+	}
+
+	return append(args, params.AdditionArgs...)
+}
+
 // NodeReconfigParams defines the params for a full node reconfig command.
 type NodeReconfigParams struct {
 	NodeCommonParams
@@ -272,6 +335,17 @@ func (params *NodeReconfigParams) Validate() error {
 	return nil
 }
 
+func (params *NodeReconfigParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = append(args,
+		fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, params.CallbackSvrAddr),
+		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+	)
+
+	return append(args, params.AdditionArgs...)
+}
+
 // NodeUninstallParams defines the params for a full node uninstall command.
 type NodeUninstallParams struct {
 	NodeCommonParams
@@ -307,6 +381,17 @@ func (params *NodeUninstallParams) Validate() error {
 	}
 
 	return nil
+}
+
+func (params *NodeUninstallParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = append(args,
+		fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, params.CallbackSvrAddr),
+		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+	)
+
+	return append(args, params.AdditionArgs...)
 }
 
 // NodeStepRestartParams defines the params for a node restart step command.
@@ -378,6 +463,48 @@ func (params *NodeOfflineInstallParams) Validate() error {
 		true,
 		true,
 	)
+}
+
+func (params *NodeOfflineInstallParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = append(args,
+		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
+		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+		fmt.Sprintf("--%s", nodeFlagSkipCallback),
+		fmt.Sprintf("--%s", nodeFlagSkipDownload),
+	)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+
+	return append(args, params.AdditionArgs...)
+}
+
+func appendNodeDownloadArg(args []string, skipDownload bool, downloadSvrAddr string) []string {
+	if skipDownload {
+		return append(args, fmt.Sprintf("--%s", nodeFlagSkipDownload))
+	}
+
+	return append(args, fmt.Sprintf("--%s %s", nodeFlagDownloadSvrAddr, downloadSvrAddr))
+}
+
+func appendNodeCallbackArg(args []string, skipCallback bool, callbackSvrAddr string) []string {
+	if skipCallback {
+		return append(args, fmt.Sprintf("--%s", nodeFlagSkipCallback))
+	}
+
+	return append(args, fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, callbackSvrAddr))
+}
+
+func appendNodeInstallOptionalArgs(args []string, logToStd bool, agentID string) []string {
+	if logToStd {
+		args = append(args, fmt.Sprintf("--%s", nodeFlagLogToStd))
+	}
+
+	if agentID != "" {
+		args = append(args, fmt.Sprintf("--%s %s", nodeFlagAgentID, agentID))
+	}
+
+	return args
 }
 
 func validateNodeInstallerPath(installerPath string) error {
