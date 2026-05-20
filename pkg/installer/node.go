@@ -430,6 +430,18 @@ func (params *NodeStepCleanTmpParams) Validate() error {
 	return validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName)
 }
 
+func (params *NodeStepRestartParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = append(args, fmt.Sprintf("--%s", nodeFlagForce))
+
+	return append(args, params.AdditionArgs...)
+}
+
+func (params *NodeStepCleanTmpParams) buildArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+
+	return append(args, params.AdditionArgs...)
+}
 // NodeOfflineInstallParams defines the params for rendering an offline node install command.
 type NodeOfflineInstallParams struct {
 	NodeCommonParams
