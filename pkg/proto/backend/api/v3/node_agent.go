@@ -168,6 +168,8 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 			BkNetworkunitId:          &host.NetworkUnitID,
 			OsType:                   host.OSType,
 			ReRegister:               host.ReRegister,
+			RenewGseTask:             host.RenewGSETask,
+			RenewGseProc:             host.RenewGSEProc,
 			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
 		}
 	}

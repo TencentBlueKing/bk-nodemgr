@@ -146,6 +146,8 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 			NetworkUnitID:            host.GetBkNetworkunitId(),
 			OSType:                   host.GetOsType(),
 			ReRegister:               host.GetReRegister(),
+			RenewGSETask:             host.GetRenewGseTask(),
+			RenewGSEProc:             host.GetRenewGseProc(),
 			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
 		}
 	}
