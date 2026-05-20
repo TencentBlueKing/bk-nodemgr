@@ -528,6 +528,34 @@ func (params *NodeInstallParams) ToWindowsScript() (string, string, error) {
 	return scriptName, scriptContent, nil
 }
 
+// ToUnixScriptManual converts the install params to a unix manual install script.
+func (params *NodeInstallParams) ToUnixScriptManual() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildServerFirstArgs()
+
+	scriptName := "install.sh"
+	scriptContent := fmt.Sprintf("%s %s %s", params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "))
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScriptManual converts the install params to a windows manual install script.
+func (params *NodeInstallParams) ToWindowsScriptManual() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildServerFirstArgs()
+
+	scriptName := "install.bat"
+	scriptContent := fmt.Sprintf("cd %s && %s %s %s", winpath.Join(params.BaseWorkDir, params.DeployEnv), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "))
+
+	return scriptName, scriptContent, nil
+}
+
 // ToUnixScript converts the upgrade params to a unix script.
 func (params *NodeUpgradeParams) ToUnixScript() (string, string, error) {
 	if err := params.Validate(); err != nil {
