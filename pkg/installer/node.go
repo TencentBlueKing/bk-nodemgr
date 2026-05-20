@@ -498,6 +498,41 @@ func (params *NodeOfflineInstallParams) buildArgs() []string {
 	return append(args, params.AdditionArgs...)
 }
 
+// ToUnixScriptOffline converts the offline install params to a unix install.sh script.
+func (params *NodeOfflineInstallParams) ToUnixScriptOffline() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	dataDir := fmt.Sprintf("%s/%s/data", params.BaseWorkDir, params.DeployEnv)
+	lines := []string{
+		"#!/bin/bash",
+		`set -e`,
+		`SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"`,
+		fmt.Sprintf(`DATA_DIR="%s"`, dataDir),
+		`mkdir -p "${DATA_DIR}"`,
+		fmt.Sprintf(`cp -rf "${SCRIPT_DIR}/%s/." "${DATA_DIR}/"`, OfflinePkgRelPathData),
+		fmt.Sprintf(`chmod +x "${SCRIPT_DIR}/%s"`, params.InstallerFileName),
+		fmt.Sprintf(`"${SCRIPT_DIR}/%s" `, params.InstallerFileName) + NodeCmdFullInstall + ` \`,
+	}
+
+	args := params.buildArgs()
+	for i, arg := range args {
+		if i < len(args)-1 {
+			lines = append(lines, "  "+arg+` \`)
+		} else {
+			lines = append(lines, "  "+arg)
+		}
+	}
+
+	lines = append(lines,
+		fmt.Sprintf(`echo "--- %s ---"`, DataFileName),
+		fmt.Sprintf(`cat "%s/%s"`, dataDir, DataFileName),
+	)
+
+	return OfflinePkgInstallScriptName, strings.Join(lines, "\n") + "\n", nil
+}
+
 // ToUnixScript converts the install params to a unix script.
 func (params *NodeInstallParams) ToUnixScript() (string, string, error) {
 	if err := params.Validate(); err != nil {
