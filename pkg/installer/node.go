@@ -29,3 +29,17 @@ const (
 	// NodeCmdStepRestart defines the installer cmd.
 	NodeCmdStepRestart = "node step restart"
 )
+
+// nodeFlagName defines the node flag name.
+type nodeFlagName string
+
+// node flag name
+const (
+	// nodeFlagRenewGSEProc node flag name defines whether to renew the generated GSE .proc file.
+	// SYNC: tools/cmd/installer/node/flag.RenewGSEProc.
+	nodeFlagRenewGSEProc nodeFlagName = "renew_gse_proc"
+
+	// nodeFlagRenewGSETask node flag name defines whether to renew the generated GSE .task file.
+	// SYNC: tools/cmd/installer/node/flag.RenewGSETask.
+	nodeFlagRenewGSETask nodeFlagName = "renew_gse_task"
+)
