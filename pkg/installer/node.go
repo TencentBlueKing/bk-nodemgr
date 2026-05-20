@@ -215,6 +215,20 @@ func (params *NodeInstallParams) buildArgs() []string {
 	return append(args, params.AdditionArgs...)
 }
 
+func (params *NodeInstallParams) buildDownloadBeforeCallbackArgs() []string {
+	args := params.NodeCommonParams.buildArgs()
+	args = append(args,
+		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
+		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
+	)
+	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
+	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+
+	return append(args, params.AdditionArgs...)
+}
+
 func (params *NodeInstallParams) buildServerFirstArgs() []string {
 	args := params.NodeCommonParams.buildArgs()
 	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
@@ -540,6 +554,22 @@ func (params *NodeInstallParams) ToUnixScript() (string, string, error) {
 	}
 
 	args := params.buildArgs()
+
+	scriptName := "install.sh"
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1 &", params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToUnixScriptDownloadBeforeCallback converts install params to a unix script while preserving legacy
+// download-before-callback flag order after deploy token, node version, and operation instance id.
+func (params *NodeInstallParams) ToUnixScriptDownloadBeforeCallback() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildDownloadBeforeCallbackArgs()
 
 	scriptName := "install.sh"
 	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))

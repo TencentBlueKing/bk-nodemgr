@@ -63,23 +63,6 @@ type ActParamInstallAgentBySSH struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
-// InstallParams this struct defines the parameters for installing agent.
-type InstallParams struct {
-	InstallerPath   string
-	Generation      types.Generation
-	NodeRole        types.NodeRole
-	CallbackSvrAddr string
-	DownloadSvrAddr string
-	NodeVersion     string
-	DeployToken     string
-	OperInstID      string
-	BaseWorkDir     string
-	BaseDeployDir   string
-	AdditionArgs    []string
-	SkipCallback    bool
-	SkipDownload    bool
-}
-
 type actionInstallNodeBySSH struct {
 	fileHandler file.IHandler
 	fileCache   filecache.IFileCache
@@ -434,15 +417,18 @@ func (act *actionInstallNodeBySSH) openReleaseReader(std *nodeUtils.NodeActionSt
 func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 
-	installParams := &InstallParams{
-		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:    std.DeployInfo().Host.Dynamic.NodeGeneration,
+	installParams := &installer.NodeInstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
 		InstallerPath: installerPath,
-		NodeRole:      std.DeployInfo().Host.Dynamic.NodeRole,
 		DeployToken:   std.Token(),
+		NodeVersion:   std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:    std.InstanceData().OperationInstanceID,
-		BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
 		SkipCallback:  true,
 		SkipDownload:  true,
 	}
@@ -452,7 +438,10 @@ func (act *actionInstallNodeBySSH) executeSSHOnlyProxyInstallCMD(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installCmd := act.buildCMD(installParams)
+	installCmd, err := act.buildCMD(installParams)
+	if err != nil {
+		return fmt.Errorf("failed to build ssh-only proxy install cmd: %w", err)
+	}
 	std.InstanceData().Log().
 		Zh("安装节点命令(跨管控单元 SSH-only): %s", installCmd).
 		En("install node cmd (cross-unit SSH-only): %s", installCmd).
@@ -580,17 +569,20 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
-	installParams := &InstallParams{
-		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
+	installParams := &installer.NodeInstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
 		InstallerPath:   installerPath,
-		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -598,7 +590,10 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installCmd := act.buildCMD(installParams)
+	installCmd, err := act.buildCMD(installParams)
+	if err != nil {
+		return fmt.Errorf("failed to build install cmd: %w", err)
+	}
 	std.InstanceData().Log().
 		Zh("安装节点命令: %s", installCmd).
 		En("install node cmd: %s", installCmd).
@@ -625,40 +620,11 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 	return nil
 }
 
-// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
-func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
+func (act *actionInstallNodeBySSH) buildCMD(param *installer.NodeInstallParams) (string, error) {
+	_, installCmd, err := param.ToUnixScript()
+	if err != nil {
+		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}
 
-	if param.SkipCallback {
-		args = append(args, "--skip_callback")
-	} else {
-		args = append(args, fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr))
-	}
-
-	if param.SkipDownload {
-		args = append(args, "--skip_download")
-	} else {
-		args = append(args, fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr))
-	}
-
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
-	}
-
-	installCmd := fmt.Sprintf("%s %s %s", param.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "))
-
-	installLogPath := path.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
-	installCmd = fmt.Sprintf("%s >%s 2>&1 &", installCmd, installLogPath)
-
-	return installCmd
+	return installCmd, nil
 }
