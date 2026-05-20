@@ -178,8 +178,8 @@ func (h *handler) generateInstallNodeDeployments(
 						Static: &types.HostStatic{
 							BizID:         reqHost.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,
-						InnerIPList:   reqHost.GetBkHostInnerip(),
-						InnerIPV6List: reqHost.GetBkHostInneripV6(),
+							InnerIPList:   reqHost.GetBkHostInnerip(),
+							InnerIPV6List: reqHost.GetBkHostInneripV6(),
 							OSType:        reqHost.GetOsType(),
 							Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 						},
@@ -207,6 +207,8 @@ func (h *handler) generateInstallNodeDeployments(
 					CurrentVersionSupports: types.DeploymentVersionSupports{},
 					InstallOptions: types.DeploymentInstallOptions{
 						ReRegister:               reqHost.GetReRegister(),
+						RenewGSETask:             reqHost.GetRenewGseTask(),
+						RenewGSEProc:             reqHost.GetRenewGseProc(),
 						InstallPreOrderedPlugins: reqHost.GetInstallPreOrderedPlugins(),
 						DirectInstall:            installOriginUnit.IsDirect,
 						IsManual:                 isManual,
