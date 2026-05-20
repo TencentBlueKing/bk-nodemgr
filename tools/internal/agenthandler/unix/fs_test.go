@@ -148,3 +148,139 @@ func Test_Clean(t *testing.T) {
 		t.Fatalf("failed to clean fs: %v", err)
 	}
 }
+
+// Test_SaveAndRestoreGSERuntimeFile tests preserving generated GSE runtime files.
+func Test_SaveAndRestoreGSERuntimeFile(t *testing.T) {
+	rootDir := t.TempDir()
+	handler := NewAgentHandler(rootDir)
+
+	if err := handler.Init(); err != nil {
+		t.Fatalf("failed to init fs: %v", err)
+	}
+
+	procPath := filepath.Join(rootDir, "agent", "etc", ".proc")
+	taskPath := filepath.Join(rootDir, "agent", "etc", ".task")
+	if err := os.WriteFile(procPath, []byte("old-proc"), overwriteMode); err != nil {
+		t.Fatalf("failed to write proc file: %v", err)
+	}
+	if err := os.WriteFile(taskPath, []byte("old-task"), overwriteMode); err != nil {
+		t.Fatalf("failed to write task file: %v", err)
+	}
+
+	if err := handler.SaveGSERuntimeFile(context.Background(), agenthandler.PreserveOptions{}); err != nil {
+		t.Fatalf("failed to save runtime files: %v", err)
+	}
+
+	if err := os.RemoveAll(filepath.Join(rootDir, "agent")); err != nil {
+		t.Fatalf("failed to remove setup dir: %v", err)
+	}
+	if err := handler.Init(); err != nil {
+		t.Fatalf("failed to init fs again: %v", err)
+	}
+
+	if err := handler.RestoreGSERuntimeFile(context.Background(), agenthandler.PreserveOptions{}); err != nil {
+		t.Fatalf("failed to restore runtime files: %v", err)
+	}
+
+	procContent, err := os.ReadFile(procPath)
+	if err != nil {
+		t.Fatalf("failed to read restored proc file: %v", err)
+	}
+	if string(procContent) != "old-proc" {
+		t.Fatalf("unexpected proc content: %s", string(procContent))
+	}
+
+	taskContent, err := os.ReadFile(taskPath)
+	if err != nil {
+		t.Fatalf("failed to read restored task file: %v", err)
+	}
+	if string(taskContent) != "old-task" {
+		t.Fatalf("unexpected task content: %s", string(taskContent))
+	}
+}
+
+// Test_SaveAndRestoreGSERuntimeFileHonorsRenewOptions tests renew flags skip selected runtime files.
+func Test_SaveAndRestoreGSERuntimeFileHonorsRenewOptions(t *testing.T) {
+	rootDir := t.TempDir()
+	handler := NewAgentHandler(rootDir)
+
+	if err := handler.Init(); err != nil {
+		t.Fatalf("failed to init fs: %v", err)
+	}
+
+	procPath := filepath.Join(rootDir, "agent", "etc", ".proc")
+	taskPath := filepath.Join(rootDir, "agent", "etc", ".task")
+	if err := os.WriteFile(procPath, []byte("old-proc"), overwriteMode); err != nil {
+		t.Fatalf("failed to write proc file: %v", err)
+	}
+	if err := os.WriteFile(taskPath, []byte("old-task"), overwriteMode); err != nil {
+		t.Fatalf("failed to write task file: %v", err)
+	}
+
+	opts := agenthandler.PreserveOptions{RenewGSEProc: true}
+	if err := handler.SaveGSERuntimeFile(context.Background(), opts); err != nil {
+		t.Fatalf("failed to save runtime files: %v", err)
+	}
+
+	if err := os.RemoveAll(filepath.Join(rootDir, "agent")); err != nil {
+		t.Fatalf("failed to remove setup dir: %v", err)
+	}
+	if err := handler.Init(); err != nil {
+		t.Fatalf("failed to init fs again: %v", err)
+	}
+
+	if err := handler.RestoreGSERuntimeFile(context.Background(), opts); err != nil {
+		t.Fatalf("failed to restore runtime files: %v", err)
+	}
+
+	if _, err := os.Stat(procPath); !os.IsNotExist(err) {
+		t.Fatalf("proc file should not be restored when RenewGSEProc is true: %v", err)
+	}
+
+	taskContent, err := os.ReadFile(taskPath)
+	if err != nil {
+		t.Fatalf("failed to read restored task file: %v", err)
+	}
+	if string(taskContent) != "old-task" {
+		t.Fatalf("unexpected task content: %s", string(taskContent))
+	}
+}
+
+// Test_SaveGSERuntimeFileClearsStalePreservedFiles tests that missing runtime files do not restore stale backups.
+func Test_SaveGSERuntimeFileClearsStalePreservedFiles(t *testing.T) {
+	rootDir := t.TempDir()
+	handler := NewAgentHandler(rootDir)
+
+	if err := handler.Init(); err != nil {
+		t.Fatalf("failed to init fs: %v", err)
+	}
+
+	procPath := filepath.Join(rootDir, "agent", "etc", ".proc")
+	if err := os.WriteFile(procPath, []byte("old-proc"), overwriteMode); err != nil {
+		t.Fatalf("failed to write proc file: %v", err)
+	}
+	if err := handler.SaveGSERuntimeFile(context.Background(), agenthandler.PreserveOptions{}); err != nil {
+		t.Fatalf("failed to save runtime files: %v", err)
+	}
+
+	if err := os.Remove(procPath); err != nil {
+		t.Fatalf("failed to remove proc file: %v", err)
+	}
+	if err := handler.SaveGSERuntimeFile(context.Background(), agenthandler.PreserveOptions{}); err != nil {
+		t.Fatalf("failed to save missing runtime files: %v", err)
+	}
+
+	if err := os.RemoveAll(filepath.Join(rootDir, "agent")); err != nil {
+		t.Fatalf("failed to remove setup dir: %v", err)
+	}
+	if err := handler.Init(); err != nil {
+		t.Fatalf("failed to init fs again: %v", err)
+	}
+	if err := handler.RestoreGSERuntimeFile(context.Background(), agenthandler.PreserveOptions{}); err != nil {
+		t.Fatalf("failed to restore runtime files: %v", err)
+	}
+
+	if _, err := os.Stat(procPath); !os.IsNotExist(err) {
+		t.Fatalf("proc file should not be restored from stale preserved file: %v", err)
+	}
+}

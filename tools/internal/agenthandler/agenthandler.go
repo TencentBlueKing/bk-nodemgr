@@ -29,6 +29,15 @@ type IAgentHandler interface {
 	Process() IAgentProcessHandler
 }
 
+// PreserveOptions defines generated runtime files that should be renewed instead of preserved.
+type PreserveOptions struct {
+	// RenewGSEProc renews the generated .proc file instead of preserving it.
+	RenewGSEProc bool
+
+	// RenewGSETask renews the generated .task file instead of preserving it.
+	RenewGSETask bool
+}
+
 // IAgentFSHandler agent file system handler interface.
 type IAgentFSHandler interface {
 	// CheckIntegrity check the integrity of agent file system.
@@ -50,6 +59,12 @@ type IAgentFSHandler interface {
 	// if keepOldFileAsTmp is true, will move old-existing file to a tmp file in same directory,
 	// to keep the process running. Call Clean() to clean all the tmp files.
 	UnpackReleasePackage(ctx context.Context, releasePkgAbsPath string, keepOldFileAsTmp bool) error
+
+	// SaveGSERuntimeFile saves generated GSE runtime files before reinstall or upgrade overwrites them.
+	SaveGSERuntimeFile(ctx context.Context, opts PreserveOptions) error
+
+	// RestoreGSERuntimeFile restores generated GSE runtime files saved by SaveGSERuntimeFile.
+	RestoreGSERuntimeFile(ctx context.Context, opts PreserveOptions) error
 
 	// Clean cleans all the tmp files and tools in agent file system.
 	Clean(ctx context.Context) error

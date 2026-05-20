@@ -26,6 +26,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 )
 
@@ -173,9 +174,90 @@ func (handler *AgentHandler) UnpackReleasePackage(
 	return nil
 }
 
+// SaveGSERuntimeFile saves generated GSE runtime files before reinstall or upgrade overwrites them.
+func (handler *AgentHandler) SaveGSERuntimeFile(ctx context.Context, opts agenthandler.PreserveOptions) error {
+	return handler.saveGSERuntimeFiles(ctx, opts)
+}
+
+// RestoreGSERuntimeFile restores generated GSE runtime files saved by SaveGSERuntimeFile.
+func (handler *AgentHandler) RestoreGSERuntimeFile(ctx context.Context, opts agenthandler.PreserveOptions) error {
+	return handler.restoreGSERuntimeFiles(ctx, opts)
+}
+
 // Clean cleans all the tmp files and tools in agent file system.
 func (handler *AgentHandler) Clean(_ context.Context) error {
 	return handler.cleanAllTmpFiles()
+}
+
+func (handler *AgentHandler) saveGSERuntimeFiles(ctx context.Context, opts agenthandler.PreserveOptions) error {
+	for _, runtimeFile := range handler.gseRuntimeFiles(opts) {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		if err := handler.copyRuntimeFileIfExists(runtimeFile.source, runtimeFile.target); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (handler *AgentHandler) restoreGSERuntimeFiles(ctx context.Context, opts agenthandler.PreserveOptions) error {
+	for _, runtimeFile := range handler.gseRuntimeFiles(opts) {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		if err := handler.copyRuntimeFileIfExists(runtimeFile.target, runtimeFile.source); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (handler *AgentHandler) copyRuntimeFileIfExists(sourceRelativePath string, targetRelativePath string) error {
+	sourceFile, err := handler.openFileForRead(sourceRelativePath)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to open gse runtime file(%s): %w", sourceRelativePath, err)
+	}
+	defer func() {
+		_ = sourceFile.Close()
+	}()
+
+	return handler.overwriteFile(sourceFile, targetRelativePath)
+}
+
+type gseRuntimeFile struct {
+	source string
+	target string
+}
+
+func (handler *AgentHandler) gseRuntimeFiles(opts agenthandler.PreserveOptions) []gseRuntimeFile {
+	runtimeFiles := make([]gseRuntimeFile, 0, 2)
+	if !opts.RenewGSEProc {
+		runtimeFiles = append(runtimeFiles, handler.gseRuntimeFile(".proc"))
+	}
+	if !opts.RenewGSETask {
+		runtimeFiles = append(runtimeFiles, handler.gseRuntimeFile(".task"))
+	}
+
+	return runtimeFiles
+}
+
+func (handler *AgentHandler) gseRuntimeFile(fileName string) gseRuntimeFile {
+	return gseRuntimeFile{
+		source: filepath.Join(handler.etcDir, fileName),
+		target: filepath.Join(handler.backupDir, ".bknm_preserve_"+string(types.NodeRoleAgent), fileName),
+	}
 }
 
 func (handler *AgentHandler) getCertFiles() ([]string, error) {
