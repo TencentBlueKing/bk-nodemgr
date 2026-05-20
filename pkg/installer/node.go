@@ -10,6 +10,8 @@
 
 package installer
 
+import "fmt"
+
 const (
 	// NodeCmdFullInstall defines the installer cmd.
 	NodeCmdFullInstall = "node full-install"
@@ -42,4 +44,390 @@ const (
 	// nodeFlagRenewGSETask node flag name defines whether to renew the generated GSE .task file.
 	// SYNC: tools/cmd/installer/node/flag.RenewGSETask.
 	nodeFlagRenewGSETask nodeFlagName = "renew_gse_task"
+
+	// nodeFlagDeployEnv node flag name defines the deploy environment.
+	// SYNC: tools/cmd/installer/node/flag.DeployEnv.
+	nodeFlagDeployEnv nodeFlagName = "deploy_env"
+
+	// nodeFlagGeneration node flag name defines the node generation.
+	// SYNC: tools/cmd/installer/node/flag.Generation.
+	nodeFlagGeneration nodeFlagName = "generation"
+
+	// nodeFlagNodeRole node flag name defines the node role.
+	// SYNC: tools/cmd/installer/node/flag.NodeRole.
+	nodeFlagNodeRole nodeFlagName = "node_role"
+
+	// nodeFlagBaseDeployDir node flag name defines the base deploy directory.
+	// SYNC: tools/cmd/installer/node/flag.BaseDeployDir.
+	nodeFlagBaseDeployDir nodeFlagName = "base_deploy_dir"
+
+	// nodeFlagBaseWorkDir node flag name defines the base work directory.
+	// SYNC: tools/cmd/installer/node/flag.BaseWorkDir.
+	nodeFlagBaseWorkDir nodeFlagName = "base_work_dir"
+
+	// nodeFlagLogToStd node flag name defines whether logs are also written to stdout.
+	// SYNC: tools/cmd/installer/node/flag.LogToStd.
+	nodeFlagLogToStd nodeFlagName = "log_to_std"
+
+	// nodeFlagAgentID node flag name defines the agent id.
+	// SYNC: tools/cmd/installer/node/flag.AgentID.
+	nodeFlagAgentID nodeFlagName = "agent_id"
+
+	// nodeFlagDeployToken node flag name defines the deploy token.
+	// SYNC: tools/cmd/installer/node/flag.DeployToken.
+	nodeFlagDeployToken nodeFlagName = "deploy_token"
+
+	// nodeFlagDownloadSvrAddr node flag name defines the download server address.
+	// SYNC: tools/cmd/installer/node/flag.DownloadSvrAddr.
+	nodeFlagDownloadSvrAddr nodeFlagName = "dlsvr_addr"
+
+	// nodeFlagCallbackSvrAddr node flag name defines the callback server address.
+	// SYNC: tools/cmd/installer/node/flag.CallbackSvrAddr.
+	nodeFlagCallbackSvrAddr nodeFlagName = "cbsvr_addr"
+
+	// nodeFlagNodeVersion node flag name defines the node version.
+	// SYNC: tools/cmd/installer/node/flag.NodeVersion.
+	nodeFlagNodeVersion nodeFlagName = "node_version"
+
+	// nodeFlagOperInstID node flag name defines the operation instance id.
+	// SYNC: tools/cmd/installer/node/flag.OperInstID.
+	nodeFlagOperInstID nodeFlagName = "oper_inst_id"
+
+	// nodeFlagForce node flag name defines whether to force a node operation.
+	// SYNC: tools/cmd/installer/node/flag.Force.
+	nodeFlagForce nodeFlagName = "force"
+
+	// nodeFlagRestart node flag name defines whether to restart the node after a full command.
+	// SYNC: tools/cmd/installer/node/flag.Restart.
+	nodeFlagRestart nodeFlagName = "restart"
+
+	// nodeFlagSkipDownload node flag name defines whether to skip downloading files.
+	// SYNC: tools/cmd/installer/node/flag.SkipDownload.
+	nodeFlagSkipDownload nodeFlagName = "skip_download"
+
+	// nodeFlagSkipCallback node flag name defines whether to skip callback reporting.
+	// SYNC: tools/cmd/installer/node/flag.SkipCallback.
+	nodeFlagSkipCallback nodeFlagName = "skip_callback"
 )
+
+// NodeCommonParams defines the common installer-facing params shared by node commands.
+type NodeCommonParams struct {
+	DeployEnv     string
+	Generation    int
+	NodeRole      string
+	BaseWorkDir   string
+	BaseDeployDir string
+
+	AdditionArgs []string
+}
+
+// Validate validates the common node params required by installer CLI flags.
+func (params *NodeCommonParams) Validate() error {
+	if params.DeployEnv == "" {
+		return fmt.Errorf("deploy env is empty")
+	}
+
+	if params.Generation == 0 {
+		return fmt.Errorf("generation is empty")
+	}
+
+	if params.NodeRole == "" {
+		return fmt.Errorf("node role is empty")
+	}
+
+	if params.BaseWorkDir == "" {
+		return fmt.Errorf("base work dir is empty")
+	}
+
+	if params.BaseDeployDir == "" {
+		return fmt.Errorf("base deploy dir is empty")
+	}
+
+	return nil
+}
+
+// NodeInstallParams defines the params for a full node install command.
+type NodeInstallParams struct {
+	NodeCommonParams
+
+	InstallerPath string
+
+	DownloadSvrAddr string
+	CallbackSvrAddr string
+	NodeVersion     string
+	DeployToken     string
+	OperInstID      string
+	AgentID         string
+
+	LogToStd     bool
+	SkipDownload bool
+	SkipCallback bool
+}
+
+// Validate validates the full node install params required by the installer CLI.
+func (params *NodeInstallParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if err := validateNodeInstallerPath(params.InstallerPath); err != nil {
+		return err
+	}
+
+	return validateNodeInstallCommandParams(
+		params.DeployToken,
+		params.NodeVersion,
+		params.OperInstID,
+		params.DownloadSvrAddr,
+		params.CallbackSvrAddr,
+		params.SkipDownload,
+		params.SkipCallback,
+	)
+}
+
+// NodeUpgradeParams defines the params for a full node upgrade command.
+type NodeUpgradeParams struct {
+	NodeCommonParams
+
+	InstallWorkDir    string
+	InstallerFileName string
+
+	DownloadSvrAddr string
+	CallbackSvrAddr string
+	NodeVersion     string
+	DeployToken     string
+	OperInstID      string
+
+	Force        bool
+	Restart      bool
+	SkipDownload bool
+}
+
+// Validate validates the full node upgrade params required by the installer CLI.
+func (params *NodeUpgradeParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if err := validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName); err != nil {
+		return err
+	}
+
+	if params.CallbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.NodeVersion == "" {
+		return fmt.Errorf("node version is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
+
+	return nil
+}
+
+// NodeReconfigParams defines the params for a full node reconfig command.
+type NodeReconfigParams struct {
+	NodeCommonParams
+
+	InstallWorkDir    string
+	InstallerFileName string
+
+	CallbackSvrAddr string
+	DeployToken     string
+	OperInstID      string
+
+	Force   bool
+	Restart bool
+}
+
+// Validate validates the full node reconfig params required by the installer CLI.
+func (params *NodeReconfigParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if err := validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName); err != nil {
+		return err
+	}
+
+	if params.CallbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
+
+	return nil
+}
+
+// NodeUninstallParams defines the params for a full node uninstall command.
+type NodeUninstallParams struct {
+	NodeCommonParams
+
+	InstallWorkDir    string
+	InstallerFileName string
+
+	CallbackSvrAddr string
+	DeployToken     string
+	OperInstID      string
+}
+
+// Validate validates the full node uninstall params required by the installer CLI.
+func (params *NodeUninstallParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if err := validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName); err != nil {
+		return err
+	}
+
+	if params.CallbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
+
+	return nil
+}
+
+// NodeStepRestartParams defines the params for a node restart step command.
+type NodeStepRestartParams struct {
+	NodeCommonParams
+
+	InstallWorkDir    string
+	InstallerFileName string
+
+	Force bool
+}
+
+// Validate validates the node restart step params required by the installer CLI.
+func (params *NodeStepRestartParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	return validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName)
+}
+
+// NodeStepCleanTmpParams defines the params for a clean temporary installer files step command.
+type NodeStepCleanTmpParams struct {
+	NodeCommonParams
+
+	InstallWorkDir    string
+	InstallerFileName string
+}
+
+// Validate validates the clean temporary installer files step params required by the installer CLI.
+func (params *NodeStepCleanTmpParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	return validateNodeInstallerFile(params.InstallWorkDir, params.InstallerFileName)
+}
+
+// NodeOfflineInstallParams defines the params for rendering an offline node install command.
+type NodeOfflineInstallParams struct {
+	NodeCommonParams
+
+	InstallerFileName string
+
+	NodeVersion string
+	DeployToken string
+	OperInstID  string
+	AgentID     string
+
+	LogToStd bool
+}
+
+// Validate validates the offline node install params required by the installer CLI.
+func (params *NodeOfflineInstallParams) Validate() error {
+	if err := params.NodeCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if params.InstallerFileName == "" {
+		return fmt.Errorf("installer file name is empty")
+	}
+
+	return validateNodeInstallCommandParams(
+		params.DeployToken,
+		params.NodeVersion,
+		params.OperInstID,
+		"",
+		"",
+		true,
+		true,
+	)
+}
+
+func validateNodeInstallerPath(installerPath string) error {
+	if installerPath == "" {
+		return fmt.Errorf("installer path is empty")
+	}
+
+	return nil
+}
+
+func validateNodeInstallerFile(installWorkDir string, installerFileName string) error {
+	if installWorkDir == "" {
+		return fmt.Errorf("install work dir is empty")
+	}
+
+	if installerFileName == "" {
+		return fmt.Errorf("installer file name is empty")
+	}
+
+	return nil
+}
+
+func validateNodeInstallCommandParams(
+	deployToken string,
+	nodeVersion string,
+	operInstID string,
+	downloadSvrAddr string,
+	callbackSvrAddr string,
+	skipDownload bool,
+	skipCallback bool,
+) error {
+	if deployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if nodeVersion == "" {
+		return fmt.Errorf("node version is empty")
+	}
+
+	if operInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
+
+	if !skipDownload && downloadSvrAddr == "" {
+		return fmt.Errorf("download server address is empty")
+	}
+
+	if !skipCallback && callbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	return nil
+}
