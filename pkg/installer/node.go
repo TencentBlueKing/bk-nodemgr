@@ -10,7 +10,13 @@
 
 package installer
 
-import "fmt"
+import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+)
 
 const (
 	// NodeCmdFullInstall defines the installer cmd.
@@ -442,6 +448,7 @@ func (params *NodeStepCleanTmpParams) buildArgs() []string {
 
 	return append(args, params.AdditionArgs...)
 }
+
 // NodeOfflineInstallParams defines the params for rendering an offline node install command.
 type NodeOfflineInstallParams struct {
 	NodeCommonParams
@@ -489,6 +496,132 @@ func (params *NodeOfflineInstallParams) buildArgs() []string {
 	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
 
 	return append(args, params.AdditionArgs...)
+}
+
+// ToUnixScript converts the install params to a unix script.
+func (params *NodeInstallParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+
+	scriptName := "install.sh"
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1 &", params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the install params to a windows script.
+func (params *NodeInstallParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildServerFirstArgs()
+
+	scriptName := "install.bat"
+	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
+	scriptContent := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1", winpath.Join(params.BaseWorkDir, params.DeployEnv), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToUnixScript converts the upgrade params to a unix script.
+func (params *NodeUpgradeParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "upgrade.sh"
+	scriptContent := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &", installerPath, installerPath, NodeCmdFullUpgrade, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the upgrade params to a windows script.
+func (params *NodeUpgradeParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "upgrade.bat"
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1", installerPath, NodeCmdFullUpgrade, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToUnixScript converts the reconfig params to a unix script.
+func (params *NodeReconfigParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "reconfig.sh"
+	scriptContent := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &", installerPath, installerPath, NodeCmdFullReconfig, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the reconfig params to a windows script.
+func (params *NodeReconfigParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "reconfig.bat"
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1", installerPath, NodeCmdFullReconfig, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToUnixScript converts the uninstall params to a unix script.
+func (params *NodeUninstallParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "uninstall.sh"
+	scriptContent := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &", installerPath, installerPath, NodeCmdFullUninstall, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the uninstall params to a windows script.
+func (params *NodeUninstallParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "uninstall.bat"
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1", installerPath, NodeCmdFullUninstall, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
 }
 
 func appendNodeDownloadArg(args []string, skipDownload bool, downloadSvrAddr string) []string {
