@@ -54,12 +54,15 @@ func NewFullInstall() *cobra.Command {
 		agentID      string
 		skipDownload bool
 		skipCallback bool
+		renewGSEProc bool
+		renewGSETask bool
 
 		// pre-run.
 		persistentVars   *persistent.Variables
 		preCheckListConf string
 		pkgPath          string
 		agentHandler     agenthandler.IAgentHandler
+		preserveOptions  agenthandler.PreserveOptions
 	)
 
 	fullCmd := &cobra.Command{
@@ -89,6 +92,10 @@ func NewFullInstall() *cobra.Command {
 			}
 
 			agentHandler = handler.NewAgentHandler(vars.NodeRole, vars.DeployDir, vars.DeployEnv)
+			preserveOptions = agenthandler.PreserveOptions{
+				RenewGSEProc: renewGSEProc,
+				RenewGSETask: renewGSETask,
+			}
 
 			return nil
 		},
@@ -183,8 +190,9 @@ func NewFullInstall() *cobra.Command {
 
 			// uninstall node.
 			if err := nodeuninstaller.NewStep(nodeuninstaller.StepArgs{
-				AgentHandler: agentHandler,
-				Backup:       true,
+				AgentHandler:    agentHandler,
+				Backup:          true,
+				PreserveOptions: preserveOptions,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -213,6 +221,7 @@ func NewFullInstall() *cobra.Command {
 				ReRegisterAgent: agentID == "",
 				PkgPath:         pkgPath,
 				SrcConfigDir:    persistentVars.ConfigDir,
+				PreserveOptions: preserveOptions,
 			}).Run(cmd.Context())
 			if err != nil {
 				return err
@@ -271,6 +280,8 @@ func NewFullInstall() *cobra.Command {
 	fullCmd.Flags().StringVar(&agentID, nodeFlag.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
 	fullCmd.Flags().BoolVar(&skipDownload, nodeFlag.SkipDownload, false, "whether to skip downloading files")
 	fullCmd.Flags().BoolVar(&skipCallback, nodeFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
+	fullCmd.Flags().BoolVar(&renewGSEProc, nodeFlag.RenewGSEProc, false, "renew GSE .proc runtime file instead of preserving it")
+	fullCmd.Flags().BoolVar(&renewGSETask, nodeFlag.RenewGSETask, false, "renew GSE .task runtime file instead of preserving it")
 
 	return fullCmd
 }

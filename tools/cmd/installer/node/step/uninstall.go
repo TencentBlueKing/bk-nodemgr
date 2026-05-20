@@ -13,6 +13,8 @@ package step
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/flag"
+
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
@@ -23,6 +25,10 @@ import (
 // NewUninstall creates a new uninstall step command.
 func NewUninstall() *cobra.Command {
 	var (
+		// optional flags.
+		renewGSEProc bool
+		renewGSETask bool
+
 		// pre-run.
 		agentHandler agenthandler.IAgentHandler
 	)
@@ -45,6 +51,10 @@ func NewUninstall() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			step := nodeuninstaller.NewStep(nodeuninstaller.StepArgs{
 				AgentHandler: agentHandler,
+				PreserveOptions: agenthandler.PreserveOptions{
+					RenewGSEProc: renewGSEProc,
+					RenewGSETask: renewGSETask,
+				},
 			})
 
 			if err := step.Run(cmd.Context()); err != nil {
@@ -56,6 +66,9 @@ func NewUninstall() *cobra.Command {
 			return nil
 		},
 	}
+
+	stepCmd.Flags().BoolVar(&renewGSEProc, flag.RenewGSEProc, false, "renew GSE .proc runtime file instead of preserving it")
+	stepCmd.Flags().BoolVar(&renewGSETask, flag.RenewGSETask, false, "renew GSE .task runtime file instead of preserving it")
 
 	return stepCmd
 }

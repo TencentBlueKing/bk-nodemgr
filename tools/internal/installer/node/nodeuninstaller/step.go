@@ -30,6 +30,8 @@ type StepArgs struct {
 	AgentHandler agenthandler.IAgentHandler
 
 	Backup bool
+
+	PreserveOptions agenthandler.PreserveOptions
 }
 
 // NewStep new a step.
@@ -48,6 +50,13 @@ func (step *Step) Run(ctx context.Context) error {
 			logger.Info(node.StepUninstallNode, "backuped node")
 		}
 	}
+
+	if err := step.args.AgentHandler.FS().SaveGSERuntimeFile(ctx, step.args.PreserveOptions); err != nil {
+		logger.Errorf(node.StepUninstallNode, "failed to save gse runtime file: %v", err)
+
+		return fmt.Errorf("failed to save gse runtime file: %w", err)
+	}
+	logger.Info(node.StepUninstallNode, "saved gse runtime file")
 
 	if err := step.uninstallAutoStartup(ctx); err != nil {
 		return err

@@ -108,6 +108,8 @@ func NewFullUninstall() *cobra.Command {
 			if err := nodeuninstaller.NewStep(nodeuninstaller.StepArgs{
 				AgentHandler: agentHandler,
 				Backup:       true,
+				// Intentionally use zero-value PreserveOptions: full-uninstall preserves existing GSE runtime files by default.
+				PreserveOptions: agenthandler.PreserveOptions{},
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}

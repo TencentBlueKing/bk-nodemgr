@@ -29,7 +29,9 @@ func NewInstall() *cobra.Command {
 		pkgPath string
 
 		// optional flags.
-		agentID string
+		agentID      string
+		renewGSEProc bool
+		renewGSETask bool
 
 		// pre-run.
 		agentHandler   agenthandler.IAgentHandler
@@ -58,6 +60,10 @@ func NewInstall() *cobra.Command {
 				ReRegisterAgent: agentID == "",
 				PkgPath:         pkgPath,
 				SrcConfigDir:    persistentVars.ConfigDir,
+				PreserveOptions: agenthandler.PreserveOptions{
+					RenewGSEProc: renewGSEProc,
+					RenewGSETask: renewGSETask,
+				},
 			})
 
 			newAgentID, err := step.Run(cmd.Context())
@@ -81,6 +87,8 @@ func NewInstall() *cobra.Command {
 	 * optional flags.
 	 */
 	stepCmd.Flags().StringVar(&agentID, flag.AgentID, "", "existing agent-id to install with. if not given, will register a new one")
+	stepCmd.Flags().BoolVar(&renewGSEProc, flag.RenewGSEProc, false, "renew GSE .proc runtime file instead of preserving it")
+	stepCmd.Flags().BoolVar(&renewGSETask, flag.RenewGSETask, false, "renew GSE .task runtime file instead of preserving it")
 
 	return stepCmd
 }

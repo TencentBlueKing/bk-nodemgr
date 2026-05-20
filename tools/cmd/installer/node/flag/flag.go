@@ -77,4 +77,10 @@ const (
 
 	// SkipCallback defines the skip callback flag.
 	SkipCallback = "skip_callback"
+
+	// RenewGSEProc defines the renew GSE proc flag.
+	RenewGSEProc = "renew_gse_proc"
+
+	// RenewGSETask defines the renew GSE task flag.
+	RenewGSETask = "renew_gse_task"
 )

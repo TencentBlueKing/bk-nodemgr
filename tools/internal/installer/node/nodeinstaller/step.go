@@ -34,12 +34,14 @@ type StepArgs struct {
 	ReRegisterAgent bool
 	PkgPath         string
 	SrcConfigDir    string
+
+	PreserveOptions agenthandler.PreserveOptions
 }
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("agent-id(%s), re-register-agent(%t), pkg-path(%s), src-config-dir(%s)",
-		args.AgentID, args.ReRegisterAgent, args.PkgPath, args.SrcConfigDir)
+	return fmt.Sprintf("agent-id(%s), re-register-agent(%t), pkg-path(%s), src-config-dir(%s), preserve-options(%+v)",
+		args.AgentID, args.ReRegisterAgent, args.PkgPath, args.SrcConfigDir, args.PreserveOptions)
 }
 
 // StepResult result for step.
@@ -80,8 +82,15 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 	}
 	logger.Info(node.StepInstallNode, "copied config dir")
 
+	// 4. restore gse runtime file.
+	if err := step.args.AgentHandler.FS().RestoreGSERuntimeFile(ctx, step.args.PreserveOptions); err != nil {
+		logger.Errorf(node.StepInstallNode, "failed to restore gse runtime file: %v", err)
+		return nil, err
+	}
+	logger.Info(node.StepInstallNode, "restored gse runtime file")
+
+	// 5.1. unregister agent if necessary.
 	if step.args.ReRegisterAgent {
-		// 3.1. unregister agent if necessary.
 		if err := step.args.AgentHandler.Process().UnregisterAgentID(ctx); err != nil {
 			logger.Errorf(node.StepInstallNode, "failed to unregister agent: %v", err)
 
@@ -90,7 +99,7 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 		logger.Info(node.StepInstallNode, "unregistered agent")
 	}
 
-	// 4. register agent with retry.
+	// 5.2. register agent with retry.
 	var agentID string
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
