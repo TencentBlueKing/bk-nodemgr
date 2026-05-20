@@ -35,6 +35,8 @@ message NodeProxyInstallHost {
   int64 relay_callback_port = 23;
   string cpu_arch = 24;
   bool install_pre_ordered_plugins = 25;
+  bool renew_gse_task = 26;
+  bool renew_gse_proc = 27;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
