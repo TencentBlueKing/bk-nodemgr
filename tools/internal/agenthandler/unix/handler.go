@@ -62,6 +62,9 @@ type AgentHandler struct {
 	fileConfigFilePath string
 	dataBinFilePath    string
 	dataConfigFilePath string
+
+	gseRuntimeFileProcFilePath string
+	gseRuntimeFileTaskFilePath string
 }
 
 // Role return agent role.
@@ -100,6 +103,9 @@ func (handler *AgentHandler) initConfigs() {
 		handler.dataBinFilePath = filepath.Join(handler.binDir, gseDataBinName)
 		handler.dataConfigFilePath = filepath.Join(handler.etcDir, "gse_data_proxy.conf")
 	}
+
+	handler.gseRuntimeFileProcFilePath = filepath.Join(handler.etcDir, ".proc")
+	handler.gseRuntimeFileTaskFilePath = filepath.Join(handler.etcDir, ".task")
 }
 
 const (

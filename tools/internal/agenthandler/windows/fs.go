@@ -93,6 +93,8 @@ func (handler *AgentHandler) Backup(ctx context.Context) error {
 		handler.agentBinFilePath,
 		handler.agentDaemonFilePath,
 		handler.agentConfigFilePath,
+		handler.gseRuntimeFileProcFilePath,
+		handler.gseRuntimeFileTaskFilePath,
 	}
 
 	if certFiles, err := handler.getCertFiles(); err == nil {
@@ -244,19 +246,19 @@ type gseRuntimeFile struct {
 func (handler *AgentHandler) gseRuntimeFiles(opts agenthandler.PreserveOptions) []gseRuntimeFile {
 	runtimeFiles := make([]gseRuntimeFile, 0, 2)
 	if !opts.RenewGSEProc {
-		runtimeFiles = append(runtimeFiles, handler.gseRuntimeFile(".proc"))
+		runtimeFiles = append(runtimeFiles, handler.gseRuntimeFile(handler.gseRuntimeFileProcFilePath))
 	}
 	if !opts.RenewGSETask {
-		runtimeFiles = append(runtimeFiles, handler.gseRuntimeFile(".task"))
+		runtimeFiles = append(runtimeFiles, handler.gseRuntimeFile(handler.gseRuntimeFileTaskFilePath))
 	}
 
 	return runtimeFiles
 }
 
-func (handler *AgentHandler) gseRuntimeFile(fileName string) gseRuntimeFile {
+func (handler *AgentHandler) gseRuntimeFile(relatedFilePath string) gseRuntimeFile {
 	return gseRuntimeFile{
-		source: filepath.Join(handler.etcDir, fileName),
-		target: filepath.Join(handler.backupDir, ".bknm_preserve_"+string(types.NodeRoleAgent), fileName),
+		source: relatedFilePath,
+		target: filepath.Join(handler.backupDir, tmpFilePrefix+filepath.Base(relatedFilePath)),
 	}
 }
 

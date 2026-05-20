@@ -49,6 +49,9 @@ type AgentHandler struct {
 	agentConfigFilePath string
 
 	agentDaemonServiceName string
+
+	gseRuntimeFileProcFilePath string
+	gseRuntimeFileTaskFilePath string
 }
 
 // Role return agent role.
@@ -81,6 +84,9 @@ func (handler *AgentHandler) initConfigs() {
 	handler.agentConfigFilePath = filepath.Join(handler.etcDir, "gse_agent.conf")
 
 	handler.agentDaemonServiceName = gseAgentServiceNamePrefix + handler.deployEnv
+
+	handler.gseRuntimeFileProcFilePath = filepath.Join(handler.etcDir, ".proc")
+	handler.gseRuntimeFileTaskFilePath = filepath.Join(handler.etcDir, ".task")
 }
 
 const (
