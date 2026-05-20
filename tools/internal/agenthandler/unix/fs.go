@@ -106,6 +106,8 @@ func (handler *AgentHandler) Backup(ctx context.Context) error {
 	backupSrcs := []string{
 		handler.agentBinFilePath,
 		handler.agentConfigFilePath,
+		handler.gseRuntimeFileProcFilePath,
+		handler.gseRuntimeFileTaskFilePath,
 	}
 
 	if handler.role == types.NodeRoleProxy {
