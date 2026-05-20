@@ -32,6 +32,8 @@ type NodeAgentInstallHost struct {
 	NetworkUnitID            int64
 	OSType                   string
 	ReRegister               bool
+	RenewGSETask             bool
+	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
 }
 

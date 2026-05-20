@@ -92,6 +92,8 @@ type DeploymentBaseRuntime struct {
 // DeploymentInstallOptions this is the options for nodemgr tools.
 type DeploymentInstallOptions struct {
 	ReRegister               bool
+	RenewGSETask             bool
+	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
 	DirectInstall            bool
 	IsManual                 bool

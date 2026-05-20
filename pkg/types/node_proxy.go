@@ -34,6 +34,8 @@ type NodeProxyInstallHost struct {
 	ExportIP                 string
 	AdvertiseIP              string
 	ReRegister               bool
+	RenewGSETask             bool
+	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
 	ProxyTags                []ProxyTag
 	ProxyInstallOriginUnitID int64
