@@ -102,6 +102,8 @@ type TargetVersion struct {
 // InstallOptions this is the options for nodemgr tools.
 type InstallOptions struct {
 	ReRegister               bool `json:"re_register" bson:"re_register"`
+	RenewGSETask             bool `json:"renew_gse_task" bson:"renew_gse_task"`
+	RenewGSEProc             bool `json:"renew_gse_proc" bson:"renew_gse_proc"`
 	InstallPreOrderedPlugins bool `json:"install_pre_ordered_plugins" bson:"install_pre_ordered_plugins"`
 	DirectInstall            bool `json:"direct_install" bson:"direct_install"`
 	IsManual                 bool `json:"is_manual" bson:"is_manual"`

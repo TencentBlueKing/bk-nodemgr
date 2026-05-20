@@ -196,6 +196,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		},
 		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister:               info.InstallOptions.ReRegister,
+			RenewGSETask:             info.InstallOptions.RenewGSETask,
+			RenewGSEProc:             info.InstallOptions.RenewGSEProc,
 			InstallPreOrderedPlugins: info.InstallOptions.InstallPreOrderedPlugins,
 			DirectInstall:            info.InstallOptions.DirectInstall,
 			IsManual:                 info.InstallOptions.IsManual,
@@ -440,6 +442,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		},
 		InstallOptions: InstallOptions{
 			ReRegister:               info.InstallOptions.ReRegister,
+			RenewGSETask:             info.InstallOptions.RenewGSETask,
+			RenewGSEProc:             info.InstallOptions.RenewGSEProc,
 			InstallPreOrderedPlugins: info.InstallOptions.InstallPreOrderedPlugins,
 			DirectInstall:            info.InstallOptions.DirectInstall,
 			IsManual:                 info.InstallOptions.IsManual,
