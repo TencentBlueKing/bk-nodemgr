@@ -8,6 +8,7 @@
       :max-height="maxHeight"
       :scroll-y="{ enabled: true, gt: 20 }"
       :row-config="{ isHover: true, useKey: true }"
+      :edit-config="{ trigger: 'click', mode: 'row', showIcon: false }"
       round
     >
       <!-- 业务属性 -->
@@ -17,6 +18,7 @@
           :title="$t('components.installTable.bkBizId')"
           :visible="settings.checked.includes('bk_biz_id')"
           :min-width="150"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -29,10 +31,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.bkBizId') }}</span>
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.bkBizId') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('platform.nodeMan.installAgentPage.installBusinessTooltip') }}</p>
@@ -42,17 +43,22 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_biz_id')">
+              <!-- 归属业务始终不可编辑 -->
+              <div :class="['cell-disabled', { 'cell-disabled--error': getError(rowIndex, 'bk_biz_id') }]">
+                {{ row.bk_biz_id ? `[${row.bk_biz_id}] ${businessMap[row.bk_biz_id] || row.bk_biz_id}` : '' }}
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_biz_id')">
               <Select
                 v-model="row.bk_biz_id"
                 auto-focus
                 filterable
+                transfer
                 :disabled="true"
                 @change="clearError(rowIndex, 'bk_biz_id')"
-                @toggle="
-                  (val) =>
-                    !val &&
-                    handleFieldBlur(rowIndex, 'bk_biz_id', row.bk_biz_id)
-                "
+                @toggle="(val: any) => !val && handleFieldBlur(rowIndex, 'bk_biz_id', row.bk_biz_id)"
               >
                 <Select.Option
                   v-for="item in businessList"
@@ -75,6 +81,7 @@
           :title="$t('components.installTable.networkArea')"
           :visible="settings.checked.includes('bk_networkarea_name')"
           :min-width="150"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -87,10 +94,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.networkArea') }}</span>
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.networkArea') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('platform.nodeMan.installAgentPage.cloudTooltip') }}</p>
@@ -100,31 +106,28 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkarea_name')">
+              <!-- 管控区域始终不可编辑 -->
+              <div :class="['cell-disabled', { 'cell-disabled--error': getError(rowIndex, 'bk_networkarea_name') }]">{{ row.bk_networkarea_name }}</div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_networkarea_name')">
               <Input
                 v-model.trim="row.bk_networkarea_name"
                 :disabled="true"
-                @change="
-                  (val) => {
-                    handleChangeIPv4(val, row, rowIndex);
-                    clearError(rowIndex, 'bk_networkarea_name');
-                  }
-                "
-                @blur="
-                  handleFieldBlur(
-                    rowIndex,
-                    'bk_networkarea_name',
-                    row.bk_networkarea_name
-                  )
-                "
-              ></Input>
+                @change="(val: any) => { handleChangeIPv4(val, row, rowIndex); clearError(rowIndex, 'bk_networkarea_name'); }"
+                @blur="handleFieldBlur(rowIndex, 'bk_networkarea_name', row.bk_networkarea_name)"
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="bk_networkunit_id"
           :title="$t('components.installTable.networkUnit')"
           :min-width="150"
           :visible="settings.checked.includes('bk_networkunit_id')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -137,10 +140,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="mr-[5px] cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.networkUnit') }}</span>
+              <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.networkUnit') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('platform.nodeMan.installAgentPage.cloudUnitTooltip') }}</p>
@@ -171,22 +173,22 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'bk_networkunit_id') }">
+                <span v-if="getNetworkUnitName(row.bk_networkunit_id)">{{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
+                <span v-else class="cell-placeholder">请选择</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <Select
                 v-if="!networkUnitLoading"
                 v-model="row.bk_networkunit_id"
                 auto-focus
                 filterable
-                @change="
-                  (val) => {
-                    clearError(rowIndex, 'bk_networkunit_id');
-                    handleNetworkUnitChange(val, row, rowIndex);
-                  }
-                "
-                @toggle="
-                  (val) =>
-                    !val &&
-                    handleFieldBlur(rowIndex, 'bk_networkunit_id', row.bk_networkunit_id)
-                "
+                transfer
+                @change="(val: any) => { clearError(rowIndex, 'bk_networkunit_id'); handleNetworkUnitChange(val, row, rowIndex); }"
+                @toggle="(val: any) => !val && handleFieldBlur(rowIndex, 'bk_networkunit_id', row.bk_networkunit_id)"
               >
                 <Select.Option
                   v-for="option in getNetworkUnitsByAreaId(row.bk_networkarea_id)"
@@ -226,26 +228,25 @@
           :title="$t('components.installTable.innerIPv4')"
           :visible="settings.checked.includes('bk_host_innerip')"
           :min-width="150"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_host_innerip')">
+              <!-- 重装时内网IPv4不可编辑 -->
+              <div :class="[isReinstall ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_host_innerip') }]">
+                <span v-if="isReinstall || row.bk_host_innerip">{{ row.bk_host_innerip }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip')">
               <Input
                 v-model.trim="row.bk_host_innerip"
                 :disabled="isReinstall"
-                @change="
-                  (val) => {
-                    handleChangeIPv4(val, row, rowIndex);
-                    clearError(rowIndex, 'bk_host_innerip');
-                  }
-                "
-                @blur="
-                  handleFieldBlur(
-                    rowIndex,
-                    'bk_host_innerip',
-                    row.bk_host_innerip
-                  )
-                "
-              ></Input>
+                @change="(val: any) => { handleChangeIPv4(val, row, rowIndex); clearError(rowIndex, 'bk_host_innerip'); }"
+                @blur="handleFieldBlur(rowIndex, 'bk_host_innerip', row.bk_host_innerip)"
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
@@ -254,21 +255,24 @@
           :title="$t('components.installTable.innerIPv6')"
           :min-width="150"
           :visible="settings.checked.includes('bk_host_innerip_v6')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_host_innerip_v6')">
+              <div :class="[isReinstall ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_host_innerip_v6') }]">
+                <span v-if="isReinstall || row.bk_host_innerip_v6">{{ row.bk_host_innerip_v6 }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip_v6')">
               <Input
                 :disabled="isReinstall"
                 v-model.trim="row.bk_host_innerip_v6"
                 @change="clearError(rowIndex, 'bk_host_innerip_v6')"
-                @blur="
-                  handleFieldBlur(
-                    rowIndex,
-                    'bk_host_innerip_v6',
-                    row.bk_host_innerip_v6
-                  )
-                "
-              ></Input>
+                @blur="handleFieldBlur(rowIndex, 'bk_host_innerip_v6', row.bk_host_innerip_v6)"
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
@@ -281,6 +285,7 @@
           :min-width="150"
           :visible="settings.checked.includes('export_ip')"
           v-if="releaseType === 'proxy'"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -293,10 +298,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="mr-[5px] cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.exportIP') }}</span>
+              <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.exportIP') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.exportIPTooltip') }}</p>
@@ -307,19 +311,29 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'export_ip')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'export_ip') }">
+                <span v-if="row.export_ip">{{ row.export_ip }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'export_ip')">
               <Input
                 v-model.trim="row.export_ip"
                 @change="clearError(rowIndex, 'export_ip')"
                 @blur="handleFieldBlur(rowIndex, 'export_ip', row.export_ip)"
-              ></Input>
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="bk_addressing"
           :title="$t('components.installTable.addressingMode')"
           :min-width="120"
           :visible="settings.checked.includes('bk_addressing')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.addressingMode') }}</span>
@@ -331,10 +345,18 @@
               @confirm="(value) => handleBatchEdit('bk_addressing', value)"
             />
           </template>
-          <template #default="{ row }">
+          <template #default="{ row, rowIndex }">
+            <!-- 重装或升级时寻址方式不可编辑 -->
+            <div :class="[(isReinstall || isUpgrade) ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_addressing') }]">
+              <span v-if="(isReinstall || isUpgrade) || row.bk_addressing">{{ addressingOptions.find(item => item.id === row.bk_addressing)?.name || row.bk_addressing }}</span>
+              <span v-else class="cell-placeholder">请选择</span>
+            </div>
+          </template>
+          <template #edit="{ row }">
             <Select
               v-model="row.bk_addressing"
               auto-focus
+              transfer
               :disabled="isReinstall || isUpgrade"
             >
               <Select.Option
@@ -346,12 +368,14 @@
             </Select>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="os_type"
           :title="$t('components.installTable.osType')"
           :min-width="120"
           :visible="settings.checked.includes('os_type')"
           v-if="releaseType !== 'proxy' || isReinstall || settings.checked.includes('os_type')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.osType') }}</span>
@@ -362,43 +386,44 @@
               type="select"
               :options="datasourceList"
               @confirm="(value) => handleBatchEdit('os_type', value)"
-            >
-            </BatchEdit>
+            />
           </template>
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'os_type')">
+              <!-- 升级时操作系统不可编辑 -->
+              <div :class="[isUpgrade ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'os_type') }]">
+                <span v-if="isUpgrade || row.os_type">{{ row.os_type }}</span>
+                <span v-else class="cell-placeholder">请选择</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <Input v-if="isUpgrade" v-model="row.os_type" :disabled="true" />
             <ValidateCell v-else :error="getError(rowIndex, 'os_type')">
               <Select
                 v-model="row.os_type"
                 auto-focus
-                @change="
-                  (val) => {
-                    handleChangeOsType(val, row, rowIndex);
-                    clearError(rowIndex, 'os_type');
-                  }
-                "
-                @toggle="
-                  (val) =>
-                    !val && handleFieldBlur(rowIndex, 'os_type', row.os_type)
-                "
+                transfer
+                @change="(val: any) => { handleChangeOsType(val, row, rowIndex); clearError(rowIndex, 'os_type'); }"
+                @toggle="(val: any) => !val && handleFieldBlur(rowIndex, 'os_type', row.os_type)"
               >
                 <Select.Option
                   v-for="option in datasourceList"
                   :key="option.id"
                   :id="option.id"
                   :name="option.name"
-                >
-                </Select.Option>
+                />
               </Select>
             </ValidateCell>
           </template>
         </VxeColumn>
-        <!-- cpu_arch: for proxy offline install or upgrade -->
+
         <VxeColumn
           field="cpu_arch"
           :min-width="120"
           :visible="settings.checked.includes('cpu_arch')"
           v-if="(releaseType === 'proxy' && type === 'offline') || isUpgrade"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.cpuArch') }}</span>
@@ -412,13 +437,23 @@
             />
           </template>
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'cpu_arch')">
+              <!-- 升级时CPU架构不可编辑 -->
+              <div :class="[isUpgrade ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'cpu_arch') }]">
+                <span v-if="isUpgrade || row.cpu_arch">{{ row.cpu_arch }}</span>
+                <span v-else class="cell-placeholder">请选择</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <Input v-if="isUpgrade" v-model="row.cpu_arch" :disabled="true" />
             <ValidateCell v-else :error="getError(rowIndex, 'cpu_arch')">
               <Select
                 v-model="row.cpu_arch"
                 auto-focus
+                transfer
                 @change="clearError(rowIndex, 'cpu_arch')"
-                @toggle="(val) => !val && handleFieldBlur(rowIndex, 'cpu_arch', row.cpu_arch)"
+                @toggle="(val: any) => !val && handleFieldBlur(rowIndex, 'cpu_arch', row.cpu_arch)"
               >
                 <Select.Option
                   v-for="option in cpuArchOptions"
@@ -430,11 +465,13 @@
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="advertise_ip"
           :min-width="150"
           v-if="releaseType === 'proxy'"
           :visible="settings.checked.includes('advertise_ip')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -447,10 +484,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="mr-[5px] cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.serviceIP') }}</span>
+              <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.serviceIP') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.serviceIPTooltip') }}</p>
@@ -460,13 +496,19 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'advertise_ip')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'advertise_ip') }">
+                <span v-if="row.advertise_ip">{{ row.advertise_ip }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'advertise_ip')">
               <Input
                 v-model.trim="row.advertise_ip"
                 @change="clearError(rowIndex, 'advertise_ip')"
-                @blur="
-                  handleFieldBlur(rowIndex, 'advertise_ip', row.advertise_ip)
-                "
-              ></Input>
+                @blur="handleFieldBlur(rowIndex, 'advertise_ip', row.advertise_ip)"
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
@@ -483,6 +525,7 @@
           :title="$t('components.installTable.loginIP')"
           :min-width="150"
           :visible="settings.checked.includes('login_ip')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -495,10 +538,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="mr-[5px] cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.loginIP') }}</span>
+              <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.loginIP') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.loginIPTooltipDesc') }}</p>
@@ -510,20 +552,30 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'login_ip')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_ip') }">
+                <span v-if="row.login_ip">{{ row.login_ip }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'login_ip')">
               <Input
                 v-model.trim="row.login_ip"
                 @change="clearError(rowIndex, 'login_ip')"
                 @blur="handleFieldBlur(rowIndex, 'login_ip', row.login_ip)"
-              ></Input>
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="login_port"
           :title="$t('components.installTable.port')"
           :min-width="120"
           :visible="settings.checked.includes('login_port')"
           v-if="releaseType !== 'proxy' || isReinstall || settings.checked.includes('login_port')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -536,10 +588,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="mr-[5px] cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.port') }}</span>
+              <span class="mr-[5px] cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.port') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.portTooltipDesc') }}</p>
@@ -569,20 +620,30 @@
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'login_port')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_port') }">
+                <span v-if="row.login_port">{{ row.login_port }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'login_port')">
               <Input
                 v-model.trim="row.login_port"
                 @change="() => clearError(rowIndex, 'login_port')"
                 @blur="handleFieldBlur(rowIndex, 'login_port', row.login_port)"
-              ></Input>
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="login_user"
           :title="$t('components.installTable.account')"
           :min-width="150"
           :visible="settings.checked.includes('login_user')"
           v-if="releaseType !== 'proxy' || isReinstall || settings.checked.includes('login_user')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.account') }}</span>
@@ -591,23 +652,32 @@
               :title="$t('components.installTable.batchEditAccount')"
               type="input"
               @confirm="(value) => handleBatchEdit('login_user', value)"
-            >
-            </BatchEdit>
+            />
           </template>
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'login_user')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_user') }">
+                <span v-if="row.login_user">{{ row.login_user }}</span>
+                <span v-else class="cell-placeholder">请输入</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'login_user')">
               <Input
                 v-model.trim="row.login_user"
                 @change="clearError(rowIndex, 'login_user')"
                 @blur="handleFieldBlur(rowIndex, 'login_user', row.login_user)"
-              ></Input>
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="login_mode"
           :min-width="120"
           :visible="settings.checked.includes('login_mode')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.authMethod') }}</span>
@@ -617,41 +687,41 @@
               type="select"
               :options="authenticationTypes"
               @confirm="(value) => handleBatchEdit('login_mode', value)"
-            >
-            </BatchEdit>
+            />
           </template>
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'login_mode')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_mode') }">
+                <span v-if="row.login_mode">{{ authenticationTypes.find(item => item.id === row.login_mode)?.name || row.login_mode }}</span>
+                <span v-else class="cell-placeholder">请选择</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'login_mode')">
               <Select
                 v-model="row.login_mode"
                 auto-focus
-                @change="
-                  (val) => {
-                    handleChangeMode(val, row, rowIndex);
-                    clearError(rowIndex, 'login_mode');
-                  }
-                "
-                @toggle="
-                  (val) =>
-                    !val &&
-                    handleFieldBlur(rowIndex, 'login_mode', row.login_mode)
-                "
+                transfer
+                @change="(val: any) => { handleChangeMode(val, row, rowIndex); clearError(rowIndex, 'login_mode'); }"
+                @toggle="(val: any) => !val && handleFieldBlur(rowIndex, 'login_mode', row.login_mode)"
               >
                 <Select.Option
                   v-for="option in authenticationTypes"
                   :key="option.id"
                   :id="option.id"
                   :name="option.name"
-                >
-                </Select.Option>
+                />
               </Select>
             </ValidateCell>
           </template>
         </VxeColumn>
+
         <VxeColumn
           field="credit"
           :min-width="170"
           :visible="settings.checked.includes('credit')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <div class="flex">
@@ -661,16 +731,26 @@
                 :title="$t('components.installTable.batchEditPasswordKey')"
                 type="credit"
                 @confirm="(value) => handleBatchEdit('credit', value)"
-              >
-              </BatchEdit>
+              />
             </div>
           </template>
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'credit')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'credit') }">
+                <span v-if="row.login_mode === 'password_vault'">{{ $t('components.installTable.autoGet') }}</span>
+                <span v-else-if="row.login_mode === 'keyfile' && row.credit">{{ $t('components.installTable.creditValid') }}</span>
+                <span v-else-if="row.login_mode === 'keyfile' && !row.credit" class="cell-placeholder">请上传密钥</span>
+                <span v-else-if="row.credit">******</span>
+                <span v-else class="cell-placeholder">请输入密码</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <Input
               v-if="row.login_mode === 'password_vault'"
               :value="$t('components.installTable.autoGet')"
               disabled
-            ></Input>
+            />
             <ValidateCell v-else :error="getError(rowIndex, 'credit')">
               <Upload
                 ref="uploader"
@@ -682,9 +762,8 @@
                 :limit="1"
                 theme="button"
                 :before-upload="(val) => handleBeforeUpload(val, row)"
-                :custom-request="() => {}"
                 @change="clearError(rowIndex, 'credit')"
-              ></Upload>
+              />
               <Input
                 v-else
                 v-model.trim="row.credit"
@@ -694,21 +773,19 @@
                 type="password"
                 @change="clearError(rowIndex, 'credit')"
                 @blur="handleFieldBlur(rowIndex, 'credit', row.credit)"
-              ></Input>
+              />
             </ValidateCell>
           </template>
         </VxeColumn>
       </VxeColgroup>
 
       <!-- 安装设置 -->
-      <VxeColgroup
-        :title="$t('components.installTable.installSettings')"
-        align="center"
-      >
+      <VxeColgroup :title="$t('components.installTable.installSettings')" align="center">
         <VxeColumn
           :min-width="120"
           field="install_pre_ordered_plugins"
           :visible="settings.checked.includes('install_pre_ordered_plugins')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -721,10 +798,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.installPreOrderedPlugins') }}</span>
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.installPreOrderedPlugins') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.installPreOrderedPluginsTooltip') }}</p>
@@ -733,16 +809,18 @@
             </Popover>
           </template>
           <template #default="{ row }">
-            <Switcher
-              theme="primary"
-              v-model="row.install_pre_ordered_plugins"
-            ></Switcher>
+            <Switcher theme="primary" v-model="row.install_pre_ordered_plugins" size="small" />
+          </template>
+          <template #edit="{ row }">
+            <Switcher theme="primary" v-model="row.install_pre_ordered_plugins" />
           </template>
         </VxeColumn>
+
         <VxeColumn
           :min-width="150"
           field="re_register"
           :visible="settings.checked.includes('re_register')"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <Popover
@@ -755,10 +833,9 @@
               :popover-delay="[0, 100]"
               :component-event-delay="0"
             >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.reRegisterAgentId') }}</span>
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.reRegisterAgentId') }}
+              </span>
               <template #content>
                 <div class="text-[12px] leading-[20px]">
                   <p>{{ $t('components.installTable.reRegisterAgentIdTooltip') }}</p>
@@ -767,10 +844,10 @@
             </Popover>
           </template>
           <template #default="{ row }">
-            <Switcher
-              theme="primary"
-              v-model="row.re_register"
-            ></Switcher>
+            <Switcher theme="primary" v-model="row.re_register" size="small" />
+          </template>
+          <template #edit="{ row }">
+            <Switcher theme="primary" v-model="row.re_register" />
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -781,131 +858,51 @@
         align="center"
         v-if="releaseType === 'proxy'"
       >
-        <VxeColumn
-          :min-width="90"
-          field="dedicated_installer"
-          :visible="settings.checked.includes('dedicated_installer')"
-        >
+        <VxeColumn :min-width="90" field="dedicated_installer" :visible="settings.checked.includes('dedicated_installer')">
           <template #header>
-            <Popover
-              theme="light"
-              trigger="hover"
-              placement="top"
-              :arrow="true"
-              :max-width="280"
-              :offset="8"
-              :popover-delay="[0, 100]"
-              :component-event-delay="0"
-            >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.installJump') }}</span>
-              <template #content>
-                <div class="text-[12px] leading-[20px]">
-                  <p>{{ $t('components.installTable.installJumpTooltip') }}</p>
-                </div>
-              </template>
+            <Popover theme="light" trigger="hover" placement="top" :arrow="true" :max-width="280" :offset="8" :popover-delay="[0, 100]" :component-event-delay="0">
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">{{ $t('components.installTable.installJump') }}</span>
+              <template #content><div class="text-[12px] leading-[20px]"><p>{{ $t('components.installTable.installJumpTooltip') }}</p></div></template>
             </Popover>
           </template>
           <template #default="{ row }">
-            <Switcher
-              theme="primary"
-              v-model="row.dedicated_installer"
-            ></Switcher>
+            <Switcher theme="primary" v-model="row.dedicated_installer" />
           </template>
         </VxeColumn>
-        <VxeColumn
-          :min-width="90"
-          field="cluster_tunnel"
-          :visible="settings.checked.includes('cluster_tunnel')"
-        >
+
+        <VxeColumn :min-width="90" field="cluster_tunnel" :visible="settings.checked.includes('cluster_tunnel')">
           <template #header>
-            <Popover
-              theme="light"
-              trigger="hover"
-              placement="top"
-              :arrow="true"
-              :max-width="280"
-              :offset="8"
-              :popover-delay="[0, 100]"
-              :component-event-delay="0"
-            >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.agentControl') }}</span>
-              <template #content>
-                <div class="text-[12px] leading-[20px]">
-                  <p>{{ $t('components.installTable.agentControlTooltip') }}</p>
-                </div>
-              </template>
+            <Popover theme="light" trigger="hover" placement="top" :arrow="true" :max-width="280" :offset="8" :popover-delay="[0, 100]" :component-event-delay="0">
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">{{ $t('components.installTable.agentControl') }}</span>
+              <template #content><div class="text-[12px] leading-[20px]"><p>{{ $t('components.installTable.agentControlTooltip') }}</p></div></template>
             </Popover>
           </template>
           <template #default="{ row }">
-            <Switcher theme="primary" v-model="row.cluster_tunnel"></Switcher>
+            <Switcher theme="primary" v-model="row.cluster_tunnel" />
           </template>
         </VxeColumn>
-        <VxeColumn
-          :min-width="90"
-          field="file_tunnel"
-          :visible="settings.checked.includes('file_tunnel')"
-        >
+
+        <VxeColumn :min-width="90" field="file_tunnel" :visible="settings.checked.includes('file_tunnel')">
           <template #header>
-            <Popover
-              theme="light"
-              trigger="hover"
-              placement="top"
-              :arrow="true"
-              :max-width="280"
-              :offset="8"
-              :popover-delay="[0, 100]"
-              :component-event-delay="0"
-            >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.fileTransfer') }}</span>
-              <template #content>
-                <div class="text-[12px] leading-[20px]">
-                  <p>{{ $t('components.installTable.fileTransferTooltip') }}</p>
-                </div>
-              </template>
+            <Popover theme="light" trigger="hover" placement="top" :arrow="true" :max-width="280" :offset="8" :popover-delay="[0, 100]" :component-event-delay="0">
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">{{ $t('components.installTable.fileTransfer') }}</span>
+              <template #content><div class="text-[12px] leading-[20px]"><p>{{ $t('components.installTable.fileTransferTooltip') }}</p></div></template>
             </Popover>
           </template>
           <template #default="{ row }">
-            <Switcher theme="primary" v-model="row.file_tunnel"></Switcher>
+            <Switcher theme="primary" v-model="row.file_tunnel" />
           </template>
         </VxeColumn>
-        <VxeColumn
-          :min-width="90"
-          field="data_tunnel"
-          :visible="settings.checked.includes('data_tunnel')"
-        >
+
+        <VxeColumn :min-width="90" field="data_tunnel" :visible="settings.checked.includes('data_tunnel')">
           <template #header>
-            <Popover
-              theme="light"
-              trigger="hover"
-              placement="top"
-              :arrow="true"
-              :max-width="280"
-              :offset="8"
-              :popover-delay="[0, 100]"
-              :component-event-delay="0"
-            >
-              <span
-                class="cursor-default"
-                style="border-bottom: 1px dashed #c4c6cc"
-              >{{ $t('components.installTable.dataReport') }}</span>
-              <template #content>
-                <div class="text-[12px] leading-[20px]">
-                  <p>{{ $t('components.installTable.dataReportTooltip') }}</p>
-                </div>
-              </template>
+            <Popover theme="light" trigger="hover" placement="top" :arrow="true" :max-width="280" :offset="8" :popover-delay="[0, 100]" :component-event-delay="0">
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">{{ $t('components.installTable.dataReport') }}</span>
+              <template #content><div class="text-[12px] leading-[20px]"><p>{{ $t('components.installTable.dataReportTooltip') }}</p></div></template>
             </Popover>
           </template>
           <template #default="{ row }">
-            <Switcher theme="primary" v-model="row.data_tunnel"></Switcher>
+            <Switcher theme="primary" v-model="row.data_tunnel" />
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -913,32 +910,30 @@
       <VxeColgroup>
         <template #header>
           <Button text style="margin-right: 8px">
-            <Settings
-              ref="settingRef"
-              :settings="settings"
-              @setting-change="settingChange"
-            ></Settings>
+            <Settings ref="settingRef" :settings="settings" @setting-change="settingChange" />
           </Button>
-
         </template>
         <VxeColumn :min-width="80" field="action" title="操作">
           <template #default="{ rowIndex }">
             <Button
-              :disabled="isReinstall"
               text
-              @click="handleAddRow(rowIndex)">
+              :disabled="isReinstall"
+              @click="handleAddRow(rowIndex)"
+            >
               <i class="nodeman-icon nc-plus"></i>
             </Button>
             <Button
               text
-              :disabled="tableData?.length <= 1"
+              :disabled="isUpgrade || tableData?.length <= 1"
               @click="handleDelRow(rowIndex)"
               style="margin-left: 8px"
-            ><i class="nodeman-icon nc-minus"></i
-            ></Button>
+            >
+              <i class="nodeman-icon nc-minus"></i>
+            </Button>
           </template>
         </VxeColumn>
       </VxeColgroup>
+
       <template #empty>
         <slot></slot>
       </template>
@@ -948,13 +943,12 @@
 
 <script lang="ts" setup>
 import { Button, InfoBox, Input, Message, Popover, Select, Switcher, Upload } from 'bkui-vue';
-import { cloneDeep, groupBy } from 'lodash';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { cloneDeep, debounce, groupBy } from 'lodash';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
-// 引入轻量级组件 ValidateCell
 import ValidateCell from './validateCell.vue';
 
 import type { PackageReleaseDistinctData } from '@/@types/pkg.d';
@@ -1017,6 +1011,19 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+
+// ----------------------------------------------------------------
+// 问题一：Select transfer 下拉选择后 vxe 误判点击在行外导致退出编辑
+// 在 document 捕获阶段拦截 mousedown：若点击目标在 .bk-select-dropdown 内，
+// 调用 stopImmediatePropagation 阻止 VxeTable 的全局 mousedown 处理器
+// 关闭行编辑态。click 事件不受影响，Select 选项仍可正常选中。
+// ----------------------------------------------------------------
+const handleDocMouseDown = (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  if (target?.closest?.('.bk-select-dropdown')) {
+    e.stopImmediatePropagation();
+  }
+};
 
 const handlePortBatchApplyDefault = () => {
   tableData.value?.forEach((item: any, index: number) => {
@@ -1086,6 +1093,13 @@ const {
   handleOptionClick: handleUnitOptionClick,
 } = useUnitAuth();
 const businessList = computed(() => mainStore.businessList);
+const businessMap = computed(() => {
+  const map: Record<string, string> = {};
+  businessList.value.forEach((item: any) => {
+    map[item.bk_biz_id] = item.bk_biz_name;
+  });
+  return map;
+});
 const type = computed(() => (props.releaseType === 'proxy'
   ? mainStore.proxySetupType
   : mainStore.agentSetupType));
@@ -1096,6 +1110,10 @@ function getInitData() {
   return cloneDeep(initData);
 }
 
+// ----------------------------------------------------------------
+// 问题二：加号新增行自动进入编辑状态；加号去掉 isReinstall 限制由业务决定
+// 减号简化 disabled 条件
+// ----------------------------------------------------------------
 const handleAddRow = (index: number) => {
   if (!Array.isArray(tableData.value)) return;
   const newRow = cloneDeep(initData);
@@ -1106,6 +1124,10 @@ const handleAddRow = (index: number) => {
   }
   tableData.value.splice(index + 1, 0, newRow);
   shiftErrors(index, 1);
+  // 新增行自动进入编辑状态
+  nextTick(() => {
+    xTableRef.value?.setEditRow(tableData.value![index + 1]);
+  });
 };
 
 const doDelRow = (index: number) => {
@@ -1121,7 +1143,12 @@ const handleDelRow = (index: number) => {
     const ip = row?.bk_host_innerip || row?.bk_host_innerip_v6 || '';
     InfoBox({
       title: t('components.installTable.confirmDeleteRow'),
-      subTitle: t('components.installTable.confirmDeleteRowSub', { ip, action: props.isUpgrade ? t('platform.nodeMan.agentStatus.upgrade') : t('platform.nodeMan.agentStatus.reinstall') }),
+      subTitle: t('components.installTable.confirmDeleteRowSub', {
+        ip,
+        action: props.isUpgrade
+          ? t('platform.nodeMan.agentStatus.upgrade')
+          : t('platform.nodeMan.agentStatus.reinstall'),
+      }),
       onConfirm: () => doDelRow(index),
     });
     return;
@@ -1136,9 +1163,6 @@ const settingChange = (data: any) => {
 };
 
 const datasourceList = ref<{ id: string; name: string }[]>([]);
-// cpuArchOptions is populated dynamically from DistinctReleaseProxy at load time.
-// Values use Go-style arch names (e.g. "amd64") to match what the backend API and
-// host.info.cpu_arch return, enabling pre-fill for reinstall scenarios.
 const cpuArchOptions = ref<{ id: string; name: string }[]>([]);
 const addressingOptions = ref([
   { id: 'static', name: t('components.installTable.addressingStatic') },
@@ -1148,12 +1172,7 @@ const authenticationTypes = ref([
   { id: 'password', name: t('components.installTable.password') },
   { id: 'keyfile', name: t('components.installTable.keyfile') },
   ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
-    ? [
-      {
-        id: 'password_vault',
-        name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME,
-      },
-    ]
+    ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }]
     : []),
 ]);
 const hostDistinct = ref<PackageReleaseDistinctData | null>();
@@ -1164,12 +1183,14 @@ const handleChangeMode = (val: string, row: any, rowIndex: number) => {
   row.credit = '';
   clearError(rowIndex, 'credit');
 };
+
 const handleChangeIPv4 = (val: string, row: any, rowIndex: number) => {
   if (new RegExp(VALIDATE_REGEX.IPV4).test(val)) {
     row.login_ip = val;
     handleFieldBlur(rowIndex, 'login_ip', val);
-  };
+  }
 };
+
 const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
   if (val === 'linux') {
     row.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
@@ -1188,9 +1209,7 @@ const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
 const getHostDistinct = async () => {
   const distinctParams = {
     generation: PACKAGE_GENERATION,
-    exact_include_conditions: {
-      enabled: [true],
-    },
+    exact_include_conditions: { enabled: [true] },
     distinct_field: { os_type: true, cpu_arch: true },
   };
   const service = props.releaseType === 'proxy'
@@ -1199,10 +1218,7 @@ const getHostDistinct = async () => {
   const res = await service.catch(() => null);
   if (res) {
     hostDistinct.value = res;
-    datasourceList.value = res.os_type.map(item => ({
-      id: item,
-      name: item,
-    }));
+    datasourceList.value = res.os_type.map(item => ({ id: item, name: item }));
     if (res.cpu_arch?.length) {
       cpuArchOptions.value = res.cpu_arch.map(arch => ({ id: arch, name: arch }));
     }
@@ -1211,27 +1227,20 @@ const getHostDistinct = async () => {
 
 const handleBatchEdit = (field: string, value: any) => {
   if (field === 'bk_networkunit_id' && isProxyDirectNetworkUnit(value)) {
-    Message({
-      theme: 'warning',
-      message: t('topoManager.installProxy.form.tip'),
-    });
-
+    Message({ theme: 'warning', message: t('topoManager.installProxy.form.tip') });
     return;
   }
 
   tableData.value?.forEach((item: any, index: number) => {
     if (field === 'credit') {
       if (item.login_mode === 'password') item.credit = value.password;
-      else {
-        item.credit = value.key;
-      }
+      else item.credit = value.key;
     } else {
       item[field] = value;
     }
 
     handleFieldBlur(index, field, value);
 
-    // 如果存在联动（例如修改 OS 会影响 Port），可以在这里加特判
     if (field === 'os_type') {
       if (value === 'linux') {
         item.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
@@ -1248,9 +1257,7 @@ const handleBatchEdit = (field: string, value: any) => {
 
     if (field === 'bk_networkunit_id') {
       const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === value);
-      if (networkUnit) {
-        item.bk_networkunit_name = networkUnit.bk_networkunit_name;
-      }
+      if (networkUnit) item.bk_networkunit_name = networkUnit.bk_networkunit_name;
       clearError(index, 'bk_networkunit_id');
     }
   });
@@ -1258,28 +1265,18 @@ const handleBatchEdit = (field: string, value: any) => {
 
 const handleAutoAssign = async () => {
   if (!tableData.value?.length) return;
-  
   autoAssignLoading.value = true;
   try {
     const items = tableData.value.map((row: any) => ({
       bk_networkarea_id: Number(row.bk_networkarea_id),
       ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
     }));
-    
     const res = await TopoService.RecommendNetworkUnitByNetworkSegment({ items });
-    
     if (res?.items) {
       res.items.forEach((result: any, index: number) => {
         if (index >= tableData.value!.length) return;
-        
         const row = tableData.value![index];
-        if (result.bk_networkunit_id === -1) {
-          // 清空该行的选择
-          row.bk_networkunit_id = undefined;
-        } else {
-          // 回填推荐结果
-          row.bk_networkunit_id = String(result.bk_networkunit_id);
-        }
+        row.bk_networkunit_id = result.bk_networkunit_id === -1 ? '' : String(result.bk_networkunit_id);
         clearError(index, 'bk_networkunit_id');
       });
     }
@@ -1296,13 +1293,7 @@ const handleBeforeUpload = (file: File, row: any) => {
   reader.onload = (e) => {
     const res = e.target?.result as string;
     if (res) {
-      // readAsDataURL 返回 data:<MIME>;base64,<Base64内容>
-      // 取逗号后的 Base64 部分，后端解密后会再做一次 base64.DecodeString 还原原始密钥
-      if (res.startsWith('data:')) {
-        row.credit = res.split(',')[1];
-      } else {
-        row.credit = res;
-      }
+      row.credit = res.startsWith('data:') ? res.split(',')[1] : res;
     }
   };
   reader.readAsDataURL(file);
@@ -1324,62 +1315,39 @@ const validateItemData = (value: any, rulesArr: IValidate[]) => {
   return true;
 };
 
-// 【新增】单个字段失焦校验
-// 模拟旧组件的 validate('blur') 行为
-// 【修正】单个字段失焦校验
 const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
-  // 先假设校验通过，清除错误（或者在下面的逻辑分支中显式清除）
-  // 推荐策略：只在发现错误时 setError，否则 clearError。
-
-  // 1. 必填检查
   const requiredFields = [
-    'bk_host_innerip',
-    'os_type',
-    'login_ip',
-    'login_port',
-    'login_user',
-    'login_mode',
-    'export_ip',
-    'cpu_arch',
+    'bk_host_innerip', 'os_type', 'login_ip', 'login_port',
+    'login_user', 'login_mode', 'export_ip', 'cpu_arch', 'bk_networkunit_id',
   ];
-  requiredFields.push('bk_networkunit_id');
   if (props.isReinstall) requiredFields.push('bk_biz_id');
 
   if (requiredFields.includes(field) && !value && value !== 0) {
-    setError(rowIndex, field,  t('validate.required'));
+    setError(rowIndex, field, t('validate.required'));
     return;
   }
 
   if (field === 'bk_networkunit_id' && value && isProxyDirectNetworkUnit(value)) {
     setError(rowIndex, field, t('topoManager.installProxy.form.tip'));
-
     return;
   }
 
-  // 密码特殊必填处理
   if (field === 'credit') {
     const row = tableData.value![rowIndex];
-    if (
-      row.login_mode !== 'password_vault'
-      && !row.login_credit_valid
-      && !value
-    ) {
-      setError(rowIndex, field,  t('validate.required'));
+    if (row.login_mode !== 'password_vault' && !row.login_credit_valid && !value) {
+      setError(rowIndex, field, t('validate.required'));
       return;
     }
   }
 
-  // 2. 规则校验
   const fieldRules = rules[field];
   if (fieldRules) {
     if (!validateItemData(value, fieldRules)) {
       setError(rowIndex, field, fieldRules[0].message);
     } else {
-      // 【关键修复】校验通过，必须清除错误！
       clearError(rowIndex, field);
     }
   } else {
-    // 没有规则且通过了必填检查 -> 清除错误
     clearError(rowIndex, field);
   }
 };
@@ -1390,7 +1358,6 @@ const tableValidate = async () => {
   if (!Array.isArray(data) || !data.length) return true;
 
   clearAllErrors();
-
   let isValid = true;
   let firstErrorRowIndex = -1;
 
@@ -1398,127 +1365,68 @@ const tableValidate = async () => {
     const row = data[i];
     let rowValid = true;
 
-    // 2.1 业务属性
-    if (
-      props.isReinstall
-      && settings.checked.includes('bk_biz_id')
-      && !row.bk_biz_id
-    ) {
-      setError(i, 'bk_biz_id',  t('validate.required'));
-      rowValid = false;
+    if (props.isReinstall && settings.checked.includes('bk_biz_id') && !row.bk_biz_id) {
+      setError(i, 'bk_biz_id', t('validate.required')); rowValid = false;
     }
     if (props.isReinstall && !row.bk_networkunit_id) {
-      setError(i, 'bk_networkunit_id', t('validate.required'));
-      rowValid = false;
+      setError(i, 'bk_networkunit_id', t('validate.required')); rowValid = false;
     }
-    // 2.2 IP
-    // 2.2 IP & IPv6 联合校验
+
     const hasIpv4Config = settings.checked.includes('bk_host_innerip');
     const hasIpv6Config = settings.checked.includes('bk_host_innerip_v6');
-
-    // 获取当前值
     const ipv4Value = row.bk_host_innerip;
     const ipv6Value = row.bk_host_innerip_v6;
 
-    // A. 必填校验：如果开启了IP列，但IPv4和IPv6都为空，则报错
-    if (hasIpv4Config || hasIpv6Config) {
-      if (!ipv4Value && !ipv6Value) {
-        if (hasIpv4Config) setError(i, 'bk_host_innerip', t('components.installTable.either'));
-        if (hasIpv6Config) setError(i, 'bk_host_innerip_v6', t('components.installTable.either'));
-        rowValid = false;
-      }
-    }
-
-    // B. IPv4 格式校验 (仅在有值时校验)
-    if (hasIpv4Config && ipv4Value) {
-      if (!validateItemData(ipv4Value, rules.bk_host_innerip)) {
-        setError(i, 'bk_host_innerip', rules.bk_host_innerip[0].message);
-        rowValid = false;
-      }
-    }
-
-    // C. IPv6 格式校验 (仅在有值时校验)
-    if (hasIpv6Config && ipv6Value) {
-      if (!validateItemData(ipv6Value, rules.bk_host_innerip_v6)) {
-        setError(i, 'bk_host_innerip_v6', rules.bk_host_innerip_v6[0].message);
-        rowValid = false;
-      }
-    }
-    // 2.3 OS
-    if (settings.checked.includes('os_type') && !row.os_type) {
-      setError(i, 'os_type',  t('validate.required'));
+    if ((hasIpv4Config || hasIpv6Config) && !ipv4Value && !ipv6Value) {
+      if (hasIpv4Config) setError(i, 'bk_host_innerip', t('components.installTable.either'));
+      if (hasIpv6Config) setError(i, 'bk_host_innerip_v6', t('components.installTable.either'));
       rowValid = false;
     }
-    // 2.4 Proxy IP
+    if (hasIpv4Config && ipv4Value && !validateItemData(ipv4Value, rules.bk_host_innerip)) {
+      setError(i, 'bk_host_innerip', rules.bk_host_innerip[0].message); rowValid = false;
+    }
+    if (hasIpv6Config && ipv6Value && !validateItemData(ipv6Value, rules.bk_host_innerip_v6)) {
+      setError(i, 'bk_host_innerip_v6', rules.bk_host_innerip_v6[0].message); rowValid = false;
+    }
+    if (settings.checked.includes('os_type') && !row.os_type) {
+      setError(i, 'os_type', t('validate.required')); rowValid = false;
+    }
+
     if (props.releaseType === 'proxy') {
       if (row.bk_networkunit_id && isProxyDirectNetworkUnit(row.bk_networkunit_id)) {
-        setError(i, 'bk_networkunit_id', t('topoManager.installProxy.form.tip'));
-        rowValid = false;
+        setError(i, 'bk_networkunit_id', t('topoManager.installProxy.form.tip')); rowValid = false;
       }
-
       if (settings.checked.includes('export_ip')) {
-        if (!row.export_ip) {
-          setError(i, 'export_ip',  t('validate.required'));
-          rowValid = false;
-        } else if (!validateItemData(row.export_ip, rules.login_ip)) {
-          setError(i, 'export_ip', rules.login_ip[0].message);
-          rowValid = false;
-        }
+        if (!row.export_ip) { setError(i, 'export_ip', t('validate.required')); rowValid = false; }
+        else if (!validateItemData(row.export_ip, rules.login_ip)) { setError(i, 'export_ip', rules.login_ip[0].message); rowValid = false; }
       }
       if (settings.checked.includes('advertise_ip') && row.advertise_ip) {
-        if (!validateItemData(row.advertise_ip, rules.login_ip)) {
-          setError(i, 'advertise_ip', rules.login_ip[0].message);
-          rowValid = false;
-        }
+        if (!validateItemData(row.advertise_ip, rules.login_ip)) { setError(i, 'advertise_ip', rules.login_ip[0].message); rowValid = false; }
       }
     }
-    // 2.5 cpu_arch (required for proxy offline install)
+
     if (props.releaseType === 'proxy' && type.value === 'offline' && !row.cpu_arch) {
-      setError(i, 'cpu_arch', t('validate.required'));
-      rowValid = false;
+      setError(i, 'cpu_arch', t('validate.required')); rowValid = false;
     }
-    // 2.6 Login Info (skipped for manual and offline modes)
+
     if (type.value !== 'manual' && type.value !== 'offline') {
       if (settings.checked.includes('login_ip')) {
-        if (!row.login_ip) {
-          setError(i, 'login_ip',  t('validate.required'));
-          rowValid = false;
-        } else if (!validateItemData(row.login_ip, rules.login_ip)) {
-          setError(i, 'login_ip', rules.login_ip[0].message);
-          rowValid = false;
-        }
+        if (!row.login_ip) { setError(i, 'login_ip', t('validate.required')); rowValid = false; }
+        else if (!validateItemData(row.login_ip, rules.login_ip)) { setError(i, 'login_ip', rules.login_ip[0].message); rowValid = false; }
       }
       if (settings.checked.includes('login_port')) {
-        if (!row.login_port) {
-          setError(i, 'login_port',  t('validate.required'));
-          rowValid = false;
-        } else if (!validateItemData(row.login_port, rules.login_port)) {
-          setError(i, 'login_port', rules.login_port[0].message);
-          rowValid = false;
-        }
+        if (!row.login_port) { setError(i, 'login_port', t('validate.required')); rowValid = false; }
+        else if (!validateItemData(row.login_port, rules.login_port)) { setError(i, 'login_port', rules.login_port[0].message); rowValid = false; }
       }
-      if (settings.checked.includes('login_user') && !row.login_user) {
-        setError(i, 'login_user',  t('validate.required'));
-        rowValid = false;
-      }
-      if (settings.checked.includes('login_mode') && !row.login_mode) {
-        setError(i, 'login_mode',  t('validate.required'));
-        rowValid = false;
-      }
-      if (
-        settings.checked.includes('credit')
-        && row.login_mode !== 'password_vault'
-      ) {
-        if (!row.login_credit_valid && !row.credit) {
-          setError(i, 'credit', t('validate.required'));
-          rowValid = false;
-        }
+      if (settings.checked.includes('login_user') && !row.login_user) { setError(i, 'login_user', t('validate.required')); rowValid = false; }
+      if (settings.checked.includes('login_mode') && !row.login_mode) { setError(i, 'login_mode', t('validate.required')); rowValid = false; }
+      if (settings.checked.includes('credit') && row.login_mode !== 'password_vault') {
+        if (!row.login_credit_valid && !row.credit) { setError(i, 'credit', t('validate.required')); rowValid = false; }
       }
     }
 
     if (row.login_mode === 'password_vault' && window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH !== 'true') {
-      setError(i, 'login_mode', t('components.installTable.passwordVaultDisabled'));
-      rowValid = false;
+      setError(i, 'login_mode', t('components.installTable.passwordVaultDisabled')); rowValid = false;
     }
 
     if (!rowValid) {
@@ -1527,7 +1435,6 @@ const tableValidate = async () => {
     }
   }
 
-  // 3. 定位到错误行
   if (!isValid && firstErrorRowIndex !== -1 && xTableRef.value) {
     await xTableRef.value.scrollToRow(data[firstErrorRowIndex]);
   }
@@ -1535,9 +1442,8 @@ const tableValidate = async () => {
   return isValid;
 };
 
-// 管控单元下拉列表获取
+// --- 管控单元 ---
 const networkUnitList = ref<any[]>([]);
-// 分组映射：{bk_networkarea_id: [网络单元对象数组]}
 const networkUnitGroupMap = ref<Record<number, any[]>>({});
 const networkUnitLoading = ref(false);
 const autoAssignLoading = ref(false);
@@ -1545,39 +1451,36 @@ const autoAssignLoading = ref(false);
 const getNetworkUnitList = async () => {
   networkUnitLoading.value = true;
   try {
+    const areaIds = [...new Set(
+      tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || []
+    )];
     const res = await TopoService.NetworkUnitListBrief({
-      exact_include_conditions: {
-        bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
-      },
+      exact_include_conditions: { bk_networkarea_id: areaIds },
     }).catch((err: any) => {
       console.error(err);
-      return {
-        total: 0,
-        items: [],
-      };
+      return { total: 0, items: [] };
     });
     networkUnitList.value = res.items;
-
-    // 使用Lodash的groupBy函数进行分组
     networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
   } finally {
     networkUnitLoading.value = false;
   }
 };
 
-// 根据网络区域ID获取对应的网络单元列表
 const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => {
   return networkUnitGroupMap.value[Number(bkNetworkAreaId)] || [];
 };
 
-const isProxyDirectNetworkUnit = (networkUnitID: number | string) => {
-  if (props.releaseType !== 'proxy') {
-    return false;
-  }
+const getNetworkUnitName = (unitId: number | string) => {
+  const unit = networkUnitList.value.find((item: any) => String(item.bk_networkunit_id) === String(unitId));
+  return unit ? unit.bk_networkunit_name : '';
+};
 
-  return !!networkUnitList.value.find((unit: any) => (
+const isProxyDirectNetworkUnit = (networkUnitID: number | string) => {
+  if (props.releaseType !== 'proxy') return false;
+  return !!networkUnitList.value.find((unit: any) =>
     String(unit.bk_networkunit_id) === String(networkUnitID) && unit.is_direct
-  ));
+  );
 };
 
 const isSameNetworkArea = computed(() => {
@@ -1597,51 +1500,29 @@ const networkUnitBatchOptions = computed(() => {
   }));
 });
 
-// 处理管控单元变更，获取对应的名称
 const handleNetworkUnitChange = (val: string, row: any, _rowIndex: number) => {
   if (!val) return;
-
-  // 在所有网络单元中查找对应的名称
-  const networkUnit = networkUnitList.value.find(
-    (unit: any) => String(unit.bk_networkunit_id) === val
-  );
-
-  if (networkUnit) {
-    row.bk_networkunit_name = networkUnit.bk_networkunit_name;
-  }
+  const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === val);
+  if (networkUnit) row.bk_networkunit_name = networkUnit.bk_networkunit_name;
 };
 
 const settingRef = ref();
 const showSetting = () => settingRef.value?.showSetting();
-
-// 监听mainStore的变化来更新settings
-// watch(() => mainStore.agentSetupType, (newType: string) => {
-//   if (newType === 'manual') {
-//     settings.fields = manualSetting.fields;
-//     settings.checked = manualSetting.checked;
-//     settings.size = manualSetting.size;
-//   } else {
-//     settings.fields = autoSetting.fields;
-//     settings.checked = autoSetting.checked;
-//     settings.size = autoSetting.size;
-//   }
-// }, { immediate: true });
 
 const autoFillDefaults = () => {
   if (!tableData.value?.length) return;
   const firstIp = (val: string) => val?.split(',')[0] || '';
   tableData.value.forEach((row: any) => {
     if (!row.login_ip) {
-      if (props.releaseType === 'proxy') {
-        row.login_ip = firstIp(row.export_ip) || firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6);
-      } else {
-        row.login_ip = firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6);
-      }
+      row.login_ip = props.releaseType === 'proxy'
+        ? firstIp(row.export_ip) || firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6)
+        : firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6);
     }
-    if (row.os_type && (!row.login_port || Number(row.login_port) === 0)) {
-      row.login_port = row.os_type === 'windows'
+    if (row.os_type && (!row.login_port || Number(row.login_port) === 0 || String(row.login_port).includes('{{'))) {
+      const defaultPort = row.os_type === 'windows'
         ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
         : window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+      row.login_port = String(defaultPort).includes('{{') ? '' : defaultPort;
     }
     if (row.os_type && !row.login_user) {
       row.login_user = row.os_type === 'windows' ? 'administrator' : 'root';
@@ -1649,21 +1530,30 @@ const autoFillDefaults = () => {
   });
 };
 
-watch(tableData, () => {
+watch(() => tableData.value?.length, () => {
   autoFillDefaults();
 });
 
 onMounted(async () => {
+  // 必须在 VxeTable 注册全局 mousedown 之前注册，保证捕获阶段先执行
+  document.addEventListener('mousedown', handleDocMouseDown, true);
   await getHostDistinct();
-  // 加载管控单元查看权限，避免下拉选项误显示无权限样式
   await authStore.fetchAuthorized(
     [{ action: 'networkunit_view', resource_type: 'networkunit' }],
     'installTable_networkunit_view',
   );
 });
 
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleDocMouseDown, true);
+});
+
+const getNetworkUnitListDebounced = debounce(getNetworkUnitList, 500);
 watch(
-  () => tableData.value?.map((item: any) => Number(item.bk_networkarea_id)).join(',') || '',
+  () => {
+    const ids = tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) ?? [];
+    return [...new Set(ids)].sort((a, b) => a - b).join(',');
+  },
   async (val: string) => {
     if (!props.isReinstall && !props.isUpgrade) return;
     if (!val) {
@@ -1671,7 +1561,7 @@ watch(
       networkUnitGroupMap.value = {};
       return;
     }
-    await getNetworkUnitList();
+    getNetworkUnitListDebounced();
   },
   { immediate: true },
 );
@@ -1682,6 +1572,7 @@ watch(() => type.value, () => {
 
 defineExpose({ tableValidate, showSetting });
 </script>
+
 <style lang="postcss" scoped>
 ::v-deep(.vxe-header--column) {
   font-weight: normal !important;
@@ -1691,7 +1582,6 @@ defineExpose({ tableValidate, showSetting });
   height: 56px !important;
   font-size: 12px !important;
 }
-
 /* 防止校验状态变化导致 VxeTable 列宽重算、右侧出现空白列 */
 ::v-deep(.vxe-table--body-wrapper),
 ::v-deep(.vxe-table--header-wrapper) {
@@ -1699,5 +1589,43 @@ defineExpose({ tableValidate, showSetting });
 }
 ::v-deep(.vxe-body--column .vxe-cell) {
   overflow: visible;
+}
+
+/*
+ * 不可编辑单元格公共样式
+ * 与 bkui-vue Input disabled 保持视觉一致
+ */
+.cell-disabled,
+.cell-disabled--error {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #dcdee5;
+  border-radius: 2px;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 禁用态（无错误） */
+.cell-disabled {
+  background-color: #f5f7fa;
+  color: #c4c6cc;
+  cursor: not-allowed;
+}
+
+/* 校验失败态 */
+.cell-disabled--error {
+  background-color: #fff0f0;
+  border-color: #ea3636;
+  color: #ea3636;
+}
+
+/* 空值占位符提示 */
+.cell-placeholder {
+  color: #c4c6cc;
 }
 </style>

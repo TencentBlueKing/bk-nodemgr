@@ -13,13 +13,13 @@
       使用 v-show 而非 v-if，避免 DOM 增减导致 VxeTable 重新计算列宽
     -->
     <div
-      v-show="shouldShowError"
+      v-if="shouldShowError"
       class="error-indicator"
       ref="triggerRef"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
     >
-      <i class="nodeman-icon nc-remind-fill text-[16px]"></i>
+      <i class="nodeman-icon nc-remind-fill text-[16px] bg-[#fff] rounded-[50%]"></i>
     </div>
 
     <!-- 全局传送的气泡 (解决 z-index 遮挡问题) -->
