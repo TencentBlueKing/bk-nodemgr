@@ -45,14 +45,12 @@ func (oper *operUninstallPluginV2) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operUninstallPluginV2) ActionDefNames() []string {
 	return []string{
-		ActionNameFetchPluginProcessV2,
-		ActionNameCheckPluginProcessAliveV2,
-		ActionNameStopProcessV2,
 		ActionNameInjectPluginBaseRuntimeV2,
+		ActionNameFetchPluginProcessV2,
+		ActionNameStopProcessV2,
 		ActionNameTransferPluginPkgToNodeV2,
 		ActionNameUninstallPluginV2,
 		ActionNameWaitPluginInstallerCompleteV2,
-		ActionNameDeleteProcessV2,
 	}
 }
 
@@ -62,14 +60,12 @@ func (oper *operUninstallPluginV2) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameFetchPluginProcessV2:          true,
-			ActionNameCheckPluginProcessAliveV2:     true,
-			ActionNameStopProcessV2:                 true,
 			ActionNameInjectPluginBaseRuntimeV2:     true,
+			ActionNameFetchPluginProcessV2:          true,
+			ActionNameStopProcessV2:                 true,
 			ActionNameTransferPluginPkgToNodeV2:     true,
 			ActionNameUninstallPluginV2:             true,
 			ActionNameWaitPluginInstallerCompleteV2: false,
-			ActionNameDeleteProcessV2:               true,
 		},
 	}
 }

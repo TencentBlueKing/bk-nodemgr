@@ -106,10 +106,19 @@ func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	if param.SkipAction {
+		std.InstanceData().Log().
+			Zh("跳过停止 V2 插件进程, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			En("skip stopping V2 plugin process, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			Info()
+
+		return nil
+	}
+
 	std.InstanceData().Log().
-		Zh("尝试执行停止插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
+		Zh("尝试执行停止 V2 插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).
-		En("try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
+		En("try to executed stop V2 plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).
 		Info()
 
@@ -118,17 +127,17 @@ func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) error {
 
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
-		return fmt.Errorf("failed to stop plugin process: %w", err)
+		return fmt.Errorf("failed to stop V2 plugin process: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("成功执行停止插件进程操作, result(%s)", result).
-		En("successfully execute stop plugin process operation, result(%s)", result).
+		Zh("成功执行停止 V2 插件进程操作, result(%s)", result).
+		En("successfully execute stop V2 plugin process operation, result(%s)", result).
 		Info()
 
 	std.InstanceData().Log().
-		Zh("等待进程停止").
-		En("wait process stopped").
+		Zh("等待 V2 进程停止").
+		En("wait V2 process stopped").
 		Info()
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
@@ -144,20 +153,20 @@ func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) error {
 
 		if processInfo.Status != types.ProcessStatusStopped {
 			std.InstanceData().Log().
-				Zh("进程状态未停止, status(%s)", processInfo.Status).
-				En("process status is not stopped, status(%s)", processInfo.Status).
+				Zh("V2 进程状态未停止, status(%s)", processInfo.Status).
+				En("V2 process status is not stopped, status(%s)", processInfo.Status).
 				Info()
 
-			return fmt.Errorf("process status is not stopped, status(%s)", processInfo.Status)
+			return fmt.Errorf("V2 process status is not stopped, status(%s)", processInfo.Status)
 		}
 
 		if processInfo.AutoStart {
 			std.InstanceData().Log().
-				Zh("进程仍被 GSE 托管").
-				En("process is still trusteeship by gse").
+				Zh("V2 进程仍被 GSE 托管").
+				En("V2 process is still trusteeship by gse").
 				Info()
 
-			return fmt.Errorf("process is still trusteeship by gse")
+			return fmt.Errorf("V2 process is still trusteeship by gse")
 		}
 
 		// update process info
@@ -166,13 +175,13 @@ func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("failed to wait process stopped: %w", err)
+		return fmt.Errorf("failed to wait V2 process stopped: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("进程已停止, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		Zh("V2 进程已停止, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
-		En("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		En("V2 process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
 			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
 		Info()
 

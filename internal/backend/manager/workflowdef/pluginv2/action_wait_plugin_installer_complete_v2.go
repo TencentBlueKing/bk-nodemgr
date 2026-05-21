@@ -117,6 +117,16 @@ func (act *actionWaitPluginInstallerCompleteV2) Do(ctx *action.InstanceContext) 
 		}
 	}()
 
+	if param.SkipAction {
+		std.InstanceData().Log().
+			Zh("跳过等待 V2 插件安装器完成, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			En("skip waiting for V2 plugin installer to complete, host-id(%d), plugin-name(%s)",
+				std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			Info()
+
+		return nil
+	}
+
 	// Check if this is offline mode by reading from deployment info.
 	if std.DeployInfo().InstallOptions.IsOffline {
 		return act.doOfflinePolling(std)
@@ -302,7 +312,7 @@ while [ "$i" -lt "$TIMEOUT" ]; do
             # Extract oper_inst_id and status from JSON
             FILE_OPER_INST_ID=$(printf '%%s' "$STATUS_CONTENT" | sed -n 's/.*"oper_inst_id":"\([^"]*\)".*/\1/p')
             STATUS_STATE=$(printf '%%s' "$STATUS_CONTENT" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p')
-            
+
             # Check if oper_inst_id matches current instance
             if [ "$FILE_OPER_INST_ID" = "$OPER_INST_ID" ]; then
                 # Check if status is terminal (success/failed/timeout)

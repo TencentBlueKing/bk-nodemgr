@@ -100,9 +100,10 @@ func (std *PluginActionStandarder) InstanceData() *action.InstanceData {
 
 // PluginActionStandardParam defines the standard parameters of plugin action.
 type PluginActionStandardParam struct {
-	TenantID string `json:"tenant_id"`
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	TenantID   string `json:"tenant_id"`
+	Token      string `json:"token"`
+	Operator   string `json:"operator"`
+	SkipAction bool   `json:"skip_action"`
 }
 
 // GetActualExistingProcess gets the existing plugin process and refreshes its AgentID with the latest host value.

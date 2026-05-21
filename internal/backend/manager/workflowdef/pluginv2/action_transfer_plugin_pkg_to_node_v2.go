@@ -116,9 +116,18 @@ func (act *actionTransferPluginPkgToNodeV2) Do(ctx *action.InstanceContext) (err
 		}
 	}()
 
+	if param.SkipAction {
+		std.InstanceData().Log().
+			Zh("跳过传输 V2 插件包到节点, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			En("skip transfer V2 plugin pkg to node, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			Info()
+
+		return nil
+	}
+
 	std.InstanceData().Log().
-		Zh("开始传输插件包到节点").
-		En("transfer plugin pkg to node start").
+		Zh("开始传输 V2 插件包到节点").
+		En("transfer V2 plugin pkg to node start").
 		Info()
 
 	nCtx := std.Context()
@@ -156,8 +165,8 @@ func (act *actionTransferPluginPkgToNodeV2) Do(ctx *action.InstanceContext) (err
 
 	logger.G.Sys().Ctx(nCtx).With("host-id", targetHost.HostID).Info("transfer plugin pkg to node all done")
 	std.InstanceData().Log().
-		Zh("传输插件包到节点全部完成").
-		En("transfer plugin pkg to node all done").
+		Zh("传输 V2 插件包到节点全部完成").
+		En("transfer V2 plugin pkg to node all done").
 		Info()
 
 	return nil
@@ -177,8 +186,8 @@ func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginV2Utils.P
 	}
 
 	std.InstanceData().Log().
-		Zh("准备传输发布包, host-id(%d)", targetHost.HostID).
-		En("preparing to transfer release package. host-id(%d)", targetHost.HostID).
+		Zh("准备传输 V2 发布包, host-id(%d)", targetHost.HostID).
+		En("preparing to transfer V2 release package. host-id(%d)", targetHost.HostID).
 		Info()
 
 	transferHandler, err := act.fileHandler.LaunchTransferPlugin(
@@ -194,34 +203,34 @@ func (act *actionTransferPluginPkgToNodeV2) transferRelease(std *pluginV2Utils.P
 	}
 
 	std.InstanceData().Log().
-		Zh("开始传输发布包. task-id(%s)", transferHandler.GetTaskID()).
-		En("start transfer release. task-id(%s)", transferHandler.GetTaskID()).
+		Zh("开始传输 V2 发布包. task-id(%s)", transferHandler.GetTaskID()).
+		En("start transfer V2 release. task-id(%s)", transferHandler.GetTaskID()).
 		Info()
 
-	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer release")
+	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer V2 release")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer release done, task-id(%s), host-id(%d): %w",
+		return fmt.Errorf("failed to wait until transfer V2 release done, task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), targetHost.HostID, err)
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("transfer release not terminated, task-id(%s), host-id(%d)",
+		return fmt.Errorf("transfer V2 release not terminated, task-id(%s), host-id(%d)",
 			transferHandler.GetTaskID(), targetHost.HostID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer release failed, task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+		return fmt.Errorf("transfer V2 release failed, task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
 			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
 	logger.G.Sys().Ctx(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).
-		Info("transfer release done")
+		Info("transfer V2 release done")
 
 	std.InstanceData().Log().
-		Zh("传输发布包完成").
-		En("transfer release done").
+		Zh("传输 V2 发布包完成").
+		En("transfer V2 release done").
 		Info()
 
 	return nil

@@ -12,12 +12,18 @@ package pluginv2
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -30,8 +36,9 @@ const (
 func NewActionFetchPluginProcessV2(capability *Capability) action.Definition {
 	return &actionFetchPluginProcessV2{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoProcessV2:        capability.StoragePlugin,
+		daoReleasePlugin:    capability.StorageRelease,
 		daoHost:             capability.StorageTopo,
+		gseHandlerProc:      capability.GSEHandler.NewHandlerProc(gse.WithProcNameSpace(procNameSpaceNodeMan)),
 	}
 }
 
@@ -42,8 +49,9 @@ type ActParamFetchPluginProcessV2 struct {
 
 type actionFetchPluginProcessV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcessV2        pluginStg.IDaoProcessV2
+	daoReleasePlugin    releaseStg.IPlugin
 	daoHost             topoStg.IStorageHost
+	gseHandlerProc      gse.IHandlerProc
 }
 
 // Name returns the name of the action.
@@ -102,40 +110,95 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	if param.SkipAction {
+		std.InstanceData().Log().
+			Zh("跳过获取插件进程信息, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			En("skip fetching plugin process info, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			Info()
+
+		return nil
+	}
+
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
-	process, err := pluginV2Utils.GetActualExistingProcess(
-		nCtx,
-		act.daoProcessV2,
-		act.daoHost,
-		deployInfo.Process.HostID,
-		deployInfo.Process.PluginName,
-	)
+	host, err := act.daoHost.GetHostByID(nCtx, deployInfo.Process.HostID)
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("获取 V2 进程失败, process-name(%s), host-id(%d): %v",
-				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
-			En("failed to get V2 process, process-name(%s), host-id(%d): %v",
-				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
+			Zh("获取主机信息失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
+			En("fetch host info failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
 			Error()
 
 		return err
 	}
 
-	std.InstanceData().Log().
-		Zh("获取 V2 插件进程成功, plugin-name(%s), host-id(%d)",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID).
-		En("fetch V2 plugin process succeed, plugin-name(%s), host-id(%d)",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID).
-		Info()
+	if err := pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
+		std.InstanceData().Log().
+			Zh("获取主机登录用户失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
+			En("fetch host login user failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
+			Error()
 
-	deployInfo.Process = *process
+		return err
+	}
+
+	deployInfo.Process.HostID = host.HostID
+	deployInfo.Process.BizID = host.Static.BizID
+
+	// In the v2 process, we can consider the process name and the plugin name to be consistent
+	pluginName := deployInfo.Process.PluginName
+	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, pluginName, pluginName, host.Dynamic.AgentID)
+	if err != nil {
+		return fmt.Errorf("failed to query process info: %w", err)
+	}
+
+	deployInfo.Process.Info = *processInfo
+	if deployInfo.Process.Info.Status != types.ProcessStatusRunning {
+		std.InstanceData().Log().
+			Zh("插件进程未运行, 跳过后续流程, 主机id(%d), 插件名(%s), 进程状态(%s)", deployInfo.Process.HostID, pluginName, deployInfo.Process.Info.Status).
+			En("plugin process is not running, host-id(%d), plugin-name(%s), process-status(%s)",
+				deployInfo.Process.HostID, pluginName, deployInfo.Process.Info.Status).
+			Info()
+
+		param.SkipAction = true
+		std.InstanceData().Content = conv.StructToMapIgnoreError(param)
+
+		return nil
+	}
+
+	pkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+		Generation: host.Dynamic.NodeGeneration,
+		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
+		Version:    processInfo.Version,
+		Name:       pluginName,
+	})
+	if err != nil {
+		std.InstanceData().Log().
+			Zh("获取插件包信息失败, 主机id(%d), 插件名(%s), 错误(%s)", deployInfo.Process.HostID, pluginName, err).
+			En("fetch plugin package info failed, host-id(%d), plugin-name(%s), error(%s)", deployInfo.Process.HostID, pluginName, err).
+			Error()
+
+		return err
+	}
+
+	deployInfo.Process.Platform = pkg.Platform
+	deployInfo.Process.Generation = pkg.Generation
+	deployInfo.Process.PluginPkgName = pkg.Name
+	deployInfo.Process.Controller = pkg.PluginController
+
+	pidFileName := fmt.Sprintf("%s.pid", deployInfo.Process.PluginPkgName)
+	pidFilePath := tool.JoinPath(deployInfo.Process.Platform.OS, deployInfo.BaseRuntime.RunDir, pidFileName)
+	deployInfo.Process.Identity = types.ProcessIdentity{
+		Name:       pluginName,
+		SetupPath:  deployInfo.BaseRuntime.PluginHomeDir,
+		PidPath:    pidFilePath,
+		ConfigPath: deployInfo.BaseRuntime.ConfigDir,
+		LogPath:    deployInfo.BaseRuntime.LogDir,
+		User:       host.Dynamic.LoginUser,
+	}
 
 	std.InstanceData().Log().
-		Zh("获取 V2 插件AgentID成功, agent-id(%s)",
-			deployInfo.Process.Info.AgentID).
-		En("fetch V2 plugin agent id succeed, agent-id(%s)",
-			deployInfo.Process.Info.AgentID).
+		Zh("成功获取插件进程信息, 主机id(%d), 插件名(%s), 进程信息(%+v)", deployInfo.Process.HostID, pluginName, deployInfo.Process.Info).
+		En("successfully fetched plugin process info, host-id(%d), plugin-name(%s), process-info(%+v)",
+			deployInfo.Process.HostID, pluginName, deployInfo.Process.Info).
 		Info()
 
 	return nil

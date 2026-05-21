@@ -117,6 +117,15 @@ func (act *actionUninstallPluginV2) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	if param.SkipAction {
+		std.InstanceData().Log().
+			Zh("跳过卸载 V2 插件, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			En("skip uninstall V2 plugin, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
+			Info()
+
+		return nil
+	}
+
 	// let the callback server known which action to mark and log.
 	if err := std.SaveBlockingActionName(ActionNameWaitPluginInstallerCompleteV2); err != nil {
 		return fmt.Errorf("failed to save blocking action name: %w", err)
