@@ -20,33 +20,35 @@ POST /api/v3/node/proxy/install
 
 **host[n]**
 
-| Parameter                    | Type          | Required | Description                                                                  |
-|------------------------------|---------------|----------|------------------------------------------------------------------------------|
-| bk_biz_id                    | int64         | Yes      | Business ID                                                                  |
-| bk_networkunit_id            | int64         | Yes      | Network unit ID                                                              |
-| bk_host_id                   | int64         | No       | Host ID, -1 means unspecified (omit for auto-registration)                   |
-| bk_addressing                | string        | Yes      | Addressing mode: dynamic / static                                            |
-| bk_host_innerip              | array[string] | No       | Inner IPv4 address list                                                      |
-| bk_host_innerip_v6           | array[string] | No       | Inner IPv6 address list                                                      |
-| os_type                      | string        | Yes      | OS type: linux / windows / darwin                                            |
-| cpu_arch                     | string        | No       | CPU architecture: 386 / arm / arm64 / amd64                                  |
-| login_ip                     | string        | Yes      | Login IP                                                                     |
-| login_port                   | int64         | No       | Login port                                                                   |
-| login_user                   | string        | Yes      | Login username                                                               |
-| login_mode                   | string        | Yes      | Login mode: password_vault / password / keyfile                              |
-| login_password               | string        | No       | Password, required when login_mode is password                               |
-| login_key_file               | string        | No       | Key file content, required when login_mode is keyfile                        |
-| export_ip                    | string        | No       | Export IPv4 address                                                          |
-| export_ip_v6                 | string        | No       | Export IPv6 address                                                          |
-| advertise_ip                 | string        | No       | Advertise IPv4 address                                                       |
-| advertise_ip_v6              | string        | No       | Advertise IPv6 address                                                       |
-| re_register                  | bool          | No       | Re-register host, default false                                              |
-| install_pre_ordered_plugins  | bool          | No       | Whether to install pre-ordered plugins, default true                         |
-| proxy_tags                   | array[string] | No       | Proxy tags: dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel |
-| proxy_install_origin_unit_id | int64         | No       | Origin network unit ID for installation                                      |
-| credit_expired_interval_sec  | int64         | No       | Credential expiry interval in seconds, default 86400                         |
-| relay_download_port          | int64         | No       | Relay download port                                                          |
-| relay_callback_port          | int64         | No       | Relay callback port                                                          |
+| Parameter                    | Type          | Required | Description                                                                                       |
+|------------------------------|---------------|----------|---------------------------------------------------------------------------------------------------|
+| bk_biz_id                    | int64         | Yes      | Business ID                                                                                       |
+| bk_networkunit_id            | int64         | Yes      | Network unit ID                                                                                   |
+| bk_host_id                   | int64         | No       | Host ID, -1 means unspecified (omit for auto-registration)                                        |
+| bk_addressing                | string        | Yes      | Addressing mode: dynamic / static                                                                 |
+| bk_host_innerip              | array[string] | No       | Inner IPv4 address list                                                                           |
+| bk_host_innerip_v6           | array[string] | No       | Inner IPv6 address list                                                                           |
+| os_type                      | string        | Yes      | OS type: linux / windows / darwin                                                                 |
+| cpu_arch                     | string        | No       | CPU architecture: 386 / arm / arm64 / amd64                                                       |
+| login_ip                     | string        | Yes      | Login IP                                                                                          |
+| login_port                   | int64         | No       | Login port                                                                                        |
+| login_user                   | string        | Yes      | Login username                                                                                    |
+| login_mode                   | string        | Yes      | Login mode: password_vault / password / keyfile                                                   |
+| login_password               | string        | No       | Password, required when login_mode is password                                                    |
+| login_key_file               | string        | No       | Key file content, required when login_mode is keyfile                                             |
+| export_ip                    | string        | No       | Export IPv4 address                                                                               |
+| export_ip_v6                 | string        | No       | Export IPv6 address                                                                               |
+| advertise_ip                 | string        | No       | Advertise IPv4 address                                                                            |
+| advertise_ip_v6              | string        | No       | Advertise IPv6 address                                                                            |
+| re_register                  | bool          | No       | Re-register host, default false                                                                   |
+| install_pre_ordered_plugins  | bool          | No       | Whether to install pre-ordered plugins, default true                                              |
+| renew_gse_task               | bool          | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file |
+| renew_gse_proc               | bool          | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file |
+| proxy_tags                   | array[string] | No       | Proxy tags: dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel                      |
+| proxy_install_origin_unit_id | int64         | No       | Origin network unit ID for installation                                                           |
+| credit_expired_interval_sec  | int64         | No       | Credential expiry interval in seconds, default 86400                                              |
+| relay_download_port          | int64         | No       | Relay download port                                                                               |
+| relay_callback_port          | int64         | No       | Relay callback port                                                                               |
 
 **target_version[n]**
 
@@ -65,7 +67,9 @@ POST /api/v3/node/proxy/install
       "bk_biz_id": 2,
       "bk_networkunit_id": 1,
       "bk_addressing": "dynamic",
-      "bk_host_innerip": ["10.0.0.1"],
+      "bk_host_innerip": [
+        "10.0.0.1"
+      ],
       "os_type": "linux",
       "cpu_arch": "amd64",
       "login_ip": "10.0.0.1",
@@ -74,7 +78,9 @@ POST /api/v3/node/proxy/install
       "login_mode": "password",
       "login_password": "your_password",
       "export_ip": "10.0.0.1",
-      "install_pre_ordered_plugins": true
+      "install_pre_ordered_plugins": true,
+      "renew_gse_task": false,
+      "renew_gse_proc": false
     }
   ],
   "target_version": [

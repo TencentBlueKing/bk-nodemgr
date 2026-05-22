@@ -19,23 +19,25 @@ POST /api/v3/node/agent/install
 
 #### info[n]
 
-| 参数名称                        | 参数类型   | 必选 | 描述                                        |
-|-----------------------------|--------|----|-------------------------------------------|
-| bk_addressing               | string | 是  | 寻址方式（枚举值：dynamic、static）                  |
-| bk_biz_id                   | int64  | 否  | 业务ID，-1表示未指定                              |
-| bk_host_innerip             | array[string] | 是  | 主机内网IPv4地址列表，与bk_host_innerip_v6至少填写一个      |
-| bk_host_innerip_v6          | array[string] | 否  | 主机内网IPv6地址列表，与bk_host_innerip至少填写一个         |
-| login_ip                    | string | 是  | 登录IP地址                                    |
-| login_port                  | int64  | 否  | 登录端口，-1表示未指定，必须大于0                        |
-| login_user                  | string | 是  | 登录用户名                                     |
-| login_mode                  | string | 是  | 登录方式（枚举值：password_vault、password、keyfile） |
-| login_password              | string | 否  | 登录密码，当login_mode为password时必填              |
-| login_key_file              | string | 否  | 登录密钥文件内容，当login_mode为keyfile时必填           |
-| bk_networkunit_id           | int64  | 否  | 网络单元ID，-1表示未指定                            |
-| os_type                     | string | 是  | 操作系统类型（枚举值：linux、windows、darwin）          |
-| bk_host_id                  | int64  | 否  | 主机ID，-1表示未指定                              |
-| re_register                 | bool   | 否  | 是否重新注册，默认false                            |
-| install_pre_ordered_plugins | bool   | 否  | 是否安装预设插件，默认true                           |
+| 参数名称                        | 参数类型          | 必选 | 描述                                               |
+|-----------------------------|---------------|----|--------------------------------------------------|
+| bk_addressing               | string        | 是  | 寻址方式（枚举值：dynamic、static）                         |
+| bk_biz_id                   | int64         | 否  | 业务ID，-1表示未指定                                     |
+| bk_host_innerip             | array[string] | 是  | 主机内网IPv4地址列表，与bk_host_innerip_v6至少填写一个           |
+| bk_host_innerip_v6          | array[string] | 否  | 主机内网IPv6地址列表，与bk_host_innerip至少填写一个              |
+| login_ip                    | string        | 是  | 登录IP地址                                           |
+| login_port                  | int64         | 否  | 登录端口，-1表示未指定，必须大于0                               |
+| login_user                  | string        | 是  | 登录用户名                                            |
+| login_mode                  | string        | 是  | 登录方式（枚举值：password_vault、password、keyfile）        |
+| login_password              | string        | 否  | 登录密码，当login_mode为password时必填                     |
+| login_key_file              | string        | 否  | 登录密钥文件内容，当login_mode为keyfile时必填                  |
+| bk_networkunit_id           | int64         | 否  | 网络单元ID，-1表示未指定                                   |
+| os_type                     | string        | 是  | 操作系统类型（枚举值：linux、windows、darwin）                 |
+| bk_host_id                  | int64         | 否  | 主机ID，-1表示未指定                                     |
+| re_register                 | bool          | 否  | 是否重新注册，默认false                                   |
+| install_pre_ordered_plugins | bool          | 否  | 是否安装预设插件，默认true                                  |
+| renew_gse_task              | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认false表示保留已有.task文件 |
+| renew_gse_proc              | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认false表示保留已有.proc文件 |
 
 **参数说明**：
 
@@ -66,7 +68,9 @@ POST /api/v3/node/agent/install
     {
       "bk_addressing": "static",
       "bk_biz_id": 100,
-      "bk_host_innerip": ["127.0.0.1"],
+      "bk_host_innerip": [
+        "127.0.0.1"
+      ],
       "login_ip": "127.0.0.1",
       "login_port": 22,
       "login_user": "root",
@@ -75,7 +79,9 @@ POST /api/v3/node/agent/install
       "bk_networkunit_id": 1,
       "os_type": "linux",
       "re_register": false,
-      "install_pre_ordered_plugins": true
+      "install_pre_ordered_plugins": true,
+      "renew_gse_task": false,
+      "renew_gse_proc": false
     }
   ],
   "target_version": [

@@ -19,23 +19,25 @@ POST /api/v3/node/agent/install
 
 #### info[n]
 
-| Parameter Name              | Parameter Type | Required | Description                                                                                              |
-|-----------------------------|----------------|----------|----------------------------------------------------------------------------------------------------------|
-| bk_addressing               | string         | Yes      | Addressing mode (enum values: dynamic, static)                                                           |
-| bk_biz_id                   | int64          | No       | Business ID, -1 means not specified                                                                      |
+| Parameter Name              | Parameter Type | Required | Description                                                                                                   |
+|-----------------------------|----------------|----------|---------------------------------------------------------------------------------------------------------------|
+| bk_addressing               | string         | Yes      | Addressing mode (enum values: dynamic, static)                                                                |
+| bk_biz_id                   | int64          | No       | Business ID, -1 means not specified                                                                           |
 | bk_host_innerip             | array[string]  | Yes      | Host inner network IPv4 address list, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
 | bk_host_innerip_v6          | array[string]  | No       | Host inner network IPv6 address list, at least one of bk_host_innerip and bk_host_innerip_v6 must be provided |
-| login_ip                    | string         | Yes      | Login IP address                                                                                         |
-| login_port                  | int64          | No       | Login port, -1 means not specified, must be greater than 0                                               |
-| login_user                  | string         | Yes      | Login username                                                                                           |
-| login_mode                  | string         | Yes      | Login method (enum values: password_vault, password, keyfile)                                            |
-| login_password              | string         | No       | Login password, required when login_mode is password                                                     |
-| login_key_file              | string         | No       | Login key file content, required when login_mode is keyfile                                              |
-| bk_networkunit_id           | int64          | No       | Network unit ID, -1 means not specified                                                                  |
-| os_type                     | string         | Yes      | Operating system type (enum values: linux, windows, darwin)                                              |
-| bk_host_id                  | int64          | No       | Host ID, -1 means not specified                                                                          |
-| re_register                 | bool           | No       | Whether to re-register, default is false                                                                 |
-| install_pre_ordered_plugins | bool           | No       | Whether to install pre-ordered plugins, default is true                                                  |
+| login_ip                    | string         | Yes      | Login IP address                                                                                              |
+| login_port                  | int64          | No       | Login port, -1 means not specified, must be greater than 0                                                    |
+| login_user                  | string         | Yes      | Login username                                                                                                |
+| login_mode                  | string         | Yes      | Login method (enum values: password_vault, password, keyfile)                                                 |
+| login_password              | string         | No       | Login password, required when login_mode is password                                                          |
+| login_key_file              | string         | No       | Login key file content, required when login_mode is keyfile                                                   |
+| bk_networkunit_id           | int64          | No       | Network unit ID, -1 means not specified                                                                       |
+| os_type                     | string         | Yes      | Operating system type (enum values: linux, windows, darwin)                                                   |
+| bk_host_id                  | int64          | No       | Host ID, -1 means not specified                                                                               |
+| re_register                 | bool           | No       | Whether to re-register, default is false                                                                      |
+| install_pre_ordered_plugins | bool           | No       | Whether to install pre-ordered plugins, default is true                                                       |
+| renew_gse_task              | bool           | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file             |
+| renew_gse_proc              | bool           | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file             |
 
 **Parameter Notes**:
 
@@ -66,7 +68,9 @@ Batch install agents for Linux systems using password login.
     {
       "bk_addressing": "static",
       "bk_biz_id": 100,
-      "bk_host_innerip": ["127.0.0.1"],
+      "bk_host_innerip": [
+        "127.0.0.1"
+      ],
       "login_ip": "127.0.0.1",
       "login_port": 22,
       "login_user": "root",
@@ -75,7 +79,9 @@ Batch install agents for Linux systems using password login.
       "bk_networkunit_id": 1,
       "os_type": "linux",
       "re_register": false,
-      "install_pre_ordered_plugins": true
+      "install_pre_ordered_plugins": true,
+      "renew_gse_task": false,
+      "renew_gse_proc": false
     }
   ],
   "target_version": [
