@@ -16962,6 +16962,10 @@ paths:
                         type: string
                       login_password:
                         type: string
+                      renew_gse_proc:
+                        type: boolean
+                      renew_gse_task:
+                        type: boolean
                       bk_host_innerip:
                         type: array
                         items:
