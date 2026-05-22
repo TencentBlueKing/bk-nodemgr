@@ -13,8 +13,6 @@ package node
 import (
 	"errors"
 	"fmt"
-	"path"
-	"strings"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
@@ -24,7 +22,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -178,25 +175,25 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) error {
 
 // nolint: perfsprint
 func (act *actionUninstallPagent) doUninstallUnix(std *nodeUtils.NodeActionStandarder, param *UninstallParams) error {
-	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
-
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
+	uninstallParams := &installer.NodeUninstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(param.Generation),
+			NodeRole:      string(param.NodeRole),
+			BaseWorkDir:   param.BaseWorkDir,
+			BaseDeployDir: param.BaseDeployDir,
+			AdditionArgs:  param.AdditionArgs,
+		},
+		InstallWorkDir:    param.InstallerWorkDir,
+		InstallerFileName: param.InstallerName,
+		CallbackSvrAddr:   param.CallbackSvrAddr,
+		DeployToken:       param.DeployToken,
+		OperInstID:        param.OperInstID,
 	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
+	_, uninstallCmd, err := uninstallParams.ToUnixScript()
+	if err != nil {
+		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
-
-	uninstallLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	uninstallCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
-		installerPath, installerPath, installer.NodeCmdFullUninstall, strings.Join(args, " "), uninstallLogPath)
 	std.InstanceData().Log().
 		Zh("卸载节点命令: %s", uninstallCmd).
 		En("uninstall node cmd: %s", uninstallCmd).
@@ -228,25 +225,25 @@ func (act *actionUninstallPagent) doUninstallUnix(std *nodeUtils.NodeActionStand
 
 // nolint: perfsprint
 func (act *actionUninstallPagent) doUninstallWindows(std *nodeUtils.NodeActionStandarder, param *UninstallParams) error {
-	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
-
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
+	uninstallParams := &installer.NodeUninstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(param.Generation),
+			NodeRole:      string(param.NodeRole),
+			BaseWorkDir:   param.BaseWorkDir,
+			BaseDeployDir: param.BaseDeployDir,
+			AdditionArgs:  param.AdditionArgs,
+		},
+		InstallWorkDir:    param.InstallerWorkDir,
+		InstallerFileName: param.InstallerName,
+		CallbackSvrAddr:   param.CallbackSvrAddr,
+		DeployToken:       param.DeployToken,
+		OperInstID:        param.OperInstID,
 	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
+	_, uninstallCmd, err := uninstallParams.ToWindowsScript()
+	if err != nil {
+		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
-
-	uninstallLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
-	uninstallCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
-		installerPath, installer.NodeCmdFullUninstall, strings.Join(args, " "), uninstallLogPath)
 	std.InstanceData().Log().
 		Zh("卸载节点命令: %s", uninstallCmd).
 		En("uninstall node cmd: %s", uninstallCmd).
