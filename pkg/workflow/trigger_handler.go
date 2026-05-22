@@ -77,9 +77,9 @@ func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*trigger
 		orderedTriggers:  newCachedTriggers(),
 		periodicTriggers: newCachedTriggers(),
 
-		tracerProvider: mgr.traceSvc.TracerProvider(),
+		tracerProvider:            mgr.traceSvc.TracerProvider(),
+		triggerExecutionSemaphore: make(chan struct{}, triggerExecutionConcurrency),
 	}
-
 	var err error
 	trigHandler.goAsyncPool, err = goasync.NewHandler(goasync.HandlerOption{
 		PoolNum:               triggerHandlerGoAsyncPoolNum,
@@ -106,6 +106,8 @@ type triggerHandler struct {
 	goAsyncPool goasync.IHandler
 
 	tracerProvider trace.TracerProvider
+
+	triggerExecutionSemaphore chan struct{}
 }
 
 // Start starts the manager.
@@ -294,6 +296,10 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 	for idx := range list {
 		trig := list[idx]
 		fn := func(nCtx contextx.IContext) error {
+			handler.triggerExecutionSemaphore <- struct{}{}
+			defer func() {
+				<-handler.triggerExecutionSemaphore
+			}()
 			mutex := handler.globalLocker.NewMutex(trig.TriggerID)
 			if err := mutex.TryLock(); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Debug("failed to lock trigger")
@@ -424,6 +430,9 @@ const (
 	launchOperationInstanceTimeoutRatio = 4
 	// launchOperationInstanceCostLimit is the maximum expected cost of one LaunchOperationInstance DB operation.
 	launchOperationInstanceCostLimit = 1 * time.Second
+
+	// triggerExecutionConcurrency limits the number of triggers running doTrigger concurrently.
+	triggerExecutionConcurrency = 20
 
 	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
 	instantiateOperationConcurrency = 20
