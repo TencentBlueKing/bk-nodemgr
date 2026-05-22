@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"strings"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
@@ -54,21 +53,6 @@ func NewActionInstallNodeByManual(capability *Capability) action.Definition {
 // ActParamInstallNodeByManual ...
 type ActParamInstallNodeByManual struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
-}
-
-// InstallParamsManual this struct defines the parameters for installing node.
-type InstallParamsManual struct {
-	InstallerPath   string
-	Generation      types.Generation
-	NodeRole        types.NodeRole
-	CallbackSvrAddr string
-	DownloadSvrAddr string
-	NodeVersion     string
-	DeployToken     string
-	OperInstID      string
-	BaseWorkDir     string
-	BaseDeployDir   string
-	AdditionArgs    []string
 }
 
 type actionInstallNodeByManual struct {
@@ -190,17 +174,21 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 	}
 
 	// build install params
-	installParams := &InstallParamsManual{
-		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
+	installParams := &installer.NodeInstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
 		InstallerPath:   installerPath,
-		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr: callbackSvrAddress,
 		DownloadSvrAddr: downloadSvrAddress,
+		CallbackSvrAddr: callbackSvrAddress,
 		DeployToken:     std.Token(),
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
+		LogToStd:        true,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -209,8 +197,10 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 	}
 
 	// generate manual installation exec commands
-	installCmd := act.buildCMD(installParams, std.DeployInfo().Host.Dynamic.NodeOsType)
-
+	installCmd, err := act.buildCMD(installParams, std.DeployInfo().Host.Dynamic.NodeOsType)
+	if err != nil {
+		return fmt.Errorf("failed to build manual install cmd: %w", err)
+	}
 	// save commands to action instance private data
 	if err = act.storageActionInstance.UpsertActionInstancePrivateData(
 		std.Context(),
@@ -232,41 +222,19 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 	return nil
 }
 
-// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
-func (act *actionInstallNodeByManual) buildCMD(param *InstallParamsManual, osType criteria.OSType) string {
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
-		"--log_to_std",
-	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
-	}
-
-	// windows bat command.
+func (act *actionInstallNodeByManual) buildCMD(param *installer.NodeInstallParams, osType criteria.OSType) (string, error) {
+	var installCmd string
+	var err error
 	if osType == criteria.OSWindows {
-		installCmd := fmt.Sprintf("cd %s && %s %s %s",
-			winpath.Join(param.BaseWorkDir, system.GetEnv()),
-			param.InstallerPath,
-			installer.NodeCmdFullInstall,
-			strings.Join(args, " "))
-
-		return installCmd
+		_, installCmd, err = param.ToWindowsScriptManual()
+	} else {
+		_, installCmd, err = param.ToUnixScriptManual()
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to render node manual install script: %w", err)
 	}
 
-	// unix shell command.
-	installCmd := fmt.Sprintf("%s %s %s", param.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "))
-
-	return installCmd
+	return installCmd, nil
 }
 
 // selectServiceURLs selects service URLs for download and callback servers.
