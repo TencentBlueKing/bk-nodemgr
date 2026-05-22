@@ -420,6 +420,9 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 	}
 }
 
+// Instantiate operation list queries are expected to finish within one quarter of defaultTimeout.
+// Each paged ListNeedInstantiateOperation call should finish within instantiateOperationListCostLimit.
+
 // instantiateOperation instantiates operations for the trigger.
 func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trigCtl ITriggerCtl, page types.Page) error {
 	executor := pageexecutor.NewPageExecutor[IOperationCtl](instantiateOperationConcurrency, defaultTimeout)
@@ -475,13 +478,31 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 }
 
 const (
-	// onceTriggerBatchSize limits the number of operations instantiated and launched per cycle
-	// to avoid overwhelming MongoDB with too many concurrent writes when a trigger has a large backlog.
-	onceTriggerBatchSize = 200
+	// instantiateOperationTimeoutRatio reserves one quarter of defaultTimeout for operation instantiation queries.
+	instantiateOperationTimeoutRatio = 4
+	// instantiateOperationListCostLimit is the maximum expected cost of one ListNeedInstantiateOperation page.
+	instantiateOperationListCostLimit = 1 * time.Second
 )
 
+// onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
+func onceTriggerBatchSize() int {
+	return instantiateOperationBatchSize()
+}
+
+// orderedTriggerBatchSize returns the maximum operations instantiated and launched per ordered trigger cycle.
+func orderedTriggerBatchSize() int {
+	return instantiateOperationBatchSize()
+}
+
+func instantiateOperationBatchSize() int {
+	queryBudget := defaultTimeout / instantiateOperationTimeoutRatio
+	pageCount := int(queryBudget / instantiateOperationListCostLimit)
+
+	return pageCount * instantiateOperationConcurrency
+}
+
 func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
-	if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: onceTriggerBatchSize}); err != nil {
+	if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: onceTriggerBatchSize()}); err != nil {
 		logger.G.Sys().
 			WithErr(err).
 			With("trigger-id", trigCtl.GetTriggerID()).
@@ -519,7 +540,7 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 	}
 
 	// not idle concurrent num.
-	idleNum := metadata.MaxConcurrencyNum - int(workingCount)
+	idleNum := min(orderedTriggerBatchSize(), metadata.MaxConcurrencyNum-int(workingCount))
 	instanceList := make([]IOperationInstanceCtl, 0)
 	if idleNum > 0 {
 		if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: idleNum}); err != nil {
