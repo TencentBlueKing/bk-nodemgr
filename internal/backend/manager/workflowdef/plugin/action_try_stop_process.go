@@ -142,15 +142,15 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	hostProcessInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, std.DeployInfo().Process.PluginName,
-		std.DeployInfo().Process.Identity.Name, dbProcess.Info.AgentID)
+		dbProcess.Identity.Name, dbProcess.Info.AgentID)
 	if err != nil {
 		std.InstanceData().Log().
 			Zh("查询主机上进程信息失败, agent-id(%s), plugin-name(%s), program-name(%s): %s",
 				dbProcess.Info.AgentID, std.DeployInfo().Process.PluginName,
-				std.DeployInfo().Process.Identity.Name, err.Error()).
+				dbProcess.Identity.Name, err.Error()).
 			En("failed to query process info from gse, agent-id(%s), plugin-name(%s), program-name(%s): %s",
 				dbProcess.Info.AgentID, std.DeployInfo().Process.PluginName,
-				std.DeployInfo().Process.Identity.Name, err.Error()).
+				dbProcess.Identity.Name, err.Error()).
 			Error()
 
 		return fmt.Errorf("failed to query process info from gse: %w", err)
@@ -158,9 +158,9 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 
 	if hostProcessInfo.Status != types.ProcessStatusRunning {
 		std.InstanceData().Log().
-			Zh("主机上进程状态(%s)不为运行中, 无需停止进程",
+			Zh("主机(%d)上进程状态(%s)不为运行中, 无需停止进程",
 				dbProcess.HostID, hostProcessInfo.Status).
-			En("host process status(%s) is not running, no need to stop the process",
+			En("host(%d) process status(%s) is not running, no need to stop the process",
 				dbProcess.HostID, hostProcessInfo.Status).
 			Info()
 
