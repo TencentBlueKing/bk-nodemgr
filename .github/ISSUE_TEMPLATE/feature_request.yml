@@ -1,7 +1,7 @@
 name: 功能请求 / Feature Request
 description: 提出新功能或改进建议 / Suggest a new feature or enhancement
 title: "[FEATURE]: "
-labels: ["kind/features", "product/backlog"]
+labels: ["kind/features"]
 body:
   - type: markdown
     attributes:
