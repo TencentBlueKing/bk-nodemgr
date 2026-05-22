@@ -139,6 +139,7 @@ const (
 	periodicTriggersSyncAndCheckIntervalDefault     = 1 * time.Second
 	checkAccumulateOperationInstanceIntervalDefault = 1 * time.Minute
 
+	// listAliveTriggerBatchSizeDefault is used to avoid overloading the database from a single large query.
 	listAliveTriggerBatchSizeDefault = 500
 
 	taskIDSyncAndCheckOnceTrigger          = "sync_and_check_once_trigger"
@@ -421,37 +422,56 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 
 // instantiateOperation instantiates operations for the trigger.
 func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trigCtl ITriggerCtl, page types.Page) error {
-	operList, err := trigCtl.ListNeedInstantiateOperation(nCtx, page)
-	if err != nil {
-		return err
+	executor := pageexecutor.NewPageExecutor[IOperationCtl](instantiateOperationConcurrency, defaultTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]IOperationCtl, error) {
+		operList, err := trigCtl.ListNeedInstantiateOperation(nCtx, p)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list need instantiate operation: %w", err)
+		}
+
+		return operList, nil
 	}
 
-	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("instantiate operation")
+	pageResult, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return fmt.Errorf("failed to list need instantiate operation: %w", err)
+	}
+
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(pageResult.Items)).Debug("instantiate operation")
 
 	gp := gopool.NewPool()
 	gp.SetLimit(instantiateOperationConcurrency)
-	for _, operCtl := range operList {
+	for _, operCtl := range pageResult.Items {
 		ctl := operCtl
 		gp.Go(func() error {
 			operInst, err := ctl.CreateOperationInstance(nCtx)
 			if err != nil {
 				logger.G.Sys().
 					WithErr(err).
-					With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID()).
+					With("trigger-id", trigCtl.GetTriggerID(),
+						"operation-id", ctl.GetOperationID()).
 					Error("failed to create operation instance")
 
 				return err
 			}
 
 			logger.G.Sys().
-				With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID(), "oper-inst-id", operInst.GetOperationInstanceID()).
+				With("trigger-id", trigCtl.GetTriggerID(),
+					"operation-id", ctl.GetOperationID(),
+					"oper-inst-id", operInst.GetOperationInstanceID()).
 				Debug("created operation instance")
 
 			return nil
 		})
 	}
 
-	return gp.Wait()
+	if err := gp.Wait(); err != nil {
+		return err
+	}
+
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).Debug("instantiate operation done")
+
+	return nil
 }
 
 const (
