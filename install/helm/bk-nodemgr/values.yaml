@@ -704,8 +704,6 @@ application:
       bkIamSaaSHost: ""
       ## bkUserSaaSHost is the BK User saas host, default is empty.
       bkUserSaaSHost: ""
-      ## bkAPIGWBaseURL is the base URL of the API gateway, default is empty.
-      bkAPIGWBaseURL: ""
 
     # defines the nodemgr backend (BK API gateway) related settings.
     backend:
