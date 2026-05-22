@@ -251,9 +251,7 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 	// Handling Hosts that Only Exist in the CMDB (New Hosts)
 	for _, host := range cmdbHostMap {
 		// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
-		if host.Static.SyncedAgentID != "" {
-			host.Dynamic.AgentID = host.Static.SyncedAgentID
-		}
+		syncDataUtils.FillHostDynamicAgentID(host)
 
 		insertHosts = append(insertHosts, host)
 	}

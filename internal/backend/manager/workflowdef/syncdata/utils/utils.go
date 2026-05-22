@@ -10,3 +10,12 @@
 
 // Package utils use to provide some common utils for sync data actions.
 package utils
+
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+
+// FillHostDynamicAgentID fill the dynamic agent ID of the host with the synced agent ID if it exists.
+func FillHostDynamicAgentID(host *types.Host) {
+	if host.Static.SyncedAgentID != "" {
+		host.Dynamic.AgentID = host.Static.SyncedAgentID
+	}
+}

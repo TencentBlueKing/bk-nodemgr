@@ -482,7 +482,7 @@ func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataU
 	}
 
 	host := hosts[0]
-	host.Dynamic.AgentID = host.Static.SyncedAgentID
+	syncDataUtils.FillHostDynamicAgentID(host)
 	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", hostID, err).
