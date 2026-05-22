@@ -333,6 +333,8 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 		DeployToken:            std.Token(),
 		NodeVersion:            std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:             std.InstanceData().OperationInstanceID,
+		RenewGSEProc:           std.DeployInfo().InstallOptions.RenewGSEProc,
+		RenewGSETask:           std.DeployInfo().InstallOptions.RenewGSETask,
 		DownloadBeforeCallback: true,
 	}
 
