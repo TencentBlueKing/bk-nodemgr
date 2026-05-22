@@ -139,6 +139,8 @@ const (
 	periodicTriggersSyncAndCheckIntervalDefault     = 1 * time.Second
 	checkAccumulateOperationInstanceIntervalDefault = 1 * time.Minute
 
+	listAliveTriggerBatchSizeDefault = 500
+
 	taskIDSyncAndCheckOnceTrigger          = "sync_and_check_once_trigger"
 	taskIDSyncAndCheckOrderedTrigger       = "sync_and_check_ordered_trigger"
 	taskIDSyncAndCheckPeriodicTrigger      = "sync_and_check_periodic_trigger"
@@ -225,7 +227,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 
 // syncOnceTrigger syncs once triggers from storage.
 func (handler *triggerHandler) syncOnceTrigger(nCtx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, types.UnlimitedPage(), trigger.CategoryOnce)
+	list, err := handler.listActiveTriggers(nCtx, trigger.CategoryOnce)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.onceTriggers.set([]*trigger.Trigger{})
@@ -242,7 +244,7 @@ func (handler *triggerHandler) syncOnceTrigger(nCtx contextx.IContext) error {
 
 // syncOrderedTrigger syncs ordered triggers from storage.
 func (handler *triggerHandler) syncOrderedTrigger(nCtx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, types.UnlimitedPage(), trigger.CategoryOrdered)
+	list, err := handler.listActiveTriggers(nCtx, trigger.CategoryOrdered)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.orderedTriggers.set([]*trigger.Trigger{})
@@ -259,7 +261,7 @@ func (handler *triggerHandler) syncOrderedTrigger(nCtx contextx.IContext) error 
 
 // syncPeriodicTrigger syncs periodic triggers from storage.
 func (handler *triggerHandler) syncPeriodicTrigger(nCtx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, types.UnlimitedPage(), trigger.CategoryPeriodic)
+	list, err := handler.listActiveTriggers(nCtx, trigger.CategoryPeriodic)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.periodicTriggers.set([]*trigger.Trigger{})
@@ -272,6 +274,21 @@ func (handler *triggerHandler) syncPeriodicTrigger(nCtx contextx.IContext) error
 	handler.periodicTriggers.set(list)
 
 	return nil
+}
+
+// listActiveTriggers lists active triggers by category in pages.
+func (handler *triggerHandler) listActiveTriggers(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
+	executor := pageexecutor.NewPageExecutor[*trigger.Trigger](listAliveTriggerBatchSizeDefault, defaultTimeout)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*trigger.Trigger, error) {
+		return handler.mgr.stgTrigger.ListActiveTrigger(nCtx, p, category)
+	}
+
+	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list active triggers, category(%s): %w", category, err)
+	}
+
+	return result.Items, nil
 }
 
 // executeTriggerList executes the trigger list.
