@@ -31,7 +31,7 @@ const (
 	// ActionNameSyncHost defines the action name.
 	ActionNameSyncHost = "sync_host"
 
-	syncHostDBBatchSize = 500
+	syncHostDBBatchSize = 100
 )
 
 // NewActionSyncHost creates a new actionSyncHost.
@@ -294,7 +294,8 @@ func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, ho
 	return backfillHosts
 }
 
-func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64, cmdbData ...*types.Host) error {
+func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64,
+	cmdbData ...*types.Host) error {
 	hostIDs := conv.SliceToSlice(cmdbData, func(host *types.Host) int64 {
 		return host.HostID
 	})
