@@ -232,11 +232,11 @@ const router = useRouter();
 const userStore = useUserStore();
 
 // 同步初始化 BkUserDisplayName（必须在任何 <bk-user-display-name> 渲染之前调用）
-if (window.PROJECT_CONFIG.BK_APIGW_BASE_URL && window.PROJECT_CONFIG.BK_TENANT) {
+if (window.PROJECT_CONFIG.BK_USER_WEB_URL && window.PROJECT_CONFIG.BK_TENANT) {
   BkUserDisplayName.configure({
     tenantId: window.PROJECT_CONFIG.BK_TENANT,
     // 后端 URL 带尾缀 /，去掉尾部 / 避免拼接路径时出现 //
-    apiBaseUrl: window.PROJECT_CONFIG.BK_APIGW_BASE_URL.replace(/\/$/, ''),
+    apiBaseUrl: window.PROJECT_CONFIG.BK_USER_WEB_URL.replace(/\/$/, ''),
     cacheDuration: 1000 * 60 * 5,
     emptyText: window.PROJECT_CONFIG.LOGIN_NAME || '--',
   });

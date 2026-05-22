@@ -19,6 +19,6 @@ const props = defineProps<{
   name: string;
 }>();
 
-const hasApigwBaseUrl = computed(() => window.PROJECT_CONFIG.BK_APIGW_BASE_URL);
+const hasApigwBaseUrl = computed(() => window.PROJECT_CONFIG.BK_USER_WEB_URL);
 const tenant = computed(() => window.PROJECT_CONFIG.BK_TENANT);
 </script>

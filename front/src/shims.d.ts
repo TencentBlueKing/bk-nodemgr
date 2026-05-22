@@ -24,7 +24,6 @@ declare interface Window {
     BK_IAM_SAAS_HOST: string,
     BK_USER_SAAS_HOST: string,
     USER_TIMEZONE: string,
-    BK_APIGW_BASE_URL: string,
     BK_USERNAME: string,
     USER_EMAIL: string,
   }
