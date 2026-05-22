@@ -25,8 +25,6 @@ front:
   bkIamSaaSHost: __BK_NODEMGR_APPLICATION_IAM_SAAS_HOST__
   # bk user saas host.
   bkUserSaaSHost: __BK_NODEMGR_APPLICATION_USER_SAAS_HOST__
-  # bk api gateway base url.
-  bkAPIGWBaseURL: __BK_NODEMGR_APPLICATION_API_GW_BASE_URL__
 
 # infoServer defines self info http server settings.
 infoServer:
