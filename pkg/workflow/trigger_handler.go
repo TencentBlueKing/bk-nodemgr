@@ -69,8 +69,6 @@ const (
 
 	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
 	instantiateOperationConcurrency = 20
-	// launchOperationInstanceConcurrency limits concurrent MongoDB writes when launching operation instances.
-	launchOperationInstanceConcurrency = 20
 )
 
 func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*triggerHandler, error) {
@@ -482,6 +480,10 @@ const (
 	instantiateOperationTimeoutRatio = 4
 	// instantiateOperationListCostLimit is the maximum expected cost of one ListNeedInstantiateOperation page.
 	instantiateOperationListCostLimit = 1 * time.Second
+	// launchOperationInstanceTimeoutRatio reserves one quarter of defaultTimeout for operation instance launches.
+	launchOperationInstanceTimeoutRatio = 4
+	// launchOperationInstanceCostLimit is the maximum expected cost of one LaunchOperationInstance DB operation.
+	launchOperationInstanceCostLimit = 1 * time.Second
 )
 
 // onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
@@ -499,6 +501,14 @@ func instantiateOperationBatchSize() int {
 	pageCount := int(queryBudget / instantiateOperationListCostLimit)
 
 	return pageCount * instantiateOperationConcurrency
+}
+
+// launchOperationInstanceConcurrency returns the concurrent launches needed to finish one once-trigger batch within the launch budget.
+func launchOperationInstanceConcurrency() int {
+	launchBudget := defaultTimeout / launchOperationInstanceTimeoutRatio
+	operationCountPerWorker := max(1, int(launchBudget/launchOperationInstanceCostLimit))
+
+	return (instantiateOperationBatchSize() + operationCountPerWorker - 1) / operationCountPerWorker
 }
 
 func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
@@ -627,7 +637,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 
 func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl, instanceCtls []IOperationInstanceCtl) error {
 	gp := gopool.NewPool()
-	gp.SetLimit(launchOperationInstanceConcurrency)
+	gp.SetLimit(launchOperationInstanceConcurrency())
 	for _, instanceCtl := range instanceCtls {
 		ctl := instanceCtl
 		gp.Go(func() error {
