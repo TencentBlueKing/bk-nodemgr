@@ -49,18 +49,6 @@ type ActionParamCleanInstaller struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
-// CleanParams this struct defines the parameters for clean installer temp files.
-type CleanParams struct {
-	AgentID          string
-	InstallerName    string
-	InstallerWorkDir string
-	Generation       types.Generation
-	NodeRole         types.NodeRole
-	BaseWorkDir      string
-	BaseDeployDir    string
-	AdditionArgs     []string
-}
-
 type actionCleanInstaller struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -141,14 +129,16 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	cleanParams := &CleanParams{
-		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
-		InstallerName:    toolName,
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
-		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
-		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
-		BaseWorkDir:      std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:    std.DeployInfo().BaseRuntime.BaseDeployDir,
+	cleanParams := &installer.NodeStepCleanTmpParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
+		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerFileName: toolName,
 	}
 
 	// exec upgrade command
@@ -160,21 +150,8 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) error {
 }
 
 // nolint: perfsprint
-func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder, param *CleanParams) error {
-	cleanParams := &installer.NodeStepCleanTmpParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-	}
-
-	_, cleanCmd, err := cleanParams.ToUnixScript()
+func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
+	_, cleanCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
 	}
@@ -187,13 +164,13 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > clean.sh && sh clean.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
+			param.InstallWorkDir,
 			cleanCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {
@@ -208,21 +185,8 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 }
 
 // nolint: perfsprint
-func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandarder, param *CleanParams) error {
-	cleanParams := &installer.NodeStepCleanTmpParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-	}
-
-	_, cleanCmd, err := cleanParams.ToWindowsScript()
+func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepCleanTmpParams) error {
+	_, cleanCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node clean tmp script: %w", err)
 	}
@@ -235,12 +199,12 @@ func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandar
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
 			cleanCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {

@@ -51,21 +51,6 @@ type ActionParamUninstallNode struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
-// UninstallParams this struct defines the parameters for uninstalling node through command.
-type UninstallParams struct {
-	AgentID          string
-	InstallerName    string
-	InstallerWorkDir string
-	Generation       types.Generation
-	NodeRole         types.NodeRole
-	CallbackSvrAddr  string
-	DeployToken      string
-	OperInstID       string
-	BaseWorkDir      string
-	BaseDeployDir    string
-	AdditionArgs     []string
-}
-
 type actionUninstallNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -161,17 +146,19 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
-	uninstallParams := &UninstallParams{
-		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
-		InstallerName:    toolName,
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
-		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
-		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  nodeUtils.BuildServerURLs(callbackEndpoints...),
-		DeployToken:      std.Token(),
-		OperInstID:       std.InstanceData().OperationInstanceID,
-		BaseWorkDir:      std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:    std.DeployInfo().BaseRuntime.BaseDeployDir,
+	uninstallParams := &installer.NodeUninstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
+		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerFileName: toolName,
+		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DeployToken:       std.Token(),
+		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
 
 	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
@@ -190,23 +177,8 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 }
 
 // nolint: perfsprint
-func (act *actionUninstallNode) doUninstallUnix(std *nodeUtils.NodeActionStandarder, param *UninstallParams) error {
-	uninstallParams := &installer.NodeUninstallParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-		CallbackSvrAddr:   param.CallbackSvrAddr,
-		DeployToken:       param.DeployToken,
-		OperInstID:        param.OperInstID,
-	}
-	_, uninstallCmd, err := uninstallParams.ToUnixScript()
+func (act *actionUninstallNode) doUninstallUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
+	_, uninstallCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
@@ -219,13 +191,13 @@ func (act *actionUninstallNode) doUninstallUnix(std *nodeUtils.NodeActionStandar
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > uninstall.sh && sh uninstall.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
+			param.InstallWorkDir,
 			uninstallCmd),
 		uninstallScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {
@@ -240,23 +212,8 @@ func (act *actionUninstallNode) doUninstallUnix(std *nodeUtils.NodeActionStandar
 }
 
 // nolint: perfsprint
-func (act *actionUninstallNode) doUninstallWindows(std *nodeUtils.NodeActionStandarder, param *UninstallParams) error {
-	uninstallParams := &installer.NodeUninstallParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-		CallbackSvrAddr:   param.CallbackSvrAddr,
-		DeployToken:       param.DeployToken,
-		OperInstID:        param.OperInstID,
-	}
-	_, uninstallCmd, err := uninstallParams.ToWindowsScript()
+func (act *actionUninstallNode) doUninstallWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeUninstallParams) error {
+	_, uninstallCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node uninstall script: %w", err)
 	}
@@ -269,12 +226,12 @@ func (act *actionUninstallNode) doUninstallWindows(std *nodeUtils.NodeActionStan
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
 			uninstallCmd),
 		uninstallScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {

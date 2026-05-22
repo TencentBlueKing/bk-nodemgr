@@ -47,18 +47,6 @@ type ActionParamRestartNode struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
-// RestartParams this struct defines the parameters for restarting node through command.
-type RestartParams struct {
-	AgentID          string
-	InstallerName    string
-	InstallerWorkDir string
-	Generation       types.Generation
-	NodeRole         types.NodeRole
-	BaseWorkDir      string
-	BaseDeployDir    string
-	AdditionArgs     []string
-}
-
 type actionRestartNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -232,14 +220,17 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 		return err
 	}
 
-	restartParams := &RestartParams{
-		AgentID:          info.Host.Dynamic.AgentID,
-		InstallerName:    toolName,
-		InstallerWorkDir: info.InstallerRuntime.WorkDir,
-		Generation:       info.Host.Dynamic.NodeGeneration,
-		NodeRole:         info.Host.Dynamic.NodeRole,
-		BaseWorkDir:      info.InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:    info.BaseRuntime.BaseDeployDir,
+	restartParams := &installer.NodeStepRestartParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(info.Host.Dynamic.NodeGeneration),
+			NodeRole:      string(info.Host.Dynamic.NodeRole),
+			BaseWorkDir:   info.InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: info.BaseRuntime.BaseDeployDir,
+		},
+		InstallWorkDir:    info.InstallerRuntime.WorkDir,
+		InstallerFileName: toolName,
+		Force:             true,
 	}
 
 	// exec upgrade command
@@ -251,22 +242,8 @@ func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionSta
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActionStandarder, param *RestartParams) error {
-	restartParams := &installer.NodeStepRestartParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-		Force:             true,
-	}
-
-	_, restartCmd, err := restartParams.ToUnixScript()
+func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
+	_, restartCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
 	}
@@ -279,13 +256,13 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > restart.sh && sh restart.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
+			param.InstallWorkDir,
 			restartCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {
@@ -300,22 +277,8 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeActionStandarder, param *RestartParams) error {
-	restartParams := &installer.NodeStepRestartParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-		Force:             true,
-	}
-
-	_, restartCmd, err := restartParams.ToWindowsScript()
+func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeStepRestartParams) error {
+	_, restartCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node restart script: %w", err)
 	}
@@ -328,12 +291,12 @@ func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeAc
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
 			restartCmd),
 		cleanScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {

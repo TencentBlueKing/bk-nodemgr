@@ -51,21 +51,6 @@ type ActionParamReconfigNode struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
-// ReconfigParams this struct defines the parameters for reconfiging node through command.
-type ReconfigParams struct {
-	AgentID          string
-	InstallerName    string
-	InstallerWorkDir string
-	Generation       types.Generation
-	NodeRole         types.NodeRole
-	CallbackSvrAddr  string
-	DeployToken      string
-	OperInstID       string
-	BaseWorkDir      string
-	BaseDeployDir    string
-	AdditionArgs     []string
-}
-
 type actionReconfigNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
@@ -161,17 +146,19 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
-	reconfigParams := &ReconfigParams{
-		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
-		InstallerName:    toolName,
-		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
-		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
-		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  nodeUtils.BuildServerURLs(callbackEndpoints...),
-		DeployToken:      std.Token(),
-		OperInstID:       std.InstanceData().OperationInstanceID,
-		BaseWorkDir:      std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:    std.DeployInfo().BaseRuntime.BaseDeployDir,
+	reconfigParams := &installer.NodeReconfigParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
+		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerFileName: toolName,
+		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DeployToken:       std.Token(),
+		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
 
 	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
@@ -190,23 +177,8 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 }
 
 // nolint: perfsprint
-func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *ReconfigParams) error {
-	reconfigParams := &installer.NodeReconfigParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-		CallbackSvrAddr:   param.CallbackSvrAddr,
-		DeployToken:       param.DeployToken,
-		OperInstID:        param.OperInstID,
-	}
-	_, reconfigCmd, err := reconfigParams.ToUnixScript()
+func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+	_, reconfigCmd, err := param.ToUnixScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
 	}
@@ -219,13 +191,13 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
+			param.InstallWorkDir,
 			reconfigCmd),
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {
@@ -240,23 +212,8 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 }
 
 // nolint: perfsprint
-func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *ReconfigParams) error {
-	reconfigParams := &installer.NodeReconfigParams{
-		NodeCommonParams: installer.NodeCommonParams{
-			DeployEnv:     system.GetEnv(),
-			Generation:    int(param.Generation),
-			NodeRole:      string(param.NodeRole),
-			BaseWorkDir:   param.BaseWorkDir,
-			BaseDeployDir: param.BaseDeployDir,
-			AdditionArgs:  param.AdditionArgs,
-		},
-		InstallWorkDir:    param.InstallerWorkDir,
-		InstallerFileName: param.InstallerName,
-		CallbackSvrAddr:   param.CallbackSvrAddr,
-		DeployToken:       param.DeployToken,
-		OperInstID:        param.OperInstID,
-	}
-	_, reconfigCmd, err := reconfigParams.ToWindowsScript()
+func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *installer.NodeReconfigParams) error {
+	_, reconfigCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return fmt.Errorf("failed to render node reconfig script: %w", err)
 	}
@@ -269,12 +226,12 @@ func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStanda
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
-			param.InstallerWorkDir,
+			param.InstallWorkDir,
 			reconfigCmd),
 		reconfigScriptTimeout,
 		&types.EndpointWithAuth{
 			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
+				AgentID: std.DeployInfo().Host.Dynamic.AgentID,
 			},
 		})
 	if err != nil {
