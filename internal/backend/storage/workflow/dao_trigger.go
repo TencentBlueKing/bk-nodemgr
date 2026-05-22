@@ -48,8 +48,8 @@ func (s *Storage) getTrigger(nCtx contextx.IContext, triggerID string) (*trigger
 }
 
 // listActiveTrigger lists active triggers by category.
-func (s *Storage) listActiveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
-	results, _, err := s.daoTrigger.List(nCtx, types.UnlimitedPage(),
+func (s *Storage) listActiveTrigger(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error) {
+	results, _, err := s.daoTrigger.List(nCtx, page,
 		daoTrigger.WithActive(true),
 		daoTrigger.WithCategory(category))
 	if err != nil {

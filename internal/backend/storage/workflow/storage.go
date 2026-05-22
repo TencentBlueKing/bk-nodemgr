@@ -231,7 +231,7 @@ func (s *Storage) GetTrigger(nCtx contextx.IContext, triggerID string) (*trigger
 }
 
 // ListActiveTrigger lists active triggers by given category.
-func (s *Storage) ListActiveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
+func (s *Storage) ListActiveTrigger(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error) {
 	var (
 		err     error
 		results []*trigger.Trigger
@@ -239,7 +239,7 @@ func (s *Storage) ListActiveTrigger(nCtx contextx.IContext, category trigger.Cat
 
 	err = s.WrapFn(nCtx, metricOperationListAliveTrigger, func(nCtx contextx.IContext) error {
 		var err error
-		if results, err = s.listActiveTrigger(nCtx, category); err != nil {
+		if results, err = s.listActiveTrigger(nCtx, page, category); err != nil {
 			logger.G.Sys().WithErr(err).With("category", category).Error("failed to list active triggers")
 
 			return fmt.Errorf("failed to list active triggers, category(%s): %w", category, err)

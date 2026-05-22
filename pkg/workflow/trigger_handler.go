@@ -225,7 +225,7 @@ func (handler *triggerHandler) initSchedulerTasks() {
 
 // syncOnceTrigger syncs once triggers from storage.
 func (handler *triggerHandler) syncOnceTrigger(nCtx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, trigger.CategoryOnce)
+	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, types.UnlimitedPage(), trigger.CategoryOnce)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.onceTriggers.set([]*trigger.Trigger{})
@@ -242,7 +242,7 @@ func (handler *triggerHandler) syncOnceTrigger(nCtx contextx.IContext) error {
 
 // syncOrderedTrigger syncs ordered triggers from storage.
 func (handler *triggerHandler) syncOrderedTrigger(nCtx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, trigger.CategoryOrdered)
+	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, types.UnlimitedPage(), trigger.CategoryOrdered)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.orderedTriggers.set([]*trigger.Trigger{})
@@ -259,7 +259,7 @@ func (handler *triggerHandler) syncOrderedTrigger(nCtx contextx.IContext) error 
 
 // syncPeriodicTrigger syncs periodic triggers from storage.
 func (handler *triggerHandler) syncPeriodicTrigger(nCtx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, trigger.CategoryPeriodic)
+	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, types.UnlimitedPage(), trigger.CategoryPeriodic)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.periodicTriggers.set([]*trigger.Trigger{})

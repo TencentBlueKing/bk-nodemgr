@@ -164,7 +164,7 @@ type IStorageTrigger interface {
 	SwitchTriggerActive(ctx contextx.IContext, triggerID string, active bool) error
 
 	// ListActiveTrigger lists active triggers by given category.
-	ListActiveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error)
+	ListActiveTrigger(ctx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error)
 
 	// ListTrigger lists triggers by given category.
 	ListTrigger(ctx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error)
