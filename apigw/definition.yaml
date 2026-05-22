@@ -4,7 +4,7 @@ release:
   # 发布版本号
   version: 2.10.1
   title: "bk-nodemgr"
-  comment: "v3.0.1-alpha.29"
+  comment: "v3.0.1-alpha.30"
 
 apigateway:
   description: "蓝鲸节点管理"

@@ -16020,6 +16020,10 @@ paths:
                         format: int64
                       install_pre_ordered_plugins:
                         type: boolean
+                      renew_gse_task:
+                        type: boolean
+                      renew_gse_proc:
+                        type: boolean
                       proxy_install_origin_unit_id:
                         type: integer
                         format: int64
