@@ -679,9 +679,6 @@ type Front struct {
 
 	// BKUserSaaSHost is the host of bk user saas.
 	BKUserSaaSHost string `yaml:"bkUserSaaSHost" usage:"bk user saas host of application service"`
-
-	// BKAPIGWHost is the host of bk apigw.
-	BKAPIGWBaseURL string `yaml:"bkAPIGWBaseURL" usage:"bk apigw base url of application service"`
 }
 
 // Validate validates the config.

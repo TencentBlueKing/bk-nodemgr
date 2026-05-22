@@ -104,7 +104,6 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_USERNAME":                 bkUsername,
 		"BK_IAM_SAAS_HOST":            h.frontSetting.BKIamSaaSHost(),
 		"BK_USER_SAAS_HOST":           h.frontSetting.BKUserSaaSHost(),
-		"BK_APIGW_BASE_URL":           h.frontSetting.BKAPIGWBaseURL(),
 		"USER_TIMEZONE":               userTimeZone,
 		"USER_EMAIL":                  userEmail,
 		"PASSWORD_VAULT_SWITCH":       h.frontSetting.PasswordVaultSwitch(),

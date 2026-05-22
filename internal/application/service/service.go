@@ -193,7 +193,6 @@ func (svc *Service) initialCapability() error {
 			BKPassAnalyticsScript:  svc.conf.BKPaas.AnalysisScript,
 			BKIamSaaSHost:          svc.conf.Front.BKIamSaaSHost,
 			BKUserSaaSHost:         svc.conf.Front.BKUserSaaSHost,
-			BKAPIGWBaseURL:         svc.conf.Front.BKAPIGWBaseURL,
 			PasswordVaultSwitch:    svc.conf.Front.PasswordVaultSwitch,
 			PasswordVaultName:      svc.conf.Front.PasswordVaultName,
 			BKUserWebURL:           svc.conf.Front.BKUserWebURL,

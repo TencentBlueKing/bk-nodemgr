@@ -31,7 +31,6 @@ func (testFrontSetting) BKRequestIDHeaderKey() string         { return "X-Reques
 func (testFrontSetting) BKPassAnalyticsScript() template.HTML { return "" }
 func (testFrontSetting) BKIamSaaSHost() string                { return "" }
 func (testFrontSetting) BKUserSaaSHost() string               { return "" }
-func (testFrontSetting) BKAPIGWBaseURL() string               { return "" }
 func (testFrontSetting) PasswordVaultSwitch() bool            { return false }
 func (testFrontSetting) PasswordVaultName() string            { return "" }
 func (testFrontSetting) BKUserWebURL() string                 { return "https://bkuser.example.com" }
