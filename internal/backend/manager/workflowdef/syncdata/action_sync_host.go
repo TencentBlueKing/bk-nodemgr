@@ -296,6 +296,7 @@ func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, ho
 
 func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64,
 	cmdbData ...*types.Host) error {
+
 	hostIDs := conv.SliceToSlice(cmdbData, func(host *types.Host) int64 {
 		return host.HostID
 	})
