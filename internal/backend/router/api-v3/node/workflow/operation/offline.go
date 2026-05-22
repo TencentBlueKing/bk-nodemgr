@@ -153,8 +153,12 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 	}
 
 	// build install.sh content.
-	installScript := buildOfflineInstallScript(
+	installScript, err := buildOfflineInstallScript(
 		deployInfo, deployInfo.InstallerRuntime.BaseWorkDir, deployInfo.BaseRuntime.BaseDeployDir, param.Token, lastInstID, installerFileName)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get offline install info, failed to build install script")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 
 	// build metadata.json content.
 	targetIP := ""
@@ -283,61 +287,32 @@ func buildOfflineInstallScript(
 	deployToken string,
 	operInstID string,
 	installerFileName string,
-) string {
-
-	deployEnv := system.GetEnv()
-	// dataDir mirrors installer's persistentVars.DataDir = baseWorkDir/deployEnv/data.
-	// Files from the extracted package's data/ must be placed here before the installer runs.
-	dataDir := fmt.Sprintf("%s/%s/data", baseWorkDir, deployEnv)
-
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", deployEnv),
-		fmt.Sprintf("--generation %d", deployInfo.Host.Dynamic.NodeGeneration),
-		fmt.Sprintf("--node_role %s", deployInfo.Host.Dynamic.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", baseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", baseDeployDir),
-		fmt.Sprintf("--deploy_token %s", deployToken),
-		fmt.Sprintf("--node_version %s", deployInfo.Host.Dynamic.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", operInstID),
-		"--skip_callback",
-		"--skip_download",
-		// Match manual install: stream installer progress to the shell (action_install_node_by_manual.buildCMD).
-		"--log_to_std",
+) (string, error) {
+	params := &installer.NodeOfflineInstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(deployInfo.Host.Dynamic.NodeGeneration),
+			NodeRole:      string(deployInfo.Host.Dynamic.NodeRole),
+			BaseWorkDir:   baseWorkDir,
+			BaseDeployDir: baseDeployDir,
+		},
+		InstallerFileName: installerFileName,
+		NodeVersion:       string(deployInfo.Host.Dynamic.NodeVersion),
+		DeployToken:       deployToken,
+		OperInstID:        operInstID,
+		LogToStd:          true,
 	}
 
 	if deployInfo.Host.Dynamic.AgentID != "" && !isWindows(deployInfo.Host.Dynamic.NodeOsType) {
-		args = append(args, fmt.Sprintf("--agent_id %s", deployInfo.Host.Dynamic.AgentID))
+		params.AgentID = string(deployInfo.Host.Dynamic.AgentID)
 	}
 
-	// Installer expects: release package, precheck.json, and configs in DataDir.
-	// Copy all content from the package's data/ directory into the expected location.
-	lines := []string{
-		"#!/bin/bash",
-		`set -e`,
-		`SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"`,
-		fmt.Sprintf(`DATA_DIR="%s"`, dataDir),
-		`mkdir -p "${DATA_DIR}"`,
-		fmt.Sprintf(`cp -rf "${SCRIPT_DIR}/%s/." "${DATA_DIR}/"`, installer.OfflinePkgRelPathData),
-		fmt.Sprintf(`chmod +x "${SCRIPT_DIR}/%s"`, installerFileName),
-		fmt.Sprintf(`"${SCRIPT_DIR}/%s" `, installerFileName) + installer.NodeCmdFullInstall + ` \`,
+	_, installScript, err := params.ToUnixScriptOffline()
+	if err != nil {
+		return "", fmt.Errorf("failed to render offline install script: %w", err)
 	}
 
-	for i, arg := range args {
-		if i < len(args)-1 {
-			lines = append(lines, "  "+arg+` \`)
-		} else {
-			lines = append(lines, "  "+arg)
-		}
-	}
-
-	// After the installer completes (--skip_callback), results are written to installer.data.json.
-	// Print the file content so the user can copy and paste it into the management portal.
-	lines = append(lines,
-		fmt.Sprintf(`echo "--- %s ---"`, installer.DataFileName),
-		fmt.Sprintf(`cat "%s/%s"`, dataDir, installer.DataFileName),
-	)
-
-	return strings.Join(lines, "\n") + "\n"
+	return installScript, nil
 }
 
 func isWindows(osType criteria.OSType) bool {
