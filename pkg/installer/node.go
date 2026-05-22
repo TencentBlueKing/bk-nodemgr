@@ -178,6 +178,8 @@ type NodeInstallParams struct {
 	LogToStd     bool
 	SkipDownload bool
 	SkipCallback bool
+	// DownloadBeforeCallback keeps legacy token-first install arg order for compatibility.
+	DownloadBeforeCallback bool
 }
 
 // Validate validates the full node install params required by the installer CLI.
@@ -585,7 +587,9 @@ func (params *NodeInstallParams) ToWindowsScript() (string, string, error) {
 	}
 
 	args := params.buildServerFirstArgs()
-
+	if params.DownloadBeforeCallback {
+		args = params.buildDownloadBeforeCallbackArgs()
+	}
 	scriptName := "install.bat"
 	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath))
 	scriptContent := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1", winpath.Join(params.BaseWorkDir, params.DeployEnv), params.InstallerPath, NodeCmdFullInstall, strings.Join(args, " "), stdoutPath)

@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
@@ -168,7 +167,10 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	callbackURLs, downloadURLs := std.BuildRelayServerURLs(relayInfo)
 
 	// build install command.
-	installCmd := act.buildInstallCmd(std, installerPath, downloadURLs, callbackURLs)
+	installCmd, err := act.buildInstallCmd(std, installerPath, downloadURLs, callbackURLs)
+	if err != nil {
+		return fmt.Errorf("failed to build install cmd: %w", err)
+	}
 
 	// notify relay to install.
 	if err := act.notifyRelayToInstall(std, cKey, toolName, installCmd, relayInfo); err != nil {
@@ -315,19 +317,23 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 func (act *actionInstallPagentByWMI) buildInstallCmd(
 	std *nodeUtils.NodeActionStandarder,
 	installerPath string,
-	downloadURLs, callbackURLs string) string {
+	downloadURLs, callbackURLs string) (string, error) {
 
-	installParams := &InstallParamsWin{
-		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
-		InstallerPath:   installerPath,
-		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
-		DeployToken:     std.Token(),
-		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
-		DownloadSvrAddr: downloadURLs,
-		CallbackSvrAddr: callbackURLs,
+	installParams := &installer.NodeInstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
+		InstallerPath:          installerPath,
+		DownloadSvrAddr:        downloadURLs,
+		CallbackSvrAddr:        callbackURLs,
+		DeployToken:            std.Token(),
+		NodeVersion:            std.DeployInfo().Host.Dynamic.NodeVersion,
+		OperInstID:             std.InstanceData().OperationInstanceID,
+		DownloadBeforeCallback: true,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -335,32 +341,15 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", installParams.Generation),
-		fmt.Sprintf("--node_role %s", installParams.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", installParams.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", installParams.BaseDeployDir),
-		fmt.Sprintf("--deploy_token %s", installParams.DeployToken),
-		fmt.Sprintf("--node_version %s", installParams.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", installParams.OperInstID),
-		fmt.Sprintf("--dlsvr_addr %s", installParams.DownloadSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", installParams.CallbackSvrAddr),
+	_, installCmd, err := installParams.ToWindowsScript()
+	if err != nil {
+		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}
-	if len(installParams.AdditionArgs) > 0 {
-		args = append(args, installParams.AdditionArgs...)
-	}
-
-	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installParams.InstallerPath))
-
-	installCmd := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1",
-		winpath.Join(installParams.BaseWorkDir, system.GetEnv()),
-		installParams.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
 
 	std.InstanceData().Log().
-		Zh("构建安装参数: %v", args).
-		En("build install params: %v", args).
+		Zh("构建安装命令: %v", installCmd).
+		En("build install cmd: %v", installCmd).
 		Info()
 
-	return installCmd
+	return installCmd, nil
 }

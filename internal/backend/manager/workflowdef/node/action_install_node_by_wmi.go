@@ -32,7 +32,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -58,21 +57,6 @@ func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 // ActParamInstallAgentByWMI ...
 type ActParamInstallAgentByWMI struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
-}
-
-// InstallParamsWin this struct defines the parameters for installing agent.
-type InstallParamsWin struct {
-	InstallerPath   string
-	Generation      types.Generation
-	NodeRole        types.NodeRole
-	CallbackSvrAddr string
-	DownloadSvrAddr string
-	NodeVersion     string
-	DeployToken     string
-	OperInstID      string
-	BaseWorkDir     string
-	BaseDeployDir   string
-	AdditionArgs    []string
 }
 
 type actionInstallNodeByWMI struct {
@@ -330,17 +314,20 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
-	installParams := &InstallParamsWin{
-		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
-		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
+	installParams := &installer.NodeInstallParams{
+		NodeCommonParams: installer.NodeCommonParams{
+			DeployEnv:     system.GetEnv(),
+			Generation:    int(std.DeployInfo().Host.Dynamic.NodeGeneration),
+			NodeRole:      string(std.DeployInfo().Host.Dynamic.NodeRole),
+			BaseWorkDir:   std.DeployInfo().InstallerRuntime.BaseWorkDir,
+			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
+		},
 		InstallerPath:   installerPath,
-		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
+		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,
-		BaseWorkDir:     std.DeployInfo().InstallerRuntime.BaseWorkDir,
-		BaseDeployDir:   std.DeployInfo().BaseRuntime.BaseDeployDir,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -348,7 +335,10 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installBat := act.buildBat(installParams)
+	installBat, err := act.buildBat(installParams)
+	if err != nil {
+		return fmt.Errorf("failed to build install bat: %w", err)
+	}
 	std.InstanceData().Log().
 		Zh("安装节点命令: %s", installBat).
 		En("install node cmd: %s", installBat).
@@ -391,28 +381,11 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 	return nil
 }
 
-// To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint
-func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
-	args := []string{
-		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
-		fmt.Sprintf("--generation %d", param.Generation),
-		fmt.Sprintf("--node_role %s", param.NodeRole),
-		fmt.Sprintf("--base_work_dir %s", param.BaseWorkDir),
-		fmt.Sprintf("--base_deploy_dir %s", param.BaseDeployDir),
-		fmt.Sprintf("--dlsvr_addr %s", param.DownloadSvrAddr),
-		fmt.Sprintf("--cbsvr_addr %s", param.CallbackSvrAddr),
-		fmt.Sprintf("--deploy_token %s", param.DeployToken),
-		fmt.Sprintf("--node_version %s", param.NodeVersion),
-		fmt.Sprintf("--oper_inst_id %s", param.OperInstID),
+func (act *actionInstallNodeByWMI) buildBat(param *installer.NodeInstallParams) (string, error) {
+	_, installCmd, err := param.ToWindowsScript()
+	if err != nil {
+		return "", fmt.Errorf("failed to render node install script: %w", err)
 	}
-	if len(param.AdditionArgs) > 0 {
-		args = append(args, param.AdditionArgs...)
-	}
-	installLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", param.InstallerPath))
 
-	installCmd := fmt.Sprintf("cd %s && %s %s %s >%s 2>&1",
-		winpath.Join(param.BaseWorkDir, system.GetEnv()), param.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
-
-	return installCmd
+	return installCmd, nil
 }
