@@ -288,6 +288,7 @@ func buildOfflineInstallScript(
 	operInstID string,
 	installerFileName string,
 ) (string, error) {
+
 	params := &installer.NodeOfflineInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:     system.GetEnv(),
