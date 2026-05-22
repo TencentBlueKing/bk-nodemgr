@@ -178,6 +178,8 @@ type NodeInstallParams struct {
 	LogToStd     bool
 	SkipDownload bool
 	SkipCallback bool
+	RenewGSEProc bool
+	RenewGSETask bool
 	// DownloadBeforeCallback keeps legacy token-first install arg order for compatibility.
 	DownloadBeforeCallback bool
 }
@@ -212,7 +214,7 @@ func (params *NodeInstallParams) buildArgs() []string {
 	)
 	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
 	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
-	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -226,7 +228,7 @@ func (params *NodeInstallParams) buildDownloadBeforeCallbackArgs() []string {
 	)
 	args = appendNodeDownloadArg(args, params.SkipDownload, params.DownloadSvrAddr)
 	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
-	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -240,7 +242,7 @@ func (params *NodeInstallParams) buildServerFirstArgs() []string {
 		fmt.Sprintf("--%s %s", nodeFlagNodeVersion, params.NodeVersion),
 		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
 	)
-	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -540,7 +542,9 @@ type NodeOfflineInstallParams struct {
 	OperInstID  string
 	AgentID     string
 
-	LogToStd bool
+	LogToStd     bool
+	RenewGSEProc bool
+	RenewGSETask bool
 }
 
 // Validate validates the offline node install params required by the installer CLI.
@@ -573,7 +577,7 @@ func (params *NodeOfflineInstallParams) buildArgs() []string {
 		fmt.Sprintf("--%s", nodeFlagSkipCallback),
 		fmt.Sprintf("--%s", nodeFlagSkipDownload),
 	)
-	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID)
+	args = appendNodeInstallOptionalArgs(args, params.LogToStd, params.AgentID, params.RenewGSEProc, params.RenewGSETask)
 
 	return append(args, params.AdditionArgs...)
 }
@@ -801,13 +805,21 @@ func appendNodeCallbackArg(args []string, skipCallback bool, callbackSvrAddr str
 	return append(args, fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, callbackSvrAddr))
 }
 
-func appendNodeInstallOptionalArgs(args []string, logToStd bool, agentID string) []string {
+func appendNodeInstallOptionalArgs(args []string, logToStd bool, agentID string, renewGSEProc bool, renewGSETask bool) []string {
 	if logToStd {
 		args = append(args, fmt.Sprintf("--%s", nodeFlagLogToStd))
 	}
 
 	if agentID != "" {
 		args = append(args, fmt.Sprintf("--%s %s", nodeFlagAgentID, agentID))
+	}
+
+	if renewGSEProc {
+		args = append(args, fmt.Sprintf("--%s", nodeFlagRenewGSEProc))
+	}
+
+	if renewGSETask {
+		args = append(args, fmt.Sprintf("--%s", nodeFlagRenewGSETask))
 	}
 
 	return args
