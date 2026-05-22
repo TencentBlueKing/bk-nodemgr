@@ -328,6 +328,8 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,
+		RenewGSEProc:    std.DeployInfo().InstallOptions.RenewGSEProc,
+		RenewGSETask:    std.DeployInfo().InstallOptions.RenewGSETask,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {

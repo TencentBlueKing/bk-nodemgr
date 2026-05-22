@@ -189,6 +189,8 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,
 		LogToStd:        true,
+		RenewGSEProc:    std.DeployInfo().InstallOptions.RenewGSEProc,
+		RenewGSETask:    std.DeployInfo().InstallOptions.RenewGSETask,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
