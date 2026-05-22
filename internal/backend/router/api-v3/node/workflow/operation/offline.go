@@ -302,6 +302,8 @@ func buildOfflineInstallScript(
 		DeployToken:       deployToken,
 		OperInstID:        operInstID,
 		LogToStd:          true,
+		RenewGSEProc:      deployInfo.InstallOptions.RenewGSEProc,
+		RenewGSETask:      deployInfo.InstallOptions.RenewGSETask,
 	}
 
 	if deployInfo.Host.Dynamic.AgentID != "" && !isWindows(deployInfo.Host.Dynamic.NodeOsType) {
