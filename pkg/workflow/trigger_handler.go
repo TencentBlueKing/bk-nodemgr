@@ -66,9 +66,6 @@ func (ct *cachedTriggers) get() []*trigger.Trigger {
 const (
 	triggerHandlerGoAsyncPoolNum         = 10000
 	triggerHandlerGoAsyncPoolPerPoolSize = 10000
-
-	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
-	instantiateOperationConcurrency = 20
 )
 
 func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*triggerHandler, error) {
@@ -418,6 +415,45 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 	}
 }
 
+const (
+	// instantiateOperationTimeoutRatio reserves one quarter of defaultTimeout for operation instantiation queries.
+	instantiateOperationTimeoutRatio = 4
+	// instantiateOperationListCostLimit is the maximum expected cost of one ListNeedInstantiateOperation page.
+	instantiateOperationListCostLimit = 1 * time.Second
+	// launchOperationInstanceTimeoutRatio reserves one quarter of defaultTimeout for operation instance launches.
+	launchOperationInstanceTimeoutRatio = 4
+	// launchOperationInstanceCostLimit is the maximum expected cost of one LaunchOperationInstance DB operation.
+	launchOperationInstanceCostLimit = 1 * time.Second
+
+	// instantiateOperationConcurrency limits concurrent MongoDB writes when creating operation instances.
+	instantiateOperationConcurrency = 20
+)
+
+// onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
+func onceTriggerBatchSize() int {
+	return instantiateOperationBatchSize()
+}
+
+// orderedTriggerBatchSize returns the maximum operations instantiated and launched per ordered trigger cycle.
+func orderedTriggerBatchSize() int {
+	return instantiateOperationBatchSize()
+}
+
+func instantiateOperationBatchSize() int {
+	queryBudget := defaultTimeout / instantiateOperationTimeoutRatio
+	pageCount := int(queryBudget / instantiateOperationListCostLimit)
+
+	return pageCount * instantiateOperationConcurrency
+}
+
+// launchOperationInstanceConcurrency returns the concurrent launches needed to finish one once-trigger batch within the launch budget.
+func launchOperationInstanceConcurrency() int {
+	launchBudget := defaultTimeout / launchOperationInstanceTimeoutRatio
+	operationCountPerWorker := max(1, int(launchBudget/launchOperationInstanceCostLimit))
+
+	return (instantiateOperationBatchSize() + operationCountPerWorker - 1) / operationCountPerWorker
+}
+
 // Instantiate operation list queries are expected to finish within one quarter of defaultTimeout.
 // Each paged ListNeedInstantiateOperation call should finish within instantiateOperationListCostLimit.
 
@@ -473,42 +509,6 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).Debug("instantiate operation done")
 
 	return nil
-}
-
-const (
-	// instantiateOperationTimeoutRatio reserves one quarter of defaultTimeout for operation instantiation queries.
-	instantiateOperationTimeoutRatio = 4
-	// instantiateOperationListCostLimit is the maximum expected cost of one ListNeedInstantiateOperation page.
-	instantiateOperationListCostLimit = 1 * time.Second
-	// launchOperationInstanceTimeoutRatio reserves one quarter of defaultTimeout for operation instance launches.
-	launchOperationInstanceTimeoutRatio = 4
-	// launchOperationInstanceCostLimit is the maximum expected cost of one LaunchOperationInstance DB operation.
-	launchOperationInstanceCostLimit = 1 * time.Second
-)
-
-// onceTriggerBatchSize returns the maximum operations instantiated and launched per once trigger cycle.
-func onceTriggerBatchSize() int {
-	return instantiateOperationBatchSize()
-}
-
-// orderedTriggerBatchSize returns the maximum operations instantiated and launched per ordered trigger cycle.
-func orderedTriggerBatchSize() int {
-	return instantiateOperationBatchSize()
-}
-
-func instantiateOperationBatchSize() int {
-	queryBudget := defaultTimeout / instantiateOperationTimeoutRatio
-	pageCount := int(queryBudget / instantiateOperationListCostLimit)
-
-	return pageCount * instantiateOperationConcurrency
-}
-
-// launchOperationInstanceConcurrency returns the concurrent launches needed to finish one once-trigger batch within the launch budget.
-func launchOperationInstanceConcurrency() int {
-	launchBudget := defaultTimeout / launchOperationInstanceTimeoutRatio
-	operationCountPerWorker := max(1, int(launchBudget/launchOperationInstanceCostLimit))
-
-	return (instantiateOperationBatchSize() + operationCountPerWorker - 1) / operationCountPerWorker
 }
 
 func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
