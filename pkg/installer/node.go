@@ -459,10 +459,74 @@ func (params *NodeStepRestartParams) buildArgs() []string {
 	return append(args, params.AdditionArgs...)
 }
 
+// ToUnixScript converts the restart step params to a unix script.
+func (params *NodeStepRestartParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "restart.sh"
+	scriptContent := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &", installerPath, installerPath, NodeCmdStepRestart, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the restart step params to a windows script.
+func (params *NodeStepRestartParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "restart.bat"
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1", installerPath, NodeCmdStepRestart, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
 func (params *NodeStepCleanTmpParams) buildArgs() []string {
 	args := params.NodeCommonParams.buildArgs()
 
 	return append(args, params.AdditionArgs...)
+}
+
+// ToUnixScript converts the clean temporary files step params to a unix script.
+func (params *NodeStepCleanTmpParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := filepath.Clean(filepath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := filepath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "clean.sh"
+	scriptContent := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &", installerPath, installerPath, NodeCmdStepCleanTmp, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the clean temporary files step params to a windows script.
+func (params *NodeStepCleanTmpParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+	installerPath := winpath.Clean(winpath.Join(params.InstallWorkDir, params.InstallerFileName))
+	stdoutPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
+
+	scriptName := "clean.bat"
+	scriptContent := fmt.Sprintf("%s %s %s >%s 2>&1", installerPath, NodeCmdStepCleanTmp, strings.Join(args, " "), stdoutPath)
+
+	return scriptName, scriptContent, nil
 }
 
 // NodeOfflineInstallParams defines the params for rendering an offline node install command.
