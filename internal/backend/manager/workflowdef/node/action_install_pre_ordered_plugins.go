@@ -182,12 +182,14 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	}
 	close(subWorkflowRefChan)
 
-	subWorkflowRefs := []types.SubWorkflowRef{}
+	var subWorkflowRefs []types.SubWorkflowRef
 	for subWorkflowRef := range subWorkflowRefChan {
 		subWorkflowRefs = append(subWorkflowRefs, subWorkflowRef)
 	}
 
-	act.waitWorkflow(std, subWorkflowRefs)
+	if err := act.waitWorkflow(std, subWorkflowRefs); err != nil {
+		return err
+	}
 
 	return nil
 }
