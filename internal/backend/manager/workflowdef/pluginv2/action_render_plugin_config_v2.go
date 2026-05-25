@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -35,7 +34,6 @@ const (
 func NewActionRenderPluginConfigV2(capability *Capability) action.Definition {
 	return &actionRenderPluginConfigV2{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoProcessV2Config:  capability.StoragePlugin,
 	}
 }
 
@@ -47,7 +45,6 @@ type ActParamRenderPluginConfigV2 struct {
 // actionRenderPluginConfigV2 ...
 type actionRenderPluginConfigV2 struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcessV2Config  pluginStg.IDaoProcessV2Config
 }
 
 // Name returns the name of the action.
@@ -121,22 +118,6 @@ func (act *actionRenderPluginConfigV2) Do(ctx *action.InstanceContext) error {
 
 	if err := act.daoPluginDeployment.UpdatePluginDeploymentPluginConf(std.Context(), std.Token(), pluginConf); err != nil {
 		return fmt.Errorf("failed to update plugin deployment plugin conf: %w", err)
-	}
-
-	configs := conv.SliceToSlice(pluginConf.ConfigFilesDetail, func(detail *types.PluginConfigDetail) *types.ProcessConfig {
-		return &types.ProcessConfig{
-			Name:         detail.Name,
-			ProcessName:  std.DeployInfo().Process.PluginName,
-			HostID:       std.DeployInfo().Process.HostID,
-			IsMainConfig: detail.IsMainConfig,
-			Content:      detail.Content,
-			MD5:          crypter.MD5Sum(detail.Content),
-			FilePath:     detail.FilePath,
-		}
-	})
-
-	if err = act.daoProcessV2Config.UpsertProcessV2Configs(std.Context(), configs...); err != nil {
-		return fmt.Errorf("failed to upsert process v2 configs: %w", err)
 	}
 
 	std.InstanceData().Log().

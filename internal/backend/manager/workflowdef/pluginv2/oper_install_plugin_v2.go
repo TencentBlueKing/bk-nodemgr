@@ -45,8 +45,7 @@ func (oper *operInstallPluginV2) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operInstallPluginV2) ActionDefNames() []string {
 	return []string{
-		ActionNameTryStopProcessV2,
-		ActionNameUpsertProcessV2,
+		ActionNameFetchPluginProcessV2,
 		ActionNameVerifyPluginAvailabilityV2,
 		ActionNameInjectPluginBaseRuntimeV2,
 		ActionNameRenderPluginDeploymentV2,
@@ -56,7 +55,6 @@ func (oper *operInstallPluginV2) ActionDefNames() []string {
 		ActionNameInstallPluginV2,
 		ActionNameWaitPluginInstallerCompleteV2,
 		ActionNameStartProcessV2,
-		ActionNameUpdateProcessV2,
 	}
 }
 
@@ -66,8 +64,7 @@ func (oper *operInstallPluginV2) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameTryStopProcessV2:                     true,
-			ActionNameUpsertProcessV2:                      true,
+			ActionNameFetchPluginProcessV2:                 true,
 			ActionNameVerifyPluginAvailabilityV2:           true,
 			ActionNameInjectPluginBaseRuntimeV2:            true,
 			ActionNameRenderPluginDeploymentV2:             true,
@@ -77,7 +74,6 @@ func (oper *operInstallPluginV2) DefaultParameters() operation.Param {
 			ActionNameInstallPluginV2:                      true,
 			ActionNameWaitPluginInstallerCompleteV2:        false,
 			ActionNameStartProcessV2:                       true,
-			ActionNameUpdateProcessV2:                      true,
 		},
 	}
 }

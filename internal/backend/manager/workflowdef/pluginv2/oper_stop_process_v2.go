@@ -48,7 +48,6 @@ func (oper *operStopProcessV2) ActionDefNames() []string {
 		ActionNameFetchPluginProcessV2,
 		ActionNameCheckPluginProcessAliveV2,
 		ActionNameStopProcessV2,
-		ActionNameUpdateProcessV2,
 	}
 }
 
@@ -61,7 +60,6 @@ func (oper *operStopProcessV2) DefaultParameters() operation.Param {
 			ActionNameFetchPluginProcessV2:      true,
 			ActionNameCheckPluginProcessAliveV2: true,
 			ActionNameStopProcessV2:             true,
-			ActionNameUpdateProcessV2:           true,
 		},
 	}
 }
