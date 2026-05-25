@@ -41,6 +41,7 @@ description: Use when writing versioned bk-nodemgr changelog, release notes, or 
 - **changelog 是概要，不是详细变更说明**。用户应该点击 `Full Changelog` compare 链接查看详细内容
 - 先写“影响和动作”，再写“变化内容”
 - 先基于证据归纳，再输出面向用户的结论
+- **证据语言只用于内部判断，最终 changelog 必须是正式发布说明语气**：不要把“当前证据 / 无已知 / No known / current evidence / does not show / identified”这类审查口吻写进正文
 - 结构固定，章节可删减，但不要自由改写顺序
 - 宁可标记 `待确认`，也不要编造版本号、日期、tag、兼容性
 - 输出默认面向 **版本化文件 + API + 前端 Markdown 渲染链路**，避免依赖复杂 HTML 或页面私有能力
@@ -245,6 +246,10 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - 每个版本块应能独立阅读
 - 用户只要模板时输出空模板；用户给了事实时输出可发布正文
 - 术语前后一致，不混用同义词
+- 禁止审查/分析口吻进入正文：
+  - 中文避免：`当前证据`、`依据当前变更证据`、`无已知`、`未发现`、`未显示`
+  - English avoid: `No known`、`Based on current evidence`、`Current evidence does not show`、`is identified`
+  - 改写为发布说明语气：`本版本不涉及 ... 变更`、`... 保持兼容`、`本版本不引入新增组件依赖`、`This version does not change ...`、`... remain compatible`、`This version does not introduce ...`
 - 默认让正文可直接被 Markdown 渲染器消费，不额外依赖人工二次整理
 
 ## Quick Review Checklist
@@ -260,6 +265,7 @@ Full Changelog: [from-tag...to-tag](https://github.com/TencentBlueKing/bk-nodemg
 - [ ] 是否覆盖 compatibility 与前置条件
 - [ ] 是否对不确定信息使用 `待确认`
 - [ ] 是否避免实现细节和空泛措辞
+- [ ] 是否清理“当前证据 / 无已知 / No known / current evidence”等审查口吻，并改为正式发布说明语气
 - [ ] 是否适合直接被 changelog API / 前端页面消费（概要定位，不是详细变更说明）
 
 ## Eval / Acceptance Criteria
