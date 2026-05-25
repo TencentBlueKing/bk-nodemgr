@@ -423,7 +423,9 @@ const handleSelectChange = ({
   row: any;
 }) => {
   if (!row) return;
-  setRowCheckedByHostId(row.bk_host_id, checked);
+  const hostId = Number(row.bk_host_id);
+  if (!Number.isSafeInteger(hostId) || hostId <= 0) return;
+  setRowCheckedByHostId(hostId, checked);
   emit('selectChange', selection.value);
 };
 
@@ -449,12 +451,14 @@ const isIndeterminate = computed(() => {
 
 // 1. 处理单行勾选
 const handleRowCheck = (checked: boolean, row: any) => {
-  setRowCheckedByHostId(row.bk_host_id, checked);
+  const hostId = Number(row.bk_host_id);
+  if (!Number.isSafeInteger(hostId) || hostId <= 0) return;
+  setRowCheckedByHostId(hostId, checked);
   if (isCrossPageSelection.value) {
     if (!checked) {
-      excludedIds.value.add(row.bk_host_id);
+      excludedIds.value.add(hostId);
     } else {
-      excludedIds.value.delete(row.bk_host_id);
+      excludedIds.value.delete(hostId);
     }
   }
 };

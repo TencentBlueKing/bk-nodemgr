@@ -333,13 +333,13 @@ const getParams = () => {
     }
 
     if (item.id === 'bk_host_id') {
-      const hostIds = item.values
-        ?.map((value: any) => String(value.id).trim())
+      const hostIds: number[] = (item.values ?? [])
+        .map((value: any) => String(value.id).trim())
         .filter((value: string) => /^\d+$/.test(value))
         .map((value: string) => Number(value))
         .filter((value: number) => Number.isSafeInteger(value) && value > 0);
 
-      const uniqueHostIds = Array.from(new Set(hostIds));
+      const uniqueHostIds: number[] = Array.from(new Set<number>(hostIds));
       if (uniqueHostIds.length > 0) {
         params.exact_include_conditions.bk_host_id = uniqueHostIds;
       }
