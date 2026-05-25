@@ -195,6 +195,14 @@ func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.Sc
 		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
 	}
 
+	if err := mgr.ensureTrigger(nCtx, sw); err != nil {
+		return fmt.Errorf("failed to ensure scheduled workflow's trigger: %w", err)
+	}
+
+	return nil
+}
+
+func (mgr *Manager) ensureTrigger(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
 	trigCtl, err := mgr.workflowMgr.GetTrigger(nCtx, sw.TriggerID)
 	if err != nil {
 		return err
@@ -202,10 +210,61 @@ func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.Sc
 
 	// check if the trigger state is changed.
 	if !sw.Enabled {
-		return trigCtl.InactivateTrigger(nCtx)
+		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
+			logger.G.Sys().
+				With("workflow-name", sw.WorkflowName,
+					"scheduled-workflow-id", sw.WorkflowID,
+					"trigger-id", sw.TriggerID,
+				).
+				WithErr(err).Error("failed to inactivate scheduled workflow's trigger")
+
+			return fmt.Errorf("failed to inactivate scheduled workflow's trigger")
+		}
+	} else {
+		if err := trigCtl.ActivateTrigger(nCtx); err != nil {
+			logger.G.Sys().
+				With("workflow-name", sw.WorkflowName,
+					"scheduled-workflow-id", sw.WorkflowID,
+					"trigger-id", sw.TriggerID,
+				).
+				WithErr(err).Error("failed to activate scheduled workflow's trigger")
+
+			return fmt.Errorf("failed to activate scheduled workflow's trigger")
+		}
 	}
 
-	return trigCtl.ActivateTrigger(nCtx)
+	meta, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataPeriodic)
+	if !ok {
+		// notice: This is a case that should not have happened.
+		logger.G.Sys().With("workflow-name", sw.WorkflowName).
+			With("scheduled-workflow-id", sw.WorkflowID,
+				"original-trigger-metadata", meta,
+			).
+			Warn("happend unexpected trigger metadata, scheduled workflow's trigger was rebuild")
+
+		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
+	}
+
+	var needUpdate bool
+	if meta.Interval != sw.Interval {
+		meta.Interval = sw.Interval
+		needUpdate = true
+	}
+
+	if needUpdate {
+		if err := trigCtl.UpdateMetadata(nCtx, meta); err != nil {
+			logger.G.Sys().
+				With("workflow-name", sw.WorkflowName,
+					"scheduled-workflow-id", sw.WorkflowID,
+					"original-trigger-metadata", meta,
+				).
+				WithErr(err).Error("failed to update scheduled workflow's trigger metadata")
+
+			return fmt.Errorf("failed to update scheduled workflow's trigger metadata: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (mgr *Manager) trySyncingScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {

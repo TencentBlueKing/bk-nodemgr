@@ -81,6 +81,9 @@ type ITriggerCtl interface {
 	// UpdateLastTriggeredTime updates the last triggered time.
 	UpdateLastTriggeredTime(nCtx contextx.IContext) error
 
+	// UpdateMetadata updates the last triggered time.
+	UpdateMetadata(nCtx contextx.IContext, metadata trigger.Metadata) error
+
 	// UpdateOperationRetryFlag updates the operation retry flag.
 	UpdateOperationRetryFlag(nCtx contextx.IContext, mode operation.RetryMode, operationID ...string) error
 
@@ -153,6 +156,8 @@ func (mgr *manager) GetTrigger(nCtx contextx.IContext, triggerID string) (ITrigg
 		trig: trig,
 	}, nil
 }
+
+var _ ITriggerCtl = &controller{}
 
 type controller struct {
 	mgr *manager
@@ -296,6 +301,18 @@ func (ctl *controller) UpdateLastTriggeredTime(nCtx contextx.IContext) error {
 	ctl.trig.LastTriggeredAt = time.Now()
 	if err := ctl.mgr.stgTrigger.UpdateTrigger(nCtx, ctl.trig); err != nil {
 		logger.G.Sys().WithErr(err).With("trigger-id", ctl.trig.TriggerID).Error("failed to update last triggered time")
+
+		return err
+	}
+
+	return nil
+}
+
+// UpdateMetadata updates the metadata.
+func (ctl *controller) UpdateMetadata(nCtx contextx.IContext, metadata trigger.Metadata) error {
+	ctl.trig.Metadata = metadata
+	if err := ctl.mgr.stgTrigger.UpdateTrigger(nCtx, ctl.trig); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", ctl.trig.TriggerID).Error("failed to update metadata")
 
 		return err
 	}
