@@ -30,6 +30,7 @@ POST /api/v3/topo/host/get_host_distribution_by_networkarea_id
 | bk_networkunit_id | array<int64> | 否 | 接入点分组 ID 列表 |
 | node_generation | array<int64> | 否 | 节点代际列表 |
 | arch | array<string> | 否 | CPU 架构列表 |
+| proxy_tags | array<string> | 否 | Proxy 标签列表，可选值：`dedicated_installer`、`cluster_tunnel`、`file_tunnel`、`data_tunnel` |
 
 #### fuzzy_include_conditions
 

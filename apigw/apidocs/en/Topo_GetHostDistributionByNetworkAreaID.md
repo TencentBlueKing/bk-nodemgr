@@ -30,6 +30,7 @@ POST /api/v3/topo/host/get_host_distribution_by_networkarea_id
 | bk_networkunit_id | array<int64> | No | Network unit ID list |
 | node_generation | array<int64> | No | Node generation list |
 | arch | array<string> | No | CPU architecture list |
+| proxy_tags | array<string> | No | Proxy tag list. Valid values: `dedicated_installer`, `cluster_tunnel`, `file_tunnel`, `data_tunnel` |
 
 #### fuzzy_include_conditions
 

@@ -32,6 +32,7 @@ Exact match include conditions. Each field is an array and the server filters ho
 | bk_networkunit_id | int64 array | No | Network unit ID list |
 | node_generation | int64 array | No | Node generation list |
 | arch | string array | No | CPU architecture list |
+| proxy_tags | string array | No | Proxy tag list. Valid values: `dedicated_installer`, `cluster_tunnel`, `file_tunnel`, `data_tunnel` |
 
 #### fuzzy_include_conditions
 
