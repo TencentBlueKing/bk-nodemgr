@@ -91,6 +91,7 @@ type HostDynamicExactFields struct {
 	NodeVersion    []string
 	NodeGeneration []int64
 	AgentID        []string
+	ProxyTags      []ProxyTag
 }
 
 // HostDynamicFuzzyFields defines the host fuzzy fields.

@@ -353,6 +353,7 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 				host.WithDynamicNodeVersion(condition.DynamicExactInclude.NodeVersion...),
 				host.WithDynamicAgentID(condition.DynamicExactInclude.AgentID...),
 				host.WithDynamicNodeGeneration(condition.DynamicExactInclude.NodeGeneration...),
+				host.WithDynamicProxyTags(condition.DynamicExactInclude.ProxyTags...),
 			)
 		}
 
@@ -376,6 +377,7 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 				host.WithoutDynamicNodeVersion(condition.DynamicExactExclude.NodeVersion...),
 				host.WithoutDynamicAgentID(condition.DynamicExactExclude.AgentID...),
 				host.WithoutDynamicNodeGeneration(condition.DynamicExactExclude.NodeGeneration...),
+				host.WithoutDynamicProxyTags(condition.DynamicExactExclude.ProxyTags...),
 			)
 		}
 

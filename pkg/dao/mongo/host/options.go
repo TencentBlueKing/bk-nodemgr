@@ -178,6 +178,16 @@ func WithDynamicProxyTags(tags ...types.ProxyTag) OptFn {
 	return base.WithValues(FieldKeyDynamicProxyTags, str...)
 }
 
+// WithoutDynamicProxyTags filters by not contains proxy tag.
+func WithoutDynamicProxyTags(tags ...types.ProxyTag) OptFn {
+	str := make([]string, len(tags))
+	for idx, tag := range tags {
+		str[idx] = string(tag)
+	}
+
+	return base.WithoutValues(FieldKeyDynamicProxyTags, str...)
+}
+
 // WithDynamicProxyAccessDisabled filters by not contains proxy access disabled.
 func WithDynamicProxyAccessDisabled(bools ...bool) OptFn {
 	return base.WithValues(FieldKeyDynamicProxyAccessDisabled, bools...)
