@@ -42,6 +42,7 @@ func NewActionInstallPlugin(capability *Capability) action.Definition {
 		daoHost:             capability.StorageTopo,
 		daoNetworkUnit:      capability.StorageTopo,
 		daoPlugin:           capability.StoragePlugin,
+		daoProcess:          capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 		provider:            capability.DiscoverProvider,
 		gseHandler:          capability.GSEHandler,
@@ -58,6 +59,7 @@ type actionInstallPlugin struct {
 	daoHost             topoStg.IStorageHost
 	daoNetworkUnit      topoStg.IStorageNetworkUnit
 	daoPlugin           pluginStg.IDaoPlugin
+	daoProcess          pluginStg.IDaoProcess
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	provider            discover.Discover
 	gseHandler          gse.IHandler
@@ -198,11 +200,8 @@ func (act *actionInstallPlugin) buildInstallParams(
 		return nil, err
 	}
 
-	callbackEndpoints, downloadEndpoints, err := pluginUtils.GeneratePluginInstallerServerEndpoints(
-		std.Context(),
-		act.provider,
-		act.daoHost,
-		act.daoNetworkUnit,
+	callbackEndpoints, downloadEndpoints, err := pluginUtils.GeneratePluginInstallerServerEndpoints(std.Context(),
+		act.provider, act.daoHost, act.daoNetworkUnit, act.daoProcess,
 		std.DeployInfo().Process.HostID)
 	if err != nil {
 		err = fmt.Errorf("failed to generate plugin installer server endpoints: %w", err)
