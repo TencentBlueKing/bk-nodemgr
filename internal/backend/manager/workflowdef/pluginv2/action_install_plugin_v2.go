@@ -43,6 +43,7 @@ func NewActionInstallPluginV2(capability *Capability) action.Definition {
 		daoNetworkUnit:      capability.StorageTopo,
 		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
+		daoProcess:          capability.StoragePlugin,
 		provider:            capability.DiscoverProvider,
 		gseHandler:          capability.GSEHandler,
 	}
@@ -59,6 +60,7 @@ type actionInstallPluginV2 struct {
 	daoNetworkUnit      topoStg.IStorageNetworkUnit
 	daoPlugin           pluginStg.IDaoPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	daoProcess          pluginStg.IDaoProcess
 	provider            discover.Discover
 	gseHandler          gse.IHandler
 }
@@ -203,6 +205,7 @@ func (act *actionInstallPluginV2) buildInstallParams(
 		act.provider,
 		act.daoHost,
 		act.daoNetworkUnit,
+		act.daoProcess,
 		std.DeployInfo().Process.HostID)
 	if err != nil {
 		err = fmt.Errorf("failed to generate plugin v2 installer server endpoints: %w", err)

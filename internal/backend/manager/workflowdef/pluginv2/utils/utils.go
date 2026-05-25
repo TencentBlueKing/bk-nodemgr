@@ -19,10 +19,13 @@ import (
 	"slices"
 	"strings"
 
+	plugin "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -169,6 +172,7 @@ func GeneratePluginInstallerServerEndpoints(
 	provider discover.Discover,
 	storageHost topoStg.IStorageHost,
 	storageNetworkUnit topoStg.IStorageNetworkUnit,
+	storageProcess plugin.IDaoProcess,
 	hostID int64) ([]discover.Endpoint, []discover.Endpoint, error) {
 
 	// get host.
@@ -210,7 +214,7 @@ func GeneratePluginInstallerServerEndpoints(
 	}
 
 	// select relay endpoints for callback.
-	hosts, _, err := storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+	proxyHosts, _, err := storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
 		DynamicExactInclude: &types.HostDynamicExactFields{
 			NetworkUnitID: []int64{networkUnit.ID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
@@ -218,11 +222,44 @@ func GeneratePluginInstallerServerEndpoints(
 		},
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get running proxy: %w", err)
+		return nil, nil, fmt.Errorf("failed to list running proxy hosts: %w", err)
+	}
+	if len(proxyHosts) == 0 {
+		return nil, nil, nil
+	}
+
+	// check relay service is running.
+	proxyHostIDs := conv.SliceToSlice[*types.Host, int64](proxyHosts, func(host *types.Host) int64 {
+		return host.HostID
+	})
+	relayProcesses, _, err := storageProcess.ListProcesses(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{
+			HostID: proxyHostIDs,
+			InfoStatus: []types.ProcessStatus{
+				types.ProcessStatusRunning,
+			},
+			PluginName: []string{
+				relayhandler.PluginName,
+			},
+		},
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list running relay processes: %w", err)
+	}
+
+	runningRelayProcessMap, err := conv.SliceToMap[int64, *types.Process](relayProcesses,
+		func(p *types.Process) int64 { return p.HostID },
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to convert running relay processes: %w", err)
 	}
 
 	callbackEndpoints := make([]discover.Endpoint, 0)
-	for _, host := range hosts {
+	for _, host := range proxyHosts {
+		if _, ok := runningRelayProcessMap[host.HostID]; !ok {
+			continue
+		}
+
 		if host.HostID == hostID {
 			continue
 		}
