@@ -315,6 +315,7 @@ func convertHostConditionsToTypes(
 			NodeVersion:    exactCond.GetNodeVersion(),
 			NodeGeneration: exactCond.GetNodeGeneration(),
 			AgentID:        exactCond.GetBkAgentId(),
+			ProxyTags:      types.StringListToProxyTagList(exactCond.GetProxyTags()),
 		}
 	}
 
@@ -344,6 +345,7 @@ func convertHostConditionsToTypes(
 			NodeVersion:    exactExcCond.GetNodeVersion(),
 			NodeGeneration: exactExcCond.GetNodeGeneration(),
 			AgentID:        exactExcCond.GetBkAgentId(),
+			ProxyTags:      types.StringListToProxyTagList(exactExcCond.GetProxyTags()),
 		}
 	}
 
@@ -374,6 +376,7 @@ func convertHostConditionsFromTypes(
 		exactCond.NodeVersion = condition.DynamicExactInclude.NodeVersion
 		exactCond.NodeGeneration = condition.DynamicExactInclude.NodeGeneration
 		exactCond.BkAgentId = condition.DynamicExactInclude.AgentID
+		exactCond.ProxyTags = types.ProxyTagListToStringList(condition.DynamicExactInclude.ProxyTags)
 	}
 
 	if condition.StaticFuzzyInclude != nil {

@@ -412,6 +412,7 @@ message TopoHostExactConditions {
   repeated string bk_agent_id = 8;
   repeated int64 bk_networkunit_id = 9;
   repeated int64 node_generation = 10;
+  repeated string proxy_tags = 11;
 }
 
 // TopoHostFuzzyConditions describes host fuzzy conditions.

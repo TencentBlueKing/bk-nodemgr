@@ -2541,6 +2541,12 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "proxy_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "TopoHostExactConditions describes host exact conditions."
