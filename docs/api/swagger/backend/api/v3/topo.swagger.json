@@ -2669,6 +2669,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "proxy_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "TopoHostExactConditions describes host exact conditions."

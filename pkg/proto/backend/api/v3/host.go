@@ -631,6 +631,7 @@ func convertHostConditionsToTypes(
 			NodeVersion:    exactIncludeCond.GetNodeVersion(),
 			NodeGeneration: exactIncludeCond.GetNodeGeneration(),
 			AgentID:        exactIncludeCond.GetBkAgentId(),
+			ProxyTags:      types.StringListToProxyTagList(exactIncludeCond.GetProxyTags()),
 		}
 	}
 
@@ -662,6 +663,7 @@ func convertHostConditionsToTypes(
 			NodeVersion:    exactExcludeCond.GetNodeVersion(),
 			NodeGeneration: exactExcludeCond.GetNodeGeneration(),
 			AgentID:        exactExcludeCond.GetBkAgentId(),
+			ProxyTags:      types.StringListToProxyTagList(exactExcludeCond.GetProxyTags()),
 		}
 
 	}
@@ -704,6 +706,7 @@ func convertHostConditionsFromTypes(
 		exactIncludeCond.NodeVersion = condition.DynamicExactInclude.NodeVersion
 		exactIncludeCond.NodeGeneration = condition.DynamicExactInclude.NodeGeneration
 		exactIncludeCond.BkAgentId = condition.DynamicExactInclude.AgentID
+		exactIncludeCond.ProxyTags = types.ProxyTagListToStringList(condition.DynamicExactInclude.ProxyTags)
 	}
 
 	if condition.StaticExactExclude != nil {
@@ -721,6 +724,7 @@ func convertHostConditionsFromTypes(
 		exactExcludeCond.NodeVersion = condition.DynamicExactExclude.NodeVersion
 		exactExcludeCond.NodeGeneration = condition.DynamicExactExclude.NodeGeneration
 		exactExcludeCond.BkAgentId = condition.DynamicExactExclude.AgentID
+		exactExcludeCond.ProxyTags = types.ProxyTagListToStringList(condition.DynamicExactExclude.ProxyTags)
 	}
 
 	return exactIncludeCond, fuzzyIncludeCond, exactExcludeCond, nil
