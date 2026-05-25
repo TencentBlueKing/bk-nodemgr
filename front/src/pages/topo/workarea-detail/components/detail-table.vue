@@ -622,6 +622,21 @@ const getParams = () => {
       return;
     }
 
+    // Host ID：仅按精确条件传递，不参与任何自动识别/模糊匹配
+    if (item.id === 'bk_host_id' && item.values?.length) {
+      const hostIds = item.values
+        .map((value: any) => String(value.id).trim())
+        .filter((value: string) => /^\d+$/.test(value))
+        .map((value: string) => Number(value))
+        .filter((value: number) => Number.isSafeInteger(value) && value > 0);
+
+      const uniqueHostIds = Array.from(new Set(hostIds));
+      if (uniqueHostIds.length > 0) {
+        params.exact_include_conditions.bk_host_id = uniqueHostIds;
+      }
+      return;
+    }
+
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
@@ -765,6 +780,10 @@ const getHostDistinct = async () => {
         name: `${t('platform.nodeMan.bk_cloud_name')}ID:IP`,
         id: 'area_ip',
         multiple: true,
+      },
+      {
+        id: 'bk_host_id',
+        name: 'Host ID',
       },
       {
         name: 'AgentID',

@@ -212,6 +212,10 @@ const searchSelectData = ref<ISearchItem[]>([
     id: 'bk_agent_id',
   },
   {
+    name: 'Host ID',
+    id: 'bk_host_id',
+  },
+  {
     name: t('installProxy.proxyVersion'),
     id: 'node_version',
   },
@@ -324,6 +328,20 @@ const getParams = () => {
       }
       if (ipv6List.length > 0) {
         params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+      }
+      return;
+    }
+
+    if (item.id === 'bk_host_id') {
+      const hostIds = item.values
+        ?.map((value: any) => String(value.id).trim())
+        .filter((value: string) => /^\d+$/.test(value))
+        .map((value: string) => Number(value))
+        .filter((value: number) => Number.isSafeInteger(value) && value > 0);
+
+      const uniqueHostIds = Array.from(new Set(hostIds));
+      if (uniqueHostIds.length > 0) {
+        params.exact_include_conditions.bk_host_id = uniqueHostIds;
       }
       return;
     }

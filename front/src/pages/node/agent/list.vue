@@ -636,6 +636,7 @@ const searchSelectData = computed(() => [
   { id: 'ip', name: 'IP', multiple: true }, // 合并后的 IP 筛选
   { id: 'area_ip', name: t('platform.nodeMan.bk_cloud_name') + 'ID:IP', multiple: true }, // 管控区域ID:IP
   { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
+  { id: 'bk_host_id', name: 'Host ID', multiple: true },
   {
     id: 'bk_biz_id',
     name: t('platform.nodeMan.bk_biz_id'),
@@ -881,6 +882,20 @@ const getParams = () => {
       }
       return;
     }
+
+    if (item.id === 'bk_host_id') {
+      const hostIds = item.values
+        ?.map((value: any) => String(value.id).trim())
+        .filter((value: string) => /^\d+$/.test(value))
+        .map((value: string) => Number(value))
+        .filter((value: number) => Number.isSafeInteger(value) && value > 0);
+
+      const uniqueHostIds = Array.from(new Set(hostIds));
+      if (uniqueHostIds.length > 0) {
+        params.exact_include_conditions.bk_host_id = uniqueHostIds;
+      }
+      return;
+    }
     
     // 处理其他字段
     const target = fuzzyKeys.has(item.id)
@@ -1112,8 +1127,8 @@ const handleInputPaste = (data: { id: string; name: string; values: { id: string
 
   const lastItem = data[data.length - 1];
   
-  // 如果用户已经选择了类型（ip、area_ip、bk_agent_id），处理多分隔符输入
-  if (['ip', 'area_ip', 'bk_agent_id'].includes(lastItem.id) && lastItem.values.length > 0) {
+  // 如果用户已经选择了类型（ip、area_ip、bk_agent_id、bk_host_id），处理多分隔符输入
+  if (['ip', 'area_ip', 'bk_agent_id', 'bk_host_id'].includes(lastItem.id) && lastItem.values.length > 0) {
     // 遍历所有 values，解析每个可能包含多分隔符的值
     const allParsedItems: string[] = [];
     lastItem.values.forEach((value: any) => {
