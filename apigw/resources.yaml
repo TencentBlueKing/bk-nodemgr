@@ -1406,6 +1406,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -1628,6 +1632,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -1850,6 +1858,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -2189,6 +2201,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -2412,6 +2428,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -2465,6 +2485,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -2687,6 +2711,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -2740,6 +2768,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -2962,6 +2994,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -3015,6 +3051,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -3239,6 +3279,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -3292,6 +3336,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -3516,6 +3564,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -3569,6 +3621,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
@@ -6788,8 +6844,8 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
-                enable_compatibility_mode:
-                  type: boolean
+                      enable_compatibility_mode:
+                        type: boolean
               description: |-
                 PluginApplySubConfigReq describes the plugin apply sub-configuration
                 request.
@@ -6948,8 +7004,8 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
-                enable_compatibility_mode:
-                  type: boolean
+                      enable_compatibility_mode:
+                        type: boolean
               description: PluginInstallReq describes the plugin install request.
         required: true
         description: PluginInstallReq describes the plugin install request.
@@ -7428,6 +7484,8 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
+                      enable_compatibility_mode:
+                        type: boolean
               description: PluginUpgradeReq describes the plugin upgrade request.
         required: true
         description: PluginUpgradeReq describes the plugin upgrade request.
@@ -15995,6 +16053,10 @@ paths:
                         type: string
                       login_password:
                         type: string
+                      renew_gse_proc:
+                        type: boolean
+                      renew_gse_task:
+                        type: boolean
                       advertise_ip_v6:
                         type: string
                       bk_host_innerip:
@@ -16019,10 +16081,6 @@ paths:
                         title: credit expired interval in seconds, default is 86400 (24 hours)
                         format: int64
                       install_pre_ordered_plugins:
-                        type: boolean
-                      renew_gse_task:
-                        type: boolean
-                      renew_gse_proc:
                         type: boolean
                       proxy_install_origin_unit_id:
                         type: integer
@@ -23292,6 +23350,10 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    proxy_tags:
+                      type: array
+                      items:
+                        type: string
                     bk_agent_id:
                       type: array
                       items:
