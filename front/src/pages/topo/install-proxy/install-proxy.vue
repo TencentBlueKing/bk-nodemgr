@@ -7,6 +7,22 @@
     :before-close="handleBeforeClose"
   >
     <div class="py-[20px] px-[40px]">
+      <!-- 安装策略提示条 -->
+      <div
+        class="flex items-center min-h-[32px] bg-[#F0F8FF] border border-[#C5DAFF] rounded-[2px] py-[6px] px-[9px] gap-[9px]"
+      >
+        <i class="nodeman-icon nc-tips text-[#3A84FF]"></i>
+        <div class="flex-1 flex items-center text-[#4d4f56] text-[12px] leading-[20px]">
+          <span class="mr-[5px]">{{ $t('topoManager.installProxy.tips') }}</span>
+          <Button
+            text
+            theme="primary"
+            @click="handleShowStrategy"
+          >
+            {{ $t('topoManager.installProxy.guide') }}
+          </Button>
+        </div>
+      </div>
       <!-- form -->
       <Form ref="formRef" :model="form" :rules="formRules" class="mt-[24px]">
         <Form.FormItem
@@ -369,6 +385,12 @@
         <Button class="" @click="handleExcelImportCancel">{{ $t("action.cancel") }}</Button>
       </template>
     </Dialog>
+    <install-strategy-sideslider
+      v-model:is-show="isShowStrategy"
+      :table-data="form.info"
+      :network-unit-id="props.bk_networkunit_id || form.bk_networkunit_id"
+      :area-name="strategyAreaName"
+    />
   </Sideslider>
 </template>
 
@@ -383,6 +405,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import InstallStrategySideslider from './components/install-strategy-sideslider.vue';
 import ProxyPreview from './preview.vue';
 import SelectItemGroup from './components/select-item-group.vue';
 
@@ -395,6 +418,8 @@ import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/ut
 import Validate from '@/components/validate.vue';
 import BizSelect from '@/components/biz-select.vue';
 import { useMainStore } from '@/stores/main';
+import { useTopoStore } from '@/stores/topo';
+import { useWorkareaStore } from '@/stores/workarea';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
@@ -411,6 +436,8 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const mainStore = useMainStore();
+const topoStore = useTopoStore();
+const workareaStore = useWorkareaStore();
 const initData = {
   bk_host_id: '',
   bk_host_innerip: '',
@@ -692,6 +719,24 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     onCancel: () => reject(),
   });
 });
+
+// 安装策略侧边栏
+const isShowStrategy = ref(false);
+const handleShowStrategy = () => {
+  isShowStrategy.value = true;
+};
+const strategyAreaName = computed(() => {
+  if (form.bk_networkarea_name) return form.bk_networkarea_name;
+  const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+  if (!unitId) return '';
+  const unit = areaUnitlist.value.find((u: NetworkUnit) => u.bk_networkunit_id === unitId);
+  if (unit?.bk_networkarea_id != null) {
+    const area = workareaStore.allWorkareaList.get(unit.bk_networkarea_id);
+    return area?.bk_networkarea_name || '';
+  }
+  return '';
+});
+
 const formRef = ref(null);
 const installTableRef = ref(null);
 const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
@@ -909,6 +954,11 @@ watch(() => isShow.value, async () => {
     if (props.bk_networkunit_id) {
       await setDefaultInstallOrigin();
     }
+    // 预加载管控单元详情（含上游接入点信息），供安装策略侧边栏使用
+    const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+    if (unitId) {
+      topoStore.handleFetchNetworkUnitDetail(unitId);
+    }
   } else {
     formRef.value?.clearValidate();
     // 重置数据
@@ -930,6 +980,17 @@ watch(
     form.bk_networkunit_id = '';
     await getNetworkUnitList();
   },
+);
+
+// props 传入的管控单元 id 变化时预加载详情（供安装策略侧边栏使用）
+watch(
+  () => props.bk_networkunit_id,
+  (val) => {
+    if (val) {
+      topoStore.handleFetchNetworkUnitDetail(val);
+    }
+  },
+  { immediate: true },
 );
 // 当用户选择管控单元变化时，重新设置安装源默认值
 watch(

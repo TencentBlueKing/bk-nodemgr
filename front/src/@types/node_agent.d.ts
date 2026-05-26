@@ -17,6 +17,8 @@ export interface AgentInstallInfo {
   bk_host_id: number;
   re_register: boolean;
   install_pre_ordered_plugins: boolean;
+  renew_gse_task: boolean;
+  renew_gse_proc: boolean;
 }
 
 // NodeAgentInstallReq describes the HTTP request body when install node agent.

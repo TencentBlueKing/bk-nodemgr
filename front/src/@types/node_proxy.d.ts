@@ -28,6 +28,8 @@ export interface NodeProxyInstallHost {
   relay_callback_port: number;
   cpu_arch: string;
   install_pre_ordered_plugins: boolean;
+  renew_gse_task: boolean;
+  renew_gse_proc: boolean;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

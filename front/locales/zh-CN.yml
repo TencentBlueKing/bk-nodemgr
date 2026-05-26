@@ -510,6 +510,18 @@ topoManager:
     reinstall: 重装 Proxy
     tips: 安装Proxy需要开通一定的网络访问策略，完成Proxy信息填写后，可查看相应的安装指引
     guide: 安装要求
+    strategyTitle: 安装策略
+    strategyTip1: 1. 目标机器必须是 Linux 系统
+    strategyTip2: 2. Linux 系统使用非 root 安装时，要求可以免密sudo执行/tmp/setup_agent.sh 脚本
+    strategyTip3: '3. 直连 Proxy 端：保证与蓝鲸服务端以下端口互通，可使用telnet {ip} {port}来确认端口是否可通'
+    sourceAddress: 源地址
+    targetAddress: 目标地址
+    targetPort: 目标端口
+    protocol: 协议
+    purpose: 用途
+    purposeCluster: 信令控制
+    purposeFile: 文件传输
+    purposeData: 数据上报
     form:
       method: 安装方式
       info: 安装信息

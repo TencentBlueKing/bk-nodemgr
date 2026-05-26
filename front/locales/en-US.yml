@@ -510,6 +510,18 @@ topoManager:
     reinstall: Reinstall Proxy
     tips: Installing Proxy requires specific network access policies. Viewing the guide is available after completing the info.
     guide: Installation Requirements
+    strategyTitle: Installation Strategy
+    strategyTip1: 1. Target machine must be Linux system
+    strategyTip2: 2. For non-root installation on Linux, passwordless sudo must be available to execute /tmp/setup_agent.sh
+    strategyTip3: '3. Direct Proxy end: ensure the following ports are accessible to BlueKing server, use telnet {ip} {port} to verify'
+    sourceAddress: Source Address
+    targetAddress: Target Address
+    targetPort: Target Port
+    protocol: Protocol
+    purpose: Purpose
+    purposeCluster: Command Control
+    purposeFile: File Transfer
+    purposeData: Data Reporting
     form:
       method: Installation Method
       info: Installation Info

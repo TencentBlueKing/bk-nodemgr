@@ -40,6 +40,8 @@ export const useTopoStore = defineStore('topo', () => {
 
   // 有权限的接入点完整信息（含 endpoints），key = accesspoint_id
   const accessPointDetailMap = ref<Map<number, AccessPoint>>(new Map());
+  // 管控单元详情缓存（含 links / direct_endpoints），key = bk_networkunit_id
+  const networkUnitDetailMap = ref<Map<number, NetworkUnitDetail>>(new Map());
 
   const handleFetchTopoWorkareaList = async () => {
     const params: Partial<TopoNetworkAreaListReq> = {
@@ -175,6 +177,57 @@ export const useTopoStore = defineStore('topo', () => {
     allWorkGraphInfos.value = result.graph_node_info; // 这里返回的是包含 proxy 和 agent 的数据
   };
 
+  const handleFetchNetworkUnitDetail = async (id: number) => {
+    if (!id || networkUnitDetailMap.value.has(id)) {
+      return networkUnitDetailMap.value.get(id) || null;
+    }
+    const rawRes = await TopoService.NetworkUnitGet({
+      bk_networkunit_id: id,
+    }).catch(() => null);
+
+    // 适配后端可能返回 list 格式的情况（如 { items: [...] }）
+    let res = rawRes;
+    if (res && Array.isArray((res as any).items)) {
+      const found = (res as any).items.find((u: any) => u.bk_networkunit_id === id);
+      res = found || null;
+    }
+    if (res) {
+      
+
+      // 从 links 提取上游接入点 ID（安装策略需要这些）
+      const links = (res as any).links;
+      const upstreamApIds = new Set<number>();
+      if (links) {
+        for (const key of ['cluster', 'file', 'data'] as const) {
+          const link = links[key];
+          if (link?.accesspoint_id != null) {
+            upstreamApIds.add(link.accesspoint_id);
+          }
+        }
+      }
+
+      // 查询上游接入点详情（含 endpoints），结果存为数组
+      let upstreamApList: AccessPoint[] = [];
+      if (upstreamApIds.size > 0) {
+        const apIdArray = [...upstreamApIds];
+        const apResult = await TopoService.AccessPointList({
+          page: { offset: 0, limit: apIdArray.length },
+          only_count: false,
+          exact_include_conditions: { accesspoint_id: apIdArray },
+        } as any).catch(() => ({ total: 0, items: [] }));
+        upstreamApList = (apResult.items || []) as AccessPoint[];
+      }
+
+      // 挂载到 res 上，供 install-strategy 使用（数组格式，Vue 响应式友好）
+      (res as any).upstreamAccessPoints = upstreamApList;
+
+      const newMap = new Map(networkUnitDetailMap.value);
+      newMap.set(id, res);
+      networkUnitDetailMap.value = newMap;
+    }
+    return res;
+  };
+
   const accessPointData = computed(() => {
     const accessPoints: any[] = [];
     const accessPointUnitCount = new Map(); // 统计每个接入点的下游单元数量
@@ -287,6 +340,7 @@ export const useTopoStore = defineStore('topo', () => {
     workUnitByArea,
     accessPointData,
     accessPointDetailMap,
+    networkUnitDetailMap,
     serverData,
     areaDependencyMap,
     workareaTotalCount,
@@ -297,5 +351,6 @@ export const useTopoStore = defineStore('topo', () => {
     handleFetchTopoWorkGraphNode,
     handleFetchTopoWorkGraphInfo,
     handleFetchAllWorkUnit,
+    handleFetchNetworkUnitDetail,
   };
 });
