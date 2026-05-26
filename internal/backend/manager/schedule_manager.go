@@ -240,7 +240,7 @@ func (mgr *Manager) ensureTrigger(nCtx contextx.IContext, sw *types.ScheduledWor
 			With("scheduled-workflow-id", sw.WorkflowID,
 				"original-trigger-metadata", meta,
 			).
-			Warn("happend unexpected trigger metadata, scheduled workflow's trigger was rebuild")
+			Warn("happened unexpected trigger metadata, scheduled workflow's trigger was rebuild")
 
 		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
 	}
