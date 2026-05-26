@@ -141,7 +141,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	}()
 
 	gp := gopool.NewPool()
-	subWorkflowRefChan := make(chan types.SubWorkflowRef, 2)
+	subWorkflowRefChan := make(chan types.SubWorkflowRef, 2) // nolint: mnd
 	gp.Go(func() error {
 		execute, workflowID, err := act.installPreOrderedPlugin(std)
 		if err != nil {
@@ -182,7 +182,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	}
 	close(subWorkflowRefChan)
 
-	var subWorkflowRefs []types.SubWorkflowRef
+	subWorkflowRefs := make([]types.SubWorkflowRef, 0)
 	for subWorkflowRef := range subWorkflowRefChan {
 		subWorkflowRefs = append(subWorkflowRefs, subWorkflowRef)
 	}
