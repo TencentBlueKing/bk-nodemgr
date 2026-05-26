@@ -61,7 +61,7 @@
                   content: item.tooltip,
                   disabled: !item.disabled,
                 }"
-                @click.stop="!item.disabled && handleOperate(item.id, selection, true)"
+                @click="!item.disabled && handleOperate(item.id, selection, true)"
               >
                 {{ item.name }}
               </Dropdown.DropdownItem>
@@ -377,7 +377,7 @@
                       content: getRowOperateDisabled(row, item).tooltip,
                       disabled: !getRowOperateDisabled(row, item).disabled,
                     }"
-                    @click.stop="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
+                    @click="!getRowOperateDisabled(row, item).disabled && handleOperate(item.id, [row])"
                   >
                     {{ item.name }}
                   </Dropdown.DropdownItem>

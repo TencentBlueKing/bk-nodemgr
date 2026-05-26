@@ -7,6 +7,7 @@ export interface PluginOperateFullInfo {
   version: string;
   config_name: string[];
   custom_config_context: Record<string, any>;
+  enable_compatibility_mode: boolean;
 }
 
 // PluginOperateBasicInfo describes the basic information of a plugin operation,
@@ -19,7 +20,6 @@ export interface PluginOperateBasicInfo {
 // PluginInstallReq describes the plugin install request.
 export interface PluginInstallReq {
   plugin: PluginOperateFullInfo[];
-  enable_compatibility_mode: boolean;
 }
 
 // PluginInstallResp describes the plugin install response.

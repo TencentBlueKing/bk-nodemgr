@@ -225,7 +225,7 @@ const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const tableData = ref<NodeWorkflowInfo[]>([]);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
+const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 
 // URL query 与筛选状态同步
 
@@ -457,6 +457,21 @@ const typeMap = computed(() => ({
   migrate_plugin_v2: {
     text: t('platform.nodeMan.taskHistory.taskType.migrate_plugin_v2'),
   },
+  uninstall_plugin: {
+    text: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin'),
+  },
+  reconfig_plugin: {
+    text: t('platform.nodeMan.taskHistory.taskType.reconfig_plugin'),
+  },
+  apply_plugin_subconfig: {
+    text: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
+  },
+  restart_plugin: {
+    text: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
+  },
+  stop_plugin: {
+    text: t('platform.nodeMan.taskHistory.taskType.stop_plugin'),
+  },
 }));
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
   id: item.bk_biz_id,
@@ -505,7 +520,7 @@ function getUniqueChildrenFrom <K extends keyof NodeWorkflowDistinctRespData>(
     .filter((item: any) => item !== '')
     .map((value: any) => ({
       id: value,
-      name: keyMap?.[value].text || String(value),
+      name: keyMap?.[value]?.text || String(value),
     }));
 }
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
@@ -836,8 +851,8 @@ const getWorkflowDistinct = async () => {
           .filter((item: any) => item !== '')
           .map((value: string | number) => {
             let text = value;
-            if (key === 'type') text = typeMap.value[value as string].text || value;
-            if (key === 'status') text = statusMap.value[value as string].text || value;
+            if (key === 'type') text = typeMap.value[value as string]?.text || value;
+            if (key === 'status') text = statusMap.value[value as string]?.text || value;
             return { text, value };
           });
       }

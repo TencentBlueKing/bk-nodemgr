@@ -438,7 +438,7 @@ const reTryType = computed(() => [
     tooltip: t('taskDetail.retryType.partialTooltip'),
   },
 ]);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
+const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
 const stateMinWidth = computed(() => (tableData.value.some(item =>
   (item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script')
@@ -1318,8 +1318,8 @@ const handleFullRetry = async (type: string) => {
     operation_ids: failedSelection.value.map(item => item.operation_id),
     retry_mod: type,
   }).catch(() => false);
-  if (res) {
-    await getOperateList();
+  if (res !== false) {
+      await getOperateList();
     if (currentTaskStatus.value === 'running' && needInterval.value) {
       start();
     }
@@ -1646,6 +1646,11 @@ watch(
     if (!needInterval.value) {
       stop();
       await updataCurrentTaskInfo();
+      // updataCurrentTaskInfo 会用父任务状态覆盖 subTasksStatus，
+      // 若两接口数据不同步导致 needInterval 回弹，需重新启动轮询
+      if (needInterval.value) {
+        start();
+      }
     } else {
       start();
     }

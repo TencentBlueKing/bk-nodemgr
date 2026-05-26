@@ -434,6 +434,7 @@ export interface TopoHostExactConditions {
   bk_agent_id: string[];
   bk_networkunit_id: number[];
   node_generation: number[];
+  proxy_tags: string[];
 }
 
 // TopoHostFuzzyConditions describes host fuzzy conditions.

@@ -500,6 +500,11 @@ const typeMap = computed(() => ({
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
   assign_proxy_unit: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
+  uninstall_plugin: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin'),
+  reconfig_plugin: t('platform.nodeMan.taskHistory.taskType.reconfig_plugin'),
+  apply_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
+  restart_plugin: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
+  stop_plugin: t('platform.nodeMan.taskHistory.taskType.stop_plugin'),
 }));
 
 const timeFormatter = (
