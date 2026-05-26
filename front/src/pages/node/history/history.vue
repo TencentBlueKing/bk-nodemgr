@@ -211,8 +211,11 @@ interface FilterOption {
 type taskType =
   | 'install_agent'
   | 'install_plugin'
+  | 'install_plugin_v2'
   | 'upgrade_agent'
   | 'upgrade_plugin'
+  | 'uninstall_plugin_v2'
+  | 'migrate_plugin_v2'
   | 'assign_proxy_unit';
 type filterProp = 'type' | 'operator' | 'status';
 
@@ -442,8 +445,17 @@ const typeMap = computed(() => ({
   install_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
   },
+  install_plugin_v2: {
+    text: t('platform.nodeMan.taskHistory.taskType.install_plugin_v2'),
+  },
   upgrade_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
+  },
+  uninstall_plugin_v2: {
+    text: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin_v2'),
+  },
+  migrate_plugin_v2: {
+    text: t('platform.nodeMan.taskHistory.taskType.migrate_plugin_v2'),
   },
 }));
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({

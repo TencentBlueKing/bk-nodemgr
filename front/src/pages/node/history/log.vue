@@ -486,8 +486,11 @@ const statusMap = computed(() => ({
 const typeMap = computed(() => ({
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
   install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
+  install_plugin_v2: t('platform.nodeMan.taskHistory.taskType.install_plugin_v2'),
   upgrade_agent: t('platform.nodeMan.taskHistory.taskType.upgrade_agent'),
   upgrade_plugin: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
+  uninstall_plugin_v2: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin_v2'),
+  migrate_plugin_v2: t('platform.nodeMan.taskHistory.taskType.migrate_plugin_v2'),
   reconfig_agent: t('platform.nodeMan.taskHistory.taskType.reconfig_agent'),
   restart_agent: t('platform.nodeMan.taskHistory.taskType.restart_agent'),
   uninstall_agent: t('platform.nodeMan.taskHistory.taskType.uninstall_agent'),

@@ -240,8 +240,11 @@ platform:
         uninstall_proxy: Proxy 卸载
         assign_proxy_unit: Proxy 分配管控单元
         install_plugin: 插件安装
+        install_plugin_v2: V2 插件安装
         upgrade_plugin: 插件升级
         uninstall_plugin: 插件卸载
+        uninstall_plugin_v2: V2 插件卸载
+        migrate_plugin_v2: V2 插件迁移
         reconfig_plugin: 插件重载配置
         apply_plugin_subconfig: 插件应用子配置
         restart_plugin: 插件重启
