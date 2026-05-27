@@ -19,31 +19,31 @@ import (
 )
 
 const (
-	// OperDefNameInstallPluginV2 the name of the operation definition.
-	OperDefNameInstallPluginV2 = "install_plugin_v2"
+	// OperDefNamePluginEnsurePluginV2 the name of the operation definition.
+	OperDefNamePluginEnsurePluginV2 = "ensure_plugin_v2"
 )
 
-// NewOperInstallPluginV2 new an operation.
-func NewOperInstallPluginV2(param OperParamInstallPluginV2) operation.Definition {
-	return &operInstallPluginV2{param: param}
+// NewOperPluginEnsurePluginV2 new an operation.
+func NewOperPluginEnsurePluginV2(param OperParamPluginEnsurePluginV2) operation.Definition {
+	return &operPluginEnsurePluginV2{param: param}
 }
 
-type operInstallPluginV2 struct {
-	param OperParamInstallPluginV2
+type operPluginEnsurePluginV2 struct {
+	param OperParamPluginEnsurePluginV2
 }
 
-// OperParamInstallPluginV2 defines the parameters for operInstallPluginV2.
-type OperParamInstallPluginV2 struct {
+// OperParamPluginEnsurePluginV2 defines the parameters for operPluginEnsurePluginV2.
+type OperParamPluginEnsurePluginV2 struct {
 	pluginV2Utils.PluginActionStandardParam `json:",inline"`
 }
 
 // Name returns the name.
-func (oper *operInstallPluginV2) Name() string {
-	return OperDefNameInstallPluginV2
+func (oper *operPluginEnsurePluginV2) Name() string {
+	return OperDefNamePluginEnsurePluginV2
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operInstallPluginV2) ActionDefNames() []string {
+func (oper *operPluginEnsurePluginV2) ActionDefNames() []string {
 	return []string{
 		ActionNameFetchPluginProcessV2,
 		ActionNameVerifyPluginAvailabilityV2,
@@ -59,7 +59,7 @@ func (oper *operInstallPluginV2) ActionDefNames() []string {
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operInstallPluginV2) DefaultParameters() operation.Param {
+func (oper *operPluginEnsurePluginV2) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -71,7 +71,7 @@ func (oper *operInstallPluginV2) DefaultParameters() operation.Param {
 			ActionNameEnsureAndUpdatePluginConfigDetailsV2: true,
 			ActionNameRenderPluginConfigV2:                 true,
 			ActionNameTransferPluginPkgToNodeV2:            true,
-			ActionNameInstallPluginV2:                      true,
+			ActionNamePluginEnsurePluginV2:                 true,
 			ActionNameWaitPluginInstallerCompleteV2:        false,
 			ActionNameStartProcessV2:                       true,
 		},
@@ -79,6 +79,6 @@ func (oper *operInstallPluginV2) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operInstallPluginV2) ExtraExecutionName() string {
+func (oper *operPluginEnsurePluginV2) ExtraExecutionName() string {
 	return ""
 }

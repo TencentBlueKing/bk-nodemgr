@@ -240,7 +240,7 @@ platform:
         uninstall_proxy: Proxy Uninstallation
         assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
-        install_plugin_v2: V2 Plugin Installation
+        ensure_plugin_v2: Ensure V2 Plugin
         upgrade_plugin: Plugin Upgrade
         uninstall_plugin: Plugin Uninstallation
         uninstall_plugin_v2: V2 Plugin Uninstallation

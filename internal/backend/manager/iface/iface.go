@@ -82,8 +82,8 @@ type iPluginManagerPlugin interface {
 
 // iPluginManagerPluginV2 defines the PluginManager sub interface for v2.
 type iPluginManagerPluginV2 interface {
-	// LaunchInstallPluginV2 launch a task to install v2 plugin. returns the workflow-id.
-	LaunchInstallPluginV2(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
+	// LaunchPluginEnsurePluginV2 launch a task to ensure v2 plugin. returns the workflow-id.
+	LaunchPluginEnsurePluginV2(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
 
 	// LaunchUninstallPluginV2 launch a task to uninstall v2 plugin. returns the workflow-id.
 	LaunchUninstallPluginV2(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error)

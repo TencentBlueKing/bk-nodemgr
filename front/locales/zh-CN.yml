@@ -240,7 +240,7 @@ platform:
         uninstall_proxy: Proxy 卸载
         assign_proxy_unit: Proxy 分配管控单元
         install_plugin: 插件安装
-        install_plugin_v2: V2 插件安装
+        ensure_plugin_v2: 确保 V2 插件
         upgrade_plugin: 插件升级
         uninstall_plugin: 插件卸载
         uninstall_plugin_v2: V2 插件卸载

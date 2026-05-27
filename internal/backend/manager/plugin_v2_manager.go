@@ -26,8 +26,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// LaunchInstallPluginV2 launch a task to install pluginv2. returns the workflow-id.
-func (mgr *Manager) LaunchInstallPluginV2(
+// LaunchPluginEnsurePluginV2 launch a task to ensure plugin v2. returns the workflow-id.
+func (mgr *Manager) LaunchPluginEnsurePluginV2(
 	nCtx contextx.IContext,
 	param types.InstallPluginParam,
 ) (string, error) {
@@ -57,12 +57,12 @@ func (mgr *Manager) LaunchInstallPluginV2(
 		deploy := pluginDeploy
 
 		gp.Go(func() error {
-			return mgr.createInstallPluginV2Oper(nCtx, param.Operator, triggerCtl, deploy)
+			return mgr.createPluginEnsurePluginV2Oper(nCtx, param.Operator, triggerCtl, deploy)
 		})
 	}
 
 	if err := gp.Wait(); err != nil {
-		return "", fmt.Errorf("failed to launch install pluginv2 task. err: %w", err)
+		return "", fmt.Errorf("failed to launch ensure plugin v2 task. err: %w", err)
 	}
 
 	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
@@ -72,7 +72,7 @@ func (mgr *Manager) LaunchInstallPluginV2(
 	return workflowID, nil
 }
 
-func (mgr *Manager) createInstallPluginV2Oper(
+func (mgr *Manager) createPluginEnsurePluginV2Oper(
 	nCtx contextx.IContext,
 	operator string,
 	triggerCtl workflow.ITriggerCtl,
@@ -88,7 +88,7 @@ func (mgr *Manager) createInstallPluginV2Oper(
 		return err
 	}
 
-	operationDef := mgr.getPluginInstallV2OperationDef(deploy, operator)
+	operationDef := mgr.getPluginEnsurePluginV2OperationDef(deploy, operator)
 
 	operationParam := operationDef.DefaultParameters()
 
@@ -98,7 +98,7 @@ func (mgr *Manager) createInstallPluginV2Oper(
 			With("trigger-id", triggerCtl.GetTriggerID()).
 			With("operation-id", operCtl.GetOperationID()).
 			With("pluginv2-token", deploy.Token).
-			Error("failed to launch install pluginv2 task.")
+			Error("failed to launch ensure plugin v2 task.")
 
 		return err
 	}
@@ -107,17 +107,17 @@ func (mgr *Manager) createInstallPluginV2Oper(
 		With("trigger-id", triggerCtl.GetTriggerID()).
 		With("operation-id", operCtl.GetOperationID()).
 		With("pluginv2-token", deploy.Token).
-		Info("launched install pluginv2 task.")
+		Info("launched ensure plugin v2 task.")
 
 	return nil
 }
 
-func (mgr *Manager) getPluginInstallV2OperationDef(
+func (mgr *Manager) getPluginEnsurePluginV2OperationDef(
 	deploy *types.PluginDeployment,
 	operator string,
 ) operation.Definition {
 
-	return pluginv2.NewOperInstallPluginV2(pluginv2.OperParamInstallPluginV2{
+	return pluginv2.NewOperPluginEnsurePluginV2(pluginv2.OperParamPluginEnsurePluginV2{
 		PluginActionStandardParam: pluginV2Utils.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,

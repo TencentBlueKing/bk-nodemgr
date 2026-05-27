@@ -391,15 +391,15 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 		return false, "", fmt.Errorf("failed to create plugin deployments by params: %w", err)
 	}
 
-	workflowID, err := act.pluginMgrIface.LaunchInstallPluginV2(nCtx, types.InstallPluginParam{
-		Type:              types.PluginWorkflowTypeInstallV2,
+	workflowID, err := act.pluginMgrIface.LaunchPluginEnsurePluginV2(nCtx, types.InstallPluginParam{
+		Type:              types.PluginWorkflowTypePluginEnsureV2,
 		HostIDs:           hostIDs,
 		BizIDs:            bizIDs,
 		PluginDeployments: pluginDeployments,
 		Operator:          nCtx.BKUsername(),
 	})
 	if err != nil {
-		return false, "", fmt.Errorf("failed to launch install pre-ordered v2 plugins workflow: %w", err)
+		return false, "", fmt.Errorf("failed to launch ensure plugin v2 workflow for pre-ordered plugins: %w", err)
 	}
 
 	return true, workflowID, nil

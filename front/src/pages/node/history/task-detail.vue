@@ -410,7 +410,7 @@ type taskType =
   | 'uninstall_proxy'
   | 'assign_proxy_unit'
   | 'install_plugin'
-  | 'install_plugin_v2'
+  | 'ensure_plugin_v2'
   | 'upgrade_plugin'
   | 'uninstall_plugin'
   | 'uninstall_plugin_v2'
@@ -508,7 +508,7 @@ const typeMap = computed(() => ({
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
   assign_proxy_unit: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
   install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
-  install_plugin_v2: t('platform.nodeMan.taskHistory.taskType.install_plugin_v2'),
+  ensure_plugin_v2: t('platform.nodeMan.taskHistory.taskType.ensure_plugin_v2'),
   upgrade_plugin: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
   uninstall_plugin: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin'),
   uninstall_plugin_v2: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin_v2'),
