@@ -35,6 +35,7 @@ type operApplyPluginSubConfig struct {
 // OperParamApplyPluginSubConfig defines the parameters for operApplyPluginSubConfig.
 type OperParamApplyPluginSubConfig struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
+	OnlyPushSubConfig                     bool `json:"only_push_sub_config"`
 }
 
 // Name returns the name.

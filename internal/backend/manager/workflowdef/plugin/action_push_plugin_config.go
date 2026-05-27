@@ -41,6 +41,7 @@ func NewActionPushPluginConfig(capability *Capability) action.Definition {
 // ActParamPushPluginConfig defines the parameters for actionPushPluginConfig.
 type ActParamPushPluginConfig struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
+	OnlyPushSubConfig                     bool `json:"only_push_sub_config"` // only push sub config files, not main config file
 }
 
 type actionPushPluginConfig struct {
@@ -118,32 +119,14 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	endpoints := []*types.Endpoint{{AgentID: host.Dynamic.AgentID}}
-	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
-	for _, pluginConfDetail := range pluginConf {
-		// notice: push plugin config only push sub config files, not main config file
-		if pluginConfDetail == nil || pluginConfDetail.IsMainConfig {
-			continue
-		}
-
-		if err = pluginUtils.CheckDirPathSafe(std.DeployInfo().BaseRuntime.SubConfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
-			return fmt.Errorf("check config store dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
-		}
-
-		tasks = append(tasks, &types.PushFileDetail{
-			FileName:    pluginConfDetail.Name,
-			FileContent: pluginConfDetail.Content,
-			StoreDir:    std.DeployInfo().BaseRuntime.SubConfigDir,
-			Owner:       host.Dynamic.LoginUser,
-			Endpoints:   endpoints,
-		})
-
+	tasks, err := act.buildPushFileTask(std, host, pluginConf, param.OnlyPushSubConfig)
+	if err != nil {
 		std.InstanceData().Log().
-			Zh("准备推送插件配置文件(%s)到主机(%d), 目录(%s)",
-				pluginConfDetail.Name, host.HostID, std.DeployInfo().BaseRuntime.SubConfigDir).
-			En("prepare to push plugin config file(%s) to host(%d) in dir(%s)",
-				pluginConfDetail.Name, host.HostID, std.DeployInfo().BaseRuntime.SubConfigDir).
-			Info()
+			Zh("构建推送插件配置文件任务失败, 主机(%d), 错误: %s", host.HostID, err).
+			En("build push plugin config file task failed, host(%d), error: %s", host.HostID, err).
+			Error()
+
+		return err
 	}
 
 	if len(tasks) == 0 {
@@ -194,4 +177,45 @@ func (act *actionPushPluginConfig) DisplayNameZh() string {
 // DisplayNameEn returns the English display name of the action.
 func (act *actionPushPluginConfig) DisplayNameEn() string {
 	return "Push Plugin Config"
+}
+
+func (act *actionPushPluginConfig) buildPushFileTask(
+	std *pluginUtils.PluginActionStandarder, host *types.Host, pluginConf []*types.PluginConfigDetail, onlyPushSubConfig bool) (
+	[]*types.PushFileDetail, error) {
+
+	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
+	for _, pluginConfDetail := range pluginConf {
+		if pluginConfDetail == nil || (onlyPushSubConfig && pluginConfDetail.IsMainConfig) {
+			continue
+		}
+
+		storeDir := std.DeployInfo().BaseRuntime.ConfigDir
+		if !pluginConfDetail.IsMainConfig {
+			storeDir = std.DeployInfo().BaseRuntime.SubConfigDir
+		}
+
+		if err := pluginUtils.CheckDirPathSafe(storeDir, std.DeployInfo().Process.Platform.OS); err != nil {
+			std.InstanceData().Log().
+				Zh("检查配置文件目标目录安全失败, 目录(%s)", storeDir).
+				En("check config target dir safe failed, dir(%s)", storeDir).
+				Info()
+
+			return tasks, fmt.Errorf("check config target dir safe failed, dir(%s): %w", storeDir, err)
+		}
+
+		tasks = append(tasks, &types.PushFileDetail{
+			FileName:    pluginConfDetail.Name,
+			FileContent: pluginConfDetail.Content,
+			StoreDir:    storeDir,
+			Owner:       host.Dynamic.LoginUser,
+			Endpoints:   []*types.Endpoint{{AgentID: host.Dynamic.AgentID}},
+		})
+
+		std.InstanceData().Log().
+			Zh("准备推送插件配置文件(%s)到主机(%d), 目录(%s)", pluginConfDetail.Name, host.HostID, storeDir).
+			En("prepare to push plugin config file(%s) to host(%d) in dir(%s)", pluginConfDetail.Name, host.HostID, storeDir).
+			Info()
+	}
+
+	return tasks, nil
 }

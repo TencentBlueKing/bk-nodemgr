@@ -346,6 +346,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 					TenantID: deploy.Info.Process.TenantID,
 					Operator: param.Operator,
 				},
+				OnlyPushSubConfig: true,
 			})
 
 			operationParam := operationDef.DefaultParameters()
