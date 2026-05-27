@@ -551,10 +551,16 @@ type procSpecResource struct {
 type procOperateResultCode int64
 
 const (
-	// procOperateResultCodeOK means success.
+	// procOperateResultCodeOK means task success.
 	procOperateResultCodeOK procOperateResultCode = 0
-	// procOperateResultCodeRunning means running.
+	// procOperateResultCodeRunning means task running.
 	procOperateResultCodeRunning procOperateResultCode = 115
+
+	// notice: these codes are special error codes for different cases.
+	// procOperateResultCodeProcAlreadyRunning means process already running.
+	procOperateResultCodeProcAlreadyRunning procOperateResultCode = 828
+	// procOperateResultCodeProcNotRunning means process not running.
+	procOperateResultCodeProcNotRunning procOperateResultCode = 829
 )
 
 // getProcOperateResultV2Req describes the request data of get_proc_operate_result_v2.

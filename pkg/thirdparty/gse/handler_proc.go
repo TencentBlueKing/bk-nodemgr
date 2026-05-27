@@ -430,6 +430,10 @@ func (h *HandlerProc) TrusteeshipAndStartProcess(nCtx contextx.IContext, process
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
+	if controlProcResult.Code == procOperateResultCodeProcAlreadyRunning {
+		return controlProcResult.CmdOut, nil
+	}
+
 	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
@@ -471,6 +475,10 @@ func (h *HandlerProc) UnTrusteeshipAndStopProcess(nCtx contextx.IContext, proces
 	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
 	if !ok {
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	if controlProcResult.Code == procOperateResultCodeProcNotRunning {
+		return controlProcResult.CmdOut, nil
 	}
 
 	return controlProcResult.CmdOut, controlProcResult.Err
@@ -617,11 +625,15 @@ func convAutoTypeFromType(autoType types.ProcessRestartType) (procSpecMonitorPol
 }
 
 type controlProcessResult struct {
+	Code   procOperateResultCode
 	Err    error
 	CmdOut string
 }
 
-func (h *HandlerProc) parseControlProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string]controlProcessResult, error) {
+func (h *HandlerProc) parseControlProcResult(
+	operateProcResultResp getProcOperateResultV2Resp,
+) (map[string]controlProcessResult, error) {
+
 	procControlResult := make(map[string]controlProcessResult)
 	for key, item := range operateProcResultResp {
 		// notice: this key is formated as: agentID:namespace:procName
@@ -645,6 +657,7 @@ func (h *HandlerProc) parseControlProcResult(operateProcResultResp getProcOperat
 
 		// notice: this is can be sure that the length of the content is 1.
 		procControlResult[agentID] = controlProcessResult{
+			Code:   item.ErrorCode,
 			Err:    controlErr,
 			CmdOut: content.Value[0].Result,
 		}

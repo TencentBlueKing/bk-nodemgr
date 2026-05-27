@@ -1180,3 +1180,62 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 		})
 	}
 }
+
+func TestHandlerProc_ParseControlProcResult(t *testing.T) {
+	const agentID = "agent-1"
+	content := `{"value":[{"bk_agent_id":"agent-1","procName":"bkmonitorbeat","setupPath":"/usr/local/gse2/plugins/bin","result":"already desired state","isAuto":false}]}`
+
+	tests := []struct {
+		name    string
+		code    procOperateResultCode
+		wantErr bool
+	}{
+		{
+			name:    "ok",
+			code:    procOperateResultCodeOK,
+			wantErr: false,
+		},
+		{
+			name:    "already running keeps code and error",
+			code:    procOperateResultCodeProcAlreadyRunning,
+			wantErr: true,
+		},
+		{
+			name:    "not running keeps code and error",
+			code:    procOperateResultCodeProcNotRunning,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := new(HandlerProc).parseControlProcResult(getProcOperateResultV2Resp{
+				agentID + ":bk-nodemgr:bkmonitorbeat": {
+					ErrorCode: tt.code,
+					ErrorMsg:  "operate proc failed",
+					Content:   content,
+				},
+			})
+			if err != nil {
+				t.Fatalf("parseControlProcResult() error = %v", err)
+			}
+
+			result, ok := got[agentID]
+			if !ok {
+				t.Fatalf("parseControlProcResult() missing result for agent %s", agentID)
+			}
+
+			if result.Code != tt.code {
+				t.Fatalf("parseControlProcResult() code = %v, want %v", result.Code, tt.code)
+			}
+
+			if (result.Err != nil) != tt.wantErr {
+				t.Fatalf("parseControlProcResult() result error = %v, wantErr %v", result.Err, tt.wantErr)
+			}
+
+			if result.CmdOut != "already desired state" {
+				t.Fatalf("parseControlProcResult() cmd out = %q", result.CmdOut)
+			}
+		})
+	}
+}
