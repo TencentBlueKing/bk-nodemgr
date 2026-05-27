@@ -1,11 +1,13 @@
 <template>
   <!-- 默认布局 -->
-  <main class="h-full w-full overflow-auto bg-[#F5F7FA]">
+  <div class="h-full w-full flex flex-col bg-[#F5F7FA]">
     <PageHeader
-      class="w-full sticky top-0 z-1"
+      class="w-full flex-shrink-0 z-1"
       :title="$route.meta?.title"
       :sub-title="$route.meta?.subTitle"
       :back="$route.meta?.back" />
-    <RouterView />
-  </main>
+    <div class="flex-1 overflow-auto min-w-0">
+      <RouterView />
+    </div>
+  </div>
 </template>

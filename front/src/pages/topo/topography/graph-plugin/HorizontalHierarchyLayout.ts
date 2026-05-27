@@ -17,12 +17,12 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
   private readonly UNIT_NODE_HEIGHT = 202;
   private readonly AP_NODE_HEIGHT = 22; // 修正：与AccessPointNode.nodeHeight保持一致
   private readonly NODE_SPACING_ROW = 8; // 接入点纵向间距保持8px
-  private readonly UNIT_SPACING_ROW = 60; // 单元纵向间距设为60px
+  private readonly UNIT_SPACING_ROW = 100; // 单元纵向间距 120px，为边水平段预留足够空间
   private readonly NODE_SPACING_COL = 20;
   private readonly UNIT_COL_WIDTH = 240;
   private readonly AP_COL_WIDTH = 140;
   private readonly AREA_MIN_WIDTH = 260;
-  private readonly AREA_HEIGHT_EXTRA = 50;
+  private readonly AREA_HEIGHT_EXTRA = 150;
 
   private options: HorizontalHierarchyLayoutOptions = { collapsed: false };
 
@@ -747,6 +747,41 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       });
     });
 
+    // ===== 动态扩展区域高度：估算边水平段最大 Y 并扩展区域 =====
+    const areaMaxVerticalY = new Map<string, number>();
+    unitToApEdges.forEach((edge) => {
+      const sId = edge.source as string;
+      const unitInfo = nodeLayoutInfo.get(sId);
+      if (!unitInfo) return;
+      const unitY = unitInfo.y;
+      const unitData = allNodes.find(n => n.id === sId);
+      const isDirect = unitData?.data?.is_direct ?? false;
+      const unitH = isDirect ? 162 : 214;
+      const unitYOffset = unitToApYIndexMap.get(edge.id as string) ?? 0;
+      const subIndex = (edge.data as any)?.subIndex ?? 0;
+      const totalSubEdges = (edge.data as any)?.totalSubEdges ?? 1;
+      const subEdgeYOffset = totalSubEdges > 1 ? (subIndex - (totalSubEdges - 1) / 2) * 5 : 0;
+      // firstVerticalY ≈ unitY + unitH + 5(anchor gap) + 15(vertical segment) + subEdgeYOffset + unitYOffset
+      const estimatedFirstVerticalY = unitY + unitH + 20 + subEdgeYOffset + unitYOffset;
+      const areaId = unitInfo.areaId;
+      if (!areaMaxVerticalY.has(areaId) || estimatedFirstVerticalY > areaMaxVerticalY.get(areaId)!) {
+        areaMaxVerticalY.set(areaId, estimatedFirstVerticalY);
+      }
+    });
+
+    // 扩展区域高度（若边水平段超出区域底部）
+    areaMaxVerticalY.forEach((maxVerticalY, areaId) => {
+      const areaNode = allNodes.find(n => n.id === areaId);
+      if (!areaNode) return;
+      const areaY = Number(areaNode.style?.y ?? 0);
+      const currentH = Number(areaNode.style?.height ?? areaNode.data?.height ?? 0);
+      const requiredH = maxVerticalY - areaY + 80;
+      if (requiredH > currentH) {
+        areaNode.style = { ...areaNode.style, height: requiredH };
+        if (areaNode.data) areaNode.data.height = requiredH;
+      }
+    });
+
     // 按接入点 ID 全局分配颜色：同一接入点的所有边颜色一致
     // 分层策略：数量少时高对比好分辨，数量多时逐渐降低区分度但仍可辨
     // 第一梯队(1-30)：手工精选高对比色
@@ -907,41 +942,101 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
     // 对每列 unit，找到所有 midX < unitX 且距离不够 MIN_GAP 的垂直线
     // 取最靠近该列 unit 的垂直线的 midX，计算需要的右移量
+    // 优化：预排序 midX 列表，用二分查找替代线性扫描
+    const sortedMidXs = allVertLineMidXs.map(item => item.midX).sort((a, b) => a - b);
+    // 收集所有需要右移的 (unitX, needed) 对，最后批量计算总 shift
+    const pendingShifts: { unitX: number; needed: number }[] = [];
     sortedUnitXs.forEach((unitX) => {
-      // 找所有 midX < unitX 的垂直线中最大的 midX
-      let maxMidXBeforeUnit = -Infinity;
-      allVertLineMidXs.forEach(({ midX }) => {
-        if (midX < unitX && midX > maxMidXBeforeUnit) {
-          maxMidXBeforeUnit = midX;
+      // 二分查找最大的 midX < unitX + 已累积的 shift
+      const accumulatedShift = nodeShifts.get('__unitX_' + unitX) ?? 0;
+      const shiftedUnitX = unitX + accumulatedShift;
+      // 找到 sortedMidXs 中 < shiftedUnitX 的最大值（upperBound - 1）
+      let lo = 0;
+      let hi = sortedMidXs.length - 1;
+      let maxMidIdx = -1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (sortedMidXs[mid] < shiftedUnitX) {
+          maxMidIdx = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
         }
-      });
+      }
 
-      if (maxMidXBeforeUnit > -Infinity) {
-        const currentGap = unitX + (nodeShifts.get('__unitX_' + unitX) ?? 0) - maxMidXBeforeUnit;
+      if (maxMidIdx >= 0) {
+        const maxMidXBeforeUnit = sortedMidXs[maxMidIdx];
+        const currentGap = shiftedUnitX - maxMidXBeforeUnit;
         if (currentGap < MIN_GAP) {
           const needed = MIN_GAP - currentGap;
-          // 将该列及其右边所有 unit/node 右移
-          allNodes.forEach((node) => {
-            if (node.style?.visibility === 'hidden') return;
-            const nodeX = Number(node.style?.x ?? 0);
-            if (nodeX >= unitX) {
-              const currentShift = nodeShifts.get(node.id) ?? 0;
-              nodeShifts.set(node.id, currentShift + needed);
-            }
-          });
+          pendingShifts.push({ unitX, needed });
+          // 立即更新 __unitX_ 的累积 shift，供后续迭代使用
+          nodeShifts.set('__unitX_' + unitX, accumulatedShift + needed);
         }
       }
     });
+    // 批量应用 pendingShifts：对每个节点，累加所有 unitX <= nodeX 的 needed
+    if (pendingShifts.length > 0) {
+      // 按 unitX 排序，计算前缀和
+      pendingShifts.sort((a, b) => a.unitX - b.unitX);
+      // 对每个节点，二分查找最大的 unitX <= nodeX，累加对应 needed
+      const sortedUnitXWithNeeded = pendingShifts;
+      allNodes.forEach((node) => {
+        if (node.style?.visibility === 'hidden') return;
+        const nodeX = Number(node.style?.x ?? 0);
+        // 二分查找最后一个 unitX <= nodeX
+        let lo = 0;
+        let hi = sortedUnitXWithNeeded.length - 1;
+        let idx = -1;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          if (sortedUnitXWithNeeded[mid].unitX <= nodeX) {
+            idx = mid;
+            lo = mid + 1;
+          } else {
+            hi = mid - 1;
+          }
+        }
+        if (idx >= 0) {
+          // 累加所有 needed[0..idx]
+          let totalNeeded = 0;
+          for (let i = 0; i <= idx; i++) totalNeeded += sortedUnitXWithNeeded[i].needed;
+          const currentShift = nodeShifts.get(node.id) ?? 0;
+          nodeShifts.set(node.id, currentShift + totalNeeded);
+        }
+      });
+    }
 
     // 应用右移
+    // 同时收集每个区域需要额外扩大的宽度
+    const areaExtraWidth = new Map<string, number>();
     allNodes.forEach((node) => {
       const shift = nodeShifts.get(node.id);
       if (shift && shift > 0) {
         const currentX = Number(node.style?.x ?? 0);
-        node.style = { ...node.style, x: currentX + shift };
+        const newX = currentX + shift;
+        node.style = { ...node.style, x: newX };
         const info = nodeLayoutInfo.get(node.id);
         if (info) {
-          info.x = currentX + shift;
+          info.x = newX;
+        }
+        // 记录该节点所属区域需要额外扩大的宽度
+        const areaId = (node.data as any)?.area;
+        if (areaId) {
+          const currentExtra = areaExtraWidth.get(areaId) ?? 0;
+          areaExtraWidth.set(areaId, Math.max(currentExtra, shift));
+        }
+      }
+    });
+    // 同步扩大区域背景的宽度（区域背景节点的 id 就是 areaId）
+    allNodes.forEach((node) => {
+      const nodeId = node.id as string;
+      if (nodeId.startsWith('area-')) {
+        const extra = areaExtraWidth.get(nodeId) ?? 0;
+        if (extra > 0) {
+          const currentW = Number(node.style?.width ?? node.data?.width ?? 0);
+          node.style = { ...node.style, width: currentW + extra };
+          if (node.data) node.data.width = currentW + extra;
         }
       }
     });
@@ -1099,6 +1194,54 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           endPoint: defaultEndPoint,
         };
       });
+
+    // ========== 修复问题1：按子节点实际位置重新计算区域包围盒 ==========
+    // 构建 areaId -> children 映射（只包含可见节点）
+    const areaIdToChildren = new Map<string, typeof allNodes>();
+    allNodes.forEach((node) => {
+      const areaId = node.data?.area;
+      if (areaId && !String(node.id).startsWith('area-') && node.style?.visibility !== 'hidden') {
+        if (!areaIdToChildren.has(areaId)) areaIdToChildren.set(areaId, []);
+        areaIdToChildren.get(areaId)!.push(node);
+      }
+    });
+
+    const RE_PAD = 20;
+    const RE_PAD_TOP = 60;
+
+    areaIdToChildren.forEach((children, areaId) => {
+      if (children.length === 0) return;
+      const areaNode = allNodes.find(n => n.id === areaId);
+      if (!areaNode) return;
+
+      const areaX = Number(areaNode.style?.x ?? 0);
+      const areaY = Number(areaNode.style?.y ?? 0);
+
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      children.forEach((node) => {
+        const x = Number(node.style?.x ?? 0);
+        const y = Number(node.style?.y ?? 0);
+        const w = Number(node.style?.width ?? node.data?.width ?? 0);
+        const h = Number(node.style?.height ?? node.data?.height ?? 0);
+        if (x + w > maxX) maxX = x + w;
+        if (y + h > maxY) maxY = y + h;
+      });
+
+      const requiredW = maxX - areaX + RE_PAD;
+      const requiredH = maxY - areaY + RE_PAD_TOP + RE_PAD;
+
+      const currentW = Number(areaNode.style?.width ?? areaNode.data?.width ?? 0);
+      const currentH = Number(areaNode.style?.height ?? areaNode.data?.height ?? 0);
+
+      const newW = Math.max(currentW, requiredW);
+      const newH = Math.max(currentH, requiredH);
+
+      if (newW > currentW || newH > currentH) {
+        areaNode.style = { ...areaNode.style, width: newW, height: newH };
+        if (areaNode.data) { areaNode.data.width = newW; areaNode.data.height = newH; }
+      }
+    });
 
     return { edges: styledEdges, apColorMap };
   }

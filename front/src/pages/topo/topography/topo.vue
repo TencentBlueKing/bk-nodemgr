@@ -16,7 +16,7 @@
     <div v-else :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
       <!-- 下拉选择器 -->
       <Select
-        class="w-[240px] absolute z-[2] m-[24px]"
+        class="w-[240px] fixed top-[128px] left-[80px] z-[2]"
         v-model="regionList"
         :clearable="false"
         all-option-id="all"
@@ -93,7 +93,7 @@
       </Select>
 
       <!-- 【新增】收起/展开无关联区域按钮 -->
-      <div class="absolute top-[24px] right-[80px] z-[2]">
+      <div class="fixed top-[128px] right-[80px] z-[2]">
         <Button
           theme="primary"
           :outline="true"
@@ -404,6 +404,7 @@ function handleInitTopo() {
     zoom: 0.8,
     zoomRange: [0.2, 2],
     autoFit: 'view',
+    padding: [20, 20, 20, 20],
     animation: false,
     autoResize: true,
     data: graphData,
@@ -420,9 +421,9 @@ function handleInitTopo() {
       {
         type: 'drag-element',
         key: 'drag-element-1',
-        enableAnimation: true,
+        enableAnimation: false, // 禁用动画以提升拖拽性能
         dropEffect: 'move',
-        shadow: true, // 启用拖拽幽灵节点
+        shadow: false, // 禁用幽灵节点以提升性能
         // 自定义幽灵节点样式
         shadowFill: '#E8F3FF',
         shadowFillOpacity: 0.4,

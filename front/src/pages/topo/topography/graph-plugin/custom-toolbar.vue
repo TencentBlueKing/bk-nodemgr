@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute bottom-[50px] right-[50px]">
+  <div class="fixed bottom-[50px] right-[50px] z-[1000]">
     <div
       id="minimap-container"
       class="mb-[4px] bg-[#fff] rounded-[4px] shadow-[0_1px_6px_0_#0000001f] h-[148px] w-[240px]"
