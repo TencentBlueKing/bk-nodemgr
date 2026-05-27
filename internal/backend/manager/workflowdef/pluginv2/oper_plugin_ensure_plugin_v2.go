@@ -45,9 +45,10 @@ func (oper *operPluginEnsurePluginV2) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operPluginEnsurePluginV2) ActionDefNames() []string {
 	return []string{
-		ActionNameFetchPluginProcessV2,
-		ActionNameVerifyPluginAvailabilityV2,
 		ActionNameInjectPluginBaseRuntimeV2,
+		ActionNameFetchPluginProcessV2,
+		ActionNameFinishIfPluginProcessV2Alive,
+		ActionNameVerifyPluginAvailabilityV2,
 		ActionNameRenderPluginDeploymentV2,
 		ActionNameEnsureAndUpdatePluginConfigDetailsV2,
 		ActionNameRenderPluginConfigV2,
@@ -71,7 +72,7 @@ func (oper *operPluginEnsurePluginV2) DefaultParameters() operation.Param {
 			ActionNameEnsureAndUpdatePluginConfigDetailsV2: true,
 			ActionNameRenderPluginConfigV2:                 true,
 			ActionNameTransferPluginPkgToNodeV2:            true,
-			ActionNamePluginEnsurePluginV2:                 true,
+			ActionNameInstallPluginV2:                      true,
 			ActionNameWaitPluginInstallerCompleteV2:        false,
 			ActionNameStartProcessV2:                       true,
 		},

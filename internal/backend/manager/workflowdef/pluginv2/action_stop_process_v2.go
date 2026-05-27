@@ -106,15 +106,6 @@ func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	if param.SkipAction {
-		std.InstanceData().Log().
-			Zh("跳过停止 V2 插件进程, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			En("skip stopping V2 plugin process, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			Info()
-
-		return nil
-	}
-
 	std.InstanceData().Log().
 		Zh("尝试执行停止 V2 插件进程, plugin-name(%s), host-id(%d), cmd(%s)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).

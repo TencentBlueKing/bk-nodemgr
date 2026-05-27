@@ -110,15 +110,6 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	if param.SkipAction {
-		std.InstanceData().Log().
-			Zh("跳过获取插件进程信息, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			En("skip fetching plugin process info, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			Info()
-
-		return nil
-	}
-
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
 	host, err := act.daoHost.GetHostByID(nCtx, deployInfo.Process.HostID)
@@ -151,19 +142,6 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) error {
 	}
 
 	deployInfo.Process.Info = *processInfo
-	if deployInfo.Process.Info.Status != types.ProcessStatusRunning {
-		std.InstanceData().Log().
-			Zh("插件进程未运行, 跳过后续流程, 主机id(%d), 插件名(%s), 进程状态(%s)", deployInfo.Process.HostID, pluginName, deployInfo.Process.Info.Status).
-			En("plugin process is not running, host-id(%d), plugin-name(%s), process-status(%s)",
-				deployInfo.Process.HostID, pluginName, deployInfo.Process.Info.Status).
-			Info()
-
-		param.SkipAction = true
-		std.InstanceData().Content = conv.StructToMapIgnoreError(param)
-
-		return nil
-	}
-
 	pkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
 		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),

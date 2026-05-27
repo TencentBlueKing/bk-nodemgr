@@ -116,15 +116,6 @@ func (act *actionTransferPluginPkgToNodeV2) Do(ctx *action.InstanceContext) (err
 		}
 	}()
 
-	if param.SkipAction {
-		std.InstanceData().Log().
-			Zh("跳过传输 V2 插件包到节点, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			En("skip transfer V2 plugin pkg to node, host-id(%d), plugin-name(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			Info()
-
-		return nil
-	}
-
 	std.InstanceData().Log().
 		Zh("开始传输 V2 插件包到节点").
 		En("transfer V2 plugin pkg to node start").

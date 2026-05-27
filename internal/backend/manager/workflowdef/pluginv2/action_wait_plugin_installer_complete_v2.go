@@ -117,16 +117,6 @@ func (act *actionWaitPluginInstallerCompleteV2) Do(ctx *action.InstanceContext) 
 		}
 	}()
 
-	if param.SkipAction {
-		std.InstanceData().Log().
-			Zh("跳过等待 V2 插件安装器完成, 主机id(%d), 插件名(%s)", std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			En("skip waiting for V2 plugin installer to complete, host-id(%d), plugin-name(%s)",
-				std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName).
-			Info()
-
-		return nil
-	}
-
 	// Check if this is offline mode by reading from deployment info.
 	if std.DeployInfo().InstallOptions.IsOffline {
 		return act.doOfflinePolling(std)

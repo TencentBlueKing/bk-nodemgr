@@ -99,8 +99,7 @@ func (std *PluginActionStandarder) InstanceData() *action.InstanceData {
 
 // PluginActionStandardParam defines the standard parameters of plugin action.
 type PluginActionStandardParam struct {
-	TenantID   string `json:"tenant_id"`
-	Token      string `json:"token"`
-	Operator   string `json:"operator"`
-	SkipAction bool   `json:"skip_action"`
+	TenantID string `json:"tenant_id"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
