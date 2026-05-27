@@ -214,23 +214,3 @@ func (state State) Validate() error {
 		return fmt.Errorf("invalid action state, state(%s)", state)
 	}
 }
-
-// StateListToStringList converts a state list to a string list.
-func StateListToStringList(states []State) []string {
-	data := make([]string, len(states))
-	for idx, state := range states {
-		data[idx] = string(state)
-	}
-
-	return data
-}
-
-// StringListToStateList converts a string list to a state list.
-func StringListToStateList(states []string) []State {
-	data := make([]State, len(states))
-	for idx, state := range states {
-		data[idx] = State(state)
-	}
-
-	return data
-}
