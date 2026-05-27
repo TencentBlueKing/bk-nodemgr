@@ -197,18 +197,6 @@ func (mgr *manager) doAction(nCtx contextx.IContext, actionDef action.Definition
 	m := metric.NewActionProcess(actionInstData).Start()
 	defer m.End(actionInstData.Lifecycle)
 
-	// check if this action should be executed.
-	if err := actionInstData.NeedExecuted(); err != nil {
-		if errors.Is(err, common.ErrActionAlreadySucceeded()) || errors.Is(err, common.ErrActionSkipped()) {
-			span.AddEvent(spanEventActionSkipped, trace.WithAttributes(
-				attribute.String(attributeKeySkipReason, err.Error())))
-
-			return nil
-		}
-
-		return err
-	}
-
 	// handle operation instance lifecycle.
 	if !operInstBriefData.Lifecycle.IsRunning() {
 		operInstBriefData.Lifecycle.Start()
@@ -220,15 +208,6 @@ func (mgr *manager) doAction(nCtx contextx.IContext, actionDef action.Definition
 			return fmt.Errorf("failed to start operation instance. "+
 				"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionDef.Name(), refreshErr)
 		}
-	}
-
-	// handle action instance lifecycle.
-	span.AddEvent(spanEventActionStarted, trace.WithAttributes(
-		attribute.Bool(attributeKeyIsFirst, actionInstData.IsFirst()),
-		attribute.Bool(attributeKeyIsLast, actionInstData.IsLast())))
-	actionInstData.Lifecycle.Start()
-	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionDef.Name(), actionInstData.Lifecycle); err != nil {
-		return err
 	}
 
 	// update latest action brief data to instance and operation.
@@ -277,9 +256,6 @@ func (mgr *manager) doAction(nCtx contextx.IContext, actionDef action.Definition
 		nCtx, operationInstanceID, actionDef.Name(), actionInstData.PrivateData); err != nil {
 		return err
 	}
-
-	span.AddEvent(spanEventActionCompleted, trace.WithAttributes(
-		attribute.String(attributeKeyFinalState, string(actionInstData.Lifecycle.State))))
 
 	// when action done or error happens, we need to update the state of the operation instance.
 	if actionInstData.IsLast() || executeErr != nil {
@@ -416,6 +392,29 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 	operInstBriefData *operation.InstanceBriefData,
 	actionInstData *action.InstanceData) error {
 
+	span := trace.SpanFromContext(nCtx)
+
+	// check if this action should be executed.
+	if err := actionInstData.NeedExecuted(); err != nil {
+		if errors.Is(err, common.ErrActionAlreadySucceeded()) || errors.Is(err, common.ErrActionSkipped()) {
+			span.AddEvent(spanEventActionSkipped, trace.WithAttributes(
+				attribute.String(attributeKeySkipReason, err.Error())))
+
+			return nil
+		}
+
+		return err
+	}
+
+	// handle action instance lifecycle.
+	span.AddEvent(spanEventActionStarted, trace.WithAttributes(
+		attribute.Bool(attributeKeyIsFirst, actionInstData.IsFirst()),
+		attribute.Bool(attributeKeyIsLast, actionInstData.IsLast())))
+	defer func() {
+		span.AddEvent(spanEventActionCompleted, trace.WithAttributes(
+			attribute.String(attributeKeyFinalState, string(actionInstData.Lifecycle.State))))
+	}()
+
 	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(contextx.From(nCtx), actionDef.Timeout())
 	defer actionTimeoutCancel()
 
@@ -423,8 +422,16 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 		nCtx, operInstBriefData.Lifecycle.StartedAt.Add(operInstBriefData.Metadata.Timeout))
 	defer operInstTimeoutCancel()
 
+	actionInstData.Lifecycle.Start()
+
+	if err := mgr.updateActionLifecycle(nCtx, operInstBriefData.Metadata.OperationInstanceID,
+		actionDef.Name(), actionInstData.Lifecycle); err != nil {
+		return err
+	}
+
 	// watch storage for stopping event.
-	terminatingC := mgr.stgOperationInstance.WatchOperInstStopping(actionTimeoutCtx, operInstBriefData.Metadata.OperationInstanceID)
+	terminatingC := mgr.stgOperationInstance.WatchOperInstStopping(actionTimeoutCtx,
+		operInstBriefData.Metadata.OperationInstanceID)
 
 	doResult := make(chan error, 1)
 	actionInstCtx := &action.InstanceContext{
