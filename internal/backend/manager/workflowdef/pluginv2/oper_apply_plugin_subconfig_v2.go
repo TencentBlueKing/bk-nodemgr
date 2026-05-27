@@ -45,10 +45,10 @@ func (oper *operApplyPluginSubConfigV2) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operApplyPluginSubConfigV2) ActionDefNames() []string {
 	return []string{
+		ActionNameInjectPluginBaseRuntimeV2,
 		ActionNameFetchPluginProcessV2,
 		ActionNameVerifyPluginAvailabilityV2,
 		ActionNameCheckPluginProcessAliveV2,
-		ActionNameInjectPluginBaseRuntimeV2,
 		ActionNameRenderPluginDeploymentV2,
 		ActionNameEnsureAndUpdatePluginConfigDetailsV2,
 		ActionNameRenderPluginConfigV2,
