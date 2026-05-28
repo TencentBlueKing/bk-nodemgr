@@ -96,9 +96,8 @@ func (mgr *Manager) createPluginEnsurePluginV2Oper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("pluginv2-token", deploy.Token).
-			Error("failed to launch ensure plugin v2 task.")
+			Error("failed to launch ensure plugin v2 task, failed to create operation.")
 
 		return err
 	}
@@ -189,9 +188,8 @@ func (mgr *Manager) createUninstallPluginV2Oper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("pluginv2-token", deploy.Token).
-			Error("failed to launch uninstall pluginv2 task.")
+			Error("failed to launch uninstall pluginv2 task, failed to create operation.")
 
 		return err
 	}
@@ -207,6 +205,94 @@ func (mgr *Manager) createUninstallPluginV2Oper(
 
 func (mgr *Manager) getPluginUninstallV2OperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
 	return pluginv2.NewOperUninstallPluginV2(pluginv2.OperParamUninstallPluginV2{
+		PluginActionStandardParam: pluginV2Utils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
+}
+
+// LaunchStopPluginV2 launch a task to stop pluginv2. returns the workflow-id.
+func (mgr *Manager) LaunchStopPluginV2(nCtx contextx.IContext, param types.StopProcessParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createStopPluginV2Oper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch stop pluginv2 task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createStopPluginV2Oper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("pluginv2-token", deploy.Token).
+			Error("failed to create pluginv2 deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPluginStopV2OperationDef(deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("pluginv2-token", deploy.Token).
+			Error("failed to launch stop pluginv2 task, failed to create operation.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("pluginv2-token", deploy.Token).
+		Info("launched stop pluginv2 task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPluginStopV2OperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+	return pluginv2.NewOperStopPluginV2(pluginv2.OperParamStopPluginV2{
 		PluginActionStandardParam: pluginV2Utils.PluginActionStandardParam{
 			Token:    deploy.Token,
 			TenantID: deploy.Info.Process.TenantID,

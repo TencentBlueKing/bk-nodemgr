@@ -411,6 +411,7 @@ type taskType =
   | 'assign_proxy_unit'
   | 'install_plugin'
   | 'ensure_plugin_v2'
+  | 'stop_plugin_v2'
   | 'upgrade_plugin'
   | 'uninstall_plugin'
   | 'uninstall_plugin_v2'
@@ -509,6 +510,7 @@ const typeMap = computed(() => ({
   assign_proxy_unit: t('platform.nodeMan.taskHistory.taskType.assign_proxy_unit'),
   install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
   ensure_plugin_v2: t('platform.nodeMan.taskHistory.taskType.ensure_plugin_v2'),
+  stop_plugin_v2: t('platform.nodeMan.taskHistory.taskType.stop_plugin_v2'),
   upgrade_plugin: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
   uninstall_plugin: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin'),
   uninstall_plugin_v2: t('platform.nodeMan.taskHistory.taskType.uninstall_plugin_v2'),
@@ -683,7 +685,7 @@ const bizListMap = computed(() => new Map<number, string>(mainStore.businessList
 const getDistinctStates = async () => {
   // 没有taskId，不请求distinctStates
   if (!route.params.taskId) return;
-  
+
   try {
     const res = await serviceCaller.call('operationDistinct', {
       workflow_id: route.params.taskId,
@@ -1296,7 +1298,7 @@ const debouncedGetStatistics = debounce(getStatistics, 500);
 // 重试
 const handleRetry = async (row: any, type: string) => {
   if (!route.params.taskId) return;
-  
+
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
@@ -1312,7 +1314,7 @@ const handleRetry = async (row: any, type: string) => {
 };
 const handleFullRetry = async (type: string) => {
   if (!route.params.taskId) return;
-  
+
   const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: failedSelection.value.map(item => item.operation_id),
@@ -1481,7 +1483,7 @@ const needInterval = computed(() => subTasksStatus.value?.includes('running')
 const getOperateList = async () => {
   // 没有taskId，不请求operationList
   if (!route.params.taskId) return;
-  
+
   subTasksStatus.value = [];
   const searchParameters = getParams();
   const res = await serviceCaller.call('operationList', searchParameters).catch(() => ({

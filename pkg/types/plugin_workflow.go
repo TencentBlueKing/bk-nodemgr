@@ -57,6 +57,9 @@ const (
 	// PluginWorkflowTypeStop is the operation type for stop plugin.
 	PluginWorkflowTypeStop PluginWorkflowType = "stop_plugin"
 
+	// PluginWorkflowTypeStopV2 is the operation type for stop plugin v2.
+	PluginWorkflowTypeStopV2 PluginWorkflowType = "stop_plugin_v2"
+
 	// PluginWorkflowTypePluginEnsureV2 is the operation type for ensure plugin v2.
 	PluginWorkflowTypePluginEnsureV2 PluginWorkflowType = "ensure_plugin_v2"
 
@@ -76,7 +79,8 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeReconfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
 		PluginWorkflowTypeRestart,
-		PluginWorkflowTypeStop:
+		PluginWorkflowTypeStop,
+		PluginWorkflowTypeStopV2:
 		return nil
 	default:
 		return fmt.Errorf("invalid plugin workflow type: %s", pluginWorkflowType)

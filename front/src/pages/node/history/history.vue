@@ -212,6 +212,7 @@ type taskType =
   | 'install_agent'
   | 'install_plugin'
   | 'ensure_plugin_v2'
+  | 'stop_plugin_v2'
   | 'upgrade_agent'
   | 'upgrade_plugin'
   | 'uninstall_plugin_v2'
@@ -447,6 +448,9 @@ const typeMap = computed(() => ({
   },
   ensure_plugin_v2: {
     text: t('platform.nodeMan.taskHistory.taskType.ensure_plugin_v2'),
+  },
+  stop_plugin_v2: {
+    text: t('platform.nodeMan.taskHistory.taskType.stop_plugin_v2'),
   },
   upgrade_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),

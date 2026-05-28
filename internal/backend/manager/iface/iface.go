@@ -87,6 +87,9 @@ type iPluginManagerPluginV2 interface {
 
 	// LaunchUninstallPluginV2 launch a task to uninstall v2 plugin. returns the workflow-id.
 	LaunchUninstallPluginV2(nCtx contextx.IContext, param types.UninstallPluginParam) (string, error)
+
+	// LaunchStopPluginV2 launch a task to stop v2 plugin. returns the workflow-id.
+	LaunchStopPluginV2(nCtx contextx.IContext, param types.StopProcessParam) (string, error)
 }
 
 // ISyncManager defines the SyncManager interface.

@@ -241,6 +241,7 @@ platform:
         assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
         ensure_plugin_v2: Ensure V2 Plugin
+        stop_plugin_v2: Stop V2 Plugin
         upgrade_plugin: Plugin Upgrade
         uninstall_plugin: Plugin Uninstallation
         uninstall_plugin_v2: V2 Plugin Uninstallation
