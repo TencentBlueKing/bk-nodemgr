@@ -287,6 +287,7 @@ func (mgr *Manager) registerDefPluginV2() error {
 		pluginv2.NewActionVerifyPluginAvailabilityV2(pluginCap),
 		pluginv2.NewActionInjectPluginBaseRuntimeV2(pluginCap),
 		pluginv2.NewActionFinishIfPluginProcessV2Alive(pluginCap),
+		pluginv2.NewActionFinishIfPluginProcessV2NotAlive(pluginCap),
 	); err != nil {
 		return err
 	}

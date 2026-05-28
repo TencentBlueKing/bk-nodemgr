@@ -133,25 +133,49 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) error {
 
 	deployInfo.Process.HostID = host.HostID
 	deployInfo.Process.BizID = host.Static.BizID
+	deployInfo.Process.Generation = host.Dynamic.NodeGeneration
+	deployInfo.Process.Platform = platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch)
 
 	// In the v2 process, we can consider the process name and the plugin name to be consistent
-	pluginName := deployInfo.Process.PluginName
-	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, pluginName, pluginName, host.Dynamic.AgentID)
+	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, deployInfo.Process.PluginName, deployInfo.Process.PluginName, host.Dynamic.AgentID)
 	if err != nil {
 		return fmt.Errorf("failed to query process info: %w", err)
 	}
 
+	std.InstanceData().Log().
+		Zh("成功查询插件进程信息, 主机id(%d), 插件名(%s), 进程信息(%+v)", deployInfo.Process.HostID, deployInfo.Process.PluginName, processInfo).
+		En("successfully queried plugin process info, host-id(%d), plugin-name(%s), process-info(%+v)",
+			deployInfo.Process.HostID, deployInfo.Process.PluginName, processInfo).
+		Info()
+
 	deployInfo.Process.Info = *processInfo
+	if conv.IsEmpty(deployInfo.Process.Info.Version) {
+		version, err := act.daoReleasePlugin.GetReleasePluginDefaultVersion(
+			nCtx, deployInfo.Process.PluginName, deployInfo.Process.Generation, deployInfo.Process.Platform)
+		if err != nil {
+			std.InstanceData().Log().
+				Zh("获取插件默认版本失败, 主机id(%d), 插件名(%s), 错误(%s)", deployInfo.Process.HostID, deployInfo.Process.PluginName, err).
+				En("fetch plugin default version failed, host-id(%d), plugin-name(%s), error(%s)",
+					deployInfo.Process.HostID, deployInfo.Process.PluginName, err).
+				Error()
+
+			return err
+		}
+
+		deployInfo.Process.Info.Version = version
+	}
+
 	pkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
-		Generation: host.Dynamic.NodeGeneration,
-		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
-		Version:    processInfo.Version,
-		Name:       pluginName,
+		Generation: deployInfo.Process.Generation,
+		Platform:   deployInfo.Process.Platform,
+		Version:    deployInfo.Process.Info.Version,
+		Name:       deployInfo.Process.PluginName,
 	})
 	if err != nil {
 		std.InstanceData().Log().
-			Zh("获取插件包信息失败, 主机id(%d), 插件名(%s), 错误(%s)", deployInfo.Process.HostID, pluginName, err).
-			En("fetch plugin package info failed, host-id(%d), plugin-name(%s), error(%s)", deployInfo.Process.HostID, pluginName, err).
+			Zh("获取插件包信息失败, 主机id(%d), 插件名(%s), 错误(%s)", deployInfo.Process.HostID, deployInfo.Process.PluginName, err).
+			En("fetch plugin package info failed, host-id(%d), plugin-name(%s), error(%s)",
+				deployInfo.Process.HostID, deployInfo.Process.PluginName, err).
 			Error()
 
 		return err
@@ -165,7 +189,7 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) error {
 	pidFileName := fmt.Sprintf("%s.pid", deployInfo.Process.PluginPkgName)
 	pidFilePath := tool.JoinPath(deployInfo.Process.Platform.OS, deployInfo.BaseRuntime.RunDir, pidFileName)
 	deployInfo.Process.Identity = types.ProcessIdentity{
-		Name:       pluginName,
+		Name:       deployInfo.Process.PluginName,
 		SetupPath:  deployInfo.BaseRuntime.PluginHomeDir,
 		PidPath:    pidFilePath,
 		ConfigPath: deployInfo.BaseRuntime.ConfigDir,
@@ -174,9 +198,10 @@ func (act *actionFetchPluginProcessV2) Do(ctx *action.InstanceContext) error {
 	}
 
 	std.InstanceData().Log().
-		Zh("成功获取插件进程信息, 主机id(%d), 插件名(%s), 进程信息(%+v)", deployInfo.Process.HostID, pluginName, deployInfo.Process.Info).
+		Zh("成功获取插件进程信息, 主机id(%d), 插件名(%s), 进程信息(%+v)",
+			deployInfo.Process.HostID, deployInfo.Process.PluginName, deployInfo.Process.Info).
 		En("successfully fetched plugin process info, host-id(%d), plugin-name(%s), process-info(%+v)",
-			deployInfo.Process.HostID, pluginName, deployInfo.Process.Info).
+			deployInfo.Process.HostID, deployInfo.Process.PluginName, deployInfo.Process.Info).
 		Info()
 
 	return nil

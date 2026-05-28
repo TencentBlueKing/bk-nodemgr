@@ -46,6 +46,7 @@ func (oper *operStopPluginV2) Name() string {
 func (oper *operStopPluginV2) ActionDefNames() []string {
 	return []string{
 		ActionNameInjectPluginBaseRuntimeV2,
+		ActionNameFinishIfPluginProcessV2NotAlive,
 		ActionNameFetchPluginProcessV2,
 		ActionNameStopProcessV2,
 	}
@@ -57,9 +58,10 @@ func (oper *operStopPluginV2) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameInjectPluginBaseRuntimeV2: true,
-			ActionNameFetchPluginProcessV2:      true,
-			ActionNameStopProcessV2:             true,
+			ActionNameInjectPluginBaseRuntimeV2:       true,
+			ActionNameFinishIfPluginProcessV2NotAlive: true,
+			ActionNameFetchPluginProcessV2:            true,
+			ActionNameStopProcessV2:                   true,
 		},
 	}
 }
