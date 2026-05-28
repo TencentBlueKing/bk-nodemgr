@@ -17,7 +17,9 @@ import (
 
 	pluginV2Utils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -34,6 +36,8 @@ func NewActionFinishIfPluginProcessV2Alive(capability *Capability) action.Defini
 		daoPluginDeployment:  capability.StoragePlugin,
 		daoOperationInstance: capability.StorageWorkflow,
 		daoActionInstance:    capability.StorageWorkflow,
+		daoHost:              capability.StorageTopo,
+		gseHandlerProc:       capability.GSEHandler.NewHandlerProc(gse.WithProcNameSpace(procNameSpaceNodeMan)),
 	}
 }
 
@@ -46,6 +50,8 @@ type actionFinishIfPluginProcessV2Alive struct {
 	daoPluginDeployment  pluginStg.IDaoPluginDeployment
 	daoOperationInstance workflow.IStorageOperationInstance
 	daoActionInstance    workflow.IStorageActionInstance
+	daoHost              topoStg.IStorageHost
+	gseHandlerProc       gse.IHandlerProc
 }
 
 // Name returns the name of the action.
@@ -106,47 +112,43 @@ func (act *actionFinishIfPluginProcessV2Alive) Do(ctx *action.InstanceContext) e
 
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
-	if deployInfo.Process.Info.Status == types.ProcessStatusRunning {
+	host, err := act.daoHost.GetHostByID(nCtx, deployInfo.Process.HostID)
+	if err != nil {
+		std.InstanceData().Log().
+			Zh("获取主机信息失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
+			En("fetch host info failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
+			Error()
+
+		return err
+	}
+
+	if err := pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
+		std.InstanceData().Log().
+			Zh("获取主机登录用户失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
+			En("fetch host login user failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
+			Error()
+
+		return err
+	}
+
+	pluginName := deployInfo.Process.PluginName
+	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, pluginName, pluginName, host.Dynamic.AgentID)
+	if err != nil {
+		return fmt.Errorf("failed to query process info: %w", err)
+	}
+
+	if processInfo.Status == types.ProcessStatusRunning {
 		std.InstanceData().Log().
 			Zh("V2 插件进程已正常运行, 跳过后续流程, 主机id(%d), 插件名(%s), 进程状态(%s)",
-				deployInfo.Process.HostID, deployInfo.Process.PluginName, deployInfo.Process.Info.Status).
+				host.HostID, pluginName, processInfo.Status).
 			En("v2 plugin process is already running, host-id(%d), plugin-name(%s), process-status(%s)",
-				deployInfo.Process.HostID, deployInfo.Process.PluginName, deployInfo.Process.Info.Status).
+				host.HostID, pluginName, processInfo.Status).
 			Info()
 
 		std.InstanceData().Content = conv.StructToMapIgnoreError(param)
 
-		operInstanceID := std.InstanceData().OperationInstanceID
-		operationInstance, err := act.daoOperationInstance.GetOperationInstanceFullData(nCtx, operInstanceID)
-		if err != nil {
-			std.InstanceData().Log().
-				Zh("获取 Operation Instance 失败, operation-instance-id(%s), err(%v)", operInstanceID, err).
-				En("failed to get operation instance, operation-instance-id(%s), err(%v)", operInstanceID, err).
-				Error()
-
-			return fmt.Errorf("get operation instance, operation-instance-id(%s), err(%v)", operInstanceID, err)
-		}
-
-		for actionName, actionInstData := range operationInstance.ActionInstanceDataMap {
-			if actionInstData.Index <= std.InstanceData().Index {
-				continue
-			}
-
-			// mark action as skipped
-			actionInstData.Lifecycle.State = action.StateSkipped
-
-			err := act.daoActionInstance.UpdateOperInstActionStatus(nCtx, operInstanceID, actionName, action.StateSkipped)
-			if err != nil {
-				std.InstanceData().Log().
-					Zh("更新 Action Instance 失败, operation-instance-id(%s), action-name(%s), err(%v)",
-						operInstanceID, actionName, err).
-					En("failed to update action instance, operation-instance-id(%s), action-name(%s), err(%v)",
-						operInstanceID, actionName, err).
-					Error()
-
-				return fmt.Errorf("update action instance, operation-instance-id(%s), action-name(%s), err(%v)",
-					operInstanceID, actionName, err)
-			}
+		if err := pluginV2Utils.FinishOperationInstance(std, act.daoOperationInstance, act.daoActionInstance); err != nil {
+			return fmt.Errorf("failed to finish operation instance: %w", err)
 		}
 	}
 

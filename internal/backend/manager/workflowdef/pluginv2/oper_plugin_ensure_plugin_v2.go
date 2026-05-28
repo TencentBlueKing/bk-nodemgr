@@ -46,7 +46,6 @@ func (oper *operPluginEnsurePluginV2) Name() string {
 func (oper *operPluginEnsurePluginV2) ActionDefNames() []string {
 	return []string{
 		ActionNameInjectPluginBaseRuntimeV2,
-		ActionNameFetchPluginProcessV2,
 		ActionNameFinishIfPluginProcessV2Alive,
 		ActionNameVerifyPluginAvailabilityV2,
 		ActionNameRenderPluginDeploymentV2,
@@ -65,9 +64,9 @@ func (oper *operPluginEnsurePluginV2) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameFetchPluginProcessV2:                 true,
-			ActionNameVerifyPluginAvailabilityV2:           true,
 			ActionNameInjectPluginBaseRuntimeV2:            true,
+			ActionNameFinishIfPluginProcessV2Alive:         true,
+			ActionNameVerifyPluginAvailabilityV2:           true,
 			ActionNameRenderPluginDeploymentV2:             true,
 			ActionNameEnsureAndUpdatePluginConfigDetailsV2: true,
 			ActionNameRenderPluginConfigV2:                 true,
