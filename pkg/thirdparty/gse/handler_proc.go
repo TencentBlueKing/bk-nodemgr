@@ -8,6 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package gse provides handlers to operate gse API.
+// nolint: dupl,varnamelen
 package gse
 
 import (

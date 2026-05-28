@@ -199,7 +199,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) error {
 	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy &&
 		std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID != std.DeployInfo().Host.Dynamic.NetworkUnitID {
 
-		if err := act.doCrossUnitProxyInstall(std, client, param, installerPath); err != nil {
+		if err := act.doCrossUnitProxyInstall(std, client, installerPath); err != nil {
 			return err
 		}
 
@@ -220,12 +220,8 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) error {
 }
 
 // doCrossUnitProxyInstall handles the SSH-only install flow for cross-unit proxy deployment.
-func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(
-	std *nodeUtils.NodeActionStandarder,
-	client *sshx.Client,
-	param *ActParamInstallAgentBySSH,
-	installerPath string,
-) error {
+func (act *actionInstallNodeBySSH) doCrossUnitProxyInstall(std *nodeUtils.NodeActionStandarder, client *sshx.Client,
+	installerPath string) error {
 
 	std.InstanceData().Log().
 		Zh("检测到跨管控单元 Proxy 安装, 使用 SSH-Only 模式").
