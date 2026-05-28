@@ -11,6 +11,8 @@
 package plugin
 
 import (
+	"slices"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -63,8 +65,13 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 }
 
 func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64) (string, error) {
+	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
+	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
+		return !item.EnableCompatibilityMode
+	})
+
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
+		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), pluginDeploymentParam...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return "", err
