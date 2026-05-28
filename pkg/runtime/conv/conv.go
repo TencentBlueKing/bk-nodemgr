@@ -585,3 +585,109 @@ func NonEmptyOr[T any](val T, defaultVal T) T {
 
 	return val
 }
+
+// ToBool conv interface{} to bool.
+func ToBool(value interface{}) (bool, error) {
+	if value == nil {
+		return false, errors.New("value is nil")
+	}
+
+	result, done, err := convNormalTypeToBool(value)
+	if done {
+		return result, err
+	}
+
+	result, err = convCustomTypeToBool(value)
+	if err != nil {
+		return false, err
+	}
+
+	return result, nil
+}
+
+// convNormalTypeToBool convert normal type to bool.
+// nolint: gocyclo
+func convNormalTypeToBool(value interface{}) (bool, bool, error) {
+	// this is the most common case, but it can't handle custom types.
+	switch v := value.(type) {
+	case bool:
+		return v, true, nil
+	case string:
+		result, err := StringToBool(v)
+		return result, true, err
+	case []byte:
+		result, err := StringToBool(string(v))
+		return result, true, err
+	case int:
+		return NumberToBool(v), true, nil
+	case int64:
+		return NumberToBool(v), true, nil
+	case int32:
+		return NumberToBool(v), true, nil
+	case int16:
+		return NumberToBool(v), true, nil
+	case int8:
+		return NumberToBool(v), true, nil
+	case uint:
+		return NumberToBool(v), true, nil
+	case uint64:
+		return NumberToBool(v), true, nil
+	case uint32:
+		return NumberToBool(v), true, nil
+	case uint16:
+		return NumberToBool(v), true, nil
+	case uint8:
+		return NumberToBool(v), true, nil
+	case float64:
+		return NumberToBool(v), true, nil
+	case float32:
+		return NumberToBool(v), true, nil
+	case json.Number:
+		result, err := StringToBool(v.String())
+		return result, true, err
+	default:
+		return false, false, nil
+	}
+}
+
+// convCustomTypeToBool convert custom type to bool.
+func convCustomTypeToBool(value interface{}) (bool, error) {
+	val := reflect.ValueOf(value)
+	for val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return false, errors.New("value is nil pointer")
+		}
+		val = val.Elem()
+	}
+
+	switch val.Kind() {
+	case reflect.Bool:
+		return val.Bool(), nil
+	case reflect.String:
+		return StringToBool(val.String())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val.Int() != 0, nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return val.Uint() != 0, nil
+	case reflect.Float32, reflect.Float64:
+		return val.Float() != 0, nil
+	case reflect.Slice:
+		if val.Type().Elem().Kind() == reflect.Uint8 {
+			return StringToBool(string(val.Bytes()))
+		}
+
+		return false, fmt.Errorf("cannot convert slice type to bool, element kind(%v)", val.Type().Elem().Kind())
+	default:
+		return false, fmt.Errorf("cannot convert interface to bool, kind(%v)", val.Kind())
+	}
+}
+
+// ToBoolDefault convert interface{} to bool with default value.
+func ToBoolDefault(value interface{}, defaultValue bool) bool {
+	result, err := ToBool(value)
+	if err != nil {
+		return defaultValue
+	}
+
+	return result
+}

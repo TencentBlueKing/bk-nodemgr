@@ -1636,6 +1636,204 @@ func TestNumberToBool(t *testing.T) {
 	}
 }
 
+// TestToBool tests the ToBool function.
+func TestToBool(t *testing.T) {
+	type MyBool bool
+	type MyString string
+	type MyInt int
+	type MyUint uint
+	type MyFloat float64
+
+	trueVal := true
+	customString := MyString("on")
+	customInt := MyInt(1)
+	var nilBoolPtr *bool
+
+	tests := []struct {
+		name    string
+		value   interface{}
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:  "bool true",
+			value: true,
+			want:  true,
+		},
+		{
+			name:  "bool false",
+			value: false,
+			want:  false,
+		},
+		{
+			name:  "string true",
+			value: "true",
+			want:  true,
+		},
+		{
+			name:  "string false",
+			value: "false",
+			want:  false,
+		},
+		{
+			name:  "byte slice on",
+			value: []byte("on"),
+			want:  true,
+		},
+		{
+			name:  "json number zero",
+			value: json.Number("0"),
+			want:  false,
+		},
+		{
+			name:  "json number non-zero",
+			value: json.Number("2"),
+			want:  true,
+		},
+		{
+			name:  "int zero",
+			value: 0,
+			want:  false,
+		},
+		{
+			name:  "int non-zero",
+			value: -1,
+			want:  true,
+		},
+		{
+			name:  "uint non-zero",
+			value: uint(1),
+			want:  true,
+		},
+		{
+			name:  "float zero",
+			value: float64(0),
+			want:  false,
+		},
+		{
+			name:  "float non-zero",
+			value: float32(1.2),
+			want:  true,
+		},
+		{
+			name:  "custom bool",
+			value: MyBool(true),
+			want:  true,
+		},
+		{
+			name:  "custom string",
+			value: customString,
+			want:  true,
+		},
+		{
+			name:  "custom int",
+			value: customInt,
+			want:  true,
+		},
+		{
+			name:  "custom uint zero",
+			value: MyUint(0),
+			want:  false,
+		},
+		{
+			name:  "custom float non-zero",
+			value: MyFloat(1.2),
+			want:  true,
+		},
+		{
+			name:  "bool pointer",
+			value: &trueVal,
+			want:  true,
+		},
+		{
+			name:  "custom string pointer",
+			value: &customString,
+			want:  true,
+		},
+		{
+			name:    "nil value",
+			value:   nil,
+			wantErr: true,
+		},
+		{
+			name:    "nil pointer",
+			value:   nilBoolPtr,
+			wantErr: true,
+		},
+		{
+			name:    "invalid string",
+			value:   "notabool",
+			wantErr: true,
+		},
+		{
+			name:    "unsupported slice",
+			value:   []int{1},
+			wantErr: true,
+		},
+		{
+			name:    "unsupported struct",
+			value:   struct{}{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ToBool(tt.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ToBool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ToBool() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestToBoolDefault tests the ToBoolDefault function.
+func TestToBoolDefault(t *testing.T) {
+	tests := []struct {
+		name         string
+		value        interface{}
+		defaultValue bool
+		want         bool
+	}{
+		{
+			name:         "valid true string",
+			value:        "true",
+			defaultValue: false,
+			want:         true,
+		},
+		{
+			name:         "valid false number",
+			value:        0,
+			defaultValue: true,
+			want:         false,
+		},
+		{
+			name:         "invalid value returns default",
+			value:        "notabool",
+			defaultValue: true,
+			want:         true,
+		},
+		{
+			name:         "nil value returns default",
+			value:        nil,
+			defaultValue: false,
+			want:         false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ToBoolDefault(tt.value, tt.defaultValue); got != tt.want {
+				t.Errorf("ToBoolDefault() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // Test types for SliceToSlice tests
 type Person struct {
 	Name string
