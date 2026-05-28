@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,6 +40,7 @@ func NewActionRestartNode(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
@@ -51,6 +53,7 @@ type actionRestartNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
+	storageActionInstance workflow.IStorageActionInstance
 }
 
 // Name returns the name of the action.
@@ -136,19 +139,27 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 		if err := act.restartThroughCluster(std, std.DeployInfo()); err != nil {
 			return err
 		}
+	} else {
+		if !std.DeployInfo().RestartOptions.ForceRestart {
+			return errors.New("current node version do not support soft restart")
+		}
 
-		return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime)
+		if err := act.restartThroughCommand(std, std.DeployInfo()); err != nil {
+			return err
+		}
 	}
 
-	if !std.DeployInfo().RestartOptions.ForceRestart {
-		return errors.New("current node version do not support soft restart")
+	if err = act.storageActionInstance.UpsertActionInstancePrivateData(std.Context(),
+		std.InstanceData().OperationInstanceID,
+		ActionNameWaitGseReady,
+		map[string]any{
+			types.PDKeyPreRestartNodeStartTimeSec: preRestartNodeStartTime,
+			types.PDKeyRestartCommandIssueTimeSec: time.Now().Unix(),
+		}); err != nil {
+		return fmt.Errorf("failed to save wait gse ready private data: %w", err)
 	}
 
-	if err := act.restartThroughCommand(std, std.DeployInfo()); err != nil {
-		return err
-	}
-
-	return act.updateInstanceContentForWaitGseReady(std, param, preRestartNodeStartTime)
+	return nil
 }
 
 func (act *actionRestartNode) capturePreRestartNodeStartTime(
@@ -172,19 +183,6 @@ func (act *actionRestartNode) capturePreRestartNodeStartTime(
 		Info()
 
 	return nil
-}
-
-func (act *actionRestartNode) updateInstanceContentForWaitGseReady(
-	std *nodeUtils.NodeActionStandarder,
-	param *ActionParamRestartNode,
-	preRestartNodeStartTime uint64,
-) error {
-
-	return std.UpdateInstanceDataContent(ActParamWaitGseReady{
-		NodeActionStandardParam: param.NodeActionStandardParam,
-		PreRestartNodeStartTime: preRestartNodeStartTime,
-		RestartCommandIssuedAt:  time.Now(),
-	})
 }
 
 func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {

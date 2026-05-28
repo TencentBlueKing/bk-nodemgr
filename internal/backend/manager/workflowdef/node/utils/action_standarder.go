@@ -110,11 +110,6 @@ func (std *NodeActionStandarder) ResetInstanceDataContext() {
 	std.instanceContext.Data.Content = conv.StructToMapIgnoreError(std.param)
 }
 
-// UpdateInstanceDataContent updates the instance data content.
-func (std *NodeActionStandarder) UpdateInstanceDataContent(obj any) error {
-	return std.instanceContext.Data.UpdateContent(obj)
-}
-
 // NodeActionStandardParam defines the standard parameters of node action.
 type NodeActionStandardParam struct {
 	Token    string `json:"token"`

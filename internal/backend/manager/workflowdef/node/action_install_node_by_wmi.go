@@ -33,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -51,6 +52,7 @@ func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 		storageHost:           capability.StorageTopo,
 		provider:              capability.DiscoverProvider,
 		passwordVault:         capability.HostPasswordVault,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
@@ -67,6 +69,7 @@ type actionInstallNodeByWMI struct {
 	storageHost           topoStg.IStorageHost
 	provider              discover.Provider
 	passwordVault         creditvault.IHostPasswordVault
+	storageActionInstance workflow.IStorageActionInstance
 }
 
 // Name returns the name of the action.
@@ -186,11 +189,13 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to execute install cmd: %w", err)
 	}
 
-	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
-		NodeActionStandardParam: param.NodeActionStandardParam,
-		EnsureAgentID:           true,
-	}); err != nil {
-		return fmt.Errorf("failed to update instance data content: %w", err)
+	err = saveWaitInstallerPrivateData(
+		std.Context(),
+		act.storageActionInstance,
+		std.InstanceData().OperationInstanceID,
+		false, true)
+	if err != nil {
+		return err
 	}
 
 	return nil

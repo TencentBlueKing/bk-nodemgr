@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,13 +40,14 @@ const (
 // NewActionInstallPluginV2 ...
 func NewActionInstallPluginV2(capability *Capability) action.Definition {
 	return &actionInstallPluginV2{
-		daoHost:             capability.StorageTopo,
-		daoNetworkUnit:      capability.StorageTopo,
-		daoPlugin:           capability.StoragePlugin,
-		daoPluginDeployment: capability.StoragePlugin,
-		daoProcess:          capability.StoragePlugin,
-		provider:            capability.DiscoverProvider,
-		gseHandler:          capability.GSEHandler,
+		daoHost:               capability.StorageTopo,
+		daoNetworkUnit:        capability.StorageTopo,
+		daoPlugin:             capability.StoragePlugin,
+		daoPluginDeployment:   capability.StoragePlugin,
+		daoProcess:            capability.StoragePlugin,
+		provider:              capability.DiscoverProvider,
+		gseHandler:            capability.GSEHandler,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
@@ -56,13 +58,14 @@ type ActParamInstallPluginV2 struct {
 
 // actionInstallPluginV2 ...
 type actionInstallPluginV2 struct {
-	daoHost             topoStg.IStorageHost
-	daoNetworkUnit      topoStg.IStorageNetworkUnit
-	daoPlugin           pluginStg.IDaoPlugin
-	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcess          pluginStg.IDaoProcess
-	provider            discover.Discover
-	gseHandler          gse.IHandler
+	daoHost               topoStg.IStorageHost
+	daoNetworkUnit        topoStg.IStorageNetworkUnit
+	daoPlugin             pluginStg.IDaoPlugin
+	daoPluginDeployment   pluginStg.IDaoPluginDeployment
+	daoProcess            pluginStg.IDaoProcess
+	provider              discover.Discover
+	gseHandler            gse.IHandler
+	storageActionInstance workflow.IStorageActionInstance
 }
 
 // Name returns the name of the action.
@@ -177,6 +180,15 @@ func (act *actionInstallPluginV2) Do(ctx *action.InstanceContext) error {
 		Zh("安装插件任务ID: %s", taskID).
 		En("install plugin task-id: %s", taskID).
 		Info()
+
+	if err = act.storageActionInstance.UpsertActionInstancePrivateData(std.Context(),
+		std.InstanceData().OperationInstanceID,
+		ActionNameWaitPluginInstallerCompleteV2,
+		map[string]any{
+			types.PDKeyActionWaitInstallerCompletePollingSwitch: installParams.SkipCallback,
+		}); err != nil {
+		return fmt.Errorf("failed to save wait plugin installer private data: %w", err)
+	}
 
 	return nil
 }

@@ -53,6 +53,23 @@ const (
 	// PDKeySubWorkflowRefs is the oper-inst action private_data key for spawned child workflow refs.
 	// The value is a JSON string of []SubWorkflowRef.
 	PDKeySubWorkflowRefs string = "sub_workflow_refs"
+
+	// PDKeyActionWaitInstallerCompleteEnsureAgentID is the oper‑inst action private_data key used to determine
+	// whether we need to wait for the AgentID to be reported.
+	PDKeyActionWaitInstallerCompleteEnsureAgentID = "action_wait_installer_complete_ensure_agent_id"
+
+	// PDKeyActionWaitInstallerCompletePollingSwitch is the oper-inst action private_data key for
+	// the switch to polling status in wait installer complete.
+	// if the value is true, it means the polling method is to use offline polling.
+	// if the value is false, it means the polling method is to use callback polling.
+	PDKeyActionWaitInstallerCompletePollingSwitch = "action_wait_installer_complete_polling_method"
+
+	// PDKeyPreRestartNodeStartTimeSec is the agent start time captured before restart command was issued.
+	// Zero means the field was not captured (e.g., query failed or non-restart workflow).
+	PDKeyPreRestartNodeStartTimeSec = "pre_restart_node_start_time_sec"
+
+	// PDKeyRestartCommandIssueTimeSec is the time when restart command was issued.
+	PDKeyRestartCommandIssueTimeSec = "restart_command_issued_time_sec"
 )
 
 // PDDetectInfo is report detect info.

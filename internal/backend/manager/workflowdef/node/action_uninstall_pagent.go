@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -41,6 +42,7 @@ func NewActionUninstallPagent(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
@@ -53,6 +55,7 @@ type actionUninstallPagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
+	storageActionInstance workflow.IStorageActionInstance
 }
 
 // Name returns the name of the action.
@@ -160,11 +163,11 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) error {
 		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
 
-	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
-		NodeActionStandardParam: param.NodeActionStandardParam,
-		EnsureAgentID:           false,
-	}); err != nil {
-		return fmt.Errorf("failed to update instance data content: %w", err)
+	err = saveWaitInstallerPrivateData(
+		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
+		false, false)
+	if err != nil {
+		return err
 	}
 
 	// exec uninstall command

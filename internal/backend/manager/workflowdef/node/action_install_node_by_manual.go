@@ -142,12 +142,11 @@ func (act *actionInstallNodeByManual) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to generate manual install exec cmd: %w", err)
 	}
 
-	// update instance data content for next action
-	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
-		NodeActionStandardParam: param.NodeActionStandardParam,
-		EnsureAgentID:           true,
-	}); err != nil {
-		return fmt.Errorf("failed to update instance data content: %w", err)
+	err = saveWaitInstallerPrivateData(
+		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
+		false, true)
+	if err != nil {
+		return err
 	}
 
 	return nil

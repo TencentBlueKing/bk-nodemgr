@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
 
@@ -46,16 +45,6 @@ type InstanceData struct {
 	Content       map[string]any
 	PrivateData   map[string]any
 	Lifecycle     *Lifecycle
-}
-
-// UpdateContent updates the content of the action instance.
-func (data *InstanceData) UpdateContent(obj any) error {
-	var err error
-	if data.Content, err = conv.StructToMap(obj); err != nil {
-		return fmt.Errorf("failed to convert struct to map: %w", err)
-	}
-
-	return nil
 }
 
 // Info gets info string.

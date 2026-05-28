@@ -51,8 +51,6 @@ func NewActionWaitInstallerComplete(capability *Capability) action.Definition {
 // ActionWaitInstallerComplete defines the action param.
 type ActionWaitInstallerComplete struct {
 	nodeUtils.NodeActionStandardParam `json:",inline"`
-	EnsureAgentID                     bool `json:"ensure_agent_id"`
-	UseSSHPolling                     bool `json:"use_ssh_polling"`
 }
 
 type actionWaitInstallerComplete struct {
@@ -128,15 +126,33 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	if param.UseSSHPolling {
-		return act.doSSHPolling(std, param)
+	pollingSwitch := conv.ToBoolDefault(
+		ctx.Data.PrivateData[types.PDKeyActionWaitInstallerCompletePollingSwitch], false)
+	ensureAgentID := conv.ToBoolDefault(
+		ctx.Data.PrivateData[types.PDKeyActionWaitInstallerCompleteEnsureAgentID], false)
+
+	// Check if this is offline mode by reading from deployment info.
+	if pollingSwitch {
+		std.InstanceData().Log().
+			Zh("采用离线轮询模式, 等待插件安装完成").
+			En("using offline polling mode to wait for plugin installation to complete").
+			Info()
+
+		return act.doOfflinePolling(std, ensureAgentID)
 	}
 
-	return act.doCallbackPolling(std, param)
+	std.InstanceData().Log().
+		Zh("采用回调模式，等待插件安装完成").
+		En("using callback mode to wait for plugin installation to complete").
+		Info()
+
+	return act.doCallbackPolling(std, ensureAgentID)
 }
 
 // doCallbackPolling is the original callback-based polling logic.
-func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeActionStandarder, param *ActionWaitInstallerComplete) error {
+func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeActionStandarder, ensureAgentID bool,
+) error {
+
 	instanceID := std.InstanceData().OperationInstanceID
 
 	rawInstallerResult, err := act.waitInstallerField(std, types.PDKeyInstallerReportStatus)
@@ -146,7 +162,7 @@ func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeAct
 
 	installerResult := installer.ProcessState(rawInstallerResult)
 
-	if param.EnsureAgentID && installerResult == installer.ProcessStateSuccess {
+	if ensureAgentID && installerResult == installer.ProcessStateSuccess {
 		agentID, err := act.waitInstallerField(std, types.PDKeyInstallerReportAgentID)
 		if err != nil {
 			return fmt.Errorf("failed to wait for agent id: %w", err)
@@ -158,8 +174,10 @@ func (act *actionWaitInstallerComplete) doCallbackPolling(std *nodeUtils.NodeAct
 	return act.handleInstallerResult(std, instanceID, installerResult)
 }
 
-// doSSHPolling implements the SSH polling branch for cross-unit proxy installations.
-func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionStandarder, param *ActionWaitInstallerComplete) error {
+// doOfflinePolling implements the SSH polling branch for cross-unit proxy installations.
+func (act *actionWaitInstallerComplete) doOfflinePolling(std *nodeUtils.NodeActionStandarder, ensureAgentID bool,
+) error {
+
 	creditHandler := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := creditHandler.GetSSHCredit(std)
 	if err != nil {
@@ -195,7 +213,7 @@ func (act *actionWaitInstallerComplete) doSSHPolling(std *nodeUtils.NodeActionSt
 		DataFile:      path.Join(dataDir, installer.DataFileName),
 		LogGlobPath:   path.Join(dataDir, "logs", "installer_*.log"),
 		InstanceID:    std.InstanceData().OperationInstanceID,
-		EnsureAgentID: param.EnsureAgentID,
+		EnsureAgentID: ensureAgentID,
 	})
 	if err != nil {
 		return err

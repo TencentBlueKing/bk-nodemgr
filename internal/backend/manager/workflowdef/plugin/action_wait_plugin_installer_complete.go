@@ -117,10 +117,23 @@ func (act *actionWaitPluginInstallerComplete) Do(ctx *action.InstanceContext) er
 		}
 	}()
 
+	pollingSwitch := conv.ToBoolDefault(
+		ctx.Data.PrivateData[types.PDKeyActionWaitInstallerCompletePollingSwitch], false)
+
 	// Check if this is offline mode by reading from deployment info.
-	if std.DeployInfo().InstallOptions.IsOffline {
+	if pollingSwitch {
+		std.InstanceData().Log().
+			Zh("采用离线轮询模式, 等待插件安装完成").
+			En("using offline polling mode to wait for plugin installation to complete").
+			Info()
+
 		return act.doOfflinePolling(std)
 	}
+
+	std.InstanceData().Log().
+		Zh("采用回调模式，等待插件安装完成").
+		En("using callback mode to wait for plugin installation to complete").
+		Info()
 
 	return act.doCallbackPolling(std)
 }

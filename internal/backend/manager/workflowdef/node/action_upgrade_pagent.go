@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,6 +40,7 @@ func NewActionUpgradePagent(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
@@ -51,6 +53,7 @@ type actionUpgradePagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
+	storageActionInstance workflow.IStorageActionInstance
 }
 
 // Name returns the name of the action.
@@ -160,11 +163,11 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 		En("build upgrade params success. params(%v)", upgradeParams).
 		Info()
 
-	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
-		NodeActionStandardParam: param.NodeActionStandardParam,
-		EnsureAgentID:           true,
-	}); err != nil {
-		return fmt.Errorf("failed to update instance data content: %w", err)
+	err = saveWaitInstallerPrivateData(
+		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
+		false, true)
+	if err != nil {
+		return err
 	}
 
 	// exec upgrade command
