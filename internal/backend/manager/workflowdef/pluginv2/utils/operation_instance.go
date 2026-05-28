@@ -22,6 +22,7 @@ func FinishOperationInstance(std *PluginActionStandarder,
 	daoOperationInstance workflow.IStorageOperationInstance,
 	daoActionInstance workflow.IStorageActionInstance,
 ) error {
+
 	operInstanceID := std.InstanceData().OperationInstanceID
 	operationInstance, err := daoOperationInstance.GetOperationInstanceFullData(std.Context(), operInstanceID)
 	if err != nil {
