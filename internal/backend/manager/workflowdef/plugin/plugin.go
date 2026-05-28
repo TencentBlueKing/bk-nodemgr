@@ -12,6 +12,7 @@
 package plugin
 
 import (
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -43,4 +44,7 @@ type Capability struct {
 
 	// discover provider.
 	DiscoverProvider discover.Provider
+
+	// plugin manager iface.
+	PluginIface managerIface.IPluginManager
 }

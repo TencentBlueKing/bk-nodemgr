@@ -79,6 +79,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeReconfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
 		PluginWorkflowTypeRestart,
+		PluginWorkflowTypeMigrateV2,
 		PluginWorkflowTypeStop,
 		PluginWorkflowTypeStopV2:
 		return nil

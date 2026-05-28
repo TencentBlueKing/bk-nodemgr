@@ -175,6 +175,21 @@ message PluginStopResp {
   Data data = 5;
 }
 
+// PluginMigrateFromV2Req describes the plugin migrate from v2 request.
+message PluginMigrateFromV2Req { repeated PluginOperateBasicInfo plugin = 1; }
+
+// PluginMigrateFromV2Resp describes the plugin migrate from v2 response.
+message PluginMigrateFromV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 service Plugin {
   // InstallPlugin installs a plugin on specified hosts.
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
@@ -238,6 +253,15 @@ service Plugin {
   rpc StopPlugin(PluginStopReq) returns (PluginStopResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop"
+      body : "*"
+    };
+  }
+
+  // MigratePluginFromV2 migrates plugin process from v2 on specified hosts.
+  rpc MigratePluginFromV2(PluginMigrateFromV2Req)
+      returns (PluginMigrateFromV2Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/migrate_from_v2"
       body : "*"
     };
   }

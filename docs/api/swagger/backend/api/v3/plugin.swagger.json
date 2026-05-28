@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/plugin/migrate_from_v2": {
+      "post": {
+        "summary": "MigratePluginFromV2 migrates plugin process from v2 on specified hosts.",
+        "operationId": "Plugin_MigratePluginFromV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginMigrateFromV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginMigrateFromV2Req describes the plugin migrate from v2 request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginMigrateFromV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/restart": {
       "post": {
         "summary": "RestartPlugin restarts the plugin process on specified hosts.",
@@ -623,6 +657,52 @@
             "type": "object",
             "$ref": "#/definitions/PluginListRespPlugin"
           }
+        }
+      }
+    },
+    "v3PluginMigrateFromV2Req": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginOperateBasicInfo"
+          }
+        }
+      },
+      "description": "PluginMigrateFromV2Req describes the plugin migrate from v2 request."
+    },
+    "v3PluginMigrateFromV2Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginMigrateFromV2RespData"
+        }
+      },
+      "description": "PluginMigrateFromV2Resp describes the plugin migrate from v2 response."
+    },
+    "v3PluginMigrateFromV2RespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
         }
       }
     },

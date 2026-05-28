@@ -570,6 +570,71 @@ func (x *PluginRestartReq) GetHostIDs() []int64 {
 }
 
 // Validate check body.
+func (x *PluginMigrateFromV2Req) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginMigrateFromV2Req) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginMigrateFromV2Req) ConvertParamFromTypes(migrateParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(migrateParam, func(param *types.PluginDeploymentParam) *PluginOperateBasicInfo {
+		item := &PluginOperateBasicInfo{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginMigrateFromV2Req) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginMigrateFromV2Req) ConvertParamToTypesWithHostBizMapping(
+	hostBizMapping map[int64]int64,
+) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+			BizID:      hostBizMapping[plugin.GetBkHostId()],
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginMigrateFromV2Req) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateBasicInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
+// Validate check body.
 func (x *PluginStopReq) Validate() error {
 	plugins := x.GetPlugin()
 	if len(plugins) == 0 {

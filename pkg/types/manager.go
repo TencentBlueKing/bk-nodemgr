@@ -125,6 +125,15 @@ type RestartProcessParam struct {
 	PluginDeployments []*PluginDeployment
 }
 
+// MigrateFromV2Param define the param of LaunchMigrateFromV2.
+type MigrateFromV2Param struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	PluginDeployments []*PluginDeployment
+}
+
 // StopProcessParam define the param of LaunchStopProcess.
 type StopProcessParam struct {
 	Type              PluginWorkflowType

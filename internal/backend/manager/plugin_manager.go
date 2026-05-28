@@ -472,6 +472,103 @@ func (mgr *Manager) getPluginRestartOperationDef(deploy *types.PluginDeployment,
 	})
 }
 
+// LaunchMigrateFromV2 launch a task to migrate plugin process from v2. returns the workflow-id.
+func (mgr *Manager) LaunchMigrateFromV2(
+	nCtx contextx.IContext,
+	param types.MigrateFromV2Param,
+) (string, error) {
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createMigrateFromV2Oper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch migrate plugin process from v2 task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createMigrateFromV2Oper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPluginMigrateFromV2OperationDef(deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("operation-id", operCtl.GetOperationID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to launch migrate plugin process from v2 task.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("plugin-token", deploy.Token).
+		Info("launched migrate plugin process from v2 task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPluginMigrateFromV2OperationDef(
+	deploy *types.PluginDeployment,
+	operator string,
+) operation.Definition {
+
+	return plugin.NewOperMigratePluginProcessFromV2(plugin.OperParamMigratePluginProcessFromV2{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
+}
+
 // LaunchStopProcess launch a task to stop process. returns the workflow-id.
 func (mgr *Manager) LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())

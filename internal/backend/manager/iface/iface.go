@@ -76,6 +76,9 @@ type iPluginManagerPlugin interface {
 	// LaunchRestartProcess launch a task to restart process. returns the workflow-id.
 	LaunchRestartProcess(nCtx contextx.IContext, param types.RestartProcessParam) (string, error)
 
+	// LaunchMigrateFromV2 launch a task to migrate plugin process from v2. returns the workflow-id.
+	LaunchMigrateFromV2(nCtx contextx.IContext, param types.MigrateFromV2Param) (string, error)
+
 	// LaunchStopProcess launch a task to stop process. returns the workflow-id.
 	LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error)
 }

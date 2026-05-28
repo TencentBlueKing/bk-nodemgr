@@ -212,6 +212,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		StorageHostCredit:   mgr.conf.StorageHostCredit,
 		StorageConfigPolicy: mgr.conf.StorageConfigPolicy,
 		DiscoverProvider:    mgr.conf.Provider,
+		PluginIface:         mgr,
 	}
 
 	// register action defs.
@@ -241,6 +242,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionVerifyPluginAvailability(pluginCap),
 		plugin.NewActionFetchProcessSubConfigIntoDeployment(pluginCap),
 		plugin.NewActionInjectPluginCustomDeployConfig(pluginCap),
+		plugin.NewActionStopPluginV2Process(pluginCap),
 	); err != nil {
 		return err
 	}
