@@ -122,15 +122,6 @@ func (act *actionFinishIfPluginProcessV2NotAlive) Do(ctx *action.InstanceContext
 		return err
 	}
 
-	if err := pluginV2Utils.EnsureHostLoginUser(std, host); err != nil {
-		std.InstanceData().Log().
-			Zh("获取主机登录用户失败, 主机id(%d), 错误(%s)", deployInfo.Process.HostID, err).
-			En("fetch host login user failed, host-id(%d), error(%s)", deployInfo.Process.HostID, err).
-			Error()
-
-		return err
-	}
-
 	pluginName := deployInfo.Process.PluginName
 	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, pluginName, pluginName, host.Dynamic.AgentID)
 	if err != nil {
