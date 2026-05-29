@@ -213,6 +213,7 @@ func generateInDirectServerEndpoints(nCtx contextx.IContext, hostID int64, netwo
 			NetworkUnitID: []int64{networkUnit.ID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
+			ProxyTags:     []types.ProxyTag{types.ProxyTagDedicatedInstaller},
 		},
 	})
 	if err != nil {
