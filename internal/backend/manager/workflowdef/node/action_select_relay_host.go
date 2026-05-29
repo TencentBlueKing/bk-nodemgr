@@ -12,12 +12,15 @@ package node
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -33,6 +36,7 @@ func NewActionSelectRelayHost(capability *Capability) action.Definition {
 	return &actionSelectRelayHost{
 		storageHost:           capability.StorageTopo,
 		storageNodeDeployment: capability.StorageNode,
+		storageProcess:        capability.StoragePlugin,
 	}
 }
 
@@ -45,6 +49,7 @@ type ActParamSelectRelayHost struct {
 type actionSelectRelayHost struct {
 	storageHost           topoStg.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageProcess        pluginStg.IDaoProcess
 }
 
 // Name returns the name of the action.
@@ -145,10 +150,11 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 			NetworkUnitID: []int64{networkunitID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
+			ProxyTags:     []types.ProxyTag{types.ProxyTagDedicatedInstaller},
 		},
 	})
 	if err != nil {
-		return types.RelayInfo{}, err
+		return types.RelayInfo{}, fmt.Errorf("failed to list running proxy hosts: %w", err)
 	}
 
 	if num == 0 {
@@ -160,9 +166,38 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 		return types.RelayInfo{}, errors.New("no proxy host in network unit")
 	}
 
+	proxyHostIDs := conv.SliceToSlice[*types.Host, int64](hosts, func(host *types.Host) int64 {
+		return host.HostID
+	})
+	relayProcesses, _, err := act.storageProcess.ListProcesses(std.Context(), types.UnlimitedPage(), &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{
+			HostID: proxyHostIDs,
+			InfoStatus: []types.ProcessStatus{
+				types.ProcessStatusRunning,
+			},
+			PluginName: []string{
+				relayhandler.PluginName,
+			},
+		},
+	})
+	if err != nil {
+		return types.RelayInfo{}, fmt.Errorf("failed to list running relay processes: %w", err)
+	}
+
+	runningRelayProcessMap, err := conv.SliceToMap[int64, *types.Process](relayProcesses,
+		func(p *types.Process) int64 { return p.HostID },
+	)
+	if err != nil {
+		return types.RelayInfo{}, fmt.Errorf("failed to convert running relay processes: %w", err)
+	}
+
 	dedicatedHosts := make([]*types.Host, 0, num)
 	for _, host := range hosts {
 		if host.HostID == currentHostID {
+			continue
+		}
+
+		if _, ok := runningRelayProcessMap[host.HostID]; !ok {
 			continue
 		}
 
