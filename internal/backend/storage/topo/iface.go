@@ -138,6 +138,7 @@ type IStorageHost interface {
 	UpsertManyHost(nCtx contextx.IContext, host ...*types.Host) error
 
 	// UpsertManyHostStatic updates or inserts host statics.
+	// Deprecated: UpsertManyHostStatic is deprecated, please use UpdateHostStaticFields instead.
 	UpsertManyHostStatic(nCtx contextx.IContext, host ...*types.Host) error
 
 	// UpdateManyHostDynamic updates host dynamic.
@@ -168,6 +169,9 @@ type IStorageHost interface {
 
 	// FindHostWithDynamic finds hosts with dynamic fields.
 	FindHostWithDynamic(nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, error)
+
+	// UpdateHostStaticFields updates the static fields of a host.
+	UpdateHostStaticFields(nCtx contextx.IContext, fields types.HostStaticFields, hosts ...*types.Host) error
 
 	// UpdateHostDynamicFields updates the dynamic fields of a host.
 	UpdateHostDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error

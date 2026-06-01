@@ -17,49 +17,53 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncBizAndHost sync all biz and their host from cmdb.
-const OperDefNameSyncBizAndHost = "sync_biz_and_host"
+const (
+	// OperDefNameSyncHostTopoRelation defines the operation def name.
+	OperDefNameSyncHostTopoRelation = "sync_host_topo_relation"
 
-// NewOperSyncBizAndHost new an operation.
-func NewOperSyncBizAndHost(param OperParamSyncBizAndHost) operation.Definition {
-	return &operSyncBizAndHost{
+	// OperDefNameSyncHostTopoRelationTimeout defines the timeout for each sync host topo relation operation.
+	OperDefNameSyncHostTopoRelationTimeout = 30 * time.Minute
+)
+
+// NewOperSyncHostTopoRelation new an operation.
+func NewOperSyncHostTopoRelation(param OperParamSyncHostTopoRelation) operation.Definition {
+	return &operSyncHostTopoRelation{
 		param: param,
 	}
 }
 
-type operSyncBizAndHost struct {
-	param OperParamSyncBizAndHost
+type operSyncHostTopoRelation struct {
+	param OperParamSyncHostTopoRelation
 }
 
-// OperParamSyncBizAndHost defines the parameters for operSyncBizAndHost.
-type OperParamSyncBizAndHost struct {
+// OperParamSyncHostTopoRelation defines the parameters for operSyncHostTopoRelation.
+type OperParamSyncHostTopoRelation struct {
+	BizID    int64  `json:"biz_id"`
 	TenantID string `json:"tenant_id"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncBizAndHost) Name() string {
-	return OperDefNameSyncBizAndHost
+func (oper *operSyncHostTopoRelation) Name() string {
+	return OperDefNameSyncHostTopoRelation
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncBizAndHost) ActionDefNames() []string {
+func (oper *operSyncHostTopoRelation) ActionDefNames() []string {
 	return []string{
-		ActionNameSyncBusiness,
-		ActionNameGenOperSyncHost,
-		ActionNameGenOperSyncHostTopoRelation,
+		ActionNameSyncHostTopoRelation,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncBizAndHost) DefaultParameters() operation.Param {
+func (oper *operSyncHostTopoRelation) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:     10 * time.Minute, // nolint:mnd
+		Timeout:     OperDefNameSyncHostTopoRelationTimeout,
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 	}
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncBizAndHost) ExtraExecutionName() string {
+func (oper *operSyncHostTopoRelation) ExtraExecutionName() string {
 	return ""
 }

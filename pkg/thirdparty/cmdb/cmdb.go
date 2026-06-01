@@ -1016,7 +1016,6 @@ func (c *cli) searchModule(ctx contextx.IContext, req *SearchModuleReq) (*Search
 }
 
 // findHostTopoRelation find host topo relation.
-// nolint: unused
 func (c *cli) findHostTopoRelation(ctx contextx.IContext, req *FindHostTopoRelationReq) (
 	*FindHostTopoRelationResp, error) {
 

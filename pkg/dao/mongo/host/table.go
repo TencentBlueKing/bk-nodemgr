@@ -28,6 +28,8 @@ func TableName(tenantID string) string {
 // nolint: revive
 type HostStatic struct {
 	BizID         int64    `json:"biz_id" bson:"biz_id"`
+	SetID         int64    `json:"set_id" bson:"set_id"`
+	ModuleID      int64    `json:"module_id" bson:"module_id"`
 	NetworkAreaID int64    `json:"networkarea_id" bson:"networkarea_id"`
 	HostName      string   `json:"host_name" bson:"host_name"`
 	DeptName      string   `json:"dept_name" bson:"dept_name"`

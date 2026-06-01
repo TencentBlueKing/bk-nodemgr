@@ -67,6 +67,7 @@ const (
 	metricOperationRecommendNetworkUnitByNetworkSegment      = "recommend_networkunit_by_network_segment"
 	metricOperationDeleteManyHost                            = "delete_many_host"
 	metricOperationFindHostWithDynamic                       = "find_host_with_dynamic"
+	metricOperationUpdateHostStaticFields                    = "update_host_static_fields"
 	metricOperationUpdateHostDynamicFields                   = "update_host_dynamic_fields"
 	metricOperationTouchHostOperationTime                    = "touch_host_operation_time"
 	metricOperationGetV4AgentAccessEndpoints                 = "get_v4_agent_access_endpoints"

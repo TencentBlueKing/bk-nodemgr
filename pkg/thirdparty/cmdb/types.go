@@ -207,6 +207,7 @@ const (
 	hostPropertyFilterConditionAnd filterCondition = "AND"
 
 	// hostPropertyFilterConditionOr describe the or condition.
+	// nolint: unused
 	hostPropertyFilterConditionOr filterCondition = "OR"
 )
 
@@ -996,7 +997,7 @@ type FindHostTopoRelationReq struct {
 	BKBizID     int64   `json:"bk_biz_id"`
 	BKSetIDs    []int64 `json:"bk_set_ids,omitempty"`
 	BKModuleIDs []int64 `json:"bk_module_ids,omitempty"`
-	BKHostIDs   []int64 `json:"bk_host_ids"`
+	BKHostIDs   []int64 `json:"bk_host_ids,omitempty"`
 	Page        Page    `json:"page"`
 }
 

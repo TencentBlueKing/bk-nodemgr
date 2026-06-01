@@ -25,8 +25,20 @@ const (
 	// FieldKeyStaticBizID the static biz id field key.
 	FieldKeyStaticBizID = "data.static.biz_id"
 
+	// FieldKeyStaticSetID the static set id field key.
+	FieldKeyStaticSetID = "data.static.set_id"
+
+	// FieldKeyStaticModuleID the static module id field key.
+	FieldKeyStaticModuleID = "data.static.module_id"
+
 	// FieldKeyStaticNetworkAreaID the static networkarea id field key.
 	FieldKeyStaticNetworkAreaID = "data.static.networkarea_id"
+
+	// FieldKeyStaticRegionID the static region id field key.
+	FieldKeyStaticRegionID = "data.static.region_id"
+
+	// FieldKeyStaticCityID the static city id field key.
+	FieldKeyStaticCityID = "data.static.city_id"
 
 	// FieldKeyStaticInnerIPList the static inner ip list field key.
 	FieldKeyStaticInnerIPList = "data.static.inner_ip_list"
@@ -46,6 +58,15 @@ const (
 	// FieldKeyStaticDeptName the static dept name field key.
 	FieldKeyStaticDeptName = "data.static.dept_name"
 
+	// FieldKeyStaticOperator the static operator field key.
+	FieldKeyStaticOperator = "data.static.operator"
+
+	// FieldKeyStaticMac the static mac field key.
+	FieldKeyStaticMac = "data.static.mac"
+
+	// FieldKeyStaticOSTypeCCID the static os type cc id field key.
+	FieldKeyStaticOSTypeCCID = "data.static.os_type_ccid"
+
 	// FieldKeyStaticOSType the static os type field key.
 	FieldKeyStaticOSType = "data.static.os_type"
 
@@ -60,6 +81,9 @@ const (
 
 	// FieldKeyStaticMemCap the static mem cap field key.
 	FieldKeyStaticMemCap = "data.static.mem_cap"
+
+	// FieldKeyStaticSyncedAgentID the static synced agent id field key.
+	FieldKeyStaticSyncedAgentID = "data.static.synced_agent_id"
 
 	// Dynamic fields.
 

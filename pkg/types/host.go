@@ -318,6 +318,8 @@ type Host struct {
 type HostStatic struct {
 	// belongs to
 	BizID         int64
+	SetID         int64
+	ModuleID      int64
 	NetworkAreaID int64
 	RegionID      string
 	CityID        string
@@ -352,6 +354,58 @@ func (static *HostStatic) GetInnerIPList() []string {
 // GetOuterIPList returns a list of outer ip.
 func (static *HostStatic) GetOuterIPList() []string {
 	return static.OuterIPList
+}
+
+// HostStaticFields represents the fields of HostStatic fields.
+type HostStaticFields struct {
+	BizID         bool
+	SetID         bool
+	ModuleID      bool
+	NetworkAreaID bool
+	RegionID      bool
+	CityID        bool
+	HostName      bool
+	DeptName      bool
+	InnerIPList   bool
+	InnerIPV6List bool
+	OuterIPList   bool
+	OuterIPV6List bool
+	Operator      bool
+	Mac           bool
+	OSTypeCCID    bool
+	OSType        bool
+	Arch          bool
+	Addressing    bool
+	CPUNum        bool
+	MemCap        bool
+	SyncedAgentID bool
+}
+
+// UpdateAllHostStaticFields returns a HostStaticFields with all fields set to true.
+func UpdateAllHostStaticFields() HostStaticFields {
+	return HostStaticFields{
+		BizID:         true,
+		ModuleID:      true,
+		SetID:         true,
+		NetworkAreaID: true,
+		RegionID:      true,
+		CityID:        true,
+		HostName:      true,
+		DeptName:      true,
+		InnerIPList:   true,
+		InnerIPV6List: true,
+		OuterIPList:   true,
+		OuterIPV6List: true,
+		Operator:      true,
+		Mac:           true,
+		OSTypeCCID:    true,
+		OSType:        true,
+		Arch:          true,
+		Addressing:    true,
+		CPUNum:        true,
+		MemCap:        true,
+		SyncedAgentID: true,
+	}
 }
 
 // NodeRole represents a node role.

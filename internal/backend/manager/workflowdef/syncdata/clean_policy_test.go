@@ -27,6 +27,7 @@ func TestSyncDataCleanPolicyMaxDaysUsesFractionalDays(t *testing.T) {
 		{name: "sync agent state", timeout: OperDefNameSyncAgentStateTimeout},
 		{name: "sync alive plugin process info", timeout: OperDefNameSyncAlivePluginProcessInfoTimeout},
 		{name: "sync host", timeout: OperDefNameSyncHostTimeout},
+		{name: "sync host topo relation", timeout: OperDefNameSyncHostTopoRelationTimeout},
 	}
 
 	for _, test := range tests {
@@ -82,6 +83,12 @@ func TestSyncDataOperationCleanPolicyTimeouts(t *testing.T) {
 			operation:  OperDefNameSyncHost,
 			maxDays:    syncDataCleanPolicyMaxDays(OperDefNameSyncHostTimeout),
 			wantMaxDay: syncDataCleanPolicyMaxDays(NewOperSyncHost(OperParamSyncHost{}).DefaultParameters().Timeout),
+		},
+		{
+			name:       "sync host topo relation",
+			operation:  OperDefNameSyncHostTopoRelation,
+			maxDays:    syncDataCleanPolicyMaxDays(OperDefNameSyncHostTopoRelationTimeout),
+			wantMaxDay: syncDataCleanPolicyMaxDays(NewOperSyncHostTopoRelation(OperParamSyncHostTopoRelation{}).DefaultParameters().Timeout),
 		},
 	}
 

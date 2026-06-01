@@ -462,6 +462,23 @@ func (s *Storage) TouchHostOperationTime(nCtx contextx.IContext, hostIDs ...int6
 	})
 }
 
+// UpdateHostStaticFields updates the static fields of a host.
+func (s *Storage) UpdateHostStaticFields(nCtx contextx.IContext, fields types.HostStaticFields, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	return s.WrapFn(nCtx, metricOperationUpdateHostStaticFields, func(nCtx contextx.IContext) error {
+		var err error
+		err = s.daoHost.UpdateStaticFields(nCtx, fields, hosts...)
+		if err != nil {
+			return fmt.Errorf("failed to update host static fields: %w", err)
+		}
+
+		return nil
+	})
+}
+
 // UpdateHostDynamicFields updates the dynamic fields of a host.
 func (s *Storage) UpdateHostDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error {
 	if nCtx == nil {

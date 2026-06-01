@@ -327,7 +327,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 	}
 
 	event.Detail.Static.BizID = hostBizMap[event.Detail.HostID]
-	if err := act.storageTopo.UpsertManyHostStatic(std.Context(), event.Detail); err != nil {
+	if err := act.storageTopo.UpdateHostStaticFields(std.Context(), types.UpdateAllHostStaticFields(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 			En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
@@ -423,30 +423,21 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *s
 		return
 	}
 
-	host, err := act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
-	if err != nil {
+	updateFields := types.HostStaticFields{BizID: true, ModuleID: true, SetID: true}
+	if err = act.storageTopo.UpdateHostStaticFields(std.Context(), updateFields, event.Detail); err != nil {
 		std.InstanceData().Log().
-			Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
-			En("failed to get host info by host id, host id: %d, error: %v", event.Detail.HostID, err).
+			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+			En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
 			Error()
 
 		return
 	}
 
-	host.Static.BizID = event.Detail.Static.BizID
-	if err = act.storageTopo.UpsertManyHostStatic(std.Context(), host); err != nil {
+	if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), event.Detail.Static.BizID, event.Detail.HostID); err != nil {
 		std.InstanceData().Log().
-			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", host.HostID, err).
-			En("failed to update host static info, host id: %d, error: %v", host.HostID, err).
-			Error()
-
-		return
-	}
-
-	if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), host.Static.BizID, host.HostID); err != nil {
-		std.InstanceData().Log().
-			Zh("更新主机相关进程的业务id失败, 主机id: %d, 业务id: %d, 错误: %v", host.HostID, host.Static.BizID, err).
-			En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v", host.HostID, host.Static.BizID, err).
+			Zh("更新主机相关进程的业务id失败, 主机id: %d, 业务id: %d, 错误: %v", event.Detail.HostID, event.Detail.Static.BizID, err).
+			En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v",
+				event.Detail.HostID, event.Detail.Static.BizID, err).
 			Error()
 
 		return

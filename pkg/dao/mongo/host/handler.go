@@ -58,6 +58,9 @@ type IHandler interface {
 	// FindWithDynamic finds hosts with dynamic fields.
 	FindWithDynamic(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, error)
 
+	// UpdateStaticFields updates host static fields.
+	UpdateStaticFields(nCtx contextx.IContext, fields types.HostStaticFields, hosts ...*types.Host) error
+
 	// UpdateDynamicFields updates host dynamic fields.
 	UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
 
@@ -515,6 +518,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 	if host.Static != nil {
 		static = &HostStatic{
 			BizID:         host.Static.BizID,
+			SetID:         host.Static.SetID,
+			ModuleID:      host.Static.ModuleID,
 			NetworkAreaID: host.Static.NetworkAreaID,
 			HostName:      host.Static.HostName,
 			DeptName:      host.Static.DeptName,
@@ -595,6 +600,8 @@ func convertHostToTypes(host *Host) *types.Host {
 	if host.Static != nil {
 		static = &types.HostStatic{
 			BizID:         host.Static.BizID,
+			SetID:         host.Static.SetID,
+			ModuleID:      host.Static.ModuleID,
 			NetworkAreaID: host.Static.NetworkAreaID,
 			RegionID:      host.Static.RegionID,
 			CityID:        host.Static.CityID,
@@ -756,7 +763,111 @@ func (h *handler) FindWithDynamic(nCtx contextx.IContext, page types.Page, opts 
 	return data, nil
 }
 
-// UpdateDynamicFields updates host dynamic fields.
+// UpdateStaticFields updates host static fields.
+func (h *handler) UpdateStaticFields(nCtx contextx.IContext, fields types.HostStaticFields, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	docs := make([]*base.DocumentFieldUpdate, 0, len(hosts))
+	for _, host := range hosts {
+		if host == nil || host.Static == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		updates := generateHostStaticUpdates(fields, host)
+		docs = append(docs, &base.DocumentFieldUpdate{
+			Filter: bson.D{{Key: FieldKeyHostID, Value: host.HostID}},
+			Fields: updates,
+		})
+	}
+
+	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to update host static fields")
+
+		return err
+	}
+
+	return nil
+}
+
+// nolint: gocognit, gocyclo, cyclop
+func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) map[string]any {
+	updates := make(map[string]any)
+
+	if fields.BizID {
+		updates[FieldKeyStaticBizID] = host.Static.BizID
+	}
+	if fields.SetID {
+		updates[FieldKeyStaticSetID] = host.Static.SetID
+	}
+	if fields.ModuleID {
+		updates[FieldKeyStaticModuleID] = host.Static.ModuleID
+	}
+	if fields.NetworkAreaID {
+		updates[FieldKeyStaticNetworkAreaID] = host.Static.NetworkAreaID
+	}
+	if fields.RegionID {
+		updates[FieldKeyStaticRegionID] = host.Static.RegionID
+	}
+	if fields.CityID {
+		updates[FieldKeyStaticCityID] = host.Static.CityID
+	}
+	if fields.HostName {
+		updates[FieldKeyStaticHostName] = host.Static.HostName
+	}
+	if fields.DeptName {
+		updates[FieldKeyStaticDeptName] = host.Static.DeptName
+	}
+	if fields.InnerIPList {
+		updates[FieldKeyStaticInnerIPList] = host.Static.InnerIPList
+	}
+	if fields.InnerIPV6List {
+		updates[FieldKeyStaticInnerIPV6List] = host.Static.InnerIPV6List
+	}
+	if fields.OuterIPList {
+		updates[FieldKeyStaticOuterIPList] = host.Static.OuterIPList
+	}
+	if fields.OuterIPV6List {
+		updates[FieldKeyStaticOuterIPV6List] = host.Static.OuterIPV6List
+	}
+	if fields.Operator {
+		updates[FieldKeyStaticOperator] = host.Static.Operator
+	}
+	if fields.Mac {
+		updates[FieldKeyStaticMac] = host.Static.Mac
+	}
+	if fields.OSTypeCCID {
+		updates[FieldKeyStaticOSTypeCCID] = host.Static.OSTypeCCID
+	}
+	if fields.OSType {
+		updates[FieldKeyStaticOSType] = host.Static.OSType
+	}
+	if fields.Arch {
+		updates[FieldKeyStaticArch] = host.Static.Arch
+	}
+	if fields.Addressing {
+		updates[FieldKeyStaticAddressing] = host.Static.Addressing
+	}
+	if fields.CPUNum {
+		updates[FieldKeyStaticCPUNum] = host.Static.CPUNum
+	}
+	if fields.MemCap {
+		updates[FieldKeyStaticMemCap] = host.Static.MemCap
+	}
+	if fields.SyncedAgentID {
+		updates[FieldKeyStaticSyncedAgentID] = host.Static.SyncedAgentID
+	}
+
+	return updates
+}
+
 func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()

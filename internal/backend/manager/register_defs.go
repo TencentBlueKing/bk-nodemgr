@@ -151,9 +151,11 @@ func (mgr *Manager) registerDefSyncData() error {
 	if err := mgr.workflowMgr.RegisterActions(
 		syncdata.NewActionSyncBusiness(syncdataCap),
 		syncdata.NewActionSyncHost(syncdataCap),
+		syncdata.NewActionSyncHostTopoRelation(syncdataCap),
 		syncdata.NewActionSyncTenant(syncdataCap),
 		syncdata.NewActionSyncNetworkArea(syncdataCap),
 		syncdata.NewActionGenOperSyncHost(syncdataCap),
+		syncdata.NewActionGenOperSyncHostTopoRelation(syncdataCap),
 		syncdata.NewActionSyncAgentState(syncdataCap),
 		syncdata.NewActionGenOperSyncAgentState(syncdataCap),
 		syncdata.NewActionSyncAgentInfo(syncdataCap),

@@ -162,7 +162,7 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		Info()
 
 	if err = batchHandleHosts(updateHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpsertManyHostStatic(std.Context(), hosts...)
+		return act.storageHost.UpdateHostStaticFields(std.Context(), types.UpdateAllHostStaticFields(), hosts...)
 	}); err != nil {
 		return err
 	}

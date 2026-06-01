@@ -664,7 +664,9 @@ func convHostTopoRelationToTypes(tenantID string, hostRel *HostTopoRelation) *ty
 		TenantID: tenantID,
 		HostID:   hostRel.BKHostID,
 		Static: &types.HostStatic{
-			BizID: hostRel.BKBizID,
+			BizID:    hostRel.BKBizID,
+			SetID:    hostRel.BKSetID,
+			ModuleID: hostRel.BKModuleID,
 		},
 	}
 }
@@ -735,6 +737,9 @@ type IHost interface {
 	// ListBizHosts list biz hosts.
 	ListBizHosts(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error)
 
+	// ListBizHostTopoRelations lists biz host topo relations.
+	ListBizHostTopoRelations(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error)
+
 	// ListHostsWithoutBusiness list hosts without business.
 	ListHostsWithoutBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Host, error)
 
@@ -804,6 +809,52 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, fmt.Errorf("execute page executor failed: %v", err)
+	}
+
+	return result.Items, nil
+}
+
+// ListBizHostTopoRelations lists biz host topo relations.
+func (h *Handler) ListBizHostTopoRelations(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error) {
+	if nCtx == nil {
+		return nil, fmt.Errorf("failed to list biz host topo relations, nCtx is nil")
+	}
+
+	if bizID == CCInvalidID {
+		return nil, fmt.Errorf("failed to list biz host topo relations, bizID is invalid")
+	}
+
+	tenantID := nCtx.TenantID()
+	bkUsername := nCtx.BKUsername()
+
+	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+		req := &FindHostTopoRelationReq{
+			BKBizID: bizID,
+			Page: Page{
+				Start: p.Offset,
+				Limit: p.Limit,
+				Sort:  p.Sort,
+			},
+		}
+
+		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(bkUsername))
+		resp, err := h.cli.findHostTopoRelation(newCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		hosts := make([]*types.Host, len(resp.Data))
+		for idx, relation := range resp.Data {
+			hosts[idx] = convHostTopoRelationToTypes(tenantID, relation)
+		}
+
+		return hosts, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, fmt.Errorf("execute page executor failed: %w", err)
 	}
 
 	return result.Items, nil
@@ -1330,6 +1381,7 @@ const (
 )
 
 // FindHostByTopo find host by topo.
+// nolint: gocognit
 func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes ...*types.ScopeTopoNode) ([]*types.Host, error) {
 	// this has a special logic, so we need to split it for three parts:
 	// 1. find obj id is biz
