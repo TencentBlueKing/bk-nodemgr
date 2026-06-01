@@ -24924,3 +24924,149 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn:
+  /api/v3/plugin/migrate_from_v2:
+    post:
+      operationId: Plugin_MigratePluginFromV2
+      description: MigratePluginFromV2 migrates plugin process from v2 on specified hosts.
+      tags:
+        - Plugin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: PluginMigrateFromV2Resp describes the plugin migrate from v2 response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plugin:
+                  type: array
+                  items:
+                    type: object
+                    title: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which
+                    properties:
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      plugin_name:
+                        type: string
+              description: PluginMigrateFromV2Req describes the plugin migrate from v2 request.
+        required: true
+        description: PluginMigrateFromV2Req describes the plugin migrate from v2 request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/migrate_from_v2
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
