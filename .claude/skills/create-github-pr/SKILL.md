@@ -27,21 +27,33 @@ The skill follows this sequence with human confirmation at critical steps:
 
 ## Step 1: Analyze Current Branch
 
-Gather context about what's being merged:
+Gather context about what's being merged. The comparison base must be the latest canonical upstream `master`, not a stale tracking ref and not the fork's `origin/master` unless `origin` is the canonical upstream.
 
 ```bash
-# Run these in parallel
-git status
+# Resolve the real upstream and base before diffing
+git remote -v
 git branch -vv
+git fetch --prune [upstream-remote] master
+
+# Run these in parallel after [upstream-remote]/master is updated
+git status
 git log --oneline -10
-git diff $(git merge-base HEAD origin/master)..HEAD --stat
-git diff $(git merge-base HEAD origin/master)..HEAD
+git merge-base HEAD [upstream-remote]/master
+git diff $(git merge-base HEAD [upstream-remote]/master)..HEAD --stat
+git diff $(git merge-base HEAD [upstream-remote]/master)..HEAD
 ```
+
+Base resolution rules:
+1. Prefer the remote URL pointing to the canonical project repository (for bk-nodemgr: `TencentBlueKing/bk-nodemgr`) and fetch its `master` before diffing.
+2. If `origin` points to the user's fork, do not use `origin/master` as the comparison base unless the user explicitly confirms it is synced to canonical `master`.
+3. If `git branch -vv` shows the tracking branch as `[gone]`, ignore that tracking ref for diff scope; it may be stale or absent.
+4. If no canonical upstream remote exists, ask the user which remote/branch is the PR base before drafting the issue.
+5. If the user provides explicit commit hashes or a commit range, analyze exactly that range and do not replace it with whole-branch diff output.
 
 Extract:
 - Current branch name
-- Tracking remote (if any)
-- Base branch (usually `master` or `main`)
+- Tracking remote (if any), but do not trust it as diff base when stale/gone
+- Canonical upstream remote and freshly fetched base branch (usually `upstream/master` or the remote that points to `TencentBlueKing/bk-nodemgr`)
 - Commit messages
 - Files changed (with line counts)
 - Actual code changes
@@ -57,8 +69,8 @@ git remote -v
 ```
 
 Parse output to identify:
-- **Upstream remote**: Usually `origin`, pointing to `TencentBlueKing/bk-nodemgr`
-- **Fork remote**: User's fork (e.g., `a-xyuzou` → `zouxingyuks/bk-nodemgr`)
+- **Canonical upstream remote**: The remote URL pointing to the project repository (for bk-nodemgr: `TencentBlueKing/bk-nodemgr`). It may be named `upstream`, `origin`, or something else; identify it from `git remote -v`, not from the remote name alone.
+- **Fork remote**: User's fork (e.g., `zouxingyuks/bk-nodemgr`). Do not use its `master` as diff base unless explicitly confirmed synced to canonical `master`.
 
 If fork remote exists:
 1. Push branch to fork remote, not origin
@@ -183,10 +195,10 @@ If your changes touch `pkg/`, the `module/pkg` label will be auto-applied.
 
 ### Determine Base Branch
 
-Check the workflow file for target branches (usually `master` or `main`). Confirm with:
+Use the same freshly resolved base branch from Step 1. Check the workflow file for target branches (usually `master` or `main`) and ensure the PR base matches the diff base used for analysis. If they differ, re-run the analysis against the intended PR base before drafting the PR.
 
 ```bash
-git remote show origin | grep "HEAD branch"
+git remote show [upstream-remote] | grep "HEAD branch"
 ```
 
 ### Draft PR Content
