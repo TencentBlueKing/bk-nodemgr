@@ -1545,8 +1545,10 @@ file:
 ## Nodemgr apigw-sync
 apigwSync:
   enabled: false
-  repository: "bk-nodemgr-apigw-sync"
-  imageTag: "stage"
+  repository: "blueking/bk-nodemgr-apigw-sync"
+  ## @param imageTag module image tag, it's empty as default.
+  ## NOTE: would use root image.tag when it's empty.
+  imageTag: ""
   extraEnvVars:
     - name: BK_APIGW_NAME
       value: "bk-nodemgr"

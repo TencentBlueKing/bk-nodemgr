@@ -48,14 +48,11 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync
-          {{- if len .Values.apigwSync.imageTag }}
-          {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.apigwSync.imageTag }}
+          {{- $apigwTag := default .Values.image.tag .Values.apigwSync.imageTag }}
+          {{- if .Values.global.imageRegistry }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.apigwSync.repository }}:{{ $apigwTag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.apigwSync.repository }}:{{ .Values.apigwSync.imageTag }}
-          {{- end }}
-          {{- else }}
-          image: {{ template "bk-nodemgr.image" . }}
+          image: {{ .Values.image.registry }}/{{ .Values.apigwSync.repository }}:{{ $apigwTag }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           volumeMounts:
