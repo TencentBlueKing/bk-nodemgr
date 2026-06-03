@@ -6844,8 +6844,6 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
-                      enable_compatibility_mode:
-                        type: boolean
               description: |-
                 PluginApplySubConfigReq describes the plugin apply sub-configuration
                 request.
@@ -7004,8 +7002,6 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
-                      enable_compatibility_mode:
-                        type: boolean
               description: PluginInstallReq describes the plugin install request.
         required: true
         description: PluginInstallReq describes the plugin install request.
@@ -7484,8 +7480,6 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
-                      enable_compatibility_mode:
-                        type: boolean
               description: PluginUpgradeReq describes the plugin upgrade request.
         required: true
         description: PluginUpgradeReq describes the plugin upgrade request.
@@ -16101,8 +16095,6 @@ paths:
                         type: string
                       cpu_arch:
                         type: string
-                enable_compatibility_mode:
-                  type: boolean
               description: NodeProxyInstallReq describes the node proxy install request.
         required: true
         description: NodeProxyInstallReq describes the node proxy install request.
@@ -17054,8 +17046,6 @@ paths:
                         type: string
                       cpu_arch:
                         type: string
-                enable_compatibility_mode:
-                  type: boolean
               description: NodeAgentInstallReq describes the node agent install request.
         required: true
         description: NodeAgentInstallReq describes the node agent install request.

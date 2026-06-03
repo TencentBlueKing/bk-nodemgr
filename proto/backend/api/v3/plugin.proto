@@ -15,7 +15,6 @@ message PluginOperateFullInfo {
   string version = 3;
   repeated string config_name = 4;
   optional google.protobuf.Struct custom_config_context = 5;
-  bool enable_compatibility_mode = 6;
 }
 
 // PluginOperateBasicInfo describes the basic information of a plugin operation,

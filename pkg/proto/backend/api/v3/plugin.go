@@ -205,7 +205,6 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInsta
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
-		item.EnableCompatibilityMode = param.EnableCompatibilityMode
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -231,12 +230,11 @@ func (x *PluginInstallReq) ConvertInstallParamToTypes() *types.PluginInstallPara
 func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:                  proc.GetBkHostId(),
-			PluginName:              proc.GetPluginName(),
-			Version:                 proc.GetVersion(),
-			ConfigName:              proc.GetConfigName(),
-			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
-			EnableCompatibilityMode: proc.GetEnableCompatibilityMode(),
+			HostID:              proc.GetBkHostId(),
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}
 	})
 }
@@ -245,13 +243,12 @@ func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 func (x *PluginInstallReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:                  proc.GetBkHostId(),
-			BizID:                   hostBizMapping[proc.GetBkHostId()],
-			PluginName:              proc.GetPluginName(),
-			Version:                 proc.GetVersion(),
-			ConfigName:              proc.GetConfigName(),
-			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
-			EnableCompatibilityMode: proc.GetEnableCompatibilityMode(),
+			HostID:              proc.GetBkHostId(),
+			BizID:               hostBizMapping[proc.GetBkHostId()],
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}
 	})
 }
@@ -296,7 +293,6 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
-		item.EnableCompatibilityMode = param.EnableCompatibilityMode
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -315,12 +311,11 @@ func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDe
 func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:                  plugin.GetBkHostId(),
-			PluginName:              plugin.GetPluginName(),
-			Version:                 plugin.GetVersion(),
-			ConfigName:              plugin.GetConfigName(),
-			CustomConfigContext:     plugin.GetCustomConfigContext().AsMap(),
-			EnableCompatibilityMode: plugin.GetEnableCompatibilityMode(),
+			HostID:              plugin.GetBkHostId(),
+			PluginName:          plugin.GetPluginName(),
+			Version:             plugin.GetVersion(),
+			ConfigName:          plugin.GetConfigName(),
+			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
 		}
 	})
 }
@@ -329,13 +324,12 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 func (x *PluginUpgradeReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:                  proc.GetBkHostId(),
-			BizID:                   hostBizMapping[proc.GetBkHostId()],
-			PluginName:              proc.GetPluginName(),
-			Version:                 proc.GetVersion(),
-			ConfigName:              proc.GetConfigName(),
-			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
-			EnableCompatibilityMode: proc.GetEnableCompatibilityMode(),
+			HostID:              proc.GetBkHostId(),
+			BizID:               hostBizMapping[proc.GetBkHostId()],
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}
 	})
 }
@@ -443,7 +437,6 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 		item.PluginName = param.PluginName
 		item.Version = param.Version
 		item.ConfigName = param.ConfigName
-		item.EnableCompatibilityMode = param.EnableCompatibilityMode
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
@@ -462,12 +455,11 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:                  proc.GetBkHostId(),
-			PluginName:              proc.GetPluginName(),
-			Version:                 proc.GetVersion(),
-			ConfigName:              proc.GetConfigName(),
-			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
-			EnableCompatibilityMode: proc.GetEnableCompatibilityMode(),
+			HostID:              proc.GetBkHostId(),
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}
 	})
 }
@@ -476,13 +468,12 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymen
 func (x *PluginApplySubConfigReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
-			HostID:                  proc.GetBkHostId(),
-			BizID:                   hostBizMapping[proc.GetBkHostId()],
-			PluginName:              proc.GetPluginName(),
-			Version:                 proc.GetVersion(),
-			ConfigName:              proc.GetConfigName(),
-			CustomConfigContext:     proc.GetCustomConfigContext().AsMap(),
-			EnableCompatibilityMode: proc.GetEnableCompatibilityMode(),
+			HostID:              proc.GetBkHostId(),
+			BizID:               hostBizMapping[proc.GetBkHostId()],
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}
 	})
 }

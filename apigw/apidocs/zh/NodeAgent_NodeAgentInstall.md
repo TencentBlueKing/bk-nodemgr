@@ -15,7 +15,6 @@ POST /api/v3/node/agent/install
 | info                      | object array | 是  | 待安装Agent的主机信息列表                             |
 | target_version            | object array | 否  | 目标版本列表，用于指定不同平台（os_type + cpu_arch）的Agent版本 |
 | is_manual                 | bool         | 否  | 是否为手动安装模式，默认false                           |
-| enable_compatibility_mode | bool         | 否  | 是否启用兼容模式，默认false。                           |
 
 #### info[n]
 
@@ -91,8 +90,7 @@ POST /api/v3/node/agent/install
       "os_type": "linux"
     }
   ],
-  "is_manual": false,
-  "enable_compatibility_mode": false
+  "is_manual": false
 }
 ```
 

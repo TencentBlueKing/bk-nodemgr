@@ -16,7 +16,6 @@ POST /api/v3/node/proxy/install
 | target_version            | array | 否  | 目标版本列表，详见下方 target_version 参数说明 |
 | is_manual                 | bool  | 否  | 是否手动安装模式，默认 false               |
 | is_offline                | bool  | 否  | 是否离线安装模式，默认 false               |
-| enable_compatibility_mode | bool  | 否  | 是否启用兼容模式，默认 false。              |
 
 **host[n]**
 
@@ -91,8 +90,7 @@ POST /api/v3/node/proxy/install
     }
   ],
   "is_manual": false,
-  "is_offline": false,
-  "enable_compatibility_mode": false
+  "is_offline": false
 }
 ```
 

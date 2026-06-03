@@ -16,7 +16,6 @@ POST /api/v3/node/proxy/install
 | target_version            | array | No       | Target version list, see target_version parameters below |
 | is_manual                 | bool  | No       | Manual installation mode, default false                  |
 | is_offline                | bool  | No       | Offline installation mode, default false                 |
-| enable_compatibility_mode | bool  | No       | Whether to enable compatibility mode, default false.     |
 
 **host[n]**
 
@@ -91,8 +90,7 @@ POST /api/v3/node/proxy/install
     }
   ],
   "is_manual": false,
-  "is_offline": false,
-  "enable_compatibility_mode": false
+  "is_offline": false
 }
 ```
 

@@ -13,7 +13,6 @@ POST /api/v3/plugin/install
 | 参数名称                      | 参数类型         | 必选 | 描述                    |
 |---------------------------|--------------|----|-----------------------|
 | plugin                    | object array | 是  | 待安装插件列表，至少包含一个元素      |
-| enable_compatibility_mode | bool         | 否  | 是否启用兼容模式，默认 false。    |
 
 #### plugin[n]
 
@@ -60,8 +59,7 @@ POST /api/v3/plugin/install
       "plugin_name": "bk-monitor-agent",
       "version": "2.4.0"
     }
-  ],
-  "enable_compatibility_mode": false
+  ]
 }
 ```
 

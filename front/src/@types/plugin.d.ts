@@ -7,7 +7,6 @@ export interface PluginOperateFullInfo {
   version: string;
   config_name: string[];
   custom_config_context: Record<string, any>;
-  enable_compatibility_mode: boolean;
 }
 
 // PluginOperateBasicInfo describes the basic information of a plugin operation,

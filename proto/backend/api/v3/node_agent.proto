@@ -36,7 +36,6 @@ message NodeAgentInstallReq {
   }
   repeated TargetVersion target_version = 2;
   bool is_manual = 3;
-  bool enable_compatibility_mode = 4;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

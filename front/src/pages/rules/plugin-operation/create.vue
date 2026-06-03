@@ -322,7 +322,7 @@ const handleSubmit = async () => {
       });
     } else {
       // 默认安装/重装（重装也调 InstallPlugin，由后端判断已有插件时执行重装逻辑）
-      res = await PluginAPIService.InstallPlugin({ plugin: pluginPayload, enable_compatibility_mode: false });
+      res = await PluginAPIService.InstallPlugin({ plugin: pluginPayload });
     }
 
     // 安装/升级成功 → 跳转到任务详情

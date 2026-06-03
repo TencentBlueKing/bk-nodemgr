@@ -45,7 +45,6 @@ message NodeProxyInstallReq {
   repeated TargetVersion target_version = 2;
   bool is_manual = 3;
   bool is_offline = 4;
-  bool enable_compatibility_mode = 5;
 }
 
 // NodeProxyInstallResp describes the node proxy install response.

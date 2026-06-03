@@ -186,7 +186,6 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 	x.TargetVersion = targetVersion
 	x.Host = hostsParam
 	x.IsManual = installParam.IsManual
-	x.EnableCompatibilityMode = installParam.EnableCompatibilityMode
 }
 
 // ConvertResultToComm ...

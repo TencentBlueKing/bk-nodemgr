@@ -755,9 +755,6 @@
         },
         "custom_config_context": {
           "type": "object"
-        },
-        "enable_compatibility_mode": {
-          "type": "boolean"
         }
       },
       "title": "PluginOperateFullInfo describes the full information of a plugin operation,\nwhich"

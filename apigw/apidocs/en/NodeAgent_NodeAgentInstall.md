@@ -15,7 +15,6 @@ POST /api/v3/node/agent/install
 | info                      | object array   | Yes      | List of host information for agent installation                                                |
 | target_version            | object array   | No       | Target version list for specifying agent versions for different platforms (os_type + cpu_arch) |
 | is_manual                 | bool           | No       | Whether it is manual installation mode, default is false                                       |
-| enable_compatibility_mode | bool           | No       | Whether to enable compatibility mode, default is false.                                        |
 
 #### info[n]
 
@@ -91,8 +90,7 @@ Batch install agents for Linux systems using password login.
       "os_type": "linux"
     }
   ],
-  "is_manual": false,
-  "enable_compatibility_mode": false
+  "is_manual": false
 }
 ```
 

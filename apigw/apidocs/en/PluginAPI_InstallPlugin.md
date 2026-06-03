@@ -14,7 +14,6 @@ POST /api/v3/plugin/install
 | Parameter Name              | Parameter Type | Required | Description                                                |
 |-----------------------------|----------------|----------|------------------------------------------------------------|
 | plugin                      | object array   | Yes      | Plugin installation targets; at least one item is required |
-| enable_compatibility_mode   | bool           | No       | Whether to enable compatibility mode, default is false     |
 
 #### plugin[n]
 
@@ -63,8 +62,7 @@ Install `bk-monitor-agent` on two hosts, with one host specifying a sub-config a
       "plugin_name": "bk-monitor-agent",
       "version": "2.4.0"
     }
-  ],
-  "enable_compatibility_mode": false
+  ]
 }
 ```
 

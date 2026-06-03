@@ -167,7 +167,6 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 		NodeAgentInstallHosts:    hostsParam,
 		NodeInstallTargetVersion: targetVersion,
 		IsManual:                 x.GetIsManual(),
-		EnableCompatibilityMode:  x.GetEnableCompatibilityMode(),
 	}
 }
 
