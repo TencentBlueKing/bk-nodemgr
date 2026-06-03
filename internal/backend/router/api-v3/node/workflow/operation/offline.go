@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
+	cffmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -125,7 +126,7 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, renderErr)
 		}
 
-		jsonBytes, marshalErr := json.MarshalIndent(rendered, "", "    ")
+		jsonBytes, marshalErr := cffmt.FormatConfigFileJson(rendered)
 		if marshalErr != nil {
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, marshalErr)
 		}

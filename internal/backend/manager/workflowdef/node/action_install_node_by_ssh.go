@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
+	cffmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -272,7 +273,7 @@ func (act *actionInstallNodeBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActio
 			return fmt.Errorf("failed to render config %s: %w", key, err)
 		}
 
-		configBytes, err := json.MarshalIndent(rendered, "", "    ")
+		configBytes, err := cffmt.FormatConfigFileJson(rendered)
 		if err != nil {
 			return fmt.Errorf("failed to marshal rendered config %s: %w", key, err)
 		}
