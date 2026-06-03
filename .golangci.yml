@@ -776,6 +776,8 @@ linters-settings:
         alias: scheduledworkflow
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform
         alias: platfmt
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/format/configfile
+        alias: cffmt
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process
         alias: daoProcess
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin
