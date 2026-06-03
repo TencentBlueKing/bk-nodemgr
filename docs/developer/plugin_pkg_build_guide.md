@@ -206,41 +206,6 @@ configTemplates:
             description: 是否同时将日志输出到标准错误
             descriptionEn: Whether to also output logs to standard error
             properties:
-      - title: Tracing
-        type: object
-        default:
-        required: false
-        description: 分布式追踪配置
-        descriptionEn: Distributed Tracing Configuration
-        properties:
-          - title: ExporterType
-            type: string
-            default: stdout
-            required: false
-            description: 追踪导出器类型
-            descriptionEn: Tracing Exporter Type
-            properties:
-          - title: OtlpEndpoint
-            type: string
-            default: ""
-            required: false
-            description: OTLP端点
-            descriptionEn: OTLP Endpoint
-            properties:
-          - title: OtlpInsecure
-            type: bool
-            default: false
-            required: false
-            description: 是否使用不安全的连接
-            descriptionEn: Whether to use insecure connection
-            properties:
-          - title: OtlpHeaders
-            type: string
-            default: ""
-            required: false
-            description: OTLP头信息
-            descriptionEn: OTLP Headers
-            properties:
       - title: InfoServer
         type: object
         default:
@@ -248,40 +213,12 @@ configTemplates:
         description: 信息服务器信息
         descriptionEn: Info Server Information
         properties:
-          - title: BindIP
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 绑定IP地址
-            descriptionEn: Bind IP Address
-            properties:
           - title: Port
             type: number
             default: 28300
             required: false
             description: 绑定端口
             descriptionEn: Bind Port
-            properties:
-          - title: AdvertiseIPV4
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 广播IPv4地址
-            descriptionEn: Advertise IPv4 Address
-            properties:
-          - title: AdvertiseIPV6
-            type: string
-            default: "::1"
-            required: false
-            description: 广播IPv6地址
-            descriptionEn: Advertise IPv6 Address
-            properties:
-          - title: AuthIdentity
-            type: string
-            default: none
-            required: false
-            description: 认证身份
-            descriptionEn: Authentication Identity
             properties:
       - title: AdminServer
         type: object
@@ -290,124 +227,12 @@ configTemplates:
         description: 管理服务器信息
         descriptionEn: Admin Server Information
         properties:
-          - title: BindIP
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 绑定IP地址
-            descriptionEn: Bind IP Address
-            properties:
           - title: Port
             type: number
             default: 28301
             required: false
             description: 绑定端口
             descriptionEn: Bind Port
-            properties:
-          - title: AdvertiseIPV4
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 广播IPv4地址
-            descriptionEn: Advertise IPv4 Address
-            properties:
-          - title: AdvertiseIPV6
-            type: string
-            default: "::1"
-            required: false
-            description: 广播IPv6地址
-            descriptionEn: Advertise IPv6 Address
-            properties:
-          - title: AuthIdentity
-            type: string
-            default: none
-            required: false
-            description: 认证身份
-            descriptionEn: Authentication Identity
-            properties:
-      - title: CallbackServer
-        type: object
-        default:
-        required: false
-        description: 回调服务器信息
-        descriptionEn: Callback Server Information
-        properties:
-          - title: BindIP
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 绑定IP地址
-            descriptionEn: Bind IP Address
-            properties:
-          - title: Port
-            type: number
-            default: 28302
-            required: false
-            description: 绑定端口
-            descriptionEn: Bind Port
-            properties:
-          - title: AdvertiseIPV4
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 广播IPv4地址
-            descriptionEn: Advertise IPv4 Address
-            properties:
-          - title: AdvertiseIPV6
-            type: string
-            default: "::1"
-            required: false
-            description: 广播IPv6地址
-            descriptionEn: Advertise IPv6 Address
-            properties:
-          - title: AuthIdentity
-            type: string
-            default: none
-            required: false
-            description: 认证身份
-            descriptionEn: Authentication Identity
-            properties:
-      - title: DownloadServer
-        type: object
-        default:
-        required: false
-        description: 下载服务器信息
-        descriptionEn: Download Server Information
-        properties:
-          - title: BindIP
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 绑定IP地址
-            descriptionEn: Bind IP Address
-            properties:
-          - title: Port
-            type: number
-            default: 28303
-            required: false
-            description: 绑定端口
-            descriptionEn: Bind Port
-            properties:
-          - title: AdvertiseIPV4
-            type: string
-            default: "127.0.0.1"
-            required: false
-            description: 广播IPv4地址
-            descriptionEn: Advertise IPv4 Address
-            properties:
-          - title: AdvertiseIPV6
-            type: string
-            default: "::1"
-            required: false
-            description: 广播IPv6地址
-            descriptionEn: Advertise IPv6 Address
-            properties:
-          - title: AuthIdentity
-            type: string
-            default: none
-            required: false
-            description: 认证身份
-            descriptionEn: Authentication Identity
             properties:
       - title: WorkspaceFileGroupFullPath
         type: string

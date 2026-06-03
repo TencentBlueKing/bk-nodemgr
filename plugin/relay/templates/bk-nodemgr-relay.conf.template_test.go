@@ -34,7 +34,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 		validate func(t *testing.T, result string)
 	}{
 		{
-			name: "Use CustomContext configuration (highest priority)",
+			name: "Use reduced relay server configuration",
 			data: map[string]any{
 				"PluginInfo": map[string]any{
 					"Name":      "bk-nodemgr-relay",
@@ -84,18 +84,21 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 			},
 			validate: func(t *testing.T, result string) {
-				// Verify CustomContext values are used
-				if !strings.Contains(result, "bindIP: 192.168.1.111") {
-					t.Error("CallbackServer bindIP should use CustomContext value 192.168.1.111")
+				// Verify callback and download servers use system relay values after reducing exposed fields.
+				if strings.Count(result, "bindIP: 192.168.1.100") != 2 {
+					t.Error("CallbackServer and DownloadServer bindIP should use NodeInfo.Dynamic.AdvertiseIP")
 				}
-				if !strings.Contains(result, "port: 28002") {
-					t.Error("CallbackServer port should use CustomContext value 28002")
+				if !strings.Contains(result, "port: 29000") {
+					t.Error("CallbackServer port should use NodeInfo.Dynamic.RelayCallbackPort")
 				}
-				if !strings.Contains(result, "bindIP: 192.168.1.112") {
-					t.Error("DownloadServer bindIP should use CustomContext value 192.168.1.112")
+				if !strings.Contains(result, "port: 29001") {
+					t.Error("DownloadServer port should use NodeInfo.Dynamic.RelayDownloadPort")
 				}
-				if !strings.Contains(result, "port: 28003") {
-					t.Error("DownloadServer port should use CustomContext value 28003")
+				if strings.Contains(result, "192.168.1.111") || strings.Contains(result, "192.168.1.112") {
+					t.Error("CallbackServer and DownloadServer bindIP should ignore CustomContext values")
+				}
+				if strings.Contains(result, "port: 28002") || strings.Contains(result, "port: 28003") {
+					t.Error("CallbackServer and DownloadServer port should ignore CustomContext values")
 				}
 			},
 		},
@@ -231,7 +234,7 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 			},
 		},
 		{
-			name: "Contains Tracing config",
+			name: "CustomContext Tracing config is ignored",
 			data: map[string]any{
 				"PluginInfo": map[string]any{
 					"Name":      "bk-nodemgr-relay",
@@ -256,15 +259,15 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 			},
 			validate: func(t *testing.T, result string) {
-				// Verify Tracing configuration exists
-				if !strings.Contains(result, "tracing:") {
-					t.Error("Tracing section should be present")
+				// Verify Tracing configuration is not rendered after reducing exposed fields.
+				if strings.Contains(result, "tracing:") {
+					t.Error("Tracing section should not be present")
 				}
-				if !strings.Contains(result, "exporterType: otlp") {
-					t.Error("Tracing exporterType should be otlp")
+				if strings.Contains(result, "exporterType: otlp") {
+					t.Error("Tracing exporterType should be ignored")
 				}
-				if !strings.Contains(result, "otlpEndpoint: http://localhost:4317") {
-					t.Error("Tracing otlpEndpoint should be set")
+				if strings.Contains(result, "otlpEndpoint: http://localhost:4317") {
+					t.Error("Tracing otlpEndpoint should be ignored")
 				}
 			},
 		},
