@@ -8,7 +8,7 @@
     <div class="p-[24px]">
       <!-- 操作栏：安装按钮 + 批量操作 + 复制IP -->
       <div class="flex items-center gap-[8px] mb-[16px]">
-        <Button v-if="enabledOperations.has('install')" theme="primary" :class="{ 'btn-reinstall': hasSelection }" @click="handlePrimaryButtonClick">
+        <Button v-if="enabledOperations.has('install')" theme="primary" :class="{ 'btn-reinstall': props.type === 'plugin' && hasSelection }" @click="handlePrimaryButtonClick">
           {{ primaryButtonLabel }}
         </Button>
         <Dropdown
@@ -510,7 +510,8 @@ const selectionConfirmFormatter = (selectedRows: any[]) => {
 
 // 处理插件操作
 const handlePluginOperate = (operateType: string, data: any[], batch = false) => {
-  const pluginName = props.plugin?.name || '';
+  // 从节点状态页进入时 props.plugin 为空，插件名需从行数据取；从插件列表进入时 props.plugin.name 有效
+  const pluginName = data[0]?.plugin_name || props.plugin?.name || '';
   const count = data.length;
 
   if (needPageOperations.includes(operateType)) {
@@ -698,16 +699,18 @@ const processList = ref<any[]>([]);
 const selection = computed(() => processList.value.filter((item: any) => item.checked));
 const hasSelection = computed(() => selection.value.length > 0);
 
-// 主按钮文案：选中主机时显示"重装"，否则显示"安装"（与 agent 列表逻辑一致）
+// 主按钮文案：从插件列表进入且选中主机时显示"重装"，否则显示"安装"
+// 从节点（Agent/Proxy）状态页进入时不提供"变重装"逻辑，始终显示"安装"
 const primaryButtonLabel = computed(() =>
-  hasSelection.value
+  props.type === 'plugin' && hasSelection.value
     ? t('pluginManagement.plugin.operate.reinstall')
     : t('pluginManagement.plugin.operate.install'),
 );
 
-// 主按钮点击：选中主机时走重装流程，否则走安装流程
+// 主按钮点击：从插件列表进入且选中主机时走重装流程，否则走安装流程
+// 从节点状态页进入时始终走安装流程
 const handlePrimaryButtonClick = () => {
-  if (hasSelection.value) {
+  if (props.type === 'plugin' && hasSelection.value) {
     handlePluginOperate('reinstall', selection.value, true);
   } else {
     handlePluginOperate('install', [], false);
