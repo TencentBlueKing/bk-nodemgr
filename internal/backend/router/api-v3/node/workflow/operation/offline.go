@@ -125,7 +125,7 @@ func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, renderErr)
 		}
 
-		jsonBytes, marshalErr := json.Marshal(rendered)
+		jsonBytes, marshalErr := json.MarshalIndent(rendered, "", "    ")
 		if marshalErr != nil {
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, marshalErr)
 		}
