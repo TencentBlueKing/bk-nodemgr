@@ -740,6 +740,7 @@
                 <span v-if="row.login_mode === 'password_vault'">{{ $t('components.installTable.autoGet') }}</span>
                 <span v-else-if="row.login_mode === 'keyfile' && row.credit">{{ $t('components.installTable.creditValid') }}</span>
                 <span v-else-if="row.login_mode === 'keyfile' && !row.credit" class="cell-placeholder">请上传密钥</span>
+                <span v-else-if="row.login_credit_valid">{{ $t('components.installTable.creditValid') }}</span>
                 <span v-else-if="row.credit">******</span>
                 <span v-else class="cell-placeholder">请输入密码</span>
               </div>
@@ -1046,6 +1047,7 @@ const initData = {
   login_mode: getDefaultLoginMode(),
   login_password: '',
   login_key_file: '',
+  login_credit_valid: false,
   bk_addressing: 'static',
   bk_networkunit_id: '',
   bk_biz_id: '',
@@ -1336,6 +1338,11 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
     const row = tableData.value![rowIndex];
     if (row.login_mode !== 'password_vault' && !row.login_credit_valid && !value) {
       setError(rowIndex, field, t('validate.required'));
+      return;
+    }
+    // login_credit_valid 为 true 时密码已有效，跳过规则校验
+    if (row.login_credit_valid) {
+      clearError(rowIndex, field);
       return;
     }
   }
