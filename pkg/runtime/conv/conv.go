@@ -404,6 +404,39 @@ func SliceIntersect[itemID comparable](left, right []itemID) []itemID {
 	return result
 }
 
+// MapUnion returns the union of two maps.
+// It returns an error when the same key exists on both sides.
+func MapUnion[K comparable, V any](left, right map[K]V) (map[K]V, error) {
+	result := make(map[K]V, len(left)+len(right))
+	for key, value := range left {
+		result[key] = value
+	}
+
+	for key, value := range right {
+		if _, ok := result[key]; ok {
+			return nil, fmt.Errorf("map union conflict, key(%v)", key)
+		}
+
+		result[key] = value
+	}
+
+	return result, nil
+}
+
+// MapUnionIgnoreConflict returns the union of two maps.
+// Right-side values overwrite left-side values when keys are duplicated.
+func MapUnionIgnoreConflict[K comparable, V any](left, right map[K]V) map[K]V {
+	result := make(map[K]V, len(left)+len(right))
+	for key, value := range left {
+		result[key] = value
+	}
+	for key, value := range right {
+		result[key] = value
+	}
+
+	return result
+}
+
 // MapValueToSlice convert map value to slice.
 func MapValueToSlice[K comparable, V any](m map[K]V) []V {
 	values := make([]V, 0, len(m))

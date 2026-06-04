@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"reflect"
 	"sort"
@@ -1096,6 +1097,120 @@ func TestMapMapValueToSlice(t *testing.T) {
 // intPtr returns a pointer to the given int value.
 func intPtr(v int) *int {
 	return &v
+}
+
+// TestMapUnion tests MapUnion.
+func TestMapUnion(t *testing.T) {
+	tests := []struct {
+		name    string
+		left    map[string]int
+		right   map[string]int
+		want    map[string]int
+		wantErr bool
+	}{
+		{
+			name:    "nil left and nil right",
+			left:    nil,
+			right:   nil,
+			want:    map[string]int{},
+			wantErr: false,
+		},
+		{
+			name:    "nil left creates map from right",
+			left:    nil,
+			right:   map[string]int{"a": 1},
+			want:    map[string]int{"a": 1},
+			wantErr: false,
+		},
+		{
+			name:    "nil right creates map from left",
+			left:    map[string]int{"a": 1},
+			right:   nil,
+			want:    map[string]int{"a": 1},
+			wantErr: false,
+		},
+		{
+			name:    "empty right keeps left values",
+			left:    map[string]int{"a": 1},
+			right:   map[string]int{},
+			want:    map[string]int{"a": 1},
+			wantErr: false,
+		},
+		{
+			name:    "disjoint maps return union",
+			left:    map[string]int{"a": 1, "b": 2},
+			right:   map[string]int{"c": 3},
+			want:    map[string]int{"a": 1, "b": 2, "c": 3},
+			wantErr: false,
+		},
+		{
+			name:    "duplicated key returns conflict error",
+			left:    map[string]int{"a": 1, "b": 2},
+			right:   map[string]int{"b": 20, "c": 3},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			leftBefore := maps.Clone(tt.left)
+			rightBefore := maps.Clone(tt.right)
+
+			got, err := MapUnion(tt.left, tt.right)
+			assert.Equal(t, tt.wantErr, err != nil)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, leftBefore, tt.left)
+			assert.Equal(t, rightBefore, tt.right)
+		})
+	}
+}
+
+// TestMapUnionIgnoreConflict tests MapUnionIgnoreConflict.
+func TestMapUnionIgnoreConflict(t *testing.T) {
+	tests := []struct {
+		name  string
+		left  map[string]int
+		right map[string]int
+		want  map[string]int
+	}{
+		{
+			name:  "nil left and nil right",
+			left:  nil,
+			right: nil,
+			want:  map[string]int{},
+		},
+		{
+			name:  "nil left creates map from right",
+			left:  nil,
+			right: map[string]int{"a": 1},
+			want:  map[string]int{"a": 1},
+		},
+		{
+			name:  "nil right creates map from left",
+			left:  map[string]int{"a": 1},
+			right: nil,
+			want:  map[string]int{"a": 1},
+		},
+		{
+			name:  "right overwrites duplicated keys",
+			left:  map[string]int{"a": 1, "b": 2},
+			right: map[string]int{"b": 20, "c": 3},
+			want:  map[string]int{"a": 1, "b": 20, "c": 3},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			leftBefore := maps.Clone(tt.left)
+			rightBefore := maps.Clone(tt.right)
+
+			got := MapUnionIgnoreConflict(tt.left, tt.right)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, leftBefore, tt.left)
+			assert.Equal(t, rightBefore, tt.right)
+		})
+	}
 }
 
 // MapKeyToSlice map key to slice.

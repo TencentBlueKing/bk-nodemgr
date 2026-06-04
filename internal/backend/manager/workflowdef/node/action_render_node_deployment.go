@@ -743,7 +743,7 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeAc
 				Info()
 		}
 
-		conf.CustomSetting = matchResult.MergedConfig
+		conf.CustomSetting = conv.MapUnionIgnoreConflict(conf.CustomSetting, matchResult.MergedConfig)
 		std.InstanceData().Log().
 			Zh("将按照优先级合并配置策略, 并应用到节点配置").
 			En("merge config policies by priority and apply to node config").
