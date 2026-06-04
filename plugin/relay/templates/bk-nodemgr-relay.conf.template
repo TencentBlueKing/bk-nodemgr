@@ -9,6 +9,7 @@ plugin:
 
 infoServer:
   bindIP: 127.0.0.1
+  bindIPV6: ::1
   port: {{ .CustomContext.InfoServer.Port | default 28300 | int }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}
@@ -22,6 +23,7 @@ infoServer:
 
 adminServer:
   bindIP: 127.0.0.1
+  bindIPV6: ::1
   port: {{ .CustomContext.AdminServer.Port | default 28301 | int }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}
@@ -35,6 +37,7 @@ adminServer:
 
 callbackServer:
   bindIP: {{ .NodeInfo.Dynamic.AdvertiseIP | default "127.0.0.1" }}
+  bindIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
   port: {{ .NodeInfo.Dynamic.RelayCallbackPort | default 28302 | int }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}
@@ -48,6 +51,7 @@ callbackServer:
 
 downloadServer:
   bindIP: {{ .NodeInfo.Dynamic.AdvertiseIP | default "127.0.0.1" }}
+  bindIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
   port: {{ .NodeInfo.Dynamic.RelayDownloadPort | default 28303 | int }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}

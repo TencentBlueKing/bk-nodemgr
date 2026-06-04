@@ -784,6 +784,7 @@ application:
     ## defines the application info server related settings.
     infoServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28000
       traceServiceName: "application-server-info"
       traceSampleRate: 0
@@ -791,6 +792,7 @@ application:
     ## defines the application admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28001
       authIdentity: rest-server
       traceServiceName: "application-server-admin"
@@ -805,6 +807,7 @@ application:
     ## defines the application http server related settings.
     basicServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28002
       authIdentity: bk-login
       traceServiceName: "application-server-basic"
@@ -1018,6 +1021,7 @@ backend:
     ## defines the backend info server related settings.
     infoServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28100
       traceServiceName: "backend-server-info"
       traceSampleRate: 0
@@ -1025,6 +1029,7 @@ backend:
     ## defines the backend admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28101
       authIdentity: rest-server
       traceServiceName: "backend-server-admin"
@@ -1039,6 +1044,7 @@ backend:
     ## defines the backend basic server related settings.
     basicServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28102
       authIdentity: api-gateway
       traceServiceName: "backend-server-basic"
@@ -1053,6 +1059,7 @@ backend:
     ## defines the backend callback server related settings.
     callbackServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28103
       traceServiceName: "backend-server-callback"
       traceSampleRate: 0
@@ -1060,6 +1067,7 @@ backend:
     ## defines the backend proxy server related settings.
     proxyServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28104
       traceServiceName: "backend-server-proxy"
       traceSampleRate: 0
@@ -1415,6 +1423,7 @@ file:
     ## defines the file info server related settings.
     infoServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28200
       traceServiceName: "file-server-info"
       traceSampleRate: 0
@@ -1422,6 +1431,7 @@ file:
     ## defines the file admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28201
       authIdentity: rest-server
       traceServiceName: "file-server-admin"
@@ -1436,6 +1446,7 @@ file:
     ## defines the file basic server related settings.
     basicServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28202
       authIdentity: none
       traceServiceName: "file-server-basic"
@@ -1444,6 +1455,7 @@ file:
     ## defines the file download server related settings.
     downloadServer:
       bindIP: "0.0.0.0"
+      bindIPV6: "::1"
       port: 28203
       traceServiceName: "file-server-download"
       traceSampleRate: 0
