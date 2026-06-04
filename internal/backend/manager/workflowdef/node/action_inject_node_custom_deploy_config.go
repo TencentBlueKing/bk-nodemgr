@@ -152,12 +152,13 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) e
 	std.DeployInfo().InstallerRuntime.WorkDir = deployConstant.GenerateWorkDir()
 
 	std.DeployInfo().BaseRuntime = types.DeploymentBaseRuntime{
-		BaseDeployDir: deployConstant.BaseDeployDir,
-		DeployDir:     deployConstant.GenerateDeployDir(),
-		HomeDir:       deployConstant.GenerateNodeHomeDir(nodeRole),
-		DataIPC:       conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, deployConstant.GenerateDataIPCPath(nodeRole)),
-		PluginIPC:     conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, deployConstant.GeneratePluginIPCPath(nodeRole)),
-		LogDir:        conv.NonEmptyOr(customDeployConfig.NodeRuntime.LogDir, deployConstant.LogDir),
+		BaseDeployDir:     deployConstant.BaseDeployDir,
+		DeployDir:         deployConstant.GenerateDeployDir(),
+		HomeDir:           deployConstant.GenerateNodeHomeDir(nodeRole),
+		DataIPC:           conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, deployConstant.GenerateDataIPCPath(nodeRole)),
+		PluginIPC:         conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, deployConstant.GeneratePluginIPCPath(nodeRole)),
+		LogDir:            conv.NonEmptyOr(customDeployConfig.NodeRuntime.LogDir, deployConstant.LogDir),
+		ProxyFileCacheDir: deployConstant.ProxyFileCacheDir,
 	}
 
 	std.InstanceData().Log().

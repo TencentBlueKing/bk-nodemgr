@@ -48,10 +48,11 @@ type NodeDeployConf struct {
 	DeployConf
 
 	// custom.
-	LogDir         string
-	ExtraConfigDir string
-	DataIPCPort    int
-	PluginIPCPort  int
+	LogDir            string
+	ExtraConfigDir    string
+	DataIPCPort       int
+	PluginIPCPort     int
+	ProxyFileCacheDir string
 }
 
 // Validate checks if the deployment configuration is valid.

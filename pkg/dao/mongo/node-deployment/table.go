@@ -83,13 +83,14 @@ type InstallerRuntime struct {
 
 // BaseRuntime this is the base runtime for node deployment.
 type BaseRuntime struct {
-	BaseDeployDir  string `json:"base_deploy_dir" bson:"base_deploy_dir"`
-	DeployDir      string `json:"deploy_dir" bson:"deploy_dir"`
-	HomeDir        string `json:"home_dir" bson:"home_dir"`
-	DataIPC        string `json:"data_ipc" bson:"data_ipc"`
-	PluginIPC      string `json:"plugin_ipc" bson:"plugin_ipc"`
-	ExtraConfigDir string `json:"extra_config_dir" bson:"extra_config_dir"`
-	LogDir         string `json:"log_dir" bson:"log_dir"`
+	BaseDeployDir     string `json:"base_deploy_dir" bson:"base_deploy_dir"`
+	DeployDir         string `json:"deploy_dir" bson:"deploy_dir"`
+	HomeDir           string `json:"home_dir" bson:"home_dir"`
+	DataIPC           string `json:"data_ipc" bson:"data_ipc"`
+	PluginIPC         string `json:"plugin_ipc" bson:"plugin_ipc"`
+	ExtraConfigDir    string `json:"extra_config_dir" bson:"extra_config_dir"`
+	LogDir            string `json:"log_dir" bson:"log_dir"`
+	ProxyFileCacheDir string `json:"proxy_file_cache_dir" bson:"proxy_file_cache_dir"`
 }
 
 // TargetVersion this is the target version for node deployment.

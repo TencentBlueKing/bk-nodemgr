@@ -80,13 +80,14 @@ type DeploymentInstallerRuntime struct {
 
 // DeploymentBaseRuntime  this is the base runtime for deployment.
 type DeploymentBaseRuntime struct {
-	BaseDeployDir  string
-	DeployDir      string
-	HomeDir        string
-	DataIPC        string
-	PluginIPC      string
-	ExtraConfigDir string
-	LogDir         string
+	BaseDeployDir     string
+	DeployDir         string
+	HomeDir           string
+	DataIPC           string
+	PluginIPC         string
+	ExtraConfigDir    string
+	LogDir            string
+	ProxyFileCacheDir string
 }
 
 // DeploymentInstallOptions this is the options for nodemgr tools.

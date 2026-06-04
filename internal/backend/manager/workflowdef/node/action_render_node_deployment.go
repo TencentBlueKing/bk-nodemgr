@@ -28,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -172,30 +171,17 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("unsupported release type: %s", releaseType)
 	}
 
-	gp := gopool.NewPool()
-	gp.Go(func() error {
-		if err := act.renderLogicSetting(std, nodeConf); err != nil {
-			return fmt.Errorf("failed to render logic setting: %w", err)
-		}
-
-		logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).Info("rendered logic setting")
-
-		return nil
-	})
-
-	gp.Go(func() error {
-		if err := act.renderCustomSetting(std, nodeConf); err != nil {
-			return fmt.Errorf("failed to render custom setting: %w", err)
-		}
-
-		logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).Info("rendered custom setting")
-
-		return nil
-	})
-
-	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("failed to render node install config: %w", err)
+	if err := act.renderLogicSetting(std, nodeConf); err != nil {
+		return fmt.Errorf("failed to render logic setting: %w", err)
 	}
+
+	logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).Info("rendered logic setting")
+
+	if err := act.renderCustomSetting(std, nodeConf); err != nil {
+		return fmt.Errorf("failed to render custom setting: %w", err)
+	}
+
+	logger.G.Sys().Ctx(std.Context()).With("token", std.Token()).Info("rendered custom setting")
 
 	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(std.Context(), std.Token(), nodeConf); err != nil {
 		return fmt.Errorf("failed to set node conf: %w", err)
@@ -522,6 +508,9 @@ const (
 	// this config is used to split the proxy group for file topology, set this config will only allow the machines
 	// in the same unit to transfer files to each other.
 	GseCustomKeyFileTopologyProxyGroupTag = "file.topology.proxy_group_tag"
+
+	// GseCustomKeyFileCacheDirs the config template key of gse file cache dir.
+	GseCustomKeyFileCacheDirs = "file.cache.dirs"
 )
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
@@ -688,6 +677,20 @@ func forbiddenKeys() []string {
 	}
 }
 
+func applyProxyFileCacheDirFallback(info *types.DeploymentInfo, conf *types.NodeConf) {
+	if info.Host.Dynamic.NodeRole != types.NodeRoleProxy || info.BaseRuntime.ProxyFileCacheDir == "" {
+		return
+	}
+	if conf.CustomSetting == nil {
+		conf.CustomSetting = make(map[string]any)
+	}
+	if _, ok := conf.CustomSetting[GseCustomKeyFileCacheDirs]; ok {
+		return
+	}
+
+	conf.CustomSetting[GseCustomKeyFileCacheDirs] = info.BaseRuntime.ProxyFileCacheDir
+}
+
 // renderCustomSetting load custom setting to the config presetting.
 func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeActionStandarder, conf *types.NodeConf) error {
 	matchResult, err := act.storageConfigPolicy.MatchConfigPolicyNode(std.Context(),
@@ -751,6 +754,8 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeAc
 			En("no policy matched. keep default config").
 			Info()
 	}
+
+	applyProxyFileCacheDirFallback(std.DeployInfo(), conf)
 
 	if conf.CustomSetting != nil {
 		for _, key := range forbiddenKeys() {
