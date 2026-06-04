@@ -16,6 +16,7 @@ import (
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin/workflow"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -24,25 +25,27 @@ import (
 )
 
 type handler struct {
-	rg              *gin.RouterGroup
-	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
-	daoPlugin       pluginStg.IDaoPlugin
-	daoHost         topoStg.IStorageHost
-	domainPlugin    pluginStg.IDomainPlugin
-	pluginMgrIface  managerIface.IPluginManager
-	authorizer      auth.IAuthorizer
+	rg                    *gin.RouterGroup
+	daoNodeWorkflow       nodeStg.IDaoNodeWorkflow
+	daoPlugin             pluginStg.IDaoPlugin
+	daoHost               topoStg.IStorageHost
+	storageGlobalSettings globalsettingsStorage.IStorage
+	domainPlugin          pluginStg.IDomainPlugin
+	pluginMgrIface        managerIface.IPluginManager
+	authorizer            auth.IAuthorizer
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:              rg.Group("/plugin"),
-		daoNodeWorkflow: capability.StorageNode,
-		daoPlugin:       capability.StoragePlugin,
-		daoHost:         capability.StorageTopo,
-		domainPlugin:    capability.StoragePlugin,
-		pluginMgrIface:  capability.Manager,
-		authorizer:      capability.Authorizer,
+		rg:                    rg.Group("/plugin"),
+		daoNodeWorkflow:       capability.StorageNode,
+		daoPlugin:             capability.StoragePlugin,
+		daoHost:               capability.StorageTopo,
+		storageGlobalSettings: capability.StorageGlobalSettings,
+		domainPlugin:          capability.StoragePlugin,
+		pluginMgrIface:        capability.Manager,
+		authorizer:            capability.Authorizer,
 	}
 }
 

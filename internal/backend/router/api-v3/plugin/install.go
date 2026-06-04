@@ -13,6 +13,9 @@ package plugin
 import (
 	"slices"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -45,13 +48,14 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to get host biz mapping.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
+	policy := h.resolvePluginCompatibilityModePolicy(rCtx)
 
-	workflowID, err := h.installPlugin(rCtx, req, hostBizMapping)
+	workflowID, err := h.installPlugin(rCtx, req, hostBizMapping, policy)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	if err := h.ensurePluginV2(rCtx, req, hostBizMapping); err != nil {
+	if err := h.ensurePluginV2(rCtx, req, hostBizMapping, policy); err != nil {
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -64,9 +68,11 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	return respData, nil
 }
 
-func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64) (string, error) {
+func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64, policy compatibility.Policy) (string, error) {
+	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
+	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
+		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), pluginDeploymentParam...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return "", err
@@ -88,8 +94,9 @@ func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.Plug
 }
 
 func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.PluginInstallReq,
-	hostBizMapping map[int64]int64) error {
+	hostBizMapping map[int64]int64, policy compatibility.Policy) error {
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
+	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
 		return !item.EnableCompatibilityMode
 	})
@@ -114,4 +121,31 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 	}
 
 	return nil
+}
+
+func (h *handler) resolvePluginCompatibilityModePolicy(rCtx restserver.IContext) compatibility.Policy {
+	if h.storageGlobalSettings == nil {
+		return compatibility.ParseStoredPolicy("", rCtx)
+	}
+
+	value, err := h.storageGlobalSettings.GetGlobalSetting(rCtx, globalsettings.PluginCompatibilityModePolicy)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			With("setting-name", globalsettings.PluginCompatibilityModePolicy).
+			Warn("failed to get plugin compatibility mode policy, use default policy.")
+
+		return compatibility.ParseStoredPolicy("", rCtx)
+	}
+
+	return compatibility.ParseStoredPolicy(value, rCtx)
+}
+
+func applyPluginCompatibilityModePolicy(policy compatibility.Policy, tenantID string, params ...*types.PluginDeploymentParam) {
+	for _, param := range params {
+		if param == nil {
+			continue
+		}
+
+		param.EnableCompatibilityMode = compatibility.DecideCompatibilityMode(policy, tenantID, param.BizID, param.PluginName)
+	}
 }
