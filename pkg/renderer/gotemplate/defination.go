@@ -20,7 +20,9 @@ const (
 	customToJSON   = "toJson"
 
 	// list function names.
-	customList = "list"
+	customList  = "list"
+	customFirst = "first"
+	customLast  = "last"
 
 	// dict function names.
 	customDict = "dict"

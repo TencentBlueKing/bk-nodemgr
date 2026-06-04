@@ -36,8 +36,8 @@ adminServer:
   traceSampleRate: 0
 
 callbackServer:
-  bindIP: {{ .NodeInfo.Dynamic.AdvertiseIP | default "127.0.0.1" }}
-  bindIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
+  bindIP: {{ .NodeInfo.Static.InnerIPList | first | default "127.0.0.1" }}
+  bindIPV6: {{ .NodeInfo.Static.InnerIPV6List | first | default "::1" }}
   port: {{ .NodeInfo.Dynamic.RelayCallbackPort | default 28302 | int }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}
@@ -50,8 +50,8 @@ callbackServer:
   traceSampleRate: 0
 
 downloadServer:
-  bindIP: {{ .NodeInfo.Dynamic.AdvertiseIP | default "127.0.0.1" }}
-  bindIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
+  bindIP: {{ .NodeInfo.Static.InnerIPList | first | default "127.0.0.1" }}
+  bindIPV6: {{ .NodeInfo.Static.InnerIPV6List | first | default "::1" }}
   port: {{ .NodeInfo.Dynamic.RelayDownloadPort | default 28303 | int }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}

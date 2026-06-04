@@ -1060,6 +1060,7 @@ components:
     hostIp: Host IP
     innerIPv4: Private IPv4
     innerIPv6: Private IPv6
+    proxyInnerIPTooltip: If multiple IPs are entered, only the first one is the actual private IP used to communicate with P-Agent.
     osType: OS
     batchEditOsType: Batch Edit OS
     cpuArch: CPU Arch

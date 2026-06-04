@@ -48,7 +48,7 @@ func nindent(spaces int, v string) string {
 	return "\n" + indent(spaces, v)
 }
 
-func quote(str ...interface{}) string {
+func quote(str ...any) string {
 	out := make([]string, 0, len(str))
 	for _, s := range str {
 		if s != nil {

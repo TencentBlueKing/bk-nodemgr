@@ -1060,6 +1060,7 @@ components:
     hostIp: 主机IP
     innerIPv4: 内网IPv4
     innerIPv6: 内网IPv6
+    proxyInnerIPTooltip: 如需填入多个 IP，则只有第一位是与 P-Agent 通信的实际内网 IP
     osType: 操作系统
     batchEditOsType: 批量编辑操作系统
     cpuArch: CPU架构

@@ -93,6 +93,50 @@ func Test_TemplateRender_Render(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "use first function with string slice",
+			args: args{
+				tmpl: "first: {{ .items | first }}",
+				data: map[string]any{
+					"items": []string{"apple", "banana", "cherry"},
+				},
+			},
+			want:    "first: apple",
+			wantErr: false,
+		},
+		{
+			name: "use last function with int slice",
+			args: args{
+				tmpl: "last: {{ .items | last }}",
+				data: map[string]any{
+					"items": []int{1, 2, 3},
+				},
+			},
+			want:    "last: 3",
+			wantErr: false,
+		},
+		{
+			name: "use first function default when slice is empty",
+			args: args{
+				tmpl: "first: {{ .items | first | default \"missing\" }}",
+				data: map[string]any{
+					"items": []string{},
+				},
+			},
+			want:    "first: missing",
+			wantErr: false,
+		},
+		{
+			name: "use last function default when slice is empty",
+			args: args{
+				tmpl: "last: {{ .items | last | default \"missing\" }}",
+				data: map[string]any{
+					"items": []string{},
+				},
+			},
+			want:    "last: missing",
+			wantErr: false,
+		},
+		{
 			name: "use invalid template",
 			args: args{
 				tmpl: "hello, {{.name | unknownFunc}}",

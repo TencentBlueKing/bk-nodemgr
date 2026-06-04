@@ -22,11 +22,11 @@ func registerReflectFunctions(fnMap template.FuncMap) {
 }
 
 // kindIs checks if the kind of src is the same as target.
-func kindIs(target string, src interface{}) bool {
+func kindIs(target string, src any) bool {
 	return target == kindOf(src)
 }
 
 // kindOf returns the kind of src.
-func kindOf(src interface{}) string {
+func kindOf(src any) string {
 	return reflect.ValueOf(src).Kind().String()
 }

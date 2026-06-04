@@ -230,6 +230,29 @@
           :min-width="150"
           :edit-render="{ name: 'VxeInput' }"
         >
+          <template #header>
+            <Popover
+              v-if="releaseType === 'proxy'"
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.innerIPv4') }}
+              </span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.proxyInnerIPTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+            <span v-else>{{ $t('components.installTable.innerIPv4') }}</span>
+          </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip')">
               <!-- 重装时内网IPv4不可编辑 -->
@@ -257,6 +280,29 @@
           :visible="settings.checked.includes('bk_host_innerip_v6')"
           :edit-render="{ name: 'VxeInput' }"
         >
+          <template #header>
+            <Popover
+              v-if="releaseType === 'proxy'"
+              theme="light"
+              trigger="hover"
+              placement="top"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span class="cursor-default" style="border-bottom: 1px dashed #c4c6cc">
+                {{ $t('components.installTable.innerIPv6') }}
+              </span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ $t('components.installTable.proxyInnerIPTooltip') }}</p>
+                </div>
+              </template>
+            </Popover>
+            <span v-else>{{ $t('components.installTable.innerIPv6') }}</span>
+          </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip_v6')">
               <div :class="[isReinstall ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_host_innerip_v6') }]">

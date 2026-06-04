@@ -17,8 +17,8 @@ func registerDictFunctions(fnMap template.FuncMap) {
 	addFunction(fnMap, customDict, dict)
 }
 
-func dict(v ...interface{}) map[string]interface{} {
-	dict := map[string]interface{}{}
+func dict(v ...any) map[string]any {
+	dict := map[string]any{}
 	lenv := len(v)
 	for i := 0; i < lenv; i += 2 {
 		key := toString(v[i])

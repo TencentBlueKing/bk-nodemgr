@@ -34,7 +34,7 @@ func toInt(value any) (int, error) {
 	return int(res), nil
 }
 
-func toString(v interface{}) string {
+func toString(v any) string {
 	switch v := v.(type) {
 	case error:
 		return v.Error()
@@ -45,7 +45,7 @@ func toString(v interface{}) string {
 	}
 }
 
-func toJSON(v interface{}) (string, error) {
+func toJSON(v any) (string, error) {
 	output, err := json.Marshal(v)
 	if err != nil {
 		return "", err

@@ -43,6 +43,9 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 					"PluginIPC": "/tmp/ipc.sock",
 				},
 				"NodeInfo": map[string]any{
+					"Static": map[string]any{
+						"InnerIPList": []string{"10.0.0.1", "10.0.0.2"},
+					},
 					"Dynamic": map[string]any{
 						"NodeOsType":        "linux",
 						"AdvertiseIP":       "192.168.1.100",
@@ -84,9 +87,9 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 			},
 			validate: func(t *testing.T, result string) {
-				// Verify callback and download servers use system relay values after reducing exposed fields.
-				if strings.Count(result, "bindIP: 192.168.1.100") != 2 {
-					t.Error("CallbackServer and DownloadServer bindIP should use NodeInfo.Dynamic.AdvertiseIP")
+				// Verify all servers use the first static inner IP as bindIP.
+				if strings.Count(result, "bindIP: 10.0.0.1") != 4 {
+					t.Error("all bindIP values should use the first NodeInfo.Static.InnerIPList item")
 				}
 				if !strings.Contains(result, "port: 29000") {
 					t.Error("CallbackServer port should use NodeInfo.Dynamic.RelayCallbackPort")
@@ -112,6 +115,9 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 					"PluginIPC": "/tmp/ipc.sock",
 				},
 				"NodeInfo": map[string]any{
+					"Static": map[string]any{
+						"InnerIPList": []string{"10.0.0.1", "10.0.0.2"},
+					},
 					"Dynamic": map[string]any{
 						"NodeOsType":        "linux",
 						"AdvertiseIP":       "192.168.1.100",
@@ -130,15 +136,12 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 			},
 			validate: func(t *testing.T, result string) {
-				// Verify NodeInfo.Dynamic values are used
-				if !strings.Contains(result, "bindIP: 192.168.1.100") {
-					t.Error("CallbackServer bindIP should fallback to NodeInfo.Dynamic.AdvertiseIP")
+				// Verify all servers use the first static inner IP as bindIP.
+				if strings.Count(result, "bindIP: 10.0.0.1") != 4 {
+					t.Error("all bindIP values should use the first NodeInfo.Static.InnerIPList item")
 				}
 				if !strings.Contains(result, "port: 29000") {
 					t.Error("CallbackServer port should fallback to NodeInfo.Dynamic.RelayCallbackPort")
-				}
-				if !strings.Contains(result, "bindIP: 192.168.1.100") {
-					t.Error("DownloadServer bindIP should fallback to NodeInfo.Dynamic.AdvertiseIP")
 				}
 				if !strings.Contains(result, "port: 29001") {
 					t.Error("DownloadServer port should fallback to NodeInfo.Dynamic.RelayDownloadPort")

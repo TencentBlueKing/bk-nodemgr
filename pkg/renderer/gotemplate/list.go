@@ -11,15 +11,62 @@
 package gotemplate
 
 import (
+	"reflect"
 	"text/template"
 )
 
 // registerListFunctions register the list functions.
 func registerListFunctions(fnMap template.FuncMap) {
 	addFunction(fnMap, customList, list)
+	addFunction(fnMap, customFirst, first)
+	addFunction(fnMap, customLast, last)
 }
 
 // list creates a list from the given items.
-func list(items ...interface{}) []interface{} {
+func list(items ...any) []any {
 	return items
+}
+
+// first returns the first element of the list, or nil if the list is nil, empty, or not a slice/array.
+func first(list any) any {
+	if list == nil {
+		return nil
+	}
+
+	listType := reflect.TypeOf(list).Kind()
+	switch listType {
+	case reflect.Slice, reflect.Array:
+		listValue := reflect.ValueOf(list)
+
+		listLen := listValue.Len()
+		if listLen == 0 {
+			return nil
+		}
+
+		return listValue.Index(0).Interface()
+	default:
+		return nil
+	}
+}
+
+// last returns the last element of the list, or nil if the list is nil, empty, or not a slice/array.
+func last(list any) any {
+	if list == nil {
+		return nil
+	}
+
+	listType := reflect.TypeOf(list).Kind()
+	switch listType {
+	case reflect.Slice, reflect.Array:
+		listValue := reflect.ValueOf(list)
+
+		listLen := listValue.Len()
+		if listLen == 0 {
+			return nil
+		}
+
+		return listValue.Index(listLen - 1).Interface()
+	default:
+		return nil
+	}
 }
