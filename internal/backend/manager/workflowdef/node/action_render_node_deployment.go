@@ -187,7 +187,9 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to set node conf: %w", err)
 	}
 
-	act.renderNodeDeploymentInfo(std.Context(), std.DeployInfo(), nodeConf)
+	if err := act.renderNodeDeploymentInfo(std.Context(), std.DeployInfo(), nodeConf); err != nil {
+		return fmt.Errorf("failed to render node deployment info: %w", err)
+	}
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), std.Token(), std.DeployInfo()); err != nil {
 		return fmt.Errorf("failed to set node deployment info: %w", err)
@@ -487,17 +489,41 @@ const (
 	// GseTemplateKeyEnableStaticAccess the config template key of gse enable static access.
 	GseTemplateKeyEnableStaticAccess = "__BK_GSE_ENABLE_STATIC_ACCESS__"
 
+	// GseTemplateKeyDataAgentBindIP the config template key of gse data agent bind ip.
+	GseTemplateKeyDataAgentBindIP = "__BK_GSE_DATA_AGENT_BIND_IP__"
+
 	// GseTemplateKeyDataAgentBindPort the config template key of gse data agent bind port.
 	GseTemplateKeyDataAgentBindPort = "__BK_GSE_DATA_AGENT_BIND_PORT__"
+
+	// GseTemplateKeyFileAgentBindIP the config template key of gse file agent bind ip.
+	GseTemplateKeyFileAgentBindIP = "__BK_GSE_FILE_AGENT_BIND_IP__"
 
 	// GseTemplateKeyFileAgentBindPort the config template key of gse file agent bind port.
 	GseTemplateKeyFileAgentBindPort = "__BK_GSE_FILE_AGENT_BIND_PORT__"
 
+	// GseTemplateKeyFileTopologyBindIP the config template key of gse file topology bind ip.
+	GseTemplateKeyFileTopologyBindIP = "__BK_GSE_FILE_TOPOLOGY_BIND_IP__"
+
 	// GseTemplateKeyFileTopologyBindPort the config template key of gse file topology bind port.
 	GseTemplateKeyFileTopologyBindPort = "__BK_GSE_FILE_TOPOLOGY_BIND_PORT__"
 
+	// GseTemplateKeyProxyBindIP the config template key of gse proxy bind ip.
+	GseTemplateKeyProxyBindIP = "__BK_GSE_PROXY_BIND_IP__"
+
 	// GseTemplateKeyProxyBindPort the config template key of gse proxy bind port.
 	GseTemplateKeyProxyBindPort = "__BK_GSE_PROXY_BIND_PORT__"
+
+	// GseTemplateKeyFileBittorrentBindIP the config template key of gse file bittorrent bind ip.
+	GseTemplateKeyFileBittorrentBindIP = "__BK_GSE_FILE_BITTORRENT_BIND_IP__"
+
+	// GseTemplateKeyFileBittorrentBindPort the config template key of gse file bittorrent bind port.
+	GseTemplateKeyFileBittorrentBindPort = "__BK_GSE_FILE_BITTORRENT_BIND_PORT__"
+
+	// GseTemplateKeyFileBittorrentTrackerBindPort the config template key of gse file bittorrent tracker bind port.
+	GseTemplateKeyFileBittorrentTrackerBindPort = "__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__"
+
+	// GseTemplateKeyFileBittorrentSpeedLimitMBPerSec the config template key of gse file bittorrent speed limit mb per sec.
+	GseTemplateKeyFileBittorrentSpeedLimitMBPerSec = "__BK_GSE_FILE_BITTORRENT_SPEED_LIMIT_MB_PER_SEC__"
 )
 
 const (
@@ -522,14 +548,18 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		return err
 	}
 
-	osType := std.DeployInfo().Host.Dynamic.NodeOsType
+	act.renderLogicSettingRuntime(std, nodeConf)
 
-	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
-	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
-	advertiseIP := advertiseIPV4
-	if advertiseIP == "" {
-		advertiseIP = advertiseIPV6
+	if err := act.renderLogicSettingNetwork(std, nodeConf); err != nil {
+		return err
 	}
+
+	return nil
+}
+
+// renderLogicSettingRuntime this function is used to set some base settings, which are not related to network.
+func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) {
+	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 
 	nodeConf.PreSetting[GseTemplateKeyRunMode] = std.DeployInfo().Host.Dynamic.NodeRole
 	nodeConf.PreSetting[GseTemplateKeyCloudID] = std.DeployInfo().Host.Static.NetworkAreaID
@@ -594,6 +624,29 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 	nodeConf.PreSetting[GseTemplateKeyLogPath] = std.DeployInfo().BaseRuntime.LogDir
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = std.DeployInfo().BaseRuntime.PluginIPC
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = std.DeployInfo().BaseRuntime.DataIPC
+}
+
+const (
+	defaultKeyDataAgentBindIP   = "::"
+	defaultKeyDataAgentBindPort = 28625
+
+	defaultKeyFileAgentBindIP   = "::"
+	defaultKeyFileAgentBindPort = 28925
+
+	defaultKeyProxyBindIP   = "::"
+	defaultKeyProxyBindPort = 28668
+
+	defaultKeyFileBittorrentBindIP             = "::"
+	defaultKeyFileBittorrentBindPort           = 10020
+	defaultKeyFileBittorrentTrackerBindPort    = 10030
+	defaultKeyFileBittorrentSpeedLimitMBPerSec = 10000
+
+	defaultKeyFileTopologyBindIP   = "::"
+	defaultKeyFileTopologyBindPort = 28930
+)
+
+// renderLogicSettingNetwork this function is used to set some network related settings.
+func (act *actionRenderNodeDeployment) renderLogicSettingNetwork(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	needStaticAccess, err := act.storageDomainGse.NeedStaticAccess(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
 	if err != nil {
 		return fmt.Errorf("failed to get need static access: %w", err)
@@ -601,10 +654,20 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess] = needStaticAccess
 
 	// render access endpoints
+	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
+	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
+	advertiseIP := advertiseIPV4
+	if advertiseIP == "" {
+		advertiseIP = advertiseIPV6
+	}
+
 	switch std.DeployInfo().Host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(
+				std.Context(),
+				std.DeployInfo().Host.Dynamic.NetworkUnitID,
+			)
 			if err != nil {
 				return fmt.Errorf("failed to get agent access endpoints: %w", err)
 			}
@@ -628,7 +691,32 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
-			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
+
+			// notice: in order to support dual-stack network, the bind ip should be "::"
+			nodeConf.PreSetting[GseTemplateKeyDataAgentBindIP] = defaultKeyDataAgentBindIP
+			nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyDataAgentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileAgentBindIP] = defaultKeyFileAgentBindIP
+			nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyFileAgentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindIP] = defaultKeyFileTopologyBindIP
+			nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileTopologyBindPort], defaultKeyFileTopologyBindPort)
+			nodeConf.PreSetting[GseTemplateKeyProxyBindIP] = defaultKeyProxyBindIP
+			nodeConf.PreSetting[GseTemplateKeyProxyBindPort] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyProxyBindPort], defaultKeyProxyBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindIP] = defaultKeyFileBittorrentBindIP
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentBindPort], defaultKeyFileBittorrentBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentTrackerBindPort], defaultKeyFileBittorrentTrackerBindPort)
+			nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec] =
+				conv.ToInt64Default(nodeConf.PreSetting[GseTemplateKeyFileBittorrentSpeedLimitMBPerSec], defaultKeyFileBittorrentSpeedLimitMBPerSec)
+
+			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(
+				std.Context(),
+				std.DeployInfo().Host.Dynamic.NetworkUnitID,
+			)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed: %w", err)
 			}
@@ -836,23 +924,26 @@ func (act *actionRenderNodeDeployment) renderFileLinks(nodeConf *types.NodeConf,
 	return links
 }
 
-const (
-	defaultKeyProxyBindPort = 28668
-	defaultKeyProxyDataPort = 28625
-	defaultKeyProxyFilePort = 28925
-)
-
 func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 	_ context.Context,
 	info *types.DeploymentInfo,
-	conf *types.NodeConf) {
+	conf *types.NodeConf) error {
 
-	info.Host.Dynamic.ProxyClusterPort = conv.ToInt64Default(
-		conf.PreSetting[GseTemplateKeyProxyBindPort], defaultKeyProxyBindPort)
-	info.Host.Dynamic.ProxyDataPort = conv.ToInt64Default(
-		conf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyProxyDataPort)
-	info.Host.Dynamic.ProxyFilePort = conv.ToInt64Default(
-		conf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyProxyFilePort)
+	var err error
+
+	if info.Host.Dynamic.ProxyClusterPort, err = conv.ToInt64(conf.PreSetting[GseTemplateKeyProxyBindPort]); err != nil {
+		return err
+	}
+
+	if info.Host.Dynamic.ProxyDataPort, err = conv.ToInt64(conf.PreSetting[GseTemplateKeyDataAgentBindPort]); err != nil {
+		return err
+	}
+
+	if info.Host.Dynamic.ProxyFilePort, err = conv.ToInt64(conf.PreSetting[GseTemplateKeyFileAgentBindPort]); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeUtils.NodeActionStandarder) error {
