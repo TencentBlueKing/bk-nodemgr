@@ -23,6 +23,8 @@ const (
 	CleanTriggerIntervalSecond = "clean_trigger_interval_second"
 	// NetworkUnitSegmentRules defines the setting name for network unit segment rules.
 	NetworkUnitSegmentRules = "networkunit_segment_rules"
+	// PluginCompatibilityModePolicy defines the setting name for plugin compatibility mode policy.
+	PluginCompatibilityModePolicy = "plugin_compatibility_mode_policy"
 
 	// OperSyncAgentInfoMaxConcurrencyNum defines the max concurrency setting for sync agent info operations.
 	OperSyncAgentInfoMaxConcurrencyNum = "oper_sync_agent_info_max_concurrency_num"
@@ -51,6 +53,10 @@ func PreDefinition() []*types.GlobalSettings {
 		{
 			SettingName: CleanTriggerIntervalSecond,
 			Value:       scheduler.Every1m,
+		},
+		{
+			SettingName: PluginCompatibilityModePolicy,
+			Value:       `{"enabled_plugins":["bkmonitorbeat"],"disabled_biz":[]}`,
 		},
 		{
 			SettingName: OperSyncAgentInfoMaxConcurrencyNum,
