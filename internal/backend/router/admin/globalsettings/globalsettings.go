@@ -45,4 +45,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/get", restserver.Handler(h.GetGlobalSetting))
 	h.rg.POST("/upsertmany", restserver.Handler(h.UpsertManyGlobalSettings))
 	h.rg.POST("/deletemany", restserver.Handler(h.DeleteManyGlobalSettings))
+	h.rg.POST("/plugin_compatibility_mode_policy/get", restserver.Handler(h.GetPluginCompatibilityModePolicy))
+	h.rg.POST("/plugin_compatibility_mode_policy/upsert", restserver.Handler(h.UpsertPluginCompatibilityModePolicy))
 }
