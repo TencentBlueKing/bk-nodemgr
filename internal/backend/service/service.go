@@ -830,6 +830,7 @@ func (svc *Service) registerInfoServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameBackendInfo),
 			IP:               svc.conf.InfoServer.BindIP,
+			IPV6:             svc.conf.InfoServer.BindIPV6,
 			Port:             svc.conf.InfoServer.Port,
 			TLSConfig:        svc.conf.InfoServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -893,6 +894,7 @@ func (svc *Service) registerAdminServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameBackendAdmin),
 			IP:               svc.conf.AdminServer.BindIP,
+			IPV6:             svc.conf.AdminServer.BindIPV6,
 			Port:             svc.conf.AdminServer.Port,
 			TLSConfig:        svc.conf.AdminServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -935,6 +937,7 @@ func (svc *Service) registerBasicServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameBackendBasic),
 			IP:               svc.conf.BasicServer.BindIP,
+			IPV6:             svc.conf.BasicServer.BindIPV6,
 			Port:             svc.conf.BasicServer.Port,
 			TLSConfig:        svc.conf.BasicServer.TLSConfig,
 			RequestIDSetter:  apigwserver.NewBKAPIRequestIDSetter(),
@@ -966,6 +969,7 @@ func (svc *Service) registerCallbackServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameBackendCallback),
 			IP:               svc.conf.CallbackServer.BindIP,
+			IPV6:             svc.conf.CallbackServer.BindIPV6,
 			Port:             svc.conf.CallbackServer.Port,
 			TLSConfig:        svc.conf.CallbackServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -996,6 +1000,7 @@ func (svc *Service) registerProxyServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameBackendPorxy),
 			IP:               svc.conf.ProxyServer.BindIP,
+			IPV6:             svc.conf.ProxyServer.BindIPV6,
 			Port:             svc.conf.ProxyServer.Port,
 			TLSConfig:        svc.conf.ProxyServer.TLSConfig,
 			TraceServiceName: svc.conf.ProxyServer.TraceServiceName,
@@ -1148,8 +1153,6 @@ func (svc *Service) Start() error {
 			if err := server.Start(); err != nil {
 				return err
 			}
-
-			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started HTTP Server")
 
 			return nil
 		}

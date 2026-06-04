@@ -386,6 +386,7 @@ func (svc *Service) registerInfoServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameApplicationInfo),
 			IP:               svc.conf.InfoServer.BindIP,
+			IPV6:             svc.conf.InfoServer.BindIPV6,
 			Port:             svc.conf.InfoServer.Port,
 			TLSConfig:        svc.conf.InfoServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -428,6 +429,7 @@ func (svc *Service) registerAdminServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameApplicationAdmin),
 			IP:               svc.conf.AdminServer.BindIP,
+			IPV6:             svc.conf.AdminServer.BindIPV6,
 			Port:             svc.conf.AdminServer.Port,
 			TLSConfig:        svc.conf.AdminServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -470,6 +472,7 @@ func (svc *Service) registerBasicServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameApplicationBasic),
 			IP:               svc.conf.BasicServer.BindIP,
+			IPV6:             svc.conf.BasicServer.BindIPV6,
 			Port:             svc.conf.BasicServer.Port,
 			TLSConfig:        svc.conf.BasicServer.TLSConfig,
 			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
@@ -675,8 +678,6 @@ func (svc *Service) Start() error {
 			if err := server.Start(); err != nil {
 				return err
 			}
-
-			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started HTTP Server")
 
 			return nil
 		}

@@ -471,6 +471,7 @@ func (svc *Service) registerInfoServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameFileInfo),
 			IP:               svc.conf.InfoServer.BindIP,
+			IPV6:             svc.conf.InfoServer.BindIPV6,
 			Port:             svc.conf.InfoServer.Port,
 			TLSConfig:        svc.conf.InfoServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -513,6 +514,7 @@ func (svc *Service) registerAdminServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameFileAdmin),
 			IP:               svc.conf.AdminServer.BindIP,
+			IPV6:             svc.conf.AdminServer.BindIPV6,
 			Port:             svc.conf.AdminServer.Port,
 			TLSConfig:        svc.conf.AdminServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -555,6 +557,7 @@ func (svc *Service) registerBasicServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameFileBasic),
 			IP:               svc.conf.BasicServer.BindIP,
+			IPV6:             svc.conf.BasicServer.BindIPV6,
 			Port:             svc.conf.BasicServer.Port,
 			TLSConfig:        svc.conf.BasicServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -596,6 +599,7 @@ func (svc *Service) registerDownloadServer() error {
 		restserver.Options{
 			Name:             string(discover.EndpointNameFileDownload),
 			IP:               svc.conf.DownloadServer.BindIP,
+			IPV6:             svc.conf.DownloadServer.BindIPV6,
 			Port:             svc.conf.DownloadServer.Port,
 			TLSConfig:        svc.conf.DownloadServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -715,8 +719,6 @@ func (svc *Service) Start() error {
 
 		// server start will block until server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started server")
-
 			if err := server.Start(); err != nil {
 				return err
 			}

@@ -26,21 +26,25 @@ const (
 	defaultFileRunMode              = RunModeRelease
 	defaultFileTenantMode           = tenant.ModeSingle
 	defaultFileInfoBindIP           = "127.0.0.1"
+	defaultFileInfoBindIPV6         = "::1"
 	defaultFileInfoPort             = 28200
 	defaultFileInfoTraceServiceName = "file-server-info"
 	defaultFileInfoIdentity         = AuthIdentityNone
 
 	defaultFileAdminBindIP           = "127.0.0.1"
+	defaultFileAdminBindIPV6         = "::1"
 	defaultFileAdminPort             = 28201
 	defaultFileAdminTraceServiceName = "file-server-admin"
 	defaultFileAdminIdentity         = AuthIdentityRestServer
 
 	defaultFileBasicBindIP           = "127.0.0.1"
+	defaultFileBasicBindIPV6         = "::1"
 	defaultFileBasicPort             = 28202
 	defaultFileBasicTraceServiceName = "file-server-basic"
 	defaultFileBasicIdentity         = AuthIdentityNone
 
 	defaultFileDownloadBindIP           = "127.0.0.1"
+	defaultFileDownloadBindIPV6         = "::1"
 	defaultFileDownloadPort             = 28203
 	defaultFileDownloadTraceServiceName = "file-server-download"
 	defaultFileDownloadIdentity         = AuthIdentityNone
@@ -98,6 +102,7 @@ func NewFileService() *FileService {
 		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultFileInfoBindIP,
+			BindIPV6:      defaultFileInfoBindIPV6,
 			Port:          defaultFileInfoPort,
 			AuthIdentity:  defaultFileInfoIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
@@ -108,6 +113,7 @@ func NewFileService() *FileService {
 		},
 		AdminServer: HTTPServer{
 			BindIP:        defaultFileAdminBindIP,
+			BindIPV6:      defaultFileAdminBindIPV6,
 			Port:          defaultFileAdminPort,
 			AuthIdentity:  defaultFileAdminIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
@@ -118,6 +124,7 @@ func NewFileService() *FileService {
 		},
 		BasicServer: HTTPServer{
 			BindIP:        defaultFileBasicBindIP,
+			BindIPV6:      defaultFileBasicBindIPV6,
 			Port:          defaultFileBasicPort,
 			AuthIdentity:  defaultFileBasicIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
@@ -128,6 +135,7 @@ func NewFileService() *FileService {
 		},
 		DownloadServer: HTTPServer{
 			BindIP:        defaultFileDownloadBindIP,
+			BindIPV6:      defaultFileDownloadBindIPV6,
 			Port:          defaultFileDownloadPort,
 			AuthIdentity:  defaultFileDownloadIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,

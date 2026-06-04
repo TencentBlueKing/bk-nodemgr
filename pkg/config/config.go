@@ -282,6 +282,7 @@ func (authIdentity AuthIdentity) Validate() error {
 // HTTPServer the config of http service.
 type HTTPServer struct {
 	BindIP          string          `yaml:"bindIP"`
+	BindIPV6        string          `yaml:"bindIPV6"`
 	AdvertiseIPV4   string          `yaml:"advertiseIPV4"`
 	AdvertiseIPV6   string          `yaml:"advertiseIPV6"`
 	Port            int             `yaml:"port"`
@@ -294,8 +295,8 @@ type HTTPServer struct {
 
 // Validate validates the config.
 func (conf HTTPServer) Validate() error {
-	if conf.BindIP == "" {
-		return errors.New("failed to validate http server config: bindIP is empty")
+	if conf.BindIP == "" && conf.BindIPV6 == "" {
+		return errors.New("failed to validate http server config: bindIP and bindIPV6 are both empty")
 	}
 
 	if conf.Port <= 0 {

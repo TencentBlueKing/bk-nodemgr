@@ -25,6 +25,7 @@ import (
 const (
 	// basic server config default values.
 	defaultMockBasicBindIP   = "127.0.0.1"
+	defaultMockBasicBindIPV6 = "::1"
 	defaultMockBasicPort     = 28400
 	defaultMockBasicIdentity = config.AuthIdentityNone
 
@@ -60,6 +61,7 @@ func NewMockService() *MockService {
 	return &MockService{
 		BasicServer: config.HTTPServer{
 			BindIP:        defaultMockBasicBindIP,
+			BindIPV6:      defaultMockBasicBindIPV6,
 			Port:          defaultMockBasicPort,
 			AuthIdentity:  defaultMockBasicIdentity,
 			AdvertiseIPV4: defaultMockAdvertiseIPv4,

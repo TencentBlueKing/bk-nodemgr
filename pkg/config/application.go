@@ -42,18 +42,21 @@ const (
 
 	// info server config default values.
 	defaultApplicationInfoBindIP           = "127.0.0.1"
+	defaultApplicationInfoBindIPV6         = "::1"
 	defaultApplicationInfoPort             = 28000
 	defaultApplicationInfoIdentity         = AuthIdentityNone
 	defaultApplicationInfoTraceServiceName = "application-server-info"
 
 	// admin server config default values.
 	defaultApplicationAdminBindIP           = "127.0.0.1"
+	defaultApplicationAdminBindIPV6         = "::1"
 	defaultApplicationAdminPort             = 28001
 	defaultApplicationAdminIdentity         = AuthIdentityRestServer
 	defaultApplicationAdminTraceServiceName = "application-server-admin"
 
 	// basic server config default values.
 	defaultApplicationBasicBindIP           = "127.0.0.1"
+	defaultApplicationBasicBindIPV6         = "::1"
 	defaultApplicationBasicPort             = 28002
 	defaultApplicationBasicStaticDir        = "/bk-nodemgr/static/"
 	defaultApplicationBasicIdentity         = AuthIdentityBKLogin
@@ -187,6 +190,7 @@ func NewApplicationService() *ApplicationService {
 		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultApplicationInfoBindIP,
+			BindIPV6:      defaultApplicationInfoBindIPV6,
 			Port:          defaultApplicationInfoPort,
 			AuthIdentity:  defaultApplicationInfoIdentity,
 			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
@@ -197,6 +201,7 @@ func NewApplicationService() *ApplicationService {
 		},
 		AdminServer: HTTPServer{
 			BindIP:          defaultApplicationAdminBindIP,
+			BindIPV6:        defaultApplicationAdminBindIPV6,
 			Port:            defaultApplicationAdminPort,
 			AuthIdentity:    defaultApplicationAdminIdentity,
 			AdvertiseIPV4:   defaultApplicationAdvertiseIPv4,
@@ -208,6 +213,7 @@ func NewApplicationService() *ApplicationService {
 		},
 		BasicServer: HTTPServer{
 			BindIP:       defaultApplicationBasicBindIP,
+			BindIPV6:     defaultApplicationBasicBindIPV6,
 			Port:         defaultApplicationBasicPort,
 			StaticDir:    defaultApplicationBasicStaticDir,
 			AuthIdentity: defaultApplicationBasicIdentity,

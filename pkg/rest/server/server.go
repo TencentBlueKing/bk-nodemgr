@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
@@ -119,6 +120,7 @@ func (opt *StaticOptions) WithHTMLs(relatives ...string) *StaticOptions {
 type Options struct {
 	Name             string
 	IP               string
+	IPV6             string
 	Port             int
 	RequestIDSetter  IRequestIDSetter
 	StaticOptions    *StaticOptions
@@ -212,7 +214,45 @@ func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Ser
 
 // Start starts the router.
 func (svr *Server) Start() error {
+	if svr.opts.IP == "" && svr.opts.IPV6 == "" {
+		return fmt.Errorf("IP and IPV6 cannot be empty at the same time")
+	}
+
+	gp := gopool.NewPool()
+	gp.SetLimit(2)
+
+	if svr.IP() != "" {
+		gp.Go(func() error {
+			logger.G.Sys().With("name", svr.Name(), "ip", svr.IP(), "port", svr.Port()).Info("started HTTP Server")
+
+			return svr.startToListenIPV4()
+		})
+	}
+
+	if svr.IPV6() != "" {
+		gp.Go(func() error {
+			logger.G.Sys().With("name", svr.Name(), "ipv6", svr.IPV6(), "port", svr.Port()).Info("started HTTP Server")
+
+			return svr.startToListenIPV6()
+		})
+	}
+
+	return gp.Wait()
+}
+
+func (svr *Server) startToListenIPV4() error {
 	addr := fmt.Sprintf("%s:%d", svr.opts.IP, svr.opts.Port)
+
+	// tls server.
+	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
+		return svr.startWithTLS(addr)
+	}
+
+	return svr.startWithoutTLS(addr)
+}
+
+func (svr *Server) startToListenIPV6() error {
+	addr := fmt.Sprintf("[%s]:%d", svr.opts.IPV6, svr.opts.Port)
 
 	// tls server.
 	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
@@ -257,6 +297,11 @@ func (svr *Server) Name() string {
 // IP returns the router ip.
 func (svr *Server) IP() string {
 	return svr.opts.IP
+}
+
+// IPV6 returns the router ipv6.
+func (svr *Server) IPV6() string {
+	return svr.opts.IPV6
 }
 
 // Port returns the router port.

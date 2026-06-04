@@ -91,6 +91,7 @@ func (svc *Service) registerBasicServer() error {
 		restserver.Options{
 			Name:             mockServerBasicSvcName,
 			IP:               svc.conf.BasicServer.BindIP,
+			IPV6:             svc.conf.BasicServer.BindIPV6,
 			Port:             svc.conf.BasicServer.Port,
 			TLSConfig:        svc.conf.BasicServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -140,7 +141,6 @@ func (svc *Service) Start() error {
 
 		// http server start will block until http server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started HTTP Server")
 			if err := server.Start(); err != nil {
 				return err
 			}

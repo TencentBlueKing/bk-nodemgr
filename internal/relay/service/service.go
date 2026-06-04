@@ -165,6 +165,7 @@ func (svc *Service) registerInfoServer() error {
 		restserver.Options{
 			Name:             relayInfoSvcName,
 			IP:               svc.conf.InfoServer.BindIP,
+			IPV6:             svc.conf.InfoServer.BindIPV6,
 			Port:             svc.conf.InfoServer.Port,
 			TLSConfig:        svc.conf.InfoServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -205,6 +206,7 @@ func (svc *Service) registerAdminServer() error {
 		restserver.Options{
 			Name:             relayAdminSvcName,
 			IP:               svc.conf.AdminServer.BindIP,
+			IPV6:             svc.conf.AdminServer.BindIPV6,
 			Port:             svc.conf.AdminServer.Port,
 			TLSConfig:        svc.conf.AdminServer.TLSConfig,
 			RequestIDSetter:  requestIDSetter,
@@ -232,6 +234,7 @@ func (svc *Service) registerCallbackServer() error {
 		restserver.Options{
 			Name:             relayCallbackSvcName,
 			IP:               svc.conf.CallbackServer.BindIP,
+			IPV6:             svc.conf.CallbackServer.BindIPV6,
 			Port:             svc.conf.CallbackServer.Port,
 			TLSConfig:        svc.conf.CallbackServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
@@ -262,6 +265,7 @@ func (svc *Service) registerDownloadServer() error {
 		restserver.Options{
 			Name:             relayDownloadSvcName,
 			IP:               svc.conf.DownloadServer.BindIP,
+			IPV6:             svc.conf.DownloadServer.BindIPV6,
 			Port:             svc.conf.DownloadServer.Port,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.DownloadServer.TraceServiceName,
@@ -328,8 +332,6 @@ func (svc *Service) Start() error {
 
 		// server start will block until server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started server")
-
 			if err := server.Start(); err != nil {
 				return err
 			}
