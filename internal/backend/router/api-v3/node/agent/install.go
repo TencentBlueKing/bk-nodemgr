@@ -17,8 +17,10 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -91,6 +93,21 @@ func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
+func (h *handler) readCompatibilityModePolicy(nCtx contextx.IContext) compatibility.Policy {
+	if h.storageGlobalSettings == nil {
+		logger.G.Biz(nCtx).Warn("global settings storage is unavailable, use default plugin compatibility mode policy")
+		return compatibility.ParseStoredPolicy("", nCtx)
+	}
+
+	raw, err := h.storageGlobalSettings.GetGlobalSetting(nCtx, globalsettings.PluginCompatibilityModePolicy)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Warn("failed to read plugin compatibility mode policy, use default policy")
+		return compatibility.ParseStoredPolicy("", nCtx)
+	}
+
+	return compatibility.ParseStoredPolicy(raw, nCtx)
+}
+
 // nolint: funlen, gocognit
 func (h *handler) generateInstallNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeAgentInstallReq) ([]*types.NodeDeployment, []int64, error) {
@@ -120,6 +137,8 @@ func (h *handler) generateInstallNodeDeployments(
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch networkunits: %w", err)
 	}
+
+	compatibilityPolicy := h.readCompatibilityModePolicy(nCtx)
 
 	// fetch host.
 	existedHostMap := make(map[int64]*types.Host)
@@ -190,7 +209,13 @@ func (h *handler) generateInstallNodeDeployments(
 						RenewGSEProc:             reqHost.GetRenewGseProc(),
 						InstallPreOrderedPlugins: reqHost.GetInstallPreOrderedPlugins(),
 						DirectInstall:            networkUnit.IsDirect,
-						IsManual:                 isManual,
+						EnableCompatibilityMode: compatibility.DecideCompatibilityMode(
+							compatibilityPolicy,
+							nCtx.TenantID(),
+							reqHost.GetBkBizId(),
+							"bkmonitorbeat",
+						),
+						IsManual: isManual,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},

@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	globalsettingsStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
@@ -24,13 +25,14 @@ import (
 
 // handler ...
 type handler struct {
-	rg                 *gin.RouterGroup
-	nodeMgrIface       managerIface.INodeManager
-	storageNetworkUnit topoStg.IStorageNetworkUnit
-	storageHost        topoStg.IStorageHost
-	storageHostCredit  credit.IStorageHostCredit
-	storageCipher      cipherStg.IStorage
-	authorizer         auth.IAuthorizer
+	rg                    *gin.RouterGroup
+	nodeMgrIface          managerIface.INodeManager
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
+	storageHost           topoStg.IStorageHost
+	storageHostCredit     credit.IStorageHostCredit
+	storageGlobalSettings globalsettingsStg.IStorage
+	storageCipher         cipherStg.IStorage
+	authorizer            auth.IAuthorizer
 
 	domainNodeInstall topoStg.IDomainNodeInstall
 }
@@ -39,14 +41,15 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                 rg.Group("/agent"),
-		nodeMgrIface:       capability.Manager,
-		storageNetworkUnit: capability.StorageTopo,
-		storageHost:        capability.StorageTopo,
-		storageHostCredit:  capability.StorageCredit,
-		storageCipher:      capability.StorageCipher,
-		authorizer:         capability.Authorizer,
-		domainNodeInstall:  capability.StorageTopo,
+		rg:                    rg.Group("/agent"),
+		nodeMgrIface:          capability.Manager,
+		storageNetworkUnit:    capability.StorageTopo,
+		storageHost:           capability.StorageTopo,
+		storageHostCredit:     capability.StorageCredit,
+		storageGlobalSettings: capability.StorageGlobalSettings,
+		storageCipher:         capability.StorageCipher,
+		authorizer:            capability.Authorizer,
+		domainNodeInstall:     capability.StorageTopo,
 	}
 }
 
