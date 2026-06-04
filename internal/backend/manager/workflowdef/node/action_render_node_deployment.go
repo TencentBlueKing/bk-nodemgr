@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -516,6 +517,11 @@ const (
 const (
 	// GseCustomKeyFileTopologyLinks the config template key of gse file topology links.
 	GseCustomKeyFileTopologyLinks = "file.topology.links"
+
+	// GseCustomKeyFileTopologyProxyGroupTag the config template key of gse file topology proxy group tag.
+	// this config is used to split the proxy group for file topology, set this config will only allow the machines
+	// in the same unit to transfer files to each other.
+	GseCustomKeyFileTopologyProxyGroupTag = "file.topology.proxy_group_tag"
 )
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
@@ -647,6 +653,9 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 			nodeConf.PreSetting[GseDataProxyEndpoints] = strings.Join(datas, ",")
 
 			nodeConf.CustomSetting[GseCustomKeyFileTopologyLinks] = act.renderFileLinks(nodeConf, &std.DeployInfo().Host, files)
+
+			// use the network unit id as the proxy group tag for file topology.
+			nodeConf.CustomSetting[GseCustomKeyFileTopologyProxyGroupTag] = strconv.Itoa(int(std.DeployInfo().Host.Dynamic.NetworkUnitID))
 		}
 	default:
 		return fmt.Errorf("unsupported node role: %s", std.DeployInfo().Host.Dynamic.NodeRole)
