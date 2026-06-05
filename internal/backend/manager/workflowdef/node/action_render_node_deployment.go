@@ -932,15 +932,15 @@ func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 	var err error
 
 	if info.Host.Dynamic.ProxyClusterPort, err = conv.ToInt64(conf.PreSetting[GseTemplateKeyProxyBindPort]); err != nil {
-		return err
+		return fmt.Errorf("failed to get proxy cluster port: %w", err)
 	}
 
 	if info.Host.Dynamic.ProxyDataPort, err = conv.ToInt64(conf.PreSetting[GseTemplateKeyDataAgentBindPort]); err != nil {
-		return err
+		return fmt.Errorf("failed to get proxy data port: %w", err)
 	}
 
 	if info.Host.Dynamic.ProxyFilePort, err = conv.ToInt64(conf.PreSetting[GseTemplateKeyFileAgentBindPort]); err != nil {
-		return err
+		return fmt.Errorf("failed to get proxy file port: %w", err)
 	}
 
 	return nil
