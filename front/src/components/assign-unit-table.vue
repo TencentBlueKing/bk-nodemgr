@@ -64,6 +64,17 @@
               :disabled-tip="$t('components.installTable.batchEditNetworkUnitDisabledTip')"
               @confirm="(value: string) => handleBatchEdit(value)"
             />
+            <i
+              v-if="!networkUnitLoading && !autoAssignLoading"
+              class="nodeman-icon nc-manual text-[18px] cursor-pointer ml-[5px]"
+              v-bk-tooltips="$t('components.installTable.autoAssign')"
+              @click="handleAutoAssign"
+            ></i>
+            <i
+              v-else
+              class="nodeman-icon nc-manual text-[18px] cursor-not-allowed text-[#C4C6CC] ml-[5px]"
+              v-bk-tooltips="$t('components.installTable.autoAssign')"
+            ></i>
           </template>
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
@@ -241,6 +252,31 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
 const networkUnitList = ref<any[]>([]);
 const networkUnitGroupMap = ref<Record<number, any[]>>({});
 const networkUnitLoading = ref(false);
+const autoAssignLoading = ref(false);
+
+const handleAutoAssign = async () => {
+  if (!tableData.value?.length) return;
+  autoAssignLoading.value = true;
+  try {
+    const items = tableData.value.map((row: any) => ({
+      bk_networkarea_id: Number(row.bk_networkarea_id),
+      ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
+    }));
+    const res = await TopoService.RecommendNetworkUnitByNetworkSegment({ items });
+    if (res?.items) {
+      res.items.forEach((result: any, index: number) => {
+        if (index >= tableData.value!.length) return;
+        const row = tableData.value![index];
+        row.bk_networkunit_id = result.bk_networkunit_id === -1 ? '' : String(result.bk_networkunit_id);
+        clearError(index, 'bk_networkunit_id');
+      });
+    }
+  } catch (error) {
+    console.error('Auto assign failed:', error);
+  } finally {
+    autoAssignLoading.value = false;
+  }
+};
 
 const getNetworkUnitList = async () => {
   networkUnitLoading.value = true;
