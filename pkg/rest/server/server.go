@@ -14,6 +14,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"path"
 	"time"
@@ -21,6 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
@@ -245,10 +247,10 @@ func (svr *Server) startToListenIPV4() error {
 
 	// tls server.
 	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
-		return svr.startWithTLS(addr)
+		return svr.startWithTLS(criteria.NetTypeTCP4, addr)
 	}
 
-	return svr.startWithoutTLS(addr)
+	return svr.startWithoutTLS(criteria.NetTypeTCP4, addr)
 }
 
 func (svr *Server) startToListenIPV6() error {
@@ -256,17 +258,22 @@ func (svr *Server) startToListenIPV6() error {
 
 	// tls server.
 	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
-		return svr.startWithTLS(addr)
+		return svr.startWithTLS(criteria.NetTypeTCP6, addr)
 	}
 
-	return svr.startWithoutTLS(addr)
+	return svr.startWithoutTLS(criteria.NetTypeTCP6, addr)
 }
 
-func (svr *Server) startWithoutTLS(addr string) error {
-	return svr.engine.Run(addr)
+func (svr *Server) startWithoutTLS(network criteria.NetType, addr string) error {
+	listener, err := net.Listen(string(network), addr)
+	if err != nil {
+		return fmt.Errorf("failed to listen %s %s: %w", network, addr, err)
+	}
+
+	return svr.engine.RunListener(listener)
 }
 
-func (svr *Server) startWithTLS(addr string) error {
+func (svr *Server) startWithTLS(network criteria.NetType, addr string) error {
 	conf := &ssl.TLSConfig{
 		InsecureSkipVerify: svr.opts.TLSConfig.InsecureSkipVerify,
 		VerifyClient:       svr.opts.TLSConfig.VerifyClient,
@@ -286,7 +293,13 @@ func (svr *Server) startWithTLS(addr string) error {
 		TLSConfig: tlsConfig,
 	}
 
-	return server.ListenAndServeTLS("", "")
+	listener, err := net.Listen(string(network), addr)
+	if err != nil {
+		return fmt.Errorf("failed to listen %s %s: %w", network, addr, err)
+	}
+	defer listener.Close()
+
+	return server.ServeTLS(listener, "", "")
 }
 
 // Name returns the router name.
