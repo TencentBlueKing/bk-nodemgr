@@ -220,6 +220,10 @@ func (fm *fileManagerImpl) GetFile(nCtx contextx.IContext, filename string) (fil
 		return nil, fmt.Errorf("fileinfo not found. groupdir(%s)", groupDir)
 	}
 
+	if err := fm.ensureGroupDir(local.GetLocalFileGroupAbsDirPath(info.fileTmpDir)); err != nil {
+		return nil, err
+	}
+
 	info.updateLastAccessed()
 	logger.G.Sys().With("filename", filename).Info("update last access time")
 
@@ -306,9 +310,13 @@ func removeAll(absPath string) error {
 }
 
 func (fm *fileManagerImpl) createNewLocalDir() (string, *local.LocalDir, error) {
+	if err := fm.ensureBaseDir(); err != nil {
+		return "", nil, err
+	}
+
 	destDir := filepath.Join(fm.baseDir, fm.getStorageDirName())
-	if err := os.MkdirAll(destDir, 0750); err != nil { // nolint: mnd
-		return "", nil, fmt.Errorf("failed to create store dir. dest dir(%s): %w", destDir, err)
+	if err := fm.ensureDir(destDir, "store dir"); err != nil {
+		return "", nil, err
 	}
 
 	subGroup, err := local.NewLocalDir(destDir)
@@ -323,4 +331,20 @@ func (fm *fileManagerImpl) createNewLocalDir() (string, *local.LocalDir, error) 
 func (fm *fileManagerImpl) getStorageDirName() string {
 	fm.dirSequence.Add(1)
 	return fmt.Sprintf("%s_%d", time.Now().Format("20060102150405"), fm.dirSequence.Load())
+}
+
+func (fm *fileManagerImpl) ensureBaseDir() error {
+	return fm.ensureDir(fm.baseDir, "base dir")
+}
+
+func (fm *fileManagerImpl) ensureGroupDir(groupPath string) error {
+	return fm.ensureDir(groupPath, "group dir")
+}
+
+func (fm *fileManagerImpl) ensureDir(path, operation string) error {
+	if err := os.MkdirAll(path, 0750); err != nil { // nolint: mnd
+		return fmt.Errorf("failed to ensure %s. path(%s): %w", operation, path, err)
+	}
+
+	return nil
 }

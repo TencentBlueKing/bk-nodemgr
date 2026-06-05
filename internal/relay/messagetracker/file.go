@@ -127,10 +127,17 @@ func (fm *FileTracker) TryMarkProcessed(_ context.Context, mid string) (bool, er
 
 	filename := fm.generateFilename(mid)
 	filePath := filepath.Join(fm.storagePath, filename)
-
 	content := []byte(mid + "\n")
 
-	return true, os.WriteFile(filePath, content, 0600) //nolint: mnd
+	if err := os.MkdirAll(fm.storagePath, 0750); err != nil {
+		return false, fmt.Errorf("failed to ensure message tracker storage dir for try mark processed, path(%s): %w", fm.storagePath, err)
+	}
+
+	if err := os.WriteFile(filePath, content, 0600); err != nil {
+		return true, fmt.Errorf("failed to write message tracker marker, path(%s): %w", filePath, err)
+	}
+
+	return true, nil
 }
 
 // cleanupExpired deletes files older than 24 hours.

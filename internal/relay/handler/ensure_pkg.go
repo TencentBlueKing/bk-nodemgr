@@ -25,14 +25,27 @@ import (
 )
 
 const (
-	actionNameEnsurePkg         = "ensure_pkg"
 	reportRelayFileStateURL     = "/relay/report_file_state"
 	reportRelayStorageResultURL = "/relay/report_storage_result"
 )
 
+func (h *handler) ensureStorageTmpDir(op string) error {
+	if err := os.MkdirAll(h.storageTmpDir, 0750); err != nil {
+		return fmt.Errorf("failed to ensure transfer-file dir for %s, dir(%s): %w", op, h.storageTmpDir, err)
+	}
+
+	return nil
+}
+
 // CheckPkgStats is a handler for the CheckPkgStats event.
 func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).Info("handler check pkg state event")
+
+	if err := h.ensureStorageTmpDir("check package stats"); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to ensure transfer-file dir")
+
+		return
+	}
 
 	var event protoRelay.CheckPkgStateReq
 	if err := json.Unmarshal(payload, &event); err != nil {
@@ -74,6 +87,12 @@ func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
 // StoragePkg is a handler for the StoragePkg event.
 func (h *handler) StoragePkg(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).Info("handler storage pkg event")
+
+	if err := h.ensureStorageTmpDir("storage package"); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to ensure transfer-file dir")
+
+		return
+	}
 
 	var event protoRelay.NotifyReceiveReq
 
@@ -118,6 +137,10 @@ func (h *handler) StoragePkg(nCtx contextx.IContext, payload []byte) {
 }
 
 func (h *handler) safeRemove(baseDir string, filename string) error {
+	if err := h.ensureStorageTmpDir("safe remove file"); err != nil {
+		return err
+	}
+
 	absPath := filepath.Join(baseDir, filename)
 	if absPath == "" ||
 		absPath == "/" ||
