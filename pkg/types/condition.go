@@ -103,6 +103,8 @@ type HostDynamicFuzzyFields struct {
 type HostStaticExactFields struct {
 	HostID        []int64
 	BizID         []int64
+	SetID         []int64
+	ModuleID      []int64
 	NetworkAreaID []int64
 	InnerIP       []string
 	InnerIPV6     []string

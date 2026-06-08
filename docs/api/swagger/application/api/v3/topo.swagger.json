@@ -84,6 +84,74 @@
         ]
       }
     },
+    "/api/v3/topo/business/host_count/get": {
+      "post": {
+        "summary": "BusinessHostCountGet provides host count getting by business id.",
+        "operationId": "Topo_BusinessHostCountGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessHostCountGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoBusinessHostCountGetReq describes the HTTP request body when get host\ncount of business in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessHostCountGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/business/inst_topo/get": {
+      "post": {
+        "summary": "BusinessInstTopoGet provides business instance topology getting.",
+        "operationId": "Topo_BusinessInstTopoGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessInstTopoGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoBusinessInstTopoGetReq describes the HTTP request body when get business\ninstance topology in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoBusinessInstTopoGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/business/list": {
       "post": {
         "summary": "BusinessList provides business listing.",
@@ -1156,6 +1224,20 @@
       },
       "description": "Business describes the business informations."
     },
+    "v3BusinessHostCount": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "host_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "BusinessHostCount describes the host count of a single business."
+    },
     "v3CustomDeployConfig": {
       "type": "object",
       "properties": {
@@ -1899,6 +1981,99 @@
             "type": "object",
             "$ref": "#/definitions/v3AccessPoint"
           }
+        }
+      }
+    },
+    "v3TopoBusinessHostCountGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoBusinessHostCountGetReq describes the HTTP request body when get host\ncount of business in topo service."
+    },
+    "v3TopoBusinessHostCountGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoBusinessHostCountGetRespData"
+        }
+      },
+      "description": "TopoBusinessHostCountGetResp describes the HTTP response body when get host\ncount of business in topo service."
+    },
+    "v3TopoBusinessHostCountGetRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3BusinessHostCount"
+          }
+        }
+      }
+    },
+    "v3TopoBusinessInstTopoGetReq": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TopoBusinessInstTopoGetReq describes the HTTP request body when get business\ninstance topology in topo service."
+    },
+    "v3TopoBusinessInstTopoGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoBusinessInstTopoGetRespData"
+        }
+      },
+      "description": "TopoBusinessInstTopoGetResp describes the HTTP response body when get\nbusiness instance topology in topo service."
+    },
+    "v3TopoBusinessInstTopoGetRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "$ref": "#/definitions/v3TopoNodeInfo"
         }
       }
     },
@@ -3583,6 +3758,36 @@
           "format": "int64"
         }
       }
+    },
+    "v3TopoNodeInfo": {
+      "type": "object",
+      "properties": {
+        "topo_inst_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "topo_inst_name": {
+          "type": "string"
+        },
+        "topo_obj_id": {
+          "type": "string"
+        },
+        "topo_obj_name": {
+          "type": "string"
+        },
+        "host_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TopoNodeInfo"
+          }
+        }
+      },
+      "description": "TopoNodeInfo describes a business instance topology node."
     },
     "v3TopoRecommendNetworkUnitByNetworkSegmentReq": {
       "type": "object",

@@ -66,6 +66,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// business apis.
 	h.rg.POST("/business/list", restserver.Handler(h.ListBusiness))
+	h.rg.POST("/business/host_count/get", restserver.Handler(h.GetBusinessHostCount))
+	h.rg.POST("/business/inst_topo/get", restserver.Handler(h.GetBusinessInstTopo))
 
 	// host apis.
 	h.rg.POST("/host/list", restserver.Handler(h.ListHost))

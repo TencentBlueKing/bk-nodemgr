@@ -37,6 +37,15 @@ type IHandler interface {
 	// CountGroupByNetworkUnitID count hosts by networkunit id.
 	CountGroupByNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
 
+	// CountGroupByBizID count hosts by biz id.
+	CountGroupByBizID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
+
+	// CountGroupBySetID count hosts by set id.
+	CountGroupBySetID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
+
+	// CountGroupByModuleID count hosts by module id.
+	CountGroupByModuleID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
+
 	// Exist check a host exist by conditions.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
 
@@ -215,6 +224,66 @@ func (h *handler) CountGroupByNetworkUnitID(nCtx contextx.IContext, opts ...OptF
 	}
 
 	return h.tenantDao(tenantID).CountGroupByInt64(nCtx, filter, FieldKeyDynamicNetworkUnitID)
+}
+
+// CountGroupByBizID count hosts by biz id.
+func (h *handler) CountGroupByBizID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).CountGroupByInt64(nCtx, filter, FieldKeyStaticBizID)
+}
+
+// CountGroupBySetID count hosts by set id.
+func (h *handler) CountGroupBySetID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).CountGroupByInt64(nCtx, filter, FieldKeyStaticSetID)
+}
+
+// CountGroupByModuleID count hosts by module id.
+func (h *handler) CountGroupByModuleID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).CountGroupByInt64(nCtx, filter, FieldKeyStaticModuleID)
 }
 
 // Exist count host by conditions.

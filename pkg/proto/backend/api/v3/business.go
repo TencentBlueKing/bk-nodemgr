@@ -131,6 +131,116 @@ func (x *TopoBusinessListResp) ConvertBusinessToTypes() (int64, []*types.Busines
 	return data.GetTotal(), result
 }
 
+// Validate check body.
+func (x *TopoBusinessInstTopoGetReq) Validate() error {
+	if x.GetBkBizId() == 0 {
+		return fmt.Errorf("bk_biz_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoBusinessInstTopoGetReq) AutoConvert() {
+}
+
+// ConvertBusinessInstTopoFromTypes converts a single business topo root node to response.
+func (x *TopoBusinessInstTopoGetResp) ConvertBusinessInstTopoFromTypes(topoNode *types.TopoNodeInfo) {
+	x.Data = &TopoBusinessInstTopoGetResp_Data{Items: convertBusinessInstTopoFromTypes(topoNode)}
+}
+
+func convertBusinessInstTopoFromTypes(topoNode *types.TopoNodeInfo) *TopoNodeInfo {
+	if topoNode == nil {
+		return nil
+	}
+
+	children := make([]*TopoNodeInfo, 0, len(topoNode.Children))
+	for _, child := range topoNode.Children {
+		if child == nil {
+			continue
+		}
+		children = append(children, convertBusinessInstTopoFromTypes(child))
+	}
+
+	return &TopoNodeInfo{
+		TopoInstId:   topoNode.InstID,
+		TopoInstName: topoNode.InstName,
+		TopoObjId:    topoNode.ObjID,
+		TopoObjName:  topoNode.ObjName,
+		HostCount:    topoNode.HostCount,
+		Children:     children,
+	}
+}
+
+// Validate check body.
+func (x *TopoBusinessHostCountGetReq) Validate() error {
+	if len(x.GetBkBizId()) == 0 {
+		return fmt.Errorf("bk_biz_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoBusinessHostCountGetReq) AutoConvert() {
+}
+
+// ConvertHostCountFromTypes converts host count map from types to response.
+func (x *TopoBusinessHostCountGetResp) ConvertHostCountFromTypes(counts map[int64]int64) {
+	items := make([]*BusinessHostCount, 0, len(counts))
+	for bizID, hostCount := range counts {
+		items = append(items, &BusinessHostCount{BkBizId: bizID, HostCount: hostCount})
+	}
+
+	x.Data = &TopoBusinessHostCountGetResp_Data{Items: items}
+}
+
+// ConvertHostCountToTypes converts host count from response to map[bizID]hostCount.
+func (x *TopoBusinessHostCountGetResp) ConvertHostCountToTypes() map[int64]int64 {
+	data := x.GetData()
+	if data == nil {
+		return nil
+	}
+
+	result := make(map[int64]int64, len(data.GetItems()))
+	for _, item := range data.GetItems() {
+		result[item.GetBkBizId()] = item.GetHostCount()
+	}
+
+	return result
+}
+
+// ConvertBusinessInstTopoToTypes converts business instance topology from response to a single root types.TopoNodeInfo.
+func (x *TopoBusinessInstTopoGetResp) ConvertBusinessInstTopoToTypes() *types.TopoNodeInfo {
+	data := x.GetData()
+	if data == nil || data.GetItems() == nil {
+		return nil
+	}
+
+	return convertTopoNodeToTypes(data.GetItems())
+}
+
+func convertTopoNodeToTypes(node *TopoNodeInfo) *types.TopoNodeInfo {
+	children := make([]*types.TopoNodeInfo, 0, len(node.GetChildren()))
+	for _, child := range node.GetChildren() {
+		if child == nil {
+			continue
+		}
+		children = append(children, convertTopoNodeToTypes(child))
+	}
+
+	info := &types.TopoNodeInfo{
+		InstID:    node.GetTopoInstId(),
+		InstName:  node.GetTopoInstName(),
+		ObjID:     node.GetTopoObjId(),
+		ObjName:   node.GetTopoObjName(),
+		HostCount: node.GetHostCount(),
+		Children:  children,
+	}
+
+	return info
+}
+
 func newEmptyBusiness() *Business {
 	return &Business{
 		TenantId:  new(string),

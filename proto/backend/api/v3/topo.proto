@@ -44,6 +44,56 @@ message TopoBusinessListResp {
   Data data = 5;
 }
 
+// TopoBusinessHostCountGetReq describes the HTTP request body when get host
+// count of business in topo service.
+message TopoBusinessHostCountGetReq { repeated int64 bk_biz_id = 1; }
+
+// BusinessHostCount describes the host count of business in topo service.
+message BusinessHostCount {
+  int64 bk_biz_id = 1;
+  int64 host_count = 2;
+}
+
+// TopoBusinessHostCountGetResp describes the HTTP response body when get host
+// count of business in topo service.
+message TopoBusinessHostCountGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { repeated BusinessHostCount items = 1; }
+  Data data = 5;
+}
+
+// TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+// instance topology in topo service.
+message TopoBusinessInstTopoGetReq { int64 bk_biz_id = 1; }
+
+// TopoNodeInfo describes the topology node information.
+message TopoNodeInfo {
+  string topo_obj_id = 1;
+  int64 topo_inst_id = 2;
+  string topo_obj_name = 3;
+  string topo_inst_name = 4;
+  int64 host_count = 5;
+  repeated TopoNodeInfo children = 6;
+}
+
+// TopoBusinessInstTopoGetResp describes the HTTP response body when get
+// business instance topology in topo service.
+message TopoBusinessInstTopoGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { TopoNodeInfo items = 1; }
+  Data data = 5;
+}
+
 // TopoNetworkAreaListReq describes the HTTP request body when list network-area
 // in topo service.
 message TopoNetworkAreaListReq {
@@ -817,6 +867,24 @@ service Topo {
   rpc BusinessList(TopoBusinessListReq) returns (TopoBusinessListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/business/list"
+      body : "*"
+    };
+  }
+
+  // BusinessHostCountGet provides host count getting by business id.
+  rpc BusinessHostCountGet(TopoBusinessHostCountGetReq)
+      returns (TopoBusinessHostCountGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/business/host_count/get"
+      body : "*"
+    };
+  }
+
+  // BusinessInstTopoGet provides business instance topology getting.
+  rpc BusinessInstTopoGet(TopoBusinessInstTopoGetReq)
+      returns (TopoBusinessInstTopoGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/business/inst_topo/get"
       body : "*"
     };
   }

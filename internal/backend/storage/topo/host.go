@@ -189,6 +189,54 @@ func (s *Storage) CountHostGroupByNetworkUnitID(nCtx contextx.IContext, conditio
 	return data, err
 }
 
+// CountHostGroupByBizID counts host by biz id.
+func (s *Storage) CountHostGroupByBizID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[int64]int64, error) {
+
+	var data map[int64]int64
+	err := s.WrapFn(nCtx, metricOperationCountHostGroupByBizID, func(nCtx contextx.IContext) error {
+		opts := convertHostConditionsToOptions(conditions...)
+		var err error
+		data, err = s.daoHost.CountGroupByBizID(nCtx, opts...)
+
+		return err
+	})
+
+	return data, err
+}
+
+// CountHostGroupBySetID counts host by set id.
+func (s *Storage) CountHostGroupBySetID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[int64]int64, error) {
+
+	var data map[int64]int64
+	err := s.WrapFn(nCtx, metricOperationCountHostGroupBySetID, func(nCtx contextx.IContext) error {
+		opts := convertHostConditionsToOptions(conditions...)
+		var err error
+		data, err = s.daoHost.CountGroupBySetID(nCtx, opts...)
+
+		return err
+	})
+
+	return data, err
+}
+
+// CountHostGroupByModuleID counts host by module id.
+func (s *Storage) CountHostGroupByModuleID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[int64]int64, error) {
+
+	var data map[int64]int64
+	err := s.WrapFn(nCtx, metricOperationCountHostGroupByModuleID, func(nCtx contextx.IContext) error {
+		opts := convertHostConditionsToOptions(conditions...)
+		var err error
+		data, err = s.daoHost.CountGroupByModuleID(nCtx, opts...)
+
+		return err
+	})
+
+	return data, err
+}
+
 // DistinctHost distinct host fields.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
@@ -336,6 +384,8 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			opts = append(opts,
 				host.WithHostID(condition.StaticExactInclude.HostID...),
 				host.WithStaticBizID(condition.StaticExactInclude.BizID...),
+				host.WithStaticSetID(condition.StaticExactInclude.SetID...),
+				host.WithStaticModuleID(condition.StaticExactInclude.ModuleID...),
 				host.WithStaticNetworkAreaID(condition.StaticExactInclude.NetworkAreaID...),
 				host.WithStaticAddressing(condition.StaticExactInclude.Addressing...),
 				host.WithStaticInnerIPList(condition.StaticExactInclude.InnerIP...),

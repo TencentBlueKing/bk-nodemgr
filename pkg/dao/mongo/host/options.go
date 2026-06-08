@@ -33,6 +33,16 @@ func WithStaticBizID(bizIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyStaticBizID, bizIDs...)
 }
 
+// WithStaticSetID filters by set id.
+func WithStaticSetID(setIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyStaticSetID, setIDs...)
+}
+
+// WithStaticModuleID filters by module id.
+func WithStaticModuleID(moduleIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyStaticModuleID, moduleIDs...)
+}
+
 // WithoutStaticBizID filters by not contains biz-id.
 func WithoutStaticBizID(bizIDs ...int64) OptFn {
 	return base.WithoutValues(FieldKeyStaticBizID, bizIDs...)

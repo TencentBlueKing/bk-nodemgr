@@ -112,6 +112,66 @@ func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusiness
 	return resp, nil
 }
 
+func (c *cli) getBusinessHostCount(ctx contextx.IContext,
+	req *protoBackend.TopoBusinessHostCountGetReq) (*protoBackend.TopoBusinessHostCountGetResp, error) {
+
+	resp := new(protoBackend.TopoBusinessHostCountGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/business/host_count/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get business host count", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get business host count failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getBusinessInstTopo(ctx contextx.IContext,
+	req *protoBackend.TopoBusinessInstTopoGetReq) (*protoBackend.TopoBusinessInstTopoGetResp, error) {
+
+	resp := new(protoBackend.TopoBusinessInstTopoGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/business/inst_topo/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("get business inst topo", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("get business inst topo failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 ) (*protoBackend.TopoHostListResp, error) {
 

@@ -122,6 +122,16 @@ func (tnm *TopoNameMapping) GetAccessPointName(id int64) string {
 	return ""
 }
 
+// TopoNodeInfo represents a business instance topology node.
+type TopoNodeInfo struct {
+	InstID    int64
+	InstName  string
+	ObjID     string
+	ObjName   string
+	HostCount int64
+	Children  []*TopoNodeInfo
+}
+
 // Links represents links.
 type Links struct {
 	Cluster *Link

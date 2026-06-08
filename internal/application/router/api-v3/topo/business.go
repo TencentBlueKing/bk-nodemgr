@@ -49,3 +49,43 @@ func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 
 	return resp.GetData(), nil
 }
+
+// GetBusinessHostCount gets host count grouped by business id.
+func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoBusinessHostCountGetReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business host count, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	counts, err := h.backendHandler.GetBusinessHostCount(rCtx, req.GetBkBizId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business host count")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoBusinessHostCountGetResp)
+	resp.ConvertHostCountFromTypes(counts)
+
+	return resp.GetData(), nil
+}
+
+// GetBusinessInstTopo gets business instance topology with aggregated host count.
+func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoBusinessInstTopoGetReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business inst topo, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	topoNode, err := h.backendHandler.GetBusinessInstTopo(rCtx, req.GetBkBizId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business inst topo")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoBusinessInstTopoGetResp)
+	resp.ConvertBusinessInstTopoFromTypes(topoNode)
+
+	return resp.GetData(), nil
+}

@@ -94,6 +94,70 @@ func (x *TopoBusinessListResp) ConvertBusinessFromTypes(total int64, bizs []*typ
 	}
 }
 
+// Validate check body.
+func (x *TopoBusinessHostCountGetReq) Validate() error {
+	if len(x.GetBkBizId()) == 0 {
+		return fmt.Errorf("bk_biz_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoBusinessHostCountGetReq) AutoConvert() {
+}
+
+// ConvertHostCountFromTypes converts host count map from types to response.
+func (x *TopoBusinessHostCountGetResp) ConvertHostCountFromTypes(counts map[int64]int64) {
+	items := make([]*BusinessHostCount, 0, len(counts))
+	for bizID, hostCount := range counts {
+		items = append(items, &BusinessHostCount{BkBizId: bizID, HostCount: hostCount})
+	}
+
+	x.Data = &TopoBusinessHostCountGetResp_Data{Items: items}
+}
+
+// Validate check body.
+func (x *TopoBusinessInstTopoGetReq) Validate() error {
+	if x.GetBkBizId() == 0 {
+		return fmt.Errorf("bk_biz_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoBusinessInstTopoGetReq) AutoConvert() {
+}
+
+// ConvertBusinessInstTopoFromTypes converts a single topo root node from types to response.
+func (x *TopoBusinessInstTopoGetResp) ConvertBusinessInstTopoFromTypes(topoNode *types.TopoNodeInfo) {
+	x.Data = &TopoBusinessInstTopoGetResp_Data{Items: convertTopoNodeFromTypes(topoNode)}
+}
+
+func convertTopoNodeFromTypes(node *types.TopoNodeInfo) *TopoNodeInfo {
+	if node == nil {
+		return nil
+	}
+
+	children := make([]*TopoNodeInfo, 0, len(node.Children))
+	for _, child := range node.Children {
+		if child == nil {
+			continue
+		}
+		children = append(children, convertTopoNodeFromTypes(child))
+	}
+
+	return &TopoNodeInfo{
+		TopoInstId:   node.InstID,
+		TopoInstName: node.InstName,
+		TopoObjId:    node.ObjID,
+		TopoObjName:  node.ObjName,
+		HostCount:    node.HostCount,
+		Children:     children,
+	}
+}
+
 func newEmptyBusiness() *Business {
 	return &Business{
 		TenantId:  new(string),

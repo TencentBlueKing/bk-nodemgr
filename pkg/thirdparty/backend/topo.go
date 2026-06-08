@@ -52,6 +52,18 @@ type IHandlerBusiness interface {
 	// @param condition the filter conditions.
 	// @return business list with page and the total count with filter and error.
 	ListBusiness(nCtx contextx.IContext, page types.Page, condition *types.BusinessCondition) ([]*types.Business, int64, error)
+
+	// GetBusinessHostCount get host count grouped by business id.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param bizIDs the business ids.
+	// @return map of bizID -> hostCount and error.
+	GetBusinessHostCount(nCtx contextx.IContext, bizIDs []int64) (map[int64]int64, error)
+
+	// GetBusinessInstTopo get business instance topology with aggregated host count.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param bizID the single business id.
+	// @return topo root node and error.
+	GetBusinessInstTopo(nCtx contextx.IContext, bizID int64) (*types.TopoNodeInfo, error)
 }
 
 // IHandlerConstant defines the constant Handler.
@@ -265,6 +277,30 @@ func (h *Handler) ListBusiness(nCtx contextx.IContext, page types.Page, conditio
 	}
 
 	return result.Items, total, nil
+}
+
+// GetBusinessHostCount get host count grouped by business id.
+func (h *Handler) GetBusinessHostCount(nCtx contextx.IContext, bizIDs []int64) (map[int64]int64, error) {
+	req := &protoBackend.TopoBusinessHostCountGetReq{BkBizId: bizIDs}
+
+	resp, err := h.cli.getBusinessHostCount(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertHostCountToTypes(), nil
+}
+
+// GetBusinessInstTopo get business instance topology with aggregated host count.
+func (h *Handler) GetBusinessInstTopo(nCtx contextx.IContext, bizID int64) (*types.TopoNodeInfo, error) {
+	req := &protoBackend.TopoBusinessInstTopoGetReq{BkBizId: bizID}
+
+	resp, err := h.cli.getBusinessInstTopo(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertBusinessInstTopoToTypes(), nil
 }
 
 // ===============================================================================
