@@ -30,7 +30,7 @@
           :label="t('agentStrategy.form.enabled')"
           property="enabled"
           required
-          v-if="isEdit"
+          v-if="isEditMode"
         >
           <Switcher v-model="formData.enabled" theme="primary" :disabled="isViewMode"></Switcher>
         </Form.FormItem>
@@ -107,7 +107,7 @@
             <span class="text-[14px]">{{ $t('agentStrategy.form.addScope') }}</span>
           </div>
         </Form.FormItem>
-        <Form.FormItem :label="t('作用IP')" property="IP">
+        <Form.FormItem :label="t('agentStrategy.preview.selectIP')" property="IP">
           <!-- 添加IP按钮 -->
           <!--eslint-disable-next-line max-len -->
           <div v-if="!isViewMode" class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer mb-[10px]" @click="handleAddIP">
@@ -176,7 +176,7 @@
             ></config-template>
             <div
               class="text-[#E71818] text-[12px] flex items-center"
-              v-if="isEdit && configData"
+              v-if="isEditMode && configData"
             >
               <i class="nodeman-icon nc-remind-fill text-[14px]"></i>
               <span class="mr-[3px] ml-[9px]"
@@ -272,7 +272,7 @@ const props = defineProps<{
 const isViewMode = computed(() => props.mode === 'view');
 const isEditMode = computed(() => props.mode === 'edit');
 const { t } = useI18n();
-const emit = defineEmits(['save']);
+const emit = defineEmits(['save', 'request-edit']);
 const mainStore = useMainStore();
 const userStore = useUserStore();
 

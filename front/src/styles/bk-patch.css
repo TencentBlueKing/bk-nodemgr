@@ -46,3 +46,17 @@
     line-height: 34px !important;
   }
 }
+
+/* 确保 IP 选择器 dialog 层级始终高于 Sideslider 侧滑面板（默认 z-index 2500）
+   IP 选择器 dialog 模式下通过 Vue teleport 挂载到 body，
+   与 Sideslider 共享 bkZIndexManager 动态分配 z-index，
+   偶发时序问题导致 Sideslider 获取更高层级，遮挡 IP 选择器。
+   通过 CSS 后代选择器，匹配包含 .bk-ip-selector-box 的 .bk-dialog-wrapper 强制提升层级 */
+.bk-dialog-wrapper:has(.bk-ip-selector-box) {
+  z-index: 3000 !important;
+}
+
+/* IP 选择器内部子 dialog（预览弹窗等）层级需更高 */
+.bk-dialog-wrapper:has(.bk-ip-selector-preview-dialog) {
+  z-index: 3100 !important;
+}

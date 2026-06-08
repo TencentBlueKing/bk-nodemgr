@@ -161,7 +161,7 @@ const IpSelector = createFactory({
   // 字段命名风格
   nameStyle: 'camelCase',
   // 主机列表全选模式
-  hostTableDefaultSelectAllMode: false,
+  hostTableDefaultSelectAllMode: true,
   // 主机表格每页条数
   hostTablePageSize: 10,
   // 主机列表显示列

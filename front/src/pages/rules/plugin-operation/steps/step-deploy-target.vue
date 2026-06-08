@@ -193,6 +193,20 @@ const loadPluginList = async () => {
   pluginListLoading.value = false;
 };
 
+// 业务选择器切换时同步更新 IP 选择器的业务 ID，确保拓扑树和主机列表跟随当前业务
+watch(
+  () => mainStore.selectedBusinessId,
+  (bizIds) => {
+    setBizId(bizIds ?? []);
+    // 清空已选主机（业务切换后旧主机数据可能属于其他业务）
+    formData.value.selectedHosts = [];
+    ipSelectorKey.value++;
+    // 重新加载新业务下的插件列表
+    loadPluginList();
+    loadDefaultVersions();
+  },
+);
+
 onMounted(async () => {
   // 初始化 IP 选择器：始终设置业务 ID（限制拓扑树只显示当前业务）
   setBizId(mainStore.selectedBusinessId);

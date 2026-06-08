@@ -28,12 +28,16 @@ export const setType = setPolicyType;
 
 // 当前策略业务 ID 数组（由外部设置，从 store 或 localStorage 获取）
 let currentBizIds: number[] = [];
+// 是否已显式调用过 setBizId（用于区分"从未设置"和"主动设为全选空数组"）
+let bizIdExplicitlySet = false;
 
 /** 设置当前业务 ID 数组（插件安装等场景使用）
- *  调用时会重置 currentPolicyType 为空，确保走权限自适应分支而非残留的 type 值 */
+ *  调用时会重置 currentPolicyType 为空，确保走权限自适应分支而非残留的 type 值
+ *  传入空数组表示全选（不限业务） */
 export const setBizId = (bizIds: number[]) => {
   currentPolicyType = '';  // 重置：避免策略管理页面的残留 type 污染
   currentBizIds = bizIds;
+  bizIdExplicitlySet = true;
 };
 
 // 当前策略业务 ID（由外部设置，策略管理页面业务固定，拓扑树只展示当前业务）
@@ -352,7 +356,8 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
   let effectiveBizIds = getEffectiveBizIds();
 
   // 兼容刷新后模块变量丢失：从 store / localStorage 补充
-  if (effectiveBizIds.length === 0) {
+  // 但若已显式 setBizId([]) 设为全选，则不回退到 localStorage
+  if (effectiveBizIds.length === 0 && !bizIdExplicitlySet) {
     const fallbackBizId = getDefaultBizId();
     if (fallbackBizId) effectiveBizIds = [fallbackBizId];
   }
@@ -526,6 +531,9 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
   const effectiveBizIds = getEffectiveBizIds();
   if (effectiveBizIds.length > 0) {
     exact.bk_biz_id = effectiveBizIds;
+  } else if (bizIdExplicitlySet) {
+    // 主动全选（空数组）→ 不限业务，清除 nodeList 中提取的 bizIds
+    delete exact.bk_biz_id;
   }
 
   const fuzzy: Record<string, string[]> = {};
@@ -556,10 +564,12 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
 
 /**
  * 根据拓扑节点查询主机ID列表
- * 对接 TopoService.HostSelectHostID（策略管理）或 HostList（通用场景）
+ * 统一使用 HostSelectHostID 跨页全选专用接口
+ * 后端内部通过 pageexecutor 自动分页（5000/页），无需前端分片
  *
  * 库传参（camelCase）: { nodeList: [...] }
- * 库期望返回: { data: number[] }
+ * 库内部 fetchNodeAllHostId 取 data.data 后直接遍历元素访问 .host_id，
+ * 因此返回的 data 中每个元素必须是 { host_id: number } 格式的对象，而非纯数字。
  */
 export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
   // 从选中的拓扑节点提取过滤条件
@@ -587,46 +597,39 @@ export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
     }
   }
 
-  // 策略管理/插件安装场景：使用 HostSelectHostID 精确接口
+  // 统一使用 HostSelectHostID 跨页全选专用接口
+  // 后端通过 pageexecutor（5000/页，1分钟超时）自动分片，一次请求即可获取全量
   const effectiveBizIds = getEffectiveBizIds();
-  if (currentPolicyType || effectiveBizIds.length > 0) {
-    try {
-      const res = await TopoService.HostSelectHostID({
-        exact_include_conditions: {
-          bk_host_id: [],
-          bk_biz_id: effectiveBizIds.length > 0 ? effectiveBizIds : bizIds,
-          bk_networkarea_id: networkAreaIds,
-          os_type: [],
-          node_role: resolveNodeRoleFilter(),
-          node_status: [],
-          node_version: [],
-          bk_agent_id: [],
-          bk_networkunit_id: networkUnitIds,
-          node_generation: [],
-        },
-        fuzzy_include_conditions: { bk_host_name: [], dept_name: [], bk_host_innerip: [], bk_host_innerip_v6: [], bk_host_outerip: [], bk_host_outerip_v6: [] },
-        exact_exclude_conditions: { bk_host_id: [], bk_biz_id: [], bk_networkarea_id: [], os_type: [], node_role: [], node_status: [], node_version: [], bk_agent_id: [], bk_networkunit_id: [], node_generation: [] },
-      });
-      return {
-        data: res?.items || [],
-      };
-    } catch {
-      return { data: [] };
-    }
-  }
-
-  // 通用场景（插件手动拓扑等）：使用 HostList 获取 host_id 列表
   try {
-    const bkBizId = bizIds.length > 0 ? bizIds[0] : undefined;
-    const res = await listHosts({
-      page: { limit: 500, offset: 0 },
-      exact: bkBizId ? { bk_biz_id: [bkBizId] } : {},
+    const res = await TopoService.HostSelectHostID({
+      exact_include_conditions: {
+        bk_host_id: [],
+        bk_biz_id: effectiveBizIds.length > 0 ? effectiveBizIds : bizIds,
+        bk_networkarea_id: networkAreaIds,
+        os_type: [],
+        node_role: resolveNodeRoleFilter(),
+        node_status: [],
+        node_version: [],
+        bk_agent_id: [],
+        bk_networkunit_id: networkUnitIds,
+        node_generation: [],
+      },
+      fuzzy_include_conditions: {
+        bk_host_name: [], dept_name: [], bk_host_innerip: [],
+        bk_host_innerip_v6: [], bk_host_outerip: [], bk_host_outerip_v6: [],
+      },
+      exact_exclude_conditions: {
+        bk_host_id: [], bk_biz_id: [], bk_networkarea_id: [],
+        os_type: [], node_role: [], node_status: [], node_version: [],
+        bk_agent_id: [], bk_networkunit_id: [], node_generation: [],
+      },
     });
 
+    // 库 fetchNodeAllHostId 取 data.data 后直接遍历元素访问 .host_id，
+    // 因此每个元素必须是 { host_id: number } 对象，不能是纯数字
+    const items: number[] = res?.items || [];
     return {
-      data: (res.items || [])
-        .map((item: any) => item?.bk_host_id ?? item?.host_id)
-        .filter(Boolean),
+      data: items.map((id: number) => ({ host_id: id })),
     };
   } catch {
     return { data: [] };
@@ -696,6 +699,9 @@ export const fetchAgentStatistics = async (params: any): Promise<any[]> => {
  *
  * 库传参（camelCase）: { hostList: [{ hostId: number, meta: IMeta }] }
  * 库期望返回: Host[] 数组
+ *
+ * 注意：跨页全选时 hostList 可能包含数万个 ID，
+ * 必须分片请求避免单次 limit 超过后端上限。
  */
 export const fetchHostDetails = async (params: any): Promise<any> => {
   const hostListParam = params.hostList || params.host_list || [];
@@ -706,19 +712,25 @@ export const fetchHostDetails = async (params: any): Promise<any> => {
   }
 
   try {
-    const res = await TopoService.HostList({
-      page: { offset: 0, limit: ids.length },
-      only_count: false,
-      exact_include_conditions: {
-        bk_host_id: ids,
-        node_role: resolveNodeRoleFilter(),
-      },
-      fuzzy_include_conditions: {},
-    });
+    // 分片请求：每批最多 500 条，避免后端 limit 上限
+    const CHUNK_SIZE = 500;
+    const allItems: any[] = [];
 
-    return {
-      data: (res.items || []).map(mapHostItem),
-    };
+    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+      const chunkIds = ids.slice(i, i + CHUNK_SIZE);
+      const res = await TopoService.HostList({
+        page: { offset: 0, limit: CHUNK_SIZE },
+        only_count: false,
+        exact_include_conditions: {
+          bk_host_id: chunkIds,
+          node_role: resolveNodeRoleFilter(),
+        },
+        fuzzy_include_conditions: {},
+      });
+      allItems.push(...(res.items || []));
+    }
+
+    return { data: allItems.map(mapHostItem) };
   } catch {
     return { data: [] };
   }
