@@ -27,10 +27,11 @@ import (
 const (
 	reportRelayFileStateURL     = "/relay/report_file_state"
 	reportRelayStorageResultURL = "/relay/report_storage_result"
+	storageTmpDirMode           = 0750
 )
 
 func (h *handler) ensureStorageTmpDir(op string) error {
-	if err := os.MkdirAll(h.storageTmpDir, 0750); err != nil {
+	if err := os.MkdirAll(h.storageTmpDir, storageTmpDirMode); err != nil {
 		return fmt.Errorf("failed to ensure transfer-file dir for %s, dir(%s): %w", op, h.storageTmpDir, err)
 	}
 
