@@ -17,6 +17,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -54,11 +55,18 @@ func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	condition := &types.HostCondition{
-		StaticExactInclude: &types.HostStaticExactFields{
-			BizID: req.GetBkBizId(),
-		},
+	bizIDs := req.GetBkBizId()
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, bizIDs, nil)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business host count, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
+
+	condition := narrowHostConditionByBiz(&types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			BizID: bizIDs,
+		},
+	}, narrowedBizIDs, scopeIsAny)
 
 	counts, err := h.storage.CountHostGroupByBizID(rCtx, condition)
 	if err != nil {
@@ -72,13 +80,6 @@ func (h *handler) GetBusinessHostCount(rCtx restserver.IContext) (interface{}, e
 	return resp.GetData(), nil
 }
 
-const (
-	// businessInstTopoObjIDBiz is the CMDB topology object id for business nodes.
-	businessInstTopoObjIDBiz = "biz"
-	// businessInstTopoObjIDModule is the CMDB topology object id for module nodes.
-	businessInstTopoObjIDModule = "module"
-)
-
 // GetBusinessInstTopo gets business instance topology with aggregated host count.
 func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoBusinessInstTopoGetReq)
@@ -88,6 +89,12 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	}
 
 	bizID := req.GetBkBizId()
+	narrowedBizIDs, scopeIsAny, authErr := h.narrowAuthorizedBizIDsForHostList(rCtx, []int64{bizID}, nil)
+	if authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error("failed to get business inst topo, permission denied")
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
 	topoNodes, err := h.cmdbHandler.SearchBizInstTopo(rCtx, bizID)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business inst topo, failed to search business inst topo from cmdb")
@@ -108,7 +115,7 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	}
 
 	topoNode := topoNodes[0]
-	bizHostCount, moduleHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode)
+	bizHostCount, moduleHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode, narrowedBizIDs, scopeIsAny)
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +127,9 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 }
 
 // nolint: nonamedreturns
-func (h *handler) getBusinessInstTopoHostCounts(rCtx restserver.IContext, topoNode *types.TopoNodeInfo) (
-	bizHostCount map[int64]int64, moduleHostCount map[int64]int64, err error) {
+func (h *handler) getBusinessInstTopoHostCounts(
+	rCtx restserver.IContext, topoNode *types.TopoNodeInfo, narrowedBizIDs []int64, scopeIsAny bool,
+) (bizHostCount map[int64]int64, moduleHostCount map[int64]int64, err error) {
 
 	moduleIDList := make([]int64, 0)
 	bizIDList := make([]int64, 0)
@@ -133,9 +141,9 @@ func (h *handler) getBusinessInstTopoHostCounts(rCtx restserver.IContext, topoNo
 		}
 
 		switch topoNode.ObjID {
-		case businessInstTopoObjIDBiz:
+		case cmdb.TopoNodeObjIDBiz:
 			bizIDList = append(bizIDList, topoNode.InstID)
-		case businessInstTopoObjIDModule:
+		case cmdb.TopoNodeObjIDModule:
 			moduleIDList = append(moduleIDList, topoNode.InstID)
 		}
 
@@ -147,11 +155,12 @@ func (h *handler) getBusinessInstTopoHostCounts(rCtx restserver.IContext, topoNo
 	topoInstDFS(topoNode)
 
 	if len(bizIDList) != 0 {
-		bizHostCount, err = h.storage.CountHostGroupByBizID(rCtx, &types.HostCondition{
+		bizCond := narrowHostConditionByBiz(&types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				BizID: bizIDList,
 			},
-		})
+		}, narrowedBizIDs, scopeIsAny)
+		bizHostCount, err = h.storage.CountHostGroupByBizID(rCtx, bizCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by biz id")
 			return nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -159,11 +168,12 @@ func (h *handler) getBusinessInstTopoHostCounts(rCtx restserver.IContext, topoNo
 	}
 
 	if len(moduleIDList) != 0 {
-		moduleHostCount, err = h.storage.CountHostGroupByModuleID(rCtx, &types.HostCondition{
+		moduleCond := narrowHostConditionByBiz(&types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				ModuleID: moduleIDList,
 			},
-		})
+		}, narrowedBizIDs, scopeIsAny)
+		moduleHostCount, err = h.storage.CountHostGroupByModuleID(rCtx, moduleCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by module id")
 			return nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -180,22 +190,17 @@ func fillBusinessInstTopoHostCount(topoNode *types.TopoNodeInfo, bizHostCount, m
 			return 0
 		}
 
-		var childHostCount int64
+		childHostCount := int64(0)
 		for _, child := range topoNode.Children {
 			childHostCount += fillNodeHostCount(child)
 		}
 
 		switch topoNode.ObjID {
-		case businessInstTopoObjIDBiz:
-			topoNode.HostCount = childHostCount
-
+		case cmdb.TopoNodeObjIDBiz:
 			// if host is under idle pool, it will not be counted in module host count, but will be counted in biz host count
-			// so we need to take the max value of biz host count and child host count to avoid the case that
-			// host count is less than the sum of child host count.
-			if bizHostCount[topoNode.InstID] > childHostCount {
-				topoNode.HostCount = bizHostCount[topoNode.InstID]
-			}
-		case businessInstTopoObjIDModule:
+			// so we need to use biz host count from storage directly to avoid host count missing caused by idle pool.
+			topoNode.HostCount = bizHostCount[topoNode.InstID]
+		case cmdb.TopoNodeObjIDModule:
 			topoNode.HostCount = moduleHostCount[topoNode.InstID]
 		default:
 			topoNode.HostCount += childHostCount

@@ -97,6 +97,28 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 				{Key: base.FieldKeyIsDeleted, Value: false},
 			}),
 		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyStaticSetID, Value: 1},
+				{Key: FieldKeyDynamicNodeRole, Value: 1},
+				{Key: FieldKeyOperationUpdatedAt, Value: -1},
+				{Key: base.FieldKeyUpdatedAt, Value: -1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyStaticModuleID, Value: 1},
+				{Key: FieldKeyDynamicNodeRole, Value: 1},
+				{Key: FieldKeyOperationUpdatedAt, Value: -1},
+				{Key: base.FieldKeyUpdatedAt, Value: -1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
 	}
 }
 

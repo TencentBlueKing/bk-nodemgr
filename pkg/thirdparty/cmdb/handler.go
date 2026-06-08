@@ -1417,12 +1417,12 @@ func (h *Handler) executeSetDynamicGroup(nCtx contextx.IContext, bizID int64, gr
 }
 
 const (
-	// topoNodeObjIDBiz topo node object id for biz.
-	topoNodeObjIDBiz = "biz"
-	// topoNodeObjIDHost topo node object id for host.
-	topoNodeObjIDHost = "host"
-	// topoNodeObjIDModule topo node object id for module.
-	topoNodeObjIDModule = "module"
+	// TopoNodeObjIDBiz topo node object id for biz.
+	TopoNodeObjIDBiz = "biz"
+	// TopoNodeObjIDHost topo node object id for host.
+	TopoNodeObjIDHost = "host"
+	// TopoNodeObjIDModule topo node object id for module.
+	TopoNodeObjIDModule = "module"
 )
 
 // FindHostByTopo find host by topo.
@@ -1437,9 +1437,9 @@ func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes 
 	otherTopoNodes := make([]*types.ScopeTopoNode, 0)
 	for idx := range topoNodes {
 		switch topoNodes[idx].TopoObjID {
-		case topoNodeObjIDBiz:
+		case TopoNodeObjIDBiz:
 			bizTopoNodes = append(bizTopoNodes, topoNodes[idx])
-		case topoNodeObjIDHost:
+		case TopoNodeObjIDHost:
 			hostTopoNodes = append(hostTopoNodes, topoNodes[idx])
 		default:
 			otherTopoNodes = append(otherTopoNodes, topoNodes[idx])

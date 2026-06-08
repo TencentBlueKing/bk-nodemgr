@@ -398,7 +398,7 @@ func (h *Handler) getServiceTargetByScopeTopo(nCtx contextx.IContext, scope *typ
 	moduleNodes := make([]*types.ScopeTopoNode, 0)
 	otherNodes := make([]*types.ScopeTopoNode, 0)
 	for _, path := range scope.Paths {
-		if path.TopoObjID == topoNodeObjIDModule {
+		if path.TopoObjID == TopoNodeObjIDModule {
 			moduleNodes = append(moduleNodes, path)
 		} else {
 			otherNodes = append(otherNodes, path)
