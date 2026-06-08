@@ -13,10 +13,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -30,19 +26,11 @@ const (
 	storageTmpDirMode           = 0750
 )
 
-func (h *handler) ensureStorageTmpDir(op string) error {
-	if err := os.MkdirAll(h.storageTmpDir, storageTmpDirMode); err != nil {
-		return fmt.Errorf("failed to ensure transfer-file dir for %s, dir(%s): %w", op, h.storageTmpDir, err)
-	}
-
-	return nil
-}
-
 // CheckPkgStats is a handler for the CheckPkgStats event.
 func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).Info("handler check pkg state event")
 
-	if err := h.ensureStorageTmpDir("check package stats"); err != nil {
+	if err := h.storageFS.ensure("check package stats"); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to ensure transfer-file dir")
 
 		return
@@ -89,7 +77,7 @@ func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
 func (h *handler) StoragePkg(nCtx contextx.IContext, payload []byte) {
 	logger.G.Biz(nCtx).Info("handler storage pkg event")
 
-	if err := h.ensureStorageTmpDir("storage package"); err != nil {
+	if err := h.storageFS.ensure("storage package"); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to ensure transfer-file dir")
 
 		return
@@ -129,32 +117,10 @@ func (h *handler) StoragePkg(nCtx contextx.IContext, payload []byte) {
 	}
 
 	for _, pkgName := range event.PkgName {
-		if err := h.safeRemove(h.storageTmpDir, pkgName); err != nil {
+		if err := h.storageFS.removeFile(pkgName); err != nil {
 			logger.G.Biz(nCtx).WithErr(err).With("dest-dir", h.storageTmpDir, "pkgname", pkgName).Error("failed to remove file")
 		}
 	}
 
 	logger.G.Biz(nCtx).Info("storage package event successfully")
-}
-
-func (h *handler) safeRemove(baseDir string, filename string) error {
-	if err := h.ensureStorageTmpDir("safe remove file"); err != nil {
-		return err
-	}
-
-	absPath := filepath.Join(baseDir, filename)
-	if absPath == "" ||
-		absPath == "/" ||
-		strings.HasPrefix(absPath, "/dev/") ||
-		strings.HasPrefix(absPath, "/sys/") ||
-		strings.HasPrefix(absPath, "/proc/") {
-
-		return fmt.Errorf("failed to remove all, got invalid path. path(%s)", absPath)
-	}
-
-	if err := os.RemoveAll(absPath); err != nil {
-		return fmt.Errorf("failed to remove all. path(%s): %w", absPath, err)
-	}
-
-	return nil
 }

@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	baseDir      = "/data/home/coonnerlian/workspace/tmp"
-	filedir      = "/data/home/coonnerlian/workspace/"
+	baseDir      = "/tmp/bknm/workspace/tmp"
+	filedir      = "/tmp/bknm/workspace/"
 	testFilename = "gse_agent_inner-v2.1.6-beta.59.tgz"
 )
 
