@@ -125,7 +125,6 @@ func (fm *FileTracker) TryMarkProcessed(_ context.Context, mid string) (bool, er
 	if _, exists := fm.messageSet[mid]; exists {
 		return false, nil
 	}
-	fm.messageSet[mid] = struct{}{}
 
 	filename := fm.generateFilename(mid)
 	filePath := filepath.Join(fm.storagePath, filename)
@@ -138,6 +137,8 @@ func (fm *FileTracker) TryMarkProcessed(_ context.Context, mid string) (bool, er
 	if err := os.WriteFile(filePath, content, processedMarkerMode); err != nil {
 		return false, fmt.Errorf("failed to write message tracker marker, path(%s): %w", filePath, err)
 	}
+
+	fm.messageSet[mid] = struct{}{}
 
 	return true, nil
 }
