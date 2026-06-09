@@ -1385,7 +1385,6 @@ const updataCurrentTaskInfo = async () => {
       offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {
-      bk_biz_id: mainStore.selectedBusinessId,
       workflow_id: [route.params.taskId],
     },
   }).catch((err) => {
@@ -1413,9 +1412,7 @@ const getParams = () => {
       limit: pagination.limit,
       offset: (pagination.current - 1) * pagination.limit,
     },
-    exact_include_conditions: {
-      bk_biz_id: mainStore.selectedBusinessId || [],
-    } as Record<string, any>,
+    exact_include_conditions: {} as Record<string, any>,
     workflow_id: route.params.taskId,
   };
   searchSelectValue.value.forEach((item: any) => {
