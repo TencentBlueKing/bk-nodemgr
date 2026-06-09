@@ -1,6 +1,7 @@
 ## 节点操作：传输模式与状态回写
 
-节点安装/升级过程中，`installer` 需要获取安装包并回写执行状态。根据目标节点所在 [**Network Unit（ 管控单元）**](../topo/networkunit.md)
+节点安装/升级过程中，`installer` 需要获取安装包并回写执行状态。根据目标节点所在 [**Network Unit（ 管控单元）
+**](../topo/networkunit.md)
 拓扑与节点角色，系统会选择不同的传输与回写通道。
 
 ## 传输模式
@@ -32,7 +33,7 @@
 |-----------------------------------------------------------|------|
 | 离线安装（`is_offline = true`）                                 | D    |
 | 跨管控单元（`proxy_install_origin_unit_id ≠ bk_networkunit_id`） | B    |
-| 同管控单元 + 安装源 Unit 为直连                                      | A    |
+| 同管控单元 + 安装源 Unit 为直连                                      | 不存在  |
 | 同管控单元 + 安装源 Unit 为非直连                                     | C    |
 
 #### 决策树
@@ -54,7 +55,7 @@ graph TD
     CU --> B["B"]
     SU --> OD["安装源为直连 Unit"]
     SU --> ON["安装源为非直连 Unit"]
-    OD --> A2["A"]
+    OD --> A2["不存在"]
     ON --> C2["C"]
 ```
 
@@ -115,24 +116,26 @@ graph TD
 
 ### 节点重载
 
-重载（reconfig）会触发 `installer` 重新渲染配置并回写执行状态。A/C 在此节主要指**状态回写通道**；installer 工具经 GSE 文件通道推送（`transfer_pkg_to_node`），不涉及 HTTP `download`。
+重载（reconfig）会触发 `installer` 重新渲染配置并回写执行状态。A/C 在此节主要指**状态回写通道**；installer 工具经 GSE
+文件通道推送（`transfer_pkg_to_node`），不涉及 HTTP `download`。
 
 #### Agent 重载
 
-| 条件 | 状态回写 | 传输模式 |
-|------|----------|----------|
-| 目标 Unit 为直连（`reconfig_options.direct_link = true`） | Backend `callback` | A |
-| 目标 Unit 为非直连 | 所选 Relay 的 `callback` | C |
+| 条件                                                 | 状态回写                  | 传输模式 |
+|----------------------------------------------------|-----------------------|------|
+| 目标 Unit 为直连（`reconfig_options.direct_link = true`） | Backend `callback`    | A    |
+| 目标 Unit 为非直连                                       | 所选 Relay 的 `callback` | C    |
 
 workflow 选择：直连走 `reconfig_node`，非直连走 `reconfig_pagent`。
 
 #### Proxy 重载
 
-| 条件 | 状态回写 | 传输模式 |
-|------|----------|----------|
+| 条件               | 状态回写                          | 传输模式        |
+|------------------|-------------------------------|-------------|
 | 任意 Unit（不区分是否直连） | 本 Proxy 自身 Relay 的 `callback` | C（本机 Relay） |
 
-非直连单元默认无法直连管控面（见 [管控单元](../topo/networkunit.md)）；Proxy 作为单元内 Relay 载体，状态回写经本机 Relay 中转，与 Proxy 升级一致。
+非直连单元默认无法直连管控面（见 [管控单元](../topo/networkunit.md)）；Proxy 作为单元内 Relay 载体，状态回写经本机 Relay
+中转，与 Proxy 升级一致。
 
 #### 决策树
 
@@ -150,21 +153,23 @@ graph TD
 
 ### 节点重启
 
-重启（restart）**不适用** A/B/C/D 传输模式：`installer` 仅执行 restart 步骤，不注入 `--cbsvr_addr` / `--dlsvr_addr`；结果由 `wait_gse_ready` 轮询 GSE Agent 状态确认。
+重启（restart）**不适用** A/B/C/D 传输模式：`installer` 仅执行 restart 步骤，不注入 `--cbsvr_addr` / `--dlsvr_addr`；结果由
+`wait_gse_ready` 轮询 GSE Agent 状态确认。
 
 #### Agent 重启
 
-| 条件 | 文件传输 | 结果确认 |
-|------|----------|----------|
+| 条件               | 文件传输                | 结果确认           |
+|------------------|---------------------|----------------|
 | 任意 Unit（不区分是否直连） | GSE 推送 installer 工具 | GSE Agent 状态轮询 |
 
 #### Proxy 重启
 
-| 条件 | 文件传输 | 结果确认 |
-|------|----------|----------|
+| 条件               | 文件传输                | 结果确认           |
+|------------------|---------------------|----------------|
 | 任意 Unit（不区分是否直连） | GSE 推送 installer 工具 | GSE Agent 状态轮询 |
 
-Agent / Proxy 均固定走 `restart_node` workflow；Agent 在版本支持时优先经 GSE `OperateAgent` 软重启，否则经 GSE `ExecuteScript` 执行 restart 脚本。
+Agent / Proxy 均固定走 `restart_node` workflow；Agent 在版本支持时优先经 GSE `OperateAgent` 软重启，否则经 GSE
+`ExecuteScript` 执行 restart 脚本。
 
 #### 决策树
 
@@ -176,7 +181,6 @@ graph TD
     Agent --> GSE1["GSE 通道"]
     Proxy --> GSE2["GSE 通道"]
 ```
-
 
 ## 相关文档
 
