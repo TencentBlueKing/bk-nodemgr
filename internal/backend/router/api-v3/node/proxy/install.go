@@ -179,6 +179,12 @@ func (h *handler) generateInstallNodeDeployments(
 			if !ok {
 				return fmt.Errorf("failed to find install origin networkunit with id: %d", reqHost.GetProxyInstallOriginUnitId())
 			}
+			if !isManual && !isOffline && reqHost.GetProxyInstallOriginUnitId() == reqHost.GetBkNetworkunitId() &&
+				installOriginUnit.IsDirect {
+
+				return fmt.Errorf("same-unit proxy install from direct networkunit is unsupported, networkunit-id(%d)",
+					reqHost.GetBkNetworkunitId())
+			}
 
 			loginCreditID := ""
 			existedHost, ok := existedHostMap[reqHost.GetBkHostId()]

@@ -80,6 +80,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionTryReuseAgentID(nodeCap),
 		node.NewActionBindAgentHostRel(nodeCap),
 		node.NewActionInstallNodeBySSH(nodeCap),
+		node.NewActionInstallProxyBySSH(nodeCap),
 		node.NewActionInstallNodeByWMI(nodeCap),
 		node.NewActionSyncNodeInfo(nodeCap),
 		node.NewActionPushHostIdentifier(nodeCap),

@@ -305,31 +305,31 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 		})
 	}
 
-	if deploy.Info.InstallOptions.DirectInstall {
-		if deploy.Info.InstallOptions.IsManual {
+	if deploy.Info.InstallOptions.IsManual {
+		if deploy.Info.InstallOptions.DirectInstall {
 			return node.NewOperInstallNodeByManual(node.OperParamInstallNodeByManual{
 				Token:    deploy.Token,
 				Operator: operator,
 			})
 		}
 
-		return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-	}
-
-	if deploy.Info.InstallOptions.IsManual {
 		return node.NewOperInstallPagentByManual(node.OperParamInstallPagentByManual{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
 	}
 
-	return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-		Token:    deploy.Token,
-		Operator: operator,
+	// Automatic proxy install supports both cross-unit SSH-only mode and same-unit relay mode.
+	crossUnit := isCrossUnitProxyInstall(deploy)
+	return node.NewOperInstallProxyBySSH(node.OperParamInstallProxyBySSH{
+		Token:     deploy.Token,
+		Operator:  operator,
+		CrossUnit: crossUnit,
 	})
+}
+
+func isCrossUnitProxyInstall(deploy *types.NodeDeployment) bool {
+	return deploy.Info.Host.Dynamic.ProxyInstallOriginUnitID != deploy.Info.Host.Dynamic.NetworkUnitID
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
