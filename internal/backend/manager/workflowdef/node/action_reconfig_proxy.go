@@ -139,9 +139,15 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) error {
 	}
 
 	proxyEndpoint := discover.Endpoint{
-		IPV4: std.DeployInfo().Host.Static.InnerIPList[0],
-		IPV6: std.DeployInfo().Host.Static.InnerIPV6List[0],
 		Port: int(std.DeployInfo().Host.Dynamic.RelayCallbackPort),
+	}
+
+	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
+		proxyEndpoint.IPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
+	}
+
+	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
+		proxyEndpoint.IPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
 	}
 
 	reconfigParams := &installer.NodeReconfigParams{

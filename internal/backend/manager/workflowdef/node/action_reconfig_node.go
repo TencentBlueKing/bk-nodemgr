@@ -146,10 +146,17 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 		// proxy reconfig: use proxy's own relay callback address,
 		// since proxy is the relay in its own network unit.
 		proxyEndpoint := discover.Endpoint{
-			IPV4: std.DeployInfo().Host.Static.InnerIPList[0],
-			IPV6: std.DeployInfo().Host.Static.InnerIPV6List[0],
 			Port: int(std.DeployInfo().Host.Dynamic.RelayCallbackPort),
 		}
+
+		if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
+			proxyEndpoint.IPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
+		}
+
+		if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
+			proxyEndpoint.IPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
+		}
+
 		callbackSvrAddr = nodeUtils.BuildServerURLs(proxyEndpoint)
 	} else {
 		// direct-link agent upgrade: use discover callback endpoints.
