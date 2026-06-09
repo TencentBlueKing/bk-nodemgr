@@ -37,6 +37,9 @@ func (fs workspaceFS) removeFile(filename string) error {
 	if err := fs.ensure("safe remove file"); err != nil {
 		return err
 	}
+	if err := validateWorkspaceFilename(filename); err != nil {
+		return err
+	}
 
 	absPath, err := fs.absPath(filename)
 	if err != nil {
@@ -47,20 +50,30 @@ func (fs workspaceFS) removeFile(filename string) error {
 }
 
 func (fs workspaceFS) absPath(filename string) (string, error) {
-	cleanFilename := filepath.Clean(filename)
-	if filename == "" || cleanFilename == "." {
-		return "", fmt.Errorf("will not resolve empty filename in workspace. root(%s), filename(%s)", fs.rootDir, filename)
-	}
-	if filepath.IsAbs(filename) {
-		return "", fmt.Errorf("will not resolve absolute path in workspace. root(%s), filename(%s)", fs.rootDir, filename)
+	if err := validateWorkspaceFilename(filename); err != nil {
+		return "", err
 	}
 
-	absPath := filepath.Clean(filepath.Join(fs.rootDir, cleanFilename))
+	absPath := filepath.Clean(filepath.Join(fs.rootDir, filename))
 	if err := fs.checkPathInWorkspace(absPath); err != nil {
 		return "", fmt.Errorf("will not resolve path outside workspace. root(%s), filename(%s): %w", fs.rootDir, filename, err)
 	}
 
 	return absPath, nil
+}
+
+func validateWorkspaceFilename(filename string) error {
+	if filename == "" || filename == "." || filename == ".." {
+		return fmt.Errorf("invalid workspace filename. filename(%s)", filename)
+	}
+	if filepath.IsAbs(filename) {
+		return fmt.Errorf("invalid workspace filename, got absolute path. filename(%s)", filename)
+	}
+	if strings.ContainsAny(filename, "/\\") || strings.ContainsRune(filename, 0) || filepath.Base(filename) != filename {
+		return fmt.Errorf("invalid workspace filename, expected basename only. filename(%s)", filename)
+	}
+
+	return nil
 }
 
 func (fs workspaceFS) checkPathInWorkspace(absPath string) error {

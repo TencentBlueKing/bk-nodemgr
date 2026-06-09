@@ -93,6 +93,16 @@ func (h *handler) StoragePkg(nCtx contextx.IContext, payload []byte) {
 
 	var errMsg string
 	for _, pkgName := range event.PkgName {
+		if err := validateWorkspaceFilename(pkgName); err != nil {
+			logger.G.Biz(nCtx).
+				AssignWhenLogging(&errMsg).
+				WithErr(err).
+				With("dest-dir", h.storageTmpDir, "pkgname", pkgName).
+				Error("failed to validate package filename")
+
+			break
+		}
+
 		fileInfo, err := h.fileManager.StoreFile(nCtx, h.storageTmpDir, pkgName)
 		if err != nil {
 			logger.G.Biz(nCtx).
