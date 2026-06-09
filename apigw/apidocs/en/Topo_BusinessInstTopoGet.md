@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1-alpha.38+.
-- Required Permission: None.
+- Required Permission: `agent_view (View Agent)`, `proxy_view (View Proxy)`.
 - Function: Query the business instance topology by business ID, with aggregated host counts for topology nodes.
 
 ### URL

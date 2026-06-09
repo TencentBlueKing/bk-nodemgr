@@ -1,7 +1,7 @@
 ### Description
 
 - API Version: v3.0.1-alpha.38+.
-- Required Permission: None.
+- Required Permission: `agent_view (View Agent)`, `proxy_view (View Proxy)`.
 - Function: Count hosts for each specified business ID.
 
 ### URL
