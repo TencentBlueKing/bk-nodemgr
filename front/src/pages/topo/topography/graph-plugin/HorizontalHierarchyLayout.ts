@@ -439,10 +439,15 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
   private sortNodesInColumn(nodes: NodeData[]): NodeData[] {
     return [...nodes].sort((a, b) => {
-      if (a.type !== b.type) {
-        return a.type === NodeType.ACCESS_POINT ? -1 : 1;
+      // 同类型：按所属单元 ID 排序，让同单元的接入点和单元垂直对齐
+      if (a.type === b.type) {
+        const unitA = (a.data as any)?.bk_networkunit_id ?? 0;
+        const unitB = (b.data as any)?.bk_networkunit_id ?? 0;
+        if (unitA !== unitB) return unitA - unitB;
+        return a.id.localeCompare(b.id);
       }
-      return a.id.localeCompare(b.id);
+      // 接入点在前，单元在后
+      return a.type === NodeType.ACCESS_POINT ? -1 : 1;
     });
   }
 
@@ -542,54 +547,119 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     const childStartX = areaX + this.AREA_PADDING;
     const childStartY = areaY + this.AREA_PADDING + 50;
 
+    // 统一使用单元行高作为 Y 轴基准，确保 AP 和单元垂直对齐
+    const unifiedRowHeight = this.UNIT_NODE_HEIGHT + this.UNIT_SPACING_ROW;
+
+    // 第一遍：先布局单元列，记录每个 unit_id 对应的 Y 坐标
+    const unitIdToY = new Map<number, number>();
+
+    columns.forEach((col) => {
+      const { nodes } = col;
+      if (nodes.length === 0 || nodes[0].type !== NodeType.NET_WORK_UNIT) return;
+
+      nodes.forEach((node, rowIndex) => {
+        const calculatedChildY = childStartY + rowIndex * unifiedRowHeight;
+        const unitId = (node.data as any)?.bk_networkunit_id as number | undefined;
+        if (unitId != null) {
+          unitIdToY.set(unitId, calculatedChildY);
+        }
+      });
+    });
+
+    // 第二遍：按列顺序布局，AP 的 Y 坐标对齐到所属单元
     let currentColX = childStartX;
 
     columns.forEach((col) => {
       const { nodes, width } = col;
-      nodes.forEach((node, rowIndex) => {
-        const nodeHeight = node.type === NodeType.NET_WORK_UNIT ? this.UNIT_NODE_HEIGHT : this.AP_NODE_HEIGHT;
+      const isApColumn = nodes.length > 0 && nodes[0].type === NodeType.ACCESS_POINT;
 
-        // 算法计算出的理论位置
-        const calculatedChildX = currentColX;
-        const calculatedChildY = childStartY + rowIndex * (nodeHeight + 
-          (node.type === NodeType.NET_WORK_UNIT ? this.UNIT_SPACING_ROW : this.NODE_SPACING_ROW));
+      if (isApColumn) {
+        // AP 列：按所属单元分组，Y 坐标对齐到对应单元
+        let groupApOffset = 0;
+        let prevUnitId: number | undefined;
 
-        // 【核心修改】优先使用子节点现有的位置
-        const existingChildX = node.style?.x;
-        const existingChildY = node.style?.y;
+        nodes.forEach((node) => {
+          const nodeHeight = this.AP_NODE_HEIGHT;
+          const unitId = (node.data as any)?.bk_networkunit_id ?? 0;
 
-        const finalChildX = (existingChildX !== undefined) ? Number(existingChildX) : calculatedChildX;
-        const finalChildY = (existingChildY !== undefined) ? Number(existingChildY) : calculatedChildY;
+          // 新单元组重置偏移
+          if (unitId !== prevUnitId) {
+            groupApOffset = 0;
+            prevUnitId = unitId;
+          }
 
-        allNodes.push({
-          id: node.id,
-          type: node.type,
-          data: { ...node.data },
-          style: {
-            x: finalChildX, // 使用最终位置
-            y: finalChildY, // 使用最终位置
-            width,
-            height: nodeHeight,
-            fill: '#ffffff',
-            stroke: '#dce1e8',
-            lineWidth: 1.5,
-            textAlign: 'center',
-            textBaseline: 'middle',
-            fontSize: 14,
-            fontWeight: 500,
-            visibility: 'visible',
-            ...node.style, // 这里的 ...node.style 会包含之前的 x,y，但我们显式指定了 finalX/Y 更清晰
-          },
-          zIndex: 1,
+          // 以所属单元的 Y 为基准，向下偏移
+          const baseY = unitIdToY.get(unitId) ?? childStartY;
+          const apOffsetY = groupApOffset * (this.AP_NODE_HEIGHT + this.NODE_SPACING_ROW);
+          const calculatedChildY = baseY + Math.min(apOffsetY, this.UNIT_NODE_HEIGHT / 2);
+
+          const existingChildX = node.style?.x;
+          const existingChildY = node.style?.y;
+          const finalChildX = (existingChildX !== undefined) ? Number(existingChildX) : currentColX;
+          const finalChildY = (existingChildY !== undefined) ? Number(existingChildY) : calculatedChildY;
+
+          allNodes.push({
+            id: node.id,
+            type: node.type,
+            data: { ...node.data },
+            style: {
+              x: finalChildX,
+              y: finalChildY,
+              width,
+              height: nodeHeight,
+              fill: '#ffffff',
+              stroke: '#dce1e8',
+              lineWidth: 1.5,
+              textAlign: 'center',
+              textBaseline: 'middle',
+              fontSize: 14,
+              fontWeight: 500,
+              visibility: 'visible',
+              ...node.style,
+            },
+            zIndex: 1,
+          });
+
+          nodeLayoutInfo.set(node.id, { x: finalChildX, y: finalChildY, areaId, rowIndex: groupApOffset });
+          groupApOffset++;
         });
+      } else {
+        // 单元列：使用统一的行高
+        nodes.forEach((node, rowIndex) => {
+          const nodeHeight = this.UNIT_NODE_HEIGHT;
+          const calculatedChildY = childStartY + rowIndex * unifiedRowHeight;
 
-        nodeLayoutInfo.set(node.id, {
-          x: finalChildX,
-          y: finalChildY,
-          areaId,
-          rowIndex,
+          const existingChildX = node.style?.x;
+          const existingChildY = node.style?.y;
+          const finalChildX = (existingChildX !== undefined) ? Number(existingChildX) : currentColX;
+          const finalChildY = (existingChildY !== undefined) ? Number(existingChildY) : calculatedChildY;
+
+          allNodes.push({
+            id: node.id,
+            type: node.type,
+            data: { ...node.data },
+            style: {
+              x: finalChildX,
+              y: finalChildY,
+              width,
+              height: nodeHeight,
+              fill: '#ffffff',
+              stroke: '#dce1e8',
+              lineWidth: 1.5,
+              textAlign: 'center',
+              textBaseline: 'middle',
+              fontSize: 14,
+              fontWeight: 500,
+              visibility: 'visible',
+              ...node.style,
+            },
+            zIndex: 1,
+          });
+
+          nodeLayoutInfo.set(node.id, { x: finalChildX, y: finalChildY, areaId, rowIndex });
         });
-      });
+      }
+
       currentColX += width + this.NODE_SPACING_COL;
     });
   }

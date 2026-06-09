@@ -76,7 +76,7 @@ class TextTooltip {
   }
 
   /**
-   * 显示 tooltip
+   * 显示 tooltip（纯文本）
    * @param content 提示内容
    * @param targetX 目标元素起始 X 坐标
    * @param targetY 目标元素起始 Y 坐标
@@ -85,6 +85,23 @@ class TextTooltip {
    * @param minWidth tooltip 最小宽度，默认 200px
    */
   show(content: string, targetX: number, targetY: number, targetWidth: number, targetHeight: number, minWidth = 200) {
+    this._show(content, targetX, targetY, targetWidth, targetHeight, minWidth, false);
+  }
+
+  /**
+   * 显示 tooltip（HTML 内容，支持彩色标记）
+   * @param htmlContent HTML 内容字符串
+   * @param targetX 目标元素起始 X 坐标
+   * @param targetY 目标元素起始 Y 坐标
+   * @param targetWidth 目标元素宽度
+   * @param targetHeight 目标元素高度
+   * @param minWidth tooltip 最小宽度，默认 200px
+   */
+  showHTML(htmlContent: string, targetX: number, targetY: number, targetWidth: number, targetHeight: number, minWidth = 200) {
+    this._show(htmlContent, targetX, targetY, targetWidth, targetHeight, minWidth, true);
+  }
+
+  private _show(content: string, targetX: number, targetY: number, targetWidth: number, targetHeight: number, minWidth = 200, isHTML = false) {
     if (!this.tooltipElement || !content) return;
 
     // 清除之前的定时器
@@ -105,13 +122,40 @@ class TextTooltip {
       this.tooltipElement.style.minWidth = `${minWidth}px`;
 
       // 设置内容
-      const textNode = document.createTextNode(content);
-      this.tooltipElement.childNodes.forEach((node, index) => {
-        if (index === 0 || node.nodeType === Node.TEXT_NODE) {
-          this.tooltipElement?.removeChild(node);
+      if (isHTML) {
+        // HTML 模式：保留箭头元素，替换其余内容
+        this.tooltipElement.innerHTML = content;
+        // 确保箭头元素存在（重新添加，因为 innerHTML 清空了）
+        if (!this.tooltipElement.querySelector('.tooltip-arrow')) {
+          const arrowBorder = document.createElement('div');
+          arrowBorder.className = 'tooltip-arrow-border';
+          arrowBorder.style.cssText = `
+            position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 6px solid transparent; border-right: 6px solid transparent;
+            border-top: 6px solid #dcdee5;
+          `;
+          const arrow = document.createElement('div');
+          arrow.className = 'tooltip-arrow';
+          arrow.style.cssText = `
+            position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 5px solid transparent; border-right: 5px solid transparent;
+            border-top: 5px solid #fff;
+          `;
+          this.tooltipElement.appendChild(arrowBorder);
+          this.tooltipElement.appendChild(arrow);
         }
-      });
-      this.tooltipElement.insertBefore(textNode, this.tooltipElement.firstChild);
+      } else {
+        // 纯文本模式
+        const textNode = document.createTextNode(content);
+        this.tooltipElement.childNodes.forEach((node, index) => {
+          if (index === 0 || node.nodeType === Node.TEXT_NODE) {
+            this.tooltipElement?.removeChild(node);
+          }
+        });
+        this.tooltipElement.insertBefore(textNode, this.tooltipElement.firstChild);
+      }
 
       // 显示并计算位置
       this.tooltipElement.style.display = 'block';

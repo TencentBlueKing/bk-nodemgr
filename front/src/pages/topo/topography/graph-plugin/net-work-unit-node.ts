@@ -65,6 +65,24 @@ export default class NetWorkUnitNode extends BaseNode {
   static badgeColorA = '#8B5CF6';
   static borderColor = '#E1E4E8';
 
+  // 延迟颜色阈值常量
+  static latencyGreenMax = 99;
+  static latencyYellowMax = 1000;
+
+  /** 根据延迟值获取颜色 */
+  static getLatencyColor(value: number): string {
+    if (value <= NetWorkUnitNode.latencyGreenMax) return NetWorkUnitNode.greenColor;
+    if (value <= NetWorkUnitNode.latencyYellowMax) return NetWorkUnitNode.warnColor;
+    return NetWorkUnitNode.redColor;
+  }
+
+  /** 解析 cycle_times 数组为展平的数值列表（每组为 "4, 4, 4 ms" 格式的字符串） */
+  static parseCycleTimes(cycleTimes: string[]): number[] {
+    return cycleTimes.flatMap((groupStr) =>
+      groupStr.split(',').map(s => parseInt(s.trim().replace(/ms$/gi, ''), 10) || 0)
+    );
+  }
+
 
   // 节点总宽度
   static nodeWidth = 240;
@@ -388,7 +406,7 @@ export default class NetWorkUnitNode extends BaseNode {
         textBaseline: 'middle',
         cursor: 'text',
       }, container);
-      // Row 3
+      // Row 3 - 延迟展示（颜色区分）
       const delayText = i18n.global.t('topoManager.topo.node.delay');
       
       if (isZh) {
@@ -424,16 +442,63 @@ export default class NetWorkUnitNode extends BaseNode {
         }, container);
       }
       
-      this.upsert('proxy-cycle', GText, {
-        x: valueX,
-        y: startY + 63.5,
-        text: this.data.has_unit_auth ? `${cycle_times}` : '***',
-        fontSize: 12,
-        fontWeight: 700,
-        fill: NetWorkUnitNode.titleColor,
-        textBaseline: 'middle',
-        cursor: 'text',
-      }, container);
+      // 解析延迟值（cycle_times 每组为 "4, 4, 4 ms" 格式字符串）
+      const parsedLatencies = NetWorkUnitNode.parseCycleTimes(cycle_times || []);
+      const maxLatency = parsedLatencies.length > 0 ? Math.max(...parsedLatencies) : 0;
+      const latencyColor = parsedLatencies.length > 0 ? NetWorkUnitNode.getLatencyColor(maxLatency) : NetWorkUnitNode.gray;
+      
+      if (this.data.has_unit_auth) {
+        const displayText = parsedLatencies.length > 0 ? `${maxLatency}ms` : '--';
+        const cycleEl = this.upsert('proxy-cycle', GText, {
+          x: valueX,
+          y: startY + 63.5,
+          text: displayText,
+          fontSize: 12,
+          fontWeight: 700,
+          fill: latencyColor,
+          textBaseline: 'middle',
+          cursor: parsedLatencies.length > 1 ? 'pointer' : 'text',
+        }, container);
+        
+        // 多条延迟时添加 hover tooltip（带颜色标识）
+        if (parsedLatencies.length > 1 && cycleEl) {
+          const tooltipHTML = parsedLatencies
+            .map((v: number) => {
+              const color = NetWorkUnitNode.getLatencyColor(v);
+              return `<div style="display:flex;align-items:center;gap:8px;line-height:1.8;font-size:12px">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
+                <span style="font-weight:${v === maxLatency ? 700 : 400}">${v}ms</span>
+              </div>`;
+            })
+            .join('');
+          
+          cycleEl.addEventListener('mouseenter', (event: any) => {
+            const bounds = cycleEl.getRenderBounds();
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const targetWidth = bounds.max[0] - bounds.min[0];
+            const targetHeight = bounds.max[1] - bounds.min[1];
+            const targetX = mouseX - targetWidth / 2;
+            const targetY = mouseY - targetHeight / 2;
+            textTooltip.showHTML(tooltipHTML, targetX, targetY, targetWidth, targetHeight, 120);
+          });
+          
+          cycleEl.addEventListener('mouseleave', () => {
+            textTooltip.hide();
+          });
+        }
+      } else {
+        this.upsert('proxy-cycle', GText, {
+          x: valueX,
+          y: startY + 63.5,
+          text: '***',
+          fontSize: 12,
+          fontWeight: 700,
+          fill: NetWorkUnitNode.gray,
+          textBaseline: 'middle',
+          cursor: 'text',
+        }, container);
+      }
       // Row 4
       this.upsert('accesspoints-title', GText, {
         x: startX,
