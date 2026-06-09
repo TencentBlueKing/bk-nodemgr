@@ -139,8 +139,8 @@ func (act *actionReconfigProxy) Do(ctx *action.InstanceContext) error {
 	}
 
 	proxyEndpoint := discover.Endpoint{
-		IPV4: std.DeployInfo().Host.Dynamic.AdvertiseIP,
-		IPV6: std.DeployInfo().Host.Dynamic.AdvertiseIPV6,
+		IPV4: std.DeployInfo().Host.Static.InnerIPList[0],
+		IPV6: std.DeployInfo().Host.Static.InnerIPV6List[0],
 		Port: int(std.DeployInfo().Host.Dynamic.RelayCallbackPort),
 	}
 
