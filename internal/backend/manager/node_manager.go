@@ -412,7 +412,7 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 func (mgr *Manager) getUpgradeOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
 	// proxy.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		return node.NewOperUpgradeNode(node.OperParamUpgradeNode{
+		return node.NewOperUpgradeProxy(node.OperParamUpgradeProxy{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
@@ -764,9 +764,9 @@ func (mgr *Manager) LaunchAssignProxyUnit(nCtx contextx.IContext, param types.As
 }
 
 func (mgr *Manager) getReconfigOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
-	// proxy node, use direct link.
+	// proxy node, use its own relay callback.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		return node.NewOperReconfigNode(node.OperParamReconfigNode{
+		return node.NewOperReconfigProxy(node.OperParamReconfigProxy{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
