@@ -58,6 +58,7 @@ func NewClientHandler(
 	client relayhandler.IClientMessager,
 	conf *config.RelayService,
 ) IHandler {
+
 	storageTmpDir := filepath.Join(conf.RelayWorkspaceFileGroup.FullPath, storageTmpDirName)
 
 	return &handler{
