@@ -143,6 +143,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 	var callbackSvrAddr string
 
 	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		// notice: in the normal case, this branch will not be entered, because the upgrade of Proxy will use ActionNameUpgradeProxy.
 		// proxy upgrade: use proxy's own relay callback address,
 		// since proxy is the relay in its own network unit.
 		proxyEndpoint := discover.Endpoint{

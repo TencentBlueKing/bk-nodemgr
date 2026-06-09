@@ -410,7 +410,7 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 }
 
 func (mgr *Manager) getUpgradeOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
-	// proxy.
+	// proxy node, use its own relay callback.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
 		return node.NewOperUpgradeProxy(node.OperParamUpgradeProxy{
 			Token:    deploy.Token,
