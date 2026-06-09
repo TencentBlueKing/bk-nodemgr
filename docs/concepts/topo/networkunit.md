@@ -16,5 +16,6 @@
 
 ## 相关文档
 
+- [Host（主机）](../node/host.md)
 - [节点传输模式](../node/control_mode.md)
 - [架构设计](../../operation/architecture.md)

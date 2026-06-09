@@ -83,12 +83,12 @@ workflow 选择见 `getUpgradeOperationDef`：直连走 `upgrade_node`，非直�
 
 #### Proxy 升级
 
-| 条件               | 文件传输                 | 状态回写                                                              | 传输模式        |
-|------------------|----------------------|-------------------------------------------------------------------|-------------|
-| 任意 Unit（不区分是否直连） | GSE 文件通道推送 release 包 | 本 Proxy 自身 Relay 的 `callback`（`advertise_ip:relay_callback_port`） | C（本机 Relay） |
+| 条件               | 文件传输                 | 状态回写                                                                  | 传输模式        |
+|------------------|----------------------|-----------------------------------------------------------------------|-------------|
+| 任意 Unit（不区分是否直连） | GSE 文件通道推送 release 包 | 本 Proxy 自身 Relay 的 `callback`（首个 `inner_ip:relay_callback_port`） | C（本机 Relay） |
 
-Proxy 升级固定走 `upgrade_node` workflow，回调地址取自身 `AdvertiseIP` + `RelayCallbackPort`，与目标 Unit 的 `is_direct`
-无关。
+Proxy 升级固定走 `upgrade_proxy` workflow，回调地址取自身首个 `inner_ip` + `RelayCallbackPort`，与目标 Unit 的
+`is_direct` 无关。Proxy `inner_ip` 的首位规则见 [Host（主机）](host.md)。
 
 #### 决策树
 
@@ -130,12 +130,12 @@ workflow 选择：直连走 `reconfig_node`，非直连走 `reconfig_pagent`。
 
 #### Proxy 重载
 
-| 条件               | 状态回写                          | 传输模式        |
-|------------------|-------------------------------|-------------|
-| 任意 Unit（不区分是否直连） | 本 Proxy 自身 Relay 的 `callback` | C（本机 Relay） |
+| 条件               | 状态回写                                                    | 传输模式        |
+|------------------|---------------------------------------------------------|-------------|
+| 任意 Unit（不区分是否直连） | 本 Proxy 自身 Relay 的 `callback`（首个 `inner_ip:relay_callback_port`） | C（本机 Relay） |
 
 非直连单元默认无法直连管控面（见 [管控单元](../topo/networkunit.md)）；Proxy 作为单元内 Relay 载体，状态回写经本机 Relay
-中转，与 Proxy 升级一致。
+中转，与 Proxy 升级一致。Proxy `inner_ip` 的首位规则见 [Host（主机）](host.md)。
 
 #### 决策树
 
@@ -184,5 +184,6 @@ graph TD
 
 ## 相关文档
 
+- [Host（主机）](host.md)
 - [架构设计 — Relay 服务](../../operation/architecture.md)
 - [Installer 参数说明](../tool/installer_params.md)
