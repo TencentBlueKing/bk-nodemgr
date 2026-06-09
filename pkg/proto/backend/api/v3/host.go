@@ -619,6 +619,8 @@ func convertHostConditionsToTypes(
 		condition.StaticExactInclude = &types.HostStaticExactFields{
 			HostID:        exactIncludeCond.GetBkHostId(),
 			BizID:         exactIncludeCond.GetBkBizId(),
+			SetID:         exactIncludeCond.GetBkSetId(),
+			ModuleID:      exactIncludeCond.GetBkModuleId(),
 			NetworkAreaID: exactIncludeCond.GetBkNetworkareaId(),
 		}
 
@@ -652,6 +654,8 @@ func convertHostConditionsToTypes(
 		condition.StaticExactExclude = &types.HostStaticExactFields{
 			HostID:        exactExcludeCond.GetBkHostId(),
 			BizID:         exactExcludeCond.GetBkBizId(),
+			SetID:         exactExcludeCond.GetBkSetId(),
+			ModuleID:      exactExcludeCond.GetBkModuleId(),
 			NetworkAreaID: exactExcludeCond.GetBkNetworkareaId(),
 		}
 		condition.DynamicExactExclude = &types.HostDynamicExactFields{
@@ -685,6 +689,8 @@ func convertHostConditionsFromTypes(
 	if condition.StaticExactInclude != nil {
 		exactIncludeCond.BkHostId = condition.StaticExactInclude.HostID
 		exactIncludeCond.BkBizId = condition.StaticExactInclude.BizID
+		exactIncludeCond.BkSetId = condition.StaticExactInclude.SetID
+		exactIncludeCond.BkModuleId = condition.StaticExactInclude.ModuleID
 		exactIncludeCond.BkNetworkareaId = condition.StaticExactInclude.NetworkAreaID
 	}
 
@@ -712,6 +718,8 @@ func convertHostConditionsFromTypes(
 	if condition.StaticExactExclude != nil {
 		exactExcludeCond.BkHostId = condition.StaticExactExclude.HostID
 		exactExcludeCond.BkBizId = condition.StaticExactExclude.BizID
+		exactExcludeCond.BkSetId = condition.StaticExactExclude.SetID
+		exactExcludeCond.BkModuleId = condition.StaticExactExclude.ModuleID
 		exactExcludeCond.BkNetworkareaId = condition.StaticExactExclude.NetworkAreaID
 	}
 

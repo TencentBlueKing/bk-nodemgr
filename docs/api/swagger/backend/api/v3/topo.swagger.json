@@ -2850,6 +2850,20 @@
           "items": {
             "type": "string"
           }
+        },
+        "bk_set_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_module_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "TopoHostExactConditions describes host exact conditions."

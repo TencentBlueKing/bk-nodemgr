@@ -455,6 +455,8 @@ message TopoHostExactConditions {
   repeated int64 node_generation = 10;
   repeated string arch = 11;
   repeated string proxy_tags = 12;
+  repeated int64 bk_set_id = 13;
+  repeated int64 bk_module_id = 14;
 }
 
 // TopoHostFuzzyConditions describes host fuzzy conditions.
