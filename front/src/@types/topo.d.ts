@@ -32,6 +32,64 @@ export interface TopoBusinessListRespData {
   items: Business[];
 }
 
+// TopoBusinessHostCountGetReq describes the HTTP request body when get host
+// count of business in topo service.
+export interface TopoBusinessHostCountGetReq {
+  bk_biz_id: number[];
+}
+
+// BusinessHostCount describes the host count of a single business.
+export interface BusinessHostCount {
+  bk_biz_id: number;
+  host_count: number;
+}
+
+// TopoBusinessHostCountGetResp describes the HTTP response body when get host
+// count of business in topo service.
+export interface TopoBusinessHostCountGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoBusinessHostCountGetRespData;
+}
+
+export interface TopoBusinessHostCountGetRespData {
+  items: BusinessHostCount[];
+}
+
+// TopoNodeInfo describes a business instance topology node.
+export interface TopoNodeInfo {
+  topo_inst_id: number;
+  topo_inst_name: string;
+  topo_obj_id: string;
+  topo_obj_name: string;
+  host_count: number;
+  children: TopoNodeInfo[];
+}
+
+// TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+// instance topology in topo service.
+export interface TopoBusinessInstTopoGetReq {
+  bk_biz_id: number;
+}
+
+// TopoBusinessInstTopoGetResp describes the HTTP response body when get
+// business instance topology in topo service.
+export interface TopoBusinessInstTopoGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoBusinessInstTopoGetRespData;
+}
+
+export interface TopoBusinessInstTopoGetRespData {
+  items: TopoNodeInfo;
+}
+
 // TopoNetworkAreaListReq describes the HTTP request body when list network-area
 // in topo service.
 export interface TopoNetworkAreaListReq {
@@ -435,6 +493,8 @@ export interface TopoHostExactConditions {
   bk_networkunit_id: number[];
   node_generation: number[];
   proxy_tags: string[];
+  bk_set_id: number[];
+  bk_module_id: number[];
 }
 
 // TopoHostFuzzyConditions describes host fuzzy conditions.

@@ -60,3 +60,46 @@
 .bk-dialog-wrapper:has(.bk-ip-selector-preview-dialog) {
   z-index: 3100 !important;
 }
+
+/* ========== IP选择器空状态居中 ========== */
+.bk-ip-selector-box,
+.bk-ip-selector {
+  /* bk-table 空状态 */
+  .bk-table .bk-table-empty {
+    text-align: center;
+
+    .bk-table-empty-img,
+    .bk-exception-img {
+      display: inline-block;
+    }
+  }
+
+  /* 库内部各表格空状态：容器表、主机表、节点表、模板表、服务实例表等 */
+  .table-empty {
+    text-align: center;
+
+    img,
+    svg,
+    .bk-exception-img {
+      display: inline-block !important;
+      margin: 0 auto 8px !important;
+    }
+  }
+
+  /* 结果预览区空状态（绝对定位） */
+  .result-empty {
+    text-align: center;
+
+    > * {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    img,
+    svg {
+      display: block !important;
+      margin: 0 auto 8px !important;
+    }
+  }
+}

@@ -272,11 +272,32 @@ const listHosts = async (params?: Partial<{
 };
 
 /**
+ * 将 CMDB 实例拓扑节点 TopoNodeInfo 递归转换为 IP 选择器树节点 ITreeItem
+ * TopoNodeInfo: { topo_inst_id, topo_inst_name, topo_obj_id, topo_obj_name, host_count, children }
+ * ITreeItem: { instance_id, instance_name, object_id, object_name, meta, child, count }
+ */
+const transformCmdbNode = (node: any, bizId: number): ITreeItem => ({
+  instance_id: node.topo_inst_id,
+  instance_name: node.topo_inst_name,
+  object_id: node.topo_obj_id,       // 'set' | 'module'
+  object_name: node.topo_obj_name,
+  meta: {
+    bk_biz_id: bizId,
+    scope_id: String(bizId),
+    scope_type: 'biz' as const,
+  },
+  child: (node.children || []).map((child: any) => transformCmdbNode(child, bizId)),
+  count: node.host_count || 0,
+  // set 节点预展开让用户看到 module 层级，module 为叶子节点
+  expanded: node.topo_obj_id === 'set',
+  lazy: false,
+});
+
+/**
  * 拉取拓扑树（业务列表 + 子节点）
- * 层级结构：业务(biz) → 管控区域(set) → 管控单元(module)
+ * 层级结构：业务(biz) → CMDB Set(set) → CMDB Module(module)
  *
- * 策略管理场景：currentStrategyBizId 有值时，根节点只返回当前业务，
- * 并预加载管控区域节点，每个管控区域显示主机数量
+ * 策略管理场景：currentStrategyBizId / setBizId 有值时只返回当前业务
  *
  * 库传参（camelCase 懒加载子节点时）: { objectId, instanceId, meta }
  * 库期望返回: ITreeItem[] 数组
@@ -285,31 +306,15 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
   // 如果传入了 node，说明是懒加载子节点
   if (node) {
     const objectId = node.objectId || node.object_id;
-    const instanceId = node.instanceId ?? node.instance_id;
     const meta = node.meta || { bk_biz_id: 0, scope_id: '0', scope_type: 'biz' as const };
 
-    // 业务 → 加载管控区域（作为 set 节点）
+    // 业务 → 加载 CMDB 实例拓扑（set + module 完整子树）
     if (objectId === 'biz') {
       try {
-        const areaRes = await TopoService.NetworkAreaList({
-          page: { offset: 0, limit: 500 },
-          only_count: false,
-          exact_include_conditions: { bk_networkarea_id: [], cloud_vendor: [] },
-          fuzzy_include_conditions: { bk_networkarea_name: [] },
-        });
-        const areas = areaRes?.items || [];
-        if (areas.length > 0) {
-          return areas.map((area: any) => ({
-            instance_id: area.bk_networkarea_id,
-            instance_name: area.bk_networkarea_name,
-            object_id: 'set',
-            object_name: '管控区域',
-            meta,
-            child: [],
-            count: 0,
-            lazy: true,
-            expanded: false,
-          })) as ITreeItem[];
+        const res = await TopoService.BusinessInstTopoGet({ bk_biz_id: meta.bk_biz_id });
+        const items = (res as any)?.items; // TopoNodeInfo 根节点（biz 自身）
+        if (items?.children?.length > 0) {
+          return items.children.map((child: any) => transformCmdbNode(child, meta.bk_biz_id));
         }
       } catch {
         // ignore
@@ -317,37 +322,7 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
       return [];
     }
 
-    // 集群/管控区域 → 加载管控单元（作为 module 节点）
-    if (objectId === 'set') {
-      try {
-        const unitRes = await TopoService.NetworkUnitListBrief({
-          page: { offset: 0, limit: 500 },
-          only_count: false,
-          exact_include_conditions: {
-            bk_networkunit_id: [],
-            bk_networkarea_id: [instanceId],
-            is_direct: [],
-            generation: [],
-          },
-        });
-        const units = unitRes?.items || [];
-        if (units.length > 0) {
-          return units.map((unit: any) => ({
-            instance_id: unit.bk_networkunit_id,
-            instance_name: unit.bk_networkunit_name,
-            object_id: 'module',
-            object_name: '管控单元',
-            meta,
-            child: [],
-            count: 0,
-          })) as ITreeItem[];
-        }
-      } catch {
-        // ignore
-      }
-      return [];
-    }
-
+    // set/module 已在 biz 展开时全量加载，无需再次懒加载
     return [];
   }
 
@@ -356,7 +331,6 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
   let effectiveBizIds = getEffectiveBizIds();
 
   // 兼容刷新后模块变量丢失：从 store / localStorage 补充
-  // 但若已显式 setBizId([]) 设为全选，则不回退到 localStorage
   if (effectiveBizIds.length === 0 && !bizIdExplicitlySet) {
     const fallbackBizId = getDefaultBizId();
     if (fallbackBizId) effectiveBizIds = [fallbackBizId];
@@ -364,56 +338,42 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
 
   if (effectiveBizIds.length > 0) {
     try {
-      const bizPromises = effectiveBizIds.map(bizId =>
-        Promise.all([
-          TopoService.BusinessList({
-            page: { offset: 0, limit: 500 },
-            only_count: false,
-            exact_include_conditions: { bk_biz_id: [bizId] },
-            fuzzy_include_conditions: { bk_biz_name: [] },
-          }),
-          TopoService.HostList({
-            page: { offset: 0, limit: 0 },
-            only_count: true,
-            exact_include_conditions: {
-              bk_biz_id: [bizId],
-              node_role: resolveNodeRoleFilter(),
-            },
-            fuzzy_include_conditions: {},
-          }).catch(() => ({ total: 0 })),
-        ])
-      );
-      const allResults = await Promise.all(bizPromises);
-      const areaRes = await TopoService.NetworkAreaList({
-        page: { offset: 0, limit: 500 },
-        only_count: false,
-        exact_include_conditions: { bk_networkarea_id: [], cloud_vendor: [] },
-        fuzzy_include_conditions: { bk_networkarea_name: [] },
-      });
-      const areas = areaRes?.items || [];
+      // 并行调用：BusinessList 获取业务列表 + BusinessHostCountGet 获取主机数量
+      const [bizRes, countRes] = await Promise.all([
+        TopoService.BusinessList({
+          page: { offset: 0, limit: 500 },
+          only_count: false,
+          exact_include_conditions: { bk_biz_id: effectiveBizIds },
+          fuzzy_include_conditions: { bk_biz_name: [] },
+        }),
+        TopoService.BusinessHostCountGet({ bk_biz_id: effectiveBizIds }),
+      ]);
 
-      const bizNodes: ITreeItem[] = [];
-      for (const [bizRes, hostCountRes] of allResults) {
-        const businesses = bizRes?.items || [];
-        if (businesses.length > 0) {
-          const biz = businesses[0];
-          const areaNodes = areas.map((area: any) => ({
-            instance_id: area.bk_networkarea_id,
-            instance_name: area.bk_networkarea_name,
-            object_id: 'set',
-            object_name: '管控区域',
-            meta: {
-              bk_biz_id: biz.bk_biz_id,
-              scope_id: String(biz.bk_biz_id),
-              scope_type: 'biz',
-            },
-            child: [],
-            count: 0,
-            lazy: true,
-            expanded: false,
-          }));
+      const businesses = bizRes?.items || [];
+      const countMap = new Map((countRes?.items || []).map((item: any) => [item.bk_biz_id, item.host_count]));
 
-          bizNodes.push({
+      if (businesses.length > 0) {
+        // 预加载所有业务的 CMDB 实例拓扑，避免 lazy:true 在返回空子节点时 loading 不消除
+        const topoMap = new Map<number, any[]>();
+        const topoResults = await Promise.allSettled(
+          businesses.map((biz: any) =>
+            TopoService.BusinessInstTopoGet({ bk_biz_id: biz.bk_biz_id }),
+          ),
+        );
+        businesses.forEach((biz: any, idx: number) => {
+          const result = topoResults[idx];
+          if (result.status === 'fulfilled') {
+            const data = (result.value as any)?.items;
+            const children = data?.children || [];
+            topoMap.set(biz.bk_biz_id, children);
+          } else {
+            topoMap.set(biz.bk_biz_id, []);
+          }
+        });
+
+        return businesses.map((biz: any) => {
+          const children = topoMap.get(biz.bk_biz_id) || [];
+          return {
             instance_id: biz.bk_biz_id,
             instance_name: biz.bk_biz_name,
             object_id: 'biz',
@@ -421,16 +381,15 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
             meta: {
               bk_biz_id: biz.bk_biz_id,
               scope_id: String(biz.bk_biz_id),
-              scope_type: 'biz',
+              scope_type: 'biz' as const,
             },
-            child: areaNodes as ITreeItem[],
-            count: hostCountRes?.total ?? 0,
+            child: children.map((child: any) => transformCmdbNode(child, biz.bk_biz_id)),
+            count: countMap.get(biz.bk_biz_id) ?? 0,
             lazy: false,
-            expanded: true,
-          });
-        }
+            expanded: false,
+          };
+        });
       }
-      return bizNodes;
     } catch {
       // ignore
     }
@@ -447,21 +406,52 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
     });
     const businesses = bizRes?.items || [];
     if (businesses.length > 0) {
-      return businesses.map((biz: any) => ({
-        instance_id: biz.bk_biz_id,
-        instance_name: biz.bk_biz_name,
-        object_id: 'biz',
-        object_name: '业务',
-        meta: {
-          bk_biz_id: biz.bk_biz_id,
-          scope_id: String(biz.bk_biz_id),
-          scope_type: 'biz',
-        },
-        child: [],
-        count: 0,
-        lazy: true,
-        expanded: false,
-      }));
+      const bizIds = businesses.map((biz: any) => biz.bk_biz_id);
+      // 获取所有业务的 host_count
+      let countMap = new Map<number, number>();
+      try {
+        const countRes = await TopoService.BusinessHostCountGet({ bk_biz_id: bizIds });
+        countMap = new Map((countRes?.items || []).map((item: any) => [item.bk_biz_id, item.host_count]));
+      } catch {
+        // ignore
+      }
+
+      // 预加载所有业务的 CMDB 实例拓扑，避免 lazy:true 在返回空子节点时 loading 不消除
+      const topoMap = new Map<number, any[]>();
+      const topoResults = await Promise.allSettled(
+        businesses.map((biz: any) =>
+          TopoService.BusinessInstTopoGet({ bk_biz_id: biz.bk_biz_id }),
+        ),
+      );
+      businesses.forEach((biz: any, idx: number) => {
+        const result = topoResults[idx];
+        if (result.status === 'fulfilled') {
+          const data = (result.value as any)?.items;
+          const children = data?.children || [];
+          topoMap.set(biz.bk_biz_id, children);
+        } else {
+          topoMap.set(biz.bk_biz_id, []);
+        }
+      });
+
+      return businesses.map((biz: any) => {
+        const children = topoMap.get(biz.bk_biz_id) || [];
+        return {
+          instance_id: biz.bk_biz_id,
+          instance_name: biz.bk_biz_name,
+          object_id: 'biz',
+          object_name: '业务',
+          meta: {
+            bk_biz_id: biz.bk_biz_id,
+            scope_id: String(biz.bk_biz_id),
+            scope_type: 'biz',
+          },
+          child: children.map((child: any) => transformCmdbNode(child, biz.bk_biz_id)),
+          count: countMap.get(biz.bk_biz_id) ?? 0,
+          lazy: false,
+          expanded: false,
+        };
+      });
     }
   } catch {
     // ignore
@@ -484,11 +474,12 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
 
   // 从选中的拓扑节点提取过滤条件
   // IpSelector 传入的 nodeList 格式：[{ objectId, instanceId, instanceName, meta }]
+  // 拓扑层级：业务(biz) → CMDB Set(set) → CMDB Module(module)
   const nodeList = query.nodeList || [];
   const exact: Record<string, (string | number)[]> = {};
   const bizIds: number[] = [];
-  const networkAreaIds: number[] = [];
-  const networkUnitIds: number[] = [];
+  const setIds: number[] = [];
+  const moduleIds: number[] = [];
 
   for (const node of nodeList) {
     const objectId = node.objectId || node.object_id || '';
@@ -500,41 +491,31 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
         bizIds.push(Number(instanceId));
         break;
       case 'set':
-        networkAreaIds.push(Number(instanceId));
-        // 从 meta 中提取所属业务的 bk_biz_id
-        if (node.meta?.bk_biz_id) {
-          const metaBizId = Number(node.meta.bk_biz_id);
-          if (!bizIds.includes(metaBizId)) bizIds.push(metaBizId);
+        setIds.push(Number(instanceId));
+        // set/module 节点需要同时传 bk_biz_id，从 meta 中获取所属业务
+        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
+          bizIds.push(Number(node.meta.bk_biz_id));
         }
         break;
       case 'module':
-      case 'networkunit':
-        networkUnitIds.push(Number(instanceId));
-        // 从 meta 中提取所属业务的 bk_biz_id
-        if (node.meta?.bk_biz_id) {
-          const metaBizId = Number(node.meta.bk_biz_id);
-          if (!bizIds.includes(metaBizId)) bizIds.push(metaBizId);
+        moduleIds.push(Number(instanceId));
+        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
+          bizIds.push(Number(node.meta.bk_biz_id));
         }
         break;
     }
   }
 
   if (bizIds.length > 0) exact.bk_biz_id = bizIds;
-  if (networkAreaIds.length > 0) exact.bk_networkarea_id = networkAreaIds;
-  if (networkUnitIds.length > 0) exact.bk_networkunit_id = networkUnitIds;
+  if (setIds.length > 0) exact.bk_set_id = setIds;
+  if (moduleIds.length > 0) exact.bk_module_id = moduleIds;
   // 根据 currentPolicyType 和权限自适应设置 node_role 过滤
   const nodeRoleFilter = resolveNodeRoleFilter();
   if (nodeRoleFilter.length > 0) {
     exact.node_role = nodeRoleFilter;
   }
-  // 强制限制为当前业务（优先使用 setBizId 设置的数组，其次用 setStrategyBizId）
-  const effectiveBizIds = getEffectiveBizIds();
-  if (effectiveBizIds.length > 0) {
-    exact.bk_biz_id = effectiveBizIds;
-  } else if (bizIdExplicitlySet) {
-    // 主动全选（空数组）→ 不限业务，清除 nodeList 中提取的 bizIds
-    delete exact.bk_biz_id;
-  }
+  // 主机查询条件只传当前激活/选中节点所属的业务 ID，不传全部业务
+  // （用户点击某个业务下的节点时，bk_biz_id 应该只有该业务）
 
   const fuzzy: Record<string, string[]> = {};
   if (searchContent) {
@@ -573,10 +554,11 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
  */
 export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
   // 从选中的拓扑节点提取过滤条件
+  // 拓扑层级：业务(biz) → CMDB Set(set) → CMDB Module(module)
   const nodeList = query?.nodeList || [];
   const bizIds: number[] = [];
-  const networkAreaIds: number[] = [];
-  const networkUnitIds: number[] = [];
+  const setIds: number[] = [];
+  const moduleIds: number[] = [];
 
   for (const node of nodeList) {
     const objectId = node.objectId || node.object_id || '';
@@ -588,31 +570,38 @@ export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
         bizIds.push(Number(instanceId));
         break;
       case 'set':
-        networkAreaIds.push(Number(instanceId));
+        setIds.push(Number(instanceId));
+        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
+          bizIds.push(Number(node.meta.bk_biz_id));
+        }
         break;
       case 'module':
-      case 'networkunit':
-        networkUnitIds.push(Number(instanceId));
+        moduleIds.push(Number(instanceId));
+        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
+          bizIds.push(Number(node.meta.bk_biz_id));
+        }
         break;
     }
   }
 
   // 统一使用 HostSelectHostID 跨页全选专用接口
   // 后端通过 pageexecutor（5000/页，1分钟超时）自动分片，一次请求即可获取全量
-  const effectiveBizIds = getEffectiveBizIds();
+  // 只传选中节点所属的业务 ID
   try {
     const res = await TopoService.HostSelectHostID({
       exact_include_conditions: {
         bk_host_id: [],
-        bk_biz_id: effectiveBizIds.length > 0 ? effectiveBizIds : bizIds,
-        bk_networkarea_id: networkAreaIds,
+        bk_biz_id: bizIds.length > 0 ? bizIds : [],
+        bk_networkarea_id: [],
         os_type: [],
         node_role: resolveNodeRoleFilter(),
         node_status: [],
         node_version: [],
         bk_agent_id: [],
-        bk_networkunit_id: networkUnitIds,
+        bk_networkunit_id: [],
         node_generation: [],
+        bk_set_id: setIds,
+        bk_module_id: moduleIds,
       },
       fuzzy_include_conditions: {
         bk_host_name: [], dept_name: [], bk_host_innerip: [],
@@ -622,6 +611,7 @@ export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
         bk_host_id: [], bk_biz_id: [], bk_networkarea_id: [],
         os_type: [], node_role: [], node_status: [], node_version: [],
         bk_agent_id: [], bk_networkunit_id: [], node_generation: [],
+        bk_set_id: [], bk_module_id: [],
       },
     });
 
@@ -647,50 +637,22 @@ export const fetchNodePath = async (params: any): Promise<Array<any[]>> => {
 
 /**
  * 获取多个拓扑节点的主机 Agent 状态统计信息
- * 策略管理场景：返回 mock（暂不支持按节点统计）
- * 通用场景：通过 HostList 查询实际存活数
+ *
+ * 数据来源：BusinessInstTopoGet 接口返回的 TopoNodeInfo 已包含 host_count，
+ * 经 transformCmdbNode 映射到 ITreeItem.count 字段。
+ * 因此无需再调 HostList 查询，直接从 node 的 count 属性取值即可。
  */
 export const fetchAgentStatistics = async (params: any): Promise<any[]> => {
   const nodeList = params.nodeList || params.node_list || [];
 
-  // 策略管理/插件安装场景：返回 mock
-  const effectiveBizIds = getEffectiveBizIds();
-  if (currentPolicyType || effectiveBizIds.length > 0) {
-    return nodeList.map((node: any) => ({
-      node,
-      agent_statistics: {
-        alive_count: 0,
-        not_alive_count: 0,
-        total_count: 0,
-      },
-    }));
-  }
-
-  // 通用场景：通过 HostList 查询实际存活数
-  const results = await Promise.all(nodeList.map(async (node: any) => {
-    const bkBizId = node?.meta?.bk_biz_id;
-    const res = await listHosts({
-      page: { limit: 200, offset: 0 },
-      exact: bkBizId ? { bk_biz_id: [bkBizId] } : {},
-    });
-
-    const total = res.total || (res.items || []).length;
-    const alive = (res.items || []).filter((item: any) => {
-      const status = item?.state?.node_status;
-      return status === 'RUNNING' || status === 'ALIVE' || status === 'healthy' || status === 'HEALTHY';
-    }).length;
-
-    return {
-      node,
-      agent_statistics: {
-        alive_count: alive,
-        not_alive_count: Math.max(total - alive, 0),
-        total_count: total,
-      },
-    };
+  return nodeList.map((node: any) => ({
+    node,
+    agent_statistics: {
+      alive_count: 0,
+      not_alive_count: 0,
+      total_count: node?.count ?? node?.host_count ?? 0,
+    },
   }));
-
-  return results;
 };
 
 /**
