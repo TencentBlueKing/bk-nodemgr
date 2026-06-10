@@ -251,17 +251,17 @@ make relay        # 编译 relay 服务
 
 编译产物位于 `build/<version>/` 目录。
 
-### 4. 启动后端服务
+### 4. 启动服务
 
 ```bash
 # 启动 backend 服务（需要先准备配置文件）
-./build/<version>/bk-nodemgr-backend -c /path/to/config.yml
+./build/<version>/bk-nodemgr-backend -f /path/to/config.yaml
 
 # 启动 application 服务
-./build/<version>/bk-nodemgr-application -c /path/to/config.yml
+./build/<version>/bk-nodemgr-application webserver -f /path/to/config.yaml
 
 # 启动 file 服务
-./build/<version>/bk-nodemgr-file -c /path/to/config.yml
+./build/<version>/bk-nodemgr-file -f /path/to/config.yaml
 ```
 
 ### 5. 前端开发
