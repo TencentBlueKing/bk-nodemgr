@@ -68,7 +68,9 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	return respData, nil
 }
 
-func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64, policy compatibility.Policy) (string, error) {
+func (h *handler) installPlugin(
+	rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64, policy compatibility.Policy) (string, error) {
+
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
 	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
@@ -95,11 +97,17 @@ func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.Plug
 
 func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.PluginInstallReq,
 	hostBizMapping map[int64]int64, policy compatibility.Policy) error {
+
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
 	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
 		return !item.EnableCompatibilityMode
 	})
+
+	if len(pluginDeploymentParam) == 0 {
+		logger.G.Biz(rCtx).Info("no plugin deployment need to ensure plugin v2.")
+		return nil
+	}
 
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), pluginDeploymentParam...)

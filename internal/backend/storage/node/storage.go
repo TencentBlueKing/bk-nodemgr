@@ -14,6 +14,7 @@ package node
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -36,7 +37,8 @@ import (
 const StorageName = "node"
 
 const (
-	recentMonitoredTime = 5 * time.Minute
+	recentMonitoredTime       = 5 * time.Minute
+	missingOperationGraceTime = 1 * time.Minute
 
 	metricOperationGetNodeDeploymentNodeConf = "get_node_deployment_node_conf"
 	metricOperationGetNodeDeploymentInfo     = "get_node_deployment_info"
@@ -95,6 +97,7 @@ type Storage struct {
 	daoNodeWorkflow   daoNodeWorkflow.IHandler
 	daoOperation      daoOperation.IHandler
 
+	// key is triggerID, value is the workflow that needs to be monitored.
 	monitoredWorkflows      map[string]*types.NodeWorkflow
 	monitoredWorkflowsMutex sync.RWMutex
 }
@@ -212,9 +215,7 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 		return nil
 	}
 	snapshot := make(map[string]*types.NodeWorkflow, len(s.monitoredWorkflows))
-	for k, v := range s.monitoredWorkflows {
-		snapshot[k] = v
-	}
+	maps.Copy(snapshot, s.monitoredWorkflows)
 	s.monitoredWorkflowsMutex.RUnlock()
 
 	// Phase 2: work with snapshot, no lock held
@@ -235,7 +236,29 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	}
 
 	triggersToDelete := make([]string, 0)
-	for triggerID, opers := range triggerOpers {
+	for triggerID, nodeWorkflow := range snapshot {
+		opers, hasOperations := triggerOpers[triggerID]
+		if !hasOperations || len(opers) == 0 {
+			if !nodeWorkflow.OperateTime.IsZero() && time.Since(nodeWorkflow.OperateTime) < missingOperationGraceTime {
+				continue
+			}
+
+			if err := s.updateNodeWorkflowResult(nCtx, nodeWorkflow, types.NodeWorkflowStatusFailed, time.Now()); err != nil {
+				logger.G.Sys().WithErr(err).
+					With("trigger-id", triggerID, "workflow-id", nodeWorkflow.WorkflowID).
+					Error("failed to fallback update node workflow status when operation is missing")
+
+				continue
+			}
+
+			logger.G.Sys().With("trigger-id", triggerID, "workflow-id", nodeWorkflow.WorkflowID).
+				Warn("workflow has no operation after grace time, fallback status to failed")
+
+			triggersToDelete = append(triggersToDelete, triggerID)
+
+			continue
+		}
+
 		if _, unfinished := unfinishedTriggerMap[triggerID]; unfinished {
 			continue
 		}
@@ -245,32 +268,10 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 				Warn("all operation instances have zero end time, using current time as fallback")
 		}
 
-		nodeWorkflow, ok := snapshot[triggerID]
-		if !ok {
-			continue
-		}
-
-		updateCtx, cancel := contextx.WithTimeout(
-			contextx.From(contextx.Background(), contextx.WithTenantID(nodeWorkflow.TenantID)),
-			30*time.Second, // nolint: mnd
-		)
-
-		err = s.daoNodeWorkflow.UpdateStatus(updateCtx, nodeWorkflow.WorkflowID, status)
-		if err != nil {
-			cancel()
+		if err := s.updateNodeWorkflowResult(nCtx, nodeWorkflow, status, finishTime); err != nil {
 			logger.G.Sys().WithErr(err).
 				With("trigger-id", triggerID, "workflow-id", nodeWorkflow.WorkflowID).
-				Error("failed to update node workflow status")
-
-			continue
-		}
-
-		err = s.daoNodeWorkflow.UpdateFinishTime(updateCtx, nodeWorkflow.WorkflowID, finishTime)
-		cancel()
-		if err != nil {
-			logger.G.Sys().WithErr(err).
-				With("trigger-id", triggerID, "workflow-id", nodeWorkflow.WorkflowID).
-				Error("failed to update node workflow finish time")
+				Error("failed to update node workflow status and finish time")
 
 			continue
 		}
@@ -285,6 +286,28 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 			delete(s.monitoredWorkflows, triggerID)
 		}
 		s.monitoredWorkflowsMutex.Unlock()
+	}
+
+	return nil
+}
+
+func (s *Storage) updateNodeWorkflowResult(
+	nCtx contextx.IContext, nodeWorkflow *types.NodeWorkflow, status types.NodeWorkflowStatus, finishTime time.Time) error {
+
+	updateCtx, cancel := contextx.WithTimeout(
+		contextx.From(nCtx, contextx.WithTenantID(nodeWorkflow.TenantID)),
+		30*time.Second, // nolint: mnd
+	)
+	defer cancel()
+
+	err := s.daoNodeWorkflow.UpdateStatus(updateCtx, nodeWorkflow.WorkflowID, status)
+	if err != nil {
+		return fmt.Errorf("update node workflow status failed: %w", err)
+	}
+
+	err = s.daoNodeWorkflow.UpdateFinishTime(updateCtx, nodeWorkflow.WorkflowID, finishTime)
+	if err != nil {
+		return fmt.Errorf("update node workflow finish time failed: %w", err)
 	}
 
 	return nil

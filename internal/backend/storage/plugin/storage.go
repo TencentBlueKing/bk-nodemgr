@@ -44,6 +44,7 @@ const (
 	schedulerTaskObtainMonitoredWorkflows = "obtain_monitored_plugin_workflows"
 	schedulerTaskMonitorWorkflowStatus    = "monitor_plugin_workflow_status"
 	recentMonitoredTime                   = 5 * time.Minute
+	missingOperationGraceTime             = 1 * time.Minute
 
 	metricOperationGetPluginDeploymentInfo                           = "get_plugin_deployment_info"
 	metricOperationCreatePluginDeployment                            = "create_plugin_deployment"
@@ -288,7 +289,29 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	}
 
 	triggersToDelete := make([]string, 0)
-	for triggerID, opers := range triggerOpers {
+	for triggerID, pluginWorkflow := range snapshot {
+		opers, hasOperations := triggerOpers[triggerID]
+		if !hasOperations || len(opers) == 0 {
+			if !pluginWorkflow.OperateTime.IsZero() && time.Since(pluginWorkflow.OperateTime) < missingOperationGraceTime {
+				continue
+			}
+
+			if err := s.updatePluginWorkflowResult(nCtx, pluginWorkflow, types.PluginWorkflowStatusFailed, time.Now()); err != nil {
+				logger.G.Sys().WithErr(err).
+					With("trigger-id", triggerID, "workflow-id", pluginWorkflow.WorkflowID).
+					Error("failed to fallback update plugin workflow status when operation is missing")
+
+				continue
+			}
+
+			logger.G.Sys().With("trigger-id", triggerID, "workflow-id", pluginWorkflow.WorkflowID).
+				Warn("plugin workflow has no operation after grace time, fallback status to failed")
+
+			triggersToDelete = append(triggersToDelete, triggerID)
+
+			continue
+		}
+
 		if _, unfinished := unfinishedTriggerMap[triggerID]; unfinished {
 			continue
 		}
@@ -298,32 +321,10 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 				Warn("all operation instances have zero end time, using current time as fallback")
 		}
 
-		pluginWorkflow, ok := snapshot[triggerID]
-		if !ok {
-			continue
-		}
-
-		updateCtx, cancel := contextx.WithTimeout(
-			contextx.From(contextx.Background(), contextx.WithTenantID(pluginWorkflow.TenantID)),
-			30*time.Second, // nolint: mnd
-		)
-
-		err = s.daoPluginWorkflow.UpdateStatus(updateCtx, pluginWorkflow.WorkflowID, status)
-		if err != nil {
-			cancel()
+		if err := s.updatePluginWorkflowResult(nCtx, pluginWorkflow, status, finishTime); err != nil {
 			logger.G.Sys().WithErr(err).
 				With("trigger-id", triggerID, "workflow-id", pluginWorkflow.WorkflowID).
-				Error("failed to update plugin workflow status")
-
-			continue
-		}
-
-		err = s.daoPluginWorkflow.UpdateFinishTime(updateCtx, pluginWorkflow.WorkflowID, finishTime)
-		cancel()
-		if err != nil {
-			logger.G.Sys().WithErr(err).
-				With("trigger-id", triggerID, "workflow-id", pluginWorkflow.WorkflowID).
-				Error("failed to update plugin workflow finish time")
+				Error("failed to update plugin workflow status and finish time")
 
 			continue
 		}
@@ -338,6 +339,28 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 			delete(s.monitoredWorkflows, triggerID)
 		}
 		s.monitoredWorkflowsMutex.Unlock()
+	}
+
+	return nil
+}
+
+func (s *Storage) updatePluginWorkflowResult(
+	nCtx contextx.IContext, pluginWorkflow *types.PluginWorkflow, status types.PluginWorkflowStatus, finishTime time.Time) error {
+
+	updateCtx, cancel := contextx.WithTimeout(
+		contextx.From(nCtx, contextx.WithTenantID(pluginWorkflow.TenantID)),
+		30*time.Second, // nolint: mnd
+	)
+	defer cancel()
+
+	err := s.daoPluginWorkflow.UpdateStatus(updateCtx, pluginWorkflow.WorkflowID, status)
+	if err != nil {
+		return fmt.Errorf("update plugin workflow status failed: %w", err)
+	}
+
+	err = s.daoPluginWorkflow.UpdateFinishTime(updateCtx, pluginWorkflow.WorkflowID, finishTime)
+	if err != nil {
+		return fmt.Errorf("update plugin workflow finish time failed: %w", err)
 	}
 
 	return nil
