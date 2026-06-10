@@ -1397,6 +1397,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -1418,6 +1423,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -1623,6 +1633,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -1644,6 +1659,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -1849,6 +1869,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -1870,6 +1895,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -2192,6 +2222,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -2213,6 +2248,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -2419,6 +2459,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -2440,6 +2485,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -2476,6 +2526,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -2497,6 +2552,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -2702,6 +2762,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -2723,6 +2788,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -2759,6 +2829,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -2780,6 +2855,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -2985,6 +3065,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -3006,6 +3091,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -3042,6 +3132,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -3063,6 +3158,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -3270,6 +3370,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -3291,6 +3396,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -3327,6 +3437,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -3348,6 +3463,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -3555,6 +3675,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -3576,6 +3701,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -3612,6 +3742,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -3633,6 +3768,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -23331,6 +23471,11 @@ paths:
                       items:
                         type: integer
                         format: int64
+                    bk_set_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_role:
                       type: array
                       items:
@@ -23352,6 +23497,11 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_module_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
                     node_version:
                       type: array
                       items:
@@ -25052,6 +25202,300 @@ paths:
           name: default
           method: post
           path: /api/v3/plugin/migrate_from_v2
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/business/host_count/get:
+    post:
+      operationId: Topo_BusinessHostCountGet
+      description: BusinessHostCountGet provides host count getting by business id.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bk_biz_id:
+                              type: integer
+                              format: int64
+                            host_count:
+                              type: integer
+                              format: int64
+                          description: BusinessHostCount describes the host count of business in topo service.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessHostCountGetResp describes the HTTP response body when get host
+                  count of business in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_biz_id:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: |-
+                TopoBusinessHostCountGetReq describes the HTTP request body when get host
+                count of business in topo service.
+        required: true
+        description: |-
+          TopoBusinessHostCountGetReq describes the HTTP request body when get host
+          count of business in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/business/host_count/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/topo/business/inst_topo/get:
+    post:
+      operationId: Topo_BusinessInstTopoGet
+      description: BusinessInstTopoGet provides business instance topology getting.
+      tags:
+        - Topo
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties: {}
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  TopoBusinessInstTopoGetResp describes the HTTP response body when get
+                  business instance topology in topo service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bk_biz_id:
+                  type: integer
+                  format: int64
+              description: |-
+                TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+                instance topology in topo service.
+        required: true
+        description: |-
+          TopoBusinessInstTopoGetReq describes the HTTP request body when get business
+          instance topology in topo service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/topo/business/inst_topo/get
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
