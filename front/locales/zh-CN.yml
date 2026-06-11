@@ -500,6 +500,8 @@ topoManager:
       input:
         placeholder: 请输入IP:端口
         validate: 格式错误，请输入IP:端口
+        directFilePlaceholder: 请输入IP:端口（file的直连端口通常是28925）
+        downstreamFilePlaceholder: 请输入IP:端口（file的接入点端口通常是28930）
     delete:
       title: 确定删除该管控单元？
       content: 管控单元

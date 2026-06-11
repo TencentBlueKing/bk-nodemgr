@@ -14,7 +14,7 @@
       property="file"
       :rules="fileRule"
       label-width="120">
-      <InputGroup v-model:values="data.file" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.file" :placeholder="$t('topoManager.workUnit.form.input.directFilePlaceholder')"></InputGroup>
     </Form.FormItem>
     <!-- data -->
     <Form.FormItem

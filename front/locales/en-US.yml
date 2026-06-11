@@ -500,6 +500,8 @@ topoManager:
       input:
         placeholder: Enter IP:Port
         validate: Invalid format, please use IP:Port
+        directFilePlaceholder: Enter IP:Port (file direct port is usually 28925)
+        downstreamFilePlaceholder: Enter IP:Port (file access point port is usually 28930)
     delete:
       title: Confirm delete this Network Unit?
       content: Network Unit

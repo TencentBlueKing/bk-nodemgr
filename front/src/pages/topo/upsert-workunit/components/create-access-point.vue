@@ -22,7 +22,7 @@
       :property="`file.${index}`"
       :rules="fileRule"
       label-width="120">
-      <InputGroup v-model:values="data.endpoints.file" :placeholder="inputPlaceholder"></InputGroup>
+      <InputGroup v-model:values="data.endpoints.file" :placeholder="$t('topoManager.workUnit.form.input.downstreamFilePlaceholder')"></InputGroup>
     </Form.FormItem>
     <!-- data -->
     <Form.FormItem
