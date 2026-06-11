@@ -157,7 +157,7 @@ tolerations: []
 ## @param terminationGracePeriodSeconds Termination grace period in seconds
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
 ##
-terminationGracePeriodSeconds: 30
+terminationGracePeriodSeconds: 120
 ##
 ## mock-server containers' resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/

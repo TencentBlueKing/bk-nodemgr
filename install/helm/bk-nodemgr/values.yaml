@@ -192,7 +192,7 @@ tolerations: [ ]
 ## @param terminationGracePeriodSeconds Termination grace period in seconds
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
 ##
-terminationGracePeriodSeconds: 30
+terminationGracePeriodSeconds: 120
 ##
 ## bk-nodemgr containers' resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -641,7 +641,7 @@ application:
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
-  terminationGracePeriodSeconds: 30
+  terminationGracePeriodSeconds: 120
 
   ## @param lifecycleHooks module container lifecycle hooks.
   ## NOTE: preStop defaults to /bin/sh -c 'sleep 5' when not set.
@@ -968,7 +968,7 @@ backend:
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
-  terminationGracePeriodSeconds: 30
+  terminationGracePeriodSeconds: 120
 
   ## @param lifecycleHooks module container lifecycle hooks.
   ## NOTE: preStop defaults to /bin/sh -c 'sleep 5' when not set.
@@ -1419,7 +1419,7 @@ file:
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
-  terminationGracePeriodSeconds: 30
+  terminationGracePeriodSeconds: 120
 
   ## @param lifecycleHooks module container lifecycle hooks.
   ## NOTE: preStop defaults to /bin/sh -c 'sleep 5' when not set.
