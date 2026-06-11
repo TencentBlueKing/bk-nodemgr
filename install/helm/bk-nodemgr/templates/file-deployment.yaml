@@ -93,6 +93,7 @@ spec:
           image: {{ template "bk-nodemgr.image" . }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          lifecycle: {{- include "bk-nodemgr.lifecycleHooks" (dict "hooks" .Values.file.lifecycleHooks "context" $) | nindent 12 }}
           command:
             - {{ .Values.common.binPath }}/bk-nodemgr-file
           args:

@@ -44,3 +44,18 @@ Return the proper bk-nodemgr replica count
 {{- .module.replicaCount -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Render container lifecycle hooks with a default preStop unless preStop is explicitly configured.
+*/}}
+{{- define "bk-nodemgr.lifecycleHooks" -}}
+{{- $context := .context -}}
+{{- $hooks := .hooks | default dict -}}
+{{- $defaultHooks := dict "preStop" (dict "exec" (dict "command" (list "/bin/sh" "-c" "sleep 5"))) -}}
+{{- if hasKey $hooks "preStop" -}}
+{{- include "common.tplvalues.render" (dict "value" $hooks "context" $context) -}}
+{{- else -}}
+{{- $mergedHooks := mergeOverwrite (deepCopy $defaultHooks) $hooks -}}
+{{- include "common.tplvalues.render" (dict "value" $mergedHooks "context" $context) -}}
+{{- end -}}
+{{- end -}}

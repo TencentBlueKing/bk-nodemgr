@@ -643,6 +643,16 @@ application:
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
   terminationGracePeriodSeconds: 30
 
+  ## @param lifecycleHooks module container lifecycle hooks.
+  ## NOTE: preStop defaults to /bin/sh -c 'sleep 5' when not set.
+  # lifecycleHooks:
+  #   preStop:
+  #     exec:
+  #       command:
+  #         - /bin/sh
+  #         - -c
+  #         - sleep 10
+
   ## application containers' resource requests and limits
   ##
   resources:
@@ -959,6 +969,16 @@ backend:
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
   terminationGracePeriodSeconds: 30
+
+  ## @param lifecycleHooks module container lifecycle hooks.
+  ## NOTE: preStop defaults to /bin/sh -c 'sleep 5' when not set.
+  # lifecycleHooks:
+  #   preStop:
+  #     exec:
+  #       command:
+  #         - /bin/sh
+  #         - -c
+  #         - sleep 10
 
   ## backend containers' resource requests and limits
   ##
@@ -1397,6 +1417,16 @@ file:
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
   terminationGracePeriodSeconds: 30
+
+  ## @param lifecycleHooks module container lifecycle hooks.
+  ## NOTE: preStop defaults to /bin/sh -c 'sleep 5' when not set.
+  # lifecycleHooks:
+  #   preStop:
+  #     exec:
+  #       command:
+  #         - /bin/sh
+  #         - -c
+  #         - sleep 10
 
   ## file containers' resource requests and limits
   ##
