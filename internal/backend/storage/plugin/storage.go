@@ -292,6 +292,13 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	for triggerID, pluginWorkflow := range snapshot {
 		opers, hasOperations := triggerOpers[triggerID]
 		if !hasOperations || len(opers) == 0 {
+			// If the workflow is already in a finished state, its operations may have been cleaned
+			// up by a scheduled purge job. Do not overwrite a legitimate terminal status.
+			if pluginWorkflow.Status != types.PluginWorkflowStatusRunning {
+				triggersToDelete = append(triggersToDelete, triggerID)
+				continue
+			}
+
 			if !pluginWorkflow.OperateTime.IsZero() && time.Since(pluginWorkflow.OperateTime) < missingOperationGraceTime {
 				continue
 			}
