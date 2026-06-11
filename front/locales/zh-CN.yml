@@ -27,6 +27,12 @@ platform:
       running: 正常
       damaged: 异常
       unknown: 未安装
+      online: 在线
+      offline: 离线
+      notInstalled: 未安装
+      onlineAgentCount: 在线Agent数量
+      offlineAgentCount: 离线Agent数量
+      notInstalledAgentCount: 未安装Agent数量
       unassigned: 未分配
       confirmIsBatch: 请确认是否批量{type}
       confirmIsSingle: 请确认是否{type}

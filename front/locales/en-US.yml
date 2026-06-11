@@ -27,6 +27,12 @@ platform:
       running: Running
       damaged: Abnormal
       unknown: Not Installed
+      online: Online
+      offline: Offline
+      notInstalled: Not Installed
+      onlineAgentCount: Online Agent Count
+      offlineAgentCount: Offline Agent Count
+      notInstalledAgentCount: Not Installed Agent Count
       unassigned: Unassigned
       confirmIsBatch: Confirm batch {type}?
       confirmIsSingle: Confirm {type}?

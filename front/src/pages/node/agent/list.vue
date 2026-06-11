@@ -1,5 +1,33 @@
 <template>
-  <page-header :title="'route.agentStatus'" :back="Object.keys(route.query).length > 0"></page-header>
+  <page-header :title="'route.agentStatus'" :back="Object.keys(route.query).length > 0">
+    <!-- Agent 状态统计：标题后、subtitle 前 -->
+    <template #after-title>
+      <bk-loading :loading="agentStatusLoading" class="flex items-center">
+        <div class="w-[1px] h-[14px] bg-[#DCDEE5] mx-[16px]"></div>
+        <span
+          class="inline-flex items-center cursor-pointer mr-[20px]"
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.agentStatus.onlineAgentCount')}: ${agentStatus.online}` }">
+          <span class="w-[6px] h-[6px] rounded-full bg-[#3FC06D] mr-[4px]" />
+          <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.agentStatus.online') }}</span>
+          <span class="text-[#3FC06D] text-[12px] font-medium">{{ agentStatus.online }}</span>
+        </span>
+        <span
+          class="inline-flex items-center cursor-pointer mr-[20px]"
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.agentStatus.offlineAgentCount')}: ${agentStatus.offline}` }">
+          <span class="w-[6px] h-[6px] rounded-full bg-[#EA3636] mr-[4px]" />
+          <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.agentStatus.offline') }}</span>
+          <span class="text-[#EA3636] text-[12px] font-medium">{{ agentStatus.offline }}</span>
+        </span>
+        <span
+          class="inline-flex items-center cursor-pointer"
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.agentStatus.notInstalledAgentCount')}: ${agentStatus.notInstalled}` }">
+          <span class="w-[6px] h-[6px] rounded-full bg-[#979BA5] mr-[4px]" />
+          <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.agentStatus.notInstalled') }}</span>
+          <span class="text-[#979BA5] text-[12px] font-medium">{{ agentStatus.notInstalled }}</span>
+        </span>
+      </bk-loading>
+    </template>
+  </page-header>
   <div class="p-[24px]">
     <!-- agnet操作及搜索 -->
     <section class="flex justify-between mb-[15px]">
@@ -136,6 +164,7 @@
         </SearchSelect>
       </div>
     </section>
+
     <Loading
       :title="$t('table.loading')"
       :loading="loading"
@@ -1043,6 +1072,59 @@ const getAgentList = async () => {
 // 【优化点2】使用debounce包装getAgentList，延迟300ms执行，防止重复请求
 const debouncedGetAgentList = debounce(getAgentList, 300);
 
+// ---------- Agent 状态统计（与列表异步并行） ----------
+const agentStatusLoading = ref(true);
+const agentStatus = ref({ online: 0, offline: 0, notInstalled: 0 });
+
+/** 通过 only_count 并行查询在线/已安装/未安装 Agent 数量 */
+const fetchAgentStatusCount = async () => {
+  const bizIds = mainStore.selectedBusinessId || [];
+  if (bizIds.length === 0) {
+    agentStatusLoading.value = false;
+    return;
+  }
+
+  agentStatusLoading.value = true;
+  try {
+    const [onlineRes, agentRes, blankRes] = await Promise.all([
+      // 在线：node_role=agent + node_status=running
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['agent'], node_status: ['running'] },
+        fuzzy_include_conditions: {},
+      }).catch(() => ({ total: 0 })),
+      // 已安装 Agent（node_role=agent，含所有状态）
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['agent'] },
+        fuzzy_include_conditions: {},
+      }).catch(() => ({ total: 0 })),
+      // 未安装（node_role=blank）
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['blank'] },
+        fuzzy_include_conditions: {},
+      }).catch(() => ({ total: 0 })),
+    ]);
+
+    const online = onlineRes.total ?? 0;
+    const totalAgent = agentRes.total ?? 0;
+    const notInstalled = blankRes.total ?? 0;
+    agentStatus.value = {
+      online,
+      offline: Math.max(totalAgent - online, 0),
+      notInstalled,
+    };
+  } catch {
+    agentStatus.value = { online: 0, offline: 0, notInstalled: 0 };
+  } finally {
+    agentStatusLoading.value = false;
+  }
+};
+
 /**
  * 加载所有初始化数据（区域、单元、筛选条件）
  */
@@ -1548,6 +1630,8 @@ watch(
       // 等待 pending watchers flush（如 route.query 注册的 watch(isInitialDataLoaded) 设置 searchSelectValue）
       await nextTick();
       await getAgentList();
+      // Agent 状态统计与列表数据异步并行，不阻塞表格渲染
+      fetchAgentStatusCount();
     }
     isInitialLoading.value = false;
   },
