@@ -126,12 +126,18 @@ type DeploymentRestartOptions struct {
 
 // DeploymentTransferOptions this is the options for node transfer.
 type DeploymentTransferOptions struct {
-	// SelectDownloads set false by default, will download all things.
-	// set true, then will only download the enabled ones following.
-	SelectDownloads bool
+	// means disable transfer release package.
+	DisableReleasePackage bool
+	// means disable transfer installer.
+	DisableInstaller bool
+}
 
-	EnableReleasePackage bool
-	EnableInstaller      bool
+// DeploymentTransferOptionsOnlyTransferInstaller return the node deployment transfer options only transfer installer.
+func DeploymentTransferOptionsOnlyTransferInstaller() DeploymentTransferOptions {
+	return DeploymentTransferOptions{
+		DisableReleasePackage: true,
+		DisableInstaller:      false,
+	}
 }
 
 // DeploymentVersionSupports describes this version supports things.

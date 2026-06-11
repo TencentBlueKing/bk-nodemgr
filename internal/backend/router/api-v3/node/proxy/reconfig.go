@@ -138,10 +138,7 @@ func (h *handler) generatesReconfigNodeDeployments(
 			ReconfigOptions: types.DeploymentReconfigOptions{
 				AllowReleaseFallback: true,
 			},
-			TransferOptions: types.DeploymentTransferOptions{
-				SelectDownloads: true,
-				EnableInstaller: true,
-			},
+			TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 		})
 
 		nodeDeployments[idx] = nodeDeployment

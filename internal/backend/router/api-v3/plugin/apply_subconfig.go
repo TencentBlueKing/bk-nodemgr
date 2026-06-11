@@ -47,7 +47,7 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
 	applyPluginCompatibilityModePolicy(h.resolvePluginCompatibilityModePolicy(rCtx), rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), pluginDeploymentParam...)
+		rCtx.TenantID(), types.PluginDeploymentTransferOptionsOnlyTransferInstaller(), pluginDeploymentParam...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

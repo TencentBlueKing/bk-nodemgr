@@ -129,9 +129,8 @@ type installOptions struct {
 
 // transferOptions this is the options for plugin transfer.
 type transferOptions struct {
-	SelectDownloads      bool `json:"select_downloads" bson:"select_downloads"`
-	EnableReleasePackage bool `json:"enable_release_package" bson:"enable_release_package"`
-	EnableInstaller      bool `json:"enable_installer" bson:"enable_installer"`
+	DisableReleasePackage bool `json:"disable_release_package" bson:"disable_release_package"`
+	DisableInstaller      bool `json:"disable_installer" bson:"disable_installer"`
 }
 
 // PluginConf defines the plugin config.

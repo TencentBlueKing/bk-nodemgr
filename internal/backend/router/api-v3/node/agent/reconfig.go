@@ -156,10 +156,7 @@ func (h *handler) generatesReconfigDeploys(
 			DirectLink:           unitsMap[host.Dynamic.NetworkUnitID],
 			AllowReleaseFallback: true,
 		},
-		TransferOptions: types.DeploymentTransferOptions{
-			SelectDownloads: true,
-			EnableInstaller: true,
-		},
+		TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 	})
 
 	return nodeDeployment, nil

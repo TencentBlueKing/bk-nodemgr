@@ -150,10 +150,7 @@ func (h *handler) generatesUninstallDeploys(
 		UninstallOptions: types.DeploymentUninstallOptions{
 			DirectLink: unitsMap[host.Dynamic.NetworkUnitID],
 		},
-		TransferOptions: types.DeploymentTransferOptions{
-			SelectDownloads: true,
-			EnableInstaller: true,
-		},
+		TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 	})
 
 	return nodeDeployment, nil

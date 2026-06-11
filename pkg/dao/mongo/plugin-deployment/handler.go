@@ -394,9 +394,8 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 			EnableCompatibilityMode: info.InstallOptions.EnableCompatibilityMode,
 		},
 		TransferOptions: types.PluginDeploymentTransferOptions{
-			SelectDownloads:      info.TransferOptions.SelectDownloads,
-			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
-			EnableInstaller:      info.TransferOptions.EnableInstaller,
+			DisableReleasePackage: info.TransferOptions.DisableReleasePackage,
+			DisableInstaller:      info.TransferOptions.DisableInstaller,
 		},
 	}
 
@@ -479,9 +478,8 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			GlobalCommonConstants: info.BaseRuntime.GlobalCommonConstants,
 		},
 		TransferOptions: transferOptions{
-			SelectDownloads:      info.TransferOptions.SelectDownloads,
-			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
-			EnableInstaller:      info.TransferOptions.EnableInstaller,
+			DisableReleasePackage: info.TransferOptions.DisableReleasePackage,
+			DisableInstaller:      info.TransferOptions.DisableInstaller,
 		},
 		InstallOptions: installOptions{
 			Version:                 info.InstallOptions.Version,

@@ -132,12 +132,12 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 	}
 
 	gp := gopool.NewPool()
-	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
+	if !std.DeployInfo().TransferOptions.DisableReleasePackage {
 		gp.Go(func() error {
 			return act.transferRelease(std)
 		})
 	}
-	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
+	if !std.DeployInfo().TransferOptions.DisableInstaller {
 		gp.Go(func() error {
 			return act.transferInstaller(std)
 		})

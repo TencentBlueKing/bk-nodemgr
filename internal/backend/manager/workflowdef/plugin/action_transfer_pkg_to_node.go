@@ -128,7 +128,7 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	}
 
 	gp := gopool.NewPool()
-	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
+	if !std.DeployInfo().TransferOptions.DisableReleasePackage {
 		if err = pluginUtils.EnsureHostLoginUser(std, targetHost); err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 			return act.pushOfflinePluginConfig(std, targetHost)
 		})
 	}
-	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
+	if !std.DeployInfo().TransferOptions.DisableInstaller {
 		gp.Go(func() error {
 			return act.transferInstaller(std, targetHost)
 		})

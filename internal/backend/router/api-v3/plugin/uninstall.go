@@ -45,7 +45,7 @@ func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
+		rCtx.TenantID(), types.PluginDeploymentTransferOptionsOnlyTransferInstaller(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

@@ -148,10 +148,7 @@ func (h *handler) generatesUninstallDeploys(
 				NetworkUnitID:  host.Dynamic.NetworkUnitID,
 			},
 		},
-		TransferOptions: types.DeploymentTransferOptions{
-			SelectDownloads: true,
-			EnableInstaller: true,
-		},
+		TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 	})
 
 	return nodeDeployment, nil

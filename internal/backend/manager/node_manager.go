@@ -442,9 +442,8 @@ func enablePagentInstaller(deploy *types.NodeDeployment) {
 		return
 	}
 
-	// if not direct link, use pagent. than we noly need to transfer installer.
-	deploy.Info.TransferOptions.SelectDownloads = true
-	deploy.Info.TransferOptions.EnableInstaller = true
+	// if not direct link, use pagent. than we only need to transfer installer.
+	deploy.Info.TransferOptions = types.DeploymentTransferOptionsOnlyTransferInstaller()
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
@@ -479,8 +478,7 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 	gp := gopool.NewPool()
 	for _, nodeDeploy := range param.NodeDeployments {
 		deploy := nodeDeploy
-		deploy.Info.TransferOptions.SelectDownloads = true
-		deploy.Info.TransferOptions.EnableInstaller = true
+		deploy.Info.TransferOptions = types.DeploymentTransferOptionsOnlyTransferInstaller()
 
 		gp.Go(func() error {
 			if err := mgr.conf.StorageNode.CreateNodeDeployment(nCtx, deploy); err != nil {
@@ -556,8 +554,7 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 	gp := gopool.NewPool()
 	for _, nodeDeploy := range param.NodeDeployments {
 		deploy := nodeDeploy
-		deploy.Info.TransferOptions.SelectDownloads = true
-		deploy.Info.TransferOptions.EnableInstaller = true
+		deploy.Info.TransferOptions = types.DeploymentTransferOptionsOnlyTransferInstaller()
 
 		gp.Go(func() error {
 			if err := mgr.conf.StorageNode.CreateNodeDeployment(nCtx, deploy); err != nil {
@@ -636,8 +633,7 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	gp := gopool.NewPool()
 	for _, nodeDeploy := range param.NodeDeployments {
 		deploy := nodeDeploy
-		deploy.Info.TransferOptions.SelectDownloads = true
-		deploy.Info.TransferOptions.EnableInstaller = true
+		deploy.Info.TransferOptions = types.DeploymentTransferOptionsOnlyTransferInstaller()
 
 		gp.Go(func() error {
 			if err := mgr.conf.StorageNode.CreateNodeDeployment(nCtx, deploy); err != nil {

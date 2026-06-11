@@ -146,10 +146,7 @@ func (h *handler) generatesRestartDeploys(
 			ForceRestart:           reqHost.GetForce(),
 			GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
 		},
-		TransferOptions: types.DeploymentTransferOptions{
-			SelectDownloads: true,
-			EnableInstaller: true,
-		},
+		TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 	})
 
 	return nodeDeployment, nil

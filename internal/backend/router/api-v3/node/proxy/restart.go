@@ -135,10 +135,7 @@ func (h *handler) generatesRestartNodeDeployments(
 				ForceRestart:           reqHost.GetForce(),
 				GracefulRestartTimeout: time.Second * time.Duration(reqHost.GetGracefulRestartTimeoutSec()),
 			},
-			TransferOptions: types.DeploymentTransferOptions{
-				SelectDownloads: true,
-				EnableInstaller: true,
-			},
+			TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 		})
 
 		nodeDeployments[idx] = nodeDeployment

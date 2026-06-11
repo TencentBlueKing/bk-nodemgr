@@ -72,7 +72,7 @@ func (h *handler) installPlugin(rCtx restserver.IContext, req *protoBackend.Plug
 	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
 	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), pluginDeploymentParam...)
+		rCtx.TenantID(), types.PluginDeploymentTransferOptionsAll(), pluginDeploymentParam...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return "", err
@@ -102,7 +102,7 @@ func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.Plu
 	})
 
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), pluginDeploymentParam...)
+		rCtx.TenantID(), types.PluginDeploymentTransferOptionsAll(), pluginDeploymentParam...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to ensure plugin, failed to generate plugin deployments.")
 		return err

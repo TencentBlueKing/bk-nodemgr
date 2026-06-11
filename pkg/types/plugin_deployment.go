@@ -117,12 +117,10 @@ type PluginDeploymentInstallOptions struct {
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.
 type PluginDeploymentTransferOptions struct {
-	// SelectDownloads set false by default, will download all things.
-	// set true, then will only download the enabled ones following.
-	SelectDownloads bool
-
-	EnableReleasePackage bool
-	EnableInstaller      bool
+	// means disable transfer release package.
+	DisableReleasePackage bool
+	// means disable transfer installer.
+	DisableInstaller bool
 }
 
 // PluginDeploymentParam defines the parameters for plugin deployment.
@@ -207,11 +205,18 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 	return pluginDeployments, hostIDs, bizIDs, nil
 }
 
-// DefaultPluginDeploymentTransferOptions return the default plugin deployment transfer options.
-func DefaultPluginDeploymentTransferOptions() PluginDeploymentTransferOptions {
+// PluginDeploymentTransferOptionsOnlyTransferInstaller return the plugin deployment transfer options only transfer installer.
+func PluginDeploymentTransferOptionsOnlyTransferInstaller() PluginDeploymentTransferOptions {
 	return PluginDeploymentTransferOptions{
-		SelectDownloads:      true,
-		EnableReleasePackage: false,
-		EnableInstaller:      true,
+		DisableReleasePackage: true,
+		DisableInstaller:      false,
+	}
+}
+
+// PluginDeploymentTransferOptionsAll return the plugin deployment transfer options all.
+func PluginDeploymentTransferOptionsAll() PluginDeploymentTransferOptions {
+	return PluginDeploymentTransferOptions{
+		DisableReleasePackage: false,
+		DisableInstaller:      false,
 	}
 }

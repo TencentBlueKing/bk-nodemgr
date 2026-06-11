@@ -214,9 +214,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			GracefulRestartTimeout: info.RestartOptions.GracefulRestartTimeout,
 		},
 		TransferOptions: types.DeploymentTransferOptions{
-			SelectDownloads:      info.TransferOptions.SelectDownloads,
-			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
-			EnableInstaller:      info.TransferOptions.EnableInstaller,
+			DisableReleasePackage: info.TransferOptions.DisableReleasePackage,
+			DisableInstaller:      info.TransferOptions.DisableInstaller,
 		},
 		CurrentVersionSupports: types.DeploymentVersionSupports{
 			OperateAgentRestart: info.CurrentVersionSupports.OperateAgentRestart,
@@ -461,9 +460,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			GracefulRestartTimeout: info.RestartOptions.GracefulRestartTimeout,
 		},
 		TransferOptions: TransferOptions{
-			SelectDownloads:      info.TransferOptions.SelectDownloads,
-			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
-			EnableInstaller:      info.TransferOptions.EnableInstaller,
+			DisableReleasePackage: info.TransferOptions.DisableReleasePackage,
+			DisableInstaller:      info.TransferOptions.DisableInstaller,
 		},
 		CurrentVersionSupports: VersionSupports{
 			OperateAgentRestart: info.CurrentVersionSupports.OperateAgentRestart,

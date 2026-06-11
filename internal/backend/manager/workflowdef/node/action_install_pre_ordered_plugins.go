@@ -262,10 +262,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPlugin(std *nodeUtil
 	}
 
 	// if in offline mode or indirect unit or proxy install, disable select downloads.
-	pluginTransferOpts := types.DefaultPluginDeploymentTransferOptions()
-	if deployInfo.InstallOptions.IsOffline || !deployInfo.InstallOptions.DirectInstall || deployInfo.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		pluginTransferOpts.SelectDownloads = false
-	}
+	pluginTransferOpts := types.PluginDeploymentTransferOptionsAll()
 
 	// create plugin deployments.
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(nCtx.TenantID(), pluginTransferOpts, deployParams...)
@@ -379,10 +376,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 	}
 
 	// if in offline mode or indirect unit or proxy install, disable select downloads.
-	pluginTransferOpts := types.DefaultPluginDeploymentTransferOptions()
-	if deployInfo.InstallOptions.IsOffline || !deployInfo.InstallOptions.DirectInstall || deployInfo.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		pluginTransferOpts.SelectDownloads = false
-	}
+	pluginTransferOpts := types.PluginDeploymentTransferOptionsAll()
 
 	// create plugin deployments.
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(nCtx.TenantID(),
