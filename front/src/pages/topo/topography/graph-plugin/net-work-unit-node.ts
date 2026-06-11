@@ -83,6 +83,13 @@ export default class NetWorkUnitNode extends BaseNode {
     );
   }
 
+  /** 解析 cycle_times 为分组格式，每组代表一台机器的 [1min, 5min, 15min] 延迟值 */
+  static parseCycleTimesGrouped(cycleTimes: string[]): number[][] {
+    return cycleTimes.map((groupStr) =>
+      groupStr.split(',').map(s => parseInt(s.trim().replace(/ms$/gi, ''), 10) || 0)
+    );
+  }
+
 
   // 节点总宽度
   static nodeWidth = 240;
@@ -457,20 +464,31 @@ export default class NetWorkUnitNode extends BaseNode {
           fontWeight: 700,
           fill: latencyColor,
           textBaseline: 'middle',
-          cursor: parsedLatencies.length > 1 ? 'pointer' : 'text',
+          cursor: 'pointer',
         }, container);
         
-        // 多条延迟时添加 hover tooltip（带颜色标识）
-        if (parsedLatencies.length > 1 && cycleEl) {
-          const tooltipHTML = parsedLatencies
-            .map((v: number) => {
-              const color = NetWorkUnitNode.getLatencyColor(v);
-              return `<div style="display:flex;align-items:center;gap:8px;line-height:1.8;font-size:12px">
-                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-                <span style="font-weight:${v === maxLatency ? 700 : 400}">${v}ms</span>
+        // 按机器分组展示延迟（1min / 5min / 15min 横向排列）
+        const groupedLatencies = NetWorkUnitNode.parseCycleTimesGrouped(cycle_times || []);
+        if (groupedLatencies.length > 0 && cycleEl) {
+          const tooltipHTML = `<div style="white-space:normal;font-size:12px;min-width:180px">
+            <div style="display:flex;gap:10px;margin-bottom:6px;color:#979BA5;font-size:11px;border-bottom:1px solid #DCDEE5;padding-bottom:4px">
+              <span style="width:52px;text-align:center;font-weight:600">1min</span>
+              <span style="width:52px;text-align:center;font-weight:600">5min</span>
+              <span style="width:52px;text-align:center;font-weight:600">15min</span>
+            </div>
+            ${groupedLatencies.map((group: number[]) => {
+              const groupMax = Math.max(...group);
+              return `<div style="display:flex;gap:10px;line-height:2.2">
+                ${group.map((v: number) => {
+                  const color = NetWorkUnitNode.getLatencyColor(v);
+                  return `<span style="display:flex;align-items:center;justify-content:center;gap:4px;width:52px">
+                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></span>
+                    <span style="font-weight:${v === groupMax ? 700 : 400}">${v}ms</span>
+                  </span>`;
+                }).join('')}
               </div>`;
-            })
-            .join('');
+            }).join('')}
+          </div>`;
           
           cycleEl.addEventListener('mouseenter', (event: any) => {
             const bounds = cycleEl.getRenderBounds();
@@ -480,7 +498,7 @@ export default class NetWorkUnitNode extends BaseNode {
             const targetHeight = bounds.max[1] - bounds.min[1];
             const targetX = mouseX - targetWidth / 2;
             const targetY = mouseY - targetHeight / 2;
-            textTooltip.showHTML(tooltipHTML, targetX, targetY, targetWidth, targetHeight, 120);
+            textTooltip.showHTML(tooltipHTML, targetX, targetY, targetWidth, targetHeight, 220);
           });
           
           cycleEl.addEventListener('mouseleave', () => {
