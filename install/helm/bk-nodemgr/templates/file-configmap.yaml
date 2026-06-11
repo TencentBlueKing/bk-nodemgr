@@ -16,19 +16,19 @@ data:
 
     tenantMode: {{ .Values.file.config.tenantMode }}
 
-    infoServer: {{ .Values.file.config.infoServer | toYaml | nindent 6 }}
+    infoServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.file.config.infoServer "terminationGracePeriodSeconds" (.Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    adminServer: {{ .Values.file.config.adminServer | toYaml | nindent 6 }}
+    adminServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.file.config.adminServer "terminationGracePeriodSeconds" (.Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    basicServer: {{ .Values.file.config.basicServer | toYaml | nindent 6 }}
+    basicServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.file.config.basicServer "terminationGracePeriodSeconds" (.Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    downloadServer: {{ .Values.file.config.downloadServer | toYaml | nindent 6 }}
+    downloadServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.file.config.downloadServer "terminationGracePeriodSeconds" (.Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 

@@ -11,12 +11,16 @@
 package server_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -257,7 +261,7 @@ func TestHandler_ThirdpartyWrappedPermissionErrorRoutesToPermDenied(t *testing.T
 		c.Set("rest_request", server.NewRequest(c))
 		c.Next()
 	})
-	engine.GET("/permission", server.Handler(func(rCtx server.IContext) (interface{}, error) {
+	engine.GET("/permission", server.Handler(func(rCtx server.IContext) (any, error) {
 		provider := fakePermProvider{
 			system:     "bk_nodemgr",
 			systemName: "节点管理",
@@ -390,4 +394,93 @@ func TestMiddlewareAuth_WithoutOptions_ShouldRemainBackwardCompatible(t *testing
 	if identity.verifyCalls != 1 {
 		t.Fatalf("expected verify called once for middleware without options, got %d", identity.verifyCalls)
 	}
+}
+
+func TestServerShutdownStopsServingAndIsIdempotent(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	port := reserveLocalPort(t)
+	svr, err := server.NewServer(
+		context.Background(),
+		server.Options{
+			Name:             "test-shutdown",
+			IP:               "127.0.0.1",
+			Port:             port,
+			RequestIDSetter:  server.NewRequestIDSetter(),
+			ShutdownTimeout:  time.Second,
+			TraceServiceName: "test-shutdown",
+		},
+		func(rg *gin.RouterGroup) {
+			rg.GET("/ok", func(c *gin.Context) {
+				c.String(http.StatusOK, "ok")
+			})
+		},
+	)
+	if err != nil {
+		t.Fatalf("failed to create server: %v", err)
+	}
+
+	startErr := make(chan error, 1)
+	go func() {
+		startErr <- svr.Start()
+	}()
+
+	url := fmt.Sprintf("http://127.0.0.1:%d/ok", port)
+	if err := waitServerReady(url, startErr); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := svr.Shutdown(context.Background()); err != nil {
+		t.Fatalf("failed to shutdown server: %v", err)
+	}
+	if err := svr.Shutdown(context.Background()); err != nil {
+		t.Fatalf("failed to shutdown server twice: %v", err)
+	}
+	if err := <-startErr; err != nil {
+		t.Fatalf("expected start to stop cleanly, got %v", err)
+	}
+}
+
+func waitServerReady(url string, startErr <-chan error) error {
+	deadline := time.Now().Add(time.Second)
+	lastErr := errors.New("server is not ready")
+	for time.Now().Before(deadline) {
+		select {
+		case err := <-startErr:
+			return fmt.Errorf("server exited before ready: %w", err)
+		default:
+		}
+
+		resp, err := http.Get(url) // nolint: noctx
+		if err != nil {
+			lastErr = err
+			time.Sleep(10 * time.Millisecond)
+			continue
+		}
+
+		body, readErr := io.ReadAll(resp.Body)
+		closeErr := resp.Body.Close()
+		if readErr == nil && closeErr == nil && resp.StatusCode == http.StatusOK && string(body) == "ok" {
+			return nil
+		}
+		lastErr = fmt.Errorf("unexpected response status=%d body=%q readErr=%v closeErr=%v", resp.StatusCode, string(body), readErr, closeErr)
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	return lastErr
+}
+
+func reserveLocalPort(t *testing.T) int {
+	t.Helper()
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to reserve local port: %v", err)
+	}
+	defer listener.Close()
+
+	addr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok {
+		t.Fatalf("expected tcp addr, got %T", listener.Addr())
+	}
+
+	return addr.Port
 }

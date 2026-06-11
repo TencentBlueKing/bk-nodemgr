@@ -16,15 +16,15 @@ data:
 
     tenantMode: {{ .Values.application.config.tenantMode }}
 
-    infoServer: {{ .Values.application.config.infoServer | toYaml | nindent 6 }}
+    infoServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.application.config.infoServer "terminationGracePeriodSeconds" (.Values.application.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    adminServer: {{ .Values.application.config.adminServer | toYaml | nindent 6 }}
+    adminServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.application.config.adminServer "terminationGracePeriodSeconds" (.Values.application.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    basicServer: {{ .Values.application.config.basicServer | toYaml | nindent 6 }}
+    basicServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.application.config.basicServer "terminationGracePeriodSeconds" (.Values.application.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 

@@ -20,23 +20,23 @@ data:
 
     encryptKey: {{ .Values.backend.config.encryptKey | quote }}
 
-    infoServer: {{ .Values.backend.config.infoServer | toYaml | nindent 6 }}
+    infoServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.backend.config.infoServer "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    adminServer: {{ .Values.backend.config.adminServer | toYaml | nindent 6 }}
+    adminServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.backend.config.adminServer "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    basicServer: {{ .Values.backend.config.basicServer | toYaml | nindent 6 }}
+    basicServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.backend.config.basicServer "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    callbackServer: {{ .Values.backend.config.callbackServer | toYaml | nindent 6 }}
+    callbackServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.backend.config.callbackServer "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    proxyServer: {{ .Values.backend.config.proxyServer | toYaml | nindent 6 }}
+    proxyServer: {{ include "bk-nodemgr.httpServerConfig" (dict "config" .Values.backend.config.proxyServer "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 

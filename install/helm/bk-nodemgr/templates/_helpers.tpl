@@ -70,3 +70,14 @@ Render workflow config and inject gracefulShutdownTimeoutSeconds from terminatio
 {{- end -}}
 {{- $config | toYaml -}}
 {{- end -}}
+
+{{/*
+Render an HTTP server config and inject gracefulShutdownTimeoutSec from terminationGracePeriodSeconds / 2 when absent.
+*/}}
+{{- define "bk-nodemgr.httpServerConfig" -}}
+{{- $config := deepCopy .config -}}
+{{- if not (hasKey $config "gracefulShutdownTimeoutSec") -}}
+{{- $_ := set $config "gracefulShutdownTimeoutSec" (div (int .terminationGracePeriodSeconds) 2) -}}
+{{- end -}}
+{{- $config | toYaml -}}
+{{- end -}}

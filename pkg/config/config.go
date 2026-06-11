@@ -281,16 +281,17 @@ func (authIdentity AuthIdentity) Validate() error {
 
 // HTTPServer the config of http service.
 type HTTPServer struct {
-	BindIP          string          `yaml:"bindIP"`
-	BindIPV6        string          `yaml:"bindIPV6"`
-	AdvertiseIPV4   string          `yaml:"advertiseIPV4"`
-	AdvertiseIPV6   string          `yaml:"advertiseIPV6"`
-	Port            int             `yaml:"port"`
-	AuthIdentity    AuthIdentity    `yaml:"authIdentity" usage:"identity of auth"`
-	JWTServerConfig JWTServerConfig `yaml:"jwtServerConfig" usage:"JWT configuration for authentication"`
-	StaticDir       string          `yaml:"staticDir"`
-	TLSConfig       TLSConfig       `yaml:"tls"`
-	TraceService    `yaml:",inline"`
+	BindIP                     string          `yaml:"bindIP"`
+	BindIPV6                   string          `yaml:"bindIPV6"`
+	AdvertiseIPV4              string          `yaml:"advertiseIPV4"`
+	AdvertiseIPV6              string          `yaml:"advertiseIPV6"`
+	Port                       int             `yaml:"port"`
+	GracefulShutdownTimeoutSec int             `yaml:"gracefulShutdownTimeoutSec" usage:"graceful shutdown timeout in seconds"`
+	AuthIdentity               AuthIdentity    `yaml:"authIdentity" usage:"identity of auth"`
+	JWTServerConfig            JWTServerConfig `yaml:"jwtServerConfig" usage:"JWT configuration for authentication"`
+	StaticDir                  string          `yaml:"staticDir"`
+	TLSConfig                  TLSConfig       `yaml:"tls"`
+	TraceService               `yaml:",inline"`
 }
 
 // Validate validates the config.
@@ -301,6 +302,11 @@ func (conf HTTPServer) Validate() error {
 
 	if conf.Port <= 0 {
 		return fmt.Errorf("failed to validate http server config: port(%d) must be greater than 0", conf.Port)
+	}
+
+	if conf.GracefulShutdownTimeoutSec <= 0 {
+		return fmt.Errorf("failed to validate http server config: gracefulShutdownTimeoutSec(%d) must be greater than 0",
+			conf.GracefulShutdownTimeoutSec)
 	}
 
 	// Only validate JWT config for authentication methods that require JWT

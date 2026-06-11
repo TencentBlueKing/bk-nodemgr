@@ -13,10 +13,13 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -27,6 +30,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	defaultShutdownTimeout = 60 * time.Second
+	maxListenAddressCount  = 2
 )
 
 // Server defines the restful API server.
@@ -42,6 +50,14 @@ type Server struct {
 
 	// tracerSvc is the OpenTelemetry tracerSvc for distributed tracing
 	tracerSvc tracing.IService
+
+	serversMu       sync.Mutex
+	servers         []*http.Server
+	shutdownStarted bool
+
+	shutdownOnce sync.Once
+	shutdownDone chan struct{}
+	shutdownErr  error
 }
 
 // OptionFunc defines a function that can be used to modify the router.
@@ -127,15 +143,21 @@ type Options struct {
 	RequestIDSetter  IRequestIDSetter
 	StaticOptions    *StaticOptions
 	TLSConfig        config.TLSConfig
+	ShutdownTimeout  time.Duration
 	TraceServiceName string
 	TraceSampleRate  float64
 }
 
 // NewServer creates a new restful API server.
 func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Server, error) {
+	if opts.ShutdownTimeout <= 0 {
+		opts.ShutdownTimeout = defaultShutdownTimeout
+	}
+
 	svr := &Server{
-		ctx:  ctx,
-		opts: opts,
+		ctx:          ctx,
+		opts:         opts,
+		shutdownDone: make(chan struct{}),
 		engine: gin.New(func(engine *gin.Engine) {
 			engine.RedirectTrailingSlash = false
 			engine.RedirectFixedPath = false
@@ -221,7 +243,7 @@ func (svr *Server) Start() error {
 	}
 
 	gp := gopool.NewPool()
-	gp.SetLimit(2)
+	gp.SetLimit(maxListenAddressCount)
 
 	if svr.IP() != "" {
 		gp.Go(func() error {
@@ -270,7 +292,14 @@ func (svr *Server) startWithoutTLS(network criteria.NetType, addr string) error 
 		return fmt.Errorf("failed to listen %s %s: %w", network, addr, err)
 	}
 
-	return svr.engine.RunListener(listener)
+	server, err := svr.registerHTTPServer(addr, nil)
+	if err != nil {
+		_ = listener.Close()
+
+		return ignoreServerClosed(err)
+	}
+
+	return ignoreServerClosed(server.Serve(listener))
 }
 
 func (svr *Server) startWithTLS(network criteria.NetType, addr string) error {
@@ -287,19 +316,97 @@ func (svr *Server) startWithTLS(network criteria.NetType, addr string) error {
 		return fmt.Errorf("failed to create server tls config: %w", err)
 	}
 
+	listener, err := net.Listen(string(network), addr)
+	if err != nil {
+		return fmt.Errorf("failed to listen %s %s: %w", network, addr, err)
+	}
+
+	server, err := svr.registerHTTPServer(addr, tlsConfig)
+	if err != nil {
+		_ = listener.Close()
+
+		return ignoreServerClosed(err)
+	}
+
+	return ignoreServerClosed(server.ServeTLS(listener, "", ""))
+}
+
+// Shutdown gracefully shuts down all listeners owned by the server.
+func (svr *Server) Shutdown(ctx context.Context) error {
+	if ctx == nil {
+		return errors.New("shutdown context is nil")
+	}
+
+	svr.shutdownOnce.Do(func() {
+		svr.shutdownErr = svr.shutdown(ctx)
+		close(svr.shutdownDone)
+	})
+	<-svr.shutdownDone
+
+	return svr.shutdownErr
+}
+
+func (svr *Server) registerHTTPServer(addr string, tlsConfig *tls.Config) (*http.Server, error) {
 	server := &http.Server{
 		Addr:      addr,
 		Handler:   svr.engine.Handler(),
 		TLSConfig: tlsConfig,
 	}
 
-	listener, err := net.Listen(string(network), addr)
-	if err != nil {
-		return fmt.Errorf("failed to listen %s %s: %w", network, addr, err)
+	svr.serversMu.Lock()
+	defer svr.serversMu.Unlock()
+	if svr.shutdownStarted {
+		return nil, http.ErrServerClosed
 	}
-	defer listener.Close()
 
-	return server.ServeTLS(listener, "", "")
+	svr.servers = append(svr.servers, server)
+
+	return server, nil
+}
+
+func (svr *Server) shutdown(ctx context.Context) error {
+	svr.serversMu.Lock()
+	svr.shutdownStarted = true
+	servers := append([]*http.Server(nil), svr.servers...)
+	svr.serversMu.Unlock()
+
+	if len(servers) == 0 {
+		return nil
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(ctx, svr.opts.ShutdownTimeout)
+	defer cancel()
+
+	gp := gopool.NewPool()
+	gp.SetLimit(len(servers))
+	for idx := range servers {
+		server := servers[idx]
+		gp.Go(func() error {
+			if err := server.Shutdown(shutdownCtx); err != nil {
+				if shutdownCtx.Err() != nil {
+					if closeErr := server.Close(); closeErr != nil {
+						return errors.Join(err, closeErr)
+					}
+
+					return err
+				}
+
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	return gp.Wait()
+}
+
+func ignoreServerClosed(err error) error {
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	return nil
 }
 
 // Name returns the router name.

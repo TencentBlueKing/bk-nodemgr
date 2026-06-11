@@ -23,31 +23,35 @@ import (
 
 const (
 	// file service config default values.
-	defaultFileRunMode              = RunModeRelease
-	defaultFileTenantMode           = tenant.ModeSingle
-	defaultFileInfoBindIP           = "127.0.0.1"
-	defaultFileInfoBindIPV6         = "::1"
-	defaultFileInfoPort             = 28200
-	defaultFileInfoTraceServiceName = "file-server-info"
-	defaultFileInfoIdentity         = AuthIdentityNone
+	defaultFileRunMode                        = RunModeRelease
+	defaultFileTenantMode                     = tenant.ModeSingle
+	defaultFileInfoBindIP                     = "127.0.0.1"
+	defaultFileInfoBindIPV6                   = "::1"
+	defaultFileInfoPort                       = 28200
+	defaultFileInfoGracefulShutdownTimeoutSec = 60
+	defaultFileInfoTraceServiceName           = "file-server-info"
+	defaultFileInfoIdentity                   = AuthIdentityNone
 
-	defaultFileAdminBindIP           = "127.0.0.1"
-	defaultFileAdminBindIPV6         = "::1"
-	defaultFileAdminPort             = 28201
-	defaultFileAdminTraceServiceName = "file-server-admin"
-	defaultFileAdminIdentity         = AuthIdentityRestServer
+	defaultFileAdminBindIP                     = "127.0.0.1"
+	defaultFileAdminBindIPV6                   = "::1"
+	defaultFileAdminPort                       = 28201
+	defaultFileAdminGracefulShutdownTimeoutSec = 60
+	defaultFileAdminTraceServiceName           = "file-server-admin"
+	defaultFileAdminIdentity                   = AuthIdentityRestServer
 
-	defaultFileBasicBindIP           = "127.0.0.1"
-	defaultFileBasicBindIPV6         = "::1"
-	defaultFileBasicPort             = 28202
-	defaultFileBasicTraceServiceName = "file-server-basic"
-	defaultFileBasicIdentity         = AuthIdentityNone
+	defaultFileBasicBindIP                     = "127.0.0.1"
+	defaultFileBasicBindIPV6                   = "::1"
+	defaultFileBasicPort                       = 28202
+	defaultFileBasicGracefulShutdownTimeoutSec = 60
+	defaultFileBasicTraceServiceName           = "file-server-basic"
+	defaultFileBasicIdentity                   = AuthIdentityNone
 
-	defaultFileDownloadBindIP           = "127.0.0.1"
-	defaultFileDownloadBindIPV6         = "::1"
-	defaultFileDownloadPort             = 28203
-	defaultFileDownloadTraceServiceName = "file-server-download"
-	defaultFileDownloadIdentity         = AuthIdentityNone
+	defaultFileDownloadBindIP                     = "127.0.0.1"
+	defaultFileDownloadBindIPV6                   = "::1"
+	defaultFileDownloadPort                       = 28203
+	defaultFileDownloadGracefulShutdownTimeoutSec = 60
+	defaultFileDownloadTraceServiceName           = "file-server-download"
+	defaultFileDownloadIdentity                   = AuthIdentityNone
 
 	defaultFileLogDir        = "/bk-nodemgr/log/"
 	defaultFileLogMaxNum     = 10
@@ -101,45 +105,49 @@ func NewFileService() *FileService {
 			},
 		},
 		InfoServer: HTTPServer{
-			BindIP:        defaultFileInfoBindIP,
-			BindIPV6:      defaultFileInfoBindIPV6,
-			Port:          defaultFileInfoPort,
-			AuthIdentity:  defaultFileInfoIdentity,
-			AdvertiseIPV4: defaultFileAdvertiseIPv4,
-			AdvertiseIPV6: defaultFileAdvertiseIPv6,
+			BindIP:                     defaultFileInfoBindIP,
+			BindIPV6:                   defaultFileInfoBindIPV6,
+			Port:                       defaultFileInfoPort,
+			GracefulShutdownTimeoutSec: defaultFileInfoGracefulShutdownTimeoutSec,
+			AuthIdentity:               defaultFileInfoIdentity,
+			AdvertiseIPV4:              defaultFileAdvertiseIPv4,
+			AdvertiseIPV6:              defaultFileAdvertiseIPv6,
 			TraceService: TraceService{
 				TraceServiceName: defaultFileInfoTraceServiceName,
 			},
 		},
 		AdminServer: HTTPServer{
-			BindIP:        defaultFileAdminBindIP,
-			BindIPV6:      defaultFileAdminBindIPV6,
-			Port:          defaultFileAdminPort,
-			AuthIdentity:  defaultFileAdminIdentity,
-			AdvertiseIPV4: defaultFileAdvertiseIPv4,
-			AdvertiseIPV6: defaultFileAdvertiseIPv6,
+			BindIP:                     defaultFileAdminBindIP,
+			BindIPV6:                   defaultFileAdminBindIPV6,
+			Port:                       defaultFileAdminPort,
+			GracefulShutdownTimeoutSec: defaultFileAdminGracefulShutdownTimeoutSec,
+			AuthIdentity:               defaultFileAdminIdentity,
+			AdvertiseIPV4:              defaultFileAdvertiseIPv4,
+			AdvertiseIPV6:              defaultFileAdvertiseIPv6,
 			TraceService: TraceService{
 				TraceServiceName: defaultFileAdminTraceServiceName,
 			},
 		},
 		BasicServer: HTTPServer{
-			BindIP:        defaultFileBasicBindIP,
-			BindIPV6:      defaultFileBasicBindIPV6,
-			Port:          defaultFileBasicPort,
-			AuthIdentity:  defaultFileBasicIdentity,
-			AdvertiseIPV4: defaultFileAdvertiseIPv4,
-			AdvertiseIPV6: defaultFileAdvertiseIPv6,
+			BindIP:                     defaultFileBasicBindIP,
+			BindIPV6:                   defaultFileBasicBindIPV6,
+			Port:                       defaultFileBasicPort,
+			GracefulShutdownTimeoutSec: defaultFileBasicGracefulShutdownTimeoutSec,
+			AuthIdentity:               defaultFileBasicIdentity,
+			AdvertiseIPV4:              defaultFileAdvertiseIPv4,
+			AdvertiseIPV6:              defaultFileAdvertiseIPv6,
 			TraceService: TraceService{
 				TraceServiceName: defaultFileBasicTraceServiceName,
 			},
 		},
 		DownloadServer: HTTPServer{
-			BindIP:        defaultFileDownloadBindIP,
-			BindIPV6:      defaultFileDownloadBindIPV6,
-			Port:          defaultFileDownloadPort,
-			AuthIdentity:  defaultFileDownloadIdentity,
-			AdvertiseIPV4: defaultFileAdvertiseIPv4,
-			AdvertiseIPV6: defaultFileAdvertiseIPv6,
+			BindIP:                     defaultFileDownloadBindIP,
+			BindIPV6:                   defaultFileDownloadBindIPV6,
+			Port:                       defaultFileDownloadPort,
+			GracefulShutdownTimeoutSec: defaultFileDownloadGracefulShutdownTimeoutSec,
+			AuthIdentity:               defaultFileDownloadIdentity,
+			AdvertiseIPV4:              defaultFileAdvertiseIPv4,
+			AdvertiseIPV6:              defaultFileAdvertiseIPv6,
 			TraceService: TraceService{
 				TraceServiceName: defaultFileDownloadTraceServiceName,
 			},

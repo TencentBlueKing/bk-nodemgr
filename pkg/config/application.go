@@ -41,26 +41,29 @@ const (
 	defaultApplicationNoticeTraceServiceName  = "application-client-notice"
 
 	// info server config default values.
-	defaultApplicationInfoBindIP           = "127.0.0.1"
-	defaultApplicationInfoBindIPV6         = "::1"
-	defaultApplicationInfoPort             = 28000
-	defaultApplicationInfoIdentity         = AuthIdentityNone
-	defaultApplicationInfoTraceServiceName = "application-server-info"
+	defaultApplicationInfoBindIP                     = "127.0.0.1"
+	defaultApplicationInfoBindIPV6                   = "::1"
+	defaultApplicationInfoPort                       = 28000
+	defaultApplicationInfoGracefulShutdownTimeoutSec = 60
+	defaultApplicationInfoIdentity                   = AuthIdentityNone
+	defaultApplicationInfoTraceServiceName           = "application-server-info"
 
 	// admin server config default values.
-	defaultApplicationAdminBindIP           = "127.0.0.1"
-	defaultApplicationAdminBindIPV6         = "::1"
-	defaultApplicationAdminPort             = 28001
-	defaultApplicationAdminIdentity         = AuthIdentityRestServer
-	defaultApplicationAdminTraceServiceName = "application-server-admin"
+	defaultApplicationAdminBindIP                     = "127.0.0.1"
+	defaultApplicationAdminBindIPV6                   = "::1"
+	defaultApplicationAdminPort                       = 28001
+	defaultApplicationAdminGracefulShutdownTimeoutSec = 60
+	defaultApplicationAdminIdentity                   = AuthIdentityRestServer
+	defaultApplicationAdminTraceServiceName           = "application-server-admin"
 
 	// basic server config default values.
-	defaultApplicationBasicBindIP           = "127.0.0.1"
-	defaultApplicationBasicBindIPV6         = "::1"
-	defaultApplicationBasicPort             = 28002
-	defaultApplicationBasicStaticDir        = "/bk-nodemgr/static/"
-	defaultApplicationBasicIdentity         = AuthIdentityBKLogin
-	defaultApplicationBasicTraceServiceName = "application-server-basic"
+	defaultApplicationBasicBindIP                     = "127.0.0.1"
+	defaultApplicationBasicBindIPV6                   = "::1"
+	defaultApplicationBasicPort                       = 28002
+	defaultApplicationBasicGracefulShutdownTimeoutSec = 60
+	defaultApplicationBasicStaticDir                  = "/bk-nodemgr/static/"
+	defaultApplicationBasicIdentity                   = AuthIdentityBKLogin
+	defaultApplicationBasicTraceServiceName           = "application-server-basic"
 
 	// log config default values.
 	defaultApplicationLogDir       = "/bk-nodemgr/log/"
@@ -189,34 +192,37 @@ func NewApplicationService() *ApplicationService {
 			},
 		},
 		InfoServer: HTTPServer{
-			BindIP:        defaultApplicationInfoBindIP,
-			BindIPV6:      defaultApplicationInfoBindIPV6,
-			Port:          defaultApplicationInfoPort,
-			AuthIdentity:  defaultApplicationInfoIdentity,
-			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
-			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
+			BindIP:                     defaultApplicationInfoBindIP,
+			BindIPV6:                   defaultApplicationInfoBindIPV6,
+			Port:                       defaultApplicationInfoPort,
+			GracefulShutdownTimeoutSec: defaultApplicationInfoGracefulShutdownTimeoutSec,
+			AuthIdentity:               defaultApplicationInfoIdentity,
+			AdvertiseIPV4:              defaultApplicationAdvertiseIPv4,
+			AdvertiseIPV6:              defaultApplicationAdvertiseIPv6,
 			TraceService: TraceService{
 				TraceServiceName: defaultApplicationInfoTraceServiceName,
 			},
 		},
 		AdminServer: HTTPServer{
-			BindIP:          defaultApplicationAdminBindIP,
-			BindIPV6:        defaultApplicationAdminBindIPV6,
-			Port:            defaultApplicationAdminPort,
-			AuthIdentity:    defaultApplicationAdminIdentity,
-			AdvertiseIPV4:   defaultApplicationAdvertiseIPv4,
-			AdvertiseIPV6:   defaultApplicationAdvertiseIPv6,
-			JWTServerConfig: JWTServerConfig{CryptoType: JWTCryptoTypeSymmetric},
+			BindIP:                     defaultApplicationAdminBindIP,
+			BindIPV6:                   defaultApplicationAdminBindIPV6,
+			Port:                       defaultApplicationAdminPort,
+			GracefulShutdownTimeoutSec: defaultApplicationAdminGracefulShutdownTimeoutSec,
+			AuthIdentity:               defaultApplicationAdminIdentity,
+			AdvertiseIPV4:              defaultApplicationAdvertiseIPv4,
+			AdvertiseIPV6:              defaultApplicationAdvertiseIPv6,
+			JWTServerConfig:            JWTServerConfig{CryptoType: JWTCryptoTypeSymmetric},
 			TraceService: TraceService{
 				TraceServiceName: defaultApplicationAdminTraceServiceName,
 			},
 		},
 		BasicServer: HTTPServer{
-			BindIP:       defaultApplicationBasicBindIP,
-			BindIPV6:     defaultApplicationBasicBindIPV6,
-			Port:         defaultApplicationBasicPort,
-			StaticDir:    defaultApplicationBasicStaticDir,
-			AuthIdentity: defaultApplicationBasicIdentity,
+			BindIP:                     defaultApplicationBasicBindIP,
+			BindIPV6:                   defaultApplicationBasicBindIPV6,
+			Port:                       defaultApplicationBasicPort,
+			GracefulShutdownTimeoutSec: defaultApplicationBasicGracefulShutdownTimeoutSec,
+			StaticDir:                  defaultApplicationBasicStaticDir,
+			AuthIdentity:               defaultApplicationBasicIdentity,
 			TraceService: TraceService{
 				TraceServiceName: defaultApplicationBasicTraceServiceName,
 			},

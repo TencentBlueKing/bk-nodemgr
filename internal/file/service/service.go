@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
@@ -474,6 +475,7 @@ func (svc *Service) registerInfoServer() error {
 			IPV6:             svc.conf.InfoServer.BindIPV6,
 			Port:             svc.conf.InfoServer.Port,
 			TLSConfig:        svc.conf.InfoServer.TLSConfig,
+			ShutdownTimeout:  time.Duration(svc.conf.InfoServer.GracefulShutdownTimeoutSec) * time.Second,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.InfoServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.InfoServer.TraceSampleRate,
@@ -517,6 +519,7 @@ func (svc *Service) registerAdminServer() error {
 			IPV6:             svc.conf.AdminServer.BindIPV6,
 			Port:             svc.conf.AdminServer.Port,
 			TLSConfig:        svc.conf.AdminServer.TLSConfig,
+			ShutdownTimeout:  time.Duration(svc.conf.AdminServer.GracefulShutdownTimeoutSec) * time.Second,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.AdminServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.AdminServer.TraceSampleRate,
@@ -560,6 +563,7 @@ func (svc *Service) registerBasicServer() error {
 			IPV6:             svc.conf.BasicServer.BindIPV6,
 			Port:             svc.conf.BasicServer.Port,
 			TLSConfig:        svc.conf.BasicServer.TLSConfig,
+			ShutdownTimeout:  time.Duration(svc.conf.BasicServer.GracefulShutdownTimeoutSec) * time.Second,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
@@ -602,6 +606,7 @@ func (svc *Service) registerDownloadServer() error {
 			IPV6:             svc.conf.DownloadServer.BindIPV6,
 			Port:             svc.conf.DownloadServer.Port,
 			TLSConfig:        svc.conf.DownloadServer.TLSConfig,
+			ShutdownTimeout:  time.Duration(svc.conf.DownloadServer.GracefulShutdownTimeoutSec) * time.Second,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.DownloadServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.DownloadServer.TraceSampleRate,
@@ -753,16 +758,46 @@ func (svc *Service) GracefulShutdown() error {
 
 	defer svc.cancelFunc()
 
-	err := svc.Cap.GracefulShutdown()
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to gracefully shutdown capability")
+	serverErr := svc.shutdownRestServers(context.Background())
+	if serverErr != nil {
+		logger.G.Sys().WithErr(serverErr).Error("failed to gracefully shutdown rest servers")
+	}
 
+	capErr := svc.Cap.GracefulShutdown()
+	if capErr != nil {
+		logger.G.Sys().WithErr(capErr).Error("failed to gracefully shutdown capability")
+	}
+
+	if err := errors.Join(serverErr, capErr); err != nil {
 		return err
 	}
 
 	logger.G.Sys().Info("file service gracefully shutdown")
 
 	return nil
+}
+
+func (svc *Service) shutdownRestServers(ctx context.Context) error {
+	errCh := make(chan error, len(svc.servers))
+	var wg sync.WaitGroup
+	for _, server := range svc.servers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := server.Shutdown(ctx); err != nil {
+				errCh <- fmt.Errorf("failed to shutdown rest server %s: %w", server.Name(), err)
+			}
+		}()
+	}
+	wg.Wait()
+	close(errCh)
+
+	errs := make([]error, 0, len(svc.servers))
+	for err := range errCh {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
 }
 
 func (svc *Service) initTracing() error {

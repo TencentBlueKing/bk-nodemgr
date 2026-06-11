@@ -21,29 +21,33 @@ import (
 const (
 	defaultRelayPluginName = "bk-nodemgr-relay"
 
-	defaultRelayInfoBindIP           = "127.0.0.1"
-	defaultRelayInfoBindIPV6         = "::1"
-	defaultRelayInfoPort             = 28300
-	defaultRelayInfoTraceServiceName = "relay-server-info"
-	defaultRelayInfoIdentity         = AuthIdentityNone
+	defaultRelayInfoBindIP                     = "127.0.0.1"
+	defaultRelayInfoBindIPV6                   = "::1"
+	defaultRelayInfoPort                       = 28300
+	defaultRelayInfoGracefulShutdownTimeoutSec = 60
+	defaultRelayInfoTraceServiceName           = "relay-server-info"
+	defaultRelayInfoIdentity                   = AuthIdentityNone
 
-	defaultRelayAdminBindIP           = "127.0.0.1"
-	defaultRelayAdminBindIPV6         = "::1"
-	defaultRelayAdminPort             = 28301
-	defaultRelayAdminTraceServiceName = "relay-server-admin"
-	defaultRelayAdminIdentity         = AuthIdentityNone
+	defaultRelayAdminBindIP                     = "127.0.0.1"
+	defaultRelayAdminBindIPV6                   = "::1"
+	defaultRelayAdminPort                       = 28301
+	defaultRelayAdminGracefulShutdownTimeoutSec = 60
+	defaultRelayAdminTraceServiceName           = "relay-server-admin"
+	defaultRelayAdminIdentity                   = AuthIdentityNone
 
-	defaultRelayCallbackBindIP           = "127.0.0.1"
-	defaultRelayCallbackBindIPV6         = "::1"
-	defaultRelayCallbackPort             = 28302
-	defaultRelayCallbackTraceServiceName = "relay-server-callback"
-	defaultRelayCallbackIdentity         = AuthIdentityNone
+	defaultRelayCallbackBindIP                     = "127.0.0.1"
+	defaultRelayCallbackBindIPV6                   = "::1"
+	defaultRelayCallbackPort                       = 28302
+	defaultRelayCallbackGracefulShutdownTimeoutSec = 60
+	defaultRelayCallbackTraceServiceName           = "relay-server-callback"
+	defaultRelayCallbackIdentity                   = AuthIdentityNone
 
-	defaultRelayDownloadBindIP           = "127.0.0.1"
-	defaultRelayDownloadBindIPV6         = "::1"
-	defaultRelayDownloadPort             = 28303
-	defaultRelayDownloadTraceServiceName = "relay-server-download"
-	defaultRelayDownloadIdentity         = AuthIdentityNone
+	defaultRelayDownloadBindIP                     = "127.0.0.1"
+	defaultRelayDownloadBindIPV6                   = "::1"
+	defaultRelayDownloadPort                       = 28303
+	defaultRelayDownloadGracefulShutdownTimeoutSec = 60
+	defaultRelayDownloadTraceServiceName           = "relay-server-download"
+	defaultRelayDownloadIdentity                   = AuthIdentityNone
 
 	defaultRelayAdvertiseIPv4 = "127.0.0.1"
 	defaultRelayAdvertiseIPv6 = "::1"
@@ -84,9 +88,10 @@ func NewRelayService() *RelayService {
 			MessageLocalSocketPort:  0,
 		},
 		InfoServer: HTTPServer{
-			BindIP:   defaultRelayInfoBindIP,
-			BindIPV6: defaultRelayInfoBindIPV6,
-			Port:     defaultRelayInfoPort,
+			BindIP:                     defaultRelayInfoBindIP,
+			BindIPV6:                   defaultRelayInfoBindIPV6,
+			Port:                       defaultRelayInfoPort,
+			GracefulShutdownTimeoutSec: defaultRelayInfoGracefulShutdownTimeoutSec,
 			TraceService: TraceService{
 				TraceServiceName: defaultRelayInfoTraceServiceName,
 			},
@@ -95,9 +100,10 @@ func NewRelayService() *RelayService {
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:   defaultRelayAdminBindIP,
-			BindIPV6: defaultRelayAdminBindIPV6,
-			Port:     defaultRelayAdminPort,
+			BindIP:                     defaultRelayAdminBindIP,
+			BindIPV6:                   defaultRelayAdminBindIPV6,
+			Port:                       defaultRelayAdminPort,
+			GracefulShutdownTimeoutSec: defaultRelayAdminGracefulShutdownTimeoutSec,
 			TraceService: TraceService{
 				TraceServiceName: defaultRelayAdminTraceServiceName,
 			},
@@ -107,9 +113,10 @@ func NewRelayService() *RelayService {
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer{
-				BindIP:   defaultRelayCallbackBindIP,
-				BindIPV6: defaultRelayCallbackBindIPV6,
-				Port:     defaultRelayCallbackPort,
+				BindIP:                     defaultRelayCallbackBindIP,
+				BindIPV6:                   defaultRelayCallbackBindIPV6,
+				Port:                       defaultRelayCallbackPort,
+				GracefulShutdownTimeoutSec: defaultRelayCallbackGracefulShutdownTimeoutSec,
 				TraceService: TraceService{
 					TraceServiceName: defaultRelayCallbackTraceServiceName,
 				},
@@ -118,9 +125,10 @@ func NewRelayService() *RelayService {
 				AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 			}},
 		DownloadServer: HTTPServer{
-			BindIP:   defaultRelayDownloadBindIP,
-			BindIPV6: defaultRelayDownloadBindIPV6,
-			Port:     defaultRelayDownloadPort,
+			BindIP:                     defaultRelayDownloadBindIP,
+			BindIPV6:                   defaultRelayDownloadBindIPV6,
+			Port:                       defaultRelayDownloadPort,
+			GracefulShutdownTimeoutSec: defaultRelayDownloadGracefulShutdownTimeoutSec,
 			TraceService: TraceService{
 				TraceServiceName: defaultRelayDownloadTraceServiceName,
 			},

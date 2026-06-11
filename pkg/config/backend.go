@@ -24,39 +24,44 @@ import (
 
 const (
 	// backend service config default values.
-	defaultBackendRunMode              = RunModeRelease
-	defaultBackendTenantMode           = tenant.ModeSingle
-	defaultBackendInfoBindIP           = "127.0.0.1"
-	defaultBackendInfoBindIPV6         = "::1"
-	defaultBackendInfoPort             = 28100
-	defaultBackendInfoTraceServiceName = "backend-server-info"
-	defaultBackendInfoAuthIdentity     = AuthIdentityNone
+	defaultBackendRunMode                        = RunModeRelease
+	defaultBackendTenantMode                     = tenant.ModeSingle
+	defaultBackendInfoBindIP                     = "127.0.0.1"
+	defaultBackendInfoBindIPV6                   = "::1"
+	defaultBackendInfoPort                       = 28100
+	defaultBackendInfoGracefulShutdownTimeoutSec = 60
+	defaultBackendInfoTraceServiceName           = "backend-server-info"
+	defaultBackendInfoAuthIdentity               = AuthIdentityNone
 
-	defaultBackendAdminBindIP           = "127.0.0.1"
-	defaultBackendAdminBindIPV6         = "::1"
-	defaultBackendAdminPort             = 28101
-	defaultBackendAdminTraceServiceName = "backend-server-admin"
-	defaultBackendAdminAuthIdentity     = AuthIdentityRestServer
-	defaultBackendAdminJWTCryptoType    = JWTCryptoTypeSymmetric
+	defaultBackendAdminBindIP                     = "127.0.0.1"
+	defaultBackendAdminBindIPV6                   = "::1"
+	defaultBackendAdminPort                       = 28101
+	defaultBackendAdminGracefulShutdownTimeoutSec = 60
+	defaultBackendAdminTraceServiceName           = "backend-server-admin"
+	defaultBackendAdminAuthIdentity               = AuthIdentityRestServer
+	defaultBackendAdminJWTCryptoType              = JWTCryptoTypeSymmetric
 
-	defaultBackendBasicBindIP           = "127.0.0.1"
-	defaultBackendBasicBindIPV6         = "::1"
-	defaultBackendBasicPort             = 28102
-	defaultBackendBasicTraceServiceName = "backend-server-basic"
-	defaultBackendBasicAuthIdentity     = AuthIdentityAPIGW
-	defaultBackendBasicJWTCryptoType    = JWTCryptoTypeAsymmetric
+	defaultBackendBasicBindIP                     = "127.0.0.1"
+	defaultBackendBasicBindIPV6                   = "::1"
+	defaultBackendBasicPort                       = 28102
+	defaultBackendBasicGracefulShutdownTimeoutSec = 60
+	defaultBackendBasicTraceServiceName           = "backend-server-basic"
+	defaultBackendBasicAuthIdentity               = AuthIdentityAPIGW
+	defaultBackendBasicJWTCryptoType              = JWTCryptoTypeAsymmetric
 
-	defaultBackendCallbackBindIP           = "127.0.0.1"
-	defaultBackendCallbackBindIPV6         = "::1"
-	defaultBackendCallbackPort             = 28103
-	defaultBackendCallbackTraceServiceName = "backend-server-callback"
-	defaultBackendCallbackAuthIdentity     = AuthIdentityNone
+	defaultBackendCallbackBindIP                     = "127.0.0.1"
+	defaultBackendCallbackBindIPV6                   = "::1"
+	defaultBackendCallbackPort                       = 28103
+	defaultBackendCallbackGracefulShutdownTimeoutSec = 60
+	defaultBackendCallbackTraceServiceName           = "backend-server-callback"
+	defaultBackendCallbackAuthIdentity               = AuthIdentityNone
 
-	defaultBackendProxyBindIP           = "127.0.0.1"
-	defaultBackendProxyBindIPV6         = "::1"
-	defaultBackendProxyPort             = 28104
-	defaultBackendProxyTraceServiceName = "backend-server-proxy"
-	defaultBackendProxyAuthIdentity     = AuthIdentityNone
+	defaultBackendProxyBindIP                     = "127.0.0.1"
+	defaultBackendProxyBindIPV6                   = "::1"
+	defaultBackendProxyPort                       = 28104
+	defaultBackendProxyGracefulShutdownTimeoutSec = 60
+	defaultBackendProxyTraceServiceName           = "backend-server-proxy"
+	defaultBackendProxyAuthIdentity               = AuthIdentityNone
 
 	defaultBackendLogDir       = "/bk-nodemgr/log/"
 	defaultBackendLogMaxNum    = 10
@@ -206,9 +211,10 @@ func NewBackendService() *BackendService {
 			GracefulShutdownTimeoutSeconds: defaultBackendWorkflowGracefulShutdownTimeoutSecs,
 		},
 		InfoServer: HTTPServer{
-			BindIP:   defaultBackendInfoBindIP,
-			BindIPV6: defaultBackendInfoBindIPV6,
-			Port:     defaultBackendInfoPort,
+			BindIP:                     defaultBackendInfoBindIP,
+			BindIPV6:                   defaultBackendInfoBindIPV6,
+			Port:                       defaultBackendInfoPort,
+			GracefulShutdownTimeoutSec: defaultBackendInfoGracefulShutdownTimeoutSec,
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendInfoTraceServiceName,
 			},
@@ -217,9 +223,10 @@ func NewBackendService() *BackendService {
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:   defaultBackendAdminBindIP,
-			BindIPV6: defaultBackendAdminBindIPV6,
-			Port:     defaultBackendAdminPort,
+			BindIP:                     defaultBackendAdminBindIP,
+			BindIPV6:                   defaultBackendAdminBindIPV6,
+			Port:                       defaultBackendAdminPort,
+			GracefulShutdownTimeoutSec: defaultBackendAdminGracefulShutdownTimeoutSec,
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendAdminTraceServiceName,
 			},
@@ -229,9 +236,10 @@ func NewBackendService() *BackendService {
 			JWTServerConfig: JWTServerConfig{CryptoType: defaultBackendAdminJWTCryptoType},
 		},
 		BasicServer: HTTPServer{
-			BindIP:   defaultBackendBasicBindIP,
-			BindIPV6: defaultBackendBasicBindIPV6,
-			Port:     defaultBackendBasicPort,
+			BindIP:                     defaultBackendBasicBindIP,
+			BindIPV6:                   defaultBackendBasicBindIPV6,
+			Port:                       defaultBackendBasicPort,
+			GracefulShutdownTimeoutSec: defaultBackendBasicGracefulShutdownTimeoutSec,
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendBasicTraceServiceName,
 			},
@@ -242,9 +250,10 @@ func NewBackendService() *BackendService {
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer: HTTPServer{
-				BindIP:   defaultBackendCallbackBindIP,
-				BindIPV6: defaultBackendCallbackBindIPV6,
-				Port:     defaultBackendCallbackPort,
+				BindIP:                     defaultBackendCallbackBindIP,
+				BindIPV6:                   defaultBackendCallbackBindIPV6,
+				Port:                       defaultBackendCallbackPort,
+				GracefulShutdownTimeoutSec: defaultBackendCallbackGracefulShutdownTimeoutSec,
 				TraceService: TraceService{
 					TraceServiceName: defaultBackendCallbackTraceServiceName,
 				},
@@ -255,9 +264,10 @@ func NewBackendService() *BackendService {
 		},
 		ProxyServer: ProxyServer{
 			HTTPServer: HTTPServer{
-				BindIP:   defaultBackendProxyBindIP,
-				BindIPV6: defaultBackendProxyBindIPV6,
-				Port:     defaultBackendProxyPort,
+				BindIP:                     defaultBackendProxyBindIP,
+				BindIPV6:                   defaultBackendProxyBindIPV6,
+				Port:                       defaultBackendProxyPort,
+				GracefulShutdownTimeoutSec: defaultBackendProxyGracefulShutdownTimeoutSec,
 				TraceService: TraceService{
 					TraceServiceName: defaultBackendProxyTraceServiceName,
 				},
