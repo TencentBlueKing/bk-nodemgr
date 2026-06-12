@@ -1104,40 +1104,6 @@
     }
   },
   "definitions": {
-    "TopoGraphNodeGetRespGraphNodeInfo": {
-      "type": "object",
-      "properties": {
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "running_proxy": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "total_proxy": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "running_agent": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "total_agent": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "is_healthy": {
-          "type": "boolean"
-        },
-        "cycle_times": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "TopoRecommendNetworkUnitByNetworkSegmentRespDataItem": {
       "type": "object",
       "properties": {
@@ -1288,6 +1254,34 @@
       },
       "description": "CustomDeployConfig describes the deploy config for host deployment."
     },
+    "v3CycleTime": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_agent_id": {
+          "type": "string"
+        },
+        "time": {
+          "type": "string"
+        }
+      },
+      "description": "CycleTime describes the cycle time of a node in topo graph."
+    },
     "v3Endpoints": {
       "type": "object",
       "properties": {
@@ -1340,6 +1334,42 @@
           "type": "string"
         }
       }
+    },
+    "v3GraphNodeInfo": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_proxy": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_proxy": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_agent": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_agent": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "is_healthy": {
+          "type": "boolean"
+        },
+        "cycle_times": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3CycleTime"
+          }
+        }
+      },
+      "description": "GraphNodeInfo describes the node information in topo graph."
     },
     "v3Host": {
       "type": "object",
@@ -2661,7 +2691,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/TopoGraphNodeGetRespGraphNodeInfo"
+            "$ref": "#/definitions/v3GraphNodeInfo"
           }
         }
       }

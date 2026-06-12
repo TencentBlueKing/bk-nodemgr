@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -149,29 +150,26 @@ func (x *TopoGraphNodeGetReq) Validate() error {
 func (x *TopoGraphNodeGetReq) AutoConvert() {
 }
 
-// GraphNodeInfo graph node info.
-type GraphNodeInfo struct {
-	BkNetworkunitID int64
-	RunningProxy    int64
-	TotalProxy      int64
-	RunningAgent    int64
-	TotalAgent      int64
-	IsHealthy       bool
-	CycleTimes      []string
-}
-
 // ConvertGrapthNodeInfoFromTypes convert graph node info.
 func (x *TopoGraphNodeGetResp) ConvertGrapthNodeInfoFromTypes(result []*types.GraphNodeInfo) {
-	items := make([]*TopoGraphNodeGetResp_GraphNodeInfo, len(result))
+	items := make([]*GraphNodeInfo, len(result))
 	for idx, item := range result {
-		items[idx] = &TopoGraphNodeGetResp_GraphNodeInfo{
+		items[idx] = &GraphNodeInfo{
 			BkNetworkunitId: item.NetworkUnitID,
 			RunningProxy:    item.RunningProxy,
 			TotalProxy:      item.TotalProxy,
 			RunningAgent:    item.RunningAgent,
 			TotalAgent:      item.TotalAgent,
 			IsHealthy:       item.IsHealthy,
-			CycleTimes:      item.CycleTimes,
+			CycleTimes: conv.SliceToSlice(item.CycleTimes, func(item types.CycleTime) *CycleTime {
+				return &CycleTime{
+					BkHostId:            &item.HostID,
+					BkHostInneripList:   item.InnerIP,
+					BkHostInneripV6List: item.InnerIPV6,
+					BkAgentId:           &item.AgentID,
+					Time:                item.Time,
+				}
+			}),
 		}
 	}
 

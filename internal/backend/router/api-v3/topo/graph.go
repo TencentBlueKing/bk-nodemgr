@@ -53,11 +53,11 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 		networkUnitIDs[idx] = networkUnit.ID
 	}
 
-	result := make(map[int64]*protoBackend.GraphNodeInfo)
+	result := make(map[int64]*types.GraphNodeInfo)
 	for _, networkUnitID := range networkUnitIDs {
-		result[networkUnitID] = &protoBackend.GraphNodeInfo{
-			BkNetworkunitID: networkUnitID,
-			IsHealthy:       false,
+		result[networkUnitID] = &types.GraphNodeInfo{
+			NetworkUnitID: networkUnitID,
+			IsHealthy:     false,
 		}
 	}
 
@@ -79,7 +79,7 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*protoBackend.GraphNodeInfo, ids []int64) {
+func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*types.GraphNodeInfo, ids []int64) {
 	if len(ids) == 0 {
 		return
 	}
@@ -123,7 +123,7 @@ func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result m
 	})
 }
 
-func (h *handler) processProxies(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*protoBackend.GraphNodeInfo, ids []int64) {
+func (h *handler) processProxies(rCtx restserver.IContext, gp gopool.Pool, result map[int64]*types.GraphNodeInfo, ids []int64) {
 	gp.Go(func() error {
 		proxyDatas, err := h.getProxyDatas(rCtx, ids)
 		if err != nil {
@@ -149,7 +149,7 @@ type proxyData struct {
 	totalProxy     int64
 	runningProxy   int64
 	requiredTagSet map[types.ProxyTag]struct{}
-	connCycleTime  []string
+	connCycleTime  []types.CycleTime
 }
 
 func (h *handler) getProxyDatas(rCtx restserver.IContext, networkUnitIDs []int64) (map[int64]*proxyData, error) {
@@ -181,7 +181,7 @@ func (h *handler) getProxyDatas(rCtx restserver.IContext, networkUnitIDs []int64
 				totalProxy:     0,
 				runningProxy:   0,
 				requiredTagSet: requiredTagSet,
-				connCycleTime:  make([]string, 0),
+				connCycleTime:  make([]types.CycleTime, 0),
 			}
 		}
 
@@ -194,7 +194,13 @@ func (h *handler) getProxyDatas(rCtx restserver.IContext, networkUnitIDs []int64
 
 		data.runningProxy++
 		if proxy.Dynamic.ConnCycleTime != "" {
-			data.connCycleTime = append(data.connCycleTime, proxy.Dynamic.ConnCycleTime)
+			data.connCycleTime = append(data.connCycleTime, types.CycleTime{
+				HostID:    proxy.HostID,
+				InnerIP:   proxy.Static.InnerIPList,
+				InnerIPV6: proxy.Static.InnerIPV6List,
+				AgentID:   proxy.Dynamic.AgentID,
+				Time:      proxy.Dynamic.ConnCycleTime,
+			})
 		}
 
 		// if no tag required, skip

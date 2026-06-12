@@ -841,6 +841,26 @@ message TopoConstantGetResp {
 // TopoGraphNodeGetReq describes the HTTP request body when get node
 message TopoGraphNodeGetReq { repeated int64 bk_networkunit_id = 1; }
 
+// CycleTime describes the cycle time of a node in topo graph.
+message CycleTime {
+  optional int64 bk_host_id = 1;
+  repeated string bk_host_innerip_list = 2;
+  repeated string bk_host_innerip_v6_list = 3;
+  optional string bk_agent_id = 4;
+  string time = 5;
+}
+
+// GraphNodeInfo describes the node information in topo graph.
+message GraphNodeInfo {
+  int64 bk_networkunit_id = 1;
+  int64 running_proxy = 2;
+  int64 total_proxy = 3;
+  int64 running_agent = 4;
+  int64 total_agent = 5;
+  bool is_healthy = 6;
+  repeated CycleTime cycle_times = 7;
+}
+
 // TopoGraphNodeGetResp describes the HTTP response body when get node
 message TopoGraphNodeGetResp {
   int32 code = 1;
@@ -848,16 +868,6 @@ message TopoGraphNodeGetResp {
   string request_id = 3;
   Error error = 4;
   Permission permission = 6;
-
-  message GraphNodeInfo {
-    int64 bk_networkunit_id = 1;
-    int64 running_proxy = 2;
-    int64 total_proxy = 3;
-    int64 running_agent = 4;
-    int64 total_agent = 5;
-    bool is_healthy = 6;
-    repeated string cycle_times = 7;
-  }
 
   message Data { repeated GraphNodeInfo graph_node_info = 1; }
   Data data = 5;

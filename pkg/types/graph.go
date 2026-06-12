@@ -11,6 +11,15 @@
 // Package types ...
 package types
 
+// CycleTime describes the IP and round-trip time of a proxy connection.
+type CycleTime struct {
+	HostID    int64
+	InnerIP   []string
+	InnerIPV6 []string
+	AgentID   string
+	Time      string
+}
+
 // GraphNodeInfo graph node info.
 type GraphNodeInfo struct {
 	NetworkUnitID int64
@@ -19,5 +28,5 @@ type GraphNodeInfo struct {
 	RunningAgent  int64
 	TotalAgent    int64
 	IsHealthy     bool
-	CycleTimes    []string
+	CycleTimes    []CycleTime
 }

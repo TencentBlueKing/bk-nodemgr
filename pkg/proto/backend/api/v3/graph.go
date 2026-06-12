@@ -11,6 +11,7 @@
 package v3
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -23,30 +24,27 @@ func (x *TopoGraphNodeGetReq) Validate() error {
 func (x *TopoGraphNodeGetReq) AutoConvert() {
 }
 
-// GraphNodeInfo graph node info.
-type GraphNodeInfo struct {
-	BkNetworkunitID int64
-	RunningProxy    int64
-	TotalProxy      int64
-	RunningAgent    int64
-	TotalAgent      int64
-	IsHealthy       bool
-	CycleTimes      []string
-}
-
 // ConvertGrapthNodeInfoFromTypes convert graph node info.
-func (x *TopoGraphNodeGetResp) ConvertGrapthNodeInfoFromTypes(graphNodeInfos map[int64]*GraphNodeInfo) {
-	graphNodeItems := make([]*TopoGraphNodeGetResp_GraphNodeInfo, len(graphNodeInfos))
+func (x *TopoGraphNodeGetResp) ConvertGrapthNodeInfoFromTypes(graphNodeInfos map[int64]*types.GraphNodeInfo) {
+	graphNodeItems := make([]*GraphNodeInfo, len(graphNodeInfos))
 	idx := 0
 	for networkUnitID, graphNodeInfo := range graphNodeInfos {
-		info := &TopoGraphNodeGetResp_GraphNodeInfo{
+		info := &GraphNodeInfo{
 			BkNetworkunitId: networkUnitID,
 			RunningProxy:    graphNodeInfo.RunningProxy,
 			TotalProxy:      graphNodeInfo.TotalProxy,
 			RunningAgent:    graphNodeInfo.RunningAgent,
 			TotalAgent:      graphNodeInfo.TotalAgent,
 			IsHealthy:       graphNodeInfo.IsHealthy,
-			CycleTimes:      graphNodeInfo.CycleTimes,
+			CycleTimes: conv.SliceToSlice(graphNodeInfo.CycleTimes, func(item types.CycleTime) *CycleTime {
+				return &CycleTime{
+					BkHostId:            &item.HostID,
+					BkHostInneripList:   item.InnerIP,
+					BkHostInneripV6List: item.InnerIPV6,
+					BkAgentId:           &item.AgentID,
+					Time:                item.Time,
+				}
+			}),
 		}
 
 		graphNodeItems[idx] = info
@@ -75,7 +73,15 @@ func (x *TopoGraphNodeGetResp) ConvertResultToTypes() []*types.GraphNodeInfo {
 			RunningAgent:  item.GetRunningAgent(),
 			TotalAgent:    item.GetTotalAgent(),
 			IsHealthy:     item.GetIsHealthy(),
-			CycleTimes:    item.GetCycleTimes(),
+			CycleTimes: conv.SliceToSlice(item.GetCycleTimes(), func(item *CycleTime) types.CycleTime {
+				return types.CycleTime{
+					HostID:    item.GetBkHostId(),
+					InnerIP:   item.GetBkHostInneripList(),
+					InnerIPV6: item.GetBkHostInneripV6List(),
+					AgentID:   item.GetBkAgentId(),
+					Time:      item.GetTime(),
+				}
+			}),
 		}
 	}
 
