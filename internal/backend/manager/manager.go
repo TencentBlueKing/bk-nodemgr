@@ -60,6 +60,7 @@ func NewManager(conf Config) (*Manager, error) {
 		workflow.WithLocker(conf.LockerFactory),
 		workflow.WithRedis(mgr.conf.WorkflowConfig.Redis),
 		workflow.WithTraceService(mgr.conf.TraceService),
+		workflow.WithGracefulShutdownTimeout(mgr.conf.WorkflowConfig.GracefulShutdownTimeout),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create workflow manager: %w", err)

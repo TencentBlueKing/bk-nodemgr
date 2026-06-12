@@ -58,11 +58,7 @@ func (mgr *manager) launchWorker() error {
 	mgr.worker.SetPreTaskHandler(func(_ *tasks.Signature) {})
 	mgr.worker.SetPostTaskHandler(func(_ *tasks.Signature) {})
 
-	mgr.isConsuming = true
-	go func() {
-		mgr.launchWorkerErr <- mgr.worker.Launch()
-		mgr.isConsuming = false
-	}()
+	mgr.worker.LaunchAsync(mgr.launchWorkerErr)
 
 	return nil
 }
@@ -473,14 +469,68 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 				operInstBriefData.Metadata.OperationID, actionInstData.Name)
 		}
 
+	case <-mgr.handlerTail:
+		{
+			return mgr.handleLongTailAction(nCtx, actionInstData)
+		}
+
 	case <-nCtx.Done():
 		{
-			// TODO: 考虑关闭 worker 时，worker 退出时，action 未完成，如何处理
 			actionInstData.Lifecycle.EndWithTerminated()
 
 			return fmt.Errorf("operation operInstMgr context done, oper-inst-id(%s), action-name(%s)",
 				operInstBriefData.Metadata.OperationID, actionInstData.Name)
 		}
+	}
+}
+
+// longTailActionRetryDelay
+func longTailActionRetryDelay() time.Duration {
+	return redisNormalTasksPollPeriod * time.Millisecond * 5
+}
+
+// handleLongTailAction handles long tail action, according to whether the action is retryable,
+// decide whether to reschedule the execution.
+func (mgr *manager) handleLongTailAction(nCtx contextx.IContext, actionInstData *action.InstanceData) error {
+	oper, err := mgr.stgOperation.GetOperation(nCtx, actionInstData.OperationID)
+	if err != nil {
+		return fmt.Errorf("failed to handle long tail action, get operation failed, oper-inst-id(%s): %v",
+			actionInstData.OperationID, err)
+	}
+
+	if oper.Param.RetryStartPoint[actionInstData.Name] {
+		actionInstData.Lifecycle.Pending()
+
+		logger.G.Sys().Ctx(nCtx).
+			With("oper-inst-id", actionInstData.OperationID, "action-name", actionInstData.Name).
+			Warn("Worker is shutting down, action will be rescheduled")
+
+		actionInstData.Log().
+			Zh("worker 即将关闭，action 将在 %s 后被重新调度执行，oper-inst-id(%s), action-name(%s)",
+				longTailActionRetryDelay(),
+				actionInstData.OperationID, actionInstData.Name).
+			En("worker is shutting down, action will be rescheduled after %s, oper-inst-id(%s), action-name(%s)",
+				longTailActionRetryDelay(),
+				actionInstData.OperationID, actionInstData.Name).Error()
+
+		return tasks.NewErrRetryTaskLater(
+			fmt.Sprintf("worker is shutting down, action will be rescheduled, oper-inst-id(%s), action-name(%s), delay(%s)",
+				actionInstData.OperationID, actionInstData.Name, longTailActionRetryDelay()), longTailActionRetryDelay())
+	} else {
+		actionInstData.Lifecycle.EndWithTerminated()
+
+		logger.G.Sys().Ctx(nCtx).
+			With("oper-inst-id", actionInstData.OperationID, "action-name", actionInstData.Name).
+			Warn("worker is shutting down and this action is not retryable, action will be terminated")
+
+		actionInstData.Log().
+			Zh("worker 即将关闭，action 将被终止执行，oper-inst-id(%s), action-name(%s)",
+				actionInstData.OperationID, actionInstData.Name).
+			En("worker is shutting down and this action is not retryable, action will be terminated, oper-inst-id(%s), action-name(%s)",
+				actionInstData.OperationID, actionInstData.Name).Error()
+
+		return fmt.Errorf("worker is shutting down and this action is not retryable, action will be terminated, oper-inst-id(%s), action-name(%s)",
+			actionInstData.OperationID, actionInstData.Name)
 	}
 }
 

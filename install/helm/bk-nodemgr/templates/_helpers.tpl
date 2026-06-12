@@ -59,3 +59,14 @@ Render container lifecycle hooks with a default preStop unless preStop is explic
 {{- include "common.tplvalues.render" (dict "value" $mergedHooks "context" $context) -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Render workflow config and inject gracefulShutdownTimeoutSeconds from terminationGracePeriodSeconds / 2 when absent.
+*/}}
+{{- define "bk-nodemgr.workflowConfig" -}}
+{{- $config := deepCopy .config -}}
+{{- if not (hasKey $config "gracefulShutdownTimeoutSeconds") -}}
+{{- $_ := set $config "gracefulShutdownTimeoutSeconds" (div (int .terminationGracePeriodSeconds) 2) -}}
+{{- end -}}
+{{- $config | toYaml -}}
+{{- end -}}

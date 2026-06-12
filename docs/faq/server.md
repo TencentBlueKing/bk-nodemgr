@@ -106,3 +106,37 @@ gseDeployConfs:
 - Windows 风格默认值：`C:\<env>\data\host\hostid`
 
 这里的 `<env>` 来自 `pkg/system.GetEnv()`。
+
+## 4. 如何做到项目无损升级？
+
+这个问题主要对应 Helm 的 `updateStrategy` 和 Pod 的 `terminationGracePeriodSeconds` 设置。
+
+`updateStrategy` 的结构位置是：
+
+```yaml
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 1
+```
+
+### 什么时候这个配置会生效？
+
+当前 Helm 模板会把 `.Values.updateStrategy` 渲染到 `backend`、`application` 和 `file` 三类 Server 的 Deployment `strategy` 中。
+
+当 `updateStrategy.type` 为 `RollingUpdate` 时，Kubernetes 会在升级时滚动替换 Pod：
+
+- 先创建新的 Pod，并按 `maxSurge` 控制额外可创建的 Pod 数量
+- 再停止旧的 Pod，并按 `maxUnavailable` 控制升级期间允许不可用的 Pod 数量
+
+### 还需要配合什么？
+
+`RollingUpdate` 只负责控制 Pod 的替换顺序。要做到无损升级，还需要给旧 Pod 留出足够的退出时间：
+
+```yaml
+terminationGracePeriodSeconds: 120
+```
+
+这个值可以使用全局配置，也可以在 `backend`、`application`、`file` 各模块下单独覆盖。它需要和 [Server Graceful Shutdown](../concepts/server/graceful_shutdown.md) 配合使用，确保旧 Pod 收到退出信号后不再接收新流量，并在宽限期内处理完已有请求或任务。
+

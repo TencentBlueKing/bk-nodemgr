@@ -1096,6 +1096,9 @@ backend:
     workflow:
       # workerNum is the number of workers.
       workerNum: 4096
+      # gracefulShutdownTimeoutSeconds is the max seconds to wait running workflow tasks before cancelling them.
+      # When absent, Helm injects backend.terminationGracePeriodSeconds / 2.
+      # gracefulShutdownTimeoutSeconds: 60
       traceServiceName: "workflow"
       traceSampleRate: 0
 

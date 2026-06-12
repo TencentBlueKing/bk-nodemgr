@@ -40,7 +40,7 @@ data:
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
-    workflow: {{ .Values.backend.config.workflow | toYaml | nindent 6 }}
+    workflow: {{ include "bk-nodemgr.workflowConfig" (dict "config" .Values.backend.config.workflow "terminationGracePeriodSeconds" (.Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds)) | nindent 6 }}
 
     cmdb: {{ .Values.backend.config.cmdb | toYaml | nindent 6 }}
 

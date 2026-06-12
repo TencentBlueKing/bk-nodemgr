@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/RichardKnop/machinery/v2"
 	backendIface "github.com/RichardKnop/machinery/v2/backends/iface"
@@ -53,8 +54,9 @@ type IManager interface {
 }
 
 const (
-	queueNameDefault       = "operation_inst_engine_queue"
-	resultsExpireInDefault = 3600
+	queueNameDefault                       = "operation_inst_engine_queue"
+	resultsExpireInDefault                 = 3600
+	defaultGracefulShutdownTimeoutDuration = 60 * time.Second
 )
 
 // NewManager creates a new manager.
@@ -63,13 +65,17 @@ func NewManager(workerNum int, opts ...OptionsFunc) (IManager, error) {
 		mConfig: &machineryConfig.Config{
 			DefaultQueue:    queueNameDefault,
 			ResultsExpireIn: resultsExpireInDefault,
-			NoUnixSignals:   true,
+			// notice: this is used to prevent the worker from being terminated by the SIGTERM signal.
+			// we will handle the graceful shutdown in the manager.
+			NoUnixSignals: true,
 		},
 		isRunning:                        false,
 		registeredActionDefs:             make(map[string]action.Definition),
 		registeredOperExtraExecutionDefs: make(map[string]operation.ExtraExecution),
 		WorkerNum:                        workerNum,
+		gracefulShutdownTimeout:          defaultGracefulShutdownTimeoutDuration,
 		launchWorkerErr:                  make(chan error, 1),
+		handlerTail:                      make(chan struct{}),
 	}
 
 	for _, opt := range opts {
@@ -196,6 +202,17 @@ func WithLocker(lock locker.MutexFactory) OptionsFunc {
 	}
 }
 
+// WithGracefulShutdownTimeout sets the graceful shutdown timeout for the manager.
+func WithGracefulShutdownTimeout(timeout time.Duration) OptionsFunc {
+	return func(mgr *manager) {
+		if timeout <= 0 {
+			return
+		}
+
+		mgr.gracefulShutdownTimeout = timeout
+	}
+}
+
 type manager struct {
 	mConfig *machineryConfig.Config
 
@@ -208,9 +225,13 @@ type manager struct {
 	// WorkerNum defines the number of workers.
 	WorkerNum int
 
+	// gracefulShutdownTimeout defines how long running tasks can drain before manager context is cancelled.
+	gracefulShutdownTimeout time.Duration
+
 	// state
 	isRunning   bool
 	isConsuming bool
+	handlerTail chan struct{}
 
 	// context
 	ctx    contextx.IContext
@@ -268,18 +289,28 @@ func (mgr *manager) GracefulShutdown() error {
 		return errors.New("manager is not running")
 	}
 
-	if mgr.isConsuming {
-		go mgr.broker.StopConsuming()
-	}
-
 	mgr.isRunning = false
 	mgr.isConsuming = false
 
+	// Cancel is idempotent; defer covers the normal worker-exit path.
 	defer mgr.cancel()
 
-	err := <-mgr.launchWorkerErr
-	if !errors.Is(err, machinery.ErrWorkerQuitGracefully) {
-		return err
+	timer := time.NewTimer(mgr.gracefulShutdownTimeout)
+	defer timer.Stop()
+
+	go func() {
+		select {
+		case <-timer.C:
+			close(mgr.handlerTail)
+		}
+	}()
+
+	mgr.worker.Quit()
+	workerErr := <-mgr.launchWorkerErr
+	if workerErr != nil {
+		// notice: we don't use machinery.ErrWorkerQuitGracefully to check the error,
+		// because we set NoUnixSignals to true in the manager config, so the worker will not return this error.
+		return workerErr
 	}
 
 	return nil

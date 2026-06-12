@@ -13,6 +13,7 @@ package manager
 
 import (
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -86,14 +87,19 @@ type Config struct {
 
 // WorkflowConfig defines the workflow config.
 type WorkflowConfig struct {
-	WorkNodeNum int
-	Redis       config.Redis
+	WorkNodeNum             int
+	GracefulShutdownTimeout time.Duration
+	Redis                   config.Redis
 }
 
 // Validate configures the config.
 func (conf *WorkflowConfig) Validate() error {
 	if conf.WorkNodeNum <= 0 {
 		return errors.New("work node num is invalid")
+	}
+
+	if conf.GracefulShutdownTimeout <= 0 {
+		return errors.New("graceful shutdown timeout is invalid")
 	}
 
 	return conf.Redis.Validate()

@@ -78,8 +78,9 @@ const (
 	defaultBackendMongoDBAppName          = "bk_nodemgr_backend"
 	defaultBackendMongoDBTraceServiceName = "bk_nodemgr_mongo"
 
-	defaultBackendWorkflowTraceServiceName = "workflow"
-	defaultBackendWorkflowWorkerNum        = 10
+	defaultBackendWorkflowTraceServiceName            = "workflow"
+	defaultBackendWorkflowWorkerNum                   = 10
+	defaultBackendWorkflowGracefulShutdownTimeoutSecs = 60
 
 	defaultInstallerFileGroup = "/bk-nodemgr/file/tools"
 
@@ -201,7 +202,8 @@ func NewBackendService() *BackendService {
 			TraceService: TraceService{
 				TraceServiceName: defaultBackendWorkflowTraceServiceName,
 			},
-			WorkerNum: defaultBackendWorkflowWorkerNum,
+			WorkerNum:                      defaultBackendWorkflowWorkerNum,
+			GracefulShutdownTimeoutSeconds: defaultBackendWorkflowGracefulShutdownTimeoutSecs,
 		},
 		InfoServer: HTTPServer{
 			BindIP:   defaultBackendInfoBindIP,

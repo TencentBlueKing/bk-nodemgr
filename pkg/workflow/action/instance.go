@@ -163,6 +163,12 @@ func (life *Lifecycle) EndWithTerminated() {
 	life.State = StateTerminated
 }
 
+// Pending sets the action instance state to pending.
+// means the action instance is pending for rescheduling.
+func (life *Lifecycle) Pending() {
+	life.State = StatePending
+}
+
 // State defines action instance state.
 type State string
 

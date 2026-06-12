@@ -788,8 +788,9 @@ func (svc *Service) initialManager() error {
 		ProxyMessager:       svc.Cap.ProxyMessager,
 		Cache:               rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{
-			WorkNodeNum: svc.conf.Workflow.WorkerNum,
-			Redis:       svc.conf.Redis,
+			WorkNodeNum:             svc.conf.Workflow.WorkerNum,
+			GracefulShutdownTimeout: time.Duration(svc.conf.Workflow.GracefulShutdownTimeoutSeconds) * time.Second,
+			Redis:                   svc.conf.Redis,
 		},
 		TraceService: traceSvc,
 	})

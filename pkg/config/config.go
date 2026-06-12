@@ -591,14 +591,20 @@ func (conf TLSConfig) Validate() error {
 
 // Workflow the config of workflow.
 type Workflow struct {
-	TraceService `yaml:",inline"`
-	WorkerNum    int `yaml:"workerNum" usage:"worker num of workflow"`
+	TraceService                   `yaml:",inline"`
+	WorkerNum                      int `yaml:"workerNum" usage:"worker num of workflow"`
+	GracefulShutdownTimeoutSeconds int `yaml:"gracefulShutdownTimeoutSeconds" usage:"graceful shutdown timeout in seconds of workflow"`
 }
 
 // Validate validates the config.
 func (conf Workflow) Validate() error {
 	if conf.WorkerNum <= 0 {
 		return fmt.Errorf("worker num must be greater than 0, worker-num(%d)", conf.WorkerNum)
+	}
+
+	if conf.GracefulShutdownTimeoutSeconds <= 0 {
+		return fmt.Errorf("graceful shutdown timeout seconds must be greater than 0, seconds(%d)",
+			conf.GracefulShutdownTimeoutSeconds)
 	}
 
 	return nil
