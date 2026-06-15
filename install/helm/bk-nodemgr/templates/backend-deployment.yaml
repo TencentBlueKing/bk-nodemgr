@@ -83,11 +83,11 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.backend.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-backend
-          {{- if len .Values.backend.imageTag }}
+          {{- if len .Values.backend.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -150,11 +150,11 @@ spec:
 
       initContainers:
         - name: {{ template "bk-nodemgr.fullname" . }}-backend-check-mongodb
-          {{- if len .Values.backend.imageTag }}
+          {{- if len .Values.backend.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -189,11 +189,11 @@ spec:
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
         - name: {{ template "bk-nodemgr.fullname" . }}-backend-check-redis
-          {{- if len .Values.backend.imageTag }}
+          {{- if len .Values.backend.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -233,11 +233,11 @@ spec:
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
         - name: {{ template "bk-nodemgr.fullname" . }}-backend-init
-          {{- if len .Values.backend.imageTag }}
+          {{- if len .Values.backend.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}

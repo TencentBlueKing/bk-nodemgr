@@ -25,7 +25,7 @@ spec:
         {{- end }}
         app: nodemgr-apigw-sync
     spec:
-      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
+      {{- include "bk-nodemgr.apiManagerImagePullSecrets" . | nindent 6 }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
@@ -48,13 +48,13 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-apigw-sync
-          {{- $apigwTag := default .Values.image.tag .Values.apigwSync.imageTag }}
+          {{- $apigwTag := default .Values.image.tag .Values.apiManagerImage.tag }}
           {{- if .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.apigwSync.repository }}:{{ $apigwTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.apiManagerImage.repository }}:{{ $apigwTag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.apigwSync.repository }}:{{ $apigwTag }}
+          image: {{ .Values.apiManagerImage.registry }}/{{ .Values.apiManagerImage.repository }}:{{ $apigwTag }}
           {{- end }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          imagePullPolicy: {{ .Values.apiManagerImage.pullPolicy | quote }}
           volumeMounts:
             - name: apigw-sync-config
               mountPath: "/data/definition.yaml"

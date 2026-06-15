@@ -1,0 +1,5 @@
+## 此处描述部分配置项用于测试
+
+## 同步APIGateway资源配置
+apigwSync:
+  enabled: true

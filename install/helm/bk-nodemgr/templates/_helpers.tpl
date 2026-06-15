@@ -34,6 +34,13 @@ Return the proper bk-nodemgr image registry secret names
 {{- end -}}
 
 {{/*
+Return the proper bk-nodemgr apigw-sync image registry secret names
+*/}}
+{{- define "bk-nodemgr.apiManagerImagePullSecrets" -}}
+{{ include "common.images.pullSecrets" (dict "images" (list .Values.image .Values.apiManagerImage) "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper bk-nodemgr replica count
 {{ include "bk-nodemgr.replicaCount" ( dict "module" .Values.path.to.module ) }}
 */}}

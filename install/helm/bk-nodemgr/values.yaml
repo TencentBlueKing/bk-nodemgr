@@ -12,7 +12,7 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
   storageClass: ""
 
 ## @section Common parameters
@@ -28,13 +28,13 @@ nameOverride: ""
 fullnameOverride: ""
 ## @param commonLabels Labels to add to all deployed objects
 ##
-commonLabels: { }
+commonLabels: {}
 ## @param commonAnnotations Annotations to add to all deployed objects
 ##
-commonAnnotations: { }
+commonAnnotations: {}
 ## @param extraDeploy Array of extra objects to deploy with the release
 ##
-extraDeploy: [ ]
+extraDeploy: []
 
 image:
   registry: "hub.bktencent.com"
@@ -52,7 +52,25 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  pullSecrets: [ ]
+  pullSecrets: []
+
+apiManagerImage:
+  registry: "hub.bktencent.com"
+  repository: "blueking/bk-nodemgr-apigw-sync"
+  tag: v3.0.1-alpha.39
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## e.g:
+  ## pullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  pullSecrets: []
 
 ## @param extraEnvVars Array with extra environment variables to add to the bk-nodemgr container
 ## e.g:
@@ -60,7 +78,7 @@ image:
 ##   - name: FOO
 ##     value: "bar"
 ##
-extraEnvVars: [ ]
+extraEnvVars: []
 
 ## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars
 ##
@@ -104,13 +122,13 @@ serviceAccount:
 ## @param hostAliases [array] bk-nodemgr pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
-hostAliases: [ ]
+hostAliases: []
 ## @param extraVolumes Optionally specify extra list of additional volumes for bk-nodemgr pods
 ##
-extraVolumes: [ ]
+extraVolumes: []
 ## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for bk-nodemgr container(s)
 ##
-extraVolumeMounts: [ ]
+extraVolumeMounts: []
 ## @param sidecars Add additional sidecar containers to the bk-nodemgr pod
 ## e.g:
 ## sidecars:
@@ -121,7 +139,7 @@ extraVolumeMounts: [ ]
 ##       - name: portname
 ##         containerPort: 1234
 ##
-sidecars: [ ]
+sidecars: []
 ## @param initContainers Add additional init containers to the bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 ## e.g:
@@ -131,7 +149,7 @@ sidecars: [ ]
 ##    imagePullPolicy: Always
 ##    command: ['sh', '-c', 'copy addons from git and push to /bk-nodemgr/addons. Should work with extraVolumeMounts and extraVolumes']
 ##
-initContainers: [ ]
+initContainers: []
 
 ## @param initContainerResources init container resources.
 initContainerResources:
@@ -145,11 +163,11 @@ initContainerResources:
 ## @param podLabels Extra labels for bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels: { }
+podLabels: {}
 ## @param podAnnotations Annotations for bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
-podAnnotations: { }
+podAnnotations: {}
 ## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
 ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
 ##
@@ -174,20 +192,20 @@ nodeAffinityPreset:
   ##   - e2e-az1
   ##   - e2e-az2
   ##
-  values: [ ]
+  values: []
 ## @param affinity Affinity for pod assignment
 ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ## NOTE: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
 ##
-affinity: { }
+affinity: {}
 ## @param nodeSelector Node labels for pod assignment
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
 ##
-nodeSelector: { }
+nodeSelector: {}
 ## @param tolerations Tolerations for pod assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 ##
-tolerations: [ ]
+tolerations: []
 ##
 ## @param terminationGracePeriodSeconds Termination grace period in seconds
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
@@ -264,10 +282,10 @@ readinessProbe:
 
 ## @param customLivenessProbe Custom livenessProbe that overrides the default one
 ##
-customLivenessProbe: { }
+customLivenessProbe: {}
 ## @param customReadinessProbe Custom readinessProbe that overrides the default one
 #
-customReadinessProbe: { }
+customReadinessProbe: {}
 
 ## bk-nodemgr Autoscaling configuration
 ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
@@ -413,7 +431,7 @@ externalRedis:
   ## - sentinel: ["sentinel1:26379", "sentinel2:26379"] (sentinel addresses)
   ## - cluster: ["node1:6379", "node2:6379"] (cluster node addresses)
   ##
-  addrs: [ ]
+  addrs: []
   ## external redis service password
   ##
   password: ""
@@ -503,9 +521,9 @@ mongodb:
     database: "nodemgr"
     authSource: "admin"
     ## username,password, database will create the extra user,password,database when mongodb init.
-    usernames: [ "nodemgr" ]
-    passwords: [ "defaultpassword" ]
-    databases: [ "nodemgr" ]
+    usernames: ["nodemgr"]
+    passwords: ["defaultpassword"]
+    databases: ["nodemgr"]
     ## @param auth.replicaSetKey Key used for authentication in the replicaset (only when `architecture=replicaset`)
     ##
     replicaSetKey: ""
@@ -621,23 +639,24 @@ application:
   ##
   enabled: true
 
-  ## @param imageTag module image tag, it's empty as default.
-  ## NOTE: would use root image configs when it's empty.
-  imageTag: ""
+  image:
+    ## @param tag module image tag, it's empty as default.
+    ## NOTE: would use root image configs when it's empty.
+    tag: ""
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: false
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
+  nodeSelector: {}
 
   ## @param tolerations module pod tolerations.
-  tolerations: [ ]
+  tolerations: []
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -931,7 +950,7 @@ application:
       # otlp insecure skip verify
       otlpInsecure: false
       # otlp headers
-      otlpHeaders: { }
+      otlpHeaders: {}
 
     # defines the config policy option settings.
     configPolicyOption:
@@ -948,23 +967,24 @@ backend:
   ##
   enabled: true
 
-  ## @param imageTag module image tag, it's empty as default.
-  ## NOTE: would use root image configs when it's empty.
-  imageTag: ""
+  image:
+    ## @param tag module image tag, it's empty as default.
+    ## NOTE: would use root image configs when it's empty.
+    tag: ""
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: true
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
+  nodeSelector: {}
 
   ## @param tolerations module pod tolerations.
-  tolerations: [ ]
+  tolerations: []
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -1282,7 +1302,7 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
-          commonConstants: { }
+          commonConstants: {}
       - # defines the gse deploy related settings.
         generation: 2
         osType: "windows"
@@ -1295,7 +1315,7 @@ backend:
         pluginCustom:
           logDir: ""
           hostIDPath: ""
-          commonConstants: { }
+          commonConstants: {}
 
     # defines the access settings.
     access:
@@ -1390,7 +1410,7 @@ backend:
       # otlp insecure skip verify
       otlpInsecure: false
       # otlp headers
-      otlpHeaders: { }
+      otlpHeaders: {}
 
 ## Nodemgr file
 ##
@@ -1399,23 +1419,24 @@ file:
   ##
   enabled: true
 
-  ## @param imageTag module image tag, it's empty as default.
-  ## NOTE: would use root image configs when it's empty.
-  imageTag: ""
+  image:
+    ## @param tag module image tag, it's empty as default.
+    ## NOTE: would use root image configs when it's empty.
+    tag: ""
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: true
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
+  nodeSelector: {}
 
   ## @param tolerations module pod tolerations.
-  tolerations: [ ]
+  tolerations: []
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -1586,15 +1607,11 @@ file:
       # otlp insecure skip verify
       otlpInsecure: false
       # otlp headers
-      otlpHeaders: { }
+      otlpHeaders: {}
 
 ## Nodemgr apigw-sync
 apigwSync:
   enabled: false
-  repository: "blueking/bk-nodemgr-apigw-sync"
-  ## @param imageTag module image tag, it's empty as default.
-  ## NOTE: would use root image.tag when it's empty.
-  imageTag: ""
   extraEnvVars:
     - name: BK_APIGW_NAME
       value: "bk-nodemgr"
@@ -1748,7 +1765,7 @@ serviceMonitor:
   ## selector:
   ##   prometheus: my-prometheus
   ##
-  selector: { }
+  selector: {}
   ## @param serviceMonitor.honorLabels Honor metrics labels
   ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
   ## e.g:
@@ -1758,8 +1775,8 @@ serviceMonitor:
   ## @param serviceMonitor.relabelings ServiceMonitor relabelings
   ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
   ##
-  relabelings: [ ]
+  relabelings: []
   ## @param serviceMonitor.metricRelabelings ServiceMonitor metricRelabelings
   ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig
   ##
-  metricRelabelings: [ ]
+  metricRelabelings: []

@@ -83,11 +83,11 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.file.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-file
-          {{- if len .Values.file.imageTag }}
+          {{- if len .Values.file.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -150,11 +150,11 @@ spec:
 
       initContainers:
         - name: {{ template "bk-nodemgr.fullname" . }}-file-check-mongodb
-          {{- if len .Values.file.imageTag }}
+          {{- if len .Values.file.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -189,11 +189,11 @@ spec:
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
         - name: {{ template "bk-nodemgr.fullname" . }}-file-init
-          {{- if len .Values.file.imageTag }}
+          {{- if len .Values.file.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}

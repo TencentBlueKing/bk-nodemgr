@@ -83,11 +83,11 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.application.terminationGracePeriodSeconds | default .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-application
-          {{- if len .Values.application.imageTag }}
+          {{- if len .Values.application.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -162,11 +162,11 @@ spec:
 
       initContainers:
         - name: {{ template "bk-nodemgr.fullname" . }}-application-check-mongodb
-          {{- if len .Values.application.imageTag }}
+          {{- if len .Values.application.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
@@ -201,11 +201,11 @@ spec:
             EOF
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
         - name: {{ template "bk-nodemgr.fullname" . }}-application-init
-          {{- if len .Values.application.imageTag }}
+          {{- if len .Values.application.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.application.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
