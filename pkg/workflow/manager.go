@@ -295,25 +295,32 @@ func (mgr *manager) GracefulShutdown() error {
 	// Cancel is idempotent; defer covers the normal worker-exit path.
 	defer mgr.cancel()
 
-	timer := time.NewTimer(mgr.gracefulShutdownTimeout)
+	timer := time.AfterFunc(mgr.gracefulShutdownTimeout, func() {
+		close(mgr.handlerTail)
+	})
 	defer timer.Stop()
 
+	triggerErrCh := make(chan error, 1)
 	go func() {
-		select {
-		case <-timer.C:
-			close(mgr.handlerTail)
-		}
+		triggerErrCh <- mgr.triggerHandler.GracefulShutdown(mgr.gracefulShutdownTimeout)
 	}()
 
-	mgr.worker.Quit()
-	workerErr := <-mgr.launchWorkerErr
+	var workerErr error
+	if mgr.worker != nil {
+		mgr.worker.Quit()
+		workerErr = <-mgr.launchWorkerErr
+	}
 	if workerErr != nil {
 		// notice: we don't use machinery.ErrWorkerQuitGracefully to check the error,
 		// because we set NoUnixSignals to true in the manager config, so the worker will not return this error.
-		return workerErr
+		workerErr = fmt.Errorf("worker shutdown: %w", workerErr)
 	}
 
-	return nil
+	if triggerErr := <-triggerErrCh; triggerErr != nil {
+		return errors.Join(workerErr, fmt.Errorf("trigger handler shutdown: %w", triggerErr))
+	}
+
+	return workerErr
 }
 
 // CheckHealth checks the health of the manager.

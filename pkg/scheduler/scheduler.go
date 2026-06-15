@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -51,7 +52,11 @@ func NextActiveTime(cronExpr string, from time.Time) (time.Time, error) {
 type Scheduler interface {
 	RegisterTask(task *Task) error
 	Start()
+	// Terminate stops scheduling immediately without waiting for in-flight tasks.
 	Terminate()
+	// GracefulShutdown stops scheduling new tasks, waits for in-flight task functions to finish
+	// within timeout, then cancels the scheduler context as a fallback.
+	GracefulShutdown(timeout time.Duration) error
 	RemoveTask(id string)
 	ListTask() map[string]*Task
 }
@@ -97,6 +102,10 @@ type scheduler struct {
 	ctx    contextx.IContext
 	cancel context.CancelFunc
 	cron   *cron.Cron
+
+	// shuttingDown is set during GracefulShutdown so in-flight tasks use scheduler.ctx
+	// and can be cancelled in the fallback phase. Terminate() keeps the original behavior.
+	shuttingDown atomic.Bool
 }
 
 // scheduledTask ...
@@ -170,7 +179,12 @@ func (s *scheduler) Start() {
 
 // executeTask ...
 func (s *scheduler) executeTask(task *scheduledTask) {
-	ctx, cancel := contextx.WithTimeout(contextx.New(context.Background()), task.Timeout)
+	baseCtx := contextx.New(context.Background())
+	if s.shuttingDown.Load() {
+		baseCtx = contextx.From(s.ctx)
+	}
+
+	ctx, cancel := contextx.WithTimeout(baseCtx, task.Timeout)
 	defer cancel()
 
 	defer func() {
@@ -203,6 +217,51 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 func (s *scheduler) Terminate() {
 	s.cron.Stop()
 	s.cancel()
+}
+
+// GracefulShutdown ...
+func (s *scheduler) GracefulShutdown(timeout time.Duration) error {
+	if timeout <= 0 {
+		s.Terminate()
+
+		return nil
+	}
+
+	s.shuttingDown.Store(true)
+
+	deadline := time.Now().Add(timeout)
+	stopCtx := s.cron.Stop()
+
+	if err := waitUntilDone(stopCtx, deadline); err != nil {
+		logger.G.Sys().With("timeout", timeout).Warn("scheduler graceful shutdown entering fallback phase")
+		s.cancel()
+		_ = waitUntilDone(stopCtx, deadline)
+
+		return fmt.Errorf("scheduler graceful shutdown timed out: %w", err)
+	}
+
+	s.cancel()
+
+	logger.G.Sys().Debug("scheduler graceful shutdown completed")
+
+	return nil
+}
+
+func waitUntilDone(ctx context.Context, deadline time.Time) error {
+	remaining := time.Until(deadline)
+	if remaining <= 0 {
+		return context.DeadlineExceeded
+	}
+
+	timer := time.NewTimer(remaining)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-timer.C:
+		return context.DeadlineExceeded
+	}
 }
 
 // RemoveTask removes a task by its ID.

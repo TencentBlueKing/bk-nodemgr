@@ -12,9 +12,11 @@
 package workflow
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -79,6 +81,7 @@ func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*trigger
 
 		tracerProvider:            mgr.traceSvc.TracerProvider(),
 		triggerExecutionSemaphore: make(chan struct{}, triggerExecutionConcurrency),
+		triggerExecutionDone:      make(chan struct{}),
 	}
 	var err error
 	trigHandler.goAsyncPool, err = goasync.NewHandler(goasync.HandlerOption{
@@ -89,6 +92,7 @@ func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*trigger
 	if err != nil {
 		return nil, fmt.Errorf("failed to create goasync handler: %w", err)
 	}
+	close(trigHandler.triggerExecutionDone)
 
 	return trigHandler, nil
 }
@@ -108,10 +112,17 @@ type triggerHandler struct {
 	tracerProvider trace.TracerProvider
 
 	triggerExecutionSemaphore chan struct{}
+	triggerExecutionMutex     sync.Mutex
+	triggerExecutionCount     int
+	triggerExecutionDone      chan struct{}
+
+	shuttingDown atomic.Bool
 }
 
 // Start starts the manager.
 func (handler *triggerHandler) Start() {
+	handler.shuttingDown.Store(false)
+
 	if handler.scheduler != nil {
 		handler.scheduler.Terminate()
 	}
@@ -125,6 +136,79 @@ func (handler *triggerHandler) Start() {
 func (handler *triggerHandler) Stop() {
 	if handler.scheduler != nil {
 		handler.scheduler.Terminate()
+	}
+}
+
+// GracefulShutdown stops trigger scheduling and waits for in-flight trigger tasks to finish.
+func (handler *triggerHandler) GracefulShutdown(timeout time.Duration) error {
+	handler.shuttingDown.Store(true)
+
+	if timeout <= 0 {
+		handler.Stop()
+		return nil
+	}
+
+	deadline := time.Now().Add(timeout)
+	if handler.scheduler != nil {
+		if err := handler.scheduler.GracefulShutdown(timeout); err != nil {
+			logger.G.Sys().WithErr(err).Warn("trigger handler scheduler graceful shutdown timed out")
+
+			return err
+		}
+	}
+
+	if err := handler.waitTriggerExecutions(deadline); err != nil {
+		return fmt.Errorf("wait trigger executions: %w", err)
+	}
+
+	logger.G.Sys().Debug("trigger handler graceful shutdown completed")
+
+	return nil
+}
+
+func (handler *triggerHandler) waitTriggerExecutions(deadline time.Time) error {
+	remaining := time.Until(deadline)
+	if remaining <= 0 {
+		return context.DeadlineExceeded
+	}
+
+	handler.triggerExecutionMutex.Lock()
+	if handler.triggerExecutionDone == nil {
+		handler.triggerExecutionDone = make(chan struct{})
+		close(handler.triggerExecutionDone)
+	}
+	done := handler.triggerExecutionDone
+	handler.triggerExecutionMutex.Unlock()
+
+	timer := time.NewTimer(remaining)
+	defer timer.Stop()
+
+	select {
+	case <-done:
+		return nil
+	case <-timer.C:
+		return context.DeadlineExceeded
+	}
+}
+
+func (handler *triggerHandler) trackTriggerExecutionLocked() func() {
+	if handler.triggerExecutionCount == 0 {
+		handler.triggerExecutionDone = make(chan struct{})
+	}
+	handler.triggerExecutionCount++
+
+	var doneOnce sync.Once
+
+	return func() {
+		doneOnce.Do(func() {
+			handler.triggerExecutionMutex.Lock()
+			defer handler.triggerExecutionMutex.Unlock()
+
+			handler.triggerExecutionCount--
+			if handler.triggerExecutionCount == 0 {
+				close(handler.triggerExecutionDone)
+			}
+		})
 	}
 }
 
@@ -294,6 +378,12 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 	logger.G.Sys().With("count", len(list)).Debug("check trigger list")
 
 	for idx := range list {
+		handler.triggerExecutionMutex.Lock()
+		if handler.shuttingDown.Load() {
+			handler.triggerExecutionMutex.Unlock()
+			break
+		}
+
 		trig := list[idx]
 		fn := func(nCtx contextx.IContext) error {
 			handler.triggerExecutionSemaphore <- struct{}{}
@@ -331,9 +421,16 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 			return nil
 		}
 
-		if err := handler.goAsyncPool.Run(nCtx, fn,
-			goasync.WithName("executeTriggerList"),
-		); err != nil {
+		done := handler.trackTriggerExecutionLocked()
+		handler.triggerExecutionMutex.Unlock()
+
+		if err := handler.goAsyncPool.Run(nCtx, func(nCtx contextx.IContext) error {
+			defer done()
+
+			return fn(nCtx)
+		}, goasync.WithName("executeTriggerList")); err != nil {
+			done()
+
 			return fmt.Errorf("failed to push trigger fn to async pool: %w", err)
 		}
 	}
