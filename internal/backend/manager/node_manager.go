@@ -321,6 +321,7 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 
 	// Automatic proxy install supports both cross-unit SSH-only mode and same-unit relay mode.
 	crossUnit := isCrossUnitProxyInstall(deploy)
+
 	return node.NewOperInstallProxyBySSH(node.OperParamInstallProxyBySSH{
 		Token:     deploy.Token,
 		Operator:  operator,

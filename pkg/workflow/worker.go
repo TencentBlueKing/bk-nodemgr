@@ -35,8 +35,9 @@ type IWorker interface {
 }
 
 const (
-	consumerTag         = ""
-	engineMaxRetryLimit = uint(10)
+	consumerTag                        = ""
+	engineMaxRetryLimit                = uint(10)
+	longTailActionRetryDelayMultiplier = 5
 )
 
 func (mgr *manager) launchWorker() error {
@@ -484,9 +485,9 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 	}
 }
 
-// longTailActionRetryDelay
+// longTailActionRetryDelay returns the retry delay for long tail actions.
 func longTailActionRetryDelay() time.Duration {
-	return redisNormalTasksPollPeriod * time.Millisecond * 5
+	return redisNormalTasksPollPeriod * time.Millisecond * longTailActionRetryDelayMultiplier
 }
 
 // handleLongTailAction handles long tail action, according to whether the action is retryable,
@@ -516,22 +517,22 @@ func (mgr *manager) handleLongTailAction(nCtx contextx.IContext, actionInstData 
 		return tasks.NewErrRetryTaskLater(
 			fmt.Sprintf("worker is shutting down, action will be rescheduled, oper-inst-id(%s), action-name(%s), delay(%s)",
 				actionInstData.OperationID, actionInstData.Name, longTailActionRetryDelay()), longTailActionRetryDelay())
-	} else {
-		actionInstData.Lifecycle.EndWithTerminated()
-
-		logger.G.Sys().Ctx(nCtx).
-			With("oper-inst-id", actionInstData.OperationID, "action-name", actionInstData.Name).
-			Warn("worker is shutting down and this action is not retryable, action will be terminated")
-
-		actionInstData.Log().
-			Zh("worker 即将关闭，action 将被终止执行，oper-inst-id(%s), action-name(%s)",
-				actionInstData.OperationID, actionInstData.Name).
-			En("worker is shutting down and this action is not retryable, action will be terminated, oper-inst-id(%s), action-name(%s)",
-				actionInstData.OperationID, actionInstData.Name).Error()
-
-		return fmt.Errorf("worker is shutting down and this action is not retryable, action will be terminated, oper-inst-id(%s), action-name(%s)",
-			actionInstData.OperationID, actionInstData.Name)
 	}
+
+	actionInstData.Lifecycle.EndWithTerminated()
+
+	logger.G.Sys().Ctx(nCtx).
+		With("oper-inst-id", actionInstData.OperationID, "action-name", actionInstData.Name).
+		Warn("worker is shutting down and this action is not retryable, action will be terminated")
+
+	actionInstData.Log().
+		Zh("worker 即将关闭，action 将被终止执行，oper-inst-id(%s), action-name(%s)",
+			actionInstData.OperationID, actionInstData.Name).
+		En("worker is shutting down and this action is not retryable, action will be terminated, oper-inst-id(%s), action-name(%s)",
+			actionInstData.OperationID, actionInstData.Name).Error()
+
+	return fmt.Errorf("worker is shutting down and this action is not retryable, action will be terminated, oper-inst-id(%s), action-name(%s)",
+		actionInstData.OperationID, actionInstData.Name)
 }
 
 func (mgr *manager) executeAction(nCtx contextx.IContext, doResult chan error,
