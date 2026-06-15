@@ -1002,7 +1002,23 @@ paths:
                             cycle_times:
                               type: array
                               items:
-                                type: string
+                                type: object
+                                properties:
+                                  bk_host_id:
+                                    type: integer
+                                    format: int64
+                                  bk_host_innerip_list:
+                                    type: array
+                                    items:
+                                      type: string
+                                  bk_host_innerip_v6_list:
+                                    type: array
+                                    items:
+                                      type: string
+                                  bk_agent_id:
+                                    type: string
+                                  time:
+                                    type: string
                             total_agent:
                               type: integer
                               format: int64
@@ -1126,7 +1142,23 @@ paths:
                           cycle_times:
                             type: array
                             items:
-                              type: string
+                              type: object
+                              properties:
+                                bk_host_id:
+                                  type: integer
+                                  format: int64
+                                bk_host_innerip_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_host_innerip_v6_list:
+                                  type: array
+                                  items:
+                                    type: string
+                                bk_agent_id:
+                                  type: string
+                                time:
+                                  type: string
                           total_agent:
                             type: integer
                             format: int64
