@@ -705,6 +705,26 @@ export interface TopoGraphNodeGetReq {
   bk_networkunit_id: number[];
 }
 
+// CycleTime describes the cycle time of a node in graph.
+export interface CycleTime {
+  bk_host_id: number;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
+  bk_agent_id: string;
+  time: string;
+}
+
+// GraphNodeInfo describes the node information in graph.
+export interface GraphNodeInfo {
+  bk_networkunit_id: number;
+  running_proxy: number;
+  total_proxy: number;
+  running_agent: number;
+  total_agent: number;
+  is_healthy: boolean;
+  cycle_times: CycleTime[];
+}
+
 // TopoGraphNodeGetResp describes the HTTP response body when get node
 export interface TopoGraphNodeGetResp {
   code: number;
@@ -713,16 +733,6 @@ export interface TopoGraphNodeGetResp {
   error: Error;
   permission: Permission;
   data: TopoGraphNodeGetRespData;
-}
-
-export interface TopoGraphNodeGetRespGraphNodeInfo {
-  bk_networkunit_id: number;
-  running_proxy: number;
-  total_proxy: number;
-  running_agent: number;
-  total_agent: number;
-  is_healthy: boolean;
-  cycle_times: string[];
 }
 
 export interface TopoGraphNodeGetRespData {

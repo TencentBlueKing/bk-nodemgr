@@ -4,6 +4,7 @@ import { Circle as GCircle, Image as GImage, Line as GLine, Rect as GRect, Text 
 import type { BaseNodeStyleProps } from '@antv/g6';
 import { BaseNode } from '@antv/g6';
 
+import type { CycleTime } from '@/@types/topo';
 import JumpLink from '../../../../../public/images/jump-link.svg';
 import More from '../../../../../public/images/more.svg';
 import VectorDirect from '../../../../../public/images/vector-direct.svg';
@@ -19,7 +20,7 @@ export interface INodeData {
   total_proxy: number;
   running_agent: number;
   total_agent: number;
-  cycle_times: string[];
+  cycle_times: CycleTime[];
   is_healthy: Boolean;
   area?: string;
   is_direct?: boolean;
@@ -76,18 +77,25 @@ export default class NetWorkUnitNode extends BaseNode {
     return NetWorkUnitNode.redColor;
   }
 
-  /** 解析 cycle_times 数组为展平的数值列表（每组为 "4, 4, 4 ms" 格式的字符串） */
-  static parseCycleTimes(cycleTimes: string[]): number[] {
-    return cycleTimes.flatMap((groupStr) =>
-      groupStr.split(',').map(s => parseInt(s.trim().replace(/ms$/gi, ''), 10) || 0)
+  /** 解析 cycle_times 为展平的数值列表 */
+  static parseCycleTimes(cycleTimes: CycleTime[]): number[] {
+    return cycleTimes.flatMap((ct) =>
+      ct.time.split(',').map(s => parseInt(s.trim().replace(/ms$/gi, ''), 10) || 0)
     );
   }
 
-  /** 解析 cycle_times 为分组格式，每组代表一台机器的 [1min, 5min, 15min] 延迟值 */
-  static parseCycleTimesGrouped(cycleTimes: string[]): number[][] {
-    return cycleTimes.map((groupStr) =>
-      groupStr.split(',').map(s => parseInt(s.trim().replace(/ms$/gi, ''), 10) || 0)
+  /** 解析 cycle_times 为分组 [1min, 5min, 15min]，每组代表一台机器 */
+  static parseCycleTimesGrouped(cycleTimes: CycleTime[]): number[][] {
+    return cycleTimes.map((ct) =>
+      ct.time.split(',').map(s => parseInt(s.trim().replace(/ms$/gi, ''), 10) || 0)
     );
+  }
+
+  /** 从 CycleTime 获取展示用 IP */
+  static getDisplayIP(ct: CycleTime): string {
+    if (ct.bk_host_innerip_list.length > 0) return ct.bk_host_innerip_list[0];
+    if (ct.bk_host_innerip_v6_list.length > 0) return ct.bk_host_innerip_v6_list[0];
+    return ct.bk_agent_id || '--';
   }
 
 
@@ -467,29 +475,37 @@ export default class NetWorkUnitNode extends BaseNode {
           cursor: 'pointer',
         }, container);
         
-        // 按机器分组展示延迟（1min / 5min / 15min 横向排列）
-        const groupedLatencies = NetWorkUnitNode.parseCycleTimesGrouped(cycle_times || []);
+        // 按机器分组展示延迟（IP | 1min | 5min | 15min 横向排列）
+        const ctData = cycle_times || [];
+        const groupedLatencies = NetWorkUnitNode.parseCycleTimesGrouped(ctData);
         if (groupedLatencies.length > 0 && cycleEl) {
-          const tooltipHTML = `<div style="white-space:normal;font-size:12px;min-width:180px">
-            <div style="display:flex;gap:10px;margin-bottom:6px;color:#979BA5;font-size:11px;border-bottom:1px solid #DCDEE5;padding-bottom:4px">
-              <span style="width:52px;text-align:center;font-weight:600">1min</span>
-              <span style="width:52px;text-align:center;font-weight:600">5min</span>
-              <span style="width:52px;text-align:center;font-weight:600">15min</span>
-            </div>
-            ${groupedLatencies.map((group: number[]) => {
-              const groupMax = Math.max(...group);
-              return `<div style="display:flex;gap:10px;line-height:2.2">
-                ${group.map((v: number) => {
-                  const color = NetWorkUnitNode.getLatencyColor(v);
-                  return `<span style="display:flex;align-items:center;justify-content:center;gap:4px;width:52px">
-                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></span>
-                    <span style="font-weight:${v === groupMax ? 700 : 400}">${v}ms</span>
-                  </span>`;
-                }).join('')}
-              </div>`;
-            }).join('')}
+          const headerHTML = `<div style="display:flex;gap:10px;margin-bottom:6px;color:#979BA5;font-size:11px;border-bottom:1px solid #DCDEE5;padding-bottom:4px">
+            <span style="width:120px;text-align:left;font-weight:600">IP</span>
+            <span style="width:52px;text-align:center;font-weight:600">1min</span>
+            <span style="width:52px;text-align:center;font-weight:600">5min</span>
+            <span style="width:52px;text-align:center;font-weight:600">15min</span>
           </div>`;
-          
+          const rowsHTML = ctData.map((ct, idx: number) => {
+            const group = groupedLatencies[idx] || [0, 0, 0];
+            const groupMax = Math.max(...group);
+            const displayIP = NetWorkUnitNode.getDisplayIP(ct);
+            const latencyCells = group.map((v: number) => {
+              const color = NetWorkUnitNode.getLatencyColor(v);
+              return `<span style="display:flex;align-items:center;justify-content:center;gap:4px;width:52px">
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></span>
+                <span style="font-weight:${v === groupMax ? 700 : 400}">${v}ms</span>
+              </span>`;
+            }).join('');
+            return `<div style="display:flex;gap:10px;line-height:2.2">
+              <span style="width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-weight:${groupMax > 0 ? 600 : 400}" title="${displayIP}">${displayIP}</span>
+              ${latencyCells}
+            </div>`;
+          }).join('');
+          const tooltipHTML = `<div style="white-space:normal;font-size:12px;min-width:310px">
+            ${headerHTML}
+            ${rowsHTML}
+          </div>`;
+
           cycleEl.addEventListener('mouseenter', (event: any) => {
             const bounds = cycleEl.getRenderBounds();
             const mouseX = event.clientX;
@@ -498,9 +514,8 @@ export default class NetWorkUnitNode extends BaseNode {
             const targetHeight = bounds.max[1] - bounds.min[1];
             const targetX = mouseX - targetWidth / 2;
             const targetY = mouseY - targetHeight / 2;
-            textTooltip.showHTML(tooltipHTML, targetX, targetY, targetWidth, targetHeight, 220);
+            textTooltip.showHTML(tooltipHTML, targetX, targetY, targetWidth, targetHeight, 310);
           });
-          
           cycleEl.addEventListener('mouseleave', () => {
             textTooltip.hide();
           });

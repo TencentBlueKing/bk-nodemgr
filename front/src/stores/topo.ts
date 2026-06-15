@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 
-import type { TopoNetworkAreaListReq } from '@/@types/topo';
+import type { CycleTime, GraphNodeInfo, TopoNetworkAreaListReq } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
 
 // 定义类型（确保类型一致）
@@ -20,7 +20,7 @@ type NetworkUnit = Omit<NetworkUnitBrief, 'accesspoints'> & {
   running_agent: number;
   total_agent: number;
   is_healthy: boolean;
-  cycle_times: string[];
+  cycle_times: CycleTime[];
 };
 
 type NetworkUnitGraph = any;
@@ -32,11 +32,7 @@ export const useTopoStore = defineStore('topo', () => {
   const workareaTotalCount = ref(0);
   const allWorkGraphNodes = ref<NetworkUnitGraph[]>([]);
   const allWorkGraphEdges = ref<LinkGraph[]>([]);
-  const allWorkGraphInfos = ref<{
-    bk_networkunit_id: number;
-    proxy: number;
-    agent: number;
-  }[]>([]);
+  const allWorkGraphInfos = ref<GraphNodeInfo[]>([]);
 
   // 有权限的接入点完整信息（含 endpoints），key = accesspoint_id
   const accessPointDetailMap = ref<Map<number, AccessPoint>>(new Map());
