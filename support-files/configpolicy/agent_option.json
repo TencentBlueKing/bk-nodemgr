@@ -187,6 +187,40 @@
                 "value_int_select": [],
                 "value_group_fixed": {},
                 "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "bt_port_range_start",
+                "name_en": "BT port range start",
+                "name_zh": "BT端口范围起始",
+                "remark_en": "The starting port for the BT protocol range.",
+                "remark_zh": "BT协议端口范围的起始端口.",
+                "key": "agent.file.bt_port_range_start",
+                "type": 1,
+                "value_string": "",
+                "value_int": 60020,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "bt_port_range_end",
+                "name_en": "BT port range end",
+                "name_zh": "BT端口范围结束",
+                "remark_en": "The ending port for the BT protocol range.",
+                "remark_zh": "BT协议端口范围的结束端口.",
+                "key": "agent.file.bt_port_range_end",
+                "type": 1,
+                "value_string": "",
+                "value_int": 60030,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
             }
         ]
     }
