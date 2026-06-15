@@ -41,15 +41,20 @@ func ccHostFields() []ccField {
 }
 
 const (
-	ccFieldBKInnerIP     ccField = "bk_host_innerip"
-	ccFieldBKHostID      ccField = "bk_host_id"
-	ccFieldBKHostName    ccField = "bk_host_name"
-	ccFieldBKCloudID     ccField = "bk_cloud_id"
-	ccFieldBKAddressing  ccField = "bk_addressing"
-	ccFieldBKSetID       ccField = "bk_set_id"
-	ccFieldSetTemplateID ccField = "set_template_id"
-	ccFieldBKSetName     ccField = "bk_set_name"
-	ccFieldBKBizID       ccField = "bk_biz_id"
+	ccFieldBKInnerIP          ccField = "bk_host_innerip"
+	ccFieldBKHostID           ccField = "bk_host_id"
+	ccFieldBKHostName         ccField = "bk_host_name"
+	ccFieldBKCloudID          ccField = "bk_cloud_id"
+	ccFieldBKAddressing       ccField = "bk_addressing"
+	ccFieldBKSetID            ccField = "bk_set_id"
+	ccFieldSetTemplateID      ccField = "set_template_id"
+	ccFieldBKSetName          ccField = "bk_set_name"
+	ccFieldBKBizID            ccField = "bk_biz_id"
+	ccFieldOpsConsoleHostID   ccField = "ops_console_host_id"
+	ccFieldOpsOutBandType     ccField = "ops_out_band_type"
+	ccFieldOpsOutBandProtocol ccField = "ops_out_band_protocol"
+	ccFieldOpsBMCIP           ccField = "ops_bmc_ip"
+	ccFieldOpsBMCPort         ccField = "ops_bmc_port"
 )
 
 const (
@@ -102,6 +107,16 @@ type HostInfo struct {
 	BKMem float64 `json:"bk_mem"`
 	// CPU架构
 	BKCpuArchitecture string `json:"bk_cpu_architecture"`
+	// 主控机Host-ID
+	OpsConsoleHostID int64 `json:"ops_console_host_id"`
+	// 带外设备类型
+	OpsOutBandType string `json:"ops_out_band_type"`
+	// 带外设备协议
+	OpsOutBandProtocol string `json:"ops_out_band_protocol"`
+	// 带外管理IP
+	OpsBMCIP string `json:"ops_bmc_ip"`
+	// 带外管理端口
+	OpsBMCPort int64 `json:"ops_bmc_port"`
 }
 
 // BusinessInfo describe the information of single business.
@@ -413,26 +428,27 @@ type FindModuleBatchResp []*ModuleInfo
 
 // ObjectAttributeInfo describe the object attribute info define by cmdb.
 type ObjectAttributeInfo struct {
-	ID                  int64  `json:"id"`
-	BKBizID             int64  `json:"bk_biz_id"`
-	BKPropertyID        string `json:"bk_property_id"`
-	BKPropertyName      string `json:"bk_property_name"`
-	BKPropertyGroup     string `json:"bk_property_group"`
-	BKPropertyGroupType string `json:"bk_property_type"`
-	Creator             string `json:"creator"`
-	Unit                string `json:"unit"`
-	Placeholder         string `json:"placeholder"`
-	Editable            bool   `json:"editable"`
-	IsRequired          bool   `json:"isrequired"`
-	IsReadOnly          bool   `json:"isreadonly"`
-	IsOnly              bool   `json:"isonly"`
-	IsPre               bool   `json:"ispre"`
-	Option              any    `json:"option"`
-	Description         string `json:"description"`
-	BKSupplierAccount   string `json:"bk_supplier_account"`
-	BKAsstObjID         string `json:"bk_asst_obj_id"`
-	CreateTime          string `json:"create_time"`
-	LastTime            string `json:"last_time"`
+	ID                int64  `json:"id"`
+	BKBizID           int64  `json:"bk_biz_id"`
+	BKObjID           string `json:"bk_obj_id"`
+	BKPropertyID      string `json:"bk_property_id"`
+	BKPropertyName    string `json:"bk_property_name"`
+	BKPropertyType    string `json:"bk_property_type"`
+	BKPropertyGroup   string `json:"bk_property_group"`
+	Creator           string `json:"creator"`
+	Unit              string `json:"unit"`
+	Placeholder       string `json:"placeholder"`
+	Editable          bool   `json:"editable"`
+	IsRequired        bool   `json:"isrequired"`
+	IsReadOnly        bool   `json:"isreadonly"`
+	IsOnly            bool   `json:"isonly"`
+	IsPre             bool   `json:"ispre"`
+	Option            any    `json:"option"`
+	Description       string `json:"description"`
+	BKSupplierAccount string `json:"bk_supplier_account"`
+	BKAsstObjID       string `json:"bk_asst_obj_id"`
+	CreateTime        string `json:"create_time"`
+	LastTime          string `json:"last_time"`
 }
 
 // SearchObjectAttributeReq describe the request data of search_object_attribute.
@@ -444,10 +460,41 @@ type SearchObjectAttributeReq struct {
 // SearchObjectAttributeResp describe the response data of search_object_attribute.
 type SearchObjectAttributeResp []*ObjectAttributeInfo
 
+// CreateBizCustomFieldReq describe the request data of create_biz_custom_field.
+type CreateBizCustomFieldReq struct {
+	BKObjID         string `json:"bk_obj_id"`
+	BKBizID         int64  `json:"bk_biz_id"`
+	BKPropertyID    string `json:"bk_property_id"`
+	BKPropertyName  string `json:"bk_property_name"`
+	BKPropertyType  string `json:"bk_property_type"`
+	BKPropertyGroup string `json:"bk_property_group,omitempty"`
+	Creator         string `json:"creator,omitempty"`
+	Unit            string `json:"unit,omitempty"`
+	Placeholder     string `json:"placeholder,omitempty"`
+	Editable        bool   `json:"editable,omitempty"`
+	IsRequired      bool   `json:"isrequired,omitempty"`
+	IsReadOnly      bool   `json:"isreadonly,omitempty"`
+	IsOnly          bool   `json:"isonly,omitempty"`
+	IsPre           bool   `json:"ispre,omitempty"`
+	Option          any    `json:"option,omitempty"`
+	Default         any    `json:"default,omitempty"`
+	Description     string `json:"description,omitempty"`
+	BKAsstObjID     string `json:"bk_asst_obj_id,omitempty"`
+}
+
+// CreateBizCustomFieldResp describe the response data of create_biz_custom_field.
+type CreateBizCustomFieldResp *ObjectAttributeInfo
+
 // EnumOption describe the enum option info define by cmdb.
 type EnumOption struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+// NumberOption describe the number option info define by cmdb.
+type NumberOption struct {
+	Min string `json:"min"`
+	Max string `json:"max"`
 }
 
 // HostAgentIDInfo describe the host agent id info define by cmdb.
@@ -1252,11 +1299,27 @@ type ListSetTemplateResp struct {
 
 // UpdateHostProperties describe the host properties to be updated.
 type UpdateHostProperties struct {
+	// Properties describe the mutable host properties.
+	// bk_cloud_id is intentionally excluded because it must not be modified here.
 	Properties struct {
-		BKHostName string `json:"bk_host_name,omitempty"`
-		Operator   string `json:"operator,omitempty"`
-		BKComment  string `json:"bk_comment,omitempty"`
-		BKIspName  string `json:"bk_isp_name,omitempty"`
+		// BKHostName matches HostInfo.BKHostName.
+		BKHostName *string `json:"bk_host_name,omitempty"`
+		// Operator matches HostInfo.Operator.
+		Operator *string `json:"operator,omitempty"`
+		// BKComment is the host comment field.
+		BKComment *string `json:"bk_comment,omitempty"`
+		// BKIspName is the ISP name field.
+		BKIspName *string `json:"bk_isp_name,omitempty"`
+		// OpsConsoleHostID matches HostInfo.OpsConsoleHostID.
+		OpsConsoleHostID *int64 `json:"ops_console_host_id,omitempty"`
+		// OpsOutBandType matches HostInfo.OpsOutBandType.
+		OpsOutBandType *string `json:"ops_out_band_type,omitempty"`
+		// OpsOutBandProtocol matches HostInfo.OpsOutBandProtocol.
+		OpsOutBandProtocol *string `json:"ops_out_band_protocol,omitempty"`
+		// OpsBMCIP matches HostInfo.OpsBMCIP.
+		OpsBMCIP *string `json:"ops_bmc_ip,omitempty"`
+		// OpsBMCPort matches HostInfo.OpsBMCPort.
+		OpsBMCPort *int64 `json:"ops_bmc_port,omitempty"`
 	} `json:"properties"`
 	BKHostID int64 `json:"bk_host_id"`
 }

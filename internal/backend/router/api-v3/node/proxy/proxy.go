@@ -17,10 +17,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	globalsettingsStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,10 +32,11 @@ type handler struct {
 	storageNetworkUnit              topoStg.IStorageNetworkUnit
 	storageNodeDeploymentDomainInit nodeStg.IDaoNodeDeployment
 	storageHostCredit               credit.IStorageHostCredit
-	storageGlobalSettings           globalsettingsStg.IStorage
+	storageGlobalSettings           globalsettingsStorage.IStorage
 	storageHost                     topoStg.IStorageHost
 	storageCipher                   cipherStg.IStorage
 	authorizer                      auth.IAuthorizer
+	cmdbHandler                     cmdb.IHandler
 }
 
 // newHandler ...
@@ -50,6 +52,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageHost:                     capability.StorageTopo,
 		storageCipher:                   capability.StorageCipher,
 		authorizer:                      capability.Authorizer,
+		cmdbHandler:                     capability.CmdbHandler,
 	}
 }
 
@@ -66,4 +69,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 	h.rg.POST("/install_check", restserver.Handler(h.ProxyInstallCheck))
 	h.rg.POST("/assign_unit", restserver.Handler(h.AssignProxyUnit))
+	h.rg.POST("/update_ops_fields", restserver.Handler(h.ProxyUpdateOpsFields))
 }

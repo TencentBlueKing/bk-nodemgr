@@ -296,6 +296,22 @@ message NodeProxyUpgradeCheckResult {
   NodeProxyUpgradeCheckMatchedItem matched = 2;
 }
 
+// NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+// out-of-band (ops) fields on hosts.
+message NodeProxyUpdateOpsFieldsReq { repeated HostOpsInfo hosts = 1; }
+
+// NodeProxyUpdateOpsFieldsResp describes the response for batch-updating
+// out-of-band (ops) fields.
+message NodeProxyUpdateOpsFieldsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  message Data {}
+  Data data = 5;
+}
+
 // NodeProxy describes the node proxy service.
 service NodeProxy {
   // NodeProxyInstall installs node proxy.
@@ -370,6 +386,16 @@ service NodeProxy {
       returns (NodeProxyUpgradeCheckResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/upgrade_check"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpdateOpsFields batch-updates out-of-band (ops) fields for proxy
+  // hosts.
+  rpc NodeProxyUpdateOpsFields(NodeProxyUpdateOpsFieldsReq)
+      returns (NodeProxyUpdateOpsFieldsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/update_ops_fields"
       body : "*"
     };
   }

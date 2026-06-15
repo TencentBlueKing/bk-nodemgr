@@ -85,6 +85,21 @@ const (
 	// FieldKeyStaticSyncedAgentID the static synced agent id field key.
 	FieldKeyStaticSyncedAgentID = "data.static.synced_agent_id"
 
+	// FieldKeyStaticSyncedOpsConsoleHostID the static synced ops console host id field key.
+	FieldKeyStaticSyncedOpsConsoleHostID = "data.static.synced_ops_console_host_id"
+
+	// FieldKeyStaticSyncedOpsOutBandType the static synced ops out-band type field key.
+	FieldKeyStaticSyncedOpsOutBandType = "data.static.synced_ops_out_band_type"
+
+	// FieldKeyStaticSyncedOpsOutBandProtocol the static synced ops out-band protocol field key.
+	FieldKeyStaticSyncedOpsOutBandProtocol = "data.static.synced_ops_out_band_protocol"
+
+	// FieldKeyStaticSyncedOpsBMCIP the static synced ops bmc ip field key.
+	FieldKeyStaticSyncedOpsBMCIP = "data.static.synced_ops_bmc_ip"
+
+	// FieldKeyStaticSyncedOpsBMCPort the static synced ops bmc port field key.
+	FieldKeyStaticSyncedOpsBMCPort = "data.static.synced_ops_bmc_port"
+
 	// Dynamic fields.
 
 	// FieldKeyDynamic the dynamic field key.
@@ -167,6 +182,21 @@ const (
 
 	// FieldKeyDynamicConnCycleTime the dynamic conn cycle time field key.
 	FieldKeyDynamicConnCycleTime = "data.dynamic.conn_cycle_time"
+
+	// FieldKeyDynamicOpsConsoleHostID the dynamic ops console host id field key.
+	FieldKeyDynamicOpsConsoleHostID = "data.dynamic.ops_console_host_id"
+
+	// FieldKeyDynamicOpsOutBandType the dynamic ops out-band type field key.
+	FieldKeyDynamicOpsOutBandType = "data.dynamic.ops_out_band_type"
+
+	// FieldKeyDynamicOpsOutBandProtocol the dynamic ops out-band protocol field key.
+	FieldKeyDynamicOpsOutBandProtocol = "data.dynamic.ops_out_band_protocol"
+
+	// FieldKeyDynamicOpsBMCIP the dynamic ops bmc ip field key.
+	FieldKeyDynamicOpsBMCIP = "data.dynamic.ops_bmc_ip"
+
+	// FieldKeyDynamicOpsBMCPort the dynamic ops bmc port field key.
+	FieldKeyDynamicOpsBMCPort = "data.dynamic.ops_bmc_port"
 
 	// FieldKeyOperationUpdatedAt the operation updated at field key for business-operation sort ordering.
 	FieldKeyOperationUpdatedAt = "data.operation_updated_at"

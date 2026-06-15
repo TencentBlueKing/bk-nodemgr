@@ -3523,6 +3523,91 @@ func (x *NetworkPolicy) GetService() *NetworkPolicyService {
 	return nil
 }
 
+// HostOpsInfo describes the out-of-band (ops) information for a host.
+type HostOpsInfo struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	BkHostId           int64                  `protobuf:"varint,1,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	OpsConsoleHostId   int64                  `protobuf:"varint,2,opt,name=ops_console_host_id,json=opsConsoleHostId,proto3" json:"ops_console_host_id"`
+	OpsOutBandType     string                 `protobuf:"bytes,3,opt,name=ops_out_band_type,json=opsOutBandType,proto3" json:"ops_out_band_type"`
+	OpsOutBandProtocol string                 `protobuf:"bytes,4,opt,name=ops_out_band_protocol,json=opsOutBandProtocol,proto3" json:"ops_out_band_protocol"`
+	OpsBmcIp           string                 `protobuf:"bytes,5,opt,name=ops_bmc_ip,json=opsBmcIp,proto3" json:"ops_bmc_ip"`
+	OpsBmcPort         int64                  `protobuf:"varint,6,opt,name=ops_bmc_port,json=opsBmcPort,proto3" json:"ops_bmc_port"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *HostOpsInfo) Reset() {
+	*x = HostOpsInfo{}
+	mi := &file_common_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HostOpsInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HostOpsInfo) ProtoMessage() {}
+
+func (x *HostOpsInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HostOpsInfo.ProtoReflect.Descriptor instead.
+func (*HostOpsInfo) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *HostOpsInfo) GetBkHostId() int64 {
+	if x != nil {
+		return x.BkHostId
+	}
+	return 0
+}
+
+func (x *HostOpsInfo) GetOpsConsoleHostId() int64 {
+	if x != nil {
+		return x.OpsConsoleHostId
+	}
+	return 0
+}
+
+func (x *HostOpsInfo) GetOpsOutBandType() string {
+	if x != nil {
+		return x.OpsOutBandType
+	}
+	return ""
+}
+
+func (x *HostOpsInfo) GetOpsOutBandProtocol() string {
+	if x != nil {
+		return x.OpsOutBandProtocol
+	}
+	return ""
+}
+
+func (x *HostOpsInfo) GetOpsBmcIp() string {
+	if x != nil {
+		return x.OpsBmcIp
+	}
+	return ""
+}
+
+func (x *HostOpsInfo) GetOpsBmcPort() int64 {
+	if x != nil {
+		return x.OpsBmcPort
+	}
+	return 0
+}
+
 type Error_Details struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code"`
@@ -3533,7 +3618,7 @@ type Error_Details struct {
 
 func (x *Error_Details) Reset() {
 	*x = Error_Details{}
-	mi := &file_common_proto_msgTypes[49]
+	mi := &file_common_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3545,7 +3630,7 @@ func (x *Error_Details) String() string {
 func (*Error_Details) ProtoMessage() {}
 
 func (x *Error_Details) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[49]
+	mi := &file_common_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4367,11 +4452,27 @@ var file_common_proto_rawDesc = string([]byte{
 	0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18,
 	0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x50, 0x6f, 0x6c, 0x69, 0x63,
 	0x79, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x52, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
-	0x65, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f,
-	0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x22, 0xf8, 0x01, 0x0a, 0x0b, 0x48, 0x6f, 0x73, 0x74, 0x4f, 0x70, 0x73, 0x49, 0x6e, 0x66,
+	0x6f, 0x12, 0x1c, 0x0a, 0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x62, 0x6b, 0x48, 0x6f, 0x73, 0x74, 0x49, 0x64, 0x12,
+	0x2d, 0x0a, 0x13, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x6e, 0x73, 0x6f, 0x6c, 0x65, 0x5f, 0x68,
+	0x6f, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x10, 0x6f, 0x70,
+	0x73, 0x43, 0x6f, 0x6e, 0x73, 0x6f, 0x6c, 0x65, 0x48, 0x6f, 0x73, 0x74, 0x49, 0x64, 0x12, 0x29,
+	0x0a, 0x11, 0x6f, 0x70, 0x73, 0x5f, 0x6f, 0x75, 0x74, 0x5f, 0x62, 0x61, 0x6e, 0x64, 0x5f, 0x74,
+	0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x6f, 0x70, 0x73, 0x4f, 0x75,
+	0x74, 0x42, 0x61, 0x6e, 0x64, 0x54, 0x79, 0x70, 0x65, 0x12, 0x31, 0x0a, 0x15, 0x6f, 0x70, 0x73,
+	0x5f, 0x6f, 0x75, 0x74, 0x5f, 0x62, 0x61, 0x6e, 0x64, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63,
+	0x6f, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x12, 0x6f, 0x70, 0x73, 0x4f, 0x75, 0x74,
+	0x42, 0x61, 0x6e, 0x64, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x12, 0x1c, 0x0a, 0x0a,
+	0x6f, 0x70, 0x73, 0x5f, 0x62, 0x6d, 0x63, 0x5f, 0x69, 0x70, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x08, 0x6f, 0x70, 0x73, 0x42, 0x6d, 0x63, 0x49, 0x70, 0x12, 0x20, 0x0a, 0x0c, 0x6f, 0x70,
+	0x73, 0x5f, 0x62, 0x6d, 0x63, 0x5f, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x03,
+	0x52, 0x0a, 0x6f, 0x70, 0x73, 0x42, 0x6d, 0x63, 0x50, 0x6f, 0x72, 0x74, 0x42, 0x43, 0x5a, 0x41,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65,
+	0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f,
+	0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63,
+	0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76,
+	0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -4386,7 +4487,7 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
 var file_common_proto_goTypes = []any{
 	(*Page)(nil),                  // 0: v3.Page
 	(*Business)(nil),              // 1: v3.Business
@@ -4432,12 +4533,13 @@ var file_common_proto_goTypes = []any{
 	(*NetworkPolicyEndpoint)(nil), // 41: v3.NetworkPolicyEndpoint
 	(*NetworkPolicyService)(nil),  // 42: v3.NetworkPolicyService
 	(*NetworkPolicy)(nil),         // 43: v3.NetworkPolicy
-	nil,                           // 44: v3.NetworkUnit.CustomDeployConfigEntry
-	nil,                           // 45: v3.NetworkUnitDetail.CustomDeployConfigEntry
-	nil,                           // 46: v3.ConfigPolicy.ConfigsStringEntry
-	nil,                           // 47: v3.ConfigPolicy.ConfigsIntEntry
-	nil,                           // 48: v3.ConfigPolicy.ConfigsBoolEntry
-	(*Error_Details)(nil),         // 49: v3.Error.Details
+	(*HostOpsInfo)(nil),           // 44: v3.HostOpsInfo
+	nil,                           // 45: v3.NetworkUnit.CustomDeployConfigEntry
+	nil,                           // 46: v3.NetworkUnitDetail.CustomDeployConfigEntry
+	nil,                           // 47: v3.ConfigPolicy.ConfigsStringEntry
+	nil,                           // 48: v3.ConfigPolicy.ConfigsIntEntry
+	nil,                           // 49: v3.ConfigPolicy.ConfigsBoolEntry
+	(*Error_Details)(nil),         // 50: v3.Error.Details
 }
 var file_common_proto_depIdxs = []int32{
 	3,  // 0: v3.Links.cluster:type_name -> v3.Link
@@ -4449,11 +4551,11 @@ var file_common_proto_depIdxs = []int32{
 	5,  // 6: v3.AccessPoint.endpoints:type_name -> v3.Endpoints
 	4,  // 7: v3.NetworkUnit.links:type_name -> v3.Links
 	5,  // 8: v3.NetworkUnit.direct_endpoints:type_name -> v3.Endpoints
-	44, // 9: v3.NetworkUnit.custom_deploy_config:type_name -> v3.NetworkUnit.CustomDeployConfigEntry
+	45, // 9: v3.NetworkUnit.custom_deploy_config:type_name -> v3.NetworkUnit.CustomDeployConfigEntry
 	10, // 10: v3.NetworkUnitDetail.accesspoints:type_name -> v3.AccessPoint
 	4,  // 11: v3.NetworkUnitDetail.links:type_name -> v3.Links
 	5,  // 12: v3.NetworkUnitDetail.direct_endpoints:type_name -> v3.Endpoints
-	45, // 13: v3.NetworkUnitDetail.custom_deploy_config:type_name -> v3.NetworkUnitDetail.CustomDeployConfigEntry
+	46, // 13: v3.NetworkUnitDetail.custom_deploy_config:type_name -> v3.NetworkUnitDetail.CustomDeployConfigEntry
 	4,  // 14: v3.NetworkUnitBrief.links:type_name -> v3.Links
 	16, // 15: v3.Host.info:type_name -> v3.HostInfo
 	15, // 16: v3.Host.state:type_name -> v3.HostState
@@ -4464,10 +4566,10 @@ var file_common_proto_depIdxs = []int32{
 	21, // 21: v3.ReleaseBinTool.release:type_name -> v3.Release
 	21, // 22: v3.ReleasePluginBinTool.release:type_name -> v3.Release
 	32, // 23: v3.ConfigPolicy.scopes:type_name -> v3.ConfigPolicyScope
-	46, // 24: v3.ConfigPolicy.configs_string:type_name -> v3.ConfigPolicy.ConfigsStringEntry
-	47, // 25: v3.ConfigPolicy.configs_int:type_name -> v3.ConfigPolicy.ConfigsIntEntry
-	48, // 26: v3.ConfigPolicy.configs_bool:type_name -> v3.ConfigPolicy.ConfigsBoolEntry
-	49, // 27: v3.Error.details:type_name -> v3.Error.Details
+	47, // 24: v3.ConfigPolicy.configs_string:type_name -> v3.ConfigPolicy.ConfigsStringEntry
+	48, // 25: v3.ConfigPolicy.configs_int:type_name -> v3.ConfigPolicy.ConfigsIntEntry
+	49, // 26: v3.ConfigPolicy.configs_bool:type_name -> v3.ConfigPolicy.ConfigsBoolEntry
+	50, // 27: v3.Error.details:type_name -> v3.Error.Details
 	37, // 28: v3.RelatedResourceType.instances:type_name -> v3.ResourceNode
 	38, // 29: v3.Action.related_resource_types:type_name -> v3.RelatedResourceType
 	39, // 30: v3.Permission.actions:type_name -> v3.Action
@@ -4518,7 +4620,7 @@ func file_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   50,
+			NumMessages:   51,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

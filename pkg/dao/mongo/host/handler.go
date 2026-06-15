@@ -586,27 +586,32 @@ func convertHostFromTypes(host *types.Host) *Host {
 	static := &HostStatic{}
 	if host.Static != nil {
 		static = &HostStatic{
-			BizID:         host.Static.BizID,
-			SetID:         host.Static.SetID,
-			ModuleID:      host.Static.ModuleID,
-			NetworkAreaID: host.Static.NetworkAreaID,
-			HostName:      host.Static.HostName,
-			DeptName:      host.Static.DeptName,
-			InnerIPList:   host.Static.InnerIPList,
-			InnerIPV6List: host.Static.InnerIPV6List,
-			OuterIPList:   host.Static.OuterIPList,
-			OuterIPV6List: host.Static.OuterIPV6List,
-			Mac:           host.Static.Mac,
-			Operator:      host.Static.Operator,
-			OSType:        host.Static.OSType,
-			OSTypeCCID:    host.Static.OSTypeCCID,
-			Arch:          host.Static.Arch,
-			Addressing:    string(host.Static.Addressing),
-			RegionID:      host.Static.RegionID,
-			CityID:        host.Static.CityID,
-			SyncedAgentID: host.Static.SyncedAgentID,
-			CPUNum:        host.Static.CPUNum,
-			MemCap:        host.Static.MemCap,
+			BizID:                    host.Static.BizID,
+			SetID:                    host.Static.SetID,
+			ModuleID:                 host.Static.ModuleID,
+			NetworkAreaID:            host.Static.NetworkAreaID,
+			HostName:                 host.Static.HostName,
+			DeptName:                 host.Static.DeptName,
+			InnerIPList:              host.Static.InnerIPList,
+			InnerIPV6List:            host.Static.InnerIPV6List,
+			OuterIPList:              host.Static.OuterIPList,
+			OuterIPV6List:            host.Static.OuterIPV6List,
+			Mac:                      host.Static.Mac,
+			Operator:                 host.Static.Operator,
+			OSType:                   host.Static.OSType,
+			OSTypeCCID:               host.Static.OSTypeCCID,
+			Arch:                     host.Static.Arch,
+			Addressing:               string(host.Static.Addressing),
+			RegionID:                 host.Static.RegionID,
+			CityID:                   host.Static.CityID,
+			CPUNum:                   host.Static.CPUNum,
+			MemCap:                   host.Static.MemCap,
+			SyncedAgentID:            host.Static.SyncedAgentID,
+			SyncedOpsConsoleHostID:   host.Static.SyncedOpsConsoleHostID,
+			SyncedOpsOutBandType:     host.Static.SyncedOpsOutBandType,
+			SyncedOpsOutBandProtocol: host.Static.SyncedOpsOutBandProtocol,
+			SyncedOpsBMCIP:           host.Static.SyncedOpsBMCIP,
+			SyncedOpsBMCPort:         host.Static.SyncedOpsBMCPort,
 		}
 	}
 
@@ -646,6 +651,11 @@ func convertHostFromTypes(host *types.Host) *Host {
 			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
 			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
 			ConnCycleTime:            host.Dynamic.ConnCycleTime,
+			OpsConsoleHostID:         host.Dynamic.OpsConsoleHostID,
+			OpsOutBandType:           host.Dynamic.OpsOutBandType,
+			OpsOutBandProtocol:       host.Dynamic.OpsOutBandProtocol,
+			OpsBMCIP:                 host.Dynamic.OpsBMCIP,
+			OpsBMCPort:               host.Dynamic.OpsBMCPort,
 		}
 	}
 
@@ -668,27 +678,32 @@ func convertHostToTypes(host *Host) *types.Host {
 	static := &types.HostStatic{}
 	if host.Static != nil {
 		static = &types.HostStatic{
-			BizID:         host.Static.BizID,
-			SetID:         host.Static.SetID,
-			ModuleID:      host.Static.ModuleID,
-			NetworkAreaID: host.Static.NetworkAreaID,
-			RegionID:      host.Static.RegionID,
-			CityID:        host.Static.CityID,
-			HostName:      host.Static.HostName,
-			DeptName:      host.Static.DeptName,
-			InnerIPList:   host.Static.InnerIPList,
-			InnerIPV6List: host.Static.InnerIPV6List,
-			OuterIPList:   host.Static.OuterIPList,
-			OuterIPV6List: host.Static.OuterIPV6List,
-			Operator:      host.Static.Operator,
-			Mac:           host.Static.Mac,
-			OSTypeCCID:    host.Static.OSTypeCCID,
-			OSType:        host.Static.OSType,
-			Arch:          host.Static.Arch,
-			Addressing:    types.Addressing(host.Static.Addressing),
-			CPUNum:        host.Static.CPUNum,
-			MemCap:        host.Static.MemCap,
-			SyncedAgentID: host.Static.SyncedAgentID,
+			BizID:                    host.Static.BizID,
+			SetID:                    host.Static.SetID,
+			ModuleID:                 host.Static.ModuleID,
+			NetworkAreaID:            host.Static.NetworkAreaID,
+			RegionID:                 host.Static.RegionID,
+			CityID:                   host.Static.CityID,
+			HostName:                 host.Static.HostName,
+			DeptName:                 host.Static.DeptName,
+			InnerIPList:              host.Static.InnerIPList,
+			InnerIPV6List:            host.Static.InnerIPV6List,
+			OuterIPList:              host.Static.OuterIPList,
+			OuterIPV6List:            host.Static.OuterIPV6List,
+			Operator:                 host.Static.Operator,
+			Mac:                      host.Static.Mac,
+			OSTypeCCID:               host.Static.OSTypeCCID,
+			OSType:                   host.Static.OSType,
+			Arch:                     host.Static.Arch,
+			Addressing:               types.Addressing(host.Static.Addressing),
+			CPUNum:                   host.Static.CPUNum,
+			MemCap:                   host.Static.MemCap,
+			SyncedAgentID:            host.Static.SyncedAgentID,
+			SyncedOpsConsoleHostID:   host.Static.SyncedOpsConsoleHostID,
+			SyncedOpsOutBandType:     host.Static.SyncedOpsOutBandType,
+			SyncedOpsOutBandProtocol: host.Static.SyncedOpsOutBandProtocol,
+			SyncedOpsBMCIP:           host.Static.SyncedOpsBMCIP,
+			SyncedOpsBMCPort:         host.Static.SyncedOpsBMCPort,
 		}
 	}
 
@@ -728,6 +743,11 @@ func convertHostToTypes(host *Host) *types.Host {
 			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
 			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
 			ConnCycleTime:            host.Dynamic.ConnCycleTime,
+			OpsConsoleHostID:         host.Dynamic.OpsConsoleHostID,
+			OpsOutBandType:           host.Dynamic.OpsOutBandType,
+			OpsOutBandProtocol:       host.Dynamic.OpsOutBandProtocol,
+			OpsBMCIP:                 host.Dynamic.OpsBMCIP,
+			OpsBMCPort:               host.Dynamic.OpsBMCPort,
 		}
 	}
 
@@ -933,6 +953,21 @@ func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) 
 	if fields.SyncedAgentID {
 		updates[FieldKeyStaticSyncedAgentID] = host.Static.SyncedAgentID
 	}
+	if fields.SyncedOpsConsoleHostID {
+		updates[FieldKeyStaticSyncedOpsConsoleHostID] = host.Static.SyncedOpsConsoleHostID
+	}
+	if fields.SyncedOpsOutBandType {
+		updates[FieldKeyStaticSyncedOpsOutBandType] = host.Static.SyncedOpsOutBandType
+	}
+	if fields.SyncedOpsOutBandProtocol {
+		updates[FieldKeyStaticSyncedOpsOutBandProtocol] = host.Static.SyncedOpsOutBandProtocol
+	}
+	if fields.SyncedOpsBMCIP {
+		updates[FieldKeyStaticSyncedOpsBMCIP] = host.Static.SyncedOpsBMCIP
+	}
+	if fields.SyncedOpsBMCPort {
+		updates[FieldKeyStaticSyncedOpsBMCPort] = host.Static.SyncedOpsBMCPort
+	}
 
 	return updates
 }
@@ -1052,6 +1087,22 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 
 	if fields.ConnCycleTime {
 		updates[FieldKeyDynamicConnCycleTime] = host.Dynamic.ConnCycleTime
+	}
+
+	if fields.OpsConsoleHostID {
+		updates[FieldKeyDynamicOpsConsoleHostID] = host.Dynamic.OpsConsoleHostID
+	}
+	if fields.OpsOutBandType {
+		updates[FieldKeyDynamicOpsOutBandType] = host.Dynamic.OpsOutBandType
+	}
+	if fields.OpsOutBandProtocol {
+		updates[FieldKeyDynamicOpsOutBandProtocol] = host.Dynamic.OpsOutBandProtocol
+	}
+	if fields.OpsBMCIP {
+		updates[FieldKeyDynamicOpsBMCIP] = host.Dynamic.OpsBMCIP
+	}
+	if fields.OpsBMCPort {
+		updates[FieldKeyDynamicOpsBMCPort] = host.Dynamic.OpsBMCPort
 	}
 
 	return updates

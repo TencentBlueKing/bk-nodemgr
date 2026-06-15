@@ -154,6 +154,13 @@ type HostDynamic struct {
 
 	// ConnCycleTime represents the connection cycle time of the agent reported by GSE.
 	ConnCycleTime string
+
+	// Ops represents the fields related to ops console and outband management.
+	OpsConsoleHostID   int64
+	OpsOutBandType     string
+	OpsOutBandProtocol string
+	OpsBMCIP           string
+	OpsBMCPort         int64
 }
 
 // ProxySupportInstaller returns whether this node support installer.
@@ -231,6 +238,13 @@ type HostDynamicFields struct {
 	RelayCallbackPort bool
 
 	ConnCycleTime bool
+
+	// Ops fields related to out-of-band management.
+	OpsConsoleHostID   bool
+	OpsOutBandType     bool
+	OpsOutBandProtocol bool
+	OpsBMCIP           bool
+	OpsBMCPort         bool
 }
 
 // ProxyTag represents a proxy tag.
@@ -343,7 +357,12 @@ type HostStatic struct {
 
 	// synced types, do not use this for processing.
 	// just use it for comparing and checking.
-	SyncedAgentID string
+	SyncedAgentID            string
+	SyncedOpsConsoleHostID   int64
+	SyncedOpsOutBandType     string
+	SyncedOpsOutBandProtocol string
+	SyncedOpsBMCIP           string
+	SyncedOpsBMCPort         int64
 }
 
 // GetInnerIPList returns a list of inner ip.
@@ -358,53 +377,63 @@ func (static *HostStatic) GetOuterIPList() []string {
 
 // HostStaticFields represents the fields of HostStatic fields.
 type HostStaticFields struct {
-	BizID         bool
-	SetID         bool
-	ModuleID      bool
-	NetworkAreaID bool
-	RegionID      bool
-	CityID        bool
-	HostName      bool
-	DeptName      bool
-	InnerIPList   bool
-	InnerIPV6List bool
-	OuterIPList   bool
-	OuterIPV6List bool
-	Operator      bool
-	Mac           bool
-	OSTypeCCID    bool
-	OSType        bool
-	Arch          bool
-	Addressing    bool
-	CPUNum        bool
-	MemCap        bool
-	SyncedAgentID bool
+	BizID                    bool
+	SetID                    bool
+	ModuleID                 bool
+	NetworkAreaID            bool
+	RegionID                 bool
+	CityID                   bool
+	HostName                 bool
+	DeptName                 bool
+	InnerIPList              bool
+	InnerIPV6List            bool
+	OuterIPList              bool
+	OuterIPV6List            bool
+	Operator                 bool
+	Mac                      bool
+	OSTypeCCID               bool
+	OSType                   bool
+	Arch                     bool
+	Addressing               bool
+	CPUNum                   bool
+	MemCap                   bool
+	SyncedAgentID            bool
+	SyncedOpsConsoleHostID   bool
+	SyncedOpsOutBandType     bool
+	SyncedOpsOutBandProtocol bool
+	SyncedOpsBMCIP           bool
+	SyncedOpsBMCPort         bool
 }
 
 // UpdateAllHostStaticFields returns a HostStaticFields with all fields set to true.
 func UpdateAllHostStaticFields() HostStaticFields {
 	return HostStaticFields{
-		BizID:         true,
-		ModuleID:      true,
-		SetID:         true,
-		NetworkAreaID: true,
-		RegionID:      true,
-		CityID:        true,
-		HostName:      true,
-		DeptName:      true,
-		InnerIPList:   true,
-		InnerIPV6List: true,
-		OuterIPList:   true,
-		OuterIPV6List: true,
-		Operator:      true,
-		Mac:           true,
-		OSTypeCCID:    true,
-		OSType:        true,
-		Arch:          true,
-		Addressing:    true,
-		CPUNum:        true,
-		MemCap:        true,
-		SyncedAgentID: true,
+		BizID:                    true,
+		ModuleID:                 true,
+		SetID:                    true,
+		NetworkAreaID:            true,
+		RegionID:                 true,
+		CityID:                   true,
+		HostName:                 true,
+		DeptName:                 true,
+		InnerIPList:              true,
+		InnerIPV6List:            true,
+		OuterIPList:              true,
+		OuterIPV6List:            true,
+		Operator:                 true,
+		Mac:                      true,
+		OSTypeCCID:               true,
+		OSType:                   true,
+		Arch:                     true,
+		Addressing:               true,
+		CPUNum:                   true,
+		MemCap:                   true,
+		SyncedAgentID:            true,
+		SyncedOpsConsoleHostID:   true,
+		SyncedOpsOutBandType:     true,
+		SyncedOpsOutBandProtocol: true,
+		SyncedOpsBMCIP:           true,
+		SyncedOpsBMCPort:         true,
 	}
 }
 

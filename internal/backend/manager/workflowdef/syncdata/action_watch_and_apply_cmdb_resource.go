@@ -264,7 +264,9 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 	host, ok := act.waitingCreateHostMap[event.Detail.HostID]
 	if !ok {
 		// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
-		event.Detail.Dynamic.AgentID = event.Detail.Static.SyncedAgentID
+		syncDataUtils.FillHostDynamicAgentID(event.Detail)
+		// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
+		syncDataUtils.FillHostDynamicOpsInfo(event.Detail)
 		act.waitingCreateHostMap[event.Detail.HostID] = event.Detail
 
 		return
@@ -473,7 +475,10 @@ func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataU
 	}
 
 	host := hosts[0]
+	// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
 	syncDataUtils.FillHostDynamicAgentID(host)
+	// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
+	syncDataUtils.FillHostDynamicOpsInfo(host)
 	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", hostID, err).

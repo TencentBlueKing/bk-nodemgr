@@ -307,8 +307,10 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 			updateHostInfo := &UpdateHostProperties{
 				BKHostID: created.BKHostIDs[0],
 			}
-			updateHostInfo.Properties.BKComment = "test"
-			updateHostInfo.Properties.BKHostName = "test"
+			bkComment := "test"
+			bkHostName := "test"
+			updateHostInfo.Properties.BKComment = &bkComment
+			updateHostInfo.Properties.BKHostName = &bkHostName
 			updatePropertys := &BatchUpdateHostReq{
 				Update: []*UpdateHostProperties{updateHostInfo},
 			}

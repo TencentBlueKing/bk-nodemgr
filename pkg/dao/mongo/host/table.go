@@ -45,9 +45,15 @@ type HostStatic struct {
 	Addressing    string   `json:"addressing" bson:"addressing"`
 	RegionID      string   `json:"region_id" bson:"region_id"`
 	CityID        string   `json:"city_id" bson:"city_id"`
-	SyncedAgentID string   `json:"synced_agent_id" bson:"synced_agent_id"`
 	CPUNum        float64  `json:"cpu_num" bson:"cpu_num"`
 	MemCap        float64  `json:"mem_cap" bson:"mem_cap"`
+
+	SyncedAgentID            string `json:"synced_agent_id" bson:"synced_agent_id"`
+	SyncedOpsConsoleHostID   int64  `json:"synced_ops_console_host_id" bson:"synced_ops_console_host_id"`
+	SyncedOpsOutBandType     string `json:"synced_ops_out_band_type" bson:"synced_ops_out_band_type"`
+	SyncedOpsOutBandProtocol string `json:"synced_ops_out_band_protocol" bson:"synced_ops_out_band_protocol"`
+	SyncedOpsBMCIP           string `json:"synced_ops_bmc_ip" bson:"synced_ops_bmc_ip"`
+	SyncedOpsBMCPort         int64  `json:"synced_ops_bmc_port" bson:"synced_ops_bmc_port"`
 }
 
 // HostDynamic represents a host dynamic information.
@@ -79,6 +85,13 @@ type HostDynamic struct {
 	RelayDownloadPort        int64    `json:"relay_download_port" bson:"relay_download_port"`
 	RelayCallbackPort        int64    `json:"relay_callback_port" bson:"relay_callback_port"`
 	ConnCycleTime            string   `json:"conn_cycle_time" bson:"conn_cycle_time"`
+
+	// Ops fields related to out-of-band management.
+	OpsConsoleHostID   int64  `json:"ops_console_host_id" bson:"ops_console_host_id"`
+	OpsOutBandType     string `json:"ops_out_band_type" bson:"ops_out_band_type"`
+	OpsOutBandProtocol string `json:"ops_out_band_protocol" bson:"ops_out_band_protocol"`
+	OpsBMCIP           string `json:"ops_bmc_ip" bson:"ops_bmc_ip"`
+	OpsBMCPort         int64  `json:"ops_bmc_port" bson:"ops_bmc_port"`
 }
 
 var _ base.IData = &Host{}

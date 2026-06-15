@@ -174,6 +174,23 @@ message NodeProxyUpdateResp {
   Data data = 5;
 }
 
+// NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+// out-of-band (ops) fields on proxy hosts.
+message NodeProxyUpdateOpsFieldsReq { repeated HostOpsInfo hosts = 1; }
+
+// NodeProxyUpdateOpsFieldsResp describes the response for batch-updating
+// out-of-band (ops) fields on proxy hosts.
+message NodeProxyUpdateOpsFieldsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
 // ProxyInstallCheckInfo describes the node proxy install check parameter.
 message ProxyInstallCheckInfo {
   optional int64 bk_biz_id = 1;
@@ -360,6 +377,16 @@ service NodeProxy {
   rpc NodeProxyUpdate(NodeProxyUpdateReq) returns (NodeProxyUpdateResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/update"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUpdateOpsFields batch-updates out-of-band (ops) fields for proxy
+  // hosts.
+  rpc NodeProxyUpdateOpsFields(NodeProxyUpdateOpsFieldsReq)
+      returns (NodeProxyUpdateOpsFieldsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/update_ops_fields"
       body : "*"
     };
   }

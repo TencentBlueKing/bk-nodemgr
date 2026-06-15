@@ -254,6 +254,40 @@
         ]
       }
     },
+    "/api/v3/node/agent/update_ops_fields": {
+      "post": {
+        "summary": "NodeAgentUpdateOpsFields batch-updates out-of-band (ops) fields.",
+        "operationId": "NodeAgent_NodeAgentUpdateOpsFields",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpdateOpsFieldsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating\nout-of-band (ops) fields on hosts.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpdateOpsFieldsReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/upgrade": {
       "post": {
         "summary": "NodeAgentUpgrade upgrades node agent.",
@@ -553,6 +587,37 @@
           }
         }
       }
+    },
+    "v3HostOpsInfo": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ops_console_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ops_out_band_type": {
+          "type": "string"
+        },
+        "ops_out_band_protocol": {
+          "type": "string"
+        },
+        "ops_bmc_ip": {
+          "type": "string"
+        },
+        "ops_bmc_port": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "HostOpsInfo describes the out-of-band (ops) information for a host."
     },
     "v3NodeAgentAssignUnitReq": {
       "type": "object",
@@ -944,6 +1009,47 @@
           "type": "string"
         }
       }
+    },
+    "v3NodeAgentUpdateOpsFieldsReq": {
+      "type": "object",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3HostOpsInfo"
+          }
+        }
+      },
+      "description": "NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating\nout-of-band (ops) fields on hosts."
+    },
+    "v3NodeAgentUpdateOpsFieldsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentUpdateOpsFieldsRespData"
+        }
+      },
+      "description": "NodeAgentUpdateOpsFieldsResp describes the response for batch-updating\nout-of-band (ops) fields."
+    },
+    "v3NodeAgentUpdateOpsFieldsRespData": {
+      "type": "object"
     },
     "v3NodeAgentUpgradeCheckMatchedItem": {
       "type": "object",

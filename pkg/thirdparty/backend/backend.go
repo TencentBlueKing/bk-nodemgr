@@ -1701,6 +1701,32 @@ func (c *cli) checkUpgradeAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 	return resp, nil
 }
 
+func (c *cli) updateNodeAgentOpsFields(ctx contextx.IContext, req *protoBackend.NodeAgentUpdateOpsFieldsReq) (
+	*protoBackend.NodeAgentUpdateOpsFieldsResp, error) {
+
+	resp := new(protoBackend.NodeAgentUpdateOpsFieldsResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/agent/update_ops_fields").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update node agent ops fields failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Node Proxy Related Interfaces
 // ===============================================================================
@@ -1853,6 +1879,32 @@ func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxy
 
 	if code := resp.GetCode(); code != CodeOK {
 		return nil, fmt.Errorf("update node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) updateNodeProxyOpsFields(ctx contextx.IContext, req *protoBackend.NodeProxyUpdateOpsFieldsReq) (
+	*protoBackend.NodeProxyUpdateOpsFieldsResp, error) {
+
+	resp := new(protoBackend.NodeProxyUpdateOpsFieldsResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/proxy/update_ops_fields").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("update proxy ops fields failed. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 

@@ -685,3 +685,77 @@ func (x *NodeAgentUpgradeCheckResp) ConvertResultToTypes() []*types.NodeAgentUpg
 
 	return items
 }
+
+// AutoConvert is a no-op for update ops fields requests.
+func (x *NodeAgentUpdateOpsFieldsReq) AutoConvert() {}
+
+// Validate validates the update ops fields request.
+func (x *NodeAgentUpdateOpsFieldsReq) Validate() error {
+
+	if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+
+	return nil
+}
+
+// ConvertHostToTypes converts update ops hosts to types hosts.
+func (x *NodeAgentUpdateOpsFieldsReq) ConvertHostToTypes() []*types.Host {
+	hosts := make([]*types.Host, 0, len(x.GetHosts()))
+	for _, host := range x.GetHosts() {
+		typeHost := &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsBMCIP:           host.GetOpsBmcIp(),
+				OpsBMCPort:         host.GetOpsBmcPort(),
+			},
+		}
+
+		hosts = append(hosts, typeHost)
+	}
+
+	return hosts
+}
+
+// ConvertParamFromTypes converts update ops fields hosts from types.
+func (x *NodeAgentUpdateOpsFieldsReq) ConvertParamFromTypes(hosts []*types.Host) {
+	if hosts == nil {
+		return
+	}
+
+	items := make([]*HostOpsInfo, len(hosts))
+	for idx, host := range hosts {
+		item := &HostOpsInfo{}
+		if host != nil {
+			item.BkHostId = host.HostID
+			if host.Dynamic != nil {
+				item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
+				item.OpsOutBandType = host.Dynamic.OpsOutBandType
+				item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
+				item.OpsBmcIp = host.Dynamic.OpsBMCIP
+				item.OpsBmcPort = host.Dynamic.OpsBMCPort
+			}
+		}
+		items[idx] = item
+	}
+
+	x.Hosts = items
+}
+
+// GetHostIDs extracts the host IDs from the update ops fields request.
+func (x *NodeAgentUpdateOpsFieldsReq) GetHostIDs() []int64 {
+	hostIDs := conv.SliceToSlice(x.GetHosts(), func(h *HostOpsInfo) int64 {
+		return h.GetBkHostId()
+	})
+
+	return hostIDs
+}

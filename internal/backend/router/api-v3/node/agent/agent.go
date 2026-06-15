@@ -17,9 +17,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	globalsettingsStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
+	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,9 +31,10 @@ type handler struct {
 	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	storageHost           topoStg.IStorageHost
 	storageHostCredit     credit.IStorageHostCredit
-	storageGlobalSettings globalsettingsStg.IStorage
+	storageGlobalSettings globalsettingsStorage.IStorage
 	storageCipher         cipherStg.IStorage
 	authorizer            auth.IAuthorizer
+	cmdbHandler           cmdb.IHandler
 
 	domainNodeInstall topoStg.IDomainNodeInstall
 }
@@ -49,6 +51,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storageGlobalSettings: capability.StorageGlobalSettings,
 		storageCipher:         capability.StorageCipher,
 		authorizer:            capability.Authorizer,
+		cmdbHandler:           capability.CmdbHandler,
 		domainNodeInstall:     capability.StorageTopo,
 	}
 }
@@ -65,4 +68,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/restart", restserver.Handler(h.AgentRestart))
 	h.rg.POST("/uninstall", restserver.Handler(h.AgentUninstall))
 	h.rg.POST("/assign_unit", restserver.Handler(h.AgentAssignUnit))
+	h.rg.POST("/update_ops_fields", restserver.Handler(h.AgentUpdateOpsFields))
 }

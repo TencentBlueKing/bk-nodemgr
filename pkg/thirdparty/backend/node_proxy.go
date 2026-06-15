@@ -51,6 +51,12 @@ type IHandlerNodeProxy interface {
 	// @return the error.
 	UpdateProxy(nCtx contextx.IContext, updateParam *types.NodeProxyUpdateParam) error
 
+	// UpdateProxyOpsFields update node proxy ops fields.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param hosts the host list with ops fields.
+	// @return the error.
+	UpdateProxyOpsFields(nCtx contextx.IContext, hosts []*types.Host) error
+
 	// UninstallProxy node proxy.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param uninstallParam the uninstall param.
@@ -139,6 +145,19 @@ func (h *Handler) UpdateProxy(nCtx contextx.IContext, updateParam *types.NodePro
 	req.ConvertParamFromTypes(updateParam)
 
 	_, err := h.cli.updateNodeProxy(nCtx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateProxyOpsFields update node proxy ops fields.
+func (h *Handler) UpdateProxyOpsFields(nCtx contextx.IContext, hosts []*types.Host) error {
+	req := new(protoBackend.NodeProxyUpdateOpsFieldsReq)
+	req.ConvertParamFromTypes(hosts)
+
+	_, err := h.cli.updateNodeProxyOpsFields(nCtx, req)
 	if err != nil {
 		return err
 	}

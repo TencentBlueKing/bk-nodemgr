@@ -415,6 +415,34 @@ func (c *cli) searchObjectAttribute(ctx contextx.IContext, req *SearchObjectAttr
 	return resp.Data, nil
 }
 
+// createBizCustomField create biz custom field.
+func (c *cli) createBizCustomField(ctx contextx.IContext, req *CreateBizCustomFieldReq) (
+	*CreateBizCustomFieldResp, error) {
+
+	resp := new(BaseBroker[*CreateBizCustomFieldResp])
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/create/objectattr/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("create biz custom field failed: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
 // bindHostAgent bind host agent.
 func (c *cli) bindHostAgent(ctx contextx.IContext, req *BindHostAgentReq) error {
 	resp := new(BaseBroker[*BindHostAgentResp])

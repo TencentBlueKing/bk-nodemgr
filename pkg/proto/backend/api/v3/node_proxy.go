@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -895,4 +896,77 @@ func (x *NodeProxyUpgradeCheckResp) ConvertResultToTypes() []*types.NodeProxyUpg
 	}
 
 	return items
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUpdateOpsFieldsReq) AutoConvert() {}
+
+// Validate validates the update ops fields request.
+func (x *NodeProxyUpdateOpsFieldsReq) Validate() error {
+	if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+
+	return nil
+}
+
+// ConvertParamFromTypes converts update ops fields hosts from types.
+func (x *NodeProxyUpdateOpsFieldsReq) ConvertParamFromTypes(hosts []*types.Host) {
+	if hosts == nil {
+		return
+	}
+
+	items := make([]*HostOpsInfo, len(hosts))
+	for idx, host := range hosts {
+		item := &HostOpsInfo{}
+		if host != nil {
+			item.BkHostId = host.HostID
+			if host.Dynamic != nil {
+				item.OpsConsoleHostId = host.Dynamic.OpsConsoleHostID
+				item.OpsOutBandType = host.Dynamic.OpsOutBandType
+				item.OpsOutBandProtocol = host.Dynamic.OpsOutBandProtocol
+				item.OpsBmcIp = host.Dynamic.OpsBMCIP
+				item.OpsBmcPort = host.Dynamic.OpsBMCPort
+			}
+		}
+		items[idx] = item
+	}
+
+	x.Hosts = items
+}
+
+// ConvertHostToTypes converts update ops hosts to types hosts.
+func (x *NodeProxyUpdateOpsFieldsReq) ConvertHostToTypes() []*types.Host {
+	hosts := make([]*types.Host, 0, len(x.GetHosts()))
+	for _, host := range x.GetHosts() {
+		typeHost := &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsBMCIP:           host.GetOpsBmcIp(),
+				OpsBMCPort:         host.GetOpsBmcPort(),
+			},
+		}
+
+		hosts = append(hosts, typeHost)
+	}
+
+	return hosts
+}
+
+// GetHostIDs extracts the host IDs from the update ops fields request.
+func (x *NodeProxyUpdateOpsFieldsReq) GetHostIDs() []int64 {
+	hostIDs := conv.SliceToSlice(x.GetHosts(), func(h *HostOpsInfo) int64 {
+		return h.GetBkHostId()
+	})
+
+	return hostIDs
 }

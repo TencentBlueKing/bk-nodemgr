@@ -253,6 +253,9 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 		// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
 		syncDataUtils.FillHostDynamicAgentID(host)
 
+		// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
+		syncDataUtils.FillHostDynamicOpsInfo(host)
+
 		insertHosts = append(insertHosts, host)
 	}
 

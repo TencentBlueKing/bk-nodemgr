@@ -42,6 +42,8 @@ type IHandler interface {
 	IBindHostAgent
 	IUnbindHostAgent
 	IUpdateHostNetworkAreaField
+	IUpdateHostOpsFields
+	IObjectAttribute
 	IDynamicGroup
 	IServiceTemplate
 	IWatch
@@ -111,6 +113,12 @@ type IUnbindHostAgent interface {
 type IUpdateHostNetworkAreaField interface {
 	// UpdateHostNetworkAreaField update host network area field.
 	UpdateHostNetworkAreaField(nCtx contextx.IContext, bizID int64, networkAreaID int64, hostIDs ...int64) error
+}
+
+// IUpdateHostOpsFields updates host out-of-band (ops) fields in CMDB.
+type IUpdateHostOpsFields interface {
+	// UpdateHostOpsFields batch-updates ops fields for one or more hosts in CMDB.
+	UpdateHostOpsFields(nCtx contextx.IContext, hosts ...*types.Host) error
 }
 
 // IServiceTemplate this interface is used to list service template.
@@ -444,6 +452,36 @@ func (h *Handler) UpdateHostNetworkAreaField(
 	return nil
 }
 
+// UpdateHostOpsFields batch-updates ops (out-of-band) fields for the given hosts in CMDB.
+func (h *Handler) UpdateHostOpsFields(nCtx contextx.IContext, hosts ...*types.Host) error {
+	if len(hosts) == 0 {
+		return nil
+	}
+
+	updates := make([]*UpdateHostProperties, 0, len(hosts))
+	for _, host := range hosts {
+		if host == nil || host.Dynamic == nil {
+			continue
+		}
+
+		item := &UpdateHostProperties{BKHostID: host.HostID}
+		item.Properties.OpsConsoleHostID = &host.Dynamic.OpsConsoleHostID
+		item.Properties.OpsOutBandType = &host.Dynamic.OpsOutBandType
+		item.Properties.OpsOutBandProtocol = &host.Dynamic.OpsOutBandProtocol
+		item.Properties.OpsBMCIP = &host.Dynamic.OpsBMCIP
+		item.Properties.OpsBMCPort = &host.Dynamic.OpsBMCPort
+		updates = append(updates, item)
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	req := &BatchUpdateHostReq{Update: updates}
+
+	return h.cli.batchUpdateHost(nCtx, req)
+}
+
 // GetCloudVendors get cloud vendors.
 func (h *Handler) GetCloudVendors() []string {
 	return h.cloudVendorKeeper.values()
@@ -651,25 +689,30 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 		HostID:   hostInfo.BKHostID,
 		TenantID: tenantID,
 		Static: &types.HostStatic{
-			BizID:         bizID,
-			NetworkAreaID: hostInfo.BKCloudID,
-			RegionID:      hostInfo.BKCloudRegion,
-			CityID:        hostInfo.IdcCityID,
-			HostName:      hostInfo.BKHostName,
-			DeptName:      hostInfo.DeptName,
-			InnerIPList:   strings.Split(hostInfo.BKHostInnerIPV4, ipSeparator),
-			InnerIPV6List: strings.Split(hostInfo.BKHostInnerIPV6, ipSeparator),
-			OuterIPList:   strings.Split(hostInfo.BKHostOuterIPV4, ipSeparator),
-			OuterIPV6List: strings.Split(hostInfo.BKHostOuterIPV6, ipSeparator),
-			Operator:      hostInfo.Operator,
-			Mac:           hostInfo.BKMac,
-			CPUNum:        hostInfo.BKCpu,
-			MemCap:        hostInfo.BKMem,
-			OSTypeCCID:    hostInfo.BKOSType,
-			OSType:        h.osTypeKeeper.getValue(hostInfo.BKOSType),
-			Arch:          h.cpuArchKeeper.getValue(hostInfo.BKCpuArchitecture),
-			Addressing:    types.Addressing(hostInfo.BKAddressing),
-			SyncedAgentID: hostInfo.BKAgentID,
+			BizID:                    bizID,
+			NetworkAreaID:            hostInfo.BKCloudID,
+			RegionID:                 hostInfo.BKCloudRegion,
+			CityID:                   hostInfo.IdcCityID,
+			HostName:                 hostInfo.BKHostName,
+			DeptName:                 hostInfo.DeptName,
+			InnerIPList:              strings.Split(hostInfo.BKHostInnerIPV4, ipSeparator),
+			InnerIPV6List:            strings.Split(hostInfo.BKHostInnerIPV6, ipSeparator),
+			OuterIPList:              strings.Split(hostInfo.BKHostOuterIPV4, ipSeparator),
+			OuterIPV6List:            strings.Split(hostInfo.BKHostOuterIPV6, ipSeparator),
+			Operator:                 hostInfo.Operator,
+			Mac:                      hostInfo.BKMac,
+			CPUNum:                   hostInfo.BKCpu,
+			MemCap:                   hostInfo.BKMem,
+			OSTypeCCID:               hostInfo.BKOSType,
+			OSType:                   h.osTypeKeeper.getValue(hostInfo.BKOSType),
+			Arch:                     h.cpuArchKeeper.getValue(hostInfo.BKCpuArchitecture),
+			Addressing:               types.Addressing(hostInfo.BKAddressing),
+			SyncedAgentID:            hostInfo.BKAgentID,
+			SyncedOpsConsoleHostID:   hostInfo.OpsConsoleHostID,
+			SyncedOpsOutBandType:     hostInfo.OpsOutBandType,
+			SyncedOpsOutBandProtocol: hostInfo.OpsOutBandProtocol,
+			SyncedOpsBMCIP:           hostInfo.OpsBMCIP,
+			SyncedOpsBMCPort:         hostInfo.OpsBMCPort,
 		},
 		Dynamic: types.NewBlankNodeDynamic(),
 	}

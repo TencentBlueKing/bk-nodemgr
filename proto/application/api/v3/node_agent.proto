@@ -250,6 +250,23 @@ message UploadAgentInstallTemplateResp {
   Data data = 1;
 }
 
+// NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating
+// out-of-band (ops) fields on hosts.
+message NodeAgentUpdateOpsFieldsReq { repeated HostOpsInfo hosts = 1; }
+
+// NodeAgentUpdateOpsFieldsResp describes the response for batch-updating
+// out-of-band (ops) fields.
+message NodeAgentUpdateOpsFieldsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
 // NodeAgent is the service for node agent.
 service NodeAgent {
   // NodeAgentInstall installs node agent.
@@ -325,6 +342,15 @@ service NodeAgent {
       returns (NodeAgentAssignUnitResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/assign_unit"
+      body : "*"
+    };
+  }
+
+  // NodeAgentUpdateOpsFields batch-updates out-of-band (ops) fields.
+  rpc NodeAgentUpdateOpsFields(NodeAgentUpdateOpsFieldsReq)
+      returns (NodeAgentUpdateOpsFieldsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/update_ops_fields"
       body : "*"
     };
   }

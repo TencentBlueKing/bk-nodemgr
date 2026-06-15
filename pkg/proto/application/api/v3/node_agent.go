@@ -737,3 +737,45 @@ func (x *NodeAgentUpgradeCheckResp) ConvertResultFromTypes(results []*types.Node
 		Results: items,
 	}
 }
+
+// Validate checks the update ops fields request body.
+func (x *NodeAgentUpdateOpsFieldsReq) Validate() error {
+		if len(x.GetHosts()) == 0 {
+		return errors.New("hosts can not be empty")
+	}
+
+	for _, h := range x.GetHosts() {
+		if h.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id must be greater than 0")
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentUpdateOpsFieldsReq) AutoConvert() {}
+
+// ConvertParamToTypes converts update ops fields request to types hosts.
+func (x *NodeAgentUpdateOpsFieldsReq) ConvertParamToTypes() []*types.Host {
+	hosts := x.GetHosts()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.Host{
+			HostID: host.GetBkHostId(),
+			Dynamic: &types.HostDynamic{
+				OpsConsoleHostID:   host.GetOpsConsoleHostId(),
+				OpsOutBandType:     host.GetOpsOutBandType(),
+				OpsOutBandProtocol: host.GetOpsOutBandProtocol(),
+				OpsBMCIP:           host.GetOpsBmcIp(),
+				OpsBMCPort:         host.GetOpsBmcPort(),
+			},
+		}
+	}
+
+	return hostsParam
+}
