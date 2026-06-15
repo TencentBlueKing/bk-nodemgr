@@ -1,154 +1,102 @@
 # Server Graceful Shutdown
 
-## 设计范围
+## 目标
 
-本设计先覆盖 `Backend`、`File`、`Application` 三类 Server 进程。
+Server graceful shutdown 解决的是 Pod 升级、重启或缩容时的协作式退出问题：尽量停止新流量进入当前
+Pod，让已经进入进程的请求和任务在有限时间内完成；超过预算后进入可恢复、可重试或强制退出路径。
 
-## 退出目标
+## 时间模型
 
-Server 收到退出信号后，需要在 Kubernetes Pod 宽限时间内完成协作式退出，避免升级或重启过程中出现不必要的请求失败、任务中断或状态不一致。
-
-退出过程有：
-
-- REST 流量
-
-本文以 Pod 进入 `Terminating` 作为退出时间线的 `0` 点。`内部宽限时间` 表示应用收到 `SIGTERM` 后继续等待已有工作的时长，不是从 Pod `0` 点开始计算的绝对时间点。
-
-整体退出过程按三个时间窗口设计：
-
-| 时间窗口                         | 含义                                                  | 目标                                |
-|------------------------------|-----------------------------------------------------|-----------------------------------|
-| `0` - `SIGTERM`              | Kubernetes 触发 endpoints 变更；kubelet 执行 `preStop` hook     | 让 `preStop` 等待时间覆盖摘流异步传播窗口，降低应用 shutdown 后仍收到新请求的概率 |
-| `SIGTERM` - `SIGTERM + 内部宽限时间` | 程序内部控制的正常等待阶段                                       | 尽量让已有工作自然完成，或执行到安全检查点             |
-| `SIGTERM + 内部宽限时间` - Pod 宽限时间结束 | Kubernetes `terminationGracePeriodSeconds` 结束前的兜底阶段 | 不再继续推进长耗时工作，完成状态落库、任务恢复、资源释放等兜底逻辑 |
+本文以 Pod 进入 `Terminating` 作为时间线 `0` 点。Pod 总退出预算由 `terminationGracePeriodSeconds` 控制，`preStop`、REST
+drain、Workflow drain、日志和 tracing flush 都共享这段预算。
 
 ```mermaid
 timeline
-    title Server Graceful Shutdown Time Window
-    0: Pod 进入 Terminating
-       : Kubernetes 触发 endpoints 变更
-       : endpoints 变更异步传播
-       : 默认 preStop sleep 5s 覆盖传播窗口
-    SIGTERM: Server 开始 graceful shutdown
-    SIGTERM - SIGTERM + 内部宽限时间: 等待已有工作完成
-            : 执行到安全检查点
-    SIGTERM + 内部宽限时间 - Pod 宽限时间结束: 标记可恢复或待接管
-            : 释放资源
-            : Flush 日志和 tracing
-    Pod 宽限时间结束: Kubernetes 强制结束 Pod
+    title Graceful Shutdown Time Window
+    0: Pod Terminating
+            : endpoints 开始异步摘除
+            : preStop 等待传播窗口
+    SIGTERM: 应用收到退出信号
+            : REST 停止接收新连接
+            : Workflow 停止领取新任务
+    Drain Timeout: 长尾工作进入兜底语义
+    Grace Period End: Kubernetes SIGKILL 兜底
 ```
 
-## Kubernetes 终止语义
+默认部署参数：
 
-Server 优雅退出依赖 Kubernetes 的 Pod 终止流程。部署层负责摘流，应用层负责在收到退出信号后处理已经进入进程内的工作。
+| 配置                              | 默认值                                 | 语义                         |
+|---------------------------------|-------------------------------------|----------------------------|
+| `terminationGracePeriodSeconds` | `120s`                              | Pod 总退出预算                  |
+| `preStop`                       | `sleep 5`                           | 给 endpoints 摘流传播预留窗口       |
+| REST shutdown timeout           | `terminationGracePeriodSeconds / 2` | 等待 in-flight request 的应用预算 |
+| Workflow shutdown timeout       | `terminationGracePeriodSeconds / 2` | 等待 running action 的应用预算    |
 
-1. Pod 进入 Terminating 状态。
-2. Kubernetes 触发 Service endpoints 变更，流量入口异步感知该变更。
-3. kubelet 执行容器 `preStop` hook（如果配置），该过程不依赖 endpoints 变更已经传播完成。
-4. kubelet 向容器主进程发送 `SIGTERM`。
-5. `preStop` 和应用退出共享 `terminationGracePeriodSeconds` 预算。
-6. 超过宽限时间后，Kubernetes 使用 `SIGKILL` 强制结束容器。
+`preStop` 不是额外时间，会消耗 Pod 总预算。以默认值计算，应用收到 `SIGTERM` 时大约剩余 `115s`，其中 REST 和 Workflow
+的默认等待预算为 `60s`。
 
-```mermaid
-sequenceDiagram
-    participant K8s as Kubernetes
-    participant EP as Service Endpoints
-    participant Hook as preStop Hook
-    participant App as Server Process
+## 分层语义
 
-    K8s->>EP: trigger endpoint removal
-    Note over EP: endpoint update propagates asynchronously
-    opt preStop configured
-        K8s->>Hook: execute preStop
-        Hook-->>K8s: return after delay or cleanup
-    end
-    K8s->>App: SIGTERM
-    App-->>App: graceful shutdown within remaining grace period
-    alt completed before terminationGracePeriodSeconds ends
-        App-->>K8s: process exits
-    else grace period exceeded
-        K8s->>App: SIGKILL
-    end
-```
+Graceful shutdown 分为三层，各层只处理自己拥有的工作：
 
-需要注意的是，Pod 进入终止流程后，endpoints 变更会异步传播到各流量入口，不存在“endpoints 摘除完成后再执行 `preStop`”的顺序保证。当前 Helm 部署默认配置 `preStop: sleep 5`，是在发送 `SIGTERM` 前预留一段时间覆盖传播窗口，降低应用开始 shutdown 后仍收到新请求的概率。
+| 层级         | 负责内容                                    | 不负责内容                           |
+|------------|-----------------------------------------|---------------------------------|
+| Kubernetes | 摘除 endpoints，发送退出信号，超时后强制结束 Pod         | 判断业务任务是否可重试                     |
+| REST       | 停止接收新连接，等待已进入 handler 的请求完成             | handler 派生的后台任务、Workflow action |
+| Workflow   | 停止领取新任务，处理 running action 的退出边界，释放可关闭资源 | 继续保证所有长任务在当前 Pod 内完整结束          |
 
-`preStop` 时间会消耗 Pod 的 `terminationGracePeriodSeconds`，不是额外时间。Helm 默认 `terminationGracePeriodSeconds` 为 `120s`，默认 `preStop` 为 `5s`，因此应用收到 `SIGTERM` 后剩余的退出预算约为 `115s`。用户可以通过各模块的 `lifecycleHooks.preStop` 覆写默认 `preStop`。
+核心原则：
 
-应用不维护额外的摘流状态，也不改变 readiness 结果。Helm template 默认按 `terminationGracePeriodSeconds / 2` 渲染应用内部宽限时间；以 `120s` 默认配置为例，内部宽限时间为 `60s`，应用侧兜底阶段约为 `55s`。调整 `preStop` 或 `terminationGracePeriodSeconds` 时，需要保证 `preStop` 时间、REST shutdown 时间、后台任务兜底时间、日志和 tracing flush 时间都包含在 Pod 总宽限时间内。
+- 摘流依赖 Kubernetes endpoints 异步传播，应用不维护额外摘流状态，也不改变 readiness 结果。
+- REST drain 只保护已经进入 HTTP handler 的请求。
+- Workflow drain 不承诺长耗时 action 必须在当前 Pod 内跑完，只承诺超时后进入恢复路径或业务定义的终态处理。
+- Pod `terminationGracePeriodSeconds` 是最终兜底，应用预算必须小于 Pod 总预算。
 
 ## REST 流量
 
-REST 层的目标是：停止接收新流量，已经进入 handler 的请求继续处理到完成或超时。
+REST graceful shutdown 的语义是：
 
-这里的“不接收新流量”主要依赖 Kubernetes 触发 endpoints 变更并由各流量入口异步感知。Pod 进入终止流程后，新的网络流量会随着 endpoints 变更传播逐步停止调度到当前 Pod。
-
-应用侧不维护额外的摘流状态，也不改变 readiness 结果，只负责处理已经进入进程内的请求：
-
-- REST Server 收到退出编排后，关闭 listener，避免继续接受已经到达进程的连接
-- 已经进入 handler 的请求继续执行
-- 请求处理受 `rest.Server` 自身的 shutdown timeout 和 Pod `terminationGracePeriodSeconds` 约束
-- 超过 `rest.Server` 的 shutdown timeout 后，直接关闭剩余连接
-
-这个目标适用于 `Backend`、`File`、`Application`。其中 `File` 可能存在上传、下载等较长请求，需要特别关注已有请求的 drain 行为。
-
-| 时间窗口                         | REST 行为                                            |
-|------------------------------|----------------------------------------------------|
-| `SIGTERM` - `SIGTERM + 内部宽限时间` | 调用 `http.Server.Shutdown(ctx)`；关闭 listener；已有请求继续处理；等待活跃请求自然结束 |
-| `SIGTERM + 内部宽限时间` - Pod 宽限时间结束 | 不再继续等待长尾请求；直接调用 `http.Server.Close()` 关闭剩余连接；记录超时或强制关闭日志 |
+1. 应用收到退出信号后，REST server 关闭 listener。
+2. 已经进入 handler 的 in-flight request 继续执行。
+3. request 在 REST shutdown timeout 内返回，则按正常响应结束。
+4. timeout 到期后，剩余连接被关闭。
 
 ```mermaid
-sequenceDiagram
-    participant K8s as Kubernetes
-    participant EP as Service Endpoints
-    participant Hook as preStop Hook
-    participant Svc as Service GracefulShutdown
-    participant Rest as pkg/rest/server.Server
-    participant HTTP as http.Server
-    participant Req as In-flight Request
-
-    K8s->>EP: trigger endpoint removal
-    Note over EP: endpoint update propagates asynchronously
-    opt preStop configured
-        K8s->>Hook: sleep to cover propagation window
-        Hook-->>K8s: return
-    end
-    K8s->>Svc: SIGTERM
-    Svc->>Rest: Shutdown(ctx)
-    Rest->>HTTP: Shutdown(timeoutCtx)
-    HTTP-->>HTTP: close listener
-    HTTP-->>Req: wait for handler return
-    alt request finished before rest shutdown timeout
-        Req-->>HTTP: handler completed
-        HTTP-->>Rest: nil / http.ErrServerClosed
-    else rest shutdown timeout reached
-        Rest->>HTTP: Close()
-        HTTP-->>Req: close remaining connection
-        Rest-->>Svc: timeout / forced close result
-    end
+flowchart TD
+    A[收到退出信号] --> B[关闭 REST listener]
+    B --> C{请求是否已进入 handler}
+    C -->|否| D[不再接受新连接]
+    C -->|是| E[等待 handler 返回]
+    E --> F{是否在 timeout 内完成}
+    F -->|是| G[正常返回]
+    F -->|否| H[关闭剩余连接]
 ```
 
-### REST Server 职责
+对调用方来说，endpoints 摘流和 `preStop` 降低的是“新请求继续打到正在退出 Pod”的概率；REST graceful shutdown 保障的是已经打到旧 Pod、并进入 handler 的请求尽量完成。它不保证所有长连接、上传下载或慢请求都一定成功完成。长耗时 handler 仍需要在业务层正确处理 context cancellation、超时和重试。
 
-REST shutdown 能力放在 `pkg/rest/server.Server` 内部实现，业务服务只负责编排调用。
+## Workflow 任务
 
-`rest.Server` 需要提供以下能力：
+Workflow graceful shutdown 的语义是：
 
-- 在 `Options` 中提供自身的 shutdown timeout
-- 自己创建并持有 `http.Server`
-- 使用 Gin engine 作为 `http.Server.Handler`
-- 提供 `Shutdown(ctx context.Context) error`
-- `Shutdown(ctx)` 内部使用外部 `ctx` 和自身 shutdown timeout 共同约束等待时间
-- shutdown timeout 到期后直接调用 `Close()` 关闭剩余连接
-- `Shutdown(ctx)` 需要幂等，多次调用不产生重复关闭副作用
+1. Backend 收到退出信号后，不再领取新的 workflow task。
+2. 已经开始执行的 action 先获得一段 drain 时间。
+3. drain timeout 到期后，running action 被视为长尾工作。
+4. 长尾 action 如果允许从 retry start point 重新执行，则进入 recovery path。
+5. 不允许从 retry start point 重新执行的 action，进入业务定义的终态处理。
 
-`gin.Engine.RunListener(listener)` 不会把 `http.Server` 暴露给 `rest.Server` 管理。`Start()` 需要由 `rest.Server` 自己创建并持有 `http.Server`：
+```mermaid
+flowchart TD
+    A[收到退出信号] --> B[停止领取新 workflow task]
+    B --> C[等待 running action]
+    C --> D{drain timeout 前是否完成}
+    D -->|是| E[按正常执行结果结束]
+    D -->|否| F{是否允许 retry start point}
+    F -->|是| G[进入 recovery path]
+    F -->|否| H[进入业务定义的终态处理]
+```
 
-- 非 TLS：`http.Server.Serve(listener)`
-- TLS：`http.Server.ServeTLS(listener, "", "")`
+这里的 retry 是 graceful shutdown 触发的恢复语义，用来避免长尾任务无限阻塞 Pod 退出。它不是“当前 Pod 继续把任务跑完”的承诺。是否允许
+retry 取决于 action 自身的业务语义；graceful shutdown 只消费这个业务声明，不要求所有 action 都必须可重试。
 
-`http.ErrServerClosed` 以及 shutdown 过程中由 listener 关闭产生的预期错误，视为正常退出；只有非关闭态下的 serve 错误才作为运行失败返回。
-
-同一个 Service 内可能存在多个 REST Server，例如 `Backend` 的 `info`、`admin`、`basic`、`callback`、`proxy`。这些 REST Server 在退出时应并行 shutdown，不按端口串行等待。
-
-`Shutdown(ctx)` 只负责 HTTP in-flight request，不负责 handler 内额外派生的后台 goroutine、Workflow 或 scheduler。长耗时 handler 应逐步响应 `rCtx.Done()`；REST 机制负责提供 request context 和 shutdown 信号。
+当前语义下，timeout 到期不会强制中断 action 内部正在执行的阻塞调用；如果 action 没有及时返回，仍依赖业务 timeout、任务
+timeout 或 Pod 强制退出兜底。最终业务状态由 action / operation 的业务逻辑决定，`terminated` 只是可能结果之一。
