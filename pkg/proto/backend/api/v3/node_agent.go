@@ -691,7 +691,6 @@ func (x *NodeAgentUpdateOpsFieldsReq) AutoConvert() {}
 
 // Validate validates the update ops fields request.
 func (x *NodeAgentUpdateOpsFieldsReq) Validate() error {
-
 	if len(x.GetHosts()) == 0 {
 		return errors.New("hosts can not be empty")
 	}

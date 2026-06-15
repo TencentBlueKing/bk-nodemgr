@@ -740,7 +740,7 @@ func (x *NodeAgentUpgradeCheckResp) ConvertResultFromTypes(results []*types.Node
 
 // Validate checks the update ops fields request body.
 func (x *NodeAgentUpdateOpsFieldsReq) Validate() error {
-		if len(x.GetHosts()) == 0 {
+	if len(x.GetHosts()) == 0 {
 		return errors.New("hosts can not be empty")
 	}
 

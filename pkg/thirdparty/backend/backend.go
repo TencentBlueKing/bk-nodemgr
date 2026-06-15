@@ -1904,7 +1904,7 @@ func (c *cli) updateNodeProxyOpsFields(ctx contextx.IContext, req *protoBackend.
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("update proxy ops fields failed. code(%d), message(%s), request-id(%s)",
+		return nil, fmt.Errorf("update node proxy ops fields failed. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 

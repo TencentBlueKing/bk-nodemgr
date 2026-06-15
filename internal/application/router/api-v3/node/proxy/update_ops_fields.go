@@ -17,8 +17,8 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-// UpdateOpsFields batch-updates out-of-band (ops) fields for proxy hosts.
-func (h *handler) UpdateOpsFields(rCtx restserver.IContext) (interface{}, error) {
+// ProxyUpdateOpsFields batch-updates out-of-band (ops) fields for proxy hosts.
+func (h *handler) ProxyUpdateOpsFields(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyUpdateOpsFieldsReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy ops fields, failed to decode request body")

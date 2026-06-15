@@ -22,7 +22,7 @@ func FillHostDynamicAgentID(host *types.Host) {
 
 // FillHostDynamicOpsInfo fill the dynamic ops fields of the host with the synced ops fields if they exist.
 func FillHostDynamicOpsInfo(host *types.Host) {
-	if host.Static.SyncedOpsConsoleHostID != 0 {
+	if host.Static.SyncedOpsConsoleHostID > 0 {
 		host.Dynamic.OpsConsoleHostID = host.Static.SyncedOpsConsoleHostID
 	}
 	if host.Static.SyncedOpsOutBandType != "" {
@@ -34,7 +34,7 @@ func FillHostDynamicOpsInfo(host *types.Host) {
 	if host.Static.SyncedOpsBMCIP != "" {
 		host.Dynamic.OpsBMCIP = host.Static.SyncedOpsBMCIP
 	}
-	if host.Static.SyncedOpsBMCPort != 0 {
+	if host.Static.SyncedOpsBMCPort > 0 {
 		host.Dynamic.OpsBMCPort = host.Static.SyncedOpsBMCPort
 	}
 }
