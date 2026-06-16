@@ -793,6 +793,14 @@ func TestProviderDefault_Stop(t *testing.T) {
 	}
 }
 
+// TestProviderDefault_GracefulShutdown test graceful shutdown.
+func TestProviderDefault_GracefulShutdown(t *testing.T) {
+	p := testProviderDefault(t)
+	if err := p.GracefulShutdown(); err != nil {
+		t.Errorf("graceful shutdown failed: %v", err)
+	}
+}
+
 // TestAllErrors test all errors.
 func TestAllErrors(t *testing.T) {
 	if err := ErrServiceNotFound(); err == nil {

@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -25,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
@@ -42,7 +44,9 @@ const (
 	etcdEntryBaseKeyValueCapacity = 8
 )
 
-// ProviderEtcd implements discover.Provider.
+var _ discover.IProvider = &ProviderEtcd{}
+
+// ProviderEtcd implements discover.IProvider.
 type ProviderEtcd struct {
 	config *config.Etcd
 
@@ -63,11 +67,52 @@ type ProviderEtcd struct {
 	cacheInstances     map[discover.ServiceName]*instanceHolder
 }
 
+// GracefulShutdown gracefully shuts down the provider.
+func (provider *ProviderEtcd) GracefulShutdown() error {
+	if provider.etcdClient == nil {
+		return discover.ErrDiscoverNotStarted()
+	}
+
+	var err error
+	// snapshot local instance holders before deregistering because deregistration mutates provider.localInstances.
+	provider.localInstancesMutex.RLock()
+	localInstances := maps.Clone(provider.localInstances)
+	provider.localInstancesMutex.RUnlock()
+	for serviceName, holder := range localInstances {
+		holder.mutex.RLock()
+		instances := conv.MapValueToSlice(holder.instances)
+		holder.mutex.RUnlock()
+
+		for _, instance := range instances {
+			if deregisterErr := provider.Deregister(serviceName, instance.ID); deregisterErr != nil {
+				err = errors.Join(err, fmt.Errorf("failed to deregister instance, instance(%v): %w", instance, deregisterErr))
+				continue
+			}
+
+		}
+	}
+
+	// Cancel after deregistration because Deregister uses provider.ctx to revoke leases.
+	provider.cancel()
+
+	if closeErr := provider.etcdClient.Close(); closeErr != nil {
+		err = errors.Join(err, fmt.Errorf("failed to close etcd client: %w", closeErr))
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to gracefully shutdown etcd discover provider: %w", err)
+	}
+
+	return nil
+}
+
 // NewProviderEtcd creates a new ProviderEtcd.
 func NewProviderEtcd(config *config.Etcd, opts ...OptionFn) *ProviderEtcd {
 	provider := &ProviderEtcd{
 		config:           config,
 		discoverPrefix:   defaultEtcdPrefix,
+		ctx:              context.Background(),
+		cancel:           func() {},
 		serviceWatchList: make([]discover.ServiceName, 0),
 		localInstances:   make(map[discover.ServiceName]*instanceHolder),
 		cacheInstances:   make(map[discover.ServiceName]*instanceHolder),
@@ -240,17 +285,6 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the provider, stop all activities.
-func (provider *ProviderEtcd) Stop() error {
-	if provider.cancel != nil {
-		provider.cancel()
-	}
-
-	logger.G.Sys().Info("stopped etcd discover provider")
-
-	return nil
-}
-
 // GetAllService get all specific service instances.
 func (provider *ProviderEtcd) GetAllService(serviceName discover.ServiceName) ([]discover.Instance, error) {
 	return provider.getCacheInstanceHolder(serviceName).all(), nil
@@ -287,9 +321,21 @@ func (provider *ProviderEtcd) SelectEndpoints(
 	return discover.SelectEndpoints(endpoints, count, selector)
 }
 
-// Register registers a service instance.
+// Register registers multiple service instances.
+func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instances ...discover.Instance) error {
+	for _, instance := range instances {
+		err := provider.register(serviceName, instance)
+		if err != nil {
+			return fmt.Errorf("failed to register instance, instance(%v): %w", instance, err)
+		}
+	}
+
+	return nil
+}
+
+// register registers a service instance.
 // nolint: gocognit
-func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {
+func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instance discover.Instance) error {
 	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("registering service")
 
 	if serviceName == "" {
@@ -574,6 +620,8 @@ func (provider *ProviderEtcd) keepListing() {
 	}
 
 	ticker := time.NewTicker(defaultListTickTime)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-provider.ctx.Done():

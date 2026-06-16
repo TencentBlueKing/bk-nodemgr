@@ -43,7 +43,7 @@ type Capability struct {
 	StorageConfigPolicy configpolicy.IStorage
 
 	// discover provider.
-	DiscoverProvider discover.Provider
+	DiscoverProvider discover.IProvider
 
 	// plugin manager iface.
 	PluginIface managerIface.IPluginManager

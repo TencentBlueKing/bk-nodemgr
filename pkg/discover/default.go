@@ -18,6 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
+var _ IProvider = &ProviderDefault{}
+
 // ProviderDefault this defines the default service discovery provider.
 type ProviderDefault struct {
 	mutex    sync.RWMutex
@@ -162,7 +164,8 @@ func (p *ProviderDefault) Start(_ context.Context) error {
 	return nil
 }
 
-// Stop stops the provider.
-func (p *ProviderDefault) Stop() error {
+// GracefulShutdown gracefully shuts down the provider.
+func (p *ProviderDefault) GracefulShutdown() error {
+
 	return nil
 }

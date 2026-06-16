@@ -50,7 +50,6 @@ func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
-		storageNetworkUnit:    capability.StorageTopo,
 		provider:              capability.DiscoverProvider,
 		passwordVault:         capability.HostPasswordVault,
 		storageActionInstance: capability.StorageWorkflow,
@@ -68,8 +67,7 @@ type actionInstallNodeByWMI struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
-	storageNetworkUnit    topoStg.IStorageNetworkUnit
-	provider              discover.Provider
+	provider              discover.IProvider
 	passwordVault         creditvault.IHostPasswordVault
 	storageActionInstance workflow.IStorageActionInstance
 }
@@ -115,7 +113,7 @@ func (act *actionInstallNodeByWMI) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallNodeByWMI) DelayFn(_ int) func() {
+func (act *actionInstallNodeByWMI) DelayFn() func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -303,10 +301,22 @@ func (act *actionInstallNodeByWMI) openInstallerReader(std *nodeUtils.NodeAction
 }
 
 func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
-	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
-	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
+	downloadEndpoints, err := act.provider.SelectEndpoints(
+		discover.ServiceNameFile,
+		discover.EndpointNameFileDownload,
+		nodeUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
+		return fmt.Errorf("failed to select file endpoints: %w", err)
+	}
+
+	callbackEndpoints, err := act.provider.SelectEndpoints(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		nodeUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
+	if err != nil {
+		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
 	installParams := &installer.NodeInstallParams{

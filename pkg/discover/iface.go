@@ -18,8 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 )
 
-// Provider this defines the interface of a complete service discovery provider.
-type Provider interface {
+// IProvider this defines the interface of a complete service discovery provider.
+type IProvider interface {
 	// Discover provides discovering interface.
 	Discover
 
@@ -29,8 +29,8 @@ type Provider interface {
 	// Start starts the provider.
 	Start(ctx context.Context) error
 
-	// Stop stops the provider.
-	Stop() error
+	// GracefulShutdown gracefully shuts down the provider.
+	GracefulShutdown() error
 }
 
 // EndpointName the name of endpoint.
@@ -233,7 +233,7 @@ type Discover interface {
 // Registry this defines the interface of service registry.
 type Registry interface {
 	// Register registers a service instance.
-	Register(serviceName ServiceName, instance Instance) error
+	Register(serviceName ServiceName, instances ...Instance) error
 
 	// Update updates a service instance.
 	Update(serviceName ServiceName, instance Instance) error

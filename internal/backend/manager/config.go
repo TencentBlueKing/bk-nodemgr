@@ -48,7 +48,7 @@ type Config struct {
 	UserManagerHandler usermanager.IHandler
 
 	// discover provider.
-	Provider discover.Provider
+	Provider discover.IProvider
 
 	// file group.
 	InstallerFileGroup fileiface.FileGroup
