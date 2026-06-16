@@ -293,7 +293,6 @@ func (provider *ProviderEtcd) GetAllService(serviceName discover.ServiceName) ([
 // GetAllEndpoint get all specific service endpoints.
 func (provider *ProviderEtcd) GetAllEndpoint(
 	serviceName discover.ServiceName, endpointName discover.EndpointName) ([]discover.Endpoint, error) {
-
 	return provider.getCacheInstanceHolder(serviceName).getEndpoints(endpointName), nil
 }
 
