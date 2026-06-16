@@ -1,0 +1,23 @@
+{
+  "skill_name": "bk-nodemgr-gopool",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review a bk-nodemgr handler that fans out three backend calls with pkg/runtime/gopool.NewPool, writes results into shared variables, and returns before calling Wait when one optional enrichment is best-effort. Identify correctness risks and the source anchors to inspect.",
+      "expected_output": "Explains that gopool wraps errgroup-like Go/Wait/SetLimit semantics, Wait must be deliberately handled or explicitly ignored only for documented best-effort cases, shared result mutation remains caller-owned and must be safe, and cites pkg/runtime/gopool/gopool.go plus representative router/service fan-out callers.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "A new service startup path uses gopool to start REST servers and background workers. It sets a limit after launching goroutines and expects gopool to cancel sibling goroutines on error. Review the design.",
+      "expected_output": "Warns that SetLimit delegates to errgroup and must be set before active goroutines; bk-nodemgr gopool does not create a derived cancellation context, so cancellation/lifecycle is caller responsibility; Wait returns the first non-nil error after goroutines finish; long-lived worker stop semantics need explicit service lifecycle handling.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "A goroutine launched through gopool may panic while transferring packages to relay hosts. Explain the expected error behavior and what a caller should verify before changing panic or error handling semantics.",
+      "expected_output": "States that gopool.Go recovers panics and converts them to an error with a trimmed stack, Wait returns the first non-nil error, callers must log/wrap according to layer policy, and behavior changes require checking gopool_test.go plus real workflow/file/rest callers.",
+      "files": []
+    }
+  ]
+}

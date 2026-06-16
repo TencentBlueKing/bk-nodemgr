@@ -1,0 +1,35 @@
+{
+  "skill_name": "bk-nodemgr-how-to",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A user asks: '这个 storage 改动把 contextx.IContext 改成 context.Context，还手写了几个 map/slice 转换 helper，帮我看看应该加载哪些 skill？' Decide the skill routing and why.",
+      "expected_output": "Routes context propagation first to bk-nodemgr-contextx and conversion helper decisions to bk-nodemgr-conv, adds golang-context/golang-safety only as companion language guidance if needed, and requires scoped AGENTS.md/source-anchor inspection instead of generic golang-how-to only.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "A user wants to add parallel backend calls in an api-v3 BFF handler with pkg/runtime/gopool and asks whether this is just a generic Go concurrency task. Route the task and define the verification focus.",
+      "expected_output": "Routes first to bk-nodemgr-gopool because pkg/runtime/gopool and BFF fan-out are project-specific, adds golang-concurrency and bk-nodemgr-contextx as companions when goroutine ownership/context propagation matter, and verifies Wait handling, SetLimit placement, shared state safety, and representative caller anchors.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "A user is designing retry behavior for GSE, relay, and SSH calls and mentions polling, exponential backoff, context cancellation, and retry logs. Route the task across project and generic skills.",
+      "expected_output": "Routes retry primitive choice to bk-nodemgr-retrier, project context propagation to bk-nodemgr-contextx, logging policy to bk-nodemgr-logger if logs are changed, and generic golang-context/golang-error-handling/golang-observability only as companions. It distinguishes Polling, ExpoBackoff, and Fallback rather than giving generic retry advice.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "A user says: '新增一个 backend api-v3 接口，顺便补权限和 API 文档，再让你 code review 一下'. Decide which project skills and generic Go skills should be loaded.",
+      "expected_output": "Routes endpoint scaffolding to api-scaffold, permission mapping to router-permission-supplement, API reference docs to api-doc when docs are requested, final review to code-review, and adds generic Go skills only for concrete implementation concerns such as errors, testing, naming, or safety. It does not route primarily to golang-how-to.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "A user asks a pure Go question unrelated to bk-nodemgr contracts: 'Should this exported interface name end with -er, and how should I test this tiny helper?' Route this without overloading project-specific skills.",
+      "expected_output": "Falls back to golang-how-to and generic Go companions such as golang-naming, golang-testing, and golang-code-style, and explicitly avoids loading bk-nodemgr project contract skills because no project surface or source anchor is involved.",
+      "files": []
+    }
+  ]
+}

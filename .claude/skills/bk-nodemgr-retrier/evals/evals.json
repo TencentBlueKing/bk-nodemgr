@@ -1,0 +1,23 @@
+{
+  "skill_name": "bk-nodemgr-retrier",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Choose the right pkg/runtime/retrier primitive for a workflow action that waits until a remote process becomes running or stopped, with action timeout and one-second polling. Include context cancellation and error reporting expectations.",
+      "expected_output": "Chooses Polling for repeated condition checks until success/timeout, uses action timeout and interval options, notes attempt 0 runs immediately, context cancellation returns ctx.Err, timeout currently returns reach max timeout without preserving last error, and caller owns domain logging/error wrapping.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review a proposed use of ExpoBackoff for SSH reconnect logic that must run indefinitely, increase reconnect delay on consecutive failures, and reset the delay after a successful heartbeat. Should pkg/runtime/retrier.ExpoBackoff be used?",
+      "expected_output": "Rejects ExpoBackoff for this indefinite reset-on-success loop, citing the existing ssh_installer_poller rationale; explains ExpoBackoff is bounded by MaxRetries, sleeps between attempts with capped exponential delay and positive jitter, and is suitable for finite idempotent transient retries.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Design a fallback retry over candidate relay endpoints using pkg/runtime/retrier.Fallback. Explain validator and callback semantics, candidate ordering, and what must remain outside the retrier package.",
+      "expected_output": "Uses Fallback for ordered candidate attempts, keeps validator portable and nil means all candidates valid, describes OnSkip/OnAttempt/OnError/OnSuccess callback timing, checks ctx before each candidate, wraps last error when all valid candidates fail, and keeps business policy/logging decisions in callers.",
+      "files": []
+    }
+  ]
+}

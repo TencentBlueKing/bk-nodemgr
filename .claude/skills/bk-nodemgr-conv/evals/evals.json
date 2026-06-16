@@ -1,0 +1,23 @@
+{
+  "skill_name": "bk-nodemgr-conv",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In bk-nodemgr, review a proposed change that adds a local helper in internal/backend/auth to convert IAM resource IDs from mixed numeric/string values to int64 and then deduplicate/intersect host IDs. Decide whether the helper belongs in the caller or should use pkg/runtime/conv, and list the exact source anchors to inspect before changing code.",
+      "expected_output": "Recommends using existing pkg/runtime/conv helpers such as ToInt64, SliceUnique, and SliceIntersect when the logic is business-agnostic; keeps auth policy outside conv; cites pkg/runtime/conv/AGENTS.md, conv.go, conv_test.go, and internal/backend/auth/scope.go; warns not to duplicate portable conversion helpers in callers.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "A workflow action reads ctx.Data.Content into a parameter struct and then builds maps/slices from host/process data. Design the minimal bk-nodemgr-style conversion approach using pkg/runtime/conv, including error handling and deterministic behavior checks.",
+      "expected_output": "Uses MapToStruct for action params, SliceToSlice/SliceToMap/MapKeyToSlice or MapValueToSlice where appropriate, wraps returned errors at the caller boundary, and explicitly checks duplicate-key/order/nil semantics against conv_test.go instead of inventing ad-hoc conversion loops.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Someone wants to add a new helper to pkg/runtime/conv that converts a frontend API-specific field into a business enum with defaulting rules. Review whether this belongs in conv and state the acceptance criteria if any conv helper is added.",
+      "expected_output": "Rejects API/business-specific conversion from pkg/runtime/conv; directs domain mapping to the owning handler/service/proto converter; states new conv helpers must be portable, dependency-light, business-agnostic, preserve existing nil/pointer/overflow/duplicate/order/recover semantics, and update conv_test.go for behavior changes.",
+      "files": []
+    }
+  ]
+}

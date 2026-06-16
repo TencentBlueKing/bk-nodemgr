@@ -1,0 +1,23 @@
+{
+  "skill_name": "bk-nodemgr-contextx",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review a bk-nodemgr service or storage change that replaces a contextx.IContext parameter with raw context.Context and reads tenant/user/message metadata through ad-hoc values. Decide whether this is acceptable and identify source anchors to inspect.",
+      "expected_output": "Rejects replacing contextx.IContext where tenant/user/message metadata is mandatory, points to pkg/contextx/iface.go and AGENTS.md, requires New/From/FromContext construction instead of ad-hoc values, and says CheckTenantID/CheckBKUsername/CheckLoginName/CheckMessageID should be used at validation boundaries.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "A workflow action derives a timeout from an existing contextx.IContext using context.WithTimeout and then passes it to storage and logger calls. Review the context propagation risk and propose the project-standard approach.",
+      "expected_output": "Warns that plain context.WithTimeout on an IContext path can lose contextx Values and identity helpers, recommends contextx.WithTimeout or contextx.WithCancel/WithDeadline as appropriate, requires defer cancel, and cites pkg/contextx/context.go plus workflow caller patterns.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Design context handling for an async task that must continue after the incoming request is cancelled but still keep bk-nodemgr tenant, username, login name, message id, trace, and logging context. Which helper should be used and what must remain outside pkg/contextx?",
+      "expected_output": "Uses contextx.WithoutCancel for background work that must outlive the request, explains FromContext/New preserve contextx info and trace attributes, cites pkg/goasync/handler.go as an anchor, and keeps service-specific metadata, business validation, logging policy, and worker lifecycle outside pkg/contextx.",
+      "files": []
+    }
+  ]
+}
