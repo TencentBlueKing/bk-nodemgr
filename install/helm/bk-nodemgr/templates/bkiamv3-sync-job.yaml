@@ -46,11 +46,11 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-sync
-          {{- if len .Values.backend.imageTag }}
+          {{- if len .Values.backend.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}

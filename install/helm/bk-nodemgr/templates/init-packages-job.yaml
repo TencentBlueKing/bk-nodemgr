@@ -48,11 +48,11 @@ spec:
       {{- end }}
       containers:
         - name: {{ template "bk-nodemgr.fullname" . }}-file-init-packages
-          {{- if len .Values.file.imageTag }}
+          {{- if len .Values.file.image.tag }}
           {{- if len .Values.global.imageRegistry }}
-          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- else }}
-          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.image.tag }}
           {{- end }}
           {{- else }}
           image: {{ template "bk-nodemgr.image" . }}
