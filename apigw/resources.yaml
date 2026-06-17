@@ -1004,9 +1004,13 @@ paths:
                               items:
                                 type: object
                                 properties:
+                                  time:
+                                    type: string
                                   bk_host_id:
                                     type: integer
                                     format: int64
+                                  bk_agent_id:
+                                    type: string
                                   bk_host_innerip_list:
                                     type: array
                                     items:
@@ -1015,10 +1019,7 @@ paths:
                                     type: array
                                     items:
                                       type: string
-                                  bk_agent_id:
-                                    type: string
-                                  time:
-                                    type: string
+                                description: CycleTime describes the cycle time of a node in topo graph.
                             total_agent:
                               type: integer
                               format: int64
@@ -1034,6 +1035,7 @@ paths:
                             bk_networkunit_id:
                               type: integer
                               format: int64
+                          description: GraphNodeInfo describes the node information in topo graph.
                   error:
                     type: object
                     properties:
@@ -1144,9 +1146,13 @@ paths:
                             items:
                               type: object
                               properties:
+                                time:
+                                  type: string
                                 bk_host_id:
                                   type: integer
                                   format: int64
+                                bk_agent_id:
+                                  type: string
                                 bk_host_innerip_list:
                                   type: array
                                   items:
@@ -1155,10 +1161,7 @@ paths:
                                   type: array
                                   items:
                                     type: string
-                                bk_agent_id:
-                                  type: string
-                                time:
-                                  type: string
+                              description: CycleTime describes the cycle time of a node in topo graph.
                           total_agent:
                             type: integer
                             format: int64
@@ -1174,6 +1177,7 @@ paths:
                           bk_networkunit_id:
                             type: integer
                             format: int64
+                        description: GraphNodeInfo describes the node information in topo graph.
                 error:
                   type: object
                   properties:
@@ -25414,7 +25418,8 @@ paths:
                     format: int32
                   data:
                     type: object
-                    properties: {}
+                    properties:
+                      items: {}
                   error:
                     type: object
                     properties:
@@ -25528,6 +25533,328 @@ paths:
           name: default
           method: post
           path: /api/v3/topo/business/inst_topo/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/agent/update_ops_fields:
+    post:
+      operationId: NodeAgent_NodeAgentUpdateOpsFields
+      description: NodeAgentUpdateOpsFields batch-updates out-of-band (ops) fields for hosts.
+      tags:
+        - NodeAgent
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  NodeAgentUpdateOpsFieldsResp describes the response for batch-updating
+                  out-of-band (ops) fields.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hosts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_biz_id:
+                        type: integer
+                        format: int64
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      ops_bmc_ip:
+                        type: string
+                      ops_bmc_port:
+                        type: integer
+                        format: int64
+                      ops_out_band_type:
+                        type: string
+                      ops_console_host_id:
+                        type: integer
+                        format: int64
+                      ops_out_band_protocol:
+                        type: string
+                    description: HostOpsInfo describes the out-of-band (ops) information for a host.
+              description: |-
+                NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating
+                out-of-band (ops) fields on hosts.
+        required: true
+        description: |-
+          NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating
+          out-of-band (ops) fields on hosts.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/agent/update_ops_fields
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/update_ops_fields:
+    post:
+      operationId: NodeProxy_NodeProxyUpdateOpsFields
+      description: |-
+        NodeProxyUpdateOpsFields batch-updates out-of-band (ops) fields for proxy
+        hosts.
+      tags:
+        - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  NodeProxyUpdateOpsFieldsResp describes the response for batch-updating
+                  out-of-band (ops) fields.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hosts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_biz_id:
+                        type: integer
+                        format: int64
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      ops_bmc_ip:
+                        type: string
+                      ops_bmc_port:
+                        type: integer
+                        format: int64
+                      ops_out_band_type:
+                        type: string
+                      ops_console_host_id:
+                        type: integer
+                        format: int64
+                      ops_out_band_protocol:
+                        type: string
+                    description: HostOpsInfo describes the out-of-band (ops) information for a host.
+              description: |-
+                NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+                out-of-band (ops) fields on hosts.
+        required: true
+        description: |-
+          NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+          out-of-band (ops) fields on hosts.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/update_ops_fields
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
