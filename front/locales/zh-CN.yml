@@ -912,6 +912,7 @@ pkgUpload:
   packageType: 包类型
   description: 描述
   descInfo: "描述信息：{desc}"
+  scenario: "使用场景：{scenario}"
   configFile: "配置文件：{file}"
   configFormat: "配置格式：{format}"
   launchNode: "运行节点类型：{node}"

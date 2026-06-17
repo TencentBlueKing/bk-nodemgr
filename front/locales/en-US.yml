@@ -912,6 +912,7 @@ pkgUpload:
   packageType: Type
   description: Description
   descInfo: "Description: {desc}"
+  scenario: "Scenario: {scenario}"
   configFile: "Config: {file}"
   configFormat: "Format: {format}"
   launchNode: "Node Type: {node}"

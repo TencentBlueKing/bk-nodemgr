@@ -60,7 +60,10 @@
         </div>
       </template>
     </bk-loading>
-    <template v-if="data?.change_log_zh || data?.change_log_en || data?.description">
+    <template
+      v-if="data?.change_log_zh || data?.change_log_en || data?.description || data?.description_en
+        || data?.scenario || data?.scenario_en"
+    >
       <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px] flex items-center gap-[16px]">
         <span>{{ t('pkgUpload.description') }}</span>
         <Radio.Group v-model="changLog" v-if="data?.change_log_zh || data?.change_log_en">
@@ -75,7 +78,14 @@
           {{ changLog === 'ZH' ? data.change_log_zh : data.change_log_en }}
         </span>
         <div v-else-if="currentType === 'plugin'" class="flex flex-col gap-[10px] flex-wrap">
-          <span>{{ t('pkgUpload.descInfo', { desc: data.description }) }}</span>
+          <span>{{ t('pkgUpload.descInfo', {
+            desc: locale.startsWith('zh') ? data.description : data.description_en,
+          }) }}</span>
+          <span>
+            {{ t('pkgUpload.scenario', {
+              scenario: locale.startsWith('zh') ? data.scenario : data.scenario_en,
+            }) }}
+          </span>
           <span>{{ t('pkgUpload.configFile', { file: data.config_file }) }}</span>
           <span>{{ t('pkgUpload.configFormat', { format: data.config_format }) }}</span>
           <span>{{ t('pkgUpload.launchNode', { node: data.launch_node }) }}</span>
@@ -94,7 +104,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import { usePackageStore } from '@/stores/package';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const props = defineProps({
   data: {
     type: Object,
