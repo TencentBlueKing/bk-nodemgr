@@ -200,7 +200,7 @@ func (m *serverMessager) RespondCallback(nCtx contextx.IContext,
 	}
 
 	if result.Code != 0 || len(result.AgentResults) > 0 {
-		err = errDispatchPartialFailed
+		err = fmt.Errorf("failed to send callback resp to agents:%w", errDispatchPartialFailed)
 
 		logger.G.Biz(nCtx).
 			WithErr(err).
@@ -251,7 +251,7 @@ func (m *serverMessager) PushToClient(
 			}
 
 			if result.Code != 0 || len(result.AgentResults) > 0 {
-				err = errDispatchPartialFailed
+				err = fmt.Errorf("failed to send message to client:%w", errDispatchPartialFailed)
 
 				logger.G.Biz(nCtx).
 					WithErr(err).
@@ -316,7 +316,7 @@ func (m *serverMessager) SendAck(nCtx contextx.IContext, originalMessageID strin
 	}
 
 	if result.Code != 0 || len(result.AgentResults) > 0 {
-		err = errDispatchPartialFailed
+		err = fmt.Errorf("failed to send ack to agents:%w", errDispatchPartialFailed)
 
 		logger.G.Biz(nCtx).
 			WithErr(err).
