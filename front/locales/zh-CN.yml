@@ -213,6 +213,10 @@ platform:
         agentHistory: Agent 历史
         proxyHistory: Proxy 历史
         pluginHistory: 插件历史
+      subtitle:
+        agent: 查看 Agent 安装、升级、卸载等节点操作任务历史
+        proxy: 查看 Proxy 安装、升级、卸载等节点操作任务历史
+        plugin: 查看插件安装、升级、停止、卸载等任务历史
       shortcut:
         today: 今天
         last7Days: 近7天

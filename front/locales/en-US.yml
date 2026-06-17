@@ -213,6 +213,10 @@ platform:
         agentHistory: Agent History
         proxyHistory: Proxy History
         pluginHistory: Plugin History
+      subtitle:
+        agent: View task history for Agent installation, upgrade, uninstallation, and other node operations
+        proxy: View task history for Proxy installation, upgrade, uninstallation, and other node operations
+        plugin: View task history for plugin installation, upgrade, stop, uninstallation, and related operations
       shortcut:
         today: Today
         last7Days: Last 7 days

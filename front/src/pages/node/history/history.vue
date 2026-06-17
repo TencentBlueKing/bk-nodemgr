@@ -202,6 +202,7 @@ import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
+import { useRouteSubTitle } from '@/stores/route-sub-title';
 
 interface FilterOption {
   list: { text: string; value: string }[];
@@ -219,12 +220,25 @@ type taskType =
   | 'migrate_plugin_v2'
   | 'assign_proxy_unit';
 type filterProp = 'type' | 'operator' | 'status';
+type HistoryTab = 'agent' | 'proxy' | 'plugin';
+
+const historyTabs: HistoryTab[] = ['agent', 'proxy', 'plugin'];
+const normalizeHistoryTab = (tab: unknown): HistoryTab => (
+  historyTabs.includes(tab as HistoryTab) ? tab as HistoryTab : 'agent'
+);
+
+const historySubtitleMap: Record<HistoryTab, string> = {
+  agent: 'platform.nodeMan.taskHistory.subtitle.agent',
+  proxy: 'platform.nodeMan.taskHistory.subtitle.proxy',
+  plugin: 'platform.nodeMan.taskHistory.subtitle.plugin',
+};
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+const routeSubTitle = useRouteSubTitle();
 const tableData = ref<NodeWorkflowInfo[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
 
@@ -264,9 +278,7 @@ const restoreFiltersFromQuery = (query: LocationQuery) => {
   isRestoringFromUrl.value = true;
 
   // active tab
-  if (query.active && typeof query.active === 'string') {
-    active.value = query.active;
-  }
+  active.value = normalizeHistoryTab(query.active);
 
   // searchSelectValue
   const filterItems: { id: string; name: string; values: any }[] = [];
@@ -327,6 +339,9 @@ const restoreFiltersFromQuery = (query: LocationQuery) => {
 
 // tab
 const active = ref('agent');
+const updateRouteSubTitle = () => {
+  routeSubTitle.subTitle = historySubtitleMap[normalizeHistoryTab(active.value)];
+};
 const panels = ref([
   { name: 'agent', label: t('platform.nodeMan.taskHistory.tab.agentHistory') },
   { name: 'proxy', label: t('platform.nodeMan.taskHistory.tab.proxyHistory') },
@@ -969,11 +984,13 @@ if (!route.query.active) {
   getWorkflowDistinct();
 }
 
+watch([() => active.value, () => route.fullPath], updateRouteSubTitle, { immediate: true });
+
 // 监听后续 URL 变化（如浏览器后退、菜单导航、Tab 切换 router.replace）
 watch(
   () => route.query,
   () => {
-    const newActive = route.query.active as string || 'agent';
+    const newActive = normalizeHistoryTab(route.query.active);
     if (active.value !== newActive) {
       active.value = newActive;
     }
