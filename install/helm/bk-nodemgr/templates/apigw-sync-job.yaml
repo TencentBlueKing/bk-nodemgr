@@ -65,6 +65,7 @@ spec:
             - bin/sync-apigateway.sh
           env:
           {{- toYaml .Values.apigwSync.extraEnvVars | nindent 12 }}
+          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       volumes:
       - name: apigw-sync-config
         configMap:
