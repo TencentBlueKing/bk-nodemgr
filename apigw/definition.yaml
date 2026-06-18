@@ -2,9 +2,9 @@ spec_version: 2
 
 release:
   # 发布版本号
-  version: 2.14.1
+  version: 2.14.2
   title: "bk-nodemgr"
-  comment: "v3.0.1-alpha.40"
+  comment: "v3.0.1-alpha.41"
 
 apigateway:
   description: "蓝鲸节点管理"
