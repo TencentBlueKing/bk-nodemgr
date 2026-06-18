@@ -29,7 +29,7 @@ title "releasing"
 # 创建资源版本并发布；指定参数 --generate-sdks 时，会同时生成资源版本对应的网关 SDK, 指定 --stage stage1 stage2 时会发布指定环境,不设置则发布所有环境
 # 指定参数 --no-pub 则只生成版本，不发布
 
-release_stages="${RELEASE_STAGES:-"stage"}"
+release_stages="${RELEASE_STAGES:-}"
 no_pub="${NO_PUB:-true}"
 
 if [ "$no_pub" = "true" ]; then

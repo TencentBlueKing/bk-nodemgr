@@ -92,7 +92,7 @@ apigwSync:
 当前同步脚本会先读取：
 
 ```bash
-release_stages="${RELEASE_STAGES:-"stage"}"
+release_stages="${RELEASE_STAGES:-}"
 no_pub="${NO_PUB:-true}"
 ```
 
@@ -104,8 +104,8 @@ no_pub="${NO_PUB:-true}"
 create_version_and_release_apigw definition.yaml --gateway-name=bk-nodemgr --stage "${RELEASE_STAGES}"
 ```
 
-因此，默认的 `NO_PUB=true` 与 `RELEASE_STAGES=stage` 组合表示：先生成一个未发布版本，再发布到 `stage`
-环境。只想生成版本、不发布任何环境时，需要同时将 `RELEASE_STAGES` 置空。
+因此，默认的 `NO_PUB=true` 与空 `RELEASE_STAGES` 组合表示：只生成一个未发布版本，不发布任何环境。
+如需在生成版本后发布到指定环境，需要显式设置 `RELEASE_STAGES`。
 
 ## 4. `resources.yaml` 和接口文档从哪里来？
 
