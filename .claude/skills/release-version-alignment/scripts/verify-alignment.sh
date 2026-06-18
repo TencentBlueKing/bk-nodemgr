@@ -51,6 +51,9 @@ HELM_FILES=(
   "install/helm/mock-server/values.yaml"
 )
 
+APIGW_DEFINITION_PATH="apigw/definition.yaml"
+APIGW_RESOURCES_PATH="apigw/resources.yaml"
+
 is_in_list() {
   local needle=$1
   shift
@@ -115,7 +118,7 @@ read_values_apigw_release_value() {
   local key=$2
   awk -v key="$key" '
     /^apigwSync:/ { in_apigw=1; next }
-    in_apigw && /^[^[:space:]]/ { in_apigw=0 }
+    in_apigw && /^[^#[:space:]]/ { in_apigw=0 }
     in_apigw && /^[[:space:]]+release:/ { in_release=1; next }
     in_release && /^[[:space:]]{2}[^[:space:]]/ && $1 != "release:" { in_release=0 }
     in_release && $1 == key ":" {
@@ -125,6 +128,11 @@ read_values_apigw_release_value() {
       exit
     }
   ' "$file"
+}
+
+values_apigw_release_changed() {
+  git diff "$BASE_BRANCH" --unified=0 -- install/helm/bk-nodemgr/values.yaml |
+    grep -Eq '^[+-][[:space:]]{6}(version|comment):'
 }
 
 check_equals() {
@@ -147,6 +155,11 @@ fi
 MODE="helm-followup"
 if printf '%s\n' "$CHANGED_FILES" | grep -Eq '^(apigw/|support-files/changelog/)'; then
   MODE="complete-release"
+fi
+
+APIGW_METADATA_CHANGED=false
+if has_changed_file "$APIGW_DEFINITION_PATH" || values_apigw_release_changed; then
+  APIGW_METADATA_CHANGED=true
 fi
 
 echo "Verifying release version alignment for $TARGET_VERSION against $BASE_BRANCH"
@@ -216,15 +229,16 @@ if has_changed_file "install/helm/mock-server/values.yaml" || [ "$MODE" = "compl
   check_equals "mock-server values.yaml image.tag" "$MOCK_IMAGE_TAG" "$TARGET_VERSION"
 fi
 
-if [ "$MODE" = "complete-release" ]; then
-  APIGW_VERSION=$(read_apigw_release_value "apigw/definition.yaml" "version")
-  APIGW_COMMENT=$(read_apigw_release_value "apigw/definition.yaml" "comment")
+if [ "$MODE" = "complete-release" ] && [ "$APIGW_METADATA_CHANGED" = true ]; then
+  APIGW_VERSION=$(read_apigw_release_value "$APIGW_DEFINITION_PATH" "version")
+  APIGW_COMMENT=$(read_apigw_release_value "$APIGW_DEFINITION_PATH" "comment")
   VALUES_APIGW_VERSION=$(read_values_apigw_release_value "install/helm/bk-nodemgr/values.yaml" "version")
   VALUES_APIGW_COMMENT=$(read_values_apigw_release_value "install/helm/bk-nodemgr/values.yaml" "comment")
 
-  check_equals "apigw definition release.comment" "$APIGW_COMMENT" "$TARGET_VERSION"
-  check_equals "bk-nodemgr values apigwSync release.comment" "$VALUES_APIGW_COMMENT" "$TARGET_VERSION"
   check_equals "API Gateway release.version consistency" "$VALUES_APIGW_VERSION" "$APIGW_VERSION"
+  check_equals "API Gateway release.comment consistency" "$VALUES_APIGW_COMMENT" "$APIGW_COMMENT"
+elif [ "$MODE" = "complete-release" ]; then
+  echo -e "${YELLOW}Skipped API Gateway release metadata check because metadata was not changed${NC}"
 fi
 
 if [ $ERRORS -gt 0 ]; then
@@ -239,7 +253,7 @@ echo ""
 echo "Check 3: Diff sanity"
 WARNINGS=0
 
-HELM_DIFF=$(git diff "$BASE_BRANCH" -- install/helm/ || true)
+HELM_DIFF=$(git diff "$BASE_BRANCH" --unified=0 -- install/helm/ || true)
 SUSPICIOUS_PATTERNS=(
   "templates/"
   "charts/"
@@ -296,7 +310,6 @@ echo ""
 echo "Check 5: Gateway resource sync"
 CURRENT_DIFF_FILES=$(git diff "$BASE_BRANCH" --name-only)
 SWAGGER_PATH_RE='^docs/api/swagger/backend/api/v3/.*\.swagger\.json$'
-APIGW_RESOURCES_PATH="apigw/resources.yaml"
 CHANGED_SWAGGER_FILES=$(echo "$CURRENT_DIFF_FILES" | grep -E "$SWAGGER_PATH_RE" || true)
 
 if [ -n "$CHANGED_SWAGGER_FILES" ] && ! echo "$CURRENT_DIFF_FILES" | grep -qx "$APIGW_RESOURCES_PATH"; then
@@ -308,6 +321,11 @@ fi
 
 if [ "$MODE" = "complete-release" ]; then
   if has_changed_file "$APIGW_RESOURCES_PATH"; then
+    if [ "$APIGW_METADATA_CHANGED" != true ]; then
+      echo -e "${RED}Gateway resource sync check failed: $APIGW_RESOURCES_PATH changed but API Gateway release metadata did not${NC}"
+      echo "Update $APIGW_DEFINITION_PATH release.* and install/helm/bk-nodemgr/values.yaml apigwSync.config.release.* for the resource-changing app version."
+      exit 6
+    fi
     echo -e "${GREEN}Gateway resource sync check passed in current diff${NC}"
   else
     echo -e "${YELLOW}No apigw/resources.yaml change in complete-release mode; confirm no gateway-visible swagger contract changed${NC}"
