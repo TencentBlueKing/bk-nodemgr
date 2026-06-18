@@ -1,59 +1,59 @@
 {
   "skill_name": "release-version-alignment",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "test_cases": {
     "should_trigger": [
       {
+        "input": "我先要出一个新版本，准备 alpha.40 的 release PR",
+        "reason": "primary complete release preparation with concrete target version"
+      },
+      {
+        "input": "准备发布下一个版本，顺手把 Helm、APIGW 和 changelog 都对齐",
+        "reason": "primary complete release preparation across the release-alignment surfaces"
+      },
+      {
         "input": "给这个版本补一下 helm values",
-        "reason": "explicit request to supplement helm values for a version"
+        "reason": "secondary request to supplement Helm values for a version"
       },
       {
         "input": "这个版本可以打 tag 了吗？",
-        "reason": "asking about release readiness, which requires version alignment check"
+        "reason": "release readiness requires version alignment check"
       },
       {
         "input": "helm 版本对齐了没？",
-        "reason": "direct question about helm version alignment"
+        "reason": "direct question about Helm version alignment"
       },
       {
         "input": "chart 跟镜像版本没对齐",
-        "reason": "reporting version mismatch between chart and image"
+        "reason": "reported version mismatch between chart and image"
       },
       {
         "input": "发版前检查一下 helm",
-        "reason": "pre-release helm check request"
+        "reason": "pre-release Helm check request"
       },
       {
         "input": "release 后补 helm PR",
-        "reason": "follow-up helm PR after release"
+        "reason": "follow-up Helm PR after release"
       },
       {
         "input": "补一下 release 遗漏的 helm 版本",
-        "reason": "fixing missing helm version from release"
+        "reason": "fixing missing Helm version from release"
       },
       {
         "input": "只补 install/helm 版本，不做别的",
-        "reason": "explicit scope limitation to helm version only"
+        "reason": "explicit scope limitation to Helm version alignment"
       },
       {
-        "input": "发版尾差一个 helm follow-up",
-        "reason": "missing helm follow-up at end of release"
-      },
-      {
-        "input": "检查下 helm 是不是漏了",
-        "reason": "checking if helm was missed"
-      },
-      {
-        "input": "helm 版本号还没跟上",
-        "reason": "helm version not yet aligned"
+        "input": "bk-nodemgr-apigw-sync image tag 还停在 alpha.39，补到 alpha.40",
+        "reason": "secondary apiManagerImage.tag-only follow-up evidence from d8619d1"
       },
       {
         "input": "把 alpha.17 的 chart 版本补上",
         "reason": "specific version bump request for chart"
       },
       {
-        "input": "chart version、appVersion、image.tag 没对齐",
-        "reason": "explicit mention of alignment fields"
+        "input": "chart version、appVersion、image.tag、apiManagerImage.tag 没对齐",
+        "reason": "explicit mention of supported alignment fields"
       },
       {
         "input": "注意不要自动关闭这个 issue",
@@ -62,12 +62,12 @@
     ],
     "should_not_trigger": [
       {
-        "input": "做完整 release",
-        "reason": "broad release planning, not version alignment check"
+        "input": "解释一下 release 流程是什么",
+        "reason": "broad release-process explanation, not a concrete release preparation or alignment task"
       },
       {
         "input": "修 pipeline",
-        "reason": "pipeline work, not helm version alignment"
+        "reason": "pipeline work, not release version alignment"
       },
       {
         "input": "改 helm template",
@@ -83,15 +83,11 @@
       },
       {
         "input": "helm 版本对齐 + 顺便改下 ingress",
-        "reason": "mixed scope: version alignment + other helm changes"
+        "reason": "mixed scope: version alignment plus unrelated Helm config changes"
       },
       {
         "input": "为什么需要 helm 版本对齐？",
         "reason": "conceptual question, not execution request"
-      },
-      {
-        "input": "release 流程是什么？",
-        "reason": "broad release investigation, not specific alignment task"
       },
       {
         "input": "CI 失败了怎么办？",
@@ -104,10 +100,28 @@
     ],
     "boundary_behavior": [
       {
-        "scenario": "diff 超出 4 个目标文件",
-        "input": "user provides a commit that touches install/helm/bk-nodemgr/Chart.yaml, values.yaml, and also install/helm/bk-nodemgr/templates/deployment.yaml",
+        "scenario": "complete release scope",
+        "input": "user asks to prepare v3.0.1-alpha.40 release and evidence matches d41ee72",
+        "expected_action": "use complete-release mode and allow apigw/definition.yaml, apigw/resources.yaml, four Helm files, and localized changelog files",
+        "reason": "d41ee72 is a complete release PR, not a Helm-only follow-up"
+      },
+      {
+        "scenario": "Helm-only apiManagerImage.tag subset",
+        "input": "reference commit only changes install/helm/bk-nodemgr/values.yaml apiManagerImage.tag from v3.0.1-alpha.39 to v3.0.1-alpha.40",
+        "expected_action": "treat as valid Helm-only follow-up subset and verify apiManagerImage.tag equals the target version",
+        "reason": "d8619d1 proves apiManagerImage.tag can be the only lagging field"
+      },
+      {
+        "scenario": "primary path is not constrained to four Helm files",
+        "input": "complete release diff contains apigw/definition.yaml and support-files/changelog/zh/v3.0.1-alpha.40_2026-06-17.md",
+        "expected_action": "do not reject these files as scope overflow when mode is complete-release",
+        "reason": "primary release PR includes API Gateway metadata and versioned changelog files"
+      },
+      {
+        "scenario": "Helm-only diff 超出允许文件",
+        "input": "user provides a Helm-only follow-up commit that touches install/helm/bk-nodemgr/Chart.yaml, values.yaml, and install/helm/bk-nodemgr/templates/deployment.yaml",
         "expected_action": "stop and ask user to confirm scope before proceeding",
-        "reason": "scope exceeds version-only alignment"
+        "reason": "Helm-only follow-up scope exceeds version-alignment fields"
       },
       {
         "scenario": "用户没说 auto-close issue",
@@ -124,14 +138,8 @@
       {
         "scenario": "当前分支有无关提交",
         "input": "current branch has commits touching pkg/dao/mongo and install/helm/bk-nodemgr/Chart.yaml",
-        "expected_action": "create clean branch from origin/master, carry only helm version bump",
+        "expected_action": "create clean branch from origin/master, carry only release-alignment changes",
         "reason": "avoid carrying unrelated history into version alignment PR"
-      },
-      {
-        "scenario": "当前分支只有目标 helm 改动",
-        "input": "current branch only has uncommitted changes to the 4 target helm files",
-        "expected_action": "continue on current branch",
-        "reason": "branch is clean, no need to create new branch"
       },
       {
         "scenario": "无法确认目标版本",
@@ -140,85 +148,78 @@
         "reason": "cannot proceed without clear target version"
       },
       {
-        "scenario": "参考 commit 不清楚版本 bump 模式",
-        "input": "reference commit only shows partial helm changes, unclear which fields should be updated",
-        "expected_action": "stop and ask user to clarify expected version bump pattern",
-        "reason": "cannot invent version bump pattern without clear evidence"
+        "scenario": "API Gateway release.version 不是 app version",
+        "input": "complete release evidence shows apigw/definition.yaml release.version 2.14.1 and release.comment v3.0.1-alpha.40",
+        "expected_action": "verify release.version as API Gateway release number and release.comment as target app version",
+        "reason": "d41ee72 shows API Gateway release.version is not the app version string"
       },
       {
-        "scenario": "验证发现文件范围超出预期",
-        "input": "after editing, git diff master --name-only shows 5 files instead of 4",
-        "expected_action": "stop and report mismatch, do not proceed to PR creation",
-        "reason": "verification failed: file scope check"
+        "scenario": "验证发现 localized changelog 缺失",
+        "input": "complete release verification finds no support-files/changelog/en/v3.0.1-alpha.40_*.md or zh counterpart",
+        "expected_action": "stop workflow, delegate to changelog-doc skill to generate localized versioned changelog files, wait for user confirmation, then resume verification",
+        "reason": "complete release requires zh/en versioned changelog files, not release.md"
       },
       {
-        "scenario": "验证发现版本不一致",
-        "input": "after editing, bk-nodemgr Chart.yaml version is v3.0.1-alpha.17 but values.yaml image.tag is v3.0.1-alpha.16",
-        "expected_action": "stop and report mismatch, do not proceed to PR creation",
-        "reason": "verification failed: version alignment check"
+        "scenario": "backend swagger 有变更但 apigw/resources.yaml 未同步",
+        "input": "when comparing the previous release version with v3.0.1-alpha.40, docs/api/swagger/backend/api/v3/node_proxy.swagger.json changes a gateway-visible schema but apigw/resources.yaml does not",
+        "expected_action": "stop and report that apigw/resources.yaml was not updated in time for the version change; do not silently expand Helm-only scope",
+        "reason": "gateway-visible backend swagger changes must be reflected in apigw/resources.yaml within the same version window"
       },
       {
         "scenario": "用户请求变成 tag 手术",
         "input": "helm 版本对齐了，但是 tag 打早了，需要移动 tag",
         "expected_action": "read references/tag-workflow.md and treat as different task, not version alignment",
         "reason": "scope shifted to tag surgery"
-      },
-      {
-        "scenario": "验证发现 changelog 缺失",
-        "input": "after editing helm files, verification finds no changelog entry for v3.0.1-alpha.17 in release.md",
-        "expected_action": "stop workflow, delegate to subagent with changelog-doc skill to generate changelog, wait for user confirmation, then resume verification",
-        "reason": "changelog is required before creating release PR"
-      },
-      {
-        "scenario": "backend swagger 有变更但 apigw/resources.yaml 未同步",
-        "input": "when comparing the previous release version with v3.0.1-alpha.17, docs/api/swagger/backend/api/v3/node_proxy.swagger.json changes NodeProxyUpgradeReq.target_version but apigw/resources.yaml does not",
-        "expected_action": "stop and report that apigw/resources.yaml was not updated in time for the version change; treat it as incomplete release follow-up rather than silently proceeding",
-        "reason": "gateway-visible backend swagger changes must be reflected in apigw/resources.yaml within the same version window"
       }
     ],
     "execution_quality": [
       {
-        "aspect": "commit message format",
-        "expected": "feat: bump bk-nodemgr helm chart to vX.Y.Z-alpha.N --issue=#1234",
-        "anti_pattern": "update helm version"
-      },
-      {
-        "aspect": "PR title format",
-        "expected": "feat: bump helm release version to vX.Y.Z-alpha.N --issue=#1234",
+        "aspect": "complete-release PR title format",
+        "expected": "feat: bump release version to vX.Y.Z-alpha.N --issue=#1234",
         "anti_pattern": "helm version alignment"
       },
       {
+        "aspect": "Helm-only PR title format",
+        "expected": "feat: bump helm release version to vX.Y.Z-alpha.N --issue=#1234",
+        "anti_pattern": "release update"
+      },
+      {
+        "aspect": "single lagging field commit message",
+        "expected": "chore: bump bk-nodemgr-apigw-sync image to vX.Y.Z-alpha.N",
+        "anti_pattern": "feat: bump all helm files"
+      },
+      {
         "aspect": "PR body format",
-        "expected": "## Summary\n- bump helm chart and values version to vX.Y.Z-alpha.N\n\nrefs #1234",
-        "anti_pattern": "Updated helm charts for release"
+        "expected": "## Summary\n- align release version to vX.Y.Z-alpha.N\n\nrefs #1234",
+        "anti_pattern": "Updated release things"
       },
       {
         "aspect": "branch naming",
-        "expected": "pr/helm-release-alpha17",
-        "anti_pattern": "fix-helm-version"
+        "expected": "pr/helm-release-alpha40",
+        "anti_pattern": "fix-version"
       },
       {
         "aspect": "commit atomicity",
-        "expected": "two commits: one for bk-nodemgr chart, one for mock-server chart",
-        "anti_pattern": "one commit touching all 4 files"
+        "expected": "Helm-only both-chart follow-up may split per chart; complete release alignment may stay together unless user asks otherwise",
+        "anti_pattern": "force two commits for complete release or force all 4 Helm files for apiManagerImage-only follow-up"
       },
       {
         "aspect": "verification scope",
-        "expected": "check file scope, version alignment, diff sanity, changelog existence, and backend swagger to apigw/resources.yaml sync when gateway-visible swagger changed",
-        "anti_pattern": "deep helm template analysis or dependency validation"
+        "expected": "check mode-specific file scope, version alignment, API Gateway metadata, localized changelog files for complete releases, and gateway resource sync when gateway-visible swagger changed",
+        "anti_pattern": "deep Helm template analysis or release.md-only changelog check"
       },
       {
         "aspect": "changelog handling",
-        "expected": "delegate to changelog-doc skill when changelog is missing, wait for user confirmation",
-        "anti_pattern": "skip changelog check or proceed without changelog"
+        "expected": "delegate to changelog-doc skill when localized changelog files are missing, wait for user confirmation",
+        "anti_pattern": "skip changelog check or write release.md as the default target"
       }
     ]
   },
   "success_criteria": {
-    "trigger_accuracy": "should correctly identify version alignment requests and reject out-of-scope requests",
-    "scope_discipline": "should stop and ask when scope is unclear or exceeds version-only alignment",
+    "trigger_accuracy": "should identify concrete complete-release preparation and Helm-only alignment requests while rejecting unrelated release-process explanation",
+    "scope_discipline": "should stop and ask when mode or scope is unclear, and should not apply Helm-only file limits to complete-release mode",
     "safety_compliance": "should default to 'refs' for issue reference and create clean branch when history is dirty",
-    "output_quality": "should produce commit messages, PR title, and PR body that match repo conventions",
-    "verification_discipline": "should run minimal verification checks, including backend swagger to apigw/resources.yaml sync validation, and stop on mismatch"
+    "output_quality": "should produce commit messages, PR title, and PR body that match repo conventions and mode",
+    "verification_discipline": "should run mode-specific verification checks, including apiManagerImage.tag, localized changelog files, and backend swagger to apigw/resources.yaml sync validation"
   }
 }

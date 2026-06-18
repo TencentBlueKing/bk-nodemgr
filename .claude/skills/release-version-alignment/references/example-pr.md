@@ -1,43 +1,114 @@
-# Release Helm PR Examples
+# Release Alignment PR Examples
 
 ## Scope
 
-Use this reference when the task is a **version-only** Helm release follow-up for bk-nodemgr.
+Use this reference when the task is a bk-nodemgr release-alignment PR.
+
+There are two modes:
+
+1. **Complete release PR**: preparing a new version release.
+2. **Helm-only follow-up**: fixing missing Helm alignment after the target version is already known.
+
+Do not use Helm-only limits to reject complete release files.
+
+## Complete Release PR
 
 Expected touched files:
+
+- `apigw/definition.yaml`
+- `apigw/resources.yaml`
+- `install/helm/bk-nodemgr/Chart.yaml`
+- `install/helm/bk-nodemgr/values.yaml`
+- `install/helm/mock-server/Chart.yaml`
+- `install/helm/mock-server/values.yaml`
+- `support-files/changelog/en/vX.Y.Z-alpha.N_YYYY-MM-DD.md`
+- `support-files/changelog/zh/vX.Y.Z-alpha.N_YYYY-MM-DD.md`
+
+Expected fields:
+
+- `apigw/definition.yaml`: `release.version`, `release.comment`
+- `install/helm/bk-nodemgr/Chart.yaml`: `version`, `appVersion`
+- `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`, `apigwSync.config.release.version`, `apigwSync.config.release.comment`
+- `install/helm/mock-server/Chart.yaml`: `version`, `appVersion`
+- `install/helm/mock-server/values.yaml`: `image.tag`
+- changelog heading: `## [Version: vX.Y.Z-alpha.N] - YYYY-MM-DD`
+
+Important: `release.version` in API Gateway files is an API Gateway release number such as `2.14.1`; `release.comment` carries the app version string such as `v3.0.1-alpha.40`.
+
+Complete-release PR title example:
+
+```text
+feat: bump release version to v3.0.1-alpha.40 --issue=#1502
+```
+
+Complete-release PR body example:
+
+```md
+## Summary
+- align release version to v3.0.1-alpha.40
+
+refs #1502
+```
+
+## Helm-only Follow-up
+
+Allowed touched files:
 
 - `install/helm/bk-nodemgr/Chart.yaml`
 - `install/helm/bk-nodemgr/values.yaml`
 - `install/helm/mock-server/Chart.yaml`
 - `install/helm/mock-server/values.yaml`
 
-If the change needs more than these version bumps, stop and re-check scope.
+A Helm-only follow-up may touch a subset of these files when evidence shows only one lagging field. For example, `install/helm/bk-nodemgr/values.yaml apiManagerImage.tag` may be the only field that needs a bump.
 
-## Branch naming examples
+Expected fields:
+
+- `install/helm/bk-nodemgr/Chart.yaml`: `version`, `appVersion`
+- `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`
+- `install/helm/mock-server/Chart.yaml`: `version`, `appVersion`
+- `install/helm/mock-server/values.yaml`: `image.tag`
+
+If the change needs unrelated Helm settings, templates, dependencies, or API Gateway files in Helm-only mode, stop and re-check scope with the user.
+
+## Branch Naming Examples
 
 - `pr/helm-release-alpha17`
 - `pr/helm-release-alpha18`
-- `pr/helm-release-alpha19`
+- `pr/helm-release-alpha40`
 
 Prefer `pr/helm-release-<version-suffix>` and keep the pattern stable.
 
-## Commit message examples
+## Commit Message Examples
 
-For bk-nodemgr chart:
+For bk-nodemgr chart follow-up:
 
 ```text
 feat: bump bk-nodemgr helm chart to v3.0.1-alpha.17 --issue=#1502
 ```
 
-For mock-server chart:
+For mock-server chart follow-up:
 
 ```text
 feat: bump mock-server helm chart to v3.0.1-alpha.17 --issue=#1502
 ```
 
-Keep one chart per commit.
+For a single lagging apigw-sync image field:
 
-## PR title example
+```text
+chore: bump bk-nodemgr-apigw-sync image to v3.0.1-alpha.40
+```
+
+Keep one chart per commit for Helm-only both-chart follow-ups. Complete release PR changes may stay together unless the user asks for a different split.
+
+## PR Title Examples
+
+Complete release:
+
+```text
+feat: bump release version to v3.0.1-alpha.40 --issue=#1502
+```
+
+Helm-only follow-up:
 
 ```text
 feat: bump helm release version to v3.0.1-alpha.17 --issue=#1502
@@ -49,16 +120,16 @@ Must stay English and must match the repo title rule:
 type: subject --issue=#number
 ```
 
-## Minimal PR body example
+## Minimal PR Body Example
 
 ```md
 ## Summary
-- bump helm chart and values version to v3.0.1-alpha.17
+- align release version to v3.0.1-alpha.40
 
 refs #1502
 ```
 
-## Issue reference safety
+## Issue Reference Safety
 
 Default:
 
@@ -72,12 +143,15 @@ Only switch to this if the user explicitly wants auto-close:
 closes #1502
 ```
 
-## Quick decision table
+## Quick Decision Table
 
 | Situation | Action |
 |---|---|
-| Current branch only has the target bump and no unrelated history | Reuse current branch |
+| User asks to prepare a concrete new version release | Use complete-release mode |
+| User asks only to supplement missing Helm version fields | Use Helm-only follow-up mode |
+| Current branch only has the target alignment and no unrelated history | Reuse current branch |
 | Current branch has unrelated commits relative to `origin/master` | Create a clean branch from `origin/master` |
-| PR only needs version alignment | Keep PR body minimal |
+| Helm-only follow-up only needs `apiManagerImage.tag` | Touch only that field |
+| Complete release needs localized changelog | Use `support-files/changelog/{en,zh}/vX.Y.Z-alpha.N_YYYY-MM-DD.md` |
 | User says do not close the issue | Use `refs #...` |
 | User says merge should auto-close the issue | Use `closes #...` |

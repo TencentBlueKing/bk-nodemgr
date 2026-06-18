@@ -1,23 +1,53 @@
 {
   "name": "release-version-alignment",
-  "version": "2.0.0",
-  "description": "Fast path for Helm version alignment check before release tagging",
+  "version": "2.1.0",
+  "description": "Fast path for bk-nodemgr complete release preparation and release version alignment checks",
   "dependencies": {
     "repo_constraints": [
       "install/AGENTS.md",
       ".github/workflows/pr-title-lint.yml",
       ".github/labeler.yml"
     ],
-    "target_files": [
-      "install/helm/bk-nodemgr/Chart.yaml",
-      "install/helm/bk-nodemgr/values.yaml",
-      "install/helm/mock-server/Chart.yaml",
-      "install/helm/mock-server/values.yaml",
-      "release.md"
-    ],
-    "target_fields": {
-      "Chart.yaml": ["version", "appVersion"],
-      "values.yaml": ["image.tag"]
+    "modes": {
+      "complete_release": {
+        "target_files": [
+          "apigw/definition.yaml",
+          "apigw/resources.yaml",
+          "install/helm/bk-nodemgr/Chart.yaml",
+          "install/helm/bk-nodemgr/values.yaml",
+          "install/helm/mock-server/Chart.yaml",
+          "install/helm/mock-server/values.yaml",
+          "support-files/changelog/en/<version>_<date>.md",
+          "support-files/changelog/zh/<version>_<date>.md"
+        ],
+        "target_fields": {
+          "apigw/definition.yaml": ["release.version", "release.comment"],
+          "install/helm/bk-nodemgr/Chart.yaml": ["version", "appVersion"],
+          "install/helm/bk-nodemgr/values.yaml": [
+            "image.tag",
+            "apiManagerImage.tag",
+            "apigwSync.config.release.version",
+            "apigwSync.config.release.comment"
+          ],
+          "install/helm/mock-server/Chart.yaml": ["version", "appVersion"],
+          "install/helm/mock-server/values.yaml": ["image.tag"],
+          "support-files/changelog/{en,zh}/<version>_<date>.md": ["version heading"]
+        }
+      },
+      "helm_followup": {
+        "target_files": [
+          "install/helm/bk-nodemgr/Chart.yaml",
+          "install/helm/bk-nodemgr/values.yaml",
+          "install/helm/mock-server/Chart.yaml",
+          "install/helm/mock-server/values.yaml"
+        ],
+        "target_fields": {
+          "Chart.yaml": ["version", "appVersion"],
+          "install/helm/bk-nodemgr/values.yaml": ["image.tag", "apiManagerImage.tag"],
+          "install/helm/mock-server/values.yaml": ["image.tag"]
+        },
+        "allows_subset": true
+      }
     },
     "base_branch": "master",
     "fork_upstream_pattern": {
@@ -27,12 +57,13 @@
   },
   "scope": {
     "allowed_operations": [
+      "complete release version preparation",
       "version alignment check",
       "minimal PR creation for missing alignment",
       "release readiness confirmation"
     ],
     "forbidden_operations": [
-      "broad release planning",
+      "broad release-process explanation",
       "tag surgery or tag movement",
       "pipeline debugging",
       "helm template modification",
@@ -46,37 +77,47 @@
       "auto_close_only_when": "user explicitly requests auto-close after merge"
     },
     "branch_cleanliness": {
-      "clean_branch_required_when": "unrelated commits exist or working tree has non-helm changes",
+      "clean_branch_required_when": "unrelated commits exist or working tree has non-alignment changes",
       "clean_branch_base": "origin/master"
     },
     "scope_validation": {
       "stop_and_ask_when": [
         "target version unclear",
         "reference commit unclear",
-        "file scope exceeds 4 target files",
-        "request mixes version alignment with other changes"
+        "mode unclear",
+        "API Gateway release version unclear for complete release",
+        "file scope exceeds mode-specific target files",
+        "request mixes version alignment with unrelated changes"
       ]
-    }
+    },
+    "api_gateway_version_rule": "apigw release.version and apigwSync.config.release.version are API Gateway release numbers; release.comment carries the app version string"
   },
   "verification": {
     "script": "scripts/verify-alignment.sh",
     "checks": [
-      "file scope: only 4 target helm files",
-      "version alignment: all version/appVersion/image.tag match target",
-      "diff sanity: no template or dependency changes",
-      "changelog: release.md contains entry for target version",
-      "gateway resource sync: if any docs/api/swagger/backend/api/v3/*.swagger.json file changed in the target version window and affects a gateway-visible contract, apigw/resources.yaml must also have been updated in that version window"
+      "file scope: complete release files or Helm-only allowed subset",
+      "version alignment: all touched version/appVersion/image.tag/apiManagerImage.tag fields match target",
+      "API Gateway metadata: release.version values match each other and release.comment values match target app version",
+      "diff sanity: no template, dependency, or runtime setting changes",
+      "changelog: complete release has both support-files/changelog/en and support-files/changelog/zh target version files",
+      "gateway resource sync: gateway-visible backend swagger changes require apigw/resources.yaml in the same version window"
     ],
     "changelog_generation": {
       "skill": "changelog-doc",
-      "required_before_pr": true,
+      "paths": [
+        "support-files/changelog/en/<version>_<date>.md",
+        "support-files/changelog/zh/<version>_<date>.md"
+      ],
+      "required_before_pr_for_complete_release": true,
       "user_confirmation_required": true
     }
   },
   "output_format": {
-    "commit_message": "feat: bump {chart-name} helm chart to {version} --issue=#{issue-number}",
-    "pr_title": "feat: bump helm release version to {version} --issue=#{issue-number}",
-    "pr_body": "## Summary\n- bump helm chart and values version to {version}\n\nrefs #{issue-number}",
+    "helm_followup_commit_message": "feat: bump {chart-name} helm chart to {version} --issue=#{issue-number}",
+    "single_lagging_field_commit_message": "chore: bump bk-nodemgr-apigw-sync image to {version}",
+    "complete_release_pr_title": "feat: bump release version to {version} --issue=#{issue-number}",
+    "helm_followup_pr_title": "feat: bump helm release version to {version} --issue=#{issue-number}",
+    "pr_body": "## Summary\n- align release version to {version}\n\nrefs #{issue-number}",
     "branch_name": "pr/helm-release-{version-suffix}"
   },
   "references": [
