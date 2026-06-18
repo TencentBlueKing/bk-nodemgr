@@ -1628,9 +1628,9 @@ apigwSync:
   config:
     spec_version: 1
     release:
-      version: "2.14.2"
+      version: "2.14.1"
       title: "bk-nodemgr"
-      comment: "v3.0.1-alpha.41"
+      comment: "v3.0.1-alpha.40"
     apigateway:
       description: "蓝鲸节点管理"
       description_en: "bk-nodemgr"
