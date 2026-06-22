@@ -323,6 +323,20 @@ func (provider *ProviderEtcd) SelectEndpoints(
 // Register registers multiple service instances.
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instances ...discover.Instance) error {
 	for _, instance := range instances {
+		if serviceName == "" {
+			return fmt.Errorf(
+				"failed to register instance, instance(%v): %w",
+				instance,
+				discover.ErrInvalidServiceName(),
+			)
+		}
+
+		if err := instance.Validate(); err != nil {
+			return fmt.Errorf("failed to register instance, instance(%v): %w", instance, err)
+		}
+	}
+
+	for _, instance := range instances {
 		err := provider.register(serviceName, instance)
 		if err != nil {
 			return fmt.Errorf("failed to register instance, instance(%v): %w", instance, err)
