@@ -201,6 +201,8 @@ type NodeRuntime struct {
 	DataIPC       string
 	PluginIPC     string
 	LogDir        string
+	ZoneID        string
+	CityID        string
 }
 
 // PluginRuntime defines the plugin runtime.

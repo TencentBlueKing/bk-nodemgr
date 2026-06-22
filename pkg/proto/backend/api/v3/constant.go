@@ -14,7 +14,6 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -68,7 +67,6 @@ func (x *NodeConstantDeployGetReq) AutoConvert() {
 // ConvertConstantFromTypes converts NodeDeployConf and PluginDeployConf into the response data.
 // Node role defaults to agent; plugin group defaults to "default"; plugin name defaults to "bk-nodemgr-relay".
 func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(
-	osType criteria.OSType,
 	nodeConf deployconstant.NodeDeployConf,
 	pluginConf deployconstant.PluginDeployConf) {
 
@@ -83,6 +81,8 @@ func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(
 		NodeRuntime: &NodeRuntime{
 			BaseDeployDir: &nodeConf.BaseDeployDir,
 			LogDir:        &nodeConf.LogDir,
+			ZoneId:        &nodeConf.ZoneID,
+			CityId:        &nodeConf.CityID,
 		},
 		PluginRuntime: &PluginRuntime{
 			BaseDeployDir: &pluginConf.BaseDeployDir,
@@ -90,21 +90,19 @@ func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(
 		},
 	}
 
-	if osType == criteria.OSWindows {
-		dataIPC := deployconstant.GetWindowsDefaultDataIPCPort()
-		pluginIPC := deployconstant.GetWindowsDefaultPluginIPCPort()
+	dataIPC := nodeConf.GetDefaultDataIPC()
+	pluginIPC := nodeConf.GetDefaultPluginIPC()
 
-		if nodeConf.DataIPCPort > 0 {
-			dataIPC, _ = conv.ToString(nodeConf.DataIPCPort)
-		}
-
-		if nodeConf.PluginIPCPort > 0 {
-			pluginIPC, _ = conv.ToString(nodeConf.PluginIPCPort)
-		}
-
-		x.Data.DefaultDeployConfig.NodeRuntime.DataIpc = &dataIPC
-		x.Data.DefaultDeployConfig.NodeRuntime.PluginIpc = &pluginIPC
+	if nodeConf.DataIPC != "" {
+		dataIPC = nodeConf.DataIPC
 	}
+
+	if nodeConf.PluginIPC != "" {
+		pluginIPC = nodeConf.PluginIPC
+	}
+
+	x.Data.DefaultDeployConfig.NodeRuntime.DataIpc = &dataIPC
+	x.Data.DefaultDeployConfig.NodeRuntime.PluginIpc = &pluginIPC
 }
 
 // ConvertConstantToTypes converts the response data into a types.DeployConfig.
@@ -123,6 +121,8 @@ func (x *NodeConstantDeployGetResp) ConvertConstantToTypes() *types.CustomDeploy
 			DataIPC:       config.GetNodeRuntime().GetDataIpc(),
 			PluginIPC:     config.GetNodeRuntime().GetPluginIpc(),
 			LogDir:        config.GetNodeRuntime().GetLogDir(),
+			ZoneID:        config.GetNodeRuntime().GetZoneId(),
+			CityID:        config.GetNodeRuntime().GetCityId(),
 		},
 		PluginRuntime: types.PluginRuntime{
 			BaseDeployDir: config.GetPluginRuntime().GetBaseDeployDir(),

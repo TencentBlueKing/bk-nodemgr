@@ -64,6 +64,8 @@ func (x *NodeConstantDeployGetResp) ConvertConstantFromTypes(deployConfig *types
 				DataIpc:       &deployConfig.NodeRuntime.DataIPC,
 				PluginIpc:     &deployConfig.NodeRuntime.PluginIPC,
 				LogDir:        &deployConfig.NodeRuntime.LogDir,
+				ZoneId:        &deployConfig.NodeRuntime.ZoneID,
+				CityId:        &deployConfig.NodeRuntime.CityID,
 			},
 			PluginRuntime: &PluginRuntime{
 				BaseDeployDir: &deployConfig.PluginRuntime.BaseDeployDir,

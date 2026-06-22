@@ -31,17 +31,10 @@ const (
 	nodeUnixExtraConfigDirFormat    = "/etc/sysconfig/gse/%s/user_conf"
 	nodeWindowsLogDirFormat         = "C:\\%s\\logs\\"
 	nodeWindowsExtraConfigDirFormat = "C:\\Windows\\System32\\config\\gse\\%s\\user_conf"
+
+	nodeZoneID = "default"
+	nodeCityID = "default"
 )
-
-// GetWindowsDefaultDataIPCPort returns the default data IPC port for Windows.
-func GetWindowsDefaultDataIPCPort() string {
-	return nodeWindowsDataIPCPort
-}
-
-// GetWindowsDefaultPluginIPCPort returns the default plugin IPC port for Windows.
-func GetWindowsDefaultPluginIPCPort() string {
-	return nodeWindowsPluginIPCPort
-}
 
 // NodeDeployConf defines the deployment configuration for agent.
 type NodeDeployConf struct {
@@ -50,9 +43,11 @@ type NodeDeployConf struct {
 	// custom.
 	LogDir            string
 	ExtraConfigDir    string
-	DataIPCPort       int
-	PluginIPCPort     int
+	DataIPC           string
+	PluginIPC         string
 	ProxyFileCacheDir string
+	ZoneID            string
+	CityID            string
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -106,6 +101,8 @@ func SetNodeDeployConf(conf NodeDeployConf) error {
 func populateNodeDefaultValues(conf *NodeDeployConf) {
 	conf.LogDir = conv.NonEmptyOr(conf.LogDir, conf.generateDefaultNodeLogDir())
 	conf.ExtraConfigDir = conv.NonEmptyOr(conf.ExtraConfigDir, conf.generateDefaultExtraConfigDir())
+	conf.ZoneID = conv.NonEmptyOr(conf.ZoneID, nodeZoneID)
+	conf.CityID = conv.NonEmptyOr(conf.CityID, nodeCityID)
 }
 
 // generateDefaultNodeLogDir generates the default log directory for the deployment configuration.
@@ -137,32 +134,66 @@ func (conf NodeDeployConf) GenerateDataDir(role types.NodeRole) string {
 	return tool.JoinPath(conf.OsType, conf.GenerateDeployDir(), string(role), nodeLibDirName)
 }
 
-// GenerateDataIPCPath generates the data IPC path based on the OS type.
-func (conf NodeDeployConf) GenerateDataIPCPath(role types.NodeRole) string {
+// GenerateDataIPC generates the data IPC based on the OS type.
+func (conf NodeDeployConf) GenerateDataIPC(role types.NodeRole) string {
+	if conf.DataIPC != "" {
+		return conf.DataIPC
+	}
+
 	if conf.OsType == criteria.OSWindows {
-		if conf.DataIPCPort > 0 {
-			r, _ := conv.ToString(conf.DataIPCPort)
-
-			return r
-		}
-
 		return nodeWindowsDataIPCPort
 	}
 
 	return tool.JoinPath(conf.OsType, conf.GenerateDataDir(role), nodeUnixDataIPCName)
 }
 
-// GeneratePluginIPCPath generates the plugin IPC path based on the OS type.
-func (conf NodeDeployConf) GeneratePluginIPCPath(role types.NodeRole) string {
+// GeneratePluginIPC generates the plugin IPC based on the OS type.
+func (conf NodeDeployConf) GeneratePluginIPC(role types.NodeRole) string {
+	if conf.PluginIPC != "" {
+		return conf.PluginIPC
+	}
+
 	if conf.OsType == criteria.OSWindows {
-		if conf.PluginIPCPort > 0 {
-			r, _ := conv.ToString(conf.PluginIPCPort)
-
-			return r
-		}
-
 		return nodeWindowsPluginIPCPort
 	}
 
 	return tool.JoinPath(conf.OsType, conf.GenerateDataDir(role), nodeUnixPluginIPCName)
+}
+
+// GetDefaultDataIPC returns the default data IPC based on the OS type.
+func (conf NodeDeployConf) GetDefaultDataIPC() string {
+	if conf.OsType == criteria.OSWindows {
+		return conf.getWindowsDefaultDataIPCPort()
+	}
+
+	return conf.getUnixDefaultDataIPCPath()
+}
+
+// GetDefaultPluginIPC returns the default plugin IPC based on the OS type.
+func (conf NodeDeployConf) GetDefaultPluginIPC() string {
+	if conf.OsType == criteria.OSWindows {
+		return conf.getWindowsDefaultPluginIPCPort()
+	}
+
+	return conf.getUnixDefaultPluginIPCPath()
+}
+
+// getUnixDefaultDataIPCPath returns the default data IPC path for Unix.
+func (conf NodeDeployConf) getUnixDefaultDataIPCPath() string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDeployDir(), "{node_role}", nodeLibDirName, nodeUnixDataIPCName)
+}
+
+// getUnixDefaultPluginIPCPath returns the default plugin IPC path for Unix.
+func (conf NodeDeployConf) getUnixDefaultPluginIPCPath() string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDeployDir(), "{node_role}", nodeLibDirName, nodeUnixPluginIPCName)
+}
+
+// getWindowsDefaultDataIPCPort returns the default data IPC port for Windows.
+func (conf NodeDeployConf) getWindowsDefaultDataIPCPort() string {
+	return nodeWindowsDataIPCPort
+}
+
+// getWindowsDefaultPluginIPCPort returns the default plugin IPC port for Windows.
+func (conf NodeDeployConf) getWindowsDefaultPluginIPCPort() string {
+	return nodeWindowsPluginIPCPort
 }

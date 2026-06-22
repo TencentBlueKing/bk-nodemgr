@@ -53,6 +53,8 @@ message NodeRuntime {
   optional string data_ipc = 2;
   optional string plugin_ipc = 3;
   optional string log_dir = 4;
+  optional string zone_id = 5;
+  optional string city_id = 6;
 }
 
 // PluginRuntime describes the custom plugin runtime config.

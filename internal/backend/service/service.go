@@ -185,9 +185,11 @@ func (svc *Service) initialStaticsConfigs() error {
 			DeployConf:        deployConf,
 			LogDir:            svc.conf.GSEDeployConfs[idx].Custom.LogDir,
 			ExtraConfigDir:    svc.conf.GSEDeployConfs[idx].Custom.ExtraConfigDir,
-			PluginIPCPort:     svc.conf.GSEDeployConfs[idx].Custom.PluginIPCPort,
-			DataIPCPort:       svc.conf.GSEDeployConfs[idx].Custom.DataIPCPort,
+			DataIPC:           svc.conf.GSEDeployConfs[idx].Custom.DataIPC,
+			PluginIPC:         svc.conf.GSEDeployConfs[idx].Custom.PluginIPC,
 			ProxyFileCacheDir: svc.conf.GSEDeployConfs[idx].Custom.ProxyFileCacheDir,
+			ZoneID:            svc.conf.GSEDeployConfs[idx].Custom.ZoneID,
+			CityID:            svc.conf.GSEDeployConfs[idx].Custom.CityID,
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)

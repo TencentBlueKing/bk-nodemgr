@@ -510,9 +510,11 @@ func (conf GSEDeployConf) Validate() error {
 type GSEDeployCustom struct {
 	LogDir            string `yaml:"logDir" usage:"log dir"`
 	ExtraConfigDir    string `yaml:"extraConfigDir" usage:"extra config dir"`
-	DataIPCPort       int    `yaml:"dataIPCPort" usage:"data ipc port, only for windows"`
-	PluginIPCPort     int    `yaml:"pluginIPCPort" usage:"plugin ipc port, only for windows"`
+	DataIPC           string `yaml:"dataIPC" usage:"data ipc, in linux is path, in windows is port"`
+	PluginIPC         string `yaml:"pluginIPC" usage:"plugin ipc, in linux is path, in windows is port"`
 	ProxyFileCacheDir string `yaml:"proxyFileCacheDir" usage:"proxy file cache dir, only for linux and proxy node"`
+	ZoneID            string `yaml:"zoneID" usage:"zone id of gse deploy node"`
+	CityID            string `yaml:"cityID" usage:"city id of gse deploy node"`
 }
 
 // Validate validates the config.

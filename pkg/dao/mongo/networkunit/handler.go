@@ -375,6 +375,8 @@ func convertDeployConfigFromTypes(deployConfig map[criteria.OSType]types.CustomD
 				DataIPC:       config.NodeRuntime.DataIPC,
 				PluginIPC:     config.NodeRuntime.PluginIPC,
 				LogDir:        config.NodeRuntime.LogDir,
+				ZoneID:        config.NodeRuntime.ZoneID,
+				CityID:        config.NodeRuntime.CityID,
 			},
 			PluginRuntime: PluginRuntime{
 				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
@@ -402,6 +404,8 @@ func convertDeployConfigToTypes(deployConfig map[string]CustomDeployConfig) map[
 				DataIPC:       config.NodeRuntime.DataIPC,
 				PluginIPC:     config.NodeRuntime.PluginIPC,
 				LogDir:        config.NodeRuntime.LogDir,
+				ZoneID:        config.NodeRuntime.ZoneID,
+				CityID:        config.NodeRuntime.CityID,
 			},
 			PluginRuntime: types.PluginRuntime{
 				BaseDeployDir: config.PluginRuntime.BaseDeployDir,
