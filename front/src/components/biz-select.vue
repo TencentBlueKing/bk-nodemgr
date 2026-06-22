@@ -12,6 +12,7 @@
     :popover-options="popoverOptions"
     @toggle="handleToggle"
     @change="mode === 'multiple' && emit('change', innerValue)"
+    @search-change="handleSearchChange"
   >
     <Select.Option
       v-for="item in sortedBusinessList"
@@ -62,7 +63,7 @@
 
 <script setup lang="ts">
 import { Button, Select } from 'bkui-vue';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import useAuthLock from '@/composables/use-auth-lock';
@@ -105,6 +106,8 @@ const mainStore = useMainStore();
 const permissionStore = usePermissionStore();
 
 const noPermissionText = t('components.permission.noPermission');
+const isPopoverOpen = ref(false);
+const searchKeyword = ref('');
 
 // ===== v-model =====
 const innerValue = computed({
@@ -176,9 +179,38 @@ const filterOption = (input: any, options: { id: number; name: string }) => {
   return nameMatch || idMatch;
 };
 
+const handleSearchChange = (val: string) => {
+  searchKeyword.value = val;
+};
+
+const handleEnterSelectFilteredBusiness = (event: KeyboardEvent) => {
+  if (props.mode !== 'multiple' || !isPopoverOpen.value || event.key !== 'Enter' || event.isComposing) return;
+
+  const keyword = searchKeyword.value.trim();
+  if (!keyword) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const matchedBizIds = sortedBusinessList.value
+    .filter(item => isBizAuthorized(item.bk_biz_id))
+    .filter(item => filterOption(keyword, { id: item.bk_biz_id, name: item.bk_biz_name }))
+    .map(item => item.bk_biz_id);
+  if (matchedBizIds.length === 0) return;
+
+  const selectedIds = Array.isArray(innerValue.value) ? innerValue.value : [];
+  const nextIds = Array.from(new Set([
+    ...selectedIds.map(item => Number(item)).filter(item => Number.isFinite(item)),
+    ...matchedBizIds,
+  ]));
+
+  innerValue.value = nextIds;
+};
+
 // ===== 下拉展开时排序 =====
-const handleToggle = () => {
-  sortedBusinessList.value;
+const handleToggle = (isOpen: boolean) => {
+  isPopoverOpen.value = isOpen;
+  return sortedBusinessList.value;
 };
 
 // ===== 收藏操作 =====
@@ -239,6 +271,14 @@ const handleOptionClick = async (e: MouseEvent, bizId: number) => {
     permissionStore.showDialog(detail);
   }
 };
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEnterSelectFilteredBusiness, true);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleEnterSelectFilteredBusiness, true);
+});
 
 // ===== 初始化收藏 =====
 onMounted(() => {

@@ -78,6 +78,7 @@
       :popover-options="{ boundary: 'document.body', width: '235px' }"
       @change="handleMultiChange"
       @toggle="handleToggle"
+      @search-change="handleMultiSearchChange"
     >
       <Select.Option
         v-for="item in businessList"
@@ -129,7 +130,7 @@
 
 <script setup lang="ts">
 import { Button, Select } from 'bkui-vue';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -250,6 +251,8 @@ const multiBusiness = ref<number[]>((() => {
 
 // ===== 策略单选业务 =====
 const singleBusiness = ref<number | ''>('');
+const isPopoverOpen = ref(false);
+const multiSearchKeyword = ref('');
 
 const hasExplicitlyClearedMultiBusiness = () => {
   const bizIdsJson = localStorage.getItem('bk_biz_id');
@@ -416,7 +419,8 @@ watch(filteredBusinessList, (list) => {
 }, { immediate: true });
 
 // ===== 下拉展开时排序 =====
-const handleToggle = () => {
+const handleToggle = (isOpen: boolean) => {
+  isPopoverOpen.value = isOpen;
   sortBusinessList();
 };
 
@@ -461,6 +465,29 @@ const handleApplyPermission = async (bizId: number) => {
 // ===== 多选业务变更 =====
 const handleMultiChange = (val: number[]) => {
   syncMultiBusiness(val);
+};
+
+const handleMultiSearchChange = (val: string) => {
+  multiSearchKeyword.value = val;
+};
+
+const handleEnterSelectFilteredBusiness = (event: KeyboardEvent) => {
+  if (isSingle.value || !isPopoverOpen.value || event.key !== 'Enter' || event.isComposing) return;
+
+  const keyword = multiSearchKeyword.value.trim();
+  if (!keyword) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const matchedBizIds = businessList.value
+    .filter(item => isBizAuthorized(item.bk_biz_id))
+    .filter(item => filterOption(keyword, { id: item.bk_biz_id, name: item.bk_biz_name }))
+    .map(item => item.bk_biz_id);
+  if (matchedBizIds.length === 0) return;
+
+  const nextBizIds = Array.from(new Set([...multiBusiness.value, ...matchedBizIds]));
+  multiBusiness.value = nextBizIds;
 };
 
 // ===== 自定义搜索方法 =====
@@ -578,6 +605,14 @@ const init = () => {
     }
   }
 };
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEnterSelectFilteredBusiness, true);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleEnterSelectFilteredBusiness, true);
+});
 
 defineExpose({ init });
 </script>
