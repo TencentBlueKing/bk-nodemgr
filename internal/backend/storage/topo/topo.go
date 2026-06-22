@@ -726,7 +726,11 @@ func (s *Storage) checkNetworkUnitDeleteProtection(nCtx contextx.IContext, netwo
 		return err
 	}
 
-	return s.checkLinkedNetworkUnitUsage(nCtx, networkUnitIDs...)
+	if err := s.checkLinkedNetworkUnitUsage(nCtx, networkUnitIDs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Storage) checkRunningHostNetworkUnitUsage(nCtx contextx.IContext, networkUnitIDs ...int64) error {
