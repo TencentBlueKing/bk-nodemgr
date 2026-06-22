@@ -11,8 +11,11 @@
 package topo
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -357,6 +360,10 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	if err := h.storage.DeleteManyNetworkUnit(rCtx, networkUnitID); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkunit")
+		if errors.Is(err, topoStg.ErrNetworkUnitDeleteProtected) {
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
+
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

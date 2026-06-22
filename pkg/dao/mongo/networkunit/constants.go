@@ -32,6 +32,15 @@ const (
 	// FieldKeyLinks the links field key.
 	FieldKeyLinks = "data.links"
 
+	// FieldKeyLinksClusterNetworkUnitID the cluster link networkunit-id field key.
+	FieldKeyLinksClusterNetworkUnitID = "data.links.cluster.networkunit_id"
+
+	// FieldKeyLinksFileNetworkUnitID the file link networkunit-id field key.
+	FieldKeyLinksFileNetworkUnitID = "data.links.file.networkunit_id"
+
+	// FieldKeyLinksDataNetworkUnitID the data link networkunit-id field key.
+	FieldKeyLinksDataNetworkUnitID = "data.links.data.networkunit_id"
+
 	// FieldKeyDirectEndpoints the direct-endpoints field key.
 	FieldKeyDirectEndpoints = "data.direct_endpoints"
 

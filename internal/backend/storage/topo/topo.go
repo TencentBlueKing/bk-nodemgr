@@ -14,6 +14,7 @@ package topo
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -708,11 +709,85 @@ func (s *Storage) upsertNetworkUnitAccessPoints(
 // DeleteManyNetworkUnit deletes networkunit.
 func (s *Storage) DeleteManyNetworkUnit(nCtx contextx.IContext, networkUnitIDs ...int64) error {
 	return s.WrapFn(nCtx, metricOperationDeleteNetworkUnit, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...)
+		if len(networkUnitIDs) == 0 {
+			return nil
+		}
 
-		return err
+		if err := s.checkNetworkUnitDeleteProtection(nCtx, networkUnitIDs...); err != nil {
+			return err
+		}
+
+		return s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...)
 	})
+}
+
+func (s *Storage) checkNetworkUnitDeleteProtection(nCtx contextx.IContext, networkUnitIDs ...int64) error {
+	if err := s.checkRunningHostNetworkUnitUsage(nCtx, networkUnitIDs...); err != nil {
+		return err
+	}
+
+	return s.checkLinkedNetworkUnitUsage(nCtx, networkUnitIDs...)
+}
+
+func (s *Storage) checkRunningHostNetworkUnitUsage(nCtx contextx.IContext, networkUnitIDs ...int64) error {
+	opts := convertHostConditionsToOptions(&types.HostCondition{
+		DynamicExactInclude: &types.HostDynamicExactFields{
+			NetworkUnitID: networkUnitIDs,
+			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
+		},
+	})
+	hostCounts, err := s.daoHost.CountGroupByNetworkUnitID(nCtx, opts...)
+	if err != nil {
+		return fmt.Errorf("count running hosts bound to networkunit: %w", err)
+	}
+
+	for _, networkUnitID := range networkUnitIDs {
+		count := hostCounts[networkUnitID]
+		if count > 0 {
+			return fmt.Errorf("%w: networkunit %d is bound by %d running hosts",
+				ErrNetworkUnitDeleteProtected, networkUnitID, count)
+		}
+	}
+
+	return nil
+}
+
+func (s *Storage) checkLinkedNetworkUnitUsage(nCtx contextx.IContext, networkUnitIDs ...int64) error {
+	linkedNetworkUnits, _, err := s.daoNetworkUnit.List(
+		nCtx,
+		types.SingleItemPage(),
+		networkunit.WithLinkedNetworkUnitID(networkUnitIDs...))
+	if err != nil {
+		return fmt.Errorf("list networkunits linked to networkunit: %w", err)
+	}
+
+	if len(linkedNetworkUnits) == 0 {
+		return nil
+	}
+
+	linkedNetworkUnit := linkedNetworkUnits[0]
+	if linkedNetworkUnit == nil {
+		return nil
+	}
+
+	linkedID, ok := findLinkedNetworkUnitID(linkedNetworkUnit.Links, networkUnitIDs...)
+	if !ok {
+		return fmt.Errorf("%w: networkunit is referenced by networkunit %d",
+			ErrNetworkUnitDeleteProtected, linkedNetworkUnit.ID)
+	}
+
+	return fmt.Errorf("%w: networkunit %d is referenced by networkunit %d",
+		ErrNetworkUnitDeleteProtected, linkedID, linkedNetworkUnit.ID)
+}
+
+func findLinkedNetworkUnitID(links types.Links, networkUnitIDs ...int64) (int64, bool) {
+	for _, link := range []*types.Link{links.Cluster, links.File, links.Data} {
+		if link != nil && slices.Contains(networkUnitIDs, link.NetworkUnitID) {
+			return link.NetworkUnitID, true
+		}
+	}
+
+	return 0, false
 }
 
 // CountAccessPoint counts accesspoint.
