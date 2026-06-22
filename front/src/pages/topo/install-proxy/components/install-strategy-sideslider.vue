@@ -113,22 +113,22 @@ const toggleAreaCollapse = () => {
 const strategyConfigs = [
   {
     key: 'cluster' as const,
-    sourcePrefix: 'Proxy(gse_agent)',
-    targetPrefix: 'GSE_task',
+    sourcePrefix: '',
+    targetPrefix: '',
     protocol: 'TCP',
     purpose: t('topoManager.installProxy.purposeCluster'),
   },
   {
     key: 'file' as const,
-    sourcePrefix: 'Proxy(gse_file)',
-    targetPrefix: 'GSE_file',
+    sourcePrefix: '',
+    targetPrefix: '',
     protocol: 'TCP',
     purpose: t('topoManager.installProxy.purposeFile'),
   },
   {
     key: 'data' as const,
-    sourcePrefix: 'Proxy(gse_data)',
-    targetPrefix: 'GSE_data',
+    sourcePrefix: '',
+    targetPrefix: '',
     protocol: 'TCP',
     purpose: t('topoManager.installProxy.purposeData'),
   },
