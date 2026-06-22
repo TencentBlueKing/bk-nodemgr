@@ -103,6 +103,32 @@ func WithValues[T ~bool | ~string | ~int64](key string, values ...T) OptFn {
 	}
 }
 
+// WithAnyFieldValues filters by values matched in any field.
+func WithAnyFieldValues[T ~bool | ~string | ~int64](fields []string, values ...T) OptFn {
+	if len(fields) == 0 || len(values) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+	if len(fields) == 1 {
+		return WithValues(fields[0], values...)
+	}
+
+	conditions := make(bson.A, 0, len(fields))
+	for _, field := range fields {
+		if len(values) == 1 {
+			conditions = append(conditions, bson.D{{Key: field, Value: values[0]}})
+			continue
+		}
+
+		conditions = append(conditions, bson.D{{Key: field, Value: bson.M{"$in": values}}})
+	}
+
+	return func(f bson.D) bson.D {
+		return appendAndCondition(f, bson.D{{Key: "$or", Value: conditions}})
+	}
+}
+
 // WithoutValues filters by not contains bool value.
 func WithoutValues[T ~bool | ~string | ~int64](key string, values ...T) OptFn {
 	if len(values) == 0 {
@@ -212,4 +238,22 @@ func WithElemMatch(key string, optFn ...OptFn) OptFn {
 
 		return append(f, bson.E{Key: key, Value: bson.M{"$elemMatch": elemFilter}})
 	}
+}
+
+func appendAndCondition(f bson.D, condition bson.D) bson.D {
+	for i := range f {
+		if f[i].Key != "$and" {
+			continue
+		}
+
+		conditions, ok := f[i].Value.(bson.A)
+		if !ok {
+			break
+		}
+
+		f[i].Value = append(conditions, condition)
+		return f
+	}
+
+	return append(f, bson.E{Key: "$and", Value: bson.A{condition}})
 }

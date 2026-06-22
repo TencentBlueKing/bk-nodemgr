@@ -10,10 +10,7 @@
 
 package networkunit
 
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"go.mongodb.org/mongo-driver/bson"
-)
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
@@ -65,21 +62,11 @@ func WithGeneration(generations ...int64) OptFn {
 
 // WithLinkedNetworkUnitID filters by linked networkunit-id.
 func WithLinkedNetworkUnitID(networkUnitIDs ...int64) OptFn {
-	if len(networkUnitIDs) == 0 {
-		return func(f bson.D) bson.D {
-			return f
-		}
-	}
-
-	conditions := []bson.M{
-		{FieldKeyLinksClusterNetworkUnitID: bson.M{"$in": networkUnitIDs}},
-		{FieldKeyLinksFileNetworkUnitID: bson.M{"$in": networkUnitIDs}},
-		{FieldKeyLinksDataNetworkUnitID: bson.M{"$in": networkUnitIDs}},
-	}
-
-	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: "$or", Value: conditions})
-	}
+	return base.WithAnyFieldValues([]string{
+		FieldKeyLinksClusterNetworkUnitID,
+		FieldKeyLinksFileNetworkUnitID,
+		FieldKeyLinksDataNetworkUnitID,
+	}, networkUnitIDs...)
 }
 
 // WithoutGeneration filters by not contains generation.
