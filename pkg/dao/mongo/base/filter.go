@@ -251,7 +251,9 @@ func appendAndCondition(f bson.D, condition bson.D) bson.D {
 			break
 		}
 
-		f[i].Value = append(conditions, condition)
+		conditions = append(conditions, condition)
+		f[i].Value = conditions
+
 		return f
 	}
 
