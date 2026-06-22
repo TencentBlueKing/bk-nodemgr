@@ -711,6 +711,8 @@ func convertCustomDeployConfigToTypes(deployConfig map[string]*CustomDeployConfi
 				DataIPC:       config.GetNodeRuntime().GetDataIpc(),
 				PluginIPC:     config.GetNodeRuntime().GetPluginIpc(),
 				LogDir:        config.GetNodeRuntime().GetLogDir(),
+				ZoneID:        config.GetNodeRuntime().GetZoneId(),
+				CityID:        config.GetNodeRuntime().GetCityId(),
 			},
 			PluginRuntime: types.PluginRuntime{
 				BaseDeployDir: config.GetPluginRuntime().GetBaseDeployDir(),
@@ -738,6 +740,8 @@ func convertCustomDeployConfigFromTypes(deployConfig map[criteria.OSType]types.C
 				DataIpc:       &config.NodeRuntime.DataIPC,
 				PluginIpc:     &config.NodeRuntime.PluginIPC,
 				LogDir:        &config.NodeRuntime.LogDir,
+				ZoneId:        &config.NodeRuntime.ZoneID,
+				CityId:        &config.NodeRuntime.CityID,
 			},
 			PluginRuntime: &PluginRuntime{
 				BaseDeployDir: &config.PluginRuntime.BaseDeployDir,

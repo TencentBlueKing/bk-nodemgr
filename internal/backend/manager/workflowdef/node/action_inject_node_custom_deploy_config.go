@@ -155,10 +155,13 @@ func (act *actionInjectNodeCustomDeployConfig) Do(ctx *action.InstanceContext) e
 		BaseDeployDir:     deployConstant.BaseDeployDir,
 		DeployDir:         deployConstant.GenerateDeployDir(),
 		HomeDir:           deployConstant.GenerateNodeHomeDir(nodeRole),
-		DataIPC:           conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, deployConstant.GenerateDataIPCPath(nodeRole)),
-		PluginIPC:         conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, deployConstant.GeneratePluginIPCPath(nodeRole)),
+		DataIPC:           conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, deployConstant.GenerateDataIPC(nodeRole)),
+		PluginIPC:         conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, deployConstant.GeneratePluginIPC(nodeRole)),
+		ExtraConfigDir:    deployConstant.ExtraConfigDir,
 		LogDir:            conv.NonEmptyOr(customDeployConfig.NodeRuntime.LogDir, deployConstant.LogDir),
 		ProxyFileCacheDir: deployConstant.ProxyFileCacheDir,
+		ZoneID:            conv.NonEmptyOr(customDeployConfig.NodeRuntime.ZoneID, deployConstant.ZoneID),
+		CityID:            conv.NonEmptyOr(customDeployConfig.NodeRuntime.CityID, deployConstant.CityID),
 	}
 
 	std.InstanceData().Log().

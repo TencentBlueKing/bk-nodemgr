@@ -1299,6 +1299,10 @@ backend:
           logDir: ""
           extraConfigDir: ""
           proxyFileCacheDir: ""
+          dataIPC: ""
+          pluginIPC: ""
+          zoneID: "default"
+          cityID: "default"
         pluginCustom:
           logDir: ""
           hostIDPath: ""
@@ -1312,6 +1316,10 @@ backend:
         custom:
           logDir: ""
           extraConfigDir: ""
+          dataIPC: ""
+          pluginIPC: ""
+          zoneID: "default"
+          cityID: "default"
         pluginCustom:
           logDir: ""
           hostIDPath: ""

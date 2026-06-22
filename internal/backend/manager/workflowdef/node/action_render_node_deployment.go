@@ -563,8 +563,8 @@ func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.
 
 	nodeConf.PreSetting[GseTemplateKeyRunMode] = std.DeployInfo().Host.Dynamic.NodeRole
 	nodeConf.PreSetting[GseTemplateKeyCloudID] = std.DeployInfo().Host.Static.NetworkAreaID
-	nodeConf.PreSetting[GseTemplateKeyZoneID] = std.DeployInfo().Host.Static.RegionID
-	nodeConf.PreSetting[GseTemplateKeyCityID] = std.DeployInfo().Host.Static.CityID
+	nodeConf.PreSetting[GseTemplateKeyZoneID] = conv.NonEmptyOr(std.DeployInfo().Host.Static.RegionID, std.DeployInfo().BaseRuntime.ZoneID)
+	nodeConf.PreSetting[GseTemplateKeyCityID] = conv.NonEmptyOr(std.DeployInfo().Host.Static.CityID, std.DeployInfo().BaseRuntime.CityID)
 
 	homeDir := std.DeployInfo().BaseRuntime.HomeDir
 	certDir := tool.JoinPath(osType, homeDir, "cert")

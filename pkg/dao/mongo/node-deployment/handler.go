@@ -194,6 +194,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			ExtraConfigDir:    info.BaseRuntime.ExtraConfigDir,
 			LogDir:            info.BaseRuntime.LogDir,
 			ProxyFileCacheDir: info.BaseRuntime.ProxyFileCacheDir,
+			ZoneID:            info.BaseRuntime.ZoneID,
+			CityID:            info.BaseRuntime.CityID,
 		},
 		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister:               info.InstallOptions.ReRegister,
@@ -440,6 +442,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 			ExtraConfigDir:    info.BaseRuntime.ExtraConfigDir,
 			LogDir:            info.BaseRuntime.LogDir,
 			ProxyFileCacheDir: info.BaseRuntime.ProxyFileCacheDir,
+			ZoneID:            info.BaseRuntime.ZoneID,
+			CityID:            info.BaseRuntime.CityID,
 		},
 		InstallOptions: InstallOptions{
 			ReRegister:               info.InstallOptions.ReRegister,

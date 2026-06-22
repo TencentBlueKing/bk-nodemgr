@@ -91,6 +91,8 @@ type BaseRuntime struct {
 	ExtraConfigDir    string `json:"extra_config_dir" bson:"extra_config_dir"`
 	LogDir            string `json:"log_dir" bson:"log_dir"`
 	ProxyFileCacheDir string `json:"proxy_file_cache_dir" bson:"proxy_file_cache_dir"`
+	ZoneID            string `json:"zone_id" bson:"zone_id"`
+	CityID            string `json:"city_id" bson:"city_id"`
 }
 
 // TargetVersion this is the target version for node deployment.

@@ -88,6 +88,8 @@ type DeploymentBaseRuntime struct {
 	ExtraConfigDir    string
 	LogDir            string
 	ProxyFileCacheDir string
+	ZoneID            string
+	CityID            string
 }
 
 // DeploymentInstallOptions this is the options for nodemgr tools.

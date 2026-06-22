@@ -185,8 +185,8 @@ func (act *actionInjectPluginBaseRuntimeV2) injectBaseRuntime(std *pluginV2Utils
 	customDeployConfig *types.CustomDeployConfig) {
 
 	pluginHomeDir := pluginConstant.GeneratePluginV2HomeDir()
-	dataIPC := conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, nodeConstant.GenerateDataIPCPath(nodeRole))
-	pluginIPC := conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, nodeConstant.GeneratePluginIPCPath(nodeRole))
+	dataIPC := conv.NonEmptyOr(customDeployConfig.NodeRuntime.DataIPC, nodeConstant.GenerateDataIPC(nodeRole))
+	pluginIPC := conv.NonEmptyOr(customDeployConfig.NodeRuntime.PluginIPC, nodeConstant.GeneratePluginIPC(nodeRole))
 	logDir := tool.JoinPath(nodeConstant.OsType, nodeConstant.LogDir, pluginV2BaseDirName)
 	std.DeployInfo().BaseRuntime = types.PluginDeploymentBaseRuntime{
 		BaseDeployDir:         pluginConstant.BaseDeployDir,

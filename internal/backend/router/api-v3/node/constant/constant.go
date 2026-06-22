@@ -70,7 +70,7 @@ func (h *handler) GetDeployConstant(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	resp := new(protoBackend.NodeConstantDeployGetResp)
-	resp.ConvertConstantFromTypes(osType, nodeConf, pluginConf)
+	resp.ConvertConstantFromTypes(nodeConf, pluginConf)
 
 	return resp.GetData(), nil
 }

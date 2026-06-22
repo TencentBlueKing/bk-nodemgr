@@ -84,6 +84,8 @@ type NodeRuntime struct {
 	DataIPC       string `json:"data_ipc" bson:"data_ipc"`
 	PluginIPC     string `json:"plugin_ipc" bson:"plugin_ipc"`
 	LogDir        string `json:"log_dir" bson:"log_dir"`
+	ZoneID        string `json:"zone_id" bson:"zone_id"`
+	CityID        string `json:"city_id" bson:"city_id"`
 }
 
 // PluginRuntime defines the plugin runtime.
