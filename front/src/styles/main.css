@@ -33,3 +33,8 @@ body,
   background-color: #1d479a !important;
   border-color: #1d479a !important;
 }
+
+/* 隐藏 vxe-table 列宽拖拽时的像素提示(只隐藏数字，保留拖拽功能) */
+.vxe-table--resizable-bar .vxe-table--resizable-number-tip {
+  display: none !important;
+}

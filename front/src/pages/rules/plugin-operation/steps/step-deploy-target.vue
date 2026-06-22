@@ -26,7 +26,7 @@
         <div class="text-[12px] text-[#979BA5] mb-[8px]">
           {{ $t('pluginOperation.form.manualInputBizTip') }}
         </div>
-        <div class="deploy-target-wrapper">
+        <div class="deploy-target-wrapper relative">
           <!-- IP 选择器组件 — section 模式 -->
           <IpSelector
             :key="ipSelectorKey"
@@ -35,8 +35,12 @@
             :value="ipSelectorValue"
             :keep-host-field-output="true"
             @change="handleIpSelectorChange"
+            @panel-change="(panel: string) => IpSelectorService.setActiveIpsPanel(panel)"
           />
-
+          <!-- 跨页全选数据请求中 loading -->
+          <div v-if="hostDetailLoading" class="absolute inset-0 bg-[rgba(255,255,255,0.7)] z-10 flex items-center justify-center rounded-[2px]">
+            <bk-loading :loading="true" :title="$t('table.loading')" />
+          </div>
         </div>
       </Form.FormItem>
 
@@ -128,6 +132,7 @@ import ChooseVersionDialog from '@/components/choose-version-dialog.vue';
 import IpSelector from '@/components/IpSelector';
 import { fetchHostDetails } from '@/services/ip-selector';
 import { setBizId, setType } from '@/services/ip-selector';
+import * as IpSelectorService from '@/services/ip-selector';
 import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
@@ -303,27 +308,68 @@ const ipSelectorValue = computed(() => ({
   serviceInstanceList: [],
 }));
 
-const handleIpSelectorChange = (value: any) => {
+// 跨页全选数据补全 loading
+const hostDetailLoading = ref(false);
+
+const handleIpSelectorChange = async (value: any) => {
   const hosts = value?.hostList || [];
-  formData.value.selectedHosts = hosts.map((h: any) => {
+  const mappedHosts = hosts.map((h: any) => {
     const hostId = h.hostId || h.host_id || h.bk_host_id || 0;
     return {
+      ...h,
       bk_host_id: hostId,
       host_id: hostId,
-      bk_host_innerip: h.ip || '',
-      bk_host_innerip_v6: h.ipv6 || '',
-      bk_host_name: h.hostName || h.host_name || '',
-      os_type: h.osType || h.os_type || '',
+      bk_host_innerip: h.ip || h.bk_host_innerip || '',
+      bk_host_innerip_v6: h.ipv6 || h.bk_host_innerip_v6 || '',
+      bk_host_name: h.hostName || h.host_name || h.bk_host_name || '',
+      os_type: h.osType || h.os_type || h.osName || h.os_name || '',
       cpu_arch: h.cpuArch || h.cpu_arch || '',
-      ip: h.ip || '',
-      ipv6: h.ipv6 || '',
-      host_name: h.hostName || h.host_name || '',
-      os_name: h.osName || h.os_name || '',
-      cloud_area: h.cloudArea || h.cloud_area,
-      alive: h.alive,
-      meta: h.meta,
+      ip: h.ip || h.bk_host_innerip || '',
+      ipv6: h.ipv6 || h.bk_host_innerip_v6 || '',
+      host_name: h.hostName || h.host_name || h.bk_host_name || '',
+      os_name: h.osName || h.os_name || h.osType || h.os_type || '',
+      cloud_area: h.cloudArea || h.cloud_area || h.cloudAreaObj || {},
+      alive: h.alive ?? h.bk_agent_alive,
+      meta: h.meta || {},
     };
   });
+
+  // 跨页全选：IpSelector 库只含已浏览页面的主机，补全缺失字段的 host
+  const incompleteHosts = mappedHosts.filter((h: any) => !h.ip && !h.os_type);
+  if (incompleteHosts.length > 0) {
+    hostDetailLoading.value = true;
+    try {
+      const hostIds = incompleteHosts.map((h: any) => h.host_id);
+      const detailRes = await fetchHostDetails({ hostList: hostIds.map((id: number) => ({ hostId: id })) });
+      const detailMap = new Map<number, any>();
+      (detailRes?.data || []).forEach((d: any) => {
+        const id = d.host_id || d.bk_host_id;
+        if (id) detailMap.set(id, d);
+      });
+
+      formData.value.selectedHosts = mappedHosts.map((h: any) => {
+        const detail = detailMap.get(h.host_id);
+        if (!detail) return h;
+        return {
+          ...h,
+          ip: detail.ip || detail.bk_host_innerip || h.ip || '',
+          bk_host_innerip: detail.ip || detail.bk_host_innerip || h.ip || '',
+          os_type: detail.os_type || detail.osType || h.os_type || '',
+          os_name: detail.os_name || detail.osName || h.os_name || '',
+          cpu_arch: detail.cpu_arch || detail.cpuArch || h.cpu_arch || '',
+          cloud_area: detail.cloud_area || detail.cloudArea || h.cloud_area || {},
+          alive: detail.alive ?? h.alive,
+        };
+      });
+      return;
+    } catch {
+      // 补全失败回退
+    } finally {
+      hostDetailLoading.value = false;
+    }
+  }
+
+  formData.value.selectedHosts = mappedHosts;
 };
 
 

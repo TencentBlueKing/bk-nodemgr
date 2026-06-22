@@ -9,7 +9,7 @@
 -->
 <template>
   <span v-if="isPlainText">{{ name || '--' }}</span>
-  <bk-user-display-name v-else ref="customEl" :user-id="''"></bk-user-display-name>
+  <bk-user-display-name v-else ref="customEl" :user-id="name"></bk-user-display-name>
 </template>
 
 <script setup lang="ts">

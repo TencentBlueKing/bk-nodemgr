@@ -109,15 +109,20 @@ const opTypeLabel = computed(() => {
 const showTargetVersion = computed(() => !['restart', 'stop'].includes(props.operationType || ''));
 
 // 预览数据 — 基于选中的主机生成
-const previewData = computed(() => props.formData.selectedHosts.map((host: any) => ({
-  ip: host.ip || host.bk_host_innerip || '—',
-  networkArea: host.cloud_area?.name || t('pluginOperation.preview.directArea'),
-  opType: opTypeLabel.value,
-  osType: host.os_name || host.os_type || '—',
-  agentStatus: host.alive ?? 1,
-  agentStatusLabel: host.alive === 1 ? t('pluginOperation.preview.normal') : t('pluginOperation.preview.abnormal'),
-  targetVersion: props.formData.selectedVersion || '—',
-})));
+const previewData = computed(() => props.formData.selectedHosts.map((host: any) => {
+  const rawAlive = host.alive;
+  // 0=离线, 1=在线, undefined/null 视为未知
+  const agentStatus = (rawAlive === 0 || rawAlive === 1) ? rawAlive : 2;
+  return {
+    ip: host.ip || host.bk_host_innerip || host.bk_host_innerip_list?.[0] || '—',
+    networkArea: host.cloud_area?.name || host.cloudArea?.name || t('pluginOperation.preview.directArea'),
+    opType: opTypeLabel.value,
+    osType: host.os_name || host.os_type || host.osName || host.osType || '—',
+    agentStatus,
+    agentStatusLabel: rawAlive === 1 ? t('pluginOperation.preview.normal') : rawAlive === 0 ? t('pluginOperation.preview.abnormal') : t('pluginOperation.preview.unknownStatus'),
+    targetVersion: props.formData.selectedVersion || '—',
+  };
+}));
 
 const displayData = computed(() => {
   const data = previewData.value;

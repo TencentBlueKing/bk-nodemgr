@@ -1347,6 +1347,7 @@ pluginOperation:
     targetVersion: 目标版本
     normal: 正常
     abnormal: 异常
+    unknownStatus: 未知
     notInstalled: 未安装
     install: 安装
     upgrade: 升级

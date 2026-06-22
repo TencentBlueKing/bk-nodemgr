@@ -139,27 +139,27 @@
             >
               <TableColumn
                 field="bk_host_innerip"
-                :title="$t('IP')"
+                :title="$t('common.ipv4')"
                 :min-width="150"
               ></TableColumn>
               <TableColumn
                 field="bk_host_innerip_v6"
-                :title="$t('IPv6')"
+                :title="$t('common.ipv6')"
                 :min-width="150"
               ></TableColumn>
               <TableColumn
                 field="bk_host_name"
-                :title="$t('主机名称')"
+                :title="$t('common.hostname')"
                 :min-width="150"
               ></TableColumn>
               <TableColumn
                 field="bk_networkarea_name"
-                :title="$t('云区域')"
+                :title="$t('common.cloudArea')"
                 :width="150"
               ></TableColumn>
               <TableColumn
                 field="os_type"
-                :title="$t('系统')"
+                :title="$t('common.osType')"
                 :width="120"
               ></TableColumn>
             </Table>
@@ -218,6 +218,7 @@
       :show-dialog="isShowIpSelector"
       :value="ipSelectorValue"
       @change="handleIpSelectorChange"
+      @panel-change="(panel: string) => IpSelectorService.setActiveIpsPanel(panel)"
       :keep-host-field-output="true"
       @close-dialog="isShowIpSelector = false"
     />
@@ -238,6 +239,7 @@ import { Table, TableColumn } from '@blueking/table';
 import ConfigTemplate from '@/components/config-template.vue';
 import IpSelector from '@/components/IpSelector';
 import { setPolicyType, setStrategyBizId } from '@/services/ip-selector';
+import * as IpSelectorService from '@/services/ip-selector';
 import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 
@@ -373,7 +375,26 @@ const tableHosts = ref<ISelectedHost[]>([]);
 // 所有选中的主机 ID（用于提交）
 const allSelectedHostIds = ref<number[]>([]);
 
-// 根据 allSelectedHostIds 从后端分页获取主机详情（参考 agent list 页后端分页实现）
+// 将 IP 选择器缓存格式映射为表格所需的 ISelectedHost 格式
+const mapCachedToRow = (item: any): ISelectedHost => ({
+  bk_host_id: item.bk_host_id ?? item.host_id ?? 0,
+  bk_host_innerip: item.ip || '',
+  bk_host_innerip_v6: item.ipv6 || '',
+  bk_host_name: item.host_name || '',
+  bk_networkarea_name: item.cloud_area?.name || '',
+  os_type: item.os_type || '',
+  cpu_arch: item.cpu_arch || '',
+  bk_networkarea_id: item.cloud_id ?? item.bk_cloud_id ?? 0,
+});
+
+// 将后端 HostList 返回的 raw item 映射为表格 ISelectedHost 格式，并写入缓存
+const mapRawToRow = (host: any): ISelectedHost => {
+  const mapped = IpSelectorService.mapHostItem(host);
+  IpSelectorService.cacheHostItem(mapped);
+  return mapCachedToRow(mapped);
+};
+
+// 根据 allSelectedHostIds 获取主机详情：优先从缓存取，未命中再查后端
 const fetchHostData = async () => {
   const ids = allSelectedHostIds.value;
   if (!ids.length) {
@@ -382,28 +403,47 @@ const fetchHostData = async () => {
     formData.selectedHosts = [];
     return;
   }
+
+  // 1. 先从缓存取
+  const { cached, missIds } = IpSelectorService.getCachedHosts(ids);
+  let allRows = cached.map(mapCachedToRow);
+  ipPagination.count = ids.length;
+
+  // 2. 缓存未命中的 ID，调后端补齐
+  if (missIds.length > 0) {
+    try {
+      const CHUNK_SIZE = 500;
+      const fetchedItems: any[] = [];
+
+      for (let i = 0; i < missIds.length; i += CHUNK_SIZE) {
+        const chunkIds = missIds.slice(i, i + CHUNK_SIZE);
+        const res = await TopoService.HostList({
+          page: { limit: CHUNK_SIZE, offset: 0 },
+          only_count: false,
+          exact_include_conditions: {
+            bk_host_id: chunkIds,
+            bk_biz_id: [formData.bk_biz_id],
+            node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'],
+          },
+        });
+        const mapped = (res.items || []).map(mapRawToRow);
+        fetchedItems.push(...mapped);
+      }
+
+      // 合并缓存 + 后端数据，按原始 ids 顺序保持稳定
+      const rowMap = new Map<number, ISelectedHost>();
+      allRows.forEach(row => rowMap.set(row.bk_host_id, row));
+      fetchedItems.forEach(row => rowMap.set(row.bk_host_id, row));
+      allRows = ids.map(id => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
+    } catch {
+      // API 失败时只展示缓存中的数据
+    }
+  }
+
+  // 3. 分页截取当前页
   const offset = (ipPagination.current - 1) * ipPagination.limit;
-  const res = await TopoService.HostList({
-    page: { limit: ipPagination.limit, offset },
-    only_count: false,
-    exact_include_conditions: {
-      bk_host_id: ids,
-      bk_biz_id: [formData.bk_biz_id],
-      node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'],
-    },
-  }).catch(() => ({ total: 0, items: [] as any[] }));
-  tableHosts.value = res.items.map((host: any) => ({
-    bk_host_id: host.bk_host_id,
-    bk_host_innerip: host.info?.bk_host_innerip_list?.[0] || '',
-    bk_host_innerip_v6: host.info?.bk_host_innerip_v6_list?.[0] || '',
-    bk_host_name: host.info?.bk_host_name || '',
-    bk_networkarea_name: host.info?.bk_networkarea_name || '',
-    os_type: host.info?.os_type || '',
-    cpu_arch: host.info?.cpu_arch || '',
-    bk_networkarea_id: host.info?.bk_networkarea_id || 0,
-  }));
-  ipPagination.count = res.total;
-  // 更新 formData.selectedHosts 为当前页数据（用于模板显示）
+  tableHosts.value = allRows.slice(offset, offset + ipPagination.limit);
+  ipPagination.count = allRows.length;
   formData.selectedHosts = tableHosts.value;
 };
 

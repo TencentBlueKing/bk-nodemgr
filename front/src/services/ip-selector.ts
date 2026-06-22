@@ -23,6 +23,12 @@ export const setPolicyType = (type: string) => {
   currentPolicyType = type;
 };
 
+// 当前激活面板（由外部通过 @panel-change 设置）
+export let activeIpsPanel = 'staticTopo';
+export const setActiveIpsPanel = (panel: string) => {
+  activeIpsPanel = panel;
+};
+
 /** 统一别名：设置类型 */
 export const setType = setPolicyType;
 
@@ -271,6 +277,29 @@ const listHosts = async (params?: Partial<{
   return TopoService.HostList(request).catch(() => ({ total: 0, items: [] }));
 };
 
+// 拓扑节点缓存（非主机 set/module 节点）：bizId → Map<key, ITreeItem>
+const topoNodeCache = new Map<number, Map<string, ITreeItem>>();
+// 父级关系：bizId → Map<childKey, parentKey>
+const topoParentMap = new Map<number, Map<string, string>>();
+// 业务名称：bizId → bizName
+const bizNameMap = new Map<number, string>();
+
+/** 递归索引 ITreeItem 子树，写入 topoNodeCache / topoParentMap */
+const indexTreeNodes = (children: ITreeItem[], bizId: number, bizName?: string) => {
+  const nodeMap = new Map<string, ITreeItem>();
+  const parentMap = new Map<string, string>();
+  const walk = (n: ITreeItem, pKey?: string) => {
+    const k = `${n.object_id}:${n.instance_id}`;
+    nodeMap.set(k, n);
+    if (pKey) parentMap.set(k, pKey);
+    (n.child || []).forEach((c: ITreeItem) => walk(c, k));
+  };
+  children.forEach(c => walk(c));
+  topoNodeCache.set(bizId, nodeMap);
+  topoParentMap.set(bizId, parentMap);
+  if (bizName !== undefined) bizNameMap.set(bizId, bizName);
+};
+
 /**
  * 将 CMDB 实例拓扑节点 TopoNodeInfo 递归转换为 IP 选择器树节点 ITreeItem
  * TopoNodeInfo: { topo_inst_id, topo_inst_name, topo_obj_id, topo_obj_name, host_count, children }
@@ -314,7 +343,9 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
         const res = await TopoService.BusinessInstTopoGet({ bk_biz_id: meta.bk_biz_id });
         const items = (res as any)?.items; // TopoNodeInfo 根节点（biz 自身）
         if (items?.children?.length > 0) {
-          return items.children.map((child: any) => transformCmdbNode(child, meta.bk_biz_id));
+          const children = items.children.map((child: any) => transformCmdbNode(child, meta.bk_biz_id));
+          indexTreeNodes(children, meta.bk_biz_id);
+          return children;
         }
       } catch {
         // ignore
@@ -368,6 +399,15 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
             topoMap.set(biz.bk_biz_id, children);
           } else {
             topoMap.set(biz.bk_biz_id, []);
+          }
+        });
+
+        // 填充非主机缓存（仅供 dynamicTopo 的 fetchNodePath / fetchAgentStatistics 使用）
+        businesses.forEach((biz: any) => {
+          bizNameMap.set(biz.bk_biz_id, biz.bk_biz_name);
+          const rawChildren = topoMap.get(biz.bk_biz_id) || [];
+          if (rawChildren.length > 0) {
+            indexTreeNodes(rawChildren.map((c: any) => transformCmdbNode(c, biz.bk_biz_id)), biz.bk_biz_id);
           }
         });
 
@@ -431,6 +471,15 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
           topoMap.set(biz.bk_biz_id, children);
         } else {
           topoMap.set(biz.bk_biz_id, []);
+        }
+      });
+
+      // 填充非主机缓存（仅供 dynamicTopo 的 fetchNodePath / fetchAgentStatistics 使用）
+      businesses.forEach((biz: any) => {
+        bizNameMap.set(biz.bk_biz_id, biz.bk_biz_name);
+        const rawChildren = topoMap.get(biz.bk_biz_id) || [];
+        if (rawChildren.length > 0) {
+          indexTreeNodes(rawChildren.map((c: any) => transformCmdbNode(c, biz.bk_biz_id)), biz.bk_biz_id);
         }
       });
 
@@ -627,12 +676,50 @@ export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
 };
 
 /**
- * 查询多个节点的拓扑路径
- * 后端暂无对应接口，保留 mock
+ * 查询多个节点的拓扑路径（仅非主机 set/module 节点）
+ * 从 topoNodeCache / topoParentMap / bizNameMap 构建完整路径
+ * 库消费：nodeStack 最后元素做 key，所有 instance_name 用 ' / ' 拼接做 namePath
  */
 export const fetchNodePath = async (params: any): Promise<Array<any[]>> => {
   const nodeList = params.nodeList || params.node_list || [];
-  return nodeList.map((node: any) => [node]);
+  return nodeList.map((node: any) => {
+    const bizId = node.meta?.bk_biz_id ?? node.bk_biz_id;
+    const objectId = node.objectId || node.object_id || '';
+    const instanceId = node.instanceId ?? node.instance_id ?? node.id;
+    const cache = bizId ? topoNodeCache.get(bizId) : undefined;
+    const parentMap = bizId ? topoParentMap.get(bizId) : undefined;
+
+    const stack: ITreeItem[] = [];
+    let curKey = `${objectId}:${instanceId}`;
+    const visited = new Set<string>();
+
+    const curNode = cache?.get(curKey);
+    if (curNode) stack.push(curNode);
+
+    while (parentMap && curKey && !visited.has(curKey)) {
+      visited.add(curKey);
+      const pk = parentMap.get(curKey);
+      if (!pk) break;
+      const pn = cache?.get(pk);
+      if (pn) stack.push(pn);
+      curKey = pk;
+    }
+
+    // 栈顶加业务根节点
+    const bizName = bizId ? bizNameMap.get(bizId) : undefined;
+    if (bizId && bizName) {
+      stack.push({
+        instance_id: bizId,
+        instance_name: bizName,
+        object_id: 'biz',
+        object_name: '业务',
+        meta: { bk_biz_id: bizId, scope_id: String(bizId), scope_type: 'biz' },
+        count: 0,
+      } as ITreeItem);
+    }
+
+    return stack.reverse();
+  });
 };
 
 /**
@@ -642,17 +729,35 @@ export const fetchNodePath = async (params: any): Promise<Array<any[]>> => {
  * 经 transformCmdbNode 映射到 ITreeItem.count 字段。
  * 因此无需再调 HostList 查询，直接从 node 的 count 属性取值即可。
  */
+/**
+ * 获取多个拓扑节点的主机 Agent 状态统计信息（仅非主机 set/module 节点）
+ *
+ * 库传参 camelCase：{ nodeList: [{ objectId, instanceId, meta: { bk_biz_id } }] }
+ * 库消费：取 item.agent_statistics.{alive_count,not_alive_count,total_count}
+ *        用 genNodeKey(item.node) 做 Map key → 依赖 node.object_id + node.instance_id（snake_case）
+ */
 export const fetchAgentStatistics = async (params: any): Promise<any[]> => {
   const nodeList = params.nodeList || params.node_list || [];
 
-  return nodeList.map((node: any) => ({
-    node,
-    agent_statistics: {
-      alive_count: 0,
-      not_alive_count: 0,
-      total_count: node?.count ?? node?.host_count ?? 0,
-    },
-  }));
+  return nodeList.map((node: any) => {
+    const objectId = node.objectId || node.object_id || '';
+    const instanceId = node.instanceId ?? node.instance_id ?? node.id;
+
+    // 从缓存取 host_count 作为 total_count（库传入的 node 无 count 字段）
+    const bizId = node.meta?.bk_biz_id ?? node.bk_biz_id;
+    const cache = bizId ? topoNodeCache.get(bizId) : undefined;
+    const cached = cache?.get(`${objectId}:${instanceId}`);
+
+    return {
+      // 补齐 snake_case：genNodeKey 需要 object_id + instance_id
+      node: { ...node, object_id: objectId, instance_id: instanceId },
+      agent_statistics: {
+        alive_count: 0,
+        not_alive_count: 0,
+        total_count: cached?.count ?? 0,
+      },
+    };
+  });
 };
 
 /**

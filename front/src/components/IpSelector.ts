@@ -154,20 +154,20 @@ const Service = {
 const IpSelector = createFactory({
   // 组件版本
   version: '1.0.0',
-  // 需要支持的面板：静态拓扑 + 手动输入
-  panelList: ['staticTopo', 'manualInput'],
+  // 需要支持的面板：静态拓扑 + 动态拓扑 + 手动输入
+  panelList: ['staticTopo', 'dynamicTopo', 'manualInput'],
   // 面板选项的值是否唯一
   unqiuePanelValue: false,
   // 字段命名风格
   nameStyle: 'camelCase',
-  // 主机列表全选模式
-  hostTableDefaultSelectAllMode: true,
+  // 主机列表全选模式（false=本页全选，true=跨页全选）
+  hostTableDefaultSelectAllMode: false,
   // 主机表格每页条数
   hostTablePageSize: 10,
   // 主机列表显示列
   hostTableRenderColumnList: ['ip', 'ipv6', 'hostName', 'cloudArea', 'osName', 'cpuArch', 'alive'],
-  // 主机预览字段
-  hostViewFieldRender: (host: any) => host.host_id,
+  // 主机预览字段（动态拓扑中库也会用此渲染 node，兼容 node.instance_id / node.object_id）
+  hostViewFieldRender: (item: any) => item.host_id || item.instance_id || '',
 
   // 创建时是否提示 service 信息
   serviceConfigError: false,

@@ -1346,6 +1346,7 @@ pluginOperation:
     targetVersion: Target Version
     normal: Normal
     abnormal: Abnormal
+    unknownStatus: Unknown
     notInstalled: Not Installed
     install: Install
     upgrade: Upgrade

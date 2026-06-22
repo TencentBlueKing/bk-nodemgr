@@ -248,6 +248,7 @@
       :show-dialog="isShowIpSelector"
       :value="ipSelectorValue"
       @change="handleIpSelectorChange"
+      @panel-change="(panel: string) => IpSelectorService.setActiveIpsPanel(panel)"
       @close-dialog="handleIpSelectorClose"
     />
 
@@ -286,6 +287,7 @@ import type { ConfigPolicyPreviewRespPreviewItem } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
 import IpSelector from '@/components/IpSelector';
 import { setPolicyType, setStrategyBizId } from '@/services/ip-selector';
+import * as IpSelectorService from '@/services/ip-selector';
 import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 
@@ -406,34 +408,61 @@ const handleIpSelectorChange = async (value: any) => {
   const ids = hostList.map((h: any) => h.hostId || h.host_id).filter(Boolean);
 
   if (ids.length > 0) {
-    try {
-      const res = await TopoService.HostList({
-        page: { offset: 0, limit: ids.length },
-        only_count: false,
-        exact_include_conditions: {
-          bk_host_id: ids,
-          node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'] 
-        },
-        fuzzy_include_conditions: {},
+    // 1. 先从缓存取
+    const { cached, missIds } = IpSelectorService.getCachedHosts(ids);
+    const rowMap = new Map<number, ISelectedHost>();
+
+    cached.forEach((item: any) => {
+      rowMap.set(item.bk_host_id ?? item.host_id, {
+        bk_host_id: item.bk_host_id ?? item.host_id ?? 0,
+        bk_host_innerip: item.ip || '',
+        bk_host_innerip_v6: item.ipv6 || '',
+        bk_host_name: item.host_name || '',
+        bk_networkarea_name: item.cloud_area?.name || '',
+        bk_networkunit_name: item.networkunit_name || '',
+        os_type: item.os_type || '',
+        cpu_arch: item.cpu_arch || '',
+        bk_networkarea_id: item.cloud_id ?? item.bk_cloud_id ?? 0,
+        bk_networkunit_id: item.bk_networkunit_id ?? 0,
       });
-      selectedHosts.value = (res.items || []).map((item: any) => {
-        const info = item?.info || {};
-        return {
-          bk_host_id: item.bk_host_id,
-          bk_host_innerip: info.bk_host_innerip_list?.join(',') || '',
-          bk_host_innerip_v6: info.bk_host_innerip_v6_list?.join(',') || '',
-          bk_host_name: info.bk_host_name || '',
-          bk_networkarea_name: info.bk_networkarea_name || '',
-          bk_networkunit_name: info.bk_networkunit_name || '',
-          os_type: info.os_type || '',
-          cpu_arch: info.cpu_arch || '',
-          bk_networkarea_id: info.bk_networkarea_id || 0,
-          bk_networkunit_id: info.bk_networkunit_id || 0,
-        };
-      });
-    } catch {
-      selectedHosts.value = [];
+    });
+
+    // 2. 缓存未命中的 ID，调后端补齐
+    if (missIds.length > 0) {
+      try {
+        const res = await TopoService.HostList({
+          page: { offset: 0, limit: missIds.length },
+          only_count: false,
+          exact_include_conditions: {
+            bk_host_id: missIds,
+            node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'],
+          },
+          fuzzy_include_conditions: {},
+        });
+        (res.items || []).forEach((item: any) => {
+          const mapped = IpSelectorService.mapHostItem(item);
+          IpSelectorService.cacheHostItem(mapped);
+          const info = item?.info || {};
+          rowMap.set(item.bk_host_id, {
+            bk_host_id: item.bk_host_id,
+            bk_host_innerip: info.bk_host_innerip_list?.join(',') || '',
+            bk_host_innerip_v6: info.bk_host_innerip_v6_list?.join(',') || '',
+            bk_host_name: info.bk_host_name || '',
+            bk_networkarea_name: info.bk_networkarea_name || '',
+            bk_networkunit_name: info.bk_networkunit_name || '',
+            os_type: info.os_type || '',
+            cpu_arch: info.cpu_arch || '',
+            bk_networkarea_id: info.bk_networkarea_id || 0,
+            bk_networkunit_id: info.bk_networkunit_id || 0,
+          });
+        });
+      } catch {
+        // API 失败时只展示缓存中的数据
+      }
     }
+
+    // 3. 按原始 ids 顺序组装结果
+    selectedHosts.value = ids.map((id: number) => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
   } else {
     selectedHosts.value = [];
   }
