@@ -52,6 +52,8 @@ interface NodeRuntime {
   data_ipc: string;
   plugin_ipc: string;
   log_dir: string;
+  zone_id: string;
+  city_id: string;
 }
 
 // PluginRuntime describes the custom plugin runtime config.
@@ -492,5 +494,15 @@ interface Permission {
   system_name: string;
   apply_url: string;
   actions: Action[];
+}
+
+// HostOpsInfo describes the out-of-band (ops) information for a host.
+interface HostOpsInfo {
+  bk_host_id: number;
+  ops_console_host_id: number;
+  ops_out_band_type: string;
+  ops_out_band_protocol: string;
+  ops_bmc_ip: string;
+  ops_bmc_port: number;
 }
 

@@ -29,7 +29,7 @@ import PkgManager from '@/pages/pkg/index.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
-import PluginOperation from '@/pages/rules/plugin-operation/index.vue';
+import PluginStrategy from '@/pages/rules/plugin-strategy/index.vue';
 import Rules from '@/pages/rules/index.vue';
 import RulesRecord from '@/pages/rules/record/record.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
@@ -245,22 +245,12 @@ const routes = setupLayouts([
           {
             name: 'pluginStrategy',
             path: 'pluginStrategy',
-            component: PluginOperation,
+            component: PluginStrategy,
             meta: {
               title: i18n.global.t('route.pluginStrategy'),
+              subTitle: i18n.global.t('route.pluginStrategySubtitle'),
               back: false,
               mainMenu: 'ruleManager',
-            },
-          },
-          {
-            name: 'createPluginOperation',
-            path: 'pluginStrategy/create',
-            component: () => import('@/pages/rules/plugin-operation/create.vue'),
-            meta: {
-              title: i18n.global.t('route.createPluginOperation'),
-              back: true,
-              mainMenu: 'ruleManager',
-              parentName: 'pluginStrategy',
             },
           },
           {

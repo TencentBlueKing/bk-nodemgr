@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentUpgradeCheckReq, NodeAgentUpgradeCheckResp, UploadAgentInstallTemplateReq, UploadAgentInstallTemplateResp, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp } from '@/@types/node_agent';
+import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentUpgradeCheckReq, NodeAgentUpgradeCheckResp, UploadAgentInstallTemplateReq, UploadAgentInstallTemplateResp, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp, NodeAgentUpdateOpsFieldsReq, NodeAgentUpdateOpsFieldsResp } from '@/@types/node_agent';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -27,5 +27,7 @@ export const NodeAgentService = {
   UploadAgentInstallTemplate: async <Request = UploadAgentInstallTemplateReq, ResponseData = UploadAgentInstallTemplateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/install_template/upload')(params, config),
   // NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.
   NodeAgentAssignUnit: async <Request = NodeAgentAssignUnitReq, ResponseData = NodeAgentAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/assign_unit')(params, config),
+  // NodeAgentUpdateOpsFields batch-updates out-of-band (ops) fields.
+  NodeAgentUpdateOpsFields: async <Request = NodeAgentUpdateOpsFieldsReq, ResponseData = NodeAgentUpdateOpsFieldsResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/update_ops_fields')(params, config),
 };
 

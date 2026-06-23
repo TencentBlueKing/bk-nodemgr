@@ -771,6 +771,7 @@ agentStrategy:
   configStrategy: 配置策略
   deploymentStrategy: 部署策略
   createConfig: 新建配置
+  createPluginConfig: 新建插件策略
   previewConfig: 预览配置
   sortAndPreview: 排序并预览
   loading: 数据加载中
@@ -782,6 +783,7 @@ agentStrategy:
     version: 版本
     business: 业务
     remark: 备注
+    pluginName: 插件名称
     scope: 范围
     operator: 修改人
     updateTime: 修改时间
@@ -835,6 +837,9 @@ agentStrategy:
     configTip: 如需修改默认配置，需打开开关后修改
     versionTip: 编辑器内容有改动，保存该配置版本将会由
     upgradeTo: 升级为
+    selectPlugin: 选择插件
+    pluginRole: 插件
+    pluginCustomConfig: 插件自定义配置
   preview:
     sortConfig: 策略排序
     previewStrategy: 策略匹配
@@ -859,6 +864,7 @@ agentStrategy:
     configNameRequired: 配置名称不能为空
     configNameLength: 配置名称长度在1-50个字符之间
     businessRequired: 业务不能为空
+    pluginRequired: 请选择插件
 pluginPackage:
   title: 插件包管理
   upload: 包上传
@@ -1256,6 +1262,7 @@ route:
   proxyStrategy: Proxy策略
   proxyStrategySubtitle: Proxy策略描述了Proxy节点的配置信息
   pluginStrategy: 插件策略
+  pluginStrategySubtitle: 插件策略描述了插件节点的配置信息和安装规则
   createPluginOperation: 新建策略
   pluginOperate: 插件操作
   agentPackage: Agent包管理

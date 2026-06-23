@@ -192,6 +192,26 @@ export interface NodeProxyUpdateResp {
 export interface NodeProxyUpdateRespData {
 }
 
+// NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+// out-of-band (ops) fields on proxy hosts.
+export interface NodeProxyUpdateOpsFieldsReq {
+  hosts: HostOpsInfo[];
+}
+
+// NodeProxyUpdateOpsFieldsResp describes the response for batch-updating
+// out-of-band (ops) fields on proxy hosts.
+export interface NodeProxyUpdateOpsFieldsResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeProxyUpdateOpsFieldsRespData;
+}
+
+export interface NodeProxyUpdateOpsFieldsRespData {
+}
+
 // ProxyInstallCheckInfo describes the node proxy install check parameter.
 export interface ProxyInstallCheckInfo {
   bk_biz_id: number;

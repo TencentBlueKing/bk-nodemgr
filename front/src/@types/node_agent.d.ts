@@ -275,6 +275,26 @@ export interface UploadAgentInstallTemplateRespData {
   info: AgentInstallParsedInfo[];
 }
 
+// NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating
+// out-of-band (ops) fields on hosts.
+export interface NodeAgentUpdateOpsFieldsReq {
+  hosts: HostOpsInfo[];
+}
+
+// NodeAgentUpdateOpsFieldsResp describes the response for batch-updating
+// out-of-band (ops) fields.
+export interface NodeAgentUpdateOpsFieldsResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: NodeAgentUpdateOpsFieldsRespData;
+}
+
+export interface NodeAgentUpdateOpsFieldsRespData {
+}
+
 // NodeAgentAssignUnitReq describes the request body for batch-assigning
 // a network unit to hosts.
 export interface NodeAgentAssignUnitReq {
