@@ -45,6 +45,7 @@ func (oper *operReconfigProxy) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operReconfigProxy) ActionDefNames() []string {
 	return []string{
+		ActionNameCheckSelfRelayPluginAlive,
 		ActionNameVersionCompatCheck,
 		ActionNameInjectNodeCustomDeployConfig,
 		ActionNameRenderNodeDeployment,
@@ -65,6 +66,7 @@ func (oper *operReconfigProxy) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
+			ActionNameCheckSelfRelayPluginAlive:    true,
 			ActionNameVersionCompatCheck:           true,
 			ActionNameInjectNodeCustomDeployConfig: true,
 			ActionNameRenderNodeDeployment:         true,
