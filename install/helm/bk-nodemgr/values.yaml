@@ -1540,6 +1540,16 @@ file:
       # the in-memory index at startup. Defaults to false (cache starts empty).
       restoreOnStart: false
 
+    ## defines the cleanup behavior of the temp file directory used by the file manager.
+    ## The temp directory is derived from workspaceFileGroup.fullPath and is not separately configurable.
+    ## Set expirationHours or gcIntervalHours to 0 to disable the temp file GC.
+    tempFile:
+      # expirationHours is the number of hours after which an idle temp file (no access since)
+      # becomes eligible for deletion by the GC.
+      expirationHours: 24
+      # gcIntervalHours is the number of hours between temp file GC runs.
+      gcIntervalHours: 1
+
     mountHostDir: "/data/bk-nodemgr-file-mount/"
 
     # defines the gse related settings.

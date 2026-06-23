@@ -36,6 +36,8 @@ data:
 
     fileCache: {{ .Values.file.config.fileCache | toYaml | nindent 6 }}
 
+    tempFile: {{ .Values.file.config.tempFile | toYaml | nindent 6 }}
+
     mountHostDir: {{ .Values.file.config.mountHostDir | toYaml | nindent 6 }}
 
     gse: {{ .Values.file.config.gse | toYaml | nindent 6 }}
