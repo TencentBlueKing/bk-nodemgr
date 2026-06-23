@@ -83,7 +83,7 @@ const (
 	metricOperationDistinctTopoEvent                         = "distinct_topo_event"
 	metricOperationGetNetworkUnitCustomDeployConfig          = "get_networkunit_custom_deploy_config"
 	metricOperationGetNetworkUnitIDsByAccessPoints           = "get_networkunit_ids_by_accesspoints"
-	metricOperationGetHostBizMapping                         = "get_host_biz_mapping"
+	metricOperationGetHostTopoRelationMapping                = "get_host_topo_relation_mapping"
 	metricOperationExistHost                                 = "exist_host"
 )
 
@@ -302,18 +302,18 @@ func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 	return result, err
 }
 
-// GetHostBizMapping gets host biz mapping.
-func (s *Storage) GetHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]int64, error) {
-	var hostBizMapping map[int64]int64
+// GetHostTopoRelationMapping gets host topo relation mapping.
+func (s *Storage) GetHostTopoRelationMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]types.HostTopoRelation, error) {
+	var hostTopoRelationMapping map[int64]types.HostTopoRelation
 
-	err := s.WrapFn(nCtx, metricOperationGetHostBizMapping, func(nCtx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationGetHostTopoRelationMapping, func(nCtx contextx.IContext) error {
 		var err error
-		hostBizMapping, err = s.getHostBizMapping(nCtx, hostIDs...)
+		hostTopoRelationMapping, err = s.getHostTopoRelationMapping(nCtx, hostIDs...)
 
 		return err
 	})
 
-	return hostBizMapping, err
+	return hostTopoRelationMapping, err
 }
 
 // ExistHost checks if the host exists by host id.

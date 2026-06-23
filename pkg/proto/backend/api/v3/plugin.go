@@ -240,11 +240,11 @@ func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginInstallReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+func (x *PluginInstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
-			BizID:               hostBizMapping[proc.GetBkHostId()],
+			BizID:               hostTopoMapping[proc.GetBkHostId()].BizID,
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),
 			ConfigName:          proc.GetConfigName(),
@@ -321,11 +321,11 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginUpgradeReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+func (x *PluginUpgradeReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
-			BizID:               hostBizMapping[proc.GetBkHostId()],
+			BizID:               hostTopoMapping[proc.GetBkHostId()].BizID,
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),
 			ConfigName:          proc.GetConfigName(),
@@ -387,12 +387,12 @@ func (x *PluginUninstallReq) ConvertParamToTypes() []*types.PluginDeploymentPara
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginUninstallReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+func (x *PluginUninstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:     plugin.GetBkHostId(),
 			PluginName: plugin.GetPluginName(),
-			BizID:      hostBizMapping[plugin.GetBkHostId()],
+			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
 		}
 	})
 }
@@ -465,11 +465,13 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymen
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginApplySubConfigReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+func (x *PluginApplySubConfigReq) ConvertParamToTypesWithHostTopoMapping(
+	hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
+
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
-			BizID:               hostBizMapping[proc.GetBkHostId()],
+			BizID:               hostTopoMapping[proc.GetBkHostId()].BizID,
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),
 			ConfigName:          proc.GetConfigName(),
@@ -543,12 +545,12 @@ func (x *PluginRestartReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginRestartReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+func (x *PluginRestartReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:     plugin.GetBkHostId(),
 			PluginName: plugin.GetPluginName(),
-			BizID:      hostBizMapping[plugin.GetBkHostId()],
+			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
 		}
 	})
 }
@@ -606,14 +608,14 @@ func (x *PluginMigrateFromV2Req) ConvertParamToTypes() []*types.PluginDeployment
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginMigrateFromV2Req) ConvertParamToTypesWithHostBizMapping(
-	hostBizMapping map[int64]int64,
+func (x *PluginMigrateFromV2Req) ConvertParamToTypesWithHostTopoMapping(
+	hostTopoMapping map[int64]types.HostTopoRelation,
 ) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:     plugin.GetBkHostId(),
 			PluginName: plugin.GetPluginName(),
-			BizID:      hostBizMapping[plugin.GetBkHostId()],
+			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
 		}
 	})
 }
@@ -671,12 +673,12 @@ func (x *PluginStopReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginStopReq) ConvertParamToTypesWithHostBizMapping(hostBizMapping map[int64]int64) []*types.PluginDeploymentParam {
+func (x *PluginStopReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
 			HostID:     plugin.GetBkHostId(),
 			PluginName: plugin.GetPluginName(),
-			BizID:      hostBizMapping[plugin.GetBkHostId()],
+			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
 		}
 	})
 }

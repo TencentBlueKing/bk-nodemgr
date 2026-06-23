@@ -38,13 +38,13 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs()...)
+	hostTopoMapping, err := h.daoHost.GetHostTopoRelationMapping(rCtx, req.GetHostIDs()...)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to get host biz mapping.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin subconfig, failed to get host topo mapping.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
+	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
 	applyPluginCompatibilityModePolicy(h.resolvePluginCompatibilityModePolicy(rCtx), rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.PluginDeploymentTransferOptionsOnlyTransferInstaller(), pluginDeploymentParam...)

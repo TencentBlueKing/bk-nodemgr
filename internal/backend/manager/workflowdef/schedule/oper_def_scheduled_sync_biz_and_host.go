@@ -48,7 +48,6 @@ func (oper *operScheduledSyncBizAndHost) ActionDefNames() []string {
 	return []string{
 		syncdata.ActionNameSyncBusiness,
 		syncdata.ActionNameGenOperSyncHost,
-		syncdata.ActionNameGenOperSyncHostTopoRelation,
 	}
 }
 

@@ -280,7 +280,6 @@ func (c *cli) updateHostCloudAreaField(ctx contextx.IContext, req *UpdateHostClo
 }
 
 // searchBizInstTopo search biz inst topo.
-// nolint: unused
 func (c *cli) searchBizInstTopo(ctx contextx.IContext, req *SearchBizInstTopoReq) (*SearchBizInstTopoResp, error) {
 	resp := new(BaseBroker[*SearchBizInstTopoResp])
 	header, err := c.getHeader(ctx)

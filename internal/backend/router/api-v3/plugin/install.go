@@ -43,19 +43,19 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs()...)
+	hostTopoMapping, err := h.daoHost.GetHostTopoRelationMapping(rCtx, req.GetHostIDs()...)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to get host biz mapping.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to get host topo mapping.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 	policy := h.resolvePluginCompatibilityModePolicy(rCtx)
 
-	workflowID, err := h.installPlugin(rCtx, req, hostBizMapping, policy)
+	workflowID, err := h.installPlugin(rCtx, req, hostTopoMapping, policy)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	if err := h.ensurePluginV2(rCtx, req, hostBizMapping, policy); err != nil {
+	if err := h.ensurePluginV2(rCtx, req, hostTopoMapping, policy); err != nil {
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -69,9 +69,10 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 }
 
 func (h *handler) installPlugin(
-	rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostBizMapping map[int64]int64, policy compatibility.Policy) (string, error) {
+	rCtx restserver.IContext, req *protoBackend.PluginInstallReq, hostTopoMapping map[int64]types.HostTopoRelation, policy compatibility.Policy) (
+	string, error) {
 
-	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
+	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
 	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
 		rCtx.TenantID(), types.PluginDeploymentTransferOptionsAll(), pluginDeploymentParam...)
@@ -96,9 +97,9 @@ func (h *handler) installPlugin(
 }
 
 func (h *handler) ensurePluginV2(rCtx restserver.IContext, req *protoBackend.PluginInstallReq,
-	hostBizMapping map[int64]int64, policy compatibility.Policy) error {
+	hostTopoMapping map[int64]types.HostTopoRelation, policy compatibility.Policy) error {
 
-	pluginDeploymentParam := req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)
+	pluginDeploymentParam := req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)
 	applyPluginCompatibilityModePolicy(policy, rCtx.TenantID(), pluginDeploymentParam...)
 	pluginDeploymentParam = slices.DeleteFunc(pluginDeploymentParam, func(item *types.PluginDeploymentParam) bool {
 		return !item.EnableCompatibilityMode

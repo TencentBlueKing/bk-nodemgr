@@ -110,7 +110,12 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		cmdbData, err = act.cmdbHandler.ListBizHosts(std.Context(), param.BizID, types.UnlimitedPage())
+		cond := &types.HostStaticExactCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				BizID: []int64{param.BizID},
+			},
+		}
+		cmdbData, err = act.cmdbHandler.FindHostWithCondition(std.Context(), types.UnlimitedPage(), cond)
 		if err != nil {
 			return fmt.Errorf("list host from cmdb failed: %w", err)
 		}

@@ -197,7 +197,7 @@ type IStorageHost interface {
 	GetHostDistributionByNodeRole(nCtx contextx.IContext, conditions ...*types.HostCondition) (
 		map[string]int64, error)
 
-	// GetHostDistributionByNetworkAreaID get host distribution by node role.
+	// GetHostDistributionByNetworkAreaID get host distribution by network area ID.
 	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
 		map[int64]int64, error)
 
@@ -209,9 +209,9 @@ type IStorageHost interface {
 	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
 	GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error)
 
-	// GetHostBizMapping gets host biz mapping.
-	// Returns a map with host ID as key and biz ID as value.
-	GetHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]int64, error)
+	// GetHostTopoRelationMapping gets host topo relation mapping.
+	// Returns a map with host ID as key and HostTopoRelation as value.
+	GetHostTopoRelationMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]types.HostTopoRelation, error)
 
 	// ExistHost checks if the host exists by conditions.
 	ExistHost(nCtx contextx.IContext, conditions ...*types.HostCondition) (bool, error)

@@ -47,7 +47,6 @@ func (oper *operSyncBizAndHost) ActionDefNames() []string {
 	return []string{
 		ActionNameSyncBusiness,
 		ActionNameGenOperSyncHost,
-		ActionNameGenOperSyncHostTopoRelation,
 	}
 }
 

@@ -39,14 +39,14 @@ func (h *handler) MigrateFromV2(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	hostBizMapping, err := h.daoHost.GetHostBizMapping(rCtx, req.GetHostIDs()...)
+	hostTopoMapping, err := h.daoHost.GetHostTopoRelationMapping(rCtx, req.GetHostIDs()...)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to migrate plugin from v2, failed to get host biz mapping.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to migrate plugin from v2, failed to get host topo mapping.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	pluginDeployments, hostIDs, bizIDs, err := types.NewPluginDeploymentsByParams(
-		rCtx.TenantID(), types.PluginDeploymentTransferOptionsOnlyTransferInstaller(), req.ConvertParamToTypesWithHostBizMapping(hostBizMapping)...)
+		rCtx.TenantID(), types.PluginDeploymentTransferOptionsOnlyTransferInstaller(), req.ConvertParamToTypesWithHostTopoMapping(hostTopoMapping)...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to migrate plugin from v2, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

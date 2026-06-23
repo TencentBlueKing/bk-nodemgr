@@ -643,41 +643,48 @@ func (s *Storage) getRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 	return results, err
 }
 
-func (s *Storage) getHostBizMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]int64, error) {
+func (s *Storage) getHostTopoRelationMapping(nCtx contextx.IContext, hostIDs ...int64) (map[int64]types.HostTopoRelation, error) {
 	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
 	hostIDs = conv.SliceUnique(hostIDs)
 	selection := &types.HostFieldSelection{
-		HostID: true,
-		BizID:  true,
+		HostID:   true,
+		BizID:    true,
+		SetID:    true,
+		ModuleID: true,
 	}
 	results, _, err := s.daoHost.ListWithFields(nCtx, types.UnlimitedPage(), selection, host.WithHostID(hostIDs...))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get host biz mapping: %w", err)
+		return nil, fmt.Errorf("failed to get host topo relation: %w", err)
 	}
 
-	hostBizMapping := make(map[int64]int64, len(results))
+	hostTopo := make(map[int64]types.HostTopoRelation, len(results))
 	for _, host := range results {
 		if host.HostID == 0 {
-			return nil, fmt.Errorf("invalid host id in host biz mapping result: %d", host.HostID)
+			return nil, fmt.Errorf("invalid host id in host topo relation result: %d", host.HostID)
 		}
 
-		if _, ok := hostBizMapping[host.HostID]; ok {
-			return nil, fmt.Errorf("duplicate host id in host biz mapping result: %d", host.HostID)
+		if _, ok := hostTopo[host.HostID]; ok {
+			return nil, fmt.Errorf("duplicate host id in host topo relation result: %d", host.HostID)
 		}
 
-		hostBizMapping[host.HostID] = host.Static.BizID
+		hostTopo[host.HostID] = types.HostTopoRelation{
+			HostID:   host.HostID,
+			BizID:    host.Static.BizID,
+			SetID:    host.Static.SetID,
+			ModuleID: host.Static.ModuleID,
+		}
 	}
 
 	for _, id := range hostIDs {
-		if _, ok := hostBizMapping[id]; !ok {
+		if _, ok := hostTopo[id]; !ok {
 			return nil, fmt.Errorf("host id %d not found in host biz mapping result", id)
 		}
 	}
 
-	return hostBizMapping, nil
+	return hostTopo, nil
 }
 
 func (s *Storage) existHost(nCtx contextx.IContext, conditions ...*types.HostCondition) (bool, error) {

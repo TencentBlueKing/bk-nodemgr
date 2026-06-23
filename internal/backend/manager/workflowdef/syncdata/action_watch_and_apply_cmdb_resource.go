@@ -273,6 +273,8 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 	}
 
 	event.Detail.Static.BizID = host.Static.BizID
+	event.Detail.Static.SetID = host.Static.SetID
+	event.Detail.Static.ModuleID = host.Static.ModuleID
 	if err := act.storageTopo.UpsertManyHost(std.Context(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -318,7 +320,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 		return
 	}
 
-	hostBizMap, err := act.storageTopo.GetHostBizMapping(std.Context(), event.Detail.HostID)
+	hostTopoMapping, err := act.storageTopo.GetHostTopoRelationMapping(std.Context(), event.Detail.HostID)
 	if err != nil {
 		std.InstanceData().Log().
 			Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -328,7 +330,9 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 		return
 	}
 
-	event.Detail.Static.BizID = hostBizMap[event.Detail.HostID]
+	event.Detail.Static.BizID = hostTopoMapping[event.Detail.HostID].BizID
+	event.Detail.Static.SetID = hostTopoMapping[event.Detail.HostID].SetID
+	event.Detail.Static.ModuleID = hostTopoMapping[event.Detail.HostID].ModuleID
 	if err := act.storageTopo.UpdateHostStaticFields(std.Context(), types.UpdateAllHostStaticFields(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -383,6 +387,8 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 	}
 
 	host.Static.BizID = event.Detail.Static.BizID
+	host.Static.SetID = event.Detail.Static.SetID
+	host.Static.ModuleID = event.Detail.Static.ModuleID
 	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", host.HostID, err).

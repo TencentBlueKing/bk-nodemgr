@@ -1259,6 +1259,12 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.LoginUser {
 		fields = append(fields, FieldKeyDynamicLoginUser)
 	}
+	if selection.SetID {
+		fields = append(fields, FieldKeyStaticSetID)
+	}
+	if selection.ModuleID {
+		fields = append(fields, FieldKeyStaticModuleID)
+	}
 
 	return fields
 }

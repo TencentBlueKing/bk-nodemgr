@@ -489,4 +489,14 @@ type HostFieldSelection struct {
 	InnerIPList   bool
 	InnerIPV6List bool
 	LoginUser     bool
+	SetID         bool
+	ModuleID      bool
+}
+
+// HostTopoRelation represents the relationship between a host and its topology.
+type HostTopoRelation struct {
+	HostID   int64
+	BizID    int64
+	SetID    int64
+	ModuleID int64
 }

@@ -903,6 +903,7 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 }
 
 // ListBizHostTopoRelations lists biz host topo relations.
+// Deprecated: use FindHostWithCondition instead.
 func (h *Handler) ListBizHostTopoRelations(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error) {
 	if nCtx == nil {
 		return nil, fmt.Errorf("failed to list biz host topo relations, nCtx is nil")
@@ -1029,14 +1030,45 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 		HostPropertyFilter: filter,
 	}
 
+	// if filter is not nil and has no rules, set it to nil to avoid unnecessary filtering
+	if req.HostPropertyFilter != nil && len(req.HostPropertyFilter.Rules) == 0 {
+		req.HostPropertyFilter = nil
+	}
+
 	resp, err := h.cli.listBizHosts(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	hosts := make([]*types.Host, len(resp.Info))
+	hostIDs := make([]int64, len(resp.Info))
 	for idx, host := range resp.Info {
 		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, bizID)
+		hostIDs[idx] = host.BKHostID
+	}
+
+	findHostBizRelationsReq := &FindHostBizRelationsReq{
+		BKHostID: hostIDs,
+	}
+	findHostBizRelationsResp, err := h.cli.findHostBizRelations(nCtx, findHostBizRelationsReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list host without biz: %w", err)
+	}
+
+	hostRel, err := conv.SliceToMap[int64, *HostTopoRelation](*findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
+		return rel.BKHostID
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert host biz relations to map: %w", err)
+	}
+
+	for _, host := range hosts {
+		if _, ok := hostRel[host.HostID]; !ok {
+			continue
+		}
+
+		host.Static.SetID = hostRel[host.HostID].BKSetID
+		host.Static.ModuleID = hostRel[host.HostID].BKModuleID
 	}
 
 	return hosts, nil
@@ -1051,6 +1083,11 @@ func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filte
 		},
 		Fields:             ccHostFields(),
 		HostPropertyFilter: filter,
+	}
+
+	// if filter is not nil and has no rules, set it to nil to avoid unnecessary filtering
+	if listHostsWithoutBusinessReq.HostPropertyFilter != nil && len(listHostsWithoutBusinessReq.HostPropertyFilter.Rules) == 0 {
+		listHostsWithoutBusinessReq.HostPropertyFilter = nil
 	}
 
 	listHostsWithoutBusinessResp, err := h.cli.listHostsWithoutBusiness(nCtx, listHostsWithoutBusinessReq)
@@ -1088,6 +1125,8 @@ func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filte
 		}
 
 		host.Static.BizID = hostBizRel[host.HostID].BKBizID
+		host.Static.SetID = hostBizRel[host.HostID].BKSetID
+		host.Static.ModuleID = hostBizRel[host.HostID].BKModuleID
 	}
 
 	return hosts, nil
