@@ -59,7 +59,7 @@
                       {{ $t('taskDetail.filter.currentPage') }}
                     </Dropdown.DropdownItem>
                     <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
-                      <Button text>{{ $t('taskDetail.filter.crossSelected') }}</Button>
+                      <Button text :disabled="pagination.count <= pagination.limit">{{ $t('taskDetail.filter.crossSelected') }}</Button>
                     </Dropdown.DropdownItem>
                   </Dropdown.DropdownMenu>
                 </template>

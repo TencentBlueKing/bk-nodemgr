@@ -140,11 +140,32 @@
                 @checkbox-change="handleSelectChange"
                 @checkbox-all="handleSelectAllChange"
               >
-                <TableColumn
-                  type="checkbox"
-                  width="80"
-                  fixed="left"
-                ></TableColumn>
+                <TableColumn width="100" fixed="left">
+                  <template #header>
+                    <div class="inline-flex items-center gap-[4px]">
+                      <input
+                        type="checkbox"
+                        style="width:16px;height:16px;cursor:pointer"
+                        :checked="isAllChecked"
+                        :indeterminate.prop="isIndeterminate"
+                        @change="toggleAll($event)"
+                      />
+                      <span
+                        class="cursor-pointer"
+                        v-bk-tooltips="{ content: $t('platform.nodeMan.preview.checkboxTip'), placement: 'top' }">
+                        <i class="nodeman-icon nc-tips text-[14px] text-[#3A84FF]"></i>
+                      </span>
+                    </div>
+                  </template>
+                  <template #default="{ row }">
+                    <input
+                      type="checkbox"
+                      style="width:16px;height:16px;cursor:pointer"
+                      :checked="row.checked"
+                      @change="handleSelectChange({ checked: ($event.target as HTMLInputElement).checked, row })"
+                    />
+                  </template>
+                </TableColumn>
                 <TableColumn
                   field="bk_host_innerip"
                   :title="t('platform.nodeMan.inner_ip')"
@@ -548,11 +569,17 @@ const deel = async (row: any) => {
     await installCheck();
   } else {
     row.category = 'normal_install';
-    tableData.value = [...tableData.value];
+    tableData.value = sortByEligStatus([...tableData.value]);
   }
 };
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const isAllChecked = computed(() => tableData.value.length > 0 && selection.value.length === tableData.value.length);
+const isIndeterminate = computed(() => selection.value.length > 0 && selection.value.length < tableData.value.length);
+const toggleAll = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  tableData.value.forEach((item: any) => { item.checked = checked; });
+};
 const handleSelectChange = ({
   checked,
   row,
@@ -580,6 +607,7 @@ const handleAllConfirm = async () => {
       item.category = 'normal_install';
     }
   });
+  tableData.value = sortByEligStatus([...tableData.value]);
   tabKey.value = Date.now();
 };
 const handleBatchRemove = () => {
@@ -669,7 +697,7 @@ const installCheck = async () => {
       };
     });
   }
-  tableData.value = cloneDeep(originData.value);
+  tableData.value = sortByEligStatus(cloneDeep(originData.value));
 };
 
 const deelTabelData = ref<any[]>([]);
@@ -696,11 +724,11 @@ function isEmpty(str: string | number | undefined | null) {
 watch(
   [searchSelectValue],
   () => {
-    tableData.value = originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
+    tableData.value = sortByEligStatus(originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
       const { id: searchField, values } = searchItem;
       const searchIds = values?.map((value: { id: string }) => value.id);
       return searchIds.includes(row[searchField]);
-    }));
+    })));
   },
   { immediate: true, deep: true },
 );
@@ -715,12 +743,12 @@ watch(
 watch(
   [active, originData],
   () => {
-    tableData.value = originData.value.filter((item: any) => {
+    tableData.value = sortByEligStatus(originData.value.filter((item: any) => {
       if (active.value === 'all') {
         return true;
       }
       return item.category === active.value;
-    });
+    }));
   },
   { immediate: true },
 );

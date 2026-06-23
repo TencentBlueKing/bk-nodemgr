@@ -135,6 +135,7 @@ platform:
       placeholder: 输入 关键词
       searchPlaceholder: 请选择 IPV4、IPV6、操作系统、主机名
       processConfirmTip: 处理待确认为正常安装
+      checkboxTip: 勾选用于批量确认/移除
       status: 状态
       disabledTip: 有节点待确认或错误，不可安装
       loadingTip: 校验安装节点中...

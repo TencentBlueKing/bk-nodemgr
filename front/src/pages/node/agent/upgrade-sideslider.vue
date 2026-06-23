@@ -190,6 +190,7 @@ import type { UpgradeFormData } from './upgrade-preview-sideslider.vue';
 import UpgradePreviewSideslider from './upgrade-preview-sideslider.vue';
 
 import { PackageService } from '@/api/modules/pkg';
+import { TopoService } from '@/api/modules/topo';
 import { PACKAGE_GENERATION } from '@/common/const';
 import ChooseVersionDialog from '@/components/choose-version-dialog.vue';
 import InstallTable from '@/components/install-table.vue';
@@ -205,6 +206,14 @@ const props = defineProps({
   releaseType: {
     type: String as () => 'agent' | 'proxy',
     default: 'agent',
+  },
+  isCrossPageSelection: {
+    type: Boolean,
+    default: false,
+  },
+  crossPageQueryParams: {
+    type: Object,
+    default: () => ({}),
   },
 });
 
@@ -465,7 +474,35 @@ watch(
     systemData.value = [];
     inputRefs.value.clear();
 
-    hostTableData.value = props.hosts.map((host: any) => {
+    // 跨页全选：使用查询条件分页获取所有主机完整数据
+    let hosts = props.hosts;
+    if (props.isCrossPageSelection) {
+      const allHosts: any[] = [];
+      const pageSize = 1000;
+      let offset = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const hostListData = await TopoService.HostList({
+          page: { offset, limit: pageSize },
+          only_count: false,
+          exact_include_conditions: props.crossPageQueryParams.exact_include_conditions || {},
+          exact_exclude_conditions: props.crossPageQueryParams.exact_exclude_conditions || {},
+          fuzzy_include_conditions: props.crossPageQueryParams.fuzzy_include_conditions || {},
+        }).catch(() => ({ total: 0, items: [] }));
+        if (hostListData.items && hostListData.items.length > 0) {
+          allHosts.push(...hostListData.items);
+          offset += pageSize;
+          if (hostListData.items.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+      hosts = allHosts;
+    }
+
+    hostTableData.value = hosts.map((host: any) => {
       const info = host.info ?? host;
       const state = host.state ?? {};
       return {

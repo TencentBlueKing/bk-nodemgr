@@ -36,6 +36,8 @@
       v-model:is-show="upgradePreviewData.isShow"
       :hosts="upgradePreviewData.hosts"
       release-type="proxy"
+      :is-cross-page-selection="isCrossPageSelection"
+      :cross-page-query-params="crossPageQueryParams"
     />
     <operate-dialog
       v-model:is-show="operateDialogIsShow"

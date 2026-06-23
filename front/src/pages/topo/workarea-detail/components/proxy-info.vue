@@ -1,5 +1,5 @@
 <template>
-  <page-header :title="'route.proxyStatus'" :back="Object.keys(route.query).length > 0">
+  <page-header :title="'route.proxyStatus'" :back="Object.keys(route.query).length > 0" v-if="isProxyStatus">
     <!-- Proxy 状态统计：标题后、subtitle 前 -->
     <template #after-title>
       <bk-loading :loading="proxyStatusLoading" class="flex items-center">

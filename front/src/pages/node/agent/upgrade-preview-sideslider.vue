@@ -123,7 +123,32 @@
                 @checkbox-change="handleSelectChange"
                 @checkbox-all="handleSelectAllChange"
               >
-                <TableColumn type="checkbox" width="80" fixed="left" />
+                <TableColumn width="100" fixed="left">
+                  <template #header>
+                    <div class="inline-flex items-center gap-[4px]">
+                      <input
+                        type="checkbox"
+                        style="width:16px;height:16px;cursor:pointer"
+                        :checked="isAllChecked"
+                        :indeterminate.prop="isIndeterminate"
+                        @change="toggleAll($event)"
+                      />
+                      <span
+                        class="cursor-pointer"
+                        v-bk-tooltips="{ content: $t('platform.nodeMan.preview.checkboxTip'), placement: 'top' }">
+                        <i class="nodeman-icon nc-tips text-[14px] text-[#3A84FF]"></i>
+                      </span>
+                    </div>
+                  </template>
+                  <template #default="{ row }">
+                    <input
+                      type="checkbox"
+                      style="width:16px;height:16px;cursor:pointer"
+                      :checked="row.checked"
+                      @change="handleSelectChange({ checked: ($event.target as HTMLInputElement).checked, row })"
+                    />
+                  </template>
+                </TableColumn>
                 <TableColumn
                   field="bk_host_innerip"
                   :title="t('platform.nodeMan.inner_ip')"
@@ -306,6 +331,18 @@ const categoryMap: Record<string, { icon: string; iconColor: string }> = {
   },
 };
 
+// 表格排序优先级：待处理 > 错误 > 正常
+const categoryPriority: Record<string, number> = {
+  need_confirm: 0,
+  error: 1,
+  normal_upgrade: 2,
+};
+const sortByCategory = (arr: any[]) => [...arr].sort((a, b) => {
+  const pa = categoryPriority[a.category] ?? 3;
+  const pb = categoryPriority[b.category] ?? 3;
+  return pa - pb;
+});
+
 let rowIdSeed = 0;
 const genRowID = () => {
   rowIdSeed += 1;
@@ -380,6 +417,12 @@ const tabs = computed(() => {
 const active = ref('all');
 
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const isAllChecked = computed(() => tableData.value.length > 0 && selection.value.length === tableData.value.length);
+const isIndeterminate = computed(() => selection.value.length > 0 && selection.value.length < tableData.value.length);
+const toggleAll = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  tableData.value.forEach((item: any) => { item.checked = checked; });
+};
 
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
   if (row) row.checked = checked;
@@ -391,13 +434,14 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
 
 const handleConfirmRow = (row: any) => {
   row.category = 'normal_upgrade';
-  tableData.value = [...tableData.value];
+  tableData.value = sortByCategory([...tableData.value]);
 };
 
 const handleAllConfirm = () => {
   tableData.value.forEach((item: any) => {
     if (item.category === 'need_confirm') item.category = 'normal_upgrade';
   });
+  tableData.value = sortByCategory([...tableData.value]);
   tabKey.value = Date.now();
 };
 
@@ -428,6 +472,7 @@ const handleBatchOperate = (id: string) => {
         item.category = 'normal_upgrade';
       }
     });
+    tableData.value = sortByCategory([...tableData.value]);
   } else if (id === 'remove') {
     originData.value = originData.value.filter((item: any) => !item.checked);
   }
@@ -472,7 +517,7 @@ const runUpgradeCheck = async () => {
     ...item,
     ...(results[index] ?? {}),
   }));
-  tableData.value = cloneDeep(originData.value);
+  tableData.value = sortByCategory(cloneDeep(originData.value));
 };
 
 const loading = ref(false);
@@ -570,18 +615,18 @@ const initHostData = async () => {
       __row_id: genRowID(),
     };
   });
-  tableData.value = cloneDeep(originData.value);
+  tableData.value = sortByCategory(cloneDeep(originData.value));
   await runUpgradeCheck();
 };
 
 watch(
   [searchSelectValue],
   () => {
-    tableData.value = originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
+    tableData.value = sortByCategory(originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
       const { id: searchField, values } = searchItem;
       const searchIds = values?.map((v: { id: string }) => v.id);
       return searchIds.includes(row[searchField]);
-    }));
+    })));
   },
   { immediate: true, deep: true },
 );
@@ -589,10 +634,10 @@ watch(
 watch(
   [active, originData],
   () => {
-    tableData.value = originData.value.filter((item: any) => {
+    tableData.value = sortByCategory(originData.value.filter((item: any) => {
       if (active.value === 'all') return true;
       return item.category === active.value;
-    });
+    }));
   },
   { immediate: true },
 );

@@ -136,6 +136,7 @@ platform:
       placeholder: Enter keywords
       searchPlaceholder: Select IPv4, IPv6, OS, or Hostname
       processConfirmTip: Treat pending as normal installation
+      checkboxTip: Check to batch confirm/remove
       status: Status
       disabledTip: Cannot install while nodes are pending or in error
       loadingTip: Verifying nodes...
