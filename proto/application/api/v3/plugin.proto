@@ -8,7 +8,8 @@ import "google/api/annotations.proto";
 import "google/protobuf/struct.proto";
 
 // PluginOperateFullInfo describes the full information of a plugin operation,
-// which
+// which includes the plugin's basic information, version, configuration, and
+// deployment overrides.
 message PluginOperateFullInfo {
   int64 bk_host_id = 1;
   string plugin_name = 2;
@@ -18,14 +19,31 @@ message PluginOperateFullInfo {
 }
 
 // PluginOperateBasicInfo describes the basic information of a plugin operation,
-// which
+// which includes the plugin's host ID and name.
 message PluginOperateBasicInfo {
   int64 bk_host_id = 1;
   string plugin_name = 2;
 }
 
+// PluginDeploymentSpec describes the specification for plugin deployment.
+message PluginDeploymentSpec {
+  optional ProcessResource resource = 1;
+  optional ProcessMonitorPolicy monitor_policy = 2;
+}
+
+// PluginInstallOperateInfo describes the information required for installing a
+// plugin,
+message PluginInstallOperateInfo {
+  int64 bk_host_id = 1;
+  string plugin_name = 2;
+  string version = 3;
+  repeated string config_name = 4;
+  optional google.protobuf.Struct custom_config_context = 5;
+  optional PluginDeploymentSpec custom_spec = 6;
+}
+
 // PluginInstallReq describes the plugin install request.
-message PluginInstallReq { repeated PluginOperateFullInfo plugin = 1; }
+message PluginInstallReq { repeated PluginInstallOperateInfo plugin = 1; }
 
 // PluginInstallResp describes the plugin install response.
 message PluginInstallResp {

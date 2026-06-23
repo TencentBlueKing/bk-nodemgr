@@ -199,6 +199,11 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		OpTimeoutSecs:  5,
 	}
 
+	if std.DeployInfo().InstallOptions.CustomSpec != nil {
+		std.DeployInfo().Process.Resource = std.DeployInfo().InstallOptions.CustomSpec.Resource
+		std.DeployInfo().Process.MonitorPolicy = std.DeployInfo().InstallOptions.CustomSpec.MonitorPolicy
+	}
+
 	return nil
 }
 

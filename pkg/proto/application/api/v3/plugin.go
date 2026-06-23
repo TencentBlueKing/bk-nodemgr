@@ -169,9 +169,17 @@ func (x *PluginInstallReq) Validate() error {
 		return errors.New("plugins can not be empty")
 	}
 
-	for idx := range plugins {
-		if err := plugins[idx].Validate(); err != nil {
-			return err
+	for _, plugin := range plugins {
+		if plugin.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id can not be zero")
+		}
+
+		if plugin.GetPluginName() == "" {
+			return errors.New("plugin_name can not be empty")
+		}
+
+		if plugin.GetVersion() == "" {
+			return errors.New("version can not be empty")
 		}
 	}
 
@@ -179,35 +187,7 @@ func (x *PluginInstallReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *PluginInstallReq) AutoConvert() {
-	plugin := x.GetPlugin()
-	for idx := range plugin {
-		plugin[idx].AutoConvert()
-	}
-}
-
-// ConvertParamFromTypes converts param from types.
-func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInstallParam) error {
-	var err error
-	x.Plugin, err = conv.SliceToSliceWithError(installParam.Plugins, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
-		item := &PluginOperateFullInfo{}
-		item.BkHostId = param.HostID
-		item.PluginName = param.PluginName
-		item.Version = param.Version
-		item.ConfigName = param.ConfigName
-		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
-		if err != nil {
-			return nil, err
-		}
-
-		return item, nil
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+func (x *PluginInstallReq) AutoConvert() {}
 
 // ConvertInstallParamToTypes converts install param to types.
 func (x *PluginInstallReq) ConvertInstallParamToTypes() *types.PluginInstallParam {
@@ -219,13 +199,30 @@ func (x *PluginInstallReq) ConvertInstallParamToTypes() *types.PluginInstallPara
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateFullInfo) *types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginInstallOperateInfo) *types.PluginDeploymentParam {
+		var customSpec *types.PluginSpec
+		if plugin.GetCustomSpec() != nil {
+			customSpec = &types.PluginSpec{
+				Resource: types.ProcessResource{
+					CPULimitPercent: plugin.GetCustomSpec().GetResource().GetCpuLimitPercent(),
+					MemLimitPercent: plugin.GetCustomSpec().GetResource().GetMemLimitPercent(),
+				},
+				MonitorPolicy: types.ProcessMonitorPolicy{
+					RestartType:    types.ProcessRestartType(plugin.GetCustomSpec().GetMonitorPolicy().GetRestartType()),
+					StartCheckSecs: plugin.GetCustomSpec().GetMonitorPolicy().GetStartCheckSeconds(),
+					StopCheckSecs:  plugin.GetCustomSpec().GetMonitorPolicy().GetStopCheckSeconds(),
+					OpTimeoutSecs:  plugin.GetCustomSpec().GetMonitorPolicy().GetOperateTimeoutSeconds(),
+				},
+			}
+		}
+
 		return &types.PluginDeploymentParam{
 			HostID:              plugin.GetBkHostId(),
 			PluginName:          plugin.GetPluginName(),
 			Version:             plugin.GetVersion(),
 			ConfigName:          plugin.GetConfigName(),
 			CustomConfigContext: plugin.GetCustomConfigContext().AsMap(),
+			CustomSpec:          customSpec,
 		}
 	})
 }

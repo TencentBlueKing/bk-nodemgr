@@ -555,6 +555,46 @@
         }
       }
     },
+    "v3PluginDeploymentSpec": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#/definitions/v3ProcessResource"
+        },
+        "monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        }
+      },
+      "description": "PluginDeploymentSpec describes the specification for plugin deployment."
+    },
+    "v3PluginInstallOperateInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "config_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_config_context": {
+          "type": "object"
+        },
+        "custom_spec": {
+          "$ref": "#/definitions/v3PluginDeploymentSpec"
+        }
+      },
+      "title": "PluginInstallOperateInfo describes the information required for installing a\nplugin,"
+    },
     "v3PluginInstallReq": {
       "type": "object",
       "properties": {
@@ -562,7 +602,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginOperateFullInfo"
+            "$ref": "#/definitions/v3PluginInstallOperateInfo"
           }
         }
       },
@@ -717,7 +757,7 @@
           "type": "string"
         }
       },
-      "title": "PluginOperateBasicInfo describes the basic information of a plugin operation,\nwhich"
+      "description": "PluginOperateBasicInfo describes the basic information of a plugin operation,\nwhich includes the plugin's host ID and name."
     },
     "v3PluginOperateFullInfo": {
       "type": "object",
@@ -742,7 +782,7 @@
           "type": "object"
         }
       },
-      "title": "PluginOperateFullInfo describes the full information of a plugin operation,\nwhich"
+      "description": "PluginOperateFullInfo describes the full information of a plugin operation,\nwhich includes the plugin's basic information, version, configuration, and\noperation policy."
     },
     "v3PluginRestartReq": {
       "type": "object",
@@ -961,6 +1001,41 @@
           "type": "string"
         }
       }
+    },
+    "v3ProcessMonitorPolicy": {
+      "type": "object",
+      "properties": {
+        "restart_type": {
+          "type": "string"
+        },
+        "start_check_seconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_check_seconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operate_timeout_seconds": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "ProcessMonitorPolicy describes the process monitor policy."
+    },
+    "v3ProcessResource": {
+      "type": "object",
+      "properties": {
+        "cpu_limit_percent": {
+          "type": "number",
+          "format": "double"
+        },
+        "mem_limit_percent": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "description": "ProcessResource describes the process resource."
     },
     "v3RelatedResourceType": {
       "type": "object",

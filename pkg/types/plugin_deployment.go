@@ -113,6 +113,7 @@ type PluginDeploymentInstallOptions struct {
 	Version                 string
 	IsOffline               bool
 	EnableCompatibilityMode bool
+	CustomSpec              *PluginSpec
 }
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.
@@ -121,6 +122,15 @@ type PluginDeploymentTransferOptions struct {
 	DisableReleasePackage bool
 	// means disable transfer installer.
 	DisableInstaller bool
+}
+
+// PluginSpec defines the specification for plugin deployment.
+type PluginSpec struct {
+	// Resource limits for the plugin process.
+	Resource ProcessResource
+
+	// MonitorPolicy for the plugin process.
+	MonitorPolicy ProcessMonitorPolicy
 }
 
 // PluginDeploymentParam defines the parameters for plugin deployment.
@@ -133,6 +143,7 @@ type PluginDeploymentParam struct {
 	CustomConfigContext     map[string]any
 	IsOffline               bool
 	EnableCompatibilityMode bool
+	CustomSpec              *PluginSpec
 }
 
 // PluginInstallParam defines the request-level parameters for plugin install.
@@ -183,6 +194,7 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 				Version:                 param.Version,
 				IsOffline:               param.IsOffline,
 				EnableCompatibilityMode: param.EnableCompatibilityMode,
+				CustomSpec:              param.CustomSpec,
 			},
 			TransferOptions: transferOption,
 		}

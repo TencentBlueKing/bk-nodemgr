@@ -470,10 +470,6 @@
     "v3HostOpsInfo": {
       "type": "object",
       "properties": {
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
         "bk_host_id": {
           "type": "integer",
           "format": "int64"

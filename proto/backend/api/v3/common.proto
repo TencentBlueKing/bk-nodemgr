@@ -419,3 +419,47 @@ message HostOpsInfo {
   string ops_bmc_ip = 5;
   int64 ops_bmc_port = 6;
 }
+
+// ProcessInfo describes the process information.
+message ProcessInfo {
+  optional int32 pid = 1;
+  optional string version = 2;
+  optional string agent_id = 3;
+  optional bool auto_start = 4;
+  optional string status = 5;
+}
+
+// ProcessIdentity describes the process identity.
+message ProcessIdentity {
+  optional string name = 1;
+  optional string setup_path = 2;
+  optional string pid_path = 3;
+  optional string config_path = 4;
+  optional string log_path = 5;
+  optional string user = 6;
+}
+
+// ProcessController describes the process controller.
+message ProcessController {
+  optional string start_cmd = 1;
+  optional string stop_cmd = 2;
+  optional string restart_cmd = 3;
+  optional string reload_cmd = 4;
+  optional string kill_cmd = 5;
+  optional string version_cmd = 6;
+  optional string health_cmd = 7;
+}
+
+// ProcessResource describes the process resource.
+message ProcessResource {
+  optional double cpu_limit_percent = 1;
+  optional double mem_limit_percent = 2;
+}
+
+// ProcessMonitorPolicy describes the process monitor policy.
+message ProcessMonitorPolicy {
+  optional string restart_type = 1;
+  optional int64 start_check_seconds = 2;
+  optional int64 stop_check_seconds = 3;
+  optional int64 operate_timeout_seconds = 4;
+}

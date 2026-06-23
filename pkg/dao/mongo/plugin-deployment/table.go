@@ -96,6 +96,11 @@ type processMonitorPolicy struct {
 	OpTimeoutSecs  int64  `json:"op_timeout_secs" bson:"op_timeout_secs"`
 }
 
+type processSpec struct {
+	Resource      processResource      `json:"resource" bson:"resource"`
+	MonitorPolicy processMonitorPolicy `json:"monitor_policy" bson:"monitor_policy"`
+}
+
 // installerRuntime this is the installer runtime for plugin deployment.
 type installerRuntime struct {
 	BaseWorkDir string `json:"base_work_dir" bson:"base_work_dir"`
@@ -122,9 +127,10 @@ type baseRuntime struct {
 
 // installOptions this is the options for nodemgr tools.
 type installOptions struct {
-	Version                 string `json:"version" bson:"version"`
-	IsOffline               bool   `json:"is_offline" bson:"is_offline"`
-	EnableCompatibilityMode bool   `json:"enable_compatibility_mode" bson:"enable_compatibility_mode"`
+	Version                 string       `json:"version" bson:"version"`
+	IsOffline               bool         `json:"is_offline" bson:"is_offline"`
+	EnableCompatibilityMode bool         `json:"enable_compatibility_mode" bson:"enable_compatibility_mode"`
+	CustomSpec              *processSpec `json:"custom_spec" bson:"custom_spec"`
 }
 
 // transferOptions this is the options for plugin transfer.

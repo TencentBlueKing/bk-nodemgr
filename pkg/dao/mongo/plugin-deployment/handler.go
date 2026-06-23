@@ -399,6 +399,21 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		},
 	}
 
+	if info.InstallOptions.CustomSpec != nil {
+		typesInfo.InstallOptions.CustomSpec = &types.PluginSpec{
+			Resource: types.ProcessResource{
+				CPULimitPercent: info.InstallOptions.CustomSpec.Resource.CPULimitPercent,
+				MemLimitPercent: info.InstallOptions.CustomSpec.Resource.MemLimitPercent,
+			},
+			MonitorPolicy: types.ProcessMonitorPolicy{
+				RestartType:    types.ProcessRestartType(info.InstallOptions.CustomSpec.MonitorPolicy.RestartType),
+				StartCheckSecs: info.InstallOptions.CustomSpec.MonitorPolicy.StartCheckSecs,
+				StopCheckSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.StopCheckSecs,
+				OpTimeoutSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.OpTimeoutSecs,
+			},
+		}
+	}
+
 	return typesInfo, nil
 }
 
@@ -486,6 +501,21 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			IsOffline:               info.InstallOptions.IsOffline,
 			EnableCompatibilityMode: info.InstallOptions.EnableCompatibilityMode,
 		},
+	}
+
+	if info.InstallOptions.CustomSpec != nil {
+		data.InstallOptions.CustomSpec = &processSpec{
+			Resource: processResource{
+				CPULimitPercent: info.InstallOptions.CustomSpec.Resource.CPULimitPercent,
+				MemLimitPercent: info.InstallOptions.CustomSpec.Resource.MemLimitPercent,
+			},
+			MonitorPolicy: processMonitorPolicy{
+				RestartType:    string(info.InstallOptions.CustomSpec.MonitorPolicy.RestartType),
+				StartCheckSecs: info.InstallOptions.CustomSpec.MonitorPolicy.StartCheckSecs,
+				StopCheckSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.StopCheckSecs,
+				OpTimeoutSecs:  info.InstallOptions.CustomSpec.MonitorPolicy.OpTimeoutSecs,
+			},
+		}
 	}
 
 	return data, nil

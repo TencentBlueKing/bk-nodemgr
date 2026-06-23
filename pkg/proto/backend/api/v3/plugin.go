@@ -179,9 +179,17 @@ func (x *PluginInstallReq) Validate() error {
 		return errors.New("plugins can not be empty")
 	}
 
-	for idx := range plugins {
-		if err := plugins[idx].Validate(); err != nil {
-			return err
+	for _, plugin := range plugins {
+		if plugin.GetBkHostId() <= 0 {
+			return errors.New("bk_host_id can not be zero")
+		}
+
+		if plugin.GetPluginName() == "" {
+			return errors.New("plugin_name can not be empty")
+		}
+
+		if plugin.GetVersion() == "" {
+			return errors.New("version can not be empty")
 		}
 	}
 
@@ -189,18 +197,13 @@ func (x *PluginInstallReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *PluginInstallReq) AutoConvert() {
-	plugin := x.GetPlugin()
-	for idx := range plugin {
-		plugin[idx].AutoConvert()
-	}
-}
+func (x *PluginInstallReq) AutoConvert() {}
 
 // ConvertParamFromTypes converts param from types.
 func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInstallParam) error {
 	var err error
-	x.Plugin, err = conv.SliceToSliceWithError(installParam.Plugins, func(param *types.PluginDeploymentParam) (*PluginOperateFullInfo, error) {
-		item := &PluginOperateFullInfo{}
+	x.Plugin, err = conv.SliceToSliceWithError(installParam.Plugins, func(param *types.PluginDeploymentParam) (*PluginInstallOperateInfo, error) {
+		item := &PluginInstallOperateInfo{}
 		item.BkHostId = param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
@@ -208,6 +211,22 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInsta
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
 			return nil, err
+		}
+
+		if param.CustomSpec != nil {
+			item.CustomSpec = &PluginDeploymentSpec{}
+			item.CustomSpec.Resource = &ProcessResource{
+				CpuLimitPercent: &param.CustomSpec.Resource.CPULimitPercent,
+				MemLimitPercent: &param.CustomSpec.Resource.MemLimitPercent,
+			}
+
+			restartType := param.CustomSpec.MonitorPolicy.RestartType.String()
+			item.CustomSpec.MonitorPolicy = &ProcessMonitorPolicy{
+				RestartType:           &restartType,
+				StartCheckSeconds:     &param.CustomSpec.MonitorPolicy.StartCheckSecs,
+				StopCheckSeconds:      &param.CustomSpec.MonitorPolicy.StopCheckSecs,
+				OperateTimeoutSeconds: &param.CustomSpec.MonitorPolicy.OpTimeoutSecs,
+			}
 		}
 
 		return item, nil
@@ -219,29 +238,25 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInsta
 	return nil
 }
 
-// ConvertInstallParamToTypes converts install param to types.
-func (x *PluginInstallReq) ConvertInstallParamToTypes() *types.PluginInstallParam {
-	return &types.PluginInstallParam{
-		Plugins: x.ConvertParamToTypes(),
-	}
-}
-
-// ConvertParamToTypes converts param to types.
-func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
-		return &types.PluginDeploymentParam{
-			HostID:              proc.GetBkHostId(),
-			PluginName:          proc.GetPluginName(),
-			Version:             proc.GetVersion(),
-			ConfigName:          proc.GetConfigName(),
-			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
-		}
-	})
-}
-
 // ConvertParamToTypes converts param to types.
 func (x *PluginInstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
-	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginInstallOperateInfo) *types.PluginDeploymentParam {
+		var customSpec *types.PluginSpec
+		if proc.GetCustomSpec() != nil {
+			customSpec = &types.PluginSpec{
+				Resource: types.ProcessResource{
+					CPULimitPercent: proc.GetCustomSpec().GetResource().GetCpuLimitPercent(),
+					MemLimitPercent: proc.GetCustomSpec().GetResource().GetMemLimitPercent(),
+				},
+				MonitorPolicy: types.ProcessMonitorPolicy{
+					RestartType:    types.ProcessRestartType(proc.GetCustomSpec().GetMonitorPolicy().GetRestartType()),
+					StartCheckSecs: proc.GetCustomSpec().GetMonitorPolicy().GetStartCheckSeconds(),
+					StopCheckSecs:  proc.GetCustomSpec().GetMonitorPolicy().GetStopCheckSeconds(),
+					OpTimeoutSecs:  proc.GetCustomSpec().GetMonitorPolicy().GetOperateTimeoutSeconds(),
+				},
+			}
+		}
+
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
 			BizID:               hostTopoMapping[proc.GetBkHostId()].BizID,
@@ -249,13 +264,14 @@ func (x *PluginInstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMappin
 			Version:             proc.GetVersion(),
 			ConfigName:          proc.GetConfigName(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+			CustomSpec:          customSpec,
 		}
 	})
 }
 
 // GetHostIDs returns host ids.
 func (x *PluginInstallReq) GetHostIDs() []int64 {
-	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginOperateFullInfo) int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginInstallOperateInfo) int64 {
 		return item.GetBkHostId()
 	})
 }
