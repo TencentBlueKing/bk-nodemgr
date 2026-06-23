@@ -1079,10 +1079,6 @@ const agentStatus = ref({ online: 0, offline: 0, notInstalled: 0 });
 /** 通过 only_count 并行查询在线/已安装/未安装 Agent 数量 */
 const fetchAgentStatusCount = async () => {
   const bizIds = mainStore.selectedBusinessId || [];
-  if (bizIds.length === 0) {
-    agentStatusLoading.value = false;
-    return;
-  }
 
   agentStatusLoading.value = true;
   try {

@@ -76,6 +76,12 @@ platform:
       assignUnitConfirmDeleteRowSub: 移除后主机 {ip} 将不会被分配管控单元
     proxyStatus:
       title: Proxy 状态
+      online: 在线
+      abnormal: 离线
+      notInstalled: 未安装
+      abnormalProxyCount: 离线Proxy 数量
+      notInstalledProxyCount: 未安装 Proxy 数量
+      onlineProxyCount: 在线 Proxy 数量
       assignUnitDisabledAssigned: 选中主机中包含已分配管控单元的节点，请取消选择或筛选未分配主机
       assignUnitDisabledRowAssigned: 该主机已分配管控单元
       assignUnitDisabledMultiArea: 选中主机中包含不同管控区域的主机，请选择同一区域的进行操作
@@ -1150,6 +1156,8 @@ components:
   operateDialog:
     gracefulTime: 超时时间
     seconds: 秒
+    forceRestart: 强制重启
+    gracefulRestart: 无损重启
   setting:
     field: 字段设置
     size: 表格行高

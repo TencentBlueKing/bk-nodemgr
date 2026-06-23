@@ -74,6 +74,7 @@
       :show-selected-icon="false"
       multiple
       filterable
+      showSelectAll
       :placeholder="hasNoAuthorizedBiz() ? undefined : t('platform.nodeMan.allBusiness')"
       :popover-options="{ boundary: 'document.body', width: '235px' }"
       @change="handleMultiChange"

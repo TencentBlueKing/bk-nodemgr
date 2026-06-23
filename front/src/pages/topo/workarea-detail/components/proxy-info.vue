@@ -1,4 +1,33 @@
 <template>
+  <page-header :title="'route.proxyStatus'" :back="Object.keys(route.query).length > 0">
+    <!-- Proxy 状态统计：标题后、subtitle 前 -->
+    <template #after-title>
+      <bk-loading :loading="proxyStatusLoading" class="flex items-center">
+        <div class="w-[1px] h-[14px] bg-[#DCDEE5] mx-[16px]"></div>
+        <span
+          class="inline-flex items-center cursor-pointer mr-[20px]"
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.proxyStatus.normalProxyCount')}: ${proxyStatus.online}` }">
+          <span class="w-[6px] h-[6px] rounded-full bg-[#3FC06D] mr-[4px]" />
+          <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.proxyStatus.online') }}</span>
+          <span class="text-[#3FC06D] text-[12px] font-medium">{{ proxyStatus.online }}</span>
+        </span>
+        <span
+          class="inline-flex items-center cursor-pointer mr-[20px]"
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.proxyStatus.abnormalProxyCount')}: ${proxyStatus.abnormal}` }">
+          <span class="w-[6px] h-[6px] rounded-full bg-[#EA3636] mr-[4px]" />
+          <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.proxyStatus.abnormal') }}</span>
+          <span class="text-[#EA3636] text-[12px] font-medium">{{ proxyStatus.abnormal }}</span>
+        </span>
+        <span
+          class="inline-flex items-center cursor-pointer"
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.proxyStatus.notInstalledProxyCount')}: ${proxyStatus.notInstalled}` }">
+          <span class="w-[6px] h-[6px] rounded-full bg-[#979BA5] mr-[4px]" />
+          <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.proxyStatus.notInstalled') }}</span>
+          <span class="text-[#979BA5] text-[12px] font-medium">{{ proxyStatus.notInstalled }}</span>
+        </span>
+      </bk-loading>
+    </template>
+  </page-header>
   <div :class="{ 'mx-[24px]': isProxyStatus }">
     <FlexRow class="mt-[24px]">
       <template #left>
@@ -150,6 +179,7 @@ import useAuthLock from '@/composables/use-auth-lock';
 import InstallProxy from '@/pages/topo/install-proxy/install-proxy.vue';
 import ReinstallProxy from '@/pages/topo/install-proxy/reinstall-proxy.vue';
 import AssignUnit from '@/pages/topo/install-proxy/assign-unit.vue';
+import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
 
@@ -571,9 +601,56 @@ const handleSearchSelectChange = (data: { id: string; name: string; values: { id
 // DetailTable ref for refreshing list
 const detailTableRef = ref<InstanceType<typeof DetailTable>>();
 
+// ---------- Proxy 状态统计 ----------
+const proxyStatusLoading = ref(true);
+const proxyStatus = ref({ online: 0, abnormal: 0, notInstalled: 0 });
+const fetchProxyStatusCount = async () => {
+  const bizIds = mainStore.selectedBusinessId || [];
+  proxyStatusLoading.value = true;
+  try {
+    const [normalRes, abnormalRes, totalRes] = await Promise.all([
+      // 正常：node_role=proxy + node_status=running
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['running'] },
+        fuzzy_include_conditions: {},
+      }).catch(() => ({ total: 0 })),
+      // 已安装 Proxy（node_role=proxy，含所有状态）
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['damaged'] },
+        fuzzy_include_conditions: {},
+      }).catch(() => ({ total: 0 })),
+      // 未安装（node_role=blank）
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['proxy'] },
+        fuzzy_include_conditions: {},
+      }).catch(() => ({ total: 0 })),
+    ]);
+    const online = normalRes.total ?? 0;
+    const abnormal = abnormalRes.total ?? 0;
+    const totalProxy = totalRes.total ?? 0;
+    proxyStatus.value = {
+      online,
+      abnormal,
+      notInstalled: Math.max(totalProxy - online - abnormal, 0),
+    };
+  } catch {
+    proxyStatus.value = { online: 0, abnormal: 0, notInstalled: 0 };
+  } finally {
+    proxyStatusLoading.value = false;
+  }
+};
+watch(() => [mainStore.selectedBusinessId, isProxyStatus.value], () => { if (isProxyStatus.value) fetchProxyStatusCount(); }, { immediate: true });
+
 // Listen for assign unit success event to refresh list
 const handleAssignUnitSuccess = () => {
   detailTableRef.value?.handleUpdate?.();
+  if (isProxyStatus.value) fetchProxyStatusCount();
 };
 
 onMounted(() => {

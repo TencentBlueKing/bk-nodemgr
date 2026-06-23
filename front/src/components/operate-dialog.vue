@@ -42,10 +42,33 @@
         <p class="text-[14px] text-[#63656E]">{{ selectionConfirmText }}</p>
       </div>
     </div>
+    <template #footer>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-[8px]" v-if="showRestartOptions">
+          <Radio.Group v-model="isForce">
+            <Radio.Button :label="true">
+              {{ $t('components.operateDialog.forceRestart') }}
+            </Radio.Button>
+            <Radio.Button :label="false">
+              {{ $t('components.operateDialog.gracefulRestart') }}
+            </Radio.Button>
+          </Radio.Group>
+          <div class="flex items-center gap-[3px] ml-[20px]" v-show="!isForce">
+            <span>{{ $t('components.operateDialog.gracefulTime') }}</span>
+            <Input type="number" v-model="gracefulTimeout" class="w-[80px] mx-[3px]"></Input>
+            <span>{{ $t('components.operateDialog.seconds') }}</span>
+          </div>
+        </div>
+        <div class="ml-auto">
+          <Button theme="primary" @click="handleConfirm">{{ $t('action.confirm') }}</Button>
+          <Button class="ml-[8px]" @click="handleCancel">{{ $t('action.cancel') }}</Button>
+        </div>
+      </div>
+    </template>
   </Dialog>
 </template>
 <script lang="ts" setup>
-import { Dialog } from 'bkui-vue';
+import { Button, Dialog, Input, Radio } from 'bkui-vue';
 import { computed, type PropType, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Table, TableColumn } from '@blueking/table';
@@ -103,7 +126,17 @@ const { t } = useI18n();
 /** 勾选的行数据 */
 const selection = ref<any[]>([]);
 
+/** 是否强制重启 */
+const isForce = ref(false);
+/** 无损重启超时时间（秒） */
+const gracefulTimeout = ref(120);
+
+/** 是否展示重启选项（强制/无损 + 超时时间） */
+const showRestartOptions = computed(() => props.type === 'restart');
+
 const dialogWidth = computed(() => {
+  // 重启选项需要更宽的弹窗以容纳 footer 中的强制/无损选项
+  if (showRestartOptions.value) return 800;
   // 简化模式（无表格）使用较窄的弹窗
   if (!props.showTable) return 700;
   // 有表格时弹窗更宽
@@ -124,6 +157,8 @@ function handleConfirm() {
   const finalSelection = props.showTable ? selection.value : props.data;
   emit('confirm', {
     selection: finalSelection,
+    isForce: isForce.value,
+    time: gracefulTimeout.value,
   });
   isShow.value = false;
 }
@@ -158,6 +193,9 @@ watch(
         if (row) row.checked = false;
       });
       selection.value = [];
+      // 重置强制重启选项
+      isForce.value = false;
+      gracefulTimeout.value = 120;
     }
   },
   { immediate: true, deep: true },

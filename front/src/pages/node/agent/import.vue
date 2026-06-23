@@ -422,6 +422,7 @@ onMounted(async () => {
       bk_networkunit_id: normalizeNetworkUnitId(host.info.bk_networkunit_id),
       bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
+      login_ip: host.info?.login_ip || host.login_ip || host.info?.bk_host_innerip_list?.[0] || '',
       login_mode: resolveLoginMode(host.info?.login_mode),
     }));
     loading.value = false;
@@ -434,7 +435,7 @@ onMounted(async () => {
       bk_networkunit_id: normalizeNetworkUnitId(info.bk_networkunit_id),
       bk_host_innerip: info.bk_host_innerip_list?.[0],
       bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
-      login_ip: info?.login_ip,
+      login_ip: info?.login_ip || info?.bk_host_innerip_list?.[0] || '',
       login_mode: resolveLoginMode(rest.login_mode || info?.login_mode),
     }));
   }

@@ -762,6 +762,7 @@ watch(() => isShow.value, async () => {
         }
 
         form.info = allHosts.map((host: any) => {
+          const innerIp = host.info?.bk_host_innerip_list?.[0] ?? '';
           const base = {
             ...cloneDeep(initData),
             ...host.state,
@@ -770,6 +771,7 @@ watch(() => isShow.value, async () => {
             bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
             bk_host_innerip: host.info?.bk_host_innerip_list?.join(','),
             bk_host_innerip_v6: host.info?.bk_host_innerip_v6_list?.join(','),
+            login_ip: host.info?.login_ip || host.login_ip || innerIp,
             login_mode: resolveLoginMode(host.info?.login_mode),
             proxy_tags: Array.isArray(host.proxy_tags) ? [...host.proxy_tags] : [],
           };
@@ -792,6 +794,10 @@ watch(() => isShow.value, async () => {
           if (cbPort != null && String(cbPort) !== '') data.relay_callback_port = String(cbPort);
           data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
           data.login_mode = resolveLoginMode(data.login_mode);
+          // 登录 IP 为空时，回退到内网 IP 第一个
+          if (!data.login_ip) {
+            data.login_ip = item.info?.bk_host_innerip_list?.[0] ?? '';
+          }
           return data;
         });
       }

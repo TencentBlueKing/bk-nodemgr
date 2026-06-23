@@ -667,7 +667,7 @@
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'login_port')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_port') }">
-                <span v-if="row.login_port">{{ row.login_port }}</span>
+                <span v-if="row.login_port !== '' && row.login_port != null">{{ row.login_port }}</span>
                 <span v-else class="cell-placeholder">请输入</span>
               </div>
             </ValidateCell>
