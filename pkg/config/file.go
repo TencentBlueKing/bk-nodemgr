@@ -72,6 +72,9 @@ const (
 	defaultFileCacheGCIntervalHours = 1
 	defaultFileCacheRestoreOnStart  = false
 
+	defaultFileTempExpirationHours = 24
+	defaultFileTempGCIntervalHours = 1
+
 	defaultFileTracingExporterType = "stdout"
 
 	defaultFileGSETraceServiceName  = "file-client-gse"
@@ -160,6 +163,10 @@ func NewFileService() *FileService {
 			GCIntervalHours: defaultFileCacheGCIntervalHours,
 			RestoreOnStart:  defaultFileCacheRestoreOnStart,
 		},
+		TempFile: FileServiceTempFile{
+			ExpirationHours: defaultFileTempExpirationHours,
+			GCIntervalHours: defaultFileTempGCIntervalHours,
+		},
 		Log: Log{
 			Dir:       defaultFileLogDir,
 			MaxSizeMB: defaultFileLogMaxSizeMB,
@@ -194,6 +201,18 @@ type FileServiceFileCache struct {
 	RestoreOnStart bool `yaml:"restoreOnStart" usage:"restore cache entries from disk on startup"`
 }
 
+// FileServiceTempFile configures the cleanup behavior of the temp file directory used by the
+// file manager. The temp directory is derived from WorkspaceFileGroup.FullPath and is not
+// separately configurable.
+type FileServiceTempFile struct {
+	// ExpirationHours is the number of hours after which an idle temp file (no access since)
+	// becomes eligible for deletion by the GC. Defaults to 24 hours.
+	ExpirationHours int `yaml:"expirationHours" usage:"number of hours an unused temp file is retained"`
+
+	// GCIntervalHours is the number of hours between temp file GC runs. Defaults to 1 hour.
+	GCIntervalHours int `yaml:"gcIntervalHours" usage:"number of hours between temp file GC runs"`
+}
+
 // FileService the config of file service.
 type FileService struct {
 	RunMode            RunMode              `yaml:"runMode" usage:"run mode of service"`
@@ -206,6 +225,7 @@ type FileService struct {
 	DownloadServer     HTTPServer           `yaml:"downloadServer" usage:"download server config of file service"`
 	WorkspaceFileGroup FileGroup            `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
 	FileCache          FileServiceFileCache `yaml:"fileCache" usage:"local file cache config of file service"`
+	TempFile           FileServiceTempFile  `yaml:"tempFile" usage:"temp file cleanup config of file service"`
 	MountHostDir       string               `yaml:"mountHostDir" usage:"mount host dir of file service"`
 	Repo               Repo                 `yaml:"repo" usage:"repo config of file service"`
 	MongoDB            MongoDB              `yaml:"mongodb" usage:"mongodb config of file service"`

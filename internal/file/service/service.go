@@ -413,6 +413,8 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
 		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
 		manager.WithTempFileGroup(tempFG),
+		manager.WithTempFileExpiration(time.Duration(svc.conf.TempFile.ExpirationHours) * time.Hour),
+		manager.WithTempFileGCInterval(time.Duration(svc.conf.TempFile.GCIntervalHours) * time.Hour),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithFileCache(fc),
 		manager.WithStorageUpload(svc.Cap.StorageUpload),

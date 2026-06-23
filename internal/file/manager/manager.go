@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -231,6 +233,22 @@ func WithTempFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	}
 }
 
+// WithTempFileExpiration sets the idle duration after which a temp file becomes
+// eligible for deletion by the temp file GC. A non-positive value disables the GC.
+func WithTempFileExpiration(d time.Duration) OptionFn {
+	return func(manager *Manager) {
+		manager.tempFileExpiration = d
+	}
+}
+
+// WithTempFileGCInterval sets the sleep period between two temp file GC runs.
+// A non-positive value disables the GC.
+func WithTempFileGCInterval(d time.Duration) OptionFn {
+	return func(manager *Manager) {
+		manager.tempFileGCInterval = d
+	}
+}
+
 // WithInstallerFileGroup sets the installer file group.
 func WithInstallerFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
@@ -329,6 +347,13 @@ type Manager struct {
 	// temp file group is regarded as the file temp.
 	tempFileGroup fileiface.FileGroup
 
+	// tempFileExpiration is the idle duration after which a temp file becomes
+	// eligible for deletion by the temp file GC.
+	tempFileExpiration time.Duration
+
+	// tempFileGCInterval is the sleep period between two temp file GC runs.
+	tempFileGCInterval time.Duration
+
 	// fileCache is the generic local file cache used by ensureReleaseToLocal.
 	fileCache filecache.IFileCache
 
@@ -353,7 +378,7 @@ type Manager struct {
 
 // Start starts the manager.
 // nolint:gocognit,gocyclo,cyclop,funlen
-func (m *Manager) Start(_ context.Context) error {
+func (m *Manager) Start(ctx context.Context) error {
 	if m.upstreamOriginAgent == nil {
 		return errors.New("invalid upstream origin agent")
 	}
@@ -446,11 +471,44 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid gse handler")
 	}
 
+	// start temp file GC if configured. Disabled when either knob is non-positive.
+	if m.tempFileExpiration > 0 && m.tempFileGCInterval > 0 {
+		go m.runTempFileGC(ctx)
+	}
+
 	return nil
 }
 
+// tempFileSuffix is the filename suffix used by all temp files produced by
+// saveTempFile / createTempFile. The temp file GC matches files by:
+//   - filename has this suffix.
+//   - the stem before the suffix parses as a UUID.
+//
+// Keep newTempFileName and isTempFileName in sync: changing the format requires
+// updating both.
+const tempFileSuffix = ".tgz"
+
+// newTempFileName returns a fresh temp file name following the project convention.
+func newTempFileName() string {
+	return uuid.NewString() + tempFileSuffix
+}
+
+// isTempFileName reports whether name was produced by newTempFileName.
+// Used by the temp file GC to avoid touching unrelated files in the temp dir.
+func isTempFileName(name string) bool {
+	stem, ok := strings.CutSuffix(name, tempFileSuffix)
+	if !ok {
+		return false
+	}
+	if _, err := uuid.Parse(stem); err != nil {
+		return false
+	}
+
+	return true
+}
+
 func (m *Manager) saveTempFile(nCtx contextx.IContext, file io.ReadCloser) (string, error) {
-	tempFileName := uuid.NewString() + ".tgz"
+	tempFileName := newTempFileName()
 
 	err := m.tempFileGroup.Store(nCtx, fileiface.FileInfo{Name: tempFileName}, file, true)
 	if err != nil {
@@ -480,6 +538,78 @@ func (m *Manager) openTempFile(_ contextx.IContext, tempFileName string) (io.Rea
 		os.O_RDWR|os.O_TRUNC,
 		0644,
 	)
+}
+
+// runTempFileGC periodically scans the temp file directory and deletes entries that
+//  1. match the project temp file naming convention (see isTempFileName), AND
+//  2. have not been modified for at least tempFileExpiration.
+//
+// Modification time is used as a proxy for "last access" — temp files are write-once
+// (UUID-named, never overwritten), and mtime is stable across filesystems that may
+// mount with noatime. The GC swallows all errors as warnings: cleanup failures must
+// never affect serving.
+//
+// The goroutine exits when ctx is canceled. Capability.Start passes svc.ctx, which
+// is canceled by Service.GracefulShutdown.
+func (m *Manager) runTempFileGC(ctx context.Context) {
+	ticker := time.NewTicker(m.tempFileGCInterval)
+	defer ticker.Stop()
+
+	// run once immediately to clean up residue from a previous crash.
+	m.gcTempFilesOnce()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			m.gcTempFilesOnce()
+		}
+	}
+}
+
+// gcTempFilesOnce performs a single GC sweep over the temp file directory.
+func (m *Manager) gcTempFilesOnce() {
+	dir := local.GetLocalFileGroupAbsDirPath(m.tempFileGroup)
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			logger.G.Sys().WithErr(err).With("dir", dir).Warn("temp file GC: failed to read temp dir")
+		}
+
+		return
+	}
+
+	cutoff := time.Now().Add(-m.tempFileExpiration)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !isTempFileName(name) {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			// file may have been deleted between ReadDir and Info; skip silently.
+			continue
+		}
+		if !info.ModTime().Before(cutoff) {
+			continue
+		}
+		p := filepath.Join(dir, name)
+		if err := os.Remove(p); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				logger.G.Sys().WithErr(err).With("file", p).Warn("temp file GC: failed to remove stale temp file")
+			}
+
+			continue
+		}
+
+		logger.G.Sys().With("file", p, "mtime", info.ModTime().Format(time.RFC3339)).
+			Info("temp file GC: removed stale temp file")
+	}
 }
 
 func (m *Manager) wrapOriginPackageName(name string) string {
