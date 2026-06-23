@@ -45,24 +45,6 @@ func (oper *operInstallProxyBySSH) Name() string {
 
 // ActionDefNames returns the action def names.
 func (oper *operInstallProxyBySSH) ActionDefNames() []string {
-	if oper.param.CrossUnit {
-		return []string{
-			ActionNameTryReuseAgentID,
-			ActionNameUpsertHostToCMDB,
-			ActionNameDetectInfoBySSH,
-			ActionNameInjectNodeCustomDeployConfig,
-			ActionNameRenderNodeDeployment,
-			ActionNameInstallProxyBySSH,
-			ActionNameWaitInstallerComplete,
-			ActionNameWaitGseReady,
-			ActionNameSyncNodeInfo,
-			ActionNameBindAgentHostRel,
-			ActionNamePushHostIdentifier,
-			ActionNameUpdateHost,
-			ActionNameInstallPreOrderedPlugins,
-		}
-	}
-
 	return []string{
 		ActionNameTryReuseAgentID,
 		ActionNameUpsertHostToCMDB,
@@ -92,24 +74,6 @@ func (oper *operInstallProxyBySSH) DefaultParameters() operation.Param {
 }
 
 func (oper *operInstallProxyBySSH) retryStartPoint() map[string]bool {
-	if oper.param.CrossUnit {
-		return map[string]bool{
-			ActionNameTryReuseAgentID:              true,
-			ActionNameUpsertHostToCMDB:             true,
-			ActionNameDetectInfoBySSH:              true,
-			ActionNameInjectNodeCustomDeployConfig: true,
-			ActionNameRenderNodeDeployment:         true,
-			ActionNameInstallProxyBySSH:            true,
-			ActionNameWaitInstallerComplete:        false,
-			ActionNameWaitGseReady:                 false,
-			ActionNameSyncNodeInfo:                 true,
-			ActionNameBindAgentHostRel:             true,
-			ActionNamePushHostIdentifier:           true,
-			ActionNameUpdateHost:                   true,
-			ActionNameInstallPreOrderedPlugins:     true,
-		}
-	}
-
 	return map[string]bool{
 		ActionNameTryReuseAgentID:              true,
 		ActionNameUpsertHostToCMDB:             true,
