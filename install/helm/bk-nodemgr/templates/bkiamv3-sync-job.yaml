@@ -2,16 +2,20 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-sync-{{ .Release.Revision }}
+  name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-sync
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
     values-hash: "{{ toYaml .Values.backend.config.iamV3 | sha256sum | trunc 63 }}"
-  {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
-  {{- end }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
 spec:
   ttlSecondsAfterFinished: 60
   backoffLimit: 3

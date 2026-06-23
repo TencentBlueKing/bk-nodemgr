@@ -1,17 +1,25 @@
-{{- if and .Values.file.enabled (.Values.initPackages.enabled | default false) (or (not (.Values.initPackages.installOnly | default true)) .Release.IsInstall) }}
+{{- if and .Values.file.enabled (.Values.initPackages.enabled | default false) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ template "bk-nodemgr.fullname" . }}-file-init-packages-{{ (toYaml (dict "file" .Values.file "backendFile" .Values.backend.config.file "image" .Values.image "global" .Values.global) | sha256sum | trunc 8) }}
+  name: {{ template "bk-nodemgr.fullname" . }}-file-init-packages
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
     values-hash: "{{ toYaml .Values.file.config | sha256sum | trunc 63 }}"
-  {{- if .Values.commonAnnotations }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
-  {{- end }}
+  annotations:
+    {{- if hasKey .Values.initPackages "installOnly" | ternary (not .Values.initPackages.installOnly) false }}
+    "helm.sh/hook": post-install,post-upgrade
+    {{- else }}
+    "helm.sh/hook": post-install
+    {{- end }}
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
 spec:
   backoffLimit: 3
   parallelism: 1
