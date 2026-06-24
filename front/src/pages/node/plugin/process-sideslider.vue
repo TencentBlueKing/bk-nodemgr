@@ -314,6 +314,8 @@
     :columns="operateDialogColumns"
     :status-map="processStatusTextMap"
     :show-table="operateDialogShowTable"
+    :hide-restart-options="true"
+    :hide-checkbox="!isBatchOperate"
     :selection-confirm-formatter="operateDialogShowTable ? undefined : selectionConfirmFormatter"
     @confirm="handleOperateConfirm"
   ></operate-dialog>
@@ -466,6 +468,7 @@ const getSingleOperateList = (row: any) => {
 
 // 操作确认弹窗
 const operateDialogIsShow = ref(false);
+const isBatchOperate = ref(false);
 const operateDialogData = reactive({ type: '', title: '', subTitle: '' });
 const pendingOperateData = ref<any[]>([]);
 const pendingOperateType = ref('');
@@ -562,6 +565,7 @@ const handlePluginOperate = (operateType: string, data: any[], batch = false) =>
     // 浅拷贝数据，避免弹窗内部 checkbox 事件修改主表格的 checked 状态
     pendingOperateData.value = data.map((item: any) => ({ ...item }));
     pendingOperateType.value = operateType;
+    isBatchOperate.value = batch;
     // 批量操作使用简化弹窗（无表格，直接展示确认提示）
     operateDialogShowTable.value = !batch;
     operateDialogData.type = operateType;

@@ -14,12 +14,12 @@
       <Table
         v-if="showTable && isShow && data.length > 0 && columns.length > 0"
         :data="data"
-        :max-height="300"
+        :max-height="500"
         class="mt-[16px]"
         @checkbox-change="handleSelectChange"
         @checkbox-all="handleSelectAllChange"
       >
-        <TableColumn type="checkbox" width="60" fixed="left" />
+        <TableColumn v-if="!hideCheckbox" type="checkbox" width="60" fixed="left" />
         <TableColumn
           v-for="col in columns"
           :key="col.field"
@@ -119,6 +119,16 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  /** 隐藏重启选项（插件重启等场景不需要强制/无损切换） */
+  hideRestartOptions: {
+    type: Boolean,
+    default: false,
+  },
+  /** 隐藏勾选列（插件操作等场景不需要勾选） */
+  hideCheckbox: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(['confirm', 'cancel', 'selection-change']);
 const { t } = useI18n();
@@ -132,7 +142,7 @@ const isForce = ref(false);
 const gracefulTimeout = ref(120);
 
 /** 是否展示重启选项（强制/无损 + 超时时间） */
-const showRestartOptions = computed(() => props.type === 'restart');
+const showRestartOptions = computed(() => props.type === 'restart' && !props.hideRestartOptions);
 
 const dialogWidth = computed(() => {
   // 重启选项需要更宽的弹窗以容纳 footer 中的强制/无损选项
@@ -146,15 +156,15 @@ const dialogWidth = computed(() => {
 /** 勾选后表格下方的确认提示文案 */
 const selectionConfirmText = computed(() => {
   if (!props.selectionConfirmFormatter) return '';
-  // 简化模式下使用全部数据，表格模式下使用勾选数据
-  const items = props.showTable ? selection.value : props.data;
+  // 无勾选列或简化模式下使用全部数据，表格模式下使用勾选数据
+  const items = (props.hideCheckbox || !props.showTable) ? props.data : selection.value;
   if (items.length === 0) return '';
   return props.selectionConfirmFormatter(items);
 });
 
 function handleConfirm() {
-  // 简化模式下使用全部数据作为 selection，表格模式下使用勾选数据
-  const finalSelection = props.showTable ? selection.value : props.data;
+  // 无勾选列或简化模式下使用全部数据，表格模式下使用勾选数据
+  const finalSelection = (props.hideCheckbox || !props.showTable) ? props.data : selection.value;
   emit('confirm', {
     selection: finalSelection,
     isForce: isForce.value,

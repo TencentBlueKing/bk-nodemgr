@@ -158,9 +158,11 @@
       :data="pendingOperateData"
       :columns="operateDialogColumns"
       :status-map="processStatusTextMap"
+      :hide-restart-options="true"
+      :hide-checkbox="!isBatchOperate"
       :selection-confirm-formatter="selectionConfirmFormatter"
       @confirm="handleOperateConfirm"
-    ></operate-dialog>
+      ></operate-dialog>
   </div>
 </template>
 
@@ -291,6 +293,7 @@ const getSingleOperateList = (row: any) => {
 
 // 操作确认弹窗
 const operateDialogIsShow = ref(false);
+const isBatchOperate = ref(false);
 const operateDialogData = reactive({ type: '', title: '', subTitle: '' });
 const pendingOperateData = ref<any[]>([]);
 const pendingOperateType = ref('');
@@ -398,6 +401,7 @@ const handlePluginOperate = async (operateType: string, data: any[], batch = fal
   } else if (operateType === 'restart' || operateType === 'uninstall' || operateType === 'stop') {
     // 重启/卸载/停止 → 先获取进程数据，再展示 operate-dialog
     pendingOperateType.value = operateType;
+    isBatchOperate.value = batch;
     operateDialogData.type = operateType;
     // 根据插件名获取进程列表
     const pluginNameList = [...new Set(data.map((item: any) => item.name))];
