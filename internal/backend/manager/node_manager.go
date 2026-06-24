@@ -319,18 +319,17 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 		})
 	}
 
-	// Automatic proxy install supports both cross-unit SSH-only mode and same-unit relay mode.
-	crossUnit := isCrossUnitProxyInstall(deploy)
+	if deploy.Info.InstallOptions.DirectInstall {
+		return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
 
 	return node.NewOperInstallProxyBySSH(node.OperParamInstallProxyBySSH{
-		Token:     deploy.Token,
-		Operator:  operator,
-		CrossUnit: crossUnit,
+		Token:    deploy.Token,
+		Operator: operator,
 	})
-}
-
-func isCrossUnitProxyInstall(deploy *types.NodeDeployment) bool {
-	return deploy.Info.Host.Dynamic.ProxyInstallOriginUnitID != deploy.Info.Host.Dynamic.NetworkUnitID
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.

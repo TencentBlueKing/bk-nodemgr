@@ -6,15 +6,16 @@
 
 ## 传输模式
 
-| 模式               | 文件传输                                  | 状态回写                          | 说明                                                              |
-|------------------|---------------------------------------|-------------------------------|-----------------------------------------------------------------|
-| **A. Server 直连** | 目标节点从 File `download` 拉取              | 目标节点向 Backend `callback` 上报   | 直连管控单元内，目标节点可直接访问 Server                                        |
-| **B. SSH 通道**    | Backend 经 SSH/SFTP 推送                 | Backend 经 SSH 轮询本地状态文件        | 跨管控单元 Proxy 安装；`installer` 使用 `--skip_download --skip_callback` |
-| **C. Relay 中转**  | 目标节点从 Proxy 上 Relay 插件的 `download` 拉取 | 目标节点向 Relay 插件的 `callback` 上报 | 非直连管控单元；Relay 经 GSE 信令与 Server 通信                               |
-| **D. 离线安装**      | 管理员手动下载离线包                            | 管理员手动执行并在完成后回写状态              | 仅 Proxy 安装；目标环境无法访问管控面网络                                        |
+| 模式                        | 安装形态 | 操作源 | 文件传输                                      | 状态回写                         | 说明                                                                  |
+|---------------------------|------|-----|-------------------------------------------|------------------------------|---------------------------------------------------------------------|
+| **A. Server Callback**    | 在线安装 | Server | 目标节点从 File `download` 拉取                  | 目标节点向 Backend `callback` 上报  | 目标节点可直接访问 Server；SSH/WMI 只负责触发 `installer`                           |
+| **B. Server SSH-only**    | 在线安装 | Server | Server 经 SSH/SFTP 推送 `installer`、release 包、配置和 checklist | Server 经 SSH 轮询本地状态文件       | `installer` 使用 `--skip_download --skip_callback`                    |
+| **C. Relay Callback**     | 在线安装 | Relay | 目标节点从 Relay 插件的 `download` 拉取             | 目标节点向 Relay 插件的 `callback` 上报 | Relay 经 GSE 信令与 Server 通信；SSH/WMI 只负责触发 `installer`                  |
+| **D. Relay SSH-only**     | 在线安装 | Relay | Relay 经 SSH/SFTP 推送 `installer`、release 包、配置和 checklist | Relay 经 SSH 轮询本地状态文件并回传结果  | `installer` 使用 `--skip_download --skip_callback`                    |
+| **E. Offline**            | 离线安装 | Admin | 管理员手动下载离线包                                | 管理员手动执行并在完成后回写状态             | 仅 Proxy 安装；目标环境无法访问管控面网络                                        |
 
-> **区分 orchestration 与传输模式**：自动安装时 Backend 可能通过 SSH/WMI 登录目标主机并下发命令，但这只决定**如何触发**
-`installer`；上表描述的是 `installer` 运行时**如何获取文件、如何回写状态**。
+> **区分操作源与状态方式**：在线安装先按操作源分为 Server / Relay，再按状态方式分为 Callback / SSH-only。
+> Callback 模式由 `installer` 访问 HTTP `download` / `callback` 端点；SSH-only 模式跳过 HTTP 下载与回调，由操作源推送文件并轮询本地状态文件。
 
 ## 决策规则
 
@@ -29,12 +30,13 @@
 
 #### Proxy 安装
 
-| 条件                                                        | 传输模式 |
-|-----------------------------------------------------------|------|
-| 离线安装（`is_offline = true`）                                 | D    |
-| 跨管控单元（`proxy_install_origin_unit_id ≠ bk_networkunit_id`） | B    |
-| 同管控单元 + 安装源 Unit 为直连                                      | 不存在  |
-| 同管控单元 + 安装源 Unit 为非直连                                     | C    |
+| 条件                                                                                                   | 传输模式 |
+|------------------------------------------------------------------------------------------------------|------|
+| 离线安装（`is_offline = true`）                                                                            | E    |
+| 在线自动安装 + 安装源 Unit 为直连（`direct_install = true`）+ 跨管控单元（`proxy_install_origin_unit_id ≠ bk_networkunit_id`） | B    |
+| 在线自动安装 + 安装源 Unit 为直连（`direct_install = true`）+ 同管控单元                                          | 不存在  |
+| 在线自动安装 + 安装源 Unit 为非直连（`direct_install = false`）+ 跨管控单元                                            | D    |
+| 在线自动安装 + 安装源 Unit 为非直连（`direct_install = false`）+ 同管控单元                                           | C    |
 
 #### 决策树
 
@@ -48,24 +50,29 @@ graph TD
     AD --> A1["A"]
     AN --> C1["C"]
     Proxy --> PO["离线安装"]
-    Proxy --> OL["在线安装"]
-    PO --> D["D"]
-    OL --> CU["跨 Unit"]
-    OL --> SU["同 Unit"]
-    CU --> B["B"]
-    SU --> OD["安装源为直连 Unit"]
-    SU --> ON["安装源为非直连 Unit"]
-    OD --> A2["不存在"]
-    ON --> C2["C"]
+    Proxy --> OL["在线自动安装"]
+    PO --> E["E"]
+    OL --> OD["安装源为直连 Unit"]
+    OL --> ON["安装源为非直连 Unit"]
+    OD --> DCU["跨 Unit"]
+    OD --> DSU["同 Unit（自动安装）"]
+    DCU --> B1["B"]
+    DSU --> NA["不存在"]
+    ON --> NCU["跨 Unit"]
+    ON --> NSU["同 Unit"]
+    NCU --> D2["D"]
+    NSU --> D1["C"]
 ```
 
 #### 边界说明
 
-- **手动安装**（`is_manual = true`）：Backend 生成 bootstrap 命令供管理员手动执行；传输模式仍按上表选择 A 或 C 的
-  `--dlsvr_addr` / `--cbsvr_addr`，不由 Backend 自动推送。
-- **跨 Unit Proxy + B 模式**：Backend 预渲染配置文件与 checklist，经 SFTP 推送至目标；安装完成后通过 SSH 轮询
+- **手动安装**（`is_manual = true`）：Backend 生成 bootstrap 命令供管理员手动执行；自动安装的 SSH/WMI 触发步骤不执行。
+  命令中的 `--dlsvr_addr` / `--cbsvr_addr` 仍按操作源选择 Server 或 Relay。
+- **Proxy 直连安装源**：`direct_install` 取自安装源 Unit 的 `is_direct`，不是目标 Proxy 所属 Unit；同 Unit + 直连安装源的
+  自动安装不成立，跨 Unit 进入 Server SSH-only。
+- **跨 Unit Proxy + 直连安装源 + B 模式**：Server 预渲染配置文件与 checklist，经 SSH/SFTP 推送至目标；安装完成后通过 SSH 轮询
   `installer.status.json` 获取结果。
-- **非直连 Unit 插件安装**：Callback 走 Relay；Download 端点为空时跳过在线下载（与节点安装 C 模式一致）。
+- **非直连安装源 + D 模式**：Relay 作为操作源，经 SSH/SFTP 推送安装所需文件并轮询目标本地状态，再将结果回传 Server。
 
 ### 节点升级
 
@@ -153,7 +160,7 @@ graph TD
 
 ### 节点重启
 
-重启（restart）**不适用** A/B/C/D 传输模式：`installer` 仅执行 restart 步骤，不注入 `--cbsvr_addr` / `--dlsvr_addr`；结果由
+重启（restart）**不适用** A/B/C/D/E 传输模式：`installer` 仅执行 restart 步骤，不注入 `--cbsvr_addr` / `--dlsvr_addr`；结果由
 `wait_gse_ready` 轮询 GSE Agent 状态确认。
 
 #### Agent 重启

@@ -33,9 +33,8 @@ type operInstallProxyBySSH struct {
 
 // OperParamInstallProxyBySSH defines the parameters for operInstallProxyBySSH.
 type OperParamInstallProxyBySSH struct {
-	Token     string `json:"token"`
-	Operator  string `json:"operator"`
-	CrossUnit bool   `json:"cross_unit"`
+	Token    string `json:"token"`
+	Operator string `json:"operator"`
 }
 
 // Name returns the name.
