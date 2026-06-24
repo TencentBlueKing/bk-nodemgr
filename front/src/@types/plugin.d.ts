@@ -16,9 +16,26 @@ export interface PluginOperateBasicInfo {
   plugin_name: string;
 }
 
+// PluginDeploymentSpec describes the specification for plugin deployment.
+export interface PluginDeploymentSpec {
+  resource: ProcessResource;
+  monitor_policy: ProcessMonitorPolicy;
+}
+
+// PluginInstallOperateInfo describes the information required for installing a
+// plugin,
+export interface PluginInstallOperateInfo {
+  bk_host_id: number;
+  plugin_name: string;
+  version: string;
+  config_name: string[];
+  custom_config_context?: Record<string, any>;
+  custom_spec?: PluginDeploymentSpec;
+}
+
 // PluginInstallReq describes the plugin install request.
 export interface PluginInstallReq {
-  plugin: PluginOperateFullInfo[];
+  plugin: PluginInstallOperateInfo[];
 }
 
 // PluginInstallResp describes the plugin install response.

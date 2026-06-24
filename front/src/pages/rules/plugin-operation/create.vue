@@ -115,6 +115,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { PluginAPIService } from '@/api/modules/plugin';
+import type { PluginInstallOperateInfo, PluginOperateFullInfo } from '@/@types/plugin';
 
 import StepDeployTarget from './steps/step-deploy-target.vue';
 import StepExecPreview from './steps/step-exec-preview.vue';
@@ -287,7 +288,7 @@ const handleSubmit = async () => {
 
     // 构造插件参数：每个 host 带上对应 platform 的 version、config_name 和 custom_config_context
     const pluginName = formData.pluginName?.trim() || currentPluginName.value;
-    const pluginPayload = hosts.map((host: any) => {
+    const buildBasePluginInfo = (host: any) => {
       const hostOsType = host.os_type || '';
       const hostCpuArch = host.cpu_arch || '';
       const matchedPlatform = getMatchedPlatform(hostOsType, hostCpuArch);
@@ -298,12 +299,15 @@ const handleSubmit = async () => {
         config_name: configNamesMap[matchedPlatform] || [],
         custom_config_context: paramConfig[matchedPlatform] || {},
       };
-    });
+    };
+
+    const installPayload: PluginInstallOperateInfo[] = hosts.map(host => buildBasePluginInfo(host));
+    const upgradePayload: PluginOperateFullInfo[] = hosts.map(host => buildBasePluginInfo(host));
 
     let res: { workflow_id: string };
     // 根据操作类型调用不同 API
     if (operationType.value === 'upgrade') {
-      res = await PluginAPIService.UpgradePlugin({ plugin: pluginPayload });
+      res = await PluginAPIService.UpgradePlugin({ plugin: upgradePayload });
     } else if (operationType.value === 'restart') {
       // 重启只需 bk_host_id + plugin_name
       res = await PluginAPIService.RestartPlugin({
@@ -322,7 +326,7 @@ const handleSubmit = async () => {
       });
     } else {
       // 默认安装/重装（重装也调 InstallPlugin，由后端判断已有插件时执行重装逻辑）
-      res = await PluginAPIService.InstallPlugin({ plugin: pluginPayload });
+      res = await PluginAPIService.InstallPlugin({ plugin: installPayload });
     }
 
     // 安装/升级成功 → 跳转到任务详情
