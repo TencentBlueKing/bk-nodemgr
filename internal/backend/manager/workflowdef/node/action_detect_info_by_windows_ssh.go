@@ -239,7 +239,7 @@ type windowsSSHDetectResult struct {
 }
 
 type windowsSSHCommandRunner interface {
-	RunCommand(string) (string, string, error)
+	RunCommand(cmd string) (string, string, error)
 }
 
 func detectWindowsSSHInfo(data *action.InstanceData, runner windowsSSHCommandRunner) (windowsSSHDetectResult, error) {
@@ -252,12 +252,14 @@ func detectWindowsSSHInfo(data *action.InstanceData, runner windowsSSHCommandRun
 	}
 
 	result.profile = windowsSSHProfileNative
+
 	return detectWindowsSSHArch(data, runner, result, windowsNativeArchCommand)
 }
 
 func detectWindowsSSHArch(
 	data *action.InstanceData, runner windowsSSHCommandRunner, result windowsSSHDetectResult, command string,
 ) (windowsSSHDetectResult, error) {
+
 	cpuArchStr, _, err := runner.RunCommand(command)
 	if err != nil {
 		return windowsSSHDetectResult{}, fmt.Errorf("failed to run %s: %w", command, err)
