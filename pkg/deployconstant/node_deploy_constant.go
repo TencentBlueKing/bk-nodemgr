@@ -11,7 +11,6 @@
 package deployconstant
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -49,12 +48,19 @@ type NodeDeployConf struct {
 	ProxyFileCacheDir string
 	ZoneID            string
 	CityID            string
+	EventDataIDConfs  map[string]NodeEventDataIDConf
 }
 
 // Validate checks if the deployment configuration is valid.
 func (conf NodeDeployConf) Validate() error {
 	if err := conf.DeployConf.Validate(); err != nil {
 		return fmt.Errorf("invalid deploy conf: %w", err)
+	}
+
+	for tenantID, eventDataIDConf := range conf.EventDataIDConfs {
+		if err := eventDataIDConf.Validate(); err != nil {
+			return fmt.Errorf("invalid event data-id conf for tenantID %s: %w", tenantID, err)
+		}
 	}
 
 	return nil
@@ -199,29 +205,14 @@ func (conf NodeDeployConf) getWindowsDefaultPluginIPCPort() string {
 	return nodeWindowsPluginIPCPort
 }
 
-// EventDataIDConf defines tenant-scoped event data-id configuration for a GSE node deployment.
-type EventDataIDConf struct {
-	Generation                types.Generation
-	OsType                    criteria.OSType
-	TenantID                  string
+// NodeEventDataIDConf defines event data-id configuration for a tenant under NodeDeployConf.
+type NodeEventDataIDConf struct {
 	AgentBaseAlarmEventDataID int64
 	TaskProcEventDataID       int64
 }
 
 // Validate checks if the event data-id configuration is valid.
-func (conf EventDataIDConf) Validate() error {
-	if err := conf.Generation.Validate(); err != nil {
-		return fmt.Errorf("invalid generation: %w", err)
-	}
-
-	if err := conf.OsType.Validate(); err != nil {
-		return fmt.Errorf("invalid os type: %w", err)
-	}
-
-	if conf.TenantID == "" {
-		return errors.New("tenantID is empty")
-	}
-
+func (conf NodeEventDataIDConf) Validate() error {
 	if conf.AgentBaseAlarmEventDataID <= 0 {
 		return fmt.Errorf("agentAlarmEventDataID must be positive, got %d", conf.AgentBaseAlarmEventDataID)
 	}
@@ -233,52 +224,12 @@ func (conf EventDataIDConf) Validate() error {
 	return nil
 }
 
-// nolint: gochecknoglobals
-type eventDataIDConfByTenant map[string]EventDataIDConf
-
-// nolint: gochecknoglobals
-var eventDataIDConfMap = make(map[types.Generation]map[criteria.OSType]eventDataIDConfByTenant)
-
-// GetEventDataIDConf returns the tenant-scoped event data-id configuration for the specified deployment key.
-func GetEventDataIDConf(
-	generation types.Generation, osType criteria.OSType, tenantID string,
-) (EventDataIDConf, error) {
-	confMap, ok := eventDataIDConfMap[generation]
+// GetEventDataIDConf returns event data-id configuration for the specified tenant.
+func (conf NodeDeployConf) GetEventDataIDConf(tenantID string) (NodeEventDataIDConf, error) {
+	eventDataIDConf, ok := conf.EventDataIDConfs[tenantID]
 	if !ok {
-		return EventDataIDConf{}, fmt.Errorf("event data-id conf not found for generation, generation(%d)", generation)
+		return NodeEventDataIDConf{}, fmt.Errorf("event data-id conf not found for tenant, tenant-id(%s)", tenantID)
 	}
 
-	tenantConfMap, ok := confMap[osType]
-	if !ok {
-		return EventDataIDConf{}, fmt.Errorf("event data-id conf not found for os type, os-type(%s)", osType)
-	}
-
-	conf, ok := tenantConfMap[tenantID]
-	if !ok {
-		return EventDataIDConf{}, fmt.Errorf("event data-id conf not found for tenant, tenant-id(%s)", tenantID)
-	}
-
-	return conf, nil
-}
-
-// SetEventDataIDConf sets the tenant-scoped event data-id configuration for the specified deployment key.
-// This map only sets each generation, OS type, and tenant combination once.
-func SetEventDataIDConf(conf EventDataIDConf) error {
-	if err := conf.Validate(); err != nil {
-		return fmt.Errorf("set event data-id conf failed: %w", err)
-	}
-
-	if _, ok := eventDataIDConfMap[conf.Generation]; !ok {
-		eventDataIDConfMap[conf.Generation] = make(map[criteria.OSType]eventDataIDConfByTenant)
-	}
-
-	if _, ok := eventDataIDConfMap[conf.Generation][conf.OsType]; !ok {
-		eventDataIDConfMap[conf.Generation][conf.OsType] = make(eventDataIDConfByTenant)
-	}
-
-	if _, ok := eventDataIDConfMap[conf.Generation][conf.OsType][conf.TenantID]; !ok {
-		eventDataIDConfMap[conf.Generation][conf.OsType][conf.TenantID] = conf
-	}
-
-	return nil
+	return eventDataIDConf, nil
 }
