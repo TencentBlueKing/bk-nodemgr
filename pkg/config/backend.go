@@ -520,10 +520,17 @@ type GSEDeployCustom struct {
 
 // Validate validates the config.
 func (conf *GSEDeployCustom) Validate() error {
+	tenantIDs := make(map[string]struct{}, len(conf.EventDataIDs))
 	for idx := range conf.EventDataIDs {
 		if err := conf.EventDataIDs[idx].Validate(); err != nil {
 			return fmt.Errorf("failed to validate event data-id config at index %d: %w", idx, err)
 		}
+
+		tenantID := conf.EventDataIDs[idx].TenantID
+		if _, ok := tenantIDs[tenantID]; ok {
+			return fmt.Errorf("duplicate event data-id config for tenantID %s at index %d", tenantID, idx)
+		}
+		tenantIDs[tenantID] = struct{}{}
 	}
 
 	return nil

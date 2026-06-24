@@ -62,6 +62,106 @@ tenantMode: single
 	assert.Equal(t, RunModeRelease, svc.RunMode)
 }
 
+func TestBackendService_LoadFromFileReadsGSEDeployEventDataIDs(t *testing.T) {
+	manualScriptPath := filepath.Join(t.TempDir(), "manual.sh")
+	require.NoError(t, os.WriteFile(manualScriptPath, []byte("#!/bin/sh\n"), 0o600))
+
+	configPath := filepath.Join(t.TempDir(), "backend_conf.yaml")
+	configContent := []byte(`gseDeployConfs:
+  - generation: 2
+    osType: linux
+    baseWorkDir: /tmp/bknm/
+    baseDeployDir: /usr/local/
+    manualScriptPath: ` + manualScriptPath + `
+    custom:
+      eventDataIDs:
+        - tenantID: tenant-a
+          agentBaseAlarmEventDataID: 1001
+          taskProcEventDataID: 1002
+`)
+	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
+
+	svc := NewBackendService()
+	require.NoError(t, svc.LoadFromFile(configPath))
+
+	require.Len(t, svc.GSEDeployConfs, 1)
+	require.Len(t, svc.GSEDeployConfs[0].Custom.EventDataIDs, 1)
+	assert.Equal(t, "tenant-a", svc.GSEDeployConfs[0].Custom.EventDataIDs[0].TenantID)
+	assert.Equal(t, int64(1001), svc.GSEDeployConfs[0].Custom.EventDataIDs[0].AgentBaseAlarmEventDataID)
+	assert.Equal(t, int64(1002), svc.GSEDeployConfs[0].Custom.EventDataIDs[0].TaskProcEventDataID)
+}
+
+func TestGSEDeployCustom_ValidateEventDataIDs(t *testing.T) {
+	tests := []struct {
+		name    string
+		conf    GSEDeployCustom
+		errText string
+	}{
+		{
+			name: "valid event data ids",
+			conf: GSEDeployCustom{EventDataIDs: []GSEDeployEventDataID{{
+				TenantID:                  "tenant-a",
+				AgentBaseAlarmEventDataID: 1001,
+				TaskProcEventDataID:       1002,
+			}}},
+		},
+		{
+			name: "duplicate tenant id",
+			conf: GSEDeployCustom{EventDataIDs: []GSEDeployEventDataID{
+				{
+					TenantID:                  "tenant-a",
+					AgentBaseAlarmEventDataID: 1001,
+					TaskProcEventDataID:       1002,
+				},
+				{
+					TenantID:                  "tenant-a",
+					AgentBaseAlarmEventDataID: 1003,
+					TaskProcEventDataID:       1004,
+				},
+			}},
+			errText: "duplicate event data-id config for tenantID tenant-a",
+		},
+		{
+			name: "empty tenant id",
+			conf: GSEDeployCustom{EventDataIDs: []GSEDeployEventDataID{{
+				AgentBaseAlarmEventDataID: 1001,
+				TaskProcEventDataID:       1002,
+			}}},
+			errText: "tenantID is empty",
+		},
+		{
+			name: "non-positive agent base alarm event data id",
+			conf: GSEDeployCustom{EventDataIDs: []GSEDeployEventDataID{{
+				TenantID:                  "tenant-a",
+				AgentBaseAlarmEventDataID: 0,
+				TaskProcEventDataID:       1002,
+			}}},
+			errText: "agentAlarmEventDataID must be positive",
+		},
+		{
+			name: "non-positive task proc event data id",
+			conf: GSEDeployCustom{EventDataIDs: []GSEDeployEventDataID{{
+				TenantID:                  "tenant-a",
+				AgentBaseAlarmEventDataID: 1001,
+				TaskProcEventDataID:       0,
+			}}},
+			errText: "processEventDataID must be positive",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.conf.Validate()
+			if tt.errText == "" {
+				assert.NoError(t, err)
+				return
+			}
+
+			assert.ErrorContains(t, err, tt.errText)
+		})
+	}
+}
+
 func TestRedisType_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
