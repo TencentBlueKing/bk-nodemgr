@@ -635,11 +635,15 @@ func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = std.DeployInfo().BaseRuntime.DataIPC
 
 	deployInfo := std.DeployInfo()
-	eventDataIDConf, err := deployconstant.GetEventDataIDConf(
+	nodeDeployConf, err := deployconstant.GetNodeDeployConf(
 		deployInfo.Host.Dynamic.NodeGeneration,
 		deployInfo.Host.Dynamic.NodeOsType,
-		std.Context().TenantID(),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to get node deploy conf: %w", err)
+	}
+
+	eventDataIDConf, err := nodeDeployConf.GetEventDataIDConf(std.Context().TenantID())
 	if err != nil {
 		return fmt.Errorf("failed to get event data-id deploy conf: %w", err)
 	}
