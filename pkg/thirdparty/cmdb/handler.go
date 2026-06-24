@@ -150,6 +150,9 @@ type Handler struct {
 	osTypeKeeper      iEnumResourceKeeper
 	cpuArchKeeper     iEnumResourceKeeper
 
+	setObjectKeeper    iObjectKeeper
+	moduleObjectKeeper iObjectKeeper
+
 	// combined handler group splited by tenant.
 	combinedHandlerGroupMu sync.RWMutex
 	combinedHandlerGroup   map[string]*combinedHandler
@@ -158,6 +161,9 @@ type Handler struct {
 const (
 	enumResourceSyncInterval = 30 * time.Minute
 	enumResourceSyncTimeout  = 30 * time.Second
+
+	objectResourceSyncInterval = 24 * time.Hour
+	objectResourceSyncTimeout  = 30 * time.Second
 )
 
 // OptionFn ...
@@ -173,9 +179,11 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	h := &Handler{
 		cli: cli,
 
-		cloudVendorKeeper: newCloudVendorKeeper(cli),
-		osTypeKeeper:      newOSTypeKeeper(cli),
-		cpuArchKeeper:     newCPUArchKeeper(cli),
+		cloudVendorKeeper:  newCloudVendorKeeper(cli),
+		osTypeKeeper:       newOSTypeKeeper(cli),
+		cpuArchKeeper:      newCPUArchKeeper(cli),
+		setObjectKeeper:    newSetObjectKeeper(cli),
+		moduleObjectKeeper: newModuleObjectKeeper(cli),
 
 		combinedHandlerGroup: make(map[string]*combinedHandler),
 	}
@@ -251,6 +259,38 @@ func (h *Handler) initEnumKeepers() error {
 				return nil
 			},
 		),
+		scheduler.NewTask(
+			"sync_set_object",
+			objectResourceSyncInterval,
+			objectResourceSyncTimeout,
+			func(nCtx contextx.IContext) error {
+				tenantIDs := tenant.GetAllTenantIDs()
+				for _, tenantID := range tenantIDs {
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
+					if err := h.setObjectKeeper.update(newCtx); err != nil {
+						return err
+					}
+				}
+
+				return nil
+			},
+		),
+		scheduler.NewTask(
+			"sync_module_object",
+			objectResourceSyncInterval,
+			objectResourceSyncTimeout,
+			func(nCtx contextx.IContext) error {
+				tenantIDs := tenant.GetAllTenantIDs()
+				for _, tenantID := range tenantIDs {
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
+					if err := h.moduleObjectKeeper.update(newCtx); err != nil {
+						return err
+					}
+				}
+
+				return nil
+			},
+		),
 	}
 
 	for _, task := range syncTasks {
@@ -276,6 +316,13 @@ func (h *Handler) initEnumKeepers() error {
 		}
 		if err := h.cpuArchKeeper.update(newCtx); err != nil {
 			logger.G.Sys().WithErr(err).Warn("failed to sync cpu arch")
+		}
+
+		if err := h.setObjectKeeper.update(newCtx); err != nil {
+			logger.G.Sys().WithErr(err).Warn("failed to sync set object")
+		}
+		if err := h.moduleObjectKeeper.update(newCtx); err != nil {
+			logger.G.Sys().WithErr(err).Warn("failed to sync module object")
 		}
 	}
 
@@ -315,19 +362,66 @@ func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*ty
 
 // SearchBizInstTopo search business instance topology.
 func (h *Handler) SearchBizInstTopo(nCtx contextx.IContext, bizID int64) ([]*types.TopoNodeInfo, error) {
-	req := &SearchBizInstTopoReq{BKBizID: bizID}
-	resp, err := h.cli.searchBizInstTopo(nCtx, req)
+	internalTopoReq := &GetBizInternalModuleReq{BKBizID: bizID}
+	internalTopoResp, err := h.cli.getBizInternalModule(nCtx, internalTopoReq)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp == nil {
-		return nil, nil
+	if internalTopoResp == nil || len(internalTopoResp.Module) == 0 {
+		return nil, fmt.Errorf("business internal module response is empty")
 	}
 
-	result := make([]*types.TopoNodeInfo, len(*resp))
-	for idx, topo := range *resp {
+	children := make([]*types.TopoNodeInfo, 0, len(internalTopoResp.Module))
+	for _, module := range internalTopoResp.Module {
+		if module == nil {
+			continue
+		}
+
+		children = append(children, &types.TopoNodeInfo{
+			InstID:   module.BKModuleID,
+			InstName: module.BKModuleName,
+			ObjID:    TopoNodeObjIDModule,
+			ObjName:  h.moduleObjectKeeper.getName(),
+		})
+	}
+
+	internalTopo := &types.TopoNodeInfo{
+		InstID:   internalTopoResp.BKSetID,
+		InstName: internalTopoResp.BKSetName,
+		ObjID:    TopoNodeObjIDSet,
+		ObjName:  h.setObjectKeeper.getName(),
+		Children: children,
+	}
+
+	instTopoReq := &SearchBizInstTopoReq{BKBizID: bizID}
+	instTopoResp, err := h.cli.searchBizInstTopo(nCtx, instTopoReq)
+	if err != nil {
+		return nil, err
+	}
+
+	if instTopoResp == nil || len(*instTopoResp) == 0 {
+		return nil, fmt.Errorf("business instance topology response is empty")
+	}
+
+	// getBizInternalModule interface do not return the set and module's object name, so we need to get the object name from the instTopoResp.
+	result := make([]*types.TopoNodeInfo, len(*instTopoResp))
+	for idx, topo := range *instTopoResp {
 		result[idx] = convBizInstTopoToTypes(topo)
+	}
+
+	for _, topoNode := range result {
+		if topoNode == nil {
+			continue
+		}
+
+		if topoNode.ObjID != TopoNodeObjIDBiz || topoNode.InstID != bizID {
+			continue
+		}
+
+		topoNode.Children = append(topoNode.Children, internalTopo)
+
+		break
 	}
 
 	return result, nil
@@ -1497,15 +1591,6 @@ func (h *Handler) executeSetDynamicGroup(nCtx contextx.IContext, bizID int64, gr
 
 	return result, nil
 }
-
-const (
-	// TopoNodeObjIDBiz topo node object id for biz.
-	TopoNodeObjIDBiz = "biz"
-	// TopoNodeObjIDHost topo node object id for host.
-	TopoNodeObjIDHost = "host"
-	// TopoNodeObjIDModule topo node object id for module.
-	TopoNodeObjIDModule = "module"
-)
 
 // FindHostByTopo find host by topo.
 // nolint: gocognit

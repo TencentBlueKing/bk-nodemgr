@@ -451,6 +451,14 @@ type ObjectAttributeInfo struct {
 	LastTime          string `json:"last_time"`
 }
 
+// SearchObjectReq describe the request data of search_object.
+type SearchObjectReq struct {
+	BKObjID string `json:"bk_obj_id"`
+}
+
+// SearchObjectResp describe the response data of search_object.
+type SearchObjectResp []*ObjectInfo
+
 // SearchObjectAttributeReq describe the request data of search_object_attribute.
 type SearchObjectAttributeReq struct {
 	BKBizID int64  `json:"bk_biz_id"`

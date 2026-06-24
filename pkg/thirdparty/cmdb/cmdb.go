@@ -306,7 +306,6 @@ func (c *cli) searchBizInstTopo(ctx contextx.IContext, req *SearchBizInstTopoReq
 }
 
 // getBizInternalModule get biz internal module.
-// nolint: unused
 func (c *cli) getBizInternalModule(ctx contextx.IContext, req *GetBizInternalModuleReq) (
 	*GetBizInternalModuleResp, error) {
 
@@ -381,6 +380,34 @@ func (c *cli) findModuleBatch(ctx contextx.IContext, req *FindModuleBatchReq) (*
 
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("find module batch failed: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// searchObject search object.
+func (c *cli) searchObject(ctx contextx.IContext, req *SearchObjectReq) (
+	*SearchObjectResp, error) {
+
+	resp := new(BaseBroker[*SearchObjectResp])
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/find/object").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("search object failed: %v", err)
 	}
 
 	return resp.Data, nil
