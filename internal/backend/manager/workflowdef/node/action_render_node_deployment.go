@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -524,6 +525,12 @@ const (
 
 	// GseTemplateKeyFileBittorrentSpeedLimitMBPerSec the config template key of gse file bittorrent speed limit mb per sec.
 	GseTemplateKeyFileBittorrentSpeedLimitMBPerSec = "__BK_GSE_FILE_BITTORRENT_SPEED_LIMIT_MB_PER_SEC__"
+
+	// GseTemplateKeyAgentBaseAlarmEventDataID the config template key of gse agent alarm event data-id.
+	GseTemplateKeyAgentBaseAlarmEventDataID = "__BK_GSE_AGENT_BASE_ALARM_EVENT_DATA_ID__"
+
+	// GseTemplateKeyTaskProcEventDataID the config template key of gse process event data-id.
+	GseTemplateKeyTaskProcEventDataID = "__BK_GSE_TASK_PROC_EVENT_DATA_ID__"
 )
 
 const (
@@ -548,7 +555,9 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		return err
 	}
 
-	act.renderLogicSettingRuntime(std, nodeConf)
+	if err := act.renderLogicSettingRuntime(std, nodeConf); err != nil {
+		return err
+	}
 
 	if err := act.renderLogicSettingNetwork(std, nodeConf); err != nil {
 		return err
@@ -558,7 +567,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 }
 
 // renderLogicSettingRuntime this function is used to set some base settings, which are not related to network.
-func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) {
+func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 
 	nodeConf.PreSetting[GseTemplateKeyRunMode] = std.DeployInfo().Host.Dynamic.NodeRole
@@ -624,6 +633,21 @@ func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.
 	nodeConf.PreSetting[GseTemplateKeyLogPath] = std.DeployInfo().BaseRuntime.LogDir
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = std.DeployInfo().BaseRuntime.PluginIPC
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = std.DeployInfo().BaseRuntime.DataIPC
+
+	deployInfo := std.DeployInfo()
+	eventDataIDConf, err := deployconstant.GetEventDataIDConf(
+		deployInfo.Host.Dynamic.NodeGeneration,
+		deployInfo.Host.Dynamic.NodeOsType,
+		std.Context().TenantID(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to get event data-id deploy conf: %w", err)
+	}
+
+	nodeConf.PreSetting[GseTemplateKeyAgentBaseAlarmEventDataID] = eventDataIDConf.AgentBaseAlarmEventDataID
+	nodeConf.PreSetting[GseTemplateKeyTaskProcEventDataID] = eventDataIDConf.TaskProcEventDataID
+
+	return nil
 }
 
 const (

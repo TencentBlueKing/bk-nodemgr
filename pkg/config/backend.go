@@ -508,17 +508,48 @@ func (conf GSEDeployConf) Validate() error {
 
 // GSEDeployCustom defines the custom deployment configuration for gse node.
 type GSEDeployCustom struct {
-	LogDir            string `yaml:"logDir" usage:"log dir"`
-	ExtraConfigDir    string `yaml:"extraConfigDir" usage:"extra config dir"`
-	DataIPC           string `yaml:"dataIPC" usage:"data ipc, in linux is path, in windows is port"`
-	PluginIPC         string `yaml:"pluginIPC" usage:"plugin ipc, in linux is path, in windows is port"`
-	ProxyFileCacheDir string `yaml:"proxyFileCacheDir" usage:"proxy file cache dir, only for linux and proxy node"`
-	ZoneID            string `yaml:"zoneID" usage:"zone id of gse deploy node"`
-	CityID            string `yaml:"cityID" usage:"city id of gse deploy node"`
+	LogDir            string                 `yaml:"logDir" usage:"log dir"`
+	ExtraConfigDir    string                 `yaml:"extraConfigDir" usage:"extra config dir"`
+	DataIPC           string                 `yaml:"dataIPC" usage:"data ipc, in linux is path, in windows is port"`
+	PluginIPC         string                 `yaml:"pluginIPC" usage:"plugin ipc, in linux is path, in windows is port"`
+	ProxyFileCacheDir string                 `yaml:"proxyFileCacheDir" usage:"proxy file cache dir, only for linux and proxy node"`
+	ZoneID            string                 `yaml:"zoneID" usage:"zone id of gse deploy node"`
+	CityID            string                 `yaml:"cityID" usage:"city id of gse deploy node"`
+	EventDataIDs      []GSEDeployEventDataID `yaml:"eventDataIDs" usage:"tenant-scoped event data-id config"`
 }
 
 // Validate validates the config.
 func (conf *GSEDeployCustom) Validate() error {
+	for idx := range conf.EventDataIDs {
+		if err := conf.EventDataIDs[idx].Validate(); err != nil {
+			return fmt.Errorf("failed to validate event data-id config at index %d: %w", idx, err)
+		}
+	}
+
+	return nil
+}
+
+// GSEDeployEventDataID defines tenant-scoped event data-id config for gse node.
+type GSEDeployEventDataID struct {
+	TenantID                  string `yaml:"tenantID" usage:"tenant id"`
+	AgentBaseAlarmEventDataID int64  `yaml:"agentBaseAlarmEventDataID" usage:"agent alarm event data-id"`
+	TaskProcEventDataID       int64  `yaml:"taskProcEventDataID" usage:"process event data-id"`
+}
+
+// Validate validates the config.
+func (conf GSEDeployEventDataID) Validate() error {
+	if conf.TenantID == "" {
+		return fmt.Errorf("tenantID is empty")
+	}
+
+	if conf.AgentBaseAlarmEventDataID <= 0 {
+		return fmt.Errorf("agentAlarmEventDataID must be positive, got %d", conf.AgentBaseAlarmEventDataID)
+	}
+
+	if conf.TaskProcEventDataID <= 0 {
+		return fmt.Errorf("processEventDataID must be positive, got %d", conf.TaskProcEventDataID)
+	}
+
 	return nil
 }
 

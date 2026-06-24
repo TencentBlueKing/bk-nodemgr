@@ -195,6 +195,21 @@ func (svc *Service) initialStaticsConfigs() error {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)
 		}
 
+		for eventDataIDIdx := range svc.conf.GSEDeployConfs[idx].Custom.EventDataIDs {
+			eventDataID := svc.conf.GSEDeployConfs[idx].Custom.EventDataIDs[eventDataIDIdx]
+			eventDataIDConf := deployconstant.EventDataIDConf{
+				Generation:                deployConf.Generation,
+				OsType:                    deployConf.OsType,
+				TenantID:                  eventDataID.TenantID,
+				AgentBaseAlarmEventDataID: eventDataID.AgentBaseAlarmEventDataID,
+				TaskProcEventDataID:       eventDataID.TaskProcEventDataID,
+			}
+
+			if err := deployconstant.SetEventDataIDConf(eventDataIDConf); err != nil {
+				return fmt.Errorf("failed to set event data-id deploy conf: %w", err)
+			}
+		}
+
 		pluginDeployConf := deployconstant.PluginDeployConf{
 			DeployConf:      deployConf,
 			LogDir:          svc.conf.GSEDeployConfs[idx].PluginCustom.LogDir,
