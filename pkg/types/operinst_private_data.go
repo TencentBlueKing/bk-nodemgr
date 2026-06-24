@@ -27,6 +27,9 @@ const (
 	// will be used in manual and relay-based install.
 	PDKeyReportDetectInfo string = "report_detect_info"
 
+	// PDKeyWindowsSSHProfile is key for Windows SSH profile in oper inst private data.
+	PDKeyWindowsSSHProfile string = "windows_ssh_profile"
+
 	// PDKeyManualInstallBootstrapCommandBash is key for manual install bootstrap bash command in oper inst private data.
 	PDKeyManualInstallBootstrapCommandBash string = "manual_install_bootstrap_command_bash"
 	// PDKeyManualInstallBootstrapCommandBat is key for manual install bootstrap bat command in oper inst private data.
