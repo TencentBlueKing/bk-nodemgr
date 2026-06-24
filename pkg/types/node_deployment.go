@@ -102,6 +102,7 @@ type DeploymentInstallOptions struct {
 	IsManual                 bool
 	IsOffline                bool
 	EnableCompatibilityMode  bool
+	InstallMethod            NodeInstallMethod
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.
@@ -308,4 +309,52 @@ func (v TargetVersion) Validate() error {
 	}
 
 	return nil
+}
+
+// NodeInstallMethod describes how node agent installation connects to the host.
+type NodeInstallMethod string
+
+const (
+	// NodeInstallMethodAuto means the install method follows the OS default.
+	NodeInstallMethodAuto NodeInstallMethod = ""
+
+	// NodeInstallMethodSSH means the host should be installed through SSH.
+	NodeInstallMethodSSH NodeInstallMethod = "ssh"
+
+	// NodeInstallMethodWMI means the host should be installed through WMI.
+	NodeInstallMethodWMI NodeInstallMethod = "wmi"
+)
+
+// Validate checks whether the node install method is a legal API value.
+func (method NodeInstallMethod) Validate() error {
+	switch method {
+	case NodeInstallMethodAuto, NodeInstallMethodSSH, NodeInstallMethodWMI:
+		return nil
+	default:
+		return fmt.Errorf("invalid install_method: %s", method)
+	}
+}
+
+// CheckAvailable returns the concrete install method supported by the OS.
+func (method NodeInstallMethod) CheckAvailable(osType criteria.OSType) error {
+	if err := method.Validate(); err != nil {
+		return err
+	}
+
+	switch osType {
+	case criteria.OSWindows:
+		switch method {
+		case NodeInstallMethodAuto, NodeInstallMethodWMI:
+			return nil
+		default:
+			return fmt.Errorf("install_method is unsupported for this os type, method(%s), os_type(%s)", method, osType)
+		}
+	default:
+		switch method {
+		case NodeInstallMethodAuto, NodeInstallMethodSSH:
+			return nil
+		default:
+			return fmt.Errorf("install_method is unsupported for this os type, method(%s), os_type(%s)", method, osType)
+		}
+	}
 }

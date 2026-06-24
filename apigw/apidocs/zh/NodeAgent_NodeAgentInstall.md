@@ -10,11 +10,11 @@ POST /api/v3/node/agent/install
 
 ### 输入参数
 
-| 参数名称                      | 参数类型         | 必选 | 描述                                          |
-|---------------------------|--------------|----|---------------------------------------------|
-| info                      | object array | 是  | 待安装Agent的主机信息列表                             |
-| target_version            | object array | 否  | 目标版本列表，用于指定不同平台（os_type + cpu_arch）的Agent版本 |
-| is_manual                 | bool         | 否  | 是否为手动安装模式，默认false                           |
+| 参数名称           | 参数类型         | 必选 | 描述                                          |
+|----------------|--------------|----|---------------------------------------------|
+| info           | object array | 是  | 待安装Agent的主机信息列表                             |
+| target_version | object array | 否  | 目标版本列表，用于指定不同平台（os_type + cpu_arch）的Agent版本 |
+| is_manual      | bool         | 否  | 是否为手动安装模式，默认false                           |
 
 #### info[n]
 
@@ -37,6 +37,7 @@ POST /api/v3/node/agent/install
 | install_pre_ordered_plugins | bool          | 否  | 是否安装预设插件，默认true                                  |
 | renew_gse_task              | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认false表示保留已有.task文件 |
 | renew_gse_proc              | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认false表示保留已有.proc文件 |
+| install_method              | string        | 否  | Agent 安装方式，合法值：空字符串、ssh、wmi；空字符串表示按 OS 自动选择安装逻辑  |
 
 **参数说明**：
 
@@ -48,6 +49,10 @@ POST /api/v3/node/agent/install
     - `password`：使用密码登录，需要提供`login_password`
     - `keyfile`：使用密钥文件登录，需要提供`login_key_file`
 - `os_type`：操作系统类型，常用值包括`linux`、`windows`、`darwin`等
+- `install_method`：Agent 安装方式，作用于单台主机。
+    - 空字符串：按 OS 自动选择安装逻辑。
+    - `ssh`：指定 SSH 安装。Linux/Darwin/unknown 支持，Windows 当前不支持。
+    - `wmi`：指定 WMI 安装。仅 Windows 支持，Linux/Darwin/unknown 不支持。
 
 #### target_version[n]
 
@@ -59,7 +64,7 @@ POST /api/v3/node/agent/install
 
 ### 调用示例
 
-批量安装Linux系统的Agent，使用密码登录方式。
+批量安装Linux系统的Agent，使用密码登录方式，并显式指定 SSH 安装方式。
 
 ```json
 {
@@ -67,9 +72,7 @@ POST /api/v3/node/agent/install
     {
       "bk_addressing": "static",
       "bk_biz_id": 100,
-      "bk_host_innerip": [
-        "127.0.0.1"
-      ],
+      "bk_host_innerip": ["127.0.0.1"],
       "login_ip": "127.0.0.1",
       "login_port": 22,
       "login_user": "root",
@@ -80,7 +83,8 @@ POST /api/v3/node/agent/install
       "re_register": false,
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
-      "renew_gse_proc": false
+      "renew_gse_proc": false,
+      "install_method": "ssh"
     }
   ],
   "target_version": [

@@ -26,6 +26,7 @@ message AgentInstallInfo {
   bool install_pre_ordered_plugins = 15;
   bool renew_gse_task = 16;
   bool renew_gse_proc = 17;
+  string install_method = 18;
 }
 
 // NodeAgentInstallReq describes the HTTP request body when install node agent.

@@ -169,6 +169,12 @@ func (h *handler) generateInstallNodeDeployments(
 				return fmt.Errorf("failed to find networkunit with id: %d", reqHost.GetBkNetworkunitId())
 			}
 
+			installMethod := types.NodeInstallMethod(reqHost.GetInstallMethod())
+			osType := criteria.OSType(reqHost.GetOsType())
+			if err := installMethod.CheckAvailable(osType); err != nil {
+				return fmt.Errorf("failed to check install_method availability: %w", err)
+			}
+
 			loginCreditID := ""
 			existedHost, ok := existedHostMap[reqHost.GetBkHostId()]
 			if ok {
@@ -187,7 +193,7 @@ func (h *handler) generateInstallNodeDeployments(
 							NetworkAreaID: networkUnit.NetworkAreaID,
 							InnerIPList:   reqHost.GetBkHostInnerip(),
 							InnerIPV6List: reqHost.GetBkHostInneripV6(),
-							OSType:        reqHost.GetOsType(),
+							OSType:        osType.String(),
 							Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 						},
 						Dynamic: &types.HostDynamic{
@@ -209,6 +215,7 @@ func (h *handler) generateInstallNodeDeployments(
 						RenewGSEProc:             reqHost.GetRenewGseProc(),
 						InstallPreOrderedPlugins: reqHost.GetInstallPreOrderedPlugins(),
 						DirectInstall:            networkUnit.IsDirect,
+						InstallMethod:            installMethod,
 						EnableCompatibilityMode: compatibility.DecideCompatibilityMode(
 							compatibilityPolicy,
 							nCtx.TenantID(),

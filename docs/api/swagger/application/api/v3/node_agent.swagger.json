@@ -509,6 +509,9 @@
         },
         "renew_gse_proc": {
           "type": "boolean"
+        },
+        "install_method": {
+          "type": "string"
         }
       },
       "description": "AgentInstallInfo ..."

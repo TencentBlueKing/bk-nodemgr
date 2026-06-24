@@ -35,6 +35,7 @@ type NodeAgentInstallHost struct {
 	RenewGSETask             bool
 	RenewGSEProc             bool
 	InstallPreOrderedPlugins bool
+	InstallMethod            NodeInstallMethod
 }
 
 // NodeAgentInstallParam describes the node agent install parameter.

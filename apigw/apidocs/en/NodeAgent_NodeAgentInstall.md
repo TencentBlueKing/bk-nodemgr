@@ -10,11 +10,11 @@ POST /api/v3/node/agent/install
 
 ### Input Parameters
 
-| Parameter Name            | Parameter Type | Required | Description                                                                                    |
-|---------------------------|----------------|----------|------------------------------------------------------------------------------------------------|
-| info                      | object array   | Yes      | List of host information for agent installation                                                |
-| target_version            | object array   | No       | Target version list for specifying agent versions for different platforms (os_type + cpu_arch) |
-| is_manual                 | bool           | No       | Whether it is manual installation mode, default is false                                       |
+| Parameter Name | Parameter Type | Required | Description                                                                                    |
+|----------------|----------------|----------|------------------------------------------------------------------------------------------------|
+| info           | object array   | Yes      | List of host information for agent installation                                                |
+| target_version | object array   | No       | Target version list for specifying agent versions for different platforms (os_type + cpu_arch) |
+| is_manual      | bool           | No       | Whether it is manual installation mode, default is false                                       |
 
 #### info[n]
 
@@ -37,6 +37,7 @@ POST /api/v3/node/agent/install
 | install_pre_ordered_plugins | bool           | No       | Whether to install pre-ordered plugins, default is true                                                       |
 | renew_gse_task              | bool           | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file             |
 | renew_gse_proc              | bool           | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file             |
+| install_method              | string         | No       | Agent install method. Legal values: empty string, ssh, wmi. Empty string means OS-based auto selection        |
 
 **Parameter Notes**:
 
@@ -48,6 +49,10 @@ POST /api/v3/node/agent/install
     - `password`: Use password login, requires `login_password`
     - `keyfile`: Use key file login, requires `login_key_file`
 - `os_type`: Operating system type, common values include `linux`, `windows`, `darwin`, etc.
+- `install_method`: Agent install method for each host.
+    - Empty string: use OS-based auto selection.
+    - `ssh`: use SSH installation. Linux/Darwin/unknown are supported; Windows is not supported in the current version.
+    - `wmi`: use WMI installation. Only Windows is supported; Linux/Darwin/unknown are not supported.
 
 #### target_version[n]
 
@@ -59,7 +64,7 @@ POST /api/v3/node/agent/install
 
 ### Request Example
 
-Batch install agents for Linux systems using password login.
+Batch install agents for Linux systems using password login and explicit SSH installation.
 
 ```json
 {
@@ -80,7 +85,8 @@ Batch install agents for Linux systems using password login.
       "re_register": false,
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
-      "renew_gse_proc": false
+      "renew_gse_proc": false,
+      "install_method": "ssh"
     }
   ],
   "target_version": [

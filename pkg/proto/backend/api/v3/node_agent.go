@@ -110,6 +110,10 @@ func (x *NodeAgentInstallReq_Host) Validate() error {
 		return err
 	}
 
+	if err := types.NodeInstallMethod(x.GetInstallMethod()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -171,6 +175,7 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 			RenewGseTask:             host.RenewGSETask,
 			RenewGseProc:             host.RenewGSEProc,
 			InstallPreOrderedPlugins: host.InstallPreOrderedPlugins,
+			InstallMethod:            string(host.InstallMethod),
 		}
 	}
 

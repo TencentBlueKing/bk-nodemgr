@@ -204,7 +204,10 @@ func (mgr *Manager) createInstallNodeOper(
 		return err
 	}
 
-	operationDef := mgr.getNodeInstallOperationDef(deploy, operator)
+	operationDef, err := mgr.getNodeInstallOperationDef(deploy, operator)
+	if err != nil {
+		return fmt.Errorf("failed to get node install operation def: %w", err)
+	}
 
 	operationParam := operationDef.DefaultParameters()
 
@@ -225,7 +228,7 @@ func (mgr *Manager) createInstallNodeOper(
 	return nil
 }
 
-func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
+func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
 	// proxy use user selected install origin network unit id to select relay host.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
 		return mgr.getNodeInstallOperationDefProxy(deploy, operator)
@@ -236,100 +239,164 @@ func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, ope
 }
 
 // agent install distinguish direct install or pagent install.
-func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment, operator string) operation.Definition {
-	// direct install.
-	if deploy.Info.InstallOptions.DirectInstall {
-		if deploy.Info.InstallOptions.IsManual {
-			return node.NewOperInstallNodeByManual(node.OperParamInstallNodeByManual{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
-
-		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
-		case criteria.OSLinux, criteria.OSDarwin:
-			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-
-		case criteria.OSWindows:
-			return node.NewOperInstallNodeByWMI(node.OperParamInstallNodeByWMI{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-
-		default:
-			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
-	}
-
-	// install by relay.
-	if deploy.Info.InstallOptions.IsManual {
-		return node.NewOperInstallPagentByManual(node.OperParamInstallPagentByManual{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-	}
-
-	switch criteria.OSType(deploy.Info.Host.Static.OSType) {
-	case criteria.OSLinux, criteria.OSDarwin:
-		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-
-	case criteria.OSWindows:
-		return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-
-	default:
-		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-	}
-}
-
-// proxy install distinguish direct install or relay install, and manual or automated.
-func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment, operator string) operation.Definition {
-	if deploy.Info.InstallOptions.IsOffline {
-		return node.NewOperInstallProxyByOffline(node.OperParamInstallProxyByOffline{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-	}
-
+func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
 	if deploy.Info.InstallOptions.IsManual {
 		if deploy.Info.InstallOptions.DirectInstall {
 			return node.NewOperInstallNodeByManual(node.OperParamInstallNodeByManual{
 				Token:    deploy.Token,
 				Operator: operator,
-			})
+			}), nil
 		}
 
 		return node.NewOperInstallPagentByManual(node.OperParamInstallPagentByManual{
 			Token:    deploy.Token,
 			Operator: operator,
-		})
+		}), nil
+	}
+
+	// direct install.
+	if deploy.Info.InstallOptions.DirectInstall {
+		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
+		case criteria.OSLinux, criteria.OSDarwin:
+			switch deploy.Info.InstallOptions.InstallMethod {
+			case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+				return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+					Token:    deploy.Token,
+					Operator: operator,
+				}), nil
+			default:
+				return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+					deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+			}
+		case criteria.OSWindows:
+			switch deploy.Info.InstallOptions.InstallMethod {
+			case types.NodeInstallMethodAuto, types.NodeInstallMethodWMI:
+				return node.NewOperInstallNodeByWMI(node.OperParamInstallNodeByWMI{
+					Token:    deploy.Token,
+					Operator: operator,
+				}), nil
+			default:
+				return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+					deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+			}
+
+		default:
+			switch deploy.Info.InstallOptions.InstallMethod {
+			case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+				return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+					Token:    deploy.Token,
+					Operator: operator,
+				}), nil
+			default:
+				return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+					deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+			}
+		}
+	}
+
+	// install by relay.
+	switch criteria.OSType(deploy.Info.Host.Static.OSType) {
+	case criteria.OSLinux, criteria.OSDarwin:
+		switch deploy.Info.InstallOptions.InstallMethod {
+		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+			return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			}), nil
+		default:
+			return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+				deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+		}
+
+	case criteria.OSWindows:
+		switch deploy.Info.InstallOptions.InstallMethod {
+		case types.NodeInstallMethodAuto, types.NodeInstallMethodWMI:
+			return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
+				Token:    deploy.Token,
+				Operator: operator,
+			}), nil
+		default:
+			return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+				deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+		}
+
+	default:
+		switch deploy.Info.InstallOptions.InstallMethod {
+		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+			return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			}), nil
+		default:
+			return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+				deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+		}
+	}
+}
+
+// proxy install distinguish direct install or relay install, and manual or automated.
+func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
+	if deploy.Info.InstallOptions.IsOffline {
+		switch deploy.Info.InstallOptions.InstallMethod {
+		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+			return node.NewOperInstallProxyByOffline(node.OperParamInstallProxyByOffline{
+				Token:    deploy.Token,
+				Operator: operator,
+			}), nil
+		default:
+			return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+				deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+		}
+	}
+
+	if deploy.Info.InstallOptions.IsManual {
+		if deploy.Info.InstallOptions.DirectInstall {
+			switch deploy.Info.InstallOptions.InstallMethod {
+			case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+				return node.NewOperInstallNodeByManual(node.OperParamInstallNodeByManual{
+					Token:    deploy.Token,
+					Operator: operator,
+				}), nil
+			default:
+				return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+					deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+			}
+		}
+
+		switch deploy.Info.InstallOptions.InstallMethod {
+		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+			return node.NewOperInstallPagentByManual(node.OperParamInstallPagentByManual{
+				Token:    deploy.Token,
+				Operator: operator,
+			}), nil
+		default:
+			return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+				deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+		}
 	}
 
 	if deploy.Info.InstallOptions.DirectInstall {
-		return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+		switch deploy.Info.InstallOptions.InstallMethod {
+		case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			}), nil
+		default:
+			return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+				deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
+		}
+	}
+	switch deploy.Info.InstallOptions.InstallMethod {
+	case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+		return node.NewOperInstallProxyBySSH(node.OperParamInstallProxyBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
-		})
+		}), nil
+	default:
+		return nil, fmt.Errorf("install method is unsupported for this os type, install_method(%s), os_type(%s)",
+			deploy.Info.InstallOptions.InstallMethod, deploy.Info.Host.Static.OSType)
 	}
-
-	return node.NewOperInstallProxyBySSH(node.OperParamInstallProxyBySSH{
-		Token:    deploy.Token,
-		Operator: operator,
-	})
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.

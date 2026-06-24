@@ -89,6 +89,10 @@ func (x *AgentInstallInfo) Validate() error {
 		return err
 	}
 
+	if err := types.NodeInstallMethod(x.GetInstallMethod()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -149,6 +153,7 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 			RenewGSETask:             host.GetRenewGseTask(),
 			RenewGSEProc:             host.GetRenewGseProc(),
 			InstallPreOrderedPlugins: host.GetInstallPreOrderedPlugins(),
+			InstallMethod:            types.NodeInstallMethod(host.GetInstallMethod()),
 		}
 	}
 

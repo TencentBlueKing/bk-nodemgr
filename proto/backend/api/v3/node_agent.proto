@@ -27,6 +27,7 @@ message NodeAgentInstallReq {
     bool install_pre_ordered_plugins = 15;
     bool renew_gse_task = 16;
     bool renew_gse_proc = 17;
+    string install_method = 18;
   }
   repeated Host host = 1;
   message TargetVersion {
