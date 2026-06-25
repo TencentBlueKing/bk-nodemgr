@@ -98,6 +98,7 @@ func (h *handler) AssignProxyUnit(rCtx restserver.IContext) (interface{}, error)
 				Dynamic:  deployHostDynamic,
 			},
 		})
+		nodeDeployment.Info.InstallOptions.InstallPreOrderedPlugins = true
 
 		nodeDeployments = append(nodeDeployments, nodeDeployment)
 	}
