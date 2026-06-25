@@ -412,6 +412,11 @@ topoManager:
       Huawei: 华为云
       Capital: 首都云
       TencentPrivate: 腾讯自研云
+      SalesForce: Salesforce
+      IBM: IBM Cloud
+      Oracle: Oracle Cloud
+      UCloud: UCloud
+      Zenlayer: Zenlayer
     copy:
       workarea: 管控区域
       select: 所选项的 Proxy IP
@@ -450,6 +455,7 @@ topoManager:
     table:
       ipv4: 内网 IPv4
       ipv6: 内网 IPv6
+      networkArea: 管控区域
       proxyVersion: Proxy 版本
       proxyStatus: Proxy 状态
       action: 操作

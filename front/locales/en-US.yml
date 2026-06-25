@@ -79,7 +79,6 @@ platform:
       online: Online
       abnormal: Offline
       notInstalled: Not Installed
-      normalProxyCount: Normal Proxy Count
       abnormalProxyCount: Offline Proxy Count
       notInstalledProxyCount: Not Installed Proxy Count
       onlineProxyCount: Online Proxy Count
@@ -413,6 +412,11 @@ topoManager:
       Huawei: Huawei Cloud
       Capital: Capital Cloud
       TencentPrivate: Tencent Internal
+      SalesForce: Salesforce
+      IBM: IBM Cloud
+      Oracle: Oracle Cloud
+      UCloud: UCloud
+      Zenlayer: Zenlayer
     copy:
       workarea: Network Area
       select: Selected Proxy IPs
@@ -451,6 +455,7 @@ topoManager:
     table:
       ipv4: Private IPv4
       ipv6: Private IPv6
+      networkArea: Network Area
       proxyVersion: Proxy Version
       proxyStatus: Proxy Status
       action: Action

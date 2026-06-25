@@ -6,7 +6,7 @@
         <div class="w-[1px] h-[14px] bg-[#DCDEE5] mx-[16px]"></div>
         <span
           class="inline-flex items-center cursor-pointer mr-[20px]"
-          v-bk-tooltips="{ content: `${$t('platform.nodeMan.proxyStatus.normalProxyCount')}: ${proxyStatus.online}` }">
+          v-bk-tooltips="{ content: `${$t('platform.nodeMan.proxyStatus.onlineProxyCount')}: ${proxyStatus.online}` }">
           <span class="w-[6px] h-[6px] rounded-full bg-[#3FC06D] mr-[4px]" />
           <span class="text-[12px] mr-[2px]">{{ $t('platform.nodeMan.proxyStatus.online') }}</span>
           <span class="text-[#3FC06D] text-[12px] font-medium">{{ proxyStatus.online }}</span>

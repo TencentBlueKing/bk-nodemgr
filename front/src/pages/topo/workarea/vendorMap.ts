@@ -48,15 +48,15 @@ export const vendorMap: VendorMap = {
     icon: EnterprisePrivateCloud,
   },
   SalesForce: {
-    label: 'SalesForce',
+    label: 'topoManager.workArea.vendor.SalesForce',
     icon: SalesForce,
   },
   'Oracle Cloud': {
-    label: 'Oracle Cloud',
+    label: 'topoManager.workArea.vendor.Oracle',
     icon: OracleCloud,
   },
   'IBM Cloud': {
-    label: 'IBM Cloud',
+    label: 'topoManager.workArea.vendor.IBM',
     icon: IBMCloud,
   },
   'Alibaba Cloud': {
@@ -69,7 +69,7 @@ export const vendorMap: VendorMap = {
     icon: ECloud,
   },
   UCloud: {
-    label: 'UCloud',
+    label: 'topoManager.workArea.vendor.UCloud',
     icon: UCloud,
   },
   MOS: {
@@ -98,7 +98,7 @@ export const vendorMap: VendorMap = {
     icon: defaultCloud,
   },
   Zenlayer: {
-    label: 'Zenlayer',
+    label: 'topoManager.workArea.vendor.Zenlayer',
     icon: defaultCloud,
   },
 };

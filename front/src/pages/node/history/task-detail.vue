@@ -1,7 +1,7 @@
 <template>
   <PageHeader
     class="w-full absolute top-0 z-100"
-    :title="$t('taskDetail.title')"
+    :title="'taskDetail.title'"
     :back="true"
     :on-back="handleBackToHistory"
   >
@@ -1305,10 +1305,11 @@ const handleRetry = async (row: any, type: string) => {
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
+    // 延迟 300ms 等后端更新状态后再刷新
+    await new Promise(r => setTimeout(r, 300));
     await getOperateList();
-    if (currentTaskStatus.value === 'running' && needInterval.value) {
-      start();
-    }
+    // 重试后必然产生 running 子任务，直接启动轮询
+    start();
     await updataCurrentTaskInfo();
   }
 };
@@ -1321,10 +1322,11 @@ const handleFullRetry = async (type: string) => {
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
-      await getOperateList();
-    if (currentTaskStatus.value === 'running' && needInterval.value) {
-      start();
-    }
+    // 延迟 300ms 等后端更新状态后再刷新
+    await new Promise(r => setTimeout(r, 300));
+    await getOperateList();
+    // 重试后必然产生 running 子任务，直接启动轮询
+    start();
     await updataCurrentTaskInfo();
   }
 };
