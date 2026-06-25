@@ -258,7 +258,7 @@
               <!-- 重装时内网IPv4不可编辑 -->
               <div :class="[isReinstall ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_host_innerip') }]">
                 <span v-if="isReinstall || row.bk_host_innerip">{{ row.bk_host_innerip }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -307,7 +307,7 @@
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip_v6')">
               <div :class="[isReinstall ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_host_innerip_v6') }]">
                 <span v-if="isReinstall || row.bk_host_innerip_v6">{{ row.bk_host_innerip_v6 }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -359,7 +359,7 @@
             <ValidateCell :error="getError(rowIndex, 'export_ip')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'export_ip') }">
                 <span v-if="row.export_ip">{{ row.export_ip }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -544,7 +544,7 @@
             <ValidateCell :error="getError(rowIndex, 'advertise_ip')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'advertise_ip') }">
                 <span v-if="row.advertise_ip">{{ row.advertise_ip }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -600,7 +600,7 @@
             <ValidateCell :error="getError(rowIndex, 'login_ip')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_ip') }">
                 <span v-if="row.login_ip">{{ row.login_ip }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -668,7 +668,7 @@
             <ValidateCell :error="getError(rowIndex, 'login_port')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_port') }">
                 <span v-if="row.login_port !== '' && row.login_port != null">{{ row.login_port }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -704,7 +704,7 @@
             <ValidateCell :error="getError(rowIndex, 'login_user')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_user') }">
                 <span v-if="row.login_user">{{ row.login_user }}</span>
-                <span v-else class="cell-placeholder">请输入</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -788,7 +788,7 @@
                 <span v-else-if="row.login_mode === 'keyfile' && !row.credit" class="cell-placeholder">请上传密钥</span>
                 <span v-else-if="row.login_credit_valid">{{ $t('components.installTable.creditValid') }}</span>
                 <span v-else-if="row.credit">******</span>
-                <span v-else class="cell-placeholder">请输入密码</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPassword') }}</span>
               </div>
             </ValidateCell>
           </template>

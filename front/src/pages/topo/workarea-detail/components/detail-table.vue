@@ -263,6 +263,7 @@
                 :has-auth="hasProxyOperateAuth"
                 @reinstall="handleReinstall(row)"
                 @assign-unit="emit('assignUnit', row)"
+                @ops-setting="emit('opsSetting', row)"
                 @auth-click="authLockHandleAuthClick()"
                 @auth-lock-enter="authLockMouseEnter($event, false)"
                 @auth-lock-move="authLockMouseMove($event, false)"
@@ -342,7 +343,7 @@ const props = defineProps({
     default: true,
   },
 });
-const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData', 'authClick', 'assignUnit']);
+const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData', 'authClick', 'assignUnit', 'opsSetting']);
 
 const { t } = useI18n();
 const route = useRoute();
@@ -492,9 +493,9 @@ const handleHeaderClick = () => {
 
 const tableRef = ref();
 const loading = ref(false);
-// 待优化 各影响table最大高度的元素的高度
-const tableOffset = 445;
-const { maxHeight } = useDynamicsHeight(tableOffset);
+// 管控区域详情页 vs proxy状态页 的页面占用高度不同，需根据路由区分
+const tableOffset = computed(() => (route.name === 'proxy' ? 300 : 445));
+const { maxHeight } = useDynamicsHeight(tableOffset.value);
 
 const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
   // 1. 克隆一份数据，避免直接修改 props

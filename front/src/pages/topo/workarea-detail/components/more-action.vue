@@ -107,7 +107,7 @@ const props = defineProps({
     default: true,
   },
 });
-const emit = defineEmits(['reinstall', 'assignUnit', 'authClick', 'authLockEnter', 'authLockMove', 'authLockLeave']);
+const emit = defineEmits(['reinstall', 'assignUnit', 'opsSetting', 'authClick', 'authLockEnter', 'authLockMove', 'authLockLeave']);
 const { t } = useI18n();
 const router = useRouter();
 
@@ -136,6 +136,10 @@ const dropMenuList = ref<{
   {
     label: t('topoManager.workAreaDetail.dropdown.assignUnit'),
     value: 'assignUnit',
+  },
+  {
+    label: t('platform.nodeMan.agentStatus.opsSetting'),
+    value: 'opsSetting',
   },
 ]);
 
@@ -267,6 +271,8 @@ const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
     emit('reinstall');
   } else if (action === 'assignUnit') {
     emit('assignUnit');
+  } else if (action === 'opsSetting') {
+    emit('opsSetting');
   } else {
     let operateData = props.data;
     let batch = props.batch;

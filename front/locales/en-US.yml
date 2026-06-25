@@ -74,6 +74,16 @@ platform:
       assignUnitLoadingHosts: Loading host data...
       assignUnitConfirmDeleteRow: Confirm to remove this host?
       assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
+      opsSetting: OOB Management
+      opsSettingPageDesc: Configure out-of-band management info for selected hosts, including console host, device type, device protocol, management IP and management port
+      opsSettingBatchSet: Batch Set
+      opsConsoleHostId: Console Host ID
+      opsOutBandType: Device Type
+      opsOutBandProtocol: Device Protocol
+      opsBMCIP: Management IP
+      opsBMCPort: Management Port
+      batchFill: Batch Fill
+      opsSettingBatchFillDone: Batch fill completed
     proxyStatus:
       title: Proxy Status
       online: Online
@@ -1127,6 +1137,7 @@ components:
     validationFailed: Some info failed verification
     creditValid: Valid; click to modify
     inputPassword: Enter password
+    inputPlaceholder: Enter
     enabledSerive: Enabled Services
     installSettings: Install Settings
     installPreOrderedPlugins: Preset Plugins
@@ -1246,6 +1257,7 @@ route:
   installAgent: Install Agent
   installReinstallAgent: Install/Reinstall Agent
   assignUnit: Assign Network Unit
+  opsSetting: OOB Management
   plugin: Plugin
   taskHistory: Task History
   workarea: Network Area

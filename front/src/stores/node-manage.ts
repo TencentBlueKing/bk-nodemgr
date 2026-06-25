@@ -41,6 +41,16 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
         fuzzy_include_conditions: {} as Record<string, string>,
       },
     },
+    opsFieldsParams: {
+      tableData: [] as Host[],
+      isCrossPageSelection: false,
+      nodeType: 'agent' as 'agent' | 'proxy',
+      queryParams: {
+        exact_include_conditions: {} as Record<string, string>,
+        exact_exclude_conditions: {} as Record<string, string>,
+        fuzzy_include_conditions: {} as Record<string, string>,
+      },
+    },
   }),
   actions: {
     // 更新任务历史表格行信息
@@ -62,6 +72,9 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
     },
     updateAssignUnitParams(params: any) {
       this.assignUnitParams = { ...params };
+    },
+    updateOpsFieldsParams(params: any) {
+      this.opsFieldsParams = { ...params };
     },
   },
 });

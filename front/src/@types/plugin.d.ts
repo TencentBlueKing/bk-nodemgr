@@ -1,6 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 // PluginOperateFullInfo describes the full information of a plugin operation,
-// which
+// which includes the plugin's basic information, version, configuration, and
+// deployment overrides.
 export interface PluginOperateFullInfo {
   bk_host_id: number;
   plugin_name: string;
@@ -10,7 +11,7 @@ export interface PluginOperateFullInfo {
 }
 
 // PluginOperateBasicInfo describes the basic information of a plugin operation,
-// which
+// which includes the plugin's host ID and name.
 export interface PluginOperateBasicInfo {
   bk_host_id: number;
   plugin_name: string;
@@ -29,8 +30,8 @@ export interface PluginInstallOperateInfo {
   plugin_name: string;
   version: string;
   config_name: string[];
-  custom_config_context?: Record<string, any>;
-  custom_spec?: PluginDeploymentSpec;
+  custom_config_context: Record<string, any>;
+  custom_spec: PluginDeploymentSpec;
 }
 
 // PluginInstallReq describes the plugin install request.

@@ -15,6 +15,7 @@ import { i18n } from '@/modules/i18n';
 import Forbidden from '@/pages/app/403.vue';
 import NotFound from '@/pages/app/404.vue';
 import AssignUnit from '@/pages/node/agent/assign-unit.vue';
+import OpsSetting from '@/pages/node/agent/ops-setting.vue';
 import AgentImport from '@/pages/node/agent/import.vue';
 import AgentManager from '@/pages/node/agent/list.vue';
 import AgentSetup from '@/pages/node/agent/setup.vue';
@@ -102,6 +103,17 @@ const routes = setupLayouts([
             component: AssignUnit,
             meta: {
               title: i18n.global.t('route.assignUnit'),
+              back: true,
+              mainMenu: 'nodeManager',
+              parentName: 'agent',
+            },
+          },
+          {
+            name: 'opsSetting',
+            path: 'ops-setting',
+            component: OpsSetting,
+            meta: {
+              title: i18n.global.t('route.opsSetting'),
               back: true,
               mainMenu: 'nodeManager',
               parentName: 'agent',
