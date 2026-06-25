@@ -7003,9 +7003,6 @@ paths:
                   type: array
                   items:
                     type: object
-                    title: |-
-                      PluginOperateFullInfo describes the full information of a plugin operation,
-                      which
                     properties:
                       version:
                         type: string
@@ -7020,6 +7017,10 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
+                    description: |-
+                      PluginOperateFullInfo describes the full information of a plugin operation,
+                      which includes the plugin's basic information, version, configuration, and
+                      operation policy.
               description: |-
                 PluginApplySubConfigReq describes the plugin apply sub-configuration
                 request.
@@ -7162,8 +7163,8 @@ paths:
                   items:
                     type: object
                     title: |-
-                      PluginOperateFullInfo describes the full information of a plugin operation,
-                      which
+                      PluginInstallOperateInfo describes the information required for installing a
+                      plugin,
                     properties:
                       version:
                         type: string
@@ -7174,6 +7175,35 @@ paths:
                         type: array
                         items:
                           type: string
+                      custom_spec:
+                        type: object
+                        properties:
+                          resource:
+                            type: object
+                            properties:
+                              cpu_limit_percent:
+                                type: number
+                                format: double
+                              mem_limit_percent:
+                                type: number
+                                format: double
+                            description: ProcessResource describes the process resource.
+                          monitor_policy:
+                            type: object
+                            properties:
+                              restart_type:
+                                type: string
+                              stop_check_seconds:
+                                type: integer
+                                format: int64
+                              start_check_seconds:
+                                type: integer
+                                format: int64
+                              operate_timeout_seconds:
+                                type: integer
+                                format: int64
+                            description: ProcessMonitorPolicy describes the process monitor policy.
+                        description: PluginDeploymentSpec describes the specification for plugin deployment.
                       plugin_name:
                         type: string
                       custom_config_context:
@@ -7639,9 +7669,6 @@ paths:
                   type: array
                   items:
                     type: object
-                    title: |-
-                      PluginOperateFullInfo describes the full information of a plugin operation,
-                      which
                     properties:
                       version:
                         type: string
@@ -7656,6 +7683,10 @@ paths:
                         type: string
                       custom_config_context:
                         type: object
+                    description: |-
+                      PluginOperateFullInfo describes the full information of a plugin operation,
+                      which includes the plugin's basic information, version, configuration, and
+                      operation policy.
               description: PluginUpgradeReq describes the plugin upgrade request.
         required: true
         description: PluginUpgradeReq describes the plugin upgrade request.
@@ -22452,15 +22483,15 @@ paths:
                   type: array
                   items:
                     type: object
-                    title: |-
-                      PluginOperateBasicInfo describes the basic information of a plugin operation,
-                      which
                     properties:
                       bk_host_id:
                         type: integer
                         format: int64
                       plugin_name:
                         type: string
+                    description: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which includes the plugin's host ID and name.
               description: PluginUninstallReq describes the plugin uninstall request.
         required: true
         description: PluginUninstallReq describes the plugin uninstall request.
@@ -24925,15 +24956,15 @@ paths:
                   type: array
                   items:
                     type: object
-                    title: |-
-                      PluginOperateBasicInfo describes the basic information of a plugin operation,
-                      which
                     properties:
                       bk_host_id:
                         type: integer
                         format: int64
                       plugin_name:
                         type: string
+                    description: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which includes the plugin's host ID and name.
               description: PluginRestartReq describes the plugin restart request.
         required: true
         description: PluginRestartReq describes the plugin restart request.
@@ -25071,15 +25102,15 @@ paths:
                   type: array
                   items:
                     type: object
-                    title: |-
-                      PluginOperateBasicInfo describes the basic information of a plugin operation,
-                      which
                     properties:
                       bk_host_id:
                         type: integer
                         format: int64
                       plugin_name:
                         type: string
+                    description: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which includes the plugin's host ID and name.
               description: PluginStopReq describes the plugin stop request.
         required: true
         description: PluginStopReq describes the plugin stop request.
@@ -25217,15 +25248,15 @@ paths:
                   type: array
                   items:
                     type: object
-                    title: |-
-                      PluginOperateBasicInfo describes the basic information of a plugin operation,
-                      which
                     properties:
                       bk_host_id:
                         type: integer
                         format: int64
                       plugin_name:
                         type: string
+                    description: |-
+                      PluginOperateBasicInfo describes the basic information of a plugin operation,
+                      which includes the plugin's host ID and name.
               description: PluginMigrateFromV2Req describes the plugin migrate from v2 request.
         required: true
         description: PluginMigrateFromV2Req describes the plugin migrate from v2 request.
@@ -25658,9 +25689,6 @@ paths:
                   items:
                     type: object
                     properties:
-                      bk_biz_id:
-                        type: integer
-                        format: int64
                       bk_host_id:
                         type: integer
                         format: int64
@@ -25820,9 +25848,6 @@ paths:
                   items:
                     type: object
                     properties:
-                      bk_biz_id:
-                        type: integer
-                        format: int64
                       bk_host_id:
                         type: integer
                         format: int64
