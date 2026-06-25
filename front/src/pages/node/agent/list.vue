@@ -1,5 +1,5 @@
 <template>
-  <page-header :title="'route.agentStatus'" :back="Object.keys(route.query).length > 0">
+  <page-header :title="$t('route.agentStatus')" :back="Object.keys(route.query).length > 0">
     <!-- Agent 状态统计：标题后、subtitle 前 -->
     <template #after-title>
       <bk-loading :loading="agentStatusLoading" class="flex items-center">

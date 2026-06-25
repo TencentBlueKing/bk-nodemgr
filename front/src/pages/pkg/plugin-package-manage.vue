@@ -1,5 +1,5 @@
 <template>
-  <page-header :title="'pluginPackage.title'" :back="!!route.query?.name"></page-header>
+  <page-header :title="$t('pluginPackage.title')" :back="!!route.query?.name"></page-header>
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
