@@ -89,6 +89,7 @@ type Config struct {
 	Password   string
 	AuthMethod AuthMethod
 	PrivateKey []byte
+	Ciphers    []string
 }
 
 // Validate validate the config.
@@ -139,6 +140,17 @@ func (conf *Config) getAddr() string {
 // DefaultTimeout is the default timeout for building the connection.
 const DefaultTimeout = 30 * time.Second
 
+// WindowsCompatibleCiphers returns SSH ciphers for legacy Windows SSH servers.
+//
+// Keep the default secure cipher order first, then append aes128-cbc because
+// some old Windows SSH services only advertise CBC ciphers.
+func WindowsCompatibleCiphers() []string {
+	var conf ssh.Config
+	conf.SetDefaults()
+
+	return append(conf.Ciphers, ssh.InsecureCipherAES128CBC)
+}
+
 // NewClient new a ssh client.
 // timeout is the timeout for building the connection。
 func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Client, error) {
@@ -161,6 +173,9 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 			return nil
 		},
 		Timeout: timeout,
+	}
+	if len(config.Ciphers) > 0 {
+		sshConf.Config.Ciphers = config.Ciphers
 	}
 
 	switch config.AuthMethod {

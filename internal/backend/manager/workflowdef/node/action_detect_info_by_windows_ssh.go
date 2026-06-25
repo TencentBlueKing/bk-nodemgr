@@ -155,6 +155,7 @@ func (act *actionDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (err er
 
 			return nil
 		}(),
+		Ciphers: sshx.WindowsCompatibleCiphers(),
 	}, sshx.DefaultTimeout)
 	if err != nil {
 		return fmt.Errorf("failed to generate new ssh client: %w", err)
