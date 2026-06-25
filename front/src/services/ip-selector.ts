@@ -50,12 +50,11 @@ export const setBizId = (bizIds: number[]) => {
 // 兼容旧接口，内部复用 currentBizIds[0]
 let currentStrategyBizId: number | undefined;
 
-/** 设置当前策略业务 ID（策略管理页面打开 IP 选择器前调用）【兼容旧接口】 */
+/** 设置当前策略业务 ID（策略管理页面打开 IP 选择器前调用）【兼容旧接口】
+ *  策略管理为单业务模式，每次打开 IP 选择器应只展示当前业务，替换而非累加旧业务 ID */
 export const setStrategyBizId = (bizId: number | undefined) => {
   currentStrategyBizId = bizId;
-  if (bizId !== undefined && !currentBizIds.includes(bizId)) {
-    currentBizIds.push(bizId);
-  }
+  currentBizIds = bizId !== undefined ? [bizId] : [];
 };
 
 /** 获取当前有效的业务 ID 数组 */
@@ -384,35 +383,31 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
       const countMap = new Map((countRes?.items || []).map((item: any) => [item.bk_biz_id, item.host_count]));
 
       if (businesses.length > 0) {
-        // 预加载所有业务的 CMDB 实例拓扑，避免 lazy:true 在返回空子节点时 loading 不消除
-        const topoMap = new Map<number, any[]>();
-        const topoResults = await Promise.allSettled(
-          businesses.map((biz: any) =>
-            TopoService.BusinessInstTopoGet({ bk_biz_id: biz.bk_biz_id }),
-          ),
-        );
-        businesses.forEach((biz: any, idx: number) => {
-          const result = topoResults[idx];
-          if (result.status === 'fulfilled') {
-            const data = (result.value as any)?.items;
-            const children = data?.children || [];
-            topoMap.set(biz.bk_biz_id, children);
-          } else {
-            topoMap.set(biz.bk_biz_id, []);
-          }
-        });
+        // 仅预加载第一个业务（active 业务）的 CMDB 实例拓扑，其余业务点击展开时懒加载
+        const firstBiz = businesses[0];
+        let firstBizChildren: any[] = [];
+        try {
+          const topoRes = await TopoService.BusinessInstTopoGet({ bk_biz_id: firstBiz.bk_biz_id });
+          const data = (topoRes as any)?.items;
+          firstBizChildren = data?.children || [];
+        } catch {
+          // ignore
+        }
 
-        // 填充非主机缓存（仅供 dynamicTopo 的 fetchNodePath / fetchAgentStatistics 使用）
-        businesses.forEach((biz: any) => {
-          bizNameMap.set(biz.bk_biz_id, biz.bk_biz_name);
-          const rawChildren = topoMap.get(biz.bk_biz_id) || [];
-          if (rawChildren.length > 0) {
-            indexTreeNodes(rawChildren.map((c: any) => transformCmdbNode(c, biz.bk_biz_id)), biz.bk_biz_id);
-          }
-        });
+        // 缓存第一个业务的拓扑节点和名称
+        bizNameMap.set(firstBiz.bk_biz_id, firstBiz.bk_biz_name);
+        if (firstBizChildren.length > 0) {
+          indexTreeNodes(firstBizChildren.map((c: any) => transformCmdbNode(c, firstBiz.bk_biz_id)), firstBiz.bk_biz_id);
+        }
 
-        return businesses.map((biz: any) => {
-          const children = topoMap.get(biz.bk_biz_id) || [];
+        // 缓存其余业务的名称
+        for (let i = 1; i < businesses.length; i++) {
+          bizNameMap.set(businesses[i].bk_biz_id, businesses[i].bk_biz_name);
+        }
+
+        return businesses.map((biz: any, idx: number) => {
+          const isFirst = idx === 0;
+          const children = isFirst ? firstBizChildren : [];
           return {
             instance_id: biz.bk_biz_id,
             instance_name: biz.bk_biz_name,
@@ -423,9 +418,10 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
               scope_id: String(biz.bk_biz_id),
               scope_type: 'biz' as const,
             },
-            child: children.map((child: any) => transformCmdbNode(child, biz.bk_biz_id)),
+            child: isFirst ? children.map((child: any) => transformCmdbNode(child, biz.bk_biz_id)) : [],
             count: countMap.get(biz.bk_biz_id) ?? 0,
-            lazy: false,
+            // 第一个业务预加载拓扑，其余业务点击展开时懒加载
+            lazy: !isFirst,
             expanded: false,
           };
         });
@@ -456,35 +452,31 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
         // ignore
       }
 
-      // 预加载所有业务的 CMDB 实例拓扑，避免 lazy:true 在返回空子节点时 loading 不消除
-      const topoMap = new Map<number, any[]>();
-      const topoResults = await Promise.allSettled(
-        businesses.map((biz: any) =>
-          TopoService.BusinessInstTopoGet({ bk_biz_id: biz.bk_biz_id }),
-        ),
-      );
-      businesses.forEach((biz: any, idx: number) => {
-        const result = topoResults[idx];
-        if (result.status === 'fulfilled') {
-          const data = (result.value as any)?.items;
-          const children = data?.children || [];
-          topoMap.set(biz.bk_biz_id, children);
-        } else {
-          topoMap.set(biz.bk_biz_id, []);
-        }
-      });
+      // 仅预加载第一个业务（active 业务）的 CMDB 实例拓扑，其余业务点击展开时懒加载
+      const firstBiz = businesses[0];
+      let firstBizChildren: any[] = [];
+      try {
+        const topoRes = await TopoService.BusinessInstTopoGet({ bk_biz_id: firstBiz.bk_biz_id });
+        const data = (topoRes as any)?.items;
+        firstBizChildren = data?.children || [];
+      } catch {
+        // ignore
+      }
 
-      // 填充非主机缓存（仅供 dynamicTopo 的 fetchNodePath / fetchAgentStatistics 使用）
-      businesses.forEach((biz: any) => {
-        bizNameMap.set(biz.bk_biz_id, biz.bk_biz_name);
-        const rawChildren = topoMap.get(biz.bk_biz_id) || [];
-        if (rawChildren.length > 0) {
-          indexTreeNodes(rawChildren.map((c: any) => transformCmdbNode(c, biz.bk_biz_id)), biz.bk_biz_id);
-        }
-      });
+      // 缓存第一个业务的拓扑节点和名称
+      bizNameMap.set(firstBiz.bk_biz_id, firstBiz.bk_biz_name);
+      if (firstBizChildren.length > 0) {
+        indexTreeNodes(firstBizChildren.map((c: any) => transformCmdbNode(c, firstBiz.bk_biz_id)), firstBiz.bk_biz_id);
+      }
 
-      return businesses.map((biz: any) => {
-        const children = topoMap.get(biz.bk_biz_id) || [];
+      // 缓存其余业务的名称
+      for (let i = 1; i < businesses.length; i++) {
+        bizNameMap.set(businesses[i].bk_biz_id, businesses[i].bk_biz_name);
+      }
+
+      return businesses.map((biz: any, idx: number) => {
+        const isFirst = idx === 0;
+        const children = isFirst ? firstBizChildren : [];
         return {
           instance_id: biz.bk_biz_id,
           instance_name: biz.bk_biz_name,
@@ -495,9 +487,10 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
             scope_id: String(biz.bk_biz_id),
             scope_type: 'biz',
           },
-          child: children.map((child: any) => transformCmdbNode(child, biz.bk_biz_id)),
+          child: isFirst ? children.map((child: any) => transformCmdbNode(child, biz.bk_biz_id)) : [],
           count: countMap.get(biz.bk_biz_id) ?? 0,
-          lazy: false,
+          // 第一个业务预加载拓扑，其余业务点击展开时懒加载
+          lazy: !isFirst,
           expanded: false,
         };
       });
