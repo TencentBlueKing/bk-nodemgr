@@ -1256,14 +1256,17 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.InnerIPV6List {
 		fields = append(fields, FieldKeyStaticInnerIPV6List)
 	}
-	if selection.LoginUser {
-		fields = append(fields, FieldKeyDynamicLoginUser)
-	}
 	if selection.SetID {
 		fields = append(fields, FieldKeyStaticSetID)
 	}
 	if selection.ModuleID {
 		fields = append(fields, FieldKeyStaticModuleID)
+	}
+	if selection.LoginUser {
+		fields = append(fields, FieldKeyDynamicLoginUser)
+	}
+	if selection.AgentID {
+		fields = append(fields, FieldKeyDynamicAgentID)
 	}
 
 	return fields

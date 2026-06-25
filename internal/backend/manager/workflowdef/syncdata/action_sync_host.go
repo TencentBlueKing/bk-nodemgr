@@ -125,12 +125,13 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	gp.Go(func() error {
 		selection := &types.HostFieldSelection{
-			// Sync only needs host_id for comparison and login_user for repair.
+			// Sync only needs host_id for comparison and login_user for repair and agent_id for sync.
 			HostID:        true,
 			NetworkAreaID: false,
 			InnerIPList:   false,
 			InnerIPV6List: false,
 			LoginUser:     true,
+			AgentID:       true,
 		}
 
 		condition := &types.HostCondition{
@@ -160,10 +161,16 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	updateAgentIDHosts, err := getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(updateHosts, dbData)
+	if err != nil {
+		return err
+	}
+
 	ctx.Data.Log().
-		Zh("对比完成，需更新 %d 台、新增 %d 台、删除 %d 台主机", len(updateHosts), len(insertHosts), len(deleteHostIDs)).
-		En("compared hosts, %d hosts need to update, %d hosts need to insert, %d hosts need to delete",
-			len(updateHosts), len(insertHosts), len(deleteHostIDs)).
+		Zh("对比完成，需更新 %d 台、需更新AgentID %d 台、新增 %d 台、删除 %d 台主机",
+			len(updateHosts), len(updateAgentIDHosts), len(insertHosts), len(deleteHostIDs)).
+		En("compared hosts, %d hosts need to update, %d hosts need to update AgentID, %d hosts need to insert, %d hosts need to delete",
+			len(updateHosts), len(updateAgentIDHosts), len(insertHosts), len(deleteHostIDs)).
 		Info()
 
 	if err = batchHandleHosts(updateHosts, func(hosts ...*types.Host) error {
@@ -174,6 +181,12 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	if err = batchHandleHosts(insertHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpsertManyHost(std.Context(), hosts...)
+	}); err != nil {
+		return err
+	}
+
+	if err = batchHandleHosts(updateAgentIDHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{AgentID: true}, hosts...)
 	}); err != nil {
 		return err
 	}
@@ -300,6 +313,33 @@ func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, ho
 		Info()
 
 	return backfillHosts
+}
+
+func getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(
+	updateData, dbData []*types.Host) (
+	[]*types.Host, error) {
+
+	dbDataMap, err := conv.SliceToMapIgnore(dbData, func(host *types.Host) int64 {
+		return host.HostID
+	})
+	if err != nil {
+		return nil, fmt.Errorf("convert cmdb data to map failed: %w", err)
+	}
+
+	hosts := make([]*types.Host, 0)
+	for _, host := range updateData {
+		dbHost, exists := dbDataMap[host.HostID]
+		if !exists {
+			continue
+		}
+
+		if dbHost.Dynamic.AgentID == "" && host.Static.SyncedAgentID != "" {
+			host.Dynamic.AgentID = host.Static.SyncedAgentID
+			hosts = append(hosts, host)
+		}
+	}
+
+	return hosts, nil
 }
 
 func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64,

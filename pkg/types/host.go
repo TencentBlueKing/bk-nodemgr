@@ -483,14 +483,18 @@ const (
 
 // HostFieldSelection represents field selection options for host queries.
 type HostFieldSelection struct {
-	HostID        bool
+	HostID bool
+	// Static fields
 	BizID         bool
 	NetworkAreaID bool
 	InnerIPList   bool
 	InnerIPV6List bool
-	LoginUser     bool
 	SetID         bool
 	ModuleID      bool
+
+	// Dynamic fields
+	LoginUser bool
+	AgentID   bool
 }
 
 // HostTopoRelation represents the relationship between a host and its topology.

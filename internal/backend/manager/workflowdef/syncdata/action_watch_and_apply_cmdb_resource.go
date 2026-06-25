@@ -320,7 +320,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 		return
 	}
 
-	hostTopoMapping, err := act.storageTopo.GetHostTopoRelationMapping(std.Context(), event.Detail.HostID)
+	dbHost, err := act.storageTopo.GetHostByID(std.Context(), event.Detail.HostID)
 	if err != nil {
 		std.InstanceData().Log().
 			Zh("通过主机id获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -330,9 +330,9 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 		return
 	}
 
-	event.Detail.Static.BizID = hostTopoMapping[event.Detail.HostID].BizID
-	event.Detail.Static.SetID = hostTopoMapping[event.Detail.HostID].SetID
-	event.Detail.Static.ModuleID = hostTopoMapping[event.Detail.HostID].ModuleID
+	event.Detail.Static.BizID = dbHost.Static.BizID
+	event.Detail.Static.SetID = dbHost.Static.SetID
+	event.Detail.Static.ModuleID = dbHost.Static.ModuleID
 	if err := act.storageTopo.UpdateHostStaticFields(std.Context(), types.UpdateAllHostStaticFields(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -340,6 +340,18 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 			Error()
 
 		return
+	}
+
+	if dbHost.Dynamic.AgentID == "" && event.Detail.Static.SyncedAgentID != "" {
+		event.Detail.Dynamic.AgentID = event.Detail.Static.SyncedAgentID
+		if err := act.storageTopo.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{AgentID: true}, event.Detail); err != nil {
+			std.InstanceData().Log().
+				Zh("更新主机动态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to update host dynamic info, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
+		}
 	}
 
 	if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), event.Detail.Static.BizID, event.Detail.HostID); err != nil {
