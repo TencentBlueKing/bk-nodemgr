@@ -23,6 +23,23 @@ const interceptorsResError: Function[] = [];
 
 const OriginFetch = window.fetch;
 
+let seq = 0;
+/** 生成 UUID v4 格式的唯一请求 ID（时间戳+序号+随机数），确保不重复 */
+function genUUID(): string {
+  try {
+    const ts = Date.now().toString(16).padStart(12, '0');
+    const sn = (++seq % 0x10000).toString(16).padStart(4, '0');
+    const rd = crypto.getRandomValues(new Uint8Array(4));
+    const r = Array.from(rd).map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${ts.slice(0, 8)}-${ts.slice(8)}-4${sn.slice(1)}-a${r.slice(0, 3)}-${sn.slice(0, 1)}${r.slice(3)}`;
+  } catch {
+    const ts = Date.now().toString(16).padStart(12, '0');
+    const sn = (++seq % 0x10000).toString(16).padStart(4, '0');
+    const rd = Math.random().toString(16).slice(2, 10).padEnd(8, '0');
+    return `${ts.slice(0, 8)}-${ts.slice(8)}-4${sn.slice(1)}-8${rd.slice(0, 3)}-${sn.slice(0, 1)}${rd.slice(3, 7)}`;
+  }
+}
+
 // fetch
 function fetch<T, C extends Config>(input: RequestInfo | URL, init: Partial<C>) {
   interceptorsReq.forEach((fn) => {
@@ -34,7 +51,7 @@ function fetch<T, C extends Config>(input: RequestInfo | URL, init: Partial<C>) 
     const BK_REQUEST_ID_HEADER_KEY = window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY.includes('BK_REQUEST_ID_HEADER_KEY')
       ? 'X-Bkapi-Request-Id'
       : window.PROJECT_CONFIG.BK_REQUEST_ID_HEADER_KEY;
-    const requestID = crypto.randomUUID();
+    const requestID = genUUID();
     const defaultHeaders: Record<string, string> = {
       'cess-Control-Allow-Origin': '*',
     };
