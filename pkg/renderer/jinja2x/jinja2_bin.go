@@ -15,10 +15,13 @@ package jinja2x
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"syscall"
 
@@ -30,41 +33,72 @@ import (
 // nolint: gochecknoglobals
 var jinja2ExecBin struct {
 	binaryPath string
-	once       sync.Once
+	mu         sync.Mutex
 	cleanup    func()
 }
 
 // jinja2ExecBinaryPath returns the path to the jinja2 binary.
 func jinja2ExecBinaryPath() (string, error) {
-	var initErr error
-	jinja2ExecBin.once.Do(func() {
-		tmpFile, err := tmp.NewTempFileWithSpecialName(io.NopCloser(bytes.NewBuffer(jinja2.Binary)), "jinja2_exec")
+	jinja2ExecBin.mu.Lock()
+	defer jinja2ExecBin.mu.Unlock()
+
+	if jinja2ExecBin.binaryPath == "" {
+		path, cleanup, err := extractJinja2ExecBinary()
 		if err != nil {
-			initErr = fmt.Errorf("failed to create temporary file: %w", err)
-
-			return
+			return "", fmt.Errorf("failed to initialize jinja2 binary: %w", err)
 		}
+		jinja2ExecBin.binaryPath = path
+		jinja2ExecBin.cleanup = cleanup
 
-		// make the temporary file executable.
-		// nolint: gosec,mnd
-		if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
-			_ = os.Remove(tmpFile.Path())
-			initErr = fmt.Errorf("failed to make temporary file executable: %w", err)
-
-			return
-		}
-
-		jinja2ExecBin.binaryPath = tmpFile.Path()
-		jinja2ExecBin.cleanup = func() {
-			_ = os.Remove(tmpFile.Path())
-		}
-	})
-
-	if initErr != nil {
-		return "", fmt.Errorf("failed to initialize jinja2 binary: %w", initErr)
+		return path, nil
 	}
 
-	return jinja2ExecBin.binaryPath, nil
+	if _, err := os.Stat(jinja2ExecBin.binaryPath); err == nil {
+		return jinja2ExecBin.binaryPath, nil
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return "", fmt.Errorf("failed to stat cached jinja2 binary. path(%s): %w", jinja2ExecBin.binaryPath, err)
+	}
+
+	if jinja2ExecBin.cleanup != nil {
+		jinja2ExecBin.cleanup()
+	}
+
+	path, cleanup, err := extractJinja2ExecBinary()
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize jinja2 binary: %w", err)
+	}
+	jinja2ExecBin.binaryPath = path
+	jinja2ExecBin.cleanup = cleanup
+
+	return path, nil
+}
+
+func extractJinja2ExecBinary() (string, func(), error) {
+	tmpFile, err := tmp.NewTempFileWithSpecialName(io.NopCloser(bytes.NewBuffer(jinja2.Binary)), "jinja2_exec")
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create temporary file: %w", err)
+	}
+
+	// make the temporary file executable.
+	// nolint: gosec,mnd
+	if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
+		_ = os.Remove(tmpFile.Path())
+
+		return "", nil, fmt.Errorf("failed to make temporary file executable: %w", err)
+	}
+
+	p := tmpFile.Path()
+	cleanup := func() {
+		if err := os.Remove(p); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			_ = err
+		}
+		// NewTempFileWithSpecialName creates file under a temp dir; remove dir if empty.
+		if err := os.Remove(filepath.Dir(p)); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			_ = err
+		}
+	}
+
+	return tmpFile.Path(), cleanup, nil
 }
 
 func jinja2ExecRunCmd(ctx context.Context, args []string, envs []string) (string, string, error) {

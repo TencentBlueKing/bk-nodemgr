@@ -15,8 +15,10 @@ package wmix
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strings"
@@ -31,41 +33,70 @@ import (
 // nolint: gochecknoglobals
 var wmiBin struct {
 	binaryPath string
-	once       sync.Once
+	mu         sync.Mutex
 	cleanup    func()
 }
 
 // wmiBinaryPath returns the path to the wmiexec binary.
 func wmiBinaryPath() (string, error) {
-	var initErr error
-	wmiBin.once.Do(func() {
-		tmpFile, err := tmp.NewTempFile(io.NopCloser(bytes.NewBuffer(wmiexec.Binary)), "wmiexec")
+	wmiBin.mu.Lock()
+	defer wmiBin.mu.Unlock()
+
+	if wmiBin.binaryPath == "" {
+		path, cleanup, err := extractWMIBinary()
 		if err != nil {
-			initErr = fmt.Errorf("failed to create temporary file: %w", err)
-
-			return
+			return "", fmt.Errorf("failed to initialize wmiexec binary: %w", err)
 		}
 
-		// make the temporary file executable.
-		// nolint: gosec,mnd
-		if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
-			_ = os.Remove(tmpFile.Path())
-			initErr = fmt.Errorf("failed to make temporary file executable: %w", err)
+		wmiBin.binaryPath = path
+		wmiBin.cleanup = cleanup
 
-			return
-		}
-
-		wmiBin.binaryPath = tmpFile.Path()
-		wmiBin.cleanup = func() {
-			_ = os.Remove(tmpFile.Path())
-		}
-	})
-
-	if initErr != nil {
-		return "", fmt.Errorf("failed to initialize wmiexec binary: %w", initErr)
+		return path, nil
 	}
 
-	return wmiBin.binaryPath, nil
+	if _, err := os.Stat(wmiBin.binaryPath); err == nil {
+		return wmiBin.binaryPath, nil
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return "", fmt.Errorf("failed to stat cached wmiexec binary. path(%s): %w", wmiBin.binaryPath, err)
+	}
+
+	if wmiBin.cleanup != nil {
+		wmiBin.cleanup()
+	}
+
+	path, cleanup, err := extractWMIBinary()
+	if err != nil {
+		return "", fmt.Errorf("failed to initialize wmiexec binary: %w", err)
+	}
+
+	wmiBin.binaryPath = path
+	wmiBin.cleanup = cleanup
+
+	return path, nil
+}
+
+func extractWMIBinary() (string, func(), error) {
+	tmpFile, err := tmp.NewTempFile(io.NopCloser(bytes.NewBuffer(wmiexec.Binary)), "wmiexec")
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create temporary file: %w", err)
+	}
+
+	// make the temporary file executable.
+	// nolint: gosec,mnd
+	if err := os.Chmod(tmpFile.Path(), 0700); err != nil {
+		_ = os.Remove(tmpFile.Path())
+
+		return "", nil, fmt.Errorf("failed to make temporary file executable: %w", err)
+	}
+
+	path := tmpFile.Path()
+	cleanup := func() {
+		if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			_ = err
+		}
+	}
+
+	return path, cleanup, nil
 }
 
 func wmiRunCmd(ctx context.Context, args []string, envs []string) (string, string, error) {
