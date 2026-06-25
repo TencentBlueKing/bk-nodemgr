@@ -174,6 +174,11 @@ func (h *handler) generateInstallNodeDeployments(
 			if !ok {
 				return fmt.Errorf("failed to find networkunit with id: %d", reqHost.GetBkNetworkunitId())
 			}
+			installMethod := types.NodeInstallMethod(reqHost.GetInstallMethod())
+			if installMethod != types.NodeInstallMethodAuto && installMethod != types.NodeInstallMethodSSH {
+				return fmt.Errorf("failed to check install_method availability: install_method is unsupported for proxy, method(%s)",
+					installMethod)
+			}
 
 			installOriginUnit, ok := networkUnitMap[reqHost.GetProxyInstallOriginUnitId()]
 			if !ok {
@@ -241,8 +246,9 @@ func (h *handler) generateInstallNodeDeployments(
 							reqHost.GetBkBizId(),
 							"bkmonitorbeat",
 						),
-						IsManual:  isManual,
-						IsOffline: isOffline,
+						IsManual:      isManual,
+						IsOffline:     isOffline,
+						InstallMethod: installMethod,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},

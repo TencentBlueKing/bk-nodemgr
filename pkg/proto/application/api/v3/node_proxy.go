@@ -96,6 +96,9 @@ func (x *NodeProxyInstallHost) Validate() error {
 	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
 		return err
 	}
+	if err := types.NodeInstallMethod(x.GetInstallMethod()).Validate(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -144,6 +147,7 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 			RelayDownloadPort:        host.GetRelayDownloadPort(),
 			RelayCallbackPort:        host.GetRelayCallbackPort(),
 			CPUArch:                  host.GetCpuArch(),
+			InstallMethod:            types.NodeInstallMethod(host.GetInstallMethod()),
 		}
 	}
 

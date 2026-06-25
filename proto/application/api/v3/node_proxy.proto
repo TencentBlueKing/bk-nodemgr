@@ -37,6 +37,7 @@ message NodeProxyInstallHost {
   bool install_pre_ordered_plugins = 25;
   bool renew_gse_task = 26;
   bool renew_gse_proc = 27;
+  string install_method = 28;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

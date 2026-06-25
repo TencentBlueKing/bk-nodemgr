@@ -43,11 +43,18 @@ POST /api/v3/node/proxy/install
 | install_pre_ordered_plugins  | bool          | No       | Whether to install pre-ordered plugins, default true                                              |
 | renew_gse_task               | bool          | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file |
 | renew_gse_proc               | bool          | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file |
+| install_method               | string        | No       | Proxy install method. Supported values: empty string, ssh. Empty string means Proxy-scenario auto selection |
 | proxy_tags                   | array[string] | No       | Proxy tags: dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel                      |
 | proxy_install_origin_unit_id | int64         | No       | Origin network unit ID for installation                                                           |
 | credit_expired_interval_sec  | int64         | No       | Credential expiry interval in seconds, default 86400                                              |
 | relay_download_port          | int64         | No       | Relay download port                                                                               |
 | relay_callback_port          | int64         | No       | Relay callback port                                                                               |
+
+`install_method` notes:
+
+- Empty string: use Proxy-scenario auto selection. In the current version, auto selection chooses SSH. Future versions may evolve the auto selection logic independently for Proxy deployment scenarios.
+- `ssh`: explicitly use SSH install logic.
+- `wmi`: not supported for Proxy installation in the current version.
 
 **target_version[n]**
 
@@ -79,7 +86,8 @@ POST /api/v3/node/proxy/install
       "export_ip": "10.0.0.1",
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
-      "renew_gse_proc": false
+      "renew_gse_proc": false,
+      "install_method": "ssh"
     }
   ],
   "target_version": [

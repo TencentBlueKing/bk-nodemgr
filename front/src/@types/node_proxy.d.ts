@@ -30,6 +30,7 @@ export interface NodeProxyInstallHost {
   install_pre_ordered_plugins: boolean;
   renew_gse_task: boolean;
   renew_gse_proc: boolean;
+  install_method: string;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

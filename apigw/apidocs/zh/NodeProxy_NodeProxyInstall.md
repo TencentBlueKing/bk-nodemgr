@@ -43,11 +43,18 @@ POST /api/v3/node/proxy/install
 | install_pre_ordered_plugins  | bool          | 否  | 是否安装预设插件，默认 true                                                             |
 | renew_gse_task               | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认 false 表示保留已有 .task 文件                         |
 | renew_gse_proc               | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认 false 表示保留已有 .proc 文件                         |
+| install_method               | string        | 否  | Proxy 安装方式，支持值：空字符串、ssh；空字符串表示按 Proxy 场景自动选择安装逻辑                       |
 | proxy_tags                   | array[string] | 否  | Proxy标签，可选值：dedicated_installer / cluster_tunnel / file_tunnel / data_tunnel |
 | proxy_install_origin_unit_id | int64         | 否  | 安装来源网络单元ID                                                                   |
 | credit_expired_interval_sec  | int64         | 否  | 凭证有效期（秒），默认 86400                                                            |
 | relay_download_port          | int64         | 否  | 中转下载端口                                                                       |
 | relay_callback_port          | int64         | 否  | 中转回调端口                                                                       |
+
+`install_method` 说明：
+
+- 空字符串：按 Proxy 场景自动选择安装逻辑。当前版本的自动选择结果是 SSH，后续可按 Proxy 部署场景演进为独立的自动选择逻辑。
+- `ssh`：显式使用 SSH 安装逻辑。
+- `wmi`：Proxy 安装当前不支持该方式。
 
 **target_version[n]**
 
@@ -79,7 +86,8 @@ POST /api/v3/node/proxy/install
       "export_ip": "10.0.0.1",
       "install_pre_ordered_plugins": true,
       "renew_gse_task": false,
-      "renew_gse_proc": false
+      "renew_gse_proc": false,
+      "install_method": "ssh"
     }
   ],
   "target_version": [

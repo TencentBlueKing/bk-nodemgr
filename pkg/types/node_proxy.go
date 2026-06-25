@@ -43,6 +43,7 @@ type NodeProxyInstallHost struct {
 	RelayDownloadPort        int64
 	RelayCallbackPort        int64
 	CPUArch                  string
+	InstallMethod            NodeInstallMethod
 }
 
 // NodeProxyInstallParam describes the node proxy install parameter.
