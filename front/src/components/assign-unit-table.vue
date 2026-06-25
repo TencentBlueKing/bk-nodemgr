@@ -8,6 +8,7 @@
       :max-height="maxHeight"
       :scroll-y="{ enabled: true, gt: 20 }"
       :row-config="{ isHover: true, useKey: true }"
+      :edit-config="{ trigger: 'click', mode: 'row', showIcon: false }"
       round
     >
       <!-- 业务属性 -->
@@ -18,20 +19,10 @@
           :min-width="150"
         >
           <template #default="{ row }">
-            <Select
-              v-model="row.bk_biz_id"
-              :disabled="true"
-              filterable
-            >
-              <Select.Option
-                v-for="item in businessList"
-                :key="item.bk_biz_id"
-                :name="item.bk_biz_name"
-                :id="item.bk_biz_id"
-              >
-                [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-              </Select.Option>
-            </Select>
+            <!-- 归属业务始终不可编辑 -->
+            <div class="cell-disabled">
+              {{ row.bk_biz_id ? `[${row.bk_biz_id}] ${businessList.find((b: any) => b.bk_biz_id === row.bk_biz_id)?.bk_biz_name || row.bk_biz_id}` : '' }}
+            </div>
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -44,7 +35,8 @@
           :min-width="150"
         >
           <template #default="{ row }">
-            <Input v-model.trim="row.bk_networkarea_name" :disabled="true" />
+            <!-- 管控区域始终不可编辑 -->
+            <div class="cell-disabled">{{ row.bk_networkarea_name }}</div>
           </template>
         </VxeColumn>
         <VxeColumn
@@ -52,6 +44,7 @@
           field="bk_networkunit_id"
           :title="$t('components.installTable.networkUnit')"
           :width="220"
+          :edit-render="{ name: 'VxeInput' }"
         >
           <template #header>
             <span class="mr-[5px]">{{ $t('components.installTable.networkUnit') }}</span>
@@ -77,6 +70,14 @@
             ></i>
           </template>
           <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
+              <div :class="{ 'cell-disabled--error': getError(rowIndex, 'bk_networkunit_id') }">
+                <span v-if="getNetworkUnitName(row.bk_networkunit_id)">[{{ row.bk_networkunit_id }}] {{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
+                <span v-else class="cell-placeholder">{{ $t('platform.nodeMan.agentStatus.assignUnitSelectPlaceholder') }}</span>
+              </div>
+            </ValidateCell>
+          </template>
+          <template #edit="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <Select
                 v-if="!networkUnitLoading"
@@ -138,7 +139,8 @@
           :min-width="150"
         >
           <template #default="{ row }">
-            <Input v-model.trim="row.bk_host_innerip" :disabled="true" />
+            <!-- 内网IPv4不可编辑 -->
+            <div class="cell-disabled">{{ row.bk_host_innerip }}</div>
           </template>
         </VxeColumn>
         <VxeColumn
@@ -147,7 +149,8 @@
           :min-width="150"
         >
           <template #default="{ row }">
-            <Input v-model.trim="row.bk_host_innerip_v6" :disabled="true" />
+            <!-- 内网IPv6不可编辑 -->
+            <div class="cell-disabled">{{ row.bk_host_innerip_v6 }}</div>
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -160,7 +163,8 @@
           :min-width="120"
         >
           <template #default="{ row }">
-            <Input v-model.trim="row.os_type" :disabled="true" />
+            <!-- 操作系统不可编辑 -->
+            <div class="cell-disabled">{{ row.os_type }}</div>
           </template>
         </VxeColumn>
       </VxeColgroup>
@@ -186,7 +190,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, InfoBox, Input, Select } from 'bkui-vue';
+import { Button, InfoBox, Select } from 'bkui-vue';
 import { groupBy } from 'lodash';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -294,6 +298,7 @@ const getNetworkUnitList = async () => {
 };
 
 const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => networkUnitGroupMap.value[Number(bkNetworkAreaId)] || [];
+const getNetworkUnitName = (networkUnitId: string | number) => networkUnitList.value.find((u: any) => String(u.bk_networkunit_id) === String(networkUnitId))?.bk_networkunit_name || '';
 
 const isSameNetworkArea = computed(() => {
   if (!tableData.value?.length) return false;
@@ -379,5 +384,35 @@ defineExpose({ tableValidate });
 ::v-deep(.vxe-body--column) {
   height: 56px !important;
   font-size: 12px !important;
+}
+.cell-placeholder {
+  color: #c4c6cc;
+}
+/* 不可编辑单元格公共样式，与 install-table 保持一致 */
+.cell-disabled,
+.cell-disabled--error {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 禁用态（无错误） */
+.cell-disabled {
+  background-color: #f5f7fa;
+  color: #c4c6cc;
+  cursor: not-allowed;
+}
+/* 校验失败态 */
+.cell-disabled--error {
+  background-color: #fff0f0;
+  border-color: #ea3636;
+  color: #ea3636;
 }
 </style>
