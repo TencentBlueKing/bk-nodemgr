@@ -1,9 +1,9 @@
 apiVersion: v2
-appVersion: v3.0.1-alpha.44
+appVersion: v3.0.1-alpha.45
 name: mock-server
 description: Mock server for bk-nodemgr testing, provides mock APIs for CMDB and BKRepo.
 type: application
-version: v3.0.1-alpha.44
+version: v3.0.1-alpha.45
 dependencies:
   - name: common
     repository: https://charts.bitnami.com/bitnami
