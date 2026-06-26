@@ -118,6 +118,39 @@
         ]
       }
     },
+    "/api/v3/sync/gse/agent/id/correct": {
+      "post": {
+        "operationId": "Sync_SyncCorrectAgentID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3SyncCorrectAgentIDResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "SyncCorrectAgentIDReq describes the HTTP request body when correct agent id.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3SyncCorrectAgentIDReq"
+            }
+          }
+        ],
+        "tags": [
+          "Sync"
+        ]
+      }
+    },
     "/api/v3/sync/gse/agent/info": {
       "post": {
         "operationId": "Sync_SyncAgentInfo",
@@ -809,6 +842,52 @@
       "type": "object",
       "properties": {
         "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SyncCorrectAgentIDReq": {
+      "type": "object",
+      "properties": {
+        "host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "SyncCorrectAgentIDReq describes the HTTP request body when correct agent id."
+    },
+    "v3SyncCorrectAgentIDResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3SyncCorrectAgentIDRespData"
+        }
+      },
+      "description": "SyncCorrectAgentIDResp describes the HTTP response body when correct agent\nid."
+    },
+    "v3SyncCorrectAgentIDRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
           "type": "string"
         }
       }

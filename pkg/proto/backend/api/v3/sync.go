@@ -64,6 +64,18 @@ func (x *SyncAgentInfoReq) AutoConvert() {
 }
 
 // Validate check body.
+func (x *SyncCorrectAgentIDReq) Validate() error {
+	if len(x.HostIds) == 0 {
+		return errors.New("host_ids is required")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncCorrectAgentIDReq) AutoConvert() {
+}
+
+// Validate check body.
 func (x *SyncAliveHostAgentInfoReq) Validate() error {
 	return nil
 }
