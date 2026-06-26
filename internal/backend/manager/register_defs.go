@@ -165,6 +165,7 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionGenOperSyncAgentState(syncdataCap),
 		syncdata.NewActionSyncAgentInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAgentInfo(syncdataCap),
+		syncdata.NewActionSyncCorrectAgentID(syncdataCap),
 		syncdata.NewActionWatchCMDBResource(syncdataCap),
 		syncdata.NewActionSyncAlivePluginProcessInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
