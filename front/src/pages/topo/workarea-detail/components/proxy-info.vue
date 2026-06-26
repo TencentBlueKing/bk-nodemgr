@@ -164,6 +164,7 @@
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
+import { debounce } from 'lodash';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
@@ -606,6 +607,7 @@ const proxyStatusLoading = ref(true);
 const proxyStatus = ref({ online: 0, abnormal: 0, notInstalled: 0 });
 const fetchProxyStatusCount = async () => {
   const bizIds = mainStore.selectedBusinessId || [];
+  const listParams = getParams();
   proxyStatusLoading.value = true;
   try {
     const [normalRes, abnormalRes, totalRes] = await Promise.all([
@@ -613,22 +615,22 @@ const fetchProxyStatusCount = async () => {
       TopoService.HostList({
         page: { offset: 0, limit: 0 },
         only_count: true,
-        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['running'] },
-        fuzzy_include_conditions: {},
+        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['running'] },
+        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+      }).catch(() => ({ total: 0 })),
+      // 异常 Proxy（node_status=damaged）
+      TopoService.HostList({
+        page: { offset: 0, limit: 0 },
+        only_count: true,
+        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['damaged'] },
+        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
       }).catch(() => ({ total: 0 })),
       // 已安装 Proxy（node_role=proxy，含所有状态）
       TopoService.HostList({
         page: { offset: 0, limit: 0 },
         only_count: true,
-        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['damaged'] },
-        fuzzy_include_conditions: {},
-      }).catch(() => ({ total: 0 })),
-      // 未安装（node_role=blank）
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['proxy'] },
-        fuzzy_include_conditions: {},
+        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['proxy'] },
+        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
       }).catch(() => ({ total: 0 })),
     ]);
     const online = normalRes.total ?? 0;
@@ -645,12 +647,13 @@ const fetchProxyStatusCount = async () => {
     proxyStatusLoading.value = false;
   }
 };
-watch(() => [mainStore.selectedBusinessId, isProxyStatus.value], () => { if (isProxyStatus.value) fetchProxyStatusCount(); }, { immediate: true });
+const debouncedFetchProxyStatusCount = debounce(fetchProxyStatusCount, 300);
+watch(() => [mainStore.selectedBusinessId, isProxyStatus.value, searchKey.value], () => { if (isProxyStatus.value) debouncedFetchProxyStatusCount(); }, { immediate: true, deep: true });
 
 // Listen for assign unit success event to refresh list
 const handleAssignUnitSuccess = () => {
   detailTableRef.value?.handleUpdate?.();
-  if (isProxyStatus.value) fetchProxyStatusCount();
+  if (isProxyStatus.value) debouncedFetchProxyStatusCount();
 };
 
 onMounted(() => {

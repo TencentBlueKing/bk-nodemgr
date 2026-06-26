@@ -1078,8 +1078,9 @@ const debouncedGetAgentList = debounce(getAgentList, 300);
 const agentStatusLoading = ref(true);
 const agentStatus = ref({ online: 0, offline: 0, notInstalled: 0 });
 
-/** 通过 only_count 并行查询在线/已安装/未安装 Agent 数量 */
+/** 通过 only_count 并行查询在线/已安装/未安装 Agent 数量，复用 getParams() 的筛选条件 */
 const fetchAgentStatusCount = async () => {
+  const listParams = getParams();
   const bizIds = mainStore.selectedBusinessId || [];
 
   agentStatusLoading.value = true;
@@ -1089,22 +1090,22 @@ const fetchAgentStatusCount = async () => {
       TopoService.HostList({
         page: { offset: 0, limit: 0 },
         only_count: true,
-        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['agent'], node_status: ['running'] },
-        fuzzy_include_conditions: {},
+        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['agent'], node_status: ['running'] },
+        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
       }).catch(() => ({ total: 0 })),
       // 已安装 Agent（node_role=agent，含所有状态）
       TopoService.HostList({
         page: { offset: 0, limit: 0 },
         only_count: true,
-        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['agent'] },
-        fuzzy_include_conditions: {},
+        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['agent'] },
+        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
       }).catch(() => ({ total: 0 })),
       // 未安装（node_role=blank）
       TopoService.HostList({
         page: { offset: 0, limit: 0 },
         only_count: true,
-        exact_include_conditions: { bk_biz_id: bizIds, node_role: ['blank'] },
-        fuzzy_include_conditions: {},
+        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['blank'] },
+        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
       }).catch(() => ({ total: 0 })),
     ]);
 
@@ -1122,6 +1123,7 @@ const fetchAgentStatusCount = async () => {
     agentStatusLoading.value = false;
   }
 };
+const debouncedFetchAgentStatusCount = debounce(fetchAgentStatusCount, 300);
 
 /**
  * 加载所有初始化数据（区域、单元、筛选条件）
@@ -1642,6 +1644,7 @@ watch(
     if (isInitialDataLoaded.value && !isInitialLoading.value) {
       pagination.current = 1;
       debouncedGetAgentList();
+      debouncedFetchAgentStatusCount();
     }
   },
   { deep: true },
@@ -1649,6 +1652,7 @@ watch(
 
 onUnmounted(() => {
   debouncedGetAgentList.cancel();
+  debouncedFetchAgentStatusCount.cancel();
 });
 
 </script>

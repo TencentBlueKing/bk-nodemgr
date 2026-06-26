@@ -17,7 +17,9 @@
         :settings="settings"
         :max-height="maxHeight"
         @setting-change="handleSettingChange"
-        @column-filter="handleFilter">
+        @column-filter="handleFilter"
+        @page-value-change="handlePageValueChange"
+        @page-limit-change="handlePageLimitChange">
         <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
@@ -348,7 +350,7 @@ const { t } = useI18n();
 const route = useRoute();
 const workAreaId = Number(route.params.workarea);
 const list = ref<Host[]>([]);
-const pagination = reactive({ count: 0, limit: 20, current: 1 });
+const pagination = reactive({ count: 0, limit: 20, current: 1, remote: true });
 const sortConfig = ref({ multiple: true });
 const mainStore = useMainStore();
 const {
@@ -479,6 +481,17 @@ const handleClearSelection = () => {
   list.value.forEach(item => (item.checked = false));
 };
 
+// 分页切换
+const handlePageValueChange = (page: number) => {
+  pagination.current = page;
+  getProxyList();
+};
+const handlePageLimitChange = (limit: number) => {
+  pagination.limit = limit;
+  pagination.current = 1;
+  getProxyList();
+};
+
 // 4. 本页全选
 const handleSelectCurrentPage = () => {
   isCrossPageSelection.value = false;
@@ -517,7 +530,7 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
     });
   }
 
-  // 2. 通过 emit 通知父组件更新
+  // 2. 通过 emit 通知父组件更新，后续 watch(searchSelectValue) 会同步 filterOptionSource
   emit('update:searchSelectValue', newValue);
 };
 
@@ -536,6 +549,18 @@ const filterOptionSource: Record<string, FilterOption> = reactive({
   node_version: { list: [], checked: [], filterScope: 'all' },
   node_status: { list: [], checked: [], filterScope: 'all' },
 });
+
+// 同步 searchSelectValue 到表头筛选面板的选中态（搜索框清空/修改时表头筛选面板同步更新）
+watch(() => searchSelectValue.value, () => {
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key].checked = [];
+  });
+  searchSelectValue.value.forEach((item: any) => {
+    if (filterOptionSource[item.id]) {
+      filterOptionSource[item.id].checked = item.values?.map((v: any) => v.id) ?? [];
+    }
+  });
+}, { deep: true, immediate: true });
 
 // ---------- 侧边栏 ----------
 const isShowSideslider = ref(false);
