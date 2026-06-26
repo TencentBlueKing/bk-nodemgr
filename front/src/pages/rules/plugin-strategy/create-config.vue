@@ -153,12 +153,15 @@
             </Table>
           </div>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.form.pluginCustomConfig')" property="configs">
+        <Form.FormItem property="configs">
           <div class="mt-[15px]">
-            <Button theme="primary" text :disabled="isViewMode" @click="isShowPluginConfig = true">
-              <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
-              <span class="text-[14px]">{{ t('agentStrategy.form.pluginCustomConfig') }}</span>
-            </Button>
+            <config-template
+              :visible="true"
+              configpolicy-type="config_policy_plugin"
+              :is-edit="!isViewMode"
+              :configs="formData.configs"
+              @update-config="updateConfig"
+            ></config-template>
             <div
               class="text-[#E71818] text-[12px] flex items-center"
               v-if="isEditMode && configData"
@@ -195,25 +198,11 @@
       @close-dialog="isShowIpSelector = false"
     />
 
-    <Dialog
-      v-model:is-show="isShowPluginConfig"
-      :width="960"
-      :title="t('agentStrategy.form.pluginCustomConfig')"
-      @confirm="handlePluginConfigConfirm"
-      @cancel="isShowPluginConfig = false"
-    >
-      <StepParamConfig
-        v-if="isShowPluginConfig"
-        :plugin-name="formData.plugin_name"
-        :platform-versions="pluginPlatformVersions"
-        v-model:form-values="pluginConfigValues"
-      />
-    </Dialog>
   </Sideslider>
 </template>
 
 <script lang="ts" setup>
-import { Button, Dialog, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
+import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -224,7 +213,7 @@ import { TopoService } from '@/api/modules/topo';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { Table, TableColumn } from '@blueking/table';
 import IpSelector from '@/components/IpSelector';
-import StepParamConfig from '@/pages/rules/plugin-operation/steps/step-param-config.vue';
+import ConfigTemplate from '@/components/config-template.vue';
 import { setPolicyType, setStrategyBizId } from '@/services/ip-selector';
 import * as IpSelectorService from '@/services/ip-selector';
 import { useMainStore } from '@/stores/main';
@@ -401,6 +390,7 @@ const handleDeleteAllHosts = () => InfoBox({
 const handleIpPageChange = (page: number) => { ipPagination.current = page; fetchHostData(); };
 const handleIpPageLimitChange = (limit: number) => { ipPagination.limit = limit; ipPagination.current = 1; fetchHostData(); };
 const handleDelete = (index: number) => { formData.scopes = formData.scopes.filter((_: any, ind: number) => ind !== index); };
+const updateConfig = (configs: any[]) => { formData.configs = configs; };
 
 const handleRequestEdit = () => emit('request-edit');
 
@@ -444,29 +434,6 @@ const fetchPluginList = async () => {
     } as any).catch(() => ({ items: [] }));
     pluginList.value = res?.items || [];
   } catch { pluginList.value = []; }
-};
-
-// Plugin config dialog
-const isShowPluginConfig = ref(false);
-const pluginConfigValues = ref<Record<string, any>>({});
-const pluginPlatformVersions = ref<{ os: string; version: string }[]>([]);
-const handlePluginConfigConfirm = () => {
-  const configBlocks: any[] = [];
-  Object.entries(pluginConfigValues.value).forEach(([platform, values]) => {
-    configBlocks.push({
-      id: platform,
-      items: Object.entries(values as Record<string, any>).map(([key, value]) => ({
-        id: key, name_zh: key, name_en: key,
-        type: typeof value === 'boolean' ? 2 : typeof value === 'number' ? 1 : 0,
-        value_string: String(value),
-        value_int: typeof value === 'number' ? value : 0,
-        value_bool: typeof value === 'boolean' ? value : false,
-        enabled: true,
-      })),
-    });
-  });
-  formData.configs = configBlocks;
-  isShowPluginConfig.value = false;
 };
 
 watch(() => isShow.value, async () => {
