@@ -21,6 +21,18 @@
       >
       </SearchSelect>
     </div>
+    <!-- 未设置默认版本提醒 -->
+    <Alert
+      v-if="missingDefaultCombinations.length > 0"
+      class="mb-[16px]"
+      theme="warning"
+      :title="$t('agentProxyPkg.noDefaultWarning')"
+    >
+      <template v-for="(combo, i) in missingDefaultCombinations" :key="combo">
+        <Tag class="mr-[8px] mb-[4px]">{{ combo }}</Tag>
+        <span v-if="i < missingDefaultCombinations.length - 1" class="mr-[4px]">、</span>
+      </template>
+    </Alert>
     <div class="flex flex-1 w-full">
       <div
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
@@ -367,7 +379,7 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-import { Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { Alert, Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
 import { AngleDown, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
 import { debounce, isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -433,10 +445,20 @@ const manageAuthClick = (e: MouseEvent, releaseType?: string) => {
 const mainStore = useMainStore();
 const packageStore = usePackageStore();
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
-const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314 - (mainStore.noticeShow ? 40 : 0));
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0) - (missingDefaultCombinations.value.length > 0 ? 56 : 0));
+const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314 - (mainStore.noticeShow ? 40 : 0) - (missingDefaultCombinations.value.length > 0 ? 56 : 0));
 const currentType = computed(() => (route.name === 'agentPackageMng' ? 'agent' : 'proxy'));
 const downloadUrl = computed(() => `${location.origin}/api/v3/package/release/${currentType.value}/download`);
+// 检查哪些 os_type + cpu_arch 组合（有启用包）尚未设置默认版本
+const missingDefaultCombinations = computed(() => {
+  const enabledItems = originPackageList.value.filter((item: Release) => item.enabled);
+  if (enabledItems.length === 0) return [];
+  const allCombos = [...new Set(enabledItems.map((item: Release) => `${item.os_type}_${item.cpu_arch}`))];
+  const combosWithDefault = new Set(
+    enabledItems.filter((item: Release) => item.as_default).map((item: Release) => `${item.os_type}_${item.cpu_arch}`),
+  );
+  return allCombos.filter(combo => !combosWithDefault.has(combo));
+});
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);

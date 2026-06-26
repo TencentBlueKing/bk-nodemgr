@@ -900,6 +900,7 @@ pluginPackage:
   confirmDelete: Confirm delete this package?
   deleteTarget: 'Delete Target: {name}'
   deleteTip: This cannot be undone.
+  noDefaultWarning: 'The following combinations have no default version set, which will prevent automatic best-version selection during installation:'
 pkgUpload:
   title: Upload Package
   officialPlugin: Official Plugin (2.0)
@@ -1034,6 +1035,7 @@ agentProxyPkg:
   yes: 'Yes'
   no: 'No'
   osArch: OS / Arch
+  noDefaultWarning: 'The following platforms have no default version set, which will prevent automatic best-version selection during installation:'
 components:
   permission:
     noPermission: No permission to access or operate this resource

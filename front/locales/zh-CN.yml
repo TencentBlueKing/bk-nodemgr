@@ -904,6 +904,7 @@ pluginPackage:
   confirmDelete: 确认删除该插件包？
   deleteTarget: 删除目标：{name}
   deleteTip: 删除后不可恢复，请谨慎操作！
+  noDefaultWarning: 以下组合尚未设置默认版本，安装时将无法自动选择最佳版本：
 pkgUpload:
   title: 包上传
   officialPlugin: 2.0 官方插件包
@@ -1037,6 +1038,7 @@ agentProxyPkg:
   disabled: 禁用
   yes: 是
   no: 否
+  noDefaultWarning: 以下平台尚未设置默认版本，安装时将无法自动选择最佳版本：
   osArch: 操作系统/架构
 components:
   permission:
