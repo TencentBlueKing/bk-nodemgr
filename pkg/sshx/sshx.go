@@ -90,6 +90,7 @@ type Config struct {
 	AuthMethod AuthMethod
 	PrivateKey []byte
 	Ciphers    []string
+	MACs       []string
 }
 
 // Validate validate the config.
@@ -151,6 +152,18 @@ func WindowsCompatibleCiphers() []string {
 	return append(conf.Ciphers, ssh.InsecureCipherAES128CBC)
 }
 
+// WindowsCompatibleMACs returns SSH MACs for legacy Windows SSH servers.
+//
+// Use non-ETM MACs because some old Windows SSH services close the connection
+// after KEX when CBC is combined with ETM MACs.
+func WindowsCompatibleMACs() []string {
+	return []string{
+		ssh.HMACSHA256,
+		ssh.HMACSHA512,
+		ssh.HMACSHA1,
+	}
+}
+
 // NewClient new a ssh client.
 // timeout is the timeout for building the connection。
 func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Client, error) {
@@ -176,6 +189,9 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 	}
 	if len(config.Ciphers) > 0 {
 		sshConf.Config.Ciphers = config.Ciphers
+	}
+	if len(config.MACs) > 0 {
+		sshConf.Config.MACs = config.MACs
 	}
 
 	switch config.AuthMethod {

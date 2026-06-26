@@ -135,7 +135,7 @@ func (act *actionDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (err er
 		En("credit loaded, auth-method(%s), credential-length(%d)", cMethod, len(cKey)).
 		Info()
 
-	client, err := sshx.NewClient(std.Context(), &sshx.Config{
+	sshConfig := &sshx.Config{
 		Network:    sshx.NetworkTCP,
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:       int(std.DeployInfo().Host.Dynamic.LoginPort),
@@ -156,7 +156,10 @@ func (act *actionDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (err er
 			return nil
 		}(),
 		Ciphers: sshx.WindowsCompatibleCiphers(),
-	}, sshx.DefaultTimeout)
+		MACs:    sshx.WindowsCompatibleMACs(),
+	}
+
+	client, err := sshx.NewClient(std.Context(), sshConfig, sshx.DefaultTimeout)
 	if err != nil {
 		return fmt.Errorf("failed to generate new ssh client: %w", err)
 	}
