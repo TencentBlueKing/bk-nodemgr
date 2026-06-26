@@ -54,25 +54,27 @@ func wmiBinaryPath() (string, error) {
 		return path, nil
 	}
 
-	if _, err := os.Stat(wmiBin.binaryPath); err == nil {
-		return wmiBin.binaryPath, nil
-	} else if !errors.Is(err, fs.ErrNotExist) {
-		return "", fmt.Errorf("failed to stat cached wmiexec binary. path(%s): %w", wmiBin.binaryPath, err)
+	if _, err := os.Stat(wmiBin.binaryPath); err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return "", fmt.Errorf("failed to stat cached wmiexec binary. path(%s): %w", wmiBin.binaryPath, err)
+		}
+
+		// clean old dir.
+		if wmiBin.cleanup != nil {
+			wmiBin.cleanup()
+		}
+
+		// if file no exist, we re extract it.
+		path, cleanup, err := extractWMIBinary()
+		if err != nil {
+			return "", fmt.Errorf("failed to initialize wmiexec binary: %w", err)
+		}
+
+		wmiBin.binaryPath = path
+		wmiBin.cleanup = cleanup
 	}
 
-	if wmiBin.cleanup != nil {
-		wmiBin.cleanup()
-	}
-
-	path, cleanup, err := extractWMIBinary()
-	if err != nil {
-		return "", fmt.Errorf("failed to initialize wmiexec binary: %w", err)
-	}
-
-	wmiBin.binaryPath = path
-	wmiBin.cleanup = cleanup
-
-	return path, nil
+	return wmiBin.binaryPath, nil
 }
 
 func extractWMIBinary() (string, func(), error) {

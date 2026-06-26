@@ -53,24 +53,24 @@ func jinja2ExecBinaryPath() (string, error) {
 		return path, nil
 	}
 
-	if _, err := os.Stat(jinja2ExecBin.binaryPath); err == nil {
-		return jinja2ExecBin.binaryPath, nil
-	} else if !errors.Is(err, fs.ErrNotExist) {
-		return "", fmt.Errorf("failed to stat cached jinja2 binary. path(%s): %w", jinja2ExecBin.binaryPath, err)
+	if _, err := os.Stat(jinja2ExecBin.binaryPath); err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return "", fmt.Errorf("failed to stat cached jinja2 binary. path(%s): %w", jinja2ExecBin.binaryPath, err)
+		}
+
+		if jinja2ExecBin.cleanup != nil {
+			jinja2ExecBin.cleanup()
+		}
+
+		path, cleanup, err := extractJinja2ExecBinary()
+		if err != nil {
+			return "", fmt.Errorf("failed to initialize jinja2 binary: %w", err)
+		}
+		jinja2ExecBin.binaryPath = path
+		jinja2ExecBin.cleanup = cleanup
 	}
 
-	if jinja2ExecBin.cleanup != nil {
-		jinja2ExecBin.cleanup()
-	}
-
-	path, cleanup, err := extractJinja2ExecBinary()
-	if err != nil {
-		return "", fmt.Errorf("failed to initialize jinja2 binary: %w", err)
-	}
-	jinja2ExecBin.binaryPath = path
-	jinja2ExecBin.cleanup = cleanup
-
-	return path, nil
+	return jinja2ExecBin.binaryPath, nil
 }
 
 func extractJinja2ExecBinary() (string, func(), error) {
