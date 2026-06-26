@@ -42,6 +42,8 @@ func NewActionUninstallPlugin(capability *Capability) action.Definition {
 		daoHost:             capability.StorageTopo,
 		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
+		daoNetworkUnit:      capability.StorageTopo,
+		daoProcess:          capability.StoragePlugin,
 		provider:            capability.DiscoverProvider,
 		gseHandler:          capability.GSEHandler,
 	}
@@ -57,6 +59,8 @@ type actionUninstallPlugin struct {
 	daoHost             topoStg.IStorageHost
 	daoPlugin           pluginStg.IDaoPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	daoNetworkUnit      topoStg.IStorageNetworkUnit
+	daoProcess          pluginStg.IDaoProcess
 	provider            discover.Discover
 	gseHandler          gse.IHandler
 }
@@ -197,13 +201,13 @@ func (act *actionUninstallPlugin) buildUninstallParams(
 		return nil, err
 	}
 
-	callbackEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		pluginUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
+	callbackEndpoints, _, err := pluginUtils.GeneratePluginInstallerServerEndpoints(std.Context(),
+		act.provider, act.daoHost, act.daoNetworkUnit, act.daoProcess,
+		std.DeployInfo().Process.HostID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		err = fmt.Errorf("failed to generate plugin installer server endpoints: %w", err)
+
+		return nil, err
 	}
 
 	params := &pluginUninstallParams{
