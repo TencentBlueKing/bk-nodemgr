@@ -81,6 +81,27 @@ func (h *handler) SyncAgentInfo(rCtx restserver.IContext) (any, error) {
 	return resp, nil
 }
 
+// SyncCorrectAgentID start an operation to correct agent id.
+func (h *handler) SyncCorrectAgentID(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncCorrectAgentIDReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync correct agent id decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncCorrectAgentID(rCtx, req.GetHostIds()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync correct agent id operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncCorrectAgentIDResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
 // SyncAliveHostAgentInfo start an operation to sync alive host agent info from gse.
 func (h *handler) SyncAliveHostAgentInfo(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAliveHostAgentInfoReq)

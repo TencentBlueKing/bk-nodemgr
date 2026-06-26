@@ -42,6 +42,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/gse/agent/state", restserver.Handler(h.SyncAgentState))
 	h.rg.POST("/gse/agent/state/all", restserver.Handler(h.SyncAllAgentState))
 	h.rg.POST("/gse/agent/info", restserver.Handler(h.SyncAgentInfo))
+	h.rg.POST("/gse/agent/id/correct", restserver.Handler(h.SyncCorrectAgentID))
 	h.rg.POST("/gse/agent/info/alive", restserver.Handler(h.SyncAliveHostAgentInfo))
 	h.rg.POST("/gse/plugin/process/info", restserver.Handler(h.SyncAlivePluginProcessInfo))
 	h.rg.POST("/gse/plugin/process/info/all", restserver.Handler(h.SyncAllAlivePluginProcessInfo))

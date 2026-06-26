@@ -115,6 +115,9 @@ type ISyncManager interface {
 	// LaunchSyncAgentInfo launch a task to sync agent info from gse. returns the workflow-id.
 	LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64) (string, error)
 
+	// LaunchSyncCorrectAgentID launch a task to correct agent id. returns the workflow-id.
+	LaunchSyncCorrectAgentID(ctx contextx.IContext, hostIDs ...int64) (string, error)
+
 	// LaunchSyncAliveHostAgentInfo launch a task to sync alive host agent info. returns the trigger-id.
 	LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string, error)
 

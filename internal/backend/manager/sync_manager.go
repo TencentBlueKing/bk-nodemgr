@@ -276,6 +276,41 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 	return triggerCtl.GetTriggerID(), nil
 }
 
+// LaunchSyncCorrectAgentID launch a task to correct agent id.
+func (mgr *Manager) LaunchSyncCorrectAgentID(ctx contextx.IContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncCorrectAgentID(syncdata.OperParamSyncCorrectAgentID{
+		TenantID: tenantID,
+		Operator: operator,
+		HostIDs:  hostIDs,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync correct agent id task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
 // LaunchSyncAlivePluginProcessInfo launch a task to sync alive plugin process info.
 func (mgr *Manager) LaunchSyncAlivePluginProcessInfo(ctx contextx.IContext, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
