@@ -176,9 +176,7 @@
           :min-width="130">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.node_status">
-              <i
-                :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"
-              ></i>
+              <i :class="getStatusIconClass(row.node_status)"></i>
               <div>{{ statusMap.get(row.node_status) || row.node_status }}</div>
             </div>
             <div class="flex items-center" v-else>
@@ -317,6 +315,7 @@ import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
+import { AGENT_NODE_STATUS_LIST, getStatusIconClass } from '@/common/agent-status';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import useAuthLock from '@/composables/use-auth-lock';
@@ -534,12 +533,14 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
   emit('update:searchSelectValue', newValue);
 };
 
-const statusMap = ref(new Map<string, string>([
-  ['init', t('platform.nodeMan.agentStatus.init')],
-  ['running', t('platform.nodeMan.agentStatus.running')],
-  ['damaged', t('platform.nodeMan.agentStatus.damaged')],
-  ['unknown', t('platform.nodeMan.agentStatus.unknown')],
-]));
+// 状态文案映射（从共享模块 + i18n 生成，覆盖全量 9 个 NodeStatus）
+const statusMap = computed(() => {
+  const map = new Map<string, string>();
+  AGENT_NODE_STATUS_LIST.forEach((status) => {
+    map.set(status, t(`platform.nodeMan.agentNodeStatus.${status}`));
+  });
+  return map;
+});
 
 const searchSelectValue = computed(() => props.searchSelectValue);
 const filterOptionSource: Record<string, FilterOption> = reactive({

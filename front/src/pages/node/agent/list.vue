@@ -331,9 +331,7 @@
         >
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.node_status">
-              <span
-                :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"
-              ></span>
+              <span :class="getStatusIconClass(row.node_status)"></span>
               <span>{{ statusMap.get(row.node_status) || row.node_status }}</span>
             </div>
             <div class="flex items-center" v-else>
@@ -477,6 +475,7 @@ import type {
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
+import { AGENT_NODE_STATUS_LIST, getStatusIconClass } from '@/common/agent-status';
 import { isNetworkUnitAssigned } from '@/common/const';
 import useAuthLock from '@/composables/use-auth-lock';
 import useTableSetting from '@/composables/use-table-setting';
@@ -644,12 +643,14 @@ const agentInstallType = [
   { id: 'manual', name: '手动安装' },
 ];
 
-const statusMap = computed(() => new Map<string, string>([
-  ['init', t('platform.nodeMan.agentStatus.init')],
-  ['running', t('platform.nodeMan.agentStatus.running')],
-  ['damaged', t('platform.nodeMan.agentStatus.damaged')],
-  ['unknown', t('platform.nodeMan.agentStatus.unknown')],
-]));
+// 状态文案映射（从共享模块 + i18n 生成，覆盖全量 9 个 NodeStatus）
+const statusMap = computed(() => {
+  const map = new Map<string, string>();
+  AGENT_NODE_STATUS_LIST.forEach((status) => {
+    map.set(status, t(`platform.nodeMan.agentNodeStatus.${status}`));
+  });
+  return map;
+});
 
 const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
 

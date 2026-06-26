@@ -42,6 +42,16 @@ platform:
       assignUnitDisabledAssigned: Selected hosts include nodes already assigned to a network unit. Please deselect or filter for unassigned hosts
       assignUnitDisabledRowAssigned: This host is already assigned to a network unit
       assignUnitDisabledMultiArea: Selected hosts belong to different network areas. Please select hosts from the same area
+    agentNodeStatus:
+      init: Initializing
+      running: Running
+      damaged: Abnormal
+      busy: Busy
+      starting: Starting
+      upgrade: Upgrading
+      stopping: Stopping
+      uninit: Uninitialized
+      unknown: Not Installed
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledRowNotRunning: This host has abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledUnassigned: Selected hosts include nodes without assigned network unit. Please assign network unit before operating

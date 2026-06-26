@@ -42,6 +42,16 @@ platform:
       assignUnitDisabledAssigned: 选中主机中包含已分配管控单元的节点，请取消选择或筛选未分配主机
       assignUnitDisabledRowAssigned: 该主机已分配管控单元
       assignUnitDisabledMultiArea: 选中主机中包含不同管控区域的主机，请选择同一区域的进行操作
+    agentNodeStatus:
+      init: 初始化
+      running: 正常
+      damaged: 异常
+      busy: 忙碌
+      starting: 启动中
+      upgrade: 升级中
+      stopping: 停止中
+      uninit: 未初始化
+      unknown: 未安装
       operateDisabledNotRunning: 选中主机中包含 Agent 状态异常的节点，请先排查修复后再操作
       operateDisabledRowNotRunning: 该主机 Agent 状态异常，请先排查修复后再操作
       operateDisabledUnassigned: 选中主机中包含未分配管控单元的节点，请先分配管控单元后再操作
