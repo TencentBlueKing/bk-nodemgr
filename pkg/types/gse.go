@@ -35,6 +35,7 @@ type AgentState struct {
 type AgentInfo struct {
 	AgentState
 
+	HostIP         string
 	OSType         criteria.OSType
 	Arch           criteria.CPUArch
 	ParentIP       string

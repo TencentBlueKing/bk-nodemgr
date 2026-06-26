@@ -144,6 +144,7 @@ func (h *Handler) ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) (
 				NodeStatus:     info.StatusCode.ToNodeStatus(),
 				ReportTime:     info.ReportTime,
 			},
+			HostIP:         info.BKHostIP,
 			OSType:         osType,
 			Arch:           arch,
 			ParentIP:       info.ParentIP,
