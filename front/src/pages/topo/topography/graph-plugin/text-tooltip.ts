@@ -10,6 +10,17 @@ class TextTooltip {
 
   constructor() {
     this.createTooltipElement();
+    this.bindGlobalMouseTracker();
+  }
+
+  /**
+   * 全局追踪鼠标位置，用于 hide() 时判断鼠标是否在 tooltip 上
+   */
+  private bindGlobalMouseTracker() {
+    document.addEventListener('mousemove', (e: MouseEvent) => {
+      (window as any).__tooltipMouseX = e.clientX;
+      (window as any).__tooltipMouseY = e.clientY;
+    });
   }
 
   /**
@@ -29,10 +40,10 @@ class TextTooltip {
       border-radius: 4px;
       border: 1px solid #dcdee5;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      pointer-events: none;
       white-space: nowrap;
       min-width: 200px;
       max-width: 600px;
+      max-height: 60vh;
       word-break: break-all;
       opacity: 0;
       transition: opacity 0.2s ease;
@@ -70,6 +81,17 @@ class TextTooltip {
       border-top: 5px solid #fff;
     `;
     tooltip.appendChild(arrow);
+
+    // 鼠标悬停 tooltip 时取消隐藏，离开时延迟隐藏
+    tooltip.addEventListener('mouseenter', () => {
+      if (this.hideTimer) {
+        clearTimeout(this.hideTimer);
+        this.hideTimer = null;
+      }
+    });
+    tooltip.addEventListener('mouseleave', () => {
+      this.hide();
+    });
 
     document.body.appendChild(tooltip);
     this.tooltipElement = tooltip;
@@ -165,43 +187,117 @@ class TextTooltip {
       requestAnimationFrame(() => {
         if (!this.tooltipElement) return;
 
-        const rect = this.tooltipElement.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
-        
+        const viewportHeight = window.innerHeight;
+
         // 箭头高度
         const arrowHeight = 6;
         // tooltip 与目标元素的间距
         const gap = 16;
 
-        // 计算目标元素的中心点 X 坐标
-        const targetCenterX = targetX + targetWidth / 2;
-        
-        // tooltip 水平居中对齐目标元素
-        let adjustedX = targetCenterX - rect.width / 2;
-        
-        // 显示在目标元素上方，包含箭头高度和间距
-        const adjustedY = targetY - rect.height - arrowHeight - gap;
-        
-        // 获取箭头元素，设置为朝下
+        // 获取箭头元素
         const arrow = this.tooltipElement.querySelector('.tooltip-arrow') as HTMLDivElement;
         const arrowBorder = this.tooltipElement.querySelector('.tooltip-arrow-border') as HTMLDivElement;
+
+        // ---- 第一步：测量内容自然高度 ----
+        this.tooltipElement.style.maxHeight = 'none';
+        this.tooltipElement.style.overflowY = 'visible';
+        const naturalHeight = this.tooltipElement.getBoundingClientRect().height;
+
+        // ---- 第二步：根据视口约束决定 max-height + overflow ----
+        const cssMaxHeightPx = (60 * viewportHeight) / 100;
+        const topGap = 10; // 视口顶部留白
+        const bottomGap = 10; // 视口底部留白
+
+        let finalMaxHeight = cssMaxHeightPx;
+        let needScroll = naturalHeight > cssMaxHeightPx;
+        let placedBelow = false;
+        let adjustedY = 0;
+
+        // 尝试放在目标上方
+        const aboveY = targetY - naturalHeight - arrowHeight - gap;
+        if (aboveY >= topGap) {
+          // 上方空间足够，放在上方
+          adjustedY = aboveY;
+          if (needScroll) {
+            this.tooltipElement.style.overflowY = 'auto';
+          }
+        } else {
+          // 上方空间不够，检查下方
+          const belowY = targetY + targetHeight + arrowHeight + gap;
+          const bottomAvailable = viewportHeight - bottomGap - belowY;
+          if (bottomAvailable >= Math.min(naturalHeight, cssMaxHeightPx)) {
+            // 下方空间足够
+            adjustedY = belowY;
+            placedBelow = true;
+            if (needScroll) {
+              this.tooltipElement.style.overflowY = 'auto';
+            }
+          } else if (bottomAvailable > 60) {
+            // 下方有部分空间，限制高度 + 滚动
+            adjustedY = belowY;
+            placedBelow = true;
+            finalMaxHeight = bottomAvailable;
+            needScroll = true;
+            this.tooltipElement.style.overflowY = 'auto';
+          } else {
+            // 下方空间也很少，放在上方并限制高度
+            const topAvailable = targetY - arrowHeight - gap - topGap;
+            adjustedY = topGap;
+            if (topAvailable > 60) {
+              finalMaxHeight = topAvailable;
+              needScroll = true;
+              this.tooltipElement.style.overflowY = 'auto';
+            } else {
+              finalMaxHeight = Math.max(40, topAvailable);
+              needScroll = true;
+              this.tooltipElement.style.overflowY = 'auto';
+            }
+          }
+        }
+
+        this.tooltipElement.style.maxHeight = `${finalMaxHeight}px`;
+
+        // ---- 第三步：用最终尺寸重新测量做水平定位 ----
+        const rect = this.tooltipElement.getBoundingClientRect();
+
+        // 计算目标元素的中心点 X 坐标
+        const targetCenterX = targetX + targetWidth / 2;
+        let adjustedX = targetCenterX - rect.width / 2;
         
+        // 设置箭头方向
         if (arrow && arrowBorder) {
-          // 箭头边框（外层，灰色）
-          arrowBorder.style.bottom = '-6px';
-          arrowBorder.style.top = 'auto';
-          arrowBorder.style.borderTop = '6px solid #dcdee5';
-          arrowBorder.style.borderBottom = 'none';
-          arrowBorder.style.borderLeft = '6px solid transparent';
-          arrowBorder.style.borderRight = '6px solid transparent';
-          
-          // 箭头（内层，白色）
-          arrow.style.bottom = '-5px';
-          arrow.style.top = 'auto';
-          arrow.style.borderTop = '5px solid #fff';
-          arrow.style.borderBottom = 'none';
-          arrow.style.borderLeft = '5px solid transparent';
-          arrow.style.borderRight = '5px solid transparent';
+          if (placedBelow) {
+            // tooltip 在目标下方，箭头朝上
+            arrowBorder.style.top = '-6px';
+            arrowBorder.style.bottom = 'auto';
+            arrowBorder.style.borderBottom = '6px solid #dcdee5';
+            arrowBorder.style.borderTop = 'none';
+            arrowBorder.style.borderLeft = '6px solid transparent';
+            arrowBorder.style.borderRight = '6px solid transparent';
+            
+            arrow.style.top = '-5px';
+            arrow.style.bottom = 'auto';
+            arrow.style.borderBottom = '5px solid #fff';
+            arrow.style.borderTop = 'none';
+            arrow.style.borderLeft = '5px solid transparent';
+            arrow.style.borderRight = '5px solid transparent';
+          } else {
+            // tooltip 在目标上方，箭头朝下
+            arrowBorder.style.bottom = '-6px';
+            arrowBorder.style.top = 'auto';
+            arrowBorder.style.borderTop = '6px solid #dcdee5';
+            arrowBorder.style.borderBottom = 'none';
+            arrowBorder.style.borderLeft = '6px solid transparent';
+            arrowBorder.style.borderRight = '6px solid transparent';
+            
+            arrow.style.bottom = '-5px';
+            arrow.style.top = 'auto';
+            arrow.style.borderTop = '5px solid #fff';
+            arrow.style.borderBottom = 'none';
+            arrow.style.borderLeft = '5px solid transparent';
+            arrow.style.borderRight = '5px solid transparent';
+          }
         }
 
         // 水平方向边界检查
@@ -239,15 +335,26 @@ class TextTooltip {
 
     // 延迟隐藏，避免闪烁
     this.hideTimer = window.setTimeout(() => {
-      if (this.tooltipElement) {
-        this.tooltipElement.style.opacity = '0';
-        setTimeout(() => {
-          if (this.tooltipElement) {
-            this.tooltipElement.style.display = 'none';
-          }
-        }, 200);
+      if (!this.tooltipElement) return;
+
+      // 如果鼠标当前在 tooltip 上，不隐藏
+      const tooltipRect = this.tooltipElement.getBoundingClientRect();
+      const mouseX = (window as any).__tooltipMouseX ?? -1;
+      const mouseY = (window as any).__tooltipMouseY ?? -1;
+      if (
+        mouseX >= tooltipRect.left && mouseX <= tooltipRect.right
+        && mouseY >= tooltipRect.top && mouseY <= tooltipRect.bottom
+      ) {
+        return;
       }
-    }, 300);
+
+      this.tooltipElement.style.opacity = '0';
+      setTimeout(() => {
+        if (this.tooltipElement) {
+          this.tooltipElement.style.display = 'none';
+        }
+      }, 200);
+    }, 150);
   }
 
   /**
