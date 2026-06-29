@@ -163,11 +163,9 @@ func (act *actionSyncCorrectAgentID) Do(ctx *action.InstanceContext) error {
 
 	stats.CorrectedCount = len(recheckedItems)
 
-	if len(recheckedItems) > 0 {
-		if err = act.updateHosts(std, recheckedItems); err != nil {
-			logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to correct agent id, failed to update host dynamic")
-			return err
-		}
+	if err = act.updateHosts(std, recheckedItems); err != nil {
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to correct agent id, failed to update host dynamic")
+		return err
 	}
 
 	act.logStats(ctx, std, stats)
@@ -304,6 +302,10 @@ func matchAgentInfoAndHost(host *types.Host, agentInfo *types.AgentInfo) (string
 func (act *actionSyncCorrectAgentID) recheckItems(std *syncDataUtils.SyncDataActionStandarder,
 	stats *syncCorrectAgentIDStats, items []*correctItem) ([]*correctItem, error) {
 
+	if len(items) == 0 {
+		return []*correctItem{}, nil
+	}
+
 	hostIDs := conv.SliceToSlice(items, func(item *correctItem) int64 {
 		return item.host.HostID
 	})
@@ -349,6 +351,10 @@ func (act *actionSyncCorrectAgentID) recheckItems(std *syncDataUtils.SyncDataAct
 
 func (act *actionSyncCorrectAgentID) updateHosts(std *syncDataUtils.SyncDataActionStandarder,
 	items []*correctItem) error {
+
+	if len(items) == 0 {
+		return nil
+	}
 
 	hosts := make([]*types.Host, 0, len(items))
 	for _, item := range items {
