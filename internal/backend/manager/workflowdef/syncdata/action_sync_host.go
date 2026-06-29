@@ -15,6 +15,7 @@ import (
 	"slices"
 	"time"
 
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -40,6 +41,7 @@ func NewActionSyncHost(capability *Capability) action.Definition {
 		cmdbHandler:    capability.CMDBHandler,
 		storageHost:    capability.StorageTopo,
 		storageProcess: capability.StoragePlugin,
+		syncIface:      capability.SyncIface,
 	}
 }
 
@@ -54,6 +56,7 @@ type actionSyncHost struct {
 	cmdbHandler    cmdb.IHandler
 	storageHost    topoStg.IStorageHost
 	storageProcess pluginStg.IDaoProcess
+	syncIface      managerIface.ISyncManager
 }
 
 // Name returns the name of the action.
@@ -208,6 +211,10 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	if err := act.tryTriggerCorrectAgentID(ctx, std, updateHosts, dbData); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -340,6 +347,66 @@ func getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(
 	}
 
 	return hosts, nil
+}
+
+func (act *actionSyncHost) tryTriggerCorrectAgentID(
+	ctx *action.InstanceContext,
+	std *syncDataUtils.SyncDataActionStandarder,
+	updateHosts, dbData []*types.Host,
+) error {
+
+	hostIDs := filterNeedCorrectAgentIDHostIDs(updateHosts, dbData)
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	ctx.Data.Log().
+		Zh("发现 %d 台主机需要修正 Agent ID，触发修正任务", len(hostIDs)).
+		En("found %d hosts need to correct agent id, triggering correction task", len(hostIDs)).
+		Info()
+
+	triggerID, err := act.syncIface.LaunchSyncCorrectAgentID(std.Context(), hostIDs...)
+	if err != nil {
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to launch correct agent id task")
+		return err
+	}
+
+	logger.G.Sys().Ctx(std.Context()).
+		With("trigger-id", triggerID, "host-count", len(hostIDs)).
+		Info("launched correct agent id task")
+
+	return nil
+}
+
+func filterNeedCorrectAgentIDHostIDs(updateHosts, dbData []*types.Host) []int64 {
+	dbDataMap := make(map[int64]*types.Host, len(dbData))
+	for _, host := range dbData {
+		dbDataMap[host.HostID] = host
+	}
+
+	hostIDs := make([]int64, 0)
+	for _, host := range updateHosts {
+		dbHost, exists := dbDataMap[host.HostID]
+		if !exists {
+			continue
+		}
+		if dbHost.Dynamic == nil || dbHost.Dynamic.AgentID == "" {
+			continue
+		}
+		if host.Static == nil || host.Static.SyncedAgentID == "" {
+			continue
+		}
+		if host.Static.SyncedAgentID == dbHost.Dynamic.AgentID {
+			continue
+		}
+		if dbHost.Dynamic.NodeStatus == types.NodeStatusRunning {
+			continue
+		}
+
+		hostIDs = append(hostIDs, host.HostID)
+	}
+
+	return hostIDs
 }
 
 func (act *actionSyncHost) tryUpdateHostProcessBizID(std *syncDataUtils.SyncDataActionStandarder, bizID int64,

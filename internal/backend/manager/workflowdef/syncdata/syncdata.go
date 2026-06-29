@@ -12,6 +12,7 @@
 package syncdata
 
 import (
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -61,4 +62,7 @@ type Capability struct {
 
 	// workflow manager.
 	WorkflowCtl workflow.IManager
+
+	// sync manager interface.
+	SyncIface managerIface.ISyncManager
 }

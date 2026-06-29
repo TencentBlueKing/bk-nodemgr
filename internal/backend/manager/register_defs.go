@@ -150,6 +150,7 @@ func (mgr *Manager) registerDefSyncData() error {
 		DiscoverProvider:    mgr.conf.Provider,
 		Cache:               mgr.conf.Cache,
 		WorkflowCtl:         mgr.workflowMgr,
+		SyncIface:           mgr,
 	}
 
 	// register action defs.
