@@ -37,6 +37,8 @@ type IHandler interface {
 	DetectInfoBySSH(nCtx contextx.IContext, payload []byte)
 	// InstallPagentBySSH installs the pagent by ssh.
 	InstallPagentBySSH(nCtx contextx.IContext, payload []byte)
+	// InstallProxyBySSH installs the proxy by ssh.
+	InstallProxyBySSH(nCtx contextx.IContext, payload []byte)
 	// DetectInfoByWMI detects the node info by wmi.
 	DetectInfoByWMI(nCtx contextx.IContext, payload []byte)
 	// InstallPagentByWMI installs the pagent by wmi.
