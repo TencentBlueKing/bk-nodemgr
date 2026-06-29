@@ -47,6 +47,7 @@ func NewActionInstallProxyBySSH(capability *Capability) action.Definition {
 			storageHostCredit:     capability.StorageHostCredit,
 			storageNodeDeployment: capability.StorageNode,
 			storageHost:           capability.StorageTopo,
+			storageNetworkUnit:    capability.StorageTopo,
 			provider:              capability.DiscoverProvider,
 			passwordVault:         capability.HostPasswordVault,
 			storageActionInstance: capability.StorageWorkflow,
@@ -56,6 +57,8 @@ func NewActionInstallProxyBySSH(capability *Capability) action.Definition {
 			storageNodeDeployment: capability.StorageNode,
 			storageHost:           capability.StorageTopo,
 			storageActionInstance: capability.StorageWorkflow,
+			storageNetworkUnit:    capability.StorageTopo,
+			provider:              capability.DiscoverProvider,
 			passwordVault:         capability.HostPasswordVault,
 			proxyMessager:         capability.ProxyMessager,
 		},
@@ -175,8 +178,7 @@ func (act *actionInstallProxyBySSH) doRelayInstall(std *nodeUtils.NodeActionStan
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	callbackURLs, downloadURLs := std.BuildRelayServerURLs(relayInfo)
-	installCmd, err := act.pagentInstaller.buildInstallCmd(std, installerPath, downloadURLs, callbackURLs)
+	installCmd, err := act.pagentInstaller.buildInstallCmd(std, installerPath)
 	if err != nil {
 		return fmt.Errorf("failed to build install cmd: %w", err)
 	}

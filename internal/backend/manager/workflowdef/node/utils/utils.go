@@ -12,6 +12,7 @@
 package utils
 
 import (
+	"fmt"
 	"math/rand/v2"
 	"strings"
 
@@ -22,6 +23,18 @@ import (
 const (
 	// DefaultEndpointSelectionCount is the default count when selecting endpoints.
 	DefaultEndpointSelectionCount = 3
+)
+
+// NodeInstallerEndpointSource defines where installer callback/download endpoints should come from.
+type NodeInstallerEndpointSource string
+
+const (
+	// NodeInstallerEndpointSourceServer uses backend/file service endpoints selected from discover.
+	NodeInstallerEndpointSourceServer NodeInstallerEndpointSource = "server"
+	// NodeInstallerEndpointSourceRelay uses the selected relay's callback/download endpoints.
+	NodeInstallerEndpointSourceRelay NodeInstallerEndpointSource = "relay"
+	// NodeInstallerEndpointSourceProxySelf uses the proxy host's own relay callback/download endpoints.
+	NodeInstallerEndpointSourceProxySelf NodeInstallerEndpointSource = "proxy_self"
 )
 
 func buildServerURL(needV4, needV6 bool, endpoints ...discover.Endpoint) []string {
@@ -87,4 +100,122 @@ func SelectOneServerV6URL(endpoints []discover.Endpoint) string {
 	}
 
 	return addrs[0]
+}
+
+// SelectInstallEndpointSource selects install callback/download endpoint source from control mode.
+func SelectInstallEndpointSource(std *NodeActionStandarder) NodeInstallerEndpointSource {
+	if std.DeployInfo().InstallOptions.DirectInstall {
+		return NodeInstallerEndpointSourceServer
+	}
+
+	return NodeInstallerEndpointSourceRelay
+}
+
+// GenerateNodeInstallerServerEndpoints generates installer callback/download endpoints from the given source.
+// Returns: (callback endpoints, download endpoints).
+func GenerateNodeInstallerServerEndpoints(
+	std *NodeActionStandarder,
+	provider discover.Discover,
+	source NodeInstallerEndpointSource) (
+	[]discover.Endpoint, []discover.Endpoint, error) {
+		
+	switch source {
+	case NodeInstallerEndpointSourceServer:
+		return generateDirectServerEndpoints(provider)
+	case NodeInstallerEndpointSourceRelay:
+		return generateInDirectServerEndpoints(std)
+	case NodeInstallerEndpointSourceProxySelf:
+		return generateProxySelfEndpoints(std)
+	default:
+		return nil, nil, fmt.Errorf("unsupported installer endpoint source: %s", source)
+	}
+}
+
+func generateInDirectServerEndpoints(std *NodeActionStandarder) ([]discover.Endpoint, []discover.Endpoint, error) {
+	relay, err := std.GetSelectedRelay()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get selected relay: %w", err)
+	}
+
+	callbackEndpoints, downloadEndpoints := RelayToEndpoints(relay)
+
+	// shuffle callback endpoints.
+	rand.Shuffle(len(callbackEndpoints), func(i, j int) {
+		callbackEndpoints[i], callbackEndpoints[j] = callbackEndpoints[j], callbackEndpoints[i]
+	})
+
+	if len(callbackEndpoints) > DefaultEndpointSelectionCount {
+		callbackEndpoints = callbackEndpoints[:DefaultEndpointSelectionCount]
+	}
+
+	// shuffle download endpoints.
+	rand.Shuffle(len(downloadEndpoints), func(i, j int) {
+		downloadEndpoints[i], downloadEndpoints[j] = downloadEndpoints[j], downloadEndpoints[i]
+	})
+
+	if len(downloadEndpoints) > DefaultEndpointSelectionCount {
+		downloadEndpoints = downloadEndpoints[:DefaultEndpointSelectionCount]
+	}
+
+	return callbackEndpoints, downloadEndpoints, nil
+}
+
+func generateDirectServerEndpoints(provider discover.Discover) ([]discover.Endpoint, []discover.Endpoint, error) {
+	callbackEndpoints, err := provider.SelectEndpoints(
+		discover.ServiceNameBackend,
+		discover.EndpointNameBackendCallback,
+		DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
+	}
+
+	downloadEndpoints, err := provider.SelectEndpoints(
+		discover.ServiceNameFile,
+		discover.EndpointNameFileDownload,
+		DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to select file endpoints: %w", err)
+	}
+
+	return callbackEndpoints, downloadEndpoints, nil
+}
+
+func generateProxySelfEndpoints(std *NodeActionStandarder) ([]discover.Endpoint, []discover.Endpoint, error) {
+	host := std.DeployInfo().Host
+	if host.Dynamic.RelayCallbackPort <= 0 || host.Dynamic.RelayDownloadPort <= 0 {
+		return nil, nil, fmt.Errorf("host relay ports are not set")
+	}
+	innerIP := ""
+	if len(host.Static.InnerIPList) > 0 {
+		innerIP = host.Static.InnerIPList[0]
+	}
+
+	innerIPV6 := ""
+	if len(host.Static.InnerIPV6List) > 0 {
+		innerIPV6 = host.Static.InnerIPV6List[0]
+	}
+
+	if innerIP == "" && innerIPV6 == "" {
+		return nil, nil, fmt.Errorf("host inner ip and ipv6 are not set")
+	}
+
+	callbackEndpoints := []discover.Endpoint{
+		{
+			IPV4: innerIP,
+			IPV6: innerIPV6,
+			Port: int(host.Dynamic.RelayCallbackPort),
+		},
+	}
+
+	downloadEndpoints := []discover.Endpoint{
+		{
+			IPV4: innerIP,
+			IPV6: innerIPV6,
+			Port: int(host.Dynamic.RelayDownloadPort),
+		},
+	}
+
+	return callbackEndpoints, downloadEndpoints, nil
 }

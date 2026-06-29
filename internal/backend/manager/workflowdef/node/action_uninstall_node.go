@@ -42,6 +42,7 @@ func NewActionUninstallNode(capability *Capability) action.Definition {
 	return &actionUninstallNode{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
 		provider:              capability.DiscoverProvider,
 		storageActionInstance: capability.StorageWorkflow,
@@ -56,6 +57,7 @@ type ActionParamUninstallNode struct {
 type actionUninstallNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	gseHandler            gse.IHandler
 	provider              discover.Provider
 	storageActionInstance workflow.IStorageActionInstance
@@ -140,13 +142,10 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	callbackEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		nodeUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
+	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeUtils.NodeInstallerEndpointSourceServer)
 	if err != nil {
-		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	uninstallParams := &installer.NodeUninstallParams{

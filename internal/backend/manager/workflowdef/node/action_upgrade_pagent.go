@@ -18,6 +18,7 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -39,6 +40,8 @@ func NewActionUpgradePagent(capability *Capability) action.Definition {
 	return &actionUpgradePagent{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
+		provider:              capability.DiscoverProvider,
 		gseHandler:            capability.GSEHandler,
 		storageActionInstance: capability.StorageWorkflow,
 	}
@@ -52,6 +55,8 @@ type ActionParamUpgradePagent struct {
 type actionUpgradePagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
+	provider              discover.Provider
 	gseHandler            gse.IHandler
 	storageActionInstance workflow.IStorageActionInstance
 }
@@ -135,10 +140,10 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	// get service addresses from relay config file.
-	callbackSvcAddr, downloadSvcAddr, err := act.selectServiceURLs(std)
+	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay)
 	if err != nil {
-		return fmt.Errorf("failed to select service urls: %w", err)
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	upgradeParams := &installer.NodeUpgradeParams{
@@ -151,8 +156,8 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		DownloadSvrAddr:   downloadSvcAddr,
-		CallbackSvrAddr:   callbackSvcAddr,
+		DownloadSvrAddr:   nodeUtils.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		NodeVersion:       std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:        std.InstanceData().OperationInstanceID,
@@ -247,21 +252,4 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 		Info()
 
 	return nil
-}
-
-// selectServiceURLs builds callback and download server URLs from the pre-selected relay.
-// Returns: (callbackURLs, downloadURLs, error).
-func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
-	relay, err := std.GetSelectedRelay()
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get selected relay info: %w", err)
-	}
-	callbackSvrAddr, downloadSvrAddr := std.BuildRelayServerURLs(relay)
-
-	std.InstanceData().Log().
-		Zh("relay 下载服务地址(%s), 回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).
-		En("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr).
-		Info()
-
-	return callbackSvrAddr, downloadSvrAddr, nil
 }

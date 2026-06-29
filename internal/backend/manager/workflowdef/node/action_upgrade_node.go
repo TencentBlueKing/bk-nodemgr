@@ -42,6 +42,7 @@ func NewActionUpgradeNode(capability *Capability) action.Definition {
 	return &actionUpgradeNode{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
 		provider:              capability.DiscoverProvider,
 		storageActionInstance: capability.StorageWorkflow,
@@ -56,6 +57,7 @@ type ActionParamUpgradeNode struct {
 type actionUpgradeNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	gseHandler            gse.IHandler
 	provider              discover.Provider
 	storageActionInstance workflow.IStorageActionInstance
@@ -140,37 +142,10 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	var callbackSvrAddr string
-
-	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		// notice: in the normal case, this branch will not be entered, because the upgrade of Proxy will use ActionNameUpgradeProxy.
-		// proxy upgrade: use proxy's own relay callback address,
-		// since proxy is the relay in its own network unit.
-		proxyEndpoint := discover.Endpoint{
-			Port: int(std.DeployInfo().Host.Dynamic.RelayCallbackPort),
-		}
-
-		if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
-			proxyEndpoint.IPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
-		}
-
-		if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
-			proxyEndpoint.IPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
-		}
-
-		callbackSvrAddr = nodeUtils.BuildServerURLs(proxyEndpoint)
-	} else {
-		// direct-link agent upgrade: use discover callback endpoints.
-		callbackEndpoints, err := act.provider.SelectEndpoints(
-			discover.ServiceNameBackend,
-			discover.EndpointNameBackendCallback,
-			nodeUtils.DefaultEndpointSelectionCount,
-			discover.NewRoundRobinSelector())
-		if err != nil {
-			return fmt.Errorf("failed to select backend callback endpoints: %w", err)
-		}
-
-		callbackSvrAddr = nodeUtils.BuildServerURLs(callbackEndpoints...)
+	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeUtils.NodeInstallerEndpointSourceServer)
+	if err != nil {
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	upgradeParams := &installer.NodeUpgradeParams{
@@ -183,7 +158,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		CallbackSvrAddr:   callbackSvrAddr,
+		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		NodeVersion:       std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:        std.InstanceData().OperationInstanceID,

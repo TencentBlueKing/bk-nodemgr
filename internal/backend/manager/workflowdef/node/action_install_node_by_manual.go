@@ -45,6 +45,7 @@ func NewActionInstallNodeByManual(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
+		storageNetworkUnit:    capability.StorageTopo,
 		provider:              capability.DiscoverProvider,
 		passwordVault:         capability.HostPasswordVault,
 	}
@@ -60,6 +61,7 @@ type actionInstallNodeByManual struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	provider              discover.Provider
 	passwordVault         creditvault.IHostPasswordVault
 }
@@ -153,15 +155,16 @@ func (act *actionInstallNodeByManual) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActionStandarder) error {
-	callbackSvrAddress, downloadSvrAddress, err := act.selectServiceURLs(std)
-	if err != nil {
-		return fmt.Errorf("failed to select service urls: %w", err)
-	}
-
 	// format installer tool name
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return fmt.Errorf("failed to format installer tool name: %w", err)
+	}
+
+	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
+	if err != nil {
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	// generate download URL and commands
@@ -182,8 +185,8 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
 		},
 		InstallerPath:   installerPath,
-		DownloadSvrAddr: downloadSvrAddress,
-		CallbackSvrAddr: callbackSvrAddress,
+		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:     std.Token(),
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:      std.InstanceData().OperationInstanceID,
@@ -236,39 +239,4 @@ func (act *actionInstallNodeByManual) buildCMD(param *installer.NodeInstallParam
 	}
 
 	return installCmd, nil
-}
-
-// selectServiceURLs selects service URLs for download and callback servers.
-// Returns: (callbackURLs, downloadURLs, error).
-func (act *actionInstallNodeByManual) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
-	if !std.DeployInfo().InstallOptions.DirectInstall {
-		relay, err := std.GetSelectedRelay()
-		if err != nil {
-			return "", "", fmt.Errorf("failed to get selected relay info: %w", err)
-		}
-		callbackURL, downloadURL := std.BuildRelayServerURLs(relay)
-
-		return callbackURL, downloadURL, nil
-	}
-
-	randSelector := discover.NewRandomSelector()
-	callbackSvrEndpoint, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		nodeUtils.DefaultEndpointSelectionCount,
-		randSelector)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to select backend callback endpoint: %w", err)
-	}
-
-	downloadSvrEndpoint, err := act.provider.SelectEndpoints(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileDownload,
-		nodeUtils.DefaultEndpointSelectionCount,
-		randSelector)
-	if err != nil {
-		return "", "", fmt.Errorf("failed to select file download endpoint: %w", err)
-	}
-
-	return nodeUtils.BuildServerURLs(callbackSvrEndpoint...), nodeUtils.BuildServerURLs(downloadSvrEndpoint...), nil
 }

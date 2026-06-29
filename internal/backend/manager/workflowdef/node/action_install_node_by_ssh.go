@@ -55,6 +55,7 @@ func NewActionInstallNodeBySSH(capability *Capability) action.Definition {
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
 		provider:              capability.DiscoverProvider,
 		passwordVault:         capability.HostPasswordVault,
 		storageActionInstance: capability.StorageWorkflow,
@@ -74,6 +75,7 @@ type actionInstallNodeBySSH struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	provider              discover.Provider
 	passwordVault         creditvault.IHostPasswordVault
 }
@@ -546,23 +548,10 @@ func (act *actionInstallNodeBySSH) openInstallerReader(std *nodeUtils.NodeAction
 }
 
 func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
-	selector := discover.NewRoundRobinSelector()
-	downloadEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileDownload,
-		nodeUtils.DefaultEndpointSelectionCount,
-		selector)
+	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
-		return fmt.Errorf("failed to select file endpoints: %w", err)
-	}
-
-	callbackEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		nodeUtils.DefaultEndpointSelectionCount,
-		selector)
-	if err != nil {
-		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	installParams := &installer.NodeInstallParams{

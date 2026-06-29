@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -49,8 +50,9 @@ func NewActionInstallPagentByWMI(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
-
-		passwordVault: capability.HostPasswordVault,
+		storageNetworkUnit:    capability.StorageTopo,
+		provider:              capability.DiscoverProvider,
+		passwordVault:         capability.HostPasswordVault,
 
 		proxyMessager: capability.ProxyMessager,
 	}
@@ -66,8 +68,9 @@ type actionInstallPagentByWMI struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
-
-	passwordVault creditvault.IHostPasswordVault
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
+	provider              discover.Provider
+	passwordVault         creditvault.IHostPasswordVault
 
 	proxyMessager relayhandler.IServerMessager
 }
@@ -164,10 +167,8 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	callbackURLs, downloadURLs := std.BuildRelayServerURLs(relayInfo)
-
 	// build install command.
-	installCmd, err := act.buildInstallCmd(std, installerPath, downloadURLs, callbackURLs)
+	installCmd, err := act.buildInstallCmd(std, installerPath)
 	if err != nil {
 		return fmt.Errorf("failed to build install cmd: %w", err)
 	}
@@ -317,8 +318,13 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 
 func (act *actionInstallPagentByWMI) buildInstallCmd(
 	std *nodeUtils.NodeActionStandarder,
-	installerPath string,
-	downloadURLs, callbackURLs string) (string, error) {
+	installerPath string) (string, error) {
+
+	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate node installer server endpoints: %w", err)
+	}
 
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
@@ -329,8 +335,8 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 			BaseDeployDir: std.DeployInfo().BaseRuntime.BaseDeployDir,
 		},
 		InstallerPath:          installerPath,
-		DownloadSvrAddr:        downloadURLs,
-		CallbackSvrAddr:        callbackURLs,
+		DownloadSvrAddr:        nodeUtils.BuildServerURLs(downloadEndpoints...),
+		CallbackSvrAddr:        nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:            std.Token(),
 		NodeVersion:            std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:             std.InstanceData().OperationInstanceID,

@@ -42,6 +42,8 @@ func NewActionUpgradeProxy(capability *Capability) action.Definition {
 	return &actionUpgradeProxy{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
+		provider:              capability.DiscoverProvider,
 		gseHandler:            capability.GSEHandler,
 		storageActionInstance: capability.StorageWorkflow,
 	}
@@ -55,6 +57,8 @@ type ActionParamUpgradeProxy struct {
 type actionUpgradeProxy struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
+	provider              discover.Provider
 	gseHandler            gse.IHandler
 	storageActionInstance workflow.IStorageActionInstance
 }
@@ -138,16 +142,10 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	proxyEndpoint := discover.Endpoint{
-		Port: int(std.DeployInfo().Host.Dynamic.RelayCallbackPort),
-	}
-
-	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
-		proxyEndpoint.IPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
-	}
-
-	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
-		proxyEndpoint.IPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
+	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeUtils.NodeInstallerEndpointSourceProxySelf)
+	if err != nil {
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	upgradeParams := &installer.NodeUpgradeParams{
@@ -160,7 +158,7 @@ func (act *actionUpgradeProxy) Do(ctx *action.InstanceContext) error {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		CallbackSvrAddr:   nodeUtils.BuildServerURLs(proxyEndpoint),
+		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		NodeVersion:       std.DeployInfo().Host.Dynamic.NodeVersion,
 		OperInstID:        std.InstanceData().OperationInstanceID,

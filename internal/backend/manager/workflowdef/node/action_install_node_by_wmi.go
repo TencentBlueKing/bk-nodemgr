@@ -50,6 +50,7 @@ func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
 		provider:              capability.DiscoverProvider,
 		passwordVault:         capability.HostPasswordVault,
 		storageActionInstance: capability.StorageWorkflow,
@@ -67,6 +68,7 @@ type actionInstallNodeByWMI struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	provider              discover.Provider
 	passwordVault         creditvault.IHostPasswordVault
 	storageActionInstance workflow.IStorageActionInstance
@@ -301,22 +303,10 @@ func (act *actionInstallNodeByWMI) openInstallerReader(std *nodeUtils.NodeAction
 }
 
 func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
-	downloadEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameFile,
-		discover.EndpointNameFileDownload,
-		nodeUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
+	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
+	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
-		return fmt.Errorf("failed to select file endpoints: %w", err)
-	}
-
-	callbackEndpoints, err := act.provider.SelectEndpoints(
-		discover.ServiceNameBackend,
-		discover.EndpointNameBackendCallback,
-		nodeUtils.DefaultEndpointSelectionCount,
-		discover.NewRoundRobinSelector())
-	if err != nil {
-		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	installParams := &installer.NodeInstallParams{

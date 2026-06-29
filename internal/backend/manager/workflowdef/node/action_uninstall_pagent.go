@@ -18,6 +18,7 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -41,6 +42,8 @@ func NewActionUninstallPagent(capability *Capability) action.Definition {
 	return &actionUninstallPagent{
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
+		storageNetworkUnit:    capability.StorageTopo,
+		provider:              capability.DiscoverProvider,
 		gseHandler:            capability.GSEHandler,
 		storageActionInstance: capability.StorageWorkflow,
 	}
@@ -54,6 +57,8 @@ type ActionParamUninstallPagent struct {
 type actionUninstallPagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
+	storageNetworkUnit    topoStg.IStorageNetworkUnit
+	provider              discover.Provider
 	gseHandler            gse.IHandler
 	storageActionInstance workflow.IStorageActionInstance
 }
@@ -137,16 +142,11 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	// get callback address from the selected relay.
-	relayInfo, err := std.GetSelectedRelay()
+	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay)
 	if err != nil {
-		return fmt.Errorf("failed to get selected relay: %w", err)
+		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
-	callbackSvrAddr, _ := std.BuildRelayServerURLs(relayInfo)
-	std.InstanceData().Log().
-		Zh("relay 回调服务地址(%s)", callbackSvrAddr).
-		En("relay callback svr addr(%s)", callbackSvrAddr).
-		Info()
 
 	uninstallParams := &installer.NodeUninstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
@@ -158,10 +158,15 @@ func (act *actionUninstallPagent) Do(ctx *action.InstanceContext) error {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		CallbackSvrAddr:   callbackSvrAddr,
+		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
 	}
+
+	std.InstanceData().Log().
+		Zh("relay 回调服务地址(%s)", uninstallParams.CallbackSvrAddr).
+		En("relay callback svr addr(%s)", uninstallParams.CallbackSvrAddr).
+		Info()
 
 	err = saveWaitInstallerPrivateData(
 		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
