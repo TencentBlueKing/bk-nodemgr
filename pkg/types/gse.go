@@ -315,8 +315,10 @@ var (
 	 *  - v2.1.5-rc.1
 	 *  - v2.1.6-lts.2
 	 *  - v2.1.6-alpha.26-2
+	 *  - v2.1.6-alpha.26-cw.21
+	 *  - v2.1.6-alpha.26.cw.21
 	 */
-	gseVersionRegex = regexp.MustCompile(`^v(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)(?:-(\d+))?$`)
+	gseVersionRegex = regexp.MustCompile(`^v(\d+)\.(\d+)\.(\d+)-([a-zA-Z]+)\.(\d+)(?:[-.](.+))?$`)
 )
 
 // NewGSEVersionFormatter new gse version formatter.
