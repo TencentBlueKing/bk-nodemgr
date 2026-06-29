@@ -110,6 +110,9 @@ const (
 	// ServerPushEventTypeInstallBySSH describes the install by ssh event type.
 	ServerPushEventTypeInstallBySSH ServerPushEventType = "install_by_ssh"
 
+	// ServerPushEventTypeInstallProxyBySSH describes the install proxy by ssh event type.
+	ServerPushEventTypeInstallProxyBySSH ServerPushEventType = "install_proxy_by_ssh"
+
 	// ServerPushEventTypeInstallByWMI describes the install by wmi event type.
 	ServerPushEventTypeInstallByWMI ServerPushEventType = "install_by_wmi"
 )
@@ -186,6 +189,25 @@ type InstallPagentBySSHReq struct {
 
 	InstallerWorkDir string `json:"installer_work_dir"`
 	ToolsName        string `json:"tools_name"`
+	InstallerCmd     string `json:"installer_cmd"`
+}
+
+// InstallProxyBySSHReq defines the install proxy by ssh request.
+type InstallProxyBySSHReq struct {
+	ActionName string `json:"action_name"`
+	OperInstID string `json:"oper_inst_id"`
+
+	IP        string `json:"ip"`
+	Port      int64  `json:"port"`
+	User      string `json:"user"`
+	Password  string `json:"password"`
+	LoginMode string `json:"login_mode"`
+
+	InstallerWorkDir string `json:"installer_work_dir"`
+	InstallerName    string `json:"installer_name"`
+	ReleaseName      string `json:"release_name"`
+	ConfigName       string `json:"config_name"`
+	ChecklistName    string `json:"checklist_name"`
 	InstallerCmd     string `json:"installer_cmd"`
 }
 
