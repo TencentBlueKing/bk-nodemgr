@@ -16,10 +16,12 @@ import (
 	"fmt"
 	"time"
 
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -44,6 +46,7 @@ func NewActionWatchCMDBResource(capability *Capability) action.Definition {
 		cmdbHandler:    capability.CMDBHandler,
 		storageTopo:    capability.StorageTopo,
 		storageProcess: capability.StoragePlugin,
+		syncIface:      capability.SyncIface,
 	}
 }
 
@@ -58,9 +61,11 @@ type actionWatchAndApplyCMDBResource struct {
 	cmdbHandler    cmdb.IHandler
 	storageTopo    topoStg.IStorage
 	storageProcess pluginStg.IDaoProcess
+	syncIface      managerIface.ISyncManager
 
-	pendingProcessEvents *safequeue.SafeQueue[*types.HostEvent]
-	waitingCreateHostMap map[int64]*types.Host
+	pendingProcessEvents      *safequeue.SafeQueue[*types.HostEvent]
+	waitingCreateHostMap      map[int64]*types.Host
+	pendingCorrectAgentIDList []int64
 }
 
 // Name returns the name of the action.
@@ -115,6 +120,7 @@ func (act *actionWatchAndApplyCMDBResource) Do(ctx *action.InstanceContext) erro
 
 	act.pendingProcessEvents = safequeue.NewSafeQueue[*types.HostEvent]()
 	act.waitingCreateHostMap = make(map[int64]*types.Host)
+	act.pendingCorrectAgentIDList = make([]int64, 0)
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
@@ -139,6 +145,10 @@ func (act *actionWatchAndApplyCMDBResource) Do(ctx *action.InstanceContext) erro
 
 	if err = act.applyHostEvent(std); err != nil {
 		return fmt.Errorf("apply host event failed: %w", err)
+	}
+
+	if err = act.tryTriggerCorrectAgentID(std); err != nil {
+		return fmt.Errorf("trigger correct agent id failed: %w", err)
 	}
 
 	return nil
@@ -354,6 +364,10 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 		}
 	}
 
+	if act.checkHostNeedCorrectAgentID(dbHost, event.Detail) {
+		act.pendingCorrectAgentIDList = append(act.pendingCorrectAgentIDList, event.Detail.HostID)
+	}
+
 	if err := act.storageProcess.UpdateProcessManyHostBizID(std.Context(), event.Detail.Static.BizID, event.Detail.HostID); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机相关进程的业务id失败, 主机id: %d, 业务id: %d, 错误: %v", event.Detail.HostID, event.Detail.Static.BizID, err).
@@ -514,6 +528,46 @@ func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataU
 
 		return err
 	}
+
+	return nil
+}
+
+func (act *actionWatchAndApplyCMDBResource) checkHostNeedCorrectAgentID(dbHost, cmdbHost *types.Host) bool {
+	if dbHost.Dynamic == nil || dbHost.Dynamic.AgentID == "" {
+		return false
+	}
+	if cmdbHost.Static == nil || cmdbHost.Static.SyncedAgentID == "" {
+		return false
+	}
+	if cmdbHost.Static.SyncedAgentID == dbHost.Dynamic.AgentID {
+		return false
+	}
+	if dbHost.Dynamic.NodeStatus == types.NodeStatusRunning {
+		return false
+	}
+
+	return true
+}
+
+func (act *actionWatchAndApplyCMDBResource) tryTriggerCorrectAgentID(std *syncDataUtils.SyncDataActionStandarder) error {
+	if len(act.pendingCorrectAgentIDList) == 0 {
+		return nil
+	}
+
+	std.InstanceData().Log().
+		Zh("发现 %d 台主机需要修正 Agent ID，触发修正任务", len(act.pendingCorrectAgentIDList)).
+		En("found %d hosts need to correct agent id, triggering correction task", len(act.pendingCorrectAgentIDList)).
+		Info()
+
+	triggerID, err := act.syncIface.LaunchSyncCorrectAgentID(std.Context(), act.pendingCorrectAgentIDList...)
+	if err != nil {
+		logger.G.Sys().Ctx(std.Context()).WithErr(err).Error("failed to launch correct agent id task")
+		return err
+	}
+
+	logger.G.Sys().Ctx(std.Context()).
+		With("trigger-id", triggerID, "host-count", len(act.pendingCorrectAgentIDList)).
+		Info("launched correct agent id task")
 
 	return nil
 }
