@@ -219,7 +219,7 @@ service Sync {
   rpc SyncCorrectAgentID(SyncCorrectAgentIDReq)
       returns (SyncCorrectAgentIDResp) {
     option (google.api.http) = {
-      post : "/api/v3/sync/gse/agent/id/correct"
+      post : "/api/v3/sync/gse/agent/correct_agent_id"
       body : "*"
     };
   }

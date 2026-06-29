@@ -211,6 +211,12 @@
         },
         "log_dir": {
           "type": "string"
+        },
+        "zone_id": {
+          "type": "string"
+        },
+        "city_id": {
+          "type": "string"
         }
       },
       "description": "NodeRuntime describes the node runtime config."

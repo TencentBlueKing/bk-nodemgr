@@ -118,7 +118,7 @@
         ]
       }
     },
-    "/api/v3/sync/gse/agent/id/correct": {
+    "/api/v3/sync/gse/agent/correct_agent_id": {
       "post": {
         "operationId": "Sync_SyncCorrectAgentID",
         "responses": {
