@@ -17,6 +17,9 @@ const (
 
 	// CCPageSizeLimit describe the max page size.
 	CCPageSizeLimit = 500
+
+	// CCHostIDBatchSize describe the batch size when use host id as param.
+	CCHostIDBatchSize = 500
 )
 
 type ccField string

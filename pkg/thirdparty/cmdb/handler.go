@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
@@ -1141,15 +1142,12 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 		hostIDs[idx] = host.BKHostID
 	}
 
-	findHostBizRelationsReq := &FindHostBizRelationsReq{
-		BKHostID: hostIDs,
-	}
-	findHostBizRelationsResp, err := h.cli.findHostBizRelations(nCtx, findHostBizRelationsReq)
+	findHostBizRelationsResp, err := h.findHostBizRelations(nCtx, hostIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list host with biz: %w", err)
 	}
 
-	hostRel, err := conv.SliceToMap[int64, *HostTopoRelation](*findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
+	hostRel, err := conv.SliceToMap[int64, *HostTopoRelation](findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
 		return rel.BKHostID
 	})
 	if err != nil {
@@ -1198,15 +1196,12 @@ func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filte
 		return host.HostID
 	})
 
-	findHostBizRelationsReq := &FindHostBizRelationsReq{
-		BKHostID: hostIDs,
-	}
-	findHostBizRelationsResp, err := h.cli.findHostBizRelations(nCtx, findHostBizRelationsReq)
+	findHostBizRelationsResp, err := h.findHostBizRelations(nCtx, hostIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list host without biz: %w", err)
 	}
 
-	hostBizRel, err := conv.SliceToMap[int64, *HostTopoRelation](*findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
+	hostBizRel, err := conv.SliceToMap[int64, *HostTopoRelation](findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
 		return rel.BKHostID
 	})
 	if err != nil {
@@ -1224,6 +1219,28 @@ func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filte
 	}
 
 	return hosts, nil
+}
+
+func (h *Handler) findHostBizRelations(nCtx contextx.IContext, hostIDs []int64) ([]*HostTopoRelation, error) {
+	result, err := batchexecutor.Collect(nCtx, hostIDs,
+		func(nCtx contextx.IContext, batchHostIDs []int64) ([]*HostTopoRelation, error) {
+			resp, err := h.cli.findHostBizRelations(nCtx, &FindHostBizRelationsReq{
+				BKHostID: batchHostIDs,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return *resp, nil
+		},
+		batchexecutor.WithBatchSize(CCHostIDBatchSize),
+		batchexecutor.WithTimeout(ccQueryTimeout),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Items, nil
 }
 
 func convHostStaticExactConditionToBizIDs(cond *types.HostStaticExactCondition) []int64 {
