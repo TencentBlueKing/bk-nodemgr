@@ -1146,7 +1146,7 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 	}
 	findHostBizRelationsResp, err := h.cli.findHostBizRelations(nCtx, findHostBizRelationsReq)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list host without biz: %w", err)
+		return nil, fmt.Errorf("failed to list host with biz: %w", err)
 	}
 
 	hostRel, err := conv.SliceToMap[int64, *HostTopoRelation](*findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
