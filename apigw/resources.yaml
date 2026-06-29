@@ -4876,7 +4876,11 @@ paths:
                       node_runtime:
                         type: object
                         properties:
+                          city_id:
+                            type: string
                           log_dir:
+                            type: string
+                          zone_id:
                             type: string
                           data_ipc:
                             type: string
@@ -5200,7 +5204,11 @@ paths:
                             node_runtime:
                               type: object
                               properties:
+                                city_id:
+                                  type: string
                                 log_dir:
+                                  type: string
+                                zone_id:
                                   type: string
                                 data_ipc:
                                   type: string
@@ -5459,7 +5467,11 @@ paths:
                                   node_runtime:
                                     type: object
                                     properties:
+                                      city_id:
+                                        type: string
                                       log_dir:
+                                        type: string
+                                      zone_id:
                                         type: string
                                       data_ipc:
                                         type: string
@@ -5886,7 +5898,11 @@ paths:
                           node_runtime:
                             type: object
                             properties:
+                              city_id:
+                                type: string
                               log_dir:
+                                type: string
+                              zone_id:
                                 type: string
                               data_ipc:
                                 type: string
@@ -22913,7 +22929,11 @@ paths:
                           node_runtime:
                             type: object
                             properties:
+                              city_id:
+                                type: string
                               log_dir:
+                                type: string
+                              zone_id:
                                 type: string
                               data_ipc:
                                 type: string
