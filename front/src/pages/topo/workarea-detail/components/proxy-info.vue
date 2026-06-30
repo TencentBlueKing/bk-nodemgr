@@ -624,39 +624,64 @@ const proxyStatus = ref({ online: 0, abnormal: 0, notInstalled: 0 });
 const fetchProxyStatusCount = async () => {
   const bizIds = mainStore.selectedBusinessId || [];
   const listParams = getParams();
+
+  const { node_status: userNodeStatus, bk_biz_id: _, node_role: __, ...otherConditions } = listParams.exact_include_conditions;
+
   proxyStatusLoading.value = true;
   try {
-    const [normalRes, abnormalRes, totalRes] = await Promise.all([
-      // 正常：node_role=proxy + node_status=running
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['running'] },
-        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
-      }).catch(() => ({ total: 0 })),
-      // 异常 Proxy（node_status=damaged）
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['damaged'] },
-        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
-      }).catch(() => ({ total: 0 })),
-      // 已安装 Proxy（node_role=proxy，含所有状态）
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['proxy'] },
-        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
-      }).catch(() => ({ total: 0 })),
-    ]);
-    const online = normalRes.total ?? 0;
-    const abnormal = abnormalRes.total ?? 0;
-    const totalProxy = totalRes.total ?? 0;
-    proxyStatus.value = {
-      online,
-      abnormal,
-      notInstalled: Math.max(totalProxy - online - abnormal, 0),
-    };
+    if (userNodeStatus?.length) {
+      // 用户有 node_status 筛选，只统计已安装 proxy（node_role=proxy），不查 blank
+      const hasRunning = userNodeStatus.includes('running');
+      const abnormalStatuses = userNodeStatus.filter((s: string) => s !== 'running');
+
+      const [onlineRes, abnormalRes] = await Promise.all([
+        hasRunning
+          ? TopoService.HostList({
+            page: { offset: 0, limit: 0 },
+            only_count: true,
+            exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['running'] },
+            fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+          }).catch(() => ({ total: 0 }))
+          : { total: 0 },
+        abnormalStatuses.length > 0
+          ? TopoService.HostList({
+            page: { offset: 0, limit: 0 },
+            only_count: true,
+            exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: abnormalStatuses },
+            fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+          }).catch(() => ({ total: 0 }))
+          : { total: 0 },
+      ]);
+
+      proxyStatus.value = {
+        online: (onlineRes as any).total ?? 0,
+        abnormal: (abnormalRes as any).total ?? 0,
+        notInstalled: 0,
+      };
+    } else {
+      // 无状态筛选：只统计已安装 proxy，abnormal = total - online（含初始化等所有非 running）
+      const [onlineRes, totalRes] = await Promise.all([
+        TopoService.HostList({
+          page: { offset: 0, limit: 0 },
+          only_count: true,
+          exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['proxy'], node_status: ['running'] },
+          fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+        }).catch(() => ({ total: 0 })),
+        TopoService.HostList({
+          page: { offset: 0, limit: 0 },
+          only_count: true,
+          exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['proxy'] },
+          fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+        }).catch(() => ({ total: 0 })),
+      ]);
+      const online = onlineRes.total ?? 0;
+      const totalProxy = totalRes.total ?? 0;
+      proxyStatus.value = {
+        online,
+        abnormal: Math.max(totalProxy - online, 0),
+        notInstalled: 0,
+      };
+    }
   } catch {
     proxyStatus.value = { online: 0, abnormal: 0, notInstalled: 0 };
   } finally {

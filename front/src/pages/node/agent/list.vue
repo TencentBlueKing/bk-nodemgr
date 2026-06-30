@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <page-header :title="'route.agentStatus'" :back="Object.keys(route.query).length > 0">
     <!-- Agent 状态统计：标题后、subtitle 前 -->
     <template #after-title>
@@ -573,7 +573,7 @@ const upgradeDisabledState = computed(() => {
   if (hasNonRunning) {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledNotRunning'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledNotRunning'),
     };
   }
 
@@ -581,7 +581,7 @@ const upgradeDisabledState = computed(() => {
   if (hasUnassigned) {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledUnassigned'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledUnassigned'),
     };
   }
 
@@ -597,7 +597,7 @@ const restartDisabledState = computed(() => {
   if (hasNonRunning) {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledNotRunning'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledNotRunning'),
     };
   }
 
@@ -605,7 +605,7 @@ const restartDisabledState = computed(() => {
   if (hasUnassigned) {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledUnassigned'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledUnassigned'),
     };
   }
 
@@ -621,7 +621,7 @@ const uninstallDisabledState = computed(() => {
   if (hasUnassigned) {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledUnassigned'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledUnassigned'),
     };
   }
 
@@ -636,7 +636,7 @@ const operate = computed(() => [
   { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: restartDisabledState.value.disabled, tooltip: restartDisabledState.value.tooltip, show: true },
   { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: uninstallDisabledState.value.disabled, tooltip: uninstallDisabledState.value.tooltip, show: true },
   { id: 'assign_unit', name: t('platform.nodeMan.agentStatus.assignUnit'), disabled: assignUnitDisabledState.value.disabled, tooltip: assignUnitDisabledState.value.tooltip, show: true },
-  { id: 'update_ops_fields', name: t('platform.nodeMan.agentStatus.opsSetting'), disabled: false, tooltip: '', show: true },
+  { id: 'update_ops_fields', name: t('platform.nodeMan.agentNodeStatus.opsSetting'), disabled: false, tooltip: '', show: true },
 ]);
 const agentInstallType = [
   { id: 'setup', name: '普通远程安装' },
@@ -1084,41 +1084,77 @@ const agentStatus = ref({ online: 0, offline: 0, notInstalled: 0 });
 const fetchAgentStatusCount = async () => {
   const listParams = getParams();
   const bizIds = mainStore.selectedBusinessId || [];
+  const { node_status: userNodeStatus, bk_biz_id: _, node_role: __, ...otherConditions } = listParams.exact_include_conditions;
 
   agentStatusLoading.value = true;
   try {
-    const [onlineRes, agentRes, blankRes] = await Promise.all([
-      // 在线：node_role=agent + node_status=running
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['agent'], node_status: ['running'] },
-        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
-      }).catch(() => ({ total: 0 })),
-      // 已安装 Agent（node_role=agent，含所有状态）
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['agent'] },
-        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
-      }).catch(() => ({ total: 0 })),
-      // 未安装（node_role=blank）
-      TopoService.HostList({
-        page: { offset: 0, limit: 0 },
-        only_count: true,
-        exact_include_conditions: { ...listParams.exact_include_conditions, bk_biz_id: bizIds, node_role: ['blank'] },
-        fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
-      }).catch(() => ({ total: 0 })),
-    ]);
+    if (userNodeStatus?.length) {
+      // 用户有 node_status 筛选，拆分为 running 和 非 running 分别查询
+      const hasRunning = userNodeStatus.includes('running');
+      const offlineStatuses = userNodeStatus.filter((s: string) => s !== 'running');
 
-    const online = onlineRes.total ?? 0;
-    const totalAgent = agentRes.total ?? 0;
-    const notInstalled = blankRes.total ?? 0;
-    agentStatus.value = {
-      online,
-      offline: Math.max(totalAgent - online, 0),
-      notInstalled,
-    };
+      const [onlineRes, offlineRes, blankRes] = await Promise.all([
+        hasRunning
+          ? TopoService.HostList({
+            page: { offset: 0, limit: 0 },
+            only_count: true,
+            exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['agent'], node_status: ['running'] },
+            fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+          }).catch(() => ({ total: 0 }))
+          : { total: 0 },
+        offlineStatuses.length > 0
+          ? TopoService.HostList({
+            page: { offset: 0, limit: 0 },
+            only_count: true,
+            exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['agent'], node_status: offlineStatuses },
+            fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+          }).catch(() => ({ total: 0 }))
+          : { total: 0 },
+        TopoService.HostList({
+          page: { offset: 0, limit: 0 },
+          only_count: true,
+          exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['blank'], node_status: userNodeStatus },
+          fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+        }).catch(() => ({ total: 0 })),
+      ]);
+
+      agentStatus.value = {
+        online: (onlineRes as any).total ?? 0,
+        offline: (offlineRes as any).total ?? 0,
+        notInstalled: (blankRes as any).total ?? 0,
+      };
+    } else {
+      // 无状态筛选，正常查询
+      const [onlineRes, agentRes, blankRes] = await Promise.all([
+        TopoService.HostList({
+          page: { offset: 0, limit: 0 },
+          only_count: true,
+          exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['agent'], node_status: ['running'] },
+          fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+        }).catch(() => ({ total: 0 })),
+        TopoService.HostList({
+          page: { offset: 0, limit: 0 },
+          only_count: true,
+          exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['agent'] },
+          fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+        }).catch(() => ({ total: 0 })),
+        TopoService.HostList({
+          page: { offset: 0, limit: 0 },
+          only_count: true,
+          exact_include_conditions: { ...otherConditions, bk_biz_id: bizIds, node_role: ['blank'] },
+          fuzzy_include_conditions: { ...listParams.fuzzy_include_conditions },
+        }).catch(() => ({ total: 0 })),
+      ]);
+
+      const online = onlineRes.total ?? 0;
+      const totalAgent = agentRes.total ?? 0;
+      const notInstalled = blankRes.total ?? 0;
+      agentStatus.value = {
+        online,
+        offline: Math.max(totalAgent - online, 0),
+        notInstalled,
+      };
+    }
   } catch {
     agentStatus.value = { online: 0, offline: 0, notInstalled: 0 };
   } finally {
@@ -1397,14 +1433,14 @@ const getRowOperateDisabled = (row: Host, config: any): { disabled: boolean; too
   if ((config.id === 'upgrade' || config.id === 'restart' || config.id === 'uninstall') && (row as any).node_status !== 'running') {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledRowNotRunning'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledRowNotRunning'),
     };
   }
   // Check network unit assignment for upgrade, restart, and uninstall
   if ((config.id === 'upgrade' || config.id === 'restart' || config.id === 'uninstall') && !isNetworkUnitAssigned((row as any).bk_networkunit_id)) {
     return {
       disabled: true,
-      tooltip: t('platform.nodeMan.agentStatus.operateDisabledRowUnassigned'),
+      tooltip: t('platform.nodeMan.agentNodeStatus.operateDisabledRowUnassigned'),
     };
   }
   return { disabled: false, tooltip: '' };

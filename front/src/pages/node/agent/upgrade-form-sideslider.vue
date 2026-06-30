@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Sideslider
     v-model:is-show="isShow"
     :width="640"
@@ -86,7 +86,7 @@
             </div>
           </Form.FormItem>
 
-          <Form.FormItem :label="$t('platform.nodeMan.agentStatus.forceUpgrade')">
+          <Form.FormItem :label="$t('platform.nodeMan.agentNodeStatus.forceUpgrade')">
             <Switcher v-model="formData.force" theme="primary" />
           </Form.FormItem>
 

@@ -52,6 +52,17 @@ platform:
       stopping: 停止中
       uninit: 未初始化
       unknown: 未安装
+      opsSetting: 带外管理
+      opsSettingPageDesc: 为选中的主机设置带外管理信息，包括主控机、设备类型、设备协议、管理IP和管理端口
+      opsSettingBatchSet: 批量设置
+      opsSettingSuccess: 带外管理设置成功
+      opsConsoleHostId: 主控机
+      opsOutBandType: 设备类型
+      opsOutBandProtocol: 设备协议
+      opsBMCIP: 管理IP
+      opsBMCPort: 管理端口
+      batchFill: 批量填写
+      opsSettingBatchFillDone: 批量填写完成
       operateDisabledNotRunning: 选中主机中包含 Agent 状态异常的节点，请先排查修复后再操作
       operateDisabledRowNotRunning: 该主机 Agent 状态异常，请先排查修复后再操作
       operateDisabledUnassigned: 选中主机中包含未分配管控单元的节点，请先分配管控单元后再操作
@@ -84,16 +95,6 @@ platform:
       assignUnitLoadingHosts: 正在加载主机数据...
       assignUnitConfirmDeleteRow: 确认移除该行主机？
       assignUnitConfirmDeleteRowSub: 移除后主机 {ip} 将不会被分配管控单元
-      opsSetting: 带外管理
-      opsSettingPageDesc: 为选中的主机设置带外管理信息，包括主控机、设备类型、设备协议、管理IP和管理端口
-      opsSettingBatchSet: 批量设置
-      opsConsoleHostId: 主控机
-      opsOutBandType: 设备类型
-      opsOutBandProtocol: 设备协议
-      opsBMCIP: 管理IP
-      opsBMCPort: 管理端口
-      batchFill: 批量填写
-      opsSettingBatchFillDone: 批量填写完成
     proxyStatus:
       title: Proxy 状态
       online: 在线

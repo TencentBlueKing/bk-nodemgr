@@ -138,7 +138,7 @@ const dropMenuList = ref<{
     value: 'assignUnit',
   },
   {
-    label: t('platform.nodeMan.agentStatus.opsSetting'),
+    label: t('platform.nodeMan.agentNodeStatus.opsSetting'),
     value: 'opsSetting',
   },
 ]);

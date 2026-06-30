@@ -821,6 +821,12 @@ const getHostDistinct = async () => {
         id: 'bk_agent_id',
       },
       {
+        name: t('platform.nodeMan.bk_cloud_unit'),
+        id: 'bk_networkunit_id',
+        children: getUniqueChildrenFrom('bk_networkunit_id', networkUnitListMap.value),
+        multiple: true,
+      },
+      {
         name: t('installProxy.proxyVersion'),
         id: 'node_version',
         children: getUniqueChildrenFrom('node_version'),

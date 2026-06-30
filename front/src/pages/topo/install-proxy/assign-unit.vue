@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Sideslider
     v-model:is-show="isShow"
     :title="$t('installProxy.assignUnit')"
@@ -9,7 +9,7 @@
     <div class="py-[20px] px-[40px]">
       <Form ref="formRef" :model="form" class="mt-[24px]">
         <Form.FormItem
-          :label="$t('platform.nodeMan.agentStatus.assignUnitHostInfo')"
+          :label="$t('platform.nodeMan.agentNodeStatus.assignUnitHostInfo')"
           label-width="90"
           required
         >

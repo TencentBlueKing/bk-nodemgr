@@ -52,6 +52,17 @@ platform:
       stopping: Stopping
       uninit: Uninitialized
       unknown: Not Installed
+      opsSetting: OOB Management
+      opsSettingPageDesc: Configure out-of-band management info for selected hosts, including console host, device type, device protocol, management IP and management port
+      opsSettingBatchSet: Batch Set
+      opsSettingSuccess: OOB management settings saved successfully
+      opsConsoleHostId: Console Host ID
+      opsOutBandType: Device Type
+      opsOutBandProtocol: Device Protocol
+      opsBMCIP: Management IP
+      opsBMCPort: Management Port
+      batchFill: Batch Fill
+      opsSettingBatchFillDone: Batch fill completed
       operateDisabledNotRunning: Selected hosts include nodes with abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledRowNotRunning: This host has abnormal Agent status. Please troubleshoot and fix before operating
       operateDisabledUnassigned: Selected hosts include nodes without assigned network unit. Please assign network unit before operating
@@ -84,16 +95,6 @@ platform:
       assignUnitLoadingHosts: Loading host data...
       assignUnitConfirmDeleteRow: Confirm to remove this host?
       assignUnitConfirmDeleteRowSub: Host {ip} will not be assigned a network unit after removal
-      opsSetting: OOB Management
-      opsSettingPageDesc: Configure out-of-band management info for selected hosts, including console host, device type, device protocol, management IP and management port
-      opsSettingBatchSet: Batch Set
-      opsConsoleHostId: Console Host ID
-      opsOutBandType: Device Type
-      opsOutBandProtocol: Device Protocol
-      opsBMCIP: Management IP
-      opsBMCPort: Management Port
-      batchFill: Batch Fill
-      opsSettingBatchFillDone: Batch fill completed
     proxyStatus:
       title: Proxy Status
       online: Online

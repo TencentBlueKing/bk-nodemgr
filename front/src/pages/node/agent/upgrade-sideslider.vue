@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Sideslider
     v-model:is-show="isShow"
     :title="drawerTitle"
@@ -9,7 +9,7 @@
     <div class="py-[20px] px-[40px]">
       <Form :model="formData" class="mt-[24px]">
         <Form.FormItem
-          :label="$t('platform.nodeMan.agentStatus.upgradeMode')"
+          :label="$t('platform.nodeMan.agentNodeStatus.upgradeMode')"
           label-width="100"
           required
         >
@@ -49,7 +49,7 @@
 
         <Form.FormItem
           v-if="upgradeMode === 'graceful'"
-          :label="$t('platform.nodeMan.agentStatus.timeout')"
+          :label="$t('platform.nodeMan.agentNodeStatus.timeout')"
           label-width="100"
         >
           <Input
@@ -65,7 +65,7 @@
         </Form.FormItem>
 
         <Form.FormItem
-          :label="$t('platform.nodeMan.agentStatus.hostInfo')"
+          :label="$t('platform.nodeMan.agentNodeStatus.hostInfo')"
           property=""
           label-width="100"
           required
@@ -149,7 +149,7 @@
           }"
           @click="handlePreview"
         >
-          <span>{{ $t('platform.nodeMan.agentStatus.goUpgrade') }}</span>
+          <span>{{ $t('platform.nodeMan.agentNodeStatus.goUpgrade') }}</span>
           <span
             class="ml-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
           >
@@ -287,9 +287,9 @@ const upgradeMode = ref<'force' | 'graceful'>('graceful');
 const upgradeModeList = computed(() => {
   const forceOption = {
     type: 'force' as const,
-    name: t('platform.nodeMan.agentStatus.forceUpgrade'),
+    name: t('platform.nodeMan.agentNodeStatus.forceUpgrade'),
     icon: 'nc-deploy',
-    desc: t('platform.nodeMan.agentStatus.forceUpgradeDesc'),
+    desc: t('platform.nodeMan.agentNodeStatus.forceUpgradeDesc'),
   };
   if (props.releaseType === 'proxy') {
     return [forceOption];
@@ -297,9 +297,9 @@ const upgradeModeList = computed(() => {
   return [
     {
       type: 'graceful' as const,
-      name: t('platform.nodeMan.agentStatus.gracefulUpgrade'),
+      name: t('platform.nodeMan.agentNodeStatus.gracefulUpgrade'),
       icon: 'nc-strategy',
-      desc: t('platform.nodeMan.agentStatus.gracefulUpgradeDesc'),
+      desc: t('platform.nodeMan.agentNodeStatus.gracefulUpgradeDesc'),
     },
     forceOption,
   ];

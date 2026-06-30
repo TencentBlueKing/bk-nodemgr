@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <div class="setup pt-[24px] pb-[48px]">
     <div class="m-[24px]">
       <Form ref="formRef" :model="formData">
         <Form.FormItem
-          :label="$t('platform.nodeMan.agentStatus.assignUnitHostInfo')"
+          :label="$t('platform.nodeMan.agentNodeStatus.assignUnitHostInfo')"
           required
         >
           <Loading :loading="loading">
@@ -30,7 +30,7 @@
         :loading="submitting"
         @click="handleConfirm"
       >
-        <span>{{ $t('platform.nodeMan.agentStatus.assignUnitConfirmBtn', { count: formData.info.length }) }}</span>
+        <span>{{ $t('platform.nodeMan.agentNodeStatus.assignUnitConfirmBtn', { count: formData.info.length }) }}</span>
       </Button>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
@@ -103,7 +103,7 @@ const handleConfirm = async () => {
   }
 
   if (grouped.size === 0) {
-    Message({ theme: 'warning', message: t('platform.nodeMan.agentStatus.assignUnitNoUnit') });
+    Message({ theme: 'warning', message: t('platform.nodeMan.agentNodeStatus.assignUnitNoUnit') });
     return;
   }
 
@@ -133,16 +133,16 @@ const handleConfirm = async () => {
       assignedHostIds.value = successHostIds;
 
       InfoBox({
-        title: t('platform.nodeMan.agentStatus.assignUnitSuccessTitle'),
+        title: t('platform.nodeMan.agentNodeStatus.assignUnitSuccessTitle'),
         content: () => h('div', { style: 'font-size: 14px; line-height: 1.8;' }, [
-          t('platform.nodeMan.agentStatus.assignUnitSuccessDescPrefix'),
+          t('platform.nodeMan.agentNodeStatus.assignUnitSuccessDescPrefix'),
           h('span', { style: 'color: #3fc06d; font-weight: bold;' }, totalSuccess),
-          t('platform.nodeMan.agentStatus.assignUnitSuccessDescMid'),
+          t('platform.nodeMan.agentNodeStatus.assignUnitSuccessDescMid'),
           h('span', { style: 'color: #ea3636; font-weight: bold;' }, totalFailed),
-          t('platform.nodeMan.agentStatus.assignUnitSuccessDescSuffix'),
+          t('platform.nodeMan.agentNodeStatus.assignUnitSuccessDescSuffix'),
         ]),
-        confirmText: t('platform.nodeMan.agentStatus.restartNow'),
-        cancelText: t('platform.nodeMan.agentStatus.handleLater'),
+        confirmText: t('platform.nodeMan.agentNodeStatus.restartNow'),
+        cancelText: t('platform.nodeMan.agentNodeStatus.handleLater'),
         onConfirm: () => {
           const firstIp = formData.info[0]?.bk_host_innerip || '';
           restartDialogTitle.value = t('platform.nodeMan.agentStatus.confirmIsBatch', {
@@ -162,7 +162,7 @@ const handleConfirm = async () => {
     } else {
       Message({
         theme: 'error',
-        message: allFailedReasons.join('; ') || t('platform.nodeMan.agentStatus.assignUnitAllFailed'),
+        message: allFailedReasons.join('; ') || t('platform.nodeMan.agentNodeStatus.assignUnitAllFailed'),
       });
     }
   } catch (err: any) {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div ref="contentRef">
     <VxeTable
       ref="xTableRef"
@@ -73,7 +73,7 @@
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'bk_networkunit_id') }">
                 <span v-if="getNetworkUnitName(row.bk_networkunit_id)">[{{ row.bk_networkunit_id }}] {{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
-                <span v-else class="cell-placeholder">{{ $t('platform.nodeMan.agentStatus.assignUnitSelectPlaceholder') }}</span>
+                <span v-else class="cell-placeholder">{{ $t('platform.nodeMan.agentNodeStatus.assignUnitSelectPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -239,8 +239,8 @@ const handleDelRow = (index: number) => {
   const row = tableData.value?.[index];
   const ip = row?.bk_host_innerip || row?.bk_host_innerip_v6 || '';
   InfoBox({
-    title: t('platform.nodeMan.agentStatus.assignUnitConfirmDeleteRow'),
-    subTitle: t('platform.nodeMan.agentStatus.assignUnitConfirmDeleteRowSub', { ip }),
+    title: t('platform.nodeMan.agentNodeStatus.assignUnitConfirmDeleteRow'),
+    subTitle: t('platform.nodeMan.agentNodeStatus.assignUnitConfirmDeleteRowSub', { ip }),
     onConfirm: () => doDelRow(index),
   });
 };

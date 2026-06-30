@@ -1,7 +1,7 @@
-<template>
+﻿<template>
     <div class="ops-setting pt-[24px] pb-[48px]">
         <div class="m-[24px]">
-            <p class="text-[14px] text-[#63656E] mb-[16px]">{{ $t('platform.nodeMan.agentStatus.opsSettingPageDesc') }}
+            <p class="text-[14px] text-[#63656E] mb-[16px]">{{ $t('platform.nodeMan.agentNodeStatus.opsSettingPageDesc') }}
             </p>
 
             <Loading :loading="loading">
@@ -53,16 +53,16 @@
                     </VxeColgroup>
 
                     <!-- 带外管理 -->
-                    <VxeColgroup :title="$t('platform.nodeMan.agentStatus.opsSetting')" align="center">
+                    <VxeColgroup :title="$t('platform.nodeMan.agentNodeStatus.opsSetting')" align="center">
                         <VxeColumn
                             field="ops_console_host_id"
-                            :title="$t('platform.nodeMan.agentStatus.opsConsoleHostId')"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsConsoleHostId')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentStatus.opsConsoleHostId') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentStatus.opsConsoleHostId')" type="input"
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsConsoleHostId') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsConsoleHostId')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_console_host_id', value)" />
                             </template>
                             <template #default="{ row }">
@@ -75,13 +75,13 @@
                         </VxeColumn>
                         <VxeColumn
                             field="ops_out_band_type"
-                            :title="$t('platform.nodeMan.agentStatus.opsOutBandType')"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandType')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentStatus.opsOutBandType') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentStatus.opsOutBandType')" type="input"
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandType') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandType')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_out_band_type', value)" />
                             </template>
                             <template #default="{ row }">
@@ -94,13 +94,13 @@
                         </VxeColumn>
                         <VxeColumn
                             field="ops_out_band_protocol"
-                            :title="$t('platform.nodeMan.agentStatus.opsOutBandProtocol')"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentStatus.opsOutBandProtocol') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentStatus.opsOutBandProtocol')" type="input"
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsOutBandProtocol')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_out_band_protocol', value)" />
                             </template>
                             <template #default="{ row }">
@@ -113,13 +113,13 @@
                         </VxeColumn>
                         <VxeColumn
                             field="ops_bmc_ip"
-                            :title="$t('platform.nodeMan.agentStatus.opsBMCIP')"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsBMCIP')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentStatus.opsBMCIP') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentStatus.opsBMCIP')" type="input"
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsBMCIP') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsBMCIP')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_bmc_ip', value)" />
                             </template>
                             <template #default="{ row }">
@@ -132,13 +132,13 @@
                         </VxeColumn>
                         <VxeColumn
                             field="ops_bmc_port"
-                            :title="$t('platform.nodeMan.agentStatus.opsBMCPort')"
+                            :title="$t('platform.nodeMan.agentNodeStatus.opsBMCPort')"
                             :min-width="140"
                             :edit-render="{ name: 'VxeInput' }"
                         >
                             <template #header>
-                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentStatus.opsBMCPort') }}</span>
-                                <BatchEdit :title="$t('platform.nodeMan.agentStatus.opsBMCPort')" type="input"
+                                <span class="mr-[5px]">{{ $t('platform.nodeMan.agentNodeStatus.opsBMCPort') }}</span>
+                                <BatchEdit :title="$t('platform.nodeMan.agentNodeStatus.opsBMCPort')" type="input"
                                     @confirm="(value: string) => handleBatchEdit('ops_bmc_port', value)" />
                             </template>
                             <template #default="{ row }">
@@ -233,7 +233,7 @@ const handleConfirm = async () => {
             await NodeAgentService.NodeAgentUpdateOpsFields({ hosts });
         }
 
-        Message({ theme: 'success', message: t('platform.nodeMan.agentStatus.opsSettingSuccess') });
+        Message({ theme: 'success', message: t('platform.nodeMan.agentNodeStatus.opsSettingSuccess') });
         setTimeout(() => {
             if (nodeType.value === 'proxy') {
                 router.push({ name: 'proxy' });
