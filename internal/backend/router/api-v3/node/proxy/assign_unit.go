@@ -12,9 +12,12 @@ package proxy
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -22,7 +25,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const assignUnitBatchSize = 2000
+const (
+	assignUnitBatchSize    = 2000
+	assignUnitBatchTimeout = 10 * time.Minute
+)
 
 // AssignProxyUnit assigns network unit to proxy hosts and triggers plugin installation workflow.
 // nolint: gocognit, funlen, gocyclo, cyclop
@@ -169,29 +175,26 @@ func (h *handler) fetchHostsInBatches(
 
 	hostIDs = uniqueIDs
 
-	var allHosts []*types.Host
 	foundIDs := make(map[int64]struct{})
 
-	for i := 0; i < len(hostIDs); i += assignUnitBatchSize {
-		end := i + assignUnitBatchSize
-		if end > len(hostIDs) {
-			end = len(hostIDs)
-		}
-		batch := hostIDs[i:end]
-
-		hosts, _, err := h.storageHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+	result, err := batchexecutor.Collect(rCtx, hostIDs, func(nCtx contextx.IContext, batch []int64) ([]*types.Host, error) {
+		hosts, _, err := h.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				HostID: batch,
 			},
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to fetch hosts: %w", err)
+			return nil, fmt.Errorf("failed to fetch hosts: %w", err)
 		}
 
 		for _, host := range hosts {
 			foundIDs[host.HostID] = struct{}{}
 		}
-		allHosts = append(allHosts, hosts...)
+
+		return hosts, nil
+	}, batchexecutor.WithBatchSize(assignUnitBatchSize), batchexecutor.WithTimeout(assignUnitBatchTimeout))
+	if err != nil {
+		return nil, nil, err
 	}
 
 	var missingIDs []int64
@@ -201,7 +204,7 @@ func (h *handler) fetchHostsInBatches(
 		}
 	}
 
-	return allHosts, missingIDs, nil
+	return result.Items, missingIDs, nil
 }
 
 func validateProxyAssignUnitPreconditions(hosts []*types.Host, targetUnit *types.NetworkUnit) error {

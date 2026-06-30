@@ -72,6 +72,7 @@ func Execute[T any](nCtx contextx.IContext, items []T, fn ExecuteFn[T], opts ...
 func Collect[In any, Out any](
 	nCtx contextx.IContext, items []In, fn CollectFn[In, Out], opts ...Option,
 ) (*Result[Out], error) {
+
 	opt := buildOption(opts...)
 
 	nCtx, cancel := contextx.WithTimeout(nCtx, opt.timeout)
@@ -88,6 +89,7 @@ func Collect[In any, Out any](
 		}
 
 		result.Items = append(result.Items, batchItems...)
+
 		return nil
 	})
 	if err != nil {

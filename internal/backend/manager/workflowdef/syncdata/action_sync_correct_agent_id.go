@@ -17,6 +17,8 @@ import (
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -204,8 +206,8 @@ func (act *actionSyncCorrectAgentID) correctHosts(std *syncDataUtils.SyncDataAct
 	return validatedItems, nil
 }
 
-func (act *actionSyncCorrectAgentID) filterNeedCorrectHosts(std *syncDataUtils.SyncDataActionStandarder, stats *syncCorrectAgentIDStats, hostIDs []int64) (
-	[]*types.Host, error) {
+func (act *actionSyncCorrectAgentID) filterNeedCorrectHosts(std *syncDataUtils.SyncDataActionStandarder,
+	stats *syncCorrectAgentIDStats, hostIDs []int64) ([]*types.Host, error) {
 
 	hosts, err := act.hostStg.FindHostWithDynamic(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
@@ -270,19 +272,23 @@ func (act *actionSyncCorrectAgentID) listAgentInfo(std *syncDataUtils.SyncDataAc
 	agentIDs := conv.SliceToSlice(items, func(host *types.Host) string {
 		return host.Static.SyncedAgentID
 	})
-	result := make([]*types.AgentInfo, 0, len(agentIDs))
-	for start := 0; start < len(agentIDs); start += gse.ListAgentInfoPageSize {
-		end := min(start+gse.ListAgentInfoPageSize, len(agentIDs))
-		batchAgentIDs := agentIDs[start:end]
-		batchResult, err := act.gseHandler.ListAgentInfo(std.Context(), batchAgentIDs...)
-		if err != nil {
-			return nil, fmt.Errorf("list agent info: %w", err)
-		}
+	result, err := batchexecutor.Collect(std.Context(), agentIDs,
+		func(nCtx contextx.IContext, batchAgentIDs []string) ([]*types.AgentInfo, error) {
+			batchResult, err := act.gseHandler.ListAgentInfo(nCtx, batchAgentIDs...)
+			if err != nil {
+				return nil, fmt.Errorf("list agent info: %w", err)
+			}
 
-		result = append(result, batchResult...)
+			return batchResult, nil
+		},
+		batchexecutor.WithBatchSize(gse.ListAgentInfoPageSize),
+		batchexecutor.WithTimeout(act.Timeout()),
+	)
+	if err != nil {
+		return nil, err
 	}
 
-	return conv.SliceToMap(result, func(info *types.AgentInfo) string { return info.AgentID })
+	return conv.SliceToMap(result.Items, func(info *types.AgentInfo) string { return info.AgentID })
 }
 
 func matchAgentInfoAndHost(host *types.Host, agentInfo *types.AgentInfo) (string, bool) {
@@ -367,7 +373,7 @@ func (act *actionSyncCorrectAgentID) updateHosts(std *syncDataUtils.SyncDataActi
 		})
 	}
 
-	return batchHandleHosts(hosts, func(hosts ...*types.Host) error {
+	return batchHandleHosts(std.Context(), hosts, func(hosts ...*types.Host) error {
 		return act.hostStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
 			AgentID:    true,
 			NodeStatus: true,

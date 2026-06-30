@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -183,20 +184,25 @@ func (h *HandlerProc) QueryMultiProcessInfoMany(
 
 	processInfoMap := make(map[string][]types.ProcessInfo)
 	for _, item := range procNameAgentIDMap {
-		for start := 0; start < len(item.AgentIDList); start += queryMultiProcessInfoPageSize {
-			end := min(start+queryMultiProcessInfoPageSize, len(item.AgentIDList))
+		err := batchexecutor.Execute(nCtx, item.AgentIDList, func(nCtx contextx.IContext, batchAgentIDs []string) error {
 			batchProcessInfoMap, err := h.queryMultiProcessInfoMany(nCtx, &types.ProcessAgentGroup{
 				PluginName:  item.PluginName,
 				ProcessName: item.ProcessName,
-				AgentIDList: item.AgentIDList[start:end],
+				AgentIDList: batchAgentIDs,
 			})
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			for pluginName, infos := range batchProcessInfoMap {
 				processInfoMap[pluginName] = append(processInfoMap[pluginName], infos...)
 			}
+
+			return nil
+		}, batchexecutor.WithBatchSize(queryMultiProcessInfoPageSize),
+			batchexecutor.WithTimeout(10*time.Minute)) // nolint: mnd
+		if err != nil {
+			return nil, err
 		}
 	}
 

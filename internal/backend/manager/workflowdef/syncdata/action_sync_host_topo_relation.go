@@ -107,7 +107,7 @@ func (act *actionSyncHostTopoRelation) Do(ctx *action.InstanceContext) error {
 		En("find %d host topo relations from cmdb", len(hosts)).
 		Info()
 
-	if err = batchHandleHosts(hosts, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(std.Context(), hosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpdateHostStaticFields(std.Context(), types.HostStaticFields{
 			BizID:    true,
 			ModuleID: true,

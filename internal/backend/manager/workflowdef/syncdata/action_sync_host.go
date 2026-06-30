@@ -19,6 +19,8 @@ import (
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -176,32 +178,32 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 			len(updateHosts), len(updateAgentIDHosts), len(insertHosts), len(deleteHostIDs)).
 		Info()
 
-	if err = batchHandleHosts(updateHosts, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(std.Context(), updateHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpdateHostStaticFields(std.Context(), types.UpdateAllHostStaticFields(), hosts...)
 	}); err != nil {
 		return err
 	}
 
-	if err = batchHandleHosts(insertHosts, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(std.Context(), insertHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpsertManyHost(std.Context(), hosts...)
 	}); err != nil {
 		return err
 	}
 
-	if err = batchHandleHosts(updateAgentIDHosts, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(std.Context(), updateAgentIDHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{AgentID: true}, hosts...)
 	}); err != nil {
 		return err
 	}
 
-	if err = batchHandleHostIDs(deleteHostIDs, func(hostIDs ...int64) error {
+	if err = batchHandleHostIDs(std.Context(), deleteHostIDs, func(hostIDs ...int64) error {
 		return act.storageHost.DeleteManyHost(std.Context(), hostIDs...)
 	}); err != nil {
 		return err
 	}
 
 	loginUserRepairHosts := act.fillDefaultLoginUsers(ctx, slices.Concat(updateHosts, insertHosts), dbData)
-	if err = batchHandleHosts(loginUserRepairHosts, func(hosts ...*types.Host) error {
+	if err = batchHandleHosts(std.Context(), loginUserRepairHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{LoginUser: true}, hosts...)
 	}); err != nil {
 		return err
@@ -218,30 +220,16 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func batchHandleHosts(hosts []*types.Host, fn func(hosts ...*types.Host) error) error {
-	hostLen := len(hosts)
-
-	for start := 0; start < hostLen; start += syncHostDBBatchSize {
-		end := min(start+syncHostDBBatchSize, hostLen)
-		if err := fn(hosts[start:end]...); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func batchHandleHosts(nCtx contextx.IContext, hosts []*types.Host, fn func(hosts ...*types.Host) error) error {
+	return batchexecutor.Execute(nCtx, hosts, func(_ contextx.IContext, batchHosts []*types.Host) error {
+		return fn(batchHosts...)
+	}, batchexecutor.WithBatchSize(syncHostDBBatchSize), batchexecutor.WithTimeout(10*time.Minute)) // nolint: mnd
 }
 
-func batchHandleHostIDs(hostIDs []int64, fn func(hostIDs ...int64) error) error {
-	hostIDLen := len(hostIDs)
-
-	for start := 0; start < hostIDLen; start += syncHostDBBatchSize {
-		end := min(start+syncHostDBBatchSize, hostIDLen)
-		if err := fn(hostIDs[start:end]...); err != nil {
-			return err
-		}
-	}
-
-	return nil
+func batchHandleHostIDs(nCtx contextx.IContext, hostIDs []int64, fn func(hostIDs ...int64) error) error {
+	return batchexecutor.Execute(nCtx, hostIDs, func(_ contextx.IContext, batchHostIDs []int64) error {
+		return fn(batchHostIDs...)
+	}, batchexecutor.WithBatchSize(syncHostDBBatchSize), batchexecutor.WithTimeout(10*time.Minute)) // nolint: mnd
 }
 
 func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (

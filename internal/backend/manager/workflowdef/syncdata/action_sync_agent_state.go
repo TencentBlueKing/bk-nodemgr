@@ -15,6 +15,8 @@ import (
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -102,22 +104,24 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return hostIDAgentID.AgentID
 	})
 
-	result := make([]*types.AgentState, 0, len(agentIDs))
-	for start := 0; start < len(agentIDs); start += gse.ListAgentStatePageSize {
-		end := min(start+gse.ListAgentStatePageSize, len(agentIDs))
+	result, err := batchexecutor.Collect(std.Context(), agentIDs,
+		func(nCtx contextx.IContext, batchAgentIDs []string) ([]*types.AgentState, error) {
+			batchResult, err := act.gseHandler.ListAgentState(nCtx, batchAgentIDs...)
+			if err != nil {
+				logger.G.Sys().Ctx(nCtx).WithErr(err).With("agent-ids", batchAgentIDs).Error("failed to list agent state")
+				return nil, err
+			}
 
-		batchAgentIDs := agentIDs[start:end]
-		batchResult, err := act.gseHandler.ListAgentState(std.Context(), batchAgentIDs...)
-		if err != nil {
-			logger.G.Sys().Ctx(std.Context()).WithErr(err).With("agent-ids", batchAgentIDs).Error("failed to list agent state")
-
-			return err
-		}
-
-		result = append(result, batchResult...)
+			return batchResult, nil
+		},
+		batchexecutor.WithBatchSize(gse.ListAgentStatePageSize),
+		batchexecutor.WithTimeout(act.Timeout()),
+	)
+	if err != nil {
+		return err
 	}
 
-	agentStates, err := conv.SliceToMap(result, func(state *types.AgentState) string { return state.AgentID })
+	agentStates, err := conv.SliceToMap(result.Items, func(state *types.AgentState) string { return state.AgentID })
 	if err != nil {
 		return err
 	}
@@ -146,7 +150,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = batchHandleHosts(upsertHosts, func(hosts ...*types.Host) error {
+	err = batchHandleHosts(std.Context(), upsertHosts, func(hosts ...*types.Host) error {
 		return act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
 			NodeRole:       true,
 			NodeGeneration: true,

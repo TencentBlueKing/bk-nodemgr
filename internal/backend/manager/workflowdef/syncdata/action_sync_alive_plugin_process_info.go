@@ -17,6 +17,7 @@ import (
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -134,7 +135,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 			return err
 		}
 
-		if err = batchHandleProcessInfoDeltas(needUpdateProcInfos, func(processInfoDeltas ...*types.ProcessInfoDelta) error {
+		if err = batchHandleProcessInfoDeltas(std.Context(), needUpdateProcInfos, func(processInfoDeltas ...*types.ProcessInfoDelta) error {
 			return act.processStg.UpdateManyProcessInfo(std.Context(), processInfoDeltas)
 		}); err != nil {
 			return err
@@ -227,18 +228,16 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 	return needUpdateProcInfos, nil
 }
 
-func batchHandleProcessInfoDeltas(processInfoDeltas []*types.ProcessInfoDelta,
+func batchHandleProcessInfoDeltas(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta,
 	fn func(processInfoDeltas ...*types.ProcessInfoDelta) error) error {
 
-	processInfoDeltaLen := len(processInfoDeltas)
-	for start := 0; start < processInfoDeltaLen; start += syncHostDBBatchSize {
-		end := min(start+syncHostDBBatchSize, processInfoDeltaLen)
-		if err := fn(processInfoDeltas[start:end]...); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return batchexecutor.Execute(nCtx, processInfoDeltas,
+		func(_ contextx.IContext, batchProcessInfoDeltas []*types.ProcessInfoDelta) error {
+			return fn(batchProcessInfoDeltas...)
+		},
+		batchexecutor.WithBatchSize(syncHostDBBatchSize),
+		batchexecutor.WithTimeout(10*time.Minute), // nolint: mnd
+	)
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
