@@ -98,7 +98,7 @@ func (act *actionInstallPreOrderedPlugins) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionInstallPreOrderedPlugins) Timeout() time.Duration {
-	return 3 * time.Minute // nolint: mnd
+	return 10 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
@@ -114,7 +114,7 @@ func (act *actionInstallPreOrderedPlugins) MaxRetryCount() uint {
 // DelayFn this func define when this action fails, how long to wait before retrying.
 func (act *actionInstallPreOrderedPlugins) DelayFn() func() {
 	return func() {
-		time.Sleep(5 * time.Second) // nolint: mnd
+		time.Sleep(30 * time.Second) // nolint: mnd
 	}
 }
 
