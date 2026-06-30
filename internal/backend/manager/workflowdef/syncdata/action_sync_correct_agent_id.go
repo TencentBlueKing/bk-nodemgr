@@ -209,7 +209,7 @@ func (act *actionSyncCorrectAgentID) correctHosts(std *syncDataUtils.SyncDataAct
 func (act *actionSyncCorrectAgentID) filterNeedCorrectHosts(std *syncDataUtils.SyncDataActionStandarder,
 	stats *syncCorrectAgentIDStats, hostIDs []int64) ([]*types.Host, error) {
 
-	hosts, err := act.hostStg.FindHostWithDynamic(std.Context(), types.UnlimitedPage(), &types.HostCondition{
+	hosts, _, err := act.hostStg.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: hostIDs,
 		},
