@@ -202,7 +202,7 @@ const mapAgentAlive = (status: any): number => {
 };
 
 /** 将后端 host item 映射为 IP 选择器标准 Host 格式 */
-const mapHostItem = (item: any) => {
+export const mapHostItem = (item: any) => {
   const info = item?.info || {};
   const state = item?.state || {};
   const bkHostId = item?.bk_host_id ?? item?.host_id ?? info?.bk_host_id;
@@ -864,4 +864,30 @@ export const fetchHostCheck = async (params: any): Promise<any> => {
   } catch {
     return { data: { valid: [], invalid: [] } };
   }
+};
+
+// ========== host cache ==========
+const hostCache = new Map<number, any>();
+
+/** 缓存单个 host 条目 */
+export const cacheHostItem = (item: any) => {
+  const id = item?.host_id ?? item?.bk_host_id ?? item?.id;
+  if (id != null) {
+    hostCache.set(Number(id), item);
+  }
+};
+
+/** 从缓存批量取 host 条目，返回 { cached, missIds } */
+export const getCachedHosts = (ids: number[]): { cached: any[]; missIds: number[] } => {
+  const cached: any[] = [];
+  const missIds: number[] = [];
+  for (const id of ids) {
+    const item = hostCache.get(id);
+    if (item) {
+      cached.push(item);
+    } else {
+      missIds.push(id);
+    }
+  }
+  return { cached, missIds };
 };
