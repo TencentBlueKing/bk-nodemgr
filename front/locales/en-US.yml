@@ -1108,6 +1108,7 @@ components:
     batchEditNetworkUnit: Batch Edit Network Unit
     batchEditNetworkUnitDisabledTip: Hosts in this batch belong to different network areas, batch editing is not available
     autoAssign: Auto Assign
+    autoAssignTooltip: Auto Assign; if there are multiple IPs, the first IP is used for recommendation
     hostIp: Host IP
     innerIPv4: Private IPv4
     innerIPv6: Private IPv6

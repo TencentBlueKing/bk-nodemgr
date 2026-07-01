@@ -1112,6 +1112,7 @@ components:
     batchEditNetworkUnit: 批量编辑管控单元
     batchEditNetworkUnitDisabledTip: 当前批次存在属于不同管控区域的主机，无法批量修改
     autoAssign: 自动分配
+    autoAssignTooltip: 自动分配；如存在多个 IP，将使用第一个 IP 进行推荐
     hostIp: 主机IP
     innerIPv4: 内网IPv4
     innerIPv6: 内网IPv6

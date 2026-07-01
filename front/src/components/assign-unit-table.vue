@@ -60,13 +60,13 @@
             <i
               v-if="!networkUnitLoading && !autoAssignLoading"
               class="nodeman-icon nc-manual text-[18px] cursor-pointer ml-[5px]"
-              v-bk-tooltips="$t('components.installTable.autoAssign')"
+              v-bk-tooltips="$t('components.installTable.autoAssignTooltip')"
               @click="handleAutoAssign"
             ></i>
             <i
               v-else
               class="nodeman-icon nc-manual text-[18px] cursor-not-allowed text-[#C4C6CC] ml-[5px]"
-              v-bk-tooltips="$t('components.installTable.autoAssign')"
+              v-bk-tooltips="$t('components.installTable.autoAssignTooltip')"
             ></i>
           </template>
           <template #default="{ row, rowIndex }">
@@ -200,6 +200,7 @@ import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 import ValidateCell from './validateCell.vue';
 
 import { TopoService } from '@/api/modules/topo';
+import { getFirstIp } from '@/common/util';
 import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import useTableErrors from '@/composables/use-table-errors';
@@ -264,7 +265,7 @@ const handleAutoAssign = async () => {
   try {
     const items = tableData.value.map((row: any) => ({
       bk_networkarea_id: Number(row.bk_networkarea_id),
-      ip: row.bk_host_innerip || row.bk_host_innerip_v6 || '',
+      ip: getFirstIp(row.bk_host_innerip) || getFirstIp(row.bk_host_innerip_v6),
     }));
     const res = await TopoService.RecommendNetworkUnitByNetworkSegment({ items });
     if (res?.items) {

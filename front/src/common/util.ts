@@ -138,6 +138,10 @@ export function parseCookies() {
   return cookies;
 };
 
+export function getFirstIp(ip: string | undefined): string {
+  return ip?.split(',')[0]?.trim() || '';
+}
+
 export function getDefaultLoginMode(): string {
   return window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
     ? 'password_vault'
