@@ -315,7 +315,7 @@ func (act *actionSyncCorrectAgentID) recheckItems(std *syncDataUtils.SyncDataAct
 	hostIDs := conv.SliceToSlice(items, func(item *correctItem) int64 {
 		return item.host.HostID
 	})
-	hosts, err := act.hostStg.FindHostWithDynamic(std.Context(), types.UnlimitedPage(), &types.HostCondition{
+	hosts, _, err := act.hostStg.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: hostIDs,
 		},
