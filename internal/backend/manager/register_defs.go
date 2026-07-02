@@ -82,6 +82,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionInstallNodeBySSH(nodeCap),
 		node.NewActionInstallProxyBySSH(nodeCap),
 		node.NewActionInstallNodeByWMI(nodeCap),
+		node.NewActionInstallNodeByWindowsSSH(nodeCap),
 		node.NewActionSyncNodeInfo(nodeCap),
 		node.NewActionPushHostIdentifier(nodeCap),
 		node.NewActionRenderNodeDeployment(nodeCap),
