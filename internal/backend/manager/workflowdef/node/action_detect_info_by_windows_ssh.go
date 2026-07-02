@@ -28,7 +28,9 @@ const (
 	windowsSSHProfileCygwin = "ssh_cygwin"
 	windowsSSHProfileNative = "ssh_native"
 
-	windowsNativeArchCommand = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"$env:PROCESSOR_ARCHITECTURE\""
+	windowsCygwinArchCommand    = "uname -m"
+	windowsNativeArchCommand    = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"$env:PROCESSOR_ARCHITECTURE\""
+	windowsNativeProfileCommand = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"Write-Output native\""
 )
 
 // NewActionDetectInfoByWindowsSSH get a new action.
@@ -247,17 +249,34 @@ type windowsSSHCommandRunner interface {
 }
 
 func detectWindowsSSHInfo(data *action.InstanceData, runner windowsSSHCommandRunner) (windowsSSHDetectResult, error) {
-	result := windowsSSHDetectResult{osType: criteria.OSWindows}
-
-	osTypeStr, _, err := runner.RunCommand("uname -s")
-	if err == nil && isCygwinUname(osTypeStr) {
-		result.profile = windowsSSHProfileCygwin
-		return detectWindowsSSHArch(data, runner, result, "uname -m")
+	profile, err := detectWindowsSSHProfile(runner)
+	if err != nil {
+		return windowsSSHDetectResult{}, err
 	}
 
-	result.profile = windowsSSHProfileNative
+	result := windowsSSHDetectResult{
+		osType:  criteria.OSWindows,
+		profile: profile,
+	}
+
+	if result.profile == windowsSSHProfileCygwin {
+		return detectWindowsSSHArch(data, runner, result, windowsCygwinArchCommand)
+	}
 
 	return detectWindowsSSHArch(data, runner, result, windowsNativeArchCommand)
+}
+
+func detectWindowsSSHProfile(runner windowsSSHCommandRunner) (string, error) {
+	osTypeStr, _, unameErr := runner.RunCommand("uname -s")
+	if unameErr == nil && isCygwinUname(osTypeStr) {
+		return windowsSSHProfileCygwin, nil
+	}
+
+	if _, _, err := runner.RunCommand(windowsNativeProfileCommand); err != nil {
+		return "", fmt.Errorf("failed to detect windows ssh native profile, uname error(%v): %w", unameErr, err)
+	}
+
+	return windowsSSHProfileNative, nil
 }
 
 func detectWindowsSSHArch(

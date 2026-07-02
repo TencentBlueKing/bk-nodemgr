@@ -153,15 +153,12 @@ func (act *actionInstallNodeByWindowsSSH) Do(ctx *action.InstanceContext) (err e
 	}
 	defer func() { _ = client.Close() }()
 
-	detectResult, err := detectWindowsSSHInfo(std.InstanceData(), client)
+	profile, err := detectWindowsSSHProfile(client)
 	if err != nil {
 		return fmt.Errorf("failed to detect windows ssh profile: %w", err)
 	}
-
-	std.DeployInfo().Host.Dynamic.NodeOsType = detectResult.osType
-	std.DeployInfo().Host.Dynamic.NodeCPUArch = detectResult.cpuArch
-	if detectResult.profile != windowsSSHProfileNative {
-		return fmt.Errorf("unsupported windows ssh profile: %s", detectResult.profile)
+	if profile != windowsSSHProfileNative {
+		return fmt.Errorf("unsupported windows ssh profile: %s", profile)
 	}
 
 	if err = act.ensureWorkspace(std, client); err != nil {
