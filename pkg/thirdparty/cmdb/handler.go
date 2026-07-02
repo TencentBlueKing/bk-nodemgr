@@ -1142,27 +1142,6 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 		hostIDs[idx] = host.BKHostID
 	}
 
-	findHostBizRelationsResp, err := h.findHostBizRelations(nCtx, hostIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list host with biz: %w", err)
-	}
-
-	hostRel, err := conv.SliceToMap[int64, *HostTopoRelation](findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
-		return rel.BKHostID
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert host biz relations to map: %w", err)
-	}
-
-	for _, host := range hosts {
-		if _, ok := hostRel[host.HostID]; !ok {
-			continue
-		}
-
-		host.Static.SetID = hostRel[host.HostID].BKSetID
-		host.Static.ModuleID = hostRel[host.HostID].BKModuleID
-	}
-
 	return hosts, nil
 }
 
@@ -1201,21 +1180,33 @@ func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filte
 		return nil, fmt.Errorf("failed to list host without biz: %w", err)
 	}
 
-	hostBizRel, err := conv.SliceToMap[int64, *HostTopoRelation](findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
-		return rel.BKHostID
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to list host without biz: %w", err)
+	hostRels := make(map[int64][]*HostTopoRelation)
+	for _, rel := range findHostBizRelationsResp {
+		hostID := rel.BKHostID
+		if _, ok := hostRels[hostID]; !ok {
+			hostRels[hostID] = make([]*HostTopoRelation, 0)
+		}
+
+		hostRels[hostID] = append(hostRels[hostID], rel)
 	}
 
 	for _, host := range hosts {
-		if _, ok := hostBizRel[host.HostID]; !ok {
+		if _, ok := hostRels[host.HostID]; !ok {
 			continue
 		}
 
-		host.Static.BizID = hostBizRel[host.HostID].BKBizID
-		host.Static.SetID = hostBizRel[host.HostID].BKSetID
-		host.Static.ModuleID = hostBizRel[host.HostID].BKModuleID
+		bizID := int64(-1)
+		for _, rel := range hostRels[host.HostID] {
+			if bizID < 0 {
+				bizID = rel.BKBizID
+			}
+
+			if bizID != rel.BKBizID {
+				return nil, fmt.Errorf(" host must belong one biz, rel(%+v)", *rel)
+			}
+		}
+
+		host.Static.BizID = bizID
 	}
 
 	return hosts, nil
