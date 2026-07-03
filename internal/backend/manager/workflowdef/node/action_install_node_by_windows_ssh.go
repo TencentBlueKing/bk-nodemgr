@@ -314,6 +314,7 @@ func (act *actionInstallNodeByWindowsSSH) openInstallerReader(std *nodeUtils.Nod
 func (act *actionInstallNodeByWindowsSSH) prepareInstallCommand(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, profile string,
 ) (string, error) {
+
 	switch profile {
 	case windowsSSHProfileNative:
 		if err := act.ensureWorkspace(std, client); err != nil {
@@ -345,6 +346,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareInstallCommand(
 func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client,
 ) error {
+
 	workDir := winpath.ToSlash(winpath.Clean(std.DeployInfo().InstallerRuntime.WorkDir))
 	command := fmt.Sprintf("mkdir -p %s", shellDoubleQuote(workDir))
 
@@ -366,6 +368,7 @@ func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
 func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
 ) (string, error) {
+
 	installParams, err := act.buildNodeInstallParams(std, installerPath)
 	if err != nil {
 		return "", err
@@ -391,6 +394,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
 func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
 	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
 ) (string, error) {
+
 	installParams, err := act.buildNodeInstallParams(std, installerPath)
 	if err != nil {
 		return "", err
@@ -416,6 +420,7 @@ func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
 func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
 	std *nodeUtils.NodeActionStandarder, installerPath string,
 ) (*installer.NodeInstallParams, error) {
+
 	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
 	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
