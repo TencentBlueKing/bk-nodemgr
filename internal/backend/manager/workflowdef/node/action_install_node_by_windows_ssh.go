@@ -45,7 +45,10 @@ const (
 	installShellName = "install.sh"
 )
 
-const utf16BytesPerCodeUnit = 2
+const (
+	utf16BytesPerCodeUnit = 2
+	utf16BitsPerByte      = 8
+)
 
 // NewActionInstallNodeByWindowsSSH get a new action.
 func NewActionInstallNodeByWindowsSSH(capability *Capability) action.Definition {
@@ -507,7 +510,7 @@ func encodePowerShellCommand(script string) string {
 	encoded := make([]byte, len(codeUnits)*utf16BytesPerCodeUnit)
 	for i, codeUnit := range codeUnits {
 		encoded[i*utf16BytesPerCodeUnit] = byte(codeUnit)
-		encoded[i*utf16BytesPerCodeUnit+1] = byte(codeUnit >> 8)
+		encoded[i*utf16BytesPerCodeUnit+1] = byte(codeUnit >> utf16BitsPerByte)
 	}
 
 	return base64.StdEncoding.EncodeToString(encoded)
