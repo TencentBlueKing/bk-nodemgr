@@ -41,6 +41,8 @@ import (
 const (
 	// ActionNameInstallNodeByWindowsSSH defines the action name.
 	ActionNameInstallNodeByWindowsSSH = "install_node_by_windows_ssh"
+
+	installShellName = "install.sh"
 )
 
 const utf16BytesPerCodeUnit = 2
@@ -157,17 +159,10 @@ func (act *actionInstallNodeByWindowsSSH) Do(ctx *action.InstanceContext) (err e
 	if err != nil {
 		return fmt.Errorf("failed to detect windows ssh profile: %w", err)
 	}
-	if profile != windowsSSHProfileNative {
-		return fmt.Errorf("unsupported windows ssh profile: %s", profile)
-	}
 
-	if err = act.ensureWorkspace(std, client); err != nil {
-		return fmt.Errorf("failed to ensure workspace through windows ssh: %w", err)
-	}
-
-	installerPath, err := act.ensureInstallerTool(std, client)
+	launchCmd, err := act.prepareInstallCommand(std, client, profile)
 	if err != nil {
-		return fmt.Errorf("failed to ensure installer tool through windows ssh: %w", err)
+		return err
 	}
 
 	if err = saveWaitInstallerPrivateData(
@@ -177,9 +172,17 @@ func (act *actionInstallNodeByWindowsSSH) Do(ctx *action.InstanceContext) (err e
 		return err
 	}
 
-	if err := act.executeInstallCMD(std, client, installerPath); err != nil {
-		return fmt.Errorf("failed to execute install cmd: %w", err)
+	stdout, stderr, err := client.RunCommand(launchCmd)
+	if err != nil {
+		return fmt.Errorf("failed to start install node, stdout(%s), stderr(%s): %w", stdout, stderr, err)
 	}
+
+	std.InstanceData().Log().
+		Zh("已启动节点安装, stdout(%s), stderr(%s)",
+			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
+		En("started node install, stdout(%s), stderr(%s)",
+			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
+		Info()
 
 	return nil
 }
@@ -308,14 +311,115 @@ func (act *actionInstallNodeByWindowsSSH) openInstallerReader(std *nodeUtils.Nod
 	return reader, nil
 }
 
-func (act *actionInstallNodeByWindowsSSH) executeInstallCMD(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
-) error {
+func (act *actionInstallNodeByWindowsSSH) prepareInstallCommand(
+	std *nodeUtils.NodeActionStandarder, client *sshx.Client, profile string,
+) (string, error) {
+	switch profile {
+	case windowsSSHProfileNative:
+		if err := act.ensureWorkspace(std, client); err != nil {
+			return "", fmt.Errorf("failed to ensure workspace through windows ssh: %w", err)
+		}
 
+		installerPath, err := act.ensureInstallerTool(std, client)
+		if err != nil {
+			return "", fmt.Errorf("failed to ensure installer tool through windows ssh: %w", err)
+		}
+
+		return act.prepareNativeInstallCommand(std, client, installerPath)
+	case windowsSSHProfileCygwin:
+		if err := act.ensureCygwinWorkspace(std, client); err != nil {
+			return "", fmt.Errorf("failed to ensure cygwin workspace through windows ssh: %w", err)
+		}
+
+		installerPath, err := act.ensureInstallerTool(std, client)
+		if err != nil {
+			return "", fmt.Errorf("failed to ensure installer tool through windows ssh: %w", err)
+		}
+
+		return act.prepareCygwinInstallCommand(std, client, installerPath)
+	default:
+		return "", fmt.Errorf("unsupported windows ssh profile: %s", profile)
+	}
+}
+
+func (act *actionInstallNodeByWindowsSSH) ensureCygwinWorkspace(
+	std *nodeUtils.NodeActionStandarder, client *sshx.Client,
+) error {
+	workDir := winpath.ToSlash(winpath.Clean(std.DeployInfo().InstallerRuntime.WorkDir))
+	command := fmt.Sprintf("mkdir -p %s", shellDoubleQuote(workDir))
+
+	stdout, stderr, err := client.RunCommand(command)
+	if err != nil {
+		return fmt.Errorf("failed to run command. command(%s), stdout(%s), stderr(%s): %w", command, stdout, stderr, err)
+	}
+
+	std.InstanceData().Log().
+		Zh("确保 Cygwin 安装器工作目录存在, stdout(%s), stderr(%s)",
+			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
+		En("make sure the cygwin installer workspace exists, stdout(%s), stderr(%s)",
+			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
+		Info()
+
+	return nil
+}
+
+func (act *actionInstallNodeByWindowsSSH) prepareNativeInstallCommand(
+	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
+) (string, error) {
+	installParams, err := act.buildNodeInstallParams(std, installerPath)
+	if err != nil {
+		return "", err
+	}
+
+	installBat, err := act.buildBat(installParams)
+	if err != nil {
+		return "", fmt.Errorf("failed to build install bat: %w", err)
+	}
+	std.InstanceData().Log().
+		Zh("安装节点命令: %s", installBat).
+		En("install node cmd: %s", installBat).
+		Info()
+
+	installBatPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installBatName))
+	if err := client.TransferFile(io.NopCloser(strings.NewReader(installBat)), windowsSSHTransferPath(installBatPath)); err != nil {
+		return "", fmt.Errorf("failed to transfer bat file for windows ssh execution: %w", err)
+	}
+
+	return buildWindowsSSHNativeInstallCommand(std.DeployInfo().InstallerRuntime.WorkDir, installBatPath), nil
+}
+
+func (act *actionInstallNodeByWindowsSSH) prepareCygwinInstallCommand(
+	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string,
+) (string, error) {
+	installParams, err := act.buildNodeInstallParams(std, installerPath)
+	if err != nil {
+		return "", err
+	}
+
+	installShell, err := act.buildShell(installParams)
+	if err != nil {
+		return "", fmt.Errorf("failed to build install shell: %w", err)
+	}
+	std.InstanceData().Log().
+		Zh("Cygwin 安装节点命令: %s", installShell).
+		En("cygwin install node cmd: %s", installShell).
+		Info()
+
+	installShellPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installShellName))
+	if err := client.TransferFile(io.NopCloser(strings.NewReader(installShell)), windowsSSHTransferPath(installShellPath)); err != nil {
+		return "", fmt.Errorf("failed to transfer shell file for cygwin windows ssh execution: %w", err)
+	}
+
+	return buildWindowsSSHCygwinInstallCommand(std.DeployInfo().InstallerRuntime.WorkDir), nil
+}
+
+func (act *actionInstallNodeByWindowsSSH) buildNodeInstallParams(
+	std *nodeUtils.NodeActionStandarder, installerPath string,
+) (*installer.NodeInstallParams, error) {
 	endpointSource := nodeUtils.SelectInstallEndpointSource(std)
 	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(std, act.provider, endpointSource)
 	if err != nil {
-		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
+		return nil, fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	installParams := &installer.NodeInstallParams{
@@ -341,40 +445,22 @@ func (act *actionInstallNodeByWindowsSSH) executeInstallCMD(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installBat, err := act.buildBat(installParams)
-	if err != nil {
-		return fmt.Errorf("failed to build install bat: %w", err)
-	}
-	std.InstanceData().Log().
-		Zh("安装节点命令: %s", installBat).
-		En("install node cmd: %s", installBat).
-		Info()
-
-	installBatPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerRuntime.WorkDir, installBatName))
-	if err := client.TransferFile(io.NopCloser(strings.NewReader(installBat)), windowsSSHTransferPath(installBatPath)); err != nil {
-		return fmt.Errorf("failed to transfer bat file for windows ssh execution: %w", err)
-	}
-
-	installCMD := buildWindowsSSHNativeInstallCommand(std.DeployInfo().InstallerRuntime.WorkDir, installBatPath)
-	stdout, stderr, err := client.RunCommand(installCMD)
-	if err != nil {
-		return fmt.Errorf("failed to start install node, stdout(%s), stderr(%s): %w", stdout, stderr, err)
-	}
-
-	std.InstanceData().Log().
-		Zh("已启动节点安装, stdout(%s), stderr(%s)",
-			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
-		En("started node install, stdout(%s), stderr(%s)",
-			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
-		Info()
-
-	return nil
+	return installParams, nil
 }
 
 func (act *actionInstallNodeByWindowsSSH) buildBat(param *installer.NodeInstallParams) (string, error) {
 	_, installCmd, err := param.ToWindowsScript()
 	if err != nil {
 		return "", fmt.Errorf("failed to render node install script: %w", err)
+	}
+
+	return installCmd, nil
+}
+
+func (act *actionInstallNodeByWindowsSSH) buildShell(param *installer.NodeInstallParams) (string, error) {
+	_, installCmd, err := param.ToWindowsShellScript()
+	if err != nil {
+		return "", fmt.Errorf("failed to render node install shell script: %w", err)
 	}
 
 	return installCmd, nil
@@ -398,6 +484,14 @@ func buildWindowsSSHNativeInstallCommand(workDir string, installBatPath string) 
 	))
 }
 
+func buildWindowsSSHCygwinInstallCommand(workDir string) string {
+	return fmt.Sprintf(
+		"cd %s && sh %s",
+		shellDoubleQuote(winpath.ToSlash(winpath.Clean(workDir))),
+		shellDoubleQuote(installShellName),
+	)
+}
+
 func buildPowerShellCommand(script string) string {
 	return "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand " +
 		encodePowerShellCommand(script)
@@ -416,4 +510,8 @@ func encodePowerShellCommand(script string) string {
 
 func powerShellSingleQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
+func shellDoubleQuote(value string) string {
+	return "\"" + strings.ReplaceAll(value, "\"", "\\\"") + "\""
 }

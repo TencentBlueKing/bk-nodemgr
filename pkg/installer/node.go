@@ -665,6 +665,36 @@ func (params *NodeInstallParams) ToWindowsScript() (string, string, error) {
 	return scriptName, scriptContent, nil
 }
 
+// ToWindowsShellScript converts the install params to a Cygwin shell script for Windows installer execution.
+func (params *NodeInstallParams) ToWindowsShellScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	shellParams := *params
+	shellParams.BaseWorkDir = winpath.ToSlash(winpath.Clean(params.BaseWorkDir))
+	shellParams.BaseDeployDir = winpath.ToSlash(winpath.Clean(params.BaseDeployDir))
+
+	args := shellParams.buildServerFirstArgs()
+	if params.DownloadBeforeCallback {
+		args = shellParams.buildDownloadBeforeCallbackArgs()
+	}
+	scriptName := "install.sh"
+	workDir := winpath.ToSlash(winpath.Clean(winpath.Join(params.BaseWorkDir, params.DeployEnv)))
+	installerPath := winpath.ToSlash(winpath.Clean(params.InstallerPath))
+	stdoutPath := winpath.ToSlash(winpath.Clean(fmt.Sprintf("%s.stdout", params.InstallerPath)))
+	scriptContent := fmt.Sprintf(
+		"cd \"%s\" && \"%s\" %s %s >%s 2>&1 &",
+		workDir,
+		installerPath,
+		NodeCmdFullInstall,
+		strings.Join(args, " "),
+		stdoutPath,
+	)
+
+	return scriptName, scriptContent, nil
+}
+
 // ToUnixScriptManual converts the install params to a unix manual install script.
 func (params *NodeInstallParams) ToUnixScriptManual() (string, string, error) {
 	if err := params.Validate(); err != nil {
