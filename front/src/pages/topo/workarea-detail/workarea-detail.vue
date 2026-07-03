@@ -21,7 +21,7 @@
               @mousemove="viewMouseMove($event, isUnitAuthorized(item.bk_networkunit_id))"
               @mouseleave="viewMouseLeave()"
             >
-              <span>{{ item.bk_networkunit_name }}</span>
+              <span>[{{ item.bk_networkunit_id }}] {{ item.bk_networkunit_name }}</span>
               <span v-if="item.is_direct" class="text-[10px] ml-[5px]">
                 {{ $t('topoManager.workAreaDetail.tab.direct') }}
               </span>
@@ -478,6 +478,22 @@ onMounted(async () => {
 }
 </style>
 <style lang="postcss">
+/* 隐藏 Tab 组件自带滚动箭头（ResizeObserver 计算偏差导致未溢出时也显示），改用原生 overflow-x:auto */
+.bk-tab .bk-tab-scroll,
+.bk-tab .bk-tab-scroll-controller,
+.bk-tab .bk-tab-prev-controller,
+.bk-tab .bk-tab-next-controller {
+  display: none !important;
+}
+/* 管控单元多 Tab：使滚动条可见 */
+.bk-tab-header-nav::-webkit-scrollbar {
+  display: block !important;
+  height: 4px !important;
+}
+.bk-tab-header-nav::-webkit-scrollbar-thumb {
+  background: #c4c6cc !important;
+  border-radius: 2px !important;
+}
 .unAuthorized {
   color: #C4C6CC !important;
 }
