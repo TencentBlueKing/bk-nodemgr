@@ -311,6 +311,7 @@ const processStatusTextMap = computed(() => ({
   stopped: t('pluginManagement.plugin.process.status.stopped'),
   unregister: t('pluginManagement.plugin.process.status.unregister'),
   init: t('pluginManagement.plugin.process.status.init'),
+  unknown: t('pluginManagement.plugin.process.status.unknown'),
 }));
 
 // 勾选确认提示格式化：按插件分组展示 host_id
@@ -425,17 +426,23 @@ const handlePluginOperate = async (operateType: string, data: any[], batch = fal
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchRestartTitle')
         : t('pluginManagement.plugin.operate.restartTitle');
-      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionRestart') });
+      operateDialogData.subTitle = batch
+        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionRestart') })
+        : '';
     } else if (operateType === 'uninstall') {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchUninstallTitle')
         : t('pluginManagement.plugin.operate.uninstallTitle');
-      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionUninstall') });
+      operateDialogData.subTitle = batch
+        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionUninstall') })
+        : '';
     } else {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchStopTitle')
         : t('pluginManagement.plugin.operate.stopTitle');
-      operateDialogData.subTitle = t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStop') });
+      operateDialogData.subTitle = batch
+        ? t('pluginManagement.plugin.operate.selectProcessHint', { action: t('pluginManagement.plugin.operate.actionStop') })
+        : '';
     }
     operateDialogIsShow.value = true;
   }

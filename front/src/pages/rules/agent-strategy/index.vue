@@ -469,7 +469,10 @@ const handleDelete = async (row: ConfigPolicy) => {
 
 // Sideslider关闭后的回调
 const handleSave = async () => {
+  const currentPage = pagination.current;
   await getConfigPolicyList();
+  // 保持当前分页位置，避免保存后跳转感知
+  pagination.current = currentPage;
 };
 
 const networkAreaList = ref<NetworkArea[]>([]);

@@ -1196,6 +1196,7 @@ components:
     seconds: 秒
     forceRestart: 强制重启
     gracefulRestart: 无损重启
+    reloadConfig: 同时重载配置
   setting:
     field: 字段设置
     size: 表格行高

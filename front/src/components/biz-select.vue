@@ -136,10 +136,16 @@ const selectedBizIds = computed(() => {
 
 // ===== 权限判断 =====
 // 业务可访问范围统一通过 biz_access 判断（与菜单页 view 权限解耦）
+// 若传入了 action prop，则叠加校验该 action 的 biz 权限
 const BIZ_ACCESS_ACTION = 'biz_access';
 const isBizAuthorized = (bizId: number): boolean => {
   if (!authStore.authorizedLoaded) return true; // 未加载完成时默认有权限，避免闪烁
-  return authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
+  const hasBizAccess = authStore.hasAuthorizedBiz(BIZ_ACCESS_ACTION, bizId);
+  if (!hasBizAccess) return false;
+  if (props.action?.length) {
+    return authStore.hasAuthorizedBiz(props.action, bizId);
+  }
+  return true;
 };
 
 // ===== 排序逻辑 =====

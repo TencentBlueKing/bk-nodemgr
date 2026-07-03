@@ -1192,6 +1192,7 @@ components:
     seconds: s
     forceRestart: Force Restart
     gracefulRestart: Graceful Restart
+    reloadConfig: Reload config simultaneously
   setting:
     field: Field Settings
     size: Row Height

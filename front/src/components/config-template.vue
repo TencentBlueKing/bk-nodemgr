@@ -148,6 +148,15 @@ const handleChange = (val: string[]) => {
 };
 const handleDelete = (selectId: string) => {
   selectedValue.value = selectedValue.value.filter((item: string) => item !== selectId);
+  // 同步更新 configTemplates 的 enabled 状态并通知父组件
+  configTemplates.value = configTemplates.value.map((temp: any) => ({
+    ...temp,
+    items: temp.items.map((item: any) => ({
+      ...item,
+      enabled: selectedValue.value.includes(`${temp.id}-${item.id}`),
+    })),
+  }));
+  emit('updateConfig', configTemplates.value);
 };
 
 const updateValue = () => {

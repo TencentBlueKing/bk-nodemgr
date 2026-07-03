@@ -417,6 +417,7 @@ import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import BizSelect from '@/components/biz-select.vue';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { useTopoStore } from '@/stores/topo';
 import { useWorkareaStore } from '@/stores/workarea';
@@ -584,6 +585,9 @@ const getNetworkUnitList = async () => {
 // eslint-disable-next-line max-len
 const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) => [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)));
 
+// 缓存当前单元的详情（含 links 数据），用于安装源上游判断
+const currentUnitDetail = ref<any>(null);
+
 // 查询指定单元是否有 proxy
 const currentUnitHasProxy = ref(false);
 const checkUnitHasProxy = async (unitId: number) => {
@@ -618,7 +622,10 @@ const setDefaultInstallOrigin = async () => {
   }
   // eslint-disable-next-line max-len
   const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
-  const hasUpstream = unit?.links?.cluster?.bk_networkunit_id !== null && unit?.links?.cluster?.bk_networkunit_id !== undefined;
+  // 优先使用详情 API 返回的 links 数据（列表 API 不含 links）
+  const upstreamId = currentUnitDetail.value?.links?.cluster?.bk_networkunit_id
+    ?? unit?.links?.cluster?.bk_networkunit_id;
+  const hasUpstream = upstreamId != null;
   if (currentUnitHasProxy.value) {
     form.proxy_install_origin = ['current'];
   } else if (hasUpstream) {
@@ -634,8 +641,9 @@ const getDefaultProxyInstallOriginUnitIdForNewInstall = (): number => {
   if (!Number.isFinite(unitId) || unitId <= 0) return 0;
   // eslint-disable-next-line max-len
   const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
-  const upstreamId = unit?.links?.cluster?.bk_networkunit_id;
-  const hasUpstream = upstreamId !== null && upstreamId !== undefined;
+  const upstreamId = currentUnitDetail.value?.links?.cluster?.bk_networkunit_id
+    ?? unit?.links?.cluster?.bk_networkunit_id;
+  const hasUpstream = upstreamId != null;
   if (currentUnitHasProxy.value) return unitId;
   if (hasUpstream) return Number(upstreamId);
   return unitId;
@@ -645,13 +653,16 @@ const getDefaultProxyInstallOriginUnitIdForNewInstall = (): number => {
 const installOriginList = computed(() => {
   // eslint-disable-next-line max-len
   const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
+  // 优先使用详情 API 返回的 links 数据（列表 API 不含 links）
+  const upstreamId = currentUnitDetail.value?.links?.cluster?.bk_networkunit_id
+    ?? unit?.links?.cluster?.bk_networkunit_id;
   let list;
-  if (unit?.links?.cluster?.bk_networkunit_id !== null) {
+  if (upstreamId != null) {
     list = [
       {
         id: 'upstream',
         name: t('installProxy.upstreamUnit'),
-        bk_networkunit_id: unit?.links?.cluster?.bk_networkunit_id,
+        bk_networkunit_id: upstreamId,
       },
       {
         id: 'current',
@@ -905,11 +916,15 @@ const handleExcelImportCancel = () => {
   isShowExcelImport.value = false;
   uploadExcelRef.value?.handleDelete();
 };
+const authStore = useAuthStore();
+
 const handleUpload = (data: any) => {
   excelImportData.value = data?.info || [];
 };
 onMounted(() => {
   encryptionTool.initPublicKey();
+  // 预加载 proxy_operate 权限（biz 级别），供 BizSelect 过滤业务列表
+  authStore.fetchAuthorized([{ action: 'proxy_operate', resource_type: 'biz' }]);
 });
 
 const handleSetpBack = () => {
@@ -950,18 +965,21 @@ const getVersions = async () => {
 watch(() => isShow.value, async () => {
   if (isShow.value) {
     await getVersions();
+    // 预加载管控单元列表，使安装源自定义子项可正确展示
+    await getNetworkUnitList();
+    // 预加载当前管控单元详情（含 links 数据），供安装源上游判断使用
+    const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
+    if (unitId) {
+      currentUnitDetail.value = await topoStore.handleFetchNetworkUnitDetail(unitId);
+    }
     // 如果从 props 传入了单元 id，初始化时设置安装源默认值
     if (props.bk_networkunit_id) {
       await setDefaultInstallOrigin();
     }
-    // 预加载管控单元详情（含上游接入点信息），供安装策略侧边栏使用
-    const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
-    if (unitId) {
-      topoStore.handleFetchNetworkUnitDetail(unitId);
-    }
   } else {
     formRef.value?.clearValidate();
     // 重置数据
+    currentUnitDetail.value = null;
     Object.assign(form, {
       method: 'setup', // 安装方式
       info: [cloneDeep(initData)], // 安装信息

@@ -202,13 +202,19 @@
                   @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
                   @mouseleave="handleUnitOptionMouseLeave()"
                   v-bk-tooltips="{
-                    content: $t('topoManager.installProxy.form.tip'),
-                    disabled: !(releaseType === 'proxy' && option.is_direct),
+                    content: (releaseType === 'proxy' && option.is_direct)
+                      ? $t('topoManager.installProxy.form.tip')
+                      : `[${option.bk_networkunit_id}] ${option.bk_networkunit_name}`,
+                    disabled: (releaseType === 'proxy' && option.is_direct)
+                      ? false
+                      : !textOverflowMap[option.bk_networkunit_id],
                     boundary: 'parent',
-                    placement: 'left',
+                    placement: 'right',
                   }"
                 >
-                  [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
+                  <div class="truncate" @mouseenter="handleTextMouseenter($event, option)">
+                    [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
+                  </div>
                 </Select.Option>
               </Select>
               <div v-else class="h-[32px] w-full rounded-[2px] bg-[#F5F7FA]"></div>
@@ -1133,6 +1139,11 @@ const { contentRef } = useFullScreen();
 const xTableRef = ref();
 const mainStore = useMainStore();
 const authStore = useAuthStore();
+const textOverflowMap = reactive<Record<number, boolean>>({});
+const handleTextMouseenter = (e: MouseEvent, option: any) => {
+  const el = e.target as HTMLElement;
+  textOverflowMap[option.bk_networkunit_id] = el.scrollWidth > el.clientWidth;
+};
 const {
   isUnitAuthorized,
   handleOptionMouseEnter: handleUnitOptionMouseEnter,

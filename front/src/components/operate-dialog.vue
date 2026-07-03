@@ -10,6 +10,11 @@
     <div class="w-full">
       <p class="text-[16px] mb-[20px]">{{ subTitle }}</p>
 
+      <!-- 重载配置勾选框（原始设计：放在内容区，默认勾选） -->
+      <div v-if="showRestartOptions" class="mb-[16px]">
+        <Checkbox v-model="isReconfig">{{ $t('components.operateDialog.reloadConfig') }}</Checkbox>
+      </div>
+
       <!-- 操作目标数据表格（简化模式下不展示） -->
       <Table
         v-if="showTable && isShow && data.length > 0 && columns.length > 0"
@@ -68,7 +73,7 @@
   </Dialog>
 </template>
 <script lang="ts" setup>
-import { Button, Dialog, Input, Radio } from 'bkui-vue';
+import { Button, Checkbox, Dialog, Input, Radio } from 'bkui-vue';
 import { computed, type PropType, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Table, TableColumn } from '@blueking/table';
@@ -140,6 +145,8 @@ const selection = ref<any[]>([]);
 const isForce = ref(false);
 /** 无损重启超时时间（秒） */
 const gracefulTimeout = ref(120);
+/** 是否重载配置 */
+const isReconfig = ref(true);
 
 /** 是否展示重启选项（强制/无损 + 超时时间） */
 const showRestartOptions = computed(() => props.type === 'restart' && !props.hideRestartOptions);
@@ -169,6 +176,7 @@ function handleConfirm() {
     selection: finalSelection,
     isForce: isForce.value,
     time: gracefulTimeout.value,
+    isReconfig: isReconfig.value,
   });
   isShow.value = false;
 }
@@ -206,6 +214,7 @@ watch(
       // 重置强制重启选项
       isForce.value = false;
       gracefulTimeout.value = 120;
+      isReconfig.value = true;
     }
   },
   { immediate: true, deep: true },
