@@ -11,6 +11,7 @@
 package node
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -161,13 +162,14 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to generate new wmi client: %w", err)
 	}
 
-	osType, cpuArch, err := act.detectInfo(std, client)
+	result, err := detectWindowsWMIInfo(std.Context(), client)
 	if err != nil {
 		return err
 	}
+	logWindowsWMIInfo(std.InstanceData(), result)
 
-	std.DeployInfo().Host.Dynamic.NodeOsType = osType
-	std.DeployInfo().Host.Dynamic.NodeCPUArch = cpuArch
+	std.DeployInfo().Host.Dynamic.NodeOsType = result.osType
+	std.DeployInfo().Host.Dynamic.NodeCPUArch = result.cpuArch
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
@@ -221,55 +223,56 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-// inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
-// nolint: nonamedreturns,perfsprint
-func (act *actionDetectInfoByWMI) detectInfo(std *nodeUtils.NodeActionStandarder, client *wmix.Client) (
-	osType criteria.OSType, cpuArch criteria.CPUArch, err error) {
+type windowsWMIDetectResult struct {
+	osType  criteria.OSType
+	cpuArch criteria.CPUArch
+}
 
-	// 1. detect target system
-	osTypeStr, _, err := client.RunCommand(std.Context(), "ver")
+type windowsWMICommandRunner interface {
+	RunCommand(ctx context.Context, cmd string) (string, string, error)
+}
+
+func detectWindowsWMIInfo(ctx context.Context, runner windowsWMICommandRunner) (windowsWMIDetectResult, error) {
+	osTypeStr, _, err := runner.RunCommand(ctx, "ver")
 	if err != nil {
-		err = fmt.Errorf("failed to run ver: %w", err)
-
-		return "", "", err
+		return windowsWMIDetectResult{}, fmt.Errorf("failed to run ver: %w", err)
 	}
 	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'
 	})
-	osType, err = platfmt.NormalizeOS(osTypeStr)
+	osType, err := platfmt.NormalizeOS(osTypeStr)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to detect info: %w", err)
+		return windowsWMIDetectResult{}, fmt.Errorf("failed to detect info: %w", err)
 	}
 
 	switch osType {
 	case criteria.OSWindows:
 	default:
-		err = fmt.Errorf("unsupported os type, os-type(%s)", osType)
-
-		return "", "", err
+		return windowsWMIDetectResult{}, fmt.Errorf("unsupported os type, os-type(%s)", osType)
 	}
-	std.InstanceData().Log().
-		Zh("主机操作系统类型(%s)", osType).
-		En("host-os-type(%s)", osType).
-		Info()
 
-	// 2. detect target cpu arch
-	cpuArchStr, _, err := client.RunCommand(std.Context(), "echo %PROCESSOR_ARCHITECTURE%")
+	cpuArchStr, _, err := runner.RunCommand(ctx, "echo %PROCESSOR_ARCHITECTURE%")
 	if err != nil {
-		return "", "", fmt.Errorf("failed to run uname -m: %w", err)
+		return windowsWMIDetectResult{}, fmt.Errorf("failed to run uname -m: %w", err)
 	}
 	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
 		return r == '\n'
 	})
-	cpuArch, err = platfmt.NormalizeArch(cpuArchStr)
+	cpuArch, err := platfmt.NormalizeArch(cpuArchStr)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to detect info: %w", err)
+		return windowsWMIDetectResult{}, fmt.Errorf("failed to detect info: %w", err)
 	}
 
-	std.InstanceData().Log().
-		Zh("主机CPU架构(%s)", cpuArch).
-		En("host-cpu-arch(%s)", cpuArch).
-		Info()
+	return windowsWMIDetectResult{osType: osType, cpuArch: cpuArch}, nil
+}
 
-	return osType, cpuArch, nil
+func logWindowsWMIInfo(data *action.InstanceData, result windowsWMIDetectResult) {
+	data.Log().
+		Zh("主机操作系统类型(%s)", result.osType).
+		En("host-os-type(%s)", result.osType).
+		Info()
+	data.Log().
+		Zh("主机CPU架构(%s)", result.cpuArch).
+		En("host-cpu-arch(%s)", result.cpuArch).
+		Info()
 }
