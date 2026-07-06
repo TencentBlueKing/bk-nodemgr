@@ -92,6 +92,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionDetectInfoBySSH(nodeCap),
 		node.NewActionDetectInfoByWMI(nodeCap),
 		node.NewActionDetectInfoByWindowsSSH(nodeCap),
+		node.NewActionDetectInfoByWindowsAuto(nodeCap),
 		node.NewActionUpgradeNode(nodeCap),
 		node.NewActionCheckSelfRelayPluginAlive(nodeCap),
 		node.NewActionUpgradeProxy(nodeCap),
