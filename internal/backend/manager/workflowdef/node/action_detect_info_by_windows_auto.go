@@ -141,24 +141,9 @@ func (act *actionDetectInfoByWindowsAuto) Do(ctx *action.InstanceContext) (err e
 		}
 	}()
 
-	result, err := detectWindowsAutoInfo(
-		func() (windowsSSHDetectResult, error) {
-			return act.detectByWindowsSSH(std)
-		},
-		func() (windowsWMIDetectResult, error) {
-			return act.detectByWMI(std)
-		},
-	)
+	result, err := act.detectWindowsAutoInfo(std)
 	if err != nil {
 		return err
-	}
-
-	if result.method == windowsAutoDetectMethodWMI {
-		std.InstanceData().Log().
-			Zh("Windows SSH 探测失败，切换到 WMI 兜底: %s", result.sshErr.Error()).
-			En("windows ssh detect failed, fallback to wmi: %s", result.sshErr.Error()).
-			Warn()
-		logWindowsWMIInfo(std.InstanceData(), windowsWMIDetectResult{osType: result.osType, cpuArch: result.cpuArch})
 	}
 
 	if err = act.applyWindowsAutoDetectResult(std, result); err != nil {
@@ -311,11 +296,10 @@ func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 	return nil
 }
 
-func detectWindowsAutoInfo(
-	detectBySSH func() (windowsSSHDetectResult, error),
-	detectByWMI func() (windowsWMIDetectResult, error),
+func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(
+	std *nodeUtils.NodeActionStandarder,
 ) (windowsAutoDetectResult, error) {
-	sshResult, sshErr := detectBySSH()
+	sshResult, sshErr := act.detectByWindowsSSH(std)
 	if sshErr == nil {
 		return windowsAutoDetectResult{
 			osType:  sshResult.osType,
@@ -325,12 +309,18 @@ func detectWindowsAutoInfo(
 		}, nil
 	}
 
-	wmiResult, wmiErr := detectByWMI()
+	std.InstanceData().Log().
+		Zh("Windows SSH 探测失败，切换到 WMI 兜底: %s", sshErr.Error()).
+		En("windows ssh detect failed, fallback to wmi: %s", sshErr.Error()).
+		Warn()
+
+	wmiResult, wmiErr := act.detectByWMI(std)
 	if wmiErr != nil {
 		return windowsAutoDetectResult{}, fmt.Errorf(
 			"failed to detect windows info by auto, ssh detect error(%v), wmi detect error: %w", sshErr, wmiErr,
 		)
 	}
+	logWindowsWMIInfo(std.InstanceData(), wmiResult)
 
 	return windowsAutoDetectResult{
 		osType:  wmiResult.osType,

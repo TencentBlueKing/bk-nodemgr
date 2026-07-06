@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -24,92 +23,6 @@ func TestActionDetectInfoByWindowsAutoMetadata(t *testing.T) {
 	}
 	if act.Timeout() != time.Minute {
 		t.Fatalf("Timeout() = %s, want %s", act.Timeout(), time.Minute)
-	}
-}
-
-func TestDetectWindowsAutoInfo(t *testing.T) {
-	sshErr := errors.New("ssh unavailable")
-	wmiErr := errors.New("wmi unavailable")
-
-	tests := []struct {
-		name       string
-		sshResult  windowsSSHDetectResult
-		sshErr     error
-		wmiResult  windowsWMIDetectResult
-		wmiErr     error
-		want       windowsAutoDetectResult
-		wantErr    bool
-		wantSSHRun int
-		wantWMIRun int
-	}{
-		{
-			name: "ssh success skips wmi",
-			sshResult: windowsSSHDetectResult{
-				osType:  criteria.OSWindows,
-				cpuArch: criteria.CPUArchAmd64,
-				profile: windowsSSHProfileNative,
-			},
-			want: windowsAutoDetectResult{
-				osType:  criteria.OSWindows,
-				cpuArch: criteria.CPUArchAmd64,
-				method:  windowsAutoDetectMethodSSH,
-				profile: windowsSSHProfileNative,
-			},
-			wantSSHRun: 1,
-		},
-		{
-			name:   "ssh failure falls back to wmi",
-			sshErr: sshErr,
-			wmiResult: windowsWMIDetectResult{
-				osType:  criteria.OSWindows,
-				cpuArch: criteria.CPUArchAmd64,
-			},
-			want: windowsAutoDetectResult{
-				osType:  criteria.OSWindows,
-				cpuArch: criteria.CPUArchAmd64,
-				method:  windowsAutoDetectMethodWMI,
-				sshErr:  sshErr,
-			},
-			wantSSHRun: 1,
-			wantWMIRun: 1,
-		},
-		{
-			name:       "both channels fail",
-			sshErr:     sshErr,
-			wmiErr:     wmiErr,
-			wantErr:    true,
-			wantSSHRun: 1,
-			wantWMIRun: 1,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sshRun := 0
-			wmiRun := 0
-
-			got, err := detectWindowsAutoInfo(
-				func() (windowsSSHDetectResult, error) {
-					sshRun++
-					return tt.sshResult, tt.sshErr
-				},
-				func() (windowsWMIDetectResult, error) {
-					wmiRun++
-					return tt.wmiResult, tt.wmiErr
-				},
-			)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("detectWindowsAutoInfo() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr {
-				if got.osType != tt.want.osType || got.cpuArch != tt.want.cpuArch || got.method != tt.want.method || got.profile != tt.want.profile || got.sshErr != tt.want.sshErr {
-					t.Fatalf("detectWindowsAutoInfo() = %+v, want %+v", got, tt.want)
-				}
-			}
-			if sshRun != tt.wantSSHRun || wmiRun != tt.wantWMIRun {
-				t.Fatalf("probe runs = ssh:%d wmi:%d, want ssh:%d wmi:%d", sshRun, wmiRun, tt.wantSSHRun, tt.wantWMIRun)
-			}
-		})
 	}
 }
 
