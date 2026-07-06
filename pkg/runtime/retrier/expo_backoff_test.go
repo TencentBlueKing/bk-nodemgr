@@ -21,12 +21,16 @@ import (
 // TestExpoBackoff ...
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func TestExpoBackoff(t *testing.T) {
+	backgroundContext := func(t *testing.T) context.Context {
+		t.Helper()
+		return context.Background()
+	}
 	type fields struct {
 		opts ExpoBackoffOpts
 	}
 	type args struct {
-		ctx context.Context
-		fn  func(attempt int) error
+		ctxFn func(t *testing.T) context.Context
+		fn    func(attempt int) error
 	}
 	tests := []struct {
 		name         string
@@ -41,7 +45,7 @@ func TestExpoBackoff(t *testing.T) {
 				opts: ExpoBackoffOptsDefault(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctxFn: backgroundContext,
 				fn: func(attempt int) error {
 					return nil
 				},
@@ -55,7 +59,7 @@ func TestExpoBackoff(t *testing.T) {
 				opts: ExpoBackoffOptsDefault(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctxFn: backgroundContext,
 				fn: func(attempt int) error {
 					if attempt < 1 {
 						return errors.New("temporary error")
@@ -73,7 +77,7 @@ func TestExpoBackoff(t *testing.T) {
 				opts: ExpoBackoffOptsDefault(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctxFn: backgroundContext,
 				fn: func(attempt int) error {
 					return errors.New("persistent error")
 				},
@@ -87,11 +91,12 @@ func TestExpoBackoff(t *testing.T) {
 				opts: ExpoBackoffOptsDefault(),
 			},
 			args: args{
-				ctx: func() context.Context {
+				ctxFn: func(t *testing.T) context.Context {
+					t.Helper()
 					ctx, cancel := context.WithCancel(context.Background())
 					cancel()
 					return ctx
-				}(),
+				},
 				fn: func(attempt int) error {
 					return errors.New("some error")
 				},
@@ -108,7 +113,7 @@ func TestExpoBackoff(t *testing.T) {
 				}(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctxFn: backgroundContext,
 				fn: func(attempt int) error {
 					if attempt < 4 {
 						return errors.New("temporary error")
@@ -125,13 +130,15 @@ func TestExpoBackoff(t *testing.T) {
 				opts: ExpoBackoffOptsDefault(),
 			},
 			args: args{
-				ctx: func() context.Context {
-					ctx, _ := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+				ctxFn: func(t *testing.T) context.Context {
+					t.Helper()
+					ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+					t.Cleanup(cancel)
 					return ctx
-				}(),
+				},
 				fn: func(attempt int) error {
 					if attempt < 1 {
-						time.Sleep(1000 * time.Millisecond)
+						time.Sleep(200 * time.Millisecond)
 					}
 
 					return errors.New("timeout error")
@@ -150,7 +157,7 @@ func TestExpoBackoff(t *testing.T) {
 				}(),
 			},
 			args: args{
-				ctx: context.Background(),
+				ctxFn: backgroundContext,
 				fn: func(attempt int) error {
 					return errors.New("error")
 				},
@@ -169,7 +176,8 @@ func TestExpoBackoff(t *testing.T) {
 				return tt.args.fn(attempt)
 			}
 
-			err := e.Do(tt.args.ctx, wrapperFn)
+			ctx := tt.args.ctxFn(t)
+			err := e.Do(ctx, wrapperFn)
 			if err != nil {
 				t.Logf("Do() error = %v", err)
 			}
