@@ -6,21 +6,21 @@ type: application
 version: v3.0.1-alpha.50
 dependencies:
   - name: common
-    repository: https://charts.bitnami.com/bitnami
+    repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
     tags:
       - bitnami-common
     version: 2.x.x
   - condition: etcd.enabled
     name: etcd
     alias: etcd
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
     version: 11.x.x
   - condition: redis.enabled
     name: redis
     alias: redis
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
     version: 17.x.x
   - condition: mongodb.enabled
     name: mongodb
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: "https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami"
     version: 13.x.x

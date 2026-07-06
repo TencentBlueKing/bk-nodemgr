@@ -1,15 +1,15 @@
 dependencies:
 - name: common
-  repository: https://charts.bitnami.com/bitnami
-  version: 2.31.4
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
+  version: 2.41.0
 - name: etcd
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   version: 11.3.6
 - name: redis
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   version: 17.17.1
 - name: mongodb
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
   version: 13.18.5
-digest: sha256:6977f8319695a76a6a38f7bbb65825bf07d4b15f9b3815823d6f9a1e49d540ac
-generated: "2026-01-07T10:34:39.125526415+08:00"
+digest: sha256:70f08c277954b8cc8e2a33619c268348d870aa3d0da067c3a11eb63294766620
+generated: "2026-07-06T11:44:24.177764277+08:00"
