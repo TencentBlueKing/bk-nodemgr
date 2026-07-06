@@ -112,7 +112,7 @@ func (act *actionInstallPreOrderedPlugins) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallPreOrderedPlugins) DelayFn() func() {
+func (act *actionInstallPreOrderedPlugins) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(30 * time.Second) // nolint: mnd
 	}

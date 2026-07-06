@@ -76,7 +76,7 @@ func (act *actionFetchProcessSubConfigIntoDeployment) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionFetchProcessSubConfigIntoDeployment) DelayFn() func() {
+func (act *actionFetchProcessSubConfigIntoDeployment) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

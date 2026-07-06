@@ -119,7 +119,7 @@ func (act *actionPagentDetectInfoBySSH) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
+func (act *actionPagentDetectInfoBySSH) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(actionRetryDelay)
 	}

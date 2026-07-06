@@ -54,7 +54,7 @@ type Definition interface {
 	MaxRetryCount() uint
 
 	// DelayFn returns the delay function of the action.
-	DelayFn() func()
+	DelayFn(attempt int) func()
 
 	// Do executes the action, with specified context.
 	Do(iCtx *InstanceContext) error

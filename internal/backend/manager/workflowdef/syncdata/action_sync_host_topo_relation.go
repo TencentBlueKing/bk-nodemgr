@@ -73,7 +73,7 @@ func (act *actionSyncHostTopoRelation) MaxRetryCount() uint {
 }
 
 // DelayFn returns the delay of this action.
-func (act *actionSyncHostTopoRelation) DelayFn() func() {
+func (act *actionSyncHostTopoRelation) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Minute)
 	}

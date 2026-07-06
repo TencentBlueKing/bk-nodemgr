@@ -90,7 +90,7 @@ func (act *actionInjectNodeCustomDeployConfig) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInjectNodeCustomDeployConfig) DelayFn() func() {
+func (act *actionInjectNodeCustomDeployConfig) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

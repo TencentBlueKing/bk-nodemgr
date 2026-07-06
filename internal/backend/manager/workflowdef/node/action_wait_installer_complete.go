@@ -102,7 +102,7 @@ func (act *actionWaitInstallerComplete) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWaitInstallerComplete) DelayFn() func() {
+func (act *actionWaitInstallerComplete) DelayFn(_ int) func() {
 	return func() {}
 }
 

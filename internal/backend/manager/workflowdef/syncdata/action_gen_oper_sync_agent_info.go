@@ -92,7 +92,7 @@ func (act *actionGenOperSyncAgentInfo) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionGenOperSyncAgentInfo) DelayFn() func() {
+func (act *actionGenOperSyncAgentInfo) DelayFn(_ int) func() {
 	return func() {}
 }
 

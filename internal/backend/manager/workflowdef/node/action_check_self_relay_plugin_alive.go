@@ -93,7 +93,7 @@ func (act *actionCheckSelfRelayPluginAlive) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionCheckSelfRelayPluginAlive) DelayFn() func() {
+func (act *actionCheckSelfRelayPluginAlive) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

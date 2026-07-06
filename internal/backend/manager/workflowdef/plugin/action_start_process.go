@@ -79,7 +79,7 @@ func (act *actStartProcess) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actStartProcess) DelayFn() func() {
+func (act *actStartProcess) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

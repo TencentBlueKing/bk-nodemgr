@@ -91,7 +91,7 @@ func (act *actionResolveOfflineDetectInfo) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionResolveOfflineDetectInfo) DelayFn() func() {
+func (act *actionResolveOfflineDetectInfo) DelayFn(_ int) func() {
 	return func() {}
 }
 

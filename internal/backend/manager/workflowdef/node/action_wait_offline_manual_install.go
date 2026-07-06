@@ -103,7 +103,7 @@ func (act *actionWaitOfflineManualInstall) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWaitOfflineManualInstall) DelayFn() func() {
+func (act *actionWaitOfflineManualInstall) DelayFn(_ int) func() {
 	return func() {}
 }
 

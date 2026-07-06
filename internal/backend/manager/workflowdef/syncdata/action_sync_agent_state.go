@@ -75,7 +75,7 @@ func (act *actionSyncAgentState) MaxRetryCount() uint {
 }
 
 // DelayFn returns the delay of this action.
-func (act *actionSyncAgentState) DelayFn() func() {
+func (act *actionSyncAgentState) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

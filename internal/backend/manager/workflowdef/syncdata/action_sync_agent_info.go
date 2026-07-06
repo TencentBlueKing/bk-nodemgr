@@ -80,7 +80,7 @@ func (act *actionSyncAgentInfo) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionSyncAgentInfo) DelayFn() func() {
+func (act *actionSyncAgentInfo) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

@@ -99,7 +99,7 @@ func (act *actionWaitGseReady) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWaitGseReady) DelayFn() func() {
+func (act *actionWaitGseReady) DelayFn(_ int) func() {
 	return func() {
 		logger.G.Sys().With("action", act.Name()).Error("this action should not auto retry")
 	}

@@ -85,7 +85,7 @@ func (act *actionFetchPluginProcessV2) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionFetchPluginProcessV2) DelayFn() func() {
+func (act *actionFetchPluginProcessV2) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

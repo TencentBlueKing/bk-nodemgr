@@ -93,7 +93,7 @@ func (act *actionSelectRelayHost) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionSelectRelayHost) DelayFn() func() {
+func (act *actionSelectRelayHost) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

@@ -102,7 +102,7 @@ func (act *actionUpgradePagent) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionUpgradePagent) DelayFn() func() {
+func (act *actionUpgradePagent) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}

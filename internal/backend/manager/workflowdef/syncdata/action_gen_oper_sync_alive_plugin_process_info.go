@@ -90,7 +90,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionGenOperSyncAlivePluginProcessInfo) DelayFn() func() {
+func (act *actionGenOperSyncAlivePluginProcessInfo) DelayFn(_ int) func() {
 	return func() {}
 }
 

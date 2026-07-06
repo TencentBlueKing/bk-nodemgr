@@ -115,7 +115,7 @@ func (act *actionInstallNodeByWMI) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallNodeByWMI) DelayFn() func() {
+func (act *actionInstallNodeByWMI) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}

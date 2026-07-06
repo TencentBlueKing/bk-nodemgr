@@ -97,7 +97,7 @@ func (act *actionWaitDetectInfoByManual) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWaitDetectInfoByManual) DelayFn() func() {
+func (act *actionWaitDetectInfoByManual) DelayFn(_ int) func() {
 	return func() {}
 }
 

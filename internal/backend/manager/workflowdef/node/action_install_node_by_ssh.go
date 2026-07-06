@@ -121,7 +121,7 @@ func (act *actionInstallNodeBySSH) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionInstallNodeBySSH) DelayFn() func() {
+func (act *actionInstallNodeBySSH) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}

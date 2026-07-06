@@ -82,7 +82,7 @@ func (act *actionGenOperSyncHostTopoRelation) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionGenOperSyncHostTopoRelation) DelayFn() func() {
+func (act *actionGenOperSyncHostTopoRelation) DelayFn(_ int) func() {
 	return func() {}
 }
 

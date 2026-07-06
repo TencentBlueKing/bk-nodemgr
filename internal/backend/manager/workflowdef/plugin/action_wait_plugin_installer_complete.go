@@ -94,7 +94,7 @@ func (act *actionWaitPluginInstallerComplete) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWaitPluginInstallerComplete) DelayFn() func() {
+func (act *actionWaitPluginInstallerComplete) DelayFn(_ int) func() {
 	return func() {}
 }
 

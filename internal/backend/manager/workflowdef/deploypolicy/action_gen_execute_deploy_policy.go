@@ -86,7 +86,7 @@ func (act *actionGenOperExecuteDeployPolicy) MaxRetryCount() uint {
 }
 
 // DelayFn returns the delay of this action.
-func (act *actionGenOperExecuteDeployPolicy) DelayFn() func() {
+func (act *actionGenOperExecuteDeployPolicy) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(1 * time.Minute)
 	}

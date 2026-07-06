@@ -655,7 +655,7 @@ func (mgr *manager) callActionDefWithRetry(nCtx contextx.IContext, actionInstCtx
 				)
 			}
 
-			delayFn := actionDef.DelayFn()
+			delayFn := actionDef.DelayFn(int(retryNum))
 			if delayFn != nil {
 				delayFn()
 			}

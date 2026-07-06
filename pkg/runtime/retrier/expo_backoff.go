@@ -44,6 +44,39 @@ func ExpoBackoffOptsDefault() ExpoBackoffOpts {
 	}
 }
 
+// ExpoBackoffDelayOpts options for exponential delay calculation.
+type ExpoBackoffDelayOpts struct {
+	// BaseDelay is the base delay before exponential scaling.
+	BaseDelay time.Duration
+
+	// MaxDelay is the maximum delay cap.
+	MaxDelay time.Duration
+
+	// JitterPercent is the random jitter percentage added to the delay.
+	JitterPercent float64
+}
+
+// ExpoBackoffDelayOptsDefault returns default delay options.
+func ExpoBackoffDelayOptsDefault() ExpoBackoffDelayOpts {
+	return ExpoBackoffDelayOpts{
+		BaseDelay:     time.Second,
+		MaxDelay:      5 * time.Second,
+		JitterPercent: 0.2,
+	}
+}
+
+// CalculateExpoDelay calculates exponential delay with jitter for a given attempt.
+// The delay formula is: min(BaseDelay * 2^attempt, MaxDelay) + jitter.
+func CalculateExpoDelay(attempt int, opts ExpoBackoffDelayOpts) time.Duration {
+	delay := float64(opts.BaseDelay) * math.Pow(2, float64(attempt))
+	if delay > float64(opts.MaxDelay) {
+		delay = float64(opts.MaxDelay)
+	}
+
+	jitter := delay * rand.Float64() * opts.JitterPercent // nolint: gosec
+	return time.Duration(delay + jitter)
+}
+
 // ExpoBackoff the exponential backoff retryer.
 type ExpoBackoff struct {
 	opts ExpoBackoffOpts
@@ -59,19 +92,12 @@ func NewExpoBackoff(opts ExpoBackoffOpts) *ExpoBackoff {
 }
 
 // calculateDelay calculate the delay time
-// nolint: varnamelen
 func (e *ExpoBackoff) calculateDelay(attempt int) time.Duration {
-	// cal base delay.
-	delay := float64(e.opts.BaseDelay) * math.Pow(2, float64(attempt))
-	if delay > float64(e.opts.MaxDelay) {
-		delay = float64(e.opts.MaxDelay)
-	}
-
-	// add jitter.
-	jitter := delay * rand.Float64() * e.opts.JitterPercent
-	finalDelay := time.Duration(delay + jitter)
-
-	return finalDelay
+	return CalculateExpoDelay(attempt, ExpoBackoffDelayOpts{
+		BaseDelay:     e.opts.BaseDelay,
+		MaxDelay:      e.opts.MaxDelay,
+		JitterPercent: e.opts.JitterPercent,
+	})
 }
 
 // Do do the fn.
