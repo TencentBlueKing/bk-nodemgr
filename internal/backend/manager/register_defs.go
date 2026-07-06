@@ -77,6 +77,7 @@ func (mgr *Manager) registerDefNode() error {
 	if err := mgr.workflowMgr.RegisterActions(
 		node.NewActionWaitInstallerComplete(nodeCap),
 		node.NewActionWaitGseReady(nodeCap),
+		node.NewActionWaitGseNotAlive(nodeCap),
 		node.NewActionTryReuseAgentID(nodeCap),
 		node.NewActionBindAgentHostRel(nodeCap),
 		node.NewActionInstallNodeBySSH(nodeCap),
@@ -108,6 +109,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionInstallPagentByWMI(nodeCap),
 		node.NewActionUpgradePagent(nodeCap),
 		node.NewActionUninstallNode(nodeCap),
+		node.NewActionUninstallNodeSkipReport(nodeCap),
 		node.NewActionReconfigPagent(nodeCap),
 		node.NewActionUninstallPagent(nodeCap),
 		node.NewActionResetNodeDynamic(nodeCap),

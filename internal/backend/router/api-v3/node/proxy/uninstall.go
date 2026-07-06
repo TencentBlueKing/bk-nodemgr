@@ -51,12 +51,18 @@ func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
+	originUnitDirectMap, err := h.generatesUninstallOriginUnitDirectLink(rCtx, hosts)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to get origin network unit direct link")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	reqHosts := req.GetHost()
 	nodeDeploys := make([]*types.NodeDeployment, len(hosts))
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesUninstallDeploys(rCtx.TenantID(), reqHost, hosts)
+		nodeDeploy, err := h.generatesUninstallDeploys(rCtx.TenantID(), reqHost, hosts, originUnitDirectMap)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to generate node deployment")
 
@@ -94,6 +100,33 @@ func (h *handler) getUninstallNodeBizIDs(hostMap map[int64]*types.Host) []int64 
 	return conv.MapKeyToSlice(bizIDs)
 }
 
+func (h *handler) generatesUninstallOriginUnitDirectLink(
+	nCtx contextx.IContext, hostMap map[int64]*types.Host) (map[int64]bool, error) {
+
+	unitIDSet := make(map[int64]struct{})
+	for _, host := range hostMap {
+		unitIDSet[host.Dynamic.ProxyInstallOriginUnitID] = struct{}{}
+	}
+
+	units, _, err := h.storageNetworkUnit.ListNetworkUnit(nCtx,
+		types.UnlimitedPage(),
+		&types.NetworkUnitCondition{
+			ExactInclude: &types.NetworkUnitExactFields{
+				NetworkUnitID: conv.MapKeyToSlice(unitIDSet),
+			},
+		})
+	if err != nil {
+		return nil, fmt.Errorf("list origin network unit failed: %w", err)
+	}
+
+	unitInfoMap := make(map[int64]bool)
+	for _, unit := range units {
+		unitInfoMap[unit.ID] = unit.IsDirect
+	}
+
+	return unitInfoMap, nil
+}
+
 func (h *handler) getUninstallNodeHosts(
 	nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyUninstallReq_Host) (map[int64]*types.Host, error) {
 
@@ -124,13 +157,17 @@ func (h *handler) getUninstallNodeHosts(
 func (h *handler) generatesUninstallDeploys(
 	tenantID string,
 	reqHost *protoBackend.NodeProxyUninstallReq_Host,
-	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
+	hostMap map[int64]*types.Host,
+	originUnitDirectMap map[int64]bool) (*types.NodeDeployment, error) {
 
 	hostID := reqHost.GetBkHostId()
 	host, ok := hostMap[hostID]
 	if !ok {
 		return nil, fmt.Errorf("host not found. host-id(%d)", hostID)
 	}
+
+	originUnitID := host.Dynamic.ProxyInstallOriginUnitID
+	crossUnit := originUnitID != host.Dynamic.NetworkUnitID
 
 	// uninstall ,we need to clear the proxy dynamic config
 	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
@@ -139,14 +176,19 @@ func (h *handler) generatesUninstallDeploys(
 			HostID:   host.HostID,
 			Static:   host.Static,
 			Dynamic: &types.HostDynamic{
-				NodeRole:       host.Dynamic.NodeRole,
-				NodeStatus:     host.Dynamic.NodeStatus,
-				NodeGeneration: host.Dynamic.NodeGeneration,
-				NodeOsType:     host.Dynamic.NodeOsType,
-				NodeCPUArch:    host.Dynamic.NodeCPUArch,
-				AgentID:        host.Dynamic.AgentID,
-				NetworkUnitID:  host.Dynamic.NetworkUnitID,
+				NodeRole:                 host.Dynamic.NodeRole,
+				NodeStatus:               host.Dynamic.NodeStatus,
+				NodeGeneration:           host.Dynamic.NodeGeneration,
+				NodeOsType:               host.Dynamic.NodeOsType,
+				NodeCPUArch:              host.Dynamic.NodeCPUArch,
+				AgentID:                  host.Dynamic.AgentID,
+				NetworkUnitID:            host.Dynamic.NetworkUnitID,
+				ProxyInstallOriginUnitID: originUnitID,
 			},
+		},
+		UninstallOptions: types.DeploymentUninstallOptions{
+			DirectLink: originUnitDirectMap[originUnitID],
+			SkipReport: crossUnit,
 		},
 		TransferOptions: types.DeploymentTransferOptionsOnlyTransferInstaller(),
 	})

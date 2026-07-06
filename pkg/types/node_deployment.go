@@ -118,6 +118,7 @@ type DeploymentReconfigOptions struct {
 // DeploymentUninstallOptions this is the options for node uninstall.
 type DeploymentUninstallOptions struct {
 	DirectLink bool
+	SkipReport bool
 }
 
 // DeploymentRestartOptions this is the options for node restart.

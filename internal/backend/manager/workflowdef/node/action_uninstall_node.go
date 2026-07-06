@@ -33,13 +33,26 @@ import (
 const (
 	// ActionNameUninstallNode defines the action name.
 	ActionNameUninstallNode = "uninstall_node"
+	// ActionNameUninstallNodeSkipReport defines the action name for uninstall without installer report.
+	ActionNameUninstallNodeSkipReport = "uninstall_node_skip_report"
 
 	uninstallScriptTimeout = 10 * time.Minute
 )
 
 // NewActionUninstallNode get a new action.
 func NewActionUninstallNode(capability *Capability) action.Definition {
+	return newActionUninstallNode(capability, ActionNameUninstallNode, false)
+}
+
+// NewActionUninstallNodeSkipReport get a new action that skips installer report.
+func NewActionUninstallNodeSkipReport(capability *Capability) action.Definition {
+	return newActionUninstallNode(capability, ActionNameUninstallNodeSkipReport, true)
+}
+
+func newActionUninstallNode(capability *Capability, name string, skipCallback bool) action.Definition {
 	return &actionUninstallNode{
+		name:                  name,
+		skipCallback:          skipCallback,
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storageNetworkUnit:    capability.StorageTopo,
@@ -55,6 +68,8 @@ type ActionParamUninstallNode struct {
 }
 
 type actionUninstallNode struct {
+	name                  string
+	skipCallback          bool
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageNetworkUnit    topoStg.IStorageNetworkUnit
@@ -65,7 +80,7 @@ type actionUninstallNode struct {
 
 // Name returns the name of the action.
 func (act *actionUninstallNode) Name() string {
-	return ActionNameUninstallNode
+	return act.name
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
@@ -131,21 +146,10 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	// let the callback server known which action to mark and log.
-	if err := std.SaveBlockingActionName(ActionNameWaitInstallerComplete); err != nil {
-		return fmt.Errorf("failed to save blocking action name: %w", err)
-	}
-
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return err
-	}
-
-	callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
-		std, act.provider, nodeUtils.NodeInstallerEndpointSourceServer)
-	if err != nil {
-		return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
 	}
 
 	uninstallParams := &installer.NodeUninstallParams{
@@ -158,16 +162,30 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 		},
 		InstallWorkDir:    std.DeployInfo().InstallerRuntime.WorkDir,
 		InstallerFileName: toolName,
-		CallbackSvrAddr:   nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:       std.Token(),
 		OperInstID:        std.InstanceData().OperationInstanceID,
+		SkipCallback:      act.skipCallback,
 	}
 
-	err = saveWaitInstallerPrivateData(
-		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
-		false, false)
-	if err != nil {
-		return err
+	if !act.skipCallback {
+		// let the callback server known which action to mark and log.
+		if err := std.SaveBlockingActionName(ActionNameWaitInstallerComplete); err != nil {
+			return fmt.Errorf("failed to save blocking action name: %w", err)
+		}
+
+		callbackEndpoints, _, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
+			std, act.provider, nodeUtils.NodeInstallerEndpointSourceServer)
+		if err != nil {
+			return fmt.Errorf("failed to generate node installer server endpoints: %w", err)
+		}
+
+		uninstallParams.CallbackSvrAddr = nodeUtils.BuildServerURLs(callbackEndpoints...)
+		err = saveWaitInstallerPrivateData(
+			std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
+			false, false)
+		if err != nil {
+			return err
+		}
 	}
 
 	// exec uninstall command

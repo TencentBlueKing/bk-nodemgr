@@ -784,12 +784,8 @@ func (mgr *Manager) getReconfigOperationDef(deploy *types.NodeDeployment, operat
 }
 
 func (mgr *Manager) getUninstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
-	// proxy node, use direct link.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		return node.NewOperUninstallNode(node.OperParamUninstallNode{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
+		return mgr.getProxyUninstallOperationDef(deploy, operator)
 	}
 
 	// direct link, use direct link.
@@ -801,6 +797,27 @@ func (mgr *Manager) getUninstallOperationDef(deploy *types.NodeDeployment, opera
 	}
 
 	// indirect link, use pagent.
+	return node.NewOperUninstallPagent(node.OperParamUninstallPagent{
+		Token:    deploy.Token,
+		Operator: operator,
+	})
+}
+
+func (mgr *Manager) getProxyUninstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
+	if deploy.Info.UninstallOptions.SkipReport {
+		return node.NewOperUninstallNodeSkipReport(node.OperParamUninstallNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	if deploy.Info.UninstallOptions.DirectLink {
+		return node.NewOperUninstallNode(node.OperParamUninstallNode{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
 	return node.NewOperUninstallPagent(node.OperParamUninstallPagent{
 		Token:    deploy.Token,
 		Operator: operator,

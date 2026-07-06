@@ -380,6 +380,7 @@ type NodeUninstallParams struct {
 	CallbackSvrAddr string
 	DeployToken     string
 	OperInstID      string
+	SkipCallback    bool
 }
 
 // Validate validates the full node uninstall params required by the installer CLI.
@@ -392,7 +393,7 @@ func (params *NodeUninstallParams) Validate() error {
 		return err
 	}
 
-	if params.CallbackSvrAddr == "" {
+	if !params.SkipCallback && params.CallbackSvrAddr == "" {
 		return fmt.Errorf("callback server address is empty")
 	}
 
@@ -409,8 +410,8 @@ func (params *NodeUninstallParams) Validate() error {
 
 func (params *NodeUninstallParams) buildArgs() []string {
 	args := params.NodeCommonParams.buildArgs()
+	args = appendNodeCallbackArg(args, params.SkipCallback, params.CallbackSvrAddr)
 	args = append(args,
-		fmt.Sprintf("--%s %s", nodeFlagCallbackSvrAddr, params.CallbackSvrAddr),
 		fmt.Sprintf("--%s %s", nodeFlagDeployToken, params.DeployToken),
 		fmt.Sprintf("--%s %s", nodeFlagOperInstID, params.OperInstID),
 	)
