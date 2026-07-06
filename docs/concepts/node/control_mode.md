@@ -189,6 +189,56 @@ graph TD
     Proxy --> GSE2["GSE 通道"]
 ```
 
+### 节点卸载
+
+本节说明卸载（uninstall）的状态回写与最终结果确认通道。
+
+#### Agent 卸载
+
+| 条件                              | 状态回写           |
+|---------------------------------|----------------|
+| 目标 Unit 为直连（`is_direct = true`） | Server 上报  |
+| 目标 Unit 为非直连                    | Relay 上报   |
+
+#### Proxy 卸载
+
+| 条件                                        | 状态回写 / 结果确认        |
+|-------------------------------------------|---------------------|
+| 同 Unit + 源 Unit 为直连（`direct_install = true`） | 不存在，直连 Unit 无 Proxy |
+| 同 Unit + 源 Unit 为非直连                         | 同 Unit Relay 上报 |
+| 跨 Unit + 源 Unit 为直连                          | `skip report` 模式       |
+| 跨 Unit + 源 Unit 为非直连                         | `skip report` 模式       |
+
+#### 决策树
+
+```mermaid
+graph TD
+    Root["节点卸载"]
+    Root --> Agent
+    Root --> Proxy
+    Agent --> AD["直连 Unit"]
+    Agent --> AN["非直连 Unit"]
+    AD --> SRV["Server 上报"]
+    AN --> RLY["Relay 上报"]
+    Proxy --> Same["同 Unit"]
+    Proxy --> Cross["跨 Unit"]
+    Same --> SD["源 Unit 为直连"]
+    Same --> SN["源 Unit 为非直连"]
+    SD --> NA["不存在"]
+    SN --> SameRelay["同 Unit Relay 上报"]
+    Cross --> CD["源 Unit 为直连"]
+    Cross --> CN["源 Unit 为非直连"]
+    CD --> SkipServer["skip report 模式"]
+    CN --> SkipRelay["skip report 模式"]
+```
+
+#### 边界说明
+
+- **同 Unit + 直连源 Unit**：直连 Unit 不承载 Proxy，因此 Proxy 同 Unit 卸载不存在此分支。
+- **跨 Unit Proxy 卸载**：不再依赖 Server / Relay 查询 installer 上报状态，统一进入 `skip report` 模式。
+- **`skip report` 模式结果确认**：源 Unit 为直连时，Server 不查询上报状态；源 Unit 为非直连时，Relay 不查询上报状态。卸载过程会在本地留存一份数据，后续以 GSE 上报为准。
+- **成功判定**：进入 `skip report` 模式后，若对应 `agent id` 在 `1 分钟` 内未存活，则认为卸载成功。
+
 ## 相关文档
 
 - [Host（主机）](host.md)
