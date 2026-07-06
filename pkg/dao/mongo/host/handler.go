@@ -283,7 +283,17 @@ func (h *handler) CountGroupByModuleID(nCtx contextx.IContext, opts ...OptFn) (m
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).CountGroupByInt64(nCtx, filter, FieldKeyStaticModuleID)
+	results, err := h.tenantDao(tenantID).getHostDistributionByModuleID(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count host group by module id: %w", err)
+	}
+
+	data := make(map[int64]int64)
+	for _, result := range results {
+		data[result.ModuleID] = result.HostCount
+	}
+
+	return data, nil
 }
 
 // Exist count host by conditions.
@@ -582,6 +592,30 @@ func (h *handler) UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host
 	return nil
 }
 
+func convertHostTopoFromTypes(topoList []types.HostTopo) []HostTopo {
+	data := make([]HostTopo, len(topoList))
+	for idx, topo := range topoList {
+		data[idx] = HostTopo{
+			SetID:    topo.SetID,
+			ModuleID: topo.ModuleID,
+		}
+	}
+
+	return data
+}
+
+func convertHostTopoToTypes(topoList []HostTopo) []types.HostTopo {
+	data := make([]types.HostTopo, len(topoList))
+	for idx, topo := range topoList {
+		data[idx] = types.HostTopo{
+			SetID:    topo.SetID,
+			ModuleID: topo.ModuleID,
+		}
+	}
+
+	return data
+}
+
 func convertHostFromTypes(host *types.Host) *Host {
 	static := &HostStatic{}
 	if host.Static != nil {
@@ -589,6 +623,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			BizID:                    host.Static.BizID,
 			SetID:                    host.Static.SetID,
 			ModuleID:                 host.Static.ModuleID,
+			Topo:                     convertHostTopoFromTypes(host.Static.Topo),
 			NetworkAreaID:            host.Static.NetworkAreaID,
 			HostName:                 host.Static.HostName,
 			DeptName:                 host.Static.DeptName,
@@ -681,6 +716,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			BizID:                    host.Static.BizID,
 			SetID:                    host.Static.SetID,
 			ModuleID:                 host.Static.ModuleID,
+			Topo:                     convertHostTopoToTypes(host.Static.Topo),
 			NetworkAreaID:            host.Static.NetworkAreaID,
 			RegionID:                 host.Static.RegionID,
 			CityID:                   host.Static.CityID,
@@ -898,6 +934,9 @@ func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) 
 	}
 	if fields.ModuleID {
 		updates[FieldKeyStaticModuleID] = host.Static.ModuleID
+	}
+	if fields.Topo {
+		updates[FieldKeyStaticTopo] = convertHostTopoFromTypes(host.Static.Topo)
 	}
 	if fields.NetworkAreaID {
 		updates[FieldKeyStaticNetworkAreaID] = host.Static.NetworkAreaID

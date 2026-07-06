@@ -326,6 +326,12 @@ type Host struct {
 	OperationUpdatedAt time.Time
 }
 
+// HostTopo represents a host's set and module relation in CMDB.
+type HostTopo struct {
+	SetID    int64
+	ModuleID int64
+}
+
 // HostStatic represents a static host under a host.
 // static means it is synced from CMDB.
 // or sometimes it will be insert first into database in case of syncing latency.
@@ -334,6 +340,7 @@ type HostStatic struct {
 	BizID         int64
 	SetID         int64
 	ModuleID      int64
+	Topo          []HostTopo
 	NetworkAreaID int64
 	RegionID      string
 	CityID        string
@@ -380,6 +387,7 @@ type HostStaticFields struct {
 	BizID                    bool
 	SetID                    bool
 	ModuleID                 bool
+	Topo                     bool
 	NetworkAreaID            bool
 	RegionID                 bool
 	CityID                   bool

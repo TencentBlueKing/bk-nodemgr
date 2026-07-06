@@ -27,26 +27,27 @@ func TableName(tenantID string) string {
 // HostStatic represents a host static information.
 // nolint: revive
 type HostStatic struct {
-	BizID         int64    `json:"biz_id" bson:"biz_id"`
-	SetID         int64    `json:"set_id" bson:"set_id"`
-	ModuleID      int64    `json:"module_id" bson:"module_id"`
-	NetworkAreaID int64    `json:"networkarea_id" bson:"networkarea_id"`
-	HostName      string   `json:"host_name" bson:"host_name"`
-	DeptName      string   `json:"dept_name" bson:"dept_name"`
-	InnerIPList   []string `json:"inner_ip_list" bson:"inner_ip_list"`
-	InnerIPV6List []string `json:"inner_ipv6_list" bson:"inner_ipv6_list"`
-	OuterIPList   []string `json:"outer_ip_list" bson:"outer_ip_list"`
-	OuterIPV6List []string `json:"outer_ipv6_list" bson:"outer_ipv6_list"`
-	Mac           string   `json:"mac" bson:"mac"`
-	Operator      string   `json:"operator" bson:"operator"`
-	OSType        string   `json:"os_type" bson:"os_type"`
-	OSTypeCCID    string   `json:"os_type_ccid" bson:"os_type_ccid"`
-	Arch          string   `json:"arch" bson:"arch"`
-	Addressing    string   `json:"addressing" bson:"addressing"`
-	RegionID      string   `json:"region_id" bson:"region_id"`
-	CityID        string   `json:"city_id" bson:"city_id"`
-	CPUNum        float64  `json:"cpu_num" bson:"cpu_num"`
-	MemCap        float64  `json:"mem_cap" bson:"mem_cap"`
+	BizID         int64      `json:"biz_id" bson:"biz_id"`
+	SetID         int64      `json:"set_id" bson:"set_id"`
+	ModuleID      int64      `json:"module_id" bson:"module_id"`
+	Topo          []HostTopo `json:"topo" bson:"topo"`
+	NetworkAreaID int64      `json:"networkarea_id" bson:"networkarea_id"`
+	HostName      string     `json:"host_name" bson:"host_name"`
+	DeptName      string     `json:"dept_name" bson:"dept_name"`
+	InnerIPList   []string   `json:"inner_ip_list" bson:"inner_ip_list"`
+	InnerIPV6List []string   `json:"inner_ipv6_list" bson:"inner_ipv6_list"`
+	OuterIPList   []string   `json:"outer_ip_list" bson:"outer_ip_list"`
+	OuterIPV6List []string   `json:"outer_ipv6_list" bson:"outer_ipv6_list"`
+	Mac           string     `json:"mac" bson:"mac"`
+	Operator      string     `json:"operator" bson:"operator"`
+	OSType        string     `json:"os_type" bson:"os_type"`
+	OSTypeCCID    string     `json:"os_type_ccid" bson:"os_type_ccid"`
+	Arch          string     `json:"arch" bson:"arch"`
+	Addressing    string     `json:"addressing" bson:"addressing"`
+	RegionID      string     `json:"region_id" bson:"region_id"`
+	CityID        string     `json:"city_id" bson:"city_id"`
+	CPUNum        float64    `json:"cpu_num" bson:"cpu_num"`
+	MemCap        float64    `json:"mem_cap" bson:"mem_cap"`
 
 	SyncedAgentID            string `json:"synced_agent_id" bson:"synced_agent_id"`
 	SyncedOpsConsoleHostID   int64  `json:"synced_ops_console_host_id" bson:"synced_ops_console_host_id"`
@@ -54,6 +55,12 @@ type HostStatic struct {
 	SyncedOpsOutBandProtocol string `json:"synced_ops_out_band_protocol" bson:"synced_ops_out_band_protocol"`
 	SyncedOpsBMCIP           string `json:"synced_ops_bmc_ip" bson:"synced_ops_bmc_ip"`
 	SyncedOpsBMCPort         int64  `json:"synced_ops_bmc_port" bson:"synced_ops_bmc_port"`
+}
+
+// HostTopo represents a host topo relation in CMDB.
+type HostTopo struct {
+	SetID    int64 `json:"bk_set_id" bson:"bk_set_id"`
+	ModuleID int64 `json:"bk_module_id" bson:"bk_module_id"`
 }
 
 // HostDynamic represents a host dynamic information.

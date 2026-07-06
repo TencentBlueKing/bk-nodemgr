@@ -31,6 +31,15 @@ const (
 	// FieldKeyStaticModuleID the static module id field key.
 	FieldKeyStaticModuleID = "data.static.module_id"
 
+	// FieldKeyStaticTopo the static topo field key.
+	FieldKeyStaticTopo = "data.static.topo"
+
+	// FieldKeyStaticTopoSetID the static topo set id field key.
+	FieldKeyStaticTopoSetID = "data.static.topo.bk_set_id"
+
+	// FieldKeyStaticTopoModuleID the static topo module id field key.
+	FieldKeyStaticTopoModuleID = "data.static.topo.bk_module_id"
+
 	// FieldKeyStaticNetworkAreaID the static networkarea id field key.
 	FieldKeyStaticNetworkAreaID = "data.static.networkarea_id"
 

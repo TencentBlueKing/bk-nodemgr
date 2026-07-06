@@ -40,7 +40,7 @@ func WithStaticSetID(setIDs ...int64) OptFn {
 
 // WithStaticModuleID filters by module id.
 func WithStaticModuleID(moduleIDs ...int64) OptFn {
-	return base.WithValues(FieldKeyStaticModuleID, moduleIDs...)
+	return base.WithAnyFieldValues([]string{FieldKeyStaticTopoModuleID, FieldKeyStaticModuleID}, moduleIDs...)
 }
 
 // WithoutStaticBizID filters by not contains biz-id.

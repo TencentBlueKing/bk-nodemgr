@@ -107,17 +107,52 @@ func (act *actionSyncHostTopoRelation) Do(ctx *action.InstanceContext) error {
 		En("find %d host topo relations from cmdb", len(hosts)).
 		Info()
 
+	hosts = mergeHostTopoRelations(hosts)
 	if err = batchHandleHosts(std.Context(), hosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpdateHostStaticFields(std.Context(), types.HostStaticFields{
 			BizID:    true,
 			ModuleID: true,
 			SetID:    true,
+			Topo:     true,
 		}, hosts...)
 	}); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func mergeHostTopoRelations(hosts []*types.Host) []*types.Host {
+	hostMap := make(map[int64]*types.Host)
+	for _, host := range hosts {
+		if host == nil || host.Static == nil {
+			continue
+		}
+
+		merged, ok := hostMap[host.HostID]
+		if !ok {
+			merged = &types.Host{
+				TenantID: host.TenantID,
+				HostID:   host.HostID,
+				Static: &types.HostStatic{
+					BizID:    host.Static.BizID,
+					SetID:    host.Static.SetID,
+					ModuleID: host.Static.ModuleID,
+					Topo:     make([]types.HostTopo, 0, len(host.Static.Topo)),
+				},
+			}
+			hostMap[host.HostID] = merged
+		}
+
+		merged.Static.Topo = append(merged.Static.Topo, host.Static.Topo...)
+	}
+
+	data := make([]*types.Host, 0, len(hostMap))
+	for _, host := range hostMap {
+		data = append(data, host)
+	}
+
+	return data
 }
 
 // DisplayNameZh returns the Chinese display name of the action.

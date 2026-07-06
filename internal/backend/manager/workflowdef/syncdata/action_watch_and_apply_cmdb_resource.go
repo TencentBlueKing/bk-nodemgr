@@ -285,6 +285,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 	event.Detail.Static.BizID = host.Static.BizID
 	event.Detail.Static.SetID = host.Static.SetID
 	event.Detail.Static.ModuleID = host.Static.ModuleID
+	event.Detail.Static.Topo = host.Static.Topo
 	if err := act.storageTopo.UpsertManyHost(std.Context(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -343,6 +344,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 	event.Detail.Static.BizID = dbHost.Static.BizID
 	event.Detail.Static.SetID = dbHost.Static.SetID
 	event.Detail.Static.ModuleID = dbHost.Static.ModuleID
+	event.Detail.Static.Topo = dbHost.Static.Topo
 	if err := act.storageTopo.UpdateHostStaticFields(std.Context(), types.UpdateAllHostStaticFields(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -390,15 +392,16 @@ func (act *actionWatchAndApplyCMDBResource) handleHostDeleteEvent(std *syncDataU
 	}
 }
 
-// handleHostRelationResource this func defines how to handle the host relation resource event.
-// if the host relation is deleted, it means the host is need deleted
-// host event will handle the delete logic, so we can ignore the delete event of host relation.
+// handleHostRelationResource defines how to handle the host relation resource event.
+// Delete events refresh the topo list from CMDB because a host may still belong to other modules.
 func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		act.handleHostRelationCreateEvent(std, event)
 	case types.EventTypeUpdate:
 		act.handleHostRelationUpdateEvent(std, event)
+	case types.EventTypeDelete:
+		act.handleHostRelationDeleteEvent(std, event)
 	default:
 		return
 	}
@@ -407,6 +410,10 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(std *sync
 func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
 	host, ok := act.waitingCreateHostMap[event.Detail.HostID]
 	if !ok {
+		if act.tryRefreshExistingHostRelation(std, event.Detail) {
+			return
+		}
+
 		act.waitingCreateHostMap[event.Detail.HostID] = event.Detail
 
 		return
@@ -415,6 +422,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 	host.Static.BizID = event.Detail.Static.BizID
 	host.Static.SetID = event.Detail.Static.SetID
 	host.Static.ModuleID = event.Detail.Static.ModuleID
+	host.Static.Topo = event.Detail.Static.Topo
 	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", host.HostID, err).
@@ -425,6 +433,57 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 	}
 
 	delete(act.waitingCreateHostMap, event.Detail.HostID)
+}
+
+func (act *actionWatchAndApplyCMDBResource) tryRefreshExistingHostRelation(
+	std *syncDataUtils.SyncDataActionStandarder, host *types.Host) bool {
+
+	exists, err := act.storageTopo.ExistHost(std.Context(), &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{host.HostID}},
+	})
+	if err != nil {
+		std.InstanceData().Log().
+			Zh("检查主机是否存在失败, 主机id: %d, 错误: %v", host.HostID, err).
+			En("failed to check host existence, host id: %d, error: %v", host.HostID, err).
+			Error()
+
+		return true
+	}
+
+	if !exists {
+		return false
+	}
+
+	if err = act.refreshHostTopoFromCMDB(std, host); err != nil {
+		std.InstanceData().Log().
+			Zh("刷新主机拓扑关系失败, 主机id: %d, 错误: %v", host.HostID, err).
+			En("failed to refresh host topo relation, host id: %d, error: %v", host.HostID, err).
+			Error()
+
+		return true
+	}
+
+	updateFields := hostRelationUpdateFields(host)
+	if err = act.storageTopo.UpdateHostStaticFields(std.Context(), updateFields, host); err != nil {
+		std.InstanceData().Log().
+			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", host.HostID, err).
+			En("failed to update host static info, host id: %d, error: %v", host.HostID, err).
+			Error()
+
+		return true
+	}
+
+	if err = act.storageProcess.UpdateProcessManyHostBizID(std.Context(), host.Static.BizID, host.HostID); err != nil {
+		std.InstanceData().Log().
+			Zh("更新主机相关进程的业务id失败, 主机id: %d, 业务id: %d, 错误: %v", host.HostID, host.Static.BizID, err).
+			En("failed to update host related process biz id, host id: %d, biz id: %d, error: %v",
+				host.HostID, host.Static.BizID, err).
+			Error()
+
+		return true
+	}
+
+	return true
 }
 
 func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
@@ -457,7 +516,16 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *s
 		return
 	}
 
-	updateFields := types.HostStaticFields{BizID: true, ModuleID: true, SetID: true}
+	if err = act.refreshHostTopoFromCMDB(std, event.Detail); err != nil {
+		std.InstanceData().Log().
+			Zh("刷新主机拓扑关系失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+			En("failed to refresh host topo relation, host id: %d, error: %v", event.Detail.HostID, err).
+			Error()
+
+		return
+	}
+
+	updateFields := hostRelationUpdateFields(event.Detail)
 	if err = act.storageTopo.UpdateHostStaticFields(std.Context(), updateFields, event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -478,7 +546,94 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *s
 	}
 }
 
-// tryUpsertHostFromCMDB depends on the host id to get the host information from CMDB.
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationDeleteEvent(
+	std *syncDataUtils.SyncDataActionStandarder, event *types.HostEvent) {
+
+	exists, err := act.storageTopo.ExistHost(std.Context(), &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{event.Detail.HostID}},
+	})
+	if err != nil {
+		std.InstanceData().Log().
+			Zh("检查主机是否存在失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+			En("failed to check host existence, host id: %d, error: %v", event.Detail.HostID, err).
+			Error()
+
+		return
+	}
+
+	if !exists {
+		return
+	}
+
+	if err = act.refreshHostTopoFromCMDB(std, event.Detail); err != nil {
+		std.InstanceData().Log().
+			Zh("刷新主机拓扑关系失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+			En("failed to refresh host topo relation, host id: %d, error: %v", event.Detail.HostID, err).
+			Error()
+
+		return
+	}
+
+	updateFields := hostRelationUpdateFields(event.Detail)
+	if err = act.storageTopo.UpdateHostStaticFields(std.Context(), updateFields, event.Detail); err != nil {
+		std.InstanceData().Log().
+			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+			En("failed to update host static info, host id: %d, error: %v", event.Detail.HostID, err).
+			Error()
+
+		return
+	}
+}
+
+func hostRelationUpdateFields(host *types.Host) types.HostStaticFields {
+	fields := types.HostStaticFields{Topo: true}
+	if host == nil || host.Static == nil {
+		return fields
+	}
+
+	fields.ModuleID = true
+	fields.SetID = true
+	if len(host.Static.Topo) == 0 {
+		return fields
+	}
+
+	fields.BizID = true
+
+	return fields
+}
+
+func (act *actionWatchAndApplyCMDBResource) refreshHostTopoFromCMDB(
+	std *syncDataUtils.SyncDataActionStandarder, host *types.Host) error {
+
+	if host == nil || host.Static == nil {
+		return nil
+	}
+
+	hosts, err := act.cmdbHandler.ListBizHostTopoRelations(std.Context(), host.Static.BizID, types.UnlimitedPage())
+	if err != nil {
+		return fmt.Errorf("list host topo relation from cmdb failed: %w", err)
+	}
+
+	for _, cmdbHost := range mergeHostTopoRelations(hosts) {
+		if cmdbHost.HostID != host.HostID || cmdbHost.Static == nil {
+			continue
+		}
+
+		host.Static.BizID = cmdbHost.Static.BizID
+		host.Static.SetID = cmdbHost.Static.SetID
+		host.Static.ModuleID = cmdbHost.Static.ModuleID
+		host.Static.Topo = cmdbHost.Static.Topo
+
+		return nil
+	}
+
+	host.Static.SetID = 0
+	host.Static.ModuleID = 0
+	host.Static.Topo = nil
+
+	return nil
+}
+
 func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataUtils.SyncDataActionStandarder, hostID int64, bizID int64) error {
 	cond := &types.HostStaticExactCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{hostID}},
@@ -507,6 +662,10 @@ func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataU
 	}
 
 	host := hosts[0]
+	if err = act.refreshHostTopoFromCMDB(std, host); err != nil {
+		return err
+	}
+
 	// when the host synchronizes from the CMDB for the first time, the agentid needs to be updated to dynamic
 	syncDataUtils.FillHostDynamicAgentID(host)
 	// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic

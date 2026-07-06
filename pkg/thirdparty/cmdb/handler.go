@@ -850,6 +850,9 @@ func convHostTopoRelationToTypes(tenantID string, hostRel *HostTopoRelation) *ty
 			BizID:    hostRel.BKBizID,
 			SetID:    hostRel.BKSetID,
 			ModuleID: hostRel.BKModuleID,
+			Topo: []types.HostTopo{
+				{SetID: hostRel.BKSetID, ModuleID: hostRel.BKModuleID},
+			},
 		},
 	}
 }

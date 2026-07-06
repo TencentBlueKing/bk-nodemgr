@@ -110,6 +110,17 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		},
 		{
 			Keys: bson.D{
+				{Key: FieldKeyStaticTopoModuleID, Value: 1},
+				{Key: FieldKeyDynamicNodeRole, Value: 1},
+				{Key: FieldKeyOperationUpdatedAt, Value: -1},
+				{Key: base.FieldKeyUpdatedAt, Value: -1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
+		{
+			Keys: bson.D{
 				{Key: FieldKeyStaticModuleID, Value: 1},
 				{Key: FieldKeyDynamicNodeRole, Value: 1},
 				{Key: FieldKeyOperationUpdatedAt, Value: -1},
@@ -354,6 +365,126 @@ func (d *dao) getHostDistributionByNetworkAreaID(nCtx contextx.IContext, filter 
 	}
 
 	return results, nil
+}
+
+// getHostDistributionByModuleID get host distribution by module id.
+func (d *dao) getHostDistributionByModuleID(nCtx contextx.IContext, filter bson.D, aggregateOptions ...*options.AggregateOptions) (
+	[]hostDistributionByModuleID, error) {
+
+	pipeline := mongo.Pipeline{}
+	if len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{Key: "$match", Value: filter},
+		})
+	}
+
+	topoSizeExpr := bson.D{{Key: "$size", Value: bson.D{
+		{Key: "$ifNull", Value: bson.A{"$" + FieldKeyStaticTopo, bson.A{}}},
+	}}}
+	moduleIDsExpr := bson.D{{Key: "$cond", Value: bson.A{
+		bson.D{{Key: "$gt", Value: bson.A{topoSizeExpr, 0}}},
+		"$" + FieldKeyStaticTopoModuleID,
+		bson.A{"$" + FieldKeyStaticModuleID},
+	}}}
+	pipeline = append(pipeline,
+		bson.D{{Key: "$project", Value: bson.D{{Key: "module_ids", Value: moduleIDsExpr}}}},
+		bson.D{{Key: "$unwind", Value: "$module_ids"}},
+	)
+	pipeline = appendModuleIDMatchStage(pipeline, filter)
+	pipeline = append(pipeline,
+		bson.D{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$module_ids"},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
+	)
+
+	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).Error("failed to close cursor of host distribution by module id")
+		}
+	}()
+
+	var results []hostDistributionByModuleID
+	if err = cursor.All(nCtx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func appendModuleIDMatchStage(pipeline mongo.Pipeline, filter bson.D) mongo.Pipeline {
+	moduleIDs := extractModuleIDsFromFilter(filter)
+	if len(moduleIDs) == 0 {
+		return pipeline
+	}
+
+	return append(pipeline, bson.D{{Key: "$match", Value: bson.D{
+		{Key: "module_ids", Value: bson.D{{Key: "$in", Value: moduleIDs}}},
+	}}})
+}
+
+func extractModuleIDsFromFilter(filter bson.D) []int64 {
+	moduleIDMap := make(map[int64]struct{})
+	collectModuleIDs(filter, moduleIDMap)
+
+	moduleIDs := make([]int64, 0, len(moduleIDMap))
+	for moduleID := range moduleIDMap {
+		moduleIDs = append(moduleIDs, moduleID)
+	}
+
+	return moduleIDs
+}
+
+func collectModuleIDs(data any, moduleIDMap map[int64]struct{}) {
+	switch v := data.(type) {
+	case bson.D:
+		for _, elem := range v {
+			if elem.Key == FieldKeyStaticTopoModuleID || elem.Key == FieldKeyStaticModuleID {
+				collectModuleIDValue(elem.Value, moduleIDMap)
+				continue
+			}
+
+			collectModuleIDs(elem.Value, moduleIDMap)
+		}
+	case bson.A:
+		for _, item := range v {
+			collectModuleIDs(item, moduleIDMap)
+		}
+	}
+}
+
+func collectModuleIDValue(value any, moduleIDMap map[int64]struct{}) {
+	switch v := value.(type) {
+	case int64:
+		moduleIDMap[v] = struct{}{}
+	case []int64:
+		for _, moduleID := range v {
+			moduleIDMap[moduleID] = struct{}{}
+		}
+	case bson.M:
+		collectModuleIDValue(v["$in"], moduleIDMap)
+	case bson.D:
+		for _, elem := range v {
+			if elem.Key == "$in" {
+				collectModuleIDValue(elem.Value, moduleIDMap)
+			}
+		}
+	case []any:
+		for _, item := range v {
+			collectModuleIDValue(item, moduleIDMap)
+		}
+	}
+}
+
+// hostDistributionByModuleID module aggregate result.
+type hostDistributionByModuleID struct {
+	ModuleID  int64 `bson:"_id"`
+	HostCount int64 `bson:"count"`
 }
 
 // hostDistributionByNetworkAreaID network unit aggregate result.
