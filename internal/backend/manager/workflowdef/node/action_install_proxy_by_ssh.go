@@ -14,20 +14,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"path"
-	"strings"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/nodeconfig"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/configfile"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
+	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -151,17 +147,23 @@ func (act *actionInstallProxyBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	if crossUnit {
-		return act.doCrossUnitInstall(std)
+		return act.doRelaySSHOnlyInstall(std)
 	}
 
-	return act.doRelayInstall(std)
+	return act.doRelayCallbackInstall(std)
 }
 
 func (act *actionInstallProxyBySSH) isCrossUnitInstall(std *nodeUtils.NodeActionStandarder) bool {
 	return std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID != std.DeployInfo().Host.Dynamic.NetworkUnitID
 }
 
-func (act *actionInstallProxyBySSH) doRelayInstall(std *nodeUtils.NodeActionStandarder) error {
+// doRelayCallbackInstall handles the relay-assisted SSH installation for same-unit installs.
+func (act *actionInstallProxyBySSH) doRelayCallbackInstall(std *nodeUtils.NodeActionStandarder) error {
+	std.InstanceData().Log().
+		Zh("检测到同管控单元 Proxy 安装, 使用 Relay Callback 模式").
+		En("same-unit proxy install detected, using Relay Callback mode").
+		Info()
+
 	credit := nodeUtils.NewCreditHandler(act.pagentInstaller.storageHostCredit, act.pagentInstaller.passwordVault)
 	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
@@ -200,222 +202,66 @@ func (act *actionInstallProxyBySSH) doRelayInstall(std *nodeUtils.NodeActionStan
 	)
 }
 
-func (act *actionInstallProxyBySSH) doCrossUnitInstall(std *nodeUtils.NodeActionStandarder) error {
+// doRelaySSHOnlyInstall handles the SSH-only installation for cross-unit installs.
+func (act *actionInstallProxyBySSH) doRelaySSHOnlyInstall(std *nodeUtils.NodeActionStandarder) error {
+	std.InstanceData().Log().
+		Zh("检测到跨管控单元 Proxy 安装, 使用 Relay SSH-Only 模式").
+		En("cross-unit proxy install detected, using Relay SSH-Only mode").
+		Info()
+
 	credit := nodeUtils.NewCreditHandler(act.nodeInstaller.storageHostCredit, act.nodeInstaller.passwordVault)
-	cMethod, cKey, err := credit.GetSSHCredit(std)
+	_, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
 	}
 
-	client, err := sshx.NewClient(std.Context(), &sshx.Config{
-		Network:    sshx.NetworkTCP,
-		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
-		Port:       int(std.DeployInfo().Host.Dynamic.LoginPort),
-		User:       std.DeployInfo().Host.Dynamic.LoginUser,
-		AuthMethod: cMethod,
-		Password: func() string {
-			if cMethod == sshx.AuthMethodPassword {
-				return cKey
-			}
-
-			return ""
-		}(),
-		PrivateKey: func() []byte {
-			if cMethod == sshx.AuthMethodPrivateKey {
-				return []byte(cKey)
-			}
-
-			return nil
-		}(),
-	}, sshx.DefaultTimeout)
+	relayInfo, err := std.GetSelectedRelay()
 	if err != nil {
-		return fmt.Errorf("failed to generate new ssh client: %w", err)
+		return fmt.Errorf("failed to get selected relay: %w", err)
 	}
 
-	if err = act.nodeInstaller.ensureWorkspace(std, client); err != nil {
-		return fmt.Errorf("failed to ensure workspace through ssh: %w", err)
-	}
-
-	installerPath, err := act.nodeInstaller.ensureInstallerTool(std, client)
-	if err != nil {
-		return fmt.Errorf("failed to ensure installer tool through ssh: %w", err)
-	}
-
-	return act.doSSHOnlyInstall(std, client, installerPath)
-}
-
-func (act *actionInstallProxyBySSH) doSSHOnlyInstall(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
-
-	std.InstanceData().Log().
-		Zh("检测到跨管控单元 Proxy 安装, 使用 SSH-Only 模式").
-		En("cross-unit proxy install detected, using SSH-Only mode").
-		Info()
-
-	if err := act.ensureProxyArtifacts(std, client); err != nil {
-		return fmt.Errorf("failed to ensure proxy artifacts: %w", err)
-	}
-
-	if err := act.executeSSHOnlyProxyInstallCMD(std, client, installerPath); err != nil {
-		return fmt.Errorf("failed to execute ssh-only proxy install cmd: %w", err)
-	}
-
-	return saveWaitInstallerPrivateData(std.Context(), act.nodeInstaller.storageActionInstance,
-		std.InstanceData().OperationInstanceID, true, true)
-}
-
-func (act *actionInstallProxyBySSH) ensureProxyArtifacts(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
-	nodeConf, err := act.nodeInstaller.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), std.Token())
-	if err != nil {
-		return fmt.Errorf("failed to get node conf: %w", err)
-	}
-
-	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
-	configDir := path.Join(dataDir, "config")
-	if _, stderr, err := client.RunCommand("mkdir -p " + configDir); err != nil {
-		return fmt.Errorf("failed to mkdir config dir, stderr(%s): %w", stderr, err)
-	}
-
-	configKeys := map[string]string{
-		types.ConfigKeyAgent: "gse_agent.conf",
-		types.ConfigKeyFile:  "gse_file_proxy.conf",
-		types.ConfigKeyData:  "gse_data_proxy.conf",
-	}
-
-	for key, filename := range configKeys {
-		rendered, err := nodeconfig.RenderNodeConfig(key, nodeConf)
-		if err != nil {
-			return fmt.Errorf("failed to render config %s: %w", key, err)
-		}
-
-		configBytes, err := configfile.FormatConfigFileJson(rendered)
-		if err != nil {
-			return fmt.Errorf("failed to marshal rendered config %s: %w", key, err)
-		}
-
-		remotePath := path.Join(configDir, filename)
-		if err := client.TransferFile(io.NopCloser(strings.NewReader(string(configBytes))), remotePath); err != nil {
-			return fmt.Errorf("failed to transfer config %s: %w", filename, err)
-		}
-
-		std.InstanceData().Log().
-			Zh("已推送配置文件: %s", remotePath).
-			En("pushed config file: %s", remotePath).
-			Info()
-	}
-
-	checkList, err := nodeconfig.BuildCheckList(std.DeployInfo(), nodeConf)
-	if err != nil {
-		return fmt.Errorf("failed to build checklist: %w", err)
-	}
-
-	checkListBytes, err := json.Marshal(checkList)
-	if err != nil {
-		return fmt.Errorf("failed to marshal checklist: %w", err)
-	}
-
-	checkListPath := path.Join(dataDir, "precheck.json")
-	if err := client.TransferFile(io.NopCloser(strings.NewReader(string(checkListBytes))), checkListPath); err != nil {
-		return fmt.Errorf("failed to transfer checklist: %w", err)
-	}
-
-	std.InstanceData().Log().
-		Zh("已推送预检清单: %s", checkListPath).
-		En("pushed checklist: %s", checkListPath).
-		Info()
-
-	if err := act.pushProxyReleasePackage(std, client); err != nil {
-		return fmt.Errorf("failed to push release package: %w", err)
-	}
-
-	return nil
-}
-
-func (act *actionInstallProxyBySSH) pushProxyReleasePackage(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
-	plat := platfmt.NewPlatform(
+	installerName, err := tool.FormatInstallerName(
 		std.DeployInfo().Host.Dynamic.NodeOsType,
 		std.DeployInfo().Host.Dynamic.NodeCPUArch,
 	)
+	if err != nil {
+		return fmt.Errorf("failed to format installer name: %w", err)
+	}
 
-	installerPkgName, err := nodepkg.FormatPkgFileName(
+	installerPath := path.Clean(path.Join(std.DeployInfo().InstallerRuntime.WorkDir, installerName))
+	installerCmd, err := act.buildSSHOnlyProxyInstallCmd(std, installerPath)
+	if err != nil {
+		return err
+	}
+
+	releaseName, err := nodepkg.FormatPkgFileName(
 		std.DeployInfo().Host.Dynamic.NodeGeneration,
 		types.ReleaseTypeProxy,
-		plat,
+		platfmt.NewPlatform(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch),
 		std.DeployInfo().Host.Dynamic.NodeVersion,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to format installer pkg name: %w", err)
+		return fmt.Errorf("failed to format release pkg name: %w", err)
 	}
 
-	reader, _, err := act.openReleaseReader(std)
-	if err != nil {
-		return fmt.Errorf("failed to get release package: %w", err)
+	if err := act.notifyRelayToInstallProxyBySSH(std, cKey, installerName, releaseName, installerCmd, relayInfo); err != nil {
+		return fmt.Errorf("failed to notify relay to install proxy by ssh: %w", err)
 	}
 
-	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
-	remotePath := path.Join(dataDir, installerPkgName)
-	if err := client.TransferFile(reader, remotePath); err != nil {
-		return fmt.Errorf("failed to transfer release package: %w", err)
+	if err := act.pagentInstaller.waitForRelayReportInstall(std); err != nil {
+		return fmt.Errorf("failed to wait for relay report install: %w", err)
 	}
 
-	std.InstanceData().Log().
-		Zh("已推送 release 包: %s", remotePath).
-		En("pushed release package: %s", remotePath).
-		Info()
-
-	return nil
+	return saveWaitInstallerPrivateData(
+		std.Context(),
+		act.pagentInstaller.storageActionInstance,
+		std.InstanceData().OperationInstanceID,
+		false,
+		true,
+	)
 }
 
-func (act *actionInstallProxyBySSH) openReleaseReader(std *nodeUtils.NodeActionStandarder) (io.ReadCloser, string, error) {
-	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
-	osType := std.DeployInfo().Host.Dynamic.NodeOsType
-	cpuArch := std.DeployInfo().Host.Dynamic.NodeCPUArch
-	version := std.DeployInfo().Host.Dynamic.NodeVersion
-	plat := platfmt.NewPlatform(osType, cpuArch)
-
-	pkgFileName, err := nodepkg.FormatPkgFileName(gen, types.ReleaseTypeOriginProxy, plat, version)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to format release pkg name: %w", err)
-	}
-
-	if act.nodeInstaller.fileCache == nil {
-		resp, err := act.nodeInstaller.fileHandler.DownloadReleaseProxy(std.Context(), gen, plat, version)
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to download release proxy: %w", err)
-		}
-
-		return resp.Data, pkgFileName, nil
-	}
-
-	fileInfo, err := act.nodeInstaller.fileHandler.InfoReleaseProxy(std.Context(), gen, plat, version)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to get release proxy info: %w", err)
-	}
-
-	cachedFile, _, err := act.nodeInstaller.fileCache.GetOrFetch(std.Context(), fileInfo.Name, fileInfo.MD5,
-		func(nCtx contextx.IContext) (io.ReadCloser, error) {
-			resp, dlErr := act.nodeInstaller.fileHandler.DownloadReleaseProxy(nCtx, gen, plat, version)
-			if dlErr != nil {
-				return nil, dlErr
-			}
-
-			return resp.Data, nil
-		})
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to get release proxy from file cache: %w", err)
-	}
-
-	reader, err := cachedFile.Content(std.Context())
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to open cached release content: %w", err)
-	}
-
-	return reader, pkgFileName, nil
-}
-
-func (act *actionInstallProxyBySSH) executeSSHOnlyProxyInstallCMD(
-	std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
-
+func (act *actionInstallProxyBySSH) buildSSHOnlyProxyInstallCmd(std *nodeUtils.NodeActionStandarder, installerPath string) (string, error) {
 	installParams := &installer.NodeInstallParams{
 		NodeCommonParams: installer.NodeCommonParams{
 			DeployEnv:     system.GetEnv(),
@@ -439,29 +285,54 @@ func (act *actionInstallProxyBySSH) executeSSHOnlyProxyInstallCMD(
 			fmt.Sprintf("--agent_id %s", std.DeployInfo().Host.Dynamic.AgentID))
 	}
 
-	installCmd, err := act.nodeInstaller.buildCMD(installParams)
+	_, installCmd, err := installParams.ToUnixScript()
 	if err != nil {
-		return fmt.Errorf("failed to build ssh-only proxy install cmd: %w", err)
+		return "", fmt.Errorf("failed to build ssh-only proxy install cmd: %w", err)
 	}
 	std.InstanceData().Log().
 		Zh("安装 Proxy 命令(跨管控单元 SSH-only): %s", installCmd).
 		En("install proxy cmd (cross-unit SSH-only): %s", installCmd).
 		Info()
 
-	outStr, _, err := client.RunCommand(fmt.Sprintf(
-		`mkdir -p %s && cd %s && echo "%s" > install.sh && sh install.sh`,
-		std.DeployInfo().InstallerRuntime.WorkDir,
-		std.DeployInfo().InstallerRuntime.WorkDir,
-		installCmd),
-	)
+	return fmt.Sprintf(`echo "%s" > install.sh && sh install.sh`, installCmd), nil
+}
+
+func (act *actionInstallProxyBySSH) notifyRelayToInstallProxyBySSH(
+	std *nodeUtils.NodeActionStandarder, cKey, installerName, releaseName, installerCmd string, relayInfo *types.RelayInfo,
+) error {
+
+	event := protoRelay.InstallProxyBySSHReq{
+		ActionName:       std.InstanceData().Name,
+		OperInstID:       std.InstanceData().OperationInstanceID,
+		IP:               std.DeployInfo().Host.Dynamic.LoginIP,
+		Port:             std.DeployInfo().Host.Dynamic.LoginPort,
+		User:             std.DeployInfo().Host.Dynamic.LoginUser,
+		LoginMode:        string(std.DeployInfo().Host.Dynamic.LoginMode),
+		Password:         cKey,
+		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
+		InstallerName:    installerName,
+		ReleaseName:      releaseName,
+		Token:            std.Token(),
+		InstallerCmd:     installerCmd,
+	}
+	data, err := json.Marshal(event)
 	if err != nil {
-		return fmt.Errorf("failed to run install proxy: %w", err)
+		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
-	std.InstanceData().Log().
-		Zh("安装 Proxy 结果: %s", outStr).
-		En("install proxy result: %s", outStr).
-		Info()
+	errCh := act.pagentInstaller.proxyMessager.PushToClient(std.Context(), protoRelay.ServerPushEventTypeInstallProxyBySSH, data, relayInfo.AgentID)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return fmt.Errorf("failed to push to relay. event-type(%s), agent-id(%s): %w",
+				protoRelay.ServerPushEventTypeInstallProxyBySSH, relayInfo.AgentID, err)
+		}
 
-	return nil
+		return nil
+	case <-std.Context().Done():
+		return fmt.Errorf("context cancelled. event-type(%s), agent-id(%s): %w",
+			protoRelay.ServerPushEventTypeInstallProxyBySSH, relayInfo.AgentID, std.Context().Err())
+	case <-time.After(queryClientTimeout):
+		return fmt.Errorf("wait client timed out. event-type(%s), agent-id(%s)", protoRelay.ServerPushEventTypeInstallProxyBySSH, relayInfo.AgentID)
+	}
 }

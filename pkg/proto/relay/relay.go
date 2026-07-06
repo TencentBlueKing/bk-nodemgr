@@ -206,8 +206,7 @@ type InstallProxyBySSHReq struct {
 	InstallerWorkDir string `json:"installer_work_dir"`
 	InstallerName    string `json:"installer_name"`
 	ReleaseName      string `json:"release_name"`
-	ConfigName       string `json:"config_name"`
-	ChecklistName    string `json:"checklist_name"`
+	Token            string `json:"token"`
 	InstallerCmd     string `json:"installer_cmd"`
 }
 
