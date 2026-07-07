@@ -12,8 +12,17 @@
 package iface
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+var (
+	// ErrNodeAgentAssignUnitInvalidParameter indicates invalid assign-unit input or matching state.
+	ErrNodeAgentAssignUnitInvalidParameter = errors.New("node agent assign unit invalid parameter")
+	// ErrNodeAgentAssignUnitDBFailed indicates assign-unit storage query failed.
+	ErrNodeAgentAssignUnitDBFailed = errors.New("node agent assign unit db failed")
 )
 
 // INodeManager defines the NodeManager interface.
@@ -35,6 +44,9 @@ type INodeManager interface {
 
 	// LaunchAssignProxyUnit launch a task to assign proxy unit. returns the workflow-id.
 	LaunchAssignProxyUnit(ctx contextx.IContext, param types.AssignProxyUnitParam) (string, error)
+
+	// AssignAgentNetworkUnit assigns a network unit to agent hosts.
+	AssignAgentNetworkUnit(nCtx contextx.IContext, param types.NodeAgentAssignUnitParam) (*types.NodeAgentAssignUnitResult, error)
 
 	// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
 	LaunchRetryNodeOperationFromLastInstance(ctx contextx.IContext, param types.RetryNodeWorkflowOperationParam) error
