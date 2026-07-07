@@ -103,7 +103,9 @@
         show-overflow="tooltip"
         :min-width="180">
         <template #default="{ row }">
-          <span>
+          <span
+            class="text-[#3A84FF] cursor-pointer"
+            @click="handleToProxy(row)">
             {{ !isNaN(row.proxy_count) ? row.proxy_count : '--' }}
           </span>
         </template>
@@ -114,7 +116,9 @@
         show-overflow="tooltip"
         :min-width="180">
         <template #default="{ row }">
-          <span>
+          <span
+            class="text-[#3A84FF] cursor-pointer"
+            @click="handleToAgent(row)">
             {{ !isNaN(row.agent_count) ? row.agent_count : '--' }}
           </span>
         </template>
@@ -318,6 +322,27 @@ const handleToWorkareaDetail = (bk_networkarea_id: number) => {
     name: 'workareaDetail',
     params: {
       workarea: bk_networkarea_id,
+    },
+  });
+};
+
+// 参考 topo.vue 拓扑图跳转传参方式
+const handleToProxy = (row: NetworkArea) => {
+  router.push({
+    name: 'proxy',
+    query: {
+      bk_networkarea_id: row.bk_networkarea_id,
+      bk_networkarea_name: row.bk_networkarea_name,
+    },
+  });
+};
+
+const handleToAgent = (row: NetworkArea) => {
+  router.push({
+    name: 'agent',
+    query: {
+      bk_networkarea_id: row.bk_networkarea_id,
+      bk_networkarea_name: row.bk_networkarea_name,
     },
   });
 };

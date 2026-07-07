@@ -668,6 +668,17 @@ const getParams = () => {
       return;
     }
 
+    // 管控区域ID：字符串转数字（从管控区域列表跳转或搜索框筛选）
+    if (item.id === 'bk_networkarea_id' && item.values?.length) {
+      const areaIds = item.values
+        .map((value: any) => Number(value.id))
+        .filter((value: number) => Number.isSafeInteger(value));
+      if (areaIds.length > 0) {
+        params.exact_include_conditions.bk_networkarea_id = Array.from(new Set(areaIds));
+      }
+      return;
+    }
+
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
@@ -819,6 +830,12 @@ const getHostDistinct = async () => {
       {
         name: 'AgentID',
         id: 'bk_agent_id',
+      },
+      {
+        name: t('platform.nodeMan.bk_cloud_name'),
+        id: 'bk_networkarea_id',
+        children: getUniqueChildrenFrom('bk_networkarea_id', networkAreaListMap.value),
+        multiple: true,
       },
       {
         name: t('platform.nodeMan.bk_cloud_unit'),

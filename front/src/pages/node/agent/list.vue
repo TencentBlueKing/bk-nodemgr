@@ -531,6 +531,17 @@ const filterOptionSource: Record<string, FilterOption> = reactive({
   node_version: { list: [], checked: [], filterScope: 'all' },
   node_status: { list: [], checked: [], filterScope: 'all' },
 });
+// 从管控区域列表跳转时，同步初始化搜索框和列头筛选面板的选中状态（无 unit_id 时）
+if (route.query.bk_networkarea_id && !route.query.bk_networkunit_id) {
+  const areaId = Number(route.query.bk_networkarea_id);
+  const areaIdStr = String(areaId);
+  searchSelectValue.value = [{
+    id: 'bk_networkarea_id',
+    name: t('platform.nodeMan.bk_cloud_name'),
+    values: [{ id: areaIdStr, name: (route.query.bk_networkarea_name as string) || areaIdStr }],
+  }];
+  filterOptionSource.bk_networkarea_id.checked = [areaIdStr];
+}
 
 // 其他UI相关响应式数据
 const chooseVersionData = reactive({ title: '', isShow: false, data: [], batch: false });
@@ -1613,7 +1624,7 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
 watch(() => route.query, async (newQuery, oldQuery) => {
   if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) return;
 
-  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id, bk_networkunit_name } = newQuery;
+  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkarea_name, bk_networkunit_id, bk_networkunit_name } = newQuery;
 
   if (os_type && cpu_arch && node_version) {
     searchSelectValue.value = [
@@ -1644,6 +1655,32 @@ watch(() => route.query, async (newQuery, oldQuery) => {
     };
     
     // 如果数据已加载，直接设置；否则等待
+    if (isInitialDataLoaded.value) {
+      setSearchValue();
+    } else {
+      const unwatch = watch(isInitialDataLoaded, (loaded) => {
+        if (loaded) {
+          setSearchValue();
+          unwatch();
+        }
+      });
+    }
+  } else if (bk_networkarea_id !== undefined) {
+    // 仅传入管控区域ID（从管控区域列表跳转，无单元信息）
+    const areaId = Number(bk_networkarea_id);
+    const areaName = (bk_networkarea_name as string) || networkAreaListMap.value.get(areaId) || areaId;
+
+    const setSearchValue = () => {
+      searchSelectValue.value = [
+        ...searchSelectValue.value.filter(item => item.id !== 'bk_networkarea_id'),
+        {
+          id: 'bk_networkarea_id',
+          name: t('platform.nodeMan.bk_cloud_name'),
+          values: [{ id: areaId, name: areaName }],
+        },
+      ];
+    };
+
     if (isInitialDataLoaded.value) {
       setSearchValue();
     } else {

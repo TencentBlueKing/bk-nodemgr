@@ -244,6 +244,10 @@ const searchSelectData = ref<ISearchItem[]>([
   { id: 'ip', name: 'IP', multiple: true }, // 合并后的 IP 筛选
   { id: 'area_ip', name: `${t('topoManager.workAreaDetail.table.networkArea')}ID:IP`, multiple: true }, // 管控区域ID:IP
   {
+    name: t('platform.nodeMan.bk_cloud_name'),
+    id: 'bk_networkarea_id',
+  },
+  {
     name: 'AgentID',
     id: 'bk_agent_id',
   },
@@ -378,6 +382,17 @@ const getParams = () => {
       const uniqueHostIds: number[] = Array.from(new Set<number>(hostIds));
       if (uniqueHostIds.length > 0) {
         params.exact_include_conditions.bk_host_id = uniqueHostIds;
+      }
+      return;
+    }
+
+    // 管控区域ID：字符串转数字（从管控区域列表跳转或搜索框筛选）
+    if (item.id === 'bk_networkarea_id' && item.values?.length) {
+      const areaIds = item.values
+        .map((value: any) => Number(value.id))
+        .filter((value: number) => Number.isSafeInteger(value));
+      if (areaIds.length > 0) {
+        params.exact_include_conditions.bk_networkarea_id = Array.from(new Set(areaIds));
       }
       return;
     }
@@ -698,6 +713,15 @@ const handleAssignUnitSuccess = () => {
 };
 
 onMounted(() => {
+  // 从管控区域列表跳转时，设置搜索框显示值（筛选参数由 getParams 从 route.query 直接读取）
+  if (route.query.bk_networkarea_id) {
+    const areaId = Number(route.query.bk_networkarea_id);
+    searchKey.value = [{
+      id: 'bk_networkarea_id',
+      name: t('platform.nodeMan.bk_cloud_name'),
+      values: [{ id: String(areaId), name: (route.query.bk_networkarea_name as string) || String(areaId) }],
+    }];
+  }
   window.addEventListener('proxy-assign-unit-success', handleAssignUnitSuccess);
 });
 
