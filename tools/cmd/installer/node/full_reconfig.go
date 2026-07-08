@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/noderestarter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/systeminfo"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -86,6 +87,7 @@ func NewFullReconfig() *cobra.Command {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
+			systeminfo.LogInitialTargetInfo(node.StepGeneral)
 
 			// report status.
 			defer func() {

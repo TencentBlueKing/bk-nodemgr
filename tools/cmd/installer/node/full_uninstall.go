@@ -18,9 +18,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	nodeInstaller "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodestopper"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeuninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/systeminfo"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -80,6 +82,7 @@ func NewFullUninstall() *cobra.Command {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
+			systeminfo.LogInitialTargetInfo(nodeInstaller.StepGeneral)
 
 			// report status.
 			defer func() {

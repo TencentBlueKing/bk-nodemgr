@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/node/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
+	nodeInstaller "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/checkdeploy"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/datareporter"
@@ -31,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/nodeuninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/precheck"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/systeminfo"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
@@ -122,6 +124,7 @@ func NewFullInstall() *cobra.Command {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
+			systeminfo.LogInitialTargetInfo(nodeInstaller.StepGeneral)
 
 			// SYNC: file name must match installer.StatusFileName in pkg/installer/constant.go.
 			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
