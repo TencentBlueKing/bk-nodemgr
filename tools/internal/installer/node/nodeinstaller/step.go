@@ -89,6 +89,10 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 	}
 	logger.Info(node.StepInstallNode, "restored gse runtime file")
 
+	if err := node.DiagnoseAgentVersion(ctx, node.StepInstallNode, "install", step.args.AgentHandler); err != nil {
+		return nil, err
+	}
+
 	// 5.1. unregister agent if necessary.
 	if step.args.ReRegisterAgent {
 		if err := step.args.AgentHandler.Process().UnregisterAgentID(ctx); err != nil {

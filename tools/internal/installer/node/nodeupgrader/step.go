@@ -62,6 +62,13 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 	logger.Info(node.StepUpgradeNode, "inited file-system")
 
+	upgradeReleasePackage := !step.args.SelectUpgrades || step.args.EnableUpgradeReleasePackage
+	if !upgradeReleasePackage {
+		if err := node.DiagnoseAgentVersion(ctx, node.StepUpgradeNode, "upgrade", step.args.AgentHandler); err != nil {
+			return err
+		}
+	}
+
 	if step.args.Backup {
 		// 1.1. backup old files.
 		if err := step.args.AgentHandler.FS().Backup(ctx); err != nil {
@@ -71,7 +78,7 @@ func (step *Step) Run(ctx context.Context) error {
 		}
 	}
 
-	if !step.args.SelectUpgrades || step.args.EnableUpgradeReleasePackage {
+	if upgradeReleasePackage {
 		// 2. unpack release package files into installed file-system.
 		if err := step.args.AgentHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, true); err != nil {
 			logger.Errorf(node.StepUpgradeNode, "failed to unpack release pkg: %v", err)
@@ -79,6 +86,10 @@ func (step *Step) Run(ctx context.Context) error {
 			return err
 		}
 		logger.Info(node.StepUpgradeNode, "unpacked release pkg")
+
+		if err := node.DiagnoseAgentVersion(ctx, node.StepUpgradeNode, "upgrade", step.args.AgentHandler); err != nil {
+			return err
+		}
 	}
 
 	if !step.args.SelectUpgrades || step.args.EnableUpgradeConfig {
