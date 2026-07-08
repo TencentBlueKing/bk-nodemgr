@@ -1090,7 +1090,7 @@ defrag:
     ## @param defrag.cronjob.concurrencyPolicy Set the cronjob parameter concurrencyPolicy
     ##
     concurrencyPolicy: Forbid
-    ## @param defrag.cronjob.suspend Boolean that indicates if the controller must suspend subsequent executions (not applied to already started executions)
+    ## @param defrag.cronjob.suspend Boolean that indicates if the controller must suspend subsequent executions (not applied to already started executions) 
     ##
     suspend: false
     ## @param defrag.cronjob.successfulJobsHistoryLimit Number of successful finished jobs to retain
