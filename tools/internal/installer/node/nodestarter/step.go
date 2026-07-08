@@ -38,9 +38,17 @@ func NewStep(args StepArgs) *Step {
 // Run run step to start node.
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(node.StepStartNode, "start to start node")
-	if err := node.DiagnoseAgentVersion(ctx, node.StepStartNode, "start", step.args.AgentHandler); err != nil {
-		return err
+	diagnostic, err := step.args.AgentHandler.Process().DiagnoseVersion(ctx)
+	if err != nil {
+		if diagnostic != nil {
+			logger.Errorf(node.StepStartNode, "failed to diagnose agent version: work_dir(%s) executable(%s) args(%v) stdout_raw(%s) stderr_raw(%s): %v", diagnostic.WorkDir, diagnostic.Executable, diagnostic.Args, diagnostic.Stdout, diagnostic.Stderr, err)
+		} else {
+			logger.Errorf(node.StepStartNode, "failed to diagnose agent version: %v", err)
+		}
+
+		return fmt.Errorf("failed to diagnose agent version: %w", err)
 	}
+	logger.Infof(node.StepStartNode, "agent version diagnostic: work_dir(%s) executable(%s) args(%v) stdout_raw(%s) stderr_raw(%s)", diagnostic.WorkDir, diagnostic.Executable, diagnostic.Args, diagnostic.Stdout, diagnostic.Stderr)
 
 	hasStdout := false
 	stdoutF := func(content string) {

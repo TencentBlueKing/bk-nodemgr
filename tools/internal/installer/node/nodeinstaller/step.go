@@ -89,9 +89,17 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 	}
 	logger.Info(node.StepInstallNode, "restored gse runtime file")
 
-	if err := node.DiagnoseAgentVersion(ctx, node.StepInstallNode, "install", step.args.AgentHandler); err != nil {
-		return nil, err
+	diagnostic, err := step.args.AgentHandler.Process().DiagnoseVersion(ctx)
+	if err != nil {
+		if diagnostic != nil {
+			logger.Errorf(node.StepInstallNode, "failed to diagnose agent version: work_dir(%s) executable(%s) args(%v) stdout_raw(%s) stderr_raw(%s): %v", diagnostic.WorkDir, diagnostic.Executable, diagnostic.Args, diagnostic.Stdout, diagnostic.Stderr, err)
+		} else {
+			logger.Errorf(node.StepInstallNode, "failed to diagnose agent version: %v", err)
+		}
+
+		return nil, fmt.Errorf("failed to diagnose agent version: %w", err)
 	}
+	logger.Infof(node.StepInstallNode, "agent version diagnostic: work_dir(%s) executable(%s) args(%v) stdout_raw(%s) stderr_raw(%s)", diagnostic.WorkDir, diagnostic.Executable, diagnostic.Args, diagnostic.Stdout, diagnostic.Stderr)
 
 	// 5.1. unregister agent if necessary.
 	if step.args.ReRegisterAgent {
