@@ -70,11 +70,23 @@ type IAgentFSHandler interface {
 	Clean(ctx context.Context) error
 }
 
+// AgentVersionDiagnostic contains raw gse_agent version diagnostic command metadata and outputs.
+type AgentVersionDiagnostic struct {
+	WorkDir    string
+	Executable string
+	Args       []string
+	Stdout     string
+	Stderr     string
+}
+
 // IAgentProcessHandler agent process handler interface.
 type IAgentProcessHandler interface {
 	// GetProcess get current node process status.
 	// including file and data when it is proxy.
 	GetProcess(ctx context.Context) (*NodeProcess, error)
+
+	// DiagnoseVersion runs the agent binary version diagnostic command.
+	DiagnoseVersion(ctx context.Context) (*AgentVersionDiagnostic, error)
 
 	// ForceKill force kill the agent process.
 	// including file and data when it is proxy.

@@ -66,6 +66,43 @@ func (handler *AgentHandler) GetProcess(_ context.Context) (*agenthandler.NodePr
 	return result, nil
 }
 
+// DiagnoseVersion runs the agent binary version diagnostic command.
+func (handler *AgentHandler) DiagnoseVersion(ctx context.Context) (*agenthandler.AgentVersionDiagnostic, error) {
+	workDir := handler.getAbsPath(handler.binDir)
+	executable := "./gse_agent"
+	args := []string{"-v"}
+	diagnostic := &agenthandler.AgentVersionDiagnostic{
+		WorkDir:    workDir,
+		Executable: executable,
+		Args:       args,
+	}
+
+	var stdout, stderr bytes.Buffer
+
+	// nolint: gosec
+	cmd := exec.CommandContext(ctx, executable, args...)
+	cmd.Dir = workDir
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	diagnostic.Stdout = stdout.String()
+	diagnostic.Stderr = stderr.String()
+	if err != nil {
+		return diagnostic, fmt.Errorf(
+			"failed to diagnose agent version, work_dir(%s), executable(%s), args(%v), stdout(%s), stderr(%s): %w",
+			diagnostic.WorkDir,
+			diagnostic.Executable,
+			diagnostic.Args,
+			diagnostic.Stdout,
+			diagnostic.Stderr,
+			err,
+		)
+	}
+
+	return diagnostic, nil
+}
+
 // ForceKill force kill the agent process.
 // including file and data when it is proxy.
 func (handler *AgentHandler) ForceKill(_ context.Context) error {
