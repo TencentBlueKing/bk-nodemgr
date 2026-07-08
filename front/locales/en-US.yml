@@ -110,6 +110,7 @@ platform:
       operateDisabledRowNotRunning: This host has abnormal Proxy status. Please troubleshoot and fix before operating
       operateDisabledUnassigned: Selected hosts include nodes without assigned network unit. Please assign network unit before operating
       operateDisabledRowUnassigned: This host has no assigned network unit. Please assign network unit before operating
+      uninstallDisabledLastProxyWithAgent: Cannot uninstall the last Proxy while Agent(s) are still running in this network unit
     installAgent: Install Agent
     reinstallAgent: Reinstall Agent
     installAgentPage:
@@ -545,6 +546,7 @@ topoManager:
       content: Network Unit
       tips: After deletion, Proxies under this Network Unit will no longer be associated with it. Please proceed with caution!
       directUnitTip: After deletion, this Direct-Connected Network Unit will be removed. Please proceed with caution!
+      disabled: Cannot delete when the Network Unit has associated nodes or is depended on by other Network Units
     empty: No Network Units
     emptyTips: Create a new Network Unit to view data.
     accessPoints:

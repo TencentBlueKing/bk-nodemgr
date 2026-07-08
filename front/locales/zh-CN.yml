@@ -110,6 +110,7 @@ platform:
       operateDisabledRowNotRunning: 该主机 Proxy 状态异常，请先排查修复后再操作
       operateDisabledUnassigned: 选中主机中包含未分配管控单元的节点，请先分配管控单元后再操作
       operateDisabledRowUnassigned: 该主机未分配管控单元，请先分配管控单元后再操作
+      uninstallDisabledLastProxyWithAgent: 当前管控单元下仍有 Agent 存活，无法卸载最后一个 Proxy
     installAgent: 安装 Agent
     reinstallAgent: 重装 Agent
     installAgentPage:
@@ -545,6 +546,7 @@ topoManager:
       content: 管控单元
       tips: 删除后，该管控单元下的Proxy将无法再关联到此管控单元，请谨慎操作！
       directUnitTip: 删除后，该直连管控单元将被移除，请谨慎操作！
+      disabled: 当前管控单元存在关联节点或被其他管控单元依赖，无法删除
     empty: 暂无管控单元
     emptyTips: 你可以去新建管控单元以查看相关数据
     accessPoints:

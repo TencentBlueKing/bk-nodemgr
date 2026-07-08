@@ -57,7 +57,12 @@
                   outline
                   class="w-[32px] h-[32px]"
                   :class="{ 'unAuthorized': !hasUnitDeleteAuth }"
-                  @click="hasUnitDeleteAuth ? (isShowDelete = true) : deleteAuthClick($event)"
+                  :disabled="!canDeleteUnit"
+                  v-bk-tooltips="{
+                    content: deleteDisabledReason,
+                    disabled: canDeleteUnit || !hasUnitDeleteAuth,
+                  }"
+                  @click="(hasUnitDeleteAuth && canDeleteUnit) ? (isShowDelete = true) : deleteAuthClick($event)"
                   @mouseenter="deleteMouseEnter($event, hasUnitDeleteAuth)"
                   @mousemove="deleteMouseMove($event, hasUnitDeleteAuth)"
                   @mouseleave="deleteMouseLeave()"
@@ -457,7 +462,50 @@ watch(sortedWorkUnitList, (list) => {
 // 切换 tab 时加载当前单元详情
 watch(active, () => {
   loadUnitDetail();
+  checkDeleteDisabled();
 });
+
+// 删除按钮禁用检查：有 proxy/agent 或被其他单元依赖时不可删除
+const canDeleteUnit = ref(true);
+const deleteDisabledReason = ref('');
+const checkDeleteDisabled = async () => {
+  if (!active.value) return;
+  const unitId = active.value as number;
+
+  // 1. 检查当前单元是否有 proxy 或 agent（通过单元级统计接口）
+  try {
+    const res = await TopoService.TopoGraphNodeGetReq({
+      bk_networkunit_id: [unitId],
+    }).catch(() => ({ graph_node_info: [] as any[] }));
+    const info = (res.graph_node_info || []).find(
+      (item: any) => item.bk_networkunit_id === unitId,
+    );
+    if (info && (info.total_proxy > 0 || info.total_agent > 0)) {
+      canDeleteUnit.value = false;
+      deleteDisabledReason.value = t('topoManager.workUnit.delete.disabled');
+      return;
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. 检查当前单元是否被其他单元依赖（下游接入点是其他单元的上游）
+  const otherUnits = workUnitList.value.filter(
+    u => u.bk_networkunit_id !== unitId,
+  );
+  for (const unit of otherUnits) {
+    for (const key of ['cluster', 'file', 'data'] as const) {
+      if ((unit.links?.[key] as { bk_networkunit_id?: number })?.bk_networkunit_id === unitId) {
+        canDeleteUnit.value = false;
+        deleteDisabledReason.value = t('topoManager.workUnit.delete.disabled');
+        return;
+      }
+    }
+  }
+
+  canDeleteUnit.value = true;
+  deleteDisabledReason.value = '';
+};
 
 onMounted(async () => {
   // 确保 topoManager 模块权限数据已加载（页面刷新直接访问时可能未加载）

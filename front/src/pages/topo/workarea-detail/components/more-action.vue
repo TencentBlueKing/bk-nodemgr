@@ -106,6 +106,14 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  unitProxyCount: {
+    type: Number,
+    default: 0,
+  },
+  unitAgentCount: {
+    type: Number,
+    default: 0,
+  },
 });
 const emit = defineEmits(['reinstall', 'assignUnit', 'opsSetting', 'authClick', 'authLockEnter', 'authLockMove', 'authLockLeave']);
 const { t } = useI18n();
@@ -183,6 +191,14 @@ const getItemDisabled = (item: { value: string }): { disabled: boolean; tooltip:
         };
       }
     }
+
+    // 批量卸载：最后一个 proxy 且仍有 agent 存活时禁用
+    if (item.value === 'unload' && props.unitProxyCount === 1 && props.unitAgentCount > 0) {
+      return {
+        disabled: true,
+        tooltip: t('platform.nodeMan.proxyStatus.uninstallDisabledLastProxyWithAgent'),
+      };
+    }
   } else {
     // Row mode: check single host
     if (item.value === 'assignUnit') {
@@ -209,6 +225,14 @@ const getItemDisabled = (item: { value: string }): { disabled: boolean; tooltip:
           tooltip: t('platform.nodeMan.proxyStatus.operateDisabledRowUnassigned'),
         };
       }
+    }
+
+    // 行内卸载：最后一个 proxy 且仍有 agent 存活时禁用
+    if (item.value === 'unload' && props.unitProxyCount === 1 && props.unitAgentCount > 0) {
+      return {
+        disabled: true,
+        tooltip: t('platform.nodeMan.proxyStatus.uninstallDisabledLastProxyWithAgent'),
+      };
     }
   }
 

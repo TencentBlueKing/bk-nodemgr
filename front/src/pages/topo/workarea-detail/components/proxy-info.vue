@@ -60,6 +60,8 @@
               placement="bottom-start"
               :batch="true"
               :has-auth="hasProxyOperateAuth"
+              :unit-proxy-count="unitProxyCount"
+              :unit-agent-count="unitAgentCount"
               @reinstall="handleReinstall"
               @assign-unit="handleAssignUnit"
               @ops-setting="handleOpsSetting"
@@ -136,6 +138,8 @@
       :bk-networkunit-id="active"
       :is-batch-reinstall="batchReinstall"
       :has-proxy-operate-auth="hasProxyOperateAuth"
+      :unit-proxy-count="unitProxyCount"
+      :unit-agent-count="unitAgentCount"
       @select-change="handleSelectChange"
       @get-data="handleGetData"
       @update-cross-page="handleUpdateCrossPage"
@@ -202,6 +206,23 @@ const nodeManageStore = useNodeManageStore();
 
 const isProxyStatus = computed(() => route.name === 'proxy');
 
+// 管控单元下 proxy 和 agent 总数（用于限制最后一个 proxy 的卸载）
+const unitProxyCount = ref(0);
+const unitAgentCount = ref(0);
+const fetchUnitStats = async () => {
+  if (!props.active) return;
+  const res = await TopoService.TopoGraphNodeGetReq({
+    bk_networkunit_id: [props.active],
+  }).catch(() => ({ graph_node_info: [] as any[] }));
+  const info = (res.graph_node_info || []).find(
+    (item: any) => item.bk_networkunit_id === props.active,
+  );
+  if (info) {
+    unitProxyCount.value = info.total_proxy ?? 0;
+    unitAgentCount.value = info.total_agent ?? 0;
+  }
+};
+
 // 切换到 proxy tab 且有单元 ID 时，主动加载 proxy_view / proxy_operate 权限
 // 仅「管控区域详情」场景（非节点管理 proxy 列表页）才额外加载 networkunit_use_for_proxy
 watch(() => props.active, (id) => {
@@ -214,6 +235,7 @@ watch(() => props.active, (id) => {
     items.push({ action: 'networkunit_use_for_proxy', resource_type: 'networkunit' });
   }
   authStore.fetchAuthorized(items);
+  fetchUnitStats();
 }, { immediate: true });
 // ===== proxy_operate 权限控制（批量操作、复制IP） =====
 const {

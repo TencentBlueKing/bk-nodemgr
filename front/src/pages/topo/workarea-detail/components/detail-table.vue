@@ -261,6 +261,8 @@
                 :ipv4="row.bk_host_innerip"
                 :data="[row]"
                 :has-auth="hasProxyOperateAuth"
+                :unit-proxy-count="unitProxyCount"
+                :unit-agent-count="unitAgentCount"
                 @reinstall="handleReinstall(row)"
                 @assign-unit="emit('assignUnit', row)"
                 @ops-setting="emit('opsSetting', row)"
@@ -342,6 +344,14 @@ const props = defineProps({
   hasProxyOperateAuth: {
     type: Boolean,
     default: true,
+  },
+  unitProxyCount: {
+    type: Number,
+    default: 0,
+  },
+  unitAgentCount: {
+    type: Number,
+    default: 0,
   },
 });
 const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData', 'authClick', 'assignUnit', 'opsSetting']);
