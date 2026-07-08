@@ -69,7 +69,7 @@ func (handler *AgentHandler) GetProcess(_ context.Context) (*agenthandler.NodePr
 // DiagnoseVersion runs the agent binary version diagnostic command.
 func (handler *AgentHandler) DiagnoseVersion(ctx context.Context) (*agenthandler.AgentVersionDiagnostic, error) {
 	workDir := handler.getAbsPath(handler.binDir)
-	executable := "./gse_agent"
+	executable := handler.getAbsPath(handler.agentBinFilePath)
 	args := []string{"-v"}
 	diagnostic := &agenthandler.AgentVersionDiagnostic{
 		WorkDir:    workDir,
