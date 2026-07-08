@@ -525,6 +525,8 @@ topoManager:
       pluginIPC: Plugin IPC
       windowsOnlyIpcEditable: Only Windows is editable
       logDir: Log Dir
+      zoneId: Zone ID
+      cityId: City ID
       osOptions:
         linux: Linux
         windows: Windows

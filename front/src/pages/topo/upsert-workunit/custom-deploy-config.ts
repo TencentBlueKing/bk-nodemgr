@@ -13,6 +13,8 @@ const createEmptyNodeRuntime = (): NodeRuntime => ({
   data_ipc: '',
   plugin_ipc: '',
   log_dir: '',
+  zone_id: 'default',
+  city_id: 'default',
 });
 
 const createEmptyPluginRuntime = (): PluginRuntime => ({
@@ -59,6 +61,8 @@ const getAllConfigValues = (config: CustomDeployConfig): string[] => [
   config.node_runtime.data_ipc,
   config.node_runtime.plugin_ipc,
   config.node_runtime.log_dir,
+  config.node_runtime.zone_id,
+  config.node_runtime.city_id,
   config.plugin_runtime.base_deploy_dir,
   config.plugin_runtime.log_dir,
 ];
@@ -159,6 +163,8 @@ export const serializeCustomDeployConfigs = (config: DeployConfigMap): Record<st
             data_ipc: trimConfigValue(normalizedItem.node_runtime.data_ipc),
             plugin_ipc: trimConfigValue(normalizedItem.node_runtime.plugin_ipc),
             log_dir: trimConfigValue(normalizedItem.node_runtime.log_dir),
+            zone_id: trimConfigValue(normalizedItem.node_runtime.zone_id ?? ''),
+            city_id: trimConfigValue(normalizedItem.node_runtime.city_id ?? ''),
           },
           plugin_runtime: {
             base_deploy_dir: trimConfigValue(normalizedItem.plugin_runtime.base_deploy_dir),

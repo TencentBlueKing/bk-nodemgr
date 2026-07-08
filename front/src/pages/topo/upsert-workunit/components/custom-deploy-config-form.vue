@@ -124,6 +124,8 @@ const nodeFields = computed<Array<{ key: keyof NodeRuntime; label: string }>>(()
   { key: 'log_dir', label: t('topoManager.workUnit.form.logDir') },
   { key: 'data_ipc', label: t('topoManager.workUnit.form.dataIPC') },
   { key: 'plugin_ipc', label: t('topoManager.workUnit.form.pluginIPC') },
+  { key: 'zone_id', label: t('topoManager.workUnit.form.zoneId') },
+  { key: 'city_id', label: t('topoManager.workUnit.form.cityId') },
 ]));
 
 const pluginFields = computed<Array<{ key: keyof PluginRuntime; label: string }>>(() => ([
