@@ -40,6 +40,9 @@ func NewStep(args StepArgs) *Step {
 // Run run step to restart node.
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(node.StepRestartNode, "start to restart node")
+	if err := node.DiagnoseAgentVersion(ctx, node.StepRestartNode, "restart", step.args.AgentHandler); err != nil {
+		return err
+	}
 
 	hasStdout := false
 	stdoutF := func(content string) {

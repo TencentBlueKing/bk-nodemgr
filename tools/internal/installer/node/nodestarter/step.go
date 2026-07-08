@@ -38,6 +38,9 @@ func NewStep(args StepArgs) *Step {
 // Run run step to start node.
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(node.StepStartNode, "start to start node")
+	if err := node.DiagnoseAgentVersion(ctx, node.StepStartNode, "start", step.args.AgentHandler); err != nil {
+		return err
+	}
 
 	hasStdout := false
 	stdoutF := func(content string) {
