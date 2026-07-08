@@ -18,12 +18,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/step"
+	pluginv2Installer "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/plugininstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/pluginuninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/systeminfo"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -107,6 +109,8 @@ func NewFullInstall() *cobra.Command {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
+
+			systeminfo.LogInitialTargetInfo(pluginv2Installer.StepGeneral)
 
 			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
 			defer func() {
