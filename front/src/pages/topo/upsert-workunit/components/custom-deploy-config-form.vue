@@ -132,16 +132,9 @@ const pluginFields = computed<Array<{ key: keyof PluginRuntime; label: string }>
   { key: 'log_dir', label: t('topoManager.workUnit.form.logDir') },
 ]));
 
-const ipcNodeFieldKeys: Array<keyof NodeRuntime> = ['data_ipc', 'plugin_ipc'];
-const LINUX_OS = 'linux';
-const isReadonlyIpcField = (fieldKey: keyof NodeRuntime): boolean => (
-  ipcNodeFieldKeys.includes(fieldKey) && activeOs.value.toLowerCase() !== 'windows' && activeOs.value.toLowerCase() !== LINUX_OS
-);
+const isReadonlyIpcField = (_fieldKey: keyof NodeRuntime): boolean => false;
 
 const getNodeFieldPlaceholder = (fieldKey: keyof NodeRuntime): string => {
-  if (isReadonlyIpcField(fieldKey)) {
-    return t('topoManager.workUnit.form.windowsOnlyIpcEditable');
-  }
   if (fieldKey === 'zone_id' || fieldKey === 'city_id') {
     return 'default';
   }
