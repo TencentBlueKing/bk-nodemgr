@@ -524,7 +524,7 @@ topoManager:
       baseDeployDir: Base Deploy Dir
       dataIPC: Data IPC
       pluginIPC: Plugin IPC
-      windowsOnlyIpcEditable: Only Windows is editable
+      windowsOnlyIpcEditable: Only Windows and Linux support editing this field
       logDir: Log Dir
       zoneId: Zone ID
       cityId: City ID

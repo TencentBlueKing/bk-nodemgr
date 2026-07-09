@@ -524,7 +524,7 @@ topoManager:
       baseDeployDir: 基础部署路径
       dataIPC: Data IPC
       pluginIPC: Plugin IPC
-      windowsOnlyIpcEditable: 仅有windows的可以编辑
+      windowsOnlyIpcEditable: 仅 Windows 和 Linux 支持编辑此字段
       logDir: 日志路径
       zoneId: CC逻辑区域ID
       cityId: 城市ID
