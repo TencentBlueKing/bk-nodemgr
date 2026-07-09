@@ -118,6 +118,7 @@ func (h *handler) getAssignAgentNetworkUnitBizIDs(rCtx restserver.IContext, host
 func (h *handler) checkAssignAgentNetworkUnitPermission(
 	rCtx restserver.IContext, networkUnit *types.NetworkUnit, bizIDs []int64,
 ) error {
+
 	if authErr := h.authorizer.Check(
 		rCtx, auth.ActionNetworkUnitUseForAgent, authRouter.BuildNetworkUnitResources(networkUnit.ID),
 	); authErr != nil {

@@ -49,6 +49,7 @@ func (mgr *Manager) AssignAgentNetworkUnit(nCtx contextx.IContext, param types.N
 func (mgr *Manager) fetchAgentNetworkUnitAssignmentHosts(
 	nCtx contextx.IContext, hostIDs []int64,
 ) ([]*types.Host, []int64, error) {
+
 	seen := make(map[int64]struct{}, len(hostIDs))
 	uniqueIDs := make([]int64, 0, len(hostIDs))
 	for _, id := range hostIDs {
@@ -129,6 +130,7 @@ func validateAgentAssignNetworkUnitHosts(hosts []*types.Host, targetUnit *types.
 func (mgr *Manager) assignAgentNetworkUnitToHosts(
 	nCtx contextx.IContext, networkUnitID int64, hosts []*types.Host, missingHostIDs ...int64,
 ) (*types.NodeAgentAssignUnitResult, error) {
+
 	result := &types.NodeAgentAssignUnitResult{
 		FailedReasons: make([]string, 0, len(missingHostIDs)),
 	}
@@ -143,6 +145,7 @@ func (mgr *Manager) assignAgentNetworkUnitToHosts(
 		if host == nil || host.Dynamic == nil {
 			result.FailedCount++
 			result.FailedReasons = append(result.FailedReasons, "empty host dynamic data")
+
 			continue
 		}
 
@@ -151,6 +154,7 @@ func (mgr *Manager) assignAgentNetworkUnitToHosts(
 			result.FailedReasons = append(result.FailedReasons,
 				fmt.Sprintf("host-id(%d) already assigned to networkunit-id(%d)",
 					host.HostID, host.Dynamic.NetworkUnitID))
+
 			continue
 		}
 
