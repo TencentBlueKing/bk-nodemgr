@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"time"
 
-	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -31,7 +30,7 @@ const (
 func (mgr *Manager) AssignAgentNetworkUnit(nCtx contextx.IContext, param types.NodeAgentAssignUnitParam) (*types.NodeAgentAssignUnitResult, error) {
 	networkUnit, err := mgr.conf.StorageTopo.GetNetworkUnit(nCtx, param.NetworkUnitID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to fetch networkunit: %v", managerIface.ErrNodeAgentAssignUnitInvalidParameter, err)
+		return nil, fmt.Errorf("failed to fetch networkunit: %w", err)
 	}
 
 	hosts, missingHostIDs, err := mgr.fetchAgentNetworkUnitAssignmentHosts(nCtx, param.HostIDs)
@@ -40,7 +39,7 @@ func (mgr *Manager) AssignAgentNetworkUnit(nCtx contextx.IContext, param types.N
 	}
 
 	if err := validateAgentAssignNetworkUnitHosts(hosts, networkUnit); err != nil {
-		return nil, fmt.Errorf("%w: %v", managerIface.ErrNodeAgentAssignUnitInvalidParameter, err)
+		return nil, err
 	}
 
 	return mgr.assignAgentNetworkUnitToHosts(nCtx, networkUnit.ID, hosts, missingHostIDs...)
@@ -79,7 +78,7 @@ func (mgr *Manager) fetchAgentNetworkUnitAssignmentHosts(
 		return hosts, nil
 	}, batchexecutor.WithBatchSize(assignAgentNetworkUnitBatchSize), batchexecutor.WithTimeout(assignAgentNetworkUnitBatchTimeout))
 	if err != nil {
-		return nil, nil, fmt.Errorf("%w: %v", managerIface.ErrNodeAgentAssignUnitDBFailed, err)
+		return nil, nil, err
 	}
 
 	missingIDs := make([]int64, 0)
@@ -182,7 +181,7 @@ func (mgr *Manager) assignAgentNetworkUnitToHosts(
 
 		return nil
 	}, batchexecutor.WithBatchSize(assignAgentNetworkUnitBatchSize), batchexecutor.WithTimeout(assignAgentNetworkUnitBatchTimeout)); err != nil {
-		return nil, fmt.Errorf("%w: %v", managerIface.ErrNodeAgentAssignUnitDBFailed, err)
+		return nil, err
 	}
 
 	logger.G.Biz(nCtx).

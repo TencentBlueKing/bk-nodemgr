@@ -12,17 +12,8 @@
 package iface
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-)
-
-var (
-	// ErrNodeAgentAssignUnitInvalidParameter indicates invalid assign-unit input or matching state.
-	ErrNodeAgentAssignUnitInvalidParameter = errors.New("node agent assign unit invalid parameter")
-	// ErrNodeAgentAssignUnitDBFailed indicates assign-unit storage query failed.
-	ErrNodeAgentAssignUnitDBFailed = errors.New("node agent assign unit db failed")
 )
 
 // INodeManager defines the NodeManager interface.
