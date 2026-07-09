@@ -18,11 +18,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
+	pluginInstaller "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/configfetcher"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/systeminfo"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -91,6 +93,8 @@ func NewFullUpgrade() *cobra.Command {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
+
+			systeminfo.LogInitialTargetInfo(pluginInstaller.StepGeneral)
 
 			// report status.
 			defer func() {

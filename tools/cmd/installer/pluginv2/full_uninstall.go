@@ -18,9 +18,11 @@ import (
 	pluginV2Flag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/pluginv2/persistent"
+	pluginv2Installer "github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/datareporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/pluginuninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/pluginv2/statusreporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/systeminfo"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginv2handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -94,6 +96,8 @@ func NewFullUninstall() *cobra.Command {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer lHandler.Stop()
+
+			systeminfo.LogInitialTargetInfo(pluginv2Installer.StepGeneral)
 
 			defer func() {
 				state := types.ProcessStateSuccess
