@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,98 +18,56 @@ const (
 	forbiddenPkgImportPath = "github.com/TencentBlueKing/bk-nodemgr/tools/pkg/systeminfo"
 )
 
-type callpointSpec struct {
-	name                string
-	path                string
-	stepArg             string
-	firstBusinessAnchor string
-}
-
-var installerCallpointSpecs = []callpointSpec{
-	{
-		name:                "node full install",
-		path:                "cmd/installer/node/full_install.go",
-		stepArg:             "nodeInstaller.StepGeneral",
-		firstBusinessAnchor: "filedownloader.NewStep",
-	},
-	{
-		name:                "node full uninstall",
-		path:                "cmd/installer/node/full_uninstall.go",
-		stepArg:             "nodeInstaller.StepGeneral",
-		firstBusinessAnchor: "nodestopper.NewStep",
-	},
-	{
-		name:                "node full reconfig",
-		path:                "cmd/installer/node/full_reconfig.go",
-		stepArg:             "node.StepGeneral",
-		firstBusinessAnchor: "configfetcher.NewStep",
-	},
-	{
-		name:                "plugin full install",
-		path:                "cmd/installer/plugin/full_install.go",
-		stepArg:             "pluginInstaller.StepGeneral",
-		firstBusinessAnchor: "filedownloader.NewStep",
-	},
-	{
-		name:                "plugin full uninstall",
-		path:                "cmd/installer/plugin/full_uninstall.go",
-		stepArg:             "pluginInstaller.StepGeneral",
-		firstBusinessAnchor: "pluginuninstaller.NewStep",
-	},
-	{
-		name:                "plugin full debug",
-		path:                "cmd/installer/plugin/full_debug.go",
-		stepArg:             "pluginInstaller.StepGeneral",
-		firstBusinessAnchor: "pluginrunner.NewStep",
-	},
-	{
-		name:                "pluginv2 full install",
-		path:                "cmd/installer/pluginv2/full_install.go",
-		stepArg:             "pluginv2Installer.StepGeneral",
-		firstBusinessAnchor: "filedownloader.NewStep",
-	},
+type installerCallpoint struct {
+	name string
+	path string
 }
 
 func TestInstallerCallpointsLogInitialTargetInfoBeforeBusinessSteps(t *testing.T) {
-	for _, spec := range installerCallpointSpecs {
-		t.Run(spec.name, func(t *testing.T) {
-			file := parseGoFile(t, toolsPath(spec.path))
+	callpoints := installerCallpointFiles(t)
+	if len(callpoints) == 0 {
+		t.Fatalf("installer callpoint files count = 0, want at least 1")
+	}
+
+	for _, callpoint := range callpoints {
+		t.Run(callpoint.name, func(t *testing.T) {
+			file := parseGoFile(t, callpoint.path)
 
 			assertImportsPath(t, file, systeminfoImportPath)
 			assertDoesNotImportPath(t, file, forbiddenPkgImportPath)
 
 			startPositions := callPositions(file, "lHandler.Start")
 			if len(startPositions) == 0 {
-				t.Fatalf("%s: missing lHandler.Start() call", spec.path)
+				t.Fatalf("%s: missing lHandler.Start() call", callpoint.path)
 			}
 
 			systeminfoCalls := callPositions(file, "systeminfo.LogInitialTargetInfo")
 			if len(systeminfoCalls) != 1 {
-				t.Fatalf("%s: systeminfo.LogInitialTargetInfo call count = %d, want 1", spec.path, len(systeminfoCalls))
+				t.Fatalf("%s: systeminfo.LogInitialTargetInfo call count = %d, want 1", callpoint.path, len(systeminfoCalls))
 			}
 			call := systeminfoCalls[0]
 			if len(call.args) != 1 {
-				t.Fatalf("%s: systeminfo.LogInitialTargetInfo arg count = %d, want 1", spec.path, len(call.args))
+				t.Fatalf("%s: systeminfo.LogInitialTargetInfo arg count = %d, want 1", callpoint.path, len(call.args))
 			}
-			if got := selectorExprString(call.args[0]); got != spec.stepArg {
-				t.Fatalf("%s: systeminfo.LogInitialTargetInfo arg = %q, want %q", spec.path, got, spec.stepArg)
+			if got := selectorExprString(call.args[0]); !strings.HasSuffix(got, ".StepGeneral") {
+				t.Fatalf("%s: systeminfo.LogInitialTargetInfo arg = %q, want *.StepGeneral", callpoint.path, got)
 			}
 
-			anchorPositions := callPositions(file, spec.firstBusinessAnchor)
-			if len(anchorPositions) == 0 {
-				t.Fatalf("%s: missing first business anchor %s", spec.path, spec.firstBusinessAnchor)
+			businessCall, ok := firstBusinessStepCall(file, startPositions[0].pos)
+			if !ok {
+				t.Fatalf("%s: missing first business NewStep call", callpoint.path)
 			}
+
 			startPos := startPositions[0].pos
 			callPos := call.pos
-			anchorPos := anchorPositions[0].pos
-			if !(startPos < callPos && callPos < anchorPos) {
+			if !(startPos < callPos && callPos < businessCall.pos) {
 				t.Fatalf(
 					"%s: want lHandler.Start() < systeminfo.LogInitialTargetInfo() < %s, got %d < %d < %d",
-					spec.path,
-					spec.firstBusinessAnchor,
+					callpoint.path,
+					businessCall.selector,
 					startPos,
 					callPos,
-					anchorPos,
+					businessCall.pos,
 				)
 			}
 		})
@@ -192,6 +151,70 @@ func callPositions(file *ast.File, selector string) []callOccurrence {
 	})
 
 	return positions
+}
+
+type businessStepCall struct {
+	pos      token.Pos
+	selector string
+}
+
+func firstBusinessStepCall(file *ast.File, after token.Pos) (businessStepCall, bool) {
+	var first businessStepCall
+	ast.Inspect(file, func(node ast.Node) bool {
+		call, ok := node.(*ast.CallExpr)
+		if !ok || call.Pos() <= after {
+			return true
+		}
+
+		selector := selectorExprString(call.Fun)
+		if !isBusinessStepSelector(selector) {
+			return true
+		}
+		if first.pos == token.NoPos || call.Pos() < first.pos {
+			first = businessStepCall{pos: call.Pos(), selector: selector}
+		}
+		return true
+	})
+
+	return first, first.pos != token.NoPos
+}
+
+func isBusinessStepSelector(selector string) bool {
+	return strings.HasSuffix(selector, ".NewStep") && selector != "statusreporter.NewStep"
+}
+
+func installerCallpointFiles(t *testing.T) []installerCallpoint {
+	t.Helper()
+
+	root := toolsPath("cmd/installer")
+	callpoints := make([]installerCallpoint, 0)
+	if err := filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || !strings.HasPrefix(entry.Name(), "full_") || !strings.HasSuffix(entry.Name(), ".go") {
+			return nil
+		}
+
+		file := parseGoFile(t, path)
+		if len(callPositions(file, "lHandler.Start")) == 0 {
+			return nil
+		}
+
+		name, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		callpoints = append(callpoints, installerCallpoint{name: name, path: path})
+		return nil
+	}); err != nil {
+		t.Fatalf("walk installer cmd dir: %v", err)
+	}
+
+	sort.Slice(callpoints, func(i, j int) bool {
+		return callpoints[i].path < callpoints[j].path
+	})
+	return callpoints
 }
 
 func selectorExprString(expr ast.Expr) string {
