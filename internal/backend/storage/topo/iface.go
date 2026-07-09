@@ -183,6 +183,12 @@ type IStorageHost interface {
 	// UpdateHostStaticFields updates the static fields of a host.
 	UpdateHostStaticFields(nCtx contextx.IContext, fields types.HostStaticFields, hosts ...*types.Host) error
 
+	// UpsertHostTopo upserts host topology relation create or update events.
+	UpsertHostTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error
+
+	// PopHostTopo pops host topology relation delete events.
+	PopHostTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error
+
 	// UpdateHostDynamicFields updates the dynamic fields of a host.
 	UpdateHostDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
 

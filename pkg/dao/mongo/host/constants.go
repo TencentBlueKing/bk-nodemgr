@@ -25,11 +25,20 @@ const (
 	// FieldKeyStaticBizID the static biz id field key.
 	FieldKeyStaticBizID = "data.static.biz_id"
 
-	// FieldKeyStaticSetID the static set id field key.
-	FieldKeyStaticSetID = "data.static.set_id"
+	// FieldKeyStaticTopo the static topo field key.
+	FieldKeyStaticTopo = "data.static.topo"
 
-	// FieldKeyStaticModuleID the static module id field key.
-	FieldKeyStaticModuleID = "data.static.module_id"
+	// FieldKeyStaticSetID the static topo set id field key.
+	FieldKeyStaticSetID = FieldKeyStaticTopo + "." + FieldSubKeyStaticTopoItemSetID
+
+	// FieldKeyStaticModuleID the static topo module id field key.
+	FieldKeyStaticModuleID = FieldKeyStaticTopo + "." + FieldSubKeyStaticTopoItemModuleID
+
+	// FieldSubKeyStaticTopoItemSetID the static topo item set id field key.
+	FieldSubKeyStaticTopoItemSetID = "set_id"
+
+	// FieldSubKeyStaticTopoItemModuleID the static topo item module id field key.
+	FieldSubKeyStaticTopoItemModuleID = "module_id"
 
 	// FieldKeyStaticNetworkAreaID the static networkarea id field key.
 	FieldKeyStaticNetworkAreaID = "data.static.networkarea_id"

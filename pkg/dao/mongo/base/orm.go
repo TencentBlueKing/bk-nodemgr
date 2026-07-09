@@ -16,6 +16,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -655,10 +656,54 @@ func (orm *Orm[P, T]) countGroupByField(nCtx contextx.IContext, filter bson.D, f
 
 	dataPoints = make(map[any]int64)
 	for _, res := range results {
-		dataPoints[res.ID] = res.Total
+		if err := appendGroupByResult(dataPoints, res.ID, res.Total); err != nil {
+			return nil, fmt.Errorf("failed to count group by field(%s): %w", field, err)
+		}
 	}
 
 	return dataPoints, nil
+}
+
+func appendGroupByResult(dataPoints map[any]int64, id any, total int64) error {
+	value := reflect.ValueOf(id)
+	if value.IsValid() && (value.Kind() == reflect.Array || value.Kind() == reflect.Slice) {
+		seen := make(map[any]struct{}, value.Len())
+		for i := 0; i < value.Len(); i++ {
+			key := value.Index(i).Interface()
+			if err := appendGroupByResultValueOnce(dataPoints, seen, key, total); err != nil {
+				return err
+			}
+		}
+	}
+
+	return appendGroupByResultValue(dataPoints, id, total)
+}
+
+func appendGroupByResultValueOnce(dataPoints map[any]int64, seen map[any]struct{}, key any, total int64) error {
+	keyType := reflect.TypeOf(key)
+	if keyType != nil && !keyType.Comparable() {
+		return fmt.Errorf("invalid group key type(%T)", key)
+	}
+
+	if _, ok := seen[key]; ok {
+		return nil
+	}
+
+	seen[key] = struct{}{}
+	dataPoints[key] += total
+
+	return nil
+}
+
+func appendGroupByResultValue(dataPoints map[any]int64, key any, total int64) error {
+	keyType := reflect.TypeOf(key)
+	if keyType != nil && !keyType.Comparable() {
+		return fmt.Errorf("invalid group key type(%T)", key)
+	}
+
+	dataPoints[key] += total
+
+	return nil
 }
 
 // List this is a common operation for mongo db.

@@ -326,14 +326,19 @@ type Host struct {
 	OperationUpdatedAt time.Time
 }
 
+// HostTopo represents a host's set and module relation in CMDB.
+type HostTopo struct {
+	SetID    int64
+	ModuleID int64
+}
+
 // HostStatic represents a static host under a host.
 // static means it is synced from CMDB.
 // or sometimes it will be insert first into database in case of syncing latency.
 type HostStatic struct {
 	// belongs to
 	BizID         int64
-	SetID         int64
-	ModuleID      int64
+	Topo          []*HostTopo
 	NetworkAreaID int64
 	RegionID      string
 	CityID        string
@@ -378,8 +383,7 @@ func (static *HostStatic) GetOuterIPList() []string {
 // HostStaticFields represents the fields of HostStatic fields.
 type HostStaticFields struct {
 	BizID                    bool
-	SetID                    bool
-	ModuleID                 bool
+	Topo                     bool
 	NetworkAreaID            bool
 	RegionID                 bool
 	CityID                   bool
@@ -409,8 +413,7 @@ type HostStaticFields struct {
 func UpdateAllHostStaticFields() HostStaticFields {
 	return HostStaticFields{
 		BizID:                    true,
-		ModuleID:                 true,
-		SetID:                    true,
+		Topo:                     true,
 		NetworkAreaID:            true,
 		RegionID:                 true,
 		CityID:                   true,
@@ -486,11 +489,10 @@ type HostFieldSelection struct {
 	HostID bool
 	// Static fields
 	BizID         bool
+	Topo          bool
 	NetworkAreaID bool
 	InnerIPList   bool
 	InnerIPV6List bool
-	SetID         bool
-	ModuleID      bool
 
 	// Dynamic fields
 	LoginUser bool
@@ -499,8 +501,7 @@ type HostFieldSelection struct {
 
 // HostTopoRelation represents the relationship between a host and its topology.
 type HostTopoRelation struct {
-	HostID   int64
-	BizID    int64
-	SetID    int64
-	ModuleID int64
+	HostID int64
+	BizID  int64
+	Topo   []*HostTopo
 }

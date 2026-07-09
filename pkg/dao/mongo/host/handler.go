@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -72,6 +73,12 @@ type IHandler interface {
 
 	// UpdateDynamicFields updates host dynamic fields.
 	UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
+
+	// UpsertStaticTopo updates or inserts host static topo information.
+	UpsertStaticTopo(nCtx contextx.IContext, hostRel ...*types.HostTopoRelation) error
+
+	// PopStaticTopo pops host static topo information.
+	PopStaticTopo(nCtx contextx.IContext, hostRel ...*types.HostTopoRelation) error
 
 	// GetHostDistributionByNodeRole get host distribution by node role.
 	GetHostDistributionByNodeRole(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error)
@@ -587,8 +594,6 @@ func convertHostFromTypes(host *types.Host) *Host {
 	if host.Static != nil {
 		static = &HostStatic{
 			BizID:                    host.Static.BizID,
-			SetID:                    host.Static.SetID,
-			ModuleID:                 host.Static.ModuleID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
 			HostName:                 host.Static.HostName,
 			DeptName:                 host.Static.DeptName,
@@ -613,6 +618,13 @@ func convertHostFromTypes(host *types.Host) *Host {
 			SyncedOpsBMCIP:           host.Static.SyncedOpsBMCIP,
 			SyncedOpsBMCPort:         host.Static.SyncedOpsBMCPort,
 		}
+
+		static.Topo = conv.SliceToSlice(host.Static.Topo, func(topo *types.HostTopo) HostTopo {
+			return HostTopo{
+				SetID:    topo.SetID,
+				ModuleID: topo.ModuleID,
+			}
+		})
 	}
 
 	dynamic := &HostDynamic{}
@@ -679,8 +691,6 @@ func convertHostToTypes(host *Host) *types.Host {
 	if host.Static != nil {
 		static = &types.HostStatic{
 			BizID:                    host.Static.BizID,
-			SetID:                    host.Static.SetID,
-			ModuleID:                 host.Static.ModuleID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
 			RegionID:                 host.Static.RegionID,
 			CityID:                   host.Static.CityID,
@@ -705,6 +715,13 @@ func convertHostToTypes(host *Host) *types.Host {
 			SyncedOpsBMCIP:           host.Static.SyncedOpsBMCIP,
 			SyncedOpsBMCPort:         host.Static.SyncedOpsBMCPort,
 		}
+
+		static.Topo = conv.SliceToSlice(host.Static.Topo, func(topo HostTopo) *types.HostTopo {
+			return &types.HostTopo{
+				SetID:    topo.SetID,
+				ModuleID: topo.ModuleID,
+			}
+		})
 	}
 
 	dynamic := &types.HostDynamic{}
@@ -893,11 +910,8 @@ func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) 
 	if fields.BizID {
 		updates[FieldKeyStaticBizID] = host.Static.BizID
 	}
-	if fields.SetID {
-		updates[FieldKeyStaticSetID] = host.Static.SetID
-	}
-	if fields.ModuleID {
-		updates[FieldKeyStaticModuleID] = host.Static.ModuleID
+	if fields.Topo {
+		updates[FieldKeyStaticTopo] = host.Static.Topo
 	}
 	if fields.NetworkAreaID {
 		updates[FieldKeyStaticNetworkAreaID] = host.Static.NetworkAreaID
@@ -1108,6 +1122,67 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	return updates
 }
 
+// UpsertStaticTopo upserts host static topo.
+func (h *handler) UpsertStaticTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	for _, relation := range hostRels {
+		if relation == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		topoData := conv.SliceToSlice(relation.Topo, func(topo *types.HostTopo) HostTopo {
+			return HostTopo{
+				SetID:    topo.SetID,
+				ModuleID: topo.ModuleID,
+			}
+		})
+		if err := h.tenantDao(tenantID).upsertStaticTopo(nCtx, relation.HostID, topoData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// PopStaticTopo pops host static topo.
+func (h *handler) PopStaticTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	for _, relation := range hostRels {
+		if relation == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		topoData := conv.SliceToSlice(relation.Topo, func(topo *types.HostTopo) HostTopo {
+			return HostTopo{
+				SetID:    topo.SetID,
+				ModuleID: topo.ModuleID,
+			}
+		})
+
+		if err := h.tenantDao(tenantID).popStaticTopo(nCtx, relation.HostID, topoData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // GetHostDistributionByNodeRole gets the host distribution by node role.
 func (h *handler) GetHostDistributionByNodeRole(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error) {
 	if nCtx == nil {
@@ -1256,11 +1331,8 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.InnerIPV6List {
 		fields = append(fields, FieldKeyStaticInnerIPV6List)
 	}
-	if selection.SetID {
-		fields = append(fields, FieldKeyStaticSetID)
-	}
-	if selection.ModuleID {
-		fields = append(fields, FieldKeyStaticModuleID)
+	if selection.Topo {
+		fields = append(fields, FieldKeyStaticTopo)
 	}
 	if selection.LoginUser {
 		fields = append(fields, FieldKeyDynamicLoginUser)

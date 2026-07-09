@@ -17,8 +17,10 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	mongohost "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -102,5 +104,53 @@ func Test_storage_UpsertManyHost(t *testing.T) {
 				t.Errorf("UpsertManyHost() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func Test_convertHostConditionsToOptions_MatchesSetAndModuleInSameTopo(t *testing.T) {
+	opts := convertHostConditionsToOptions(&types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			SetID:    []int64{1, 2},
+			ModuleID: []int64{10, 20},
+		},
+	})
+
+	filter := bson.D{}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	if len(filter) != 1 {
+		t.Fatalf("filter length = %d, want 1: %#v", len(filter), filter)
+	}
+
+	orElem := filter[0]
+	if orElem.Key != "$or" {
+		t.Fatalf("filter key = %s, want $or: %#v", orElem.Key, filter)
+	}
+
+	conditions, ok := orElem.Value.(bson.A)
+	if !ok {
+		t.Fatalf("$or value type = %T, want bson.A", orElem.Value)
+	}
+	if len(conditions) != 4 {
+		t.Fatalf("$or condition length = %d, want 4: %#v", len(conditions), conditions)
+	}
+
+	for _, condition := range conditions {
+		conditionDoc, ok := condition.(bson.D)
+		if !ok {
+			t.Fatalf("$or condition type = %T, want bson.D", condition)
+		}
+		if len(conditionDoc) != 1 || conditionDoc[0].Key != mongohost.FieldKeyStaticTopo {
+			t.Fatalf("condition = %#v, want single topo elemMatch", conditionDoc)
+		}
+		elemMatch, ok := conditionDoc[0].Value.(bson.M)["$elemMatch"].(bson.D)
+		if !ok {
+			t.Fatalf("topo condition value = %#v, want $elemMatch bson.D", conditionDoc[0].Value)
+		}
+		if len(elemMatch) != 2 {
+			t.Fatalf("elemMatch length = %d, want set_id and module_id: %#v", len(elemMatch), elemMatch)
+		}
 	}
 }

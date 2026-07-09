@@ -182,6 +182,118 @@ func (d *dao) updateDynamicMany(nCtx contextx.IContext, hosts []*Host) error {
 	return nil
 }
 
+// upsertStaticTopo upserts host static topo by module id.
+func (d *dao) upsertStaticTopo(nCtx contextx.IContext, hostID int64, topos []HostTopo) error {
+	if len(topos) == 0 {
+		return nil
+	}
+
+	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyHostID, Value: hostID})
+	for _, topo := range topos {
+		nowTime := time.Now()
+		update := buildUpsertStaticTopoUpdate(topo, nowTime)
+		result, err := d.client.UpdateOne(nCtx, filter, update)
+		if err != nil {
+			return err
+		}
+
+		logger.G.Sys().Ctx(nCtx).
+			With(
+				"table", d.tableName,
+				"host-id", hostID,
+				"module-id", topo.ModuleID,
+				"modified-count", result.ModifiedCount,
+			).
+			Debug("upserted host static topo")
+	}
+
+	return nil
+}
+
+func buildUpsertStaticTopoUpdate(topo HostTopo, nowTime time.Time) mongo.Pipeline {
+	topoValue := bson.M{
+		FieldSubKeyStaticTopoItemSetID:    topo.SetID,
+		FieldSubKeyStaticTopoItemModuleID: topo.ModuleID,
+	}
+	topoItems := bson.M{"$ifNull": bson.A{"$" + FieldKeyStaticTopo, bson.A{}}}
+	moduleIDs := bson.M{"$map": bson.M{
+		"input": topoItems,
+		"as":    "item",
+		"in":    "$$item." + FieldSubKeyStaticTopoItemModuleID,
+	}}
+	replaceTopo := bson.M{"$map": bson.M{
+		"input": "$$topoItems",
+		"as":    "item",
+		"in": bson.M{"$cond": bson.A{
+			bson.M{"$eq": bson.A{"$$item." + FieldSubKeyStaticTopoItemModuleID, topo.ModuleID}},
+			topoValue,
+			"$$item",
+		}},
+	}}
+	appendTopo := bson.M{"$concatArrays": bson.A{"$$topoItems", bson.A{topoValue}}}
+	topoExpr := bson.M{"$let": bson.M{
+		"vars": bson.M{
+			"topoItems": topoItems,
+			"moduleIDs": moduleIDs,
+		},
+		"in": bson.M{"$cond": bson.A{
+			bson.M{"$in": bson.A{topo.ModuleID, "$$moduleIDs"}},
+			replaceTopo,
+			appendTopo,
+		}},
+	}}
+
+	return mongo.Pipeline{
+		bson.D{{Key: "$set", Value: bson.M{
+			base.FieldKeyIsDeleted: false,
+			base.FieldKeyUpdatedAt: nowTime,
+			FieldKeyStaticTopo:     topoExpr,
+		}}},
+	}
+}
+
+// popStaticTopo pops host static topo by module id.
+func (d *dao) popStaticTopo(nCtx contextx.IContext, hostID int64, topos []HostTopo) error {
+	if len(topos) == 0 {
+		return nil
+	}
+
+	moduleIDs := make([]int64, 0, len(topos))
+	for _, topo := range topos {
+		moduleIDs = append(moduleIDs, topo.ModuleID)
+	}
+
+	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyHostID, Value: hostID})
+	update := bson.D{
+		{
+			Key: "$set",
+			Value: bson.M{
+				base.FieldKeyIsDeleted: false,
+				base.FieldKeyUpdatedAt: time.Now(),
+			},
+		},
+		{
+			Key: "$pull",
+			Value: bson.M{
+				FieldKeyStaticTopo: bson.M{
+					FieldSubKeyStaticTopoItemModuleID: bson.M{"$in": moduleIDs},
+				},
+			},
+		},
+	}
+
+	result, err := d.client.UpdateOne(nCtx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	logger.G.Sys().Ctx(nCtx).
+		With("table", d.tableName, "host-id", hostID, "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
+		Debug("popped host static topo")
+
+	return nil
+}
+
 // distinctString distinct string field.
 func (d *dao) distinctString(
 	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {

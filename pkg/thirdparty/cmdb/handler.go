@@ -847,9 +847,10 @@ func convHostTopoRelationToTypes(tenantID string, hostRel *HostTopoRelation) *ty
 		TenantID: tenantID,
 		HostID:   hostRel.BKHostID,
 		Static: &types.HostStatic{
-			BizID:    hostRel.BKBizID,
-			SetID:    hostRel.BKSetID,
-			ModuleID: hostRel.BKModuleID,
+			BizID: hostRel.BKBizID,
+			Topo: []*types.HostTopo{
+				{SetID: hostRel.BKSetID, ModuleID: hostRel.BKModuleID},
+			},
 		},
 	}
 }
@@ -1110,6 +1111,10 @@ func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page,
 		hosts = append(hosts, result.Items...)
 	}
 
+	if err := h.fillHostTopoRelations(nCtx, hosts); err != nil {
+		return nil, fmt.Errorf("fill host topo relations failed: %w", err)
+	}
+
 	return hosts, nil
 }
 
@@ -1136,10 +1141,8 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 	}
 
 	hosts := make([]*types.Host, len(resp.Info))
-	hostIDs := make([]int64, len(resp.Info))
 	for idx, host := range resp.Info {
 		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, bizID)
-		hostIDs[idx] = host.BKHostID
 	}
 
 	return hosts, nil
@@ -1168,48 +1171,88 @@ func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filte
 
 	hosts := make([]*types.Host, len(listHostsWithoutBusinessResp.Info))
 	for idx, host := range listHostsWithoutBusinessResp.Info {
-		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, 0)
-	}
-
-	hostIDs := conv.SliceToSlice[*types.Host, int64](hosts, func(host *types.Host) int64 {
-		return host.HostID
-	})
-
-	findHostBizRelationsResp, err := h.findHostBizRelations(nCtx, hostIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list host without biz: %w", err)
-	}
-
-	hostRels := make(map[int64][]*HostTopoRelation)
-	for _, rel := range findHostBizRelationsResp {
-		hostID := rel.BKHostID
-		if _, ok := hostRels[hostID]; !ok {
-			hostRels[hostID] = make([]*HostTopoRelation, 0)
-		}
-
-		hostRels[hostID] = append(hostRels[hostID], rel)
-	}
-
-	for _, host := range hosts {
-		if _, ok := hostRels[host.HostID]; !ok {
-			continue
-		}
-
-		bizID := int64(-1)
-		for _, rel := range hostRels[host.HostID] {
-			if bizID < 0 {
-				bizID = rel.BKBizID
-			}
-
-			if bizID != rel.BKBizID {
-				return nil, fmt.Errorf(" host must belong one biz, rel(%+v)", *rel)
-			}
-		}
-
-		host.Static.BizID = bizID
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, CCNoBusinessID)
 	}
 
 	return hosts, nil
+}
+
+func (h *Handler) fillHostTopoRelations(nCtx contextx.IContext, hosts []*types.Host) error {
+	hostIDs := make([]int64, 0, len(hosts))
+	for _, host := range hosts {
+		if host == nil || host.Static == nil || host.HostID == 0 {
+			continue
+		}
+
+		hostIDs = append(hostIDs, host.HostID)
+	}
+	if len(hostIDs) == 0 {
+		return nil
+	}
+
+	relations, err := h.findHostBizRelations(nCtx, hostIDs)
+	if err != nil {
+		return fmt.Errorf("find host biz relations failed: %w", err)
+	}
+
+	hostBizMap, hostTopoMap, err := buildHostTopoRelationMaps(relations)
+	if err != nil {
+		return err
+	}
+
+	for _, host := range hosts {
+		if host == nil || host.Static == nil || host.HostID == 0 {
+			continue
+		}
+
+		topo, ok := hostTopoMap[host.HostID]
+		if !ok {
+			host.Static.Topo = nil
+			continue
+		}
+
+		host.Static.BizID = hostBizMap[host.HostID]
+		host.Static.Topo = topo
+	}
+
+	return nil
+}
+
+func buildHostTopoRelationMaps(relations []*HostTopoRelation) (map[int64]int64, map[int64][]*types.HostTopo, error) {
+	hostBizMap := make(map[int64]int64)
+	hostTopoMap := make(map[int64][]*types.HostTopo)
+	hostModuleSetMap := make(map[int64]map[int64]struct{})
+	for _, rel := range relations {
+		if rel == nil {
+			continue
+		}
+
+		bizID, ok := hostBizMap[rel.BKHostID]
+		if !ok {
+			hostBizMap[rel.BKHostID] = rel.BKBizID
+			bizID = rel.BKBizID
+		}
+		if bizID != rel.BKBizID {
+			return nil, nil, fmt.Errorf("host must belong one biz, rel(%+v)", *rel)
+		}
+
+		moduleSet, ok := hostModuleSetMap[rel.BKHostID]
+		if !ok {
+			moduleSet = make(map[int64]struct{})
+			hostModuleSetMap[rel.BKHostID] = moduleSet
+		}
+		if _, ok := moduleSet[rel.BKModuleID]; ok {
+			return nil, nil, fmt.Errorf("host topo module must be unique, rel(%+v)", *rel)
+		}
+
+		moduleSet[rel.BKModuleID] = struct{}{}
+		hostTopoMap[rel.BKHostID] = append(hostTopoMap[rel.BKHostID], &types.HostTopo{
+			SetID:    rel.BKSetID,
+			ModuleID: rel.BKModuleID,
+		})
+	}
+
+	return hostBizMap, hostTopoMap, nil
 }
 
 func (h *Handler) findHostBizRelations(nCtx contextx.IContext, hostIDs []int64) ([]*HostTopoRelation, error) {

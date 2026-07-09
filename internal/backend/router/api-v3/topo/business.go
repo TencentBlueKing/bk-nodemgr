@@ -115,12 +115,12 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	}
 
 	topoNode := topoNodes[0]
-	bizHostCount, moduleHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode, narrowedBizIDs, scopeIsAny)
+	bizHostCount, setHostCount, moduleHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode, narrowedBizIDs, scopeIsAny)
 	if err != nil {
 		return nil, err
 	}
 
-	fillBusinessInstTopoHostCount(topoNode, bizHostCount, moduleHostCount)
+	fillBusinessInstTopoHostCount(topoNode, bizHostCount, setHostCount, moduleHostCount)
 	resp.ConvertBusinessInstTopoFromTypes(topoNode)
 
 	return resp.GetData(), nil
@@ -129,11 +129,11 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 // nolint: nonamedreturns
 func (h *handler) getBusinessInstTopoHostCounts(
 	rCtx restserver.IContext, topoNode *types.TopoNodeInfo, narrowedBizIDs []int64, scopeIsAny bool,
-) (bizHostCount map[int64]int64, moduleHostCount map[int64]int64, err error) {
+) (bizHostCount, setHostCount, moduleHostCount map[int64]int64, err error) {
 
-	moduleIDList := make([]int64, 0)
 	bizIDList := make([]int64, 0)
-
+	setIDList := make([]int64, 0)
+	moduleIDList := make([]int64, 0)
 	var topoInstDFS func(*types.TopoNodeInfo)
 	topoInstDFS = func(topoNode *types.TopoNodeInfo) {
 		if topoNode == nil {
@@ -143,6 +143,8 @@ func (h *handler) getBusinessInstTopoHostCounts(
 		switch topoNode.ObjID {
 		case cmdb.TopoNodeObjIDBiz:
 			bizIDList = append(bizIDList, topoNode.InstID)
+		case cmdb.TopoNodeObjIDSet:
+			setIDList = append(setIDList, topoNode.InstID)
 		case cmdb.TopoNodeObjIDModule:
 			moduleIDList = append(moduleIDList, topoNode.InstID)
 		}
@@ -163,7 +165,20 @@ func (h *handler) getBusinessInstTopoHostCounts(
 		bizHostCount, err = h.storage.CountHostGroupByBizID(rCtx, bizCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by biz id")
-			return nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+			return nil, nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+	}
+
+	if len(setIDList) != 0 {
+		setCond := narrowHostConditionByBiz(&types.HostCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				SetID: setIDList,
+			},
+		}, narrowedBizIDs, scopeIsAny)
+		setHostCount, err = h.storage.CountHostGroupBySetID(rCtx, setCond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by set id")
+			return nil, nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 	}
 
@@ -176,14 +191,14 @@ func (h *handler) getBusinessInstTopoHostCounts(
 		moduleHostCount, err = h.storage.CountHostGroupByModuleID(rCtx, moduleCond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count host group by module id")
-			return nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+			return nil, nil, nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 	}
 
-	return bizHostCount, moduleHostCount, nil
+	return bizHostCount, setHostCount, moduleHostCount, nil
 }
 
-func fillBusinessInstTopoHostCount(topoNode *types.TopoNodeInfo, bizHostCount, moduleHostCount map[int64]int64) {
+func fillBusinessInstTopoHostCount(topoNode *types.TopoNodeInfo, bizHostCount, setHostCount, moduleHostCount map[int64]int64) {
 	var fillNodeHostCount func(*types.TopoNodeInfo) int64
 	fillNodeHostCount = func(topoNode *types.TopoNodeInfo) int64 {
 		if topoNode == nil {
@@ -200,6 +215,8 @@ func fillBusinessInstTopoHostCount(topoNode *types.TopoNodeInfo, bizHostCount, m
 			// if host is under idle pool, it will not be counted in module host count, but will be counted in biz host count
 			// so we need to use biz host count from storage directly to avoid host count missing caused by idle pool.
 			topoNode.HostCount = bizHostCount[topoNode.InstID]
+		case cmdb.TopoNodeObjIDSet:
+			topoNode.HostCount = setHostCount[topoNode.InstID]
 		case cmdb.TopoNodeObjIDModule:
 			topoNode.HostCount = moduleHostCount[topoNode.InstID]
 		default:

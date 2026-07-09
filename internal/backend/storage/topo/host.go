@@ -384,13 +384,12 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			opts = append(opts,
 				host.WithHostID(condition.StaticExactInclude.HostID...),
 				host.WithStaticBizID(condition.StaticExactInclude.BizID...),
-				host.WithStaticSetID(condition.StaticExactInclude.SetID...),
-				host.WithStaticModuleID(condition.StaticExactInclude.ModuleID...),
 				host.WithStaticNetworkAreaID(condition.StaticExactInclude.NetworkAreaID...),
 				host.WithStaticAddressing(condition.StaticExactInclude.Addressing...),
 				host.WithStaticInnerIPList(condition.StaticExactInclude.InnerIP...),
 				host.WithStaticInnerIPV6List(condition.StaticExactInclude.InnerIPV6...),
 			)
+			opts = appendStaticTopoIncludeOptions(opts, condition.StaticExactInclude)
 		}
 
 		if condition.DynamicExactInclude != nil {
@@ -455,6 +454,27 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 	}
 
 	return opts
+}
+
+func appendStaticTopoIncludeOptions(opts []host.OptFn, exactInclude *types.HostStaticExactFields) []host.OptFn {
+	if len(exactInclude.SetID) == 0 || len(exactInclude.ModuleID) == 0 {
+		return append(opts,
+			host.WithStaticSetID(exactInclude.SetID...),
+			host.WithStaticModuleID(exactInclude.ModuleID...),
+		)
+	}
+
+	topo := make([]types.HostTopo, 0, len(exactInclude.SetID)*len(exactInclude.ModuleID))
+	for _, setID := range exactInclude.SetID {
+		for _, moduleID := range exactInclude.ModuleID {
+			topo = append(topo, types.HostTopo{
+				SetID:    setID,
+				ModuleID: moduleID,
+			})
+		}
+	}
+
+	return append(opts, host.WithStaticTopo(topo...))
 }
 
 // DeleteManyHost delete many hosts by hostIDs.
@@ -523,6 +543,44 @@ func (s *Storage) UpdateHostStaticFields(nCtx contextx.IContext, fields types.Ho
 		err = s.daoHost.UpdateStaticFields(nCtx, fields, hosts...)
 		if err != nil {
 			return fmt.Errorf("failed to update host static fields: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// UpsertHostTopo upserts host topology relation create or update events.
+func (s *Storage) UpsertHostTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(hostRels) == 0 {
+		return nil
+	}
+
+	return s.WrapFn(nCtx, metricOperationUpsertHostTopo, func(nCtx contextx.IContext) error {
+		if err := s.daoHost.UpsertStaticTopo(nCtx, hostRels...); err != nil {
+			return fmt.Errorf("failed to update host topo: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// PopHostTopo pops host topology relation delete events.
+func (s *Storage) PopHostTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(hostRels) == 0 {
+		return nil
+	}
+
+	return s.WrapFn(nCtx, metricOperationPopHostTopo, func(nCtx contextx.IContext) error {
+		if err := s.daoHost.PopStaticTopo(nCtx, hostRels...); err != nil {
+			return fmt.Errorf("failed to delete host topo: %w", err)
 		}
 
 		return nil
@@ -650,10 +708,9 @@ func (s *Storage) getHostTopoRelationMapping(nCtx contextx.IContext, hostIDs ...
 
 	hostIDs = conv.SliceUnique(hostIDs)
 	selection := &types.HostFieldSelection{
-		HostID:   true,
-		BizID:    true,
-		SetID:    true,
-		ModuleID: true,
+		HostID: true,
+		BizID:  true,
+		Topo:   true,
 	}
 	results, _, err := s.daoHost.ListWithFields(nCtx, types.UnlimitedPage(), selection, host.WithHostID(hostIDs...))
 	if err != nil {
@@ -671,10 +728,9 @@ func (s *Storage) getHostTopoRelationMapping(nCtx contextx.IContext, hostIDs ...
 		}
 
 		hostTopo[host.HostID] = types.HostTopoRelation{
-			HostID:   host.HostID,
-			BizID:    host.Static.BizID,
-			SetID:    host.Static.SetID,
-			ModuleID: host.Static.ModuleID,
+			HostID: host.HostID,
+			BizID:  host.Static.BizID,
+			Topo:   host.Static.Topo,
 		}
 	}
 

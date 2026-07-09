@@ -13,6 +13,7 @@ package host
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // OptFn provides filtering options.
@@ -33,14 +34,41 @@ func WithStaticBizID(bizIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyStaticBizID, bizIDs...)
 }
 
-// WithStaticSetID filters by set id.
+// WithStaticSetID filters by topo set id.
 func WithStaticSetID(setIDs ...int64) OptFn {
-	return base.WithValues(FieldKeyStaticSetID, setIDs...)
+	return base.WithElemMatch(
+		FieldKeyStaticTopo,
+		base.WithValues(FieldSubKeyStaticTopoItemSetID, setIDs...),
+	)
 }
 
-// WithStaticModuleID filters by module id.
+// WithStaticModuleID filters by topo module id.
 func WithStaticModuleID(moduleIDs ...int64) OptFn {
-	return base.WithValues(FieldKeyStaticModuleID, moduleIDs...)
+	return base.WithElemMatch(
+		FieldKeyStaticTopo,
+		base.WithValues(FieldSubKeyStaticTopoItemModuleID, moduleIDs...),
+	)
+}
+
+// WithStaticTopo filters by set and module ids within the same topo item.
+func WithStaticTopo(topo ...types.HostTopo) OptFn {
+	return func(f bson.D) bson.D {
+		if len(topo) == 0 {
+			return f
+		}
+
+		conditions := make(bson.A, 0, len(topo))
+		for _, item := range topo {
+			condition := base.WithElemMatch(
+				FieldKeyStaticTopo,
+				base.WithValues(FieldSubKeyStaticTopoItemSetID, item.SetID),
+				base.WithValues(FieldSubKeyStaticTopoItemModuleID, item.ModuleID),
+			)(bson.D{})
+			conditions = append(conditions, condition)
+		}
+
+		return append(f, bson.E{Key: "$or", Value: conditions})
+	}
 }
 
 // WithoutStaticBizID filters by not contains biz-id.
