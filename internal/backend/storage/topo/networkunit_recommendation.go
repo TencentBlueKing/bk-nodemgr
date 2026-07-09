@@ -80,15 +80,15 @@ func recommendOneNetworkUnitBySegment(
 		}
 
 		if networkUnitAreaMap[rule.NetworkUnitID] != item.NetworkAreaID {
-		result.Message = "invalid recommended network unit"
+			result.Message = "invalid recommended network unit"
 
-		return result
+			return result
 		}
 
-	result.NetworkUnitID = rule.NetworkUnitID
-	result.Message = "matched"
+		result.NetworkUnitID = rule.NetworkUnitID
+		result.Message = "matched"
 
-	return result
+		return result
 	}
 
 	result.Message = "no rule matched"

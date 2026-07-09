@@ -88,6 +88,7 @@ type IStorageNetworkUnit interface {
 	GetNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.NetworkUnitCondition) (
 		map[int64]int64, error)
 
+	// RecommendNetworkUnitByNetworkSegment recommends network units based on network segment rules.
 	RecommendNetworkUnitByNetworkSegment(nCtx contextx.IContext, items ...*types.NetworkUnitSegmentRecommendationItem) (
 		[]*types.NetworkUnitSegmentRecommendationResult, error)
 }

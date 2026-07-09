@@ -8,38 +8,34 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package admin ...
-package admin
+// Package agent defines the admin node agent APIs.
+package agent
 
 import (
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/globalsettings"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/workflow"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
-	rg *gin.RouterGroup
+	rg           *gin.RouterGroup
+	nodeMgrIface managerIface.INodeManager
+	storageTopo  topoStg.IStorage
 }
 
-// newHandler ...
-func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
-		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/admin"),
+		rg:           rg.Group("/agent"),
+		nodeMgrIface: capability.Manager,
+		storageTopo:  capability.StorageTopo,
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+// Load loads admin node agent handlers.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	// enable middlewares.
-	h.rg.Use(middlewares...)
-
-	workflow.Load(h.rg, capability)
-	globalsettings.Load(h.rg, capability)
-	node.Load(h.rg, capability)
+	h.rg.POST("/sync_unassigned_network_unit", server.Handler(h.SyncUnassignedNetworkUnit))
 }

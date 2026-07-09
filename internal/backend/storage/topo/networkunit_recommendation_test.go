@@ -9,6 +9,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	gsdao "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/globalsettings"
+	pkgglobalsettings "github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -21,7 +22,7 @@ func (f *fakeGlobalSettingsHandler) Get(_ contextx.IContext, _ string) (*types.G
 	if f.err != nil {
 		return nil, f.err
 	}
-	return &types.GlobalSettings{SettingName: types.GlobalSettingNameNetworkUnitSegmentRules, Value: f.value}, nil
+	return &types.GlobalSettings{SettingName: pkgglobalsettings.NetworkUnitSegmentRules, Value: f.value}, nil
 }
 
 func (f *fakeGlobalSettingsHandler) Count(contextx.IContext, ...gsdao.OptFn) (int64, error) {
