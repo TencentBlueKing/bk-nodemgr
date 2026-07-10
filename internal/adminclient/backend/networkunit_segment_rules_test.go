@@ -26,9 +26,12 @@ import (
 
 type fakeBackendAdminHandler struct {
 	backendadmin.IHandler
-	rules       types.NetworkUnitSegmentRuleConfig
-	upsertedCfg types.NetworkUnitSegmentRuleConfig
-	err         error
+	rules          types.NetworkUnitSegmentRuleConfig
+	upsertedCfg    types.NetworkUnitSegmentRuleConfig
+	syncResult     *types.NodeAgentAssignUnitResult
+	syncedBKBizIDs []int64
+	syncCalls      int
+	err            error
 }
 
 func (f *fakeBackendAdminHandler) GetNetworkUnitSegmentRules(contextx.IContext) (types.NetworkUnitSegmentRuleConfig, error) {
@@ -43,6 +46,16 @@ func (f *fakeBackendAdminHandler) UpsertNetworkUnitSegmentRules(
 	return f.err
 }
 
+func (f *fakeBackendAdminHandler) SyncUnassignedAgentNetworkUnit(
+	_ contextx.IContext,
+	bizIDs []int64,
+) (*types.NodeAgentAssignUnitResult, error) {
+
+	f.syncedBKBizIDs = bizIDs
+	f.syncCalls++
+	return f.syncResult, f.err
+}
+
 func TestNewBackendCMDRegistersNetworkUnitSegmentRulesSubcommand(t *testing.T) {
 	cmd := NewBackendCMD(func(string) (backendadmin.IHandler, error) {
 		return &backendadmin.Handler{}, nil
@@ -51,6 +64,7 @@ func TestNewBackendCMDRegistersNetworkUnitSegmentRulesSubcommand(t *testing.T) {
 	require.NotNil(t, cmd)
 	assert.Equal(t, "backend", cmd.Use)
 	assert.NotNil(t, findSubcommand(cmd, "networkunit_segment_rules"))
+	assert.NotNil(t, findSubcommand(cmd, "node"))
 }
 
 func findSubcommand(cmd *cobra.Command, use string) *cobra.Command {

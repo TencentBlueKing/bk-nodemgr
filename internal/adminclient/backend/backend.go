@@ -32,7 +32,11 @@ func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler
 	cmd := &cobra.Command{
 		Use:   "backend",
 		Short: "backend admin operations",
-		PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			if err := validateSyncUnassignedNetworkUnitFlags(cmd); err != nil {
+				return err
+			}
+
 			h, err := handlerFactory(configPath)
 			if err != nil {
 				return fmt.Errorf("failed to create backend handler: %w", err)
@@ -48,8 +52,13 @@ func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler
 	cmd.PersistentFlags().StringVar(&loginName, "login-name", "admin", "login name for authentication")
 	// Closure to access handler and auth info after PersistentPreRunE
 	getHandler := func() backendadmin.IHandler { return handler }
+	getSyncHandler := func() backendadmin.ISyncUnassignedAgentNetworkUnitHandler {
+		syncHandler, _ := handler.(backendadmin.ISyncUnassignedAgentNetworkUnitHandler)
+		return syncHandler
+	}
 	getAuthInfo := func() (string, string) { return tenantID, loginName }
 	cmd.AddCommand(NewNetworkUnitSegmentRulesCMD(getHandler, getAuthInfo))
+	cmd.AddCommand(NewNodeCMD(getSyncHandler, getAuthInfo))
 
 	return cmd
 }
