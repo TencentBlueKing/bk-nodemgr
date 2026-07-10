@@ -20,7 +20,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -33,9 +32,6 @@ import (
 const (
 	// ActionNameDetectInfoByWindowsAuto defines the action name.
 	ActionNameDetectInfoByWindowsAuto = "detect_info_by_windows_auto"
-
-	windowsAutoDetectMethodSSH windowsAutoDetectMethod = "ssh"
-	windowsAutoDetectMethodWMI windowsAutoDetectMethod = "wmi"
 )
 
 // NewActionDetectInfoByWindowsAuto get a new action.
@@ -45,7 +41,6 @@ func NewActionDetectInfoByWindowsAuto(capability *Capability) action.Definition 
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storageRelease:        capability.StorageRelease,
-		storageActionInstance: capability.StorageWorkflow,
 		passwordVault:         capability.HostPasswordVault,
 	}
 }
@@ -60,18 +55,12 @@ type actionDetectInfoByWindowsAuto struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageRelease        release.IStorage
-	storageActionInstance workflowStg.IStorage
 	passwordVault         creditvault.IHostPasswordVault
 }
-
-type windowsAutoDetectMethod string
 
 type windowsAutoDetectResult struct {
 	osType  criteria.OSType
 	cpuArch criteria.CPUArch
-	method  windowsAutoDetectMethod
-	profile string
-	sshErr  error
 }
 
 // Name returns the name of the action.
@@ -101,7 +90,7 @@ func (act *actionDetectInfoByWindowsAuto) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionDetectInfoByWindowsAuto) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 10 * time.Minute // nolint: mnd
 }
 
 // Tags returns the tags of the action.
@@ -115,7 +104,7 @@ func (act *actionDetectInfoByWindowsAuto) MaxRetryCount() uint {
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionDetectInfoByWindowsAuto) DelayFn() func() {
+func (act *actionDetectInfoByWindowsAuto) DelayFn(_ int) func() {
 	return func() {
 		time.Sleep(5 * time.Second) // nolint: mnd
 	}
@@ -148,15 +137,6 @@ func (act *actionDetectInfoByWindowsAuto) Do(ctx *action.InstanceContext) (err e
 
 	if err = act.applyWindowsAutoDetectResult(std, result); err != nil {
 		return err
-	}
-
-	if err = act.storageActionInstance.UpsertActionInstancePrivateData(
-		std.Context(),
-		std.InstanceData().OperationInstanceID,
-		ActionNameDetectInfoByWindowsAuto,
-		buildWindowsAutoDetectPrivateData(result),
-	); err != nil {
-		return fmt.Errorf("failed to save windows auto detect private data: %w", err)
 	}
 
 	return nil
@@ -242,6 +222,7 @@ func (act *actionDetectInfoByWindowsAuto) detectByWMI(std *nodeUtils.NodeActionS
 func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 	std *nodeUtils.NodeActionStandarder, result windowsAutoDetectResult,
 ) error {
+
 	std.DeployInfo().Host.Dynamic.NodeOsType = result.osType
 	std.DeployInfo().Host.Dynamic.NodeCPUArch = result.cpuArch
 
@@ -299,13 +280,12 @@ func (act *actionDetectInfoByWindowsAuto) applyWindowsAutoDetectResult(
 func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(
 	std *nodeUtils.NodeActionStandarder,
 ) (windowsAutoDetectResult, error) {
+
 	sshResult, sshErr := act.detectByWindowsSSH(std)
 	if sshErr == nil {
 		return windowsAutoDetectResult{
 			osType:  sshResult.osType,
 			cpuArch: sshResult.cpuArch,
-			method:  windowsAutoDetectMethodSSH,
-			profile: sshResult.profile,
 		}, nil
 	}
 
@@ -325,21 +305,5 @@ func (act *actionDetectInfoByWindowsAuto) detectWindowsAutoInfo(
 	return windowsAutoDetectResult{
 		osType:  wmiResult.osType,
 		cpuArch: wmiResult.cpuArch,
-		method:  windowsAutoDetectMethodWMI,
-		sshErr:  sshErr,
 	}, nil
-}
-
-func buildWindowsAutoDetectPrivateData(result windowsAutoDetectResult) map[string]any {
-	privateData := map[string]any{
-		types.PDKeyWindowsAutoDetectMethod: string(result.method),
-	}
-	if result.method == windowsAutoDetectMethodSSH {
-		privateData[types.PDKeyWindowsSSHProfile] = result.profile
-	}
-	if result.method == windowsAutoDetectMethodWMI && result.sshErr != nil {
-		privateData[types.PDKeyWindowsAutoSSHDetectError] = result.sshErr.Error()
-	}
-
-	return privateData
 }
