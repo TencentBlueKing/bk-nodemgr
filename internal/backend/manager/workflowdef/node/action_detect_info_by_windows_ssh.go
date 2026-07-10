@@ -11,7 +11,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -40,7 +39,6 @@ func NewActionDetectInfoByWindowsSSH(capability *Capability) action.Definition {
 		storageNodeDeployment: capability.StorageNode,
 		storageHost:           capability.StorageTopo,
 		storageRelease:        capability.StorageRelease,
-		storageActionInstance: capability.StorageWorkflow,
 		passwordVault:         capability.HostPasswordVault,
 	}
 }
@@ -55,7 +53,6 @@ type actionDetectInfoByWindowsSSH struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageRelease        release.IStorage
-	storageActionInstance workflowStg.IStorage
 	passwordVault         creditvault.IHostPasswordVault
 }
 
@@ -224,15 +221,6 @@ func (act *actionDetectInfoByWindowsSSH) Do(ctx *action.InstanceContext) (err er
 		})
 	if err != nil {
 		return err
-	}
-
-	if err = act.storageActionInstance.UpsertActionInstancePrivateData(
-		std.Context(),
-		std.InstanceData().OperationInstanceID,
-		ActionNameDetectInfoByWindowsSSH,
-		map[string]any{types.PDKeyWindowsSSHProfile: result.profile},
-	); err != nil {
-		return fmt.Errorf("failed to save windows ssh profile to private data: %w", err)
 	}
 
 	return nil

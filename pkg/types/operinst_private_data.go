@@ -27,15 +27,6 @@ const (
 	// will be used in manual and relay-based install.
 	PDKeyReportDetectInfo string = "report_detect_info"
 
-	// PDKeyWindowsSSHProfile is key for Windows SSH profile in oper inst private data.
-	PDKeyWindowsSSHProfile string = "windows_ssh_profile"
-
-	// PDKeyWindowsAutoDetectMethod is key for Windows auto detect method in oper inst private data.
-	PDKeyWindowsAutoDetectMethod string = "windows_auto_detect_method"
-
-	// PDKeyWindowsAutoSSHDetectError is key for Windows auto detect SSH failure in oper inst private data.
-	PDKeyWindowsAutoSSHDetectError string = "windows_auto_ssh_detect_error"
-
 	// PDKeyManualInstallBootstrapCommandBash is key for manual install bootstrap bash command in oper inst private data.
 	PDKeyManualInstallBootstrapCommandBash string = "manual_install_bootstrap_command_bash"
 	// PDKeyManualInstallBootstrapCommandBat is key for manual install bootstrap bat command in oper inst private data.
