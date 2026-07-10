@@ -30,11 +30,12 @@ type Config struct {
 }
 
 type cli struct {
-	client                          client.IClient
-	config                          *Config
-	jwtGenerator                    restheader.IBKNodeMgrAuthorizationGenerator
-	getNetworkUnitSegmentRulesFn    func(contextx.IContext) (types.NetworkUnitSegmentRuleConfig, error)
-	upsertNetworkUnitSegmentRulesFn func(contextx.IContext, types.NetworkUnitSegmentRuleConfig) error
+	client                           client.IClient
+	config                           *Config
+	jwtGenerator                     restheader.IBKNodeMgrAuthorizationGenerator
+	getNetworkUnitSegmentRulesFn     func(contextx.IContext) (types.NetworkUnitSegmentRuleConfig, error)
+	upsertNetworkUnitSegmentRulesFn  func(contextx.IContext, types.NetworkUnitSegmentRuleConfig) error
+	syncUnassignedAgentNetworkUnitFn func(contextx.IContext, []int64) (*types.NodeAgentAssignUnitResult, error)
 }
 
 func newClient(c *client.Capability, conf *Config) (*cli, error) {

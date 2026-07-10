@@ -22,7 +22,15 @@ type IHandler interface {
 	UpsertNetworkUnitSegmentRules(nCtx contextx.IContext, cfg types.NetworkUnitSegmentRuleConfig) error
 }
 
-var _ IHandler = &Handler{}
+// ISyncUnassignedAgentNetworkUnitHandler syncs unassigned agent network units.
+type ISyncUnassignedAgentNetworkUnitHandler interface {
+	SyncUnassignedAgentNetworkUnit(nCtx contextx.IContext, bizIDs []int64) (*types.NodeAgentAssignUnitResult, error)
+}
+
+var (
+	_ IHandler                               = &Handler{}
+	_ ISyncUnassignedAgentNetworkUnitHandler = &Handler{}
+)
 
 // Handler implements IHandler for backend admin operations.
 type Handler struct {
@@ -51,4 +59,13 @@ func (h *Handler) UpsertNetworkUnitSegmentRules(
 ) error {
 
 	return h.cli.upsertNetworkUnitSegmentRules(nCtx, cfg)
+}
+
+// SyncUnassignedAgentNetworkUnit syncs unassigned agent hosts to recommended network units.
+func (h *Handler) SyncUnassignedAgentNetworkUnit(
+	nCtx contextx.IContext,
+	bizIDs []int64,
+) (*types.NodeAgentAssignUnitResult, error) {
+
+	return h.cli.syncUnassignedAgentNetworkUnit(nCtx, bizIDs)
 }
