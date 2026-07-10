@@ -12,11 +12,11 @@ package agent
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -48,6 +48,7 @@ func (h *handler) SyncUnassignedNetworkUnit(rCtx server.IContext) (any, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to sync unassigned network unit, failed to decode request body",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -67,6 +68,7 @@ func (h *handler) SyncUnassignedNetworkUnit(rCtx server.IContext) (any, error) {
 func (h *handler) syncUnassignedAgentNetworkUnit(
 	rCtx server.IContext, bizIDs ...int64,
 ) (*types.NodeAgentAssignUnitResult, error) {
+
 	bizs, err := h.listAgentNetworkUnitSyncBusinesses(rCtx, bizIDs...)
 	if err != nil {
 		return nil, err
@@ -103,6 +105,7 @@ func (h *handler) syncUnassignedAgentNetworkUnitByBiz(
 	bizID int64,
 	result *types.NodeAgentAssignUnitResult,
 ) error {
+
 	hosts, err := h.listUnassignedAgentHostsByBiz(rCtx, bizID)
 	if err != nil {
 		return err
@@ -156,6 +159,7 @@ func (h *handler) assignRecommendedNetworkUnits(
 	hosts []*types.Host,
 	result *types.NodeAgentAssignUnitResult,
 ) error {
+
 	candidates, items := buildNetworkUnitRecommendationItems(hosts, result)
 	if len(items) == 0 {
 		return nil
@@ -177,6 +181,7 @@ func (h *handler) assignRecommendedNetworkUnits(
 			result.FailedCount++
 			result.FailedReasons = append(result.FailedReasons,
 				fmt.Sprintf("host-id(%d) recommend networkunit failed: empty recommendation result", candidate.HostID))
+
 			continue
 		}
 
@@ -184,6 +189,7 @@ func (h *handler) assignRecommendedNetworkUnits(
 			result.FailedCount++
 			result.FailedReasons = append(result.FailedReasons,
 				fmt.Sprintf("host-id(%d) recommend networkunit failed: %s", candidate.HostID, recommendation.Message))
+
 			continue
 		}
 
@@ -198,14 +204,31 @@ func buildNetworkUnitRecommendationItems(
 	hosts []*types.Host,
 	result *types.NodeAgentAssignUnitResult,
 ) ([]*types.Host, []*types.NetworkUnitSegmentRecommendationItem) {
+
 	candidates := make([]*types.Host, 0, len(hosts))
 	items := make([]*types.NetworkUnitSegmentRecommendationItem, 0, len(hosts))
 
 	for _, host := range hosts {
+		if host == nil {
+			result.FailedCount++
+			result.FailedReasons = append(result.FailedReasons, "empty host data")
+
+			continue
+		}
+
+		if host.Static == nil {
+			result.FailedCount++
+			result.FailedReasons = append(result.FailedReasons,
+				fmt.Sprintf("host-id(%d) has no static data", host.HostID))
+
+			continue
+		}
+
 		if len(host.Static.InnerIPList) == 0 {
 			result.FailedCount++
 			result.FailedReasons = append(result.FailedReasons,
 				fmt.Sprintf("host-id(%d) has no inner ip", host.HostID))
+
 			continue
 		}
 
@@ -224,19 +247,15 @@ func (h *handler) assignNetworkUnits(
 	hostIDsByNetworkUnitID map[int64][]int64,
 	result *types.NodeAgentAssignUnitResult,
 ) error {
-	networkUnitIDs := make([]int64, 0, len(hostIDsByNetworkUnitID))
-	for networkUnitID := range hostIDsByNetworkUnitID {
-		networkUnitIDs = append(networkUnitIDs, networkUnitID)
-	}
-	slices.Sort(networkUnitIDs)
 
+	networkUnitIDs := conv.MapKeyToSlice(hostIDsByNetworkUnitID)
 	for _, networkUnitID := range networkUnitIDs {
 		assignResult, err := h.nodeMgrIface.AssignAgentNetworkUnit(rCtx, types.NodeAgentAssignUnitParam{
 			HostIDs:       hostIDsByNetworkUnitID[networkUnitID],
 			NetworkUnitID: networkUnitID,
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to assign networkunit-id(%d): %w", networkUnitID, err)
 		}
 
 		mergeNodeAgentAssignUnitResult(result, assignResult)
