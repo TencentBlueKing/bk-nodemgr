@@ -355,6 +355,7 @@ pluginManagement:
       processList: Plugin Process List
       notDefaultVersionTitle: '{names} is not the default version. Please upgrade to the default version to ensure normal operation'
       notDefaultVersionTooltip: Current version is not the default version
+      notDefaultVersionSubTip: 'Not the default version. Default version is {version}'
       suggestUpgrade: Upgrade
       status:
         running: Running

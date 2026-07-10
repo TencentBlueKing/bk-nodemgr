@@ -130,11 +130,12 @@
             <template #default="{ row }">
               <span class="flex items-center w-full gap-[4px]">
                 <span
-                class="flex-1 min-w-0 truncate"
-                v-bk-tooltips="{ content: row.version, disabled: !row.version || row.version.length <= 20 }"
-              >{{ row.version }}</span>
+                  class="flex-1 min-w-0 truncate"
+                  v-bk-tooltips="{ content: row.version, disabled: !row.version || row.version.length <= 20 }"
+                >{{ row.version }}</span>
+                <!-- relay 非默认：Popover + 建议升级 -->
                 <Popover
-                  v-if="!isProcessDefaultVersion(row)"
+                  v-if="!isProcessDefaultVersion(row) && row.plugin_name === 'bk-nodemgr-relay'"
                   theme="light"
                   trigger="hover"
                   placement="top"
@@ -154,6 +155,12 @@
                     </div>
                   </template>
                 </Popover>
+                <!-- 非 relay 非默认：简单 tooltip -->
+                <i
+                  v-if="!isProcessDefaultVersion(row) && row.plugin_name !== 'bk-nodemgr-relay'"
+                  v-bk-tooltips="$t('pluginManagement.plugin.process.notDefaultVersionSubTip', { version: getDefaultVersion(row) || '--' })"
+                  class="nodeman-icon nc-tips text-[#FF9C01] text-[16px] flex-shrink-0 cursor-pointer"
+                ></i>
               </span>
             </template>
           </TableColumn>
@@ -751,21 +758,21 @@ const extractVersion = (rawVersion: string): string => {
 };
 
 const getDefaultVersionKey = (row: any) => `${row.plugin_name}_${row.os_type}_${row.cpu_arch}`;
-
-const NEED_DEFAULT_CHECK_PLUGIN = 'bk-nodemgr-relay';
+const getDefaultVersion = (row: any): string | undefined => defaultVersionMap.value.get(getDefaultVersionKey(row));
 
 const isProcessDefaultVersion = (row: any): boolean => {
-  if (row.plugin_name !== NEED_DEFAULT_CHECK_PLUGIN) return true;
-  const defaultVersion = defaultVersionMap.value.get(getDefaultVersionKey(row));
-  if (!defaultVersion) return true; // 无默认版本时不提示
+  const defaultVersion = getDefaultVersion(row);
+  if (!defaultVersion) return true;
   return extractVersion(row.version) === extractVersion(defaultVersion);
 };
 
-// 非默认版本的插件名集合（用于顶部 Alert）
+const NEED_DEFAULT_CHECK_PLUGIN = 'bk-nodemgr-relay';
+
+// 非默认版本的插件名集合（用于顶部 Alert，仅针对 relay）
 const outdatedPluginNames = computed(() => {
   const names = new Set<string>();
   processList.value.forEach((row: any) => {
-    if (!isProcessDefaultVersion(row)) {
+    if (row.plugin_name === NEED_DEFAULT_CHECK_PLUGIN && !isProcessDefaultVersion(row)) {
       names.add(row.plugin_name);
     }
   });
@@ -875,12 +882,14 @@ const getDistinct = async () => {
 
 // 加载默认插件版本信息
 const loadDefaultPluginVersions = async () => {
-  // 只对 bk-nodemgr-relay 检查默认版本
+  const pluginNames = [...new Set(processList.value.map((item: any) => item.plugin_name).filter(Boolean))];
+  if (pluginNames.length === 0) { defaultVersionMap.value = new Map(); return; }
+
   const res = await PackageService.ListReleasePlugin({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
     only_count: false,
-    exact_include_conditions: { name: [NEED_DEFAULT_CHECK_PLUGIN] },
+    exact_include_conditions: { name: pluginNames },
   }).catch(() => ({ total: 0, items: [] }));
 
   const map = new Map<string, string>();
