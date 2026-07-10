@@ -33,7 +33,7 @@ import (
 func main() {
 	rootCMD := adminclient.NewRootCMD(newBackendAdminHandler)
 	if err := rootCMD.Execute(); err != nil {
-		fmt.Printf("failed to execute cmd: %v\n", err)
+		fmt.Fprintf(os.Stderr, "failed to execute cmd: %v\n", err)
 		os.Exit(1)
 	}
 }
