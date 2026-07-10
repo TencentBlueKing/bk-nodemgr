@@ -32,13 +32,20 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
-        <copy-ip-dropdown
-          :type="'agent'"
-          :disabled="!selection.length"
-          :data="processList"
-          :list="[]"
-        ></copy-ip-dropdown>
-      </div>
+      <copy-ip-dropdown
+        :type="'agent'"
+        :disabled="!selection.length"
+        :data="processList"
+        :list="[]"
+      ></copy-ip-dropdown>
+    </div>
+    <!-- 非默认版本提示 -->
+    <Alert
+      v-if="hasOutdatedVersion"
+      class="mb-[16px]"
+      theme="warning"
+      :title="$t('pluginManagement.plugin.process.notDefaultVersionTitle', { names: outdatedPluginNames.join('、') })"
+    />
       <Loading
         :title="$t('table.loading')"
         :loading="loading"
@@ -117,9 +124,39 @@
           <TableColumn
             :title="$t('pluginManagement.plugin.process.version')"
             field="version"
-            min-width="120"
+            min-width="160"
             :filter="filterOptionSource.version"
-          ></TableColumn>
+          >
+            <template #default="{ row }">
+              <span class="flex items-center w-full gap-[4px]">
+                <span
+                class="flex-1 min-w-0 truncate"
+                v-bk-tooltips="{ content: row.version, disabled: !row.version || row.version.length <= 20 }"
+              >{{ row.version }}</span>
+                <Popover
+                  v-if="!isProcessDefaultVersion(row)"
+                  theme="light"
+                  trigger="hover"
+                  placement="top"
+                  :arrow="true"
+                >
+                  <i class="nodeman-icon nc-tips text-[#FF9C01] text-[16px] flex-shrink-0 cursor-pointer"></i>
+                  <template #content>
+                    <div class="flex items-center gap-[8px] p-[4px]">
+                      <span>{{ $t('pluginManagement.plugin.process.notDefaultVersionTooltip') }}</span>
+                      <Button
+                        text
+                        theme="primary"
+                        @click="handlePluginOperate('upgrade', [row])"
+                      >
+                        {{ $t('pluginManagement.plugin.process.suggestUpgrade') }}
+                      </Button>
+                    </div>
+                  </template>
+                </Popover>
+              </span>
+            </template>
+          </TableColumn>
           <TableColumn
             title="Agent ID"
             field="agent_id"
@@ -322,10 +359,12 @@
 </template>
 <script lang="ts" setup>
 import {
+  Alert,
   Button,
   Dropdown,
   Loading,
   Message,
+  Popover,
   Sideslider,
 } from 'bkui-vue';
 import { computed, reactive, ref, watch } from 'vue';
@@ -336,10 +375,12 @@ import { Table, TableColumn } from '@blueking/table';
 
 import type { DistinctProcessRespData } from '@/@types/process';
 import { PluginAPIService } from '@/api/modules/plugin';
+import { PackageService } from '@/api/modules/pkg';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import OperateDialog from '@/components/operate-dialog.vue';
 import useTableSetting from '@/composables/use-table-setting';
+import { PACKAGE_GENERATION } from '@/common/const';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
 
@@ -699,6 +740,40 @@ const processStatusTextMap = computed(() => {
 // 进程列表
 const processList = ref<any[]>([]);
 
+// 默认版本映射：key = `${plugin_name}_${os_type}_${cpu_arch}`，value = 默认版本号
+const defaultVersionMap = ref<Map<string, string>>(new Map());
+
+// 判断进程版本是否与默认版本一致（支持 version 字段为多行字符串，取 Version: 行）
+const extractVersion = (rawVersion: string): string => {
+  if (!rawVersion) return '';
+  const match = rawVersion.match(/^Version:\s*(.+?)(?:\r?\n|$)/m);
+  return match ? match[1].trim() : rawVersion.trim();
+};
+
+const getDefaultVersionKey = (row: any) => `${row.plugin_name}_${row.os_type}_${row.cpu_arch}`;
+
+const NEED_DEFAULT_CHECK_PLUGIN = 'bk-nodemgr-relay';
+
+const isProcessDefaultVersion = (row: any): boolean => {
+  if (row.plugin_name !== NEED_DEFAULT_CHECK_PLUGIN) return true;
+  const defaultVersion = defaultVersionMap.value.get(getDefaultVersionKey(row));
+  if (!defaultVersion) return true; // 无默认版本时不提示
+  return extractVersion(row.version) === extractVersion(defaultVersion);
+};
+
+// 非默认版本的插件名集合（用于顶部 Alert）
+const outdatedPluginNames = computed(() => {
+  const names = new Set<string>();
+  processList.value.forEach((row: any) => {
+    if (!isProcessDefaultVersion(row)) {
+      names.add(row.plugin_name);
+    }
+  });
+  return [...names];
+});
+
+const hasOutdatedVersion = computed(() => outdatedPluginNames.value.length > 0);
+
 // 表格勾选
 const selection = computed(() => processList.value.filter((item: any) => item.checked));
 const hasSelection = computed(() => selection.value.length > 0);
@@ -798,6 +873,26 @@ const getDistinct = async () => {
   }
 };
 
+// 加载默认插件版本信息
+const loadDefaultPluginVersions = async () => {
+  // 只对 bk-nodemgr-relay 检查默认版本
+  const res = await PackageService.ListReleasePlugin({
+    page: { limit: 500, offset: 0 },
+    generation: PACKAGE_GENERATION,
+    only_count: false,
+    exact_include_conditions: { name: [NEED_DEFAULT_CHECK_PLUGIN] },
+  }).catch(() => ({ total: 0, items: [] }));
+
+  const map = new Map<string, string>();
+  (res.items || []).forEach((item: any) => {
+    const release = item.release || item;
+    if (release.as_default && release.name && release.os_type && release.cpu_arch) {
+      map.set(`${release.name}_${release.os_type}_${release.cpu_arch}`, release.version);
+    }
+  });
+  defaultVersionMap.value = map;
+};
+
 const loading = ref(false);
 const fuzzyKeys = new Set(['name', 'plugin_pkg_name']);
 const getParams = () => {
@@ -868,6 +963,9 @@ const getProcessList = async () => {
     bk_host_innerip: hostListMap.get(item.bk_host_id)?.bk_host_innerip || '',
     bk_host_innerip_v6: hostListMap.get(item.bk_host_id)?.bk_host_innerip_v6 || '',
   }));
+
+  // 加载当前进程涉及的插件默认版本，用于版本一致性提示
+  await loadDefaultPluginVersions();
 };
 
 // 暂时没有编辑数据，不需要离开前确认

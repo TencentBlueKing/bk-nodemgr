@@ -353,6 +353,9 @@ pluginManagement:
       autoStart: 自动启动
       manualStart: 手动启动
       processList: 插件进程列表
+      notDefaultVersionTitle: '{names}不是默认版本，请升级到默认版本，以保证功能的正常运行'
+      notDefaultVersionTooltip: 当前版本非默认版本
+      suggestUpgrade: 建议升级
       status:
         running: 正常
         stopped: 停止

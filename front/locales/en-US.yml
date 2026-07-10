@@ -353,6 +353,9 @@ pluginManagement:
       autoStart: Auto Start
       manualStart: Manual Start
       processList: Plugin Process List
+      notDefaultVersionTitle: '{names} is not the default version. Please upgrade to the default version to ensure normal operation'
+      notDefaultVersionTooltip: Current version is not the default version
+      suggestUpgrade: Upgrade
       status:
         running: Running
         stopped: Stopped
