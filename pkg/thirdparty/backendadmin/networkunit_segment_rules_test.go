@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
@@ -102,7 +103,7 @@ func TestHandlerGetNetworkUnitSegmentRulesViaHTTP(t *testing.T) {
 
 		var body map[string]string
 		require.NoError(t, json.NewDecoder(req.Body).Decode(&body))
-		assert.Equal(t, types.GlobalSettingNameNetworkUnitSegmentRules, body["setting_name"])
+		assert.Equal(t, globalsettings.NetworkUnitSegmentRules, body["setting_name"])
 
 		rw.Header().Set("Content-Type", "application/json")
 		_, _ = rw.Write([]byte(`{"code":0,"message":"OK","request_id":"rid","data":{"value":"{\"0\":{\"rules\":[{\"cidrs\":[\"9.135.144.0/24\"],\"bk_networkunit_id\":1}]}}"}}`))
@@ -133,7 +134,7 @@ func TestHandlerUpsertNetworkUnitSegmentRulesViaHTTP(t *testing.T) {
 		}
 		require.NoError(t, json.NewDecoder(req.Body).Decode(&body))
 		require.Len(t, body.Settings, 1)
-		assert.Equal(t, types.GlobalSettingNameNetworkUnitSegmentRules, body.Settings[0].SettingName)
+		assert.Equal(t, globalsettings.NetworkUnitSegmentRules, body.Settings[0].SettingName)
 		assert.Contains(t, body.Settings[0].Value, `"bk_networkunit_id":0`)
 
 		rw.Header().Set("Content-Type", "application/json")
