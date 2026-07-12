@@ -674,6 +674,8 @@ func appendGroupByResult(dataPoints map[any]int64, id any, total int64) error {
 				return err
 			}
 		}
+
+		return nil
 	}
 
 	return appendGroupByResultValue(dataPoints, id, total)

@@ -75,10 +75,10 @@ type IHandler interface {
 	UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
 
 	// UpsertStaticTopo updates or inserts host static topo information.
-	UpsertStaticTopo(nCtx contextx.IContext, hostRel ...*types.HostTopoRelation) error
+	UpsertStaticTopo(nCtx contextx.IContext, hostTopoRels ...*types.HostTopoRelation) error
 
 	// PopStaticTopo pops host static topo information.
-	PopStaticTopo(nCtx contextx.IContext, hostRel ...*types.HostTopoRelation) error
+	PopStaticTopo(nCtx contextx.IContext, hostTopoRels ...*types.HostTopoRelation) error
 
 	// GetHostDistributionByNodeRole get host distribution by node role.
 	GetHostDistributionByNodeRole(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error)
@@ -1123,7 +1123,7 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 }
 
 // UpsertStaticTopo upserts host static topo.
-func (h *handler) UpsertStaticTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error {
+func (h *handler) UpsertStaticTopo(nCtx contextx.IContext, hostTopoRels ...*types.HostTopoRelation) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -1133,7 +1133,7 @@ func (h *handler) UpsertStaticTopo(nCtx contextx.IContext, hostRels ...*types.Ho
 	}
 
 	tenantID := nCtx.TenantID()
-	for _, relation := range hostRels {
+	for _, relation := range hostTopoRels {
 		if relation == nil {
 			return base.ErrInvalidItemInParamList()
 		}
@@ -1153,7 +1153,7 @@ func (h *handler) UpsertStaticTopo(nCtx contextx.IContext, hostRels ...*types.Ho
 }
 
 // PopStaticTopo pops host static topo.
-func (h *handler) PopStaticTopo(nCtx contextx.IContext, hostRels ...*types.HostTopoRelation) error {
+func (h *handler) PopStaticTopo(nCtx contextx.IContext, hostTopoRels ...*types.HostTopoRelation) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -1163,7 +1163,7 @@ func (h *handler) PopStaticTopo(nCtx contextx.IContext, hostRels ...*types.HostT
 	}
 
 	tenantID := nCtx.TenantID()
-	for _, relation := range hostRels {
+	for _, relation := range hostTopoRels {
 		if relation == nil {
 			return base.ErrInvalidItemInParamList()
 		}
