@@ -16272,6 +16272,8 @@ paths:
                         type: string
                       renew_gse_proc:
                         type: boolean
+                      install_method:
+                        type: string
                       renew_gse_task:
                         type: boolean
                       advertise_ip_v6:
@@ -17241,6 +17243,8 @@ paths:
                         type: string
                       renew_gse_proc:
                         type: boolean
+                      install_method:
+                        type: string
                       renew_gse_task:
                         type: boolean
                       bk_host_innerip:
