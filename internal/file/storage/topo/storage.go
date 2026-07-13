@@ -97,7 +97,7 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, i
 	defer metric.End(err)
 
 	if ipv4 != "" {
-		hosts, _, err := s.daoHost.List(nCtx,
+		hosts, err := s.daoHost.ListWithoutCount(nCtx,
 			types.UnlimitedPage(),
 			host.WithStaticNetworkAreaID(globalNetworkAreaID),
 			host.WithStaticInnerIPList(ipv4))
@@ -118,7 +118,7 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, i
 	}
 
 	if ipv6 != "" {
-		hosts, _, err := s.daoHost.List(nCtx,
+		hosts, err := s.daoHost.ListWithoutCount(nCtx,
 			types.UnlimitedPage(),
 			host.WithStaticNetworkAreaID(globalNetworkAreaID),
 			host.WithStaticInnerIPV6List(ipv6))

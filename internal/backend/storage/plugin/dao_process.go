@@ -141,6 +141,21 @@ func (s *Storage) listProcesses(nCtx contextx.IContext, page types.Page, conditi
 	return s.daoProcess.List(nCtx, page, opts...)
 }
 
+// listProcessesWithoutCount lists processes without count.
+func (s *Storage) listProcessesWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition,
+) ([]*types.Process, error) {
+
+	var opts []daoProcess.OptFn
+	var err error
+
+	if opts, err = convertProcessConditionsToOptions(conditions...); err != nil {
+		return nil, err
+	}
+
+	return s.daoProcess.ListWithoutCount(nCtx, page, opts...)
+}
+
 // nolint: nonamedreturns
 func (s *Storage) existProcess(nCtx contextx.IContext, hostID int64, pluginName string) (exist bool, err error) {
 	if nCtx == nil {

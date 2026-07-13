@@ -77,6 +77,7 @@ func (s *Storage) check() error {
 const (
 	metricCreateDeployPolicy                     = "create_deploy_policy"
 	metricListDeployPolicies                     = "list_deploy_policies"
+	metricListDeployPoliciesWithoutCount         = "list_deploy_policies_without_count"
 	metricGetDeployPolicyByID                    = "get_deploy_policy_by_id"
 	metricUpdateDeployPolicyFields               = "update_deploy_policy_fields"
 	metricDeleteDeployPolicy                     = "delete_deploy_policy"
@@ -116,6 +117,22 @@ func (s *Storage) ListDeployPolicies(nCtx contextx.IContext, page types.Page, co
 	})
 
 	return deployPolicies, total, err
+}
+
+// ListDeployPoliciesWithoutCount list deploy policies without count.
+func (s *Storage) ListDeployPoliciesWithoutCount(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyCondition) (
+	[]*types.DeployPolicy, error) {
+
+	var deployPolicies []*types.DeployPolicy
+
+	err := s.WrapFn(nCtx, metricListDeployPoliciesWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		deployPolicies, err = s.listDeployPoliciesWithoutCount(nCtx, page, condition)
+
+		return err
+	})
+
+	return deployPolicies, err
 }
 
 // GetDeployPolicyByID get deploy policy by id.

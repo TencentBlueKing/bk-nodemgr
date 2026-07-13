@@ -43,10 +43,12 @@ const (
 	metricOperationGetNodeDeploymentNodeConf = "get_node_deployment_node_conf"
 	metricOperationGetNodeDeploymentInfo     = "get_node_deployment_info"
 	metricOperationListNodeDeployment        = "list_node_deployment"
+	metricOperationListNodeDeploymentWithoutCount = "list_node_deployment_without_count"
 	metricOperationSetNodeDeploymentNodeConf = "set_node_deployment_node_conf"
 	metricOperationUpdateNodeDeploymentInfo  = "update_node_deployment_info"
 	metricOperationCreateNodeDeployment      = "create_node_deployment"
 	metricOperationListNodeWorkflow          = "list_node_workflow"
+	metricOperationListNodeWorkflowWithoutCount = "list_node_workflow_without_count"
 	metricOperationCountNodeWorkflow         = "count_node_workflow"
 	metricOperationDistinctNodeWorkflow      = "distinct_node_workflow"
 	metricOperationGetNodeWorkflow           = "get_node_workflow"
@@ -154,7 +156,7 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 		slot := &results[i]
 		tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 		fn := func() error {
-			runningWorkflows, _, err := s.daoNodeWorkflow.List(
+			runningWorkflows, err := s.daoNodeWorkflow.ListWithoutCount(
 				tenantCtx,
 				types.UnlimitedPage(),
 				daoNodeWorkflow.WithStatus(types.NodeWorkflowStatusRunning))
@@ -162,7 +164,7 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 				return fmt.Errorf("query running workflows failed: %w", err)
 			}
 
-			recentFinishedWorkflows, _, err := s.daoNodeWorkflow.List(
+			recentFinishedWorkflows, err := s.daoNodeWorkflow.ListWithoutCount(
 				tenantCtx,
 				types.UnlimitedPage(),
 				daoNodeWorkflow.WithStatus(types.GetFinishedNodeWorkflowStatus()...),
@@ -219,7 +221,7 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	s.monitoredWorkflowsMutex.RUnlock()
 
 	// Phase 2: work with snapshot, no lock held
-	operations, _, err := s.daoOperation.List(nCtx,
+	operations, err := s.daoOperation.ListWithoutCount(nCtx,
 		types.UnlimitedPage(),
 		daoOperation.WithTriggerID(conv.MapKeyToSlice(snapshot)...))
 	if err != nil {
@@ -417,6 +419,21 @@ func (s *Storage) ListNodeDeployment(nCtx contextx.IContext, page types.Page, co
 	return nodeDeployments, num, err
 }
 
+// ListNodeDeploymentWithoutCount lists node deployment by page and conditions without count.
+func (s *Storage) ListNodeDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
+	[]*types.NodeDeployment, error) {
+
+	var nodeDeployments []*types.NodeDeployment
+	err := s.WrapFn(nCtx, metricOperationListNodeDeploymentWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		nodeDeployments, err = s.listNodeDeploymentWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return nodeDeployments, err
+}
+
 // SetNodeDeploymentNodeConf set gse node conf.
 func (s *Storage) SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error {
 	return s.WrapFn(nCtx, metricOperationSetNodeDeploymentNodeConf, func(nCtx contextx.IContext) error {
@@ -452,6 +469,21 @@ func (s *Storage) ListNodeWorkflow(nCtx contextx.IContext, page types.Page, cond
 	})
 
 	return results, num, err
+}
+
+// ListNodeWorkflowWithoutCount lists node workflow by page and conditions without count.
+func (s *Storage) ListNodeWorkflowWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+	[]*types.NodeWorkflow, error) {
+
+	var results []*types.NodeWorkflow
+	err := s.WrapFn(nCtx, metricOperationListNodeWorkflowWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.listNodeWorkflowWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // CountNodeWorkflow counts node workflow by conditions.

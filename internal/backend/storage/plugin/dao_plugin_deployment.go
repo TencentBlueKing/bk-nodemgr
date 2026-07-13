@@ -58,6 +58,27 @@ func (s *Storage) listPluginDeployment(nCtx contextx.IContext, page types.Page, 
 	return pluginDeployments, total, nil
 }
 
+// listPluginDeploymentWithoutCount lists plugin deployment without count.
+func (s *Storage) listPluginDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginDeploymentCondition) (
+	[]*types.PluginDeployment, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertPluginDeploymentConditionToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert plugin deployment condition to options: %w", err)
+	}
+
+	pluginDeployments, err := s.daoPluginDeployment.ListWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list plugin deployment: %w", err)
+	}
+
+	return pluginDeployments, nil
+}
+
 // getPluginDeploymentInfo get plugin deployment info.
 func (s *Storage) getPluginDeploymentInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
 	if nCtx == nil {

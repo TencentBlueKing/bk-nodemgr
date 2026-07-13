@@ -75,7 +75,7 @@ func (s *Storage) getV4AgentAccessEndpoints(
 		return networkUnit.DirectEndpoints.Cluster, networkUnit.DirectEndpoints.File, networkUnit.DirectEndpoints.Data, nil
 	}
 
-	hosts, count, err := s.daoHost.List(nCtx, types.UnlimitedPage(),
+	hosts, err := s.daoHost.ListWithoutCount(nCtx, types.UnlimitedPage(),
 		host.WithDynamicNetworkUnitID(networkUnitID),
 		host.WithDynamicNodeRole(types.NodeRoleProxy),
 		host.WithDynamicNodeStatus(types.NodeStatusRunning),
@@ -85,7 +85,7 @@ func (s *Storage) getV4AgentAccessEndpoints(
 		return nil, nil, nil,
 			fmt.Errorf("failed to get host by networkunit id, networkunit-id(%d): %w", networkUnitID, err)
 	}
-	if count == 0 {
+	if len(hosts) == 0 {
 		return nil, nil, nil,
 			fmt.Errorf("failed to get host by networkunit id, result count is 0, networkunit-id(%d)", networkUnitID)
 	}
@@ -160,7 +160,7 @@ func (s *Storage) getV6AgentAccessEndpoints(
 		return networkUnit.DirectEndpoints.Cluster, networkUnit.DirectEndpoints.File, networkUnit.DirectEndpoints.Data, nil
 	}
 
-	hosts, count, err := s.daoHost.List(nCtx, types.UnlimitedPage(),
+	hosts, err := s.daoHost.ListWithoutCount(nCtx, types.UnlimitedPage(),
 		host.WithDynamicNetworkUnitID(networkUnitID),
 		host.WithDynamicNodeRole(types.NodeRoleProxy),
 		host.WithDynamicNodeStatus(types.NodeStatusRunning),
@@ -170,7 +170,7 @@ func (s *Storage) getV6AgentAccessEndpoints(
 		return nil, nil, nil,
 			fmt.Errorf("failed to get host by networkunit id, networkunit-id(%d): %w", networkUnitID, err)
 	}
-	if count == 0 {
+	if len(hosts) == 0 {
 		return nil, nil, nil,
 			fmt.Errorf("failed to get host by networkunit id, result count is 0, networkunit-id(%d)", networkUnitID)
 	}
@@ -230,7 +230,7 @@ func (s *Storage) getProxyUpstreamEndpoints(nCtx contextx.IContext, networkUnitI
 		return nil, nil, nil, err
 	}
 
-	accesspoints, _, err := s.daoAccessPoint.List(
+	accesspoints, err := s.daoAccessPoint.ListWithoutCount(
 		nCtx, types.UnlimitedPage(), accesspoint.WithAccessPointID(clusterAPID, fileAPID, dataAPID))
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get upstreams accesspoint, networkunit-id(%d): %w", networkUnitID, err)

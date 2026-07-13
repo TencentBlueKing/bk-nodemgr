@@ -36,6 +36,9 @@ type IProxy interface {
 	// ListReleaseProxy lists proxy releases by page and conditions.
 	ListReleaseProxy(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error)
 
+	// ListReleaseProxyWithoutCount lists proxy releases by page and conditions without count.
+	ListReleaseProxyWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, error)
+
 	// CountReleaseProxy counts proxy releases by conditions.
 	CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
 
@@ -71,6 +74,9 @@ type IAgent interface {
 	// ListReleaseAgent lists agent releases by page and conditions.
 	ListReleaseAgent(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error)
 
+	// ListReleaseAgentWithoutCount lists agent releases by page and conditions without count.
+	ListReleaseAgentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, error)
+
 	// CountReleaseAgent counts agent releases by conditions.
 	CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
 
@@ -105,6 +111,9 @@ type IAgent interface {
 type IPlugin interface {
 	// ListReleasePlugin lists plugin releases by page and conditions.
 	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
+
+	// ListReleasePluginWithoutCount lists plugin releases by page and conditions without count.
+	ListReleasePluginWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, error)
 
 	// CountReleasePlugin counts plugin release by conditions.
 	CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
@@ -142,6 +151,9 @@ type ICert interface {
 	// ListReleaseCert lists cert releases by page and conditions.
 	ListReleaseCert(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, int64, error)
 
+	// ListReleaseCertWithoutCount lists cert releases by page and conditions without count.
+	ListReleaseCertWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, error)
+
 	// CountReleaseCert counts cert release by conditions.
 	CountReleaseCert(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
 
@@ -156,6 +168,9 @@ type ICert interface {
 type IBinTool interface {
 	// ListReleaseBinTool lists bintool releases by page and conditions.
 	ListReleaseBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, int64, error)
+
+	// ListReleaseBinToolWithoutCount lists bintool releases by page and conditions without count.
+	ListReleaseBinToolWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, error)
 
 	// CountReleaseBinTool counts bintool release by conditions.
 	CountReleaseBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
@@ -172,6 +187,10 @@ type IPluginBinTool interface {
 	// ListReleasePluginBinTool lists plugin bintool release by page and conditions.
 	ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
 		[]*types.ReleasePluginBinTool, int64, error)
+
+	// ListReleasePluginBinToolWithoutCount lists plugin bintool release by page and conditions without count.
+	ListReleasePluginBinToolWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+		[]*types.ReleasePluginBinTool, error)
 
 	// CountReleasePluginBinTool counts plugin bintool release by conditions.
 	CountReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
@@ -194,6 +213,10 @@ type IPackageEvent interface {
 	// ListPackageEvent lists package events by page and conditions.
 	ListPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
 		[]*types.PackageEvent, int64, error)
+
+	// ListPackageEventWithoutCount lists package events by page and conditions without count.
+	ListPackageEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
+		[]*types.PackageEvent, error)
 
 	// CreateManyPackageEvent creates multiple package events.
 	CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error

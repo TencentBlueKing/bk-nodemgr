@@ -47,6 +47,19 @@ func (s *Storage) listRelease(
 	return s.daoRelease.List(nCtx, releaseType, page, opts...)
 }
 
+// listReleaseWithoutCount lists release by page and conditions without count.
+func (s *Storage) listReleaseWithoutCount(
+	nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.Release, error) {
+
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	return s.daoRelease.ListWithoutCount(nCtx, releaseType, page, opts...)
+}
+
 // distinctRelease distincts release by conditions.
 func (s *Storage) distinctRelease(
 	nCtx contextx.IContext, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,

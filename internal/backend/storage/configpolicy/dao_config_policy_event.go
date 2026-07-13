@@ -66,6 +66,30 @@ func (s *Storage) listConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 	return events, num, nil
 }
 
+// listConfigPolicyEventWithoutCount lists policy events without count.
+func (s *Storage) listConfigPolicyEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
+	[]*types.ConfigPolicyEvent, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts, err := convertConfigPolicyEventConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(daoConfigPolicyEvent.FieldKeyOperateTime))
+
+	events, err := s.daoConfigPolicyEvent.ListWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list config policy event: %w", err)
+	}
+
+	return events, nil
+}
+
 func (s *Storage) createManyConfigPolicyEvent(nCtx contextx.IContext, events ...*types.ConfigPolicyEvent) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()

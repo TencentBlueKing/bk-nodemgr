@@ -32,7 +32,7 @@ func (s *Storage) discoverEnabledPoliciesBySpecifyPlugin(nCtx contextx.IContext,
 	opts := convSpecifyPluginParamToOptions(param)
 	// we only find the enabled policies.
 	opts = append(opts, daoDeployPolicy.WithEnabled(true))
-	policies, _, err := s.daoDeployPolicy.List(nCtx, types.UnlimitedPage(), opts...)
+	policies, err := s.daoDeployPolicy.ListWithoutCount(nCtx, types.UnlimitedPage(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list deploy policies: %w", err)
 	}

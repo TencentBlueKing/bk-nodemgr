@@ -100,6 +100,54 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 	return results, num, err
 }
 
+// ListBusinessesWithoutCount lists businesses by page and conditions without count.
+func (s *Storage) ListBusinessesWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.BusinessCondition) (
+	[]*types.Business, error) {
+
+	var results []*types.Business
+
+	err := s.WrapFn(nCtx, metricOperationListBusinessWithoutCount, func(nCtx contextx.IContext) error {
+		opts := make([]business.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					business.WithBizID(condition.ExactInclude.BizID...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					business.WithoutBizID(condition.ExactExclude.BizID...),
+				)
+			}
+
+			if condition.FuzzyInclude != nil {
+				opts = append(opts,
+					business.WithFuzzyBizName(condition.FuzzyInclude.BizName...),
+				)
+			}
+
+			if condition.FuzzyExclude != nil {
+				opts = append(opts,
+					business.WithoutFuzzyBizName(condition.FuzzyExclude.BizName...),
+				)
+			}
+		}
+
+		var err error
+		results, err = s.daoBusiness.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
+}
+
 // ListNetworkArea lists networkarea by page and conditions.
 // nolint: cyclop
 func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkAreaCondition) (
@@ -152,6 +200,57 @@ func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, condi
 	})
 
 	return results, num, err
+}
+
+// ListNetworkAreaWithoutCount lists networkarea by page and conditions without count.
+// nolint: cyclop
+func (s *Storage) ListNetworkAreaWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkAreaCondition) (
+	[]*types.NetworkArea, error) {
+
+	var results []*types.NetworkArea
+
+	err := s.WrapFn(nCtx, metricOperationListNetworkAreaWithoutCount, func(nCtx contextx.IContext) error {
+		opts := make([]networkarea.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					networkarea.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+					networkarea.WithCloudVendor(condition.ExactInclude.CloudVendor...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					networkarea.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+					networkarea.WithoutCloudVendor(condition.ExactExclude.CloudVendor...),
+				)
+			}
+
+			if condition.FuzzyInclude != nil {
+				opts = append(opts,
+					networkarea.WithFuzzyNetworkAreaName(condition.FuzzyInclude.NetworkAreaName...),
+				)
+			}
+
+			if condition.FuzzyExclude != nil {
+				opts = append(opts,
+					networkarea.WithoutFuzzyNetworkAreaName(condition.FuzzyExclude.NetworkAreaName...),
+				)
+			}
+		}
+
+		var err error
+		results, err = s.daoNetworkArea.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // GetNetworkArea gets networkarea by id.
@@ -221,6 +320,25 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 	})
 
 	return results, num, err
+}
+
+// ListNetworkUnitWithoutCount lists networkunit by page and conditions without count.
+func (s *Storage) ListNetworkUnitWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkUnitCondition) (
+	[]*types.NetworkUnit, error) {
+
+	var results []*types.NetworkUnit
+
+	err := s.WrapFn(nCtx, metricOperationListNetworkUnitWithoutCount, func(nCtx contextx.IContext) error {
+		opts := convertNetworkUnitConditionsToOptions(conditions...)
+
+		var err error
+		results, err = s.daoNetworkUnit.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // GetNetworkUnitDistributionByNetworkAreaID get networkunit distribution by network area id.
@@ -340,7 +458,7 @@ func (s *Storage) recommendNetworkUnitByNetworkSegment(
 		})
 	}
 
-	networkUnits, _, err := s.ListNetworkUnit(nCtx, types.UnlimitedPage(), conditions...)
+	networkUnits, err := s.ListNetworkUnitWithoutCount(nCtx, types.UnlimitedPage(), conditions...)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +488,7 @@ func (s *Storage) GetNetworkUnitIDsByAccessPoints(nCtx contextx.IContext, access
 
 	err := s.WrapFn(nCtx, metricOperationGetNetworkUnitIDsByAccessPoints, func(nCtx contextx.IContext) error {
 		// Query all NetworkUnits and filter those containing the requested AccessPoint IDs.
-		networkUnits, _, err := s.daoNetworkUnit.List(nCtx, types.UnlimitedPage())
+		networkUnits, err := s.daoNetworkUnit.ListWithoutCount(nCtx, types.UnlimitedPage())
 		if err != nil {
 			return fmt.Errorf("list networkunits failed: %w", err)
 		}
@@ -422,7 +540,7 @@ func (s *Storage) checkNetworkUnitLinks(nCtx contextx.IContext, networkUnit *typ
 		upstreamNetworkUnitIDs = append(upstreamNetworkUnitIDs, networkUnit.Links.Data.NetworkUnitID)
 	}
 
-	upstreamNetworkUnits, _, err := s.daoNetworkUnit.List(
+	upstreamNetworkUnits, err := s.daoNetworkUnit.ListWithoutCount(
 		nCtx,
 		types.UnlimitedPage(),
 		networkunit.WithNetworkUnitID(upstreamNetworkUnitIDs...))
@@ -757,7 +875,7 @@ func (s *Storage) checkRunningHostNetworkUnitUsage(nCtx contextx.IContext, netwo
 }
 
 func (s *Storage) checkLinkedNetworkUnitUsage(nCtx contextx.IContext, networkUnitIDs ...int64) error {
-	linkedNetworkUnits, _, err := s.daoNetworkUnit.List(
+	linkedNetworkUnits, err := s.daoNetworkUnit.ListWithoutCount(
 		nCtx,
 		types.SingleItemPage(),
 		networkunit.WithLinkedNetworkUnitID(networkUnitIDs...))
@@ -871,6 +989,44 @@ func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 	})
 
 	return results, num, err
+}
+
+// ListAccessPointWithoutCount lists accesspoint by page and conditions without count.
+func (s *Storage) ListAccessPointWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.AccessPointCondition) (
+	[]*types.AccessPoint, error) {
+
+	var results []*types.AccessPoint
+
+	err := s.WrapFn(nCtx, metricOperationListAccessPointWithoutCount, func(nCtx contextx.IContext) error {
+		opts := make([]accesspoint.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
+					accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
+					accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				)
+			}
+		}
+
+		var err error
+		results, err = s.daoAccessPoint.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // AccessPointResult describes the accesspoint result in networkunit handlers.

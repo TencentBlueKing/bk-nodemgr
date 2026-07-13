@@ -37,7 +37,7 @@ func (s *Storage) listVisiblePluginByBizIDs(nCtx contextx.IContext, bizIDs []int
 		return nil, base.ErrInvalidContext()
 	}
 
-	plugin, _, err := s.daoPlugin.List(nCtx, types.UnlimitedPage(), daoPlugin.WithVisibleBizIDs(bizIDs...))
+	plugin, err := s.daoPlugin.ListWithoutCount(nCtx, types.UnlimitedPage(), daoPlugin.WithVisibleBizIDs(bizIDs...))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugin list, biz-ids(%v): %w", bizIDs, err)
 	}

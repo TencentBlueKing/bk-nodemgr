@@ -45,7 +45,7 @@ func (s *Storage) matchConfigPolicyNode(nCtx contextx.IContext,
 		configpolicy.WithConfigPolicyType(configpolicyType),
 	}
 
-	results, _, err := s.daoConfigPolicy.List(nCtx, page, opts...)
+	results, err := s.daoConfigPolicy.ListWithoutCount(nCtx, page, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list config policy: %w", err)
 	}
@@ -109,6 +109,25 @@ func (s *Storage) listConfigPolicy(nCtx contextx.IContext, page types.Page, cond
 	}
 
 	return s.daoConfigPolicy.List(nCtx, page, opts...)
+}
+
+// listConfigPolicyWithoutCount lists the config policy by page and conditions without count.
+func (s *Storage) listConfigPolicyWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
+	[]*types.ConfigPolicy, error) {
+
+	// sort enabled policies first, then by priority ASC within each group.
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(configpolicy.FieldKeyEnabled),
+		types.WithFieldAsc(configpolicy.FieldKeyPriority))
+
+	var opts []configpolicy.OptFn
+	var err error
+
+	if opts, err = convertConfigPolicyConditionsToOptions(conditions...); err != nil {
+		return nil, err
+	}
+
+	return s.daoConfigPolicy.ListWithoutCount(nCtx, page, opts...)
 }
 
 // getConfigPolicy gets the config policy.
@@ -250,7 +269,7 @@ func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
 		configpolicy.WithConfigPolicyType(policyType),
 		configpolicy.WithEnabled(true),
 	}
-	allPolicies, _, err := s.daoConfigPolicy.List(nCtx, page, opts...)
+	allPolicies, err := s.daoConfigPolicy.ListWithoutCount(nCtx, page, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all enabled policies: %w", err)
 	}

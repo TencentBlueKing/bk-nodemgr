@@ -51,6 +51,10 @@ type IStorageTopoEvent interface {
 	ListTopoEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.TopoEventCondition) (
 		[]*types.TopoEvent, int64, error)
 
+	// ListTopoEventWithoutCount lists topo events by page and conditions without count.
+	ListTopoEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.TopoEventCondition) (
+		[]*types.TopoEvent, error)
+
 	// CreateManyTopoEvent creates multiple topo events.
 	CreateManyTopoEvent(nCtx contextx.IContext, events ...*types.TopoEvent) error
 
@@ -65,6 +69,10 @@ type IStorageNetworkUnit interface {
 	// ListNetworkUnit lists networkunit by page and conditions.
 	ListNetworkUnit(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkUnitCondition) (
 		[]*types.NetworkUnit, int64, error)
+
+	// ListNetworkUnitWithoutCount lists networkunit by page and conditions without count.
+	ListNetworkUnitWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkUnitCondition) (
+		[]*types.NetworkUnit, error)
 
 	// GetNetworkUnit gets networkunit by id.
 	GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error)
@@ -101,6 +109,10 @@ type IStorageBusiness interface {
 	// ListBusinesses lists businesses by page and conditions.
 	ListBusinesses(nCtx contextx.IContext, page types.Page, conditions ...*types.BusinessCondition) (
 		[]*types.Business, int64, error)
+
+	// ListBusinessesWithoutCount lists businesses by page and conditions without count.
+	ListBusinessesWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.BusinessCondition) (
+		[]*types.Business, error)
 }
 
 // IStorageNetworkArea this interface defines the operations which is only for network area.
@@ -108,6 +120,10 @@ type IStorageNetworkArea interface {
 	// ListNetworkArea lists networkarea by page and conditions.
 	ListNetworkArea(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkAreaCondition) (
 		[]*types.NetworkArea, int64, error)
+
+	// ListNetworkAreaWithoutCount lists networkarea by page and conditions without count.
+	ListNetworkAreaWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkAreaCondition) (
+		[]*types.NetworkArea, error)
 
 	// GetNetworkArea gets networkarea by id.
 	GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (*types.NetworkArea, error)
@@ -130,6 +146,10 @@ type IStorageAccessPoint interface {
 	// ListAccessPoint lists accesspoint by page and conditions.
 	ListAccessPoint(nCtx contextx.IContext, page types.Page, conditions ...*types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
+
+	// ListAccessPointWithoutCount lists accesspoint by page and conditions without count.
+	ListAccessPointWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.AccessPointCondition) (
+		[]*types.AccessPoint, error)
 }
 
 // IStorageHost this interface defines the operations which is only for host.
@@ -149,12 +169,23 @@ type IStorageHost interface {
 	ListHostWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
 		[]*types.Host, int64, error)
 
+	// ListHostWithFieldsWithoutCount lists hosts by fields and conditions without count.
+	ListHostWithFieldsWithoutCount(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection,
+		conditions ...*types.HostCondition) ([]*types.Host, error)
+
 	// ListHost lists hosts by page and conditions.
 	ListHost(nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
+
+	// ListHostWithoutCount lists hosts by page and conditions without count.
+	ListHostWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, error)
 
 	// ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by update time.
 	ListHostOrderByUpdateTime(nCtx contextx.IContext, page types.Page,
 		conditions ...*types.HostCondition) ([]*types.Host, int64, error)
+
+	// ListHostOrderByUpdateTimeWithoutCount lists hosts by page and conditions, and sort by update time, without count.
+	ListHostOrderByUpdateTimeWithoutCount(nCtx contextx.IContext, page types.Page,
+		conditions ...*types.HostCondition) ([]*types.Host, error)
 
 	// DeleteManyHost deletes hosts.
 	DeleteManyHost(nCtx contextx.IContext, hostIDs ...int64) error

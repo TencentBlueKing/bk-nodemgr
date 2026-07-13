@@ -34,12 +34,15 @@ const StorageName = "topo"
 const (
 	metricOperationUpsertManyBusiness                        = "upsert_many_business"
 	metricOperationListBusiness                              = "list_business"
+	metricOperationListBusinessWithoutCount                  = "list_business_without_count"
 	metricOperationListNetworkArea                           = "list_networkarea"
+	metricOperationListNetworkAreaWithoutCount               = "list_networkarea_without_count"
 	metricOperationGetNetworkArea                            = "get_networkarea"
 	metricOperationUpsertManyNetworkArea                     = "upsert_many_networkarea"
 	metricOperationUpdateManyNetworkArea                     = "update_many_networkarea"
 	metricOperationDeleteManyNetworkArea                     = "delete_many_networkarea"
 	metricOperationListNetworkUnit                           = "list_networkunit"
+	metricOperationListNetworkUnitWithoutCount               = "list_networkunit_without_count"
 	metricOperationGetNetworkUnitDistributionByNetworkAreaID = "get_networkunit_distribution_by_networkarea_id"
 	metricOperationGetNetworkUnit                            = "get_networkunit"
 	metricOperationCreateNetworkUnit                         = "create_networkunit"
@@ -47,6 +50,7 @@ const (
 	metricOperationDeleteNetworkUnit                         = "delete_networkunit"
 	metricOperationCountAccessPoint                          = "count_accesspoint"
 	metricOperationListAccessPoint                           = "list_accesspoint"
+	metricOperationListAccessPointWithoutCount               = "list_accesspoint_without_count"
 	metricOperationGetHostDistributionByNodeRole             = "get_host_distribution_by_node_role"
 	metricOperationGetHostDistributionByNetworkAreaID        = "get_host_distribution_by_networkarea_id"
 	metricOperationGetHostDistributionByNodeVersion          = "get_host_distribution_by_node_version"
@@ -54,13 +58,16 @@ const (
 	metricOperationExistDedicatedInstallerProxyHost          = "exist_dedicated_installer_proxy_host"
 	metricOperationGetNetworkUnitByIDs                       = "get_networkunit_by_ids"
 	metricOperationListHostWithFields                        = "list_host_with_fields"
+	metricOperationListHostWithFieldsWithoutCount            = "list_host_with_fields_without_count"
 	metricOperationGetRelayInfosInNetworkUnit                = "get_relay_infos_in_network_unit"
 	metricOperationGetHostByID                               = "get_host_by_id"
 	metricOperationUpsertManyHost                            = "upsert_many_host"
 	metricOperationUpsertManyHostStatic                      = "upsert_many_host_static"
 	metricOperationUpdateManyHostDynamic                     = "update_many_host_dynamic"
 	metricOperationListHost                                  = "list_host"
+	metricOperationListHostWithoutCount                      = "list_host_without_count"
 	metricOperationListHostOrderByUpdateTime                 = "list_host_order_by_updatetime"
+	metricOperationListHostOrderByUpdateTimeWithoutCount     = "list_host_order_by_updatetime_without_count"
 	metricOperationCountHost                                 = "count_host"
 	metricOperationCountHostGroupByNetworkUnitID             = "count_host_group_by_networkunit_id"
 	metricOperationCountHostGroupByBizID                     = "count_host_group_by_biz_id"
@@ -81,6 +88,7 @@ const (
 	metricOperationNeedStaticAccess                          = "need_static_access"
 	metricOperationCountTopoEvent                            = "count_topo_event"
 	metricOperationListTopoEvent                             = "list_topo_event"
+	metricOperationListTopoEventWithoutCount                 = "list_topo_event_without_count"
 	metricOperationCreateManyTopoEvent                       = "create_many_topo_event"
 	metricOperationDistinctTopoEvent                         = "distinct_topo_event"
 	metricOperationGetNetworkUnitCustomDeployConfig          = "get_networkunit_custom_deploy_config"
@@ -237,6 +245,23 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 	})
 
 	return results, num, err
+}
+
+// ListHostWithFieldsWithoutCount lists hosts with fields without count.
+func (s *Storage) ListHostWithFieldsWithoutCount(nCtx contextx.IContext, page types.Page,
+	selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
+	[]*types.Host, error) {
+
+	var results []*types.Host
+
+	err := s.WrapFn(nCtx, metricOperationListHostWithFieldsWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.listHostWithFieldsWithoutCount(nCtx, page, selection, conditions...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.

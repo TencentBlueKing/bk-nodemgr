@@ -139,6 +139,28 @@ func (s *Storage) listPluginWorkflow(nCtx contextx.IContext, page types.Page, co
 	return workflows, count, nil
 }
 
+// listPluginWorkflowWithoutCount lists plugin workflow without count.
+func (s *Storage) listPluginWorkflowWithoutCount(nCtx contextx.IContext, page types.Page, condition ...*types.PluginWorkflowCondition) (
+	[]*types.PluginWorkflow, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	page.Sort = types.WithSortFields(page.Sort, types.WithFieldDesc(pluginworkflow.FieldKeyOperateTime))
+	opts, err := s.convertPluginWorkflowConditionsToOptions(nCtx, condition...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert conditions: %w", err)
+	}
+
+	workflows, err := s.daoPluginWorkflow.ListWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list plugin workflow: %w", err)
+	}
+
+	return workflows, nil
+}
+
 // distinctPluginWorkflow distincts node workflow fields.
 func (s *Storage) distinctPluginWorkflow(
 	nCtx contextx.IContext, request types.PluginWorkflowDistinctRequest, conditions ...*types.PluginWorkflowCondition) (
@@ -208,7 +230,7 @@ func buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s []string) []daoNo
 func (s *Storage) queryHostIDsByIP(
 	nCtx contextx.IContext, hostInnerIPs, hostInnerIPV6s []string) ([]int64, error) {
 
-	deployments, _, err := s.daoNodeDeployment.ListNodeDeployment(
+	deployments, err := s.daoNodeDeployment.ListNodeDeploymentWithoutCount(
 		nCtx, types.UnlimitedPage(), buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list node deployment by ip: %w", err)

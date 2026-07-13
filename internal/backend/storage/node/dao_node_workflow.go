@@ -50,6 +50,26 @@ func (s *Storage) listNodeWorkflow(nCtx contextx.IContext, page types.Page, cond
 	return results, num, nil
 }
 
+// listNodeWorkflowWithoutCount lists node workflow by page and conditions without count.
+func (s *Storage) listNodeWorkflowWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+	[]*types.NodeWorkflow, error) {
+
+	var results []*types.NodeWorkflow
+	var err error
+
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime))
+	opts, err := s.convertNodeWorkflowConditionsToOptions(nCtx, conditions...)
+	if err != nil {
+		return nil, err
+	}
+	if results, err = s.daoNodeWorkflow.ListWithoutCount(nCtx, page, opts...); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // countNodeWorkflow counts node workflow by conditions.
 func (s *Storage) countNodeWorkflow(nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) (int64, error) {
 	var num int64
@@ -259,7 +279,7 @@ func buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s []string) []daoNo
 func (s *Storage) queryTriggerIDsByHostIP(
 	nCtx contextx.IContext, hostInnerIPs, hostInnerIPV6s []string) ([]string, error) {
 
-	deployments, _, err := s.daoNodeDeployment.ListNodeDeployment(
+	deployments, err := s.daoNodeDeployment.ListNodeDeploymentWithoutCount(
 		nCtx, types.UnlimitedPage(), buildNodeDeploymentIPOptions(hostInnerIPs, hostInnerIPV6s)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list node deployment by ip: %w", err)
@@ -279,7 +299,7 @@ func (s *Storage) queryTriggerIDsByHostIP(
 		return nil, nil
 	}
 
-	operations, _, err := s.daoOperation.List(nCtx, types.UnlimitedPage(), daoOperation.WithInitContentToken(tokens...))
+	operations, err := s.daoOperation.ListWithoutCount(nCtx, types.UnlimitedPage(), daoOperation.WithInitContentToken(tokens...))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list operation by deployment token: %w", err)
 	}

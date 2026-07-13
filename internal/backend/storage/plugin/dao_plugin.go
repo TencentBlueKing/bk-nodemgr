@@ -71,6 +71,25 @@ func (s *Storage) listPlugins(nCtx contextx.IContext, page types.Page, condition
 	return plugins, cnt, nil
 }
 
+// listPluginsWithoutCount lists plugins without count.
+func (s *Storage) listPluginsWithoutCount(nCtx contextx.IContext, page types.Page, condition ...*types.PluginCondition) ([]*types.Plugin, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts, err := convertPluginConditionToOptions(condition)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert plugin condition to options: %w", err)
+	}
+
+	plugins, err := s.daoPlugin.ListWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list plugins: %w", err)
+	}
+
+	return plugins, nil
+}
+
 func convertPluginConditionToOptions(conditions []*types.PluginCondition) ([]daoPlugin.OptFn, error) {
 	opts := make([]daoPlugin.OptFn, 0)
 	for _, condition := range conditions {

@@ -57,6 +57,24 @@ func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditi
 	return results, num, err
 }
 
+// ListTopoEventWithoutCount lists topo events by page and conditions without count.
+func (s *Storage) ListTopoEventWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.TopoEventCondition) (
+	[]*types.TopoEvent, error) {
+
+	var results []*types.TopoEvent
+
+	err := s.WrapFn(nCtx, metricOperationListTopoEventWithoutCount, func(nCtx contextx.IContext) error {
+		opts := convertTopoEventConditionsToOptions(conditions...)
+		var err error
+		results, err = s.daoTopoEvent.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
+}
+
 // CreateManyTopoEvent creates topo events.
 func (s *Storage) CreateManyTopoEvent(nCtx contextx.IContext, events ...*types.TopoEvent) error {
 	return s.WrapFn(nCtx, metricOperationCreateManyTopoEvent, func(nCtx contextx.IContext) error {

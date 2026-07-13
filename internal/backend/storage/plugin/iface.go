@@ -38,6 +38,10 @@ type IDaoPluginDeployment interface {
 	ListPluginDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginDeploymentCondition) (
 		[]*types.PluginDeployment, int64, error)
 
+	// ListPluginDeploymentWithoutCount lists plugin deployment without count.
+	ListPluginDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginDeploymentCondition) (
+		[]*types.PluginDeployment, error)
+
 	// UpdatePluginDeploymentInfo update plugin deployment info.
 	UpdatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error
 
@@ -77,6 +81,11 @@ type IDaoPluginWorkflow interface {
 	// ListPluginWorkflow list plugin workflows.
 	ListPluginWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginWorkflowCondition) ([]*types.PluginWorkflow, int64, error)
 
+	// ListPluginWorkflowWithoutCount lists plugin workflows without count.
+	ListPluginWorkflowWithoutCount(
+		nCtx contextx.IContext, page types.Page, conditions ...*types.PluginWorkflowCondition,
+	) ([]*types.PluginWorkflow, error)
+
 	// DistinctPluginWorkflow distinct plugin workflows.
 	DistinctPluginWorkflow(nCtx contextx.IContext, request types.PluginWorkflowDistinctRequest, conditions ...*types.PluginWorkflowCondition) (
 		*types.PluginWorkflowDistinctResult, error)
@@ -92,6 +101,9 @@ type IDaoPlugin interface {
 
 	// ListPlugins list plugins.
 	ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) ([]*types.Plugin, int64, error)
+
+	// ListPluginsWithoutCount lists plugins without count.
+	ListPluginsWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) ([]*types.Plugin, error)
 
 	// ExistPluginByPluginName check if plugin exist by plugin name.
 	ExistPluginByPluginName(nCtx contextx.IContext, pluginName string) (bool, error)
@@ -117,6 +129,9 @@ type IDaoProcess interface {
 
 	// ListProcesses list processes.
 	ListProcesses(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, int64, error)
+
+	// ListProcessesWithoutCount lists processes without count.
+	ListProcessesWithoutCount(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, error)
 
 	// CreateProcess create process.
 	CreateProcess(nCtx contextx.IContext, process *types.Process) error
@@ -166,6 +181,9 @@ type IDaoProcessConfig interface {
 
 	// ListProcessConfigs list process config records.
 	ListProcessConfigs(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) ([]*types.ProcessConfig, int64, error)
+
+	// ListProcessConfigsWithoutCount lists process config records without count.
+	ListProcessConfigsWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) ([]*types.ProcessConfig, error)
 
 	// UpsertProcessConfigs upsert many process config record.
 	UpsertProcessConfigs(nCtx contextx.IContext, configs ...*types.ProcessConfig) error

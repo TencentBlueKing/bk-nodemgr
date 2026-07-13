@@ -49,7 +49,7 @@ func (s *Storage) getTrigger(nCtx contextx.IContext, triggerID string) (*trigger
 
 // listActiveTrigger lists active triggers by category.
 func (s *Storage) listActiveTrigger(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error) {
-	results, _, err := s.daoTrigger.List(nCtx, page,
+	results, err := s.daoTrigger.ListWithoutCount(nCtx, page,
 		daoTrigger.WithActive(true),
 		daoTrigger.WithCategory(category))
 	if err != nil {
@@ -62,6 +62,11 @@ func (s *Storage) listActiveTrigger(nCtx contextx.IContext, page types.Page, cat
 // listTrigger lists triggers by category.
 func (s *Storage) listTrigger(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error) {
 	return s.daoTrigger.List(nCtx, page, daoTrigger.WithCategory(category))
+}
+
+// listTriggerWithoutCount lists triggers by category without count.
+func (s *Storage) listTriggerWithoutCount(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error) {
+	return s.daoTrigger.ListWithoutCount(nCtx, page, daoTrigger.WithCategory(category))
 }
 
 // deleteTriggers deletes triggers by given trigger IDs.

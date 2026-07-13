@@ -24,7 +24,7 @@ func (s *Storage) listAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant
 		return nil, base.ErrInvalidContext()
 	}
 
-	tenants, _, err := s.daoTenant.List(nCtx, types.UnlimitedPage(), tenant.WithStatus(true))
+	tenants, err := s.daoTenant.ListWithoutCount(nCtx, types.UnlimitedPage(), tenant.WithStatus(true))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all enabled tenants: %w", err)
 	}
@@ -37,7 +37,7 @@ func (s *Storage) listAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error
 		return nil, base.ErrInvalidContext()
 	}
 
-	tenants, _, err := s.daoTenant.List(nCtx, types.UnlimitedPage())
+	tenants, err := s.daoTenant.ListWithoutCount(nCtx, types.UnlimitedPage())
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all tenants: %w", err)
 	}

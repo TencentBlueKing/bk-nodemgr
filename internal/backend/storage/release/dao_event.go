@@ -59,6 +59,27 @@ func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page, cond
 	return events, num, nil
 }
 
+// listPackageEventWithoutCount lists package events without count.
+func (s *Storage) listPackageEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
+	[]*types.PackageEvent, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts := convertPackageEventConditionsToOptions(conditions...)
+
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(daoPackageEvent.FieldKeyOperateTime))
+
+	events, err := s.daoPackageEvent.ListWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list package event: %w", err)
+	}
+
+	return events, nil
+}
+
 func (s *Storage) createManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()

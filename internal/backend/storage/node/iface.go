@@ -44,6 +44,10 @@ type IDaoNodeDeployment interface {
 	// ListNodeDeployment lists node deployment by page and conditions.
 	ListNodeDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
 		[]*types.NodeDeployment, int64, error)
+
+	// ListNodeDeploymentWithoutCount lists node deployment by page and conditions without count.
+	ListNodeDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
+		[]*types.NodeDeployment, error)
 }
 
 // IDaoNodeWorkflow define the node workflow dao interface.
@@ -51,6 +55,10 @@ type IDaoNodeWorkflow interface {
 	// ListNodeWorkflow lists node workflow by page and conditions.
 	ListNodeWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 		[]*types.NodeWorkflow, int64, error)
+
+	// ListNodeWorkflowWithoutCount lists node workflow by page and conditions without count.
+	ListNodeWorkflowWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+		[]*types.NodeWorkflow, error)
 
 	// CountNodeWorkflow counts node workflow by conditions.
 	CountNodeWorkflow(nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) (int64, error)

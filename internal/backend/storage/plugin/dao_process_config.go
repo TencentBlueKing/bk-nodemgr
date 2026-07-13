@@ -163,6 +163,27 @@ func (s *Storage) listProcessConfigs(nCtx contextx.IContext, page types.Page, co
 	return configs, cnt, nil
 }
 
+// listProcessConfigsWithoutCount lists process configs without count.
+func (s *Storage) listProcessConfigsWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) (
+	[]*types.ProcessConfig, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts, err := convertProcessConfigConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	configs, err := s.daoProcessConfig.ListWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list processConfigs: %w", err)
+	}
+
+	return configs, nil
+}
+
 func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigCondition) ([]daoProcessConfig.OptFn, error) {
 	opts := make([]daoProcessConfig.OptFn, 0)
 	for _, condition := range conditions {

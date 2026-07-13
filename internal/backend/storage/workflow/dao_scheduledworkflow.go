@@ -28,6 +28,14 @@ func (s *Storage) listScheduledWorkflow(
 	return s.daoScheduledWorkflow.List(nCtx, page, convertScheduledWorkflowConditionsToOptions(conditions...)...)
 }
 
+// listScheduledWorkflowWithoutCount lists scheduled workflow by page and conditions without count.
+func (s *Storage) listScheduledWorkflowWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (
+	[]*types.ScheduledWorkflow, error) {
+
+	return s.daoScheduledWorkflow.ListWithoutCount(nCtx, page, convertScheduledWorkflowConditionsToOptions(conditions...)...)
+}
+
 // countScheduledWorkflow counts scheduled workflow by conditions.
 func (s *Storage) countScheduledWorkflow(
 	nCtx contextx.IContext, conditions ...*types.ScheduledWorkflowCondition) (

@@ -36,14 +36,14 @@ func (s *Storage) GetHostByID(nCtx contextx.IContext, hostID int64) (*types.Host
 
 	var data *types.Host
 	err := s.WrapFn(nCtx, metricOperationGetHostByID, func(nCtx contextx.IContext) error {
-		hosts, count, err := s.daoHost.List(nCtx, types.Page{Limit: 1}, host.WithHostID(hostID))
+		hosts, err := s.daoHost.ListWithoutCount(nCtx, types.Page{Limit: 1}, host.WithHostID(hostID))
 		if err != nil {
 			return fmt.Errorf("failed to get host by id, host-id(%d): %w", hostID, err)
 		}
 
-		if count != 1 {
+		if len(hosts) != 1 {
 			return fmt.Errorf("failed to get host by id, result count is not 1, host-id(%d), count(%d)",
-				hostID, count)
+				hostID, len(hosts))
 		}
 
 		data = hosts[0]
@@ -136,6 +136,22 @@ func (s *Storage) ListHost(nCtx contextx.IContext, page types.Page, conditions .
 	return results, num, err
 }
 
+// ListHostWithoutCount lists hosts by page and conditions without count.
+func (s *Storage) ListHostWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, error) {
+
+	var results []*types.Host
+	err := s.WrapFn(nCtx, metricOperationListHostWithoutCount, func(nCtx contextx.IContext) error {
+		opts := convertHostConditionsToOptions(conditions...)
+		var err error
+		results, err = s.daoHost.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
+}
+
 // ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by
 // business operation time first, then by general update time as fallback.
 func (s *Storage) ListHostOrderByUpdateTime(
@@ -157,6 +173,26 @@ func (s *Storage) ListHostOrderByUpdateTime(
 	})
 
 	return results, num, err
+}
+
+// ListHostOrderByUpdateTimeWithoutCount lists hosts by page and conditions, and sort by
+// business operation time first, then by general update time as fallback, without count.
+func (s *Storage) ListHostOrderByUpdateTimeWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, error) {
+
+	var results []*types.Host
+	err := s.WrapFn(nCtx, metricOperationListHostOrderByUpdateTimeWithoutCount, func(nCtx contextx.IContext) error {
+		page.Sort = types.WithSortFields(page.Sort,
+			types.WithFieldDesc(host.FieldKeyOperationUpdatedAt),
+			types.WithFieldDesc(base.FieldKeyUpdatedAt))
+		opts := convertHostConditionsToOptions(conditions...)
+		var err error
+		results, err = s.daoHost.ListWithoutCount(nCtx, page, opts...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // CountHost counts host by conditions.
@@ -689,6 +725,23 @@ func (s *Storage) listHostWithFields(nCtx contextx.IContext, page types.Page,
 	return hosts, num, nil
 }
 
+func (s *Storage) listHostWithFieldsWithoutCount(nCtx contextx.IContext, page types.Page,
+	selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
+	[]*types.Host, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	hosts, err := s.daoHost.ListWithFieldsWithoutCount(nCtx, page, selection, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list host with fields: %w", err)
+	}
+
+	return hosts, nil
+}
+
 func (s *Storage) getRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (
 	[]*types.RelayInfo, error) {
 
@@ -712,7 +765,7 @@ func (s *Storage) getHostTopoRelationMapping(nCtx contextx.IContext, hostIDs ...
 		BizID:  true,
 		Topo:   true,
 	}
-	results, _, err := s.daoHost.ListWithFields(nCtx, types.UnlimitedPage(), selection, host.WithHostID(hostIDs...))
+	results, err := s.daoHost.ListWithFieldsWithoutCount(nCtx, types.UnlimitedPage(), selection, host.WithHostID(hostIDs...))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host topo relation: %w", err)
 	}

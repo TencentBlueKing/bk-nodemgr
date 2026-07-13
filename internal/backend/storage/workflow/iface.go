@@ -37,6 +37,10 @@ type IStorageScheduledWorkflow interface {
 	ListScheduledWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (
 		[]*types.ScheduledWorkflow, int64, error)
 
+	// ListScheduledWorkflowWithoutCount lists scheduled workflow by page and conditions without count.
+	ListScheduledWorkflowWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (
+		[]*types.ScheduledWorkflow, error)
+
 	// CountScheduledWorkflow counts scheduled workflow by conditions.
 	CountScheduledWorkflow(nCtx contextx.IContext, conditions ...*types.ScheduledWorkflowCondition) (int64, error)
 

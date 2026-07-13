@@ -57,6 +57,27 @@ func (s *Storage) listDeployPolicies(nCtx contextx.IContext, page types.Page, co
 	return deployPolicies, total, nil
 }
 
+// listDeployPoliciesWithoutCount lists deploy policies without count.
+func (s *Storage) listDeployPoliciesWithoutCount(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyCondition) (
+	[]*types.DeployPolicy, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	optFns := make([]daoDeployPolicy.OptFn, 0)
+	if condition != nil {
+		optFns = append(optFns, convDeployPolicyConditionsToOptions(condition)...)
+	}
+
+	deployPolicies, err := s.daoDeployPolicy.ListWithoutCount(nCtx, page, optFns...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list deploy policies: %w", err)
+	}
+
+	return deployPolicies, nil
+}
+
 func (s *Storage) getDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int64) (*types.DeployPolicy, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()

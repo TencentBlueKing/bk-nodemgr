@@ -32,6 +32,7 @@ const (
 	metricOperationMatchConfigPolicyNode         = "match"
 	metricOperationCountConfigPolicy             = "count"
 	metricOperationListConfigPolicy              = "list"
+	metricOperationListConfigPolicyWithoutCount  = "list_without_count"
 	metricOperationGetConfigPolicy               = "get"
 	metricOperationCreateConfigPolicy            = "create"
 	metricOperationUpdateConfigPolicy            = "update"
@@ -42,6 +43,7 @@ const (
 	metricOperationReorderPrioritiesConfigPolicy = "reorder_priorities"
 	metricOperationCountConfigPolicyEvent        = "count_config_policy_event"
 	metricOperationListConfigPolicyEvent         = "list_config_policy_event"
+	metricOperationListConfigPolicyEventWithoutCount = "list_config_policy_event_without_count"
 	metricOperationCreateManyConfigPolicyEvent   = "create_many_config_policy_event"
 	metricOperationDistinctConfigPolicyEvent     = "distinct_config_policy_event"
 )
@@ -144,6 +146,22 @@ func (s *Storage) ListConfigPolicy(nCtx contextx.IContext, page types.Page, cond
 	})
 
 	return result, total, err
+}
+
+// ListConfigPolicyWithoutCount lists the config policy by page and conditions without count.
+func (s *Storage) ListConfigPolicyWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
+	[]*types.ConfigPolicy, error) {
+
+	var result []*types.ConfigPolicy
+
+	err := s.WrapFn(nCtx, metricOperationListConfigPolicyWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.listConfigPolicyWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return result, err
 }
 
 // GetConfigPolicy gets the config policy.
@@ -278,6 +296,26 @@ func (s *Storage) ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 	})
 
 	return results, num, err
+}
+
+// ListConfigPolicyEventWithoutCount lists policy events without count.
+func (s *Storage) ListConfigPolicyEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
+	[]*types.ConfigPolicyEvent, error) {
+
+	var results []*types.ConfigPolicyEvent
+
+	err := s.WrapFn(nCtx, metricOperationListConfigPolicyEventWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listConfigPolicyEventWithoutCount(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list config policy event")
+
+			return fmt.Errorf("failed to list config policy event: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // CreateManyConfigPolicyEvent creates policy events.

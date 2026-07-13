@@ -77,6 +77,27 @@ func (s *Storage) listNodeDeployment(nCtx contextx.IContext, page types.Page, co
 	return nodeDeployments, total, nil
 }
 
+// listNodeDeploymentWithoutCount lists node deployments without count.
+func (s *Storage) listNodeDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
+	[]*types.NodeDeployment, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertNodeDeploymentConditionToOptions(conditions)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeDeployments, err := s.daoNodeDeployment.ListNodeDeploymentWithoutCount(nCtx, page, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return nodeDeployments, nil
+}
+
 // seNodeDeploymenttNodeConf set gse node conf.
 func (s *Storage) seNodeDeploymenttNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error {
 	if nCtx == nil {

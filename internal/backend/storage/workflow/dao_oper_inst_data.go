@@ -217,6 +217,22 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInst(
 	return s.daoOperInstData.ListWithoutActInst(nCtx, page, convertOperInstDataConditionsToOptions(conditions...)...)
 }
 
+// listOperationInstanceBriefDataWithoutActionInstWithoutCount lists operation instance brief data without action instance data and without count.
+func (s *Storage) listOperationInstanceBriefDataWithoutActionInstWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
+	[]*operation.InstanceBriefData, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+
+	return s.daoOperInstData.ListWithoutActInstWithoutCount(nCtx, page, convertOperInstDataConditionsToOptions(conditions...)...)
+}
+
 // countOperationInstanceByState counts operation instance.
 func (s *Storage) countOperationInstanceByState(nCtx contextx.IContext, triggerID string, states ...operation.State) (int64, error) {
 	if nCtx == nil {
@@ -259,6 +275,23 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByOperationID(
 	return s.daoOperInstData.ListWithoutActInst(nCtx, page, operinstdata.WithOperationID(operationID...))
 }
 
+// listOperationInstanceBriefDataWithoutActionInstByOperationIDWithoutCount
+// lists operation instance brief data without action instance data and without count.
+func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByOperationIDWithoutCount(
+	nCtx contextx.IContext, page types.Page, operationID ...string) (
+	[]*operation.InstanceBriefData, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+
+	return s.daoOperInstData.ListWithoutActInstWithoutCount(nCtx, page, operinstdata.WithOperationID(operationID...))
+}
+
 // listOperationInstanceBriefDataWithoutActionInstByTriggerID lists operation instance brief data without action instance data.
 func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByTriggerID(
 	nCtx contextx.IContext, page types.Page, triggerID ...string) (
@@ -273,6 +306,23 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByTriggerID(
 	}
 
 	return s.daoOperInstData.ListWithoutActInst(nCtx, page, operinstdata.WithTriggerID(triggerID...))
+}
+
+// listOperationInstanceBriefDataWithoutActionInstByTriggerIDWithoutCount
+// lists operation instance brief data without action instance data and without count.
+func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByTriggerIDWithoutCount(
+	nCtx contextx.IContext, page types.Page, triggerID ...string) (
+	[]*operation.InstanceBriefData, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+
+	return s.daoOperInstData.ListWithoutActInstWithoutCount(nCtx, page, operinstdata.WithTriggerID(triggerID...))
 }
 
 // upsertOperationInstanceData upserts operation instance data.

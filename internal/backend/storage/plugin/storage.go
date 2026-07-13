@@ -49,23 +49,26 @@ const (
 	metricOperationGetPluginDeploymentInfo                           = "get_plugin_deployment_info"
 	metricOperationCreatePluginDeployment                            = "create_plugin_deployment"
 	metricOperationListPluginDeployment                              = "list_plugin_deployment"
+	metricOperationListPluginDeploymentWithoutCount                  = "list_plugin_deployment_without_count"
 	metricOperationUpdatePluginDeploymentInfo                        = "update_plugin_deployment_info"
 	metricOperationGetPluginDeploymentPluginConf                     = "get_plugin_deployment_plugin_conf"
 	metricOperationUpdatePluginDeploymentPluginConf                  = "update_plugin_deployment_plugin_conf"
 	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail    = "get_plugin_deployment_plugin_conf_config_files_detail"
 	metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail = "upsert_plugin_deployment_plugin_conf_config_files_detail"
 
-	metricOperationGetPluginWorkflow          = "get_plugin_workflow"
-	metricOperationGetPluginWorkflowStatus    = "get_plugin_workflow_status"
-	metricOperationCreatePluginWorkflow       = "create_plugin_workflow"
-	metricOperationUpdatePluginWorkflowStatus = "update_plugin_workflow_status"
-	metricOperationCountPluginWorkflow        = "count_plugin_workflow"
-	metricOperationListPluginWorkflow         = "list_plugin_workflow"
-	metricOperationDistinctPluginWorkflow     = "distinct_plugin_workflow"
+	metricOperationGetPluginWorkflow              = "get_plugin_workflow"
+	metricOperationGetPluginWorkflowStatus        = "get_plugin_workflow_status"
+	metricOperationCreatePluginWorkflow           = "create_plugin_workflow"
+	metricOperationUpdatePluginWorkflowStatus     = "update_plugin_workflow_status"
+	metricOperationCountPluginWorkflow            = "count_plugin_workflow"
+	metricOperationListPluginWorkflow             = "list_plugin_workflow"
+	metricOperationListPluginWorkflowWithoutCount = "list_plugin_workflow_without_count"
+	metricOperationDistinctPluginWorkflow         = "distinct_plugin_workflow"
 
 	metricOperationGetPlugin                         = "get_plugin"
 	metricOperationCountPlugins                      = "count_plugins"
 	metricOperationListPlugins                       = "list_plugins"
+	metricOperationListPluginsWithoutCount           = "list_plugins_without_count"
 	metricOperationExistPluginByPluginName           = "exist_plugin_by_plugin_name"
 	metricOperationExistDefaultPluginByPluginPkgName = "exist_default_plugin_by_plugin_pkg_name"
 	metricOperationSetPluginMemo                     = "set_plugin_memo"
@@ -76,6 +79,7 @@ const (
 
 	metricOperationCountProcess                       = "count_process"
 	metricOperationListProcess                        = "list_process"
+	metricOperationListProcessWithoutCount            = "list_process_without_count"
 	metricOperationCreateProcess                      = "create_process"
 	metricOperationUpdateProcess                      = "update_process"
 	metricOperationUpdateProcessInfo                  = "update_process_info"
@@ -94,6 +98,7 @@ const (
 	metricOperationDeleteProcessConfigsByProcessUniqueKey = "delete_process_configs_by_process_unique_key"
 	metricOperationDeleteProcessConfigs                   = "delete_process_configs"
 	metricOperationListProcessConfig                      = "list_process_config"
+	metricOperationListProcessConfigWithoutCount          = "list_process_config_without_count"
 	metricOperationCountProcessConfig                     = "count_process_config"
 )
 
@@ -205,7 +210,7 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 		slot := &results[i]
 		tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 		fn := func() error {
-			runningWorkflows, _, err := s.daoPluginWorkflow.List(
+			runningWorkflows, err := s.daoPluginWorkflow.ListWithoutCount(
 				tenantCtx,
 				types.UnlimitedPage(),
 				pluginworkflow.WithStatus(types.PluginWorkflowStatusRunning))
@@ -213,7 +218,7 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 				return fmt.Errorf("query running workflows failed: %w", err)
 			}
 
-			recentFinishedWorkflows, _, err := s.daoPluginWorkflow.List(
+			recentFinishedWorkflows, err := s.daoPluginWorkflow.ListWithoutCount(
 				tenantCtx,
 				types.UnlimitedPage(),
 				pluginworkflow.WithStatus(types.GetFinishedPluginWorkflowStatus()...),
@@ -272,7 +277,7 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	s.monitoredWorkflowsMutex.RUnlock()
 
 	// Phase 2: work with snapshot, no lock held
-	operations, _, err := s.daoOperation.List(nCtx,
+	operations, err := s.daoOperation.ListWithoutCount(nCtx,
 		types.UnlimitedPage(),
 		daoOperation.WithTriggerID(conv.MapKeyToSlice(snapshot)...))
 	if err != nil {
@@ -481,6 +486,25 @@ func (s *Storage) ListPluginDeployment(nCtx contextx.IContext, page types.Page, 
 	return pluginDeployments, total, err
 }
 
+// ListPluginDeploymentWithoutCount lists plugin deployment without count.
+func (s *Storage) ListPluginDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginDeploymentCondition) (
+	[]*types.PluginDeployment, error) {
+
+	var (
+		pluginDeployments []*types.PluginDeployment
+		err               error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListPluginDeploymentWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		pluginDeployments, err = s.listPluginDeploymentWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return pluginDeployments, err
+}
+
 // UpdatePluginDeploymentInfo update a plugin deployment info.
 func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
 	var (
@@ -672,6 +696,25 @@ func (s *Storage) ListPluginWorkflow(nCtx contextx.IContext, page types.Page, co
 	return workflows, total, err
 }
 
+// ListPluginWorkflowWithoutCount lists plugin workflow without count.
+func (s *Storage) ListPluginWorkflowWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginWorkflowCondition) (
+	[]*types.PluginWorkflow, error) {
+
+	var (
+		workflows []*types.PluginWorkflow
+		err       error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListPluginWorkflowWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		workflows, err = s.listPluginWorkflowWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return workflows, err
+}
+
 // DistinctPluginWorkflow distinct plugin workflow fields.
 func (s *Storage) DistinctPluginWorkflow(
 	nCtx contextx.IContext, request types.PluginWorkflowDistinctRequest, conditions ...*types.PluginWorkflowCondition) (
@@ -746,6 +789,23 @@ func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, condition
 	})
 
 	return plugins, cnt, err
+}
+
+// ListPluginsWithoutCount lists plugins without count.
+func (s *Storage) ListPluginsWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) ([]*types.Plugin, error) {
+	var (
+		plugins []*types.Plugin
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListPluginsWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		plugins, err = s.listPluginsWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return plugins, err
 }
 
 // ExistPluginByPluginName check plugin exist by plugin name.
@@ -901,6 +961,26 @@ func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditi
 	})
 
 	return processes, total, err
+}
+
+// ListProcessesWithoutCount lists processes without count.
+func (s *Storage) ListProcessesWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition,
+) ([]*types.Process, error) {
+
+	var (
+		processes []*types.Process
+		err       error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListProcessWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		processes, err = s.listProcessesWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return processes, err
 }
 
 // CreateProcess create process.
@@ -1189,6 +1269,25 @@ func (s *Storage) ListProcessConfigs(nCtx contextx.IContext, page types.Page, co
 	})
 
 	return processConfigs, total, err
+}
+
+// ListProcessConfigsWithoutCount lists process configs without count.
+func (s *Storage) ListProcessConfigsWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) (
+	[]*types.ProcessConfig, error) {
+
+	var (
+		processConfigs []*types.ProcessConfig
+		err            error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListProcessConfigWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		processConfigs, err = s.listProcessConfigsWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return processConfigs, err
 }
 
 // CountProcessConfigs count process configs.

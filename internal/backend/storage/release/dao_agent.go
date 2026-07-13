@@ -66,3 +66,30 @@ func (s *Storage) listReleaseAgent(
 
 	return releaseAgents, total, nil
 }
+
+// listReleaseAgentWithoutCount lists release agent by page and conditions without count.
+func (s *Storage) listReleaseAgentWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseAgent, error) {
+
+	rls, err := s.listReleaseWithoutCount(nCtx, types.ReleaseTypeAgent, page, conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list release agent: %w", err)
+	}
+
+	releaseAgents := make([]*types.ReleaseAgent, len(rls))
+	for idx, r := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoAgent)
+		err = conv.MapToStruct(r.AdditionInfo, additionInfo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+
+		releaseAgents[idx] = &types.ReleaseAgent{
+			Release:                  *r,
+			ReleaseAdditionInfoAgent: *additionInfo,
+		}
+	}
+
+	return releaseAgents, nil
+}

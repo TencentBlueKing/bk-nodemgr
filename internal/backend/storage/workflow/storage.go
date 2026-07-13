@@ -43,57 +43,65 @@ const (
 	taskTimeout       = 20 * time.Second
 	syncOperationTask = "sync stopping operation inst"
 
-	metricOperationCreateTrigger                                     = "create_trigger"
-	metricOperationUpdateTrigger                                     = "update_trigger"
-	metricOperationSwitchTriggerAlive                                = "switch_trigger_alive"
-	metricOperationGetTrigger                                        = "get_trigger"
-	metricOperationListAliveTrigger                                  = "list_alive_trigger"
-	metricOperationListTrigger                                       = "list_trigger"
-	metricOperationDeleteTriggers                                    = "delete_triggers"
-	metricOperationExistTrigger                                      = "exist_trigger"
-	metricOperationListScheduledWorkflow                             = "list_scheduled_workflow"
-	metricOperationCountScheduledWorkflow                            = "count_scheduled_workflow"
-	metricOperationGetScheduledWorkflow                              = "get_scheduled_workflow"
-	metricOperationCreateScheduledWorkflow                           = "create_scheduled_workflow"
-	metricOperationUpdateScheduledWorkflowTriggerID                  = "update_scheduled_workflow_trigger_id"
-	metricOperationUpdateScheduledWorkflowPrivateData                = "update_scheduled_workflow_private_data"
-	metricOperationSwitchScheduledWorkflow                           = "switch_scheduled_workflow"
-	metricOperationGetOperation                                      = "get_operation"
-	metricOperationUpsertOperation                                   = "upsert_operation"
-	metricOperationListOperation                                     = "list_operation"
-	metricOperationCountOperation                                    = "count_operation"
-	metricOperationDistinctOperation                                 = "distinct_operation"
-	metricOperationListOperationByOperationID                        = "list_operation_by_operation_id"
-	metricOperationListOperationIDByParentOperationID            = "list_operation_id_by_parent_operation_id"
-	metricOperationListOperationIDByParentOperInstID             = "list_operation_id_by_parent_oper_inst_id"
-	metricOperationListNeedInstantiateOperationByTriggerID           = "list_need_instantiate_operation_by_trigger_id"
-	metricOperationExistNeedInstantiateOperationByTriggerID          = "exist_need_instantiate_operation_by_trigger_id"
-	metricOperationDeleteOperationsByTriggerID                       = "delete_operations_by_trigger_id"
-	metricOperationPullOperationInstanceIDsFromOperation             = "pull_operation_instance_ids_from_operation"
-	metricOperationUpdateOperationLatestInstBriefData                = "update_operation_latest_inst_brief_data"
-	metricOperationUpdateOperInstActionStatus                        = "update_oper_inst_action_status"
-	metricOperationGetActionInstanceData                             = "get_action_instance_data"
-	metricOperationGetActionInstanceLifecycle                        = "get_action_instance_lifecycle"
-	metricOperationGetActionInstancePrivateData                      = "get_action_instance_private_data"
-	metricOperationUpdateActionInstanceLifecycle                     = "update_action_instance_lifecycle"
-	metricOperationPushActionInstanceMessage                         = "push_action_instance_message"
-	metricOperationGetOperationInstanceFullData                      = "get_operation_instance_full_data"
-	metricOperationGetOperationInstanceBriefData                     = "get_operation_instance_brief_data"
-	metricOperationListOperationInstanceBriefDataWithoutActionInst   = "list_operation_instance_brief_data_without_action_inst_by_condition"
-	metricOperationCountOperationInstance                            = "count_operation_instance"
-	metricOperationExistOperationInstance                            = "exist_operation_instance"
-	metricOperationListOperationInstanceBriefByOperationID           = "list_operation_instance_brief_without_action_inst_by_operation_id"
-	metricOperationListOperationInstanceBriefByTriggerID             = "list_operation_instance_brief_without_action_inst_by_trigger_id"
-	metricOperationGetLatestOperationInstanceStatusDistribution      = "get_latest_operation_instance_status_distribution_by_trigger_id"
-	metricOperationUpsertOperationInstanceData                       = "upsert_operation_instance_data"
-	metricOperationUpdateOperationInstanceLifecycle                  = "update_operation_instance_lifecycle"
-	metricOperationUpdateOperationLatestActionInstBriefData          = "update_operation_latest_action_inst_brief_data"
-	metricOperationUpdateOperationInstanceExtraExecutionMessages     = "update_operation_instance_extra_execution_messages"
-	metricOperationUpsertOperInstStop                                = "upsert_oper_inst_stop"
-	metricOperationUpdateActionInstanceContent                       = "update_action_instance_content"
-	metricOperationUpsertActionInstancePrivateData                   = "upsert_action_instance_private_data"
-	metricOperationDeleteOperationInstances                          = "delete_operation_instances"
-	metricOperationDeleteOperationInstancesByTriggerID               = "delete_operation_instances_by_trigger_id"
+	metricOperationCreateTrigger                                               = "create_trigger"
+	metricOperationUpdateTrigger                                               = "update_trigger"
+	metricOperationSwitchTriggerAlive                                          = "switch_trigger_alive"
+	metricOperationGetTrigger                                                  = "get_trigger"
+	metricOperationListAliveTrigger                                            = "list_alive_trigger"
+	metricOperationListTrigger                                                 = "list_trigger"
+	metricOperationListTriggerWithoutCount                                     = "list_trigger_without_count"
+	metricOperationDeleteTriggers                                              = "delete_triggers"
+	metricOperationExistTrigger                                                = "exist_trigger"
+	metricOperationListScheduledWorkflow                                       = "list_scheduled_workflow"
+	metricOperationListScheduledWorkflowWithoutCount                           = "list_scheduled_workflow_without_count"
+	metricOperationCountScheduledWorkflow                                      = "count_scheduled_workflow"
+	metricOperationGetScheduledWorkflow                                        = "get_scheduled_workflow"
+	metricOperationCreateScheduledWorkflow                                     = "create_scheduled_workflow"
+	metricOperationUpdateScheduledWorkflowTriggerID                            = "update_scheduled_workflow_trigger_id"
+	metricOperationUpdateScheduledWorkflowPrivateData                          = "update_scheduled_workflow_private_data"
+	metricOperationSwitchScheduledWorkflow                                     = "switch_scheduled_workflow"
+	metricOperationGetOperation                                                = "get_operation"
+	metricOperationUpsertOperation                                             = "upsert_operation"
+	metricOperationListOperation                                               = "list_operation"
+	metricOperationListOperationWithoutCount                                   = "list_operation_without_count"
+	metricOperationCountOperation                                              = "count_operation"
+	metricOperationDistinctOperation                                           = "distinct_operation"
+	metricOperationListOperationByOperationID                                  = "list_operation_by_operation_id"
+	metricOperationListOperationByOperationIDWithoutCount                      = "list_operation_by_operation_id_without_count"
+	metricOperationListOperationIDByParentOperationID                          = "list_operation_id_by_parent_operation_id"
+	metricOperationListOperationIDByParentOperInstID                           = "list_operation_id_by_parent_oper_inst_id"
+	metricOperationListNeedInstantiateOperationByTriggerID                     = "list_need_instantiate_operation_by_trigger_id"
+	metricOperationListNeedInstantiateOperationByTriggerIDWithoutCount         = "list_need_instantiate_operation_by_trigger_id_without_count"
+	metricOperationExistNeedInstantiateOperationByTriggerID                    = "exist_need_instantiate_operation_by_trigger_id"
+	metricOperationDeleteOperationsByTriggerID                                 = "delete_operations_by_trigger_id"
+	metricOperationPullOperationInstanceIDsFromOperation                       = "pull_operation_instance_ids_from_operation"
+	metricOperationUpdateOperationLatestInstBriefData                          = "update_operation_latest_inst_brief_data"
+	metricOperationUpdateOperInstActionStatus                                  = "update_oper_inst_action_status"
+	metricOperationGetActionInstanceData                                       = "get_action_instance_data"
+	metricOperationGetActionInstanceLifecycle                                  = "get_action_instance_lifecycle"
+	metricOperationGetActionInstancePrivateData                                = "get_action_instance_private_data"
+	metricOperationUpdateActionInstanceLifecycle                               = "update_action_instance_lifecycle"
+	metricOperationPushActionInstanceMessage                                   = "push_action_instance_message"
+	metricOperationGetOperationInstanceFullData                                = "get_operation_instance_full_data"
+	metricOperationGetOperationInstanceBriefData                               = "get_operation_instance_brief_data"
+	metricOperationListOperationInstanceBriefDataWithoutActionInst             = "list_operation_instance_brief_data_without_action_inst_by_condition"
+	metricOperationListOperationInstanceBriefDataWithoutActionInstWithoutCount = "list_operation_instance_brief_data_without_action_inst_by_condition_without_count" //nolint:lll
+	metricOperationCountOperationInstance                                      = "count_operation_instance"
+	metricOperationExistOperationInstance                                      = "exist_operation_instance"
+	metricOperationListOperationInstanceBriefByOperationID                     = "list_operation_instance_brief_without_action_inst_by_operation_id"
+	metricOperationListOperationInstanceBriefByOperationIDWithoutCount         = "list_operation_instance_brief_without_action_inst_by_operation_id_without_count" //nolint:lll
+	metricOperationListOperationInstanceBriefByTriggerID                       = "list_operation_instance_brief_without_action_inst_by_trigger_id"
+	metricOperationListOperationInstanceBriefByTriggerIDWithoutCount           = "list_operation_instance_brief_without_action_inst_by_trigger_id_without_count" //nolint:lll
+	metricOperationGetLatestOperationInstanceStatusDistribution                = "get_latest_operation_instance_status_distribution_by_trigger_id"
+	metricOperationUpsertOperationInstanceData                                 = "upsert_operation_instance_data"
+	metricOperationUpdateOperationInstanceLifecycle                            = "update_operation_instance_lifecycle"
+	metricOperationUpdateOperationLatestActionInstBriefData                    = "update_operation_latest_action_inst_brief_data"
+	metricOperationUpdateOperationInstanceExtraExecutionMessages               = "update_operation_instance_extra_execution_messages"
+	metricOperationUpsertOperInstStop                                          = "upsert_oper_inst_stop"
+	metricOperationUpdateActionInstanceContent                                 = "update_action_instance_content"
+	metricOperationUpsertActionInstancePrivateData                             = "upsert_action_instance_private_data"
+	metricOperationDeleteOperationInstances                                    = "delete_operation_instances"
+	metricOperationDeleteOperationInstancesByTriggerID                         = "delete_operation_instances_by_trigger_id"
 )
 
 // NewStorage creates a new workflow storage.
@@ -273,6 +281,27 @@ func (s *Storage) ListTrigger(nCtx contextx.IContext, page types.Page, category 
 	return results, num, err
 }
 
+// ListTriggerWithoutCount lists triggers by given category without count.
+func (s *Storage) ListTriggerWithoutCount(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error) {
+	var (
+		results []*trigger.Trigger
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListTriggerWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listTriggerWithoutCount(nCtx, page, category); err != nil {
+			logger.G.Sys().WithErr(err).With("category", category).Error("failed to list triggers without count")
+
+			return fmt.Errorf("failed to list triggers without count, category(%s): %w", category, err)
+		}
+
+		return nil
+	})
+
+	return results, err
+}
+
 // DeleteTriggers deletes triggers by given trigger IDs.
 func (s *Storage) DeleteTriggers(nCtx contextx.IContext, triggerIDs ...string) error {
 	return s.WrapFn(nCtx, metricOperationDeleteTriggers, func(nCtx contextx.IContext) error {
@@ -331,6 +360,30 @@ func (s *Storage) ListScheduledWorkflow(
 	})
 
 	return results, num, err
+}
+
+// ListScheduledWorkflowWithoutCount lists scheduled workflow by page and conditions without count.
+func (s *Storage) ListScheduledWorkflowWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (
+	[]*types.ScheduledWorkflow, error) {
+
+	var (
+		results []*types.ScheduledWorkflow
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListScheduledWorkflowWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listScheduledWorkflowWithoutCount(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list scheduled workflows without count")
+
+			return fmt.Errorf("failed to list scheduled workflows without count: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // CountScheduledWorkflow counts scheduled workflow by conditions.
@@ -489,6 +542,26 @@ func (s *Storage) ListOperation(
 	return opers, num, err
 }
 
+// ListOperationWithoutCount lists operation by page and condition without count.
+func (s *Storage) ListOperationWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) (
+	[]*workoper.Operation, error) {
+
+	var (
+		opers []*workoper.Operation
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListOperationWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		opers, err = s.listOperationWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return opers, err
+}
+
 // CountOperation counts operation by condition.
 func (s *Storage) CountOperation(
 	nCtx contextx.IContext, conditions ...*types.OperationCondition) (int64, error) {
@@ -552,6 +625,30 @@ func (s *Storage) ListOperationByOperationID(
 	})
 
 	return opers, num, err
+}
+
+// ListOperationByOperationIDWithoutCount lists operation by operation id without count.
+func (s *Storage) ListOperationByOperationIDWithoutCount(
+	nCtx contextx.IContext, operationID ...string) (
+	[]*workoper.Operation, error) {
+
+	var (
+		opers []*workoper.Operation
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListOperationByOperationIDWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if opers, err = s.listOperationByOperationIDWithoutCount(nCtx, operationID...); err != nil {
+			logger.G.Sys().WithErr(err).With("operation-ids", operationID).Error("failed to list operations by operation id without count")
+
+			return fmt.Errorf("failed to list operations by operation id without count, operation-ids(%v): %w", operationID, err)
+		}
+
+		return nil
+	})
+
+	return opers, err
 }
 
 // ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
@@ -622,6 +719,29 @@ func (s *Storage) ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext
 	})
 
 	return opers, num, err
+}
+
+// ListNeedInstantiateOperationByTriggerIDWithoutCount lists operations need to be instantiated by trigger id without count.
+func (s *Storage) ListNeedInstantiateOperationByTriggerIDWithoutCount(nCtx contextx.IContext, page types.Page, triggerID string) (
+	[]*workoper.Operation, error) {
+
+	var (
+		opers []*workoper.Operation
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListNeedInstantiateOperationByTriggerIDWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if opers, err = s.listNeedInstantiateOperationByTriggerIDWithoutCount(nCtx, page, triggerID); err != nil {
+			logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to list need instantiate operations without count")
+
+			return fmt.Errorf("failed to list need instantiate operations without count, trigger-id(%s): %w", triggerID, err)
+		}
+
+		return nil
+	})
+
+	return opers, err
 }
 
 // ExistNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
@@ -888,6 +1008,31 @@ func (s *Storage) ListOperationInstanceBriefDataWithoutActionInst(
 	return results, num, err
 }
 
+// ListOperationInstanceBriefDataWithoutActionInstWithoutCount lists operation instance brief data without action instance data and without count.
+func (s *Storage) ListOperationInstanceBriefDataWithoutActionInstWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
+	[]*workoper.InstanceBriefData, error) {
+
+	var (
+		results []*workoper.InstanceBriefData
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListOperationInstanceBriefDataWithoutActionInstWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listOperationInstanceBriefDataWithoutActionInstWithoutCount(
+			nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list operation instance brief data without count")
+
+			return fmt.Errorf("failed to list operation instance brief data without count: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
+}
+
 // CountOperationInstanceByState counts operation instance by state.
 func (s *Storage) CountOperationInstanceByState(nCtx contextx.IContext, triggerID string, states ...workoper.State) (int64, error) {
 	var (
@@ -961,6 +1106,32 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
 	return results, num, err
 }
 
+// ListOperInstanceBriefWithoutActionInstByOperationIDWithoutCount lists operation instance brief data without count.
+func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationIDWithoutCount(
+	nCtx contextx.IContext, page types.Page, operationID ...string) (
+	[]*workoper.InstanceBriefData, error) {
+
+	var (
+		results []*workoper.InstanceBriefData
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListOperationInstanceBriefByOperationIDWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.listOperationInstanceBriefDataWithoutActionInstByOperationIDWithoutCount(
+			nCtx, page, operationID...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list operation instance brief data by operation without count")
+
+			return fmt.Errorf("failed to list operation instance brief data by operation without count: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
+}
+
 // ListOperInstanceBriefWithoutActionInstByTriggerID lists operation instance brief data.
 func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx contextx.IContext, page types.Page, triggerID ...string) (
 	[]*workoper.InstanceBriefData, int64, error) {
@@ -985,6 +1156,31 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx context
 	})
 
 	return results, num, err
+}
+
+// ListOperInstanceBriefWithoutActionInstByTriggerIDWithoutCount lists operation instance brief data without count.
+func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerIDWithoutCount(nCtx contextx.IContext, page types.Page, triggerID ...string) (
+	[]*workoper.InstanceBriefData, error) {
+
+	var (
+		results []*workoper.InstanceBriefData
+		err     error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListOperationInstanceBriefByTriggerIDWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.listOperationInstanceBriefDataWithoutActionInstByTriggerIDWithoutCount(
+			nCtx, page, triggerID...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list operation instance brief data by trigger without count")
+
+			return fmt.Errorf("failed to list operation instance brief data by trigger without count: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger ID.

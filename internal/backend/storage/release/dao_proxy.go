@@ -66,3 +66,30 @@ func (s *Storage) listReleaseProxy(
 
 	return releaseProxys, total, nil
 }
+
+// listReleaseProxyWithoutCount lists release proxy by page and conditions without count.
+func (s *Storage) listReleaseProxyWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseProxy, error) {
+
+	rls, err := s.listReleaseWithoutCount(nCtx, types.ReleaseTypeProxy, page, conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list release proxy: %w", err)
+	}
+
+	releaseProxys := make([]*types.ReleaseProxy, len(rls))
+	for idx, r := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoProxy)
+		err = conv.MapToStruct(r.AdditionInfo, additionInfo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+
+		releaseProxys[idx] = &types.ReleaseProxy{
+			Release:                  *r,
+			ReleaseAdditionInfoProxy: *additionInfo,
+		}
+	}
+
+	return releaseProxys, nil
+}

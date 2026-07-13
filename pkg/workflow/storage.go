@@ -58,11 +58,17 @@ type IStorageOperation interface {
 	// ListOperation lists operation by page and condition.
 	ListOperation(ctx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) ([]*operation.Operation, int64, error)
 
+	// ListOperationWithoutCount lists operation by page and condition without count.
+	ListOperationWithoutCount(ctx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) ([]*operation.Operation, error)
+
 	// CountOperation counts operation by condition.
 	CountOperation(ctx contextx.IContext, conditions ...*types.OperationCondition) (int64, error)
 
 	// ListOperationByOperationID lists operation by operation ID.
 	ListOperationByOperationID(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, int64, error)
+
+	// ListOperationByOperationIDWithoutCount lists operation by operation ID without count.
+	ListOperationByOperationIDWithoutCount(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, error)
 
 	// ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
 	ListOperationIDByParentOperationID(ctx contextx.IContext, page types.Page, parentID ...string) (
@@ -74,6 +80,9 @@ type IStorageOperation interface {
 
 	// ListEmptyOperationByTriggerID lists empty operation.
 	ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
+
+	// ListNeedInstantiateOperationByTriggerIDWithoutCount lists operations need to be instantiated by trigger id without count.
+	ListNeedInstantiateOperationByTriggerIDWithoutCount(nCtx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, error)
 
 	// ExistNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
 	ExistNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, triggerID string) (bool, error)
@@ -106,13 +115,26 @@ type IStorageOperationInstance interface {
 		ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 		[]*operation.InstanceBriefData, int64, error)
 
+	// ListOperationInstanceBriefDataWithoutActionInstWithoutCount lists operation instance brief data without action instance data and without count.
+	ListOperationInstanceBriefDataWithoutActionInstWithoutCount(
+		ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
+		[]*operation.InstanceBriefData, error)
+
 	// ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.
 	ListOperInstanceBriefWithoutActionInstByOperationID(ctx contextx.IContext, page types.Page, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
+	// ListOperInstanceBriefWithoutActionInstByOperationIDWithoutCount lists operation instance brief data without count.
+	ListOperInstanceBriefWithoutActionInstByOperationIDWithoutCount(ctx contextx.IContext, page types.Page, operationID ...string) (
+		[]*operation.InstanceBriefData, error)
+
 	// ListOperInstanceBriefWithoutActionInstByTriggerID lists operation instance brief data.
 	ListOperInstanceBriefWithoutActionInstByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
+
+	// ListOperInstanceBriefWithoutActionInstByTriggerIDWithoutCount lists operation instance brief data without count.
+	ListOperInstanceBriefWithoutActionInstByTriggerIDWithoutCount(ctx contextx.IContext, page types.Page, triggerID ...string) (
+		[]*operation.InstanceBriefData, error)
 
 	// CountOperationInstanceByState counts operation instance by state.
 	CountOperationInstanceByState(ctx contextx.IContext, triggerID string, states ...operation.State) (int64, error)
@@ -168,6 +190,9 @@ type IStorageTrigger interface {
 
 	// ListTrigger lists triggers by given category.
 	ListTrigger(ctx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error)
+
+	// ListTriggerWithoutCount lists triggers by given category without count.
+	ListTriggerWithoutCount(ctx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, error)
 
 	// DeleteTriggers deletes triggers by given trigger IDs.
 	DeleteTriggers(ctx contextx.IContext, triggerIDs ...string) error

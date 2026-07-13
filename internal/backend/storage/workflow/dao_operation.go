@@ -28,7 +28,7 @@ func (s *Storage) getOperation(nCtx contextx.IContext, operationID string) (*wor
 		return nil, basestorage.ErrNilContent()
 	}
 
-	opers, _, err := s.daoOperation.List(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID))
+	opers, err := s.daoOperation.ListWithoutCount(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID))
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +65,19 @@ func (s *Storage) listOperationByOperationID(nCtx contextx.IContext, operationID
 	}
 
 	return s.daoOperation.List(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
+}
+
+// listOperationByOperationIDWithoutCount lists operation by operation id without count.
+func (s *Storage) listOperationByOperationIDWithoutCount(nCtx contextx.IContext, operationID ...string) ([]*workoper.Operation, error) {
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if len(operationID) == 0 {
+		return nil, basestorage.ErrEmptyOperationID()
+	}
+
+	return s.daoOperation.ListWithoutCount(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
 }
 
 // listOperationIDByParentOperationID lists operation IDs by parent operation id.
@@ -143,6 +156,25 @@ func (s *Storage) listNeedInstantiateOperationByTriggerID(nCtx contextx.IContext
 	return s.daoOperation.List(nCtx, page, operation.WithTriggerID(triggerID), operation.WithInstantiated(true))
 }
 
+// listNeedInstantiateOperationByTriggerIDWithoutCount lists operations need to be instantiated by trigger id without count.
+func (s *Storage) listNeedInstantiateOperationByTriggerIDWithoutCount(nCtx contextx.IContext, page types.Page, triggerID string) (
+	[]*workoper.Operation, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+
+	if triggerID == "" {
+		return nil, basestorage.ErrEmptyTriggerID()
+	}
+
+	return s.daoOperation.ListWithoutCount(nCtx, page, operation.WithTriggerID(triggerID), operation.WithInstantiated(true))
+}
+
 // existNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
 func (s *Storage) existNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, triggerID string) (bool, error) {
 	if nCtx == nil {
@@ -208,6 +240,22 @@ func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page, conditi
 	}
 
 	return s.daoOperation.List(nCtx, page, opts...)
+}
+
+// listOperationWithoutCount lists operation by page and condition without count.
+func (s *Storage) listOperationWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) (
+	[]*workoper.Operation, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertOperationConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.daoOperation.ListWithoutCount(nCtx, page, opts...)
 }
 
 // countOperation counts operation by condition.

@@ -28,7 +28,7 @@ func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
 		host.WithStaticInnerIPList(innerip),
 	)
 
-	results, _, err := s.daoHost.List(nCtx, types.UnlimitedPage(), opts...)
+	results, err := s.daoHost.ListWithoutCount(nCtx, types.UnlimitedPage(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("list hosts failed. area-id(%d), innerip(%s): %w", networkAreaID, innerip, err)
 	}
@@ -69,7 +69,7 @@ func (s *Storage) getNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []i
 	opts := make([]networkunit.OptFn, 0)
 	opts = append(opts, networkunit.WithNetworkUnitID(networkUnitIDs...))
 
-	results, _, err := s.daoNetworkUnit.List(nCtx, types.UnlimitedPage(), opts...)
+	results, err := s.daoNetworkUnit.ListWithoutCount(nCtx, types.UnlimitedPage(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("list networkunits failed. unit-ids(%v): %w", networkUnitIDs, err)
 	}

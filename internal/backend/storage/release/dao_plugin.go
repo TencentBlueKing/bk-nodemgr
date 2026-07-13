@@ -72,3 +72,30 @@ func (s *Storage) listReleasePlugin(
 
 	return releasePlugins, total, nil
 }
+
+// listReleasePluginWithoutCount lists release plugin by page and conditions without count.
+func (s *Storage) listReleasePluginWithoutCount(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleasePlugin, error) {
+
+	rls, err := s.listReleaseWithoutCount(nCtx, types.ReleaseTypePlugin, page, conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list release plugin: %w", err)
+	}
+
+	releasePlugins := make([]*types.ReleasePlugin, len(rls))
+	for idx, r := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoPlugin)
+		err = conv.MapToStruct(r.AdditionInfo, additionInfo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+
+		releasePlugins[idx] = &types.ReleasePlugin{
+			Release:                   *r,
+			ReleaseAdditionInfoPlugin: *additionInfo,
+		}
+	}
+
+	return releasePlugins, nil
+}

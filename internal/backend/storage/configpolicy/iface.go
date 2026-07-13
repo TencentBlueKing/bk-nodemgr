@@ -34,6 +34,10 @@ type IDaoConfigPolicy interface {
 	ListConfigPolicy(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
 		[]*types.ConfigPolicy, int64, error)
 
+	// ListConfigPolicyWithoutCount lists the config policy by page and conditions without count.
+	ListConfigPolicyWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
+		[]*types.ConfigPolicy, error)
+
 	// GetConfigPolicy gets the config policy.
 	GetConfigPolicy(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
@@ -78,6 +82,10 @@ type IDaoConfigPolicyEvent interface {
 	// ListConfigPolicyEvent lists topo events by page and conditions.
 	ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
 		[]*types.ConfigPolicyEvent, int64, error)
+
+	// ListConfigPolicyEventWithoutCount lists policy events by page and conditions without count.
+	ListConfigPolicyEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
+		[]*types.ConfigPolicyEvent, error)
 
 	// CreateManyConfigPolicyEvent creates multiple topo events.
 	CreateManyConfigPolicyEvent(nCtx contextx.IContext, events ...*types.ConfigPolicyEvent) error

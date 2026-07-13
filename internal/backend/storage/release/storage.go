@@ -30,6 +30,7 @@ const (
 	StorageName = "release"
 
 	metricOperationListReleaseAgent                 = "list_release_agent"
+	metricOperationListReleaseAgentWithoutCount     = "list_release_agent_without_count"
 	metricOperationCountReleaseAgent                = "count_release_agent"
 	metricOperationGetReleaseAgent                  = "get_release_agent"
 	metricOperationDistinctReleaseAgent             = "distinct_release_agent"
@@ -40,6 +41,7 @@ const (
 	metricOperationSetAsDefaultReleaseAgent         = "set_as_default_release_agent"
 	metricOperationCancelAsDefaultReleaseAgent      = "cancel_as_default_release_agent"
 	metricOperationListReleaseProxy                 = "list_release_proxy"
+	metricOperationListReleaseProxyWithoutCount     = "list_release_proxy_without_count"
 	metricOperationCountReleaseProxy                = "count_release_proxy"
 	metricOperationGetReleaseProxy                  = "get_release_proxy"
 	metricOperationDistinctReleaseProxy             = "distinct_release_proxy"
@@ -50,6 +52,7 @@ const (
 	metricOperationSetAsDefaultReleaseProxy         = "set_as_default_release_proxy"
 	metricOperationCancelAsDefaultReleaseProxy      = "cancel_as_default_release_proxy"
 	metricOperationListReleasePlugin                = "list_release_plugin"
+	metricOperationListReleasePluginWithoutCount    = "list_release_plugin_without_count"
 	metricOperationCountReleasePlugin               = "count_release_plugin"
 	metricOperationGetReleasePlugin                 = "get_release_plugin"
 	metricOperationDeleteReleasePlugin              = "delete_release_plugin"
@@ -60,19 +63,23 @@ const (
 	metricOperationExistReleasePlugin               = "exist_release_plugin"
 	metricOperationGetReleasePluginDefaultVersion   = "get_release_plugin_default_version"
 	metricOperationListReleaseCert                  = "list_release_cert"
+	metricOperationListReleaseCertWithoutCount      = "list_release_cert_without_count"
 	metricOperationCountReleaseCert                 = "count_release_cert"
 	metricOperationGetReleaseCert                   = "get_release_cert"
 	metricOperationDeleteReleaseCert                = "delete_release_cert"
 	metricOperationListReleaseBinTool               = "list_release_bintool"
+	metricOperationListReleaseBinToolWithoutCount   = "list_release_bintool_without_count"
 	metricOperationCountReleaseBinTool              = "count_release_bintool"
 	metricOperationGetReleaseBinTool                = "get_release_bintool"
 	metricOperationDeleteReleaseBinTool             = "delete_release_bintool"
 	metricOperationListReleasePluginBinTool         = "list_release_plugin_bintool"
+	metricOperationListReleasePluginBinToolWithoutCount = "list_release_plugin_bintool_without_count"
 	metricOperationCountReleasePluginBinTool        = "count_release_plugin_bintool"
 	metricOperationGetReleasePluginBinTool          = "get_release_plugin_bintool"
 	metricOperationDeleteReleasePluginBinTool       = "delete_release_plugin_bintool"
 	metricOperationCountPackageEvent                = "count_package_event"
 	metricOperationListPackageEvent                 = "list_package_event"
+	metricOperationListPackageEventWithoutCount     = "list_package_event_without_count"
 	metricOperationCreateManyPackageEvent           = "create_many_package_event"
 	metricOperationDistinctPackageEvent             = "distinct_package_event"
 	metricOperationDistinctNameReleasePlugin        = "distinct_name_release_plugin"
@@ -155,6 +162,26 @@ func (s *Storage) ListReleaseAgent(nCtx contextx.IContext, page types.Page,
 	})
 
 	return results, num, err
+}
+
+// ListReleaseAgentWithoutCount lists agent releases by page and conditions without count.
+func (s *Storage) ListReleaseAgentWithoutCount(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, error) {
+
+	var results []*types.ReleaseAgent
+
+	err := s.WrapFn(nCtx, metricOperationListReleaseAgentWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listReleaseAgentWithoutCount(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release agent")
+
+			return fmt.Errorf("failed to list release agent: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // CountReleaseAgent counts agent releases by conditions.
@@ -332,6 +359,26 @@ func (s *Storage) ListReleaseProxy(nCtx contextx.IContext, page types.Page,
 	return results, num, err
 }
 
+// ListReleaseProxyWithoutCount lists proxy releases by page and conditions without count.
+func (s *Storage) ListReleaseProxyWithoutCount(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, error) {
+
+	var results []*types.ReleaseProxy
+
+	err := s.WrapFn(nCtx, metricOperationListReleaseProxyWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listReleaseProxyWithoutCount(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release proxy")
+
+			return fmt.Errorf("failed to list release proxy: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
+}
+
 // CountReleaseProxy counts proxy releases by conditions.
 func (s *Storage) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
 	var num int64
@@ -503,6 +550,22 @@ func (s *Storage) ListReleasePlugin(nCtx contextx.IContext, page types.Page,
 	return results, num, err
 }
 
+// ListReleasePluginWithoutCount lists plugin releases by page and conditions without count.
+func (s *Storage) ListReleasePluginWithoutCount(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, error) {
+
+	var results []*types.ReleasePlugin
+
+	err := s.WrapFn(nCtx, metricOperationListReleasePluginWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.listReleasePluginWithoutCount(nCtx, page, conditions...)
+
+		return err
+	})
+
+	return results, err
+}
+
 // CountReleasePlugin counts plugin release by conditions.
 func (s *Storage) CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
 	var num int64
@@ -644,6 +707,33 @@ func (s *Storage) ListReleaseCert(nCtx contextx.IContext, page types.Page,
 	return results, num, err
 }
 
+// ListReleaseCertWithoutCount lists cert releases by page and conditions without count.
+func (s *Storage) ListReleaseCertWithoutCount(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseCert, error) {
+
+	var results []*types.ReleaseCert
+
+	err := s.WrapFn(nCtx, metricOperationListReleaseCertWithoutCount, func(nCtx contextx.IContext) error {
+		rls, err := s.listReleaseWithoutCount(nCtx, types.ReleaseTypeCert, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release cert")
+
+			return fmt.Errorf("failed to list release cert: %w", err)
+		}
+
+		results = make([]*types.ReleaseCert, len(rls))
+		for idx, r := range rls {
+			results[idx] = &types.ReleaseCert{
+				Release: *r,
+			}
+		}
+
+		return nil
+	})
+
+	return results, err
+}
+
 // CountReleaseCert counts cert release by conditions.
 func (s *Storage) CountReleaseCert(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
 	var num int64
@@ -728,6 +818,33 @@ func (s *Storage) ListReleaseBinTool(nCtx contextx.IContext, page types.Page,
 	})
 
 	return results, num, err
+}
+
+// ListReleaseBinToolWithoutCount lists bintool releases by page and conditions without count.
+func (s *Storage) ListReleaseBinToolWithoutCount(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseBinTool, error) {
+
+	var results []*types.ReleaseBinTool
+
+	err := s.WrapFn(nCtx, metricOperationListReleaseBinToolWithoutCount, func(nCtx contextx.IContext) error {
+		rls, err := s.listReleaseWithoutCount(nCtx, types.ReleaseTypeBinTool, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release bintool")
+
+			return fmt.Errorf("failed to list release bintool: %w", err)
+		}
+
+		results = make([]*types.ReleaseBinTool, len(rls))
+		for idx, r := range rls {
+			results[idx] = &types.ReleaseBinTool{
+				Release: *r,
+			}
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // CountReleaseBinTool counts bintool release by conditions.
@@ -815,6 +932,33 @@ func (s *Storage) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Pa
 	})
 
 	return results, num, err
+}
+
+// ListReleasePluginBinToolWithoutCount lists plugin bintool release by page and conditions without count.
+func (s *Storage) ListReleasePluginBinToolWithoutCount(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, error) {
+
+	var results []*types.ReleasePluginBinTool
+
+	err := s.WrapFn(nCtx, metricOperationListReleasePluginBinToolWithoutCount, func(nCtx contextx.IContext) error {
+		rls, err := s.listReleaseWithoutCount(nCtx, types.ReleaseTypePluginBinTool, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list release plugin bintool")
+
+			return fmt.Errorf("failed to list release plugin bintool: %w", err)
+		}
+
+		results = make([]*types.ReleasePluginBinTool, len(rls))
+		for idx, r := range rls {
+			results[idx] = &types.ReleasePluginBinTool{
+				Release: *r,
+			}
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // CountReleasePluginBinTool counts plugin bintool release by conditions.
@@ -910,6 +1054,26 @@ func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page, cond
 	})
 
 	return results, num, err
+}
+
+// ListPackageEventWithoutCount lists package events by page and conditions without count.
+func (s *Storage) ListPackageEventWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
+	[]*types.PackageEvent, error) {
+
+	var results []*types.PackageEvent
+
+	err := s.WrapFn(nCtx, metricOperationListPackageEventWithoutCount, func(nCtx contextx.IContext) error {
+		var err error
+		if results, err = s.listPackageEventWithoutCount(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list package event")
+
+			return fmt.Errorf("failed to list package event: %w", err)
+		}
+
+		return nil
+	})
+
+	return results, err
 }
 
 // CreateManyPackageEvent creates multiple package events.
