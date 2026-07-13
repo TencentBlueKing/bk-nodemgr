@@ -380,3 +380,102 @@ func Test_handler_List(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_ListWithoutCount ...
+func Test_handler_ListWithoutCount(t *testing.T) {
+	nCtx := contextx.From(contextx.Background(), contextx.WithTenantID("test-tenant-id"))
+	prepareData(t, nCtx)
+
+	type args struct {
+		nCtx contextx.IContext
+		opts []base.OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "list process config with no filters",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{},
+			},
+			wantNum: 3,
+			wantErr: false,
+		},
+		{
+			name: "list process config with name filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithName("test-process-config-name-1"),
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with process name filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithProcessName("test-process-name-1"),
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with host id filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithHostID(2),
+				},
+			},
+			wantNum: 3,
+			wantErr: false,
+		},
+		{
+			name: "list process config with name and process name filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithName("test-process-config-name-1"),
+					WithProcessName("test-process-name-1"),
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with is main config filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithIsMainConfig(true),
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+	}
+	h := testClient(t)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := h.ListWithoutCount(tt.args.nCtx, types.UnlimitedPage(), tt.args.opts...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("ListWithoutCount() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+
+			t.Logf("ListWithoutCount() success")
+		})
+	}
+}

@@ -233,6 +233,60 @@ func Test_handler_List(t *testing.T) {
 	}
 }
 
+// Test_handler_ListWithoutCount tests the ListWithoutCount method of the handler.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+	type args struct {
+		nCtx    contextx.IContext
+		name    string
+		keyType types.CipherKeyType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*types.Cipher
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx:    nCtx,
+				name:    "test-key-1",
+				keyType: "rsa",
+			},
+			want: []*types.Cipher{
+				{
+					Name:        "test-key-1",
+					KeyType:     "rsa",
+					Description: "unit test key",
+					PrivateKey:  []byte("test-private-key-content-1"),
+					PublicKey:   []byte("test-public-key-content-1"),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListWithoutCount(
+				nCtx, types.UnlimitedPage(),
+				WithName(tt.args.name), WithKeyType(string(tt.args.keyType)),
+			)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr: %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("item: %+v", item)
+			}
+		})
+	}
+}
+
 // Test_handler_Count tests the Count method of the handler.
 func Test_handler_Count(t *testing.T) {
 	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))

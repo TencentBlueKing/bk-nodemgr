@@ -379,3 +379,59 @@ func Test_handler_List(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_ListWithoutCount tests handler ListWithoutCount.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	type args struct {
+		nCtx  contextx.IContext
+		page  types.Page
+		optFn []OptFn
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantNum int
+		wantErr bool
+	}{
+		{
+			name: "nil nCtx",
+			args: args{
+				nCtx:  nil,
+				page:  types.Page{Limit: 10},
+				optFn: nil,
+			},
+			wantNum: -1,
+			wantErr: true,
+		},
+		{
+			name: "base",
+			args: args{
+				nCtx:  contextx.Background(),
+				page:  types.Page{Limit: 1},
+				optFn: []OptFn{WithCategory(trigger.CategoryOrdered), WithActive(true)},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListWithoutCount(tt.args.nCtx, tt.args.page, tt.args.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if err != nil {
+				return
+			}
+
+			if tt.wantNum >= 0 && len(got) != tt.wantNum {
+				t.Errorf("ListWithoutCount() num = %v, want %v", len(got), tt.wantNum)
+			}
+		})
+	}
+}

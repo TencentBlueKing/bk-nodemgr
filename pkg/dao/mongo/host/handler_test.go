@@ -660,6 +660,103 @@ func Test_handler_List(t *testing.T) {
 	}
 }
 
+// Test_handler_ListWithoutCount covers list without count method.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
+
+	prepareData(t, nCtx)
+
+	tests := []struct {
+		name    string
+		page    types.Page
+		optFn   []OptFn
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:   nil,
+			wantNum: -1,
+			wantErr: false,
+		},
+		{
+			name: "filter by host id",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithHostID(90001, 90002)},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by biz name",
+			page: types.Page{
+				Offset: 1,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithFuzzyStaticHostName("hostname")},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by contains static inner ip",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithStaticInnerIPList("127.0.0.1")},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by contains static addressing",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+				Sort:   "",
+			},
+			optFn:   []OptFn{WithStaticAddressing(types.AddressingDynamic)},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by dynamic proxy tag",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithDynamicProxyTags(types.ProxyTagDedicatedInstaller)},
+			wantNum: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListWithoutCount(nCtx, tt.page, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("ListWithoutCount() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+			t.Logf("ListWithoutCount() num = %d", len(got))
+
+			for _, v := range got {
+				t.Logf("ListWithoutCount() got = %v", v)
+			}
+		})
+	}
+}
+
 // Test_handler_DistinctNodeVersion distinct node role fields.
 func Test_handler_DistinctNodeVersion(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
