@@ -31,10 +31,10 @@ const ResourceTypePackage = "package"
 
 type packageStorage interface {
 	DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
-	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
+	ListReleasePluginWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, error)
 	DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
-	ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
-		[]*types.ReleasePluginBinTool, int64, error)
+	ListReleasePluginBinToolWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+		[]*types.ReleasePluginBinTool, error)
 }
 
 // PackageProvider implements resource.Provider interface for package resources.
@@ -305,7 +305,7 @@ func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[s
 		pageLimit = MaxListInstanceByPolicyLimit
 	}
 
-	pluginReleases, _, err := p.storage.ListReleasePlugin(ctx, types.Page{Limit: pageLimit})
+	pluginReleases, err := p.storage.ListReleasePluginWithoutCount(ctx, types.Page{Limit: pageLimit})
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin releases for FetchInstanceInfo")
 		return fmt.Errorf("failed to list plugin releases: %w", err)
@@ -336,7 +336,7 @@ func (p *PackageProvider) addPluginBinToolReleases(
 		pageLimit = MaxListInstanceByPolicyLimit
 	}
 
-	pluginBinToolReleases, _, err := p.storage.ListReleasePluginBinTool(ctx, types.Page{Limit: pageLimit})
+	pluginBinToolReleases, err := p.storage.ListReleasePluginBinToolWithoutCount(ctx, types.Page{Limit: pageLimit})
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin bintool releases for FetchInstanceInfo")
 		return fmt.Errorf("failed to list plugin bintool releases: %w", err)

@@ -37,7 +37,7 @@ func (h *handler) SelectHostID(rCtx restserver.IContext) (interface{}, error) {
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](hostFieldSelectionMaxPageSize, hostFieldSelectionTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		hosts, _, err := h.storage.ListHostWithFields(
+		hosts, err := h.storage.ListHostWithFieldsWithoutCount(
 			nCtx,
 			p,
 			&types.HostFieldSelection{
@@ -69,7 +69,7 @@ func (h *handler) SelectInnerIP(rCtx restserver.IContext) (interface{}, error) {
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](hostFieldSelectionMaxPageSize, hostFieldSelectionTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		hosts, _, err := h.storage.ListHostWithFields(
+		hosts, err := h.storage.ListHostWithFieldsWithoutCount(
 			nCtx,
 			p,
 			&types.HostFieldSelection{
@@ -101,7 +101,7 @@ func (h *handler) SelectInnerIPV6(rCtx restserver.IContext) (interface{}, error)
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](hostFieldSelectionMaxPageSize, hostFieldSelectionTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		hosts, _, err := h.storage.ListHostWithFields(
+		hosts, err := h.storage.ListHostWithFieldsWithoutCount(
 			nCtx,
 			p,
 			&types.HostFieldSelection{
@@ -133,7 +133,7 @@ func (h *handler) SelectNetWorkareaIDAndInnerIP(rCtx restserver.IContext) (inter
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](hostFieldSelectionMaxPageSize, hostFieldSelectionTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		hosts, _, err := h.storage.ListHostWithFields(
+		hosts, err := h.storage.ListHostWithFieldsWithoutCount(
 			nCtx,
 			p,
 			&types.HostFieldSelection{
@@ -166,7 +166,7 @@ func (h *handler) SelectNetWorkareaIDAndInnerIPV6(rCtx restserver.IContext) (int
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](hostFieldSelectionMaxPageSize, hostFieldSelectionTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		hosts, _, err := h.storage.ListHostWithFields(
+		hosts, err := h.storage.ListHostWithFieldsWithoutCount(
 			nCtx,
 			p,
 			&types.HostFieldSelection{

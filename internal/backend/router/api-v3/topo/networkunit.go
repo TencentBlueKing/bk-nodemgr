@@ -171,7 +171,7 @@ func (h *handler) GetNetworkUnit(rCtx restserver.IContext) (interface{}, error) 
 	// get accesspoints.
 	accessPoints := make([]*types.AccessPoint, 0)
 	if len(networkUnit.AccessPoints) > 0 {
-		accessPoints, _, err = h.storage.ListAccessPoint(
+		accessPoints, err = h.storage.ListAccessPointWithoutCount(
 			rCtx,
 			types.Page{Offset: 0, Limit: len(networkUnit.AccessPoints)},
 			&types.AccessPointCondition{

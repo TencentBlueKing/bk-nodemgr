@@ -124,7 +124,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 			InfoStatus: []types.ProcessStatus{types.ProcessStatusRunning},
 		},
 	}
-	aliveProcess, _, err := act.processStg.ListProcesses(std.Context(), types.UnlimitedPage(), cond)
+	aliveProcess, err := act.processStg.ListProcessesWithoutCount(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return err
 	}

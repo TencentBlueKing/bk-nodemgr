@@ -92,7 +92,7 @@ func (h *handler) listAgentNetworkUnitSyncBusinesses(rCtx server.IContext, bizID
 		})
 	}
 
-	bizs, _, err := h.storageTopo.ListBusinesses(rCtx, types.UnlimitedPage(), conditions...)
+	bizs, err := h.storageTopo.ListBusinessesWithoutCount(rCtx, types.UnlimitedPage(), conditions...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list businesses: %w", err)
 	}

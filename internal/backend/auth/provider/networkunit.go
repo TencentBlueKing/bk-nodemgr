@@ -129,7 +129,7 @@ func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 		},
 	}
 
-	networkUnits, _, err := p.storage.ListNetworkUnit(ctx, types.Page{Limit: len(ids)}, condition)
+	networkUnits, err := p.storage.ListNetworkUnitWithoutCount(ctx, types.Page{Limit: len(ids)}, condition)
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to fetch network unit info")
 		return nil, fmt.Errorf("failed to fetch network unit info: %w", err)
@@ -153,7 +153,7 @@ func (p *NetworkUnitProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 // ListInstanceByPolicy lists network unit instances filtered by IAM policy expression.
 func (p *NetworkUnitProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
 	// Load all network units (use large limit for in-memory evaluation)
-	networkUnits, _, err := p.storage.ListNetworkUnit(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit}, nil)
+	networkUnits, err := p.storage.ListNetworkUnitWithoutCount(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit}, nil)
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to list network units")
 		return nil, fmt.Errorf("failed to list network units: %w", err)

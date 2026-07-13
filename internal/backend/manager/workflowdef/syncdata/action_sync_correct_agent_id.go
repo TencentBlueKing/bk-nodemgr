@@ -209,7 +209,7 @@ func (act *actionSyncCorrectAgentID) correctHosts(std *syncDataUtils.SyncDataAct
 func (act *actionSyncCorrectAgentID) filterNeedCorrectHosts(std *syncDataUtils.SyncDataActionStandarder,
 	stats *syncCorrectAgentIDStats, hostIDs []int64) ([]*types.Host, error) {
 
-	hosts, _, err := act.hostStg.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
+	hosts, err := act.hostStg.ListHostWithoutCount(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: hostIDs,
 		},
@@ -315,7 +315,7 @@ func (act *actionSyncCorrectAgentID) recheckItems(std *syncDataUtils.SyncDataAct
 	hostIDs := conv.SliceToSlice(items, func(item *correctItem) int64 {
 		return item.host.HostID
 	})
-	hosts, _, err := act.hostStg.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
+	hosts, err := act.hostStg.ListHostWithoutCount(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: hostIDs,
 		},

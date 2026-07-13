@@ -110,7 +110,7 @@ func (p *NetworkAreaProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 		},
 	}
 
-	networkAreas, _, err := p.storage.ListNetworkArea(ctx, types.Page{Limit: len(ids)}, condition)
+	networkAreas, err := p.storage.ListNetworkAreaWithoutCount(ctx, types.Page{Limit: len(ids)}, condition)
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to fetch network area info")
 		return nil, fmt.Errorf("failed to fetch network area info: %w", err)
@@ -134,7 +134,7 @@ func (p *NetworkAreaProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 // ListInstanceByPolicy lists network area instances filtered by IAM policy expression.
 func (p *NetworkAreaProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
 	// Load all network areas (use large limit for in-memory evaluation)
-	networkAreas, _, err := p.storage.ListNetworkArea(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit})
+	networkAreas, err := p.storage.ListNetworkAreaWithoutCount(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit})
 	if err != nil {
 		logger.G.Biz(ctx).WithErr(err).Error("failed to list network areas")
 		return nil, fmt.Errorf("failed to list network areas: %w", err)

@@ -692,7 +692,7 @@ func (handler *triggerHandler) checkAccumulateOperationInstance(nCtx contextx.IC
 
 	queryExecutor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](maxPageSize, time.Minute)
 	queryFn := func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
-		operationInstanceBriefData, _, err := handler.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInst(nCtx, p, &condition)
+		operationInstanceBriefData, err := handler.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInstWithoutCount(nCtx, p, &condition)
 		if err != nil {
 			return nil, err
 		}

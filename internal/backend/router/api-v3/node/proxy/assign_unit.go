@@ -141,7 +141,7 @@ func (h *handler) AssignProxyUnit(rCtx restserver.IContext) (interface{}, error)
 }
 
 func (h *handler) fetchNetworkUnit(rCtx restserver.IContext, networkUnitID int64) (*types.NetworkUnit, error) {
-	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(rCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+	networkUnitList, err := h.storageNetworkUnit.ListNetworkUnitWithoutCount(rCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkUnitID: []int64{networkUnitID},
 		},
@@ -178,7 +178,7 @@ func (h *handler) fetchHostsInBatches(
 	foundIDs := make(map[int64]struct{})
 
 	result, err := batchexecutor.Collect(rCtx, hostIDs, func(nCtx contextx.IContext, batch []int64) ([]*types.Host, error) {
-		hosts, _, err := h.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hosts, err := h.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				HostID: batch,
 			},

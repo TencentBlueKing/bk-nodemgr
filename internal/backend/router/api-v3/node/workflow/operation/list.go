@@ -44,7 +44,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	operations, _, err := h.storageWorkflow.ListOperation(rCtx, types.UnlimitedPage(),
+	operations, err := h.storageWorkflow.ListOperationWithoutCount(rCtx, types.UnlimitedPage(),
 		req.ConvertConditionsToOperationTypes(workflow.TriggerID))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
@@ -192,7 +192,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	// Find workflow by trigger ID to check permission
 	// Note: We query by TriggerID since NodeWorkflowExactFields doesn't support TriggerID field
 	// This is a workaround - ideally we should add TriggerID to NodeWorkflowExactFields
-	workflows, _, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, types.UnlimitedPage())
+	workflows, err := h.daoNodeWorkflow.ListNodeWorkflowWithoutCount(rCtx, types.UnlimitedPage())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to list workflows")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -263,7 +263,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 
 	// Find workflow by trigger ID to check permission
 	// Note: We query all workflows since NodeWorkflowExactFields doesn't support TriggerID field
-	workflows, _, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, types.UnlimitedPage())
+	workflows, err := h.daoNodeWorkflow.ListNodeWorkflowWithoutCount(rCtx, types.UnlimitedPage())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to list workflows")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

@@ -103,7 +103,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	bizs, _, err := act.storageBusiness.ListBusinesses(std.Context(), types.UnlimitedPage())
+	bizs, err := act.storageBusiness.ListBusinessesWithoutCount(std.Context(), types.UnlimitedPage())
 	if err != nil {
 		return err
 	}

@@ -88,7 +88,7 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 	var deletedCount int
 
 	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
-		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryOnce)
+		triggers, err := pt.conf.StgWorkflow.ListTriggerWithoutCount(nCtx, p, trigger.CategoryOnce)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list triggers: %w", err)
 		}
@@ -177,7 +177,7 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 	var deletedCount int
 
 	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
-		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryOrdered)
+		triggers, err := pt.conf.StgWorkflow.ListTriggerWithoutCount(nCtx, p, trigger.CategoryOrdered)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list triggers: %w", err)
 		}
@@ -259,7 +259,7 @@ func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 	var deletedOperInstCount int
 
 	fn := func(nCtx contextx.IContext, p types.Page) ([]string, error) {
-		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryPeriodic)
+		triggers, err := pt.conf.StgWorkflow.ListTriggerWithoutCount(nCtx, p, trigger.CategoryPeriodic)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list triggers: %w", err)
 		}
@@ -274,7 +274,7 @@ func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 				continue
 			}
 
-			operInsts, _, err := pt.conf.StgWorkflow.ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx, types.UnlimitedPage(), trig.TriggerID)
+			operInsts, err := pt.conf.StgWorkflow.ListOperInstanceBriefWithoutActionInstByTriggerIDWithoutCount(nCtx, types.UnlimitedPage(), trig.TriggerID)
 			if err != nil {
 				logger.G.Sys().WithErr(err).With("trigger_id", trig.TriggerID).
 					Warn("failed to list oper instance")

@@ -310,7 +310,7 @@ func (h *handler) fetchNetworkunits(ctx contextx.IContext, hosts []*protoBackend
 		networkUnitIDMap[host.GetProxyInstallOriginUnitId()] = struct{}{}
 	}
 
-	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+	networkUnitList, err := h.storageNetworkUnit.ListNetworkUnitWithoutCount(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkUnitID: conv.MapKeyToSlice(networkUnitIDMap),
 		},
@@ -335,7 +335,7 @@ func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend
 		}
 	}
 
-	existedHostList, _, err := h.storageHost.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
+	existedHostList, err := h.storageHost.ListHostWithoutCount(ctx, types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: conv.MapKeyToSlice(hostIDMap),
 		},

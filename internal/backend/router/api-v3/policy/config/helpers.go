@@ -23,7 +23,7 @@ import (
 
 func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64) ([]*types.ConfigPolicy, error) {
 	// get the config policy info.
-	configpolicies, _, err := h.storageConfigPolicy.ListConfigPolicy(nCtx, types.UnlimitedPage(),
+	configpolicies, err := h.storageConfigPolicy.ListConfigPolicyWithoutCount(nCtx, types.UnlimitedPage(),
 		&types.ConfigPolicyCondition{
 			ExactInclude: &types.ConfigPolicyExactFields{
 				ConfigPolicyID: configpolicyID,

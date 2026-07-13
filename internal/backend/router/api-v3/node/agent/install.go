@@ -280,7 +280,7 @@ func (h *handler) fetchNetworkunits(nCtx contextx.IContext, hosts []*protoBacken
 		return make(map[int64]*types.NetworkUnit), nil
 	}
 
-	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+	networkUnitList, err := h.storageNetworkUnit.ListNetworkUnitWithoutCount(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkUnitID: conv.MapKeyToSlice(networkUnitIDMap),
 		},
@@ -309,7 +309,7 @@ func (h *handler) fetchExistedHosts(nCtx contextx.IContext, hosts []*protoBacken
 		return make(map[int64]*types.Host), nil
 	}
 
-	existedHostList, _, err := h.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+	existedHostList, err := h.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: conv.MapKeyToSlice(hostIDMap),
 		},

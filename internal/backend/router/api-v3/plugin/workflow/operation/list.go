@@ -50,7 +50,8 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	// list all operations by trigger id.
-	operations, _, err := h.storageWorkflow.ListOperation(rCtx, types.UnlimitedPage(), req.ConvertConditionsToOperationTypes(workflow.TriggerID))
+	operations, err := h.storageWorkflow.ListOperationWithoutCount(
+		rCtx, types.UnlimitedPage(), req.ConvertConditionsToOperationTypes(workflow.TriggerID))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -113,7 +114,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return dep.Info.Process.HostID
 	})
 
-	hosts, _, err := h.daoHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+	hosts, err := h.daoHost.ListHostWithoutCount(rCtx, types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDList},
 	})
 	if err != nil {
@@ -223,7 +224,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	// Find workflow by trigger ID to check permission
 	// Note: We query by TriggerID since PluginWorkflowExactFields doesn't support TriggerID field
 	// This is a workaround - ideally we should add TriggerID to PluginWorkflowExactFields
-	workflows, _, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx, types.UnlimitedPage())
+	workflows, err := h.daoPluginWorkflow.ListPluginWorkflowWithoutCount(rCtx, types.UnlimitedPage())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to list workflows")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -289,7 +290,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 
 	// Find workflow by trigger ID to check permission
 	// Note: We query all workflows since PluginWorkflowExactFields doesn't support TriggerID field
-	workflows, _, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx, types.UnlimitedPage())
+	workflows, err := h.daoPluginWorkflow.ListPluginWorkflowWithoutCount(rCtx, types.UnlimitedPage())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to list workflows")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

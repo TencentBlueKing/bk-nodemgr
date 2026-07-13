@@ -126,7 +126,7 @@ func (exec *extraExecution) preprocess(nCtx contextx.IContext, instance *operati
 
 	executor := pageexecutor.NewPageExecutor[*operation.InstanceBriefData](operationListMaxPageSize, operationListTimeout)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*operation.InstanceBriefData, error) {
-		operInsts, _, err := exec.workflowStg.ListOperInstanceBriefWithoutActionInstByOperationID(nCtx, p, operationIDs...)
+		operInsts, err := exec.workflowStg.ListOperInstanceBriefWithoutActionInstByOperationIDWithoutCount(nCtx, p, operationIDs...)
 
 		return operInsts, err
 	}

@@ -87,7 +87,7 @@ func (h *handler) getReconfigNodeHosts(
 		hostIDs[host.GetBkHostId()] = struct{}{}
 	}
 
-	hosts, _, err := h.storageHost.ListHost(nCtx,
+	hosts, err := h.storageHost.ListHostWithoutCount(nCtx,
 		types.UnlimitedPage(),
 		&types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{

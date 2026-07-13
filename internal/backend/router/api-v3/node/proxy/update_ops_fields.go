@@ -84,7 +84,7 @@ func (h *handler) getUpdateOpsFieldsNodeBizs(rCtx restserver.IContext, hostIDs .
 		DynamicExactInclude: &types.HostDynamicExactFields{NodeRole: []types.NodeRole{types.NodeRoleProxy}},
 	}
 	selection := &types.HostFieldSelection{BizID: true}
-	hosts, _, err := h.storageHost.ListHostWithFields(rCtx, types.UnlimitedPage(), selection, cond)
+	hosts, err := h.storageHost.ListHostWithFieldsWithoutCount(rCtx, types.UnlimitedPage(), selection, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).With("host-ids", hostIDs).WithErr(err).Error("failed to fetch hosts for updating ops fields")
 		return nil, err

@@ -169,7 +169,7 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	proxyHostIDs := conv.SliceToSlice[*types.Host, int64](hosts, func(host *types.Host) int64 {
 		return host.HostID
 	})
-	relayProcesses, _, err := act.storageProcess.ListProcesses(std.Context(), types.UnlimitedPage(), &types.ProcessCondition{
+	relayProcesses, err := act.storageProcess.ListProcessesWithoutCount(std.Context(), types.UnlimitedPage(), &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			HostID: proxyHostIDs,
 			InfoStatus: []types.ProcessStatus{

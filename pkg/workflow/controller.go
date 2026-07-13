@@ -323,7 +323,7 @@ func (ctl *controller) UpdateMetadata(nCtx contextx.IContext, metadata trigger.M
 // UpdateOperationRetryFlag updates the operation retry flag.
 // nolint: gocognit
 func (ctl *controller) UpdateOperationRetryFlag(nCtx contextx.IContext, mode operation.RetryMode, operationID ...string) error {
-	operations, _, err := ctl.mgr.stgOperation.ListOperationByOperationID(nCtx, operationID...)
+	operations, err := ctl.mgr.stgOperation.ListOperationByOperationIDWithoutCount(nCtx, operationID...)
 	if err != nil {
 		return err
 	}
@@ -383,7 +383,7 @@ func (ctl *controller) UpdateOperationRetryFlag(nCtx contextx.IContext, mode ope
 
 // ListNeedInstantiateOperation returns the operations need to be instantiated.
 func (ctl *controller) ListNeedInstantiateOperation(nCtx contextx.IContext, page types.Page) ([]IOperationCtl, error) {
-	opers, _, err := ctl.mgr.stgOperation.ListNeedInstantiateOperationByTriggerID(nCtx, page, ctl.trig.TriggerID)
+	opers, err := ctl.mgr.stgOperation.ListNeedInstantiateOperationByTriggerIDWithoutCount(nCtx, page, ctl.trig.TriggerID)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +418,7 @@ func (ctl *controller) ListOperationInstances(nCtx contextx.IContext, page types
 			State:     states,
 		},
 	}
-	instanceBriefData, _, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInst(
+	instanceBriefData, err := ctl.mgr.stgOperationInstance.ListOperationInstanceBriefDataWithoutActionInstWithoutCount(
 		nCtx, page, condition)
 	if err != nil {
 		return nil, err

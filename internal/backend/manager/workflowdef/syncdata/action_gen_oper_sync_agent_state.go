@@ -122,7 +122,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 			globalsettings.OperSyncAgentStateMaxConcurrencyNum, maxConcurrencyNum)
 	}
 
-	bizs, _, err := act.businessStg.ListBusinesses(std.Context(), types.UnlimitedPage())
+	bizs, err := act.businessStg.ListBusinessesWithoutCount(std.Context(), types.UnlimitedPage())
 	if err != nil {
 		return err
 	}

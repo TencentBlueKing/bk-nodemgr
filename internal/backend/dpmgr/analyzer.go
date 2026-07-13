@@ -107,7 +107,7 @@ func (analyzer *Analyzer) analyzeSpecifyPlugin(nCtx contextx.IContext, params *A
 		},
 	}
 
-	processes, _, err := analyzer.daoProcess.ListProcesses(nCtx, types.UnlimitedPage(), cond)
+	processes, err := analyzer.daoProcess.ListProcessesWithoutCount(nCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list processes, cond(%+v): %w", cond, err)
 	}
@@ -174,7 +174,7 @@ func (analyzer *Analyzer) analyzeSpecifyPluginPkg(nCtx contextx.IContext, params
 		},
 	}
 
-	processes, _, err := analyzer.daoProcess.ListProcesses(nCtx, types.UnlimitedPage(), cond)
+	processes, err := analyzer.daoProcess.ListProcessesWithoutCount(nCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list processes, cond(%+v): %w", cond, err)
 	}

@@ -47,7 +47,7 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 
 	switch versionParam.ReleaseType {
 	case types.ReleaseTypeAgent:
-		r, _, err := versionParam.daoRelease.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
+		r, err := versionParam.daoRelease.ListReleaseAgentWithoutCount(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return "", fmt.Errorf("failed to list default agent releases: %w", err)
 		}
@@ -64,7 +64,7 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 		return r[0].Version, nil
 
 	case types.ReleaseTypeProxy:
-		r, _, err := versionParam.daoRelease.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
+		r, err := versionParam.daoRelease.ListReleaseProxyWithoutCount(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return "", fmt.Errorf("failed to list default proxy releases: %w", err)
 		}
@@ -102,7 +102,7 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 
 	switch versionParam.ReleaseType {
 	case types.ReleaseTypeAgent:
-		r, _, err := versionParam.daoRelease.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
+		r, err := versionParam.daoRelease.ListReleaseAgentWithoutCount(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return fmt.Errorf("failed to list default agent releases: %w", err)
 		}
@@ -119,7 +119,7 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 		return nil
 
 	case types.ReleaseTypeProxy:
-		r, _, err := versionParam.daoRelease.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
+		r, err := versionParam.daoRelease.ListReleaseProxyWithoutCount(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return fmt.Errorf("failed to list default proxy releases: %w", err)
 		}

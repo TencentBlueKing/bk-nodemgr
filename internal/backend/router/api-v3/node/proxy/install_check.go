@@ -388,7 +388,7 @@ func (ic *proxyInstallChecker) fetchNetworkUnits(
 		return networkUnits, nil
 	}
 
-	networkUnitList, _, err := ic.storageNetworkUnit.ListNetworkUnit(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+	networkUnitList, err := ic.storageNetworkUnit.ListNetworkUnitWithoutCount(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkUnitID: networkUnitIDList,
 		},
@@ -410,7 +410,7 @@ func (ic *proxyInstallChecker) fetchHosts(nCtx contextx.IContext, hostIDList []i
 	hosts := make(map[int64]*types.Host)
 
 	if len(hostIDList) > 0 {
-		hostsByID, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hostsByID, err := ic.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDList},
 		})
 		if err != nil {
@@ -422,7 +422,7 @@ func (ic *proxyInstallChecker) fetchHosts(nCtx contextx.IContext, hostIDList []i
 	}
 
 	if len(innerIPList) > 0 {
-		hostsByInnerIP, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hostsByInnerIP, err := ic.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{InnerIP: innerIPList},
 		})
 		if err != nil {
@@ -434,7 +434,7 @@ func (ic *proxyInstallChecker) fetchHosts(nCtx contextx.IContext, hostIDList []i
 	}
 
 	if len(innerIPV6List) > 0 {
-		hostsByInnerIPV6, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hostsByInnerIPV6, err := ic.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{InnerIPV6: innerIPV6List},
 		})
 		if err != nil {

@@ -103,7 +103,7 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
-	processConfigs, _, err := act.daoProcessConfig.ListProcessConfigs(nCtx, types.UnlimitedPage(),
+	processConfigs, err := act.daoProcessConfig.ListProcessConfigsWithoutCount(nCtx, types.UnlimitedPage(),
 		&types.ProcessConfigCondition{
 			ExactInclude: &types.ProcessConfigExactFields{
 				ProcessName:  []string{deployInfo.Process.PluginName},

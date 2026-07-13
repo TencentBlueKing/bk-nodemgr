@@ -115,7 +115,7 @@ func (h *handler) generatesUnitDirectLinkWithExtra(
 		unitIDSet[id] = struct{}{}
 	}
 
-	units, _, err := h.storageNetworkUnit.ListNetworkUnit(nCtx,
+	units, err := h.storageNetworkUnit.ListNetworkUnitWithoutCount(nCtx,
 		types.UnlimitedPage(),
 		&types.NetworkUnitCondition{
 			ExactInclude: &types.NetworkUnitExactFields{
@@ -145,7 +145,7 @@ func (h *handler) getUpgradeNodeHosts(
 		hostIDs[host.GetBkHostId()] = struct{}{}
 	}
 
-	hosts, _, err := h.storageHost.ListHost(nCtx,
+	hosts, err := h.storageHost.ListHostWithoutCount(nCtx,
 		types.UnlimitedPage(),
 		&types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{

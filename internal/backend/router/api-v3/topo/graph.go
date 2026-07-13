@@ -42,7 +42,7 @@ func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
 
 	condition := narrowNetworkUnitCondition(nil, narrowedIDs, scopeIsAny)
 
-	networkUnits, _, err := h.storage.ListNetworkUnit(rCtx, types.UnlimitedPage(), condition)
+	networkUnits, err := h.storage.ListNetworkUnitWithoutCount(rCtx, types.UnlimitedPage(), condition)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph node, failed to list networkunit")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -157,7 +157,7 @@ func (h *handler) getProxyDatas(rCtx restserver.IContext, networkUnitIDs []int64
 		return make(map[int64]*proxyData), nil
 	}
 
-	proxies, _, err := h.storage.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+	proxies, err := h.storage.ListHostWithoutCount(rCtx, types.UnlimitedPage(), &types.HostCondition{
 		DynamicExactInclude: &types.HostDynamicExactFields{
 			NetworkUnitID: networkUnitIDs,
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},

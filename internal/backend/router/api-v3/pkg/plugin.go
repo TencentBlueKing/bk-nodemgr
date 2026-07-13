@@ -496,7 +496,7 @@ func (h *handler) GetConfigVariablesReleasePlugin(rCtx restserver.IContext) (int
 	}
 
 	cond := req.ConvertConditionsToTypes()
-	plugins, _, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, types.UnlimitedPage(), cond)
+	plugins, err := h.daoReleasePlugin.ListReleasePluginWithoutCount(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).

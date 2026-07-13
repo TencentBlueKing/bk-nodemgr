@@ -83,7 +83,7 @@ func (h *handler) getAssignAgentNetworkUnitBizIDs(rCtx restserver.IContext, host
 		rCtx,
 		hostIDs,
 		func(nCtx contextx.IContext, batch []int64) error {
-			hosts, _, err := h.storageHost.ListHostWithFields(
+			hosts, err := h.storageHost.ListHostWithFieldsWithoutCount(
 				nCtx,
 				types.UnlimitedPage(),
 				selection,

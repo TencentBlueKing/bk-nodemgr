@@ -62,7 +62,7 @@ func (mgr *Manager) fetchAgentNetworkUnitAssignmentHosts(
 
 	foundIDs := make(map[int64]struct{}, len(uniqueIDs))
 	result, err := batchexecutor.Collect(nCtx, uniqueIDs, func(nCtx contextx.IContext, batch []int64) ([]*types.Host, error) {
-		hosts, _, err := mgr.conf.StorageTopo.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hosts, err := mgr.conf.StorageTopo.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				HostID: batch,
 			},

@@ -37,7 +37,7 @@ func (h *handler) ProxyUpgradeCheck(rCtx restserver.IContext) (interface{}, erro
 	for _, host := range req.GetHost() {
 		hostIDs = append(hostIDs, host.GetBkHostId())
 	}
-	hosts, _, err := h.storageHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+	hosts, err := h.storageHost.ListHostWithoutCount(rCtx, types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 	})
 	if err != nil {
@@ -246,7 +246,7 @@ func (uc *proxyUpgradeChecker) getNetworkUnit(networkUnitID int64) (*types.Netwo
 
 func (uc *proxyUpgradeChecker) init(nCtx contextx.IContext, hostIDs []int64, networkUnitIDs []int64) error {
 	if len(hostIDs) > 0 {
-		hosts, _, err := uc.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hosts, err := uc.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDs},
 		})
 		if err != nil {
@@ -262,7 +262,7 @@ func (uc *proxyUpgradeChecker) init(nCtx contextx.IContext, hostIDs []int64, net
 	}
 
 	if len(networkUnitIDs) > 0 {
-		units, _, err := uc.storageNetworkUnit.ListNetworkUnit(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+		units, err := uc.storageNetworkUnit.ListNetworkUnitWithoutCount(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
 			ExactInclude: &types.NetworkUnitExactFields{NetworkUnitID: networkUnitIDs},
 		})
 		if err != nil {

@@ -102,7 +102,7 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 				return
 
 			case <-ticker.C:
-				sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.UnlimitedPage())
+				sws, err := mgr.conf.StorageWorkflow.ListScheduledWorkflowWithoutCount(nCtx, types.UnlimitedPage())
 				if err != nil {
 					logger.G.Sys().WithErr(err).Error("failed to list scheduled workflows")
 
@@ -142,7 +142,7 @@ func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string
 		},
 	}
 
-	sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.SingleItemPage(), cond)
+	sws, err := mgr.conf.StorageWorkflow.ListScheduledWorkflowWithoutCount(nCtx, types.SingleItemPage(), cond)
 	if err != nil {
 		return err
 	}

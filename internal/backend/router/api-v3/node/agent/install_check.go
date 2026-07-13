@@ -475,7 +475,7 @@ func (ic *installChecker) fetchHosts(nCtx contextx.IContext, hostIDList []int64,
 
 	// fetch hosts by host-id.
 	if len(hostIDList) > 0 {
-		hostsByID, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hostsByID, err := ic.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				HostID: hostIDList,
 			},
@@ -490,7 +490,7 @@ func (ic *installChecker) fetchHosts(nCtx contextx.IContext, hostIDList []int64,
 
 	// fetch hosts by innerip.
 	if len(innerIPList) > 0 {
-		hostsByInnerIP, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hostsByInnerIP, err := ic.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				InnerIP: innerIPList,
 			},
@@ -505,7 +505,7 @@ func (ic *installChecker) fetchHosts(nCtx contextx.IContext, hostIDList []int64,
 
 	// fetch hosts by innerip_v6.
 	if len(innerIPV6List) > 0 {
-		hostsByInnerIPV6, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		hostsByInnerIPV6, err := ic.storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				InnerIPV6: innerIPV6List,
 			},

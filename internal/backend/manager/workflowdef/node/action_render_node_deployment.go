@@ -218,7 +218,7 @@ func (act *actionRenderNodeDeployment) getReleaseAgentForRender(
 		},
 	}
 
-	releases, _, err := act.storageRelease.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
+	releases, err := act.storageRelease.ListReleaseAgentWithoutCount(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list release agent: %w", err)
 	}
@@ -250,7 +250,7 @@ func (act *actionRenderNodeDeployment) fallbackDefaultReleaseAgent(
 		},
 	}
 
-	defaults, _, err := act.storageRelease.ListReleaseAgent(std.Context(), types.UnlimitedPage(), cond)
+	defaults, err := act.storageRelease.ListReleaseAgentWithoutCount(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("release agent version(%s) not found, "+
 			"and failed to list default agent release for platform(%v): %w", originalVersion, plat, err)
@@ -289,7 +289,7 @@ func (act *actionRenderNodeDeployment) getReleaseProxyForRender(
 		},
 	}
 
-	releases, _, err := act.storageRelease.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
+	releases, err := act.storageRelease.ListReleaseProxyWithoutCount(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list release proxy: %w", err)
 	}
@@ -321,7 +321,7 @@ func (act *actionRenderNodeDeployment) fallbackDefaultReleaseProxy(
 		},
 	}
 
-	defaults, _, err := act.storageRelease.ListReleaseProxy(std.Context(), types.UnlimitedPage(), cond)
+	defaults, err := act.storageRelease.ListReleaseProxyWithoutCount(std.Context(), types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, fmt.Errorf("release proxy version(%s) not found, "+
 			"and failed to list default proxy release for platform(%v): %w", originalVersion, plat, err)

@@ -44,7 +44,7 @@ func (h *handler) ReorderPrioritiesConfigPolicy(rCtx restserver.IContext) (inter
 	}
 
 	// list all enabled config policies for this (biz, type) scope, ordered by priority ascending.
-	all, _, err := h.storageConfigPolicy.ListConfigPolicy(rCtx, types.UnlimitedPage(), &types.ConfigPolicyCondition{
+	all, err := h.storageConfigPolicy.ListConfigPolicyWithoutCount(rCtx, types.UnlimitedPage(), &types.ConfigPolicyCondition{
 		ExactInclude: &types.ConfigPolicyExactFields{
 			BizID:   []int64{bizID},
 			Type:    []types.ConfigPolicyType{policyType},

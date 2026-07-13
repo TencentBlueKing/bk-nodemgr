@@ -208,7 +208,7 @@ func generateInDirectServerEndpoints(nCtx contextx.IContext, hostID int64, netwo
 	storageHost topoStg.IStorageHost, storageProcess pluginStg.IDaoProcess) ([]discover.Endpoint, error) {
 
 	// select relay endpoints for callback.
-	proxyHosts, _, err := storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+	proxyHosts, err := storageHost.ListHostWithoutCount(nCtx, types.UnlimitedPage(), &types.HostCondition{
 		DynamicExactInclude: &types.HostDynamicExactFields{
 			NetworkUnitID: []int64{networkUnit.ID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
@@ -227,7 +227,7 @@ func generateInDirectServerEndpoints(nCtx contextx.IContext, hostID int64, netwo
 	proxyHostIDs := conv.SliceToSlice[*types.Host, int64](proxyHosts, func(host *types.Host) int64 {
 		return host.HostID
 	})
-	relayProcesses, _, err := storageProcess.ListProcesses(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
+	relayProcesses, err := storageProcess.ListProcessesWithoutCount(nCtx, types.UnlimitedPage(), &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			HostID: proxyHostIDs,
 			InfoStatus: []types.ProcessStatus{
