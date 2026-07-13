@@ -32,6 +32,7 @@ func NewNodeCMD(
 	getHandler func() backendadmin.ISyncUnassignedAgentNetworkUnitHandler,
 	getAuthInfo func() (string, string),
 ) *cobra.Command {
+
 	cmd := &cobra.Command{
 		Use:   "node",
 		Short: "manage backend node operations",
