@@ -12,12 +12,12 @@
 package local
 
 import (
-	"context"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/joho/godotenv"
 )
 
@@ -67,7 +67,7 @@ func TestNewLocalFile(t *testing.T) {
 			}
 			defer file.Close()
 
-			reader, err := got.Content(context.Background())
+			reader, err := got.Content(contextx.Background())
 			if err != nil {
 				t.Fatalf("Content() error = %v", err)
 			}

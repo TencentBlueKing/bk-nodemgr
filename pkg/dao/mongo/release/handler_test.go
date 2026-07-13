@@ -15,6 +15,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -75,12 +76,8 @@ func Test_UpsertMany(t *testing.T) {
 							OS:   criteria.OSLinux,
 							Arch: criteria.CPUArchAmd64,
 						},
-						Labels:      []string{"test"},
-						ChangeLogEN: "test",
-						ChangeLogZH: "test",
-						FileName:    "v2.1.6-beta.1-linux-amd64.tgz",
-						LocalDir:    "agent/",
-						UpstreamDir: "agent/",
+					Labels:      []string{"test"},
+					FileName:    "v2.1.6-beta.1-linux-amd64.tgz",
 					},
 					{
 						Generation: types.Generation2,
@@ -90,12 +87,8 @@ func Test_UpsertMany(t *testing.T) {
 							OS:   criteria.OSLinux,
 							Arch: criteria.CPUArchArm64,
 						},
-						Labels:      []string{"test"},
-						ChangeLogEN: "test",
-						ChangeLogZH: "test",
-						FileName:    "v2.1.6-beta.1-linux-arm64.tgz",
-						LocalDir:    "agent/",
-						UpstreamDir: "agent/",
+					Labels:      []string{"test"},
+					FileName:    "v2.1.6-beta.1-linux-arm64.tgz",
 					},
 					{
 						Generation: types.Generation2,
@@ -105,12 +98,8 @@ func Test_UpsertMany(t *testing.T) {
 							OS:   criteria.OSWindows,
 							Arch: criteria.CPUArchArm64,
 						},
-						Labels:      []string{"test"},
-						ChangeLogEN: "test",
-						ChangeLogZH: "test",
-						FileName:    "v2.1.6-beta.2-windows-amd64.tgz",
-						LocalDir:    "agent/",
-						UpstreamDir: "agent/",
+					Labels:      []string{"test"},
+					FileName:    "v2.1.6-beta.2-windows-amd64.tgz",
 					},
 				},
 			},
@@ -120,7 +109,7 @@ func Test_UpsertMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := client.UpsertMany(context.Background(), "", tt.args.releases...); (err != nil) != tt.wantErr {
+			if err := client.UpsertMany(contextx.Background(), types.ReleaseTypeAgent, tt.args.releases...); (err != nil) != tt.wantErr {
 				t.Errorf("UpsertMany() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -159,7 +148,7 @@ func Test_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			release, err := client.Get(context.Background(), tt.args.releaseType)
+			release, err := client.Get(contextx.Background(), tt.args.releaseType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -201,7 +190,7 @@ func Test_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			releases, total, err := client.List(context.Background(), "", tt.args.page, tt.args.opts...)
+			releases, total, err := client.List(contextx.Background(), types.ReleaseTypeAgent, tt.args.page, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -214,6 +203,54 @@ func Test_List(t *testing.T) {
 
 			if total != tt.wantTotal {
 				t.Errorf("List() gotTotal = %v, want %v", total, tt.wantTotal)
+				return
+			}
+
+			for _, r := range releases {
+				t.Logf("got release: %v", r)
+			}
+		})
+	}
+}
+
+// Test_ListWithoutCount tests the ListWithoutCount.
+func Test_ListWithoutCount(t *testing.T) {
+	client := testClient(t)
+
+	type args struct {
+		page types.Page
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "filter by version",
+			args: args{
+				page: types.Page{Offset: 0, Limit: 10},
+				opts: []OptFn{
+					WithVersion("v2.1.6-beta.1"),
+				},
+			},
+			wantNum: 2,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			releases, err := client.ListWithoutCount(
+				contextx.Background(), types.ReleaseTypeAgent, tt.args.page, tt.args.opts...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(releases)) {
+				t.Errorf("ListWithoutCount() gotNum = %v, want %v", len(releases), tt.wantNum)
 				return
 			}
 
@@ -256,7 +293,7 @@ func Test_Delete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := client.Delete(context.Background(), tt.args.releaseType); (err != nil) != tt.wantErr {
+			if err := client.Delete(contextx.Background(), tt.args.releaseType); (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

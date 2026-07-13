@@ -43,13 +43,6 @@ func TestNodeProxyUpgradeReqConvertParamFromTypesPreservesNewFields(t *testing.T
 	req := &NodeProxyUpgradeReq{}
 	req.ConvertParamFromTypes(&types.NodeProxyUpgradeParam{
 		Hosts: []*types.NodeProxyUpgradeHost{upgradeHost},
-		TargetVersion: []*types.TargetVersion{
-			{
-				OsType:  "linux",
-				CPUArch: "arm64",
-				Version: "7.1.0",
-			},
-		},
 	})
 
 	if got := req.GetHost()[0].GetBkNetworkunitId(); got != 5001 {

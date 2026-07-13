@@ -15,6 +15,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -56,7 +57,7 @@ func Test_UpsertMany(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx                 context.Context
+		nCtx                 contextx.IContext
 		configPolicyTemplate []*types.ConfigPolicyTemplate
 	}
 	tests := []struct {
@@ -123,7 +124,7 @@ func Test_Get(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx           context.Context
+		nCtx           contextx.IContext
 		configPolicyID int64
 	}
 	tests := []struct {
@@ -183,7 +184,7 @@ func Test_DeleteMany(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx           context.Context
+		nCtx           contextx.IContext
 		configPolicyID []int64
 	}
 	tests := []struct {

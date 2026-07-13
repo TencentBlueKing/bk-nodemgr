@@ -127,7 +127,7 @@ func Test_handler_Get(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		name string
 	}
 	tests := []struct {
@@ -183,7 +183,7 @@ func Test_handler_List(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		page types.Page
 		opts []OptFn
 	}
@@ -253,13 +253,89 @@ func Test_handler_List(t *testing.T) {
 	}
 }
 
+// Test_handler_ListWithoutCount tests the ListWithoutCount method of the handler.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	prepareData(t, nCtx)
+
+	type args struct {
+		nCtx contextx.IContext
+		page types.Page
+		opts []OptFn
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*types.GlobalSettings
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "filter by setting name",
+			args: args{
+				nCtx: nCtx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  2,
+					Sort:   "",
+				},
+				opts: []OptFn{
+					WithSettingName("test1"),
+				},
+			},
+			want: []*types.GlobalSettings{
+				{
+					SettingName: "test1",
+					Value:       "value1",
+				},
+			},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "all settings",
+			args: args{
+				nCtx: nCtx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  10,
+				},
+				opts: nil,
+			},
+			wantNum: 3,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+
+			got, err := h.ListWithoutCount(tt.args.nCtx, tt.args.page, tt.args.opts...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("ListWithoutCount() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+			t.Logf("ListWithoutCount() num = %d", len(got))
+			for _, v := range got {
+				t.Logf("ListWithoutCount() got = %v", v)
+			}
+		})
+	}
+}
+
 // Test_handler_Count tests the Count method of the handler.
 func Test_handler_Count(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		opts []OptFn
 	}
 	tests := []struct {
@@ -306,7 +382,7 @@ func Test_handler_Exist(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		name string
 	}
 	tests := []struct {
@@ -356,7 +432,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		names []string
 	}
 	tests := []struct {

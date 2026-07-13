@@ -54,13 +54,6 @@ func TestNodeProxyUpgradeReqConvertParamToTypesPreservesNewFields(t *testing.T) 
 				CpuArch:         "arm64",
 			},
 		},
-		TargetVersion: []*TargetVersion{
-			{
-				OsType:  "linux",
-				CpuArch: "arm64",
-				Version: "7.1.0",
-			},
-		},
 	}
 
 	param := req.ConvertParamToTypes()

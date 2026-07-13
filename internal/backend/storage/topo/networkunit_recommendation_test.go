@@ -37,6 +37,10 @@ func (f *fakeGlobalSettingsHandler) List(contextx.IContext, types.Page, ...gsdao
 	panic("not implemented")
 }
 
+func (f *fakeGlobalSettingsHandler) ListWithoutCount(contextx.IContext, types.Page, ...gsdao.OptFn) ([]*types.GlobalSettings, error) {
+	panic("not implemented")
+}
+
 func (f *fakeGlobalSettingsHandler) Upsert(contextx.IContext, ...*types.GlobalSettings) error {
 	panic("not implemented")
 }

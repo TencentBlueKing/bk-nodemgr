@@ -274,6 +274,74 @@ func Test_handler_List(t *testing.T) {
 	}
 }
 
+// Test_handler_ListWithoutCount list network area without count.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+
+	tests := []struct {
+		name    string
+		page    types.Page
+		optFn   []OptFn
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:   nil,
+			wantNum: -1,
+			wantErr: false,
+		},
+		{
+			name: "filter by networkarea id",
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithNetworkAreaID(90001, 90002, 0)},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by biz name",
+			page: types.Page{
+				Offset: 1,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithFuzzyNetworkAreaName("name-same")},
+			wantNum: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListWithoutCount(nCtx, tt.page, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("ListWithoutCount() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+			t.Logf("ListWithoutCount() num = %d", len(got))
+
+			for _, v := range got {
+				t.Logf("ListWithoutCount() got = %v", v)
+			}
+		})
+	}
+}
+
 // Test_handler_UpsertMany upserts many networkareas.
 func Test_handler_UpsertMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
@@ -374,7 +442,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx           context.Context
+		nCtx           contextx.IContext
 		networkAreaIDs []int64
 	}
 

@@ -124,7 +124,7 @@ func Test_handler_List(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		nCtx      context.Context
+		nCtx      contextx.IContext
 		page      types.Page
 		optFn     []OptFn
 		wantTotal int64
@@ -236,6 +236,114 @@ func Test_handler_List(t *testing.T) {
 	}
 }
 
+// Test_handler_ListWithoutCount list topo events by page and conditions without count.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	tenant.SetMode(tenant.ModeMultiple)
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+
+	tests := []struct {
+		name    string
+		nCtx    contextx.IContext
+		page    types.Page
+		optFn   []OptFn
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "nil nCtx",
+			nCtx: nil,
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:   nil,
+			wantNum: -1,
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:   nil,
+			wantNum: -1,
+			wantErr: false,
+		},
+		{
+			name: "filter by networkarea id",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithNetworkAreaID(10001)},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by networkunit id",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithNetworkUnitID(10001)},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter by accesspoint id",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn:   []OptFn{WithAccessPointID(10001)},
+			wantNum: 1,
+			wantErr: false,
+		},
+		{
+			name: "filter with time range",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  1,
+			},
+			optFn: []OptFn{WithOperateTimeRange(types.TimeRange{
+				StartTime: time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local),
+				EndTime:   time.Date(2024, 5, 1, 0, 0, 0, 0, time.Local),
+			})},
+			wantNum: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListWithoutCount(tt.nCtx, tt.page, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("ListWithoutCount() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+			t.Logf("ListWithoutCount() num = %d", len(got))
+
+			for _, v := range got {
+				t.Logf("ListWithoutCount() got = %v", v)
+			}
+		})
+	}
+}
+
 // Test_handler_Count tests the count with filter.
 func Test_handler_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
@@ -245,7 +353,7 @@ func Test_handler_Count(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		nCtx    context.Context
+		nCtx    contextx.IContext
 		optFn   []OptFn
 		wantErr bool
 	}{
@@ -303,7 +411,7 @@ func Test_handler_DistinctType(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		optFn []OptFn
 	}
 	tests := []struct {
@@ -359,7 +467,7 @@ func Test_handler_DistinctAccessPointID(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		optFn []OptFn
 	}
 	tests := []struct {
@@ -415,7 +523,7 @@ func Test_handler_DistinctOperator(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		optFn []OptFn
 	}
 	tests := []struct {

@@ -667,14 +667,12 @@ type mockPluginStorage struct {
 	distinctPluginNames []string
 	distinctPluginErr   error
 	listPluginReleases  []*types.ReleasePlugin
-	listPluginCount     int64
 	listPluginErr       error
 
 	// PluginBinTool methods
 	distinctPluginBinToolNames []string
 	distinctPluginBinToolErr   error
 	listPluginBinToolReleases  []*types.ReleasePluginBinTool
-	listPluginBinToolCount     int64
 	listPluginBinToolErr       error
 }
 
@@ -683,9 +681,9 @@ func (m *mockPluginStorage) DistinctNameReleasePlugin(nCtx contextx.IContext, co
 	return m.distinctPluginNames, m.distinctPluginErr
 }
 
-// ListReleasePlugin implements IPlugin.
-func (m *mockPluginStorage) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error) {
-	return m.listPluginReleases, m.listPluginCount, m.listPluginErr
+// ListReleasePluginWithoutCount implements IPlugin.
+func (m *mockPluginStorage) ListReleasePluginWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, error) {
+	return m.listPluginReleases, m.listPluginErr
 }
 
 // DistinctNameReleasePluginBinTool implements IPluginBinTool.
@@ -693,9 +691,9 @@ func (m *mockPluginStorage) DistinctNameReleasePluginBinTool(nCtx contextx.ICont
 	return m.distinctPluginBinToolNames, m.distinctPluginBinToolErr
 }
 
-// ListReleasePluginBinTool implements IPluginBinTool.
-func (m *mockPluginStorage) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, int64, error) {
-	return m.listPluginBinToolReleases, m.listPluginBinToolCount, m.listPluginBinToolErr
+// ListReleasePluginBinToolWithoutCount implements IPluginBinTool.
+func (m *mockPluginStorage) ListReleasePluginBinToolWithoutCount(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, error) {
+	return m.listPluginBinToolReleases, m.listPluginBinToolErr
 }
 
 // mockPackageProvider wraps mockPluginStorage for testing package provider methods.
@@ -769,7 +767,7 @@ func (m *mockPackageProvider) addPluginReleases(ctx contextx.IContext, nameSet m
 		pageLimit = MaxListInstanceByPolicyLimit
 	}
 
-	pluginReleases, _, err := m.mock.ListReleasePlugin(ctx, types.Page{Limit: pageLimit})
+	pluginReleases, err := m.mock.ListReleasePluginWithoutCount(ctx, types.Page{Limit: pageLimit})
 	if err != nil {
 		return fmt.Errorf("failed to list plugin releases: %w", err)
 	}
@@ -794,7 +792,7 @@ func (m *mockPackageProvider) addPluginBinToolReleases(ctx contextx.IContext, na
 		pageLimit = MaxListInstanceByPolicyLimit
 	}
 
-	pluginBinToolReleases, _, err := m.mock.ListReleasePluginBinTool(ctx, types.Page{Limit: pageLimit})
+	pluginBinToolReleases, err := m.mock.ListReleasePluginBinToolWithoutCount(ctx, types.Page{Limit: pageLimit})
 	if err != nil {
 		return fmt.Errorf("failed to list plugin bintool releases: %w", err)
 	}

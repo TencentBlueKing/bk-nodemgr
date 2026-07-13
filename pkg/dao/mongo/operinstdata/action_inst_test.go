@@ -11,10 +11,10 @@
 package operinstdata
 
 import (
-	"context"
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 )
@@ -27,7 +27,7 @@ func testActionInstData(t *testing.T) IActionInstData {
 // Test_handler_UpdateActionInstData ...
 func Test_handler_UpdateActionInstData(t *testing.T) {
 	tests := []struct {
-		nCtx    context.Context
+		nCtx    contextx.IContext
 		name    string
 		wantErr bool
 		data    *action.InstanceData
@@ -81,7 +81,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			if err := h.UpdateActionInstData(context.Background(), tt.data); (err != nil) != tt.wantErr {
+			if err := h.UpdateActionInstData(contextx.Background(), tt.data); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -91,7 +91,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 // Test_handler_AddActInstPrivateData ...
 func Test_handler_UpdateActionInstContent(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 		content    map[string]any
@@ -104,7 +104,7 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 				content: map[string]any{
@@ -128,7 +128,7 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 // Test_handler_GetActionInstData ...
 func Test_handler_GetActionInstData(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 	}
@@ -141,7 +141,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 			},
@@ -150,7 +150,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "op-instance-002",
 				actionName: "check-stock",
 			},
@@ -168,7 +168,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "empty operInstID",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "",
 				actionName: "sync_biz_from_cmdb",
 			},
@@ -177,7 +177,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "empty actionName",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
 				actionName: "",
 			},
@@ -202,7 +202,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 // Test_handler_UpdateActionInstStatus ...
 func Test_handler_UpdateActionInstStatus(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 		status     action.State
@@ -215,7 +215,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 				status:     "success",
@@ -225,7 +225,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-3",
 				status:     "success",
@@ -246,7 +246,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 // Test_handler_GetActInstLifecycle ...
 func Test_handler_GetActInstLifecycle(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 	}
@@ -259,7 +259,7 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "op-instance-001",
 				actionName: "validate-order",
 			},
@@ -288,7 +288,7 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 // Test_handler_AddActInstPrivateData ...
 func Test_handler_AddActInstPrivateData(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 		data       map[string]any
@@ -301,7 +301,7 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "op-instance-001",
 				actionName: "validate-order",
 				data:       map[string]any{"test": "test1"},
@@ -327,7 +327,7 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 // Test_handler_PushActInstMsgs ...
 func Test_handler_PushActInstMsgs(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 		msgs       []common.Message
@@ -340,14 +340,14 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "sync_action_from_cmdb",
 				msgs: []common.Message{
 					{
-						Time:  time.Now(),
-						Text:  "test1 ",
-						Level: "INFO",
+						Time:   time.Now(),
+						TextZh: "test1 ",
+						Level:  "INFO",
 					},
 				},
 			},
@@ -367,7 +367,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 // Test_handler_UpdateActInstLifecycle ...
 func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 		actionName string
 		lifecycle  *action.Lifecycle
@@ -380,7 +380,7 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "op-instance-001",
 				actionName: "validate-order",
 				lifecycle: &action.Lifecycle{

@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -62,45 +61,41 @@ var once = sync.Once{}
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(nCtx)
+		tenantID := nCtx.TenantID()
 
 		// pre insert.
 		h := testClient(t)
 		err := h.CreateMany(nCtx,
-			&types.PolicyEvent{
+			&types.ConfigPolicyEvent{
 				TenantID:         tenantID,
-				EventType:        types.PolicyEventTypeCreate,
-				NodeRole:         types.NodeRoleAgent,
+				Type:             types.ConfigPolicyEventTypeCreate,
 				ConfigPolicyID:   1,
 				ConfigPolicyName: "test",
 				Version:          1,
 				Operator:         "admin",
 				OperateTime:      time.Date(2024, 3, 1, 0, 0, 0, 0, time.Local),
 			},
-			&types.PolicyEvent{
+			&types.ConfigPolicyEvent{
 				TenantID:         tenantID,
-				EventType:        types.PolicyEventTypeCreate,
-				NodeRole:         types.NodeRoleAgent,
+				Type:             types.ConfigPolicyEventTypeCreate,
 				ConfigPolicyID:   2,
 				ConfigPolicyName: "test-2",
 				Version:          2,
 				Operator:         "admin",
 				OperateTime:      time.Date(2025, 1, 1, 0, 0, 0, 0, time.Local),
 			},
-			&types.PolicyEvent{
+			&types.ConfigPolicyEvent{
 				TenantID:         tenantID,
-				EventType:        types.PolicyEventTypeCreate,
-				NodeRole:         types.NodeRoleProxy,
+				Type:             types.ConfigPolicyEventTypeCreate,
 				ConfigPolicyID:   3,
 				ConfigPolicyName: "test-3",
 				Version:          3,
 				Operator:         "admin",
 				OperateTime:      time.Date(2025, 1, 1, 0, 0, 0, 0, time.Local),
 			},
-			&types.PolicyEvent{
+			&types.ConfigPolicyEvent{
 				TenantID:         tenantID,
-				EventType:        types.PolicyEventTypeUpdate,
-				NodeRole:         types.NodeRoleAgent,
+				Type:             types.ConfigPolicyEventTypeUpdate,
 				ConfigPolicyID:   4,
 				ConfigPolicyName: "test-4",
 				Version:          4,
@@ -154,25 +149,13 @@ func Test_handler_List(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name: "filter by node role",
-			nCtx: nCtx,
-			page: types.Page{
-				Offset: 0,
-				Limit:  1,
-			},
-			optFn:     []OptFn{WithNodeRole(types.NodeRoleAgent)},
-			wantTotal: -1,
-			wantNum:   1,
-			wantErr:   false,
-		},
-		{
 			name: "filter by event type",
 			nCtx: nCtx,
 			page: types.Page{
 				Offset: 0,
 				Limit:  4,
 			},
-			optFn:     []OptFn{WithEventType(types.PolicyEventTypeCreate)},
+			optFn:     []OptFn{WithType(types.ConfigPolicyEventTypeCreate)},
 			wantTotal: -1,
 			wantNum:   3,
 			wantErr:   false,
@@ -219,6 +202,88 @@ func Test_handler_List(t *testing.T) {
 	}
 }
 
+// Test_handler_ListWithoutCount list event by page and conditions without count.
+func Test_handler_ListWithoutCount(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+
+	tests := []struct {
+		name    string
+		nCtx    contextx.IContext
+		page    types.Page
+		optFn   []OptFn
+		wantNum int64
+		wantErr bool
+	}{
+		{
+			name: "nil nCtx",
+			nCtx: nil,
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:   nil,
+			wantNum: -1,
+			wantErr: true,
+		},
+		{
+			name: "normal",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  0,
+			},
+			optFn:   nil,
+			wantNum: -1,
+			wantErr: false,
+		},
+		{
+			name: "filter by event type",
+			nCtx: nCtx,
+			page: types.Page{
+				Offset: 0,
+				Limit:  4,
+			},
+			optFn:   []OptFn{WithType(types.ConfigPolicyEventTypeCreate)},
+			wantNum: 3,
+			wantErr: false,
+		},
+		{
+			name: "filter with time range",
+			nCtx: nCtx,
+			page: types.UnlimitedPage(),
+			optFn: []OptFn{WithOperateTimeRange(types.TimeRange{
+				StartTime: time.Date(2022, 1, 1, 0, 0, 0, 0, time.Local),
+				EndTime:   time.Date(2026, 5, 1, 0, 0, 0, 0, time.Local),
+			})},
+			wantNum: 4,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ListWithoutCount(tt.nCtx, tt.page, tt.optFn...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListWithoutCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
+				t.Errorf("ListWithoutCount() num = %d, wantNum %d", len(got), tt.wantNum)
+				return
+			}
+			t.Logf("ListWithoutCount() num = %d", len(got))
+
+			for _, v := range got {
+				t.Logf("ListWithoutCount() got = %v", v)
+			}
+		})
+	}
+}
+
 // Test_handler_Count tests the count with filter.
 func Test_handler_Count(t *testing.T) {
 
@@ -241,15 +306,9 @@ func Test_handler_Count(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "filter by node role",
-			nCtx:    nCtx,
-			optFn:   []OptFn{WithNodeRole(types.NodeRoleAgent)},
-			wantErr: false,
-		},
-		{
 			name:    "filter by event type",
 			nCtx:    nCtx,
-			optFn:   []OptFn{WithEventType(types.PolicyEventTypeCreate)},
+			optFn:   []OptFn{WithType(types.ConfigPolicyEventTypeCreate)},
 			wantErr: false,
 		},
 		{
@@ -283,7 +342,7 @@ func Test_handler_DistinctEventType(t *testing.T) {
 	tests := []struct {
 		name       string
 		args       args
-		wantResult []types.PolicyEventType
+		wantResult []types.ConfigPolicyEventType
 		wantErr    bool
 	}{
 		{
@@ -301,7 +360,7 @@ func Test_handler_DistinctEventType(t *testing.T) {
 				nCtx:  nCtx,
 				optFn: []OptFn{},
 			},
-			wantResult: []types.PolicyEventType{types.PolicyEventTypeCreate, types.PolicyEventTypeUpdate},
+			wantResult: []types.ConfigPolicyEventType{types.ConfigPolicyEventTypeCreate, types.ConfigPolicyEventTypeUpdate},
 			wantErr:    false,
 		},
 	}
@@ -320,57 +379,6 @@ func Test_handler_DistinctEventType(t *testing.T) {
 
 			if !reflect.DeepEqual(gotResult, tt.wantResult) {
 				t.Errorf("DistinctType() gotResult = %v, want %v", gotResult, tt.wantResult)
-			}
-		})
-	}
-}
-
-// Test_handler_DistinctNodeRole tests the distinct with node role type field.
-func Test_handler_DistinctNodeRole(t *testing.T) {
-	type args struct {
-		nCtx  contextx.IContext
-		optFn []OptFn
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantResult []types.NodeRole
-		wantErr    bool
-	}{
-		{
-			name: "invalid nCtx",
-			args: args{
-				nCtx:  nil,
-				optFn: []OptFn{},
-			},
-			wantResult: nil,
-			wantErr:    true,
-		},
-		{
-			name: "normal",
-			args: args{
-				nCtx:  nCtx,
-				optFn: []OptFn{},
-			},
-			wantResult: []types.NodeRole{types.NodeRoleAgent, types.NodeRoleProxy},
-			wantErr:    false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			gotResult, err := h.DistinctNodeRole(tt.args.nCtx, tt.args.optFn...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DistinctNodeRole() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			sort.Slice(gotResult, func(i, j int) bool { return gotResult[i] < gotResult[j] })
-			sort.Slice(tt.wantResult, func(i, j int) bool { return tt.wantResult[i] < tt.wantResult[j] })
-
-			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("DistinctNodeRole() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}
 		})
 	}

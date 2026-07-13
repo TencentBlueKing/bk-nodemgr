@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/iam-go-sdk/expression"
 	"github.com/gin-gonic/gin"
 )
 
@@ -87,6 +88,13 @@ func (m *mockIAMHandler) ListAuthorizedInstances(
 	_ types.IAMAuthorizedInstancesRequest,
 ) (bool, []types.IAMResource, error) {
 	return false, nil, nil
+}
+
+func (m *mockIAMHandler) GetPolicyExpression(
+	_ contextx.IContext,
+	_ types.IAMAuthorizedInstancesRequest,
+) (*expression.ExprCell, error) {
+	return nil, nil
 }
 
 func setupTestRouter(mockHandler *mockIAMHandler) *gin.Engine {
@@ -182,7 +190,7 @@ func TestBasicAuthMiddleware_ValidCredentials(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	h := &handler{
-		capability: &options.Capability{IAMV3Handler: mockHandler},
+		iamV3Handler: mockHandler,
 	}
 	router.Use(h.basicAuthMiddleware())
 	router.POST("/ping", func(c *gin.Context) {
@@ -208,7 +216,7 @@ func TestBasicAuthMiddleware_ValidCredentials_ShouldInjectDefaultTenant(t *testi
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	h := &handler{
-		capability: &options.Capability{IAMV3Handler: mockHandler},
+		iamV3Handler: mockHandler,
 	}
 	router.Use(restserver.MiddlewareContext())
 	router.Use(h.basicAuthMiddleware())
