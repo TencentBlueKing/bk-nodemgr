@@ -34,6 +34,9 @@ type IHandler interface {
 	// List lists node workflow by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error)
 
+	// ListWithoutCount lists node workflow with options, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, error)
+
 	// Create creates a new node workflow.
 	Create(nCtx contextx.IContext, workflow *types.NodeWorkflow) error
 
@@ -145,6 +148,34 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return workflows, num, nil
+}
+
+// ListWithoutCount lists node workflow with options, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	datas, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	workflows := make([]*types.NodeWorkflow, len(datas))
+	for idx, data := range datas {
+		workflows[idx] = convertNodeWorkflowToTypes(data)
+	}
+
+	return workflows, nil
 }
 
 // Create creates a new node workflow.

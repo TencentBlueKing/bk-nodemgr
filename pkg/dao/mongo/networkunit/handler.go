@@ -31,6 +31,9 @@ type IHandler interface {
 	// List lists networkunit by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NetworkUnit, int64, error)
 
+	// ListWithoutCount lists networkunit by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NetworkUnit, error)
+
 	// Get gets networkunit by id.
 	Get(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error)
 
@@ -115,6 +118,37 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists networkunit by page and conditions without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.NetworkUnit, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	filter = append(filter, tenantFilter(tenantID))
+
+	findOpt := base.ParsePage(page)
+
+	networkUnits, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.NetworkUnit, len(networkUnits))
+	for idx, networkunit := range networkUnits {
+		data[idx] = convertNetworkUnitToTypes(networkunit)
+	}
+
+	return data, nil
 }
 
 // Get gets networkunit by id.

@@ -31,6 +31,9 @@ type IHandler interface {
 	// List list node deployments.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginDeployment, int64, error)
 
+	// ListWithoutCount list node deployments without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginDeployment, error)
+
 	// GetInfo get a plugin deployment info.
 	GetInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
 
@@ -120,6 +123,37 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount list node deployments without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginDeployment, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	deployments, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.PluginDeployment, len(deployments))
+	for idx, deployment := range deployments {
+		depTypes, err := convertPluginDeploymentToTypes(deployment)
+		if err != nil {
+			return nil, err
+		}
+
+		data[idx] = depTypes
+	}
+
+	return data, nil
 }
 
 // GetInfo get a plugin deployment info.

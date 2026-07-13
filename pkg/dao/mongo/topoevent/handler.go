@@ -26,6 +26,9 @@ type IHandler interface {
 	// List list topo events by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.TopoEvent, int64, error)
 
+	// ListWithoutCount list topo events by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.TopoEvent, error)
+
 	// Count count topo events by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
@@ -121,6 +124,37 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount list topo events by page and conditions without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.TopoEvent, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	// descending sort by operate time.
+	findOpt.SetSort(bson.D{{FieldKeyOperateTime, -1}})
+
+	events, err := h.tenantDao(tenantID).list(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.TopoEvent, len(events))
+	for idx, event := range events {
+		data[idx] = convertTopoEventToTypes(event)
+	}
+
+	return data, nil
 }
 
 // Count count the number of topo events by conditions.

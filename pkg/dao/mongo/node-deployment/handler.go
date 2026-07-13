@@ -25,6 +25,7 @@ import (
 type IHandler interface {
 	CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error
 	ListNodeDeployment(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeDeployment, int64, error)
+	ListNodeDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeDeployment, error)
 	GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error)
 	GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error)
 	SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, nodeConf *types.NodeConf) error
@@ -105,6 +106,39 @@ func (h *Handler) ListNodeDeployment(nCtx contextx.IContext, page types.Page, op
 	}
 
 	return data, num, nil
+}
+
+// ListNodeDeploymentWithoutCount list node deployment by page and conditions without count.
+func (h *Handler) ListNodeDeploymentWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.NodeDeployment, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	deployments, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.NodeDeployment, len(deployments))
+	for idx, deployment := range deployments {
+		depTypes, err := convertDeploymentToTypes(deployment)
+		if err != nil {
+			return nil, err
+		}
+
+		data[idx] = depTypes
+	}
+
+	return data, nil
 }
 
 func convertDeploymentToTypes(deployment *Data) (*types.NodeDeployment, error) {

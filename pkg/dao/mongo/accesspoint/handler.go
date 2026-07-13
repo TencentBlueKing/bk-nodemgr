@@ -28,6 +28,9 @@ type IHandler interface {
 	// List lists accesspoint by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.AccessPoint, int64, error)
 
+	// ListWithoutCount lists accesspoint by page and conditions, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.AccessPoint, error)
+
 	// Get gets accesspoint by id.
 	Get(nCtx contextx.IContext, accessPointID int64) (*types.AccessPoint, error)
 
@@ -112,6 +115,37 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists accesspoint by page and conditions, without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.AccessPoint, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	filter = append(filter, tenantFilter(tenantID))
+
+	findOpt := base.ParsePage(page)
+
+	accessPoints, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.AccessPoint, len(accessPoints))
+	for idx, accessPoint := range accessPoints {
+		data[idx] = convertAccessPointToTypes(accessPoint)
+	}
+
+	return data, nil
 }
 
 // Get gets accesspoint by id.

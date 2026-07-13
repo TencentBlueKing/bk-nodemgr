@@ -32,6 +32,9 @@ type IHandler interface {
 	// List lists schedule workflow by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ScheduledWorkflow, int64, error)
 
+	// ListWithoutCount lists schedule workflow with options, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ScheduledWorkflow, error)
+
 	// Create creates a new schedule workflow.
 	Create(nCtx contextx.IContext, workflow *types.ScheduledWorkflow) error
 
@@ -110,6 +113,28 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return workflows, num, nil
+}
+
+// ListWithoutCount lists schedule workflow with options, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ScheduledWorkflow, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	datas, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	workflows := make([]*types.ScheduledWorkflow, len(datas))
+	for idx, data := range datas {
+		workflows[idx] = convertScheduledWorkflowToTypes(data)
+	}
+
+	return workflows, nil
 }
 
 // Create creates a new schedule workflow.

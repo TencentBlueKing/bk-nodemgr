@@ -30,6 +30,9 @@ type IHandler interface {
 	// List lists config policy by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, int64, error)
 
+	// ListWithoutCount lists config policy by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, error)
+
 	// Get gets config policy.
 	Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
@@ -131,6 +134,34 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists config policy by page and conditions without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	configPolicies, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.ConfigPolicy, len(configPolicies))
+	for idx, configPolicy := range configPolicies {
+		data[idx] = convertConfigPolicyToTypes(configPolicy)
+	}
+
+	return data, nil
 }
 
 // Get gets config policy.

@@ -37,6 +37,9 @@ type IHandler interface {
 	// List lists plugin workflow by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error)
 
+	// ListWithoutCount lists plugin workflow with options, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, error)
+
 	// Create creates a new plugin workflow.
 	Create(nCtx contextx.IContext, workflow *types.PluginWorkflow) error
 
@@ -145,6 +148,34 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return workflows, num, nil
+}
+
+// ListWithoutCount lists plugin workflow with options, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	datas, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	workflows := make([]*types.PluginWorkflow, len(datas))
+	for idx, data := range datas {
+		workflows[idx] = convertPluginWorkflowToTypes(data)
+	}
+
+	return workflows, nil
 }
 
 // Create creates a new plugin workflow.

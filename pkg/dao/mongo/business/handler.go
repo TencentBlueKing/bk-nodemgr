@@ -29,6 +29,9 @@ type IHandler interface {
 	// List lists business by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Business, int64, error)
 
+	// ListWithoutCount lists business by page and opts, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Business, error)
+
 	// UpsertMany updates or inserts business.
 	UpsertMany(nCtx contextx.IContext, bizs ...*types.Business) error
 }
@@ -121,6 +124,40 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists business by page and opts, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.Business, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	bizs, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.Business, len(bizs))
+	for idx, biz := range bizs {
+		data[idx] = &types.Business{
+			TenantID: biz.TenantID,
+			BizID:    biz.BizID,
+			BizName:  biz.BizName,
+		}
+	}
+
+	return data, nil
 }
 
 // UpsertMany updates or inserts business.

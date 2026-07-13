@@ -35,6 +35,9 @@ type IHandler interface {
 	// List list process config records.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ProcessConfig, int64, error)
 
+	// ListWithoutCount list process config records without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ProcessConfig, error)
+
 	// UpsertMany upsert many process config record.
 	UpsertMany(nCtx contextx.IContext, configs ...*types.ProcessConfig) error
 
@@ -169,6 +172,33 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return result, num, nil
+}
+
+// ListWithoutCount list process config records without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ProcessConfig, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	dataList, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list process config, err: %w", err)
+	}
+
+	result := make([]*types.ProcessConfig, 0, len(dataList))
+	for _, data := range dataList {
+		result = append(result, convProcessConfigToTypes(data))
+	}
+
+	return result, nil
 }
 
 // UpsertMany upsert many process config record.

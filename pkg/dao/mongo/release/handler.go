@@ -35,6 +35,9 @@ type IHandler interface {
 	// List lists releases.
 	List(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
 
+	// ListWithoutCount lists releases without count.
+	ListWithoutCount(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, error)
+
 	// SetLabels sets a release's labels.
 	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, labels []string, opts ...OptFn) error
 
@@ -175,6 +178,32 @@ func (h *Handler) List(nCtx contextx.IContext, releaseType types.ReleaseType, pa
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists releases without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, error) {
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	releases, err := h.releaseTypeDao(releaseType).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.Release, len(releases))
+	for idx, release := range releases {
+		data[idx] = convertReleaseToTypes(release)
+	}
+
+	return data, nil
 }
 
 // SetLabels sets a release's labels.

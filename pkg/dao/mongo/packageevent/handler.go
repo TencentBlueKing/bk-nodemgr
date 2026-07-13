@@ -26,6 +26,9 @@ type IHandler interface {
 	// List list package events by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PackageEvent, int64, error)
 
+	// ListWithoutCount list package events by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PackageEvent, error)
+
 	// Count count package events by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
@@ -110,6 +113,32 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount list package events by page and conditions without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PackageEvent, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	events, err := h.getDao().List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list package events: %w", err)
+	}
+
+	data := make([]*types.PackageEvent, len(events))
+	for idx, event := range events {
+		data[idx] = convertPackageEventToTypes(event)
+	}
+
+	return data, nil
 }
 
 // Count count the number of package events by conditions.

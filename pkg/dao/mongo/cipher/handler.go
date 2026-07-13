@@ -31,6 +31,9 @@ type IHandler interface {
 	// List lists asymmetric encryption by options.
 	List(nCtx contextx.IContext, page types.Page, opts ...base.OptFn) ([]*types.Cipher, int64, error)
 
+	// ListWithoutCount lists asymmetric encryption by options, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...base.OptFn) ([]*types.Cipher, error)
+
 	// Count counts asymmetric encryption by options.
 	Count(nCtx contextx.IContext, opts ...base.OptFn) (int64, error)
 
@@ -151,6 +154,38 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...base.Opt
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists asymmetric encryption by options, without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...base.OptFn) ([]*types.Cipher, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	encryptions, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.Cipher, len(encryptions))
+	for idx, encryption := range encryptions {
+		data[idx] = convertCipherToType(encryption)
+	}
+
+	return data, nil
 }
 
 // Count counts asymmetric encryption by options.

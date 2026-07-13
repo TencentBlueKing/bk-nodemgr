@@ -33,6 +33,9 @@ type IHandler interface {
 	// List lists plugins by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Plugin, int64, error)
 
+	// ListWithoutCount lists plugins by page and conditions, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Plugin, error)
+
 	// Get gets a plugin by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Plugin, error)
 
@@ -160,6 +163,32 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return plugins, num, nil
+}
+
+// ListWithoutCount lists plugins by page and conditions, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Plugin, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	data, err := h.tenantDao(nCtx.TenantID()).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	plugins := make([]*types.Plugin, len(data))
+	for idx, host := range data {
+		plugins[idx] = convertPluginToTypes(host)
+	}
+
+	return plugins, nil
 }
 
 // Get get a plugin.

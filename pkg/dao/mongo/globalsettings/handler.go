@@ -35,6 +35,9 @@ type IHandler interface {
 	// List lists global settings by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, int64, error)
 
+	// ListWithoutCount lists global settings by page and opts without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, error)
+
 	// Upsert upserts global settings.
 	Upsert(nCtx contextx.IContext, settings ...*types.GlobalSettings) error
 
@@ -127,6 +130,28 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return globalsettings, num, nil
+}
+
+// ListWithoutCount lists global settings by page and opts without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	datas, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	globalsettings := make([]*types.GlobalSettings, len(datas))
+	for idx, data := range datas {
+		globalsettings[idx] = convertGlobalSettingsToTypes(data)
+	}
+
+	return globalsettings, nil
 }
 
 // Upsert upserts global settings.

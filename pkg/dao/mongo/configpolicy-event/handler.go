@@ -26,6 +26,9 @@ type IHandler interface {
 	// List list policy events by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicyEvent, int64, error)
 
+	// ListWithoutCount list policy events by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicyEvent, error)
+
 	// Count count policy events by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
@@ -123,6 +126,32 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount list policy events by page and conditions without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicyEvent, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	events, err := h.tenantDao(nCtx.TenantID()).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list policy events: %w", err)
+	}
+
+	data := make([]*types.ConfigPolicyEvent, len(events))
+	for idx, event := range events {
+		data[idx] = convertConfigPolicyEventToTypes(event)
+	}
+
+	return data, nil
 }
 
 // Count count the number of policy events by conditions.

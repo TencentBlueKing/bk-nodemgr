@@ -33,6 +33,9 @@ type IHandler interface {
 	// List list triggers with options.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error)
 
+	// ListWithoutCount list triggers with options, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*trigger.Trigger, error)
+
 	// Create creates a trigger.
 	Create(nCtx contextx.IContext, trig *trigger.Trigger) error
 
@@ -133,6 +136,32 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount list triggers with options, without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*trigger.Trigger, error) {
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	trigs, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*trigger.Trigger, len(trigs))
+	for idx, trig := range trigs {
+		data[idx] = convertTriggerToTypes(trig)
+	}
+
+	return data, nil
 }
 
 // Create creates a trigger.

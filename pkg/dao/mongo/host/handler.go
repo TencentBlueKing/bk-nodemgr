@@ -53,6 +53,9 @@ type IHandler interface {
 	// List lists hosts by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, int64, error)
 
+	// ListWithoutCount lists hosts by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, error)
+
 	// DeleteMany deletes hosts by hostIDs.
 	DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error
 
@@ -91,6 +94,9 @@ type IHandler interface {
 
 	// ListWithFields lists hosts with fields.
 	ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error)
+
+	// ListWithFieldsWithoutCount lists hosts with fields without count.
+	ListWithFieldsWithoutCount(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, error)
 
 	// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
 	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
@@ -348,7 +354,39 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	return data, num, nil
 }
 
-// DistinctBizID distincts with field biz-id.
+// ListWithoutCount list host by page and conditions without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.Host, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	hosts, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		data[idx] = convertHostToTypes(host)
+	}
+
+	return data, nil
+}
 func (h *handler) DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
@@ -1312,6 +1350,42 @@ func (h *handler) ListWithFields(nCtx contextx.IContext, page types.Page, select
 	}
 
 	return data, num, nil
+}
+
+// ListWithFieldsWithoutCount lists hosts with fields without count.
+func (h *handler) ListWithFieldsWithoutCount(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) (
+	[]*types.Host, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to list hosts with fields: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	fields := convertHostFieldSelectionToFields(selection)
+
+	findOpt := base.ParsePage(page)
+
+	hosts, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt, fields...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list hosts with fields: %w", err)
+	}
+
+	data := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		data[idx] = convertHostToTypes(host)
+	}
+
+	return data, nil
 }
 
 func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []string {

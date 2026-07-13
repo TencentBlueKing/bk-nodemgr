@@ -35,6 +35,9 @@ type IHandler interface {
 	// List lists process by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Process, int64, error)
 
+	// ListWithoutCount lists process by page and conditions, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Process, error)
+
 	// Get gets a process by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, error)
 
@@ -192,6 +195,32 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return process, num, nil
+}
+
+// ListWithoutCount lists process by page and conditions, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Process, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	data, err := h.tenantDao(nCtx.TenantID()).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	process := make([]*types.Process, len(data))
+	for idx, host := range data {
+		process[idx] = convertProcessToTypes(host)
+	}
+
+	return process, nil
 }
 
 // Get get a process.

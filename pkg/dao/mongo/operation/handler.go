@@ -34,6 +34,9 @@ type IHandler interface {
 	// List list operation by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
 
+	// ListWithoutCount list operation by page and opts, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, error)
+
 	// ListOperationIDByParentOperationID lists operation IDs by parent operation ID.
 	ListOperationIDByParentOperationID(nCtx contextx.IContext, page types.Page, parentID ...string) (
 		[]string, error)
@@ -114,6 +117,32 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return operations, num, nil
+}
+
+// ListWithoutCount lists operation by page and opts, without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, error) {
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	datas, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	operations := make([]*operation.Operation, len(datas))
+	for idx, data := range datas {
+		operations[idx] = convertOperationFromDB(data)
+	}
+
+	return operations, nil
 }
 
 // ListOperationIDByParentOperationID lists operation IDs by parent operation ID.

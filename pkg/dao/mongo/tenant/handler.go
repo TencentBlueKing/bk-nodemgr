@@ -31,6 +31,9 @@ type IHandler interface {
 	// List lists tenants by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Tenant, int64, error)
 
+	// ListWithoutCount lists tenants by page and conditions, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Tenant, error)
+
 	// Exist check a tenant exist by conditions.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
 
@@ -121,6 +124,28 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return tenants, num, nil
+}
+
+// ListWithoutCount lists tenants by page and conditions, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Tenant, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	data, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	tenants := make([]*types.Tenant, len(data))
+	for idx, tenant := range data {
+		tenants[idx] = convertTenantToTypes(tenant)
+	}
+
+	return tenants, nil
 }
 
 // Exist check a tenant exist by conditions.

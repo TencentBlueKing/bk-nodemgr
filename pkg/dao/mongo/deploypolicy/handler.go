@@ -36,6 +36,9 @@ type IHandler interface {
 	// List lists deploy policy by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.DeployPolicy, int64, error)
 
+	// ListWithoutCount lists deploy policy by page and conditions, without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.DeployPolicy, error)
+
 	// Get gets a deploy policy by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolicy, error)
 
@@ -389,6 +392,32 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return deployPolicies, num, nil
+}
+
+// ListWithoutCount lists deploy policy by page and conditions, without count.
+func (h *Handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.DeployPolicy, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	data, err := h.tenantDao(nCtx.TenantID()).List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	deployPolicies, err := conv.SliceToSliceWithError[*DeployPolicy, *types.DeployPolicy](data, convDeployPolicyToTypes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert deploy policies: %w", err)
+	}
+
+	return deployPolicies, nil
 }
 
 // Get get a deploy policy.

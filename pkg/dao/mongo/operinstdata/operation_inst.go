@@ -41,8 +41,14 @@ type IOperationInstData interface {
 	// ListFullData find all full OperInstData.
 	ListFullData(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceData, int64, error)
 
+	// ListFullDataWithoutCount find all full OperInstData without count.
+	ListFullDataWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceData, error)
+
 	// ListWithoutActInst find all OperInstData whithout actions.
 	ListWithoutActInst(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceBriefData, int64, error)
+
+	// ListWithoutActInstWithoutCount find all OperInstData without actions and without count.
+	ListWithoutActInstWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceBriefData, error)
 
 	// FindOneWithoutActionData find one OperInstData without action data.
 	FindOneWithoutActionData(nCtx contextx.IContext, opts ...OptFn) (*operation.InstanceData, error)
@@ -223,6 +229,72 @@ func (h *Handler) ListFullData(nCtx contextx.IContext, page types.Page, opts ...
 	return data, num, nil
 }
 
+// ListFullDataWithoutCount find all OperInstData without count.
+func (h *Handler) ListFullDataWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*operation.InstanceData, error) {
+
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	findOpt := base.ParsePage(page)
+
+	operaInstDatas, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*operation.InstanceData, len(operaInstDatas))
+	for idx, opera := range operaInstDatas {
+		data[idx], err = ConvAOperaInstDataWithoutActionFromDB(opera)
+		if err != nil {
+			return nil, err
+		}
+		data[idx].ActionInstanceDataMap = make(map[string]*action.InstanceData, len(opera.ActionInstDataMap))
+
+		for k, v := range opera.ActionInstDataMap {
+			actionInstData := &action.InstanceData{
+				TriggerID:           v.TriggerID,
+				OperationInstanceID: v.OperInstID,
+				OperationID:         v.OperationID,
+				OperationDefName:    v.OperDefName,
+				Name:                v.Name,
+				DisplayNameZh:       v.DisplayNameZh,
+				DisplayNameEn:       v.DisplayNameEn,
+				Index:               v.Index,
+				TotalIndex:          v.TotalIndex,
+				Messages:            make([]common.Message, len(v.Messages)),
+				Content:             make(map[string]any, len(v.Content)),
+				PrivateData:         v.PrivateData,
+				Lifecycle:           ConvActInstLifeCycleFromDB(v.Lifecycle),
+			}
+
+			for idx, msg := range v.Messages {
+				actionInstData.Messages[idx] = common.Message{
+					Time:   msg.Time,
+					TextZh: msg.TextZh,
+					TextEn: msg.TextEn,
+					Level:  msg.Level,
+				}
+			}
+
+			err = json.Unmarshal([]byte(v.Content), &actionInstData.Content)
+			if err != nil {
+				return nil, err
+			}
+
+			data[idx].ActionInstanceDataMap[k] = actionInstData
+		}
+	}
+
+	return data, nil
+}
+
 // FindOneWithoutActionData find InstanceData without action data.
 func (h *Handler) FindOneWithoutActionData(nCtx contextx.IContext, opts ...OptFn) (*operation.InstanceData, error) {
 	if nCtx == nil {
@@ -288,6 +360,40 @@ func (h *Handler) ListWithoutActInst(nCtx contextx.IContext, page types.Page, op
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutActInstWithoutCount List InstanceDatas without action data and without count.
+func (h *Handler) ListWithoutActInstWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*operation.InstanceBriefData, error) {
+
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	field := FieldOfActionData
+	operaInstDatas, err := h.dao.findWithoutFields(nCtx, filter, page, field)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(operaInstDatas) == 0 {
+		return []*operation.InstanceBriefData{}, nil
+	}
+
+	data := make([]*operation.InstanceBriefData, len(operaInstDatas))
+	for idx, opera := range operaInstDatas {
+		data[idx], err = ConvOpeInstBriefDataFromDB(opera)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return data, nil
 }
 
 // Count count OperationDatas by conditions.

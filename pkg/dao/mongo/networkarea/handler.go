@@ -27,6 +27,9 @@ type IHandler interface {
 	// List lists networkarea by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NetworkArea, int64, error)
 
+	// ListWithoutCount lists networkarea by page and conditions without count.
+	ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NetworkArea, error)
+
 	// Get gets networkarea by id.
 	Get(nCtx contextx.IContext, networkAreaID int64) (*types.NetworkArea, error)
 
@@ -111,6 +114,40 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return data, num, nil
+}
+
+// ListWithoutCount lists networkarea by page and conditions without count.
+func (h *handler) ListWithoutCount(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.NetworkArea, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+	filter = append(filter, tenantFilter(tenantID))
+
+	findOpt := base.ParsePage(page)
+	if findOpt.Sort == nil {
+		findOpt.SetSort(bson.D{bson.E{Key: FieldKeyNetworkAreaID, Value: -1}})
+	}
+
+	networkAreas, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*types.NetworkArea, len(networkAreas))
+	for idx, networkarea := range networkAreas {
+		data[idx] = convertNetworkAreaToTypes(networkarea)
+	}
+
+	return data, nil
 }
 
 // Get gets networkarea by id.
