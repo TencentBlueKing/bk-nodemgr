@@ -255,7 +255,7 @@ func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string
 		},
 	}
 
-	if err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, updates); err != nil {
+	if err := h.tenantDao(nCtx.TenantID()).UpdateOneFieldBulk(nCtx, updates); err != nil {
 		return fmt.Errorf("failed to update process: %v", err)
 	}
 
@@ -313,7 +313,7 @@ func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*t
 		}
 	}
 
-	err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, processUpdates)
+	err := h.tenantDao(nCtx.TenantID()).UpdateOneFieldBulk(nCtx, processUpdates)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to batch update process info")
 

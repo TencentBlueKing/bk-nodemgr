@@ -207,7 +207,7 @@ func (h *Handler) UpdateMany(nCtx contextx.IContext, tenantMap map[string]*types
 		updates = append(updates, update)
 	}
 
-	if err := h.dao.UpdateFieldsBulk(nCtx, updates); err != nil {
+	if err := h.dao.UpdateOneFieldBulk(nCtx, updates); err != nil {
 		return fmt.Errorf("failed to update many tenant: %w", err)
 	}
 

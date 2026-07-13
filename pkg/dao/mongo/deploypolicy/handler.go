@@ -714,7 +714,7 @@ func (h *Handler) UpdateFields(nCtx contextx.IContext, fields types.DeployPolicy
 		return base.ErrInvalidParam(fmt.Errorf("no valid updates to apply"))
 	}
 
-	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+	if err := h.tenantDao(tenantID).UpdateOneFieldBulk(nCtx, docs); err != nil {
 		return fmt.Errorf("failed to update deploy policy fields: %v", err)
 	}
 
@@ -791,7 +791,7 @@ func (h *Handler) RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*ty
 		return base.ErrInvalidParam(fmt.Errorf("no valid updates to apply"))
 	}
 
-	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+	if err := h.tenantDao(tenantID).UpdateOneFieldBulk(nCtx, docs); err != nil {
 		return fmt.Errorf("failed to update deploy policies executed at and dsuid: %w", err)
 	}
 

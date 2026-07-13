@@ -101,8 +101,11 @@ type IOrm[P DataPoint[T], T any] interface {
 	// WARNING: empty filter is not allowed to prevent accidental deletion of all data.
 	HardDeleteMany(nCtx contextx.IContext, filter bson.D) error
 
-	// UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
-	UpdateFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) error
+	// UpdateManyFieldsBulk updates multiple documents in bulk based on the provided updates.
+	UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) error
+
+	// UpdateOneFieldBulk updates at most one document for each bulk update filter.
+	UpdateOneFieldBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) error
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -1009,8 +1012,8 @@ func BuildChangedFieldFilter(filter bson.D, fields map[string]any) bson.D {
 	return append(filter, bson.E{Key: "$or", Value: changedConditions})
 }
 
-// UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
-func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
+// UpdateManyFieldsBulk updates multiple documents in bulk based on the provided updates.
+func (orm *Orm[P, T]) UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
 	if len(updates) == 0 {
 		return nil
 	}
@@ -1040,7 +1043,7 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*Docume
 
 		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
 			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "update_fields_bulk"),
+			attribute.String(attrKeyORMOperation, "update_many_fields_bulk"),
 			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
 			attribute.Int(attrKeyORMFilterSize, len(updates)),
 			attribute.Int(attrKeyORMResultCount, func() int {
@@ -1061,6 +1064,80 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*Docume
 
 		updateDoc := buildUpdateFields(update.Fields)
 		model := mongo.NewUpdateManyModel().
+			SetFilter(update.Filter).
+			SetUpdate(updateDoc).
+			SetUpsert(false)
+
+		models = append(models, model)
+	}
+
+	if len(models) == 0 {
+		return nil
+	}
+
+	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
+		return err
+	}
+
+	logger.G.Sys().Ctx(nCtx).
+		With("table", orm.dao.GetTableName(), "matched-count", result.MatchedCount, "modified-count", result.ModifiedCount).
+		Info("bulk updated fields")
+
+	return nil
+}
+
+// UpdateOneFieldBulk updates at most one document for each bulk update filter.
+func (orm *Orm[P, T]) UpdateOneFieldBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
+	if len(updates) == 0 {
+		return nil
+	}
+
+	var result *mongo.BulkWriteResult
+
+	// record metric.
+	metric := orm.metric().start(daomongo.MetricOperationBulkWrite, len(updates))
+	defer func() {
+		metric.end(err, func() int {
+			if result == nil {
+				return 0
+			}
+
+			return int(result.MatchedCount)
+		}())
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "update_one_field_bulk"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(updates)),
+			attribute.Int(attrKeyORMResultCount, func() int {
+				if result == nil {
+					return 0
+				}
+
+				return int(result.MatchedCount)
+			}()),
+		))
+	}()
+
+	models := make([]mongo.WriteModel, 0, len(updates))
+	for _, update := range updates {
+		if len(update.Fields) == 0 {
+			continue
+		}
+
+		updateDoc := buildUpdateFields(update.Fields)
+		model := mongo.NewUpdateOneModel().
 			SetFilter(update.Filter).
 			SetUpdate(updateDoc).
 			SetUpsert(false)

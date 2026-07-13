@@ -211,7 +211,7 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.NetworkUnitUpd
 		})
 	}
 
-	if err := h.dao.UpdateFieldsBulk(nCtx, docs); err != nil {
+	if err := h.dao.UpdateOneFieldBulk(nCtx, docs); err != nil {
 		return err
 	}
 

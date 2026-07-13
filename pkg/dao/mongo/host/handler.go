@@ -877,7 +877,7 @@ func (h *handler) UpdateStaticFields(nCtx contextx.IContext, fields types.HostSt
 		})
 	}
 
-	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+	if err := h.tenantDao(tenantID).UpdateOneFieldBulk(nCtx, docs); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to update host static fields")
 
 		return err
@@ -996,7 +996,7 @@ func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostD
 		})
 	}
 
-	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+	if err := h.tenantDao(tenantID).UpdateOneFieldBulk(nCtx, docs); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to update host dynamic version and status")
 
 		return err
