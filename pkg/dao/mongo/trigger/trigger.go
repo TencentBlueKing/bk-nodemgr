@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -48,9 +49,18 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	var indexes []mongo.IndexModel
-
-	return indexes
+	return []mongo.IndexModel{
+		{
+			// Composite index for the high-frequency query:
+			// {"basic.is_deleted": false, "data.active": true, "data.category": "<category>"}
+			// used by the trigger sync scheduler (once/ordered/periodic) every second.
+			Keys: bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: 1},
+				{Key: FieldKeyActive, Value: 1},
+				{Key: FieldKeyCategory, Value: 1},
+			},
+		},
+	}
 }
 
 func (d *dao) update(nCtx contextx.IContext, trig *Trigger) error {
