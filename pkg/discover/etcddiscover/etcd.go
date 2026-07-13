@@ -17,7 +17,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"path/filepath"
 	"sort"
 	"sync"
@@ -26,8 +25,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -39,6 +38,9 @@ const (
 	defaultEtcdLeaseTTLSec = 10
 	defaultListTickTime    = 10 * time.Second
 
+	defaultShutdownDrainTimeout   = 5 * time.Second
+	defaultShutdownCleanupTimeout = 5 * time.Second
+
 	metaKeyLeaseID = "etcd-lease-id"
 
 	etcdEntryBaseKeyValueCapacity = 8
@@ -46,15 +48,36 @@ const (
 
 var _ discover.IProvider = &ProviderEtcd{}
 
+var errProviderShuttingDown = errors.New("etcd discover provider is shutting down")
+
+type etcdClient interface {
+	Get(ctx context.Context, key string, opts ...clientv3.OpOption) (*clientv3.GetResponse, error)
+	Put(ctx context.Context, key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, error)
+	Delete(ctx context.Context, key string, opts ...clientv3.OpOption) (*clientv3.DeleteResponse, error)
+	Watch(ctx context.Context, key string, opts ...clientv3.OpOption) clientv3.WatchChan
+	Grant(ctx context.Context, ttl int64) (*clientv3.LeaseGrantResponse, error)
+	Revoke(ctx context.Context, id clientv3.LeaseID) (*clientv3.LeaseRevokeResponse, error)
+	KeepAlive(ctx context.Context, id clientv3.LeaseID) (<-chan *clientv3.LeaseKeepAliveResponse, error)
+	Close() error
+}
+
 // ProviderEtcd implements discover.IProvider.
 type ProviderEtcd struct {
 	config *config.Etcd
 
-	etcdClient     *clientv3.Client
+	etcdClient     etcdClient
 	discoverPrefix string
 
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	keeperCtx    context.Context
+	keeperCancel context.CancelFunc
+
+	shutdownMutex sync.Mutex
+	shuttingDown  bool
+	registryOpWg  sync.WaitGroup
+	keeperWg      sync.WaitGroup
 
 	serviceWatchList []discover.ServiceName
 
@@ -69,31 +92,64 @@ type ProviderEtcd struct {
 
 // GracefulShutdown gracefully shuts down the provider.
 func (provider *ProviderEtcd) GracefulShutdown() error {
+	return provider.gracefulShutdown(defaultShutdownDrainTimeout, defaultShutdownCleanupTimeout)
+}
+
+type registeredInstance struct {
+	serviceName     discover.ServiceName
+	instanceID      string
+	recordedLeaseID int64
+}
+
+func (provider *ProviderEtcd) gracefulShutdown(drainTimeout, cleanupTimeout time.Duration) error {
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
 
-	var err error
-	// snapshot local instance holders before deregistering because deregistration mutates provider.localInstances.
-	provider.localInstancesMutex.RLock()
-	localInstances := maps.Clone(provider.localInstances)
-	provider.localInstancesMutex.RUnlock()
-	for serviceName, holder := range localInstances {
-		holder.mutex.RLock()
-		instances := conv.MapValueToSlice(holder.instances)
-		holder.mutex.RUnlock()
+	provider.shutdownMutex.Lock()
+	if provider.shuttingDown {
+		provider.shutdownMutex.Unlock()
 
-		for _, instance := range instances {
-			if deregisterErr := provider.Deregister(serviceName, instance.ID); deregisterErr != nil {
-				err = errors.Join(err, fmt.Errorf("failed to deregister instance, instance(%v): %w", instance, deregisterErr))
-				continue
-			}
-		}
+		return errProviderShuttingDown
+	}
+	provider.shuttingDown = true
+	provider.keeperCancel()
+	provider.shutdownMutex.Unlock()
+
+	instances, err := provider.snapshotRegisteredInstances()
+
+	drainCtx, drainCancel := context.WithTimeout(context.Background(), drainTimeout)
+	drained := make(chan struct{})
+	go func() {
+		provider.registryOpWg.Wait()
+		provider.keeperWg.Wait()
+		close(drained)
+	}()
+
+	select {
+	case <-drained:
+	case <-drainCtx.Done():
+		err = errors.Join(err, fmt.Errorf("failed to drain etcd discover operations: %w", drainCtx.Err()))
+		provider.cancel()
+		<-drained
+	}
+	drainCancel()
+
+	finalInstances, snapshotErr := provider.snapshotRegisteredInstances()
+	err = errors.Join(err, snapshotErr)
+	for key, instance := range finalInstances {
+		instances[key] = instance
 	}
 
-	// Cancel after deregistration because Deregister uses provider.ctx to revoke leases.
-	provider.cancel()
+	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), cleanupTimeout)
+	for _, instance := range instances {
+		if cleanupErr := provider.deleteRegisteredInstance(cleanupCtx, instance); cleanupErr != nil {
+			err = errors.Join(err, cleanupErr)
+		}
+	}
+	cleanupCancel()
 
+	provider.cancel()
 	if closeErr := provider.etcdClient.Close(); closeErr != nil {
 		err = errors.Join(err, fmt.Errorf("failed to close etcd client: %w", closeErr))
 	}
@@ -105,6 +161,78 @@ func (provider *ProviderEtcd) GracefulShutdown() error {
 	return nil
 }
 
+func (provider *ProviderEtcd) snapshotRegisteredInstances() (map[string]registeredInstance, error) {
+	provider.localInstancesMutex.RLock()
+	holders := make(map[discover.ServiceName]*instanceHolder, len(provider.localInstances))
+	for serviceName, holder := range provider.localInstances {
+		holders[serviceName] = holder
+	}
+	provider.localInstancesMutex.RUnlock()
+
+	instances := make(map[string]registeredInstance)
+	var err error
+	for serviceName, holder := range holders {
+		for _, instance := range holder.all() {
+			leaseID, leaseErr := instance.GetMetaInt64(metaKeyLeaseID)
+			if leaseErr != nil {
+				err = errors.Join(err, fmt.Errorf("failed to get lease id for instance %q: %w", instance.ID, leaseErr))
+			}
+
+			key := filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID)
+			instances[key] = registeredInstance{
+				serviceName:     serviceName,
+				instanceID:      instance.ID,
+				recordedLeaseID: leaseID,
+			}
+		}
+	}
+
+	return instances, err
+}
+
+func (provider *ProviderEtcd) deleteRegisteredInstance(ctx context.Context, instance registeredInstance) error {
+	key := filepath.Join(provider.discoverPrefix, string(instance.serviceName), instance.instanceID)
+	resp, err := provider.etcdClient.Delete(ctx, key, clientv3.WithPrevKV())
+	if err != nil {
+		return fmt.Errorf("failed to delete registered instance key %q: %w", key, err)
+	}
+
+	provider.getLocalInstanceHolder(instance.serviceName).delete(instance.instanceID)
+
+	leaseIDs := make(map[clientv3.LeaseID]struct{})
+	if instance.recordedLeaseID != 0 {
+		leaseIDs[clientv3.LeaseID(instance.recordedLeaseID)] = struct{}{}
+	}
+	for _, kv := range resp.PrevKvs {
+		if kv.Lease != 0 {
+			leaseIDs[clientv3.LeaseID(kv.Lease)] = struct{}{}
+		}
+	}
+
+	var revokeErr error
+	for leaseID := range leaseIDs {
+		if _, err = provider.etcdClient.Revoke(ctx, leaseID); err == nil || errors.Is(err, rpctypes.ErrLeaseNotFound) {
+			continue
+		}
+		revokeErr = errors.Join(revokeErr, fmt.Errorf("failed to revoke lease %d for instance key %q: %w", leaseID, key, err))
+	}
+
+	return revokeErr
+}
+
+func (provider *ProviderEtcd) beginRegistryOperation() error {
+	provider.shutdownMutex.Lock()
+	defer provider.shutdownMutex.Unlock()
+
+	if provider.shuttingDown {
+		return errProviderShuttingDown
+	}
+
+	provider.registryOpWg.Add(1)
+
+	return nil
+}
+
 // NewProviderEtcd creates a new ProviderEtcd.
 func NewProviderEtcd(config *config.Etcd, opts ...OptionFn) *ProviderEtcd {
 	provider := &ProviderEtcd{
@@ -112,6 +240,8 @@ func NewProviderEtcd(config *config.Etcd, opts ...OptionFn) *ProviderEtcd {
 		discoverPrefix:   defaultEtcdPrefix,
 		ctx:              context.Background(),
 		cancel:           func() {},
+		keeperCtx:        context.Background(),
+		keeperCancel:     func() {},
 		serviceWatchList: make([]discover.ServiceName, 0),
 		localInstances:   make(map[discover.ServiceName]*instanceHolder),
 		cacheInstances:   make(map[discover.ServiceName]*instanceHolder),
@@ -272,6 +402,7 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	}
 
 	provider.ctx, provider.cancel = context.WithCancel(ctx)
+	provider.keeperCtx, provider.keeperCancel = context.WithCancel(provider.ctx)
 
 	// start service watching.
 	provider.startWatching()
@@ -322,6 +453,11 @@ func (provider *ProviderEtcd) SelectEndpoints(
 
 // Register registers multiple service instances.
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instances ...discover.Instance) error {
+	if err := provider.beginRegistryOperation(); err != nil {
+		return err
+	}
+	defer provider.registryOpWg.Done()
+
 	for _, instance := range instances {
 		if serviceName == "" {
 			return fmt.Errorf(
@@ -400,35 +536,55 @@ func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instanc
 	provider.getLocalInstanceHolder(serviceName).upsert(instance)
 	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", string(content)).Info("registered service")
 
-	// register keeper.
-	go func() {
-		for {
-			select {
-			case <-provider.ctx.Done():
-				return
-			default:
-				cachedInstance, err := provider.getLocalInstanceHolder(serviceName).get(instance.ID)
-				if err != nil {
-					logger.G.Sys().WithErr(err).With("service", serviceName, "id", instance.ID).Warn("local instance not found, quit the register keeper")
-
-					return
-				}
-
-				if err = provider.putService(serviceName, cachedInstance); err != nil {
-					logger.G.Sys().WithErr(err).Warn("failed to put service in register keeper")
-				}
-			}
-
-			time.Sleep(time.Second)
-		}
-	}()
+	provider.startRegisterKeeper(serviceName, instance.ID)
 
 	return nil
 }
 
+func (provider *ProviderEtcd) startRegisterKeeper(serviceName discover.ServiceName, instanceID string) {
+	provider.shutdownMutex.Lock()
+	if provider.shuttingDown {
+		provider.shutdownMutex.Unlock()
+
+		return
+	}
+	provider.keeperWg.Add(1)
+	provider.shutdownMutex.Unlock()
+
+	go func() {
+		defer provider.keeperWg.Done()
+
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-provider.keeperCtx.Done():
+				return
+			case <-ticker.C:
+				instance, err := provider.getLocalInstanceHolder(serviceName).get(instanceID)
+				if err != nil {
+					logger.G.Sys().WithErr(err).With("service", serviceName, "id", instanceID).Warn("local instance not found, quit the register keeper")
+
+					return
+				}
+
+				if err = provider.putService(provider.keeperCtx, serviceName, instance); err != nil && !errors.Is(err, context.Canceled) {
+					logger.G.Sys().WithErr(err).Warn("failed to put service in register keeper")
+				}
+			}
+		}
+	}()
+}
+
 // Update updates a service instance.
 func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance discover.Instance) error {
-	if err := provider.putService(serviceName, instance); err != nil {
+	if err := provider.beginRegistryOperation(); err != nil {
+		return err
+	}
+	defer provider.registryOpWg.Done()
+
+	if err := provider.putService(provider.ctx, serviceName, instance); err != nil {
 		logger.G.Sys().WithErr(err).With("service", serviceName, "id", instance.ID).Error("failed to update instance")
 
 		return err
@@ -439,7 +595,7 @@ func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance 
 	return nil
 }
 
-func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, instance discover.Instance) error {
+func (provider *ProviderEtcd) putService(ctx context.Context, serviceName discover.ServiceName, instance discover.Instance) error {
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
@@ -474,10 +630,10 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 	}
 
 	key := filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID)
-	if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
+	if _, err = provider.etcdClient.Put(ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
 		logger.G.Sys().WithErr(err).With("key", key).Warn("failed to put service to etcd, need to grant new lease")
 
-		resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
+		resp, err := provider.etcdClient.Grant(ctx, defaultEtcdLeaseTTLSec)
 		if err != nil {
 			return err
 		}
@@ -485,11 +641,11 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 		leaseID := int64(resp.ID)
 		instance.SetMeta(metaKeyLeaseID, leaseID)
 
-		if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
+		if _, err = provider.etcdClient.Put(ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
 			return err
 		}
 
-		ch, err := provider.etcdClient.KeepAlive(provider.ctx, clientv3.LeaseID(leaseID))
+		ch, err := provider.etcdClient.KeepAlive(ctx, clientv3.LeaseID(leaseID))
 		if err != nil {
 			return err
 		}
@@ -511,6 +667,11 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 
 // Deregister deregisters a service instance.
 func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, instanceID string) error {
+	if err := provider.beginRegistryOperation(); err != nil {
+		return err
+	}
+	defer provider.registryOpWg.Done()
+
 	if provider.etcdClient == nil {
 		return discover.ErrDiscoverNotStarted()
 	}
