@@ -13,7 +13,7 @@ package topo
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/application/topocache"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/distinctcache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -165,15 +165,15 @@ func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	roleType := req.GetRoleType()
-	if roleType != topocache.RoleTypeAgent && roleType != topocache.RoleTypeProxy {
+	if roleType != distinctcache.RoleTypeAgent && roleType != distinctcache.RoleTypeProxy {
 		err := fmt.Errorf("role_type must be %q or %q, got %q",
-			topocache.RoleTypeAgent, topocache.RoleTypeProxy, roleType)
+			distinctcache.RoleTypeAgent, distinctcache.RoleTypeProxy, roleType)
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host, invalid role_type")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result := h.topoDistinctCache.Get(rCtx.TenantID(), roleType)
+	result := h.distinctCache.GetHost(rCtx.TenantID(), roleType)
 	if result == nil {
 		// cold-start window before the first sync completes; real sync failures
 		// are already logged at Error level in the syncer, so debug here to

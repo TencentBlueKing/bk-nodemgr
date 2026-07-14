@@ -219,6 +219,10 @@
         },
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3ProcessFuzzyConditions"
+        },
+        "plugin_name": {
+          "type": "string",
+          "description": "plugin_name serves the distinct from the in-memory cache keyed by\n(tenant, plugin_name). When set, the conditions are ignored."
         }
       },
       "description": "DistinctProcessReq describes the process distinct request."

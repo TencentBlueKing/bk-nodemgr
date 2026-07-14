@@ -12,6 +12,7 @@
 package process
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/distinctcache"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -21,6 +22,7 @@ import (
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
+	distinctCache  *distinctcache.Cache
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -28,6 +30,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:             rg.Group("/process"),
 		backendHandler: capability.BackendHandler,
+		distinctCache:  capability.DistinctCache,
 	}
 }
 

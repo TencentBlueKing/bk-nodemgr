@@ -83,6 +83,9 @@ export interface GetProcessDistributionByPluginNameResp {
 export interface DistinctProcessReq {
   exact_include_conditions: ProcessExactConditions;
   fuzzy_include_conditions: ProcessFuzzyConditions;
+  // plugin_name serves the distinct from the in-memory cache keyed by
+  // (tenant, plugin_name). When set, the conditions are ignored.
+  plugin_name?: string;
 }
 
 // DistinctProcessResp describes the process distinct response.

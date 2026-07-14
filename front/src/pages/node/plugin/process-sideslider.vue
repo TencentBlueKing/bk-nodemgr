@@ -855,15 +855,15 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
 // distinct
 const distinct = ref<DistinctProcessRespData>();
 const getDistinct = async () => {
-  const res = await ProcessAPIService.DistinctProcess({
-    exact_include_conditions: props.type === 'plugin' ? {
-      plugin_name: [props.plugin.name],
-      bk_biz_id: mainStore.selectedBusinessId,
-    } : {
-      bk_host_id: [props.node.bk_host_id],
-      bk_biz_id: mainStore.selectedBusinessId,
-    },
-  });
+  const params = props.type === 'plugin'
+    ? { plugin_name: props.plugin.name }
+    : {
+      exact_include_conditions: {
+        bk_host_id: [props.node.bk_host_id],
+        bk_biz_id: mainStore.selectedBusinessId,
+      },
+    };
+  const res = await ProcessAPIService.DistinctProcess(params);
   if (res && Object.keys(res).length > 0) {
     distinct.value = res;
     Object.keys(res).forEach((key: any) => {

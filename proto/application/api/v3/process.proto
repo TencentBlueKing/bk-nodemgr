@@ -92,6 +92,9 @@ message GetProcessDistributionByPluginNameResp {
 message DistinctProcessReq {
   ProcessExactConditions exact_include_conditions = 1;
   ProcessFuzzyConditions fuzzy_include_conditions = 2;
+  // plugin_name serves the distinct from the in-memory cache keyed by
+  // (tenant, plugin_name). When set, the conditions are ignored.
+  string plugin_name = 3;
 }
 
 // DistinctProcessResp describes the process distinct response.

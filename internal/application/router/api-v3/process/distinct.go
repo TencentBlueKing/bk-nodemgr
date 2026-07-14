@@ -20,6 +20,11 @@ import (
 )
 
 // Distinct defines the process distinct handler.
+//
+// When plugin_name is set in the request, the result is served from the
+// in-memory distinct cache (keyed by tenant id x plugin name, refreshed by a
+// background goroutine). Otherwise the handler falls back to querying the
+// backend directly with the provided conditions (e.g. for per-host distinct).
 func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.DistinctProcessReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -27,9 +32,27 @@ func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if pluginName := req.GetPluginName(); pluginName != "" {
+		result := h.distinctCache.GetProcess(rCtx.TenantID(), pluginName)
+		if result == nil {
+			// cold-start window before the first sync completes; real sync
+			// failures are already logged at Error level in the syncer.
+			logger.G.Biz(rCtx).
+				With("tenant-id", rCtx.TenantID(), "plugin-name", pluginName).
+				Debug("process distinct cache miss, return empty result")
+			result = new(types.ProcessDistinctResult)
+		}
+
+		resp := new(protoApplication.DistinctProcessResp)
+		resp.ConvertResultFromTypes(result)
+
+		return resp.GetData(), nil
+	}
+
 	result, err := h.backendHandler.DistinctProcess(rCtx, types.NewProcessDistinctSelectorAllSet(), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to process distinct, failed to distinct process fields")
+
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
