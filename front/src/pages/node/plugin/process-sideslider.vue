@@ -133,9 +133,9 @@
                   class="flex-1 min-w-0 truncate"
                   v-bk-tooltips="{ content: row.version, disabled: !row.version || row.version.length <= 20 }"
                 >{{ row.version }}</span>
-                <!-- relay 非默认：Popover + 建议升级 -->
+                <!-- relay 非默认：Popover + 建议升级（仅 running 状态提示） -->
                 <Popover
-                  v-if="!isProcessDefaultVersion(row) && row.plugin_name === 'bk-nodemgr-relay'"
+                  v-if="row.status === 'running' && !isProcessDefaultVersion(row) && row.plugin_name === 'bk-nodemgr-relay'"
                   theme="light"
                   trigger="hover"
                   placement="top"
@@ -155,9 +155,9 @@
                     </div>
                   </template>
                 </Popover>
-                <!-- 非 relay 非默认：简单 tooltip -->
+                <!-- 非 relay 非默认：简单 tooltip（仅 running 状态提示） -->
                 <i
-                  v-if="!isProcessDefaultVersion(row) && row.plugin_name !== 'bk-nodemgr-relay'"
+                  v-if="row.status === 'running' && !isProcessDefaultVersion(row) && row.plugin_name !== 'bk-nodemgr-relay'"
                   v-bk-tooltips="$t('pluginManagement.plugin.process.notDefaultVersionSubTip', { version: getDefaultVersion(row) || '--' })"
                   class="nodeman-icon nc-tips text-[#FF9C01] text-[16px] flex-shrink-0 cursor-pointer"
                 ></i>
