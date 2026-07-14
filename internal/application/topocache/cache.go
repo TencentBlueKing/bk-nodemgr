@@ -74,14 +74,14 @@ func newCache(backendHandler backend.IHandler, tenantDao tenant.IHandler) *Cache
 // Start launches the background syncer. It is non-blocking: the first sync runs
 // in a goroutine, then a ticker triggers subsequent syncs every syncInterval.
 // The syncer stops when nCtx is cancelled.
-func (c *Cache) Start(nCtx contextx.IContext) error {
-	go c.run(nCtx)
+func (cache *Cache) Start(nCtx contextx.IContext) error {
+	go cache.run(nCtx)
 	return nil
 }
 
-func (c *Cache) run(nCtx contextx.IContext) {
+func (cache *Cache) run(nCtx contextx.IContext) {
 	// initial sync; failures are logged and retried on the next tick.
-	c.sync(nCtx)
+	cache.sync(nCtx)
 
 	ticker := time.NewTicker(syncInterval)
 	defer ticker.Stop()
@@ -92,15 +92,15 @@ func (c *Cache) run(nCtx contextx.IContext) {
 			logger.G.Sys().Info("topo distinct cache syncer stopped")
 			return
 		case <-ticker.C:
-			c.sync(nCtx)
+			cache.sync(nCtx)
 		}
 	}
 }
 
 // sync fetches all enabled tenants and refreshes the distinct result for each.
 // per-tenant failures are isolated; a failure for one tenant does not affect others.
-func (c *Cache) sync(nCtx contextx.IContext) {
-	tenants, _, err := c.tenantDao.List(nCtx, types.UnlimitedPage(), tenant.WithStatus(true))
+func (cache *Cache) sync(nCtx contextx.IContext) {
+	tenants, _, err := cache.tenantDao.List(nCtx, types.UnlimitedPage(), tenant.WithStatus(true))
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("topo distinct cache: failed to list tenants")
 		return
@@ -113,7 +113,7 @@ func (c *Cache) sync(nCtx contextx.IContext) {
 	gp.SetLimit(syncTenantConcurrency)
 	for _, t := range tenants {
 		gp.Go(func() error {
-			c.syncTenant(nCtx, t.ID, agentCond, proxyCond)
+			cache.syncTenant(nCtx, t.ID, agentCond, proxyCond)
 			return nil
 		})
 	}
@@ -124,7 +124,7 @@ func (c *Cache) sync(nCtx contextx.IContext) {
 	}
 }
 
-func (c *Cache) syncTenant(
+func (cache *Cache) syncTenant(
 	nCtx contextx.IContext, tenantID string, agentCond, proxyCond *types.HostCondition) {
 
 	// The backend apigw auth rejects requests whose bk_username is empty
@@ -136,7 +136,7 @@ func (c *Cache) syncTenant(
 		contextx.WithBKUsername(access.GetVirtualUser()),
 	)
 
-	agentResult, err := c.backendHandler.DistinctHost(tCtx, agentCond)
+	agentResult, err := cache.backendHandler.DistinctHost(tCtx, agentCond)
 	if err != nil {
 		logger.G.Sys().
 			WithErr(err).
@@ -146,7 +146,7 @@ func (c *Cache) syncTenant(
 		return
 	}
 
-	proxyResult, err := c.backendHandler.DistinctHost(tCtx, proxyCond)
+	proxyResult, err := cache.backendHandler.DistinctHost(tCtx, proxyCond)
 	if err != nil {
 		logger.G.Sys().
 			WithErr(err).
@@ -156,23 +156,23 @@ func (c *Cache) syncTenant(
 		return
 	}
 
-	c.set(tenantID, agentResult, proxyResult)
+	cache.set(tenantID, agentResult, proxyResult)
 }
 
 // set updates the cache entry for the given tenant. Caller holds no lock.
-func (c *Cache) set(tenantID string, agent, proxy *types.HostDistinctResult) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.items[tenantID] = &tenantEntry{agent: agent, proxy: proxy}
+func (cache *Cache) set(tenantID string, agent, proxy *types.HostDistinctResult) {
+	cache.mu.Lock()
+	defer cache.mu.Unlock()
+	cache.items[tenantID] = &tenantEntry{agent: agent, proxy: proxy}
 }
 
 // Get returns the cached distinct result for (tenantID, roleType).
 // It returns nil if the entry has not been synced yet.
-func (c *Cache) Get(tenantID, roleType string) *types.HostDistinctResult {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+func (cache *Cache) Get(tenantID, roleType string) *types.HostDistinctResult {
+	cache.mu.RLock()
+	defer cache.mu.RUnlock()
 
-	entry, ok := c.items[tenantID]
+	entry, ok := cache.items[tenantID]
 	if !ok {
 		return nil
 	}

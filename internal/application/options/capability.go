@@ -61,17 +61,17 @@ type Capability struct {
 }
 
 // Start starts all services in capability.
-func (c *Capability) Start(nCtx contextx.IContext) error {
-	if err := c.DiscoverProvider.Start(nCtx); err != nil {
+func (capability *Capability) Start(nCtx contextx.IContext) error {
+	if err := capability.DiscoverProvider.Start(nCtx); err != nil {
 		return err
 	}
 
-	if err := c.StorageConfigPolicyTemplate.Start(nCtx); err != nil {
+	if err := capability.StorageConfigPolicyTemplate.Start(nCtx); err != nil {
 		return err
 	}
 
-	if c.TopoDistinctCache != nil {
-		if err := c.TopoDistinctCache.Start(nCtx); err != nil {
+	if capability.TopoDistinctCache != nil {
+		if err := capability.TopoDistinctCache.Start(nCtx); err != nil {
 			return err
 		}
 	}
@@ -80,7 +80,7 @@ func (c *Capability) Start(nCtx contextx.IContext) error {
 }
 
 // GracefulShutdown graceful shutdown all services in capability.
-func (c *Capability) GracefulShutdown() error {
+func (capability *Capability) GracefulShutdown() error {
 	if err := tracing.G().ShutdownAll(contextx.Background()); err != nil {
 		return err
 	}
