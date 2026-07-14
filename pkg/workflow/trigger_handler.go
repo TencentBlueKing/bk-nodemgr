@@ -133,7 +133,7 @@ const (
 
 	onceTriggersSyncAndCheckIntervalDefault         = 1 * time.Second
 	orderedTriggersSyncAndCheckIntervalDefault      = 1 * time.Second
-	periodicTriggersSyncAndCheckIntervalDefault     = 1 * time.Second
+	periodicTriggersSyncAndCheckIntervalDefault     = 5 * time.Second
 	checkAccumulateOperationInstanceIntervalDefault = 1 * time.Minute
 
 	// listAliveTriggerBatchSizeDefault is used to avoid overloading the database from a single large query.
