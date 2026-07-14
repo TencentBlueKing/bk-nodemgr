@@ -1,3 +1,16 @@
+FROM node:20-alpine AS frontend-builder
+
+ARG MODE=production
+
+WORKDIR /app
+RUN corepack enable
+
+COPY front/.npmrc front/package.json front/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY front/ .
+RUN pnpm build --mode ${MODE}
+
 FROM alpine:3.21
 
 # install dependencies.
@@ -37,7 +50,7 @@ COPY scripts/manual/ /bk-nodemgr/script/manual
 COPY scripts/ops/ /bk-nodemgr/script/ops
 COPY tools/ /bk-nodemgr/file/tools
 COPY bintools/ /bk-nodemgr/file/packages/bintool
-COPY dist/ /bk-nodemgr/static/
+COPY --from=frontend-builder /app/dist/ /bk-nodemgr/static/
 COPY support-files/ /bk-nodemgr/support-files
 
 WORKDIR /bk-nodemgr/bin
