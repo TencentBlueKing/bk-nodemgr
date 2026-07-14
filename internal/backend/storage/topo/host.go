@@ -457,24 +457,29 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 }
 
 func appendStaticTopoIncludeOptions(opts []host.OptFn, exactInclude *types.HostStaticExactFields) []host.OptFn {
-	if len(exactInclude.SetID) == 0 || len(exactInclude.ModuleID) == 0 {
-		return append(opts,
-			host.WithStaticSetID(exactInclude.SetID...),
-			host.WithStaticModuleID(exactInclude.ModuleID...),
-		)
-	}
-
-	topo := make([]types.HostTopo, 0, len(exactInclude.SetID)*len(exactInclude.ModuleID))
-	for _, setID := range exactInclude.SetID {
-		for _, moduleID := range exactInclude.ModuleID {
-			topo = append(topo, types.HostTopo{
-				SetID:    setID,
-				ModuleID: moduleID,
-			})
+	if len(exactInclude.SetID) != 0 && len(exactInclude.ModuleID) != 0 {
+		topo := make([]types.HostTopo, 0, len(exactInclude.SetID)*len(exactInclude.ModuleID))
+		for _, setID := range exactInclude.SetID {
+			for _, moduleID := range exactInclude.ModuleID {
+				topo = append(topo, types.HostTopo{
+					SetID:    setID,
+					ModuleID: moduleID,
+				})
+			}
 		}
+
+		return append(opts, host.WithStaticTopo(topo...))
 	}
 
-	return append(opts, host.WithStaticTopo(topo...))
+	if len(exactInclude.SetID) != 0 {
+		return append(opts, host.WithStaticSetID(exactInclude.SetID...))
+	}
+
+	if len(exactInclude.ModuleID) != 0 {
+		return append(opts, host.WithStaticModuleID(exactInclude.ModuleID...))
+	}
+
+	return opts
 }
 
 // DeleteManyHost delete many hosts by hostIDs.

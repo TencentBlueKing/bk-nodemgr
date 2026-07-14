@@ -36,18 +36,12 @@ func WithStaticBizID(bizIDs ...int64) OptFn {
 
 // WithStaticSetID filters by topo set id.
 func WithStaticSetID(setIDs ...int64) OptFn {
-	return base.WithElemMatch(
-		FieldKeyStaticTopo,
-		base.WithValues(FieldSubKeyStaticTopoItemSetID, setIDs...),
-	)
+	return base.WithValues(FieldKeyStaticSetID, setIDs...)
 }
 
 // WithStaticModuleID filters by topo module id.
 func WithStaticModuleID(moduleIDs ...int64) OptFn {
-	return base.WithElemMatch(
-		FieldKeyStaticTopo,
-		base.WithValues(FieldSubKeyStaticTopoItemModuleID, moduleIDs...),
-	)
+	return base.WithValues(FieldKeyStaticModuleID, moduleIDs...)
 }
 
 // WithStaticTopo filters by set and module ids within the same topo item.
