@@ -991,10 +991,7 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) =>
  */
 const getHostDistinct = async () => {
   const params = {
-    exact_include_conditions: {
-      node_role: ['agent', 'blank'],
-      bk_biz_id: mainStore.selectedBusinessId,
-    },
+    role_type: 'agent' as const,
   };
   const res = await TopoService.HostDistinct(params).catch((err: any) => {
     console.error('获取主机筛选条件唯一值失败:', err);

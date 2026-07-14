@@ -650,8 +650,7 @@ export interface TopoHostSelectNetWorkareaIDAndInnerIPV6RespData {
 // TopoHostDistinctReq describes the HTTP request body when distinct host in
 // topp service.
 export interface TopoHostDistinctReq {
-  exact_include_conditions: TopoHostExactConditions;
-  fuzzy_include_conditions: TopoHostFuzzyConditions;
+  role_type: 'agent' | 'proxy';
 }
 
 // TopoHostDistinctResp describes the HTTP response body when distinct host in

@@ -30,6 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/topocache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -344,6 +345,11 @@ func (svc *Service) initialStorages() error {
 	if err != nil {
 		return fmt.Errorf("failed to create config policy template storage: %w", err)
 	}
+
+	svc.Cap.TopoDistinctCache = topocache.New(
+		svc.Cap.BackendHandler,
+		svc.Cap.MongoClient.Database(svc.conf.MongoDB.Database),
+	)
 
 	return nil
 }

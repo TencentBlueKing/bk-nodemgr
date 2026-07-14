@@ -11,6 +11,9 @@
 package topo
 
 import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/topocache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -151,7 +154,9 @@ func (h *handler) completeNetworkUnitName(
 	return nil
 }
 
-// DistinctHost get distinct host fields.
+// DistinctHost get distinct host fields from the in-memory cache maintained by
+// the application service. The cache is keyed by tenant id and role_type
+// ("agent" or "proxy") and is refreshed from the backend every minute.
 func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoHostDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -159,12 +164,24 @@ func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.DistinctHost(
-		rCtx,
-		req.ConvertConditionsToTypes())
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	roleType := req.GetRoleType()
+	if roleType != topocache.RoleTypeAgent && roleType != topocache.RoleTypeProxy {
+		err := fmt.Errorf("role_type must be %q or %q, got %q",
+			topocache.RoleTypeAgent, topocache.RoleTypeProxy, roleType)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host, invalid role_type")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result := h.topoDistinctCache.Get(rCtx.TenantID(), roleType)
+	if result == nil {
+		// cold-start window before the first sync completes; real sync failures
+		// are already logged at Error level in the syncer, so debug here to
+		// avoid per-request noise during the brief empty-cache window.
+		logger.G.Biz(rCtx).
+			With("tenant-id", rCtx.TenantID(), "role-type", roleType).
+			Debug("host distinct cache miss, return empty result")
+		result = new(types.HostDistinctResult)
 	}
 
 	resp := new(protoApplication.TopoHostDistinctResp)

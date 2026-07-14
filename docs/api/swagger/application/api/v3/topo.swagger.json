@@ -2583,11 +2583,9 @@
     "v3TopoHostDistinctReq": {
       "type": "object",
       "properties": {
-        "exact_include_conditions": {
-          "$ref": "#/definitions/v3TopoHostExactConditions"
-        },
-        "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        "role_type": {
+          "type": "string",
+          "description": "role_type indicates which host role scope to query, served from the\napplication service in-memory cache. Allowed values: \"agent\" (role in\n[agent, blank]), \"proxy\" (role in [proxy])."
         }
       },
       "description": "TopoHostDistinctReq describes the HTTP request body when distinct host in\ntopp service."

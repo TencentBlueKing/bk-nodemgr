@@ -13,21 +13,24 @@ package topo
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/topocache"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg             *gin.RouterGroup
-	backendHandler backend.IHandler
+	rg                *gin.RouterGroup
+	backendHandler    backend.IHandler
+	topoDistinctCache *topocache.Cache
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:             rg.Group("/topo"),
-		backendHandler: capability.BackendHandler,
+		rg:                rg.Group("/topo"),
+		backendHandler:    capability.BackendHandler,
+		topoDistinctCache: capability.TopoDistinctCache,
 	}
 }
 

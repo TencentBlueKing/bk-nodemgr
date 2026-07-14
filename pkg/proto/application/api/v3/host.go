@@ -192,24 +192,6 @@ func (x *TopoHostDistinctReq) Validate() error {
 func (x *TopoHostDistinctReq) AutoConvert() {
 }
 
-// ConvertConditionsToTypes converts the request to types.
-func (x *TopoHostDistinctReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
-}
-
-// ConvertConditionsFromTypes converts the request to types.
-func (x *TopoHostDistinctReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
-	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
-	if err != nil {
-		return err
-	}
-
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
-
-	return nil
-}
-
 // ConvertResultFromTypes converts the result from types.
 func (x *TopoHostDistinctResp) ConvertResultFromTypes(result *types.HostDistinctResult) {
 	if result == nil {

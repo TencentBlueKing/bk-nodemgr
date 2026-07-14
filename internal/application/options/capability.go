@@ -14,6 +14,7 @@ package options
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/topocache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -53,6 +54,10 @@ type Capability struct {
 
 	// ConfigPolicyOptionSet is the config policy option set.
 	ConfigPolicyOptionSet types.ConfigPolicyOptionSet
+
+	// TopoDistinctCache holds the in-memory host distinct results synced from
+	// the backend, used to serve /topo/host/distinct without hitting the DB.
+	TopoDistinctCache *topocache.Cache
 }
 
 // Start starts all services in capability.
@@ -63,6 +68,12 @@ func (c *Capability) Start(nCtx contextx.IContext) error {
 
 	if err := c.StorageConfigPolicyTemplate.Start(nCtx); err != nil {
 		return err
+	}
+
+	if c.TopoDistinctCache != nil {
+		if err := c.TopoDistinctCache.Start(nCtx); err != nil {
+			return err
+		}
 	}
 
 	return nil
