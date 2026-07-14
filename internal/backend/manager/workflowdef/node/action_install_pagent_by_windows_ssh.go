@@ -202,6 +202,7 @@ func (act *actionInstallPagentByWindowsSSH) Do(ctx *action.InstanceContext) (err
 func (act *actionInstallPagentByWindowsSSH) setupInstallationTools(
 	std *nodeUtils.NodeActionStandarder,
 ) (string, string, error) {
+
 	toolName, err := tool.FormatInstallerName(criteria.OSWindows, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to format tools name: %w", err)
@@ -221,6 +222,7 @@ func (act *actionInstallPagentByWindowsSSH) buildInstallParams(
 	std *nodeUtils.NodeActionStandarder,
 	installerPath string,
 ) (*installer.NodeInstallParams, error) {
+
 	callbackEndpoints, downloadEndpoints, err := nodeUtils.GenerateNodeInstallerServerEndpoints(
 		std, act.provider, nodeUtils.NodeInstallerEndpointSourceRelay,
 	)
@@ -281,6 +283,7 @@ func (act *actionInstallPagentByWindowsSSH) notifyRelayToInstall(
 	installerShellCmd string,
 	relayInfo *types.RelayInfo,
 ) error {
+
 	event := protoRelay.InstallPagentByWindowsSSHReq{
 		ActionName:         std.InstanceData().Name,
 		OperInstID:         std.InstanceData().OperationInstanceID,
@@ -322,6 +325,7 @@ func (act *actionInstallPagentByWindowsSSH) notifyRelayToInstall(
 func (act *actionInstallPagentByWindowsSSH) waitForRelayReportInstall(
 	std *nodeUtils.NodeActionStandarder,
 ) error {
+
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 

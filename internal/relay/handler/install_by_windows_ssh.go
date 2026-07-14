@@ -208,7 +208,7 @@ func ensureWindowsSSHWorkspace(client *sshx.Client, profile, workDir string) (st
 	case windowsSSHProfileCygwin:
 		command = fmt.Sprintf(
 			"mkdir -p %s",
-			shellDoubleQuote(winpath.ToSlash(winpath.Clean(workDir))),
+			shellSingleQuote(winpath.ToSlash(winpath.Clean(workDir))),
 		)
 		stageError = "failed to prepare cygwin windows workspace"
 	default:
@@ -277,8 +277,8 @@ func executeCygwinWindowsSSHInstall(
 
 	command := fmt.Sprintf(
 		"cd %s && sh %s",
-		shellDoubleQuote(winpath.ToSlash(winpath.Clean(event.InstallerWorkDir))),
-		shellDoubleQuote(event.InstallerShellName),
+		shellSingleQuote(winpath.ToSlash(winpath.Clean(event.InstallerWorkDir))),
+		shellSingleQuote(event.InstallerShellName),
 	)
 	stdout, stderr, err := runWindowsSSHCommand(client, command, "failed to launch cygwin windows installer")
 
@@ -334,6 +334,6 @@ func powerShellSingleQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 }
 
-func shellDoubleQuote(value string) string {
-	return "\"" + strings.ReplaceAll(value, "\"", "\\\"") + "\""
+func shellSingleQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
