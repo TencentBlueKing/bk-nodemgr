@@ -100,6 +100,9 @@ type IHandler interface {
 	// TouchOperationUpdatedAt sets operation_updated_at to now for the given host IDs.
 	TouchOperationUpdatedAt(nCtx contextx.IContext, hostIDs ...int64) error
 
+	// DistinctFields returns distinct values for the requested host fields.
+	DistinctFields(nCtx contextx.IContext, request types.HostDistinctRequest, opts ...OptFn) (*types.HostDistinctResult, error)
+
 	IDistinctor
 }
 

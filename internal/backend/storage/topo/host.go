@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -238,8 +237,6 @@ func (s *Storage) CountHostGroupByModuleID(nCtx contextx.IContext, conditions ..
 }
 
 // DistinctHost distinct host fields.
-// nolint:funlen
-// NOCC: golint/fnsize(func design is not suitable for splitting).
 func (s *Storage) DistinctHost(
 	nCtx contextx.IContext, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 	*types.HostDistinctResult, error) {
@@ -247,130 +244,13 @@ func (s *Storage) DistinctHost(
 	var data *types.HostDistinctResult
 	err := s.WrapFn(nCtx, metricOperationDistinctHost, func(nCtx contextx.IContext) error {
 		opts := convertHostConditionsToOptions(conditions...)
-		data = new(types.HostDistinctResult)
+		var err error
+		data, err = s.daoHost.DistinctFields(nCtx, request, opts...)
 
-		gp := gopool.NewPool()
-		s.enqueueHostDistinctTasks(gp, s.buildHostDistinctTasks(nCtx, request, data, opts))
-
-		return gp.Wait()
+		return err
 	})
 
 	return data, err
-}
-
-type hostDistinctTask struct {
-	enabled bool
-	run     func() error
-}
-
-func (s *Storage) buildHostDistinctTasks(
-	nCtx contextx.IContext, request types.HostDistinctRequest, data *types.HostDistinctResult, opts []host.OptFn,
-) []hostDistinctTask {
-
-	tasks := []hostDistinctTask{
-		{
-			enabled: request.BizID,
-			run: func() error {
-				var err error
-				data.BizID, err = s.daoHost.DistinctBizID(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.NodeRole,
-			run: func() error {
-				var err error
-				data.NodeRole, err = s.daoHost.DistinctNodeRole(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.NodeStatus,
-			run: func() error {
-				var err error
-				data.NodeStatus, err = s.daoHost.DistinctNodeStatus(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.NodeVersion,
-			run: func() error {
-				var err error
-				data.NodeVersion, err = s.daoHost.DistinctNodeVersion(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.DeptName,
-			run: func() error {
-				var err error
-				data.DeptName, err = s.daoHost.DistinctDeptName(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.OSType,
-			run: func() error {
-				var err error
-				data.OSType, err = s.daoHost.DistinctOSType(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.Arch,
-			run: func() error {
-				var err error
-				data.Arch, err = s.daoHost.DistinctArch(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.Addressing,
-			run: func() error {
-				var err error
-				data.Addressing, err = s.daoHost.DistinctAddressing(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.NetworkAreaID,
-			run: func() error {
-				var err error
-				data.NetworkAreaID, err = s.daoHost.DistinctNetworkAreaID(nCtx, opts...)
-
-				return err
-			},
-		},
-		{
-			enabled: request.NetworkUnitID,
-			run: func() error {
-				var err error
-				data.NetworkUnitID, err = s.daoHost.DistinctNetworkUnitID(nCtx, opts...)
-
-				return err
-			},
-		},
-	}
-
-	return tasks
-}
-
-func (s *Storage) enqueueHostDistinctTasks(gp gopool.Pool, tasks []hostDistinctTask) {
-	for _, task := range tasks {
-		if !task.enabled {
-			continue
-		}
-
-		gp.Go(task.run)
-	}
 }
 
 func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.OptFn {
