@@ -105,6 +105,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionEnsurePkgToRelay(nodeCap),
 		node.NewActionPagentDetectInfoBySSH(nodeCap),
 		node.NewActionInstallPagentBySSH(nodeCap),
+		node.NewActionInstallPagentByWindowsSSH(nodeCap),
 		node.NewActionPagentDetectInfoByWMI(nodeCap),
 		node.NewActionInstallPagentByWMI(nodeCap),
 		node.NewActionUpgradePagent(nodeCap),
