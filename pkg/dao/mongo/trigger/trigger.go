@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -48,9 +49,17 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	var indexes []mongo.IndexModel
-
-	return indexes
+	return []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyCategory, Value: 1}},
+			Options: mongoOptions.Index().
+				SetName("data.category_1_active_alive").
+				SetPartialFilterExpression(bson.D{
+					{Key: base.FieldKeyIsDeleted, Value: false},
+					{Key: FieldKeyActive, Value: true},
+				}),
+		},
+	}
 }
 
 func (d *dao) update(nCtx contextx.IContext, trig *Trigger) error {
