@@ -110,7 +110,7 @@ func (h *handler) readCompatibilityModePolicy(nCtx contextx.IContext) compatibil
 	return compatibility.ParseStoredPolicy(raw, nCtx)
 }
 
-// nolint: funlen, gocognit
+// nolint: funlen, gocognit, gocyclo, cyclop
 func (h *handler) generateInstallNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 
