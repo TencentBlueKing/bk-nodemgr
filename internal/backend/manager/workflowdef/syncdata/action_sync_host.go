@@ -35,7 +35,7 @@ const (
 	// ActionNameSyncHost defines the action name.
 	ActionNameSyncHost = "sync_host"
 
-	syncHostDBBatchSize = 100
+	syncHostDBBatchSize = 50 // nolint: mnd
 )
 
 // NewActionSyncHost creates a new actionSyncHost.

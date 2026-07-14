@@ -136,7 +136,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 func (d *dao) upsertMany(nCtx contextx.IContext, hosts []*Host) error {
 	models := buildUpsertManyParams(hosts)
 
-	result, err := d.client.BulkWrite(nCtx, models)
+	result, err := d.client.BulkWrite(nCtx, models, options.BulkWrite().SetOrdered(false))
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (d *dao) upsertMany(nCtx contextx.IContext, hosts []*Host) error {
 func (d *dao) upsertStaticMany(nCtx contextx.IContext, hosts []*Host) error {
 	models := buildUpsertStaticManyParams(hosts)
 
-	result, err := d.client.BulkWrite(nCtx, models)
+	result, err := d.client.BulkWrite(nCtx, models, options.BulkWrite().SetOrdered(false))
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (d *dao) upsertStaticMany(nCtx contextx.IContext, hosts []*Host) error {
 func (d *dao) updateDynamicMany(nCtx contextx.IContext, hosts []*Host) error {
 	models := buildUpdateDynamicManyParams(hosts)
 
-	result, err := d.client.BulkWrite(nCtx, models)
+	result, err := d.client.BulkWrite(nCtx, models, options.BulkWrite().SetOrdered(false))
 	if err != nil {
 		return err
 	}

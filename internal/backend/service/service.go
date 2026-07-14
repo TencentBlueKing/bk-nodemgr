@@ -82,6 +82,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
 )
 
@@ -647,6 +648,10 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 			Hosts:           svc.conf.MongoDB.Hosts,
 			TLSConfig:       tlsConfig,
 			ReadPreference:  readpref.Primary(),
+			// All reads go to the primary (ReadPreference=primary), so w:1 writes are
+			// immediately readable. The majority replication ack (~190ms/command) is
+			// unnecessary for retried sync operations that are reconciled by the next cycle.
+			WriteConcern:    writeconcern.W1(),
 			Monitor:         otelmongo.NewMonitor(otelmongo.WithTracerProvider(mongoSvc.TracerProvider())),
 			MaxConnIdleTime: &maxConnIdleTime,
 			MaxPoolSize:     &maxPoolSize,

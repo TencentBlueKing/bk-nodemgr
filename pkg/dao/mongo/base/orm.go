@@ -906,7 +906,8 @@ func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err err
 		return errors.New("context is nil")
 	}
 
-	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
+	if result, err = orm.dao.GetClient().BulkWrite(
+		nCtx, models, mongoOptions.BulkWrite().SetOrdered(false)); err != nil {
 		return err
 	}
 
@@ -1122,7 +1123,8 @@ func (orm *Orm[P, T]) UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*Do
 		return nil
 	}
 
-	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
+	if result, err = orm.dao.GetClient().BulkWrite(
+		nCtx, models, mongoOptions.BulkWrite().SetOrdered(false)); err != nil {
 		return err
 	}
 
@@ -1196,7 +1198,8 @@ func (orm *Orm[P, T]) UpdateOneFieldBulk(nCtx contextx.IContext, updates []*Docu
 		return nil
 	}
 
-	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
+	if result, err = orm.dao.GetClient().BulkWrite(
+		nCtx, models, mongoOptions.BulkWrite().SetOrdered(false)); err != nil {
 		return err
 	}
 
