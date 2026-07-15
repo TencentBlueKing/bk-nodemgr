@@ -277,6 +277,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 		syncDataUtils.FillHostDynamicAgentID(event.Detail)
 		// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
 		syncDataUtils.FillHostDynamicOpsInfo(event.Detail)
+		fillDefaultAdvertiseIP(event.Detail, nil)
 		act.waitingCreateHostMap[event.Detail.HostID] = event.Detail
 
 		return
@@ -284,6 +285,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 
 	event.Detail.Static.BizID = host.Static.BizID
 	event.Detail.Static.Topo = host.Static.Topo
+	fillDefaultAdvertiseIP(event.Detail, nil)
 	if err := act.storageTopo.UpsertManyHost(std.Context(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
@@ -340,7 +342,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 	}
 
 	fields := types.UpdateAllHostStaticFields()
-	fields.Topo = false // topo field should not be updated by host update event, it should be updated by host relation event
+	fields.Topo = false  // topo field should not be updated by host update event, it should be updated by host relation event
 	fields.BizID = false // biz id field should not be updated by host update event, it should be updated by host relation event
 	if err := act.storageTopo.UpdateHostStaticFields(std.Context(), fields, event.Detail); err != nil {
 		std.InstanceData().Log().
@@ -357,6 +359,20 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 			std.InstanceData().Log().
 				Zh("更新主机动态信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 				En("failed to update host dynamic info, host id: %d, error: %v", event.Detail.HostID, err).
+				Error()
+
+			return
+		}
+	}
+
+	if fillDefaultAdvertiseIP(event.Detail, dbHost) {
+		if err := act.storageTopo.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
+			AdvertiseIP:   true,
+			AdvertiseIPV6: true,
+		}, event.Detail); err != nil {
+			std.InstanceData().Log().
+				Zh("更新主机动态服务IP失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
+				En("failed to update host dynamic advertise ip, host id: %d, error: %v", event.Detail.HostID, err).
 				Error()
 
 			return
@@ -418,6 +434,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 	if ok && !existHost {
 		host.Static.BizID = event.Detail.Static.BizID
 		host.Static.Topo = event.Detail.Static.Topo
+		fillDefaultAdvertiseIP(host, nil)
 		if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 			std.InstanceData().Log().
 				Zh("创建主机失败, 主机id: %d, 错误: %v", host.HostID, err).
@@ -569,6 +586,7 @@ func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataU
 	syncDataUtils.FillHostDynamicAgentID(host)
 	// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
 	syncDataUtils.FillHostDynamicOpsInfo(host)
+	fillDefaultAdvertiseIP(host, nil)
 	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
 			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", hostID, err).

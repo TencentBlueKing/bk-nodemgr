@@ -1343,6 +1343,12 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.AgentID {
 		fields = append(fields, FieldKeyDynamicAgentID)
 	}
+	if selection.AdvertiseIP {
+		fields = append(fields, FieldKeyDynamicAdvertiseIP)
+	}
+	if selection.AdvertiseIPV6 {
+		fields = append(fields, FieldKeyDynamicAdvertiseIPV6)
+	}
 
 	return fields
 }

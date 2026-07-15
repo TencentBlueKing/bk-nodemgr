@@ -133,13 +133,15 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	gp.Go(func() error {
 		selection := &types.HostFieldSelection{
-			// Sync only needs host_id for comparison and login_user for repair and agent_id for sync.
+			// Sync only needs host_id for comparison and dynamic fields for repair/sync.
 			HostID:        true,
 			NetworkAreaID: false,
 			InnerIPList:   false,
 			InnerIPV6List: false,
 			LoginUser:     true,
 			AgentID:       true,
+			AdvertiseIP:   true,
+			AdvertiseIPV6: true,
 		}
 
 		condition := &types.HostCondition{
@@ -173,12 +175,16 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return err
 	}
+	updateAdvertiseIPHosts := fillDefaultAdvertiseIPs(updateHosts, dbData)
+	insertAdvertiseIPHosts := fillDefaultAdvertiseIPs(insertHosts, nil)
 
 	ctx.Data.Log().
-		Zh("对比完成，需更新 %d 台、需更新AgentID %d 台、新增 %d 台、删除 %d 台主机",
-			len(updateHosts), len(updateAgentIDHosts), len(insertHosts), len(deleteHostIDs)).
-		En("compared hosts, %d hosts need to update, %d hosts need to update AgentID, %d hosts need to insert, %d hosts need to delete",
-			len(updateHosts), len(updateAgentIDHosts), len(insertHosts), len(deleteHostIDs)).
+		Zh("对比完成，需更新 %d 台、需更新AgentID %d 台、需修补服务IP %d 台、新增 %d 台、删除 %d 台主机",
+			len(updateHosts), len(updateAgentIDHosts), len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
+			len(insertHosts), len(deleteHostIDs)).
+		En("compared hosts, %d hosts need to update, %d hosts need to update AgentID, %d hosts need to repair advertise IP, %d hosts need to insert, %d hosts need to delete",
+			len(updateHosts), len(updateAgentIDHosts), len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
+			len(insertHosts), len(deleteHostIDs)).
 		Info()
 
 	if err = batchHandleHosts(std.Context(), updateHosts, func(hosts ...*types.Host) error {
@@ -189,6 +195,15 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	if err = batchHandleHosts(std.Context(), insertHosts, func(hosts ...*types.Host) error {
 		return act.storageHost.UpsertManyHost(std.Context(), hosts...)
+	}); err != nil {
+		return err
+	}
+
+	if err = batchHandleHosts(std.Context(), updateAdvertiseIPHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
+			AdvertiseIP:   true,
+			AdvertiseIPV6: true,
+		}, hosts...)
 	}); err != nil {
 		return err
 	}
