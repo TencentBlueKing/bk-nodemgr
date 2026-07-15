@@ -1,9 +1,9 @@
 apiVersion: v2
-appVersion: v3.0.1-alpha.53
+appVersion: v3.0.1-alpha.54
 name: bk-nodemgr
 description: Blueking NodeMgr provides services to help operation and maintenance personnel to realize Agent installation, plug-in management and other back-end service management.
 type: application
-version: v3.0.1-alpha.53
+version: v3.0.1-alpha.54
 dependencies:
   - name: common
     repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
