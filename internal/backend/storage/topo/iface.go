@@ -138,6 +138,9 @@ type IStorageHost interface {
 	// UpsertManyHost updates or inserts host.
 	UpsertManyHost(nCtx contextx.IContext, host ...*types.Host) error
 
+	// CreateManyHost create host.
+	CreateManyHost(nCtx contextx.IContext, hosts ...*types.Host) error
+
 	// UpsertManyHostStatic updates or inserts host statics.
 	// Deprecated: UpsertManyHostStatic is deprecated, please use UpdateHostStaticFields instead.
 	UpsertManyHostStatic(nCtx contextx.IContext, host ...*types.Host) error

@@ -231,7 +231,7 @@ func (act *actionSyncHost) persistHostSyncChanges(
 	}
 
 	if err := batchHandleHosts(nCtx, changes.insertHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpsertManyHost(nCtx, hosts...)
+		return act.storageHost.CreateManyHost(nCtx, hosts...)
 	}); err != nil {
 		return err
 	}

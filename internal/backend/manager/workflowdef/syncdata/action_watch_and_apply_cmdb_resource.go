@@ -286,7 +286,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 	event.Detail.Static.BizID = host.Static.BizID
 	event.Detail.Static.Topo = host.Static.Topo
 	fillDefaultAdvertiseIP(event.Detail, nil)
-	if err := act.storageTopo.UpsertManyHost(std.Context(), event.Detail); err != nil {
+	if err := act.storageTopo.CreateManyHost(std.Context(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 			En("failed to create host, host id: %d, error: %v", event.Detail.HostID, err).
@@ -319,7 +319,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostUpdateEvent(std *syncDataU
 			En("host not found in local db, try to get host info from cmdb, host id: %d", event.Detail.HostID).
 			Info()
 
-		if err := act.tryUpsertHostFromCMDB(std, event.Detail.HostID, event.Detail.Static.BizID); err != nil {
+		if err := act.tryCreateHostFromCMDB(std, event.Detail.HostID, event.Detail.Static.BizID); err != nil {
 			std.InstanceData().Log().
 				Zh("从CMDB获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 				En("failed to get host info from cmdb, host id: %d, error: %v", event.Detail.HostID, err).
@@ -435,7 +435,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 		host.Static.BizID = event.Detail.Static.BizID
 		host.Static.Topo = event.Detail.Static.Topo
 		fillDefaultAdvertiseIP(host, nil)
-		if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
+		if err := act.storageTopo.CreateManyHost(std.Context(), host); err != nil {
 			std.InstanceData().Log().
 				Zh("创建主机失败, 主机id: %d, 错误: %v", host.HostID, err).
 				En("failed to create host, host id: %d, error: %v", host.HostID, err).
@@ -491,7 +491,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationUpdateEvent(std *s
 			Zh("主机不存在于本地数据库, 尝试从CMDB获取主机信息, 主机id: %d", event.Detail.HostID).
 			En("host not found in local db, try to get host info from cmdb, host id: %d", event.Detail.HostID).
 			Info()
-		if err := act.tryUpsertHostFromCMDB(std, event.Detail.HostID, event.Detail.Static.BizID); err != nil {
+		if err := act.tryCreateHostFromCMDB(std, event.Detail.HostID, event.Detail.Static.BizID); err != nil {
 			std.InstanceData().Log().
 				Zh("从CMDB获取主机信息失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 				En("failed to get host info from cmdb, host id: %d, error: %v", event.Detail.HostID, err).
@@ -553,8 +553,8 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationDeleteEvent(std *s
 	}
 }
 
-// tryUpsertHostFromCMDB depends on the host id to get the host information from CMDB.
-func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataUtils.SyncDataActionStandarder, hostID int64, bizID int64) error {
+// tryCreateHostFromCMDB depends on the host id to get the host information from CMDB.
+func (act *actionWatchAndApplyCMDBResource) tryCreateHostFromCMDB(std *syncDataUtils.SyncDataActionStandarder, hostID int64, bizID int64) error {
 	cond := &types.HostStaticExactCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: []int64{hostID}},
 	}
@@ -587,10 +587,10 @@ func (act *actionWatchAndApplyCMDBResource) tryUpsertHostFromCMDB(std *syncDataU
 	// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
 	syncDataUtils.FillHostDynamicOpsInfo(host)
 	fillDefaultAdvertiseIP(host, nil)
-	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
+	if err := act.storageTopo.CreateManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
-			Zh("更新主机静态信息失败, 主机id: %d, 错误: %v", hostID, err).
-			En("failed to update host static info, host id: %d, error: %v", hostID, err).
+			Zh("创建主机失败, 主机id: %d, 错误: %v", hostID, err).
+			En("failed to create host info, host id: %d, error: %v", hostID, err).
 			Error()
 
 		return err

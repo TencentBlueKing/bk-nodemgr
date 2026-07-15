@@ -73,6 +73,27 @@ func (s *Storage) UpsertManyHost(nCtx contextx.IContext, hosts ...*types.Host) e
 	})
 }
 
+// CreateManyHost creates host.
+func (s *Storage) CreateManyHost(nCtx contextx.IContext, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(hosts) == 0 {
+		return nil
+	}
+
+	return s.WrapFn(nCtx, metricOperationCreateManyHost, func(nCtx contextx.IContext) error {
+		var err error
+		err = s.daoHost.CreateMany(nCtx, hosts...)
+		if err != nil {
+			return fmt.Errorf("failed to create hosts: %w", err)
+		}
+
+		return nil
+	})
+}
+
 // UpsertManyHostStatic updates or inserts host statics.
 func (s *Storage) UpsertManyHostStatic(nCtx contextx.IContext, hosts ...*types.Host) error {
 	if nCtx == nil {

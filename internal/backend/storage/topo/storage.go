@@ -57,6 +57,7 @@ const (
 	metricOperationGetRelayInfosInNetworkUnit                = "get_relay_infos_in_network_unit"
 	metricOperationGetHostByID                               = "get_host_by_id"
 	metricOperationUpsertManyHost                            = "upsert_many_host"
+	metricOperationCreateManyHost                            = "create_many_host"
 	metricOperationUpsertManyHostStatic                      = "upsert_many_host_static"
 	metricOperationUpdateManyHostDynamic                     = "update_many_host_dynamic"
 	metricOperationListHost                                  = "list_host"

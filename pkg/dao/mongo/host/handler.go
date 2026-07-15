@@ -59,6 +59,9 @@ type IHandler interface {
 	// UpsertMany updates or inserts hosts.
 	UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
+	// CreateMany create hosts.
+	CreateMany(nCtx contextx.IContext, hosts ...*types.Host) error
+
 	// UpsertStaticMany updates or inserts host statics.
 	UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
@@ -518,6 +521,42 @@ func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 	}
 
 	if err := h.tenantDao(tenantID).upsertMany(nCtx, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CreateMany creates hosts.
+func (h *handler) CreateMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	if len(hosts) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	data := make([]*Host, len(hosts))
+	for idx, host := range hosts {
+		if host == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		data[idx] = convertHostFromTypes(host)
+
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return fmt.Errorf("failed to create host(%d): %w", host.HostID, err)
+		}
+	}
+
+	if err := h.tenantDao(tenantID).CreateMany(nCtx, data); err != nil {
 		return err
 	}
 
