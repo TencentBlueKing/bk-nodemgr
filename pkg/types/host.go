@@ -495,6 +495,7 @@ type HostFieldSelection struct {
 	InnerIPV6List bool
 
 	// Dynamic fields
+	NodeRole      bool
 	LoginUser     bool
 	AgentID       bool
 	AdvertiseIP   bool

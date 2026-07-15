@@ -138,6 +138,7 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 			NetworkAreaID: false,
 			InnerIPList:   false,
 			InnerIPV6List: false,
+			NodeRole:      true,
 			LoginUser:     true,
 			AgentID:       true,
 			AdvertiseIP:   true,
@@ -366,6 +367,9 @@ func fillDefaultAdvertiseIP(host, dbHost *types.Host) bool {
 	if host == nil || host.Dynamic == nil || host.Static == nil {
 		return false
 	}
+	if !isProxyHost(host, dbHost) {
+		return false
+	}
 
 	if dbHost != nil && dbHost.Dynamic != nil {
 		if dbHost.Dynamic.AdvertiseIP != "" {
@@ -376,26 +380,49 @@ func fillDefaultAdvertiseIP(host, dbHost *types.Host) bool {
 		}
 	}
 
-	needUpdate := false
+	ipv4Updated := fillDefaultAdvertiseIPv4(host, dbHost)
+	ipv6Updated := fillDefaultAdvertiseIPv6(host, dbHost)
+
+	return ipv4Updated || ipv6Updated
+}
+
+func fillDefaultAdvertiseIPv4(host, dbHost *types.Host) bool {
 	if host.Dynamic.AdvertiseIP == "" && len(host.Static.InnerIPList) > 0 {
 		host.Dynamic.AdvertiseIP = host.Static.InnerIPList[0]
-		needUpdate = true
-	} else if dbHost != nil && host.Dynamic.AdvertiseIP != "" &&
+		return true
+	}
+	if dbHost != nil && host.Dynamic.AdvertiseIP != "" &&
 		(dbHost.Dynamic == nil || dbHost.Dynamic.AdvertiseIP == "") {
 
-		needUpdate = true
+		return true
 	}
 
+	return false
+}
+
+func fillDefaultAdvertiseIPv6(host, dbHost *types.Host) bool {
 	if host.Dynamic.AdvertiseIPV6 == "" && len(host.Static.InnerIPV6List) > 0 {
 		host.Dynamic.AdvertiseIPV6 = host.Static.InnerIPV6List[0]
-		needUpdate = true
-	} else if dbHost != nil && host.Dynamic.AdvertiseIPV6 != "" &&
+		return true
+	}
+	if dbHost != nil && host.Dynamic.AdvertiseIPV6 != "" &&
 		(dbHost.Dynamic == nil || dbHost.Dynamic.AdvertiseIPV6 == "") {
 
-		needUpdate = true
+		return true
 	}
 
-	return needUpdate
+	return false
+}
+
+func isProxyHost(host, dbHost *types.Host) bool {
+	if host.Dynamic.NodeRole == types.NodeRoleProxy {
+		return true
+	}
+	if dbHost != nil && dbHost.Dynamic != nil {
+		return dbHost.Dynamic.NodeRole == types.NodeRoleProxy
+	}
+
+	return false
 }
 
 func fillDefaultAdvertiseIPs(hosts, dbData []*types.Host) []*types.Host {

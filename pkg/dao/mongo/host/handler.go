@@ -1337,6 +1337,9 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.Topo {
 		fields = append(fields, FieldKeyStaticTopo)
 	}
+	if selection.NodeRole {
+		fields = append(fields, FieldKeyDynamicNodeRole)
+	}
 	if selection.LoginUser {
 		fields = append(fields, FieldKeyDynamicLoginUser)
 	}
