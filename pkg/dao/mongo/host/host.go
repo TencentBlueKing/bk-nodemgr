@@ -63,18 +63,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 			Keys: bson.D{
 				{Key: FieldKeyStaticBizID, Value: 1},
 				{Key: FieldKeyDynamicNodeRole, Value: 1},
-				{Key: base.FieldKeyUpdatedAt, Value: -1},
-			},
-			Options: options.Index().SetPartialFilterExpression(bson.D{
-				{Key: base.FieldKeyIsDeleted, Value: false},
-			}),
-		},
-		{
-			Keys: bson.D{
-				{Key: FieldKeyStaticBizID, Value: 1},
-				{Key: FieldKeyDynamicNodeRole, Value: 1},
 				{Key: FieldKeyOperationUpdatedAt, Value: -1},
-				{Key: base.FieldKeyUpdatedAt, Value: -1},
 			},
 			Options: options.Index().SetPartialFilterExpression(bson.D{
 				{Key: base.FieldKeyIsDeleted, Value: false},
@@ -102,7 +91,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 				{Key: FieldKeyStaticSetID, Value: 1},
 				{Key: FieldKeyDynamicNodeRole, Value: 1},
 				{Key: FieldKeyOperationUpdatedAt, Value: -1},
-				{Key: base.FieldKeyUpdatedAt, Value: -1},
 			},
 			Options: options.Index().SetPartialFilterExpression(bson.D{
 				{Key: base.FieldKeyIsDeleted, Value: false},
@@ -113,7 +101,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 				{Key: FieldKeyStaticModuleID, Value: 1},
 				{Key: FieldKeyDynamicNodeRole, Value: 1},
 				{Key: FieldKeyOperationUpdatedAt, Value: -1},
-				{Key: base.FieldKeyUpdatedAt, Value: -1},
 			},
 			Options: options.Index().SetPartialFilterExpression(bson.D{
 				{Key: base.FieldKeyIsDeleted, Value: false},
@@ -123,7 +110,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 			Keys: bson.D{
 				{Key: FieldKeyDynamicNodeRole, Value: 1},
 				{Key: FieldKeyOperationUpdatedAt, Value: -1},
-				{Key: base.FieldKeyUpdatedAt, Value: -1},
 			},
 			Options: options.Index().SetPartialFilterExpression(bson.D{
 				{Key: base.FieldKeyIsDeleted, Value: false},

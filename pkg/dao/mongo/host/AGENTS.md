@@ -40,7 +40,7 @@ Physical collection name is `TableName(tenantID)` (see `table.go`). Handlers alw
 
 ### Indexes
 
-`GetIndexes()` includes partial indexes on `(static.biz_id, dynamic.node_role, …)` for common list filters. One compound index orders by `FieldKeyOperationUpdatedAt` then `basic.updated_at` to support host list sort (`operation_updated_at desc`, `updated_at desc`).
+`GetIndexes()` includes partial indexes on `(static.biz_id, dynamic.node_role, …)` for common list filters. Host list compound indexes order by `FieldKeyOperationUpdatedAt` to support host list sort (`operation_updated_at desc`).
 
 ### Queries
 
