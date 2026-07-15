@@ -28,8 +28,8 @@ const (
 	ActionNameAssignProxyInfo = "assign_proxy_info"
 
 	// Default relay ports for proxy.
-	defaultRelayCallbackPort = 17981
-	defaultRelayDownloadPort = 17980
+	defaultRelayCallbackPort = 28302
+	defaultRelayDownloadPort = 28303
 )
 
 // NewActionAssignProxyInfo creates a new action.
