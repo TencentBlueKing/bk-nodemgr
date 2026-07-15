@@ -362,6 +362,58 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 	return updateHosts, insertHosts, deleteHostIDs, nil
 }
 
+func fillDefaultAdvertiseIP(host, dbHost *types.Host) bool {
+	if host == nil || host.Dynamic == nil || host.Static == nil {
+		return false
+	}
+
+	if dbHost != nil && dbHost.Dynamic != nil {
+		if dbHost.Dynamic.AdvertiseIP != "" {
+			host.Dynamic.AdvertiseIP = dbHost.Dynamic.AdvertiseIP
+		}
+		if dbHost.Dynamic.AdvertiseIPV6 != "" {
+			host.Dynamic.AdvertiseIPV6 = dbHost.Dynamic.AdvertiseIPV6
+		}
+	}
+
+	needUpdate := false
+	if host.Dynamic.AdvertiseIP == "" && len(host.Static.InnerIPList) > 0 {
+		host.Dynamic.AdvertiseIP = host.Static.InnerIPList[0]
+		needUpdate = true
+	} else if dbHost != nil && host.Dynamic.AdvertiseIP != "" &&
+		(dbHost.Dynamic == nil || dbHost.Dynamic.AdvertiseIP == "") {
+
+		needUpdate = true
+	}
+
+	if host.Dynamic.AdvertiseIPV6 == "" && len(host.Static.InnerIPV6List) > 0 {
+		host.Dynamic.AdvertiseIPV6 = host.Static.InnerIPV6List[0]
+		needUpdate = true
+	} else if dbHost != nil && host.Dynamic.AdvertiseIPV6 != "" &&
+		(dbHost.Dynamic == nil || dbHost.Dynamic.AdvertiseIPV6 == "") {
+
+		needUpdate = true
+	}
+
+	return needUpdate
+}
+
+func fillDefaultAdvertiseIPs(hosts, dbData []*types.Host) []*types.Host {
+	dbHostMap := make(map[int64]*types.Host, len(dbData))
+	for _, host := range dbData {
+		dbHostMap[host.HostID] = host
+	}
+
+	backfillHosts := make([]*types.Host, 0)
+	for _, host := range hosts {
+		if fillDefaultAdvertiseIP(host, dbHostMap[host.HostID]) {
+			backfillHosts = append(backfillHosts, host)
+		}
+	}
+
+	return backfillHosts
+}
+
 func (act *actionSyncHost) fillDefaultLoginUsers(ctx *action.InstanceContext, hosts, dbData []*types.Host) []*types.Host {
 	dbHostMap := make(map[int64]*types.Host, len(dbData))
 	for _, host := range dbData {
