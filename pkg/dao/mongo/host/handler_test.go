@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -793,7 +792,7 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 }
 
 // Test_handler_TouchOperationUpdatedAt tests TouchOperationUpdatedAt and verifies
-// that the operation_updated_at field is written, preserved, and usable for sorting.
+// that the operation_updated_at field is written and usable for sorting.
 func Test_handler_TouchOperationUpdatedAt(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
@@ -814,9 +813,7 @@ func Test_handler_TouchOperationUpdatedAt(t *testing.T) {
 	page := types.Page{
 		Offset: 0,
 		Limit:  10,
-		Sort: types.WithSortFields(
-			types.WithFieldDesc(FieldKeyOperationUpdatedAt),
-			types.WithFieldDesc(base.FieldKeyUpdatedAt)),
+		Sort:   types.WithFieldDesc(FieldKeyOperationUpdatedAt),
 	}
 	hosts, _, err := h.List(nCtx, page)
 	if err != nil {

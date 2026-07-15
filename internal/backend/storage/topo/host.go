@@ -17,7 +17,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -136,7 +135,7 @@ func (s *Storage) ListHost(nCtx contextx.IContext, page types.Page, conditions .
 }
 
 // ListHostOrderByUpdateTime lists hosts by page and conditions, and sort by
-// business operation time first, then by general update time as fallback.
+// business operation time.
 func (s *Storage) ListHostOrderByUpdateTime(
 	nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error) {
 
@@ -146,8 +145,7 @@ func (s *Storage) ListHostOrderByUpdateTime(
 	)
 	err := s.WrapFn(nCtx, metricOperationListHostOrderByUpdateTime, func(nCtx contextx.IContext) error {
 		page.Sort = types.WithSortFields(page.Sort,
-			types.WithFieldDesc(host.FieldKeyOperationUpdatedAt),
-			types.WithFieldDesc(base.FieldKeyUpdatedAt))
+			types.WithFieldDesc(host.FieldKeyOperationUpdatedAt))
 		opts := convertHostConditionsToOptions(conditions...)
 		var err error
 		results, num, err = s.daoHost.List(nCtx, page, opts...)
