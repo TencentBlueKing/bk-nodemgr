@@ -375,6 +375,52 @@ function validateLink(
 
 const saveLoading = ref(false);
 
+// 检测用户是否修改了节点/插件的"基础部署路径"
+const hasBaseDeployDirChanged = (): boolean => {
+  if (props.isCreate || !originData.value) return false;
+  const oldConfigs = originData.value.custom_deploy_configs || {};
+  const newConfigs = form.custom_deploy_configs || {};
+  const allOs = new Set([...Object.keys(oldConfigs), ...Object.keys(newConfigs)]);
+  for (const os of allOs) {
+    const oldNode = (oldConfigs[os]?.node_runtime?.base_deploy_dir ?? '').trim();
+    const newNode = (newConfigs[os]?.node_runtime?.base_deploy_dir ?? '').trim();
+    if (oldNode !== newNode) return true;
+    const oldPlugin = (oldConfigs[os]?.plugin_runtime?.base_deploy_dir ?? '').trim();
+    const newPlugin = (newConfigs[os]?.plugin_runtime?.base_deploy_dir ?? '').trim();
+    if (oldPlugin !== newPlugin) return true;
+  }
+  return false;
+};
+
+// 查询当前单元的 agent 数量；失败时返回 0 不阻塞保存
+const fetchUnitAgentCount = async (): Promise<number> => {
+  try {
+    const res = await TopoService.TopoGraphNodeGetReq({
+      bk_networkunit_id: [props.workUnitId],
+    });
+    const info = (res?.graph_node_info || []).find(
+      (item: any) => item.bk_networkunit_id === props.workUnitId,
+    );
+    return info?.total_agent ?? 0;
+  } catch {
+    return 0;
+  }
+};
+
+// 弹风险确认窗；用户取消/关闭时返回 false
+const confirmBaseDeployDirChange = (): Promise<boolean> => new Promise((resolve) => {
+  InfoBox({
+    title: t('topoManager.workUnit.form.baseDeployDirChangeWarningTitle'),
+    infoType: 'warning',
+    subTitle: t('topoManager.workUnit.form.baseDeployDirChangeWarningSubTitle'),
+    confirmText: t('action.confirm'),
+    cancelText: t('action.cancel'),
+    onConfirm: () => resolve(true),
+    onCancel: () => resolve(false),
+    onClose: () => resolve(false),
+  });
+});
+
 const handleConfirm = async () => {
   try {
     saveLoading.value = true;
@@ -391,6 +437,16 @@ const handleConfirm = async () => {
       Message({ theme: 'error', message: t('topoManager.workUnit.form.customDeployConfigPartialError') });
       return;
     }
+
+    // 基础部署路径变更且单元下已装 agent：弹风险确认窗
+    if (!props.isCreate && hasBaseDeployDirChanged()) {
+      const agentCount = await fetchUnitAgentCount();
+      if (agentCount > 0) {
+        const ok = await confirmBaseDeployDirChange();
+        if (!ok) return;
+      }
+    }
+
 
     // params配置
     const links = form.links as Links;

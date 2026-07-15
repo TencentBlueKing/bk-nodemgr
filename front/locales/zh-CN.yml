@@ -519,6 +519,8 @@ topoManager:
       customDeployConfig: 自定义部署配置
       customDeployConfigTips: 按操作系统分别配置；留空表示使用默认部署配置；一旦修改任意字段，当前 OS 下所有字段均须修改
       customDeployConfigPartialError: 自定义部署配置填写不完整：若修改任意字段，当前 OS 下所有字段均须修改
+      baseDeployDirChangeWarningTitle: 修改基础部署路径风险提示
+      baseDeployDirChangeWarningSubTitle: 当前管控单元下已存在安装 Agent 的节点，修改基础部署路径可能导致后续卸载、重装、升级等操作无法定位原有安装路径而失败，请确认是否继续保存
       osLabel: 操作系统
       noOsAvailable: 暂无可配置的操作系统
       installerRuntime: 安装器配置

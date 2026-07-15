@@ -519,6 +519,8 @@ topoManager:
       customDeployConfig: Custom Deploy Config
       customDeployConfigTips: 'Configure values per OS. Leave all empty to use the default deploy config. Once any field is modified, all fields for the current OS must be filled in'
       customDeployConfigPartialError: 'Custom deploy config is incomplete: if any field is modified, all fields for the current OS must be filled in'
+      baseDeployDirChangeWarningTitle: Risk of Changing Base Deploy Path
+      baseDeployDirChangeWarningSubTitle: There are already nodes with installed Agent under this network unit. Changing the base deploy path may cause subsequent uninstall, reinstall, and upgrade operations to fail because the original install path cannot be located. Please confirm to continue.
       osLabel: OS
       noOsAvailable: No OS is available for configuration
       installerRuntime: Installer Config
