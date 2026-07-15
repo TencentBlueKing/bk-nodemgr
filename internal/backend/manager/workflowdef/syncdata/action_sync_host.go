@@ -178,51 +178,21 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	updateAdvertiseIPHosts := fillDefaultAdvertiseIPs(updateHosts, dbData)
 	insertAdvertiseIPHosts := fillDefaultAdvertiseIPs(insertHosts, nil)
 
-	ctx.Data.Log().
-		Zh("对比完成，需更新 %d 台、需更新AgentID %d 台、需修补服务IP %d 台、新增 %d 台、删除 %d 台主机",
-			len(updateHosts), len(updateAgentIDHosts), len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
-			len(insertHosts), len(deleteHostIDs)).
-		En("compared hosts, %d hosts need to update, %d hosts need to update AgentID, %d hosts need to repair advertise IP, %d hosts need to insert, %d hosts need to delete",
-			len(updateHosts), len(updateAgentIDHosts), len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
-			len(insertHosts), len(deleteHostIDs)).
-		Info()
+	logHostCompareResult(ctx,
+		len(updateHosts),
+		len(updateAgentIDHosts),
+		len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
+		len(insertHosts),
+		len(deleteHostIDs),
+	)
 
-	if err = batchHandleHosts(std.Context(), updateHosts, func(hosts ...*types.Host) error {
-		return act.updateHostsStaticWithTopo(std.Context(), hosts...)
-	}); err != nil {
-		return err
-	}
-
-	if err = batchHandleHosts(std.Context(), insertHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpsertManyHost(std.Context(), hosts...)
-	}); err != nil {
-		return err
-	}
-
-	if err = batchHandleHosts(std.Context(), updateAdvertiseIPHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
-			AdvertiseIP:   true,
-			AdvertiseIPV6: true,
-		}, hosts...)
-	}); err != nil {
-		return err
-	}
-
-	if err = batchHandleHosts(std.Context(), updateAgentIDHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{AgentID: true}, hosts...)
-	}); err != nil {
-		return err
-	}
-
-	if err = batchHandleHostIDs(std.Context(), deleteHostIDs, func(hostIDs ...int64) error {
-		return act.storageHost.DeleteManyHost(std.Context(), hostIDs...)
-	}); err != nil {
-		return err
-	}
-
-	loginUserRepairHosts := act.fillDefaultLoginUsers(ctx, slices.Concat(updateHosts, insertHosts), dbData)
-	if err = batchHandleHosts(std.Context(), loginUserRepairHosts, func(hosts ...*types.Host) error {
-		return act.storageHost.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{LoginUser: true}, hosts...)
+	if err = act.persistHostSyncChanges(ctx, std.Context(), hostSyncChanges{
+		updateHosts:            updateHosts,
+		insertHosts:            insertHosts,
+		deleteHostIDs:          deleteHostIDs,
+		updateAgentIDHosts:     updateAgentIDHosts,
+		updateAdvertiseIPHosts: updateAdvertiseIPHosts,
+		dbData:                 dbData,
 	}); err != nil {
 		return err
 	}
@@ -236,6 +206,87 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	}
 
 	return nil
+}
+
+type hostSyncChanges struct {
+	updateHosts            []*types.Host
+	insertHosts            []*types.Host
+	deleteHostIDs          []int64
+	updateAgentIDHosts     []*types.Host
+	updateAdvertiseIPHosts []*types.Host
+	dbData                 []*types.Host
+}
+
+func (act *actionSyncHost) persistHostSyncChanges(
+	ctx *action.InstanceContext,
+	nCtx contextx.IContext,
+	changes hostSyncChanges,
+) error {
+
+	if err := batchHandleHosts(nCtx, changes.updateHosts, func(hosts ...*types.Host) error {
+		return act.updateHostsStaticWithTopo(nCtx, hosts...)
+	}); err != nil {
+		return err
+	}
+
+	if err := batchHandleHosts(nCtx, changes.insertHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpsertManyHost(nCtx, hosts...)
+	}); err != nil {
+		return err
+	}
+
+	if err := act.updateHostDynamicAdvertiseIP(nCtx, changes.updateAdvertiseIPHosts); err != nil {
+		return err
+	}
+
+	if err := batchHandleHosts(nCtx, changes.updateAgentIDHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{AgentID: true}, hosts...)
+	}); err != nil {
+		return err
+	}
+
+	if err := batchHandleHostIDs(nCtx, changes.deleteHostIDs, func(hostIDs ...int64) error {
+		return act.storageHost.DeleteManyHost(nCtx, hostIDs...)
+	}); err != nil {
+		return err
+	}
+
+	loginUserRepairHosts := act.fillDefaultLoginUsers(
+		ctx,
+		slices.Concat(changes.updateHosts, changes.insertHosts),
+		changes.dbData,
+	)
+
+	return batchHandleHosts(nCtx, loginUserRepairHosts, func(hosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{LoginUser: true}, hosts...)
+	})
+}
+
+func logHostCompareResult(
+	ctx *action.InstanceContext,
+	updateCount int,
+	agentIDRepairCount int,
+	advertiseIPRepairCount int,
+	insertCount int,
+	deleteCount int,
+) {
+
+	ctx.Data.Log().
+		Zh("对比完成，需更新 %d 台、需更新AgentID %d 台、需修补服务IP %d 台、新增 %d 台、删除 %d 台主机",
+			updateCount, agentIDRepairCount, advertiseIPRepairCount, insertCount, deleteCount).
+		En("compared hosts, %d hosts need to update, %d hosts need to update AgentID, "+
+			"%d hosts need to repair advertise IP, %d hosts need to insert, %d hosts need to delete",
+			updateCount, agentIDRepairCount, advertiseIPRepairCount, insertCount, deleteCount).
+		Info()
+}
+
+func (act *actionSyncHost) updateHostDynamicAdvertiseIP(nCtx contextx.IContext, hosts []*types.Host) error {
+	return batchHandleHosts(nCtx, hosts, func(batchHosts ...*types.Host) error {
+		return act.storageHost.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{
+			AdvertiseIP:   true,
+			AdvertiseIPV6: true,
+		}, batchHosts...)
+	})
 }
 
 func batchHandleHosts(nCtx contextx.IContext, hosts []*types.Host, fn func(hosts ...*types.Host) error) error {

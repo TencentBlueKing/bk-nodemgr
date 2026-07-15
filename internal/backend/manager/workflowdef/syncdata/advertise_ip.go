@@ -32,6 +32,7 @@ func fillDefaultAdvertiseIP(host, dbHost *types.Host) bool {
 		needUpdate = true
 	} else if dbHost != nil && host.Dynamic.AdvertiseIP != "" &&
 		(dbHost.Dynamic == nil || dbHost.Dynamic.AdvertiseIP == "") {
+
 		needUpdate = true
 	}
 
@@ -40,6 +41,7 @@ func fillDefaultAdvertiseIP(host, dbHost *types.Host) bool {
 		needUpdate = true
 	} else if dbHost != nil && host.Dynamic.AdvertiseIPV6 != "" &&
 		(dbHost.Dynamic == nil || dbHost.Dynamic.AdvertiseIPV6 == "") {
+
 		needUpdate = true
 	}
 
