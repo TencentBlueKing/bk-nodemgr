@@ -207,6 +207,23 @@
             },
             {
                 "enabled": false,
+                "id": "bt_listen_interface",
+                "name_en": "Binding BT listen interface",
+                "name_zh": "绑定BT监听网卡",
+                "remark_en": "The agent will bind the specified network card as the file transfer BT service. You can enter the IP or network card name",
+                "remark_zh": "agent将绑定指定的网卡作为文件传输的BT服务. 可以填写IP或网卡名",
+                "key": "agent.file.bt_listen_interface",
+                "type": 0,
+                "value_string": "0.0.0.0",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
                 "id": "disable_listen_sockets",
                 "name_en": "Enable silent mode",
                 "name_zh": "开启无监听模式",
