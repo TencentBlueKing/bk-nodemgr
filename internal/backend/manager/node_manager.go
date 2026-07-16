@@ -270,7 +270,12 @@ func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment
 			}
 		case criteria.OSWindows:
 			switch deploy.Info.InstallOptions.InstallMethod {
-			case types.NodeInstallMethodAuto, types.NodeInstallMethodWMI:
+			case types.NodeInstallMethodAuto, types.NodeInstallMethodSSH:
+				return node.NewOperInstallNodeByWindowsSSH(node.OperParamInstallNodeByWindowsSSH{
+					Token:    deploy.Token,
+					Operator: operator,
+				}), nil
+			case types.NodeInstallMethodWMI:
 				return node.NewOperInstallNodeByWMI(node.OperParamInstallNodeByWMI{
 					Token:    deploy.Token,
 					Operator: operator,
