@@ -103,6 +103,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	agentIDs := conv.SliceToSlice(param.Hosts, func(hostIDAgentID *HostIDAgentID) string {
 		return hostIDAgentID.AgentID
 	})
+	agentIDs = conv.SliceUnique(agentIDs)
 
 	result, err := batchexecutor.Collect(std.Context(), agentIDs,
 		func(nCtx contextx.IContext, batchAgentIDs []string) ([]*types.AgentState, error) {
