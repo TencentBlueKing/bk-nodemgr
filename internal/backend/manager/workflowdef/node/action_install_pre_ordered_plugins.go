@@ -314,7 +314,7 @@ func (act *actionInstallPreOrderedPlugins) installPreOrderedPluginV2(std *nodeUt
 
 	//// Skip this action if EnableCompatibilityMode is disabled.
 	// v2 plugin is special, it not controlled by InstallPreOrderedPlugins.
-	if !deployInfo.InstallOptions.EnableCompatibilityMode || deployInfo.InstallOptions.InstallPreOrderedPlugins {
+	if !deployInfo.InstallOptions.EnableCompatibilityMode || !deployInfo.InstallOptions.InstallPreOrderedPlugins {
 		std.InstanceData().Log().
 			Zh("未开启安装预设 V2 插件, 跳过此操作").
 			En("install pre-ordered v2 plugins is disabled, skip this action").
