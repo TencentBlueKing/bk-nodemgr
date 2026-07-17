@@ -1,6 +1,10 @@
 @import './bk-patch.css';
 @import '@/fonts/style.css';
 
+html {
+  overscroll-behavior: none;
+}
+
 html,
 body,
 #app {

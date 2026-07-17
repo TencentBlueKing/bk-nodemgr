@@ -1192,6 +1192,9 @@ components:
     confirmDeleteRowSub: 删除后主机 {ip} 将不会被{action}
     either: IPv4与IPv6至少填一项
     passwordVaultDisabled: 密码库功能未开启
+    selectPlaceholder: 请选择
+    uploadKeyfile: 请上传密钥
+    operate: 操作
   installType:
     remoteInstall: 远程安装
     remoteInstallDesc: 线上表单填写，需要提供登录信息
@@ -1397,7 +1400,9 @@ pluginOperation:
     directArea: 直连区域
     defaultBiz: 未知业务
     hostIP: 主机IP
+    business: 业务
     networkArea: 管控区域
+    networkUnit: 管控单元
     cloudArea: 所属区域
     opType: 操作类型
     osType: 操作系统
@@ -1407,6 +1412,7 @@ pluginOperation:
     normal: 正常
     abnormal: 异常
     unknownStatus: 未知
+    unassigned: 未分配
     notInstalled: 未安装
     install: 安装
     upgrade: 升级

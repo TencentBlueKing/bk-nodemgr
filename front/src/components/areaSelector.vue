@@ -13,13 +13,14 @@
     :disabled="disabled"
     @change="handleSelectChange"
   >
-    <Select.Option v-if="noLimit" label="不限" value="-1"></Select.Option>
+    <Select.Option v-if="noLimit" id="-1" name="不限" value="-1"></Select.Option>
     <Select.Group :label="$t('topoManager.topo.select.default')">
       <Select.Option
         v-if="defaultArea"
         :key="defaultArea.bk_networkarea_id"
         :id="String(defaultArea.bk_networkarea_id)"
         :name="defaultArea.bk_networkarea_name"
+        :value="String(defaultArea.bk_networkarea_id)"
       >
         <div class="flex items-center group/item">
           <Button text class="mr-2 w-[18px]">
@@ -40,6 +41,7 @@
         :key="item.bk_networkarea_id"
         :id="String(item.bk_networkarea_id)"
         :name="item.bk_networkarea_name"
+        :value="String(item.bk_networkarea_id)"
         v-bk-tooltips="{
           content: isAreaAuthorized(item.bk_networkarea_id)
             ? `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`
@@ -82,7 +84,7 @@
 
 <script setup lang="ts">
 import { Button, Select } from 'bkui-vue';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import useAuthLock from '@/composables/use-auth-lock';
@@ -94,7 +96,7 @@ import { useWorkareaStore } from '@/stores/workarea';
 const props = withDefaults(defineProps<{
   multiple?: boolean;
   noLimit?: boolean;
-  bk_networkarea_id?: number;
+  bk_networkarea_id?: number | string;
   disabled?: boolean;
 }>(), {
   multiple: true,
@@ -177,14 +179,21 @@ onMounted(async () => {
     ]);
     workareaStore.syncFavoriteWorkareaList();
 
-    if (props.noLimit) {
-      internalValue.value = '-1';
-    }
-    if (props.bk_networkarea_id) {
+    // 优先使用 bk_networkarea_id prop 初始化（注意：0 = Default Area 也要识别）
+    if (props.bk_networkarea_id !== undefined && props.bk_networkarea_id !== null) {
       internalValue.value = String(props.bk_networkarea_id);
+    } else if (props.noLimit) {
+      internalValue.value = '-1';
     }
   } finally {
     localLoading.value = false;
+  }
+});
+
+// 外部 prop 变化时同步到 internalValue（支持 view 模式初始值回填）
+watch(() => props.bk_networkarea_id, (val) => {
+  if (val !== undefined && val !== null) {
+    internalValue.value = String(val);
   }
 });
 

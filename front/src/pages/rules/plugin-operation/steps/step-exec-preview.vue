@@ -21,9 +21,19 @@
               fixed="left"
             />
             <TableColumn
+              field="business"
+              :title="$t('pluginOperation.preview.business')"
+              :min-width="110"
+            />
+            <TableColumn
               field="networkArea"
               :title="$t('pluginOperation.preview.networkArea')"
-              :min-width="120"
+              :min-width="110"
+            />
+            <TableColumn
+              field="networkUnit"
+              :title="$t('pluginOperation.preview.networkUnit')"
+              :min-width="140"
             />
             <TableColumn
               field="opType"
@@ -66,11 +76,12 @@
 
 <script lang="ts" setup>
 import { Tab } from 'bkui-vue';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();
@@ -108,21 +119,52 @@ const opTypeLabel = computed(() => {
 // 重启/停止操作不需要显示目标版本列
 const showTargetVersion = computed(() => !['restart', 'stop'].includes(props.operationType || ''));
 
+// ===== 管控单元 id→name Map（学习 agent 列表 distinct + brief 模式）=====
+const networkUnitMap = ref(new Map<number, string>());
+
+const fetchNetworkUnitNames = async (ids: number[]) => {
+  // -1 = 未分配（不用查），只查 >=0 的有效 ID
+  const uniqueIds = [...new Set(ids.filter(id => id != null && id !== -1))];
+  if (uniqueIds.length === 0) return;
+  const res = await TopoService.NetworkUnitListBrief({
+    exact_include_conditions: { bk_networkunit_id: uniqueIds },
+  }).catch(() => ({ total: 0, items: [] }));
+  const map = new Map<number, string>();
+  (res.items || []).forEach((item: any) => {
+    map.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  });
+  networkUnitMap.value = map;
+};
+
+watch(() => props.formData.selectedHosts, (hosts) => {
+  const ids = (hosts || []).map((h: any) => h.bk_networkunit_id ?? 0);
+  fetchNetworkUnitNames(ids);
+}, { immediate: true, deep: false });
+
 // 预览数据 — 基于选中的主机生成
 const previewData = computed(() => props.formData.selectedHosts.map((host: any) => {
-  const rawAlive = host.alive;
-  // 0=离线, 1=在线, undefined/null 视为未知
-  const agentStatus = (rawAlive === 0 || rawAlive === 1) ? rawAlive : 2;
-  return {
-    ip: host.ip || host.bk_host_innerip || host.bk_host_innerip_list?.[0] || '—',
-    networkArea: host.cloud_area?.name || host.cloudArea?.name || t('pluginOperation.preview.directArea'),
-    opType: opTypeLabel.value,
-    osType: host.os_name || host.os_type || host.osName || host.osType || '—',
-    agentStatus,
-    agentStatusLabel: rawAlive === 1 ? t('pluginOperation.preview.normal') : rawAlive === 0 ? t('pluginOperation.preview.abnormal') : t('pluginOperation.preview.unknownStatus'),
-    targetVersion: props.formData.selectedVersion || '—',
-  };
-}));
+    const rawAlive = host.alive;
+    // 0=离线, 1=在线, undefined/null 视为未知
+    const agentStatus = (rawAlive === 0 || rawAlive === 1) ? rawAlive : 2;
+    const bizId = host.bk_biz_id ?? host.meta?.bk_biz_id ?? 0;
+    const bizName = bizId ? (mainStore.businessList.find(b => b.bk_biz_id === bizId)?.bk_biz_name || `[${bizId}]`) : '—';
+    const networkUnitId = host.bk_networkunit_id ?? host.info?.bk_networkunit_id;
+    return {
+      ip: host.ip || host.bk_host_innerip || host.bk_host_innerip_list?.[0] || '—',
+      business: bizName,
+      networkArea: host.cloud_area?.name || host.cloudArea?.name || t('pluginOperation.preview.directArea'),
+      networkUnit: networkUnitId === -1
+        ? t('pluginOperation.preview.unassigned')
+        : networkUnitId != null
+          ? (networkUnitMap.value.get(networkUnitId) || `[${networkUnitId}]`)
+          : '—',
+      opType: opTypeLabel.value,
+      osType: host.os_name || host.os_type || host.osName || host.osType || '—',
+      agentStatus,
+      agentStatusLabel: rawAlive === 1 ? t('pluginOperation.preview.normal') : rawAlive === 0 ? t('pluginOperation.preview.abnormal') : t('pluginOperation.preview.unknownStatus'),
+      targetVersion: props.formData.selectedVersion || '—',
+    };
+  }));
 
 const displayData = computed(() => {
   const data = previewData.value;

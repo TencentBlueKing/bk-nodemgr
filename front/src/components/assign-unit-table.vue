@@ -72,7 +72,7 @@
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'bk_networkunit_id') }">
-                <span v-if="getNetworkUnitName(row.bk_networkunit_id)">[{{ row.bk_networkunit_id }}] {{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
+                <span v-if="getNetworkUnitName(row.bk_networkunit_id)">{{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
                 <span v-else class="cell-placeholder">{{ $t('platform.nodeMan.agentNodeStatus.assignUnitSelectPlaceholder') }}</span>
               </div>
             </ValidateCell>
@@ -85,6 +85,7 @@
                 v-model="row.bk_networkunit_id"
                 auto-focus
                 filterable
+                transfer
                 @change="
                   (val: string) => {
                     clearError(rowIndex, 'bk_networkunit_id');
@@ -192,7 +193,7 @@
 <script lang="ts" setup>
 import { Button, InfoBox, Select } from 'bkui-vue';
 import { groupBy } from 'lodash';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
@@ -217,6 +218,24 @@ const props = defineProps({
 const { t } = useI18n();
 const { contentRef } = useFullScreen();
 const xTableRef = ref();
+
+// ===== 阻止 vxe-table 因 Select popover 点击而退出编辑（与 install-table 一致）=====
+// transfer 将下拉弹窗挂到 body，vxe-table 视为"行外点击" → 提前退出编辑 → @change 丢失
+// 在捕获阶段拦截 mousedown：若目标在 .bk-select-dropdown 内则阻止 vxe-table 退出编辑
+const handleCaptureMouseDown = (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  if (target?.closest?.('.bk-select-dropdown')) {
+    e.stopImmediatePropagation();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleCaptureMouseDown, true);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleCaptureMouseDown, true);
+});
 const mainStore = useMainStore();
 const {
   isUnitAuthorized,

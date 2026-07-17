@@ -175,7 +175,7 @@
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'bk_networkunit_id') }">
                 <span v-if="getNetworkUnitName(row.bk_networkunit_id)">{{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
-                <span v-else class="cell-placeholder">请选择</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -401,7 +401,7 @@
             <!-- 重装或升级时寻址方式不可编辑 -->
             <div :class="[(isReinstall || isUpgrade) ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'bk_addressing') }]">
               <span v-if="(isReinstall || isUpgrade) || row.bk_addressing">{{ addressingOptions.find(item => item.id === row.bk_addressing)?.name || row.bk_addressing }}</span>
-              <span v-else class="cell-placeholder">请选择</span>
+              <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
             </div>
           </template>
           <template #edit="{ row }">
@@ -445,7 +445,7 @@
               <!-- 升级时操作系统不可编辑 -->
               <div :class="[isUpgrade ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'os_type') }]">
                 <span v-if="isUpgrade || row.os_type">{{ row.os_type }}</span>
-                <span v-else class="cell-placeholder">请选择</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -493,7 +493,7 @@
               <!-- 升级时CPU架构不可编辑 -->
               <div :class="[isUpgrade ? 'cell-disabled' : '', { 'cell-disabled--error': getError(rowIndex, 'cpu_arch') }]">
                 <span v-if="isUpgrade || row.cpu_arch">{{ row.cpu_arch }}</span>
-                <span v-else class="cell-placeholder">请选择</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -745,7 +745,7 @@
             <ValidateCell :error="getError(rowIndex, 'login_mode')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'login_mode') }">
                 <span v-if="row.login_mode">{{ authenticationTypes.find(item => item.id === row.login_mode)?.name || row.login_mode }}</span>
-                <span v-else class="cell-placeholder">请选择</span>
+                <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
               </div>
             </ValidateCell>
           </template>
@@ -791,7 +791,7 @@
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'credit') }">
                 <span v-if="row.login_mode === 'password_vault'">{{ $t('components.installTable.autoGet') }}</span>
                 <span v-else-if="row.login_mode === 'keyfile' && row.credit">{{ $t('components.installTable.creditValid') }}</span>
-                <span v-else-if="row.login_mode === 'keyfile' && !row.credit" class="cell-placeholder">请上传密钥</span>
+                <span v-else-if="row.login_mode === 'keyfile' && !row.credit" class="cell-placeholder">{{ $t('components.installTable.uploadKeyfile') }}</span>
                 <span v-else-if="row.login_credit_valid">{{ $t('components.installTable.creditValid') }}</span>
                 <span v-else-if="row.credit">******</span>
                 <span v-else class="cell-placeholder">{{ $t('components.installTable.inputPassword') }}</span>
@@ -966,7 +966,7 @@
             <Settings ref="settingRef" :settings="settings" @setting-change="settingChange" />
           </Button>
         </template>
-        <VxeColumn :min-width="80" field="action" title="操作">
+        <VxeColumn :min-width="80" field="action" :title="$t('components.installTable.operate')">
           <template #default="{ rowIndex }">
             <Button
               text

@@ -650,7 +650,10 @@ export interface TopoHostSelectNetWorkareaIDAndInnerIPV6RespData {
 // TopoHostDistinctReq describes the HTTP request body when distinct host in
 // topp service.
 export interface TopoHostDistinctReq {
-  role_type: 'agent' | 'proxy';
+  // role_type indicates which host role scope to query, served from the
+  // application service in-memory cache. Allowed values: "agent" (role in
+  // [agent, blank]), "proxy" (role in [proxy]).
+  role_type: string;
 }
 
 // TopoHostDistinctResp describes the HTTP response body when distinct host in

@@ -230,6 +230,7 @@ export const mapHostItem = (item: any) => {
     cloud_id: networkAreaId,
     biz: { id: bkBizId, name: '' },
     agent_id: state?.bk_agent_id || '',
+    bk_networkunit_id: info?.bk_networkunit_id ?? 0,
     meta: { scope_type: 'biz' as const, scope_id: String(bkBizId || ''), bk_biz_id: bkBizId },
     bk_host_id: bkHostId,
     bk_biz_id: bkBizId,

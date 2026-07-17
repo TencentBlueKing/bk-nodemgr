@@ -48,6 +48,7 @@
                 class="w-full"
                 :multiple="false"
                 :no-limit="true"
+                :bk_networkarea_id="item.bk_networkarea_id"
                 :disabled="isViewMode"
                 @change="(id, data) => handleSingleChange(item, id, data)" />
               <UnitSelector

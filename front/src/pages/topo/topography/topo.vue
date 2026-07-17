@@ -1227,8 +1227,6 @@ onMounted(async () => {
   isLoading.value = true;
   // 确保收藏状态同步
   workareaStore.syncFavoriteWorkareaList();
-  // 权限检查与数据加载并行，authorized 失败不阻塞拓扑图展示
-  await checkAreaPermission().catch(() => {});
 
   // 恢复用户的选择状态（优先从 localStorage 读取）
   const savedSelection = localStorage.getItem('selected_workarea');
@@ -1247,9 +1245,12 @@ onMounted(async () => {
   try {
     // 注册插件
     handleRegistryCategory();
-    // 初始化数据
-    await initAreaData();
-    // 初始化拓扑图
+    // 权限检查与数据加载无依赖，并行执行
+    await Promise.all([
+      checkAreaPermission().catch(() => {}),
+      initAreaData().catch((err) => { console.error('initAreaData failed:', err); }),
+    ]);
+    // 初始化拓扑图（依赖 initAreaData 结果）
     handleInitTopo();
 
     // 事件监听

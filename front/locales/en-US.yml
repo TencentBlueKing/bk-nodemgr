@@ -1188,6 +1188,9 @@ components:
     confirmDeleteRowSub: Host {ip} will not be reinstalled after deletion
     either: Required (IPv4 or IPv6)
     passwordVaultDisabled: Password Vault disabled
+    selectPlaceholder: Please select
+    uploadKeyfile: Please upload key
+    operate: Operate
   installType:
     remoteInstall: Remote
     remoteInstallDesc: Fill in the form online, login credentials required
@@ -1392,7 +1395,9 @@ pluginOperation:
     directArea: Direct Area
     defaultBiz: Unknown Biz
     hostIP: Host IP
+    business: Business
     networkArea: Network Area
+    networkUnit: Network Unit
     cloudArea: Cloud Area
     opType: Operation Type
     osType: OS
@@ -1402,6 +1407,7 @@ pluginOperation:
     normal: Normal
     abnormal: Abnormal
     unknownStatus: Unknown
+    unassigned: Unassigned
     notInstalled: Not Installed
     install: Install
     upgrade: Upgrade

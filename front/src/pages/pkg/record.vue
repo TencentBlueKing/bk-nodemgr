@@ -481,7 +481,10 @@ watch(
   { deep: true },
 );
 onMounted(async () => {
-  await getTaskList();
-  await getHostDistinct();
+  // 主列表与 distinct 筛选数据无依赖，并行加载
+  await Promise.all([
+    getTaskList(),
+    getHostDistinct(),
+  ]);
 });
 </script>

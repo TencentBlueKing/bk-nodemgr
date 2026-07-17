@@ -53,14 +53,21 @@ const getConfigKeys = (
 
 const trimConfigValue = (value: string): string => value.trim();
 
+// normalizeFieldForValidation: 'default' placeholder 视为空，不算"已填"
+const normalizeFieldForValidation = (value: string): string => {
+  const trimmed = trimConfigValue(value);
+  return trimmed === 'default' ? '' : trimmed;
+};
+
+// 校验字段：zone_id/city_id 值为 'default' 时视为未填
 const getAllConfigValues = (config: CustomDeployConfig): string[] => [
   config.installer_runtime.base_work_dir,
   config.node_runtime.base_deploy_dir,
   config.node_runtime.data_ipc,
   config.node_runtime.plugin_ipc,
   config.node_runtime.log_dir,
-  config.node_runtime.zone_id,
-  config.node_runtime.city_id,
+  normalizeFieldForValidation(config.node_runtime.zone_id),
+  normalizeFieldForValidation(config.node_runtime.city_id),
   config.plugin_runtime.base_deploy_dir,
   config.plugin_runtime.log_dir,
 ];
@@ -68,16 +75,15 @@ const getAllConfigValues = (config: CustomDeployConfig): string[] => [
 const getValidationValues = (_config: CustomDeployConfig): string[] => getAllConfigValues(_config);
 
 const hasEffectiveValue = (config: DeployConfig): boolean => (
-  getAllConfigValues(config).some(value => trimConfigValue(value) !== '')
+  getAllConfigValues(config).some(value => value !== '')
 );
 
 // validateCustomDeployConfigAllOrNothing returns true when the config is either
 // entirely empty (all fields blank) or entirely filled (no field blank). Returns
-// false when only some fields are filled, which is disallowed. For non-windows
-// configs, data_ipc and plugin_ipc are excluded from this check because they are
-// read-only in UI.
+// false when only some fields are filled, which is disallowed. zone_id and city_id
+// are treated as empty when their value is 'default' (the placeholder).
 export const validateCustomDeployConfigAllOrNothing = (config: DeployConfig): boolean => {
-  const values = getValidationValues(config).map(trimConfigValue);
+  const values = getValidationValues(config);
   const filledCount = values.filter(v => v !== '').length;
   return filledCount === 0 || filledCount === values.length;
 };

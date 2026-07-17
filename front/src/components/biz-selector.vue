@@ -39,9 +39,7 @@
           class="w-full flex items-center biz-select-option overflow-hidden"
           :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
           @click="handleOptionClick($event, item.bk_biz_id)"
-          @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
-          @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
-          @mouseleave="handleOptionMouseLeave()"
+          :data-biz-id="item.bk_biz_id"
         >
           <Button
             class="mr-[8px] w-[18px] shrink-0"
@@ -100,9 +98,7 @@
           class="w-full flex items-center biz-select-option overflow-hidden"
           :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
           @click="handleOptionClick($event, item.bk_biz_id)"
-          @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
-          @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
-          @mouseleave="handleOptionMouseLeave()"
+          :data-biz-id="item.bk_biz_id"
         >
           <Button
             class="mr-[8px] w-[18px] shrink-0"
@@ -328,17 +324,6 @@ const {
   () => mainStore.selectedBusinessId[0],
 );
 
-// 业务选择器中每个 option 的 action 由路由决定，需根据 isBizAuthorized 判断
-const handleOptionMouseEnter = (e: MouseEvent, bizId: number) => {
-  authLockMouseEnter(e, isBizAuthorized(bizId));
-};
-const handleOptionMouseMove = (e: MouseEvent, bizId: number) => {
-  authLockMouseMove(e, isBizAuthorized(bizId));
-};
-const handleOptionMouseLeave = () => {
-  authLockMouseLeave();
-};
-
 // ===== 文字溢出检测 =====
 const textOverflowMap = reactive<Record<number, boolean>>({});
 const handleTextMouseenter = (e: MouseEvent, id: number) => {
@@ -422,8 +407,14 @@ watch(filteredBusinessList, (list) => {
 // ===== 下拉展开时排序 =====
 const handleToggle = (isOpen: boolean) => {
   isPopoverOpen.value = isOpen;
-  sortBusinessList();
+  // 不在此处排序：sortBusinessList 开销 O(n log n)，业务量大时每次展开都会卡
+  // 排序由 watch 在依赖（数据/选中/收藏）变化时自动触发
 };
+
+// 当选择或收藏变化时重新排序（下拉已打开时需即时反映排序变化）
+watch([singleBusiness, multiBusiness, collectList], () => {
+  sortBusinessList();
+}, { deep: true });
 
 // ===== 收藏操作 =====
 const handleCollect = (val: number) => {
@@ -499,17 +490,13 @@ const filterOption = (input: any, options: { id: number; name: string }) => {
   const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
   if (keywords.length === 0) return false;
 
-  const nameMatch = keywords.some((keyword) => {
-    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const nameRegex = new RegExp(safeKeyword, 'i');
-    return options.name?.match(nameRegex);
-  });
+  const lowerName = options.name?.toLowerCase() || '';
+  const idStr = String(options.id);
 
-  const idMatch = keywords.some((keyword) => {
-    return String(keyword).trim() === String(options.id);
+  return keywords.some((keyword) => {
+    const lowerKeyword = keyword.toLowerCase();
+    return lowerName.includes(lowerKeyword) || idStr === keyword.trim();
   });
-
-  return nameMatch || idMatch;
 };
 
 const getDefaultBizId = () => {
@@ -607,12 +594,65 @@ const init = () => {
   }
 };
 
+// ===== 事件委托：减少大量 option 的单独事件监听（mousemove/mouseenter/mouseleave）=====
+let lastHoveredBizOptionEl: HTMLElement | null = null;
+
+const getBizIdFromEventTarget = (target: HTMLElement): number | null => {
+  const el = target.closest?.('[data-biz-id]') as HTMLElement | null;
+  if (!el) return null;
+  const id = el.getAttribute('data-biz-id');
+  return id ? Number(id) : null;
+};
+
+const handleDelegatedMouseEvent = (e: MouseEvent) => {
+  if (!isPopoverOpen.value) return;
+
+  const target = e.target as HTMLElement;
+  const bizId = getBizIdFromEventTarget(target);
+
+  // mouseout: 离开 option 区域
+  if (e.type === 'mouseout') {
+    const relatedTarget = (e as any).relatedTarget as HTMLElement | null;
+    const stillInsideOption = relatedTarget?.closest?.('[data-biz-id]');
+    if (!stillInsideOption) {
+      authLockMouseLeave();
+      lastHoveredBizOptionEl = null;
+    }
+    return;
+  }
+
+  if (bizId === null) return;
+
+  const optionEl = target.closest('[data-biz-id]') as HTMLElement;
+
+  // mouseover: 进入新 option
+  if (e.type === 'mouseover') {
+    if (lastHoveredBizOptionEl && lastHoveredBizOptionEl !== optionEl) {
+      authLockMouseLeave();
+    }
+    lastHoveredBizOptionEl = optionEl;
+    authLockMouseEnter(e, isBizAuthorized(bizId));
+    return;
+  }
+
+  // mousemove: 锁跟随鼠标
+  if (e.type === 'mousemove' && lastHoveredBizOptionEl) {
+    authLockMouseMove(e, isBizAuthorized(bizId));
+  }
+};
+
 onMounted(() => {
   document.addEventListener('keydown', handleEnterSelectFilteredBusiness, true);
+  document.addEventListener('mousemove', handleDelegatedMouseEvent);
+  document.addEventListener('mouseover', handleDelegatedMouseEvent);
+  document.addEventListener('mouseout', handleDelegatedMouseEvent);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleEnterSelectFilteredBusiness, true);
+  document.removeEventListener('mousemove', handleDelegatedMouseEvent);
+  document.removeEventListener('mouseover', handleDelegatedMouseEvent);
+  document.removeEventListener('mouseout', handleDelegatedMouseEvent);
 });
 
 defineExpose({ init });
