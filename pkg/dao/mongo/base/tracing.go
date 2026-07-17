@@ -21,4 +21,5 @@ const (
 	attrKeyORMDurationMS  = "orm.duration_ms"  // nolint:unused
 	attrKeyORMFilterSize  = "orm.filter_size"  // nolint:unused
 	attrKeyORMResultCount = "orm.result_count" // nolint:unused
+	attrKeyORMFilter      = "orm.filter"
 )
