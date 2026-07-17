@@ -1,8 +1,8 @@
 ### Description
 
-- API Version: v3.0.1+.
-- Required Permission: none.
-- Function: Get the RSA public key used to encrypt sensitive data.
+- API Version: v3.0.1-alpha.1+.
+- Required Permission: None.
+- Function: Get the default RSA4096 public key used to encrypt sensitive data.
 
 ### URL
 
@@ -10,7 +10,7 @@ POST /api/v3/cipher/rsa/get_public_key
 
 ### Request Parameters
 
-This API uses an empty request body.
+This API has no business input parameters, but an empty JSON request body is required.
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
@@ -45,7 +45,7 @@ This API uses an empty request body.
 | message | string | Response message |
 | request_id | string | Request ID |
 | error | object | Error information, usually empty on success |
-| permission | object | Permission application information. This API does not require IAM authorization, and no permission application contract is defined here |
+| permission | object | Permission application information; this API defines no endpoint-specific IAM action and the field is usually empty on success |
 | data | object | Response data |
 
 #### error
@@ -67,10 +67,10 @@ This API uses an empty request body.
 
 | Parameter Name | Parameter Type | Description |
 |---------------|----------------|-------------|
-| public_key | string | RSA public key string |
+| public_key | string | Default RSA4096 public key in PEM format |
 
 ### Notes
 
 - The API contract is defined by `proto/backend/api/v3/cipher.proto` and `docs/api/swagger/backend/api/v3/cipher.swagger.json`.
-- The route is `POST /api/v3/cipher/rsa/get_public_key`. The request body is defined as an empty message, so sending `{}` is sufficient.
-- Per the documented requirement, this endpoint explicitly does not require IAM authorization.
+- The request message has no fields, but the handler binds a JSON request body, so callers must send `{}`.
+- The current handler performs no endpoint-specific IAM action check. API Gateway still requires application verification and resource access permission.
