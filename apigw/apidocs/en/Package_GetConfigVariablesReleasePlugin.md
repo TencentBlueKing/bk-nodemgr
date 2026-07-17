@@ -22,7 +22,7 @@ POST /api/v3/package/release/plugin/get_config_variables
 | Parameter | Type   | Required | Description                                      |
 | --------- | ------ | -------- | ------------------------------------------------ |
 | os_type   | string | Yes      | Operating system type, e.g., linux, windows, aix |
-| cpu_arch  | string | Yes      | CPU architecture, e.g., x86_64, aarch64, powerpc |
+| cpu_arch  | string | Yes      | CPU architecture, e.g., amd64, arm64, ppc64 |
 
 ### Request Example
 
@@ -33,11 +33,11 @@ POST /api/v3/package/release/plugin/get_config_variables
   "platforms": [
     {
       "os_type": "linux",
-      "cpu_arch": "x86_64"
+      "cpu_arch": "amd64"
     },
     {
       "os_type": "windows",
-      "cpu_arch": "x86_64"
+      "cpu_arch": "amd64"
     }
   ],
   "version": "1.13.0"
@@ -50,9 +50,10 @@ POST /api/v3/package/release/plugin/get_config_variables
 {
   "code": 0,
   "message": "ok",
+  "request_id": "req-1234567890",
   "data": {
     "config_variables": {
-      "linux/x86_64": {
+      "linux/amd64": {
         "items": [
           {
             "name": "bkmonitorbeat_exporter.yaml",
@@ -81,7 +82,7 @@ POST /api/v3/package/release/plugin/get_config_variables
           }
         ]
       },
-      "windows/x86_64": {
+      "windows/amd64": {
         "items": [
           {
             "name": "bkmonitorbeat_exporter.yaml",
@@ -113,13 +114,14 @@ POST /api/v3/package/release/plugin/get_config_variables
 | --------- | ------ | -------------------------------- |
 | code      | int32  | Status code, 0 indicates success |
 | message   | string | Request message                  |
+| request_id | string | Request ID                      |
 | data      | object | Response data                    |
 
 #### data
 
-| Parameter | Type             | Description                      |
-| --------- | ---------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|           | config_variables | map<string, ConfigVariablesList> | Configuration variable mapping, key is platform identifier (format: `{os_type}/{cpu_arch}`), value is the configuration variable list for that platform |
+| Parameter | Type                             | Description                                                                                                                                             |
+| --------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| config_variables | map<string, ConfigVariablesList> | Configuration variable mapping, key is platform identifier (format: `{os_type}/{cpu_arch}`), value is the configuration variable list for that platform |
 
 #### ConfigVariablesList
 
@@ -158,7 +160,7 @@ POST /api/v3/package/release/plugin/get_config_variables
 
 ### Notes
 
-1. **Platform Identifier Format**: The key format in the response `config_variables` is `{os_type}/{cpu_arch}`, e.g., `linux/x86_64`.
+1. **Platform Identifier Format**: The key format in the response `config_variables` is `{os_type}/{cpu_arch}`, e.g., `linux/amd64`.
 2. **Nested Variables**: When the variable type is `object`, the `properties` field contains nested variable definitions with the same structure as `Property`, supporting multi-level nesting.
 3. **Variable Types**: The `type` field supports values including: `string`, `integer`, `boolean`, `object`, `array`, etc. The `default` field should be parsed according to the actual type.
 4. **Empty Result Handling**: If the specified plugin version does not exist on a certain platform, the key for that platform will not appear in `config_variables`.

@@ -22,7 +22,7 @@ POST /api/v3/package/release/plugin/get_config_variables
 | 参数名称 | 参数类型 | 必选 | 描述                                  |
 | -------- | -------- | ---- | ------------------------------------- |
 | os_type  | string   | 是   | 操作系统类型，如 linux, windows, aix  |
-| cpu_arch | string   | 是   | CPU 架构，如 x86_64, aarch64, powerpc |
+| cpu_arch | string   | 是   | CPU 架构，如 amd64、arm64、ppc64 |
 
 ### 调用示例
 
@@ -33,11 +33,11 @@ POST /api/v3/package/release/plugin/get_config_variables
   "platforms": [
     {
       "os_type": "linux",
-      "cpu_arch": "x86_64"
+      "cpu_arch": "amd64"
     },
     {
       "os_type": "windows",
-      "cpu_arch": "x86_64"
+      "cpu_arch": "amd64"
     }
   ],
   "version": "1.13.0"
@@ -50,9 +50,10 @@ POST /api/v3/package/release/plugin/get_config_variables
 {
   "code": 0,
   "message": "ok",
+  "request_id": "req-1234567890",
   "data": {
     "config_variables": {
-      "linux/x86_64": {
+      "linux/amd64": {
         "items": [
           {
             "name": "bkmonitorbeat_exporter.yaml",
@@ -81,7 +82,7 @@ POST /api/v3/package/release/plugin/get_config_variables
           }
         ]
       },
-      "windows/x86_64": {
+      "windows/amd64": {
         "items": [
           {
             "name": "bkmonitorbeat_exporter.yaml",
@@ -113,13 +114,14 @@ POST /api/v3/package/release/plugin/get_config_variables
 | -------- | -------- | ------------------ |
 | code     | int32    | 状态码，0 表示成功 |
 | message  | string   | 请求信息           |
+| request_id | string | 请求 ID            |
 | data     | object   | 响应数据           |
 
 #### data
 
-| 参数名称 | 参数类型         | 描述                             |
-| -------- | ---------------- | -------------------------------- | -------------------------------------------------------------------------------------------- |
-|          | config_variables | map<string, ConfigVariablesList> | 配置变量映射表，key 为平台标识（格式：`{os_type}/{cpu_arch}`），value 为该平台的配置变量列表 |
+| 参数名称 | 参数类型                         | 描述                                                                                         |
+| -------- | -------------------------------- | -------------------------------------------------------------------------------------------- |
+| config_variables | map<string, ConfigVariablesList> | 配置变量映射表，key 为平台标识（格式：`{os_type}/{cpu_arch}`），value 为该平台的配置变量列表 |
 
 #### ConfigVariablesList
 
@@ -158,7 +160,7 @@ POST /api/v3/package/release/plugin/get_config_variables
 
 ### 注意事项
 
-1. **平台标识格式**：响应中的 `config_variables` 的 key 格式为 `{os_type}/{cpu_arch}`，如 `linux/x86_64`。
+1. **平台标识格式**：响应中的 `config_variables` 的 key 格式为 `{os_type}/{cpu_arch}`，如 `linux/amd64`。
 2. **嵌套变量**：当变量类型为 `object` 时，`properties` 字段包含嵌套的变量定义，结构与 `Property` 相同，支持多层嵌套。
 3. **变量类型**：`type` 字段支持的值包括：`string`、`integer`、`boolean`、`object`、`array` 等，需根据实际类型解析 `default` 字段。
 4. **空结果处理**：如果指定的插件版本在某个平台上不存在，该平台的 key 不会出现在 `config_variables` 中。
