@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -143,19 +144,34 @@ func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...strin
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "get"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if dataPoint == nil {
-					return 0
-				}
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "get").
+				Warn("failed to marshal slow query filter")
+		}
 
-				return 1
-			}()),
-		))
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "get"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if dataPoint == nil {
+						return 0
+					}
+
+					return 1
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -215,19 +231,34 @@ func (orm *Orm[P, T]) Exist(nCtx contextx.IContext, filter bson.D) (exist bool, 
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "exist"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if err != nil {
-					return 0
-				}
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "exist").
+				Warn("failed to marshal slow query filter")
+		}
 
-				return 1
-			}()),
-		))
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "exist"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if err != nil {
+						return 0
+					}
+
+					return 1
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -448,19 +479,34 @@ func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field s
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "update_field"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if result == nil {
-					return 0
-				}
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "update_field").
+				Warn("failed to marshal slow query filter")
+		}
 
-				return int(result.ModifiedCount)
-			}()),
-		))
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "update_field"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if result == nil {
+						return 0
+					}
+
+					return int(result.ModifiedCount)
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	// update field.
@@ -498,13 +544,28 @@ func (orm *Orm[P, T]) Count(nCtx contextx.IContext, filter bson.D) (num int64, e
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "count"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int64(attrKeyORMResultCount, num),
-		))
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "count").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "count"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int64(attrKeyORMResultCount, num),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -539,13 +600,28 @@ func (orm *Orm[P, T]) CountGroupByInt64(nCtx contextx.IContext, filter bson.D, f
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "count_group_by_int64"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
-		))
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "count_group_by_int64").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "count_group_by_int64"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	result, err := orm.countGroupByField(nCtx, filter, field)
@@ -583,13 +659,28 @@ func (orm *Orm[P, T]) CountGroupByString(nCtx contextx.IContext, filter bson.D, 
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "count_group_by_string"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
-		))
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "count_group_by_string").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "count_group_by_string"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -728,13 +819,28 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "list"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
-		))
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "list").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "list"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -793,13 +899,28 @@ func (orm *Orm[P, T]) DistinctString(
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "distinct_string"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, len(values)),
-		))
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "distinct_string").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "distinct_string"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, len(values)),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if values, err = orm.dao.GetClient().Distinct(nCtx, key, filter, distinctOpt); err != nil {
@@ -837,13 +958,28 @@ func (orm *Orm[P, T]) DistinctInt64(
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "distinct_int64"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, len(values)),
-		))
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "distinct_int64").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "distinct_int64"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, len(values)),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if values, err = orm.dao.GetClient().Distinct(nCtx, key, filter, distinctOpt); err != nil {
@@ -887,19 +1023,34 @@ func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err err
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "delete_many"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(models)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if result == nil {
-					return 0
-				}
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "delete_many").
+				Warn("failed to marshal slow query filter")
+		}
 
-				return int(result.MatchedCount)
-			}()),
-		))
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "delete_many"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(models)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if result == nil {
+						return 0
+					}
+
+					return int(result.MatchedCount)
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -945,19 +1096,34 @@ func (orm *Orm[P, T]) HardDelete(nCtx contextx.IContext, filter bson.D) (err err
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "hard_delete"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if result == nil {
-					return 0
-				}
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "hard_delete").
+				Warn("failed to marshal slow query filter")
+		}
 
-				return int(result.DeletedCount)
-			}()),
-		))
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "hard_delete"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if result == nil {
+						return 0
+					}
+
+					return int(result.DeletedCount)
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -1006,19 +1172,34 @@ func (orm *Orm[P, T]) HardDeleteMany(nCtx contextx.IContext, filter bson.D) (err
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "hard_delete_many"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if result == nil {
-					return 0
-				}
+		filterJSON, marshalErr := bson.MarshalExtJSON(filter, false, false)
+		if marshalErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+				With("table", orm.dao.GetTableName(), "operation", "hard_delete_many").
+				Warn("failed to marshal slow query filter")
+		}
 
-				return int(result.DeletedCount)
-			}()),
-		))
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "hard_delete_many"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if result == nil {
+						return 0
+					}
+
+					return int(result.DeletedCount)
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	if nCtx == nil {
@@ -1060,13 +1241,29 @@ func BuildChangedFieldFilter(filter bson.D, fields map[string]any) bson.D {
 	return append(filter, bson.E{Key: "$or", Value: changedConditions})
 }
 
+func executableDocumentFieldUpdates(updates []*DocumentFieldUpdate) []*DocumentFieldUpdate {
+	executableUpdates := make([]*DocumentFieldUpdate, 0, len(updates))
+	for _, update := range updates {
+		if len(update.Fields) == 0 {
+			continue
+		}
+
+		executableUpdates = append(executableUpdates, update)
+	}
+
+	return executableUpdates
+}
+
 // UpdateManyFieldsBulk updates multiple documents in bulk based on the provided updates.
+//
+//nolint:gocognit // Keep slow-query tracing attributes explicit at the operation site.
 func (orm *Orm[P, T]) UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
 	if len(updates) == 0 {
 		return nil
 	}
 
 	var result *mongo.BulkWriteResult
+	executedFilters := make([]bson.D, 0, len(updates))
 
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationBulkWrite, len(updates))
@@ -1089,27 +1286,52 @@ func (orm *Orm[P, T]) UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*Do
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "update_many_fields_bulk"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(updates)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if result == nil {
-					return 0
-				}
+		var filterJSON strings.Builder
+		filterJSON.WriteByte('[')
+		for index, filter := range executedFilters {
+			encodedFilter, marshalErr := bson.MarshalExtJSON(filter, false, false)
+			if marshalErr != nil {
+				logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+					With("table", orm.dao.GetTableName(), "operation", "update_many_fields_bulk").
+					Warn("failed to marshal slow query filter")
+				filterJSON.Reset()
 
-				return int(result.MatchedCount)
-			}()),
-		))
+				break
+			}
+			if index > 0 {
+				filterJSON.WriteByte(',')
+			}
+			filterJSON.Write(encodedFilter)
+		}
+		if filterJSON.Len() > 0 {
+			filterJSON.WriteByte(']')
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if filterJSON.Len() > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, filterJSON.String())}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "update_many_fields_bulk"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(updates)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if result == nil {
+						return 0
+					}
+
+					return int(result.MatchedCount)
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	models := make([]mongo.WriteModel, 0, len(updates))
-	for _, update := range updates {
-		if len(update.Fields) == 0 {
-			continue
-		}
-
+	for _, update := range executableDocumentFieldUpdates(updates) {
 		updateDoc := buildUpdateFields(update.Fields)
 		model := mongo.NewUpdateManyModel().
 			SetFilter(update.Filter).
@@ -1117,6 +1339,7 @@ func (orm *Orm[P, T]) UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*Do
 			SetUpsert(false)
 
 		models = append(models, model)
+		executedFilters = append(executedFilters, update.Filter)
 	}
 
 	if len(models) == 0 {
@@ -1136,12 +1359,15 @@ func (orm *Orm[P, T]) UpdateManyFieldsBulk(nCtx contextx.IContext, updates []*Do
 }
 
 // UpdateOneFieldBulk updates at most one document for each bulk update filter.
+//
+//nolint:gocognit // Keep slow-query tracing attributes explicit at the operation site.
 func (orm *Orm[P, T]) UpdateOneFieldBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
 	if len(updates) == 0 {
 		return nil
 	}
 
 	var result *mongo.BulkWriteResult
+	executedFilters := make([]bson.D, 0, len(updates))
 
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationBulkWrite, len(updates))
@@ -1164,27 +1390,52 @@ func (orm *Orm[P, T]) UpdateOneFieldBulk(nCtx contextx.IContext, updates []*Docu
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "update_one_field_bulk"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(updates)),
-			attribute.Int(attrKeyORMResultCount, func() int {
-				if result == nil {
-					return 0
-				}
+		var filterJSON strings.Builder
+		filterJSON.WriteByte('[')
+		for index, filter := range executedFilters {
+			encodedFilter, marshalErr := bson.MarshalExtJSON(filter, false, false)
+			if marshalErr != nil {
+				logger.G.Sys().Ctx(nCtx).WithErr(marshalErr).
+					With("table", orm.dao.GetTableName(), "operation", "update_one_field_bulk").
+					Warn("failed to marshal slow query filter")
+				filterJSON.Reset()
 
-				return int(result.MatchedCount)
-			}()),
-		))
+				break
+			}
+			if index > 0 {
+				filterJSON.WriteByte(',')
+			}
+			filterJSON.Write(encodedFilter)
+		}
+		if filterJSON.Len() > 0 {
+			filterJSON.WriteByte(']')
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if filterJSON.Len() > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, filterJSON.String())}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "update_one_field_bulk"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(updates)),
+				attribute.Int(attrKeyORMResultCount, func() int {
+					if result == nil {
+						return 0
+					}
+
+					return int(result.MatchedCount)
+				}()),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	models := make([]mongo.WriteModel, 0, len(updates))
-	for _, update := range updates {
-		if len(update.Fields) == 0 {
-			continue
-		}
-
+	for _, update := range executableDocumentFieldUpdates(updates) {
 		updateDoc := buildUpdateFields(update.Fields)
 		model := mongo.NewUpdateOneModel().
 			SetFilter(update.Filter).
@@ -1192,6 +1443,7 @@ func (orm *Orm[P, T]) UpdateOneFieldBulk(nCtx contextx.IContext, updates []*Docu
 			SetUpsert(false)
 
 		models = append(models, model)
+		executedFilters = append(executedFilters, update.Filter)
 	}
 
 	if len(models) == 0 {

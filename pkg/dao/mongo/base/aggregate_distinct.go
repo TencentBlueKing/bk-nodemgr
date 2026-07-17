@@ -37,6 +37,8 @@ type AggregateDistinctField struct {
 type AggregateDistinctResult map[string][]bson.RawValue
 
 // AggregateDistinct returns distinct values for multiple fields in one aggregation.
+//
+//nolint:gocognit // Keep slow-query tracing attributes explicit at the operation site.
 func AggregateDistinct(
 	nCtx contextx.IContext, dao IDao, filter bson.D, fields []AggregateDistinctField,
 ) (AggregateDistinctResult, error) {
@@ -64,13 +66,28 @@ func AggregateDistinct(
 			return
 		}
 
-		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
-			attribute.String(attrKeyORMCollection, dao.GetTableName()),
-			attribute.String(attrKeyORMOperation, "aggregate_distinct"),
-			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
-			attribute.Int(attrKeyORMFilterSize, len(filter)),
-			attribute.Int(attrKeyORMResultCount, aggregateDistinctResultCount(result)),
-		))
+		filterJSON, err := bson.MarshalExtJSON(filter, false, false)
+		if err != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(err).
+				With("table", dao.GetTableName(), "operation", "aggregate_distinct").
+				Warn("failed to marshal slow query filter")
+		}
+
+		var filterAttrs []attribute.KeyValue
+		if len(filterJSON) > 0 {
+			filterAttrs = []attribute.KeyValue{attribute.String(attrKeyORMFilter, string(filterJSON))}
+		}
+
+		span.AddEvent(spanEventSlowQuery,
+			trace.WithAttributes(
+				attribute.String(attrKeyORMCollection, dao.GetTableName()),
+				attribute.String(attrKeyORMOperation, "aggregate_distinct"),
+				attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+				attribute.Int(attrKeyORMFilterSize, len(filter)),
+				attribute.Int(attrKeyORMResultCount, aggregateDistinctResultCount(result)),
+			),
+			trace.WithAttributes(filterAttrs...),
+		)
 	}()
 
 	cursor, err := dao.GetClient().Aggregate(
