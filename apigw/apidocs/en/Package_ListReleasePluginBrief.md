@@ -13,7 +13,7 @@ POST /api/v3/package/release/plugin/list/brief
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | generation | int64 | Yes | Package generation (enum: 2) |
-| page | object | No | Pagination config, returns all data if not provided |
+| page | object | Yes | Required for normal list queries; may be omitted only when only_count=true |
 | only_count | bool | No | Only return total count without list data, default false |
 | exact_include_conditions | object | No | Exact filter conditions |
 
@@ -22,7 +22,7 @@ POST /api/v3/package/release/plugin/list/brief
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | offset | int32 | No | Offset, starts from 0 |
-| limit | int32 | No | Items per page |
+| limit | int32 | Yes | Items per page, from 1 to 1000 |
 
 #### exact_include_conditions
 
@@ -39,8 +39,8 @@ POST /api/v3/package/release/plugin/list/brief
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| os_type | string | Yes | OS type (enum: linux, windows, darwin) |
-| cpu_arch | string | Yes | CPU architecture (enum: 386, arm, arm64, amd64) |
+| os_type | string | Yes | OS type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
 
 ### Request Example
 
@@ -110,8 +110,8 @@ Query enabled Plugin packages for Linux amd64 platform with generation 2.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | generation | int64 | Package generation |
-| os_type | string | OS type (enum: linux, windows, darwin) |
-| cpu_arch | string | CPU architecture (enum: 386, arm, arm64, amd64) |
+| os_type | string | OS type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | CPU architecture (forms a supported platform combination with os_type) |
 | version | string | Version number |
 | enabled | bool | Enabled status |
 | as_default | bool | Default version flag |

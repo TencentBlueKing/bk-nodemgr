@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.0+.
+- API Version: v3.0.1-alpha.14+.
 - Required Permission: package_manage (Manage Package).
 - Function: Set the specified agent package version as the default version.
 
@@ -21,8 +21,8 @@ POST /api/v3/package/release/agent/set_as_default
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
-| cpu_arch | string | Yes | CPU architecture (enum values: 386, arm, arm64, amd64) |
+| os_type | string | Yes | Operating system type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
 
 ### Request Example
 

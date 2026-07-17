@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.0+.
+- API Version: v3.0.1-alpha.14+.
 - Required Permission: package_manage (Manage Package).
 - Function: Delete the plugin binary tool package for the specified plugin and generation.
 

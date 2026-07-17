@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.0+。
+- 该接口提供版本：v3.0.1-alpha.15+。
 - 该接口所需权限：package_view（查看资源包）。
 - 该接口功能描述：查询工具包（BinTool）安装包列表。
 
@@ -45,7 +45,7 @@ POST /api/v3/package/release/bintool/list
           "enabled": true,
           "as_default": true,
           "md5": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
-          "updated_at": 1712000000,
+          "updated_at": 1712000000000,
           "operator": "admin"
         }
       }
@@ -83,13 +83,13 @@ POST /api/v3/package/release/bintool/list
 | name | string | 安装包名称 |
 | generation | int64 | 安装包代次 |
 | release_type | string | 安装包类型，固定为 bintool |
-| os_type | string | 操作系统类型（枚举值：linux、windows、darwin） |
-| cpu_arch | string | CPU 架构（枚举值：386、arm、arm64、amd64） |
+| os_type | string | 操作系统类型（与 cpu_arch 组成受支持的平台组合） |
+| cpu_arch | string | CPU 架构（与 os_type 组成受支持的平台组合） |
 | version | string | 版本号 |
 | file_name | string | 安装包文件名 |
 | labels | string array | 标签列表 |
 | enabled | bool | 是否启用 |
 | as_default | bool | 是否为默认版本 |
 | md5 | string | 安装包 MD5 校验值 |
-| updated_at | uint64 | 最后更新时间（Unix 时间戳，秒） |
+| updated_at | uint64 | 最后更新时间（Unix 毫秒级时间戳） |
 | operator | string | 最后操作人 |

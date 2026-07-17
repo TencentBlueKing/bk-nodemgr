@@ -1,7 +1,7 @@
 ### Description
 
-- API Version: v3.0.0+.
-- Required Permission: package_view (View Package).
+- API Version: v3.0.1-alpha.18+.
+- Required Permission: None.
 - Function: Get distinct lists of available OS types and CPU architectures for proxy release packages.
 
 ### URL
@@ -31,8 +31,8 @@ POST /api/v3/package/release/proxy/distinct
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
-| cpu_arch | string | Yes | CPU architecture (enum values: 386, arm, arm64, amd64) |
+| os_type | string | Yes | Operating system type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
 
 #### distinct_field
 
@@ -82,5 +82,5 @@ Get all available OS types and CPU architectures for generation 2 proxy packages
 
 | Parameter Name | Parameter Type | Description |
 |---------------|----------------|-------------|
-| os_type | string array | Deduplicated OS type list (enum values: linux, windows, darwin) |
-| cpu_arch | string array | Deduplicated CPU architecture list (enum values: 386, arm, arm64, amd64) |
+| os_type | string array | Deduplicated OS type list derived from matching data |
+| cpu_arch | string array | Deduplicated CPU architecture list derived from matching data |

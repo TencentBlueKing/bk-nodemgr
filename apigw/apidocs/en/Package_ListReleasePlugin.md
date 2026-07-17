@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.0+.
+- API Version: v3.0.1-alpha.15+.
 - Required Permission: package_view (View Package).
 - Function: List plugin release packages with support for pagination and condition filtering. Only packages authorized for the current user are returned.
 
@@ -13,7 +13,7 @@ POST /api/v3/package/release/plugin/list
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | generation | int64 | Yes | Package generation (enum values: 2) |
-| page | object | No | Pagination configuration; returns all data if not specified |
+| page | object | Yes | Required for normal list queries; may be omitted only when only_count=true |
 | only_count | bool | No | Return only the total count without list data, default false |
 | exact_include_conditions | object | No | Exact filter conditions |
 
@@ -22,7 +22,7 @@ POST /api/v3/package/release/plugin/list
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | offset | int32 | No | Offset, starting from 0 |
-| limit | int32 | No | Number of records per page |
+| limit | int32 | Yes | Number of records per page, from 1 to 1000 |
 
 #### exact_include_conditions
 
@@ -39,8 +39,8 @@ POST /api/v3/package/release/plugin/list
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
-| cpu_arch | string | Yes | CPU architecture (enum values: 386, arm, arm64, amd64) |
+| os_type | string | Yes | Operating system type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
 
 **Parameter Notes**:
 - `exact_include_conditions.name`: The API intersects the requested plugin names with authorized plugin names for the current user. Plugin packages for which the user has no permission are filtered out.
@@ -92,7 +92,7 @@ List enabled plugin packages for Linux amd64 in generation 2.
           "enabled": true,
           "as_default": true,
           "md5": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
-          "updated_at": 1712000000,
+          "updated_at": 1712000000000,
           "operator": "admin"
         }
       }
@@ -130,13 +130,13 @@ List enabled plugin packages for Linux amd64 in generation 2.
 | name | string | Plugin name |
 | generation | int64 | Package generation |
 | release_type | string | Package type, fixed value: plugin |
-| os_type | string | Operating system type (enum values: linux, windows, darwin) |
-| cpu_arch | string | CPU architecture (enum values: 386, arm, arm64, amd64) |
+| os_type | string | Operating system type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | CPU architecture (forms a supported platform combination with os_type) |
 | version | string | Version number |
 | file_name | string | Package file name |
 | labels | string array | Label list |
 | enabled | bool | Whether enabled |
 | as_default | bool | Whether this is the default version |
 | md5 | string | Package MD5 checksum |
-| updated_at | uint64 | Last update time (Unix timestamp in seconds) |
+| updated_at | uint64 | Last update time (Unix timestamp in milliseconds) |
 | operator | string | Last operator |

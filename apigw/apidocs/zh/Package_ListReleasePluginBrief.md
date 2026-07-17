@@ -13,7 +13,7 @@ POST /api/v3/package/release/plugin/list/brief
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | generation | int64 | 是 | 安装包代次（枚举值：2） |
-| page | object | 否 | 分页配置，不传则返回全量数据 |
+| page | object | 是 | 普通列表查询必传；仅当 only_count=true 时可省略 |
 | only_count | bool | 否 | 仅返回总数，不返回列表数据，默认 false |
 | exact_include_conditions | object | 否 | 精确过滤条件 |
 
@@ -22,7 +22,7 @@ POST /api/v3/package/release/plugin/list/brief
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | offset | int32 | 否 | 偏移量，起始值为 0 |
-| limit | int32 | 否 | 每页条数 |
+| limit | int32 | 是 | 每页条数，取值范围为 1～1000 |
 
 #### exact_include_conditions
 
@@ -39,8 +39,8 @@ POST /api/v3/package/release/plugin/list/brief
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| os_type | string | 是 | 操作系统类型（枚举值：linux、windows、darwin） |
-| cpu_arch | string | 是 | CPU 架构（枚举值：386、arm、arm64、amd64） |
+| os_type | string | 是 | 操作系统类型（与 cpu_arch 组成受支持的平台组合） |
+| cpu_arch | string | 是 | CPU 架构（与 os_type 组成受支持的平台组合） |
 
 ### 调用示例
 
@@ -110,8 +110,8 @@ POST /api/v3/package/release/plugin/list/brief
 | 参数名称 | 参数类型 | 描述 |
 |---------|----------|------|
 | generation | int64 | 安装包代次 |
-| os_type | string | 操作系统类型（枚举值：linux、windows、darwin） |
-| cpu_arch | string | CPU 架构（枚举值：386、arm、arm64、amd64） |
+| os_type | string | 操作系统类型（与 cpu_arch 组成受支持的平台组合） |
+| cpu_arch | string | CPU 架构（与 os_type 组成受支持的平台组合） |
 | version | string | 版本号 |
 | enabled | bool | 是否启用 |
 | as_default | bool | 是否为默认版本 |

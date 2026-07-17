@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.22+.
+- API Version: v3.0.1-alpha.23+.
 - Required Permission: None.
 - API Function: Query plugin configuration variable templates, supporting grouped return of configuration template information by platform.
 
@@ -12,7 +12,7 @@ POST /api/v3/package/release/plugin/get_config_variables
 
 | Parameter  | Type       | Required | Description                                                                     |
 | ---------- | ---------- | -------- | ------------------------------------------------------------------------------- |
-| generation | int64      | Yes      | Plugin generation, 1 for Agent v1, 2 for Agent v2                               |
+| generation | int64      | Yes      | Plugin package generation                               |
 | name       | string     | Yes      | Plugin name                                                                     |
 | platforms  | Platform[] | Yes      | Platform list, supports querying configuration variables for multiple platforms |
 | version    | string     | Yes      | Plugin version number                                                           |
@@ -21,8 +21,8 @@ POST /api/v3/package/release/plugin/get_config_variables
 
 | Parameter | Type   | Required | Description                                      |
 | --------- | ------ | -------- | ------------------------------------------------ |
-| os_type   | string | Yes      | Operating system type, e.g., linux, windows, aix |
-| cpu_arch  | string | Yes      | CPU architecture, e.g., amd64, arm64, ppc64 |
+| os_type   | string | Yes      | Operating system type; must form a supported platform combination with cpu_arch, e.g., linux, windows, aix |
+| cpu_arch  | string | Yes      | CPU architecture; must form a supported platform combination with os_type, e.g., amd64, arm64, ppc64 |
 
 ### Request Example
 

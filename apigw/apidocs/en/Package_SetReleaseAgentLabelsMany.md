@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.0+.
+- API Version: v3.0.1-alpha.1+.
 - Required Permission: None.
 - Function: Set labels in bulk for agent packages that match the conditions.
 
@@ -13,7 +13,7 @@ POST /api/v3/package/release/agent/set_labels_many
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | generation | int64 | Yes | Package generation (enum value: 2) |
-| exact_include_conditions | object | Yes | Exact-match conditions |
+| exact_include_conditions | object | No | Exact-match conditions; when omitted, updates all alive packages in the specified generation |
 | labels | string array | Yes | Labels to set |
 
 #### exact_include_conditions
@@ -31,8 +31,8 @@ POST /api/v3/package/release/agent/set_labels_many
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
-| cpu_arch | string | Yes | CPU architecture (enum values: 386, arm, arm64, amd64) |
+| os_type | string | Yes | Operating system type (forms a supported platform combination with cpu_arch) |
+| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
 
 ### Request Example
 

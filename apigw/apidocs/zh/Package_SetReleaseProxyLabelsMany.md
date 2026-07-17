@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.0+。
+- 该接口提供版本：v3.0.1-alpha.14+。
 - 该接口所需权限：package_manage（管理资源包）。
 - 该接口功能描述：批量设置符合条件的 Proxy 安装包标签。
 
@@ -13,7 +13,7 @@ POST /api/v3/package/release/proxy/set_labels_many
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | generation | int64 | 是 | 安装包代次（枚举值：2） |
-| exact_include_conditions | object | 是 | 精确匹配条件 |
+| exact_include_conditions | object | 否 | 精确匹配条件；省略时更新指定代次下的所有存活安装包 |
 | labels | string array | 是 | 要设置的标签列表 |
 
 #### exact_include_conditions
@@ -31,8 +31,8 @@ POST /api/v3/package/release/proxy/set_labels_many
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| os_type | string | 是 | 操作系统类型（枚举值：linux、windows、darwin） |
-| cpu_arch | string | 是 | CPU 架构（枚举值：386、arm、arm64、amd64） |
+| os_type | string | 是 | 操作系统类型（与 cpu_arch 组成受支持的平台组合） |
+| cpu_arch | string | 是 | CPU 架构（与 os_type 组成受支持的平台组合） |
 
 ### 调用示例
 

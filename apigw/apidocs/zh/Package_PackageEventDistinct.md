@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.0+。
+- 该接口提供版本：v3.0.1-alpha.13+。
 - 该接口所需权限：无。
 - 该接口功能描述：查询资源包操作事件各字段的去重值。
 
@@ -14,15 +14,15 @@ POST /api/v3/package/event/distinct
 |---------|----------|------|------|
 | exact_include_conditions | object | 否 | 精确匹配条件 |
 | fuzzy_include_conditions | object | 否 | 模糊匹配条件，当前没有可用字段 |
-| operate_time_range | object | 否 | 操作时间范围；不传时默认为最近 365 天，最大跨度为 365 天 |
+| operate_time_range | object | 否 | 操作时间范围过滤条件 |
 
 #### exact_include_conditions
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | generation | int64 array | 否 | 安装包代次列表（有效值：2） |
-| os_type | string array | 否 | 操作系统类型列表（有效值：linux、windows、darwin） |
-| cpu_arch | string array | 否 | CPU 架构列表（有效值：386、arm、arm64、amd64） |
+| os_type | string array | 否 | 操作系统类型列表；每个值必须是受支持的操作系统类型 |
+| cpu_arch | string array | 否 | CPU 架构列表；每个值必须是受支持的 CPU 架构 |
 | release_type | string array | 否 | 资源包类型列表（有效值：agent、proxy、cert、bintool、plugin_bintool、plugin） |
 | operator | string array | 否 | 操作人列表 |
 | event_type | string array | 否 | 事件类型列表（有效值：publish、delete、enable、disable、set_as_default、cancel_as_default、upload） |

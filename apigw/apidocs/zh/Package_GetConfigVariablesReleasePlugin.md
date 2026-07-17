@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.22+。
+- 该接口提供版本：v3.0.1-alpha.23+。
 - 该接口所需权限：无。
 - 该接口功能描述：查询插件配置变量模板，支持按平台分组返回配置模板信息。
 
@@ -12,7 +12,7 @@ POST /api/v3/package/release/plugin/get_config_variables
 
 | 参数名称   | 参数类型   | 必选 | 描述                                       |
 | ---------- | ---------- | ---- | ------------------------------------------ |
-| generation | int64      | 是   | 插件代次，1 表示 Agent v1，2 表示 Agent v2 |
+| generation | int64      | 是   | 插件安装包代次 |
 | name       | string     | 是   | 插件名称                                   |
 | platforms  | Platform[] | 是   | 平台列表，支持查询多个平台的配置变量       |
 | version    | string     | 是   | 插件版本号                                 |
@@ -21,8 +21,8 @@ POST /api/v3/package/release/plugin/get_config_variables
 
 | 参数名称 | 参数类型 | 必选 | 描述                                  |
 | -------- | -------- | ---- | ------------------------------------- |
-| os_type  | string   | 是   | 操作系统类型，如 linux, windows, aix  |
-| cpu_arch | string   | 是   | CPU 架构，如 amd64、arm64、ppc64 |
+| os_type  | string   | 是   | 操作系统类型；须与 cpu_arch 组成受支持的平台组合，如 linux、windows、aix  |
+| cpu_arch | string   | 是   | CPU 架构；须与 os_type 组成受支持的平台组合，如 amd64、arm64、ppc64 |
 
 ### 调用示例
 
