@@ -78,10 +78,8 @@ func (act *actionSyncNetworkArea) MaxRetryCount() uint {
 }
 
 // DelayFn returns the delay function.
-func (act *actionSyncNetworkArea) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionSyncNetworkArea) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Do does the action.

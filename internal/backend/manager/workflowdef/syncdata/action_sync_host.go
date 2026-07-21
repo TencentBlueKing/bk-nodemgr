@@ -25,7 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -90,10 +89,7 @@ func (act *actionSyncHost) MaxRetryCount() uint {
 // DelayFn returns the delay of this action.
 // Uses exponential delay with jitter for staggered retry timing across instances.
 func (act *actionSyncHost) DelayFn(attempt int) func() {
-	return func() {
-		delay := retrier.CalculateExpoDelay(attempt, retrier.ExpoBackoffDelayOptsDefault())
-		time.Sleep(delay)
-	}
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Tags returns the tags of this action.

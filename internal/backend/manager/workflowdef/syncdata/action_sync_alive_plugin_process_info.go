@@ -79,10 +79,8 @@ func (act *actionSyncAlivePluginProcessInfo) MaxRetryCount() uint {
 }
 
 // DelayFn returns the delay of this action.
-func (act *actionSyncAlivePluginProcessInfo) DelayFn(_ int) func() {
-	return func() {
-		time.Sleep(1 * time.Second)
-	}
+func (act *actionSyncAlivePluginProcessInfo) DelayFn(attempt int) func() {
+	return action.DefaultBackoffDelayFn(act, attempt)
 }
 
 // Tags returns the tags of this action.
