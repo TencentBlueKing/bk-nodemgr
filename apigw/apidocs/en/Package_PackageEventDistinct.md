@@ -14,15 +14,15 @@ POST /api/v3/package/event/distinct
 |---------------|----------------|----------|-------------|
 | exact_include_conditions | object | No | Exact-match conditions |
 | fuzzy_include_conditions | object | No | Fuzzy-match conditions; no fields are currently available |
-| operate_time_range | object | No | Operation time range filter |
+| operate_time_range | object | No | Operation time range; defaults to the latest 365 days and cannot exceed 365 days |
 
 #### exact_include_conditions
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | generation | int64 array | No | Package generations (valid value: 2) |
-| os_type | string array | No | Operating system types; each value must be a supported OS type |
-| cpu_arch | string array | No | CPU architectures; each value must be a supported CPU architecture |
+| os_type | string array | No | Operating system types (valid values: linux, windows, darwin) |
+| cpu_arch | string array | No | CPU architectures (valid values: 386, arm, arm64, amd64) |
 | release_type | string array | No | Package types (valid values: agent, proxy, cert, bintool, plugin_bintool, plugin) |
 | operator | string array | No | Operators |
 | event_type | string array | No | Event types (valid values: publish, delete, enable, disable, set_as_default, cancel_as_default, upload) |

@@ -21,8 +21,8 @@ POST /api/v3/package/release/plugin/enable
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (forms a supported platform combination with cpu_arch) |
-| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
+| os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
+| cpu_arch | string | Yes | CPU architecture (enum values: 386, arm, arm64, amd64) |
 
 ### Request Example
 

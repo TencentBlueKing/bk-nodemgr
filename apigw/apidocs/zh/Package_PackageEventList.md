@@ -30,8 +30,8 @@ POST /api/v3/package/event/list
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | generation | int64 array | 否 | 安装包代次列表（有效值：2） |
-| os_type | string array | 否 | 操作系统类型列表；每个值必须是受支持的操作系统类型 |
-| cpu_arch | string array | 否 | CPU 架构列表；每个值必须是受支持的 CPU 架构 |
+| os_type | string array | 否 | 操作系统类型列表（有效值：linux、windows、darwin） |
+| cpu_arch | string array | 否 | CPU 架构列表（有效值：386、arm、arm64、amd64） |
 | release_type | string array | 否 | 资源包类型列表（有效值：agent、proxy、cert、bintool、plugin_bintool、plugin） |
 | operator | string array | 否 | 操作人列表 |
 | event_type | string array | 否 | 事件类型列表（有效值：publish、delete、enable、disable、set_as_default、cancel_as_default、upload） |
