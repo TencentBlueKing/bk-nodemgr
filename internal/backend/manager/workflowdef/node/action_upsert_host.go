@@ -128,30 +128,33 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 
 func (act *actionUpsertHostToCMDB) checkHost(std *nodeUtils.NodeActionStandarder) error {
 	info := std.DeployInfo()
+	hosts, _, err := act.storageHost.ListHost(std.Context(), types.SingleItemPage(), &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
+			Addressing:    []types.Addressing{info.Host.Static.Addressing},
+			InnerIP:       info.Host.Static.InnerIPList,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("list host failed: %w", err)
+	}
 
-	// nolint: nestif
 	// host-id not specified.
 	if info.Host.HostID < 0 {
+		if len(hosts) > 0 {
+			info.Host.HostID = hosts[0].HostID
+			std.InstanceData().Log().
+				Zh("匹配到已有主机, 复用主机ID(%d)", info.Host.HostID).
+				En("matched existing host, reuse host-id(%d)", info.Host.HostID).
+				Info()
+
+			return nil
+		}
+
 		std.InstanceData().Log().
 			Zh("未指定主机ID, 即将创建新主机").
 			En("host-id not specified, will create new host").
 			Info()
-
-		count, err := act.storageHost.CountHost(std.Context(), &types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{
-				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
-				Addressing:    []types.Addressing{info.Host.Static.Addressing},
-				InnerIP:       info.Host.Static.InnerIPList,
-			},
-		})
-		if err != nil {
-			return err
-		}
-
-		if count > 0 {
-			return fmt.Errorf("duplicated host with same ip found. networkarea-id(%d), addressing(%s), inner-ip(%v)",
-				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIPList)
-		}
 
 		// new host should be inserted into cmdb.
 		hostID, err := act.insertHost(std.Context(), info)
@@ -167,29 +170,33 @@ func (act *actionUpsertHostToCMDB) checkHost(std *nodeUtils.NodeActionStandarder
 		return nil
 	}
 
-	std.InstanceData().Log().
-		Zh("主机ID已指定(%d), 即将更新主机", info.Host.HostID).
-		En("host-id specified(%d), will update host", info.Host.HostID).
-		Info()
+	if len(hosts) == 0 {
+		std.InstanceData().Log().
+			Zh("目标主机(%d)不存在", info.Host.HostID).
+			En("target host(%d) is not exist", info.Host.HostID).
+			Error()
 
-	// host-id specified.
-	count, err := act.storageHost.CountHost(std.Context(), &types.HostCondition{
-		StaticExactInclude: &types.HostStaticExactFields{
-			HostID:        []int64{info.Host.HostID},
-			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
-			Addressing:    []types.Addressing{info.Host.Static.Addressing},
-			InnerIP:       info.Host.Static.InnerIPList,
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	if count == 0 {
 		return fmt.Errorf("no host found, contact the system administrator to check the host, "+
 			"host_id(%d), networkarea_id(%d), addressing(%s), inner_ip(%v)",
 			info.Host.HostID, info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIPList)
 	}
+
+	if hosts[0].HostID != info.Host.HostID {
+		std.InstanceData().Log().
+			Zh("目标主机ID(%d)与数据库中记录的主机ID(%d)不匹配", info.Host.HostID, hosts[0].HostID).
+			En("target host-id(%d) is not the same as recorded host-id(%d)", info.Host.HostID, hosts[0].HostID).
+			Error()
+
+		return fmt.Errorf("host id mismatch, specified host-id(%d), matched host-id(%d), "+
+			"networkarea-id(%d), addressing(%s), inner-ip(%v)",
+			info.Host.HostID, hosts[0].HostID, info.Host.Static.NetworkAreaID,
+			info.Host.Static.Addressing, info.Host.Static.InnerIPList)
+	}
+
+	std.InstanceData().Log().
+		Zh("主机ID已指定(%d), 即将更新主机", info.Host.HostID).
+		En("host-id specified(%d), will update host", info.Host.HostID).
+		Info()
 
 	return nil
 }
