@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,11 +40,12 @@ const (
 // NewActionUpgradePluginV2 ...
 func NewActionUpgradePluginV2(capability *Capability) action.Definition {
 	return &actionUpgradePluginV2{
-		daoHost:             capability.StorageTopo,
-		daoPlugin:           capability.StoragePlugin,
-		daoPluginDeployment: capability.StoragePlugin,
-		provider:            capability.DiscoverProvider,
-		gseHandler:          capability.GSEHandler,
+		daoHost:               capability.StorageTopo,
+		daoPlugin:             capability.StoragePlugin,
+		daoPluginDeployment:   capability.StoragePlugin,
+		provider:              capability.DiscoverProvider,
+		gseHandler:            capability.GSEHandler,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
@@ -54,11 +56,12 @@ type ActParamUpgradePluginV2 struct {
 
 // actionUpgradePluginV2 ...
 type actionUpgradePluginV2 struct {
-	daoHost             topoStg.IStorageHost
-	daoPlugin           pluginStg.IDaoPlugin
-	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	provider            discover.Discover
-	gseHandler          gse.IHandler
+	daoHost               topoStg.IStorageHost
+	daoPlugin             pluginStg.IDaoPlugin
+	daoPluginDeployment   pluginStg.IDaoPluginDeployment
+	provider              discover.Discover
+	gseHandler            gse.IHandler
+	storageActionInstance workflow.IStorageActionInstance
 }
 
 // Name returns the name of the action.
@@ -175,6 +178,15 @@ func (act *actionUpgradePluginV2) Do(ctx *action.InstanceContext) error {
 		En("upgrade plugin task-id: %s", taskID).
 		Info()
 
+	if err = act.storageActionInstance.UpsertActionInstancePrivateData(std.Context(),
+		std.InstanceData().OperationInstanceID,
+		ActionNameWaitPluginInstallerCompleteV2,
+		map[string]any{
+			types.PDKeyActionWaitInstallerCompletePollingSwitch: upgradeParams.SkipCallback,
+		}); err != nil {
+		return fmt.Errorf("failed to save wait plugin installer private data: %w", err)
+	}
+
 	return nil
 }
 
@@ -232,6 +244,8 @@ func (act *actionUpgradePluginV2) buildUpgradeParams(
 			DownloadSvrAddr: pluginV2Utils.BuildServerURLs(downloadEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
+			SkipCallback:    std.DeployInfo().InstallOptions.IsOffline || len(callbackEndpoints) == 0,
+			SkipDownload:    std.DeployInfo().InstallOptions.IsOffline || len(downloadEndpoints) == 0,
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerRuntime.WorkDir,
 	}

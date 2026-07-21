@@ -70,7 +70,6 @@ const (
 	// pluginFlagOperInstID plugin flag name defines the operation instance id.
 	pluginFlagOperInstID pluginFlagName = "oper_inst_id"
 
-
 	// pluginFlagPluginVersion plugin flag name defines the plugin version.
 	pluginFlagPluginVersion pluginFlagName = "plugin_version"
 
@@ -208,7 +207,6 @@ func (params *PluginInstallParams) buildArgs() []string {
 	return args
 }
 
-
 // ToUnixScript converts the install params to a unix script.
 func (params *PluginInstallParams) ToUnixScript() (string, string, error) {
 	if err := params.Validate(); err != nil {
@@ -263,6 +261,9 @@ type PluginUpgradeParams struct {
 
 	DeployToken string
 	OperInstID  string
+
+	SkipCallback bool
+	SkipDownload bool
 }
 
 // Validate validates the upgrade params.
@@ -287,11 +288,13 @@ func (params *PluginUpgradeParams) Validate() error {
 		return fmt.Errorf("plugin package name is empty")
 	}
 
-	if params.CallbackSvrAddr == "" {
+	// When skip_callback is set, callback server address can be empty
+	if !params.SkipCallback && params.CallbackSvrAddr == "" {
 		return fmt.Errorf("callback server address is empty")
 	}
 
-	if params.DownloadSvrAddr == "" {
+	// When skip_download is set, download server address can be empty
+	if !params.SkipDownload && params.DownloadSvrAddr == "" {
 		return fmt.Errorf("download server address is empty")
 	}
 
@@ -315,10 +318,23 @@ func (params *PluginUpgradeParams) buildArgs() []string {
 		fmt.Sprintf("--%s %s", pluginFlagPluginVersion, params.PluginVersion),
 		fmt.Sprintf("--%s %s", pluginFlagPluginPkgName, params.PluginPkgName),
 		fmt.Sprintf("--%s %s", pluginFlagDeployEnv, params.DeployEnv),
-		fmt.Sprintf("--%s %s", pluginFlagDownloadSvrAdd, params.DownloadSvrAddr),
-		fmt.Sprintf("--%s %s", pluginFlagCallbackSvrAdd, params.CallbackSvrAddr),
 		fmt.Sprintf("--%s %s", pluginFlagDeployToken, params.DeployToken),
 		fmt.Sprintf("--%s %s", pluginFlagOperInstID, params.OperInstID),
+	}
+	// Add download/callback server addresses only when not skipping
+	if !params.SkipDownload && params.DownloadSvrAddr != "" {
+		args = append(args, fmt.Sprintf("--%s %s", pluginFlagDownloadSvrAdd, params.DownloadSvrAddr))
+	}
+	if !params.SkipCallback && params.CallbackSvrAddr != "" {
+		args = append(args, fmt.Sprintf("--%s %s", pluginFlagCallbackSvrAdd, params.CallbackSvrAddr))
+	}
+
+	// Add skip flags when set
+	if params.SkipCallback {
+		args = append(args, "--skip_callback")
+	}
+	if params.SkipDownload {
+		args = append(args, "--skip_download")
 	}
 
 	return args

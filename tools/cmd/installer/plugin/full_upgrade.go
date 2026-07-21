@@ -44,8 +44,10 @@ func NewFullUpgrade() *cobra.Command {
 		pluginVersion   string
 
 		// optional flags.
-		logDir   string
-		logToStd bool
+		logDir       string
+		logToStd     bool
+		skipCallback bool
+		skipDownload bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -58,6 +60,14 @@ func NewFullUpgrade() *cobra.Command {
 		Short: "Full upgrade plugin",
 		Long:  "Full upgrade plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			if downloadSvrAddr == "" && !skipDownload {
+				return fmt.Errorf("%s is required when %s is not set", pluginFlag.DownloadSvrAddr, pluginFlag.SkipDownload)
+			}
+
+			if callbackSvrAddr == "" && !skipCallback {
+				return fmt.Errorf("%s is required when %s is not set", pluginFlag.CallbackSvrAddr, pluginFlag.SkipCallback)
+			}
+
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
@@ -79,15 +89,20 @@ func NewFullUpgrade() *cobra.Command {
 		},
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
-			// init log settings.
-			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
-			if len(callbackSvrAddrs) == 0 {
-				return fmt.Errorf("callback server address is empty or invalid")
+			var callbackSvrAddrs []string
+			var logURLs []string
+			if !skipCallback {
+				callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+				if len(callbackSvrAddrs) == 0 {
+					return fmt.Errorf("callback server address is empty or invalid")
+				}
+				var err error
+				logURLs, err = reportLogURLs(callbackSvrAddrs)
+				if err != nil {
+					return fmt.Errorf("failed to build log report URLs: %w", err)
+				}
 			}
-			logURLs, err := reportLogURLs(callbackSvrAddrs)
-			if err != nil {
-				return fmt.Errorf("failed to build log report URLs: %w", err)
-			}
+
 			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, logURLs)
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
@@ -96,7 +111,7 @@ func NewFullUpgrade() *cobra.Command {
 
 			systeminfo.LogInitialTargetInfo(pluginInstaller.StepGeneral)
 
-			// report status.
+			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
 			defer func() {
 				state := types.ProcessStateSuccess
 				if runErr != nil {
@@ -108,40 +123,43 @@ func NewFullUpgrade() *cobra.Command {
 					OperInstID:      operInstID,
 					Status:          state,
 					CallbackSvrAddr: callbackSvrAddrs,
+					SkipCallback:    skipCallback,
+					StatusFilePath:  statusFilePath,
+					ErrorMessage:    errString(runErr),
 				}).Run(cmd.Context())
 			}()
 
 			// download files.
-			downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
-			if len(downloadSvrAddrs) == 0 {
-				return fmt.Errorf("download server address is empty or invalid")
-			}
-			if err := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr: downloadSvrAddrs,
-				PluginGroup:     persistentVars.PluginGroup,
-				PluginName:      persistentVars.PluginName,
-				PluginPkgName:   persistentVars.PluginPkgName,
-				DeployToken:     deployToken,
-				PkgVersion:      pluginVersion,
-				PkgSavedPath:    pkgPath,
-			}).Run(cmd.Context()); err != nil {
-				return err
+			if !skipDownload {
+				downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
+				if len(downloadSvrAddrs) == 0 {
+					return fmt.Errorf("download server address is empty or invalid")
+				}
+				if err := filedownloader.NewStep(filedownloader.StepArgs{
+					DownloadSvrAddr: downloadSvrAddrs,
+					PluginGroup:     persistentVars.PluginGroup,
+					PluginName:      persistentVars.PluginName,
+					PluginPkgName:   persistentVars.PluginPkgName,
+					DeployToken:     deployToken,
+					PkgVersion:      pluginVersion,
+					PkgSavedPath:    pkgPath,
+				}).Run(cmd.Context()); err != nil {
+					return err
+				}
 			}
 
 			// fetch configs.
-			callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
-			if len(callbackSvrAddrs) == 0 {
-				return fmt.Errorf("callback server address is empty or invalid")
-			}
-			if err := configfetcher.NewStep(configfetcher.StepArgs{
-				CallbackSvrAddr: callbackSvrAddrs,
-				PluginGroup:     persistentVars.PluginGroup,
-				PluginName:      persistentVars.PluginName,
-				PluginPkgName:   persistentVars.PluginPkgName,
-				DeployToken:     deployToken,
-				ConfigSavedDir:  persistentVars.ConfigDir,
-			}).Run(cmd.Context()); err != nil {
-				return err
+			if !skipCallback {
+				if err := configfetcher.NewStep(configfetcher.StepArgs{
+					CallbackSvrAddr: callbackSvrAddrs,
+					PluginGroup:     persistentVars.PluginGroup,
+					PluginName:      persistentVars.PluginName,
+					PluginPkgName:   persistentVars.PluginPkgName,
+					DeployToken:     deployToken,
+					ConfigSavedDir:  persistentVars.ConfigDir,
+				}).Run(cmd.Context()); err != nil {
+					return err
+				}
 			}
 
 			// upgrade plugin.
@@ -154,9 +172,13 @@ func NewFullUpgrade() *cobra.Command {
 			}
 
 			// report data.
+			dataFilePath := filepath.Join(persistentVars.DataDir, "installer.data.json")
 			if err := datareporter.NewStep(datareporter.StepArgs{
 				CallbackSvrAddr: callbackSvrAddrs,
 				Token:           deployToken,
+				OperInstID:      operInstID,
+				SkipCallback:    skipCallback,
+				DataFilePath:    dataFilePath,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}
@@ -168,11 +190,9 @@ func NewFullUpgrade() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, pluginFlag.DownloadSvrAddr, "", "download server address, for downloading release files and reporting status")
-	_ = fullCmd.MarkFlagRequired(pluginFlag.DownloadSvrAddr)
+	fullCmd.Flags().StringVar(&downloadSvrAddr, pluginFlag.DownloadSvrAddr, "", "download server address. if skip_download is set, this can be empty")
 
-	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for downloading config files")
-	_ = fullCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
 
 	fullCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
 	_ = fullCmd.MarkFlagRequired(pluginFlag.DeployToken)
@@ -188,6 +208,8 @@ func NewFullUpgrade() *cobra.Command {
 	 */
 	fullCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&logToStd, pluginFlag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().BoolVar(&skipDownload, pluginFlag.SkipDownload, false, "whether to skip downloading files")
+	fullCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
 }
