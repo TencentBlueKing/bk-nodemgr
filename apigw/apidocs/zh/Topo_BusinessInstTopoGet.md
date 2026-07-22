@@ -36,21 +36,18 @@ POST /api/v3/topo/business/inst_topo/get
       "topo_inst_id": 2,
       "topo_inst_name": "prod-payment",
       "topo_obj_id": "biz",
-      "topo_obj_name": "业务",
       "host_count": 155,
       "children": [
         {
           "topo_inst_id": 10,
           "topo_inst_name": "default set",
           "topo_obj_id": "set",
-          "topo_obj_name": "集群",
           "host_count": 120,
           "children": [
             {
               "topo_inst_id": 100,
               "topo_inst_name": "module-a",
               "topo_obj_id": "module",
-              "topo_obj_name": "模块",
               "host_count": 120,
               "children": []
             }
@@ -60,14 +57,12 @@ POST /api/v3/topo/business/inst_topo/get
           "topo_inst_id": 11,
           "topo_inst_name": "custom layer",
           "topo_obj_id": "custom_level",
-          "topo_obj_name": "自定义层级",
           "host_count": 35,
           "children": [
             {
               "topo_inst_id": 101,
               "topo_inst_name": "module-b",
               "topo_obj_id": "module",
-              "topo_obj_name": "模块",
               "host_count": 35,
               "children": []
             }
@@ -103,7 +98,6 @@ POST /api/v3/topo/business/inst_topo/get
 | topo_inst_id   | int64    | 拓扑实例 ID                                                               |
 | topo_inst_name | string   | 拓扑实例名称                                                              |
 | topo_obj_id    | string   | 拓扑对象 ID，例如 `biz`、`set`、`module`，也可能是 CMDB 自定义层级对象 ID |
-| topo_obj_name  | string   | 拓扑对象名称                                                              |
 | host_count     | int64    | 当前拓扑节点聚合后的主机数量                                              |
 | children       | array    | 子拓扑节点列表，结构与当前节点一致                                        |
 

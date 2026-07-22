@@ -12,13 +12,22 @@ package topo
 
 import (
 	"errors"
+	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	customTopoSetBatchSize     = 500
+	customTopoHostCountTimeout = 30 * time.Minute
 )
 
 // ListBusiness list business with specified conditions.
@@ -95,9 +104,9 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
-	topoNodes, err := h.cmdbHandler.SearchBizInstTopo(rCtx, bizID)
+	topoNodes, err := h.cmdbHandler.GetBizBriefCacheTopo(rCtx, bizID)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business inst topo, failed to search business inst topo from cmdb")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get business inst topo, failed to get business brief cache topo from cmdb")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -115,52 +124,105 @@ func (h *handler) GetBusinessInstTopo(rCtx restserver.IContext) (interface{}, er
 	}
 
 	topoNode := topoNodes[0]
-	bizHostCount, setHostCount, moduleHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode, narrowedBizIDs, scopeIsAny)
+	bizHostCount, setHostCount, moduleHostCount, customHostCount, err := h.getBusinessInstTopoHostCounts(rCtx, topoNode, narrowedBizIDs, scopeIsAny)
 	if err != nil {
 		return nil, err
 	}
 
-	fillBusinessInstTopoHostCount(topoNode, bizHostCount, setHostCount, moduleHostCount)
+	fillBusinessInstTopoHostCount(topoNode, bizHostCount, setHostCount, moduleHostCount, customHostCount)
 	resp.ConvertBusinessInstTopoFromTypes(topoNode)
 
 	return resp.GetData(), nil
 }
 
-// nolint: nonamedreturns
-func (h *handler) getBusinessInstTopoHostCounts(
-	rCtx restserver.IContext, topoNode *types.TopoNodeInfo, narrowedBizIDs []int64, scopeIsAny bool,
-) (bizHostCount, setHostCount, moduleHostCount map[int64]int64, err error) {
+type businessInstTopoIDs struct {
+	bizIDs           []int64
+	setIDs           []int64
+	moduleIDs        []int64
+	customTopoSetIDs map[*types.TopoNodeInfo][]int64
+}
 
-	bizIDList := make([]int64, 0)
-	setIDList := make([]int64, 0)
-	moduleIDList := make([]int64, 0)
-	var topoInstDFS func(*types.TopoNodeInfo)
-	topoInstDFS = func(topoNode *types.TopoNodeInfo) {
-		if topoNode == nil {
-			return
-		}
+func collectBusinessInstTopoIDs(topoNode *types.TopoNodeInfo) businessInstTopoIDs {
+	result := businessInstTopoIDs{
+		bizIDs:           make([]int64, 0),
+		setIDs:           make([]int64, 0),
+		moduleIDs:        make([]int64, 0),
+		customTopoSetIDs: make(map[*types.TopoNodeInfo][]int64),
+	}
+	collectBusinessInstTopoNodeIDs(topoNode, &result)
+	result.bizIDs = conv.SliceUnique(result.bizIDs)
+	result.setIDs = conv.SliceUnique(result.setIDs)
+	result.moduleIDs = conv.SliceUnique(result.moduleIDs)
 
-		switch topoNode.ObjID {
-		case cmdb.TopoNodeObjIDBiz:
-			bizIDList = append(bizIDList, topoNode.InstID)
-		case cmdb.TopoNodeObjIDSet:
-			setIDList = append(setIDList, topoNode.InstID)
-		case cmdb.TopoNodeObjIDModule:
-			moduleIDList = append(moduleIDList, topoNode.InstID)
-		}
+	return result
+}
 
-		for _, child := range topoNode.Children {
-			topoInstDFS(child)
-		}
+func collectBusinessInstTopoNodeIDs(topoNode *types.TopoNodeInfo, result *businessInstTopoIDs) []int64 {
+	if topoNode == nil {
+		return nil
 	}
 
-	topoInstDFS(topoNode)
+	descendantSetIDs := make([]int64, 0)
+	switch topoNode.ObjID {
+	case cmdb.TopoNodeObjIDBiz:
+		result.bizIDs = append(result.bizIDs, topoNode.InstID)
+	case cmdb.TopoNodeObjIDSet:
+		result.setIDs = append(result.setIDs, topoNode.InstID)
+		descendantSetIDs = append(descendantSetIDs, topoNode.InstID)
+	case cmdb.TopoNodeObjIDModule:
+		result.moduleIDs = append(result.moduleIDs, topoNode.InstID)
+	}
 
-	if len(bizIDList) != 0 {
+	for _, child := range topoNode.Children {
+		descendantSetIDs = append(descendantSetIDs, collectBusinessInstTopoNodeIDs(child, result)...)
+	}
+
+	descendantSetIDs = conv.SliceUnique(descendantSetIDs)
+	if len(descendantSetIDs) == 0 || cmdb.IsMainlineObject(topoNode.ObjID) {
+		return descendantSetIDs
+	}
+	result.customTopoSetIDs[topoNode] = descendantSetIDs
+
+	return descendantSetIDs
+}
+
+// nolint: nonamedreturns
+func (h *handler) getBusinessInstTopoHostCounts(
+	rCtx restserver.IContext,
+	topoNode *types.TopoNodeInfo,
+	narrowedBizIDs []int64,
+	scopeIsAny bool,
+) (bizHostCount, setHostCount, moduleHostCount map[int64]int64, customHostCount map[*types.TopoNodeInfo]int64, err error) {
+
+	topoIDs := collectBusinessInstTopoIDs(topoNode)
+	bizHostCount, setHostCount, moduleHostCount, err = h.countStandardBusinessInstTopoHosts(
+		rCtx, topoIDs, narrowedBizIDs, scopeIsAny,
+	)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	customHostCount, err = h.countCustomBusinessInstTopoHosts(
+		rCtx, topoIDs.customTopoSetIDs, narrowedBizIDs, scopeIsAny,
+	)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return bizHostCount, setHostCount, moduleHostCount, customHostCount, nil
+}
+
+// nolint: nonamedreturns
+func (h *handler) countStandardBusinessInstTopoHosts(
+	rCtx restserver.IContext,
+	topoIDs businessInstTopoIDs,
+	narrowedBizIDs []int64,
+	scopeIsAny bool,
+) (bizHostCount, setHostCount, moduleHostCount map[int64]int64, err error) {
+
+	if len(topoIDs.bizIDs) != 0 {
 		bizCond := narrowHostConditionByBiz(&types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{
-				BizID: bizIDList,
-			},
+			StaticExactInclude: &types.HostStaticExactFields{BizID: topoIDs.bizIDs},
 		}, narrowedBizIDs, scopeIsAny)
 		bizHostCount, err = h.storage.CountHostGroupByBizID(rCtx, bizCond)
 		if err != nil {
@@ -169,11 +231,9 @@ func (h *handler) getBusinessInstTopoHostCounts(
 		}
 	}
 
-	if len(setIDList) != 0 {
+	if len(topoIDs.setIDs) != 0 {
 		setCond := narrowHostConditionByBiz(&types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{
-				SetID: setIDList,
-			},
+			StaticExactInclude: &types.HostStaticExactFields{SetID: topoIDs.setIDs},
 		}, narrowedBizIDs, scopeIsAny)
 		setHostCount, err = h.storage.CountHostGroupBySetID(rCtx, setCond)
 		if err != nil {
@@ -182,11 +242,9 @@ func (h *handler) getBusinessInstTopoHostCounts(
 		}
 	}
 
-	if len(moduleIDList) != 0 {
+	if len(topoIDs.moduleIDs) != 0 {
 		moduleCond := narrowHostConditionByBiz(&types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{
-				ModuleID: moduleIDList,
-			},
+			StaticExactInclude: &types.HostStaticExactFields{ModuleID: topoIDs.moduleIDs},
 		}, narrowedBizIDs, scopeIsAny)
 		moduleHostCount, err = h.storage.CountHostGroupByModuleID(rCtx, moduleCond)
 		if err != nil {
@@ -198,7 +256,105 @@ func (h *handler) getBusinessInstTopoHostCounts(
 	return bizHostCount, setHostCount, moduleHostCount, nil
 }
 
-func fillBusinessInstTopoHostCount(topoNode *types.TopoNodeInfo, bizHostCount, setHostCount, moduleHostCount map[int64]int64) {
+func (h *handler) countCustomBusinessInstTopoHosts(
+	rCtx restserver.IContext,
+	customTopoSetIDs map[*types.TopoNodeInfo][]int64,
+	narrowedBizIDs []int64,
+	scopeIsAny bool,
+) (map[*types.TopoNodeInfo]int64, error) {
+
+	customHostCount := make(map[*types.TopoNodeInfo]int64, len(customTopoSetIDs))
+	customSetIDList := make([]int64, 0)
+	for _, setIDs := range customTopoSetIDs {
+		customSetIDList = append(customSetIDList, setIDs...)
+	}
+	customSetIDList = conv.SliceUnique(customSetIDList)
+	if len(customSetIDList) == 0 {
+		return customHostCount, nil
+	}
+
+	hostIDsBySetID := make(map[int64]map[int64]struct{}, len(customSetIDList))
+	err := batchexecutor.Execute(
+		rCtx,
+		customSetIDList,
+		func(nCtx contextx.IContext, batchSetIDs []int64) error {
+			customSetCondition := narrowHostConditionByBiz(&types.HostCondition{
+				StaticExactInclude: &types.HostStaticExactFields{SetID: batchSetIDs},
+			}, narrowedBizIDs, scopeIsAny)
+			hosts, _, err := h.storage.ListHostWithFields(
+				nCtx,
+				types.UnlimitedPage(),
+				&types.HostFieldSelection{HostID: true, Topo: true},
+				customSetCondition,
+			)
+			if err != nil {
+				return err
+			}
+
+			addCustomTopoHostIDs(hostIDsBySetID, hosts, batchSetIDs)
+
+			return nil
+		},
+		batchexecutor.WithBatchSize(customTopoSetBatchSize),
+		batchexecutor.WithTimeout(customTopoHostCountTimeout),
+	)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count hosts under custom topology levels")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	return countCustomTopoHostsFromSetIDs(customTopoSetIDs, hostIDsBySetID), nil
+}
+
+func addCustomTopoHostIDs(hostIDsBySetID map[int64]map[int64]struct{}, hosts []*types.Host, setIDs []int64) {
+	setIDSet := make(map[int64]struct{}, len(setIDs))
+	for _, setID := range setIDs {
+		setIDSet[setID] = struct{}{}
+	}
+
+	for _, host := range hosts {
+		if host == nil || host.Static == nil {
+			continue
+		}
+
+		for _, topo := range host.Static.Topo {
+			if _, ok := setIDSet[topo.SetID]; !ok {
+				continue
+			}
+
+			if _, ok := hostIDsBySetID[topo.SetID]; !ok {
+				hostIDsBySetID[topo.SetID] = make(map[int64]struct{})
+			}
+			hostIDsBySetID[topo.SetID][host.HostID] = struct{}{}
+		}
+	}
+}
+
+func countCustomTopoHostsFromSetIDs(
+	customTopoSetIDs map[*types.TopoNodeInfo][]int64,
+	hostIDsBySetID map[int64]map[int64]struct{},
+) map[*types.TopoNodeInfo]int64 {
+
+	customHostCount := make(map[*types.TopoNodeInfo]int64, len(customTopoSetIDs))
+	for topoNode, setIDs := range customTopoSetIDs {
+		hostIDs := make(map[int64]struct{})
+		for _, setID := range setIDs {
+			for hostID := range hostIDsBySetID[setID] {
+				hostIDs[hostID] = struct{}{}
+			}
+		}
+		customHostCount[topoNode] = int64(len(hostIDs))
+	}
+
+	return customHostCount
+}
+
+func fillBusinessInstTopoHostCount(
+	topoNode *types.TopoNodeInfo,
+	bizHostCount, setHostCount, moduleHostCount map[int64]int64,
+	customHostCount map[*types.TopoNodeInfo]int64,
+) {
+
 	var fillNodeHostCount func(*types.TopoNodeInfo) int64
 	fillNodeHostCount = func(topoNode *types.TopoNodeInfo) int64 {
 		if topoNode == nil {
@@ -220,6 +376,10 @@ func fillBusinessInstTopoHostCount(topoNode *types.TopoNodeInfo, bizHostCount, s
 		case cmdb.TopoNodeObjIDModule:
 			topoNode.HostCount = moduleHostCount[topoNode.InstID]
 		default:
+			if hostCount, ok := customHostCount[topoNode]; ok {
+				topoNode.HostCount = hostCount
+				break
+			}
 			topoNode.HostCount += childHostCount
 		}
 

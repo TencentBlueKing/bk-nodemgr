@@ -152,7 +152,6 @@ func convertTopoNodeFromTypes(node *types.TopoNodeInfo) *TopoNodeInfo {
 		TopoInstId:   node.InstID,
 		TopoInstName: node.InstName,
 		TopoObjId:    node.ObjID,
-		TopoObjName:  node.ObjName,
 		HostCount:    node.HostCount,
 		Children:     children,
 	}

@@ -126,7 +126,6 @@ export interface IHost {
 export interface ITreeItem extends INode {
   count: number;
   expanded?: boolean;
-  object_name: string;
   instance_name: string;
   child: ITreeItem[];
   lazy?: boolean;
@@ -284,6 +283,63 @@ const topoParentMap = new Map<number, Map<string, string>>();
 // 业务名称：bizId → bizName
 const bizNameMap = new Map<number, string>();
 
+interface IHostQueryNodeIDs {
+  bizIds: number[];
+  setIds: number[];
+  moduleIds: number[];
+}
+
+const appendUniqueID = (ids: number[], value: unknown) => {
+  const id = Number(value);
+  if (!Number.isFinite(id) || ids.includes(id)) return;
+  ids.push(id);
+};
+
+/** Collect set IDs below a custom topology node from the cached topology tree. */
+const collectDescendantSetIDs = (node: ITreeItem, setIds: number[]) => {
+  for (const child of node.child || []) {
+    if (child.object_id === 'set') {
+      appendUniqueID(setIds, child.instance_id);
+    }
+    collectDescendantSetIDs(child, setIds);
+  }
+};
+
+/** Resolve host query IDs from the nodes selected in the IP selector. */
+const resolveHostQueryNodeIDs = (nodeList: any[]): IHostQueryNodeIDs => {
+  const result: IHostQueryNodeIDs = { bizIds: [], setIds: [], moduleIds: [] };
+
+  for (const node of nodeList) {
+    const objectId = node.objectId || node.object_id || '';
+    const instanceId = node.instanceId ?? node.instance_id ?? node.id ?? null;
+    if (instanceId === null || instanceId === undefined) continue;
+
+    switch (objectId) {
+      case 'biz':
+        appendUniqueID(result.bizIds, instanceId);
+        break;
+      case 'set':
+        appendUniqueID(result.setIds, instanceId);
+        appendUniqueID(result.bizIds, node.meta?.bk_biz_id ?? node.bk_biz_id);
+        break;
+      case 'module':
+        appendUniqueID(result.moduleIds, instanceId);
+        appendUniqueID(result.bizIds, node.meta?.bk_biz_id ?? node.bk_biz_id);
+        break;
+      default: {
+        const bizID = node.meta?.bk_biz_id ?? node.bk_biz_id;
+        appendUniqueID(result.bizIds, bizID);
+        const cachedNode = topoNodeCache.get(Number(bizID))?.get(`${objectId}:${instanceId}`);
+        if (cachedNode) {
+          collectDescendantSetIDs(cachedNode, result.setIds);
+        }
+      }
+    }
+  }
+
+  return result;
+};
+
 /** 递归索引 ITreeItem 子树，写入 topoNodeCache / topoParentMap */
 const indexTreeNodes = (children: ITreeItem[], bizId: number, bizName?: string) => {
   const nodeMap = new Map<string, ITreeItem>();
@@ -302,14 +358,13 @@ const indexTreeNodes = (children: ITreeItem[], bizId: number, bizName?: string) 
 
 /**
  * 将 CMDB 实例拓扑节点 TopoNodeInfo 递归转换为 IP 选择器树节点 ITreeItem
- * TopoNodeInfo: { topo_inst_id, topo_inst_name, topo_obj_id, topo_obj_name, host_count, children }
- * ITreeItem: { instance_id, instance_name, object_id, object_name, meta, child, count }
+ * TopoNodeInfo: { topo_inst_id, topo_inst_name, topo_obj_id, host_count, children }
+ * ITreeItem: { instance_id, instance_name, object_id, meta, child, count }
  */
 const transformCmdbNode = (node: any, bizId: number): ITreeItem => ({
   instance_id: node.topo_inst_id,
   instance_name: node.topo_inst_name,
   object_id: node.topo_obj_id,       // 'set' | 'module'
-  object_name: node.topo_obj_name,
   meta: {
     bk_biz_id: bizId,
     scope_id: String(bizId),
@@ -413,7 +468,6 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
             instance_id: biz.bk_biz_id,
             instance_name: biz.bk_biz_name,
             object_id: 'biz',
-            object_name: '业务',
             meta: {
               bk_biz_id: biz.bk_biz_id,
               scope_id: String(biz.bk_biz_id),
@@ -482,7 +536,6 @@ export const fetchTopologyTree = async (node?: any): Promise<ITreeItem[]> => {
           instance_id: biz.bk_biz_id,
           instance_name: biz.bk_biz_name,
           object_id: 'biz',
-          object_name: '业务',
           meta: {
             bk_biz_id: biz.bk_biz_id,
             scope_id: String(biz.bk_biz_id),
@@ -517,37 +570,10 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
 
   // 从选中的拓扑节点提取过滤条件
   // IpSelector 传入的 nodeList 格式：[{ objectId, instanceId, instanceName, meta }]
-  // 拓扑层级：业务(biz) → CMDB Set(set) → CMDB Module(module)
-  const nodeList = query.nodeList || [];
+  // 拓扑层级：业务(biz) → 自定义层级 → CMDB Set(set) → CMDB Module(module)
+  const nodeList = query.nodeList || query.node_list || [];
   const exact: Record<string, (string | number)[]> = {};
-  const bizIds: number[] = [];
-  const setIds: number[] = [];
-  const moduleIds: number[] = [];
-
-  for (const node of nodeList) {
-    const objectId = node.objectId || node.object_id || '';
-    const instanceId = node.instanceId ?? node.instance_id ?? node.id ?? null;
-    if (instanceId === null || instanceId === undefined) continue;
-
-    switch (objectId) {
-      case 'biz':
-        bizIds.push(Number(instanceId));
-        break;
-      case 'set':
-        setIds.push(Number(instanceId));
-        // set/module 节点需要同时传 bk_biz_id，从 meta 中获取所属业务
-        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
-          bizIds.push(Number(node.meta.bk_biz_id));
-        }
-        break;
-      case 'module':
-        moduleIds.push(Number(instanceId));
-        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
-          bizIds.push(Number(node.meta.bk_biz_id));
-        }
-        break;
-    }
-  }
+  const { bizIds, setIds, moduleIds } = resolveHostQueryNodeIDs(nodeList);
 
   if (bizIds.length > 0) exact.bk_biz_id = bizIds;
   if (setIds.length > 0) exact.bk_set_id = setIds;
@@ -597,35 +623,9 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
  */
 export const fetchHostIdsByNodes = async (query: any): Promise<any> => {
   // 从选中的拓扑节点提取过滤条件
-  // 拓扑层级：业务(biz) → CMDB Set(set) → CMDB Module(module)
-  const nodeList = query?.nodeList || [];
-  const bizIds: number[] = [];
-  const setIds: number[] = [];
-  const moduleIds: number[] = [];
-
-  for (const node of nodeList) {
-    const objectId = node.objectId || node.object_id || '';
-    const instanceId = node.instanceId ?? node.instance_id ?? node.id ?? null;
-    if (instanceId === null || instanceId === undefined) continue;
-
-    switch (objectId) {
-      case 'biz':
-        bizIds.push(Number(instanceId));
-        break;
-      case 'set':
-        setIds.push(Number(instanceId));
-        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
-          bizIds.push(Number(node.meta.bk_biz_id));
-        }
-        break;
-      case 'module':
-        moduleIds.push(Number(instanceId));
-        if (node.meta?.bk_biz_id && !bizIds.includes(node.meta.bk_biz_id)) {
-          bizIds.push(Number(node.meta.bk_biz_id));
-        }
-        break;
-    }
-  }
+  // 拓扑层级：业务(biz) → 自定义层级 → CMDB Set(set) → CMDB Module(module)
+  const nodeList = query?.nodeList || query?.node_list || [];
+  const { bizIds, setIds, moduleIds } = resolveHostQueryNodeIDs(nodeList);
 
   // 统一使用 HostSelectHostID 跨页全选专用接口
   // 后端通过 pageexecutor（5000/页，1分钟超时）自动分片，一次请求即可获取全量
@@ -706,7 +706,6 @@ export const fetchNodePath = async (params: any): Promise<Array<any[]>> => {
         instance_id: bizId,
         instance_name: bizName,
         object_id: 'biz',
-        object_name: '业务',
         meta: { bk_biz_id: bizId, scope_id: String(bizId), scope_type: 'biz' },
         count: 0,
       } as ITreeItem);

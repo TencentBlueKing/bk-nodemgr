@@ -127,7 +127,6 @@ type TopoNodeInfo struct {
 	InstID    int64
 	InstName  string
 	ObjID     string
-	ObjName   string
 	HostCount int64
 	Children  []*TopoNodeInfo
 }

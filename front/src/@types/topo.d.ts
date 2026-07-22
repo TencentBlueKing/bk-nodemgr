@@ -64,7 +64,6 @@ export interface TopoNodeInfo {
   topo_inst_id: number;
   topo_inst_name: string;
   topo_obj_id: string;
-  topo_obj_name: string;
   host_count: number;
   children: TopoNodeInfo[];
 }
@@ -831,4 +830,3 @@ export interface TopoConstantGetRespData {
   cloud_vendor: string[];
   os_type: string[];
 }
-

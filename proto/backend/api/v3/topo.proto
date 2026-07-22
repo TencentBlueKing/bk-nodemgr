@@ -75,10 +75,9 @@ message TopoBusinessInstTopoGetReq { int64 bk_biz_id = 1; }
 message TopoNodeInfo {
   string topo_obj_id = 1;
   int64 topo_inst_id = 2;
-  string topo_obj_name = 3;
-  string topo_inst_name = 4;
-  int64 host_count = 5;
-  repeated TopoNodeInfo children = 6;
+  string topo_inst_name = 3;
+  int64 host_count = 4;
+  repeated TopoNodeInfo children = 5;
 }
 
 // TopoBusinessInstTopoGetResp describes the HTTP response body when get

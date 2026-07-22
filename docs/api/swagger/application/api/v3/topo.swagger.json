@@ -3820,9 +3820,6 @@
         "topo_obj_id": {
           "type": "string"
         },
-        "topo_obj_name": {
-          "type": "string"
-        },
         "host_count": {
           "type": "integer",
           "format": "int64"

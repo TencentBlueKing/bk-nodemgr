@@ -4053,9 +4053,6 @@
           "type": "integer",
           "format": "int64"
         },
-        "topo_obj_name": {
-          "type": "string"
-        },
         "topo_inst_name": {
           "type": "string"
         },

@@ -166,7 +166,6 @@ func convertBusinessInstTopoFromTypes(topoNode *types.TopoNodeInfo) *TopoNodeInf
 		TopoInstId:   topoNode.InstID,
 		TopoInstName: topoNode.InstName,
 		TopoObjId:    topoNode.ObjID,
-		TopoObjName:  topoNode.ObjName,
 		HostCount:    topoNode.HostCount,
 		Children:     children,
 	}
@@ -233,7 +232,6 @@ func convertTopoNodeToTypes(node *TopoNodeInfo) *types.TopoNodeInfo {
 		InstID:    node.GetTopoInstId(),
 		InstName:  node.GetTopoInstName(),
 		ObjID:     node.GetTopoObjId(),
-		ObjName:   node.GetTopoObjName(),
 		HostCount: node.GetHostCount(),
 		Children:  children,
 	}

@@ -280,6 +280,7 @@ func (c *cli) updateHostCloudAreaField(ctx contextx.IContext, req *UpdateHostClo
 }
 
 // searchBizInstTopo search biz inst topo.
+// nolint: unused
 func (c *cli) searchBizInstTopo(ctx contextx.IContext, req *SearchBizInstTopoReq) (*SearchBizInstTopoResp, error) {
 	resp := new(BaseBroker[*SearchBizInstTopoResp])
 	header, err := c.getHeader(ctx)
@@ -306,6 +307,7 @@ func (c *cli) searchBizInstTopo(ctx contextx.IContext, req *SearchBizInstTopoReq
 }
 
 // getBizInternalModule get biz internal module.
+// nolint: unused
 func (c *cli) getBizInternalModule(ctx contextx.IContext, req *GetBizInternalModuleReq) (
 	*GetBizInternalModuleResp, error) {
 
@@ -386,6 +388,7 @@ func (c *cli) findModuleBatch(ctx contextx.IContext, req *FindModuleBatchReq) (*
 }
 
 // searchObject search object.
+// nolint: unused
 func (c *cli) searchObject(ctx contextx.IContext, req *SearchObjectReq) (
 	*SearchObjectResp, error) {
 
@@ -1465,6 +1468,32 @@ func (c *cli) resourceWatch(ctx contextx.IContext, req *ResourceWatchReq) (*Reso
 
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("resource watch failed: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// getBizBriefCacheTopo get biz brief cache topo.
+func (c *cli) getBizBriefCacheTopo(ctx contextx.IContext, req *GetBizBriefCacheTopoReq) (
+	*GetBizBriefCacheTopoResp, error) {
+
+	resp := new(BaseBroker[*GetBizBriefCacheTopoResp])
+	header, err := c.getHeader(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Get().
+		SubResourcef("/cache/find/cache/topo/brief/biz/%d", req.BKBizID).
+		WithContext(ctx).
+		WithHeaders(header).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get biz brief cache topo failed: %v", err)
 	}
 
 	return resp.Data, nil

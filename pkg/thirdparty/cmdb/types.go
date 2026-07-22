@@ -1385,3 +1385,53 @@ type HostEventInfo = EventInfo[*HostInfo]
 
 // HostRelationEventInfo describe the host relation event info define by cmdb.
 type HostRelationEventInfo = EventInfo[*HostTopoRelation]
+
+// GetBizBriefCacheTopoReq describe the request data of get_biz_brief_cache_topo.
+type GetBizBriefCacheTopoReq struct {
+	BKBizID int64 `json:"bk_biz_id"`
+}
+
+// GetBizBriefCacheTopoResp describe the response data of get_biz_brief_cache_topo.
+type GetBizBriefCacheTopoResp struct {
+	Biz   bizBriefCacheTopoBiz     `json:"biz"`
+	Idle  []*bizBriefCacheTopoNode `json:"idle"`
+	Nodes []*bizBriefCacheTopoNode `json:"nds"`
+}
+
+// bizBriefCacheTopoBiz describes the business information in the brief topology response.
+type bizBriefCacheTopoBiz struct {
+	ID                int64  `json:"id"`
+	Name              string `json:"nm"`
+	Default           int    `json:"dft"`
+	BKSupplierAccount string `json:"bk_supplier_account"`
+}
+
+// bizBriefCacheTopoNode describes a node in the brief topology response.
+type bizBriefCacheTopoNode struct {
+	Obj     string                   `json:"obj"`
+	ID      int64                    `json:"id"`
+	Name    string                   `json:"nm"`
+	Default int                      `json:"dft"`
+	Nodes   []*bizBriefCacheTopoNode `json:"nds"`
+}
+
+const (
+	// TopoNodeObjIDBiz topo node object id for biz.
+	TopoNodeObjIDBiz = "biz"
+	// TopoNodeObjIDHost topo node object id for host.
+	TopoNodeObjIDHost = "host"
+	// TopoNodeObjIDSet topo node object id for set.
+	TopoNodeObjIDSet = "set"
+	// TopoNodeObjIDModule topo node object id for module.
+	TopoNodeObjIDModule = "module"
+)
+
+// IsMainlineObject checks if the given object ID is a mainline object in the CMDB topology.
+func IsMainlineObject(objID string) bool {
+	switch objID {
+	case TopoNodeObjIDBiz, TopoNodeObjIDSet, TopoNodeObjIDModule:
+		return true
+	default:
+		return false
+	}
+}

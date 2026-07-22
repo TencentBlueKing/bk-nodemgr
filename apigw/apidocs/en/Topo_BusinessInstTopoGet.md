@@ -36,21 +36,18 @@ Query the business instance topology of business `2`.
       "topo_inst_id": 2,
       "topo_inst_name": "prod-payment",
       "topo_obj_id": "biz",
-      "topo_obj_name": "Business",
       "host_count": 155,
       "children": [
         {
           "topo_inst_id": 10,
           "topo_inst_name": "default set",
           "topo_obj_id": "set",
-          "topo_obj_name": "Set",
           "host_count": 120,
           "children": [
             {
               "topo_inst_id": 100,
               "topo_inst_name": "module-a",
               "topo_obj_id": "module",
-              "topo_obj_name": "Module",
               "host_count": 120,
               "children": []
             }
@@ -60,14 +57,12 @@ Query the business instance topology of business `2`.
           "topo_inst_id": 11,
           "topo_inst_name": "custom layer",
           "topo_obj_id": "custom_level",
-          "topo_obj_name": "Custom Level",
           "host_count": 35,
           "children": [
             {
               "topo_inst_id": 101,
               "topo_inst_name": "module-b",
               "topo_obj_id": "module",
-              "topo_obj_name": "Module",
               "host_count": 35,
               "children": []
             }
@@ -103,7 +98,6 @@ Query the business instance topology of business `2`.
 | topo_inst_id   | int64  | Topology instance ID                                                                 |
 | topo_inst_name | string | Topology instance name                                                               |
 | topo_obj_id    | string | Topology object ID, such as `biz`, `set`, `module`, or a CMDB custom level object ID |
-| topo_obj_name  | string | Topology object name                                                                 |
 | host_count     | int64  | Aggregated host count for the current topology node                                  |
 | children       | array  | Child topology node list. Each child uses the same node structure                    |
 

@@ -62,8 +62,8 @@ type IBiz interface {
 	// SearchBusiness search business.
 	SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Business, error)
 
-	// SearchBizInstTopo search business instance topology.
-	SearchBizInstTopo(nCtx contextx.IContext, bizID int64) ([]*types.TopoNodeInfo, error)
+	// GetBizBriefCacheTopo gets the business brief cache topology.
+	GetBizBriefCacheTopo(nCtx contextx.IContext, bizID int64) ([]*types.TopoNodeInfo, error)
 }
 
 // IEnum this interface is used to get enum resource.
@@ -151,9 +151,6 @@ type Handler struct {
 	osTypeKeeper      iEnumResourceKeeper
 	cpuArchKeeper     iEnumResourceKeeper
 
-	setObjectKeeper    iObjectKeeper
-	moduleObjectKeeper iObjectKeeper
-
 	// combined handler group splited by tenant.
 	combinedHandlerGroupMu sync.RWMutex
 	combinedHandlerGroup   map[string]*combinedHandler
@@ -162,9 +159,6 @@ type Handler struct {
 const (
 	enumResourceSyncInterval = 30 * time.Minute
 	enumResourceSyncTimeout  = 30 * time.Second
-
-	objectResourceSyncInterval = 24 * time.Hour
-	objectResourceSyncTimeout  = 30 * time.Second
 )
 
 // OptionFn ...
@@ -180,11 +174,9 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	h := &Handler{
 		cli: cli,
 
-		cloudVendorKeeper:  newCloudVendorKeeper(cli),
-		osTypeKeeper:       newOSTypeKeeper(cli),
-		cpuArchKeeper:      newCPUArchKeeper(cli),
-		setObjectKeeper:    newSetObjectKeeper(cli),
-		moduleObjectKeeper: newModuleObjectKeeper(cli),
+		cloudVendorKeeper: newCloudVendorKeeper(cli),
+		osTypeKeeper:      newOSTypeKeeper(cli),
+		cpuArchKeeper:     newCPUArchKeeper(cli),
 
 		combinedHandlerGroup: make(map[string]*combinedHandler),
 	}
@@ -260,38 +252,6 @@ func (h *Handler) initEnumKeepers() error {
 				return nil
 			},
 		),
-		scheduler.NewTask(
-			"sync_set_object",
-			objectResourceSyncInterval,
-			objectResourceSyncTimeout,
-			func(nCtx contextx.IContext) error {
-				tenantIDs := tenant.GetAllTenantIDs()
-				for _, tenantID := range tenantIDs {
-					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
-					if err := h.setObjectKeeper.update(newCtx); err != nil {
-						return err
-					}
-				}
-
-				return nil
-			},
-		),
-		scheduler.NewTask(
-			"sync_module_object",
-			objectResourceSyncInterval,
-			objectResourceSyncTimeout,
-			func(nCtx contextx.IContext) error {
-				tenantIDs := tenant.GetAllTenantIDs()
-				for _, tenantID := range tenantIDs {
-					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
-					if err := h.moduleObjectKeeper.update(newCtx); err != nil {
-						return err
-					}
-				}
-
-				return nil
-			},
-		),
 	}
 
 	for _, task := range syncTasks {
@@ -317,13 +277,6 @@ func (h *Handler) initEnumKeepers() error {
 		}
 		if err := h.cpuArchKeeper.update(newCtx); err != nil {
 			logger.G.Sys().WithErr(err).Warn("failed to sync cpu arch")
-		}
-
-		if err := h.setObjectKeeper.update(newCtx); err != nil {
-			logger.G.Sys().WithErr(err).Warn("failed to sync set object")
-		}
-		if err := h.moduleObjectKeeper.update(newCtx); err != nil {
-			logger.G.Sys().WithErr(err).Warn("failed to sync module object")
 		}
 	}
 
@@ -361,91 +314,68 @@ func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*ty
 	return bizs, nil
 }
 
-// SearchBizInstTopo search business instance topology.
-func (h *Handler) SearchBizInstTopo(nCtx contextx.IContext, bizID int64) ([]*types.TopoNodeInfo, error) {
-	internalTopoReq := &GetBizInternalModuleReq{BKBizID: bizID}
-	internalTopoResp, err := h.cli.getBizInternalModule(nCtx, internalTopoReq)
+// GetBizBriefCacheTopo gets the business brief cache topology.
+func (h *Handler) GetBizBriefCacheTopo(nCtx contextx.IContext, bizID int64) ([]*types.TopoNodeInfo, error) {
+	req := &GetBizBriefCacheTopoReq{BKBizID: bizID}
+	resp, err := h.cli.getBizBriefCacheTopo(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	if internalTopoResp == nil || len(internalTopoResp.Module) == 0 {
-		return nil, fmt.Errorf("business internal module response is empty")
+	if resp == nil {
+		return nil, fmt.Errorf("business brief cache topology response is empty")
 	}
 
-	children := make([]*types.TopoNodeInfo, 0, len(internalTopoResp.Module))
-	for _, module := range internalTopoResp.Module {
-		if module == nil {
+	if resp.Biz.ID != bizID {
+		return nil, fmt.Errorf("business brief cache topology response is invalid, expected bizID: %d, got: %v", bizID, resp.Biz)
+	}
+
+	children := make([]*types.TopoNodeInfo, 0, len(resp.Nodes)+len(resp.Idle))
+	for _, node := range resp.Nodes {
+		convertedNode := convBizBriefCacheTopoNodeToTypes(node)
+		if convertedNode == nil {
 			continue
 		}
 
-		children = append(children, &types.TopoNodeInfo{
-			InstID:   module.BKModuleID,
-			InstName: module.BKModuleName,
-			ObjID:    TopoNodeObjIDModule,
-			ObjName:  h.moduleObjectKeeper.getName(),
-		})
+		children = append(children, convertedNode)
 	}
 
-	internalTopo := &types.TopoNodeInfo{
-		InstID:   internalTopoResp.BKSetID,
-		InstName: internalTopoResp.BKSetName,
-		ObjID:    TopoNodeObjIDSet,
-		ObjName:  h.setObjectKeeper.getName(),
+	for _, node := range resp.Idle {
+		convertedNode := convBizBriefCacheTopoNodeToTypes(node)
+		if convertedNode == nil {
+			continue
+		}
+
+		children = append(children, convertedNode)
+	}
+
+	return []*types.TopoNodeInfo{{
+		InstID:   resp.Biz.ID,
+		InstName: resp.Biz.Name,
+		ObjID:    TopoNodeObjIDBiz,
 		Children: children,
-	}
-
-	instTopoReq := &SearchBizInstTopoReq{BKBizID: bizID}
-	instTopoResp, err := h.cli.searchBizInstTopo(nCtx, instTopoReq)
-	if err != nil {
-		return nil, err
-	}
-
-	if instTopoResp == nil || len(*instTopoResp) == 0 {
-		return nil, fmt.Errorf("business instance topology response is empty")
-	}
-
-	// getBizInternalModule interface do not return the set and module's object name, so we need to get the object name from the instTopoResp.
-	result := make([]*types.TopoNodeInfo, len(*instTopoResp))
-	for idx, topo := range *instTopoResp {
-		result[idx] = convBizInstTopoToTypes(topo)
-	}
-
-	for _, topoNode := range result {
-		if topoNode == nil {
-			continue
-		}
-
-		if topoNode.ObjID != TopoNodeObjIDBiz || topoNode.InstID != bizID {
-			continue
-		}
-
-		topoNode.Children = append(topoNode.Children, internalTopo)
-
-		break
-	}
-
-	return result, nil
+	}}, nil
 }
 
-func convBizInstTopoToTypes(topo *BizInstTopo) *types.TopoNodeInfo {
-	if topo == nil {
+func convBizBriefCacheTopoNodeToTypes(node *bizBriefCacheTopoNode) *types.TopoNodeInfo {
+	if node == nil {
 		return nil
 	}
 
-	children := make([]*types.TopoNodeInfo, 0, len(topo.Children))
-	for _, child := range topo.Children {
-		if child == nil {
+	children := make([]*types.TopoNodeInfo, 0, len(node.Nodes))
+	for _, child := range node.Nodes {
+		convertedChild := convBizBriefCacheTopoNodeToTypes(child)
+		if convertedChild == nil {
 			continue
 		}
-		children = append(children, convBizInstTopoToTypes(child))
+
+		children = append(children, convertedChild)
 	}
 
 	return &types.TopoNodeInfo{
-		InstID:   topo.BKInstID,
-		InstName: topo.BKInstName,
-		ObjID:    topo.BKObjID,
-		ObjName:  topo.BKObjName,
+		InstID:   node.ID,
+		InstName: node.Name,
+		ObjID:    node.Obj,
 		Children: children,
 	}
 }
