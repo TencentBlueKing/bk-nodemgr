@@ -39,8 +39,9 @@ func NewFullUninstall() *cobra.Command {
 		operInstID      string
 
 		// optional flags.
-		logDir   string
-		logToStd bool
+		logDir       string
+		logToStd     bool
+		skipCallback bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -52,6 +53,10 @@ func NewFullUninstall() *cobra.Command {
 		Short: "Full uninstall process",
 		Long:  "Full uninstall process",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			if callbackSvrAddr == "" && !skipCallback {
+				return fmt.Errorf("%s is required when %s is not set", nodeFlag.CallbackSvrAddr, nodeFlag.SkipCallback)
+			}
+
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
@@ -69,13 +74,18 @@ func NewFullUninstall() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
-			if len(callbackSvrAddrs) == 0 {
-				return fmt.Errorf("callback server address is empty or invalid")
-			}
-			logURLs, err := reportLogURLs(callbackSvrAddrs)
-			if err != nil {
-				return fmt.Errorf("failed to build log report URLs: %w", err)
+			var callbackSvrAddrs []string
+			var logURLs []string
+			if !skipCallback {
+				callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+				if len(callbackSvrAddrs) == 0 {
+					return fmt.Errorf("callback server address is empty or invalid")
+				}
+				var err error
+				logURLs, err = reportLogURLs(callbackSvrAddrs)
+				if err != nil {
+					return fmt.Errorf("failed to build log report URLs: %w", err)
+				}
 			}
 			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, logURLs)
 			if err := lHandler.Start(); err != nil {
@@ -84,7 +94,8 @@ func NewFullUninstall() *cobra.Command {
 			defer lHandler.Stop()
 			systeminfo.LogInitialTargetInfo(nodeInstaller.StepGeneral)
 
-			// report status.
+			// SYNC: file name must match installer.StatusFileName in pkg/installer/constant.go.
+			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
 			defer func() {
 				state := types.ProcessStateSuccess
 				if runErr != nil {
@@ -96,6 +107,9 @@ func NewFullUninstall() *cobra.Command {
 					OperInstID:      operInstID,
 					Status:          state,
 					CallbackSvrAddr: callbackSvrAddrs,
+					SkipCallback:    skipCallback,
+					StatusFilePath:  statusFilePath,
+					ErrorMessage:    errString(runErr),
 				}).Run(cmd.Context())
 			}()
 
@@ -125,8 +139,7 @@ func NewFullUninstall() *cobra.Command {
 	 * required flags.
 	 */
 
-	fullCmd.Flags().StringVar(&callbackSvrAddr, nodeFlag.CallbackSvrAddr, "", "callback server address")
-	_ = fullCmd.MarkFlagRequired(nodeFlag.CallbackSvrAddr)
+	fullCmd.Flags().StringVar(&callbackSvrAddr, nodeFlag.CallbackSvrAddr, "", "callback server address. if skip_callback is set, this can be empty")
 
 	fullCmd.Flags().StringVar(&deployToken, nodeFlag.DeployToken, "", "deploy token, contains the details of files")
 	_ = fullCmd.MarkFlagRequired(nodeFlag.DeployToken)
@@ -139,6 +152,7 @@ func NewFullUninstall() *cobra.Command {
 	 */
 	fullCmd.Flags().StringVar(&logDir, nodeFlag.LogDir, "", "directory to save log files")
 	fullCmd.Flags().BoolVar(&logToStd, nodeFlag.LogToStd, false, "also output log to stdout")
+	fullCmd.Flags().BoolVar(&skipCallback, nodeFlag.SkipCallback, false, "whether to skip callback reporting (write results to local files instead)")
 
 	return fullCmd
 }
