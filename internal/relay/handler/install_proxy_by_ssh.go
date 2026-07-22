@@ -12,44 +12,26 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer/poller"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	proxyInstallerPollingInterval = 3 * time.Second
-	proxyInstallerPollingTimeout  = 10 * time.Minute
-)
-
-type proxyInstallerStatusFile struct {
-	OperInstID string `json:"oper_inst_id"`
-	Status     string `json:"status"`
-	Error      string `json:"error,omitempty"`
-}
-
-type proxyInstallerDataFile struct {
-	AgentID    string `json:"agent_id"`
-	Token      string `json:"token"`
-	OperInstID string `json:"oper_inst_id"`
-}
-
-type proxyInstallerPollingResult struct {
-	Status  string
-	AgentID string
-}
+const proxyInstallerPollingTimeout = 10 * time.Minute
 
 // InstallProxyBySSH installs proxy by SSH.
 func (h *handler) InstallProxyBySSH(nCtx contextx.IContext, payload []byte) {
@@ -259,7 +241,6 @@ func (h *handler) executeProxyInstallCommand(nCtx contextx.IContext, client *ssh
 
 	stdoutResult, stderrResult, err := client.RunCommand(cmd)
 	outStr := buildLogOutput("install", "installer command", stdoutResult, stderrResult)
-	outStr += h.readProxyInstallerLogOutput(nCtx, client, event)
 	if err != nil {
 		return outStr, fmt.Errorf("failed to run proxy install command: %w", err)
 	}
@@ -267,172 +248,150 @@ func (h *handler) executeProxyInstallCommand(nCtx contextx.IContext, client *ssh
 	return outStr, nil
 }
 
-func (h *handler) readProxyInstallerLogOutput(
-	nCtx contextx.IContext,
-	client *sshx.Client,
-	event *protoRelay.InstallProxyBySSHReq,
-) string {
-
-	logGlobPath := path.Clean(path.Join(event.InstallerWorkDir, installer.OfflinePkgRelPathData, "logs", "installer_*.log"))
-	cmd := fmt.Sprintf(`latest_log=$(ls -1t %s 2>/dev/null | head -1); if [ -n "$latest_log" ]; then cat "$latest_log"; fi`, logGlobPath)
-	stdoutResult, stderrResult, err := client.RunCommand(cmd)
-	if err != nil {
-		logger.G.Biz(nCtx).
-			WithErr(err).
-			With("installer-log-path", logGlobPath).
-			Warn("failed to read proxy installer log")
-
-		return buildLogOutput("read", "installer log", "", fmt.Sprintf("failed to read installer log: %v", err))
-	}
-
-	return buildLogOutput("read", "installer log", stdoutResult, stderrResult)
-}
-
 func (h *handler) startProxyInstallerPolling(nCtx contextx.IContext, event *protoRelay.InstallProxyBySSHReq) {
 	eventCopy := *event
-	go func() {
-		client, err := generateSSHClient(nCtx, eventCopy.IP, int(eventCopy.Port), eventCopy.User, eventCopy.Password,
-			types.LoginMode(eventCopy.LoginMode))
-		if err != nil {
-			logger.G.Biz(nCtx).WithErr(err).Error("failed to generate proxy install polling ssh client")
-			if err := h.reportProxyInstallerStatusField(nCtx, &eventCopy, string(installer.ProcessStateTimeout)); err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to report proxy installer timeout status")
-			}
-
-			return
-		}
-		defer func() { _ = client.Close() }()
-
-		pollingResult, pollingOutput, err := h.waitProxyInstallerComplete(nCtx, client, &eventCopy)
-		logger.G.Biz(nCtx).With("stdout", pollingOutput, "installer-work-dir", eventCopy.InstallerWorkDir).
-			Info("proxy installer polling finished")
-		if err != nil {
-			logger.G.Biz(nCtx).WithErr(err).Error("failed to wait proxy installer complete")
-			if err := h.reportProxyInstallerStatusField(nCtx, &eventCopy, string(installer.ProcessStateTimeout)); err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to report proxy installer timeout status")
-			}
-
-			return
-		}
-
-		if err := h.reportProxyInstallerStatus(nCtx, &eventCopy, pollingResult); err != nil {
-			logger.G.Biz(nCtx).WithErr(err).Error("failed to report proxy installer status")
-		}
-	}()
+	go h.pollProxyInstaller(nCtx, &eventCopy)
 }
 
-func (h *handler) waitProxyInstallerComplete(
-	nCtx contextx.IContext,
-	client *sshx.Client,
-	event *protoRelay.InstallProxyBySSHReq,
-) (proxyInstallerPollingResult, string, error) {
-
+func (h *handler) pollProxyInstaller(nCtx contextx.IContext, event *protoRelay.InstallProxyBySSHReq) {
 	pollCtx, cancel := contextx.WithTimeout(nCtx, proxyInstallerPollingTimeout)
 	defer cancel()
 
-	statusPath := path.Clean(path.Join(event.InstallerWorkDir, installer.OfflinePkgRelPathData, installer.StatusFileName))
-	dataPath := path.Clean(path.Join(event.InstallerWorkDir, installer.OfflinePkgRelPathData, installer.DataFileName))
+	result, err := h.waitProxyInstaller(pollCtx, event)
+	logger.G.Biz(nCtx).With("installer-work-dir", event.InstallerWorkDir, "state", result.State).
+		Info("proxy installer polling finished")
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to wait proxy installer complete")
+		h.reportProxyInstallerTimeout(nCtx, event)
 
-	ticker := time.NewTicker(proxyInstallerPollingInterval)
-	defer ticker.Stop()
+		return
+	}
+	if result.State == installer.ProcessStateSuccess && result.AgentID == "" {
+		logger.G.Biz(nCtx).Error("proxy installer succeeded but agent_id is empty")
+		h.reportProxyInstallerTimeout(nCtx, event)
 
-	var outStr string
-	for {
-		select {
-		case <-pollCtx.Done():
-			return proxyInstallerPollingResult{}, outStr, fmt.Errorf("wait proxy installer status timed out: %w", pollCtx.Err())
+		return
+	}
 
-		case <-ticker.C:
-			result, output, completed, err := h.readProxyInstallerStatus(client, event, statusPath, dataPath)
-			outStr += output
-			if err != nil {
-				return proxyInstallerPollingResult{}, outStr, err
-			}
-			if completed {
-				return result, outStr, nil
-			}
-		}
+	if result.Error != "" {
+		h.reportProxyInstallerError(nCtx, event, result.Error)
+	}
+	if err := h.reportProxyInstallerStatus(nCtx, event, result); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report proxy installer status")
 	}
 }
 
-func (h *handler) readProxyInstallerStatus(
-	client *sshx.Client,
-	event *protoRelay.InstallProxyBySSHReq,
-	statusPath string,
-	dataPath string,
-) (proxyInstallerPollingResult, string, bool, error) {
+func (h *handler) waitProxyInstaller(
+	ctx contextx.IContext, event *protoRelay.InstallProxyBySSHReq,
+) (poller.Result, error) {
 
-	statusContent, _, err := client.RunCommand(fmt.Sprintf("if [ -f %s ]; then cat %s; fi", statusPath, statusPath))
+	dataDir := path.Clean(path.Join(event.InstallerWorkDir, installer.OfflinePkgRelPathData))
+	statusPath := path.Join(dataDir, installer.StatusFileName)
+	dataPath := path.Join(dataDir, installer.DataFileName)
+	logPath := path.Join(dataDir, "logs", "installer_*.log")
+	result, err := poller.Wait(ctx, poller.Config{
+		NewClient: func(ctx context.Context) (poller.FileClient, error) {
+			return generateSSHClient(ctx, event.IP, int(event.Port), event.User, event.Password,
+				types.LoginMode(event.LoginMode))
+		},
+		StatusFile:  statusPath,
+		DataFile:    dataPath,
+		LogGlobPath: logPath,
+		InstanceID:  event.OperInstID,
+		Interval:    3 * time.Second, // nolint: mnd
+		Timeout:     proxyInstallerPollingTimeout,
+		ReadTimeout: sshx.DefaultTimeout,
+		OnLogs: func(ctx context.Context, logs []poller.LogEntry) error {
+			if len(logs) == 0 {
+				return nil
+			}
+			if err := h.reportProxyInstallerLogs(ctx, event, logs); err != nil {
+				logger.G.Biz(contextx.FromContext(ctx)).WithErr(err).Warn("failed to report proxy installer logs")
+
+				return err
+			}
+
+			return nil
+		},
+	})
 	if err != nil {
-		return proxyInstallerPollingResult{}, "", false, fmt.Errorf("failed to read proxy installer status: %w", err)
+		return poller.Result{}, err
 	}
 
-	statusContent = strings.TrimSpace(statusContent)
-	if statusContent == "" {
-		return proxyInstallerPollingResult{}, "", false, nil
-	}
+	return result, nil
+}
 
-	var status proxyInstallerStatusFile
-	statusReady := json.Unmarshal([]byte(statusContent), &status) == nil
-	if !statusReady {
-		return proxyInstallerPollingResult{}, "", false, nil
-	}
-	if status.OperInstID != event.OperInstID {
-		return proxyInstallerPollingResult{}, "", false, nil
-	}
-
-	installerStatus := installer.ProcessState(status.Status)
-	switch installerStatus {
-	case installer.ProcessStateSuccess:
-		agentID, err := h.readProxyInstallerAgentID(client, event, dataPath)
-		if err != nil {
-			return proxyInstallerPollingResult{}, "", false, err
-		}
-
-		return proxyInstallerPollingResult{Status: status.Status, AgentID: agentID},
-			buildLogOutput("poll", installer.StatusFileName, statusContent, ""), true, nil
-
-	case installer.ProcessStateFailed, installer.ProcessStateTimeout:
-		return proxyInstallerPollingResult{Status: status.Status},
-			buildLogOutput("poll", installer.StatusFileName, statusContent, ""), true, nil
-
-	default:
-		return proxyInstallerPollingResult{}, "", false, nil
+func (h *handler) reportProxyInstallerTimeout(nCtx contextx.IContext, event *protoRelay.InstallProxyBySSHReq) {
+	if err := h.reportProxyInstallerStatusField(nCtx, event, string(installer.ProcessStateTimeout)); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report proxy installer timeout status")
 	}
 }
 
-func (h *handler) readProxyInstallerAgentID(
-	client *sshx.Client,
+func (h *handler) reportProxyInstallerError(
+	nCtx contextx.IContext,
 	event *protoRelay.InstallProxyBySSHReq,
-	dataPath string,
-) (string, error) {
+	errorDetail string,
+) {
 
-	dataContent, _, err := client.RunCommand(fmt.Sprintf("cat %s 2>/dev/null", dataPath))
+	if err := h.reportProxyInstallerLogs(nCtx, event, []poller.LogEntry{{
+		Timestamp: time.Now().Unix(),
+		Level:     "ERROR",
+		Step:      "installer",
+		Message:   errorDetail,
+	}}); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report proxy installer error detail")
+	}
+}
+
+func (h *handler) reportProxyInstallerLogs(
+	ctx context.Context,
+	event *protoRelay.InstallProxyBySSHReq,
+	logs []poller.LogEntry,
+) error {
+
+	if len(logs) == 0 {
+		return nil
+	}
+
+	reportLogs := make([]*protoCallback.ReportLog, 0, len(logs))
+	for _, entry := range logs {
+		reportLogs = append(reportLogs, &protoCallback.ReportLog{
+			Timestamp: entry.Timestamp,
+			Level:     entry.Level,
+			Step:      entry.Step,
+			Log:       entry.Message,
+		})
+	}
+
+	body, err := json.Marshal(&protoCallback.ReportLogReq{
+		Token:      event.Token,
+		Logs:       reportLogs,
+		OperInstId: event.OperInstID,
+	})
 	if err != nil {
-		return "", fmt.Errorf("failed to read proxy installer data: %w", err)
+		return fmt.Errorf("marshal proxy installer log request failed: %w", err)
 	}
 
-	var data proxyInstallerDataFile
-	if err := json.Unmarshal([]byte(strings.TrimSpace(dataContent)), &data); err != nil {
-		return "", fmt.Errorf("failed to parse proxy installer data: %w", err)
-	}
-	if data.OperInstID != "" && data.OperInstID != event.OperInstID {
-		return "", fmt.Errorf("proxy installer data belongs to another operation. oper-inst-id(%s)", data.OperInstID)
-	}
-	if data.AgentID == "" {
-		return "", fmt.Errorf("proxy installer data agent_id is empty")
+	reportCtx, cancel := context.WithTimeout(ctx, ReportPrivateDataTimeout)
+	defer cancel()
+	callbackCtx := contextx.FromContext(reportCtx)
+
+	if _, statusCode, err := h.client.RequestCallback(callbackCtx, http.MethodPost, proxyReportLogPath, "", body); err != nil {
+		return fmt.Errorf("request proxy installer log callback failed: %w", err)
+	} else if statusCode != http.StatusOK {
+		return fmt.Errorf("proxy installer log callback returned status code %d", statusCode)
 	}
 
-	return data.AgentID, nil
+	return nil
 }
 
 func (h *handler) reportProxyInstallerStatus(
 	nCtx contextx.IContext,
 	event *protoRelay.InstallProxyBySSHReq,
-	result proxyInstallerPollingResult,
+	result poller.Result,
 ) error {
 
-	if err := h.reportProxyInstallerStatusField(nCtx, event, result.Status); err != nil {
+	if err := h.reportProxyInstallerStatusField(nCtx, event, string(result.State)); err != nil {
 		return err
 	}
 	if result.AgentID == "" {
@@ -545,6 +504,7 @@ const (
 	proxyGetFileProxyConfigPath = "/api/v3/callback/workflow/node_install/get_file_proxy_config"
 	proxyGetDataProxyConfigPath = "/api/v3/callback/workflow/node_install/get_data_proxy_config"
 	proxyGetCheckListPath       = "/api/v3/callback/workflow/node_install/get_check_list"
+	proxyReportLogPath          = "/api/v3/callback/workflow/node_install/report_log"
 	proxyReportStatusPath       = "/api/v3/callback/workflow/node_install/report_status"
 	proxyReportDataPath         = "/api/v3/callback/workflow/node_install/report_data"
 )

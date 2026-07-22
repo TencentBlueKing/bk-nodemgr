@@ -239,6 +239,7 @@ func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, ope
 }
 
 // agent install distinguish direct install or pagent install.
+// nolint: gocognit, cyclop
 func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment, operator string) (operation.Definition, error) {
 	if deploy.Info.InstallOptions.IsManual {
 		if deploy.Info.InstallOptions.DirectInstall {

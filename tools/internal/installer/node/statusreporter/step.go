@@ -56,7 +56,7 @@ func NewStep(args StepArgs) *Step {
 }
 
 // statusFileContent is the JSON structure written to the local status file in skip-callback mode.
-// SYNC: must stay in sync with sshStatusFile in internal/backend/manager/workflowdef/node/action_wait_installer_complete.go.
+// SYNC: must stay in sync with statusFile in pkg/installer/poller/poller.go.
 type statusFileContent struct {
 	OperInstID string `json:"oper_inst_id"`
 	Status     string `json:"status"`

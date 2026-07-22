@@ -46,7 +46,7 @@ Representative caller anchors:
 
 - `internal/backend/manager/workflowdef/node/action_wait_gse_ready.go`: polling workflow state with action timeout.
 - `internal/backend/manager/workflowdef/node/action_install_pre_ordered_plugins.go`: workflow action retry/wait usage.
-- `internal/backend/manager/workflowdef/node/utils/ssh_installer_poller.go`: explicit example of not using `ExpoBackoff` for indefinite reset-on-success polling.
+- `pkg/installer/poller/poller.go`: explicit example of not using `ExpoBackoff` for indefinite reset-on-success polling.
 - `pkg/thirdparty/gse/**`: finite transient third-party retries.
 - `pkg/relayhandler/**` and `pkg/sshx/sshx.go`: relay/SSH retry call sites.
 

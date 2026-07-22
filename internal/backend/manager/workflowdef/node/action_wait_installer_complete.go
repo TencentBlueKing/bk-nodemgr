@@ -11,6 +11,7 @@
 package node
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path"
@@ -22,6 +23,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer/poller"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
@@ -207,16 +209,42 @@ func (act *actionWaitInstallerComplete) doOfflinePolling(std *nodeUtils.NodeActi
 	}
 
 	dataDir := path.Join(std.DeployInfo().InstallerRuntime.WorkDir, "data")
-	result, err := nodeUtils.NewSSHInstallerPoller().Wait(std, nodeUtils.SSHInstallerPollerConfig{
-		SSHConfig:     sshConfig,
-		StatusFile:    path.Join(dataDir, installer.StatusFileName),
-		DataFile:      path.Join(dataDir, installer.DataFileName),
-		LogGlobPath:   path.Join(dataDir, "logs", "installer_*.log"),
+	statusPath := path.Join(dataDir, installer.StatusFileName)
+	dataPath := path.Join(dataDir, installer.DataFileName)
+	logPath := path.Join(dataDir, "logs", "installer_*.log")
+	result, err := poller.Wait(std.Context(), poller.Config{
+		NewClient: func(ctx context.Context) (poller.FileClient, error) {
+			return sshx.NewClient(ctx, sshConfig, sshx.DefaultTimeout)
+		},
+		StatusFile:    statusPath,
+		DataFile:      dataPath,
+		LogGlobPath:   logPath,
 		InstanceID:    std.InstanceData().OperationInstanceID,
 		EnsureAgentID: ensureAgentID,
+		Interval:      5 * time.Second, // nolint: mnd
+		Timeout:       act.Timeout(),
+		ReadTimeout:   sshx.DefaultTimeout,
+		OnLogs: func(_ context.Context, entries []poller.LogEntry) error {
+			for _, entry := range entries {
+				message := entry.Message
+				if entry.Step != "" {
+					message = fmt.Sprintf("[%s] %s", entry.Step, entry.Message)
+				}
+				std.InstanceData().Log().Zh(message).En(message).Info()
+			}
+
+			return nil
+		},
 	})
 	if err != nil {
 		return err
+	}
+
+	if result.Error != "" {
+		std.InstanceData().Log().
+			Zh("安装器错误详情: %s", result.Error).
+			En("installer error detail: %s", result.Error).
+			Info()
 	}
 
 	if result.AgentID != "" {
