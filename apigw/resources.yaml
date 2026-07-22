@@ -187,8 +187,8 @@ paths:
           TopoAccessPointListReq describes the HTTP request body when list accesspoint
           in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -367,8 +367,8 @@ paths:
           TopoBusinessListReq describes the HTTP request body when list business in
           topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -2345,8 +2345,8 @@ paths:
           TopoHostListReq describes the HTTP request body when list host in topo
           service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -4302,8 +4302,8 @@ paths:
           TopoNetworkAreaGetReq describes the HTTP request body when get network-area
           in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -4488,8 +4488,8 @@ paths:
           TopoNetworkAreaListReq describes the HTTP request body when list network-area
           in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -5340,8 +5340,8 @@ paths:
           TopoNetworkUnitGetReq describes the HTTP request body when get network-unit
           in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -5635,8 +5635,8 @@ paths:
           TopoNetworkUnitListReq describes the HTTP request body when list network-unit
           in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -6882,7 +6882,7 @@ paths:
         required: true
         description: ProcessListReq describes the process list request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -7045,7 +7045,7 @@ paths:
           PluginApplySubConfigReq describes the plugin apply sub-configuration
           request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -7228,7 +7228,7 @@ paths:
         required: true
         description: PluginInstallReq describes the plugin install request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -7420,7 +7420,7 @@ paths:
         required: true
         description: PluginListReq describes the plugin list request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -7552,7 +7552,7 @@ paths:
         required: true
         description: PluginSetMemoReq describes the plugin set memo request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -7707,7 +7707,7 @@ paths:
         required: true
         description: PluginUpgradeReq describes the plugin upgrade request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -8135,7 +8135,7 @@ paths:
         required: true
         description: PluginWorkflowListReq describes the plugin workflow list request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -8333,7 +8333,7 @@ paths:
           PluginWorkflowOperationInstanceListReq describes the node operation instance
           list by operation-id request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -8969,7 +8969,7 @@ paths:
           PluginWorkflowOperationListReq describes the node operation list
           request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -11827,7 +11827,7 @@ paths:
           PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
           cancel default plugin release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -11978,7 +11978,7 @@ paths:
           PackageReleasePluginDeleteReq describes the HTTP request body when delete
           plugin release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -12129,7 +12129,7 @@ paths:
           PackageReleasePluginDisableReq describes the HTTP request body when disable
           plugin release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -12280,7 +12280,7 @@ paths:
           PackageReleasePluginEnableReq describes the HTTP request body when enable
           plugin release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -12509,7 +12509,7 @@ paths:
           PackageReleasePluginListReq describes the HTTP request body when list plugin
           release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -12660,7 +12660,7 @@ paths:
           PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
           default plugin release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -14012,7 +14012,7 @@ paths:
           PackageReleaseProxyListReq describes the HTTP request body when list proxy
           release.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -14775,7 +14775,7 @@ paths:
         required: true
         description: NodeWorkflowListReq describes the node workflow list request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -14977,7 +14977,7 @@ paths:
           NodeWorkflowOperationInstanceListReq describes the node operation instance
           list by operation-id request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -15620,7 +15620,7 @@ paths:
           NodeWorkflowOperationListReq describes the node operation list
           request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -16272,8 +16272,6 @@ paths:
                         type: string
                       renew_gse_proc:
                         type: boolean
-                      install_method:
-                        type: string
                       renew_gse_task:
                         type: boolean
                       advertise_ip_v6:
@@ -16324,8 +16322,8 @@ paths:
         required: true
         description: NodeProxyInstallReq describes the node proxy install request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -16470,8 +16468,8 @@ paths:
         required: true
         description: NodeProxyReconfigReq describes the node proxy reconfig request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -16616,8 +16614,8 @@ paths:
         required: true
         description: NodeProxyRestartReq describes the node proxy restart request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -16757,8 +16755,8 @@ paths:
         required: true
         description: NodeProxyUninstallReq describes the node proxy uninstall request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -16928,8 +16926,8 @@ paths:
         required: true
         description: NodeProxyUpdateReq describes the node proxy update request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -17081,8 +17079,8 @@ paths:
         required: true
         description: NodeProxyUpgradeReq describes the node proxy upgrade request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -17243,8 +17241,6 @@ paths:
                         type: string
                       renew_gse_proc:
                         type: boolean
-                      install_method:
-                        type: string
                       renew_gse_task:
                         type: boolean
                       bk_host_innerip:
@@ -17277,8 +17273,8 @@ paths:
         required: true
         description: NodeAgentInstallReq describes the node agent install request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -17476,8 +17472,8 @@ paths:
         required: true
         description: NodeAgentInstallCheckReq describes the node agent install check request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -17622,8 +17618,8 @@ paths:
         required: true
         description: NodeAgentReconfigReq describes the node agent reconfigure request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -17768,8 +17764,8 @@ paths:
         required: true
         description: NodeAgentRestartReq describes the node agent restart request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -17909,8 +17905,8 @@ paths:
         required: true
         description: NodeAgentUninstallReq describes the node agent uninstall request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -18062,8 +18058,8 @@ paths:
         required: true
         description: NodeAgentUpgradeReq describes the node agent upgrade request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -18593,7 +18589,7 @@ paths:
         required: true
         description: DeployPolicyListReq describes HTTP request body when list deploy policy.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -20400,7 +20396,7 @@ paths:
         required: true
         description: GetRSAPublicKeyReq get rsa public key request message.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -20903,8 +20899,8 @@ paths:
         required: true
         description: NodeProxyInstallCheckReq describes the node proxy install check request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -21659,8 +21655,8 @@ paths:
           NodeAgentAssignUnitReq describes the request body for batch-assigning
           a network unit to hosts.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -21856,8 +21852,8 @@ paths:
         required: true
         description: NodeAgentUpgradeCheckReq describes the node agent upgrade check request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -22053,8 +22049,8 @@ paths:
         required: true
         description: NodeProxyUpgradeCheckReq describes the node proxy upgrade check request.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -22516,7 +22512,7 @@ paths:
         required: true
         description: PluginUninstallReq describes the plugin uninstall request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -23413,8 +23409,8 @@ paths:
           TopoAccessPointListBriefReq describes the HTTP request body when list
           accesspoint brief in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -23896,8 +23892,8 @@ paths:
           TopoNetworkUnitListBriefReq describes the HTTP request body when list
           network-unit brief in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -24266,7 +24262,7 @@ paths:
           PackageReleaseAgentListBriefReq describes the HTTP request body when list
           agent release brief.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -24476,7 +24472,7 @@ paths:
           PackageReleasePluginListBriefReq describes the HTTP request body when list
           plugin release brief.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -24690,7 +24686,7 @@ paths:
           PackageReleaseProxyListBriefReq describes the HTTP request body when list
           proxy release brief.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -24847,8 +24843,8 @@ paths:
           NodeProxyAssignUnitReq describes the request body for batch-assigning
           a network unit to proxy hosts.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -24993,7 +24989,7 @@ paths:
         required: true
         description: PluginRestartReq describes the plugin restart request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -25139,7 +25135,7 @@ paths:
         required: true
         description: PluginStopReq describes the plugin stop request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -25285,7 +25281,7 @@ paths:
         required: true
         description: PluginMigrateFromV2Req describes the plugin migrate from v2 request.
       x-bk-apigateway-resource:
-        isPublic: false
+        isPublic: true
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -25465,83 +25461,7 @@ paths:
         '200':
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                  data:
-                    type: object
-                    properties:
-                      items: {}
-                  error:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      details:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            code:
-                              type: string
-                            message:
-                              type: string
-                      message:
-                        type: string
-                  message:
-                    type: string
-                  permission:
-                    type: object
-                    properties:
-                      system:
-                        type: string
-                      actions:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            related_resource_types:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  type:
-                                    type: string
-                                  instances:
-                                    type: array
-                                    items:
-                                      type: object
-                                      properties:
-                                        id:
-                                          type: string
-                                        name:
-                                          type: string
-                                        type:
-                                          type: string
-                                        type_name:
-                                          type: string
-                                  system_id:
-                                    type: string
-                                  type_name:
-                                    type: string
-                                  system_name:
-                                    type: string
-                      apply_url:
-                        type: string
-                      system_name:
-                        type: string
-                  request_id:
-                    type: string
-                description: |-
-                  TopoBusinessInstTopoGetResp describes the HTTP response body when get
-                  business instance topology in topo service.
+              schema: {}
           description: A successful response.
         default:
           content:
@@ -25580,8 +25500,8 @@ paths:
           TopoBusinessInstTopoGetReq describes the HTTP request body when get business
           instance topology in topo service.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -25737,8 +25657,8 @@ paths:
           NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating
           out-of-band (ops) fields on hosts.
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         enableWebsocket: false
         backend:
@@ -25769,8 +25689,7 @@ paths:
                 type: object
                 properties:
                   code:
-                    type: integer
-                    format: int32
+                    type: number
                   data:
                     type: object
                   error:
@@ -25837,9 +25756,579 @@ paths:
                         type: string
                   request_id:
                     type: string
+                description: A successful response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                  message:
+                    type: string
+                description: An unexpected error response.
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hosts:
+                  type: array
+                  items:
+                    type: object
+                    default: ''
+                    properties:
+                      bk_host_id:
+                        type: number
+                        default: ''
+                      ops_bmc_ip:
+                        type: string
+                        default: ''
+                      ops_bmc_port:
+                        type: number
+                        default: ''
+                      ops_out_band_type:
+                        type: string
+                        default: ''
+                      ops_console_host_id:
+                        type: number
+                        default: ''
+                      ops_out_band_protocol:
+                        type: string
+                        default: ''
+                    description: HostOpsInfo describes the out-of-band (ops) information for a host.
+                  default: ''
+              description: |-
+                NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+                out-of-band (ops) fields on hosts.
+        required: true
+        description: |-
+          NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
+          out-of-band (ops) fields on hosts.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/update_ops_fields
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/cmdb/constants:
+    post:
+      operationId: Sync_SyncCmdbConstants
+      description: SyncCmdbConstants provides syncing cmdb constants.
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
                 description: |-
-                  NodeProxyUpdateOpsFieldsResp describes the response for batch-updating
-                  out-of-band (ops) fields.
+                  SyncCmdbConstantsResp describes the HTTP response body when sync cmdb
+                  constants.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |-
+                SyncCmdbConstantsReq describes the HTTP request body when sync cmdb
+                constants.
+        required: true
+        description: |-
+          SyncCmdbConstantsReq describes the HTTP request body when sync cmdb
+          constants.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/cmdb/constants
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/cmdb/host:
+    post:
+      operationId: Sync_SyncCmdbHost
+      description: SyncCmdbHost provides syncing cmdb host.
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: SyncCmdbHostResp describes the HTTP response body when sync cmdb host.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: SyncCmdbHostReq describes the HTTP request body when sync cmdb host.
+        required: true
+        description: SyncCmdbHostReq describes the HTTP request body when sync cmdb host.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/cmdb/host
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/cmdb/networkarea:
+    post:
+      operationId: Sync_SyncCmdbNetworkArea
+      description: SyncCmdbNetworkArea provides syncing cmdb networkarea.
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb
+                  networkarea.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |-
+                SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb
+                networkarea.
+        required: true
+        description: |-
+          SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb
+          networkarea.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/cmdb/networkarea
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/correct_agent_id:
+    post:
+      operationId: Sync_SyncCorrectAgentID
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  SyncCorrectAgentIDResp describes the HTTP response body when correct agent
+                  id.
           description: A successful response.
         default:
           content:
@@ -25867,34 +26356,14 @@ paths:
             schema:
               type: object
               properties:
-                hosts:
+                host_ids:
                   type: array
                   items:
-                    type: object
-                    properties:
-                      bk_host_id:
-                        type: integer
-                        format: int64
-                      ops_bmc_ip:
-                        type: string
-                      ops_bmc_port:
-                        type: integer
-                        format: int64
-                      ops_out_band_type:
-                        type: string
-                      ops_console_host_id:
-                        type: integer
-                        format: int64
-                      ops_out_band_protocol:
-                        type: string
-                    description: HostOpsInfo describes the out-of-band (ops) information for a host.
-              description: |-
-                NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
-                out-of-band (ops) fields on hosts.
+                    type: integer
+                    format: int64
+              description: SyncCorrectAgentIDReq describes the HTTP request body when correct agent id.
         required: true
-        description: |-
-          NodeProxyUpdateOpsFieldsReq describes the request body for batch-updating
-          out-of-band (ops) fields on hosts.
+        description: SyncCorrectAgentIDReq describes the HTTP request body when correct agent id.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -25903,7 +26372,835 @@ paths:
         backend:
           name: default
           method: post
-          path: /api/v3/node/proxy/update_ops_fields
+          path: /api/v3/sync/gse/agent/correct_agent_id
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/info:
+    post:
+      operationId: Sync_SyncAgentInfo
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: SyncAgentInfoResp describes the HTTP response body when sync agent info.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: SyncAgentInfoReq describes the HTTP request body when sync agent info.
+        required: true
+        description: SyncAgentInfoReq describes the HTTP request body when sync agent info.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/agent/info
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/info/alive:
+    post:
+      operationId: Sync_SyncAliveHostAgentInfo
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  SyncAliveHostAgentInfoResp describes the HTTP response body when sync alive
+                  host agent info.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |-
+                SyncAliveHostAgentInfoReq describes the HTTP request body when sync alive
+                host agent info.
+        required: true
+        description: |-
+          SyncAliveHostAgentInfoReq describes the HTTP request body when sync alive
+          host agent info.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/agent/info/alive
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/state:
+    post:
+      operationId: Sync_SyncAgentState
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: SyncAgentStateResp describes the HTTP response body when sync agent state.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+              description: SyncAgentStateReq describes the HTTP request body when sync agent state.
+        required: true
+        description: SyncAgentStateReq describes the HTTP request body when sync agent state.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/agent/state
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/agent/state/all:
+    post:
+      operationId: Sync_SyncAllAgentState
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  SyncAllAgentStateResp describes the HTTP response body when sync all agent
+                  state.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |-
+                SyncAllAgentStateReq describes the HTTP request body when sync all agent
+                state.
+        required: true
+        description: |-
+          SyncAllAgentStateReq describes the HTTP request body when sync all agent
+          state.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/agent/state/all
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/plugin/process/info:
+    post:
+      operationId: Sync_SyncAlivePluginProcessInfo
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: |-
+                  SyncAlivePluginProcessInfoResp describes the HTTP response body when sync
+                  alive
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: SyncAlivePluginProcessInfoReq describes the HTTP request body when sync alive
+              properties:
+                host_ids:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/plugin/process/info
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/sync/gse/plugin/process/info/all:
+    post:
+      operationId: Sync_SyncAllAlivePluginProcessInfo
+      description: ''
+      tags:
+        - Sync
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: |-
+                  SyncAllAlivePluginProcessInfoResp describes the HTTP response body when sync
+                  all alive
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      trigger_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: |-
+                SyncAllAlivePluginProcessInfoReq describes the HTTP request body when sync
+                all alive
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/sync/gse/plugin/process/info/all
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
