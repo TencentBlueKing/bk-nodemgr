@@ -815,6 +815,18 @@ const getHostDistinct = async () => {
             if (key === 'node_status') text = statusMap.value.get(value as string) || value;
             return { text, value };
           });
+        // 管控区域筛选项排序：-1（未分配）最后，0（默认）最前，其余 ID 降序
+        if (key === 'bk_networkarea_id') {
+          filterOptionSource[key].list.sort((a: any, b: any) => {
+            const aId = Number(a.value);
+            const bId = Number(b.value);
+            if (aId === -1) return 1;
+            if (bId === -1) return -1;
+            if (aId === 0) return -1;
+            if (bId === 0) return 1;
+            return bId - aId;
+          });
+        }
       }
     });
 

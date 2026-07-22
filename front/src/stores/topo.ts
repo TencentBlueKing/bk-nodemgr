@@ -48,7 +48,13 @@ export const useTopoStore = defineStore('topo', () => {
     };
 
     const result = await TopoService.NetworkAreaList(params);
-    allWorkareaList.value = result.items;
+    // 排序：默认区域（ID=0）始终在最前，其余按 ID 降序
+    const sorted = [...result.items].sort((a, b) => {
+      if (a.bk_networkarea_id === 0) return -1;
+      if (b.bk_networkarea_id === 0) return 1;
+      return b.bk_networkarea_id - a.bk_networkarea_id;
+    });
+    allWorkareaList.value = sorted;
     workareaTotalCount.value = result.total;
   };
 
