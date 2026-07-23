@@ -152,6 +152,10 @@ type IStorageHost interface {
 	ListHostWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
 		[]*types.Host, int64, error)
 
+	// ScanAllHostWithFields scans all hosts by fields and conditions.
+	ScanAllHostWithFields(nCtx contextx.IContext, selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
+		[]*types.Host, error)
+
 	// ListHost lists hosts by page and conditions.
 	ListHost(nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
 

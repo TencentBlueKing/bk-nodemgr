@@ -134,7 +134,7 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 			},
 		}
 
-		dbData, _, err = act.storageHost.ListHostWithFields(std.Context(), types.UnlimitedPage(), getHostSearchSelection(), condition)
+		dbData, err = act.storageHost.ScanAllHostWithFields(std.Context(), getHostSearchSelection(), condition)
 		if err != nil {
 			return fmt.Errorf("list host from db failed: %w", err)
 		}

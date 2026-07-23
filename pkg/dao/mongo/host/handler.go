@@ -95,6 +95,9 @@ type IHandler interface {
 	// ListWithFields lists hosts with fields.
 	ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error)
 
+	// ScanAllWithFields scans all hosts with fields.
+	ScanAllWithFields(nCtx contextx.IContext, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, error)
+
 	// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
 	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
 	// Uses MongoDB projection to only query required fields (6 fields instead of 40+).
@@ -1354,6 +1357,39 @@ func (h *handler) ListWithFields(nCtx contextx.IContext, page types.Page, select
 	}
 
 	return data, num, nil
+}
+
+// ScanAllWithFields scans all hosts with fields.
+func (h *handler) ScanAllWithFields(nCtx contextx.IContext, selection *types.HostFieldSelection, opts ...OptFn) (
+	[]*types.Host, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to scan all hosts with fields: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	fields := convertHostFieldSelectionToFields(selection)
+	hosts, err := h.tenantDao(tenantID).ScanAll(nCtx, filter, fields...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan all hosts with fields: %w", err)
+	}
+
+	data := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		data[idx] = convertHostToTypes(host)
+	}
+
+	return data, nil
 }
 
 func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []string {
