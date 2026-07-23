@@ -90,6 +90,9 @@ platform:
       assignUnitTargetUnit: Target Network Unit
       assignUnitCurrentUnit: Current Network Unit
       assignUnitConfirmBtn: 'Confirm Assignment ({count})'
+      removeUnassignedBtn: Remove Unassigned
+      removeUnassignedConfirmTitle: Confirm removing {count} unassigned host(s)?
+      removeUnassignedConfirmContent: These hosts will be removed from the list. Assigned hosts will not be affected.
       assignUnitNoUnit: Please select a target network unit for at least one host
       assignUnitMultiAreaError: Selected hosts belong to different network areas. Batch assignment is not possible.
       assignUnitLoadingHosts: Loading host data...

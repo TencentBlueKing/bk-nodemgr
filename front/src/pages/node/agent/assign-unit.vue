@@ -32,6 +32,13 @@
       >
         <span>{{ $t('platform.nodeMan.agentNodeStatus.assignUnitConfirmBtn', { count: formData.info.length }) }}</span>
       </Button>
+      <Button
+        class="mr-[8px]"
+        :disabled="!hasUnassigned"
+        @click="handleRemoveUnassigned"
+      >
+        {{ $t('platform.nodeMan.agentNodeStatus.removeUnassignedBtn') }}
+      </Button>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
 
@@ -48,7 +55,7 @@
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Loading, Message } from 'bkui-vue';
 import { debounce } from 'lodash';
-import { h, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -170,6 +177,35 @@ const handleConfirm = async () => {
   } finally {
     submitting.value = false;
   }
+};
+
+// 是否有未分配管控单元的主机
+const hasUnassigned = computed(() => {
+  const items = formData.info || [];
+  return items.some((row: any) => {
+    const v = row?.bk_networkunit_id;
+    return v === '' || v === null || v === undefined || Number(v) < 0;
+  });
+});
+
+// 一键移除未分配管控单元的主机
+const handleRemoveUnassigned = () => {
+  const items = formData.info || [];
+  const remaining = items.filter((row: any) => {
+    const v = row?.bk_networkunit_id;
+    return !(v === '' || v === null || v === undefined || Number(v) < 0);
+  });
+  const removed = items.length - remaining.length;
+  if (removed <= 0) return;
+  InfoBox({
+    title: t('platform.nodeMan.agentNodeStatus.removeUnassignedConfirmTitle', { count: removed }),
+    content: t('platform.nodeMan.agentNodeStatus.removeUnassignedConfirmContent'),
+    confirmText: t('action.confirm'),
+    cancelText: t('action.cancel'),
+    onConfirm: () => {
+      formData.info = remaining;
+    },
+  });
 };
 
 const restartInProgress = ref(false);

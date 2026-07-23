@@ -90,6 +90,9 @@ platform:
       assignUnitTargetUnit: 目标管控单元
       assignUnitCurrentUnit: 当前管控单元
       assignUnitConfirmBtn: "确认分配 ({count})"
+      removeUnassignedBtn: 移除未分配
+      removeUnassignedConfirmTitle: 确认移除 {count} 台未分配管控单元的主机？
+      removeUnassignedConfirmContent: 这些主机将被从列表中移除，已分配的不会受影响。
       assignUnitNoUnit: 请至少为一台主机选择目标管控单元
       assignUnitMultiAreaError: 选中主机分属不同管控区域，无法批量分配管控单元
       assignUnitLoadingHosts: 正在加载主机数据...
