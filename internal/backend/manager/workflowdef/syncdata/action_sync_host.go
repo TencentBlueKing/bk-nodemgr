@@ -128,26 +128,13 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		selection := &types.HostFieldSelection{
-			// Sync only needs host_id for comparison and dynamic fields for repair/sync.
-			HostID:        true,
-			NetworkAreaID: false,
-			InnerIPList:   false,
-			InnerIPV6List: false,
-			NodeRole:      true,
-			LoginUser:     true,
-			AgentID:       true,
-			AdvertiseIP:   true,
-			AdvertiseIPV6: true,
-		}
-
 		condition := &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				BizID: []int64{param.BizID},
 			},
 		}
 
-		dbData, _, err = act.storageHost.ListHostWithFields(std.Context(), types.UnlimitedPage(), selection, condition)
+		dbData, _, err = act.storageHost.ListHostWithFields(std.Context(), types.UnlimitedPage(), getHostSearchSelection(), condition)
 		if err != nil {
 			return fmt.Errorf("list host from db failed: %w", err)
 		}
@@ -159,7 +146,7 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.Log().
+	std.InstanceData().Log().
 		Zh("从 CMDB 获取到 %d 台主机，数据库中有 %d 台主机", len(cmdbData), len(dbData)).
 		En("find %d hosts from cmdb, %d hosts in db", len(cmdbData), len(dbData)).
 		Info()
@@ -168,29 +155,12 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	updateAgentIDHosts, err := getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(updateHosts, dbData)
+	changes, err := act.doubleCheckNeedPersistHosts(std, updateHosts, insertHosts, deleteHostIDs, dbData)
 	if err != nil {
 		return err
 	}
-	updateAdvertiseIPHosts := fillDefaultAdvertiseIPs(updateHosts, dbData)
-	insertAdvertiseIPHosts := fillDefaultAdvertiseIPs(insertHosts, nil)
 
-	logHostCompareResult(ctx,
-		len(updateHosts),
-		len(updateAgentIDHosts),
-		len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
-		len(insertHosts),
-		len(deleteHostIDs),
-	)
-
-	if err = act.persistHostSyncChanges(ctx, std.Context(), hostSyncChanges{
-		updateHosts:            updateHosts,
-		insertHosts:            insertHosts,
-		deleteHostIDs:          deleteHostIDs,
-		updateAgentIDHosts:     updateAgentIDHosts,
-		updateAdvertiseIPHosts: updateAdvertiseIPHosts,
-		dbData:                 dbData,
-	}); err != nil {
+	if err = act.persistHostSyncChanges(ctx, std.Context(), changes); err != nil {
 		return err
 	}
 
@@ -198,11 +168,27 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err := act.tryTriggerCorrectAgentID(ctx, std, updateHosts, dbData); err != nil {
+	if err := act.tryTriggerCorrectAgentID(ctx, std, changes.updateHosts, changes.dbData); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func getHostSearchSelection() *types.HostFieldSelection {
+	return &types.HostFieldSelection{
+		// Sync only needs host_id for comparison and dynamic fields for repair/sync.
+		HostID:        true,
+		NetworkAreaID: false,
+		InnerIPList:   false,
+		InnerIPV6List: false,
+		NodeRole:      true,
+		NodeStatus:    true,
+		LoginUser:     true,
+		AgentID:       true,
+		AdvertiseIP:   true,
+		AdvertiseIPV6: true,
+	}
 }
 
 type hostSyncChanges struct {
@@ -259,22 +245,101 @@ func (act *actionSyncHost) persistHostSyncChanges(
 	})
 }
 
-func logHostCompareResult(
-	ctx *action.InstanceContext,
-	updateCount int,
-	agentIDRepairCount int,
-	advertiseIPRepairCount int,
-	insertCount int,
-	deleteCount int,
-) {
+// nolint: gocognit
+func (act *actionSyncHost) doubleCheckNeedPersistHosts(
+	std *syncDataUtils.SyncDataActionStandarder,
+	updateHosts, insertHosts []*types.Host,
+	deleteHostIDs []int64,
+	dbData []*types.Host) (
+	hostSyncChanges, error) {
 
-	ctx.Data.Log().
+	var (
+		finalInsertHosts   = make([]*types.Host, 0)
+		finalDeleteHostIDs = make([]int64, 0)
+	)
+
+	if len(insertHosts) > 0 {
+		insertHostIDs := conv.SliceToSlice(insertHosts, func(host *types.Host) int64 {
+			return host.HostID
+		})
+		dbHosts, _, err := act.storageHost.ListHostWithFields(
+			std.Context(),
+			types.UnlimitedPage(),
+			getHostSearchSelection(),
+			&types.HostCondition{StaticExactInclude: &types.HostStaticExactFields{HostID: insertHostIDs}},
+		)
+		if err != nil {
+			return hostSyncChanges{}, fmt.Errorf("check insert hosts in db failed: %w", err)
+		}
+
+		dbHost, err := conv.SliceToMap(dbHosts, func(host *types.Host) int64 {
+			return host.HostID
+		})
+		if err != nil {
+			return hostSyncChanges{}, fmt.Errorf("convert db host slice to map failed: %w", err)
+		}
+
+		for _, host := range insertHosts {
+			if dbHost, ok := dbHost[host.HostID]; ok {
+				updateHosts = append(updateHosts, host)
+				dbData = append(dbData, dbHost)
+
+				continue
+			}
+			finalInsertHosts = append(finalInsertHosts, host)
+		}
+	}
+
+	if len(deleteHostIDs) > 0 {
+		cmdbHosts, err := act.cmdbHandler.FindHostWithCondition(
+			std.Context(),
+			types.UnlimitedPage(),
+			&types.HostStaticExactCondition{
+				StaticExactInclude: &types.HostStaticExactFields{HostID: deleteHostIDs},
+			},
+		)
+		if err != nil {
+			return hostSyncChanges{}, fmt.Errorf("check delete hosts in cmdb failed: %w", err)
+		}
+
+		cmdbHostIDs := make(map[int64]struct{}, len(cmdbHosts))
+		for _, host := range cmdbHosts {
+			cmdbHostIDs[host.HostID] = struct{}{}
+		}
+
+		for _, hostID := range deleteHostIDs {
+			if _, ok := cmdbHostIDs[hostID]; !ok {
+				finalDeleteHostIDs = append(finalDeleteHostIDs, hostID)
+			}
+		}
+	}
+
+	dbData = conv.SliceUnique(dbData)
+	updateAgentIDHosts, err := getAndFillEmptyDynamicAgentIDByStaticSyncedAgentID(updateHosts, dbData)
+	if err != nil {
+		return hostSyncChanges{}, err
+	}
+	updateAdvertiseIPHosts := fillDefaultAdvertiseIPs(updateHosts, dbData)
+	insertAdvertiseIPHosts := fillDefaultAdvertiseIPs(finalInsertHosts, nil)
+
+	std.InstanceData().Log().
 		Zh("对比完成，需更新 %d 台、需更新AgentID %d 台、需修补服务IP %d 台、新增 %d 台、删除 %d 台主机",
-			updateCount, agentIDRepairCount, advertiseIPRepairCount, insertCount, deleteCount).
+			len(updateHosts), len(updateAgentIDHosts), len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
+			len(finalInsertHosts), len(finalDeleteHostIDs)).
 		En("compared hosts, %d hosts need to update, %d hosts need to update AgentID, "+
 			"%d hosts need to repair advertise IP, %d hosts need to insert, %d hosts need to delete",
-			updateCount, agentIDRepairCount, advertiseIPRepairCount, insertCount, deleteCount).
+			len(updateHosts), len(updateAgentIDHosts), len(updateAdvertiseIPHosts)+len(insertAdvertiseIPHosts),
+			len(finalInsertHosts), len(finalDeleteHostIDs)).
 		Info()
+
+	return hostSyncChanges{
+		updateHosts:            updateHosts,
+		insertHosts:            finalInsertHosts,
+		deleteHostIDs:          finalDeleteHostIDs,
+		updateAgentIDHosts:     updateAgentIDHosts,
+		updateAdvertiseIPHosts: updateAdvertiseIPHosts,
+		dbData:                 dbData,
+	}, nil
 }
 
 func (act *actionSyncHost) updateHostDynamicAdvertiseIP(nCtx contextx.IContext, hosts []*types.Host) error {

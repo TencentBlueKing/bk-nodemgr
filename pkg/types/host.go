@@ -496,6 +496,7 @@ type HostFieldSelection struct {
 
 	// Dynamic fields
 	NodeRole      bool
+	NodeStatus    bool
 	LoginUser     bool
 	AgentID       bool
 	AdvertiseIP   bool

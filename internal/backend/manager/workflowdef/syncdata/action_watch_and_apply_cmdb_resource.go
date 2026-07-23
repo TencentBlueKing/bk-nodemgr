@@ -286,7 +286,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostCreateEvent(std *syncDataU
 	event.Detail.Static.BizID = host.Static.BizID
 	event.Detail.Static.Topo = host.Static.Topo
 	fillDefaultAdvertiseIP(event.Detail, nil)
-	if err := act.storageTopo.CreateManyHost(std.Context(), event.Detail); err != nil {
+	if err := act.storageTopo.UpsertManyHost(std.Context(), event.Detail); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", event.Detail.HostID, err).
 			En("failed to create host, host id: %d, error: %v", event.Detail.HostID, err).
@@ -435,7 +435,7 @@ func (act *actionWatchAndApplyCMDBResource) handleHostRelationCreateEvent(std *s
 		host.Static.BizID = event.Detail.Static.BizID
 		host.Static.Topo = event.Detail.Static.Topo
 		fillDefaultAdvertiseIP(host, nil)
-		if err := act.storageTopo.CreateManyHost(std.Context(), host); err != nil {
+		if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 			std.InstanceData().Log().
 				Zh("创建主机失败, 主机id: %d, 错误: %v", host.HostID, err).
 				En("failed to create host, host id: %d, error: %v", host.HostID, err).
@@ -587,7 +587,7 @@ func (act *actionWatchAndApplyCMDBResource) tryCreateHostFromCMDB(std *syncDataU
 	// when the host synchronizes from the CMDB for the first time, the ops info needs to be updated to dynamic
 	syncDataUtils.FillHostDynamicOpsInfo(host)
 	fillDefaultAdvertiseIP(host, nil)
-	if err := act.storageTopo.CreateManyHost(std.Context(), host); err != nil {
+	if err := act.storageTopo.UpsertManyHost(std.Context(), host); err != nil {
 		std.InstanceData().Log().
 			Zh("创建主机失败, 主机id: %d, 错误: %v", hostID, err).
 			En("failed to create host info, host id: %d, error: %v", hostID, err).
