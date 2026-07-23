@@ -140,6 +140,9 @@ type HostCondition struct {
 	// will be used when condition type is included in dynamic exact mode.
 	DynamicExactInclude *HostDynamicExactFields
 
+	// DynamicAgentIDNotEmpty requires dynamic agent id to be non-empty.
+	DynamicAgentIDNotEmpty bool
+
 	// will be used when condition type is included in dynamic fuzzy mode.
 	DynamicFuzzyInclude *HostDynamicFuzzyFields
 

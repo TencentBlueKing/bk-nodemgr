@@ -305,6 +305,10 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			)
 		}
 
+		if condition.DynamicAgentIDNotEmpty {
+			opts = append(opts, host.WithDynamicAgentIDNotEmpty())
+		}
+
 		if condition.StaticExactExclude != nil {
 			opts = append(opts,
 				host.WithoutHostID(condition.StaticExactExclude.HostID...),
