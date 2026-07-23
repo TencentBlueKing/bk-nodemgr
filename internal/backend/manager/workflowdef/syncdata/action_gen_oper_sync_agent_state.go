@@ -202,9 +202,7 @@ func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils
 			StaticExactInclude: &types.HostStaticExactFields{
 				BizID: []int64{biz.BizID},
 			},
-			DynamicExactExclude: &types.HostDynamicExactFields{
-				AgentID: []string{""},
-			},
+			DynamicAgentIDNotEmpty: true,
 		}
 
 		hosts, err := act.hostStg.FindHostWithDynamic(nCtx, p, cond)
