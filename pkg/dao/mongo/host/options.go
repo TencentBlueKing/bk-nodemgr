@@ -255,6 +255,11 @@ func WithoutDynamicAgentID(agentIDs ...string) OptFn {
 	return base.WithoutValues(FieldKeyDynamicAgentID, agentIDs...)
 }
 
+// WithDynamicAgentIDNotEmpty filters by non-empty agent id.
+func WithDynamicAgentIDNotEmpty() OptFn {
+	return base.WithGreaterThanValue(FieldKeyDynamicAgentID, "")
+}
+
 // WithStaticInnerIPList filters by contains inner ip list.
 func WithStaticInnerIPList(ips ...string) OptFn {
 	return base.WithValues(FieldKeyStaticInnerIPList, ips...)
