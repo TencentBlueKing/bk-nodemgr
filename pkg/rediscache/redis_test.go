@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -12,37 +14,32 @@ package rediscache
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
-	"github.com/redis/go-redis/v9"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func testRedis(t *testing.T) cache.ICache {
-	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
-		Addrs:    []string{"addr"},
-		Password: "",
-		DB:       0,
-	})
+func testRedis(t *testing.T) (cache.ICache, string) {
+	redisClient, keyPrefix := support.RequireRedisClientWithKeyPrefix(t)
+	return NewRedisCache(redisClient, 0), keyPrefix
+}
 
-	// Ping to ensure connection works
-	_, err := redisClient.Ping(context.Background()).Result()
-	require.NoError(t, err, "Redis connection failed")
-
-	return NewRedisCache(redisClient, 0)
+func redisTestKey(prefix string, name string) string {
+	return prefix + ":" + name
 }
 
 func TestRedisCache_GetSet(t *testing.T) {
-	rc := testRedis(t)
+	rc, keyPrefix := testRedis(t)
 	ctx := context.Background()
-	key := "test_key"
-	value := []byte("test_value")
 
 	t.Run("Set and Get", func(t *testing.T) {
+		key := redisTestKey(keyPrefix, "test_key")
+		value := []byte("test_value")
+
 		err := rc.Set(ctx, key, value)
 		require.NoError(t, err)
 
@@ -52,44 +49,42 @@ func TestRedisCache_GetSet(t *testing.T) {
 	})
 
 	t.Run("Non-existent key", func(t *testing.T) {
-		_, err := rc.Get(ctx, "non_existent_key")
-		require.NoError(t, err)
+		_, err := rc.Get(ctx, redisTestKey(keyPrefix, "non_existent_key"))
+		require.Error(t, err)
 	})
 
-	t.Run("Different data types", func(t *testing.T) {
+	t.Run("Different byte values", func(t *testing.T) {
 		testCases := []struct {
 			name     string
-			value    interface{}
-			expected string
+			value    []byte
+			expected []byte
 		}{
-			{"string", "string_value", "string_value"},
-			{"int", 42, "42"},
-			{"float", 3.14, "3.14"},
-			{"bool", true, "1"},
-			{"bytes", []byte("byte_slice"), "byte_slice"},
+			{name: "string", value: []byte("string_value"), expected: []byte("string_value")},
+			{name: "empty", value: []byte(""), expected: []byte("")},
+			{name: "bytes", value: []byte("byte_slice"), expected: []byte("byte_slice")},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				testKey := fmt.Sprintf("type_test_%s", tc.name)
+				testKey := redisTestKey(keyPrefix, "type_test_"+tc.name)
 
-				err := rc.Set(ctx, testKey, tc.value.([]byte))
+				err := rc.Set(ctx, testKey, tc.value)
 				require.NoError(t, err)
 
 				result, err := rc.Get(ctx, testKey)
 				require.NoError(t, err)
-				assert.Equal(t, tc.expected, string(result))
+				assert.Equal(t, tc.expected, result)
 			})
 		}
 	})
 }
 
 func TestRedisCache_Exists(t *testing.T) {
-	rc := testRedis(t)
+	rc, keyPrefix := testRedis(t)
 	ctx := context.Background()
 
 	t.Run("Existing key", func(t *testing.T) {
-		key := "exists_key"
+		key := redisTestKey(keyPrefix, "exists_key")
 		err := rc.Set(ctx, key, []byte("value"))
 		require.NoError(t, err)
 
@@ -99,14 +94,14 @@ func TestRedisCache_Exists(t *testing.T) {
 	})
 
 	t.Run("Non-existing key", func(t *testing.T) {
-		exists, err := rc.Exists(ctx, "non_existent_exists_key")
+		exists, err := rc.Exists(ctx, redisTestKey(keyPrefix, "non_existent_exists_key"))
 		require.NoError(t, err)
 		assert.False(t, exists)
 	})
 
 	t.Run("Expired key", func(t *testing.T) {
-		key := "expired_exists_key"
-		err := rc.SetWithExpiration(ctx, key, []byte("value"), 1*time.Second)
+		key := redisTestKey(keyPrefix, "expired_exists_key")
+		err := rc.SetWithExpiration(ctx, key, []byte("value"), time.Second)
 		require.NoError(t, err)
 
 		exists, err := rc.Exists(ctx, key)
@@ -122,11 +117,11 @@ func TestRedisCache_Exists(t *testing.T) {
 }
 
 func TestRedisCache_Delete(t *testing.T) {
-	rc := testRedis(t)
+	rc, keyPrefix := testRedis(t)
 	ctx := context.Background()
 
 	t.Run("Delete existing key", func(t *testing.T) {
-		key := "delete_key"
+		key := redisTestKey(keyPrefix, "delete_key")
 		err := rc.Set(ctx, key, []byte("value"))
 		require.NoError(t, err)
 
@@ -143,13 +138,17 @@ func TestRedisCache_Delete(t *testing.T) {
 	})
 
 	t.Run("Delete non-existing key", func(t *testing.T) {
-		deleted, err := rc.Delete(ctx, "non_existent_delete_key")
+		deleted, err := rc.Delete(ctx, redisTestKey(keyPrefix, "non_existent_delete_key"))
 		require.NoError(t, err)
 		assert.False(t, deleted)
 	})
 
 	t.Run("Delete multiple keys", func(t *testing.T) {
-		keys := []string{"multi_key1", "multi_key2", "multi_key3"}
+		keys := []string{
+			redisTestKey(keyPrefix, "multi_key1"),
+			redisTestKey(keyPrefix, "multi_key2"),
+			redisTestKey(keyPrefix, "multi_key3"),
+		}
 
 		for _, key := range keys {
 			err := rc.Set(ctx, key, []byte("value"))
