@@ -14,14 +14,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -33,7 +32,7 @@ const (
 	// ActionNameGenOperSyncAlivePluginProcessInfo defines the action name.
 	ActionNameGenOperSyncAlivePluginProcessInfo = "gen_oper_sync_alive_plugin_process_info"
 
-	// syncAgentStateMaxPageSize defines the max page size for page executor.
+	// syncAlivePluginProcessStatusMaxPageSize defines the operation batch size.
 	// In the scenario of 40,000 hosts, a single request for 1,000 hosts requires 400 table lookups.
 	syncAlivePluginProcessStatusMaxPageSize = 1000
 )
@@ -121,22 +120,22 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 			globalsettings.OperSyncAlivePluginProcessInfoMaxConcurrencyNum, maxConcurrencyNum)
 	}
 
+	scanCtx, cancel := contextx.WithTimeout(std.Context(), 1*time.Hour)
+	defer cancel()
+
+	hosts, err := act.topoStg.ScanAllHostWithFields(scanCtx, &types.HostFieldSelection{
+		HostID: true,
+	}, &types.HostCondition{
+		DynamicAgentIDNotEmpty: true,
+	})
+	if err != nil {
+		return err
+	}
+
 	var trigCtl workflow.ITriggerCtl
-	executor := pageexecutor.NewPageExecutor[*types.Host](syncAlivePluginProcessStatusMaxPageSize, 1*time.Hour)
-	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		hosts, err := act.topoStg.FindHostWithDynamic(nCtx, p, &types.HostCondition{
-			DynamicAgentIDNotEmpty: true,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		if len(hosts) == 0 {
-			return nil, nil
-		}
-
-		hostIDs := make([]int64, 0, len(hosts))
-		for _, host := range hosts {
+	if err = batchexecutor.Execute(scanCtx, hosts, func(nCtx contextx.IContext, batchHosts []*types.Host) error {
+		hostIDs := make([]int64, 0, len(batchHosts))
+		for _, host := range batchHosts {
 			hostIDs = append(hostIDs, host.HostID)
 		}
 
@@ -153,19 +152,12 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 					With("action", act.Name()).
 					Error("failed to create trigger for handling sync alive plugin process info operations")
 
-				return nil, err
+				return err
 			}
 		}
 
-		if err = act.executeOper(std, trigCtl, hostIDs...); err != nil {
-			return nil, err
-		}
-
-		return hosts, nil
-	}
-
-	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
-	if err != nil {
+		return act.executeOper(std, trigCtl, hostIDs...)
+	}, batchexecutor.WithBatchSize(syncAlivePluginProcessStatusMaxPageSize), batchexecutor.WithTimeout(1*time.Hour)); err != nil {
 		return err
 	}
 
@@ -182,7 +174,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 
 	logger.G.Sys().Ctx(std.Context()).
 		With("action", act.Name()).
-		Info("executed sync alive plugin process info operation for %d hosts", result.Total)
+		Info("executed sync alive plugin process info operation for %d hosts", len(hosts))
 
 	return nil
 }

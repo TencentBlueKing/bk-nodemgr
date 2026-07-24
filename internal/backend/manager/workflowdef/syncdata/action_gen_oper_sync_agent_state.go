@@ -16,10 +16,10 @@ import (
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -32,7 +32,7 @@ const (
 	// ActionNameGenOperSyncAgentState defines the action name.
 	ActionNameGenOperSyncAgentState = "gen_oper_sync_agent_state"
 
-	// syncAgentStateMaxPageSize defines the max page size for page executor.
+	// syncAgentStateMaxPageSize defines the operation batch size.
 	// gse list api has a limit of 1000, we can accept one action execute 5 loops.
 	syncAgentStateMaxPageSize = 5000
 
@@ -164,8 +164,8 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 			}
 
 			ctx.Data.Log().
-				Zh("已为业务 %d 的 %d 台主机执行同步 Agent 状态任务", biz.BizID, result.Total).
-				En("executed sync agent state operation for %d hosts in business %d", result.Total, biz.BizID).
+				Zh("已为业务 %d 的 %d 台主机执行同步 Agent 状态任务", biz.BizID, result).
+				En("executed sync agent state operation for %d hosts in business %d", result, biz.BizID).
 				Info()
 
 			return nil
@@ -193,38 +193,35 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils.SyncDataActionStandarder,
-	trigCtl workflow.ITriggerCtl, biz *types.Business) (*pageexecutor.PageResult[*types.Host], error) {
+	trigCtl workflow.ITriggerCtl, biz *types.Business) (int, error) {
 
-	executor := pageexecutor.NewPageExecutor[*types.Host](syncAgentStateMaxPageSize, act.Timeout())
-	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		// find nodes and sync agent state. skip the empty-agent-id nodes.
-		cond := &types.HostCondition{
-			StaticExactInclude: &types.HostStaticExactFields{
-				BizID: []int64{biz.BizID},
-			},
-			DynamicAgentIDNotEmpty: true,
-		}
-
-		hosts, err := act.hostStg.FindHostWithDynamic(nCtx, p, cond)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(hosts) > 0 {
-			if err = act.executeOper(std, trigCtl, hosts...); err != nil {
-				return nil, err
-			}
-		}
-
-		return hosts, nil
+	// find nodes and sync agent state. skip the empty-agent-id nodes.
+	cond := &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{
+			BizID: []int64{biz.BizID},
+		},
+		DynamicAgentIDNotEmpty: true,
 	}
 
-	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
+	scanCtx, cancel := contextx.WithTimeout(std.Context(), act.Timeout())
+	defer cancel()
+
+	hosts, err := act.hostStg.ScanAllHostWithFields(scanCtx, &types.HostFieldSelection{
+		HostID:  true,
+		AgentID: true,
+	}, cond)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return result, nil
+	if err = batchexecutor.Execute(scanCtx, hosts,
+		func(_ contextx.IContext, batchHosts []*types.Host) error {
+			return act.executeOper(std, trigCtl, batchHosts...)
+		}, batchexecutor.WithBatchSize(syncAgentStateMaxPageSize), batchexecutor.WithTimeout(act.Timeout())); err != nil {
+		return 0, err
+	}
+
+	return len(hosts), nil
 }
 
 // executeOper create an operation to sync agent state for the given hosts and then execute it.
