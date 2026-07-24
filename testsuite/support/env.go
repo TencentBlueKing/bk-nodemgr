@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -27,6 +28,12 @@ const (
 	EnvMongoAuthMechanismKey = "NODEMGR_TEST_MONGO_AUTH_MECHANISM"
 	EnvMongoDatabaseKey      = "NODEMGR_TEST_MONGO_DATABASE"
 
+	EnvRedisImageKey    = "NODEMGR_TEST_REDIS_IMAGE"
+	EnvRedisAddressKey  = "NODEMGR_TEST_REDIS_ADDRESS"
+	EnvRedisUsernameKey = "NODEMGR_TEST_REDIS_USERNAME"
+	EnvRedisPasswordKey = "NODEMGR_TEST_REDIS_PASSWORD"
+	EnvRedisDBKey       = "NODEMGR_TEST_REDIS_DB"
+
 	integrationEnvPath = "testsuite/integration.env"
 )
 
@@ -37,6 +44,13 @@ type mongoEnvConfig struct {
 	AuthSource    string
 	AuthMechanism string
 	Database      string
+}
+
+type redisEnvConfig struct {
+	Address  string
+	Username string
+	Password string
+	DB       int
 }
 
 func readEnvFile(t testing.TB) (map[string]string, bool) {
@@ -67,6 +81,22 @@ func mongoEnvFromValues(t testing.TB, values map[string]string) mongoEnvConfig {
 		AuthSource:    requiredConfigValue(t, values, EnvMongoAuthSourceKey),
 		AuthMechanism: requiredConfigValue(t, values, EnvMongoAuthMechanismKey),
 		Database:      requiredConfigValue(t, values, EnvMongoDatabaseKey),
+	}
+}
+
+func redisEnvFromValues(t testing.TB, values map[string]string) redisEnvConfig {
+	t.Helper()
+
+	redisDB, err := strconv.Atoi(requiredConfigValue(t, values, EnvRedisDBKey))
+	if err != nil {
+		t.Fatalf("parse %s from %s: %v", EnvRedisDBKey, integrationEnvPath, err)
+	}
+
+	return redisEnvConfig{
+		Address:  requiredConfigValue(t, values, EnvRedisAddressKey),
+		Username: configValue(values, EnvRedisUsernameKey),
+		Password: configValue(values, EnvRedisPasswordKey),
+		DB:       redisDB,
 	}
 }
 
