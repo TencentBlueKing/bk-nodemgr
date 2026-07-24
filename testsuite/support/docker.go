@@ -5,6 +5,7 @@ package support
 import (
 	"context"
 	"io"
+	"sort"
 	"testing"
 	"time"
 
@@ -38,7 +39,7 @@ func dockerNetwork(t testing.TB, values map[string]string) string {
 	}
 }
 
-func startDockerHostContainer(t testing.TB, imageName string) {
+func startDockerHostContainer(t testing.TB, imageName string, env map[string]string) {
 	t.Helper()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
@@ -56,7 +57,7 @@ func startDockerHostContainer(t testing.TB, imageName string) {
 
 	created, err := dockerClient.ContainerCreate(
 		ctx,
-		&container.Config{Image: imageName},
+		&container.Config{Image: imageName, Env: dockerContainerEnv(env)},
 		&container.HostConfig{NetworkMode: container.NetworkMode(DockerNetworkHost)},
 		nil,
 		nil,
@@ -79,6 +80,24 @@ func startDockerHostContainer(t testing.TB, imageName string) {
 		_ = dockerClient.ContainerRemove(ctx, created.ID, container.RemoveOptions{Force: true})
 		_ = dockerClient.Close()
 	})
+}
+
+func dockerContainerEnv(env map[string]string) []string {
+	if len(env) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(env))
+	for key := range env {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	values := make([]string, 0, len(keys))
+	for _, key := range keys {
+		values = append(values, key+"="+env[key])
+	}
+	return values
 }
 
 func ensureDockerImage(ctx context.Context, dockerClient *client.Client, imageName string) error {

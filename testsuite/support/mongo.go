@@ -124,7 +124,7 @@ func requireMongoFromDockerBridge(t testing.TB, imageName string) (*mongo.Client
 func requireMongoFromDockerHost(t testing.TB, imageName string) (*mongo.Client, *mongo.Database) {
 	t.Helper()
 
-	startDockerHostContainer(t, imageName)
+	startDockerHostContainer(t, imageName, nil)
 	return requireMongoFromURI(t, "mongodb://127.0.0.1:27017")
 }
 
