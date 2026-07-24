@@ -356,6 +356,12 @@ pluginManagement:
       autoStart: 自动启动
       manualStart: 手动启动
       processList: 插件进程列表
+      business: 归属业务
+      networkArea: 管控区域
+      networkUnit: 管控单元
+      operationsDept: 运维部门
+      nodeVersion: 节点版本
+      nodeStatus: 节点状态
       notDefaultVersionTitle: '{names}不是默认版本，请升级到默认版本，以保证功能的正常运行'
       notDefaultVersionTooltip: 当前版本非默认版本
       notDefaultVersionSubTip: '不是默认版本，默认版本是 {version}'
