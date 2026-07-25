@@ -703,9 +703,9 @@ func (h *HandlerProc) queryOperateProcResult(nCtx contextx.IContext, taskID stri
 	)
 	// nolint: mnd
 	expoBackoffOpts := retrier.ExpoBackoffOpts{
-		MaxRetries:    5,
-		BaseDelay:     time.Second,
-		MaxDelay:      5 * time.Second,
+		MaxRetries:    8,
+		BaseDelay:     2 * time.Second,
+		MaxDelay:      12 * time.Second,
 		JitterPercent: 0.2,
 	}
 	expoBackoff := retrier.NewExpoBackoff(expoBackoffOpts)
