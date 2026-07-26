@@ -211,7 +211,11 @@ func buildUpsertStaticTopoUpdate(topo HostTopo, nowTime time.Time) mongo.Pipelin
 		FieldSubKeyStaticTopoItemSetID:    topo.SetID,
 		FieldSubKeyStaticTopoItemModuleID: topo.ModuleID,
 	}
-	topoItems := bson.M{"$ifNull": bson.A{"$" + FieldKeyStaticTopo, bson.A{}}}
+	topoItems := bson.M{"$cond": bson.A{
+		bson.M{"$isArray": "$" + FieldKeyStaticTopo},
+		"$" + FieldKeyStaticTopo,
+		bson.A{},
+	}}
 	moduleIDs := bson.M{"$map": bson.M{
 		"input": topoItems,
 		"as":    "item",
@@ -260,22 +264,26 @@ func (d *dao) popStaticTopo(nCtx contextx.IContext, hostID int64, topos []HostTo
 	}
 
 	filter := append(base.AliveFilter(), bson.E{Key: FieldKeyHostID, Value: hostID})
-	update := bson.D{
-		{
-			Key: "$set",
-			Value: bson.M{
-				base.FieldKeyIsDeleted: false,
-				base.FieldKeyUpdatedAt: time.Now(),
-			},
-		},
-		{
-			Key: "$pull",
-			Value: bson.M{
-				FieldKeyStaticTopo: bson.M{
-					FieldSubKeyStaticTopoItemModuleID: bson.M{"$in": moduleIDs},
-				},
-			},
-		},
+	topoItems := bson.M{"$cond": bson.A{
+		bson.M{"$isArray": "$" + FieldKeyStaticTopo},
+		"$" + FieldKeyStaticTopo,
+		bson.A{},
+	}}
+	update := mongo.Pipeline{
+		bson.D{{Key: "$set", Value: bson.M{
+			base.FieldKeyIsDeleted: false,
+			base.FieldKeyUpdatedAt: time.Now(),
+			FieldKeyStaticTopo: bson.M{"$filter": bson.M{
+				"input": topoItems,
+				"as":    "item",
+				"cond": bson.M{"$not": bson.A{
+					bson.M{"$in": bson.A{
+						"$$item." + FieldSubKeyStaticTopoItemModuleID,
+						moduleIDs,
+					}},
+				}},
+			}},
+		}}},
 	}
 
 	result, err := d.client.UpdateOne(nCtx, filter, update)

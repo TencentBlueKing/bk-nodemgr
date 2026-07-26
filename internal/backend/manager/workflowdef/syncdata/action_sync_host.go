@@ -207,7 +207,7 @@ func (act *actionSyncHost) persistHostSyncChanges(
 ) error {
 
 	if err := batchHandleHosts(nCtx, changes.updateHosts, func(hosts ...*types.Host) error {
-		return act.updateHostsStaticWithTopo(nCtx, hosts...)
+		return act.storageHost.UpdateHostStaticFields(nCtx, types.UpdateAllHostStaticFields(), hosts...)
 	}); err != nil {
 		return err
 	}
@@ -361,24 +361,6 @@ func batchHandleHostIDs(nCtx contextx.IContext, hostIDs []int64, fn func(hostIDs
 	return batchexecutor.Execute(nCtx, hostIDs, func(_ contextx.IContext, batchHostIDs []int64) error {
 		return fn(batchHostIDs...)
 	}, batchexecutor.WithBatchSize(syncHostDBBatchSize), batchexecutor.WithTimeout(10*time.Minute)) // nolint: mnd
-}
-
-func (act *actionSyncHost) updateHostsStaticWithTopo(nCtx contextx.IContext, hosts ...*types.Host) error {
-	if err := act.storageHost.UpdateHostStaticFields(nCtx, types.UpdateAllHostStaticFields(), hosts...); err != nil {
-		return err
-	}
-
-	hostRelations := conv.SliceToSlice(hosts, func(host *types.Host) *types.HostTopoRelation {
-		return &types.HostTopoRelation{
-			HostID: host.HostID,
-			Topo:   host.Static.Topo,
-		}
-	})
-	if err := act.storageHost.UpsertHostTopo(nCtx, hostRelations...); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (

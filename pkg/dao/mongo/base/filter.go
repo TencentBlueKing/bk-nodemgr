@@ -20,7 +20,7 @@ import (
 
 // AliveFilter return a filter that only alive records.
 func AliveFilter() bson.D {
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := bson.D{{Key: FieldKeyIsDeleted, Value: false}}
 
 	return filter
 }
