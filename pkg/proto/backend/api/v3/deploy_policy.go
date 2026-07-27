@@ -290,6 +290,22 @@ func convSpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 			CustomConfigContext: customConfigContext,
 		}
 
+	case types.DeploySpecTypeProjectPluginPkgToHosts:
+		param, err := spec.GetProjectPluginPkgToHostsParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project plugin pkg to hosts param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &ProjectPluginPkgToHostsParam{
+			PluginPkgName:       param.PluginPkgName,
+			Version:             param.Version,
+			CustomConfigContext: customConfigContext,
+			PlacementHostIds:    param.PlacementHostIDs,
+		}
+
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		param, err := spec.GetSpecifyPluginSubConfigParam()
 		if err != nil {
@@ -702,6 +718,22 @@ func convSpecToTypes(spec *DeploySpec) (*types.DeploySpec, error) {
 			PluginPkgName:       paramProto.PluginPkgName,
 			Version:             paramProto.Version,
 			CustomConfigContext: customConfigContext,
+		})
+
+	case types.DeploySpecTypeProjectPluginPkgToHosts:
+		var paramProto ProjectPluginPkgToHostsParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		customConfigContext := make(map[string]any)
+		if paramProto.CustomConfigContext != nil {
+			customConfigContext = paramProto.CustomConfigContext.AsMap()
+		}
+		return types.NewDeploySpecWithProjectPluginPkgToHosts(&types.ProjectPluginPkgToHostsParam{
+			PluginPkgName:       paramProto.PluginPkgName,
+			Version:             paramProto.Version,
+			CustomConfigContext: customConfigContext,
+			PlacementHostIDs:    paramProto.PlacementHostIds,
 		})
 
 	case types.DeploySpecTypeSpecifyPluginSubConfig:

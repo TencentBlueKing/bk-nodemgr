@@ -70,6 +70,18 @@ func TestConvSpecFromTypes_ToProto_AndBack(t *testing.T) {
 			}(),
 		},
 		{
+			name: "ProjectPluginPkgToHosts",
+			spec: func() *types.DeploySpec {
+				spec, _ := types.NewDeploySpecWithProjectPluginPkgToHosts(&types.ProjectPluginPkgToHostsParam{
+					PluginPkgName:       "test-plugin-pkg",
+					Version:             "1.0.0",
+					CustomConfigContext: map[string]any{"key": "value"},
+					PlacementHostIDs:    []int64{1001, 1002},
+				})
+				return spec
+			}(),
+		},
+		{
 			name: "SpecifyPluginSubConfig",
 			spec: func() *types.DeploySpec {
 				spec, _ := types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
@@ -147,6 +159,19 @@ func TestConvSpecFromTypes_ToProto_AndBack(t *testing.T) {
 				}
 				if originalParam.Version != backParam.Version {
 					t.Errorf("Version = %v, want %v", backParam.Version, originalParam.Version)
+				}
+
+			case types.DeploySpecTypeProjectPluginPkgToHosts:
+				originalParam, _ := tt.spec.GetProjectPluginPkgToHostsParam()
+				backParam, _ := backSpec.GetProjectPluginPkgToHostsParam()
+				if originalParam.PluginPkgName != backParam.PluginPkgName {
+					t.Errorf("PluginPkgName = %v, want %v", backParam.PluginPkgName, originalParam.PluginPkgName)
+				}
+				if originalParam.Version != backParam.Version {
+					t.Errorf("Version = %v, want %v", backParam.Version, originalParam.Version)
+				}
+				if len(originalParam.PlacementHostIDs) != len(backParam.PlacementHostIDs) {
+					t.Errorf("PlacementHostIDs length = %v, want %v", len(backParam.PlacementHostIDs), len(originalParam.PlacementHostIDs))
 				}
 
 			case types.DeploySpecTypeSpecifyPluginSubConfig:
