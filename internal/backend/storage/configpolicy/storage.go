@@ -30,6 +30,7 @@ const StorageName = "configpolicy"
 
 const (
 	metricOperationMatchConfigPolicyNode         = "match"
+	metricOperationMatchConfigPolicyPlugin       = "match_plugin"
 	metricOperationCountConfigPolicy             = "count"
 	metricOperationListConfigPolicy              = "list"
 	metricOperationGetConfigPolicy               = "get"
@@ -108,6 +109,24 @@ func (s *Storage) MatchConfigPolicyNode(nCtx contextx.IContext,
 	err := s.WrapFn(nCtx, metricOperationMatchConfigPolicyNode, func(nCtx contextx.IContext) error {
 		var err error
 		result, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole, hostID)
+
+		return err
+	})
+
+	return result, err
+}
+
+// MatchConfigPolicyPlugin matches and merges enabled policies for a plugin on the host.
+func (s *Storage) MatchConfigPolicyPlugin(nCtx contextx.IContext,
+	bizID, networkAreaID, networkUnitID int64,
+	osType criteria.OSType, cpuArch criteria.CPUArch,
+	targetPluginName string, hostID int64) (*types.ConfigPolicyMatchResult, error) {
+
+	var result *types.ConfigPolicyMatchResult
+
+	err := s.WrapFn(nCtx, metricOperationMatchConfigPolicyPlugin, func(nCtx contextx.IContext) error {
+		var err error
+		result, err = s.matchConfigPolicyPlugin(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, targetPluginName, hostID)
 
 		return err
 	})
@@ -226,14 +245,14 @@ func (s *Storage) UpdatePriorityManyConfigPolicy(nCtx contextx.IContext, priorit
 
 // PreviewConfigPolicy previews the merged config for each host.
 func (s *Storage) PreviewConfigPolicy(nCtx contextx.IContext,
-	bizID int64, policyType types.ConfigPolicyType,
+	bizID int64, policyType types.ConfigPolicyType, targetPluginName string,
 	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
 
 	var result *types.ConfigPolicyPreviewResult
 
 	err := s.WrapFn(nCtx, metricOperationPreviewConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
-		result, err = s.previewConfigPolicy(nCtx, bizID, policyType, hosts)
+		result, err = s.previewConfigPolicy(nCtx, bizID, policyType, targetPluginName, hosts)
 
 		return err
 	})

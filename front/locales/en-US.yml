@@ -909,6 +909,7 @@ agentStrategy:
     configNameRequired: Config Name is required
     configNameLength: Length must be 1-50 characters
     businessRequired: Business is required
+    pluginRequired: Please select a plugin
 pluginPackage:
   title: Plugin Packages
   upload: Upload Package

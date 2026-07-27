@@ -468,7 +468,7 @@ func (h *handler) PreviewConfigPolicy(rCtx restserver.IContext) (interface{}, er
 	policyType := types.ConfigPolicyType(req.GetPolicyType())
 	previewHosts := req.ConvertPreviewHostsToTypes()
 
-	result, err := h.backendHandler.PreviewConfigPolicy(rCtx, req.GetBkBizId(), policyType, previewHosts)
+	result, err := h.backendHandler.PreviewConfigPolicy(rCtx, req.GetBkBizId(), policyType, req.GetPluginName(), previewHosts)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to preview config policy")
 

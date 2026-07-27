@@ -367,6 +367,7 @@ message ConfigPolicy {
   optional int64 version = 12;
   optional int64 priority = 13;
   repeated int64 target_host_ids = 14;
+  optional string target_plugin_name = 15;
 }
 
 // ConfigPolicyEvent describes the config policy event.

@@ -279,20 +279,21 @@ func convertConfigPolicyToTypes(cp *ConfigPolicy) *types.ConfigPolicy {
 	}
 
 	return &types.ConfigPolicy{
-		TenantID:      cp.Raw.TenantID,
-		Version:       cp.Version,
-		ID:            cp.Raw.ConfigPolicyID,
-		Name:          cp.Raw.ConfigPolicyName,
-		Type:          types.ConfigPolicyType(cp.Raw.ConfigPolicyType),
-		BizID:         cp.Raw.BizID,
-		Remark:        cp.Raw.Remark,
-		Scopes:        scopes,
-		TargetHostIDs: cp.Raw.TargetHostIDs,
-		Configs:       cp.Raw.Configs,
-		Enabled:       cp.Raw.Enabled,
-		Priority:      cp.Raw.Priority,
-		UpdatedAt:     cp.Raw.UpdatedAt,
-		Operator:      cp.Raw.Operator,
+		TenantID:         cp.Raw.TenantID,
+		Version:          cp.Version,
+		ID:               cp.Raw.ConfigPolicyID,
+		Name:             cp.Raw.ConfigPolicyName,
+		Type:             types.ConfigPolicyType(cp.Raw.ConfigPolicyType),
+		BizID:            cp.Raw.BizID,
+		Remark:           cp.Raw.Remark,
+		Scopes:           scopes,
+		TargetHostIDs:    cp.Raw.TargetHostIDs,
+		TargetPluginName: cp.Raw.TargetPluginName,
+		Configs:          cp.Raw.Configs,
+		Enabled:          cp.Raw.Enabled,
+		Priority:         cp.Raw.Priority,
+		UpdatedAt:        cp.Raw.UpdatedAt,
+		Operator:         cp.Raw.Operator,
 	}
 }
 
@@ -318,6 +319,7 @@ func convertConfigPolicyFromTypes(cp *types.ConfigPolicy) *ConfigPolicy {
 			Remark:           cp.Remark,
 			Scopes:           scopes,
 			TargetHostIDs:    cp.TargetHostIDs,
+			TargetPluginName: cp.TargetPluginName,
 			Configs:          cp.Configs,
 			Enabled:          cp.Enabled,
 			Priority:         cp.Priority,

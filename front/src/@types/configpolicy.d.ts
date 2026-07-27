@@ -5,6 +5,7 @@ export interface ConfigPolicyExactConditions {
   bk_biz_id: number[];
   configpolicy_type: string[];
   enabled: boolean[];
+  target_plugin_name: string[];
 }
 
 // ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
@@ -103,6 +104,7 @@ export interface ConfigPolicyCreateReq {
   configs: ConfigPolicyConfigBlock[];
   operator: string;
   target_host_ids: number[];
+  target_plugin_name: string;
 }
 
 // ConfigPolicyCreateResp describes HTTP response body when create config
@@ -133,6 +135,7 @@ export interface ConfigPolicyUpdateReq {
   operator: string;
   priority: number;
   target_host_ids: number[];
+  target_plugin_name: string;
 }
 
 // ConfigPolicyUpdateResp describes HTTP response body when update config
@@ -247,6 +250,7 @@ export interface ConfigPolicyPreviewReq {
   bk_biz_id: number;
   policy_type: string;
   hosts: PreviewHost[];
+  plugin_name: string;
 }
 
 // ConfigPolicyPreviewResp describes HTTP response body for preview result.

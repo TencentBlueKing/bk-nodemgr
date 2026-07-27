@@ -37,9 +37,9 @@
         <Form.FormItem :label="t('agentStrategy.form.remark')" property="remark">
           <Input type="textarea" v-model="formData.remark" show-word-limit :maxlength="100" :disabled="isViewMode"></Input>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.form.selectPlugin')" property="plugin_name" required>
+        <Form.FormItem :label="t('agentStrategy.form.selectPlugin')" property="target_plugin_name" required>
           <Select
-            v-model="formData.plugin_name"
+            v-model="formData.target_plugin_name"
             :disabled="isViewMode"
             filterable
             clearable
@@ -265,7 +265,7 @@ const formData = reactive({
   configpolicy_type: 'config_policy_plugin',
   bk_biz_id: mainStore.strategyBizId || 0,
   remark: '',
-  plugin_name: '',
+  target_plugin_name: '',
   scopes: [] as IScope[],
   selectedHosts: [] as ISelectedHost[],
   configs: [] as ConfigPolicyConfigBlock[],
@@ -276,7 +276,7 @@ const formData = reactive({
 const initData = () => {
   formData.configpolicy_name = '';
   formData.remark = '';
-  formData.plugin_name = '';
+  formData.target_plugin_name = '';
   formData.bk_biz_id = mainStore.strategyBizId || 0;
   formData.scopes = [];
   formData.configs = [];
@@ -294,7 +294,7 @@ const rules = {
     { message: t('agentStrategy.validate.configNameLength'), trigger: 'blur', validator: (val: string) => val.length <= 50 && val.length >= 1 },
   ],
   bk_biz_id: [{ required: true, message: t('agentStrategy.validate.businessRequired'), trigger: 'change' }],
-  plugin_name: [{ required: true, message: t('agentStrategy.validate.pluginRequired'), trigger: 'change' }],
+  target_plugin_name: [{ required: true, message: t('agentStrategy.validate.pluginRequired'), trigger: 'change' }],
 };
 
 const originData = ref(cloneDeep(formData));

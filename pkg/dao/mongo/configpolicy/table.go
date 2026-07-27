@@ -37,6 +37,7 @@ type RawData struct {
 	Remark           string         `json:"remark" bson:"remark"`
 	Scopes           []Scope        `json:"scopes" bson:"scopes"`
 	TargetHostIDs    []int64        `json:"target_host_ids" bson:"target_host_ids"`
+	TargetPluginName string         `json:"target_plugin_name" bson:"target_plugin_name"`
 	Configs          map[string]any `json:"configs" bson:"configs"`
 	Enabled          bool           `json:"enabled" bson:"enabled"`
 	Priority         int64          `json:"priority" bson:"priority"`

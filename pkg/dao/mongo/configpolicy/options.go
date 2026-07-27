@@ -50,6 +50,11 @@ func WithFuzzyOperator(operators ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyOperator, operators...)
 }
 
+// WithTargetPluginName filters by target plugin name.
+func WithTargetPluginName(names ...string) OptFn {
+	return base.WithStringValues(FieldKeyTargetPluginName, names...)
+}
+
 // WithEnabledScope filters by enabled scope OR target host ID.
 func WithEnabledScope(
 	bizID, networkAreaID, networkUnitID int64,

@@ -81,7 +81,7 @@ type IHandlerConfigPolicy interface {
 	// @param policyType the config policy type.
 	// @param hosts the preview host entries.
 	// @return the preview result and error.
-	PreviewConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType,
+	PreviewConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType, targetPluginName string,
 		hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error)
 }
 
@@ -200,11 +200,11 @@ func (h *Handler) DeleteConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...
 }
 
 // PreviewConfigPolicy previews the merged config for each host.
-func (h *Handler) PreviewConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType,
+func (h *Handler) PreviewConfigPolicy(nCtx contextx.IContext, bizID int64, policyType types.ConfigPolicyType, targetPluginName string,
 	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
 
 	req := new(protoBackend.ConfigPolicyPreviewReq)
-	req.ConvertFromTypes(bizID, policyType, hosts)
+	req.ConvertFromTypes(bizID, policyType, targetPluginName, hosts)
 
 	resp, err := h.cli.previewConfigPolicy(nCtx, req)
 	if err != nil {

@@ -1,1 +1,43 @@
-[]
+[
+    {
+        "id": "base_config",
+        "title_en": "Base config",
+        "title_zh": "基础配置",
+        "items": [
+            {
+                "enabled": false,
+                "id": "cpu_percent_limit",
+                "name_en": "CPU usage limit",
+                "name_zh": "CPU使用限制",
+                "remark_en": "The maximum CPU usage allowed for the plugin process.",
+                "remark_zh": "插件进程允许的最大CPU使用率.",
+                "key": "plugin.base.cpu_percent_limit",
+                "type": 1,
+                "value_string": "",
+                "value_int": 10,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
+                "id": "mem_percent_limit",
+                "name_en": "Memory usage limit",
+                "name_zh": "内存使用限制",
+                "remark_en": "The maximum memory usage allowed for the plugin process.",
+                "remark_zh": "插件进程允许的最大内存使用率.",
+                "key": "plugin.base.mem_percent_limit",
+                "type": 1,
+                "value_string": "",
+                "value_int": 10,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            }
+        ]
+    }
+]

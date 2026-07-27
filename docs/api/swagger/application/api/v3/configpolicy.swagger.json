@@ -613,6 +613,9 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "target_plugin_name": {
+          "type": "string"
         }
       },
       "description": "ConfigPolocy decribes the config policy."
@@ -732,6 +735,9 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "target_plugin_name": {
+          "type": "string"
         }
       },
       "description": "ConfigPolicyCreateReq describes HTTP request body when create config policy."
@@ -1167,6 +1173,12 @@
           "items": {
             "type": "boolean"
           }
+        },
+        "target_plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "ConfigPolicyExactConditions describes config policy exact conditions."
@@ -1394,6 +1406,9 @@
             "type": "object",
             "$ref": "#/definitions/v3PreviewHost"
           }
+        },
+        "plugin_name": {
+          "type": "string"
         }
       },
       "description": "ConfigPolicyPreviewReq describes HTTP request body for previewing merged\nconfig result by host list."
@@ -1560,6 +1575,9 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "target_plugin_name": {
+          "type": "string"
         }
       },
       "description": "ConfigPolicyUpdateReq describes HTTP request body when update config policy."

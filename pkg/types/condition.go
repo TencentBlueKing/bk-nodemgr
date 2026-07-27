@@ -691,10 +691,11 @@ type GlobalSettingsCondition struct {
 
 // ConfigPolicyExactFields defines the config policy exact fields.
 type ConfigPolicyExactFields struct {
-	ConfigPolicyID []int64
-	BizID          []int64
-	Type           []ConfigPolicyType
-	Enabled        []bool
+	ConfigPolicyID   []int64
+	BizID            []int64
+	Type             []ConfigPolicyType
+	Enabled          []bool
+	TargetPluginName []string
 }
 
 // ConfigPolicyFuzzyFields defines the config policy fuzzy fields.

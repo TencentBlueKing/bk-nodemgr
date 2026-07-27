@@ -12,6 +12,7 @@ message ConfigPolicyExactConditions {
   repeated int64 bk_biz_id = 2;
   repeated string configpolicy_type = 3;
   repeated bool enabled = 4;
+  repeated string target_plugin_name = 5;
 }
 
 // ConfigPolicyFuzzyConditions describes config policy fuzzy conditions.
@@ -105,6 +106,7 @@ message ConfigPolicyCreateReq {
   repeated ConfigPolicyConfigBlock configs = 6;
   string operator = 7;
   repeated int64 target_host_ids = 8;
+  optional string target_plugin_name = 9;
 }
 
 // ConfigPolicyCreateResp describes HTTP response body when create config
@@ -133,6 +135,7 @@ message ConfigPolicyUpdateReq {
   string operator = 9;
   int64 priority = 10;
   repeated int64 target_host_ids = 11;
+  optional string target_plugin_name = 12;
 }
 
 // ConfigPolicyUpdateResp describes HTTP response body when update config
@@ -235,6 +238,7 @@ message ConfigPolicyPreviewReq {
   int64 bk_biz_id = 1;
   string policy_type = 2;
   repeated PreviewHost hosts = 3;
+  optional string plugin_name = 4;
 }
 
 // ConfigPolicyPreviewResp describes HTTP response body for preview result.

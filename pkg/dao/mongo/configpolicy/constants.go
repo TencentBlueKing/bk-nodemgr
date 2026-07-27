@@ -44,6 +44,9 @@ const (
 	// FieldKeyTargetHostIDs the target host ids field key.
 	FieldKeyTargetHostIDs = "data.raw.target_host_ids"
 
+	// FieldKeyTargetPluginName is the target plugin name field key.
+	FieldKeyTargetPluginName = "data.raw.target_plugin_name"
+
 	// FieldKeyVersion the version field key.
 	FieldKeyVersion = "data.version"
 )

@@ -65,10 +65,11 @@ func convertConfigPolicyConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ConfigPolicyExactFields{
-			ConfigPolicyID: exactCond.GetConfigpolicyId(),
-			BizID:          exactCond.GetBkBizId(),
-			Type:           configPolicyTypeList,
-			Enabled:        exactCond.GetEnabled(),
+			ConfigPolicyID:   exactCond.GetConfigpolicyId(),
+			BizID:            exactCond.GetBkBizId(),
+			Type:             configPolicyTypeList,
+			Enabled:          exactCond.GetEnabled(),
+			TargetPluginName: exactCond.GetTargetPluginName(),
 		}
 	}
 
@@ -99,11 +100,13 @@ func convertConfigPolicyConditionsFromTypes(conditions *types.ConfigPolicyCondit
 		exactCond.BkBizId = conditions.ExactInclude.BizID
 		exactCond.ConfigpolicyType = types.ConfigPolicyTypeListToStringList(conditions.ExactInclude.Type)
 		exactCond.Enabled = conditions.ExactInclude.Enabled
+		exactCond.TargetPluginName = conditions.ExactInclude.TargetPluginName
 	}
 
 	if conditions.FuzzyInclude != nil {
 		fuzzyCond = new(ConfigPolicyFuzzyConditions)
 		fuzzyCond.ConfigpolicyName = conditions.FuzzyInclude.ConfigPolicyName
+		fuzzyCond.Operator = conditions.FuzzyInclude.Operator
 	}
 
 	if conditions.ExactExclude != nil || conditions.FuzzyExclude != nil {
@@ -222,6 +225,10 @@ func (x *ConfigPolicyCreateReq) Validate() error {
 		return fmt.Errorf("config policy name is required")
 	}
 
+	if types.ConfigPolicyType(x.GetConfigpolicyType()) == types.ConfigPolicyTypePlugin && x.GetTargetPluginName() == "" {
+		return errors.New("target_plugin_name is required for plugin config policy")
+	}
+
 	return nil
 }
 
@@ -237,13 +244,14 @@ func (x *ConfigPolicyCreateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 	}
 
 	return &types.ConfigPolicy{
-		Name:          x.GetConfigpolicyName(),
-		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:         x.GetBkBizId(),
-		Remark:        x.GetRemark(),
-		Scopes:        scopes,
-		TargetHostIDs: x.GetTargetHostIds(),
-		Operator:      x.GetOperator(),
+		Name:             x.GetConfigpolicyName(),
+		Type:             types.ConfigPolicyType(x.GetConfigpolicyType()),
+		BizID:            x.GetBkBizId(),
+		Remark:           x.GetRemark(),
+		Scopes:           scopes,
+		TargetHostIDs:    x.GetTargetHostIds(),
+		TargetPluginName: x.GetTargetPluginName(),
+		Operator:         x.GetOperator(),
 	}, convertConfigPolicyConfigsToTypes(x.GetConfigs())
 }
 
@@ -277,6 +285,10 @@ func (x *ConfigPolicyUpdateReq) Validate() error {
 		return fmt.Errorf("config policy priority is required")
 	}
 
+	if types.ConfigPolicyType(x.GetConfigpolicyType()) == types.ConfigPolicyTypePlugin && x.GetTargetPluginName() == "" {
+		return errors.New("target_plugin_name is required for plugin config policy")
+	}
+
 	return nil
 }
 
@@ -292,16 +304,17 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 	}
 
 	return &types.ConfigPolicy{
-		ID:            x.GetConfigpolicyId(),
-		Name:          x.GetConfigpolicyName(),
-		Type:          types.ConfigPolicyType(x.GetConfigpolicyType()),
-		BizID:         x.GetBkBizId(),
-		Remark:        x.GetRemark(),
-		Scopes:        scopes,
-		TargetHostIDs: x.GetTargetHostIds(),
-		Enabled:       x.GetEnabled(),
-		Priority:      x.GetPriority(),
-		Operator:      x.GetOperator(),
+		ID:               x.GetConfigpolicyId(),
+		Name:             x.GetConfigpolicyName(),
+		Type:             types.ConfigPolicyType(x.GetConfigpolicyType()),
+		BizID:            x.GetBkBizId(),
+		Remark:           x.GetRemark(),
+		Scopes:           scopes,
+		TargetHostIDs:    x.GetTargetHostIds(),
+		TargetPluginName: x.GetTargetPluginName(),
+		Enabled:          x.GetEnabled(),
+		Priority:         x.GetPriority(),
+		Operator:         x.GetOperator(),
 	}, convertConfigPolicyConfigsToTypes(x.GetConfigs())
 }
 
@@ -355,6 +368,7 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy, blocks []typ
 	*item.Remark = configPolicy.Remark
 	item.Scopes = scopes
 	item.TargetHostIds = configPolicy.TargetHostIDs
+	item.TargetPluginName = &configPolicy.TargetPluginName
 	item.Configs = convertConfigPolicyConfigsFromTypes(blocks)
 	*item.Enabled = configPolicy.Enabled
 	*item.UpdatedTime = configPolicy.UpdatedAt.UnixMilli()
@@ -372,19 +386,20 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 	}
 
 	return &types.ConfigPolicy{
-		TenantID:      configPolicy.GetTenantId(),
-		ID:            configPolicy.GetConfigpolicyId(),
-		Name:          configPolicy.GetConfigpolicyName(),
-		Type:          types.ConfigPolicyType(configPolicy.GetType()),
-		BizID:         configPolicy.GetBkBizId(),
-		Remark:        configPolicy.GetRemark(),
-		Scopes:        scopes,
-		TargetHostIDs: configPolicy.GetTargetHostIds(),
-		Enabled:       configPolicy.GetEnabled(),
-		Priority:      configPolicy.GetPriority(),
-		UpdatedAt:     time.UnixMilli(configPolicy.GetUpdatedTime()),
-		Operator:      configPolicy.GetOperator(),
-		Version:       int(configPolicy.GetVersion()),
+		TenantID:         configPolicy.GetTenantId(),
+		ID:               configPolicy.GetConfigpolicyId(),
+		Name:             configPolicy.GetConfigpolicyName(),
+		Type:             types.ConfigPolicyType(configPolicy.GetType()),
+		BizID:            configPolicy.GetBkBizId(),
+		Remark:           configPolicy.GetRemark(),
+		Scopes:           scopes,
+		TargetHostIDs:    configPolicy.GetTargetHostIds(),
+		TargetPluginName: configPolicy.GetTargetPluginName(),
+		Enabled:          configPolicy.GetEnabled(),
+		Priority:         configPolicy.GetPriority(),
+		UpdatedAt:        time.UnixMilli(configPolicy.GetUpdatedTime()),
+		Operator:         configPolicy.GetOperator(),
+		Version:          int(configPolicy.GetVersion()),
 	}
 }
 
@@ -542,6 +557,10 @@ func (x *ConfigPolicyPreviewReq) Validate() error {
 
 	if err := types.ConfigPolicyType(x.GetPolicyType()).Validate(); err != nil {
 		return fmt.Errorf("invalid policy_type: %w", err)
+	}
+
+	if types.ConfigPolicyType(x.GetPolicyType()) == types.ConfigPolicyTypePlugin && x.GetPluginName() == "" {
+		return errors.New("plugin_name is required for plugin config policy")
 	}
 
 	if len(x.GetHosts()) == 0 {

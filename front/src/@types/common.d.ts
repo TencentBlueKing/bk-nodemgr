@@ -373,6 +373,7 @@ interface ConfigPolicy {
   version: number;
   priority: number;
   target_host_ids: number[];
+  target_plugin_name: string;
 }
 
 // ConfigPolicyEvent describes the config policy event.

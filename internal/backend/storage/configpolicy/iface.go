@@ -64,9 +64,15 @@ type IDaoConfigPolicyNode interface {
 		osType criteria.OSType, cpuArch criteria.CPUArch,
 		nodeRole types.NodeRole, hostID int64) (*types.ConfigPolicyMatchResult, error)
 
+	// MatchConfigPolicyPlugin matches and merges enabled policies for a plugin on the host.
+	MatchConfigPolicyPlugin(nCtx contextx.IContext,
+		bizID, networkAreaID, networkUnitID int64,
+		osType criteria.OSType, cpuArch criteria.CPUArch,
+		targetPluginName string, hostID int64) (*types.ConfigPolicyMatchResult, error)
+
 	// PreviewConfigPolicy previews the merged config for each host by matching enabled policies.
 	PreviewConfigPolicy(nCtx contextx.IContext,
-		bizID int64, policyType types.ConfigPolicyType,
+		bizID int64, policyType types.ConfigPolicyType, targetPluginName string,
 		hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error)
 }
 

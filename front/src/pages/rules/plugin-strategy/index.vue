@@ -88,7 +88,7 @@
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
-          field="plugin_name"
+          field="target_plugin_name"
           :title="$t('agentStrategy.table.pluginName')"
           :min-width="120"
           show-overflow="tooltip"
@@ -280,14 +280,14 @@ const isShowSideslider = ref(false);
 const sidesliderMode = ref<'create' | 'edit' | 'view'>('create');
 const currentEditConfig = ref<ConfigPolicy | null>(null);
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
-  checked: ['priority', 'configpolicy_name', 'version', 'biz_name', 'plugin_name', 'remark', 'scopes', 'operator', 'updated_time', 'enabled', 'action'],
+  checked: ['priority', 'configpolicy_name', 'version', 'biz_name', 'target_plugin_name', 'remark', 'scopes', 'operator', 'updated_time', 'enabled', 'action'],
   disabled: ['action'],
 }, 'rulesMng-config_policy_plugin');
 
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
   { id: 'configpolicy_name', name: t('agentStrategy.table.configName'), children: [] },
-  { id: 'plugin_name', name: t('agentStrategy.table.pluginName'), children: [] },
+  { id: 'target_plugin_name', name: t('agentStrategy.table.pluginName'), children: [] },
   { id: 'operator', name: t('agentStrategy.table.operator'), children: [] },
 ]);
 
@@ -358,7 +358,7 @@ const getNetworkUnitList = async (data: { bk_networkunit_id: number }[]) => {
   networkUnitList.value = res.items;
 };
 
-const fuzzyKeys = new Set(['configpolicy_name', 'plugin_name', 'operator']);
+const fuzzyKeys = new Set(['configpolicy_name', 'operator']);
 const getParams = () => {
   const params = {
     page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },

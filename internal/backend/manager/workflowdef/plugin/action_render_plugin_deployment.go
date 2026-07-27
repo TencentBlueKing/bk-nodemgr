@@ -16,6 +16,7 @@ import (
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -30,6 +31,9 @@ import (
 const (
 	// ActionNameRenderPluginDeployment defines the action name.
 	ActionNameRenderPluginDeployment = "render_plugin_deployment"
+
+	pluginCPULimitConfigKey = "plugin.base.cpu_percent_limit"
+	pluginMemLimitConfigKey = "plugin.base.mem_percent_limit"
 )
 
 // NewActionRenderPluginDeployment ...
@@ -38,6 +42,7 @@ func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 		daoHost:             capability.StorageTopo,
 		daoPluginPkg:        capability.StorageRelease,
 		daoPluginDeployment: capability.StoragePlugin,
+		storageConfigPolicy: capability.StorageConfigPolicy,
 	}
 }
 
@@ -51,6 +56,7 @@ type actionRenderPluginDeployment struct {
 	daoHost             topoStg.IStorageHost
 	daoPluginPkg        releaseStg.IPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	storageConfigPolicy configpolicy.IDaoConfigPolicyNode
 }
 
 // Name returns the name of the action.
@@ -183,7 +189,6 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		std.DeployInfo().Process.Identity.User = gse.WindowsOperateUser
 	}
 
-	// TODO: 接入配置管理
 	// nolint: mnd
 	std.DeployInfo().Process.Resource = types.ProcessResource{
 		CPULimitPercent: 10,
@@ -199,9 +204,54 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		OpTimeoutSecs:  5,
 	}
 
+	matchResult, err := act.storageConfigPolicy.MatchConfigPolicyPlugin(nCtx,
+		host.Static.BizID, host.Static.NetworkAreaID, host.Dynamic.NetworkUnitID,
+		host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch,
+		std.DeployInfo().Process.PluginName, host.HostID)
+	if err != nil {
+		return fmt.Errorf("failed to match plugin config policy, plugin-name(%s), host-id(%d): %w",
+			std.DeployInfo().Process.PluginName, host.HostID, err)
+	}
+	if matchResult != nil {
+		if err = overridePluginResource(matchResult.MergedConfig, &std.DeployInfo().Process.Resource); err != nil {
+			return fmt.Errorf("failed to override plugin resource: %w", err)
+		}
+	}
+
 	if std.DeployInfo().InstallOptions.CustomSpec != nil {
 		std.DeployInfo().Process.Resource = std.DeployInfo().InstallOptions.CustomSpec.Resource
 		std.DeployInfo().Process.MonitorPolicy = std.DeployInfo().InstallOptions.CustomSpec.MonitorPolicy
+	}
+
+	return nil
+}
+
+func overridePluginResource(config map[string]any, resource *types.ProcessResource) error {
+	for key, value := range config {
+		switch key {
+		case pluginCPULimitConfigKey:
+			limit, err := conv.ToInt64(value)
+			if err != nil {
+				return fmt.Errorf("invalid plugin CPU limit: %w", err)
+			}
+
+			if limit < 0 {
+				return fmt.Errorf("cpu_percent_limit in policy can not be negative, limit: %d", limit)
+			}
+
+			resource.CPULimitPercent = float64(limit)
+		case pluginMemLimitConfigKey:
+			limit, err := conv.ToInt64(value)
+			if err != nil {
+				return fmt.Errorf("invalid plugin memory limit: %w", err)
+			}
+
+			if limit < 0 {
+				return fmt.Errorf("mem_percent_limit in policy can not be negative, limit: %d", limit)
+			}
+
+			resource.MemLimitPercent = float64(limit)
+		}
 	}
 
 	return nil

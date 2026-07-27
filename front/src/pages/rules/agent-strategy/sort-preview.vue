@@ -517,6 +517,7 @@ const fetchPreviewMatchStrategy = async () => {
     const res = await ConfigPolicyAPIService.ConfigPolicyPreview({
       bk_biz_id: props.bizId,
       policy_type: props.configpolicyType,
+      plugin_name: '',
       hosts: selectedHosts.value.map(host => ({
         bk_host_id: host.bk_host_id,
         bk_networkunit_id: host.bk_networkunit_id || 0,

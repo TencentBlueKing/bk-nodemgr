@@ -59,6 +59,30 @@ func (s *Storage) matchConfigPolicyNode(nCtx contextx.IContext,
 	return &result, nil
 }
 
+func (s *Storage) matchConfigPolicyPlugin(nCtx contextx.IContext,
+	bizID, networkAreaID, networkUnitID int64,
+	osType criteria.OSType, cpuArch criteria.CPUArch,
+	targetPluginName string, hostID int64) (*types.ConfigPolicyMatchResult, error) {
+
+	// Keep the same cascading semantics as agent and proxy policies: lower-priority
+	// policies provide defaults and higher-priority policies override conflicts.
+	page := types.Page{Limit: 0, Sort: types.WithFieldDesc(configpolicy.FieldKeyPriority)}
+	opts := []configpolicy.OptFn{
+		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch, hostID),
+		configpolicy.WithConfigPolicyType(types.ConfigPolicyTypePlugin),
+		configpolicy.WithTargetPluginName(targetPluginName),
+	}
+
+	results, _, err := s.daoConfigPolicy.List(nCtx, page, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list plugin config policy: %w", err)
+	}
+
+	result := buildMatchResult(hostID, results)
+
+	return &result, nil
+}
+
 func buildMatchResult(hostID int64, policies []*types.ConfigPolicy) types.ConfigPolicyMatchResult {
 	matched := conv.SliceToSlice(policies, func(p *types.ConfigPolicy) types.ConfigPolicyMatchedPolicy {
 		return types.ConfigPolicyMatchedPolicy{
@@ -203,7 +227,8 @@ func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCon
 				configpolicy.WithConfigPolicyID(condition.ExactInclude.ConfigPolicyID...),
 				configpolicy.WithConfigPolicyType(condition.ExactInclude.Type...),
 				configpolicy.WithBizID(condition.ExactInclude.BizID...),
-				configpolicy.WithEnabled(condition.ExactInclude.Enabled...))
+				configpolicy.WithEnabled(condition.ExactInclude.Enabled...),
+				configpolicy.WithTargetPluginName(condition.ExactInclude.TargetPluginName...))
 		}
 
 		if condition.FuzzyInclude != nil {
@@ -235,7 +260,7 @@ type scopeConstraints struct {
 
 // previewConfigPolicy queries all enabled policies once and filters per host in memory.
 func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
-	bizID int64, policyType types.ConfigPolicyType,
+	bizID int64, policyType types.ConfigPolicyType, targetPluginName string,
 	hosts []types.ConfigPolicyPreviewHost) (*types.ConfigPolicyPreviewResult, error) {
 
 	if len(hosts) == 0 {
@@ -250,6 +275,11 @@ func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
 		configpolicy.WithConfigPolicyType(policyType),
 		configpolicy.WithEnabled(true),
 	}
+
+	if policyType == types.ConfigPolicyTypePlugin {
+		opts = append(opts, configpolicy.WithTargetPluginName(targetPluginName))
+	}
+
 	allPolicies, _, err := s.daoConfigPolicy.List(nCtx, page, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all enabled policies: %w", err)
