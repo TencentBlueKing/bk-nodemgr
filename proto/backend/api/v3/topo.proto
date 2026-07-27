@@ -456,6 +456,8 @@ message TopoHostExactConditions {
   repeated string proxy_tags = 12;
   repeated int64 bk_set_id = 13;
   repeated int64 bk_module_id = 14;
+  repeated string bk_host_innerip = 15;
+  repeated string bk_host_innerip_v6 = 16;
 }
 
 // TopoHostFuzzyConditions describes host fuzzy conditions.
