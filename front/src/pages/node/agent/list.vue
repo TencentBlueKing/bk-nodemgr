@@ -664,7 +664,7 @@ const statusMap = computed(() => {
   return map;
 });
 
-const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
+const fuzzyKeys = new Set(['bk_host_name', 'dept_name']);
 
 // ---------- 计算属性 ----------
 const maxHeight = computed(() => mainStore.windowInnerHeight - 264 - (mainStore.noticeShow ? 40 : 0));
@@ -883,10 +883,10 @@ const getParams = () => {
       });
       
       if (ipv4List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
       }
       if (ipv6List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
       return;
     }
@@ -919,10 +919,10 @@ const getParams = () => {
         params.exact_include_conditions.bk_networkarea_id = areaIds;
       }
       if (ipv4List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
       }
       if (ipv6List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
       return;
     }
