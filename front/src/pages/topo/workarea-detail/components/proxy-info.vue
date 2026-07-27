@@ -330,10 +330,7 @@ const selectTableData = ref<Host[]>([]);
 const excludedIds = ref<number[]>([]);
 
 const getParams = () => {
-  const fuzzyKeys = new Set([
-    'bk_host_innerip',
-    'bk_host_innerip_v6',
-  ]);
+  const fuzzyKeys = new Set<string>();
   const params = {
     exact_include_conditions: {
       node_role: ['proxy'],
@@ -356,10 +353,10 @@ const getParams = () => {
         }
       });
       if (ipv4List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
       }
       if (ipv6List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
       return;
     }
@@ -386,10 +383,10 @@ const getParams = () => {
         params.exact_include_conditions.bk_networkarea_id = Array.from(areaIds);
       }
       if (ipv4List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
       }
       if (ipv6List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
       return;
     }

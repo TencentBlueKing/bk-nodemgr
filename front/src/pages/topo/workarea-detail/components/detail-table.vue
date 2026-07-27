@@ -591,8 +591,6 @@ const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d
 const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 const AREA_IP_REG = /^(\d+):(.+)$/; // 管控区域ID:IP 格式
 const fuzzyKeys = new Set([
-  'bk_host_innerip',
-  'bk_host_innerip_v6',
   'dept_name',
 ]);
 const getParams = () => {
@@ -625,10 +623,10 @@ const getParams = () => {
         }
       });
       if (ipv4List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
       }
       if (ipv6List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
       return;
     }
@@ -655,10 +653,10 @@ const getParams = () => {
         params.exact_include_conditions.bk_networkarea_id = Array.from(areaIds);
       }
       if (ipv4List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip = ipv4List;
+        params.exact_include_conditions.bk_host_innerip = ipv4List;
       }
       if (ipv6List.length > 0) {
-        params.fuzzy_include_conditions.bk_host_innerip_v6 = ipv6List;
+        params.exact_include_conditions.bk_host_innerip_v6 = ipv6List;
       }
       return;
     }
