@@ -22,9 +22,7 @@ const (
 	OperDefNameInstallPagntNodeByWindowsSSH = "install_pagent_node_by_windows_ssh"
 )
 
-// NewOperInstallPagentNodeByWindowsSSH creates a dormant operation.
-// Selection is deferred because the retained SSH detection seam is Unix-only and rejects Windows;
-// future Windows-capable relay detection and selector wiring must replace or extend it.
+// NewOperInstallPagentNodeByWindowsSSH creates a Windows SSH P-Agent install operation.
 func NewOperInstallPagentNodeByWindowsSSH(param OperParamInstallPagentNodeByWindowsSSH) operation.Definition {
 	return &operInstallPagentNodeByWindowsSSH{param: param}
 }
@@ -50,7 +48,7 @@ func (oper *operInstallPagentNodeByWindowsSSH) ActionDefNames() []string {
 		ActionNameTryReuseAgentID,
 		ActionNameUpsertHostToCMDB,
 		ActionNameSelectRelayHost,
-		ActionNamePagentDetectInfoBySSH,
+		ActionNamePagentDetectInfoByWindowsSSH,
 		ActionNameInjectNodeCustomDeployConfig,
 		ActionNameRenderNodeDeployment,
 		ActionNameEnsurePkgToRelay,
@@ -74,7 +72,7 @@ func (oper *operInstallPagentNodeByWindowsSSH) DefaultParameters() operation.Par
 			ActionNameTryReuseAgentID:              true,
 			ActionNameUpsertHostToCMDB:             true,
 			ActionNameSelectRelayHost:              true,
-			ActionNamePagentDetectInfoBySSH:        true,
+			ActionNamePagentDetectInfoByWindowsSSH: true,
 			ActionNameInjectNodeCustomDeployConfig: true,
 			ActionNameRenderNodeDeployment:         true,
 			ActionNameEnsurePkgToRelay:             true,
