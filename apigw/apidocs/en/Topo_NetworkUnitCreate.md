@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkunit_create (Create Network Unit).
 - Function: Create a network unit with access points, links, and deployment configuration.
 
@@ -12,13 +12,13 @@ POST /api/v3/topo/networkunit/create
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| bk_networkunit_name | string | No | Network unit name |
-| bk_networkarea_id | int64 | No | Network area ID |
+| bk_networkunit_name | string | Yes | Network unit name |
+| bk_networkarea_id | int64 | Yes | Network area ID |
 | accesspoints | object array | No | Access point list |
 | links | object | No | Link configuration |
 | is_direct | bool | No | Whether it is directly connected |
 | direct_endpoints | object | No | Direct endpoint configuration |
-| generation | int64 | No | Generation |
+| generation | int64 | Yes | Generation |
 | custom_deploy_config | object | No | Custom deployment configuration |
 
 #### accesspoints[n]

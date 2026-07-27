@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: proxy_operate (Operate Proxy).
 - Function: Batch-check whether Proxies can be upgraded.
 
@@ -12,7 +12,7 @@ POST /api/v3/node/proxy/upgrade_check
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| host | object array | No | Host information list |
+| host | object array | Yes | Host information list |
 | target_version | object array | No | Target version list |
 
 #### host[n]

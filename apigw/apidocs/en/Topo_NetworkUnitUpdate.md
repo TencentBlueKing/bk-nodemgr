@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkunit_edit (Edit Network Unit).
 - Function: Update network unit base information, access points, links, and deployment configuration.
 
@@ -12,17 +12,17 @@ POST /api/v3/topo/networkunit/update
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| networkunit | object | No | Network unit information |
-| fields | object | No | Fields to update |
+| networkunit | object | Yes | Network unit information |
+| fields | object | Yes | Fields to update |
 
 #### networkunit
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | tenant_id | string | No | Tenant ID |
-| bk_networkunit_id | int64 | No | Network unit ID |
+| bk_networkunit_id | int64 | Yes | Network unit ID |
 | bk_networkunit_name | string | No | Network unit name |
-| bk_networkarea_id | int64 | No | Network area ID |
+| bk_networkarea_id | int64 | Yes | Network area ID |
 | accesspoints | object array | No | Access point list |
 | links | object | No | Link configuration |
 | is_direct | bool | No | Whether it is directly connected |

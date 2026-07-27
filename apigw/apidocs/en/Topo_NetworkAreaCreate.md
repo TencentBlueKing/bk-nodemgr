@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkarea_create (Create Network Area).
 - Function: Create a network area and synchronize it into local topology data.
 
@@ -12,8 +12,8 @@ POST /api/v3/topo/networkarea/create
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| bk_networkarea_name | string | No | Network area name |
-| cloud_vendor | string | No | Cloud vendor identifier |
+| bk_networkarea_name | string | Yes | Network area name |
+| cloud_vendor | string | Yes | Cloud vendor identifier |
 
 ### Request Example
 

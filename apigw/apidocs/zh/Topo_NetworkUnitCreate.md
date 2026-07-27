@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.57+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：networkunit_create（创建管控单元）。
 - 该接口功能描述：创建管控单元，并配置关联接入点、链路与部署配置。
 
@@ -12,13 +12,13 @@ POST /api/v3/topo/networkunit/create
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| bk_networkunit_name | string | 否 | 管控单元名称 |
-| bk_networkarea_id | int64 | 否 | 管控区域 ID |
+| bk_networkunit_name | string | 是 | 管控单元名称 |
+| bk_networkarea_id | int64 | 是 | 管控区域 ID |
 | accesspoints | object array | 否 | 接入点列表 |
 | links | object | 否 | 链路配置 |
 | is_direct | bool | 否 | 是否直连 |
 | direct_endpoints | object | 否 | 直连端点配置 |
-| generation | int64 | 否 | 代际 |
+| generation | int64 | 是 | 代际 |
 | custom_deploy_config | object | 否 | 自定义部署配置 |
 
 #### accesspoints[n]

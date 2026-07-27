@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.57+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：agent_operate（操作Agent）。
 - 该接口功能描述：批量更新 Agent 主机的带外管理字段，并同步到 CMDB。
 
@@ -12,13 +12,13 @@ POST /api/v3/node/agent/update_ops_fields
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| hosts | object array | 否 | 主机信息列表 |
+| hosts | object array | 是 | 主机信息列表 |
 
 #### hosts[n]
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| bk_host_id | int64 | 否 | 主机 ID |
+| bk_host_id | int64 | 是 | 主机 ID |
 | ops_console_host_id | int64 | 否 | 带外管理控制台主机 ID |
 | ops_out_band_type | string | 否 | 带外管理类型 |
 | ops_out_band_protocol | string | 否 | 带外管理协议 |

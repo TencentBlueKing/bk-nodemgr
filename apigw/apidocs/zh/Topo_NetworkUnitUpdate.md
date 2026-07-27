@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.57+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：networkunit_edit（编辑管控单元）。
 - 该接口功能描述：更新管控单元基础信息、接入点、链路与部署配置。
 
@@ -12,17 +12,17 @@ POST /api/v3/topo/networkunit/update
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| networkunit | object | 否 | 管控单元信息 |
-| fields | object | 否 | 需要更新的字段列表 |
+| networkunit | object | 是 | 管控单元信息 |
+| fields | object | 是 | 需要更新的字段列表 |
 
 #### networkunit
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | tenant_id | string | 否 | 租户 ID |
-| bk_networkunit_id | int64 | 否 | 管控单元 ID |
+| bk_networkunit_id | int64 | 是 | 管控单元 ID |
 | bk_networkunit_name | string | 否 | 管控单元名称 |
-| bk_networkarea_id | int64 | 否 | 管控区域 ID |
+| bk_networkarea_id | int64 | 是 | 管控区域 ID |
 | accesspoints | object array | 否 | 接入点列表 |
 | links | object | 否 | 链路配置 |
 | is_direct | bool | 否 | 是否直连 |

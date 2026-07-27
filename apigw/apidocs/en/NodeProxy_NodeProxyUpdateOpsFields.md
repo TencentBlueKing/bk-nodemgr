@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: proxy_operate (Operate Proxy).
 - Function: Batch-update out-of-band management fields for Proxy hosts and synchronize them to CMDB.
 
@@ -12,13 +12,13 @@ POST /api/v3/node/proxy/update_ops_fields
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| hosts | object array | No | Host information list |
+| hosts | object array | Yes | Host information list |
 
 #### hosts[n]
 
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
-| bk_host_id | int64 | No | Host ID |
+| bk_host_id | int64 | Yes | Host ID |
 | ops_console_host_id | int64 | No | Out-of-band console host ID |
 | ops_out_band_type | string | No | Out-of-band management type |
 | ops_out_band_protocol | string | No | Out-of-band management protocol |

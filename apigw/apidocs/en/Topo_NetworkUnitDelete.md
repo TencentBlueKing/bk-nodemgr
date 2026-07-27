@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkunit_delete (Delete Network Unit).
 - Function: Delete a network unit by network unit ID.
 

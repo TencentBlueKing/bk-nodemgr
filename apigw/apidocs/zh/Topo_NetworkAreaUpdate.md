@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.57+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：networkarea_edit（编辑管控区域）。
 - 该接口功能描述：根据管控区域 ID 更新管控区域名称与云区域标识。
 
@@ -13,8 +13,8 @@ POST /api/v3/topo/networkarea/update
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
 | bk_networkarea_id | int64 | 否 | 管控区域 ID |
-| bk_networkarea_name | string | 否 | 管控区域名称 |
-| cloud_vendor | string | 否 | 云区域标识 |
+| bk_networkarea_name | string | 是 | 管控区域名称 |
+| cloud_vendor | string | 是 | 云区域标识 |
 
 ### 调用示例
 

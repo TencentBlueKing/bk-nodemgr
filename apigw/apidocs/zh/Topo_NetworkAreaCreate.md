@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.57+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：networkarea_create（创建管控区域）。
 - 该接口功能描述：创建管控区域，并同步写入本地拓扑数据。
 
@@ -12,8 +12,8 @@ POST /api/v3/topo/networkarea/create
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| bk_networkarea_name | string | 否 | 管控区域名称 |
-| cloud_vendor | string | 否 | 云区域标识 |
+| bk_networkarea_name | string | 是 | 管控区域名称 |
+| cloud_vendor | string | 是 | 云区域标识 |
 
 ### 调用示例
 

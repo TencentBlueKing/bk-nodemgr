@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: None.
 - Function: Select host inner IPv6 addresses in batches by host conditions.
 

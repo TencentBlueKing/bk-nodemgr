@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.57+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkarea_edit (Edit Network Area).
 - Function: Update a network area name and cloud vendor by network area ID.
 
@@ -13,8 +13,8 @@ POST /api/v3/topo/networkarea/update
 | Parameter Name | Parameter Type | Required | Description |
 |---------------|----------------|----------|-------------|
 | bk_networkarea_id | int64 | No | Network area ID |
-| bk_networkarea_name | string | No | Network area name |
-| cloud_vendor | string | No | Cloud vendor identifier |
+| bk_networkarea_name | string | Yes | Network area name |
+| cloud_vendor | string | Yes | Cloud vendor identifier |
 
 ### Request Example
 

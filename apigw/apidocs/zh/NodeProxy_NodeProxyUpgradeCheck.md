@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.57+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：proxy_operate（操作Proxy）。
 - 该接口功能描述：批量检查 Proxy 是否满足升级条件。
 
@@ -12,7 +12,7 @@ POST /api/v3/node/proxy/upgrade_check
 
 | 参数名称 | 参数类型 | 必选 | 描述 |
 |---------|----------|------|------|
-| host | object array | 否 | 主机信息列表 |
+| host | object array | 是 | 主机信息列表 |
 | target_version | object array | 否 | 目标版本列表 |
 
 #### host[n]
