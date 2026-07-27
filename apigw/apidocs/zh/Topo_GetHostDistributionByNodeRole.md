@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：networkarea_view（查看管控区域）。
 - 该接口功能描述：根据主机筛选条件统计各节点角色对应的主机数量分布。
 
@@ -24,6 +24,8 @@ POST /api/v3/topo/host/get_host_distribution_by_node_role
 | bk_host_id | int64 array | 否 | 主机 ID 列表 |
 | bk_biz_id | int64 array | 否 | 业务 ID 列表 |
 | bk_networkarea_id | int64 array | 否 | 管控区域 ID 列表 |
+| bk_host_innerip | string array | 否 | 主机内网 IPv4 列表，按完整内网 IPv4 精确匹配 |
+| bk_host_innerip_v6 | string array | 否 | 主机内网 IPv6 列表，按完整内网 IPv6 精确匹配 |
 | os_type | string array | 否 | 操作系统类型列表 |
 | node_role | string array | 否 | 节点角色列表 |
 | node_status | string array | 否 | 节点状态列表 |
