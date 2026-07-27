@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1+。
+- 该接口提供版本：v3.0.1-alpha.60+。
 - 该接口所需权限：agent_view（查看 Agent）、proxy_view（查看 Proxy）。
 - 该接口功能描述：查询主机列表，支持分页、按主机/节点属性过滤，并按最近更新时间倒序返回结果。
 
@@ -33,6 +33,8 @@ POST /api/v3/topo/host/list
 | bk_host_id        | int64 array  | 否   | 主机 ID 列表                                                                                                          |
 | bk_biz_id         | int64 array  | 否   | 业务 ID 列表                                                                                                          |
 | bk_networkarea_id | int64 array  | 否   | 管控区域 ID 列表                                                                                                      |
+| bk_host_innerip    | string array | 否   | 主机内网 IPv4 列表，按完整内网 IPv4 精确匹配                                                                          |
+| bk_host_innerip_v6 | string array | 否   | 主机内网 IPv6 列表，按完整内网 IPv6 精确匹配                                                                          |
 | bk_set_id         | int64 array  | 否   | 集群 ID 列表                                                                                                          |
 | bk_module_id      | int64 array  | 否   | 模块 ID 列表                                                                                                          |
 | os_type           | string array | 否   | 操作系统类型列表                                                                                                      |
@@ -71,11 +73,11 @@ POST /api/v3/topo/host/list
   "exact_include_conditions": {
     "bk_biz_id": [2],
     "node_role": ["agent"],
-    "node_status": ["running"]
+    "node_status": ["running"],
+    "bk_host_innerip": ["10.0.0.12"],
+    "bk_host_innerip_v6": ["2001:db8::12"]
   },
-  "fuzzy_include_conditions": {
-    "bk_host_innerip": ["10.0.0."]
-  }
+  "fuzzy_include_conditions": {}
 }
 ```
 

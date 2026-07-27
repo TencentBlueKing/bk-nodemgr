@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: `agent_view` (View Agent), `proxy_view` (View Proxy).
 - Function: Query the host list with pagination and filtering by host and node attributes, and return results in descending order by the latest update time.
 
@@ -33,6 +33,8 @@ Exact match include conditions. Each field is an array and the server filters ho
 | bk_host_id        | int64 array  | No       | Host ID list                                                                                                                            |
 | bk_biz_id         | int64 array  | No       | Business ID list                                                                                                                        |
 | bk_networkarea_id | int64 array  | No       | Network area ID list                                                                                                                    |
+| bk_host_innerip    | string array | No       | Host internal IPv4 list, matched exactly by full internal IPv4                                                                          |
+| bk_host_innerip_v6 | string array | No       | Host internal IPv6 list, matched exactly by full internal IPv6                                                                          |
 | bk_set_id         | int64 array  | No       | Set ID list                                                                                                                             |
 | bk_module_id      | int64 array  | No       | Module ID list                                                                                                                          |
 | os_type           | string array | No       | Operating system type list                                                                                                              |
@@ -71,11 +73,11 @@ Query running Agent hosts under business `2` and return the first 10 records.
   "exact_include_conditions": {
     "bk_biz_id": [2],
     "node_role": ["agent"],
-    "node_status": ["running"]
+    "node_status": ["running"],
+    "bk_host_innerip": ["10.0.0.12"],
+    "bk_host_innerip_v6": ["2001:db8::12"]
   },
-  "fuzzy_include_conditions": {
-    "bk_host_innerip": ["10.0.0."]
-  }
+  "fuzzy_include_conditions": {}
 }
 ```
 
