@@ -15,29 +15,58 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout PR
+      - name: Checkout base config
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
       - name: Get PR changed files
         id: changed-files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # 获取PR编号和变更文件
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
-          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
-          echo "$CHANGED_FILES" > changed_files.txt
-          
+          set -euo pipefail
+
+          : > changed_files.txt
+          page=1
+          while true; do
+            response=$(curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}")
+
+            if ! jq -e 'type == "array"' >/dev/null <<<"${response}"; then
+              echo "PR files API response is not an array" >&2
+              exit 1
+            fi
+
+            count=$(jq 'length' <<<"${response}")
+            jq -r '.[].filename' <<<"${response}" >> changed_files.txt
+            if [ "${count}" -lt 100 ]; then
+              break
+            fi
+            if [ "${page}" -ge 30 ]; then
+              echo "PR files list exceeds the 3000-file API limit" >&2
+              exit 1
+            fi
+            page=$((page + 1))
+          done
+
           # 调试输出
-          echo "PR编号: $PR_NUMBER"
+          echo "PR编号: ${PR_NUMBER}"
           echo "变更文件列表:"
           cat changed_files.txt
 
       - name: Check for missing AGENTS
         id: check-agents
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          set -euo pipefail
+
           # 检查pkg目录下的变更
           PKG_FILES=$(grep "^pkg/" changed_files.txt || echo "")
           if [ -z "$PKG_FILES" ]; then
@@ -45,45 +74,95 @@ jobs:
             echo "HAS_MISSING=false" >> $GITHUB_ENV
             exit 0
           fi
-          
+
           echo "pkg目录下的变更文件:"
           echo "$PKG_FILES"
-          
+
           # 创建临时文件存储结果
           touch missing_agents_dirs.txt
-          
+          mkdir -p contents-cache
+
+          api_encode_path() {
+            jq -nr --arg value "$1" '$value | split("/") | map(@uri) | join("/")'
+          }
+
+          api_encode_value() {
+            jq -nr --arg value "$1" '$value | @uri'
+          }
+
+          check_pkg_dir() {
+            local dir="$1"
+            local cache_key cache_file status_file encoded_dir encoded_ref status
+
+            cache_key=$(printf '%s' "$dir" | sha256sum | awk '{print $1}')
+            cache_file="contents-cache/${cache_key}.json"
+            status_file="contents-cache/${cache_key}.status"
+
+            if [ ! -f "$cache_file" ]; then
+              encoded_dir=$(api_encode_path "$dir")
+              encoded_ref=$(api_encode_value "$HEAD_SHA")
+              status=$(curl --silent --show-error \
+                -H "Authorization: Bearer ${GH_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                -o "$cache_file" \
+                -w "%{http_code}" \
+                "https://api.github.com/repos/${REPOSITORY}/contents/${encoded_dir}?ref=${encoded_ref}")
+              echo "$status" > "$status_file"
+            fi
+
+            status=$(cat "$status_file")
+            if [ "$status" = "404" ]; then
+              echo "✗ $dir 在 PR head 中不存在"
+              return 0
+            fi
+            if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+              echo "查询 $dir 内容失败，HTTP 状态码: $status" >&2
+              cat "$cache_file" >&2
+              return 1
+            fi
+            if ! jq -e 'type == "array"' >/dev/null < "$cache_file"; then
+              echo "$dir 的 Contents API 响应不是目录数组" >&2
+              cat "$cache_file" >&2
+              return 1
+            fi
+            if [ "$(jq 'length' "$cache_file")" -ge 1000 ]; then
+              echo "$dir 目录条目达到 Contents API 1000 项限制，无法安全判断" >&2
+              return 1
+            fi
+
+            if jq -e 'any(.[]; .type == "file" and .name == "AGENTS.md")' >/dev/null < "$cache_file"; then
+              echo "✅ 在 $dir 目录找到AGENTS.md"
+              return 0
+            fi
+
+            echo "❌ $dir 目录缺少AGENTS.md"
+            if jq -e 'any(.[]; .type == "file" and (.name | endswith(".go")))' >/dev/null < "$cache_file"; then
+              echo "✓ $dir 是Go包目录"
+              if ! grep -q "^$dir$" missing_agents_dirs.txt; then
+                echo "$dir" >> missing_agents_dirs.txt
+                echo "已添加 $dir 到缺失AGENTS列表"
+              fi
+            else
+              echo "✗ $dir 不是Go包目录"
+            fi
+          }
+
           # 提取Go包目录并检查 AGENTS
-          grep "\.go$" changed_files.txt | grep "^pkg/" | while read -r file; do
+          (grep "\.go$" changed_files.txt | grep "^pkg/" || true) | while read -r file; do
             # 获取文件目录
             dir=$(dirname "$file")
             echo "检查Go文件: $file"
             echo "所在目录: $dir"
-          
-            # 检查当前目录是否有 AGENTS
-            if [ -f "$dir/AGENTS.md" ]; then
-              echo "✅ 在 $dir 目录找到AGENTS.md"
-            else
-              echo "❌ $dir 目录缺少AGENTS.md"
-          
-              # 确认是Go包目录
-              if [ -n "$(find "$dir" -maxdepth 1 -name "*.go" 2>/dev/null)" ]; then
-                echo "✓ $dir 是Go包目录"
-                # 检查是否已添加
-                if ! grep -q "^$dir$" missing_agents_dirs.txt; then
-                  echo "$dir" >> missing_agents_dirs.txt
-                  echo "已添加 $dir 到缺失AGENTS列表"
-                fi
-              else
-                echo "✗ $dir 不是Go包目录"
-              fi
-            fi
+
+            check_pkg_dir "$dir"
           done
-          
+
           # 读取结果
           MISSING_DIRS=$(cat missing_agents_dirs.txt | sort | uniq || echo "")
           echo "缺少AGENTS的目录:"
           echo "$MISSING_DIRS"
-          
+
           # 设置环境变量
           if [ -n "$MISSING_DIRS" ]; then
             echo "HAS_MISSING=true" >> $GITHUB_ENV
