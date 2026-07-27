@@ -4,6 +4,9 @@ on:
   pull_request_target:
     types: [opened, edited, synchronize, ready_for_review]
 
+permissions:
+  pull-requests: read
+
 jobs:
   check-reviews:
     runs-on: self-hosted
@@ -12,10 +15,6 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       # Step 2: Setup Node.js (for running the script)
       - name: Setup Node.js
         uses: actions/setup-node@v3
