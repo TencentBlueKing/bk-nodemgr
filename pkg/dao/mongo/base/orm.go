@@ -992,6 +992,7 @@ func cloneScanAllFilter(filter bson.D) bson.D {
 
 func (orm *Orm[P, T]) scanAllBatch(
 	nCtx contextx.IContext, cursor *mongo.Cursor, lastID *any, dataPoints *[]P) (batchCount int64, advanced bool, err error) {
+
 	defer func() {
 		if closeErr := cursor.Close(nCtx); closeErr != nil {
 			logger.G.Sys().Ctx(nCtx).WithErr(closeErr).With("table", orm.dao.GetTableName()).Warn("failed to close scan all cursor")

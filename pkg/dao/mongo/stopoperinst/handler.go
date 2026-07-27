@@ -57,7 +57,7 @@ func (h *handler) Upsert(nCtx contextx.IContext, operInstID string) error {
 
 	data := &StopOperInst{
 		OperInstID: operInstID,
-		ExpireAt:   time.Now().Add(time.Second * 5),
+		ExpireAt:   time.Now().Add(time.Second * 5), // nolint: mnd
 	}
 	if err := h.dao.upsert(nCtx, data); err != nil {
 		return err
