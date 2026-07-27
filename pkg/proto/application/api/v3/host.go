@@ -290,6 +290,8 @@ func convertHostConditionsToTypes(
 			SetID:         exactCond.GetBkSetId(),
 			ModuleID:      exactCond.GetBkModuleId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			InnerIP:       exactCond.GetBkHostInnerip(),
+			InnerIPV6:     exactCond.GetBkHostInneripV6(),
 		}
 		condition.DynamicExactInclude = &types.HostDynamicExactFields{
 			NetworkUnitID:  exactCond.GetBkNetworkunitId(),
@@ -354,6 +356,8 @@ func convertHostConditionsFromTypes(
 		exactCond.BkSetId = condition.StaticExactInclude.SetID
 		exactCond.BkModuleId = condition.StaticExactInclude.ModuleID
 		exactCond.BkNetworkareaId = condition.StaticExactInclude.NetworkAreaID
+		exactCond.BkHostInnerip = condition.StaticExactInclude.InnerIP
+		exactCond.BkHostInneripV6 = condition.StaticExactInclude.InnerIPV6
 	}
 
 	if condition.DynamicExactInclude != nil {
