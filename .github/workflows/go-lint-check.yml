@@ -1,7 +1,7 @@
 name: Go Lint Check
 
 on:
-  pull_request_target:
+  pull_request:
     paths:
       - '**.go'
       - 'go.mod'
@@ -10,8 +10,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  checks: write
 
 jobs:
   golangci-lint:
@@ -27,21 +25,19 @@ jobs:
       - name: Check out PR source code
         uses: actions/checkout@v4
         with:
-          # 显式检出 PR 的源分支
-          ref: ${{ github.event.pull_request.head.sha }}
-          # 拉取完整历史以便比较
           fetch-depth: 0
-          # 对于分叉的PR可能需要此参数
-          # repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Fetch base branch for comparison
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
+          set -euo pipefail
           # 获取目标分支 (通常是 main/master)
-          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+          git fetch origin "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           # 打印诊断信息
           echo "PR head: $(git rev-parse HEAD)"
-          echo "Base branch: $(git rev-parse ${{ github.base_ref }})"
-          echo "Merge base: $(git merge-base ${{ github.base_ref }} HEAD)"
+          echo "Base branch: $(git rev-parse "origin/${BASE_REF}")"
+          echo "Merge base: $(git merge-base "origin/${BASE_REF}" HEAD)"
 
       - name: Run golangci-lint with config
         id: golangci-lint
@@ -52,21 +48,3 @@ jobs:
             --config=${{ github.workspace }}/.golangci.yml
             --timeout=5m
             --new-from-rev=origin/${{ github.base_ref }}
-        continue-on-error: true
-
-      - name: Create PR review on failure
-        if: steps.golangci-lint.outcome != 'success'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const pull_number = context.issue.number;
-            
-            await github.rest.pulls.createReview({
-              owner,
-              repo,
-              pull_number,
-              body: '### ❌ Lint 检查失败\n\nGolangCI-Lint 发现了一些问题，请修复这些 lint 警告后再次提交。\n\n详情请查看 [Lint 检查日志](https://github.com/'+owner+'/'+repo+'/actions/runs/'+context.runId+')',
-              event: 'REQUEST_CHANGES'
-            });
