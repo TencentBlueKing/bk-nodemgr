@@ -574,7 +574,7 @@
         },
         "param": {
           "type": "object",
-          "title": "param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For \"specify_agent\": see SpecifyAgentParam\n- For \"specify_proxy\": see SpecifyProxyParam\n- For \"specify_plugin\": see SpecifyPluginParam\n- For \"specify_plugin_pkg\": see SpecifyPluginPkgParam\n- For \"specify_plugin_sub_config\": see SpecifyPluginSubConfigParam"
+          "title": "param is a google.protobuf.Struct that contains the parameters for the\ndeploy spec. The structure of param depends on the type field:\n- For \"specify_agent\": see SpecifyAgentParam\n- For \"specify_proxy\": see SpecifyProxyParam\n- For \"specify_plugin\": see SpecifyPluginParam\n- For \"specify_plugin_pkg\": see SpecifyPluginPkgParam\n- For \"project_plugin_pkg_to_hosts\": see ProjectPluginPkgToHostsParam\n- For \"specify_plugin_sub_config\": see SpecifyPluginSubConfigParam"
         }
       },
       "description": "DeploySpec describes the spec of deploy policy."

@@ -70,6 +70,9 @@ const (
 	// DeploySpecTypeSpecifyPluginPkg defines specify plugin pkg.
 	DeploySpecTypeSpecifyPluginPkg DeploySpecType = "specify_plugin_pkg"
 
+	// DeploySpecTypeProjectPluginPkgToHosts defines project plugin pkg to hosts.
+	DeploySpecTypeProjectPluginPkgToHosts DeploySpecType = "project_plugin_pkg_to_hosts"
+
 	// DeploySpecTypeSpecifyPluginSubConfig defines specify plugin sub config.
 	DeploySpecTypeSpecifyPluginSubConfig DeploySpecType = "specify_plugin_sub_config"
 )
@@ -78,7 +81,7 @@ const (
 func (deploySpecType DeploySpecType) Validate() error {
 	switch deploySpecType {
 	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyProxy, DeploySpecTypeSpecifyPlugin,
-		DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeSpecifyPluginSubConfig:
+		DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeProjectPluginPkgToHosts, DeploySpecTypeSpecifyPluginSubConfig:
 		return nil
 	default:
 		return fmt.Errorf("invalid deploy spec type(%s)", deploySpecType)
@@ -94,6 +97,8 @@ func conflictDeploySpecTypes(specType DeploySpecType) []DeploySpecType {
 	case DeploySpecTypeSpecifyProxy:
 		return []DeploySpecType{}
 	case DeploySpecTypeSpecifyPluginPkg:
+		return []DeploySpecType{}
+	case DeploySpecTypeProjectPluginPkgToHosts:
 		return []DeploySpecType{}
 	case DeploySpecTypeSpecifyPluginSubConfig:
 		return []DeploySpecType{}
@@ -120,12 +125,13 @@ func (deploySpecType DeploySpecType) IsConflict(other DeploySpecType) bool {
 
 // DeploySpec defines the deploy spec of the deploy policy.
 type DeploySpec struct {
-	specType                    DeploySpecType
-	paramSpecifyAgent           *SpecifyAgentParam
-	paramSpecifyProxy           *SpecifyProxyParam
-	paramSpecifyPlugin          *SpecifyPluginParam
-	paramSpecifyPluginPkg       *SpecifyPluginPkgParam
-	paramSpecifyPluginSubConfig *SpecifyPluginSubConfigParam
+	specType                     DeploySpecType
+	paramSpecifyAgent            *SpecifyAgentParam
+	paramSpecifyProxy            *SpecifyProxyParam
+	paramSpecifyPlugin           *SpecifyPluginParam
+	paramSpecifyPluginPkg        *SpecifyPluginPkgParam
+	paramProjectPluginPkgToHosts *ProjectPluginPkgToHostsParam
+	paramSpecifyPluginSubConfig  *SpecifyPluginSubConfigParam
 }
 
 // Type returns the deploy spec type.
@@ -169,6 +175,18 @@ func NewDeploySpecWithSpecifyPluginPkg(param *SpecifyPluginPkgParam) (*DeploySpe
 	}, nil
 }
 
+// NewDeploySpecWithProjectPluginPkgToHosts creates a new DeploySpec with ProjectPluginPkgToHosts type.
+func NewDeploySpecWithProjectPluginPkgToHosts(param *ProjectPluginPkgToHostsParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeProjectPluginPkgToHosts")
+	}
+
+	return &DeploySpec{
+		specType:                     DeploySpecTypeProjectPluginPkgToHosts,
+		paramProjectPluginPkgToHosts: param,
+	}, nil
+}
+
 // NewDeploySpecWithSpecifyPluginSubConfig creates a new DeploySpec with SpecifyPluginSubConfig type.
 func NewDeploySpecWithSpecifyPluginSubConfig(param *SpecifyPluginSubConfigParam) (*DeploySpec, error) {
 	if param == nil {
@@ -208,6 +226,12 @@ func (spec *DeploySpec) UniqueID() (string, error) {
 		}
 
 		// notice: pkg plugin has their own unique conflict group, so we use uuid to generate unique id.
+		return uuid.NewString(), nil
+	case DeploySpecTypeProjectPluginPkgToHosts:
+		if spec.paramProjectPluginPkgToHosts == nil {
+			return "", fmt.Errorf("param_project_plugin_pkg_to_hosts is nil")
+		}
+
 		return uuid.NewString(), nil
 	case DeploySpecTypeSpecifyPluginSubConfig:
 		if spec.paramSpecifyPluginSubConfig == nil {
@@ -364,6 +388,50 @@ func (param *SpecifyPluginPkgParam) Validate() error {
 
 	if param.Version == "" {
 		return fmt.Errorf("version is required")
+	}
+
+	return nil
+}
+
+// ProjectPluginPkgToHostsParam defines the project plugin pkg to hosts param.
+type ProjectPluginPkgToHostsParam struct {
+	PluginPkgName       string
+	Version             string
+	CustomConfigContext map[string]any
+	PlacementHostIDs    []int64
+}
+
+// GetProjectPluginPkgToHostsParam returns the project plugin pkg to hosts param.
+func (spec *DeploySpec) GetProjectPluginPkgToHostsParam() (*ProjectPluginPkgToHostsParam, error) {
+	if spec.paramProjectPluginPkgToHosts == nil {
+		return nil, fmt.Errorf("param_project_plugin_pkg_to_hosts is nil")
+	}
+
+	if err := spec.paramProjectPluginPkgToHosts.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate project plugin pkg to hosts param: %w", err)
+	}
+
+	return spec.paramProjectPluginPkgToHosts, nil
+}
+
+// Validate validates the project plugin pkg to hosts param.
+func (param *ProjectPluginPkgToHostsParam) Validate() error {
+	if param.PluginPkgName == "" {
+		return fmt.Errorf("plugin_pkg_name is required")
+	}
+
+	if param.Version == "" {
+		return fmt.Errorf("version is required")
+	}
+
+	if len(param.PlacementHostIDs) == 0 {
+		return fmt.Errorf("placement_host_ids is required")
+	}
+
+	for idx, hostID := range param.PlacementHostIDs {
+		if hostID <= 0 {
+			return fmt.Errorf("placement_host_ids[%d] is invalid: %d", idx, hostID)
+		}
 	}
 
 	return nil

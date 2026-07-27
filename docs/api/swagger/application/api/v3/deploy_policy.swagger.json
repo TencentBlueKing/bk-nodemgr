@@ -155,11 +155,11 @@
       "type": "object",
       "properties": {
         "deploy_policy_id": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "dsu_id": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "meta": {
@@ -194,14 +194,14 @@
         "deploy_policy_id": {
           "type": "array",
           "items": {
-            "type": "string",
+            "type": "integer",
             "format": "int64"
           }
         },
         "dsu_id": {
           "type": "array",
           "items": {
-            "type": "string",
+            "type": "integer",
             "format": "int64"
           }
         },
@@ -230,7 +230,7 @@
       "type": "object",
       "properties": {
         "deploy_policy_id": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         }
       },
@@ -343,7 +343,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "items": {
@@ -489,11 +489,11 @@
       "type": "object",
       "properties": {
         "start_timestamp_sec": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         },
         "end_timestamp_sec": {
-          "type": "string",
+          "type": "integer",
           "format": "int64"
         }
       },
