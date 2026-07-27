@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkarea_view (View Network Area).
 - Function: Count the host distribution for each network area based on host filtering conditions.
 
@@ -22,6 +22,8 @@ POST /api/v3/topo/host/get_host_distribution_by_networkarea_id
 | bk_host_id | array<int64> | No | Host ID list |
 | bk_biz_id | array<int64> | No | Business ID list |
 | bk_networkarea_id | array<int64> | No | Network area ID list |
+| bk_host_innerip | array<string> | No | Host internal IPv4 address list, matched exactly by full internal IPv4 |
+| bk_host_innerip_v6 | array<string> | No | Host internal IPv6 address list, matched exactly by full internal IPv6 |
 | os_type | array<string> | No | Host operating system type list |
 | node_role | array<string> | No | Node role list |
 | node_status | array<string> | No | Node status list |
