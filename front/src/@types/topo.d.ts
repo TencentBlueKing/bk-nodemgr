@@ -484,6 +484,8 @@ export interface TopoHostExactConditions {
   bk_host_id: number[];
   bk_biz_id: number[];
   bk_networkarea_id: number[];
+  bk_host_innerip: string[];
+  bk_host_innerip_v6: string[];
   os_type: string[];
   node_role: string[];
   node_status: string[];
@@ -830,4 +832,3 @@ export interface TopoConstantGetRespData {
   cloud_vendor: string[];
   os_type: string[];
 }
-
