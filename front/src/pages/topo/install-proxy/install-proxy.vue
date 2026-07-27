@@ -964,14 +964,16 @@ const getVersions = async () => {
 
 watch(() => isShow.value, async () => {
   if (isShow.value) {
-    await getVersions();
-    // 预加载管控单元列表，使安装源自定义子项可正确展示
-    await getNetworkUnitList();
-    // 预加载当前管控单元详情（含 links 数据），供安装源上游判断使用
+    // getVersions / getNetworkUnitList / handleFetchNetworkUnitDetail 三者互不依赖，并行启动
+    // setDefaultInstallOrigin 依赖 getNetworkUnitList（填充 areaUnitlist）和 handleFetchNetworkUnitDetail（设置 currentUnitDetail），串行在后
     const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
-    if (unitId) {
-      currentUnitDetail.value = await topoStore.handleFetchNetworkUnitDetail(unitId);
-    }
+    await Promise.all([
+      getVersions(),
+      getNetworkUnitList(),
+      ...(unitId ? [topoStore.handleFetchNetworkUnitDetail(unitId).then((detail: any) => {
+        currentUnitDetail.value = detail;
+      })] : []),
+    ]);
     // 如果从 props 传入了单元 id，初始化时设置安装源默认值
     if (props.bk_networkunit_id) {
       await setDefaultInstallOrigin();

@@ -730,84 +730,88 @@ watch(() => isShow.value, async () => {
   if (isShow.value && props.data.length) {
     loading.value = true;
     try {
-      // 先拉取网络单元，避免 Select 在无选项时回显原始 unit-id
-      await getNetworkUnitList();
+      // getVersions 与主链（getNetworkUnitList → 数据准备 → checkUnitsHasProxy → setDefaultInstallOrigin）互不依赖，并行启动
+      await Promise.all([
+        getVersions(),
+        (async () => {
+          // 先拉取网络单元，避免 Select 在无选项时回显原始 unit-id
+          await getNetworkUnitList();
 
-      // 使用TopoService.HostList接口进行切片查询获取数据
-      if (props.isCrossPageSelection) {
-        // 跨页全选模式：使用HostList接口分页获取所有数据
-        const allHosts = [];
-        const pageSize = 1000; // 每页大小
-        let offset = 0;
-        let hasMore = true;
+          // 使用TopoService.HostList接口进行切片查询获取数据
+          if (props.isCrossPageSelection) {
+            // 跨页全选模式：使用HostList接口分页获取所有数据
+            const allHosts = [];
+            const pageSize = 1000; // 每页大小
+            let offset = 0;
+            let hasMore = true;
 
-        while (hasMore) {
-          const hostListData = await TopoService.HostList({
-            page: { offset, limit: pageSize },
-            only_count: false,
-            ...props.params,
-          }).catch(() => ({ total: 0, items: [] }));
+            while (hasMore) {
+              const hostListData = await TopoService.HostList({
+                page: { offset, limit: pageSize },
+                only_count: false,
+                ...props.params,
+              }).catch(() => ({ total: 0, items: [] }));
 
-          if (hostListData.items && hostListData.items.length > 0) {
-            allHosts.push(...hostListData.items);
-            offset += pageSize;
+              if (hostListData.items && hostListData.items.length > 0) {
+                allHosts.push(...hostListData.items);
+                offset += pageSize;
 
-            // 如果返回的数据少于pageSize，说明没有更多数据了
-            if (hostListData.items.length < pageSize) {
-              hasMore = false;
+                // 如果返回的数据少于pageSize，说明没有更多数据了
+                if (hostListData.items.length < pageSize) {
+                  hasMore = false;
+                }
+              } else {
+                hasMore = false;
+              }
             }
+
+            form.info = allHosts.map((host: any) => {
+              const innerIp = host.info?.bk_host_innerip_list?.[0] ?? '';
+              const base = {
+                ...cloneDeep(initData),
+                ...host.state,
+                ...host.info,
+                ...host,
+                bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
+                bk_host_innerip: host.info?.bk_host_innerip_list?.join(','),
+                bk_host_innerip_v6: host.info?.bk_host_innerip_v6_list?.join(','),
+                login_ip: host.info?.login_ip || host.login_ip || innerIp,
+                login_mode: resolveLoginMode(host.info?.login_mode),
+                proxy_tags: Array.isArray(host.proxy_tags) ? [...host.proxy_tags] : [],
+              };
+              // Normalize relay ports (API may return camelCase)
+              const dlPort = host.info?.relay_download_port;
+              const cbPort = host.info?.relay_callback_port;
+              if (dlPort != null && dlPort !== '') base.relay_download_port = String(dlPort);
+              if (cbPort != null && cbPort !== '') base.relay_callback_port = String(cbPort);
+              return base;
+            });
           } else {
-            hasMore = false;
+            // 本页选择模式：使用原有数据
+            form.info = props.data.map((item: Host) => {
+              const data = cloneDeep(initData);
+              assign(data, item, item.info);
+              // Normalize relay ports from API (may return camelCase)
+              const dlPort = item.info?.relay_download_port;
+              const cbPort = item.info?.relay_callback_port;
+              if (dlPort != null && String(dlPort) !== '') data.relay_download_port = String(dlPort);
+              if (cbPort != null && String(cbPort) !== '') data.relay_callback_port = String(cbPort);
+              data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
+              data.login_mode = resolveLoginMode(data.login_mode);
+              // 登录 IP 为空时，回退到内网 IP 第一个
+              if (!data.login_ip) {
+                data.login_ip = item.info?.bk_host_innerip_list?.[0] ?? '';
+              }
+              return data;
+            });
           }
-        }
-
-        form.info = allHosts.map((host: any) => {
-          const innerIp = host.info?.bk_host_innerip_list?.[0] ?? '';
-          const base = {
-            ...cloneDeep(initData),
-            ...host.state,
-            ...host.info,
-            ...host,
-            bk_networkunit_id: normalizeNetworkUnitId(host.info?.bk_networkunit_id),
-            bk_host_innerip: host.info?.bk_host_innerip_list?.join(','),
-            bk_host_innerip_v6: host.info?.bk_host_innerip_v6_list?.join(','),
-            login_ip: host.info?.login_ip || host.login_ip || innerIp,
-            login_mode: resolveLoginMode(host.info?.login_mode),
-            proxy_tags: Array.isArray(host.proxy_tags) ? [...host.proxy_tags] : [],
-          };
-          // Normalize relay ports (API may return camelCase)
-          const dlPort = host.info?.relay_download_port;
-          const cbPort = host.info?.relay_callback_port;
-          if (dlPort != null && dlPort !== '') base.relay_download_port = String(dlPort);
-          if (cbPort != null && cbPort !== '') base.relay_callback_port = String(cbPort);
-          return base;
-        });
-      } else {
-        // 本页选择模式：使用原有数据
-        form.info = props.data.map((item: Host) => {
-          const data = cloneDeep(initData);
-          assign(data, item, item.info);
-          // Normalize relay ports from API (may return camelCase)
-          const dlPort = item.info?.relay_download_port;
-          const cbPort = item.info?.relay_callback_port;
-          if (dlPort != null && String(dlPort) !== '') data.relay_download_port = String(dlPort);
-          if (cbPort != null && String(cbPort) !== '') data.relay_callback_port = String(cbPort);
-          data.bk_networkunit_id = normalizeNetworkUnitId(data.bk_networkunit_id);
-          data.login_mode = resolveLoginMode(data.login_mode);
-          // 登录 IP 为空时，回退到内网 IP 第一个
-          if (!data.login_ip) {
-            data.login_ip = item.info?.bk_host_innerip_list?.[0] ?? '';
-          }
-          return data;
-        });
-      }
-      // 查询各单元是否有 proxy，并设置安装源默认值
-      const unitIds = form.info.map((item: any) => Number(item.bk_networkunit_id)).filter(Boolean);
-      await checkUnitsHasProxy(unitIds);
-      setDefaultInstallOrigin();
-      setRelayPortDefaults();
-
-      await getVersions();
+          // 查询各单元是否有 proxy，并设置安装源默认值
+          const unitIds = form.info.map((item: any) => Number(item.bk_networkunit_id)).filter(Boolean);
+          await checkUnitsHasProxy(unitIds);
+          setDefaultInstallOrigin();
+          setRelayPortDefaults();
+        })(),
+      ]);
     } finally {
       loading.value = false;
     }
