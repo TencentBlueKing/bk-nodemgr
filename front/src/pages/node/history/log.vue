@@ -1101,9 +1101,11 @@ onBeforeUnmount(() => {
 });
 onMounted(async () => {
   await getOperateList();
-  await getInstance();
-  await getLog();
-  await getDistinctStates();
+  // getDistinctStates 成功路径不依赖 getInstance/getLog，与后续链并行
+  await Promise.all([
+    (async () => { await getInstance(); await getLog(); })(),
+    getDistinctStates(),
+  ]);
   if (isInterval.value) {
     start();
   } else {

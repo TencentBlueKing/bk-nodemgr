@@ -305,6 +305,10 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			)
 		}
 
+		if condition.DynamicAgentIDNotEmpty {
+			opts = append(opts, host.WithDynamicAgentIDNotEmpty())
+		}
+
 		if condition.StaticExactExclude != nil {
 			opts = append(opts,
 				host.WithoutHostID(condition.StaticExactExclude.HostID...),
@@ -591,6 +595,22 @@ func (s *Storage) listHostWithFields(nCtx contextx.IContext, page types.Page,
 	}
 
 	return hosts, num, nil
+}
+
+func (s *Storage) scanAllHostWithFields(nCtx contextx.IContext, selection *types.HostFieldSelection,
+	conditions ...*types.HostCondition) ([]*types.Host, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	hosts, err := s.daoHost.ScanAllWithFields(nCtx, selection, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan all host with fields: %w", err)
+	}
+
+	return hosts, nil
 }
 
 func (s *Storage) getRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (

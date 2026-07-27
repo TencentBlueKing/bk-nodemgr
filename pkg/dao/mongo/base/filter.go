@@ -12,6 +12,7 @@
 package base
 
 import (
+	"regexp"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 
 // AliveFilter return a filter that only alive records.
 func AliveFilter() bson.D {
-	filter := bson.D{{Key: "basic.is_deleted", Value: false}}
+	filter := bson.D{{Key: FieldKeyIsDeleted, Value: false}}
 
 	return filter
 }
@@ -129,6 +130,13 @@ func WithAnyFieldValues[T ~bool | ~string | ~int64](fields []string, values ...T
 	}
 }
 
+// WithGreaterThanValue filters by greater than value.
+func WithGreaterThanValue[T ~string | ~int64](key string, value T) OptFn {
+	return func(f bson.D) bson.D {
+		return append(f, bson.E{Key: key, Value: bson.M{"$gt": value}})
+	}
+}
+
 // WithoutValues filters by not contains bool value.
 func WithoutValues[T ~bool | ~string | ~int64](key string, values ...T) OptFn {
 	if len(values) == 0 {
@@ -181,8 +189,9 @@ func WithFuzzyValues(key string, values ...string) OptFn {
 		}
 	}
 
+	pattern := fuzzyPattern(values)
 	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: key, Value: bson.M{"$regex": "(" + strings.Join(values, "|") + ")", "$options": "i"}})
+		return append(f, bson.E{Key: key, Value: bson.M{"$regex": pattern, "$options": "i"}})
 	}
 }
 
@@ -194,9 +203,19 @@ func WithoutFuzzyValues(key string, values ...string) OptFn {
 		}
 	}
 
+	pattern := fuzzyPattern(values)
 	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": "(" + strings.Join(values, "|") + ")", "$options": "i"}}})
+		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": pattern, "$options": "i"}}})
 	}
+}
+
+func fuzzyPattern(values []string) string {
+	escapedValues := make([]string, 0, len(values))
+	for _, value := range values {
+		escapedValues = append(escapedValues, regexp.QuoteMeta(value))
+	}
+
+	return "(" + strings.Join(escapedValues, "|") + ")"
 }
 
 // WithRegexMatch filters by regex match.

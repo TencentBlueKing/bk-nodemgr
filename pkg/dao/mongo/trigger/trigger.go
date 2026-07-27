@@ -53,10 +53,9 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		{
 			Keys: bson.D{{Key: FieldKeyCategory, Value: 1}},
 			Options: mongoOptions.Index().
-				SetName("data.category_1_active_alive").
+				SetName("data.category_1").
 				SetPartialFilterExpression(bson.D{
 					{Key: base.FieldKeyIsDeleted, Value: false},
-					{Key: FieldKeyActive, Value: true},
 				}),
 		},
 	}

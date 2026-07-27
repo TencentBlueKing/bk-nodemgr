@@ -13,6 +13,7 @@ package base
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -573,6 +574,122 @@ func TestOrm_List(t *testing.T) {
 				t.Errorf("List() got count = %v, want %v", len(got), tt.wantCount)
 			}
 		})
+	}
+}
+
+// TestOrm_ScanAll tests the ScanAll method
+func TestOrm_ScanAll(t *testing.T) {
+	orm, _ := testClient(t)
+	nCtx := contextx.New(context.Background())
+
+	_, err := orm.ScanAll(nil, bson.D{})
+	if err == nil {
+		t.Error("ScanAll() expected error with nil context")
+	}
+
+	const total = 505
+	datas := make([]*TestData, 0, total+1)
+	for i := range total {
+		datas = append(datas, &TestData{
+			ID:      uuid.NewString(),
+			Name:    "scan-all-enabled",
+			Value:   i,
+			Enabled: true,
+		})
+	}
+	datas = append(datas, &TestData{
+		ID:      uuid.NewString(),
+		Name:    "scan-all-disabled",
+		Value:   total,
+		Enabled: false,
+	})
+
+	if err := orm.CreateMany(nCtx, datas); err != nil {
+		t.Fatalf("Failed to create scan all test data: %v", err)
+	}
+
+	filter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+	wantFilter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+
+	got, err := orm.ScanAll(nCtx, filter)
+	if err != nil {
+		t.Fatalf("ScanAll() error = %v", err)
+	}
+	if len(got) != total {
+		t.Fatalf("ScanAll() got count = %v, want %v", len(got), total)
+	}
+	if !reflect.DeepEqual(filter, wantFilter) {
+		t.Fatalf("ScanAll() mutated filter = %#v, want %#v", filter, wantFilter)
+	}
+
+	seen := make(map[string]struct{}, len(got))
+	for _, data := range got {
+		if !data.Enabled {
+			t.Fatalf("ScanAll() returned disabled data: %#v", data)
+		}
+		if _, ok := seen[data.ID]; ok {
+			t.Fatalf("ScanAll() returned duplicate ID: %s", data.ID)
+		}
+		seen[data.ID] = struct{}{}
+	}
+
+	projected, err := orm.ScanAll(nCtx, filter, FieldKeyTestDataName)
+	if err != nil {
+		t.Fatalf("ScanAll() with projection error = %v", err)
+	}
+	if len(projected) != total {
+		t.Fatalf("ScanAll() with projection got count = %v, want %v", len(projected), total)
+	}
+	for _, data := range projected {
+		if data.Name == "" {
+			t.Fatal("ScanAll() with projection returned empty name")
+		}
+	}
+}
+
+// TestBuildScanAllFilter tests the scan all filter builder.
+func TestBuildScanAllFilter(t *testing.T) {
+	filter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+	wantFilter := bson.D{{
+		Key: "$and",
+		Value: bson.A{
+			bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+		},
+	}}
+
+	firstFilter := buildScanAllFilter(filter, nil)
+	if !reflect.DeepEqual(firstFilter, filter) {
+		t.Fatalf("buildScanAllFilter() first filter = %#v, want %#v", firstFilter, filter)
+	}
+
+	nextFilter := buildScanAllFilter(filter, "last-id")
+	if !reflect.DeepEqual(filter, wantFilter) {
+		t.Fatalf("buildScanAllFilter() mutated filter = %#v, want %#v", filter, wantFilter)
+	}
+	if len(nextFilter) != 1 || nextFilter[0].Key != "$and" {
+		t.Fatalf("buildScanAllFilter() next filter = %#v, want $and filter", nextFilter)
+	}
+	conditions, ok := nextFilter[0].Value.(bson.A)
+	if !ok {
+		t.Fatalf("buildScanAllFilter() $and value type = %T, want bson.A", nextFilter[0].Value)
+	}
+	if len(conditions) != 2 {
+		t.Fatalf("buildScanAllFilter() $and count = %v, want 2", len(conditions))
 	}
 }
 

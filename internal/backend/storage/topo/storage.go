@@ -54,6 +54,7 @@ const (
 	metricOperationExistDedicatedInstallerProxyHost          = "exist_dedicated_installer_proxy_host"
 	metricOperationGetNetworkUnitByIDs                       = "get_networkunit_by_ids"
 	metricOperationListHostWithFields                        = "list_host_with_fields"
+	metricOperationScanAllHostWithFields                     = "scan_all_host_with_fields"
 	metricOperationGetRelayInfosInNetworkUnit                = "get_relay_infos_in_network_unit"
 	metricOperationGetHostByID                               = "get_host_by_id"
 	metricOperationUpsertManyHost                            = "upsert_many_host"
@@ -238,6 +239,22 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 	})
 
 	return results, num, err
+}
+
+// ScanAllHostWithFields scans all hosts with fields.
+func (s *Storage) ScanAllHostWithFields(nCtx contextx.IContext, selection *types.HostFieldSelection,
+	conditions ...*types.HostCondition) ([]*types.Host, error) {
+
+	var results []*types.Host
+
+	err := s.WrapFn(nCtx, metricOperationScanAllHostWithFields, func(nCtx contextx.IContext) error {
+		var err error
+		results, err = s.scanAllHostWithFields(nCtx, selection, conditions...)
+
+		return err
+	})
+
+	return results, err
 }
 
 // GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.

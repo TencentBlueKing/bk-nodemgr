@@ -15,23 +15,47 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout PR
+      - name: Checkout base config
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
       - name: Get PR changed files
         id: changed-files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          set -euo pipefail
+
           # 使用GitHub API获取PR变更文件
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
-          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
-          echo "$CHANGED_FILES" > changed_files.txt
+          : > changed_files.txt
+          page=1
+          while true; do
+            response=$(curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}")
+
+            if ! jq -e 'type == "array"' >/dev/null <<<"${response}"; then
+              echo "PR files API response is not an array" >&2
+              exit 1
+            fi
+
+            count=$(jq 'length' <<<"${response}")
+            jq -r '.[].filename' <<<"${response}" >> changed_files.txt
+            if [ "${count}" -lt 100 ]; then
+              break
+            fi
+            if [ "${page}" -ge 30 ]; then
+              echo "PR files list exceeds the 3000-file API limit" >&2
+              exit 1
+            fi
+            page=$((page + 1))
+          done
 
           # 调试输出
-          echo "PR编号: $PR_NUMBER"
+          echo "PR编号: ${PR_NUMBER}"
           echo "变更文件列表:"
           cat changed_files.txt
 
@@ -51,14 +75,14 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
-          
+
           # 读取配置以获取评论标题
           CONFIG=$(cat .github/coverage-config.json)
           HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
-          
+
           # 查找包含特定标题的评论
           BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r --arg header "$HEADER" '.[] | select(.body | startswith($header)) | .id')
-          
+
           if [ -n "$BOT_COMMENTS" ]; then
             echo "EXISTING_COMMENTS<<EOF" >> $GITHUB_ENV
             echo "$BOT_COMMENTS" >> $GITHUB_ENV
@@ -180,7 +204,7 @@ jobs:
           # 读取配置以获取评论标题
           CONFIG=$(cat .github/coverage-config.json)
           HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
-          
+
           echo "${{ env.EXISTING_COMMENTS }}" | while read comment_id; do
             if [ -n "$comment_id" ]; then
               COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$comment_id"

@@ -25,15 +25,15 @@ func BuildUpsertParam(data any) bson.D {
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted": false,
-				"basic.updated_at": nowTime,
-				"data":             data,
+				FieldKeyIsDeleted: false,
+				FieldKeyUpdatedAt: nowTime,
+				"data":            data,
 			},
 		},
 		{
 			Key: "$setOnInsert",
 			Value: bson.M{
-				"basic.created_at": nowTime,
+				FieldKeyCreatedAt: nowTime,
 			},
 		},
 	}
@@ -49,8 +49,8 @@ func BuildUpdateField(key string, value any) bson.D {
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted":          false,
-				"basic.updated_at":          nowTime,
+				FieldKeyIsDeleted:           false,
+				FieldKeyUpdatedAt:           nowTime,
 				fmt.Sprintf("data.%s", key): value,
 			},
 		},
@@ -66,7 +66,7 @@ func BuildDeleteParam() bson.D {
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted": true,
+				FieldKeyIsDeleted:  true,
 				"basic.deleted_at": nowTime,
 			},
 		},
@@ -83,8 +83,8 @@ func BuildPushField(key string, value any) bson.D {
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted": false,
-				"basic.updated_at": nowTime,
+				FieldKeyIsDeleted: false,
+				FieldKeyUpdatedAt: nowTime,
 			},
 		}, {
 			Key: "$push",
@@ -105,8 +105,8 @@ func BuildPullField(key string, value any) bson.D {
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted": false,
-				"basic.updated_at": nowTime,
+				FieldKeyIsDeleted: false,
+				FieldKeyUpdatedAt: nowTime,
 			},
 		}, {
 			Key: "$pull",

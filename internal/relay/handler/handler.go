@@ -35,6 +35,8 @@ type IHandler interface {
 	StoragePkg(nCtx contextx.IContext, payload []byte)
 	// DetectInfoBySSH detects the node info by ssh.
 	DetectInfoBySSH(nCtx contextx.IContext, payload []byte)
+	// DetectInfoByWindowsSSH detects the node info by Windows SSH.
+	DetectInfoByWindowsSSH(nCtx contextx.IContext, payload []byte)
 	// InstallPagentBySSH installs the pagent by ssh.
 	InstallPagentBySSH(nCtx contextx.IContext, payload []byte)
 	// InstallPagentByWindowsSSH installs the pagent by Windows SSH.

@@ -14,6 +14,7 @@ package topo
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -152,5 +153,21 @@ func Test_convertHostConditionsToOptions_MatchesSetAndModuleInSameTopo(t *testin
 		if len(elemMatch) != 2 {
 			t.Fatalf("elemMatch length = %d, want set_id and module_id: %#v", len(elemMatch), elemMatch)
 		}
+	}
+}
+
+func Test_convertHostConditionsToOptions_DynamicAgentIDNotEmpty(t *testing.T) {
+	opts := convertHostConditionsToOptions(&types.HostCondition{
+		DynamicAgentIDNotEmpty: true,
+	})
+
+	filter := bson.D{}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	expected := bson.D{{Key: mongohost.FieldKeyDynamicAgentID, Value: bson.M{"$gt": ""}}}
+	if !reflect.DeepEqual(filter, expected) {
+		t.Fatalf("filter = %#v, want %#v", filter, expected)
 	}
 }

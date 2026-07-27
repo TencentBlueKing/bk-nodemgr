@@ -8,6 +8,7 @@ test/build/
 /tmp
 /logs
 .env
+testsuite/integration.env
 .http
 /.run
 pre-*-bkcodeai

@@ -165,6 +165,9 @@ const (
 	// MetricOperationFind the find operation.
 	MetricOperationFind MetricOperation = "find"
 
+	// MetricOperationScanAll the scan all operation.
+	MetricOperationScanAll MetricOperation = "scan_all"
+
 	// MetricOperationInsertMany the insert many operation.
 	MetricOperationInsertMany MetricOperation = "insert_many"
 

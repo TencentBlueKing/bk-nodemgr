@@ -1202,9 +1202,16 @@ const getNetworkAreaList = async () => {
       items: [],
     };
   });
-  res.items.reverse().forEach((item) => {
-    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
-  });
+  // 排序：默认区域（ID=0）始终在最前，其余按 ID 降序
+  [...res.items]
+    .sort((a, b) => {
+      if (a.bk_networkarea_id === 0) return -1;
+      if (b.bk_networkarea_id === 0) return 1;
+      return b.bk_networkarea_id - a.bk_networkarea_id;
+    })
+    .forEach((item) => {
+      networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
+    });
   filterOptionSource.bk_networkarea_id.list = getFilterList('bk_networkarea_id');
 };
 // 管控单元下拉列表获取

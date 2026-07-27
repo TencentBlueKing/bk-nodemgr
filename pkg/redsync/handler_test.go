@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -13,40 +15,16 @@ package redsync
 
 import (
 	"context"
-	"os"
-	"strconv"
 	"testing"
 	"time"
 
-	"github.com/joho/godotenv"
-	goredislib "github.com/redis/go-redis/v9"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 )
 
 // testClient ...
-func testClient(t *testing.T) Handler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	db, err := strconv.Atoi(os.Getenv("REDIS_DB"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	redisClient := goredislib.NewClient(&goredislib.Options{
-		Addr:     os.Getenv("REDIS_ADDRESS"),
-		Username: os.Getenv("REDIS_USERNAME"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       db,
-	})
-
-	_, err = redisClient.Ping(context.Background()).Result()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return New(redisClient)
+func testClient(t *testing.T) (Handler, string) {
+	redisClient, keyPrefix := support.RequireRedisClientWithKeyPrefix(t)
+	return New(redisClient), keyPrefix
 }
 
 // Test_mutex_Lock ...
@@ -89,9 +67,10 @@ func Test_mutex_Lock(t *testing.T) {
 			isUnlock: true,
 		},
 	}
+	h, keyPrefix := testClient(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := testClient(t).NewMutex(tt.name)
+			m := h.NewMutex(keyPrefix + ":" + tt.name)
 
 			if tt.isLock {
 				if err := m.TryLock(); err != nil {
@@ -169,9 +148,10 @@ func Test_mutex_Unlock(t *testing.T) {
 			isExpire: true,
 		},
 	}
+	h, keyPrefix := testClient(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := testClient(t).NewMutex(tt.name)
+			m := h.NewMutex(keyPrefix + ":" + tt.name)
 
 			if tt.isLock {
 				if err := m.TryLock(); err != nil {

@@ -31,6 +31,7 @@ const (
 	windowsSSHProfileCygwin = "ssh_cygwin"
 	windowsSSHProfileNative = "ssh_native"
 
+	windowsNativeArchCommand    = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"$env:PROCESSOR_ARCHITECTURE\""
 	windowsNativeProfileCommand = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"Write-Output native\""
 
 	utf16BytesPerCodeUnit = 2
@@ -145,14 +146,18 @@ func generateWindowsSSHClient(
 	return client, nil
 }
 
-func detectWindowsSSHProfile(client *sshx.Client) (string, string, error) {
-	unameStdout, unameStderr, unameErr := client.RunCommand("uname -s")
+type windowsSSHCommandRunner interface {
+	RunCommand(cmd string) (string, string, error)
+}
+
+func detectWindowsSSHProfile(runner windowsSSHCommandRunner) (string, string, error) {
+	unameStdout, unameStderr, unameErr := runner.RunCommand("uname -s")
 	output := buildLogOutput("detect", "windows ssh profile", unameStdout, unameStderr)
 	if unameErr == nil && isCygwinUname(unameStdout) {
 		return windowsSSHProfileCygwin, output, nil
 	}
 
-	nativeStdout, nativeStderr, nativeErr := client.RunCommand(windowsNativeProfileCommand)
+	nativeStdout, nativeStderr, nativeErr := runner.RunCommand(windowsNativeProfileCommand)
 	output += buildLogOutput("validate", "windows ssh native profile", nativeStdout, nativeStderr)
 	if nativeErr != nil {
 		return "", output, errors.New("failed to detect windows ssh native profile")

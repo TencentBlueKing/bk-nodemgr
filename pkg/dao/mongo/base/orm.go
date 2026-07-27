@@ -82,6 +82,9 @@ type IOrm[P DataPoint[T], T any] interface {
 	// List list the data by given filter.
 	List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions, field ...string) ([]P, error)
 
+	// ScanAll scans all data by given filter.
+	ScanAll(nCtx contextx.IContext, filter bson.D, field ...string) ([]P, error)
+
 	// DistinctString distinct the string value of given key.
 	DistinctString(
 		nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error)
@@ -878,6 +881,149 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 	return dataPoints, nil
 }
 
+const scanAllBatchSize int64 = 500
+
+type scanAllDocument[P IData] struct {
+	ID        any       `bson:"_id"`
+	BasicInfo BasicInfo `json:"basic" bson:"basic"`
+	Data      P         `json:"data" bson:"data"`
+}
+
+// ScanAll scans all data by given filter.
+func (orm *Orm[P, T]) ScanAll(nCtx contextx.IContext, filter bson.D, field ...string) (dataPoints []P, err error) {
+	metric := orm.metric().start(daomongo.MetricOperationScanAll, len(filter))
+	defer func() {
+		metric.end(err, len(dataPoints))
+
+		duration := time.Since(metric.startTime)
+		if duration < daomongo.DefaultSlowTime || nCtx == nil {
+			return
+		}
+
+		span := trace.SpanFromContext(nCtx)
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		span.AddEvent(spanEventSlowQuery, trace.WithAttributes(
+			attribute.String(attrKeyORMCollection, orm.dao.GetTableName()),
+			attribute.String(attrKeyORMOperation, "scan_all"),
+			attribute.Int64(attrKeyORMDurationMS, duration.Milliseconds()),
+			attribute.Int(attrKeyORMFilterSize, len(filter)),
+			attribute.Int(attrKeyORMResultCount, len(dataPoints)),
+		))
+	}()
+
+	if nCtx == nil {
+		return nil, errors.New("context is nil")
+	}
+
+	findOpt := buildScanAllFindOptions(field)
+	dataPoints = make([]P, 0)
+
+	var lastID any
+	for {
+		queryFilter := buildScanAllFilter(filter, lastID)
+		cursor, err := orm.dao.GetClient().Find(nCtx, queryFilter, findOpt)
+		if err != nil {
+			return nil, err
+		}
+
+		batchCount, advanced, scanErr := orm.scanAllBatch(nCtx, cursor, &lastID, &dataPoints)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+		if batchCount < scanAllBatchSize {
+			break
+		}
+		if !advanced {
+			return nil, errors.New("failed to scan all documents: cursor did not advance")
+		}
+	}
+
+	return dataPoints, nil
+}
+
+func buildScanAllFindOptions(fields []string) *mongoOptions.FindOptions {
+	findOpt := mongoOptions.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(scanAllBatchSize)
+	if len(fields) == 0 {
+		return findOpt
+	}
+
+	projection := make(bson.D, 0, len(fields))
+	for _, field := range fields {
+		projection = append(projection, bson.E{Key: field, Value: 1})
+	}
+	findOpt.SetProjection(projection)
+
+	return findOpt
+}
+
+func buildScanAllFilter(filter bson.D, lastID any) bson.D {
+	if lastID == nil {
+		return filter
+	}
+
+	condition := bson.D{{Key: "_id", Value: bson.D{{Key: "$gt", Value: lastID}}}}
+
+	return appendAndCondition(cloneScanAllFilter(filter), condition)
+}
+
+func cloneScanAllFilter(filter bson.D) bson.D {
+	cloned := make(bson.D, len(filter))
+	copy(cloned, filter)
+	for i := range cloned {
+		if cloned[i].Key != "$and" {
+			continue
+		}
+
+		conditions, ok := cloned[i].Value.(bson.A)
+		if !ok {
+			continue
+		}
+
+		clonedConditions := make(bson.A, len(conditions))
+		copy(clonedConditions, conditions)
+		cloned[i].Value = clonedConditions
+	}
+
+	return cloned
+}
+
+func (orm *Orm[P, T]) scanAllBatch(
+	nCtx contextx.IContext, cursor *mongo.Cursor, lastID *any, dataPoints *[]P) (batchCount int64, advanced bool, err error) {
+
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(closeErr).With("table", orm.dao.GetTableName()).Warn("failed to close scan all cursor")
+		}
+	}()
+
+	for cursor.Next(nCtx) {
+		batchCount++
+
+		document := &scanAllDocument[P]{}
+		if err := cursor.Decode(document); err != nil {
+			logger.G.Sys().Ctx(nCtx).WithErr(err).With("table", orm.dao.GetTableName()).Info("failed to scan all, failed to decode document")
+
+			continue
+		}
+		if document.ID == nil {
+			return batchCount, advanced, errors.New("failed to scan all documents: missing _id")
+		}
+
+		*dataPoints = append(*dataPoints, document.Data)
+		*lastID = document.ID
+		advanced = true
+	}
+
+	if err := cursor.Err(); err != nil {
+		return batchCount, advanced, fmt.Errorf("failed to scan all documents: %w", err)
+	}
+
+	return batchCount, advanced, nil
+}
+
 // DistinctString this is a common operation for mongo db.
 func (orm *Orm[P, T]) DistinctString(
 	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) (result []string, err error) {
@@ -1473,9 +1619,9 @@ func buildUpdateField(key string, value any) bson.D {
 		{
 			Key: "$set",
 			Value: bson.M{
-				"basic.is_deleted": false,
-				"basic.updated_at": nowTime,
-				key:                value,
+				FieldKeyIsDeleted: false,
+				FieldKeyUpdatedAt: nowTime,
+				key:               value,
 			},
 		},
 	}
@@ -1487,8 +1633,8 @@ func buildUpdateField(key string, value any) bson.D {
 func buildUpdateFields(fields map[string]any) bson.D {
 	nowTime := time.Now()
 	updateFields := bson.M{
-		"basic.is_deleted": false,
-		"basic.updated_at": nowTime,
+		FieldKeyIsDeleted: false,
+		FieldKeyUpdatedAt: nowTime,
 	}
 
 	for key, value := range fields {

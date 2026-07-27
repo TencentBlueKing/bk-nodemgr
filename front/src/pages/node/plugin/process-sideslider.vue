@@ -92,6 +92,55 @@
           >
           </TableColumn>
           <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('pluginManagement.plugin.process.business')"
+            field="biz_name"
+            min-width="120"
+          >
+          </TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('pluginManagement.plugin.process.networkArea')"
+            field="networkarea_name"
+            min-width="150"
+          >
+          </TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('pluginManagement.plugin.process.networkUnit')"
+            field="networkunit_name"
+            min-width="150"
+          >
+          </TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('pluginManagement.plugin.process.operationsDept')"
+            field="dept_name"
+            min-width="120"
+          >
+          </TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('pluginManagement.plugin.process.nodeVersion')"
+            field="node_version"
+            min-width="140"
+          >
+          </TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('pluginManagement.plugin.process.nodeStatus')"
+            field="node_status"
+            min-width="110"
+          >
+            <template #default="{ row }">
+              <div v-if="row.node_status && row.node_status !== '—'" class="flex items-center gap-[4px]">
+                <span :class="getStatusIconClass(row.node_status)"></span>
+                <span>{{ getNodeStatusText(row.node_status) }}</span>
+              </div>
+              <span v-else>--</span>
+            </template>
+          </TableColumn>
+          <TableColumn
             :title="$t('pluginManagement.plugin.table.pluginName')"
             field="plugin_name"
             min-width="150"
@@ -388,6 +437,7 @@ import { TopoService } from '@/api/modules/topo';
 import OperateDialog from '@/components/operate-dialog.vue';
 import useTableSetting from '@/composables/use-table-setting';
 import { PACKAGE_GENERATION } from '@/common/const';
+import { getAgentStatusMeta, getStatusIconClass } from '@/common/agent-status';
 import { useMainStore } from '@/stores/main';
 import { useAuthStore } from '@/stores/auth';
 
@@ -689,7 +739,9 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'status',
       'pid',
       'version',
-      ...(props.type === 'plugin' ? ['bk_host_id', 'bk_host_innerip', 'bk_host_innerip_v6'] : ['os_type', 'cpu_arch']),
+      ...(props.type === 'plugin'
+        ? ['bk_host_id', 'bk_host_innerip', 'bk_host_innerip_v6', 'biz_name', 'networkarea_name', 'networkunit_name']
+        : ['os_type', 'cpu_arch']),
       'action',
     ],
     disabled: ['action'],
@@ -746,6 +798,15 @@ const processStatusTextMap = computed(() => {
 
 // 进程列表
 const processList = ref<any[]>([]);
+
+// 管控单元 ID → 名称映射（从 NetworkUnitListBrief 接口批量获取）
+const networkUnitNameMap = ref(new Map<number, string>());
+
+// 节点状态文本（按 agent-status 元数据 i18n key 取文案）
+const getNodeStatusText = (status: string): string => {
+  const meta = getAgentStatusMeta(status);
+  return meta ? t(meta.i18nKey) : status;
+};
 
 // 默认版本映射：key = `${plugin_name}_${os_type}_${cpu_arch}`，value = 默认版本号
 const defaultVersionMap = ref<Map<string, string>>(new Map());
@@ -937,7 +998,7 @@ const getProcessList = async () => {
   pagination.count = res.total;
   loading.value = false;
 
-  let hostListMap = new Map();
+  let hostListMap = new Map<number, any>();
   if (props.type === 'plugin') {
     const hostList = await TopoService.HostList({
       page: {
@@ -955,23 +1016,44 @@ const getProcessList = async () => {
         items: [],
       };
     });
-    hostListMap = new Map(hostList.items.map(item => [item.bk_host_id, {
-      bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
-    }]));
+    hostListMap = new Map(hostList.items.map(item => [item.bk_host_id, item]));
+
+    // 补充管控单元名称：收集 bk_networkunit_id → 调 brief 接口 → 构建 Map
+    const unitIds = [...new Set(hostList.items.map(item => item.info?.bk_networkunit_id).filter((id: number) => id != null && id > 0))];
+    if (unitIds.length > 0) {
+      const unitRes = await TopoService.NetworkUnitListBrief({
+        exact_include_conditions: { bk_networkunit_id: unitIds },
+      }).catch(() => ({ items: [] }));
+      networkUnitNameMap.value = new Map((unitRes.items || []).map((u: any) => [u.bk_networkunit_id, u.bk_networkunit_name]));
+    }
   };
 
-  processList.value = res.items.map(item => ({
-    ...item,
-    ...item.platform,
-    ...item.process_info,
-    ...item.process_identity,
-    ...item.process_controller,
-    ...item.process_resource,
-    ...item.process_monitor_policy,
-    bk_host_innerip: hostListMap.get(item.bk_host_id)?.bk_host_innerip || '',
-    bk_host_innerip_v6: hostListMap.get(item.bk_host_id)?.bk_host_innerip_v6 || '',
-  }));
+  processList.value = res.items.map(item => {
+    const host = hostListMap.get(item.bk_host_id);
+    const hostInfo = host?.info || {};
+    const hostState = host?.state || {};
+    const bizId = hostInfo?.bk_biz_id ?? item.bk_biz_id ?? 0;
+    const unitId = hostInfo?.bk_networkunit_id ?? 0;
+    return {
+      ...item,
+      ...item.platform,
+      ...item.process_info,
+      ...item.process_identity,
+      ...item.process_controller,
+      ...item.process_resource,
+      ...item.process_monitor_policy,
+      bk_host_innerip: hostInfo?.bk_host_innerip_list?.join(',') || '',
+      bk_host_innerip_v6: hostInfo?.bk_host_innerip_v6_list?.join(',') || '',
+      biz_id: bizId,
+      biz_name: bizId ? (mainStore.businessList.find(b => b.bk_biz_id === bizId)?.bk_biz_name || `[${bizId}]`) : '—',
+      networkarea_name: hostInfo?.bk_networkarea_name || '',
+      networkunit_id: unitId,
+      networkunit_name: unitId > 0 ? (networkUnitNameMap.value.get(unitId) || `[${unitId}]`) : '—',
+      dept_name: hostInfo?.dept_name || '—',
+      node_version: hostState?.node_version || '—',
+      node_status: hostState?.node_status || '—',
+    };
+  });
 
   // 加载当前进程涉及的插件默认版本，用于版本一致性提示
   await loadDefaultPluginVersions();

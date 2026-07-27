@@ -10,11 +10,8 @@ jobs:
       pull-requests: write
     runs-on: self-hosted
     steps:
-      - name: Checkout PR
+      - name: Checkout base config
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
       - name: Label PR
         uses: actions/labeler@v5

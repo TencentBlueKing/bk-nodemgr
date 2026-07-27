@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -56,7 +57,7 @@ func (h *handler) Upsert(nCtx contextx.IContext, operInstID string) error {
 
 	data := &StopOperInst{
 		OperInstID: operInstID,
-		ExpireAt:   time.Now().Add(time.Second * 5),
+		ExpireAt:   time.Now().Add(time.Second * 5), // nolint: mnd
 	}
 	if err := h.dao.upsert(nCtx, data); err != nil {
 		return err
@@ -67,7 +68,7 @@ func (h *handler) Upsert(nCtx contextx.IContext, operInstID string) error {
 
 // FindAll ...
 func (h *handler) FindAll(nCtx contextx.IContext) ([]string, error) {
-	stopOperInsts, err := h.dao.find(nCtx, bson.D{{Key: "basic.is_deleted", Value: false}})
+	stopOperInsts, err := h.dao.find(nCtx, bson.D{{Key: base.FieldKeyIsDeleted, Value: false}})
 	if err != nil {
 		return nil, err
 	}

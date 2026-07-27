@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -13,126 +15,96 @@ package host
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"sort"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 )
 
-// testClient ...
+// testClient creates a host handler backed by an isolated integration database.
 func testClient(t *testing.T) IHandler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, db := support.RequireMongoDatabase(t)
+	return New(db)
+}
 
-	nCtx := context.Background()
-	mongoClient, err := mongo.Connect(
-		nCtx,
-		&options.ClientOptions{
-			Hosts: []string{
-				os.Getenv("MONGO_ADDRESS"),
+// prepareData inserts shared host fixtures into an isolated handler.
+func prepareData(t *testing.T, nCtx contextx.IContext) IHandler {
+	tenantID := nCtx.TenantID()
+	h := testClient(t)
+
+	err := h.UpsertMany(nCtx,
+		&types.Host{
+			TenantID: tenantID,
+			HostID:   90001,
+			Static: &types.HostStatic{
+				HostName: "hostname-1",
 			},
-			Auth: &options.Credential{
-				Username:      os.Getenv("MONGO_USER"),
-				Password:      os.Getenv("MONGO_PASSWORD"),
-				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
-				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
+			Dynamic: &types.HostDynamic{
+				NodeStatus:  types.NodeStatusDamaged,
+				NodeRole:    types.NodeRoleAgent,
+				NodeVersion: "v2.0.0",
+			},
+		},
+		&types.Host{
+			TenantID: tenantID,
+			HostID:   90002,
+			Static: &types.HostStatic{
+				HostName: "hostname-2",
+			},
+		},
+		&types.Host{
+			TenantID: tenantID,
+			HostID:   90003,
+			Static: &types.HostStatic{
+				HostName:      "unknown-name",
+				NetworkAreaID: 1,
+			},
+			Dynamic: &types.HostDynamic{
+				NodeRole:            types.NodeRoleAgent,
+				NodeStatus:          types.NodeStatusRunning,
+				NodeVersion:         "v2.0.0",
+				NodeGeneration:      2,
+				AgentID:             "00011113330003",
+				NetworkUnitID:       1,
+				ProxyTags:           []types.ProxyTag{types.ProxyTagDedicatedInstaller},
+				ProxyAccessDisabled: true,
+				ProxyClusterPort:    33066,
+				ProxyDataPort:       33067,
+				ProxyFilePort:       33068,
+			},
+		},
+		&types.Host{
+			TenantID: tenantID,
+			HostID:   90004,
+			Static: &types.HostStatic{
+				BizID:         0,
+				NetworkAreaID: 0,
+				HostName:      "unknown-name",
+				DeptName:      "",
+				InnerIPList:   []string{"127.0.0.1", "127.0.0.2"},
+				InnerIPV6List: []string{""},
+				OuterIPList:   []string{""},
+				OuterIPV6List: []string{""},
+				Mac:           "",
+				OSType:        "",
+				Arch:          "",
+				Addressing:    types.AddressingDynamic,
+				SyncedAgentID: "",
+			},
+			Dynamic: &types.HostDynamic{
+				NodeVersion: "v2.0.1",
 			},
 		},
 	)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("prepareData() error = %v", err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
-}
-
-var once = sync.Once{}
-
-// prepareData for all tests.
-func prepareData(t *testing.T, nCtx contextx.IContext) {
-	once.Do(func() {
-		tenantID := nCtx.TenantID()
-
-		// pre insert.
-		h := testClient(t)
-		err := h.UpsertMany(nCtx,
-			&types.Host{
-				TenantID: tenantID,
-				HostID:   90001,
-				Static: &types.HostStatic{
-					HostName: "hostname-1",
-				},
-				Dynamic: &types.HostDynamic{
-					NodeStatus:  types.NodeStatusDamaged,
-					NodeRole:    types.NodeRoleAgent,
-					NodeVersion: "v2.0.0",
-				},
-			},
-			&types.Host{
-				TenantID: tenantID,
-				HostID:   90002,
-				Static: &types.HostStatic{
-					HostName: "hostname-2",
-				},
-			},
-			&types.Host{
-				TenantID: tenantID,
-				HostID:   90003,
-				Static: &types.HostStatic{
-					HostName:      "unknown-name",
-					NetworkAreaID: 1,
-				},
-				Dynamic: &types.HostDynamic{
-					NodeRole:            types.NodeRoleAgent,
-					NodeStatus:          types.NodeStatusRunning,
-					NodeVersion:         "v2.0.0",
-					NodeGeneration:      2,
-					AgentID:             "00011113330003",
-					NetworkUnitID:       1,
-					ProxyTags:           []types.ProxyTag{types.ProxyTagDedicatedInstaller},
-					ProxyAccessDisabled: true,
-					ProxyClusterPort:    33066,
-					ProxyDataPort:       33067,
-					ProxyFilePort:       33068,
-				},
-			},
-			&types.Host{
-				TenantID: tenantID,
-				HostID:   90004,
-				Static: &types.HostStatic{
-					BizID:         0,
-					NetworkAreaID: 0,
-					HostName:      "unknown-name",
-					DeptName:      "",
-					InnerIPList:   []string{"127.0.0.1", "127.0.0.2"},
-					InnerIPV6List: []string{""},
-					OuterIPList:   []string{""},
-					OuterIPV6List: []string{""},
-					Mac:           "",
-					OSType:        "",
-					Arch:          "",
-					Addressing:    types.AddressingDynamic,
-					SyncedAgentID: "",
-				},
-				Dynamic: &types.HostDynamic{
-					NodeVersion: "v2.0.1",
-				},
-			},
-		)
-		if err != nil {
-			t.Errorf("prepareData() error = %v", err)
-		}
-	})
+	return h
 }
 
 // Test_handler_ListAll ...
@@ -504,7 +476,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 func Test_handler_Count(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
+	h := prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -534,7 +506,6 @@ func Test_handler_Count(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			got, err := h.Count(nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
@@ -554,7 +525,7 @@ func Test_handler_Count(t *testing.T) {
 func Test_handler_List(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
+	h := prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -633,7 +604,6 @@ func Test_handler_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
@@ -663,7 +633,7 @@ func Test_handler_List(t *testing.T) {
 func Test_handler_DistinctNodeVersion(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
+	h := prepareData(t, nCtx)
 
 	type args struct {
 		optFn []OptFn
@@ -686,7 +656,6 @@ func Test_handler_DistinctNodeVersion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			gotResult, err := h.DistinctNodeVersion(nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctNodeVersion() error = %v, wantErr %v", err, tt.wantErr)
@@ -707,7 +676,7 @@ func Test_handler_DistinctNodeVersion(t *testing.T) {
 func Test_handler_DistinctNodeStatus(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
+	h := prepareData(t, nCtx)
 
 	type args struct {
 		optFn []OptFn
@@ -730,7 +699,6 @@ func Test_handler_DistinctNodeStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			gotResult, err := h.DistinctNodeStatus(nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctNodeStatus() error = %v, wantErr %v", err, tt.wantErr)
@@ -751,7 +719,7 @@ func Test_handler_DistinctNodeStatus(t *testing.T) {
 func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
+	h := prepareData(t, nCtx)
 
 	type args struct {
 		optFn []OptFn
@@ -774,7 +742,6 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			gotResult, err := h.DistinctNetworkAreaID(nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctNetworkAreaID() error = %v, wantErr %v", err, tt.wantErr)
@@ -796,9 +763,7 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 func Test_handler_TouchOperationUpdatedAt(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
-
-	h := testClient(t)
+	h := prepareData(t, nCtx)
 
 	if err := h.TouchOperationUpdatedAt(nCtx, 90001); err != nil {
 		t.Fatalf("TouchOperationUpdatedAt() error = %v", err)
@@ -849,7 +814,7 @@ func Test_handler_TouchOperationUpdatedAt_empty(t *testing.T) {
 func Test_handler_DeleteMany(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
-	prepareData(t, nCtx)
+	h := prepareData(t, nCtx)
 
 	type args struct {
 		nCtx    contextx.IContext
@@ -871,7 +836,6 @@ func Test_handler_DeleteMany(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			if err := h.DeleteMany(tt.args.nCtx, tt.args.hostIDs...); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
 			}

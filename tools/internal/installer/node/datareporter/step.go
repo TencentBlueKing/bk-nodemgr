@@ -54,7 +54,7 @@ func NewStep(args StepArgs) *Step {
 }
 
 // dataFileContent is the JSON structure written to the local data file in skip-callback mode.
-// SYNC: must stay in sync with sshDataFile in internal/backend/manager/workflowdef/node/action_wait_installer_complete.go.
+// SYNC: must stay in sync with dataFile in pkg/installer/poller/poller.go.
 type dataFileContent struct {
 	AgentID    string `json:"agent_id"`
 	Token      string `json:"token"`

@@ -8,9 +8,7 @@ on:
       - 'master'
 
 permissions:
-  contents: write
   pull-requests: write
-  discussions: write
 
 jobs:
   check-pr-title:
