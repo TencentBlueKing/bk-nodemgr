@@ -118,6 +118,7 @@ func (svc *Service) initialCapability() error {
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeCheckPkgState, clientHandler.CheckPkgStats)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeNotifyReceive, clientHandler.StoragePkg)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeDetectInfoBySSH, clientHandler.DetectInfoBySSH)
+	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeDetectInfoByWindowsSSH, clientHandler.DetectInfoByWindowsSSH)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeInstallBySSH, clientHandler.InstallPagentBySSH)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeInstallByWindowsSSH, clientHandler.InstallPagentByWindowsSSH)
 	dispatcher.RegisterHandler(protoRelay.ServerPushEventTypeInstallProxyBySSH, clientHandler.InstallProxyBySSH)
