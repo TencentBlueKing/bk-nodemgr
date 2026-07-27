@@ -12,6 +12,7 @@
 package base
 
 import (
+	"regexp"
 	"strings"
 	"time"
 
@@ -188,8 +189,9 @@ func WithFuzzyValues(key string, values ...string) OptFn {
 		}
 	}
 
+	pattern := fuzzyPattern(values)
 	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: key, Value: bson.M{"$regex": "(" + strings.Join(values, "|") + ")", "$options": "i"}})
+		return append(f, bson.E{Key: key, Value: bson.M{"$regex": pattern, "$options": "i"}})
 	}
 }
 
@@ -201,9 +203,19 @@ func WithoutFuzzyValues(key string, values ...string) OptFn {
 		}
 	}
 
+	pattern := fuzzyPattern(values)
 	return func(f bson.D) bson.D {
-		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": "(" + strings.Join(values, "|") + ")", "$options": "i"}}})
+		return append(f, bson.E{Key: key, Value: bson.M{"$not": bson.M{"$regex": pattern, "$options": "i"}}})
 	}
+}
+
+func fuzzyPattern(values []string) string {
+	escapedValues := make([]string, 0, len(values))
+	for _, value := range values {
+		escapedValues = append(escapedValues, regexp.QuoteMeta(value))
+	}
+
+	return "(" + strings.Join(escapedValues, "|") + ")"
 }
 
 // WithRegexMatch filters by regex match.

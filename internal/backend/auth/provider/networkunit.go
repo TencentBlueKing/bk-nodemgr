@@ -13,7 +13,6 @@ package provider
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -199,7 +198,7 @@ func (p *NetworkUnitProvider) SearchInstance(ctx contextx.IContext, req *Request
 				NetworkAreaID: []int64{areaID},
 			},
 			FuzzyInclude: &types.NetworkUnitFuzzyFields{
-				NetworkUnitName: []string{regexp.QuoteMeta(keyword)},
+				NetworkUnitName: []string{keyword},
 			},
 		}
 	} else {

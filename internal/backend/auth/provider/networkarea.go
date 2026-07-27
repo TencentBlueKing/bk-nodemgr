@@ -13,7 +13,6 @@ package provider
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -166,7 +165,7 @@ func (p *NetworkAreaProvider) SearchInstance(ctx contextx.IContext, req *Request
 	if keyword != "" {
 		condition = &types.NetworkAreaCondition{
 			FuzzyInclude: &types.NetworkAreaFuzzyFields{
-				NetworkAreaName: []string{regexp.QuoteMeta(keyword)},
+				NetworkAreaName: []string{keyword},
 			},
 		}
 	}
