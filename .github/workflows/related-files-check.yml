@@ -15,23 +15,47 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout PR
+      - name: Checkout base config
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
       - name: Get PR changed files
         id: changed-files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          set -euo pipefail
+
           # 使用 GitHub API 获取 PR 变更文件
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files?per_page=100"
-          CHANGED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$FILES_URL" | jq -r '.[].filename')
-          echo "$CHANGED_FILES" > changed_files.txt
+          : > changed_files.txt
+          page=1
+          while true; do
+            response=$(curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}")
+
+            if ! jq -e 'type == "array"' >/dev/null <<<"${response}"; then
+              echo "PR files API response is not an array" >&2
+              exit 1
+            fi
+
+            count=$(jq 'length' <<<"${response}")
+            jq -r '.[].filename' <<<"${response}" >> changed_files.txt
+            if [ "${count}" -lt 100 ]; then
+              break
+            fi
+            if [ "${page}" -ge 30 ]; then
+              echo "PR files list exceeds the 3000-file API limit" >&2
+              exit 1
+            fi
+            page=$((page + 1))
+          done
 
           # 调试输出
-          echo "PR 编号: $PR_NUMBER"
+          echo "PR 编号: ${PR_NUMBER}"
           echo "变更文件列表:"
           cat changed_files.txt
 
@@ -51,14 +75,14 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
-          
+
           # 读取配置以获取评论标题
           CONFIG=$(cat .github/related-files-config.json)
           HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
-          
+
           # 查找包含特定标题的评论
           BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r --arg header "$HEADER" '.[] | select(.body | startswith($header)) | .id')
-          
+
           if [ -n "$BOT_COMMENTS" ]; then
             echo "EXISTING_COMMENTS<<EOF" >> $GITHUB_ENV
             echo "$BOT_COMMENTS" >> $GITHUB_ENV
@@ -108,7 +132,7 @@ jobs:
               }
 
               console.log('匹配的规则数量:', matchedRules.length);
-            
+
               // 按匹配规则分组创建建议
               const suggestions = [];
               matchedRules.forEach(rule => {
@@ -121,7 +145,7 @@ jobs:
                   // 对于特定文件，进行精确匹配
                   return !changedFilesSet.has(relatedFile);
                 });
-            
+
                 if (missingForRule.length > 0) {
                   suggestions.push({
                     rule: rule,
@@ -129,46 +153,46 @@ jobs:
                   });
                 }
               });
-            
+
               // 设置环境变量表示是否有建议
               core.exportVariable('HAS_SUGGESTIONS', suggestions.length > 0 ? 'true' : 'false');
 
               // 查找和处理现有评论
               const hasExistingComments = process.env.HAS_EXISTING_COMMENTS === 'true';
-            
+
               if (hasExistingComments) {
                 try {
                   const existingCommentIds = process.env.EXISTING_COMMENTS.trim().split('\n');
-            
+
                   // 获取原始评论内容并检查哪些建议已被处理
                   for (const commentId of existingCommentIds) {
                     if (!commentId) continue;
-            
+
                     const existingComment = await github.rest.issues.getComment({
                       owner: context.repo.owner,
                       repo: context.repo.repo,
                       comment_id: parseInt(commentId)
                     });
-            
+
                     let commentBody = existingComment.data.body;
-            
+
                     // 如果评论已经被标记为完成，则跳过
                     if (commentBody.startsWith('~~')) continue;
-            
+
                     // 提取评论中提到的文件路径
                     const fileRegex = /`(.*?)`/g;
                     let match;
                     let modified = false;
-            
+
                     let updatedBody = commentBody;
-            
+
                     // 针对评论中的每个文件路径，检查是否已在当前变更中
                     while ((match = fileRegex.exec(commentBody)) !== null) {
                       const filePath = match[1];
-            
+
                       // 跳过已经标记为处理的项目
                       if (updatedBody.includes(`~~\`${filePath}\`~~`)) continue;
-            
+
                       // 检查文件是否在当前变更中
                       if (changedFilesSet.has(filePath) || 
                           (filePath.endsWith('/') && changedFiles.some(f => f.startsWith(filePath)))) {
@@ -180,11 +204,11 @@ jobs:
                         modified = true;
                       }
                     }
-            
+
                     // 检查是否所有建议都已处理
                     const allProcessed = !updatedBody.includes('- `') || 
                                         (updatedBody.match(/- `.*?`/g) || []).length === 0;
-            
+
                     // 如果所有建议都已处理，标记整个评论为已完成
                     if (allProcessed && modified) {
                       const completionMessage = "\n\n✅ **所有建议的文件都已更新!**";
@@ -192,7 +216,7 @@ jobs:
                         updatedBody += completionMessage;
                       }
                     }
-            
+
                     // 如果有修改，更新评论
                     if (modified) {
                       await github.rest.issues.updateComment({
@@ -221,7 +245,7 @@ jobs:
                 suggestions.forEach(suggestion => {
                   commentBody += `### ${suggestion.rule.name}\n`;
                   commentBody += `${suggestion.rule.description}\n\n`;
-            
+
                   commentBody += "**应考虑更改的文件:**\n";
                   suggestion.missing.forEach(file => {
                     commentBody += `- \`${file}\`\n`;
@@ -254,20 +278,20 @@ jobs:
           # 读取配置以获取评论标题
           CONFIG=$(cat .github/related-files-config.json)
           HEADER=$(echo "$CONFIG" | jq -r '.comment_template.header')
-          
+
           echo "${{ env.EXISTING_COMMENTS }}" | while read comment_id; do
             if [ -n "$comment_id" ]; then
               COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$comment_id"
-          
+
               # 获取现有评论
               COMMENT_BODY=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENT_URL" | jq -r '.body')
-          
+
               # 检查评论是否已经被标记为关闭
               if [[ "$COMMENT_BODY" != "~~"* ]]; then
                 curl -s -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" \
                   -d "{\"body\":\"~~ ${HEADER} ~~\\n\\n✅ **所有相关文件都已正确更新。此通知现已关闭。**\"}" \
                   "$COMMENT_URL"
-          
+
                 echo "已关闭评论 ID: $comment_id"
               fi
             fi
