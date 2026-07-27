@@ -55,6 +55,7 @@ Project-specific skills take precedence over generic Go skills when the task tou
 | `pkg/runtime/gopool`, fan-out/fan-in, `Wait`, bounded goroutines | `bk-nodemgr-gopool` | `golang-concurrency`, `golang-error-handling`, `golang-safety` |
 | `pkg/runtime/retrier`, polling, backoff, fallback candidates | `bk-nodemgr-retrier` | `golang-context`, `golang-error-handling`, `golang-observability` |
 | `pkg/logger`, Biz/Sys logs, fields, levels, third-party logger adapters | `bk-nodemgr-logger` | `golang-error-handling`, `golang-observability` |
+| `testsuite/support`, package-level Mongo/Redis integration tests, `NODEMGR_TEST_*`, `RequireMongoDatabase`, `RequireRedisClientWithKeyPrefix` | `bk-nodemgr-testsuite-support` | `golang-testing`, `golang-database` |
 | New REST/proto endpoint scaffolding | `api-scaffold` | `golang-grpc`, `golang-error-handling`, `golang-testing` when implementation requires them |
 | Router permission mapping | `router-permission-supplement` | `golang-security` only for broader security review |
 | Proto API reference documentation | `api-doc` | `golang-documentation` only for generic doc style |
@@ -124,6 +125,7 @@ Pressure prompts live in `evals/evals.json`. Keep run outputs, timing, grading, 
 - `bk-nodemgr-gopool`: project grouped goroutine execution contracts.
 - `bk-nodemgr-retrier`: project retry primitive selection.
 - `bk-nodemgr-logger`: project logging conventions.
+- `bk-nodemgr-testsuite-support`: project package-level Mongo/Redis integration test support.
 - `api-scaffold`: project API endpoint scaffolding.
 - `router-permission-supplement`: router permission action/resource mapping.
 - `code-review`: project Go change review.
