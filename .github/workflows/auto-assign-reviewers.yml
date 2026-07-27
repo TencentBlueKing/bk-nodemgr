@@ -1,8 +1,7 @@
 name: Auto Assign Reviewers to Master PRs
 
 permissions:
-  checks: write
-  contents: write
+  issues: write
   pull-requests: write
 
 on:
@@ -22,10 +21,6 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       # Assign reviewers to the PR
       - name: Assign reviewers
         uses: actions/github-script@v7
