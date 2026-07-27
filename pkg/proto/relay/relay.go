@@ -107,6 +107,9 @@ const (
 	// ServerPushEventTypeDetectInfoByWMI describes the detect info by wmi event type.
 	ServerPushEventTypeDetectInfoByWMI ServerPushEventType = "detect_info_by_wmi"
 
+	// ServerPushEventTypeDetectInfoByWindowsSSH describes the detect info by windows ssh event type.
+	ServerPushEventTypeDetectInfoByWindowsSSH ServerPushEventType = "detect_info_by_windows_ssh"
+
 	// ServerPushEventTypeInstallBySSH describes the install by ssh event type.
 	ServerPushEventTypeInstallBySSH ServerPushEventType = "install_by_ssh"
 
@@ -169,6 +172,18 @@ type DetectInfoBySSHReq struct {
 
 // DetectInfoByWMIReq defines the detect info by wmi request.
 type DetectInfoByWMIReq struct {
+	ActionName string `json:"action_name"`
+	OperInstID string `json:"oper_inst_id"`
+
+	IP        string `json:"ip"`
+	Port      int64  `json:"port"`
+	User      string `json:"user"`
+	Password  string `json:"password"`
+	LoginMode string `json:"login_mode"`
+}
+
+// DetectInfoByWindowsSSHReq defines the detect info by windows ssh request.
+type DetectInfoByWindowsSSHReq struct {
 	ActionName string `json:"action_name"`
 	OperInstID string `json:"oper_inst_id"`
 
