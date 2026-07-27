@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1+.
+- API Version: v3.0.1-alpha.60+.
 - Required Permission: networkarea_view (View Network Area).
 - Function: Retrieve host count distribution grouped by node version based on host filtering conditions.
 
@@ -24,6 +24,8 @@ Exact match inclusion conditions. Each field is an array, and the server filters
 | bk_host_id        | int64 array  | No       | Host ID list               |
 | bk_biz_id         | int64 array  | No       | Business ID list           |
 | bk_networkarea_id | int64 array  | No       | Network area ID list       |
+| bk_host_innerip    | string array | No       | Host inner IPv4 list, matched exactly by full inner IPv4 |
+| bk_host_innerip_v6 | string array | No       | Host inner IPv6 list, matched exactly by full inner IPv6 |
 | os_type           | string array | No       | Operating system type list |
 | node_role         | string array | No       | Node role list             |
 | node_status       | string array | No       | Node status list           |
