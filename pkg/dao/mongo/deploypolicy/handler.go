@@ -207,6 +207,18 @@ func convSpecFromTypes(spec *types.DeploySpec) (*Spec, error) {
 			CustomConfigContext: param.CustomConfigContext,
 		}
 
+	case types.DeploySpecTypeProjectPluginPkgToHosts:
+		param, err := spec.GetProjectPluginPkgToHostsParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get project plugin pkg to hosts param: %w", err)
+		}
+		dbSpec.ParamProjectPluginPkgToHosts = &SpecParamProjectPluginPkgToHosts{
+			PluginPkgName:       param.PluginPkgName,
+			Version:             param.Version,
+			CustomConfigContext: param.CustomConfigContext,
+			PlacementHostIDs:    param.PlacementHostIDs,
+		}
+
 	case types.DeploySpecTypeSpecifyPluginSubConfig:
 		param, err := spec.GetSpecifyPluginSubConfigParam()
 		if err != nil {
@@ -593,6 +605,18 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 			PluginPkgName:       data.ParamSpecifyPluginPkg.PluginPkgName,
 			Version:             data.ParamSpecifyPluginPkg.Version,
 			CustomConfigContext: data.ParamSpecifyPluginPkg.CustomConfigContext,
+		})
+
+	case types.DeploySpecTypeProjectPluginPkgToHosts:
+		if data.ParamProjectPluginPkgToHosts == nil {
+			return nil, fmt.Errorf("param_project_plugin_pkg_to_hosts is required for type %s", data.Type)
+		}
+
+		return types.NewDeploySpecWithProjectPluginPkgToHosts(&types.ProjectPluginPkgToHostsParam{
+			PluginPkgName:       data.ParamProjectPluginPkgToHosts.PluginPkgName,
+			Version:             data.ParamProjectPluginPkgToHosts.Version,
+			CustomConfigContext: data.ParamProjectPluginPkgToHosts.CustomConfigContext,
+			PlacementHostIDs:    data.ParamProjectPluginPkgToHosts.PlacementHostIDs,
 		})
 
 	case types.DeploySpecTypeSpecifyPluginSubConfig:

@@ -69,12 +69,13 @@ type Meta struct {
 
 // Spec represents the spec of deploy policy.
 type Spec struct {
-	Type                        string                           `json:"type" bson:"type"`
-	ParamSpecifyAgent           *SpecParamSpecifyAgent           `json:"param_specify_agent,omitempty" bson:"param_specify_agent,omitempty"`
-	ParamSpecifyProxy           *SpecParamSpecifyProxy           `json:"param_specify_proxy,omitempty" bson:"param_specify_proxy,omitempty"`
-	ParamSpecifyPlugin          *SpecParamSpecifyPlugin          `json:"param_specify_plugin,omitempty" bson:"param_specify_plugin,omitempty"`
-	ParamSpecifyPluginPkg       *SpecParamSpecifyPluginPkg       `json:"param_specify_plugin_pkg,omitempty" bson:"param_specify_plugin_pkg,omitempty"`
-	ParamSpecifyPluginSubConfig *SpecParamSpecifyPluginSubConfig `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"` //nolint:lll
+	Type                         string                            `json:"type" bson:"type"`
+	ParamSpecifyAgent            *SpecParamSpecifyAgent            `json:"param_specify_agent,omitempty" bson:"param_specify_agent,omitempty"`
+	ParamSpecifyProxy            *SpecParamSpecifyProxy            `json:"param_specify_proxy,omitempty" bson:"param_specify_proxy,omitempty"`
+	ParamSpecifyPlugin           *SpecParamSpecifyPlugin           `json:"param_specify_plugin,omitempty" bson:"param_specify_plugin,omitempty"`
+	ParamSpecifyPluginPkg        *SpecParamSpecifyPluginPkg        `json:"param_specify_plugin_pkg,omitempty" bson:"param_specify_plugin_pkg,omitempty"`
+	ParamProjectPluginPkgToHosts *SpecParamProjectPluginPkgToHosts `json:"param_project_plugin_pkg_to_hosts,omitempty" bson:"param_project_plugin_pkg_to_hosts,omitempty"` //nolint:lll
+	ParamSpecifyPluginSubConfig  *SpecParamSpecifyPluginSubConfig  `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"`     //nolint:lll
 }
 
 // SpecParamSpecifyAgent represents the parameter for specify agent spec.
@@ -99,6 +100,14 @@ type SpecParamSpecifyPluginPkg struct {
 	PluginPkgName       string         `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
 	Version             string         `json:"version" bson:"version"`
 	CustomConfigContext map[string]any `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
+}
+
+// SpecParamProjectPluginPkgToHosts represents the parameter for project plugin pkg to hosts spec.
+type SpecParamProjectPluginPkgToHosts struct {
+	PluginPkgName       string         `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
+	Version             string         `json:"version" bson:"version"`
+	CustomConfigContext map[string]any `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
+	PlacementHostIDs    []int64        `json:"placement_host_ids" bson:"placement_host_ids"`
 }
 
 // SpecParamSpecifyPluginSubConfig represents the parameter for specify plugin sub config spec.
