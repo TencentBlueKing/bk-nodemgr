@@ -1019,13 +1019,16 @@ const getProcessList = async () => {
     hostListMap = new Map(hostList.items.map(item => [item.bk_host_id, item]));
 
     // 补充管控单元名称：收集 bk_networkunit_id → 调 brief 接口 → 构建 Map
-    const unitIds = [...new Set(hostList.items.map(item => item.info?.bk_networkunit_id).filter((id: number) => id != null && id > 0))];
+    // 0 是正常单元 ID（从 0 开始），只过滤 null/undefined；负数（-1 等）为未匹配，brief 不会返回
+    const unitIds = [...new Set(hostList.items.map(item => item.info?.bk_networkunit_id).filter((id: number) => id != null && id >= 0))];
     if (unitIds.length > 0) {
       const unitRes = await TopoService.NetworkUnitListBrief({
         exact_include_conditions: { bk_networkunit_id: unitIds },
       }).catch(() => ({ items: [] }));
       networkUnitNameMap.value = new Map((unitRes.items || []).map((u: any) => [u.bk_networkunit_id, u.bk_networkunit_name]));
     }
+    // -1 等负数是未匹配管控单元的特殊 ID，brief 接口不会返回，前端直接补名称
+    networkUnitNameMap.value.set(-1, t('pluginManagement.plugin.process.unmatchedNetworkUnit'));
   };
 
   processList.value = res.items.map(item => {
@@ -1033,7 +1036,9 @@ const getProcessList = async () => {
     const hostInfo = host?.info || {};
     const hostState = host?.state || {};
     const bizId = hostInfo?.bk_biz_id ?? item.bk_biz_id ?? 0;
-    const unitId = hostInfo?.bk_networkunit_id ?? 0;
+    const rawUnitId = hostInfo?.bk_networkunit_id;
+    // 负数（-1 等）统一归一到 -1 查未匹配名称；null/undefined 显示 —
+    const unitId = rawUnitId != null ? (rawUnitId < 0 ? -1 : rawUnitId) : null;
     return {
       ...item,
       ...item.platform,
@@ -1048,7 +1053,7 @@ const getProcessList = async () => {
       biz_name: bizId ? (mainStore.businessList.find(b => b.bk_biz_id === bizId)?.bk_biz_name || `[${bizId}]`) : '—',
       networkarea_name: hostInfo?.bk_networkarea_name || '',
       networkunit_id: unitId,
-      networkunit_name: unitId > 0 ? (networkUnitNameMap.value.get(unitId) || `[${unitId}]`) : '—',
+      networkunit_name: unitId != null ? (networkUnitNameMap.value.get(unitId) || `[${unitId}]`) : '—',
       dept_name: hostInfo?.dept_name || '—',
       node_version: hostState?.node_version || '—',
       node_status: hostState?.node_status || '—',
