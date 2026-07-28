@@ -60,6 +60,50 @@ func TestDaoGetIndexes_HostListSort(t *testing.T) {
 	}
 }
 
+func TestDaoGetIndexes_BizNodeStatusScan(t *testing.T) {
+	indexes := (&dao{}).GetIndexes()
+	wantIndex := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: FieldKeyStaticBizID, Value: 1},
+			{Key: FieldKeyDynamicNodeStatus, Value: 1},
+			{Key: "_id", Value: 1},
+		},
+		Options: options.Index().SetPartialFilterExpression(bson.D{
+			{Key: base.FieldKeyIsDeleted, Value: false},
+			{Key: FieldKeyDynamicAgentID, Value: bson.M{"$gt": ""}},
+		}),
+	}
+
+	for _, index := range indexes {
+		if reflect.DeepEqual(index.Keys, wantIndex.Keys) && reflect.DeepEqual(index.Options, wantIndex.Options) {
+			return
+		}
+	}
+
+	t.Fatalf("GetIndexes() missing scan all partial index %v", wantIndex)
+}
+
+func TestDaoGetIndexes_BizScan(t *testing.T) {
+	indexes := (&dao{}).GetIndexes()
+	wantIndex := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: FieldKeyStaticBizID, Value: 1},
+			{Key: "_id", Value: 1},
+		},
+		Options: options.Index().SetPartialFilterExpression(bson.D{
+			{Key: base.FieldKeyIsDeleted, Value: false},
+		}),
+	}
+
+	for _, index := range indexes {
+		if reflect.DeepEqual(index.Keys, wantIndex.Keys) && reflect.DeepEqual(index.Options, wantIndex.Options) {
+			return
+		}
+	}
+
+	t.Fatalf("GetIndexes() missing biz scan partial index %v", wantIndex)
+}
+
 func hasPartialIndex(indexes []mongo.IndexModel, keys bson.D) bool {
 	for _, index := range indexes {
 		if !reflect.DeepEqual(index.Keys, keys) {

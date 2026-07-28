@@ -79,6 +79,26 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		},
 		{
 			Keys: bson.D{
+				{Key: FieldKeyStaticBizID, Value: 1},
+				{Key: FieldKeyDynamicNodeStatus, Value: 1},
+				{Key: "_id", Value: 1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+				{Key: FieldKeyDynamicAgentID, Value: bson.M{"$gt": ""}},
+			}),
+		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyStaticBizID, Value: 1},
+				{Key: "_id", Value: 1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
+		{
+			Keys: bson.D{
 				{Key: FieldKeyDynamicNetworkUnitID, Value: 1},
 				{Key: FieldKeyDynamicNodeRole, Value: 1},
 			},
