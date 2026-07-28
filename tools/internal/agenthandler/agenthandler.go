@@ -13,6 +13,8 @@ package agenthandler
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 )
@@ -77,6 +79,23 @@ type AgentVersionDiagnostic struct {
 	Args       []string
 	Stdout     string
 	Stderr     string
+}
+
+// LogString formats diagnostic metadata and raw outputs as one physical log line.
+func (diagnostic *AgentVersionDiagnostic) LogString() string {
+	return fmt.Sprintf(
+		"work_dir(%s) executable(%s) args(%v) stdout_raw(%s) stderr_raw(%s)",
+		diagnostic.WorkDir,
+		diagnostic.Executable,
+		diagnostic.Args,
+		escapeLogField(diagnostic.Stdout),
+		escapeLogField(diagnostic.Stderr),
+	)
+}
+
+func escapeLogField(value string) string {
+	value = strings.TrimSpace(value)
+	return strings.NewReplacer("\r", "\\r", "\n", "\\n").Replace(value)
 }
 
 // IAgentProcessHandler agent process handler interface.
