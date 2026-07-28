@@ -1,29 +1,23 @@
 [tools]
+# project depand binary
 go = "1.23.10"
-node = "20.20.2"
+node = "24.18.0"
 pnpm = "9.8.0"
-protoc = "29.3"
-golangci-lint = "1.62.2"
 upx = "5.1.0"
+helm = "3.21.3"
+protoc = "29.3"
+clang-format = "latest"
 
+# golang tools
+"go:golang.org/x/tools/gopls" = "latest"
+"go:github.com/go-delve/delve/cmd/dlv" = "v1.25.2"
+"go:github.com/golangci/golangci-lint/cmd/golangci-lint" = "v1.62.2"
+"go:github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2" = "v2.27.2"
+"go:google.golang.org/protobuf/cmd/protoc-gen-go" = "v1.36.5"
 
-[tasks.setup-extra-tools]
-description = "Install dev tools from docs/developer/setup.md (protoc plugins, linters, LSP servers)"
-run = '''
-#!/usr/bin/env bash
-set -euo pipefail
-
-printf "\033[32m[setup-extra-tools] installing go tools...\033[0m\n"
-go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
-go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.2
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
-go install github.com/go-delve/delve/cmd/dlv@v1.25.2
-go install golang.org/x/tools/gopls@latest
-
-printf "\033[32m[setup-extra-tools] installing node-based language servers...\033[0m\n"
-printf '\033[33mTip: if pnpm global bin is not on PATH, or you encounter ERR_PNPM_NO_GLOBAL_BIN_DIR, restart your shell after running "pnpm setup".\033[0m\n'
-pnpm add -g pyright yaml-language-server bash-language-server
-npm install -g @vtsls/language-server
-
-printf "\033[32m[setup-extra-tools] done.\033[0m\n"
-'''
+# nodejs tools
+"npm:@vtsls/language-server" = "latest"
+"npm:@vue/language-server" = "latest"
+"npm:yaml-language-server" = "latest"
+"npm:bash-language-server" = "latest"
+"npm:pyright" = "latest"
