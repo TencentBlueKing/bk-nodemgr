@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -91,6 +92,10 @@ func (h *handler) AssignProxyUnit(rCtx restserver.IContext) (interface{}, error)
 		failedReasons = append(failedReasons, fmt.Sprintf("host-id(%d) not found", id))
 	}
 
+	// read compatibility mode policy once, so that pre-ordered V2 plugins are not skipped.
+	// this keeps assign_unit consistent with the proxy install flow (see install.go).
+	compatibilityPolicy := h.readCompatibilityModePolicy(rCtx)
+
 	nodeDeployments := make([]*types.NodeDeployment, 0, len(hosts))
 	for _, host := range hosts {
 		deployHostDynamic := host.Dynamic
@@ -105,6 +110,9 @@ func (h *handler) AssignProxyUnit(rCtx restserver.IContext) (interface{}, error)
 			},
 		})
 		nodeDeployment.Info.InstallOptions.InstallPreOrderedPlugins = true
+		nodeDeployment.Info.InstallOptions.EnableCompatibilityMode = compatibility.DecideCompatibilityMode(
+			compatibilityPolicy, rCtx.TenantID(), host.Static.BizID, "bkmonitorbeat",
+		)
 
 		nodeDeployments = append(nodeDeployments, nodeDeployment)
 	}
