@@ -313,7 +313,7 @@ type Writer struct {
 }
 
 // Write implements io.Writer.
-func (w Writer) Write(p []byte) (n int, err error) {
+func (w Writer) Write(p []byte) (int, error) {
 	w.o.log(string(p))
 
 	return len(p), nil

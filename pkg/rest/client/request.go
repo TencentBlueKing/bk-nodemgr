@@ -633,12 +633,12 @@ func (r *Request) maskHeader(headers http.Header) string {
 }
 
 func maskURL(rawURL string) string {
-	u, err := url.Parse(rawURL)
+	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return rawURL
 	}
 
-	query := u.Query()
+	query := parsedURL.Query()
 	for key, values := range query {
 		if !isSensitiveURLQueryKey(key) {
 			continue
@@ -650,9 +650,9 @@ func maskURL(rawURL string) string {
 		}
 		query[key] = maskedValues
 	}
-	u.RawQuery = query.Encode()
+	parsedURL.RawQuery = query.Encode()
 
-	return u.String()
+	return parsedURL.String()
 }
 
 func isSensitiveURLQueryKey(key string) bool {
