@@ -291,11 +291,6 @@ func (s *Storage) previewConfigPolicy(nCtx contextx.IContext,
 		policies := findMatchedPolicies(allPolicies, host)
 		matchResult := buildMatchResult(host.HostID, policies)
 
-		logger.G.Sys().Info("DEBUG: generate host configpolicy preview, %+v, %+v", host, constraints)
-		for _, p := range policies {
-			logger.G.Sys().Info("DEBUG: generate host configpolicy preview, %+v", p)
-		}
-
 		if isPreviewReliable(host, constraints) {
 			result.ReliableResults = append(result.ReliableResults, matchResult)
 		} else {
