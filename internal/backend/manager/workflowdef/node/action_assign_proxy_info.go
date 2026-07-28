@@ -136,8 +136,11 @@ func (act *actionAssignProxyInfo) Do(ctx *action.InstanceContext) error {
 		deployInfo.Host.Dynamic.RelayDownloadPort = defaultRelayDownloadPort
 	}
 
-	// Assign proxy unit always enables all proxy capabilities for topo health coverage.
-	deployInfo.Host.Dynamic.ProxyTags = types.AllProxyTag()
+	if len(param.ProxyTags) > 0 {
+		deployInfo.Host.Dynamic.ProxyTags = types.StringListToProxyTagList(param.ProxyTags)
+	} else {
+		deployInfo.Host.Dynamic.ProxyTags = []types.ProxyTag{}
+	}
 
 	// Enable offline mode for plugin installation.
 	deployInfo.InstallOptions.IsOffline = true

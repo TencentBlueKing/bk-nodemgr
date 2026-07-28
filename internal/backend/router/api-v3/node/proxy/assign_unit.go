@@ -95,6 +95,7 @@ func (h *handler) AssignProxyUnit(rCtx restserver.IContext) (interface{}, error)
 	for _, host := range hosts {
 		deployHostDynamic := host.Dynamic
 		deployHostDynamic.NetworkUnitID = networkUnit.ID
+		deployHostDynamic.ProxyTags = types.AllProxyTag()
 
 		nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 			Host: types.Host{
