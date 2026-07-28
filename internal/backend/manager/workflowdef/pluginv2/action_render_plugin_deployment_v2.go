@@ -204,7 +204,47 @@ func (act *actionRenderPluginDeploymentV2) Do(ctx *action.InstanceContext) error
 		OpTimeoutSecs:  5,
 	}
 
-	matchResult, err := act.storageConfigPolicy.MatchConfigPolicyPlugin(nCtx,
+	if err := act.MatchConfigPolicy(std, host); err != nil {
+		return fmt.Errorf("try match plugin config policy failed: %w", err)
+	}
+
+	if std.DeployInfo().InstallOptions.CustomSpec != nil {
+		std.InstanceData().Log().
+			Zh("存在自定义插件Spec，覆盖进程资源及监控策略.").
+			En("Custom plugins Spec exist, overriding process resource and monitoring policies.").
+			Info()
+		std.DeployInfo().Process.Resource = std.DeployInfo().InstallOptions.CustomSpec.Resource
+		std.DeployInfo().Process.MonitorPolicy = std.DeployInfo().InstallOptions.CustomSpec.MonitorPolicy
+	}
+
+	return nil
+}
+
+func (act *actionRenderPluginDeploymentV2) MatchConfigPolicy(std *pluginV2Utils.PluginActionStandarder, host *types.Host) error {
+	std.InstanceData().Log().
+		Zh("匹配配置策略. "+
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), host-id(%d), plugin-name(%s)",
+			host.Static.BizID,
+			host.Static.NetworkAreaID,
+			host.Dynamic.NetworkUnitID,
+			host.Dynamic.NodeOsType,
+			host.Dynamic.NodeCPUArch,
+			host.Dynamic.NodeRole,
+			host.HostID,
+			std.DeployInfo().Process.PluginName).
+		En("match config policy. "+
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), host-id(%d), plugin-name(%s)",
+			host.Static.BizID,
+			host.Static.NetworkAreaID,
+			host.Dynamic.NetworkUnitID,
+			host.Dynamic.NodeOsType,
+			host.Dynamic.NodeCPUArch,
+			host.Dynamic.NodeRole,
+			host.HostID,
+			std.DeployInfo().Process.PluginName).
+		Info()
+
+	matchResult, err := act.storageConfigPolicy.MatchConfigPolicyPlugin(std.Context(),
 		host.Static.BizID, host.Static.NetworkAreaID, host.Dynamic.NetworkUnitID,
 		host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch,
 		std.DeployInfo().Process.PluginName, host.HostID)
@@ -213,14 +253,16 @@ func (act *actionRenderPluginDeploymentV2) Do(ctx *action.InstanceContext) error
 			std.DeployInfo().Process.PluginName, host.HostID, err)
 	}
 	if matchResult != nil {
+		for _, p := range matchResult.MatchedPolicies {
+			std.InstanceData().Log().
+				Zh("命中原始策略. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
+				En("matched original policy. configpolicy-id(%d), configpolicy-name(%s), priority(%d)", p.PolicyID, p.PolicyName, p.Priority).
+				Info()
+		}
+
 		if err = overridePluginResource(matchResult.MergedConfig, &std.DeployInfo().Process.Resource); err != nil {
 			return fmt.Errorf("failed to override plugin resource: %w", err)
 		}
-	}
-
-	if std.DeployInfo().InstallOptions.CustomSpec != nil {
-		std.DeployInfo().Process.Resource = std.DeployInfo().InstallOptions.CustomSpec.Resource
-		std.DeployInfo().Process.MonitorPolicy = std.DeployInfo().InstallOptions.CustomSpec.MonitorPolicy
 	}
 
 	return nil
