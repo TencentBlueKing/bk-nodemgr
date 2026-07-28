@@ -9,7 +9,7 @@ paths:
   /api/v3/topo/accesspoint/list:
     post:
       operationId: Topo_AccessPointList
-      description: AccessPointList provides access-point listing.
+      description: "查询接入点列表，支持分页与按管控区域 ID、接入点 ID 进行精确过滤。"
       tags:
         - Topo
       responses:
@@ -202,11 +202,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the access point list with pagination and exact filtering by network area ID and access point ID."
   /api/v3/topo/business/list:
     post:
       operationId: Topo_BusinessList
-      description: BusinessList provides business listing.
+      description: "查询业务列表，支持分页与按业务 ID、业务名称进行过滤。"
       tags:
         - Topo
       responses:
@@ -382,11 +382,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the business list with pagination and filtering by business ID and business name."
   /api/v3/topo/constant/get:
     post:
       operationId: Topo_ConstantGet
-      description: ConstantGet provides getting a constant.
+      description: "按需获取拓扑相关常量值，目前支持云厂商列表和操作系统类型列表。"
       tags:
         - Topo
       responses:
@@ -531,11 +531,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Retrieve topology-related constant values on demand. The API currently supports the cloud vendor list and the OS type list."
   /api/v3/topo/event/distinct:
     post:
       operationId: Topo_EventDistinct
-      description: EventDistinct provides event distincting.
+      description: "按过滤条件查询拓扑事件中的去重字段值，返回事件类型、管控区域 ID、管控单元 ID、接入点 ID 和操作人候选集合。"
       tags:
         - Topo
       responses:
@@ -740,11 +740,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query distinct field values from topology events under filter conditions, and return candidate sets for event type, network area ID, network unit ID, access point ID, and operator."
   /api/v3/topo/event/list:
     post:
       operationId: Topo_EventList
-      description: EventList provides event listing.
+      description: "查询拓扑变更事件列表，支持分页、按对象 ID 或操作人精确过滤、按对象名称模糊过滤，以及按操作时间范围过滤。"
       tags:
         - Topo
       responses:
@@ -971,11 +971,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query topology event records with pagination, exact filtering by object IDs or operator, fuzzy filtering by object names, and filtering by operation time range."
   /api/v3/topo/graph_node/get:
     post:
       operationId: Topo_TopoGraphNodeGetReq
-      description: TopoGraphNodeGetReq provides graph node getting.
+      description: "获取拓扑图节点信息，返回指定管控单元的 Agent 和 Proxy 统计数据及健康状态。"
       tags:
         - Topo
       responses:
@@ -1260,7 +1260,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Retrieve topology graph node information, returning Agent and Proxy statistics and health status for specified network units."
   /api/v3/topo/host/distinct:
     post:
       operationId: Topo_HostDistinct
@@ -1539,9 +1539,7 @@ paths:
   /api/v3/topo/host/get_host_distribution_by_networkarea_id:
     post:
       operationId: Topo_GetHostDistributionByNetworkAreaID
-      description: |-
-        GetHostDistributionByNetworkAreaIDReq uest provides getting host
-        distribution by node role.
+      description: "根据主机筛选条件，统计各管控区域下的主机数量分布。"
       tags:
         - Topo
       responses:
@@ -1771,13 +1769,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Count the host distribution for each network area based on host filtering conditions."
   /api/v3/topo/host/get_host_distribution_by_node_role:
     post:
       operationId: Topo_GetHostDistributionByNodeRole
-      description: |-
-        GetHostDistributionByNodeRoleReq uest provides getting host
-        distribution by node role.
+      description: "根据主机筛选条件统计各节点角色对应的主机数量分布。"
       tags:
         - Topo
       responses:
@@ -2007,11 +2003,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Count the host distribution for each node role based on host filter conditions."
   /api/v3/topo/host/list:
     post:
       operationId: Topo_HostList
-      description: HostList provides host listing.
+      description: "查询主机列表，支持分页、按主机/节点属性过滤，并按最近更新时间倒序返回结果。"
       tags:
         - Topo
       responses:
@@ -2360,7 +2356,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the host list with pagination and filtering by host and node attributes, and return results in descending order by the latest update time."
   /api/v3/topo/host/scenario/select_host_id:
     post:
       operationId: Topo_HostSelectHostID
@@ -4171,7 +4167,7 @@ paths:
   /api/v3/topo/networkarea/get:
     post:
       operationId: Topo_NetworkAreaGet
-      description: NetworkAreaGet provides getting an existing network-area by id.
+      description: "根据管控区域 ID 查询单个管控区域详情。"
       tags:
         - Topo
       responses:
@@ -4317,11 +4313,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query a single network area by network area ID."
   /api/v3/topo/networkarea/list:
     post:
       operationId: Topo_NetworkAreaList
-      description: NetworkAreaList provides network-area listing.
+      description: "查询管控区域列表，支持分页与按管控区域 ID、名称、云区域进行过滤。"
       tags:
         - Topo
       responses:
@@ -4503,7 +4499,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the network area list with pagination and filtering by network area ID, name, and cloud vendor."
   /api/v3/topo/networkarea/update:
     post:
       operationId: Topo_NetworkAreaUpdate
@@ -5956,7 +5952,7 @@ paths:
   /api/v3/process/distinct:
     post:
       operationId: Process_ProcessDistinct
-      description: ProcessDistinct describes the process distinct request.
+      description: "按过滤条件获取指定进程字段的去重候选值。"
       tags:
         - Process
       responses:
@@ -6190,11 +6186,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get distinct candidate values for selected process fields under the specified filter conditions."
   /api/v3/process/get_distribution_by_host_id:
     post:
       operationId: Process_GetProcessDistributionByHostID
-      description: GetProcessDistributionByHostID describes the process statistics request.
+      description: "按过滤条件统计每台主机上的进程数量。"
       tags:
         - Process
       responses:
@@ -6384,13 +6380,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Count processes on each host under the specified filter conditions."
   /api/v3/process/get_distribution_by_plugin_name:
     post:
       operationId: Process_GetProcessDistributionByPluginName
-      description: |-
-        GetProcessDistributionByPluginName describes the process statistics
-        request.
+      description: "按过滤条件统计各插件名称对应的进程数量。"
       tags:
         - Process
       responses:
@@ -6586,11 +6580,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Count processes for each plugin name under the specified filter conditions."
   /api/v3/process/list:
     post:
       operationId: Process_ListProcesses
-      description: ListProcesses lists the processes.
+      description: "分页查询进程列表，支持仅统计总数，以及按精确或模糊条件过滤。"
       tags:
         - Process
       responses:
@@ -6897,7 +6891,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the process list with pagination, count-only mode, and exact or fuzzy filters."
   /api/v3/plugin/apply_subconfig:
     post:
       operationId: Plugin_ApplyPluginSubConfig
@@ -7726,7 +7720,7 @@ paths:
   /api/v3/plugin/workflow/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowDistinct
-      description: PluginWorkflowDistinct provides plugin workflow distinct.
+      description: "按过滤条件获取插件任务流的类型、主机 ID、操作人和状态去重候选值。"
       tags:
         - PluginWorkflow
       responses:
@@ -7915,11 +7909,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get distinct plugin workflow type, host ID, operator, and status candidates under the specified filters."
   /api/v3/plugin/workflow/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowList
-      description: PluginWorkflowList provides plugin workflow list.
+      description: "查询插件任务流列表，支持分页、精确条件过滤和操作时间范围过滤。"
       tags:
         - PluginWorkflow
       responses:
@@ -8150,13 +8144,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query plugin workflows with pagination, exact filters, and an operation time range."
   /api/v3/plugin/workflow/operation/instance/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
-      description: |-
-        PluginWorkflowOperationInstanceList provides plugin workflow operation
-        instance list.
+      description: "根据操作 ID 列表查询插件任务流操作实例，支持仅返回总数。"
       tags:
         - PluginWorkflow
       responses:
@@ -8348,13 +8340,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query plugin workflow operation instances by operation ID list, with support for count-only mode."
   /api/v3/plugin/workflow/operation/instance/log/get:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceLogGet
-      description: |-
-        PluginWorkflowOperationInstanceLogGet provides plugin operation instance
-        log get.
+      description: "根据操作实例 ID 获取插件任务流操作实例日志，包括各 action 的生命周期、日志内容、子任务流引用及实例级额外执行日志。"
       tags:
         - PluginWorkflow
       responses:
@@ -8569,13 +8559,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get plugin workflow operation instance logs by operation instance ID, including per-action lifecycle, log messages, sub-workflow references, and extra execution logs at the instance level."
   /api/v3/plugin/workflow/operation/instance/status_distribution/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList
-      description: |-
-        PluginWorkflowOperationInstanceStatusDistribution provides latest operation
-        instance status distribution.
+      description: "按触发器 ID 查询插件任务流最新操作实例的状态分布。"
       tags:
         - PluginWorkflow
       responses:
@@ -8727,11 +8715,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the status distribution of the latest plugin workflow operation instances by trigger ID."
   /api/v3/plugin/workflow/operation/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationList
-      description: PluginWorkflowOperationList provides plugin workflow operation list.
+      description: "查询指定插件任务流下的操作列表，支持分页、精确条件过滤和仅返回总数。"
       tags:
         - PluginWorkflow
       responses:
@@ -8984,11 +8972,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query operations under a specified plugin workflow, with pagination, exact filters, and count-only mode."
   /api/v3/plugin/workflow/operation/retry:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationRetry
-      description: PluginWorkflowOperationRetry provides plugin operation retry.
+      description: "重试指定插件任务流中的操作，支持全部重试或按操作 ID 部分重试。"
       tags:
         - PluginWorkflow
       responses:
@@ -9122,11 +9110,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Retry operations in a plugin workflow, either all eligible operations or selected operation IDs."
   /api/v3/plugin/workflow/operation/terminate:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationTerminate
-      description: PluginWorkflowOperationTerminate provides plugin operation terminate.
+      description: "终止指定插件任务流中一个或多个操作的最新执行实例。"
       tags:
         - PluginWorkflow
       responses:
@@ -9260,11 +9248,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Terminate the latest execution instance of one or more operations in a plugin workflow."
   /api/v3/package/event/distinct:
     post:
       operationId: Package_PackageEventDistinct
-      description: PackageEventDistinct provides package event distincting.
+      description: "查询资源包操作事件各字段的去重值。"
       tags:
         - Package
       responses:
@@ -9467,11 +9455,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query distinct values of package operation event fields."
   /api/v3/package/event/list:
     post:
       operationId: Package_PackageEventList
-      description: PackageEventList provides package event listing.
+      description: "分页查询资源包操作事件。"
       tags:
         - Package
       responses:
@@ -9691,11 +9679,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query package operation events with pagination."
   /api/v3/package/release/agent/cancel_as_default:
     post:
       operationId: Package_CancelAsDefaultReleaseAgent
-      description: CancelAsDefaultReleaseAgent cancels agent release as default.
+      description: "取消指定 Agent 安装包版本的默认状态。"
       tags:
         - Package
       responses:
@@ -9842,11 +9830,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Cancel the default status of the specified agent package version."
   /api/v3/package/release/agent/delete:
     post:
       operationId: Package_DeleteReleaseAgent
-      description: DeleteReleaseAgent deletes agent release.
+      description: "删除指定的 Agent 安装包版本。"
       tags:
         - Package
       responses:
@@ -9993,11 +9981,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete the specified agent package version."
   /api/v3/package/release/agent/disable:
     post:
       operationId: Package_DisableReleaseAgent
-      description: DisableReleaseAgent disables agent release.
+      description: "禁用指定的 Agent 安装包版本。"
       tags:
         - Package
       responses:
@@ -10144,11 +10132,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Disable the specified agent package version."
   /api/v3/package/release/agent/distinct:
     post:
       operationId: Package_DistinctReleaseAgent
-      description: DistinctReleaseAgent distincts agent releases.
+      description: "获取 Agent 安装包可选的操作系统类型和 CPU 架构的去重列表。"
       tags:
         - Package
       responses:
@@ -10335,11 +10323,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get distinct lists of available OS types and CPU architectures for agent release packages."
   /api/v3/package/release/agent/enable:
     post:
       operationId: Package_EnableReleaseAgent
-      description: EnableReleaseAgent enables agent release.
+      description: "启用指定的 Agent 安装包版本。"
       tags:
         - Package
       responses:
@@ -10486,11 +10474,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Enable the specified agent package version."
   /api/v3/package/release/agent/list:
     post:
       operationId: Package_ListReleaseAgent
-      description: ListReleaseAgent lists agent releases.
+      description: "查询 Agent 安装包列表，支持分页和条件过滤。"
       tags:
         - Package
       responses:
@@ -10719,11 +10707,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List agent release packages with support for pagination and condition filtering."
   /api/v3/package/release/agent/set_as_default:
     post:
       operationId: Package_SetAsDefaultReleaseAgent
-      description: SetAsDefaultReleaseAgent sets agent release as default.
+      description: "将指定的 Agent 安装包版本设为默认版本。"
       tags:
         - Package
       responses:
@@ -10870,11 +10858,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Set the specified agent package version as the default version."
   /api/v3/package/release/agent/set_labels_many:
     post:
       operationId: Package_SetReleaseAgentLabelsMany
-      description: SetReleaseAgentLabelsMany sets many agent releases labels.
+      description: "批量设置符合条件的 Agent 安装包标签。"
       tags:
         - Package
       responses:
@@ -11047,11 +11035,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Set labels in bulk for agent packages that match the conditions."
   /api/v3/package/release/bintool/delete:
     post:
       operationId: Package_DeleteReleaseBinTool
-      description: DeleteReleaseBinTool deletes bintool release.
+      description: "删除指定代次的二进制工具安装包。"
       tags:
         - Package
       responses:
@@ -11186,11 +11174,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete the binary tool package for the specified generation."
   /api/v3/package/release/bintool/list:
     post:
       operationId: Package_ListReleaseBinTool
-      description: ListReleaseBinTool lists bintool releases.
+      description: "查询工具包（BinTool）安装包列表。"
       tags:
         - Package
       responses:
@@ -11369,11 +11357,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List binary tool (BinTool) release packages."
   /api/v3/package/release/cert/delete:
     post:
       operationId: Package_DeleteReleaseCert
-      description: DeleteReleaseCert deletes cert release.
+      description: "删除指定代次的证书安装包。"
       tags:
         - Package
       responses:
@@ -11508,11 +11496,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete the certificate package for the specified generation."
   /api/v3/package/release/cert/list:
     post:
       operationId: Package_ListReleaseCert
-      description: ListReleaseCert lists cert releases.
+      description: "查询证书安装包列表。"
       tags:
         - Package
       responses:
@@ -11691,11 +11679,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List certificate release packages."
   /api/v3/package/release/plugin/cancel_as_default:
     post:
       operationId: Package_CancelAsDefaultReleasePlugin
-      description: CancelAsDefaultReleasePlugin cancels plugin release as default.
+      description: "取消指定插件安装包版本的默认状态。"
       tags:
         - Package
       responses:
@@ -11842,11 +11830,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Cancel the default status of the specified plugin package version."
   /api/v3/package/release/plugin/delete:
     post:
       operationId: Package_DeleteReleasePlugin
-      description: DeleteReleasePlugin deletes plugin release.
+      description: "删除指定的插件安装包版本。"
       tags:
         - Package
       responses:
@@ -11993,11 +11981,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete the specified plugin package version."
   /api/v3/package/release/plugin/disable:
     post:
       operationId: Package_DisableReleasePlugin
-      description: DisableReleasePlugin disables plugin release.
+      description: "禁用指定的插件安装包版本。"
       tags:
         - Package
       responses:
@@ -12144,11 +12132,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Disable the specified plugin package version."
   /api/v3/package/release/plugin/enable:
     post:
       operationId: Package_EnableReleasePlugin
-      description: EnableReleasePlugin enables plugin release.
+      description: "启用指定的插件安装包版本。"
       tags:
         - Package
       responses:
@@ -12295,11 +12283,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Enable the specified plugin package version."
   /api/v3/package/release/plugin/list:
     post:
       operationId: Package_ListReleasePlugin
-      description: ListReleasePlugin lists plugin releases.
+      description: "查询插件安装包列表，支持分页和条件过滤。接口仅返回当前用户有权限查看的插件安装包。"
       tags:
         - Package
       responses:
@@ -12524,11 +12512,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List plugin release packages with support for pagination and condition filtering. Only packages authorized for the current user are returned."
   /api/v3/package/release/plugin/set_as_default:
     post:
       operationId: Package_SetAsDefaultReleasePlugin
-      description: SetAsDefaultReleasePlugin sets plugin release as default.
+      description: "将指定的插件安装包版本设为默认版本。"
       tags:
         - Package
       responses:
@@ -12675,11 +12663,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Set the specified plugin package version as the default version."
   /api/v3/package/release/plugin_bintool/delete:
     post:
       operationId: Package_DeleteReleasePluginBinTool
-      description: DeleteReleasePluginBinTool deletes plugin-bintool release.
+      description: "删除指定插件和代次的插件二进制工具安装包。"
       tags:
         - Package
       responses:
@@ -12816,11 +12804,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete the plugin binary tool package for the specified plugin and generation."
   /api/v3/package/release/plugin_bintool/list:
     post:
       operationId: Package_ListReleasePluginBinTool
-      description: ListReleasePluginBinTool lists plugin-bintool releases.
+      description: "查询插件工具包（PluginBinTool）安装包列表，接口仅返回当前用户有权限查看的插件工具包。"
       tags:
         - Package
       responses:
@@ -12999,11 +12987,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List plugin binary tool (PluginBinTool) release packages. Only packages authorized for the current user are returned."
   /api/v3/package/release/proxy/cancel_as_default:
     post:
       operationId: Package_CancelAsDefaultReleaseProxy
-      description: CancelAsDefaultReleaseProxy cancels proxy release as default.
+      description: "取消指定 Proxy 安装包版本的默认状态。"
       tags:
         - Package
       responses:
@@ -13150,11 +13138,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Cancel the default status of the specified proxy package version."
   /api/v3/package/release/proxy/delete:
     post:
       operationId: Package_DeleteReleaseProxy
-      description: DeleteReleaseProxy deletes proxy release.
+      description: "删除指定的 Proxy 安装包版本。"
       tags:
         - Package
       responses:
@@ -13301,11 +13289,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete the specified proxy package version."
   /api/v3/package/release/proxy/disable:
     post:
       operationId: Package_DisableReleaseProxy
-      description: DisableReleaseProxy disables proxy release.
+      description: "禁用指定的 Proxy 安装包版本。"
       tags:
         - Package
       responses:
@@ -13452,11 +13440,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Disable the specified proxy package version."
   /api/v3/package/release/proxy/distinct:
     post:
       operationId: Package_DistinctReleaseProxy
-      description: DistinctReleaseProxy distincts proxy releases.
+      description: "获取 Proxy 安装包可选的操作系统类型和 CPU 架构的去重列表。"
       tags:
         - Package
       responses:
@@ -13643,11 +13631,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get distinct lists of available OS types and CPU architectures for proxy release packages."
   /api/v3/package/release/proxy/enable:
     post:
       operationId: Package_EnableReleaseProxy
-      description: EnableReleaseProxy enables proxy release.
+      description: "启用指定的 Proxy 安装包版本。"
       tags:
         - Package
       responses:
@@ -13794,11 +13782,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Enable the specified proxy package version."
   /api/v3/package/release/proxy/list:
     post:
       operationId: Package_ListReleaseProxy
-      description: ListReleaseProxy lists proxy releases.
+      description: "查询 Proxy 安装包列表，支持分页和条件过滤。"
       tags:
         - Package
       responses:
@@ -14027,11 +14015,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List proxy release packages with support for pagination and condition filtering."
   /api/v3/package/release/proxy/set_as_default:
     post:
       operationId: Package_SetAsDefaultReleaseProxy
-      description: SetAsDefaultReleaseProxy sets proxy release as default.
+      description: "将指定的 Proxy 安装包版本设为默认版本。"
       tags:
         - Package
       responses:
@@ -14178,11 +14166,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Set the specified proxy package version as the default version."
   /api/v3/package/release/proxy/set_labels_many:
     post:
       operationId: Package_SetReleaseProxyLabelsMany
-      description: SetReleaseProxyLabelsMany sets many proxy releases labels.
+      description: "批量设置符合条件的 Proxy 安装包标签。"
       tags:
         - Package
       responses:
@@ -14355,11 +14343,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Set labels in bulk for proxy packages that match the conditions."
   /api/v3/node/workflow/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowDistinct
-      description: NodeWorkflowDistinct provides node workflow distinct.
+      description: "按过滤条件获取节点任务流的去重字段候选值，返回任务流类型、业务 ID、操作人和任务流状态。"
       tags:
         - NodeWorkflow
       responses:
@@ -14547,11 +14535,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get distinct candidate values of node workflow fields under filter conditions, including workflow type, business ID, operator, and workflow status."
   /api/v3/node/workflow/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowList
-      description: NodeWorkflowList provides node workflow list.
+      description: "查询节点任务流列表，支持分页、按精确条件过滤和按操作时间范围过滤。"
       tags:
         - NodeWorkflow
       responses:
@@ -14790,13 +14778,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query node workflow list, with pagination, exact filtering, and operation time range filtering support."
   /api/v3/node/workflow/operation/instance/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
-      description: |-
-        NodeWorkflowOperationInstanceList provides node workflow operation instance
-        list.
+      description: "按操作 ID 或操作实例 ID 查询节点任务流操作实例列表，支持仅返回总数。"
       tags:
         - NodeWorkflow
       responses:
@@ -14992,13 +14978,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query node workflow operation instances by operation IDs or operation instance IDs, with support for count-only mode."
   /api/v3/node/workflow/operation/instance/log/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
-      description: |-
-        NodeWorkflowOperationInstanceLogGet provides node operation instance log
-        get.
+      description: "根据操作实例 ID 获取节点任务操作实例日志，返回每个 action 的生命周期与日志内容，以及实例级额外执行日志。"
       tags:
         - NodeWorkflow
       responses:
@@ -15213,13 +15197,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get node workflow operation instance logs by operation instance ID, including per-action lifecycle and log messages, and extra execution logs at instance level."
   /api/v3/node/workflow/operation/instance/status_distribution/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList
-      description: |-
-        NodeWorkflowOperationInstanceStatusDistribution provides latest operation
-        instance status distribution.
+      description: "按触发 ID 查询操作实例状态分布。"
       tags:
         - NodeWorkflow
       responses:
@@ -15371,11 +15353,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query operation instance status distribution by trigger IDs."
   /api/v3/node/workflow/operation/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationList
-      description: NodeWorkflowOperationList provides node workflow operation list.
+      description: "查询指定节点任务流下的操作列表，支持分页、按节点部署维度精确过滤、按操作状态过滤。"
       tags:
         - NodeWorkflow
       responses:
@@ -15635,11 +15617,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query operation list under a specific node workflow, with pagination, exact filters on deployment dimensions, and operation state filters."
   /api/v3/node/workflow/operation/manual/info/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationManualInfoGet
-      description: NodeWorkflowOperationManualInfoGet provides node operation manual info get.
+      description: "获取指定操作的手动处理信息，包括网络策略和手动执行命令。"
       tags:
         - NodeWorkflow
       responses:
@@ -15839,11 +15821,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get manual handling information for a specified operation, including network policies and manual commands."
   /api/v3/node/workflow/operation/retry:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
-      description: NodeWorkflowOperationRetry provides node operation retry.
+      description: "对指定节点任务流中的操作执行重试，支持全量重试或按操作 ID 部分重试。"
       tags:
         - NodeWorkflow
       responses:
@@ -15977,11 +15959,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Retry operations in a specified node workflow, supporting full retry or partial retry by operation IDs."
   /api/v3/node/workflow/operation/terminate:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationTerminate
-      description: NodeWorkflowOperationTerminate provides node operation terminate.
+      description: "终止指定节点任务流中一个或多个操作的最后一次执行实例。"
       tags:
         - NodeWorkflow
       responses:
@@ -16113,11 +16095,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Terminate the last execution instance of one or more operations in a specified node workflow."
   /api/v3/node/proxy/install:
     post:
       operationId: NodeProxy_NodeProxyInstall
-      description: NodeProxyInstall installs node proxy.
+      description: "批量安装节点Proxy。支持手动安装和离线安装模式。"
       tags:
         - NodeProxy
       responses:
@@ -16337,11 +16319,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch install node Proxy. Supports manual and offline installation modes."
   /api/v3/node/proxy/reconfig:
     post:
       operationId: NodeProxy_NodeProxyReconfig
-      description: NodeProxyReconfig reconfigs node proxy.
+      description: "批量重新配置节点Proxy。"
       tags:
         - NodeProxy
       responses:
@@ -16483,11 +16465,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch reconfigure node Proxy."
   /api/v3/node/proxy/restart:
     post:
       operationId: NodeProxy_NodeProxyRestart
-      description: NodeProxyRestart restarts node proxy.
+      description: "批量重启节点Proxy。"
       tags:
         - NodeProxy
       responses:
@@ -16629,11 +16611,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch restart node Proxy."
   /api/v3/node/proxy/uninstall:
     post:
       operationId: NodeProxy_NodeProxyUninstall
-      description: NodeProxyUninstall uninstalls node proxy.
+      description: "批量卸载节点Proxy。"
       tags:
         - NodeProxy
       responses:
@@ -16770,11 +16752,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch uninstall node Proxy."
   /api/v3/node/proxy/update:
     post:
       operationId: NodeProxy_NodeProxyUpdate
-      description: NodeProxyUpdate updates node proxy.
+      description: "批量更新节点Proxy的动态配置信息，包括登录信息、网络地址、标签等。此操作为元数据更新，不触发远程操作。"
       tags:
         - NodeProxy
       responses:
@@ -16941,11 +16923,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch update dynamic configuration of node Proxy, including login info, network addresses, and tags. This is a metadata-only update and does not trigger remote operations."
   /api/v3/node/proxy/upgrade:
     post:
       operationId: NodeProxy_NodeProxyUpgrade
-      description: NodeProxyUpgrade upgrades node proxy.
+      description: "批量升级节点Proxy到指定版本。"
       tags:
         - NodeProxy
       responses:
@@ -17094,11 +17076,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch upgrade node Proxy to the specified version."
   /api/v3/node/agent/install:
     post:
       operationId: NodeAgent_NodeAgentInstall
-      description: NodeAgentInstall installs node agent.
+      description: "批量安装节点Agent，支持指定目标版本和手动安装模式。"
       tags:
         - NodeAgent
       responses:
@@ -17288,11 +17270,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch install node agents with support for specifying target versions and manual installation mode."
   /api/v3/node/agent/install_check:
     post:
       operationId: NodeAgent_NodeAgentInstallCheck
-      description: NodeAgentInstallCheck provides node agent install check.
+      description: "批量检查主机是否满足Agent安装条件，包括网络单元可用性、IP冲突检测、主机属性一致性校验等。"
       tags:
         - NodeAgent
       responses:
@@ -17487,11 +17469,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch check whether hosts meet agent installation requirements, including network unit availability, IP conflict detection, and host attribute consistency validation."
   /api/v3/node/agent/reconfig:
     post:
       operationId: NodeAgent_NodeAgentReconfig
-      description: NodeAgentReconfig reconfigs node agent.
+      description: "批量重新配置节点Agent，重新下发配置并重启Agent使其生效。"
       tags:
         - NodeAgent
       responses:
@@ -17633,11 +17615,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch reconfigure node agents by re-delivering configuration and restarting the agents to apply changes."
   /api/v3/node/agent/restart:
     post:
       operationId: NodeAgent_NodeAgentRestart
-      description: NodeAgentRestart restarts node agent.
+      description: "批量重启节点Agent，支持强制重启和优雅重启超时配置。"
       tags:
         - NodeAgent
       responses:
@@ -17779,11 +17761,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch restart node agents with support for forced restart and graceful restart timeout configuration."
   /api/v3/node/agent/uninstall:
     post:
       operationId: NodeAgent_NodeAgentUninstall
-      description: NodeAgentUninstall uninstalls node agent.
+      description: "批量卸载节点Agent。"
       tags:
         - NodeAgent
       responses:
@@ -17920,11 +17902,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch uninstall node agents."
   /api/v3/node/agent/upgrade:
     post:
       operationId: NodeAgent_NodeAgentUpgrade
-      description: NodeAgentUpgrade upgrades node agent.
+      description: "批量升级节点Agent到指定版本，支持强制重启和优雅重启超时配置。"
       tags:
         - NodeAgent
       responses:
@@ -18073,11 +18055,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch upgrade node agents to a specified version, with support for forced restart and graceful restart timeout configuration."
   /api/v3/deploy_policy/create:
     post:
       operationId: DeployPolicySvc_Create
-      description: Create creates deploy policy.
+      description: "创建部署策略。"
       tags:
         - DeployPolicySvc
       responses:
@@ -18220,11 +18202,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Create a deploy policy."
   /api/v3/deploy_policy/execute:
     post:
       operationId: DeployPolicySvc_Execute
-      description: Execute executes deploy policy.
+      description: "执行部署策略。"
       tags:
         - DeployPolicySvc
       responses:
@@ -18341,11 +18323,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Execute a deploy policy."
   /api/v3/deploy_policy/list:
     post:
       operationId: DeployPolicySvc_List
-      description: List lists deploy policy.
+      description: "查询部署策略列表，支持分页和条件过滤。"
       tags:
         - DeployPolicySvc
       responses:
@@ -18604,11 +18586,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query deploy policy list with pagination and filtering support."
   /api/v3/deploy_policy/update:
     post:
       operationId: DeployPolicySvc_Update
-      description: Update updates deploy policy.
+      description: "更新部署策略。"
       tags:
         - DeployPolicySvc
       responses:
@@ -18781,11 +18763,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Update a deploy policy."
   /api/v3/policy/config/create:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyCreate
-      description: CreateConfigPolicy creates config policy.
+      description: "创建新的配置策略。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -18945,11 +18927,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Create a new config policy."
   /api/v3/policy/config/delete:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDelete
-      description: DeleteConfigPolicy deletes config policy.
+      description: "批量删除配置策略。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19065,11 +19047,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete config policies in batch."
   /api/v3/policy/config/disable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDisable
-      description: DisableConfigPolicy disables config policy.
+      description: "批量禁用配置策略。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19185,11 +19167,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Disable config policies in batch."
   /api/v3/policy/config/enable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEnable
-      description: EnableConfigPolicy enables config policy.
+      description: "批量启用配置策略。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19305,11 +19287,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Enable config policies in batch."
   /api/v3/policy/config/event/distinct:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEventDistinct
-      description: ConfigPolicyEventDistinct provides policy event distincting.
+      description: "按过滤条件查询配置策略事件的去重字段集合。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19501,11 +19483,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query distinct field sets of config policy events by filtering conditions."
   /api/v3/policy/config/event/list:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEventList
-      description: ConfigPolicyEventList provides policy event listing.
+      description: "查询配置策略事件列表，支持分页、条件过滤和操作时间范围过滤。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19709,11 +19691,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query config policy event list, with pagination, conditional filtering, and operation time range filtering support."
   /api/v3/policy/config/get:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyGet
-      description: GetConfigPolicy gets config policy.
+      description: "按配置策略 ID 查询单个配置策略详情。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19890,11 +19872,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query details of a single config policy by config policy ID."
   /api/v3/policy/config/list:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyList
-      description: ListConfigPolicy lists config policy.
+      description: "查询配置策略列表，支持分页、精确过滤和模糊过滤。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -20122,11 +20104,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the config policy list, with pagination, exact filtering, and fuzzy filtering support."
   /api/v3/policy/config/update:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyUpdate
-      description: UpdateConfigPolicy updates config policy.
+      description: "更新指定配置策略。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -20294,11 +20276,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Update the specified config policy."
   /api/v3/cipher/rsa/get_public_key:
     post:
       operationId: Cipher_GetRSAPublicKey
-      description: GetRSAPublicKey get rsa public key.
+      description: "获取默认 RSA4096 公钥，用于对敏感信息进行加密。"
       tags:
         - Cipher
       responses:
@@ -20411,11 +20393,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get the default RSA4096 public key used to encrypt sensitive data."
   /api/v3/node/workflow/operation/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationDistinct
-      description: NodeWorkflowOperationDistinct provides node workflow operation distinct.
+      description: "按任务流 ID 查询节点任务流下 operation 最新实例状态（state）的去重结果。"
       tags:
         - NodeWorkflow
       responses:
@@ -20562,13 +20544,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query distinct values of latest operation instance state for a node workflow by workflow ID."
   /api/v3/plugin/workflow/operation/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationDistinct
-      description: |-
-        PluginWorkflowOperationDistinct provides plugin workflow operation
-        distinct.
+      description: "获取指定插件任务流下操作状态的去重候选值。"
       tags:
         - PluginWorkflow
       responses:
@@ -20715,11 +20695,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get distinct operation state candidates under the specified plugin workflow."
   /api/v3/node/proxy/install_check:
     post:
       operationId: NodeProxy_NodeProxyInstallCheck
-      description: NodeProxyInstallCheck provides node proxy install check.
+      description: "批量检查主机是否可以安装Proxy，并返回每个主机的安装前置状态。"
       tags:
         - NodeProxy
       responses:
@@ -20914,13 +20894,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch check whether hosts can have Proxy installed, returning pre-installation status for each host."
   /api/v3/auth/verify:
     post:
       operationId: Auth_Verify
-      description: |-
-        Verify checks whether the current user has permissions for the requested
-        resources.
+      description: "校验当前用户是否对指定的操作-资源对拥有权限。"
       tags:
         - Auth
       responses:
@@ -21093,11 +21071,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Verify whether the current user has permission for the requested action-resource pairs."
   /api/v3/policy/config/preview:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyPreview
-      description: ConfigPolicyPreview previews merged config for selected hosts.
+      description: "按业务、策略类型和主机列表预览配置策略匹配结果与配置合并结果。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -21301,11 +21279,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Preview policy matching results and merged config results by business, policy type, and host list."
   /api/v3/policy/config/reorder_priorities:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyPriorityReorder
-      description: ConfigPolicyPriorityReorder reorders config policy priorities within a\n(biz, type) scope.
+      description: "按指定顺序重排同一业务和同一策略类型下的已启用策略优先级。"
       tags:
         - ConfigPolicyAPI
       responses:
@@ -21426,11 +21404,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Reorder priorities of enabled policies under the same business and the same policy type in the specified order."
   /api/v3/iam/v3/resource:
     post:
       operationId: IAM_IAMResourceCallback
-      description: IAMResourceCallback handles IAM resource callback requests.\nThis is a unified endpoint that dispatches requests to different handlers\nbased on the resource type and method specified in the request body.
+      description: "供 BlueKing IAM 回调查询节点管理资源信息，按请求中的资源类型与回调方法分发到对应资源提供方。"
       tags:
         - IAM
       responses:
@@ -21515,11 +21493,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: false
           resourcePermissionRequired: false
-        descriptionEn:
+        descriptionEn: "Provide Node Manager resource data to BlueKing IAM callbacks, dispatching requests by resource type and callback method."
   /api/v3/node/agent/assign_unit:
     post:
       operationId: NodeAgent_NodeAgentAssignUnit
-      description: NodeAgentAssignUnit batch-assigns a network unit to unassigned hosts.
+      description: "批量将未分配网络单元的主机分配到指定网络单元（仅修改元数据，不执行远程操作）。"
       tags:
         - NodeAgent
       responses:
@@ -21670,7 +21648,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch-assign unassigned hosts to a specified network unit (metadata-only, no remote operations)."
   /api/v3/node/agent/upgrade_check:
     post:
       operationId: NodeAgent_NodeAgentUpgradeCheck
@@ -22068,10 +22046,7 @@ paths:
   /api/v3/node/workflow/operation/offline/info:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallInfoGet
-      description: |-
-        NodeWorkflowOperationOfflineInstallInfoGet returns scripts, metadata,
-        release and installer constraints for proxy offline manual install (POST
-        /api/v3/node/workflow/operation/offline/info).
+      description: "获取离线安装 Proxy 操作所需的安装脚本、配置、预检查和安装包信息。"
       tags:
         - NodeWorkflow
       responses:
@@ -22240,14 +22215,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get installation script, configs, precheck, and package information for an offline Proxy installation operation."
   /api/v3/node/workflow/operation/offline/result:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit
-      description: |-
-        NodeWorkflowOperationOfflineInstallResultSubmit accepts installer output
-        JSON and resumes the workflow (POST
-        /api/v3/node/workflow/operation/offline/result).
+      description: "提交离线安装结果数据，唤醒并继续执行对应的离线安装任务步骤。"
       tags:
         - NodeWorkflow
       responses:
@@ -22381,7 +22353,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Submit offline install result data to resume and continue the corresponding offline install operation step."
   /api/v3/plugin/uninstall:
     post:
       operationId: Plugin_UninstallPlugin
@@ -22531,7 +22503,7 @@ paths:
   /api/v3/package/release/plugin/get_config_variables:
     post:
       operationId: Package_GetConfigVariablesReleasePlugin
-      description: GetConfigVariablesReleasePlugin gets config variables of plugin release.
+      description: "查询插件配置变量模板，支持按平台分组返回配置模板信息。"
       tags:
         - Package
       responses:
@@ -22704,13 +22676,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query plugin configuration variable templates, supporting grouped return of configuration template information by platform."
   /api/v3/auth/authorized:
     post:
       operationId: Auth_Authorized
-      description: |-
-        Authorized queries the authorized resource scope for the requested
-        action-resource type pairs.
+      description: "查询用户对指定操作-资源类型对的授权资源范围。"
       tags:
         - Auth
       responses:
@@ -22903,11 +22873,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the authorized resource scope for the requested action-resource type pairs."
   /api/v3/node/constant/deploy/get:
     post:
       operationId: NodeConstant_NodeConstantDeployGet
-      description: NodeConstantDeployGet provides getting deploy constant.
+      description: "根据节点代际和操作系统类型，获取节点安装器、Agent 和插件的默认部署配置。"
       tags:
         - NodeConstant
       responses:
@@ -23079,7 +23049,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get the default deployment configuration for the installer, node agent, and plugins by node generation and operating system type."
   /api/v3/topo/networkunit/get_networkunit_distribution_by_networkarea_id:
     post:
       operationId: Topo_GetNetworkUnitDistributionByNetworkAreaID
@@ -23247,7 +23217,7 @@ paths:
   /api/v3/topo/accesspoint/list/brief:
     post:
       operationId: Topo_AccessPointListBrief
-      description: AccessPointListBrief provides brief access-point listing (no endpoints).
+      description: "查询接入点简要列表，支持按管控区域 ID、接入点 ID 进行精确过滤；`brief` 响应仅返回接入点基础标识信息，不返回 `endpoints` 等敏感地址配置。"
       tags:
         - Topo
       responses:
@@ -23424,13 +23394,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the access point brief list with exact filtering by network area ID and access point ID. The `brief` response returns only the basic access point identity fields and does not expose sensitive endpoint configuration such as `endpoints`."
   /api/v3/topo/host/get_host_distribution_by_node_version:
     post:
       operationId: Topo_GetHostDistributionByNodeVersion
-      description: |-
-        GetHostDistributionByNodeVersionReq uest provides getting host
-        distribution by node version.
+      description: "根据主机筛选条件统计各节点版本对应的主机数量分布。"
       tags:
         - Topo
       responses:
@@ -23660,13 +23628,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Retrieve host count distribution grouped by node version based on host filtering conditions."
   /api/v3/topo/networkunit/list/brief:
     post:
       operationId: Topo_NetworkUnitListBrief
-      description: |-
-        NetworkUnitListBrief provides brief network-unit listing (no sensitive
-        fields).
+      description: "查询管控单元简要列表，支持分页与按管控单元 ID、管控区域 ID、是否直连、代际进行精确过滤；`brief` 返回不会暴露 `direct_endpoints` 与 `custom_deploy_config` 等敏感字段。"
       tags:
         - Topo
       responses:
@@ -23907,7 +23873,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the network unit brief list with pagination and exact filtering by network unit ID, network area ID, direct-connect flag, and generation. The `brief` response does not expose sensitive fields such as `direct_endpoints` and `custom_deploy_config`."
   /api/v3/topo/networkunit/recommend_by_network_segment:
     post:
       operationId: Topo_RecommendNetworkUnitByNetworkSegment
@@ -24067,7 +24033,7 @@ paths:
   /api/v3/package/release/agent/list/brief:
     post:
       operationId: Package_ListReleaseAgentBrief
-      description: ListReleaseAgentBrief lists agent release briefs.
+      description: "查询 Agent 安装包精简列表，仅返回核心字段，支持分页和条件过滤。"
       tags:
         - Package
       responses:
@@ -24277,11 +24243,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query Agent package brief list with only core fields, supports pagination and filtering."
   /api/v3/package/release/plugin/list/brief:
     post:
       operationId: Package_ListReleasePluginBrief
-      description: ListReleasePluginBrief lists plugin release briefs.
+      description: "查询 Plugin 安装包精简列表，仅返回核心字段，支持分页和条件过滤。"
       tags:
         - Package
       responses:
@@ -24487,11 +24453,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query Plugin package brief list with only core fields, supports pagination and filtering."
   /api/v3/package/release/proxy/list/brief:
     post:
       operationId: Package_ListReleaseProxyBrief
-      description: ListReleaseProxyBrief lists proxy release briefs.
+      description: "查询 Proxy 安装包精简列表，返回核心字段及变更日志，支持分页和条件过滤。"
       tags:
         - Package
       responses:
@@ -24701,11 +24667,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query Proxy package brief list with core fields including changelogs, supports pagination and filtering."
   /api/v3/node/proxy/assign_unit:
     post:
       operationId: NodeProxy_NodeProxyAssignUnit
-      description: NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.
+      description: "批量将未分配管控单元的运行中 Proxy 主机分配到指定管控单元，并启动分配工作流。"
       tags:
         - NodeProxy
       responses:
@@ -24858,7 +24824,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch-assign running, unassigned Proxy hosts to a specified network unit and launch an assignment workflow."
   /api/v3/plugin/restart:
     post:
       operationId: Plugin_RestartPlugin
@@ -25154,7 +25120,7 @@ paths:
   /api/v3/plugin/migrate_from_v2:
     post:
       operationId: Plugin_MigratePluginFromV2
-      description: MigratePluginFromV2 migrates plugin process from v2 on specified hosts.
+      description: "批量将指定主机上的插件进程从 v2 迁移到当前插件工作流。"
       tags:
         - Plugin
       responses:
@@ -25296,11 +25262,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch migrate plugin processes from v2 to the current plugin workflow on specified hosts."
   /api/v3/topo/business/host_count/get:
     post:
       operationId: Topo_BusinessHostCountGet
-      description: BusinessHostCountGet provides host count getting by business id.
+      description: "根据业务 ID 列表，统计每个业务下的主机数量。"
       tags:
         - Topo
       responses:
@@ -25450,11 +25416,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Count hosts for each specified business ID."
   /api/v3/topo/business/inst_topo/get:
     post:
       operationId: Topo_BusinessInstTopoGet
-      description: BusinessInstTopoGet provides business instance topology getting.
+      description: "根据业务 ID 查询业务实例拓扑，并返回各拓扑节点聚合后的主机数量。"
       tags:
         - Topo
       responses:
@@ -25515,7 +25481,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the business instance topology by business ID, with aggregated host counts for topology nodes."
   /api/v3/node/agent/update_ops_fields:
     post:
       operationId: NodeAgent_NodeAgentUpdateOpsFields
