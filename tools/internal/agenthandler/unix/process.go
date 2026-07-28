@@ -90,12 +90,8 @@ func (handler *AgentHandler) DiagnoseVersion(ctx context.Context) (*agenthandler
 	diagnostic.Stderr = stderr.String()
 	if err != nil {
 		return diagnostic, fmt.Errorf(
-			"failed to diagnose agent version, work_dir(%s), executable(%s), args(%v), stdout(%s), stderr(%s): %w",
-			diagnostic.WorkDir,
-			diagnostic.Executable,
-			diagnostic.Args,
-			diagnostic.Stdout,
-			diagnostic.Stderr,
+			"failed to diagnose agent version, %s: %w",
+			diagnostic.LogString(),
 			err,
 		)
 	}
