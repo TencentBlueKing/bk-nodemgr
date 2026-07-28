@@ -180,7 +180,7 @@ func (o *Option) WithDuration(duration time.Duration) ILoggerOption {
 func (o *Option) AssignWhenLogging(str *string) ILoggerOption {
 	if str != nil {
 		o.assignFn = func(format string, args ...interface{}) {
-			*str = fmt.Sprintf(format+o.additionMessage(), args...)
+			*str = o.formatMessage(format, args...)
 		}
 	}
 
@@ -243,11 +243,15 @@ func (o *Option) ErrorWriter() io.Writer {
 func (o *Option) log(format string, args ...interface{}) {
 	o.parseArgs()
 
-	printer.Log(o.category, o.level, o.depth, format+o.additionMessage(), args...)
+	printer.Log(o.category, o.level, o.depth, "%s", o.formatMessage(format, args...))
 
 	if o.assignFn != nil {
 		o.assignFn(format, args...)
 	}
+}
+
+func (o *Option) formatMessage(format string, args ...interface{}) string {
+	return fmt.Sprintf(format, args...) + o.additionMessage()
 }
 
 func (o *Option) additionMessage() string {
