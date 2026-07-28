@@ -881,6 +881,19 @@ type IHost interface {
 	FindHostBySetTemplate(nCtx contextx.IContext, bizID int64, page types.Page, setTemplateIDs []int64, setIDs []int64) ([]*types.Host, error)
 }
 
+func newHostQueryPage(page types.Page) Page {
+	sort := page.Sort
+	if sort == "" {
+		sort = string(ccFieldBKHostID)
+	}
+
+	return Page{
+		Start: page.Offset,
+		Limit: page.Limit,
+		Sort:  sort,
+	}
+}
+
 // ListBizHosts list biz hosts.
 // Deprecated: use FindHostWithCondition instead.
 func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error) {
@@ -899,11 +912,7 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		req := &ListBizHostsReq{
 			BKBizID: bizID,
-			Page: Page{
-				Start: p.Offset,
-				Limit: p.Limit,
-				Sort:  p.Sort,
-			},
+			Page:    newHostQueryPage(p),
 		}
 
 		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(bkUsername))
@@ -980,11 +989,7 @@ func (h *Handler) ListBizHostTopoRelations(nCtx contextx.IContext, bizID int64, 
 func (h *Handler) ListHostsWithoutBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Host, error) {
 	req := &ListHostsWithoutBusinessReq{
 		Fields: ccHostFields(),
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
+		Page:   newHostQueryPage(page),
 	}
 
 	resp, err := h.cli.listHostsWithoutBusiness(nCtx, req)
@@ -1050,11 +1055,7 @@ func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page,
 
 func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID int64, filter *HostPropertyFilter) ([]*types.Host, error) {
 	req := &ListBizHostsReq{
-		Page: Page{
-			Start: p.Offset,
-			Limit: p.Limit,
-			Sort:  p.Sort,
-		},
+		Page:               newHostQueryPage(p),
 		BKBizID:            bizID,
 		Fields:             ccHostFields(),
 		HostPropertyFilter: filter,
@@ -1080,11 +1081,7 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 
 func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filter *HostPropertyFilter) ([]*types.Host, error) {
 	listHostsWithoutBusinessReq := &ListHostsWithoutBusinessReq{
-		Page: Page{
-			Start: p.Offset,
-			Limit: p.Limit,
-			Sort:  p.Sort,
-		},
+		Page:               newHostQueryPage(p),
 		Fields:             ccHostFields(),
 		HostPropertyFilter: filter,
 	}
@@ -1304,11 +1301,8 @@ func convHostStaticExactConditionToFilter(cond *types.HostStaticExactCondition) 
 func (h *Handler) CheckBizHostByIP(nCtx contextx.IContext, bizID int64, cloudID int64, ip string) (bool, error) {
 	req := &ListBizHostsReq{
 		BKBizID: bizID,
-		Page: Page{
-			Start: 0,
-			Limit: 1,
-		},
-		Fields: ccHostFields(),
+		Page:    newHostQueryPage(types.Page{Limit: 1}),
+		Fields:  ccHostFields(),
 	}
 
 	req.HostPropertyFilter = new(HostPropertyFilter)
@@ -1341,11 +1335,7 @@ func (h *Handler) CheckBizHostByIP(nCtx contextx.IContext, bizID int64, cloudID 
 func (h *Handler) ListResourcePoolHosts(nCtx contextx.IContext, page types.Page) ([]*types.Host, error) {
 	req := &ListResourcePoolHostsReq{
 		Fields: ccHostFields(),
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
+		Page:   newHostQueryPage(page),
 	}
 
 	resp, err := h.cli.listResourcePoolHosts(nCtx, req)
@@ -1371,11 +1361,7 @@ func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64,
 			BKServiceTemplateIDs: serviceTemplateIDs,
 			BKModuleIDs:          modleIDs,
 			Fields:               ccHostFields(),
-			Page: Page{
-				Start: p.Offset,
-				Sort:  p.Sort,
-				Limit: p.Limit,
-			},
+			Page:                 newHostQueryPage(p),
 		}
 
 		resp, err := h.cli.findHostByServiceTemplate(nCtx, req)
@@ -1410,11 +1396,7 @@ func (h *Handler) FindHostBySetTemplate(nCtx contextx.IContext, bizID int64, pag
 			BKSetTemplateIDs: setTemplateIDs,
 			BKSetIDs:         setIDs,
 			Fields:           ccHostFields(),
-			Page: Page{
-				Start: p.Offset,
-				Sort:  p.Sort,
-				Limit: p.Limit,
-			},
+			Page:             newHostQueryPage(p),
 		}
 
 		resp, err := h.cli.findHostBySetTemplate(nCtx, req)
@@ -1477,11 +1459,7 @@ func (h *Handler) executeHostDynamicGroup(nCtx contextx.IContext, bizID int64, g
 		ID:             groupID,
 		Fields:         ccHostFields(),
 		DisableCounter: false,
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
+		Page:           newHostQueryPage(page),
 	}
 
 	resp, err := h.cli.executeDynamicGroup(nCtx, req)
@@ -1664,11 +1642,7 @@ func (h *Handler) findHostByTopoNodeBelowBiz(nCtx contextx.IContext, p types.Pag
 		BKObjID:  objID,
 		BKInstID: instID,
 		Fields:   ccHostFields(),
-		Page: Page{
-			Start: p.Offset,
-			Limit: p.Limit,
-			Sort:  p.Sort,
-		},
+		Page:     newHostQueryPage(p),
 	}
 
 	resp, err := h.cli.findHostByTopo(nCtx, req)
@@ -1688,11 +1662,7 @@ func (h *Handler) findHostByTopoNodeBiz(nCtx contextx.IContext, bizID int64, p t
 	req := &ListBizHostsReq{
 		BKBizID: bizID,
 		Fields:  ccHostFields(),
-		Page: Page{
-			Start: p.Offset,
-			Limit: p.Limit,
-			Sort:  p.Sort,
-		},
+		Page:    newHostQueryPage(p),
 	}
 
 	resp, err := h.cli.listBizHosts(nCtx, req)
