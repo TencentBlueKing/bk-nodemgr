@@ -292,7 +292,7 @@ func (r *Request) checkToleranceLatency(start *time.Time, url string) {
 	// request time larger than the maxToleranceLatencyTime time, then log the request
 	logger.G.Biz(r.nCtx).
 		WithDuration(time.Since(*start)).
-		With("method", r.verb, "url", url, "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
+		With("method", r.verb, "url", maskURL(url), "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
 		Info("http request exceeded max latency time")
 }
 
@@ -341,7 +341,7 @@ func (r *Result) Into(obj interface{}) error {
 		return nil
 	}
 
-	logger.G.Sys().With("body", r.maskResponseBody(bodyData), "url", r.FullURL).Info("get response data")
+	logger.G.Sys().With("body", r.maskResponseBody(bodyData), "url", maskURL(r.FullURL)).Info("get response data")
 
 	if r.StatusCode >= http.StatusInternalServerError {
 		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
@@ -418,7 +418,7 @@ func (r *Request) tryThrottle(url string) {
 	if latency := time.Since(now); latency > maxLatency {
 		logger.G.Biz(r.nCtx).
 			WithDuration(latency).
-			With("method", r.verb, "url", url).
+			With("method", r.verb, "url", maskURL(url)).
 			Warn("throttling request")
 	}
 }
@@ -504,7 +504,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 	}
 
 	logger.G.Biz(r.nCtx).
-		With("method", req.Method, "url", req.URL, "header", r.maskHeader(req.Header), "body", r.maskRequestBody()).
+		With("method", req.Method, "url", maskURL(req.URL.String()), "header", r.maskHeader(req.Header), "body", r.maskRequestBody()).
 		Info("do request")
 
 	start := time.Now()
@@ -542,7 +542,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 	logger.G.Biz(r.nCtx).With(
 		"code", result.StatusCode,
 		"method", req.Method,
-		"url", req.URL.String(),
+		"url", maskURL(req.URL.String()),
 		"header",
 		r.maskHeader(req.Header)).
 		Info("receive response")
@@ -630,6 +630,38 @@ func (r *Request) maskHeader(headers http.Header) string {
 	}
 
 	return fmt.Sprintf("%+v", masked)
+}
+
+func maskURL(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+
+	query := u.Query()
+	for key, values := range query {
+		if !isSensitiveURLQueryKey(key) {
+			continue
+		}
+
+		maskedValues := make([]string, len(values))
+		for i, value := range values {
+			maskedValues[i] = defaultHeaderMasker(value)
+		}
+		query[key] = maskedValues
+	}
+	u.RawQuery = query.Encode()
+
+	return u.String()
+}
+
+func isSensitiveURLQueryKey(key string) bool {
+	switch strings.ToLower(key) {
+	case "access_token", "bk_ticket", "bk_token", "token":
+		return true
+	default:
+		return false
+	}
 }
 
 // EnableLogBody show the request body.
