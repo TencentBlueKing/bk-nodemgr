@@ -14,7 +14,7 @@ TEST_OUTPUT = build
 DATA_DIR    = $(CURDIR)/data
 
 # go version
-GO = go1.23.10
+GO = go1.25.12
 
 # ldflags
 LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${VERSION} \
