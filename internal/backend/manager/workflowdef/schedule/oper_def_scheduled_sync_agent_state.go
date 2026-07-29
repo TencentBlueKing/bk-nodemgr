@@ -36,6 +36,8 @@ type operScheduledSyncAgentState struct {
 // OperParamSyncAgentState defines the parameters for operScheduledSyncAgentState.
 type OperParamSyncAgentState struct {
 	utils.ScheduleActionStandardParam
+
+	CompareCurrentState bool `json:"compare_current_state,omitempty"`
 }
 
 // Name returns the name.

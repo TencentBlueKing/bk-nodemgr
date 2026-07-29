@@ -52,6 +52,8 @@ func NewActionGenOperSyncAgentState(capability *Capability) action.Definition {
 // ActionParamGenOperSyncAgentState defines the action's param.
 type ActionParamGenOperSyncAgentState struct {
 	syncDataUtils.SyncDataActionStandardParam
+
+	CompareCurrentState bool `json:"compare_current_state,omitempty"`
 }
 
 type actionGenOperSyncAgentState struct {
@@ -158,7 +160,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 		biz := bizs[idx]
 
 		gp.Go(func() error {
-			result, err := act.createOperForBusiness(std, trigCtl, biz)
+			result, err := act.createOperForBusiness(std, trigCtl, biz, param.CompareCurrentState)
 			if err != nil {
 				return fmt.Errorf("failed to create sync agent state operations for business %d: %w", biz.BizID, err)
 			}
@@ -193,7 +195,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 }
 
 func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils.SyncDataActionStandarder,
-	trigCtl workflow.ITriggerCtl, biz *types.Business) (int, error) {
+	trigCtl workflow.ITriggerCtl, biz *types.Business, compareCurrentState bool) (int, error) {
 
 	// find nodes and sync agent state. skip the empty-agent-id nodes.
 	cond := &types.HostCondition{
@@ -206,17 +208,14 @@ func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils
 	scanCtx, cancel := contextx.WithTimeout(std.Context(), act.Timeout())
 	defer cancel()
 
-	hosts, err := act.hostStg.ScanAllHostWithFields(scanCtx, &types.HostFieldSelection{
-		HostID:  true,
-		AgentID: true,
-	}, cond)
+	hosts, err := act.hostStg.ScanAllHostWithFields(scanCtx, syncAgentStateHostFieldSelection(compareCurrentState), cond)
 	if err != nil {
 		return 0, err
 	}
 
 	if err = batchexecutor.Execute(scanCtx, hosts,
 		func(_ contextx.IContext, batchHosts []*types.Host) error {
-			return act.executeOper(std, trigCtl, batchHosts...)
+			return act.executeOper(std, trigCtl, compareCurrentState, batchHosts...)
 		}, batchexecutor.WithBatchSize(syncAgentStateMaxPageSize), batchexecutor.WithTimeout(act.Timeout())); err != nil {
 		return 0, err
 	}
@@ -226,19 +225,18 @@ func (act *actionGenOperSyncAgentState) createOperForBusiness(std *syncDataUtils
 
 // executeOper create an operation to sync agent state for the given hosts and then execute it.
 func (act *actionGenOperSyncAgentState) executeOper(
-	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, hosts ...*types.Host) error {
+	std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, compareCurrentState bool,
+	hosts ...*types.Host) error {
 
 	hostAgentID := make([]*HostIDAgentID, 0, len(hosts))
 	for _, host := range hosts {
-		hostAgentID = append(hostAgentID, &HostIDAgentID{
-			HostID:  host.HostID,
-			AgentID: host.Dynamic.AgentID,
-		})
+		hostAgentID = append(hostAgentID, newSyncAgentStateHostIDAgentID(host, compareCurrentState))
 	}
 	operationDef := NewOperSyncAgentState(OperParamSyncAgentState{
-		TenantID: std.TenantID(),
-		Hosts:    hostAgentID,
-		Operator: std.Operator(),
+		TenantID:            std.TenantID(),
+		Hosts:               hostAgentID,
+		Operator:            std.Operator(),
+		CompareCurrentState: compareCurrentState,
 	})
 
 	operationParam := operationDef.DefaultParameters()
@@ -260,6 +258,40 @@ func (act *actionGenOperSyncAgentState) executeOper(
 		Info("created sync agent state operation")
 
 	return nil
+}
+
+func syncAgentStateHostFieldSelection(compareCurrentState bool) *types.HostFieldSelection {
+	selection := &types.HostFieldSelection{
+		HostID:  true,
+		AgentID: true,
+	}
+	if !compareCurrentState {
+		return selection
+	}
+
+	selection.NodeRole = true
+	selection.NodeStatus = true
+	selection.NodeVersion = true
+	selection.NodeGeneration = true
+
+	return selection
+}
+
+func newSyncAgentStateHostIDAgentID(host *types.Host, compareCurrentState bool) *HostIDAgentID {
+	hostAgentID := &HostIDAgentID{
+		HostID:  host.HostID,
+		AgentID: host.Dynamic.AgentID,
+	}
+	if !compareCurrentState {
+		return hostAgentID
+	}
+
+	hostAgentID.CurrentNodeRole = &host.Dynamic.NodeRole
+	hostAgentID.CurrentNodeStatus = &host.Dynamic.NodeStatus
+	hostAgentID.CurrentNodeVersion = &host.Dynamic.NodeVersion
+	hostAgentID.CurrentNodeGeneration = &host.Dynamic.NodeGeneration
+
+	return hostAgentID
 }
 
 // DisplayNameZh returns the Chinese display name of the action.

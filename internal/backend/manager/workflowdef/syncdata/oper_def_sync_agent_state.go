@@ -38,9 +38,10 @@ type operSyncAgentState struct {
 
 // OperParamSyncAgentState defines the parameters for operSyncAgentState.
 type OperParamSyncAgentState struct {
-	TenantID string           `json:"tenant_id"`
-	Hosts    []*HostIDAgentID `json:"hosts"`
-	Operator string           `json:"operator"`
+	TenantID            string           `json:"tenant_id"`
+	Hosts               []*HostIDAgentID `json:"hosts"`
+	Operator            string           `json:"operator"`
+	CompareCurrentState bool             `json:"compare_current_state,omitempty"`
 }
 
 // Name returns the name.

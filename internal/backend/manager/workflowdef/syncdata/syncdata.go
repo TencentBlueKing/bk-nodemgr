@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
@@ -34,6 +35,11 @@ import (
 type HostIDAgentID struct {
 	HostID  int64  `json:"host_id"`
 	AgentID string `json:"agent_id"`
+
+	CurrentNodeRole       *types.NodeRole   `json:"current_node_role,omitempty"`
+	CurrentNodeStatus     *types.NodeStatus `json:"current_node_status,omitempty"`
+	CurrentNodeVersion    *string           `json:"current_node_version,omitempty"`
+	CurrentNodeGeneration *types.Generation `json:"current_node_generation,omitempty"`
 }
 
 // Capability encapsulates the various capabilities the service supports.

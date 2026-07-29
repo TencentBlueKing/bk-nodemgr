@@ -402,6 +402,7 @@ func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.Sched
 			TenantID:   sw.TenantID,
 			Operator:   access.GetVirtualUser(),
 		},
+		CompareCurrentState: true,
 	}))
 }
 
