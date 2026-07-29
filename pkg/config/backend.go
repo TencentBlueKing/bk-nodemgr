@@ -164,6 +164,7 @@ type BackendFileCache struct {
 
 // NewBackendService generates a new BackendService with default values.
 // nolint: funlen
+// NOCC: golint/fnsize(default backend configuration is clearer as one initializer).
 func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,
