@@ -1483,6 +1483,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -1717,6 +1725,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -1951,6 +1967,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -2304,6 +2328,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -2541,6 +2573,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 exact_include_conditions:
                   type: object
@@ -2608,6 +2648,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -2844,6 +2892,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 exact_include_conditions:
                   type: object
@@ -2911,6 +2967,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -3147,6 +3211,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 exact_include_conditions:
                   type: object
@@ -3214,6 +3286,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -3452,6 +3532,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 exact_include_conditions:
                   type: object
@@ -3519,6 +3607,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -3757,6 +3853,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 exact_include_conditions:
                   type: object
@@ -3824,6 +3928,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -23576,6 +23688,14 @@ paths:
                       items:
                         type: integer
                         format: int64
+                bk_host_innerip:
+                  type: array
+                  items:
+                    type: string
+                bk_host_innerip_v6:
+                  type: array
+                  items:
+                    type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
