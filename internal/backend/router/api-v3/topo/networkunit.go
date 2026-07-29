@@ -282,6 +282,7 @@ func (h *handler) GetNetworkUnitDistributionByNetworkAreaID(rCtx restserver.ICon
 	return resp.GetData(), nil
 }
 
+// RecommendNetworkUnitByNetworkSegment recommends network units by network segment.
 // nolint: gocognit
 func (h *handler) RecommendNetworkUnitByNetworkSegment(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoRecommendNetworkUnitByNetworkSegmentReq)

@@ -169,6 +169,7 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 	return resp.GetData(), nil
 }
 
+// RecommendNetworkUnitByNetworkSegment recommends network units by network segment.
 func (h *handler) RecommendNetworkUnitByNetworkSegment(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoRecommendNetworkUnitByNetworkSegmentReq)
 	if err := rCtx.BindJSON(req); err != nil {
