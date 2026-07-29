@@ -4,8 +4,8 @@
 
 ### 可选: 使用 mise 管理项目所需工具
 
-> 如果使用vscode等工具进行开发时找不到go的二进制可以使用mise全局安装go1.23.10
-> `mise use -g go@1.23.10`
+> 如果使用vscode等工具进行开发时找不到go的二进制可以使用mise全局安装go1.25.12
+> `mise use -g go@1.25.12`
 > 安装完成后重启vscode即可
 
 ```bash
@@ -23,32 +23,32 @@ source ~/.zshrc
 mise run setup-extra-tools
 ```
 
-### Go 1.23.10
+### Go 1.25.12
 
 ```bash
-go get golang.org/dl/go1.23.10@latest
-go install golang.org/dl/go1.23.10@latest
-go1.23.10 download
+go get golang.org/dl/go1.25.12@latest
+go install golang.org/dl/go1.25.12@latest
+go1.25.12 download
 ```
 
 ### protoc-gen-go v1.36.5
 
 ```bash
-go1.23.10 install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
+go1.25.12 install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
 protoc-gen-go --version
 ```
 
 ### protoc-gen-openapiv2 v2.27.2
 
 ```bash
-go1.23.10 install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.2
+go1.25.12 install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.2
 protoc-gen-openapiv2 --version
 ```
 
-### golangci-lint v1.62.2
+### golangci-lint v2.4.0
 
 ```bash
-go1.23.10 install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
+go1.25.12 install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.4.0
 golangci-lint --version
 ```
 
@@ -138,7 +138,7 @@ make tools   # 默认启用 UPX_ENABLED=1
 Go 语言服务器。
 
 ```bash
-go1.23.10 install golang.org/x/tools/gopls@latest
+go1.25.12 install golang.org/x/tools/gopls@latest
 gopls version
 ```
 
@@ -221,7 +221,7 @@ cd install/docker-compose/bk-nodemgr
 git clone https://github.com/TencentBlueKing/bk-nodemgr.git
 cd bk-nodemgr
 
-# 准备构建环境（会自动安装 Go 1.23.10 并执行 go mod tidy）
+# 准备构建环境（会自动安装 Go 1.25.12 并执行 go mod tidy）
 make pre
 ```
 
@@ -291,7 +291,7 @@ pnpm lint
 
 ```bash
 # 后端测试
-go1.23.10 test ./...
+go1.25.12 test ./...
 
 # 前端单元测试
 cd front
@@ -318,7 +318,7 @@ pnpm lint
 
 ```bash
 # 验证 Go 工具链
-go1.23.10 version
+go1.25.12 version
 protoc-gen-go --version
 protoc-gen-openapiv2 --version
 golangci-lint --version
