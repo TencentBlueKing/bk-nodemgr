@@ -30,7 +30,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewFullUninstallV2 creates a new full uninstall V2 command.
+// NewFullUninstall creates a new full uninstall V2 command.
 func NewFullUninstall() *cobra.Command {
 	var (
 		// required flags.
