@@ -1418,6 +1418,12 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	if selection.NodeStatus {
 		fields = append(fields, FieldKeyDynamicNodeStatus)
 	}
+	if selection.NodeVersion {
+		fields = append(fields, FieldKeyDynamicNodeVersion)
+	}
+	if selection.NodeGeneration {
+		fields = append(fields, FieldKeyDynamicNodeGeneration)
+	}
 	if selection.LoginUser {
 		fields = append(fields, FieldKeyDynamicLoginUser)
 	}

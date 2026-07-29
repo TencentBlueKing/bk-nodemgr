@@ -495,12 +495,14 @@ type HostFieldSelection struct {
 	InnerIPV6List bool
 
 	// Dynamic fields
-	NodeRole      bool
-	NodeStatus    bool
-	LoginUser     bool
-	AgentID       bool
-	AdvertiseIP   bool
-	AdvertiseIPV6 bool
+	NodeRole       bool
+	NodeStatus     bool
+	NodeVersion    bool
+	NodeGeneration bool
+	LoginUser      bool
+	AgentID        bool
+	AdvertiseIP    bool
+	AdvertiseIPV6  bool
 }
 
 // HostTopoRelation represents the relationship between a host and its topology.
