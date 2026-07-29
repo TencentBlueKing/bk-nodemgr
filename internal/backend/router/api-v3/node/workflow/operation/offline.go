@@ -47,6 +47,7 @@ type offlineInstallMetadata struct {
 
 // GetOfflineInstallInfo returns the offline install info for the given operation.
 // nolint: funlen, gocognit, gocyclo, cyclop
+// NOCC: golint/fnsize(offline install info orchestration belongs in one flow).
 func (h *handler) GetOfflineInstallInfo(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationOfflineInstallInfoGetReq)
 	if err := rCtx.BindJSON(req); err != nil {

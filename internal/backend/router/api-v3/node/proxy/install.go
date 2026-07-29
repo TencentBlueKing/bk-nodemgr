@@ -111,6 +111,7 @@ func (h *handler) readCompatibilityModePolicy(nCtx contextx.IContext) compatibil
 }
 
 // nolint: funlen, gocognit
+// NOCC: golint/fnsize(proxy deployment request assembly belongs in one flow).
 func (h *handler) generateInstallNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 

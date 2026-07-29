@@ -55,6 +55,7 @@ func (h *handler) ProxyInstallCheck(rCtx restserver.IContext) (interface{}, erro
 }
 
 // nolint: funlen,gocognit,gocyclo,cyclop,maintidx,nestif
+// NOCC: golint/fnsize(proxy install precheck is one validation flow).
 func (h *handler) checkProxyInstall(nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyInstallCheckReq_Host) (
 	[]*types.NodeProxyInstallCheckResult, error) {
 

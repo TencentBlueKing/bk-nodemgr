@@ -61,6 +61,7 @@ func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, erro
 }
 
 // nolint: funlen,gocognit,gocyclo,cyclop,maintidx,nestif
+// NOCC: golint/fnsize(agent install precheck is one validation flow).
 func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.NodeAgentInstallCheckReq_Host) (
 	[]*types.NodeAgentInstallCheckResult, error) {
 
