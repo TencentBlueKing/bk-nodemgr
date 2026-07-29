@@ -238,7 +238,7 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam *types.PluginInsta
 	return nil
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginInstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginInstallOperateInfo) *types.PluginDeploymentParam {
 		var customSpec *types.PluginSpec
@@ -336,7 +336,7 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 	})
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginUpgradeReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(proc *PluginOperateFullInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
@@ -402,7 +402,7 @@ func (x *PluginUninstallReq) ConvertParamToTypes() []*types.PluginDeploymentPara
 	})
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginUninstallReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
@@ -480,7 +480,7 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymen
 	})
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginApplySubConfigReq) ConvertParamToTypesWithHostTopoMapping(
 	hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 
@@ -560,7 +560,7 @@ func (x *PluginRestartReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 	})
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginRestartReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{
@@ -623,7 +623,7 @@ func (x *PluginMigrateFromV2Req) ConvertParamToTypes() []*types.PluginDeployment
 	})
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginMigrateFromV2Req) ConvertParamToTypesWithHostTopoMapping(
 	hostTopoMapping map[int64]types.HostTopoRelation,
 ) []*types.PluginDeploymentParam {
@@ -688,7 +688,7 @@ func (x *PluginStopReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	})
 }
 
-// ConvertParamToTypes converts param to types.
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
 func (x *PluginStopReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
 	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginOperateBasicInfo) *types.PluginDeploymentParam {
 		return &types.PluginDeploymentParam{

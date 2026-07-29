@@ -108,7 +108,7 @@ func (x *AuthorizedReq) Validate() error {
 // AutoConvert is a no-op for this request type.
 func (x *AuthorizedReq) AutoConvert() {}
 
-// ConvertParamFromAuthorizedInstances populates the request items from IAM authorized instances requests.
+// ConvertParamFromTypes populates the request items from IAM authorized instances requests.
 func (x *AuthorizedReq) ConvertParamFromTypes(items []*types.AuthorizedItem) {
 	x.Items = conv.SliceToSlice(items, func(item *types.AuthorizedItem) *AuthorizedItem {
 		return &AuthorizedItem{
