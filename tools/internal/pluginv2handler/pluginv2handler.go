@@ -15,7 +15,7 @@ import (
 	"context"
 )
 
-// IPluginV2Handler plugin compatible handler interface.
+// IPluginHandler provides the plugin compatible handler interface.
 type IPluginHandler interface {
 	// Group return plugin group.
 	Group() string
@@ -51,4 +51,4 @@ type IPluginFSHandler interface {
 }
 
 // IPluginProcessHandler plugin compatible process handler interface.
-type IPluginProcessHandler interface {}
+type IPluginProcessHandler interface{}
