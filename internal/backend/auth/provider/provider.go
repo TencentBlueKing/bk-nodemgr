@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package provider implements IAM callback providers and resource helpers for backend authorization.
 package provider
 
 import (
