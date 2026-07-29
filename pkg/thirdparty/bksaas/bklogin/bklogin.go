@@ -28,7 +28,7 @@ type cli struct {
 
 // newClient initialize a new bkoa client.
 func newClient(c *restclient.Capability) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/")
+	restCli, err := restclient.NewClient(c, "/", restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken))
 	if err != nil {
 		return nil, err
 	}
