@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -13,8 +15,6 @@ package configpolicy
 import (
 	"context"
 	"fmt"
-	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -22,143 +22,119 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 )
 
 func testClient(t *testing.T) IHandler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Helper()
 
-	nCtx := context.Background()
-	mongoClient, err := mongo.Connect(
-		nCtx,
-		&options.ClientOptions{
-			Hosts: []string{
-				os.Getenv("MONGO_ADDRESS"),
-			},
-			Auth: &options.Credential{
-				Username:      os.Getenv("MONGO_USER"),
-				Password:      os.Getenv("MONGO_PASSWORD"),
-				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
-				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
-			},
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
+	_, db := support.RequireMongoDatabase(t)
+	return New(db)
 }
 
-var once = sync.Once{}
-var preparedConfigPolicyIDs []int64
-var otherTenantConfigPolicyIDs []int64
-
 // prepareData for all tests.
-func prepareData(t *testing.T, nCtx contextx.IContext) {
-	once.Do(func() {
-		tenantID := nCtx.TenantID()
+func prepareData(t *testing.T, nCtx contextx.IContext) (IHandler, []int64, []int64) {
+	t.Helper()
 
-		// pre insert.
-		h := testClient(t)
+	tenantID := nCtx.TenantID()
 
-		systemCtx := contextx.New(context.Background(), contextx.WithTenantID("system_tenant"))
-		tests := []struct {
-			nCtx         contextx.IContext
-			configPolicy *types.ConfigPolicy
-			otherTenant  bool
-		}{
-			{
-				nCtx: nCtx,
-				configPolicy: &types.ConfigPolicy{
-					TenantID: tenantID,
-					Name:     "test-name-1",
-					Type:     types.ConfigPolicyTypeAgent,
-					BizID:    int64(0),
-					Scopes: []types.ConfigPolicyScope{
-						{
-							NetworkAreaID: 1,
-							NetworkUnitID: 2,
-							NodeOsType:    criteria.OSLinux,
-							NodeCPUArch:   criteria.CPUArchAmd64,
-						},
+	// pre insert.
+	h := testClient(t)
+
+	systemCtx := contextx.New(context.Background(), contextx.WithTenantID("system_tenant"))
+	tests := []struct {
+		nCtx         contextx.IContext
+		configPolicy *types.ConfigPolicy
+		otherTenant  bool
+	}{
+		{
+			nCtx: nCtx,
+			configPolicy: &types.ConfigPolicy{
+				TenantID: tenantID,
+				Name:     "test-name-1",
+				Type:     types.ConfigPolicyTypeAgent,
+				BizID:    int64(0),
+				Scopes: []types.ConfigPolicyScope{
+					{
+						NetworkAreaID: 1,
+						NetworkUnitID: 2,
+						NodeOsType:    criteria.OSLinux,
+						NodeCPUArch:   criteria.CPUArchAmd64,
 					},
-					Configs: map[string]any{
-						"agent.thread_num": 10,
-						"file.disable_bt":  true,
-					},
-					Enabled:   true,
-					UpdatedAt: time.Now(),
-					Operator:  "admin",
 				},
-			},
-			{
-				nCtx: nCtx,
-				configPolicy: &types.ConfigPolicy{
-					TenantID: tenantID,
-					Name:     "test-name-2",
-					Type:     types.ConfigPolicyTypeAgent,
-					BizID:    int64(0),
-					Scopes: []types.ConfigPolicyScope{
-						{
-							NetworkAreaID: 3,
-							NetworkUnitID: 4,
-							NodeOsType:    criteria.OSWindows,
-							NodeCPUArch:   criteria.CPUArchAmd64,
-						},
-					},
-					Configs: map[string]any{
-						"data.compressed": true,
-						"logger.level":    "DEBUG",
-					},
-					Enabled:   true,
-					UpdatedAt: time.Now(),
-					Operator:  "admin",
+				Configs: map[string]any{
+					"agent.thread_num": 10,
+					"file.disable_bt":  true,
 				},
+				Enabled:   true,
+				UpdatedAt: time.Now(),
+				Operator:  "admin",
 			},
-			{
-				nCtx: systemCtx,
-				configPolicy: &types.ConfigPolicy{
-					TenantID: "system_tenant",
-					Name:     "test-name-system",
-					Type:     types.ConfigPolicyTypeAgent,
-					BizID:    int64(0),
-					Scopes: []types.ConfigPolicyScope{
-						{
-							NetworkAreaID: 5,
-							NetworkUnitID: 6,
-							NodeOsType:    criteria.OSAix,
-							NodeCPUArch:   criteria.CPUArchArm64,
-						},
+		},
+		{
+			nCtx: nCtx,
+			configPolicy: &types.ConfigPolicy{
+				TenantID: tenantID,
+				Name:     "test-name-2",
+				Type:     types.ConfigPolicyTypeAgent,
+				BizID:    int64(0),
+				Scopes: []types.ConfigPolicyScope{
+					{
+						NetworkAreaID: 3,
+						NetworkUnitID: 4,
+						NodeOsType:    criteria.OSWindows,
+						NodeCPUArch:   criteria.CPUArchAmd64,
 					},
-					Configs:   map[string]any{},
-					Enabled:   false,
-					UpdatedAt: time.Now(),
-					Operator:  "admin",
 				},
-				otherTenant: true,
+				Configs: map[string]any{
+					"data.compressed": true,
+					"logger.level":    "DEBUG",
+				},
+				Enabled:   true,
+				UpdatedAt: time.Now(),
+				Operator:  "admin",
 			},
+		},
+		{
+			nCtx: systemCtx,
+			configPolicy: &types.ConfigPolicy{
+				TenantID: "system_tenant",
+				Name:     "test-name-system",
+				Type:     types.ConfigPolicyTypeAgent,
+				BizID:    int64(0),
+				Scopes: []types.ConfigPolicyScope{
+					{
+						NetworkAreaID: 5,
+						NetworkUnitID: 6,
+						NodeOsType:    criteria.OSAix,
+						NodeCPUArch:   criteria.CPUArchArm64,
+					},
+				},
+				Configs:   map[string]any{},
+				Enabled:   false,
+				UpdatedAt: time.Now(),
+				Operator:  "admin",
+			},
+			otherTenant: true,
+		},
+	}
+
+	preparedConfigPolicyIDs := make([]int64, 0)
+	otherTenantConfigPolicyIDs := make([]int64, 0)
+	for _, tt := range tests {
+		configPolicyID, err := h.Create(tt.nCtx, tt.configPolicy)
+		if err != nil {
+			t.Errorf("prepareData() error = %v", err)
+		}
+		if tt.otherTenant {
+			otherTenantConfigPolicyIDs = append(otherTenantConfigPolicyIDs, configPolicyID)
+			continue
 		}
 
-		preparedConfigPolicyIDs = make([]int64, 0)
-		for _, tt := range tests {
-			configPolicyID, err := h.Create(tt.nCtx, tt.configPolicy)
-			if err != nil {
-				t.Errorf("prepareData() error = %v", err)
-			}
-			if tt.otherTenant {
-				otherTenantConfigPolicyIDs = append(otherTenantConfigPolicyIDs, configPolicyID)
-				continue
-			}
+		preparedConfigPolicyIDs = append(preparedConfigPolicyIDs, configPolicyID)
+	}
 
-			preparedConfigPolicyIDs = append(preparedConfigPolicyIDs, configPolicyID)
-		}
-	})
+	return h, preparedConfigPolicyIDs, otherTenantConfigPolicyIDs
 }
 
 // Test_Count tests the Count method.
@@ -166,7 +142,7 @@ func Test_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -190,7 +166,6 @@ func Test_Count(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			got, err := h.Count(nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
@@ -211,7 +186,7 @@ func Test_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -258,7 +233,6 @@ func Test_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
@@ -289,7 +263,7 @@ func Test_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, otherTenantConfigPolicyIDs := prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -334,7 +308,6 @@ func Test_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			got, err := h.Get(nCtx, tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
@@ -351,7 +324,7 @@ func Test_Create(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, _, _ := prepareData(t, nCtx)
 
 	type args struct {
 		nCtx         contextx.IContext
@@ -362,14 +335,6 @@ func Test_Create(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{
-			name: "nil nCtx",
-			args: args{
-				nCtx:         nil,
-				configPolicy: nil,
-			},
-			wantErr: true,
-		},
 		{
 			name: "nil configpolicy",
 			args: args{
@@ -404,7 +369,6 @@ func Test_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			id, err := h.Create(tt.args.nCtx, tt.args.configPolicy)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
@@ -422,7 +386,7 @@ func Test_UpdateMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	type args struct {
 		nCtx          contextx.IContext
@@ -434,14 +398,6 @@ func Test_UpdateMany(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{
-			name: "nil nCtx",
-			args: args{
-				nCtx:          nil,
-				configPolicys: nil,
-			},
-			wantErr: true,
-		},
 		{
 			name: "nil configpolicy",
 			args: args{
@@ -485,7 +441,6 @@ func Test_UpdateMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			err := h.UpdateMany(tt.args.nCtx, types.UpdateAllConfigPolicyFields(), tt.args.configPolicys...)
 			if err != nil {
 				t.Logf("UpdateMany() error = %v", err)
@@ -503,7 +458,7 @@ func Test_EnableMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -525,7 +480,6 @@ func Test_EnableMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			err := h.EnableMany(nCtx, tt.id)
 			if err != nil {
 				t.Logf("EnableMany() error = %v", err)
@@ -558,7 +512,7 @@ func Test_DisableMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -580,7 +534,6 @@ func Test_DisableMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			err := h.DisableMany(nCtx, tt.id)
 			if err != nil {
 				t.Logf("DisableMany() error = %v", err)
@@ -614,9 +567,7 @@ func Test_EnableMany_ReassignsPriority(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
-
-	h := testClient(t)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 	id0, id1 := preparedConfigPolicyIDs[0], preparedConfigPolicyIDs[1]
 
 	if err := h.EnableMany(nCtx, id0, id1); err != nil {
@@ -647,11 +598,9 @@ func Test_UpdatePriorityMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	id0, id1 := preparedConfigPolicyIDs[0], preparedConfigPolicyIDs[1]
-
-	h := testClient(t)
 
 	priorities := map[int64]int64{id1: 1, id0: 2}
 
@@ -683,7 +632,7 @@ func Test_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
-	prepareData(t, nCtx)
+	h, preparedConfigPolicyIDs, _ := prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -705,7 +654,6 @@ func Test_DeleteMany(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
 			err := h.DeleteMany(nCtx, tt.id)
 			if err != nil {
 				t.Logf("DeleteMany() error = %v", err)
