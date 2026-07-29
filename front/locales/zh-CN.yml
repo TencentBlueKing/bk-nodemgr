@@ -1403,6 +1403,15 @@ pluginOperation:
     noParams: 该平台暂无可配置参数
     loadFailed: 加载失败：{msg}
     resetDefault: 恢复默认值
+    copyConfig: 复制
+    pasteConfig: 粘贴
+    applyAll: 复用到所有相同表单
+    copyAllConfig: 复制全部参数
+    pasteAllConfig: 粘贴全部参数
+    copySuccess: 已复制到剪贴板
+    pasteSuccess: 已粘贴
+    pasteFormatError: 剪贴板内容格式不正确
+    pasteEmpty: 剪贴板为空
   preview:
     title: 执行预览
     filterAbnormal: 筛选异常的

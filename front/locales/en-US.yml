@@ -1399,6 +1399,15 @@ pluginOperation:
     noParams: No configurable parameters for this platform
     loadFailed: 'Load failed: {msg}'
     resetDefault: Reset to Default
+    copyConfig: Copy
+    pasteConfig: Paste
+    applyAll: Apply to all identical forms
+    copyAllConfig: Copy all configs
+    pasteAllConfig: Paste all configs
+    copySuccess: Copied to clipboard
+    pasteSuccess: Pasted successfully
+    pasteFormatError: Invalid clipboard format
+    pasteEmpty: Clipboard is empty
   preview:
     title: Execution Preview
     filterAbnormal: Filter Abnormal

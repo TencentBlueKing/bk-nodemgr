@@ -1,8 +1,23 @@
 <template>
   <div class="step-param-config bg-[#fff] p-[24px] rounded-[2px]">
-    <div class="mb-[16px]">
-      <h3 class="text-[16px] font-bold text-[#313238] mb-[4px]">{{ $t('pluginOperation.paramConfig.title') }}</h3>
-      <p class="text-[12px] text-[#979BA5]">{{ $t('pluginOperation.paramConfig.description') }}</p>
+    <div class="mb-[16px] flex items-center justify-between" style="max-width: 780px;">
+      <div>
+        <h3 class="text-[16px] font-bold text-[#313238] mb-[4px]">{{ $t('pluginOperation.paramConfig.title') }}</h3>
+        <p class="text-[12px] text-[#979BA5]">{{ $t('pluginOperation.paramConfig.description') }}</p>
+      </div>
+      <!-- 批量复制粘贴（图标 + tooltip，hover 变蓝） -->
+      <div v-if="platformVersions.length" class="flex items-center">
+        <i
+          v-bk-tooltips="{ content: $t('pluginOperation.paramConfig.copyAllConfig') }"
+          class="nodeman-icon nc-copy copy-icon"
+          @click="copyAllConfig"
+        ></i>
+        <i
+          v-bk-tooltips="{ content: $t('pluginOperation.paramConfig.pasteAllConfig') }"
+          class="nodeman-icon nc-paste-line copy-icon"
+          @click="pasteAllConfig"
+        ></i>
+      </div>
     </div>
 
     <!-- 无数据提示 -->
@@ -35,11 +50,27 @@
             <span class="platform-version">({{ item.version }})</span>
           </div>
 
-          <!-- 右侧：恢复默认值（仅在有表单数据时显示） -->
+          <!-- 右侧：复制 + 粘贴 + 复用到相同表单 + 恢复默认值（仅在有表单数据时显示） -->
           <div v-if="item.loaded && !item.empty && !item.error" class="param-card-header-right">
             <i
+              v-bk-tooltips="{ content: $t('pluginOperation.paramConfig.copyConfig') }"
+              class="nodeman-icon nc-copy copy-icon"
+              @click.stop="copyConfig(index)"
+            ></i>
+            <i
+              v-bk-tooltips="{ content: $t('pluginOperation.paramConfig.pasteConfig') }"
+              class="nodeman-icon nc-paste-line copy-icon"
+              @click.stop="pasteConfig(index)"
+            ></i>
+            <i
+              v-if="formItems.length > 1"
+              v-bk-tooltips="{ content: $t('pluginOperation.paramConfig.applyAll') }"
+              class="nodeman-icon nc-brush-fill copy-icon"
+              @click.stop="applyToAllSameForms(index)"
+            ></i>
+            <i
+              v-bk-tooltips="{ content: $t('pluginOperation.paramConfig.resetDefault') }"
               class="nodeman-icon nc-withdraw-fill reset-icon"
-              :title="$t('pluginOperation.paramConfig.resetDefault')"
               @click.stop="resetFormValues(index)"
             ></i>
           </div>
@@ -90,12 +121,16 @@ function getOrCreateForm(): Component {
 
 <script lang="ts" setup>
 import { DownShape } from 'bkui-vue/lib/icon';
-import { Loading } from 'bkui-vue';
-import { reactive, ref } from 'vue';
+import { Loading, Message } from 'bkui-vue';
+import { reactive, ref, triggerRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
+
+import { usePluginOperationStore } from '@/stores/plugin-operation';
+
+const pluginOpStore = usePluginOperationStore();
 
 const { t, locale } = useI18n();
 
@@ -405,6 +440,124 @@ const validate = async (): Promise<boolean> => {
 };
 
 defineExpose({ validate, load: loadAllSchemas, configNamesMap });
+
+/** 复制单个平台的参数到剪贴板 + Pinia */
+async function copyConfig(index: number) {
+  const item = formItems[index];
+  if (!item) return;
+  const data = formValues.value[item.platform];
+  const json = JSON.stringify({ [item.platform]: data }, null, 2);
+  // 双写：剪贴板 + Pinia（粘贴时优先读 Pinia）
+  try {
+    await navigator.clipboard.writeText(json);
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = json;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+  pluginOpStore.setCopiedConfig({ [item.platform]: data });
+  Message({ theme: 'success', message: t('pluginOperation.paramConfig.copySuccess') });
+}
+
+/** 复制全部平台的参数到剪贴板 + Pinia */
+async function copyAllConfig() {
+  const data: Record<string, any> = {};
+  for (const item of formItems) {
+    if (formValues.value[item.platform]) {
+      data[item.platform] = formValues.value[item.platform];
+    }
+  }
+  const json = JSON.stringify(data, null, 2);
+  try {
+    await navigator.clipboard.writeText(json);
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = json;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+  pluginOpStore.setCopiedConfig(data);
+  Message({ theme: 'success', message: t('pluginOperation.paramConfig.copySuccess') });
+}
+
+/** 粘贴全部参数：优先从 Pinia 读取，无缓存时才尝试剪贴板 */
+async function pasteAllConfig() {
+  const cached = pluginOpStore.getCopiedConfig();
+  if (cached && Object.keys(cached).length > 0) {
+    applyPastedConfig(cached);
+    return;
+  }
+  Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteEmpty') });
+}
+
+/** 粘贴到指定平台：按 platform key 匹配，匹配不到则提示无匹配 */
+function pasteConfig(index: number) {
+  const item = formItems[index];
+  if (!item) return;
+  const cached = pluginOpStore.getCopiedConfig();
+  if (!cached || Object.keys(cached).length === 0) {
+    Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteEmpty') });
+    return;
+  }
+  const value = cached[item.platform];
+  if (value && typeof value === 'object') {
+    formValues.value[item.platform] = JSON.parse(JSON.stringify(value));
+    triggerRef(formValues);
+    Message({ theme: 'success', message: t('pluginOperation.paramConfig.pasteSuccess') });
+  } else {
+    Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteFormatError') });
+  }
+}
+
+/** 将当前平台参数复用给所有 schema 结构相同的其他平台 */
+function applyToAllSameForms(index: number) {
+  const source = formItems[index];
+  if (!source) return;
+  const sourceValue = formValues.value[source.platform];
+  const sourceKeys = Object.keys(source.schema?.properties || {});
+
+  let reapplied = 0;
+  for (let i = 0; i < formItems.length; i++) {
+    if (i === index) continue;
+    const target = formItems[i];
+    if (!target.loaded || target.error) continue;
+    const targetKeys = Object.keys(target.schema?.properties || {});
+    // schema 结构相同才复用
+    if (sourceKeys.length !== targetKeys.length || !sourceKeys.every(k => targetKeys.includes(k))) continue;
+    formValues.value[target.platform] = JSON.parse(JSON.stringify(sourceValue));
+    reapplied++;
+  }
+
+  if (reapplied > 0) {
+    triggerRef(formValues);
+    Message({ theme: 'success', message: `${t('pluginOperation.paramConfig.applyAll')} (${reapplied})` });
+  } else {
+    Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteFormatError') });
+  }
+}
+
+/** 写入粘贴的配置到匹配的表单（接受已解析的对象，来自 Pinia store） */
+function applyPastedConfig(data: Record<string, any>) {
+  let applied = 0;
+  for (const [platform, value] of Object.entries(data)) {
+    if (formValues.value[platform] !== undefined && value && typeof value === 'object') {
+      // 深拷贝避免共享引用导致 BkSchemaForm 不更新
+      formValues.value[platform] = JSON.parse(JSON.stringify(value));
+      applied++;
+    }
+  }
+  if (applied > 0) {
+    triggerRef(formValues);
+    Message({ theme: 'success', message: t('pluginOperation.paramConfig.pasteSuccess') });
+  } else {
+    Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteFormatError') });
+  }
+}
 </script>
 
 <style lang="postcss" scoped>
@@ -476,6 +629,42 @@ defineExpose({ validate, load: loadAllSchemas, configNamesMap });
   color: #979BA5;
   cursor: pointer;
   padding: 2px;
+
+  &:hover {
+    color: #3A84FF;
+  }
+}
+
+.copy-icon {
+  font-size: 16px;
+  color: #979BA5;
+  cursor: pointer;
+  padding: 2px;
+  margin-right: 8px;
+
+  &:hover {
+    color: #3A84FF;
+  }
+}
+
+.copy-icon {
+  font-size: 16px;
+  color: #979BA5;
+  cursor: pointer;
+  padding: 2px;
+  margin-right: 8px;
+
+  &:hover {
+    color: #3A84FF;
+  }
+}
+
+.paste-icon {
+  font-size: 16px;
+  color: #979BA5;
+  cursor: pointer;
+  padding: 2px;
+  margin-right: 8px;
 
   &:hover {
     color: #3A84FF;

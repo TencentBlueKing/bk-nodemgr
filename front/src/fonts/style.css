@@ -251,6 +251,9 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-plus-line:before {
 	content: "\e156";
 }
+.nc-paste-line:before {
+	content: "\e1bf";
+}
 .nc-alert:before {
 	content: "\e157";
 }

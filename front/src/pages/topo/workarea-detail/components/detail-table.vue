@@ -1,9 +1,9 @@
 <template>
-  <div>
+  <div class="detail-table-wrap">
     <bk-loading
       title="数据加载中"
       :loading="loading"
-      class="w-full overflow-auto mt-[16px]"
+      class="w-full mt-[16px]"
     >
       <Table
         class="w-full filterTable"
