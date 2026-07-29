@@ -92,6 +92,7 @@ func (act *actTryStopProcess) DelayFn(_ int) func() {
 
 // Do this func define what the action will do.
 // nolint: funlen
+// NOCC: golint/fnsize(plugin stop workflow action is one execution step).
 func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamTryStopProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
