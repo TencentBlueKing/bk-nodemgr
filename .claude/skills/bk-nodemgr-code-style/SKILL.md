@@ -64,7 +64,7 @@ Representative code anchors:
 | Error handling | `fmt.Errorf("context: %w", err)` inside layers; `resterrf.ErrWrap` at transport boundary | Preserve original error chain or map to fixed REST error class |
 | Logging | `logger.G.Biz(rCtx)` for request/business flow, structured fields, `WithErr` for errors | Load `bk-nodemgr-logger` for logging-specific choices |
 | Initialization | Explicit `make` / `new` / struct literals for values that cross boundaries | Avoid nil slice/map/object semantics leaking to callers |
-| Control flow | Early return, `continue` for skip cases, small private helpers | Avoid 3+ nesting levels and rightward drift |
+| Control flow | Early return, `continue` for skip cases, small private helpers | Avoid 3+ nesting levels and rightward drift; use `golang-non-arrow-control-flow` for deep nested-flow judgment |
 | Constants and terms | Existing domain names from `pkg/types`, proto, routers, and frontend | Grep before adding synonyms |
 | Shared helpers | Extend existing package-owned helpers only when behavior is portable | Do not create `pkg/common`, `utils`, or caller-local duplicates |
 
@@ -112,6 +112,8 @@ func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 
 If the handler starts mixing request parsing, permission resource construction, storage queries, domain validation, and response conversion in one long block, extract named helpers by responsibility.
 
+Use `golang-non-arrow-control-flow` when the question is specifically about arrow code, terminal `else` branches, nested skip/error handling, or whether guard clauses are being over-applied. In bk-nodemgr, its generic advice is subordinate to the owning layer: do not flatten a function by moving business derivation into a router, leaking proto structs into service/storage code, duplicating a converter, or widening shared helpers. Prefer early returns and `continue` only when they preserve side-effect order, resource lifetime, error mapping, and the router -> service -> storage/proto boundary.
+
 ### Use helper extraction to name domain decisions
 
 Good extraction in bk-nodemgr reduces cognitive load and reveals domain intent. It is not extraction for line-count cosmetics.
@@ -152,7 +154,7 @@ Nil can be correct only when it has a stable contract in that package. If caller
 `.golangci.yml` allows up to 120 function lines and complexity 20, but those are guardrails. In normal feature work, simplify earlier:
 
 - 80+ lines means inspect abstraction levels.
-- 3+ nesting levels means use guard clauses or extract a domain helper.
+- 3+ nesting levels means use guard clauses, `continue`, or extract a domain helper; if nesting represents state policy, model it with `switch`, a table, or a domain-owned helper instead of scattered guards.
 - Multiple reasons to change means split by layer or responsibility.
 - Repeated conversion or filtering loops means search existing helpers before duplicating.
 
@@ -197,5 +199,6 @@ Good with-skill answers should cite project anchors, layer ownership, and concre
 - `bk-nodemgr-contextx`: project context propagation and value-preserving cancellation/deadline behavior.
 - `bk-nodemgr-gopool`: project goroutine pool and fan-out/fan-in contracts.
 - `bk-nodemgr-retrier`: polling/backoff/retry primitive selection.
+- `golang-non-arrow-control-flow`: detailed Go guidance for arrow code, terminal `else`, guard clauses, `continue` guards, and safe exceptions.
 - `api-scaffold`: new REST/proto endpoint scaffolding.
 - `router-permission-supplement`: handler permission action/resource mapping.
