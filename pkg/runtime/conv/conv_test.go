@@ -1988,6 +1988,7 @@ func (ve ValidationError) Error() string {
 }
 
 // TestSliceToSlice tests the SliceToSlice function.
+// NOCC: golint/fnsize(slice conversion contract cases belong in one matrix).
 func TestSliceToSlice(t *testing.T) {
 	type args[T any, U any] struct {
 		originSlice []T
@@ -2458,6 +2459,7 @@ func TestSliceToSlice(t *testing.T) {
 }
 
 // TestSliceToSliceWithError tests the SliceToSliceWithError function using table-driven testing.
+// NOCC: golint/fnsize(slice conversion error contract cases belong in one matrix).
 func TestSliceToSliceWithError(t *testing.T) {
 	// Define test case structures for different transformation types
 	type stringTestCase struct {
