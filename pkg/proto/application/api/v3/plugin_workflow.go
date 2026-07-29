@@ -619,7 +619,7 @@ func (x *PluginWorkflowOperationRetryReq) Validate() error {
 	return nil
 }
 
-// ConvertOperationRetryParamFromTypes convert operation retry param from types.
+// ConvertPluginWorkflowOperationRetryParamFromTypes converts operation retry param from types.
 func (x *PluginWorkflowOperationRetryReq) ConvertPluginWorkflowOperationRetryParamFromTypes(retryParm *types.PluginWorkflowOperationRetryParam) {
 	x.WorkflowId = retryParm.WorkflowID
 	x.OperationIds = retryParm.OperationIDs
@@ -656,7 +656,7 @@ func (x *PluginWorkflowOperationTerminateReq) Validate() error {
 	return nil
 }
 
-// ConvertOperationTerminateParamFromTypes convert operation terminate param from types.
+// ConvertPluginWorkflowOperationTerminateParamFromTypes converts operation terminate param from types.
 func (x *PluginWorkflowOperationTerminateReq) ConvertPluginWorkflowOperationTerminateParamFromTypes(
 	terminateParam *types.PluginWorkflowOperationTerminateParam) {
 

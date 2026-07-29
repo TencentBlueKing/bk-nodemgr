@@ -176,7 +176,7 @@ func (x *TopoHostSelectHostIDReq) ConvertConditionsToTypes() *types.HostConditio
 	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
 }
 
-// ConvertHostIDToTypes convert types to proto.
+// ConvertHostID converts host IDs to the proto response.
 func (x *TopoHostSelectHostIDResp) ConvertHostID(hosts []int64) {
 	x.Data = &TopoHostSelectHostIDResp_Data{
 		Items: hosts,
