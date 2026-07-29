@@ -486,7 +486,7 @@ func Test_UpdateMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpdateMany(tt.args.nCtx, tt.args.configPolicys...)
+			err := h.UpdateMany(tt.args.nCtx, types.UpdateAllConfigPolicyFields(), tt.args.configPolicys...)
 			if err != nil {
 				t.Logf("UpdateMany() error = %v", err)
 			}

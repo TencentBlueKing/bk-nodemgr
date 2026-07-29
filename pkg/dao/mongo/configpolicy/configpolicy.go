@@ -12,6 +12,7 @@
 package configpolicy
 
 import (
+	"maps"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -89,8 +90,28 @@ func (d *dao) create(nCtx contextx.IContext, configPolicy *ConfigPolicy) (int64,
 	return newSequence, nil
 }
 
-func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, configPolicies []*ConfigPolicy) error {
-	models := buildUpdateManyParams(tenantID, configPolicies)
+func (d *dao) updateMany(nCtx contextx.IContext, updates []*base.DocumentFieldUpdate) error {
+	models := make([]mongo.WriteModel, 0, len(updates))
+	for _, update := range updates {
+		nowTime := time.Now()
+		setFields := bson.M{
+			base.FieldKeyIsDeleted: false,
+			base.FieldKeyUpdatedAt: nowTime,
+
+			// configpolicy need to show update time
+			FieldKeyUpdatedAt: nowTime,
+		}
+		maps.Copy(setFields, update.Fields)
+
+		updateDoc := bson.D{
+			{Key: "$set", Value: setFields},
+			{Key: "$inc", Value: bson.M{FieldKeyVersion: 1}},
+		}
+		models = append(models, mongo.NewUpdateOneModel().
+			SetFilter(update.Filter).
+			SetUpdate(updateDoc).
+			SetUpsert(false))
+	}
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -98,7 +119,7 @@ func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, configPolicies
 	}
 
 	if result.MatchedCount > 0 {
-		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted config policies")
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("updated config policies")
 	}
 
 	return nil
@@ -164,38 +185,6 @@ func (d *dao) updatePriorityMany(nCtx contextx.IContext, tenantID string, priori
 	_, err := d.client.BulkWrite(nCtx, models)
 
 	return err
-}
-
-func buildUpdateManyParams(tenantID string, configPolicies []*ConfigPolicy) []mongo.WriteModel {
-	models := make([]mongo.WriteModel, 0)
-
-	for _, configPolicy := range configPolicies {
-		filter := append(base.AliveFilter(),
-			bson.E{Key: FieldKeyConfigPolicyID, Value: configPolicy.Raw.ConfigPolicyID},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID})
-
-		nowTime := time.Now()
-		update := bson.D{
-			bson.E{
-				Key: "$set",
-				Value: bson.M{
-					base.FieldKeyIsDeleted: false,
-					base.FieldKeyUpdatedAt: nowTime,
-					"data.raw":             configPolicy.Raw,
-				},
-			},
-			bson.E{
-				Key: "$inc",
-				Value: bson.M{
-					FieldKeyVersion: 1,
-				},
-			},
-		}
-
-		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(false))
-	}
-
-	return models
 }
 
 func buildEnableManyParams(tenantID string, seqBase int64, configPolicyIDs ...int64) []mongo.WriteModel {

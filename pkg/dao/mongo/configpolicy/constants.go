@@ -26,6 +26,9 @@ const (
 	// FieldKeyBizID the biz-id field key.
 	FieldKeyBizID = "data.raw.biz_id"
 
+	// FieldKeyRemark the remark field key.
+	FieldKeyRemark = "data.raw.remark"
+
 	// FieldKeyEnabled the enabled field key.
 	FieldKeyEnabled = "data.raw.enabled"
 
@@ -34,6 +37,9 @@ const (
 
 	// FieldKeyScopes the scopes field key.
 	FieldKeyScopes = "data.raw.scopes"
+
+	// FieldKeyConfigs the configs field key.
+	FieldKeyConfigs = "data.raw.configs"
 
 	// FieldKeyOperator the operator field key.
 	FieldKeyOperator = "data.raw.operator"

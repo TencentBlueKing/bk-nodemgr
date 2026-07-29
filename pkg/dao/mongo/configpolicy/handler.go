@@ -12,6 +12,7 @@ package configpolicy
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -19,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -36,8 +38,8 @@ type IHandler interface {
 	// Create creates config policy.
 	Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
 
-	// UpdateMany updates config policies.
-	UpdateMany(nCtx contextx.IContext, configPolicies ...*types.ConfigPolicy) error
+	// UpdateMany updates selected config policy fields.
+	UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicies ...*types.ConfigPolicy) error
 
 	// DeleteMany deletes config policies by ids.
 	DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
@@ -178,8 +180,8 @@ func (h *handler) Create(nCtx contextx.IContext, configPolicy *types.ConfigPolic
 	return h.tenantDao(tenantID).create(nCtx, data)
 }
 
-// UpdateMany updates config policies.
-func (h *handler) UpdateMany(nCtx contextx.IContext, configPolicies ...*types.ConfigPolicy) error {
+// UpdateMany updates selected config policy fields.
+func (h *handler) UpdateMany(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicies ...*types.ConfigPolicy) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -190,24 +192,72 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, configPolicies ...*types.Co
 		return base.ErrEmptyParamData()
 	}
 
-	data := make([]*ConfigPolicy, len(configPolicies))
-	for idx, configPolicy := range configPolicies {
+	docs := make([]*base.DocumentFieldUpdate, 0, len(configPolicies))
+	for _, configPolicy := range configPolicies {
 		if configPolicy == nil {
 			return base.ErrInvalidItemInParamList()
 		}
 
-		if configPolicy.Name == "" {
+		if fields.Name && configPolicy.Name == "" {
 			return errors.New("config policy name is empty")
 		}
 
-		data[idx] = convertConfigPolicyFromTypes(configPolicy)
-
-		if err := base.CheckTenantIDMatched(tenantID, data[idx].Raw.TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, configPolicy.TenantID); err != nil {
 			return err
 		}
+
+		filter := append(base.AliveFilter(),
+			bson.E{Key: FieldKeyConfigPolicyID, Value: configPolicy.ID},
+			bson.E{Key: FieldKeyTenantID, Value: tenantID},
+		)
+
+		updateFields := generateConfigPolicyUpdates(fields, configPolicy)
+		if len(updateFields) == 0 {
+			return base.ErrInvalidParam(
+				fmt.Errorf("at least one field must be set to update， policy-id(%d), policy-name(%s)", configPolicy.ID, configPolicy.Name))
+		}
+
+		docs = append(docs, &base.DocumentFieldUpdate{
+			Filter: filter,
+			Fields: updateFields,
+		})
 	}
 
-	return h.tenantDao(tenantID).updateMany(nCtx, tenantID, data)
+	return h.tenantDao(tenantID).updateMany(nCtx, docs)
+}
+
+func generateConfigPolicyUpdates(fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) map[string]any {
+	updates := make(map[string]any)
+
+	if fields.Name {
+		updates[FieldKeyConfigPolicyName] = configPolicy.Name
+	}
+	if fields.Remark {
+		updates[FieldKeyRemark] = configPolicy.Remark
+	}
+	if fields.Scopes {
+		updates[FieldKeyScopes] = convertConfigPolicyScopesFromTypes(configPolicy.Scopes)
+	}
+	if fields.TargetHostIDs {
+		updates[FieldKeyTargetHostIDs] = configPolicy.TargetHostIDs
+	}
+	if fields.TargetPluginName {
+		updates[FieldKeyTargetPluginName] = configPolicy.TargetPluginName
+	}
+	if fields.Configs {
+		updates[FieldKeyConfigs] = configPolicy.Configs
+	}
+	if fields.Enabled {
+		updates[FieldKeyEnabled] = configPolicy.Enabled
+	}
+	if fields.Priority {
+		updates[FieldKeyPriority] = configPolicy.Priority
+	}
+	if fields.Operator {
+		updates[FieldKeyOperator] = configPolicy.Operator
+	}
+
+	return updates
 }
 
 // DeleteMany deletes config policies by ids.
@@ -298,15 +348,7 @@ func convertConfigPolicyToTypes(cp *ConfigPolicy) *types.ConfigPolicy {
 }
 
 func convertConfigPolicyFromTypes(cp *types.ConfigPolicy) *ConfigPolicy {
-	scopes := make([]Scope, len(cp.Scopes))
-	for idx, scope := range cp.Scopes {
-		scopes[idx] = Scope{
-			NetworkAreaID: scope.NetworkAreaID,
-			NetworkUnitID: scope.NetworkUnitID,
-			NodeOsType:    string(scope.NodeOsType),
-			NodeCPUArch:   string(scope.NodeCPUArch),
-		}
-	}
+	scopes := convertConfigPolicyScopesFromTypes(cp.Scopes)
 
 	return &ConfigPolicy{
 		Version: cp.Version,
@@ -327,4 +369,18 @@ func convertConfigPolicyFromTypes(cp *types.ConfigPolicy) *ConfigPolicy {
 			Operator:         cp.Operator,
 		},
 	}
+}
+
+func convertConfigPolicyScopesFromTypes(scopes []types.ConfigPolicyScope) []Scope {
+	data := make([]Scope, len(scopes))
+	for idx, scope := range scopes {
+		data[idx] = Scope{
+			NetworkAreaID: scope.NetworkAreaID,
+			NetworkUnitID: scope.NetworkUnitID,
+			NodeOsType:    string(scope.NodeOsType),
+			NodeCPUArch:   string(scope.NodeCPUArch),
+		}
+	}
+
+	return data
 }

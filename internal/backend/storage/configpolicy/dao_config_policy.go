@@ -159,11 +159,10 @@ func (s *Storage) createConfigPolicy(nCtx contextx.IContext, configPolicy *types
 }
 
 // updateConfigPolicy updates the config policy.
-func (s *Storage) updateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) error {
+func (s *Storage) updateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) error {
 	var err error
 
-	configPolicy.UpdatedAt = time.Now()
-	if err = s.daoConfigPolicy.UpdateMany(nCtx, configPolicy); err != nil {
+	if err = s.daoConfigPolicy.UpdateMany(nCtx, fields, configPolicy); err != nil {
 		return err
 	}
 

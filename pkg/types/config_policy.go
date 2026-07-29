@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
@@ -36,6 +37,47 @@ type ConfigPolicy struct {
 	Priority         int64
 	UpdatedAt        time.Time
 	Operator         string
+}
+
+// Validate config policy type.
+func (cp *ConfigPolicy) Validate() error {
+	if err := cp.Type.Validate(); err != nil {
+		return err
+	}
+
+	if cp.Type == ConfigPolicyTypePlugin && conv.IsEmpty(cp.TargetPluginName) {
+		return fmt.Errorf("target plugin name in the plugin config policy cannot be empty")
+	}
+
+	return nil
+}
+
+// ConfigPolicyFields represents the fields of ConfigPolicy.
+type ConfigPolicyFields struct {
+	Name             bool
+	Remark           bool
+	Scopes           bool
+	TargetHostIDs    bool
+	TargetPluginName bool
+	Configs          bool
+	Enabled          bool
+	Priority         bool
+	Operator         bool
+}
+
+// UpdateAllConfigPolicyFields returns all updatable config policy fields.
+func UpdateAllConfigPolicyFields() ConfigPolicyFields {
+	return ConfigPolicyFields{
+		Name:             true,
+		Remark:           true,
+		Scopes:           true,
+		TargetHostIDs:    true,
+		TargetPluginName: true,
+		Configs:          true,
+		Enabled:          true,
+		Priority:         true,
+		Operator:         true,
+	}
 }
 
 // ConfigPolicyMatchedPolicy describes a single matched policy in preview results.

@@ -194,10 +194,10 @@ func (s *Storage) CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types
 }
 
 // UpdateConfigPolicy updates the config policy.
-func (s *Storage) UpdateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) error {
+func (s *Storage) UpdateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) error {
 	return s.WrapFn(nCtx, metricOperationUpdateConfigPolicy, func(nCtx contextx.IContext) error {
 		var err error
-		err = s.updateConfigPolicy(nCtx, configPolicy)
+		err = s.updateConfigPolicy(nCtx, fields, configPolicy)
 
 		return err
 	})

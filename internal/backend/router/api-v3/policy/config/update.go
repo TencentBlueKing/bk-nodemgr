@@ -44,8 +44,14 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
+	if err := configPolicy.Validate(); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy, failed to validate config policy")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 	configPolicy.TenantID = rCtx.TenantID()
-	if err := h.storageConfigPolicy.UpdateConfigPolicy(rCtx, configPolicy); err != nil {
+	fields := types.UpdateAllConfigPolicyFields()
+	if err := h.storageConfigPolicy.UpdateConfigPolicy(rCtx, fields, configPolicy); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)

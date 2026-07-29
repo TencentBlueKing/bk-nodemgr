@@ -41,7 +41,7 @@ type IDaoConfigPolicy interface {
 	CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
 
 	// UpdateConfigPolicy updates the config policy.
-	UpdateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) error
+	UpdateConfigPolicy(nCtx contextx.IContext, fields types.ConfigPolicyFields, configPolicy *types.ConfigPolicy) error
 
 	// DeleteManyConfigPolicy deletes the config policies.
 	DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
