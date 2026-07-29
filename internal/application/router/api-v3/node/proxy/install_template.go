@@ -83,6 +83,8 @@ type column struct {
 	cellValueOf func(info *parsedInfo) any
 }
 
+// NOCC: golint/fnsize(template column definitions belong together).
+//
 //nolint:funlen,gocognit,gocyclo,cyclop,maintidx
 func getColumns() []column {
 	return []column{

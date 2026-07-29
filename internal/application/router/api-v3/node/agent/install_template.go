@@ -70,6 +70,8 @@ type column struct {
 	cellValueOf func(info *parsedInfo) any
 }
 
+// NOCC: golint/fnsize(template column definitions belong together).
+//
 //nolint:funlen
 func getColumns() []column {
 	return []column{
