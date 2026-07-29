@@ -24,7 +24,12 @@ import (
 )
 
 func newDao(client *mongo.Database) *dao {
-	return &dao{client: client.Collection(TableName)}
+	d := &dao{client: client.Collection(TableName)}
+	if err := d.ensureIndexes(); err != nil {
+		logger.G.Sys().WithErr(err).Warn("failed to ensure stopping operation instance indexes")
+	}
+
+	return d
 }
 
 // buildTTLIndexModel build ttl index model, this index is used to delete expired data.
@@ -40,15 +45,14 @@ type dao struct {
 	client *mongo.Collection
 }
 
+func (d *dao) ensureIndexes() error {
+	_, err := d.client.Indexes().CreateOne(context.Background(), buildTTLIndexModel())
+
+	return err
+}
+
 // upsert updates or inserts an operation instance data.
 func (d *dao) upsert(nCtx contextx.IContext, inst *StopOperInst) error {
-	indexModel := buildTTLIndexModel()
-	if _, err := d.client.Indexes().CreateOne(nCtx, indexModel); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to create ttl index")
-
-		return err
-	}
-
 	filter, upsert, opts := buildUpsertParams(inst)
 	result, err := d.client.UpdateOne(nCtx, filter, upsert, opts)
 	if err != nil {
@@ -106,7 +110,7 @@ func (d *dao) find(nCtx contextx.IContext, filter bson.D) ([]*StopOperInst, erro
 
 // watchWithRetry watch with retry.
 func (d *dao) watch(nCtx contextx.IContext, filter bson.D, fn func(*StopOperInst)) error {
-	pipeline, watchOptions := buildWatchParams(filter)
+	pipeline, watchOptions := buildWatchParams(d.buildWatchFilter(filter))
 	changeStream, err := d.client.Watch(context.Background(), pipeline, watchOptions)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to watch stopping operation instances")
@@ -174,6 +178,17 @@ func (d *dao) watchWithRetry(nCtx contextx.IContext, filter bson.D, fn func(*Sto
 			}
 		}
 	}
+}
+
+func (d *dao) buildWatchFilter(filter bson.D) bson.D {
+	watchFilter := make(bson.D, 0, len(filter)+2)
+	watchFilter = append(watchFilter, filter...)
+	watchFilter = append(watchFilter,
+		bson.E{Key: "ns.db", Value: d.client.Database().Name()},
+		bson.E{Key: "ns.coll", Value: d.client.Name()},
+	)
+
+	return watchFilter
 }
 
 // buildUpsertParams build update params.
