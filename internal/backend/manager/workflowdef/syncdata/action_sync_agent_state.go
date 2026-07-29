@@ -41,7 +41,8 @@ func NewActionSyncAgentState(capability *Capability) action.Definition {
 type ActionParamSyncAgentState struct {
 	syncDataUtils.SyncDataActionStandardParam
 
-	Hosts []*HostIDAgentID `json:"hosts"`
+	Hosts               []*HostIDAgentID `json:"hosts"`
+	CompareCurrentState bool             `json:"compare_current_state,omitempty"`
 }
 
 type actionSyncAgentState struct {
@@ -132,15 +133,11 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 			continue
 		}
 
-		upsertHosts = append(upsertHosts, &types.Host{
-			HostID: host.HostID,
-			Dynamic: &types.HostDynamic{
-				NodeRole:       agentState.NodeRole,
-				NodeGeneration: agentState.NodeGeneration,
-				NodeVersion:    agentState.Version,
-				NodeStatus:     agentState.NodeStatus,
-			},
-		})
+		if !shouldSyncAgentStateHost(host, agentState, param.CompareCurrentState) {
+			continue
+		}
+
+		upsertHosts = append(upsertHosts, newHostWithAgentState(host.HostID, agentState))
 	}
 
 	if len(upsertHosts) == 0 {
@@ -164,6 +161,33 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	return nil
+}
+
+func shouldSyncAgentStateHost(host *HostIDAgentID, agentState *types.AgentState, compareCurrentState bool) bool {
+	if !compareCurrentState {
+		return true
+	}
+	if host.CurrentNodeRole == nil || host.CurrentNodeStatus == nil || host.CurrentNodeVersion == nil ||
+		host.CurrentNodeGeneration == nil {
+		return true
+	}
+
+	return *host.CurrentNodeRole != agentState.NodeRole ||
+		*host.CurrentNodeStatus != agentState.NodeStatus ||
+		*host.CurrentNodeVersion != agentState.Version ||
+		*host.CurrentNodeGeneration != agentState.NodeGeneration
+}
+
+func newHostWithAgentState(hostID int64, agentState *types.AgentState) *types.Host {
+	return &types.Host{
+		HostID: hostID,
+		Dynamic: &types.HostDynamic{
+			NodeRole:       agentState.NodeRole,
+			NodeGeneration: agentState.NodeGeneration,
+			NodeVersion:    agentState.Version,
+			NodeStatus:     agentState.NodeStatus,
+		},
+	}
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
