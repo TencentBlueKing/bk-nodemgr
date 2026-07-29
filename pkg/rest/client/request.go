@@ -74,7 +74,8 @@ type Request struct {
 	enableLogResponse bool
 
 	// headerMasker will be used to mask header value.
-	headerMasker map[string]func(string) string
+	headerMasker   map[string]func(string) string
+	urlQueryMasker map[string]func(string) string
 
 	// prefixed url
 	baseURL string
@@ -292,7 +293,7 @@ func (r *Request) checkToleranceLatency(start *time.Time, url string) {
 	// request time larger than the maxToleranceLatencyTime time, then log the request
 	logger.G.Biz(r.nCtx).
 		WithDuration(time.Since(*start)).
-		With("method", r.verb, "url", maskURL(url), "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
+		With("method", r.verb, "url", r.maskURL(url), "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
 		Info("http request exceeded max latency time")
 }
 
@@ -318,6 +319,7 @@ type Result struct {
 
 	// enableLogResponse was used to record some important info for debug.
 	enableLogResponse bool
+	urlQueryMasker    map[string]func(string) string
 }
 
 // Into parse body to obj.
@@ -341,7 +343,7 @@ func (r *Result) Into(obj interface{}) error {
 		return nil
 	}
 
-	logger.G.Sys().With("body", r.maskResponseBody(bodyData), "url", maskURL(r.FullURL)).Info("get response data")
+	logger.G.Sys().With("body", r.maskResponseBody(bodyData), "url", r.maskURL(r.FullURL)).Info("get response data")
 
 	if r.StatusCode >= http.StatusInternalServerError {
 		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
@@ -418,7 +420,7 @@ func (r *Request) tryThrottle(url string) {
 	if latency := time.Since(now); latency > maxLatency {
 		logger.G.Biz(r.nCtx).
 			WithDuration(latency).
-			With("method", r.verb, "url", maskURL(url)).
+			With("method", r.verb, "url", r.maskURL(url)).
 			Warn("throttling request")
 	}
 }
@@ -504,7 +506,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 	}
 
 	logger.G.Biz(r.nCtx).
-		With("method", req.Method, "url", maskURL(req.URL.String()), "header", r.maskHeader(req.Header), "body", r.maskRequestBody()).
+		With("method", req.Method, "url", r.maskURL(req.URL.String()), "header", r.maskHeader(req.Header), "body", r.maskRequestBody()).
 		Info("do request")
 
 	start := time.Now()
@@ -537,12 +539,13 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 		Status:            resp.Status,
 		Header:            resp.Header,
 		enableLogResponse: r.enableLogResponse,
+		urlQueryMasker:    r.urlQueryMasker,
 	}
 
 	logger.G.Biz(r.nCtx).With(
 		"code", result.StatusCode,
 		"method", req.Method,
-		"url", maskURL(req.URL.String()),
+		"url", r.maskURL(req.URL.String()),
 		"header",
 		r.maskHeader(req.Header)).
 		Info("receive response")
@@ -632,7 +635,19 @@ func (r *Request) maskHeader(headers http.Header) string {
 	return fmt.Sprintf("%+v", masked)
 }
 
-func maskURL(rawURL string) string {
+func (r *Request) maskURL(rawURL string) string {
+	return maskURL(rawURL, r.urlQueryMasker)
+}
+
+func (r *Result) maskURL(rawURL string) string {
+	return maskURL(rawURL, r.urlQueryMasker)
+}
+
+func maskURL(rawURL string, urlQueryMasker map[string]func(string) string) string {
+	if len(urlQueryMasker) == 0 {
+		return rawURL
+	}
+
 	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return rawURL
@@ -640,28 +655,20 @@ func maskURL(rawURL string) string {
 
 	query := parsedURL.Query()
 	for key, values := range query {
-		if !isSensitiveURLQueryKey(key) {
+		queryMasker, ok := urlQueryMasker[key]
+		if !ok {
 			continue
 		}
 
 		maskedValues := make([]string, len(values))
 		for i, value := range values {
-			maskedValues[i] = defaultHeaderMasker(value)
+			maskedValues[i] = queryMasker(value)
 		}
 		query[key] = maskedValues
 	}
 	parsedURL.RawQuery = query.Encode()
 
 	return parsedURL.String()
-}
-
-func isSensitiveURLQueryKey(key string) bool {
-	switch strings.ToLower(key) {
-	case "access_token", "bk_ticket", "bk_token", "token":
-		return true
-	default:
-		return false
-	}
 }
 
 // EnableLogBody show the request body.

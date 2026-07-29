@@ -15,10 +15,32 @@ import (
 	"testing"
 )
 
-func TestMaskURLMasksSensitiveQuery(t *testing.T) {
+func TestMaskURLPreservesQueryByDefault(t *testing.T) {
 	rawURL := "http://example.com/login/accounts/get_user/?bk_token=bkcrypt%2Bgabcdef%3D&foo=bar&token=short"
 
-	got := maskURL(rawURL)
+	got := maskURL(rawURL, nil)
+	parsed, err := url.Parse(got)
+	if err != nil {
+		t.Fatalf("failed to parse URL: %v", err)
+	}
+
+	query := parsed.Query()
+	if query.Get("bk_token") != "bkcrypt+gabcdef=" {
+		t.Fatalf("expected bk_token to be preserved by default, got %q", query.Get("bk_token"))
+	}
+	if query.Get("token") != "short" {
+		t.Fatalf("expected token to be preserved by default, got %q", query.Get("token"))
+	}
+}
+
+func TestMaskURLMasksConfiguredQuery(t *testing.T) {
+	rawURL := "http://example.com/login/accounts/get_user/?bk_token=bkcrypt%2Bgabcdef%3D&foo=bar&token=short"
+	urlQueryMasker := map[string]func(string) string{
+		"bk_token": defaultHeaderMasker,
+		"token":    defaultHeaderMasker,
+	}
+
+	got := maskURL(rawURL, urlQueryMasker)
 	parsed, err := url.Parse(got)
 	if err != nil {
 		t.Fatalf("failed to parse masked URL: %v", err)
@@ -26,15 +48,12 @@ func TestMaskURLMasksSensitiveQuery(t *testing.T) {
 
 	query := parsed.Query()
 	if query.Get("foo") != "bar" {
-		t.Fatalf("expected non-sensitive query to be preserved, got %q", query.Get("foo"))
-	}
-	if query.Get("bk_token") == "bkcrypt+gabcdef=" {
-		t.Fatalf("expected bk_token to be masked, got %q", query.Get("bk_token"))
+		t.Fatalf("expected non-configured query to be preserved, got %q", query.Get("foo"))
 	}
 	if query.Get("bk_token") != "bkc***ef=" {
-		t.Fatalf("expected bk_token to use default masking, got %q", query.Get("bk_token"))
+		t.Fatalf("expected configured bk_token to use default masking, got %q", query.Get("bk_token"))
 	}
 	if query.Get("token") != "*****" {
-		t.Fatalf("expected short token to be fully masked, got %q", query.Get("token"))
+		t.Fatalf("expected configured short token to be fully masked, got %q", query.Get("token"))
 	}
 }

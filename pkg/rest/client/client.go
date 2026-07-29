@@ -48,6 +48,15 @@ func WithHeaderMasker(header ...string) Opt {
 	}
 }
 
+// WithURLQueryMasker set url query masker.
+func WithURLQueryMasker(query ...string) Opt {
+	return func(client *Client) {
+		for _, q := range query {
+			client.urlQueryMasker[q] = defaultHeaderMasker
+		}
+	}
+}
+
 // nolint: mnd
 func defaultHeaderMasker(value string) string {
 	var maskedValues string
@@ -64,6 +73,13 @@ func defaultHeaderMasker(value string) string {
 func WithCustomHeaderMasker(header string, headerMasker func(string) string) Opt {
 	return func(client *Client) {
 		client.headerMasker[header] = headerMasker
+	}
+}
+
+// WithCustomURLQueryMasker set custom url query masker.
+func WithCustomURLQueryMasker(query string, queryMasker func(string) string) Opt {
+	return func(client *Client) {
+		client.urlQueryMasker[query] = queryMasker
 	}
 }
 
@@ -94,9 +110,10 @@ func NewClient(capability *Capability, baseURL string, opts ...Opt) (IClient, er
 		metrics: restmetrics.NewMonitor("client_"+capability.Name,
 			restmetrics.WithDurationMSBuckets(capability.MetricOpts.DurationMSBuckets),
 			restmetrics.WithSlowTime(capability.ToleranceLatencyTime)).Enable(),
-		exclusionURL:  make(map[string]struct{}),
-		maxRetryCycle: maxRetryCycleDefault,
-		headerMasker:  make(map[string]func(string) string),
+		exclusionURL:   make(map[string]struct{}),
+		maxRetryCycle:  maxRetryCycleDefault,
+		headerMasker:   make(map[string]func(string) string),
+		urlQueryMasker: make(map[string]func(string) string),
 	}
 
 	for _, opt := range opts {
@@ -125,16 +142,20 @@ type Client struct {
 
 	// headerMasker will be used to mask header value.
 	headerMasker map[string]func(string) string
+
+	// urlQueryMasker will be used to mask url query value.
+	urlQueryMasker map[string]func(string) string
 }
 
 // verb get request.
 func (client *Client) verb(verb VerbType) *Request {
 	return &Request{
-		client:       client,
-		verb:         verb,
-		baseURL:      client.baseURL,
-		capability:   client.capability,
-		headerMasker: client.headerMasker,
+		client:         client,
+		verb:           verb,
+		baseURL:        client.baseURL,
+		capability:     client.capability,
+		headerMasker:   client.headerMasker,
+		urlQueryMasker: client.urlQueryMasker,
 	}
 }
 
