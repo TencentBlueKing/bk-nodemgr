@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package processconfig provides MongoDB DAO operations for process configuration records.
 package processconfig
 
 import (

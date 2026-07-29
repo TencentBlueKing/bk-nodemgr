@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package cipher provides MongoDB DAO operations for cipher records.
 package cipher
 
 import (
