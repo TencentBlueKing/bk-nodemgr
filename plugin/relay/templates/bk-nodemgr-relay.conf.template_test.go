@@ -19,6 +19,7 @@ import (
 )
 
 // TestRelayConfigTemplate_Render tests the relay config template rendering.
+// NOCC: golint/fnsize(template rendering fixture and expected output belong together).
 func TestRelayConfigTemplate_Render(t *testing.T) {
 	// Read the template file
 	templateContent, err := os.ReadFile("bk-nodemgr-relay.conf.template")
