@@ -37,6 +37,7 @@ import (
 
 // NewFullUpgrade creates a new full upgrade command.
 // nolint: lll, funlen, gocognit
+// NOCC: golint/fnsize(cobra command and installer wiring belong together).
 func NewFullUpgrade() *cobra.Command {
 	var (
 		// required flags.

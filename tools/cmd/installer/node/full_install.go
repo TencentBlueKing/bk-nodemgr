@@ -41,6 +41,7 @@ import (
 
 // NewFullInstall creates a new full install command.
 // nolint: lll, funlen, gocognit, gocyclo, cyclop, maintidx
+// NOCC: golint/fnsize(cobra command and installer wiring belong together).
 func NewFullInstall() *cobra.Command {
 	var (
 		// required flags.

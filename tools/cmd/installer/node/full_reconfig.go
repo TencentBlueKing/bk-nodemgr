@@ -35,6 +35,7 @@ import (
 
 // NewFullReconfig creates a new full reload config command.
 // nolint: lll, funlen, gocognit
+// NOCC: golint/fnsize(cobra command and installer wiring belong together).
 func NewFullReconfig() *cobra.Command {
 	var (
 		// required flags.
