@@ -2,6 +2,10 @@
 
 存放 bk-nodemgr 相关的概念文档。
 
+### [glossary](glossary.md)
+
+跨文档、API、Proto、frontend type 和代码共享的 canonical terms 与术语边界。
+
 ### [deploy_policy](deploy_policy/README.md)
 
 部署策略的概念文档。
