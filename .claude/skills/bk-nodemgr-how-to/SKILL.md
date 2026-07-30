@@ -56,6 +56,7 @@ Project-specific skills take precedence over generic Go skills when the task tou
 | `pkg/runtime/retrier`, polling, backoff, fallback candidates | `bk-nodemgr-retrier` | `golang-context`, `golang-error-handling`, `golang-observability` |
 | `pkg/logger`, Biz/Sys logs, fields, levels, third-party logger adapters | `bk-nodemgr-logger` | `golang-error-handling`, `golang-observability` |
 | `testsuite/support`, package-level Mongo/Redis integration tests, `NODEMGR_TEST_*`, `RequireMongoDatabase`, `RequireRedisClientWithKeyPrefix` | `bk-nodemgr-testsuite-support` | `golang-testing`, `golang-database` |
+| Cross-layer placement, competing designs, dependency direction, shared-contract changes, pre-flight/post-flight judgment, explicit deepening scans | `bk-nodemgr-architecture-judgment` | Narrow project skill for the affected surface, then generic Go skills only for language-level gaps |
 | New REST/proto endpoint scaffolding | `api-scaffold` | `golang-grpc`, `golang-error-handling`, `golang-testing` when implementation requires them |
 | Router permission mapping | `router-permission-supplement` | `golang-security` only for broader security review |
 | Proto API reference documentation | `api-doc` | `golang-documentation` only for generic doc style |
@@ -96,6 +97,8 @@ Use generic Go skills for language concerns after the project surface is identif
 
 If work touches `pkg/runtime/gopool`, load `bk-nodemgr-gopool` first, not only `golang-concurrency`. If work touches `pkg/contextx`, load `bk-nodemgr-contextx` first, not only `golang-context`. This keeps guidance aligned with bk-nodemgr contracts and still allows generic Go skills as companions.
 
+For architecture judgment signals, load `bk-nodemgr-architecture-judgment` as a companion guardrail; it supplements scoped `AGENTS.md` and narrow project skills, and should not replace the skill that owns the affected surface.
+
 ## Common Mistakes
 
 - Loading only `golang-how-to` for a task that has a project skill with stricter source anchors.
@@ -126,6 +129,7 @@ Pressure prompts live in `evals/evals.json`. Keep run outputs, timing, grading, 
 - `bk-nodemgr-retrier`: project retry primitive selection.
 - `bk-nodemgr-logger`: project logging conventions.
 - `bk-nodemgr-testsuite-support`: project package-level Mongo/Redis integration test support.
+- `bk-nodemgr-architecture-judgment`: pre-flight/post-flight architecture judgment and explicit deepening scans.
 - `api-scaffold`: project API endpoint scaffolding.
 - `router-permission-supplement`: router permission action/resource mapping.
 - `code-review`: project Go change review.

@@ -83,6 +83,10 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 
 **详细流程和工具使用**：参见 [references/workflow-guide.md](references/workflow-guide.md)
 
+### Architecture Judgment Handoff
+
+When a diff affects architecture boundaries, dependency direction, shared contracts, or materially departs from the intended design, load `bk-nodemgr-architecture-judgment` in `post-flight` mode as a focused self-review lens. Map its `Stop` verdict to the existing serious/blocking finding level, `Warn` to an important finding, and `Continue` to no architecture-judgment finding. Do not automatically launch a deepening scan during ordinary reviews.
+
 ## 核心检查项
 
 代码审查关注四大类检查项：
@@ -178,6 +182,7 @@ git worktree add .worktrees/"$BRANCH" "$BRANCH"
 | 工具 | [tools-usage.md](references/tools-usage.md) |
 | 检查 | [checklist.md](references/checklist.md)、[file-type-mapping.md](references/file-type-mapping.md) |
 | 架构原则 | [architecture-principles.md](references/architecture-principles.md) |
+| 架构判断 | `bk-nodemgr-architecture-judgment` |
 | 报告 | [report-template.md](references/report-template.md) |
 | Go 规范 | [go-standards.md](references/go-standards.md) |
 | 模块 Pattern | [patterns/README.md](patterns/README.md)、[dpmgr-executor.md](patterns/dpmgr-executor.md) |
