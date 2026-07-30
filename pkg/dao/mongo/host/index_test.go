@@ -29,6 +29,10 @@ func TestDaoGetIndexes_HostListSort(t *testing.T) {
 			{Key: FieldKeyOperationUpdatedAt, Value: -1},
 		},
 		{
+			{Key: FieldKeyStaticBizID, Value: 1},
+			{Key: FieldKeyOperationUpdatedAt, Value: -1},
+		},
+		{
 			{Key: FieldKeyStaticSetID, Value: 1},
 			{Key: FieldKeyDynamicNodeRole, Value: 1},
 			{Key: FieldKeyOperationUpdatedAt, Value: -1},
@@ -102,6 +106,66 @@ func TestDaoGetIndexes_BizScan(t *testing.T) {
 	}
 
 	t.Fatalf("GetIndexes() missing biz scan partial index %v", wantIndex)
+}
+
+func TestDaoGetIndexes_NodeStatusAlive(t *testing.T) {
+	indexes := (&dao{}).GetIndexes()
+	wantIndex := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: FieldKeyDynamicNodeStatus, Value: 1},
+			{Key: base.FieldKeyIsDeleted, Value: 1},
+		},
+	}
+
+	for _, index := range indexes {
+		if reflect.DeepEqual(index.Keys, wantIndex.Keys) && reflect.DeepEqual(index.Options, wantIndex.Options) {
+			return
+		}
+	}
+
+	t.Fatalf("GetIndexes() missing node status alive index %v", wantIndex)
+}
+
+func TestDaoGetIndexes_LiveQueryIndexes(t *testing.T) {
+	indexes := (&dao{}).GetIndexes()
+	wantIndexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: 1},
+				{Key: FieldKeyStaticBizID, Value: 1},
+				{Key: FieldKeyDynamicNodeStatus, Value: 1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: 1},
+				{Key: FieldKeyDynamicNodeRole, Value: 1},
+				{Key: FieldKeyDynamicNodeStatus, Value: 1},
+			},
+		},
+		{
+			Keys: bson.D{
+				{Key: FieldKeyDynamicAgentID, Value: 1},
+				{Key: FieldKeyStaticBizID, Value: 1},
+			},
+		},
+	}
+
+	for _, wantIndex := range wantIndexes {
+		if !hasIndex(indexes, wantIndex) {
+			t.Fatalf("GetIndexes() missing live query index %v", wantIndex)
+		}
+	}
+}
+
+func hasIndex(indexes []mongo.IndexModel, wantIndex mongo.IndexModel) bool {
+	for _, index := range indexes {
+		if reflect.DeepEqual(index.Keys, wantIndex.Keys) && reflect.DeepEqual(index.Options, wantIndex.Options) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func hasPartialIndex(indexes []mongo.IndexModel, keys bson.D) bool {
