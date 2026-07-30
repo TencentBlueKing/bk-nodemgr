@@ -542,8 +542,8 @@ topoManager:
       pluginIPC: Plugin IPC
       windowsOnlyIpcEditable: 仅 Windows 和 Linux 支持编辑此字段
       logDir: 日志路径
-      zoneId: CC逻辑区域ID
-      cityId: 城市ID
+      zoneId: 区域ID
+      cityId: IDC城市ID
       osOptions:
         linux: Linux
         windows: Windows
