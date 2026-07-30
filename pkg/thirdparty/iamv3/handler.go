@@ -18,7 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	runtimecache "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/iam-go-sdk/expression"
@@ -76,7 +76,7 @@ type IHandler interface {
 type Handler struct {
 	cli        *cli
 	cache      *Cache
-	tokenCache runtimecache.ICache
+	tokenCache cache.ICache
 }
 
 // Verify that Handler implements IHandler interface.
@@ -92,7 +92,7 @@ func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 	h := &Handler{
 		cli:        cli,
 		cache:      NewCache(),
-		tokenCache: runtimecache.NewMemoryCache(systemTokenCacheExpiration),
+		tokenCache: cache.NewMemoryCache(systemTokenCacheExpiration),
 	}
 
 	return h, nil
@@ -377,6 +377,7 @@ func (h *Handler) getCachedSystemToken(ctx contextx.IContext) (string, bool, err
 	}
 	if !exists {
 		token, err := h.refreshSystemToken(ctx)
+
 		return token, false, err
 	}
 
@@ -386,6 +387,7 @@ func (h *Handler) getCachedSystemToken(ctx contextx.IContext) (string, bool, err
 	}
 
 	token, err := h.refreshSystemToken(ctx)
+
 	return token, false, err
 }
 

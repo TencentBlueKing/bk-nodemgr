@@ -51,6 +51,7 @@ func (mc *MemoryCache) Set(ctx context.Context, key string, value []byte) error 
 	}
 
 	mc.cache.Set(key, cloneBytes(value), gocache.DefaultExpiration)
+
 	return nil
 }
 
@@ -60,11 +61,9 @@ func (mc *MemoryCache) SetNX(ctx context.Context, key string, value []byte) (boo
 		return false, errContextIsNil
 	}
 
-	if err := mc.cache.Add(key, cloneBytes(value), gocache.DefaultExpiration); err != nil {
-		return false, nil
-	}
+	added := mc.cache.Add(key, cloneBytes(value), gocache.DefaultExpiration) == nil
 
-	return true, nil
+	return added, nil
 }
 
 // SetNXWithExpiration sets a value with an expiration time if the key exist will return false.
@@ -74,15 +73,14 @@ func (mc *MemoryCache) SetNXWithExpiration(
 	value []byte,
 	expiration time.Duration,
 ) (bool, error) {
+
 	if ctx == nil {
 		return false, errContextIsNil
 	}
 
-	if err := mc.cache.Add(key, cloneBytes(value), normalizeExpiration(expiration)); err != nil {
-		return false, nil
-	}
+	added := mc.cache.Add(key, cloneBytes(value), normalizeExpiration(expiration)) == nil
 
-	return true, nil
+	return added, nil
 }
 
 // SetWithExpiration sets a value with an expiration time.
@@ -92,6 +90,7 @@ func (mc *MemoryCache) SetWithExpiration(ctx context.Context, key string, value 
 	}
 
 	mc.cache.Set(key, cloneBytes(value), normalizeExpiration(expiration))
+
 	return nil
 }
 
@@ -102,6 +101,7 @@ func (mc *MemoryCache) Exists(ctx context.Context, key string) (bool, error) {
 	}
 
 	_, ok := mc.cache.Get(key)
+
 	return ok, nil
 }
 
@@ -113,6 +113,7 @@ func (mc *MemoryCache) Delete(ctx context.Context, key string) (bool, error) {
 
 	_, existed := mc.cache.Get(key)
 	mc.cache.Delete(key)
+
 	return existed, nil
 }
 
