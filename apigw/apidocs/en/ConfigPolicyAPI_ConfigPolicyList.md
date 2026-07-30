@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.18+.
+- API Version: v3.0.1-alpha.63+.
 - Required Permission: config_policy_view (View Config Policy).
 - Function: Query the config policy list, with pagination, exact filtering, and fuzzy filtering support.
 
@@ -11,7 +11,7 @@ POST /api/v3/policy/config/list
 ### Request Parameters
 
 | Parameter                | Type   | Required | Description                                                  |
-|--------------------------|--------|----------|--------------------------------------------------------------|
+| ------------------------ | ------ | -------- | ------------------------------------------------------------ |
 | page                     | object | No       | Pagination configuration                                     |
 | only_count               | bool   | No       | Whether to return only the total count, without item details |
 | exact_include_conditions | object | No       | Exact match include conditions                               |
@@ -20,29 +20,30 @@ POST /api/v3/policy/config/list
 #### page
 
 | Parameter | Type  | Required | Description                                        |
-|-----------|-------|----------|----------------------------------------------------|
+| --------- | ----- | -------- | -------------------------------------------------- |
 | offset    | int32 | No       | Pagination start position, starting from `0`       |
 | limit     | int32 | No       | Records per page, maximum `1000` at protocol layer |
 
 #### exact_include_conditions
 
-| Parameter         | Type         | Required | Description                                                                                                     |
-|-------------------|--------------|----------|-----------------------------------------------------------------------------------------------------------------|
-| configpolicy_id   | int64 array  | No       | Config policy ID list                                                                                           |
-| bk_biz_id         | int64 array  | No       | Business ID list                                                                                                |
-| configpolicy_type | string array | No       | Config policy type list, available values: `config_policy_agent`, `config_policy_proxy`, `config_policy_plugin` |
-| enabled           | bool array   | No       | Enabled status list                                                                                             |
+| Parameter          | Type         | Required | Description                                                                                                     |
+| ------------------ | ------------ | -------- | --------------------------------------------------------------------------------------------------------------- |
+| configpolicy_id    | int64 array  | No       | Config policy ID list                                                                                           |
+| bk_biz_id          | int64 array  | No       | Business ID list                                                                                                |
+| configpolicy_type  | string array | No       | Config policy type list, available values: `config_policy_agent`, `config_policy_proxy`, `config_policy_plugin` |
+| enabled            | bool array   | No       | Enabled status list                                                                                             |
+| target_plugin_name | string array | No       | Target plugin name list                                                                                         |
 
 #### fuzzy_include_conditions
 
 | Parameter         | Type         | Required | Description                          |
-|-------------------|--------------|----------|--------------------------------------|
+| ----------------- | ------------ | -------- | ------------------------------------ |
 | configpolicy_name | string array | No       | Config policy name list, fuzzy match |
 | operator          | string array | No       | Operator list, fuzzy match           |
 
 ### Request Example
 
-Query enabled Agent config policies under business `2`.
+Query enabled plugin config policies under business `2`.
 
 ```json
 {
@@ -52,20 +53,13 @@ Query enabled Agent config policies under business `2`.
   },
   "only_count": false,
   "exact_include_conditions": {
-    "bk_biz_id": [
-      2
-    ],
-    "configpolicy_type": [
-      "config_policy_agent"
-    ],
-    "enabled": [
-      true
-    ]
+    "bk_biz_id": [2],
+    "configpolicy_type": ["config_policy_plugin"],
+    "enabled": [true],
+    "target_plugin_name": ["bkmonitorbeat"]
   },
   "fuzzy_include_conditions": {
-    "configpolicy_name": [
-      "prod"
-    ]
+    "configpolicy_name": ["prod"]
   }
 }
 ```
@@ -83,10 +77,10 @@ Query enabled Agent config policies under business `2`.
       {
         "tenant_id": "default",
         "configpolicy_id": 10001,
-        "configpolicy_name": "prod-agent-config",
-        "configpolicy_type": "config_policy_agent",
+        "configpolicy_name": "prod-plugin-config",
+        "configpolicy_type": "config_policy_plugin",
         "bk_biz_id": 2,
-        "remark": "Production Agent configuration",
+        "remark": "Production plugin configuration",
         "scopes": [
           {
             "bk_networkarea_id": -1,
@@ -99,7 +93,8 @@ Query enabled Agent config policies under business `2`.
           "bk_cloud_id": "0"
         },
         "configs_int": {
-          "heartbeat_interval": 60
+          "plugin.base.cpu_percent_limit": 10,
+          "plugin.base.mem_percent_limit": 10
         },
         "configs_bool": {
           "enable_metrics": true
@@ -109,10 +104,8 @@ Query enabled Agent config policies under business `2`.
         "operator": "admin",
         "version": 3,
         "priority": 1,
-        "target_host_ids": [
-          1001,
-          1002
-        ]
+        "target_host_ids": [1001, 1002],
+        "target_plugin_name": "bkmonitorbeat"
       }
     ]
   }
@@ -122,7 +115,7 @@ Query enabled Agent config policies under business `2`.
 ### Response Parameters
 
 | Parameter  | Type   | Description                                 |
-|------------|--------|---------------------------------------------|
+| ---------- | ------ | ------------------------------------------- |
 | code       | int32  | Status code, `0` means success              |
 | message    | string | Request message                             |
 | request_id | string | Request ID                                  |
@@ -133,35 +126,36 @@ Query enabled Agent config policies under business `2`.
 #### data
 
 | Parameter | Type  | Description                                      |
-|-----------|-------|--------------------------------------------------|
+| --------- | ----- | ------------------------------------------------ |
 | total     | int64 | Total number of records matching current filters |
 | items     | array | Config policy list                               |
 
 #### data.items[n]
 
-| Parameter         | Type        | Description                                                                                                |
-|-------------------|-------------|------------------------------------------------------------------------------------------------------------|
-| tenant_id         | string      | Tenant ID                                                                                                  |
-| configpolicy_id   | int64       | Config policy ID                                                                                           |
-| configpolicy_name | string      | Config policy name                                                                                         |
-| configpolicy_type | string      | Config policy type, available values: `config_policy_agent`, `config_policy_proxy`, `config_policy_plugin` |
-| bk_biz_id         | int64       | Business ID                                                                                                |
-| remark            | string      | Remark                                                                                                     |
-| scopes            | array       | Policy effective scope list                                                                                |
-| configs_string    | object      | String config key-value pairs                                                                              |
-| configs_int       | object      | Integer config key-value pairs                                                                             |
-| configs_bool      | object      | Boolean config key-value pairs                                                                             |
-| enabled           | bool        | Whether enabled                                                                                            |
-| updated_time      | int64       | Update time, Unix timestamp in milliseconds                                                                |
-| operator          | string      | Operator                                                                                                   |
-| version           | int64       | Config policy version                                                                                      |
-| priority          | int64       | Priority, smaller value means higher priority                                                              |
-| target_host_ids   | int64 array | Target host ID list                                                                                        |
+| Parameter          | Type        | Description                                                                                                |
+| ------------------ | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| tenant_id          | string      | Tenant ID                                                                                                  |
+| configpolicy_id    | int64       | Config policy ID                                                                                           |
+| configpolicy_name  | string      | Config policy name                                                                                         |
+| configpolicy_type  | string      | Config policy type, available values: `config_policy_agent`, `config_policy_proxy`, `config_policy_plugin` |
+| bk_biz_id          | int64       | Business ID                                                                                                |
+| remark             | string      | Remark                                                                                                     |
+| scopes             | array       | Policy effective scope list                                                                                |
+| configs_string     | object      | String config key-value pairs                                                                              |
+| configs_int        | object      | Integer config key-value pairs                                                                             |
+| configs_bool       | object      | Boolean config key-value pairs                                                                             |
+| enabled            | bool        | Whether enabled                                                                                            |
+| updated_time       | int64       | Update time, Unix timestamp in milliseconds                                                                |
+| operator           | string      | Operator                                                                                                   |
+| version            | int64       | Config policy version                                                                                      |
+| priority           | int64       | Priority, smaller value means higher priority                                                              |
+| target_host_ids    | int64 array | Target host ID list                                                                                        |
+| target_plugin_name | string      | Target plugin name                                                                                         |
 
 #### data.items[n].scopes[n]
 
 | Parameter         | Type   | Description                              |
-|-------------------|--------|------------------------------------------|
+| ----------------- | ------ | ---------------------------------------- |
 | bk_networkarea_id | int64  | Network area ID, `-1` means any          |
 | bk_networkunit_id | int64  | Network unit ID, `-1` means any          |
 | os_type           | string | OS type, empty string means any          |
