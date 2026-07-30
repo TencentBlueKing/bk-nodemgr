@@ -42,8 +42,9 @@ func NewFullDebug() *cobra.Command {
 		debugAction     string
 
 		// optional flags.
-		logDir   string
-		logToStd bool
+		logDir       string
+		logToStd     bool
+		skipCallback bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -55,6 +56,10 @@ func NewFullDebug() *cobra.Command {
 		Short: "full debug plugin",
 		Long:  "full debug plugin by executing a user-supplied command inside the plugin deploy directory",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
+			if callbackSvrAddr == "" && !skipCallback {
+				return fmt.Errorf("%s is required when %s is not set", pluginFlag.CallbackSvrAddr, pluginFlag.SkipCallback)
+			}
+
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
@@ -79,13 +84,19 @@ func NewFullDebug() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
-			if len(callbackSvrAddrs) == 0 {
-				return fmt.Errorf("callback server address is empty or invalid")
-			}
-			logURLs, err := reportLogURLs(callbackSvrAddrs)
-			if err != nil {
-				return fmt.Errorf("failed to build log report URLs: %w", err)
+			var callbackSvrAddrs []string
+			var logURLs []string
+			if !skipCallback {
+				callbackSvrAddrs = utils.SplitServerAddrs(callbackSvrAddr)
+				if len(callbackSvrAddrs) == 0 {
+					return fmt.Errorf("callback server address is empty or invalid")
+				}
+
+				var err error
+				logURLs, err = reportLogURLs(callbackSvrAddrs)
+				if err != nil {
+					return fmt.Errorf("failed to build log report URLs: %w", err)
+				}
 			}
 
 			action := types.PluginDebugAction(debugAction)
@@ -101,6 +112,8 @@ func NewFullDebug() *cobra.Command {
 
 			systeminfo.LogInitialTargetInfo(pluginInstaller.StepGeneral)
 
+			statusFilePath := filepath.Join(persistentVars.DataDir, "installer.status.json")
+
 			// report status on exit.
 			defer func() {
 				state := types.ProcessStateSuccess
@@ -108,12 +121,18 @@ func NewFullDebug() *cobra.Command {
 					state = types.ProcessStateFailed
 				}
 
-				_ = statusreporter.NewStep(statusreporter.StepArgs{
+				reportErr := statusreporter.NewStep(statusreporter.StepArgs{
 					Token:           deployToken,
 					OperInstID:      operInstID,
 					Status:          state,
 					CallbackSvrAddr: callbackSvrAddrs,
+					SkipCallback:    skipCallback,
+					StatusFilePath:  statusFilePath,
+					ErrorMessage:    errString(runErr),
 				}).Run(cmd.Context())
+				if reportErr != nil && runErr == nil && skipCallback {
+					runErr = fmt.Errorf("failed to write debug status file: %w", reportErr)
+				}
 			}()
 
 			// run the user-supplied command inside the deploy directory.
@@ -129,9 +148,6 @@ func NewFullDebug() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	debugCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "", "callback server address, for reporting status and logs")
-	_ = debugCmd.MarkFlagRequired(pluginFlag.CallbackSvrAddr)
-
 	debugCmd.Flags().StringVar(&deployToken, pluginFlag.DeployToken, "", "deploy token, contains the details of files")
 	_ = debugCmd.MarkFlagRequired(pluginFlag.DeployToken)
 
@@ -144,6 +160,9 @@ func NewFullDebug() *cobra.Command {
 	/*
 	 * optional flags.
 	 */
+	debugCmd.Flags().StringVar(&callbackSvrAddr, pluginFlag.CallbackSvrAddr, "",
+		"callback server address, for reporting status and logs. if skip_callback is set, this can be empty")
+	debugCmd.Flags().BoolVar(&skipCallback, pluginFlag.SkipCallback, false, "whether to skip callback reporting (write status to local file instead)")
 	debugCmd.Flags().StringVar(&runCmd, pluginFlag.RunCmd, "", "command to execute inside the plugin deploy directory")
 	debugCmd.Flags().StringVar(&pidDir, pluginFlag.PidDir, "", "directory to save debug process pid file")
 	debugCmd.Flags().StringVar(&logDir, pluginFlag.LogDir, "", "directory to save log files")
