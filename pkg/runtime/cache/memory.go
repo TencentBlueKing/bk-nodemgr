@@ -61,13 +61,7 @@ func (mc *MemoryCache) SetNX(ctx context.Context, key string, value []byte) (boo
 		return false, errContextIsNil
 	}
 
-	if _, ok := mc.cache.Get(key); ok {
-		return false, nil
-	}
-
-	mc.cache.Set(key, cloneBytes(value), gocache.DefaultExpiration)
-
-	return true, nil
+	return mc.add(key, value, gocache.DefaultExpiration), nil
 }
 
 // SetNXWithExpiration sets a value with an expiration time if the key exist will return false.
@@ -82,13 +76,7 @@ func (mc *MemoryCache) SetNXWithExpiration(
 		return false, errContextIsNil
 	}
 
-	if _, ok := mc.cache.Get(key); ok {
-		return false, nil
-	}
-
-	mc.cache.Set(key, cloneBytes(value), normalizeExpiration(expiration))
-
-	return true, nil
+	return mc.add(key, value, normalizeExpiration(expiration)), nil
 }
 
 // SetWithExpiration sets a value with an expiration time.
@@ -131,6 +119,14 @@ func normalizeExpiration(expiration time.Duration) time.Duration {
 	}
 
 	return expiration
+}
+
+func (mc *MemoryCache) add(key string, value []byte, expiration time.Duration) bool {
+	if mc.cache.Add(key, cloneBytes(value), expiration) != nil {
+		return false
+	}
+
+	return true
 }
 
 func cloneBytes(value []byte) []byte {
