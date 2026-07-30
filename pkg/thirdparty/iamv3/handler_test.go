@@ -13,15 +13,19 @@ package iamv3
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	runtimecache "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -34,6 +38,10 @@ type testTraceService struct{}
 
 func (testTraceService) TracerProvider() trace.TracerProvider {
 	return noop.NewTracerProvider()
+}
+
+func newTestContext(tenantID string) contextx.IContext {
+	return contextx.New(context.Background(), contextx.WithTenantID(tenantID))
 }
 
 func (testTraceService) ServiceName() string {
@@ -320,7 +328,7 @@ func TestIsBasicAuthAllowed(t *testing.T) {
 			name:            "valid credentials",
 			username:        "bk_iam",
 			password:        "test-token",
-			tokenResponse:   `{"code":0,"message":"ok","data":{"token":"test-token"}}`,
+			tokenResponse:   tokenResponse("test-token"),
 			tokenStatusCode: http.StatusOK,
 			wantTokenCalls:  1,
 		},
@@ -328,7 +336,7 @@ func TestIsBasicAuthAllowed(t *testing.T) {
 			name:             "invalid username short-circuits before token fetch",
 			username:         "wrong-user",
 			password:         "test-token",
-			tokenResponse:    `{"code":0,"message":"ok","data":{"token":"test-token"}}`,
+			tokenResponse:    tokenResponse("test-token"),
 			tokenStatusCode:  http.StatusOK,
 			wantErrSubstring: "invalid credentials",
 			wantTokenCalls:   0,
@@ -337,7 +345,7 @@ func TestIsBasicAuthAllowed(t *testing.T) {
 			name:             "invalid password",
 			username:         "bk_iam",
 			password:         "wrong-password",
-			tokenResponse:    `{"code":0,"message":"ok","data":{"token":"test-token"}}`,
+			tokenResponse:    tokenResponse("test-token"),
 			tokenStatusCode:  http.StatusOK,
 			wantErrSubstring: "invalid credentials",
 			wantTokenCalls:   1,
@@ -374,7 +382,7 @@ func TestIsBasicAuthAllowed(t *testing.T) {
 			defer server.Close()
 
 			h := newTestIAMHandler(t, server.URL)
-			err := h.IsBasicAuthAllowed(contextx.New(context.Background()), tc.username, tc.password)
+			err := h.IsBasicAuthAllowed(newTestContext("default"), tc.username, tc.password)
 
 			if tc.wantErrSubstring == "" {
 				if err != nil {
@@ -394,6 +402,262 @@ func TestIsBasicAuthAllowed(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsBasicAuthAllowed_CachesSuccessfulToken(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		tokenCalls.Add(1)
+		writeTokenResponse(rw, http.StatusOK, tokenResponse("test-token"))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	ctx := newTestContext("tenant-a")
+
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "test-token"); err != nil {
+		t.Fatalf("first IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "test-token"); err != nil {
+		t.Fatalf("second IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if got := tokenCalls.Load(); got != 1 {
+		t.Fatalf("token endpoint called %d times, want 1", got)
+	}
+}
+
+func TestIsBasicAuthAllowed_FetchFailureNotCached(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		call := tokenCalls.Add(1)
+		if call == 1 {
+			writeTokenResponse(rw, http.StatusOK, `{"code":1,"message":"token service failed","data":{}}`)
+			return
+		}
+		writeTokenResponse(rw, http.StatusOK, tokenResponse("test-token"))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	ctx := newTestContext("tenant-a")
+
+	err := h.IsBasicAuthAllowed(ctx, "bk_iam", "test-token")
+	if err == nil || !strings.Contains(err.Error(), "failed to get token") {
+		t.Fatalf("first IsBasicAuthAllowed() error = %v, want fetch failure", err)
+	}
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "test-token"); err != nil {
+		t.Fatalf("second IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if got := tokenCalls.Load(); got != 2 {
+		t.Fatalf("token endpoint called %d times, want 2", got)
+	}
+}
+
+func TestIsBasicAuthAllowed_EmptyTokenNotCachedOrAccepted(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		tokenCalls.Add(1)
+		writeTokenResponse(rw, http.StatusOK, tokenResponse(""))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	ctx := newTestContext("tenant-a")
+
+	for range 2 {
+		err := h.IsBasicAuthAllowed(ctx, "bk_iam", "")
+		if err == nil || !strings.Contains(err.Error(), "invalid credentials") {
+			t.Fatalf("IsBasicAuthAllowed() error = %v, want invalid credentials", err)
+		}
+	}
+	if got := tokenCalls.Load(); got != 2 {
+		t.Fatalf("token endpoint called %d times, want 2", got)
+	}
+}
+
+func TestIsBasicAuthAllowed_CachedMismatchRefreshesAndAcceptsRotatedToken(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		call := tokenCalls.Add(1)
+		if call == 1 {
+			writeTokenResponse(rw, http.StatusOK, tokenResponse("old-token"))
+			return
+		}
+		writeTokenResponse(rw, http.StatusOK, tokenResponse("new-token"))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	ctx := newTestContext("tenant-a")
+
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "old-token"); err != nil {
+		t.Fatalf("old-token IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "new-token"); err != nil {
+		t.Fatalf("new-token IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "new-token"); err != nil {
+		t.Fatalf("cached new-token IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if got := tokenCalls.Load(); got != 2 {
+		t.Fatalf("token endpoint called %d times, want 2", got)
+	}
+}
+
+func TestIsBasicAuthAllowed_CachedMismatchRefreshesAndRejectsWrongPassword(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		call := tokenCalls.Add(1)
+		if call == 1 {
+			writeTokenResponse(rw, http.StatusOK, tokenResponse("old-token"))
+			return
+		}
+		writeTokenResponse(rw, http.StatusOK, tokenResponse("new-token"))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	ctx := newTestContext("tenant-a")
+
+	if err := h.IsBasicAuthAllowed(ctx, "bk_iam", "old-token"); err != nil {
+		t.Fatalf("old-token IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	err := h.IsBasicAuthAllowed(ctx, "bk_iam", "wrong-password")
+	if err == nil || !strings.Contains(err.Error(), "invalid credentials") {
+		t.Fatalf("wrong-password IsBasicAuthAllowed() error = %v, want invalid credentials", err)
+	}
+	if got := tokenCalls.Load(); got != 2 {
+		t.Fatalf("token endpoint called %d times, want 2", got)
+	}
+}
+
+func TestIsBasicAuthAllowed_CacheIsTenantIsolated(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		tokenCalls.Add(1)
+		tenantToken := req.Header.Get(restheader.BKTenantIDKey) + "-token"
+		writeTokenResponse(rw, http.StatusOK, tokenResponse(tenantToken))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	tenantA := newTestContext("tenant-a")
+	tenantB := newTestContext("tenant-b")
+
+	if err := h.IsBasicAuthAllowed(tenantA, "bk_iam", "tenant-a-token"); err != nil {
+		t.Fatalf("tenant-a first IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if err := h.IsBasicAuthAllowed(tenantA, "bk_iam", "tenant-a-token"); err != nil {
+		t.Fatalf("tenant-a second IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if err := h.IsBasicAuthAllowed(tenantB, "bk_iam", "tenant-b-token"); err != nil {
+		t.Fatalf("tenant-b first IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if err := h.IsBasicAuthAllowed(tenantB, "bk_iam", "tenant-b-token"); err != nil {
+		t.Fatalf("tenant-b second IsBasicAuthAllowed() unexpected error: %v", err)
+	}
+	if got := tokenCalls.Load(); got != 2 {
+		t.Fatalf("token endpoint called %d times, want 2", got)
+	}
+}
+
+func TestGetToken_RefreshesAfterCacheExpiration(t *testing.T) {
+	var tokenCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if !isTokenRequest(rw, req) {
+			return
+		}
+
+		call := tokenCalls.Add(1)
+		writeTokenResponse(rw, http.StatusOK, tokenResponse(fmt.Sprintf("token-%d", call)))
+	}))
+	defer server.Close()
+
+	h := newTestIAMHandler(t, server.URL)
+	h.tokenCache = runtimecache.NewMemoryCache(20 * time.Millisecond)
+	ctx := newTestContext("tenant-a")
+
+	token, err := h.GetToken(ctx)
+	if err != nil {
+		t.Fatalf("first GetToken() unexpected error: %v", err)
+	}
+	if token != "token-1" {
+		t.Fatalf("first GetToken() returned unexpected token")
+	}
+	waitForTokenCalls(t, &tokenCalls, 1, 200*time.Millisecond)
+	time.Sleep(30 * time.Millisecond)
+
+	token, err = h.GetToken(ctx)
+	if err != nil {
+		t.Fatalf("second GetToken() unexpected error: %v", err)
+	}
+	if token != "token-2" {
+		t.Fatalf("second GetToken() returned unexpected token")
+	}
+	if got := tokenCalls.Load(); got != 2 {
+		t.Fatalf("token endpoint called %d times, want 2", got)
+	}
+}
+
+func tokenResponse(token string) string {
+	return fmt.Sprintf(`{"code":0,"message":"ok","data":{"token":%q}}`, token)
+}
+
+func writeTokenResponse(rw http.ResponseWriter, statusCode int, body string) {
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(statusCode)
+	_, _ = rw.Write([]byte(body))
+}
+
+func isTokenRequest(rw http.ResponseWriter, req *http.Request) bool {
+	if req.Method != http.MethodGet {
+		rw.WriteHeader(http.StatusMethodNotAllowed)
+		return false
+	}
+	if req.URL.Path != "/api/v1/model/systems/bk_nodemgr/token" {
+		rw.WriteHeader(http.StatusNotFound)
+		return false
+	}
+
+	return true
+}
+
+func waitForTokenCalls(t *testing.T, calls *atomic.Int32, want int32, timeout time.Duration) {
+	t.Helper()
+
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if calls.Load() == want {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	t.Fatalf("token endpoint called %d times, want %d", calls.Load(), want)
 }
 
 // TestCacheKeyEquivalence proves that a CheckRequest converted via toWireRequest

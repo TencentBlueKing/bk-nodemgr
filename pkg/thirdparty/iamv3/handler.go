@@ -18,11 +18,16 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	runtimecache "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/iam-go-sdk/expression"
 	"github.com/mitchellh/mapstructure"
 )
+
+// IAM docs recommend caching queried system token, but token query protocol exposes no expiration;
+// this 1min value is a conservative bk-nodemgr local TTL, not official IAM token lifetime.
+const systemTokenCacheExpiration = time.Minute
 
 // IHandler is the handler interface for IAM v3 permission checks and token management.
 type IHandler interface {
@@ -69,8 +74,9 @@ type IHandler interface {
 
 // Handler the Handler of IAM v3.
 type Handler struct {
-	cli   *cli
-	cache *Cache
+	cli        *cli
+	cache      *Cache
+	tokenCache runtimecache.ICache
 }
 
 // Verify that Handler implements IHandler interface.
@@ -84,8 +90,9 @@ func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 	}
 
 	h := &Handler{
-		cli:   cli,
-		cache: NewCache(),
+		cli:        cli,
+		cache:      NewCache(),
+		tokenCache: runtimecache.NewMemoryCache(systemTokenCacheExpiration),
 	}
 
 	return h, nil
@@ -358,7 +365,49 @@ func (h *Handler) BatchResourceMultiActionsAllowed(ctx contextx.IContext,
 
 // GetToken retrieves the system token from IAM.
 func (h *Handler) GetToken(ctx contextx.IContext) (string, error) {
-	return h.cli.getToken(ctx, h.cli.config.SystemID)
+	token, _, err := h.getCachedSystemToken(ctx)
+	return token, err
+}
+
+func (h *Handler) getCachedSystemToken(ctx contextx.IContext) (string, bool, error) {
+	key := h.systemTokenCacheKey(ctx)
+	exists, err := h.tokenCache.Exists(ctx, key)
+	if err != nil {
+		return "", false, err
+	}
+	if !exists {
+		token, err := h.refreshSystemToken(ctx)
+		return token, false, err
+	}
+
+	data, err := h.tokenCache.Get(ctx, key)
+	if err == nil {
+		return string(data), true, nil
+	}
+
+	token, err := h.refreshSystemToken(ctx)
+	return token, false, err
+}
+
+func (h *Handler) refreshSystemToken(ctx contextx.IContext) (string, error) {
+	token, err := h.cli.getToken(ctx, h.cli.config.SystemID)
+	if err != nil {
+		return "", err
+	}
+	if token == "" {
+		return "", nil
+	}
+
+	key := h.systemTokenCacheKey(ctx)
+	if err := h.tokenCache.Set(ctx, key, []byte(token)); err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (h *Handler) systemTokenCacheKey(ctx contextx.IContext) string {
+	return fmt.Sprintf("iamv3:system-token:%s:%s", h.cli.config.SystemID, ctx.TenantID())
 }
 
 // IsBasicAuthAllowed validates basic auth credentials per the upstream iam-go-sdk
@@ -370,12 +419,26 @@ func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password s
 		return fmt.Errorf("invalid credentials")
 	}
 
-	token, err := h.GetToken(ctx)
+	token, fromCache, err := h.getCachedSystemToken(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get token: %w", err)
 	}
+	if token == "" {
+		return fmt.Errorf("invalid credentials")
+	}
 
-	if subtle.ConstantTimeCompare([]byte(password), []byte(token)) != 1 {
+	if subtle.ConstantTimeCompare([]byte(password), []byte(token)) == 1 {
+		return nil
+	}
+	if !fromCache {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	token, err = h.refreshSystemToken(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get token: %w", err)
+	}
+	if token == "" || subtle.ConstantTimeCompare([]byte(password), []byte(token)) != 1 {
 		return fmt.Errorf("invalid credentials")
 	}
 
