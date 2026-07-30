@@ -652,7 +652,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			OSTypeCCID:               host.Static.OSTypeCCID,
 			Arch:                     host.Static.Arch,
 			Addressing:               string(host.Static.Addressing),
-			RegionID:                 host.Static.RegionID,
+			ZoneID:                   host.Static.ZoneID,
 			CityID:                   host.Static.CityID,
 			CPUNum:                   host.Static.CPUNum,
 			MemCap:                   host.Static.MemCap,
@@ -737,7 +737,7 @@ func convertHostToTypes(host *Host) *types.Host {
 		static = &types.HostStatic{
 			BizID:                    host.Static.BizID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
-			RegionID:                 host.Static.RegionID,
+			ZoneID:                   host.Static.ZoneID,
 			CityID:                   host.Static.CityID,
 			HostName:                 host.Static.HostName,
 			DeptName:                 host.Static.DeptName,
@@ -961,8 +961,8 @@ func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) 
 	if fields.NetworkAreaID {
 		updates[FieldKeyStaticNetworkAreaID] = host.Static.NetworkAreaID
 	}
-	if fields.RegionID {
-		updates[FieldKeyStaticRegionID] = host.Static.RegionID
+	if fields.ZoneID {
+		updates[FieldKeyStaticZoneID] = host.Static.ZoneID
 	}
 	if fields.CityID {
 		updates[FieldKeyStaticCityID] = host.Static.CityID

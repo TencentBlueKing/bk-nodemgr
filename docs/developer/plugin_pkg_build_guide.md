@@ -75,7 +75,7 @@ NodeInfo:
         HostName: 主机名称
         DeptName: 部门名称
         Operator: 操作人
-        RegionID: 所属区域ID
+        ZoneID: 所属可用区ID（来源于CMDB bk_idc_area_id）
         CityID: 所属城市ID
     Dynamic:
         AgentID: 获取自GSE Agent的实际Agent ID

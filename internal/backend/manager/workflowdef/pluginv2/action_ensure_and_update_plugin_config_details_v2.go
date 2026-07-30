@@ -263,7 +263,7 @@ type ContextPreDefinitionConstants struct {
 type ContextNodeInfoStatic struct {
 	BizID         int64    `json:"BizID"`
 	NetworkAreaID int64    `json:"NetworkAreaID"`
-	RegionID      string   `json:"RegionID"`
+	ZoneID        string   `json:"ZoneID"`
 	CityID        string   `json:"CityID"`
 	HostName      string   `json:"HostName"`
 	DeptName      string   `json:"DeptName"`
@@ -328,7 +328,7 @@ func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
 		Static: ContextNodeInfoStatic{
 			BizID:         hostInfo.Static.BizID,
 			NetworkAreaID: hostInfo.Static.NetworkAreaID,
-			RegionID:      hostInfo.Static.RegionID,
+			ZoneID:        hostInfo.Static.ZoneID,
 			CityID:        hostInfo.Static.CityID,
 			HostName:      hostInfo.Static.HostName,
 			DeptName:      hostInfo.Static.DeptName,

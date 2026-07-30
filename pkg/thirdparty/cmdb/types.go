@@ -100,8 +100,8 @@ type HostInfo struct {
 	DeptName string `json:"dept_name"`
 	// 操作系统类型
 	BKOSType string `json:"bk_os_type"`
-	// 云地域（Region）
-	BKCloudRegion string `json:"bk_cloud_region"`
+	// IDC区域ID
+	BKIDCAreaID string `json:"bk_idc_area_id"`
 	// CPU逻辑核心数
 	BKCpu float64 `json:"bk_cpu"`
 	// 内网Mac 地址

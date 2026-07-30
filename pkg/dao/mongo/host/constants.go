@@ -43,8 +43,8 @@ const (
 	// FieldKeyStaticNetworkAreaID the static networkarea id field key.
 	FieldKeyStaticNetworkAreaID = "data.static.networkarea_id"
 
-	// FieldKeyStaticRegionID the static region id field key.
-	FieldKeyStaticRegionID = "data.static.region_id"
+	// FieldKeyStaticZoneID the static zone id field key.
+	FieldKeyStaticZoneID = "data.static.zone_id"
 
 	// FieldKeyStaticCityID the static city id field key.
 	FieldKeyStaticCityID = "data.static.city_id"

@@ -716,7 +716,7 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 		Static: &types.HostStatic{
 			BizID:                    bizID,
 			NetworkAreaID:            hostInfo.BKCloudID,
-			RegionID:                 hostInfo.BKCloudRegion,
+			ZoneID:                   hostInfo.BKIDCAreaID,
 			CityID:                   hostInfo.IdcCityID,
 			HostName:                 hostInfo.BKHostName,
 			DeptName:                 hostInfo.DeptName,

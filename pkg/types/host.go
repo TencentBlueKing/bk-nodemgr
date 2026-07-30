@@ -340,7 +340,7 @@ type HostStatic struct {
 	BizID         int64
 	Topo          []*HostTopo
 	NetworkAreaID int64
-	RegionID      string
+	ZoneID        string
 	CityID        string
 
 	// host information.
@@ -385,7 +385,7 @@ type HostStaticFields struct {
 	BizID                    bool
 	Topo                     bool
 	NetworkAreaID            bool
-	RegionID                 bool
+	ZoneID                   bool
 	CityID                   bool
 	HostName                 bool
 	DeptName                 bool
@@ -415,7 +415,7 @@ func UpdateAllHostStaticFields() HostStaticFields {
 		BizID:                    true,
 		Topo:                     true,
 		NetworkAreaID:            true,
-		RegionID:                 true,
+		ZoneID:                   true,
 		CityID:                   true,
 		HostName:                 true,
 		DeptName:                 true,
