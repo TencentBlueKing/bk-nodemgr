@@ -154,6 +154,6 @@ All methods take `contextx.IContext` (not `context.Context`). Provides `BKUserna
 
 - Exported methods in `storage.go` are thin wrappers: metric + guard + delegate to unexported impl in `dao_xxx.go` / `domain_xxx.go`.
 - `credit/` uses `Store`/`Load` naming for encrypt/decrypt credential operations.
-- `workflow/` has `domain_stop_oper_inst.go` with MongoDB change stream watcher (`WatchInsert`) for real-time operation instance stopping.
+- `workflow/` has `domain_stop_oper_inst.go` with indexed polling for cross-backend operation instance stopping.
 - `plugin/error.go` exists as a placeholder — package-level sentinel errors are optional.
 - `globalsettings/` has no `iface.go` — interfaces are defined inline in `globalsettings.go` (legacy, don't follow for new packages).

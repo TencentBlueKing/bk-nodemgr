@@ -2,28 +2,27 @@
 
 ## 设计意图
 
-使用MongoDB的Watch机制，实现对需要停止的操作实例的监听和处理
+使用 MongoDB 短期标记记录需要停止的操作实例，并由 workflow storage 定向轮询当前 backend 正在等待的操作实例。
 
 ## 功能边界
 
 1. 此包负责：
-    - stop_oper_inst的存储结构设计
-    - stop_oper_inst的增删改查操作
-    - 基于MongoDB Watch机制的停止操作实例监听
+    - `stopping_operation_inst` 的存储结构与索引
+    - 停止标记的 Upsert、全量查询和按操作实例 ID 查询
+    - 通过 TTL 索引清理过期停止标记
 2. 此包不负责：
-    - 具体的operation instance停止逻辑处理
+    - 轮询任务调度
+    - 本地订阅管理和停止事件通知
+    - operation instance 的具体停止逻辑
 
 ## 设计考量
 
-该包设计的核心目标是实现对需要停止的操作实例的高效监听和处理。
-通过利用MongoDB的Watch机制，将**MongoDB视为广播模式的消息队列**，实现对stop_oper_inst集合的实时监听。
-这样，当有新的停止操作实例被添加时，系统可以实时捕捉到需要停止的操作实例的变化，从而将对应事件吐出，供上层业务逻辑进行处理。
+停止标记是短期状态，不是工作流历史。写入时会刷新过期时间，相同 `oper_inst_id` 只保留一条记录。
+workflow storage 每秒只查询本实例当前订阅的 `oper_inst_id`，避免 MongoDB Change Stream 在高写入环境持续扫描大量无关 oplog。
 
 ## 使用限制
 
-1. 数据库结构设计应考虑变更和迁移兼容性
-2. 只提供原子接口，复杂的业务场景逻辑查询应放在上层处理
-
-## 演进方向
-
-1. 暂无
+1. 热路径必须使用 `FindByIDs` 定向查询，不能每秒执行全表查询
+2. `FindAll` 仅用于低频全量同步兜底
+3. TTL 必须覆盖轮询和全量同步的恢复窗口
+4. 复杂业务编排应放在 `internal/backend/storage/workflow`

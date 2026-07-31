@@ -13,4 +13,7 @@ package stopoperinst
 const (
 	// FieldKeyOperInstID the oper_inst_id field key.
 	FieldKeyOperInstID = "data.oper_inst_id"
+
+	// FieldKeyExpireAt the expire_at field key.
+	FieldKeyExpireAt = "data.expire_at"
 )

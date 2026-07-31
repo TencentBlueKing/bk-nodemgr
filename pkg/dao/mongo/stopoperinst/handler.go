@@ -12,37 +12,44 @@
 package stopoperinst
 
 import (
-	"context"
 	"errors"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler provide stopping operation instance handler.
-type Handler interface {
+// IHandler provides stopping operation instance operations.
+type IHandler interface {
 	// Upsert updates or inserts a stopping operation instance.
 	Upsert(nCtx contextx.IContext, operInstID string) error
 
 	// FindAll find all stopping operation instances.
 	FindAll(nCtx contextx.IContext) ([]string, error)
 
-	// WatchInsert watch upsert event
-	WatchInsert(fn func(string))
+	// FindByIDs finds stopping operation instances by operation instance IDs.
+	FindByIDs(nCtx contextx.IContext, operInstIDs ...string) ([]string, error)
 }
+
+const stopOperInstTTL = 30 * time.Second
 
 type handler struct {
 	dao *dao
 }
 
 // New create a new host handler.
-func New(client *mongo.Database) Handler {
-	return &handler{
+func New(client *mongo.Database) IHandler {
+	h := &handler{
 		dao: newDao(client),
 	}
+	if err := h.dao.EnsureIndexes(); err != nil {
+		logger.G.Sys().WithErr(err).Warn("failed to ensure stopping operation instance indexes")
+	}
+
+	return h
 }
 
 // Upsert ...
@@ -57,7 +64,7 @@ func (h *handler) Upsert(nCtx contextx.IContext, operInstID string) error {
 
 	data := &StopOperInst{
 		OperInstID: operInstID,
-		ExpireAt:   time.Now().Add(time.Second * 5), // nolint: mnd
+		ExpireAt:   time.Now().Add(stopOperInstTTL),
 	}
 	if err := h.dao.upsert(nCtx, data); err != nil {
 		return err
@@ -68,22 +75,30 @@ func (h *handler) Upsert(nCtx contextx.IContext, operInstID string) error {
 
 // FindAll ...
 func (h *handler) FindAll(nCtx contextx.IContext) ([]string, error) {
-	stopOperInsts, err := h.dao.find(nCtx, bson.D{{Key: base.FieldKeyIsDeleted, Value: false}})
+	stopOperInsts, err := h.dao.List(nCtx, base.AliveFilter(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	data := make([]string, len(stopOperInsts))
-	for idx, stopOperInst := range stopOperInsts {
-		data[idx] = stopOperInst.OperInstID
-	}
-
-	return data, nil
+	return conv.SliceToSlice(stopOperInsts, convertStopOperInstToID), nil
 }
 
-// WatchInsert ...
-func (h *handler) WatchInsert(fn func(string)) {
-	h.dao.watchWithRetry(contextx.New(context.Background()),
-		bson.D{{Key: "operationType", Value: "insert"}},
-		func(inst *StopOperInst) { fn(inst.OperInstID) })
+// FindByIDs ...
+func (h *handler) FindByIDs(nCtx contextx.IContext, operInstIDs ...string) ([]string, error) {
+	if len(operInstIDs) == 0 {
+		return nil, nil
+	}
+
+	filter := base.AliveFilter()
+	filter = base.WithValues(FieldKeyOperInstID, operInstIDs...)(filter)
+	stopOperInsts, err := h.dao.List(nCtx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return conv.SliceToSlice(stopOperInsts, convertStopOperInstToID), nil
+}
+
+func convertStopOperInstToID(stopOperInst *StopOperInst) string {
+	return stopOperInst.OperInstID
 }

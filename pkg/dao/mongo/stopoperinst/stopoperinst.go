@@ -12,9 +12,6 @@
 package stopoperinst
 
 import (
-	"context"
-	"time"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -24,31 +21,41 @@ import (
 )
 
 func newDao(client *mongo.Database) *dao {
-	d := &dao{client: client.Collection(TableName)}
-	if err := d.ensureIndexes(); err != nil {
-		logger.G.Sys().WithErr(err).Warn("failed to ensure stopping operation instance indexes")
+	d := &dao{
+		client:    client.Collection(TableName),
+		tableName: TableName,
 	}
+
+	d.IOrm = base.NewOrm[*StopOperInst, StopOperInst](d)
 
 	return d
 }
 
-// buildTTLIndexModel build ttl index model, this index is used to delete expired data.
-func buildTTLIndexModel() mongo.IndexModel {
-	return mongo.IndexModel{
-		Keys: bson.D{{Key: "data.expire_at", Value: 1}},
-		Options: mongoOptions.Index().
-			SetExpireAfterSeconds(0),
-	}
-}
-
 type dao struct {
-	client *mongo.Collection
+	client    *mongo.Collection
+	tableName string
+	base.IOrm[*StopOperInst, StopOperInst]
 }
 
-func (d *dao) ensureIndexes() error {
-	_, err := d.client.Indexes().CreateOne(context.Background(), buildTTLIndexModel())
+// GetClient gets the MongoDB collection.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
 
-	return err
+// GetTableName gets the MongoDB collection name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes gets the stopping operation instance indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	return []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyExpireAt, Value: 1}},
+			Options: mongoOptions.Index().
+				SetExpireAfterSeconds(0),
+		},
+	}
 }
 
 // upsert updates or inserts an operation instance data.
@@ -76,7 +83,7 @@ func (d *dao) upsert(nCtx contextx.IContext, inst *StopOperInst) error {
 // buildUpsertParams build update params.
 func buildUpsertParams(inst *StopOperInst) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
 	// update data by operation_inst_data_id.
-	filter := bson.D{{Key: "data.oper_inst_id", Value: inst.OperInstID}}
+	filter := bson.D{{Key: FieldKeyOperInstID, Value: inst.OperInstID}}
 
 	// upsert as creation or update data only.
 	update := base.BuildUpsertParam(inst)
@@ -85,120 +92,4 @@ func buildUpsertParams(inst *StopOperInst) (bson.D, bson.D, *mongoOptions.Update
 	opts := mongoOptions.Update().SetUpsert(true)
 
 	return filter, update, opts
-}
-
-// find all stopping operation instance.
-func (d *dao) find(nCtx contextx.IContext, filter bson.D) ([]*StopOperInst, error) {
-	result, err := d.client.Find(nCtx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	stopOperInsts := make([]*StopOperInst, 0)
-	for result.Next(nCtx) {
-		table := &TableStopOperInst{}
-		if err := result.Decode(table); err != nil {
-			logger.G.Sys().WithErr(err).Warn("failed to decode stopping operation instance")
-
-			continue
-		}
-		stopOperInsts = append(stopOperInsts, table.Data)
-	}
-
-	return stopOperInsts, nil
-}
-
-// watchWithRetry watch with retry.
-func (d *dao) watch(nCtx contextx.IContext, filter bson.D, fn func(*StopOperInst)) error {
-	pipeline, watchOptions := buildWatchParams(d.buildWatchFilter(filter))
-	changeStream, err := d.client.Watch(context.Background(), pipeline, watchOptions)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to watch stopping operation instances")
-
-		return err
-	}
-
-	defer changeStream.Close(nCtx)
-
-	for {
-		select {
-		case <-nCtx.Done():
-			return nil
-		default:
-			if changeStream.Next(nCtx) {
-				changeEvent := &TableStopOperInstChangeEvent{}
-				if err := changeStream.Decode(changeEvent); err != nil {
-					logger.G.Sys().WithErr(err).Error("failed to decode change event")
-
-					continue
-				}
-
-				if changeEvent.FullDocument == nil {
-					logger.G.Sys().Warn("full document is nil, skip")
-
-					continue
-				}
-
-				fn(&StopOperInst{
-					OperInstID: changeEvent.FullDocument.Data.OperInstID,
-					ExpireAt:   changeEvent.FullDocument.Data.ExpireAt,
-				})
-			}
-
-			if err := changeStream.Err(); err != nil {
-				logger.G.Sys().WithErr(err).Error("failed to watch stopping operation instances")
-
-				return err
-			}
-		}
-	}
-}
-
-// watchWithRetry watch with retry.
-func (d *dao) watchWithRetry(nCtx contextx.IContext, filter bson.D, fn func(*StopOperInst)) {
-	backoff := time.Second
-	maxBackoff := time.Minute
-
-	logger.G.Sys().Info("start to watch stopping operation instances")
-	for {
-		err := d.watch(nCtx, filter, fn)
-		if err == nil {
-			return
-		}
-
-		logger.G.Sys().WithErr(err).With("retry-after", backoff).Warn("failed to watch stopping operation instances")
-		select {
-		case <-nCtx.Done():
-			return
-		case <-time.After(backoff):
-			// exponential backoff
-			backoff *= 2
-			if backoff > maxBackoff {
-				backoff = maxBackoff
-			}
-		}
-	}
-}
-
-func (d *dao) buildWatchFilter(filter bson.D) bson.D {
-	watchFilter := make(bson.D, 0, len(filter)+2)
-	watchFilter = append(watchFilter, filter...)
-	watchFilter = append(watchFilter,
-		bson.E{Key: "ns.db", Value: d.client.Database().Name()},
-		bson.E{Key: "ns.coll", Value: d.client.Name()},
-	)
-
-	return watchFilter
-}
-
-// buildUpsertParams build update params.
-func buildWatchParams(filter bson.D) (mongo.Pipeline, *mongoOptions.ChangeStreamOptions) {
-	// only watch insert event
-	pipeline := mongo.Pipeline{{{Key: "$match", Value: filter}}}
-
-	watchOptions := mongoOptions.ChangeStream().
-		SetBatchSize(1000).
-		SetMaxAwaitTime(time.Second * 10)
-
-	return pipeline, watchOptions
 }

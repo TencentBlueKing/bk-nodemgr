@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -12,48 +14,18 @@
 package stopoperinst
 
 import (
-	"context"
-	"os"
-	"reflect"
-	"sort"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/google/uuid"
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
 )
 
-// testClient ...
-func testClient(t *testing.T) Handler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
+// testClient creates a stopping operation instance handler backed by an isolated integration database.
+func testClient(t *testing.T) IHandler {
+	t.Helper()
 
-	nCtx := context.Background()
-	mongoClient, err := mongo.Connect(
-		nCtx,
-		&options.ClientOptions{
-			Hosts: []string{
-				os.Getenv("MONGO_ADDRESS"),
-			},
-			Auth: &options.Credential{
-				Username:      os.Getenv("MONGO_USER"),
-				Password:      os.Getenv("MONGO_PASSWORD"),
-				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
-				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
-			},
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
+	_, db := support.RequireMongoDatabase(t)
+	return New(db)
 }
 
 // Test_handler_Upsert ...
@@ -104,60 +76,6 @@ func Test_handler_Upsert(t *testing.T) {
 	}
 }
 
-// Test_handler_WatchInsert ...
-func Test_handler_WatchInsert(t *testing.T) {
-	type args struct {
-		nCtx contextx.IContext
-	}
-
-	tests := []struct {
-		name string
-		args args
-		want []string
-	}{
-		{
-			name: "normal",
-			args: args{
-				nCtx: contextx.Background(),
-			},
-			want: []string{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-
-			for i := 0; i < 100; i++ {
-				tt.want = append(tt.want, uuid.New().String())
-			}
-
-			var result []string
-			m := sync.Mutex{}
-
-			go h.WatchInsert(func(s string) {
-				m.Lock()
-				defer m.Unlock()
-				result = append(result, s)
-			})
-
-			for _, v := range tt.want {
-				if err := h.Upsert(tt.args.nCtx, v); err != nil {
-					t.Errorf("Upsert() error = %v", err)
-				}
-			}
-
-			time.Sleep(10 * time.Second)
-
-			sort.Strings(result)
-			sort.Strings(tt.want)
-			if !reflect.DeepEqual(result, tt.want) {
-				t.Errorf("Upsert() got = %v, want %v", result, tt.want)
-			}
-		})
-	}
-}
-
 // Test_handler_FindAll ...
 func Test_handler_FindAll(t *testing.T) {
 	type args struct {
@@ -191,5 +109,26 @@ func Test_handler_FindAll(t *testing.T) {
 				t.Logf("FindAll() got = %v", v)
 			}
 		})
+	}
+}
+
+// Test_handler_FindByIDs ...
+func Test_handler_FindByIDs(t *testing.T) {
+	nCtx := contextx.Background()
+	h := testClient(t)
+
+	if err := h.Upsert(nCtx, "included-oper-inst"); err != nil {
+		t.Fatalf("Upsert() error = %v", err)
+	}
+	if err := h.Upsert(nCtx, "excluded-oper-inst"); err != nil {
+		t.Fatalf("Upsert() error = %v", err)
+	}
+
+	got, err := h.FindByIDs(nCtx, "included-oper-inst")
+	if err != nil {
+		t.Fatalf("FindByIDs() error = %v", err)
+	}
+	if len(got) != 1 || got[0] != "included-oper-inst" {
+		t.Fatalf("FindByIDs() got = %v, want [included-oper-inst]", got)
 	}
 }

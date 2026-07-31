@@ -40,6 +40,3 @@ func (inst *StopOperInst) UniqueKey() string {
 
 // TableStopOperInst represents the complete db structures of a stopping task.
 type TableStopOperInst base.TableBroker[*StopOperInst]
-
-// TableStopOperInstChangeEvent represents the complete db structures of a task data change event.
-type TableStopOperInstChangeEvent base.TableChangeEventBroker[*StopOperInst]

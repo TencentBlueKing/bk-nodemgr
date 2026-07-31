@@ -18,8 +18,15 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/google/uuid"
+)
+
+const (
+	stopPollInterval  = time.Second
+	stopPollTimeout   = 2 * time.Second
+	pollOperationTask = "poll stopping operation inst"
 )
 
 // registerStopOperInstTask registers the stop operation instance task.
@@ -36,18 +43,17 @@ func (s *Storage) registerStopOperInstTask() error {
 		return fmt.Errorf("failed to register sync stopping operation instance task: %w", err)
 	}
 
-	go s.daoStopOperInst.WatchInsert(func(stopInstID string) {
-		s.stopOperInstsMutex.Lock()
-		defer s.stopOperInstsMutex.Unlock()
-		s.stopOperInsts[stopInstID] = struct{}{}
+	err = s.Scheduler.RegisterTask(scheduler.NewTask(
+		pollOperationTask,
+		stopPollInterval,
+		stopPollTimeout,
+		s.syncSubscribedStopOperInsts,
+	))
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to register poll stopping operation instance task")
 
-		go func() {
-			err := s.checkNotifyStopping(contextx.New(s.Ctx))
-			if err != nil {
-				logger.G.Sys().WithErr(err).Warn("failed to check notify stopping")
-			}
-		}()
-	})
+		return fmt.Errorf("failed to register poll stopping operation instance task: %w", err)
+	}
 
 	return nil
 }
@@ -113,6 +119,47 @@ func (s *Storage) syncStopOperInsts(nCtx contextx.IContext) error {
 	}()
 
 	return nil
+}
+
+func (s *Storage) syncSubscribedStopOperInsts(nCtx contextx.IContext) error {
+	operInstIDs := s.subscribedOperInstIDs()
+	if len(operInstIDs) == 0 {
+		return nil
+	}
+
+	stopInstIDs, err := s.daoStopOperInst.FindByIDs(nCtx, operInstIDs...)
+	if err != nil {
+		return fmt.Errorf("failed to find subscribed stopping operation instances: %w", err)
+	}
+
+	if len(stopInstIDs) == 0 {
+		return nil
+	}
+
+	s.addStopOperInsts(stopInstIDs...)
+
+	return s.checkNotifyStopping(nCtx)
+}
+
+func (s *Storage) subscribedOperInstIDs() []string {
+	s.stopEventSubsMapMutex.RLock()
+
+	operInstIDSet := make(map[string]struct{}, len(s.stopEventSubsMap))
+	for _, subscription := range s.stopEventSubsMap {
+		operInstIDSet[subscription.OperInstID] = struct{}{}
+	}
+	s.stopEventSubsMapMutex.RUnlock()
+
+	return conv.MapKeyToSlice(operInstIDSet)
+}
+
+func (s *Storage) addStopOperInsts(operInstIDs ...string) {
+	s.stopOperInstsMutex.Lock()
+	defer s.stopOperInstsMutex.Unlock()
+
+	for _, operInstID := range operInstIDs {
+		s.stopOperInsts[operInstID] = struct{}{}
+	}
 }
 
 // checkNotifyStopping check and notify the stopping event.
@@ -195,6 +242,12 @@ func (s *Storage) upsertNeedStopOperInst(nCtx contextx.IContext, operInstID stri
 	err := s.daoStopOperInst.Upsert(nCtx, operInstID)
 	if err != nil {
 		return fmt.Errorf("failed to upsert stop operation instance, operInstID(%s): %w", operInstID, err)
+	}
+
+	s.addStopOperInsts(operInstID)
+
+	if err := s.checkNotifyStopping(nCtx); err != nil {
+		logger.G.Sys().WithErr(err).Warn("failed to notify local stopping operation instance")
 	}
 
 	return nil

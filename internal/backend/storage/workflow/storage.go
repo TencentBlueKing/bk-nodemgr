@@ -128,7 +128,7 @@ type Storage struct {
 	daoOperation         operation.IHandler
 	daoScheduledWorkflow scheduledworkflow.IHandler
 	daoOperInstData      operinstdata.IHandler
-	daoStopOperInst      stopoperinst.Handler
+	daoStopOperInst      stopoperinst.IHandler
 
 	// stop event subscriptions
 	stopEventSubsMap      map[string]*StopEventSubscription
