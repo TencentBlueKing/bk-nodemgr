@@ -134,12 +134,7 @@ const pluginFields = computed<Array<{ key: keyof PluginRuntime; label: string }>
 
 const isReadonlyIpcField = (_fieldKey: keyof NodeRuntime): boolean => false;
 
-const getNodeFieldPlaceholder = (fieldKey: keyof NodeRuntime): string => {
-  if (fieldKey === 'zone_id' || fieldKey === 'city_id') {
-    return 'default';
-  }
-  return props.defaultConfig?.node_runtime?.[fieldKey] || '';
-};
+const getNodeFieldPlaceholder = (fieldKey: keyof NodeRuntime): string => props.defaultConfig?.node_runtime?.[fieldKey] || '';
 
 const osOptions = computed(() => {
   const optionMap = new Map<string, { id: string; name: string }>();

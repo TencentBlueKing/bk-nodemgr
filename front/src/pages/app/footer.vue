@@ -1,5 +1,5 @@
 <template>
-  <footer class="w-full h-[70px] text-center text-[12px] leading-[12px] flex flex-col justify-center absolute bottom-0">
+  <footer class="h-[70px] text-center text-[12px] leading-[12px] flex flex-col justify-center absolute bottom-0" style="width: calc(100% - 48px);">
     <div v-if="platformConfig.i18n.footerInfoHTML" class="py-[19px]">
       <p class="mb-[8px] text-[#3A84FF]" v-html="platformConfig.i18n.footerInfoHTML"></p>
       <p class="text-[#979ba5]">

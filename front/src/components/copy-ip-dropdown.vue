@@ -227,3 +227,8 @@ const handleToggle = (value: boolean) => {
   if (!value) area.value = []; // 关闭弹出面板时 清空选项
 };
 </script>
+<style scoped>
+.bk-cascader-wrapper {
+  width: 86px;
+}
+</style>

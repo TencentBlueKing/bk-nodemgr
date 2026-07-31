@@ -485,8 +485,40 @@ async function copyAllConfig() {
   Message({ theme: 'success', message: t('pluginOperation.paramConfig.copySuccess') });
 }
 
-/** 粘贴全部参数：优先从 Pinia 读取，无缓存时才尝试剪贴板 */
+/** 从剪贴板读取文本（不可用时返回空） */
+async function readClipboardText(): Promise<string> {
+  if (!navigator.clipboard?.readText) return '';
+  try {
+    const text = await navigator.clipboard.readText();
+    return text || '';
+  } catch {
+    return '';
+  }
+}
+
+/** 从外部剪贴板解析 JSON */
+function parseClipboardJson(text: string): Record<string, any> | null {
+  if (!text?.trim()) return null;
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+/** 粘贴全部参数：剪贴板优先 → Pinia 回退 */
 async function pasteAllConfig() {
+  // 优先剪贴板
+  const clipboardText = await readClipboardText();
+  const clipboardData = parseClipboardJson(clipboardText);
+  if (clipboardData && Object.keys(clipboardData).length > 0) {
+    applyPastedConfig(clipboardData);
+    return;
+  }
+
+  // 回退 Pinia
   const cached = pluginOpStore.getCopiedConfig();
   if (cached && Object.keys(cached).length > 0) {
     applyPastedConfig(cached);
@@ -495,16 +527,22 @@ async function pasteAllConfig() {
   Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteEmpty') });
 }
 
-/** 粘贴到指定平台：按 platform key 匹配，匹配不到则提示无匹配 */
-function pasteConfig(index: number) {
+/** 粘贴到指定平台：剪贴板优先 → Pinia 回退，按 platform key 匹配 */
+async function pasteConfig(index: number) {
   const item = formItems[index];
   if (!item) return;
-  const cached = pluginOpStore.getCopiedConfig();
-  if (!cached || Object.keys(cached).length === 0) {
+
+  // 优先剪贴板
+  const clipboardText = await readClipboardText();
+  const clipboardData = parseClipboardJson(clipboardText);
+  const source = (clipboardData?.[item.platform] ? clipboardData : null)
+    ?? pluginOpStore.getCopiedConfig();
+
+  if (!source || Object.keys(source).length === 0) {
     Message({ theme: 'warning', message: t('pluginOperation.paramConfig.pasteEmpty') });
     return;
   }
-  const value = cached[item.platform];
+  const value = source[item.platform];
   if (value && typeof value === 'object') {
     formValues.value[item.platform] = JSON.parse(JSON.stringify(value));
     triggerRef(formValues);

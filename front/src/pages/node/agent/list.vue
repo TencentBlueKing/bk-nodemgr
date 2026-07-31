@@ -168,7 +168,7 @@
     <Loading
       :title="$t('table.loading')"
       :loading="loading"
-      class="w-full overflow-auto"
+      class="w-full"
     >
       <Table
         class="filterTable"

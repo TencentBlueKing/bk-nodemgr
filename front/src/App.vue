@@ -666,7 +666,6 @@ watch(
 </style>
 <style lang="postcss">
 body {
-  min-width: 1280px;
   overflow-y: auto;
 }
 .bk-navigation .navigation-container {

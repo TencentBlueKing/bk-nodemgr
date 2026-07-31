@@ -6,7 +6,7 @@
       :title="$route.meta?.title"
       :sub-title="$route.meta?.subTitle"
       :back="$route.meta?.back" />
-    <div class="flex-1 overflow-auto min-w-0">
+    <div class="flex-1 overflow-y-auto min-w-0">
       <RouterView />
     </div>
   </div>

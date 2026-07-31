@@ -11,8 +11,8 @@ const createEmptyNodeRuntime = (): NodeRuntime => ({
   data_ipc: '',
   plugin_ipc: '',
   log_dir: '',
-  zone_id: 'default',
-  city_id: 'default',
+  zone_id: '',
+  city_id: '',
 });
 
 const createEmptyPluginRuntime = (): PluginRuntime => ({
