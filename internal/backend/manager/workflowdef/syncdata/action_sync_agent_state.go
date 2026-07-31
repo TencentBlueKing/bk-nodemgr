@@ -169,6 +169,7 @@ func shouldSyncAgentStateHost(host *HostIDAgentID, agentState *types.AgentState,
 	}
 	if host.CurrentNodeRole == nil || host.CurrentNodeStatus == nil || host.CurrentNodeVersion == nil ||
 		host.CurrentNodeGeneration == nil {
+
 		return true
 	}
 
