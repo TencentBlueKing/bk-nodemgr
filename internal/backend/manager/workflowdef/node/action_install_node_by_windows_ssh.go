@@ -152,21 +152,11 @@ func (act *actionInstallNodeByWindowsSSH) Do(ctx *action.InstanceContext) (err e
 		return fmt.Errorf("failed to save blocking action name: %w", err)
 	}
 
-	client, err := act.newWindowsSSHClient(std)
+	installCmd, err := act.prepareWindowsSSHInstall(std)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = client.Close() }()
-
-	profile, err := detectWindowsSSHProfile(client)
-	if err != nil {
-		return fmt.Errorf("failed to detect windows ssh profile: %w", err)
-	}
-
-	launchCmd, err := act.prepareInstallCommand(std, client, profile)
-	if err != nil {
-		return err
-	}
+	defer installCmd.Close()
 
 	if err = saveWaitInstallerPrivateData(
 		std.Context(), act.storageActionInstance, std.InstanceData().OperationInstanceID,
@@ -175,7 +165,50 @@ func (act *actionInstallNodeByWindowsSSH) Do(ctx *action.InstanceContext) (err e
 		return err
 	}
 
-	stdout, stderr, err := client.RunCommand(launchCmd)
+	return act.launchWindowsSSHInstall(std, installCmd)
+}
+
+type windowsSSHInstallCommand struct {
+	client    *sshx.Client
+	launchCmd string
+}
+
+func (cmd *windowsSSHInstallCommand) Close() {
+	_ = cmd.client.Close()
+}
+
+func (act *actionInstallNodeByWindowsSSH) prepareWindowsSSHInstall(
+	std *nodeUtils.NodeActionStandarder,
+) (*windowsSSHInstallCommand, error) {
+	client, err := act.newWindowsSSHClient(std)
+	if err != nil {
+		return nil, err
+	}
+	success := false
+	defer func() {
+		if !success {
+			_ = client.Close()
+		}
+	}()
+
+	profile, err := detectWindowsSSHProfile(client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to detect windows ssh profile: %w", err)
+	}
+
+	launchCmd, err := act.prepareInstallCommand(std, client, profile)
+	if err != nil {
+		return nil, err
+	}
+
+	success = true
+	return &windowsSSHInstallCommand{client: client, launchCmd: launchCmd}, nil
+}
+
+func (act *actionInstallNodeByWindowsSSH) launchWindowsSSHInstall(
+	std *nodeUtils.NodeActionStandarder, installCmd *windowsSSHInstallCommand,
+) error {
+	stdout, stderr, err := installCmd.client.RunCommand(installCmd.launchCmd)
 	if err != nil {
 		return fmt.Errorf("failed to start install node, stdout(%s), stderr(%s): %w", stdout, stderr, err)
 	}

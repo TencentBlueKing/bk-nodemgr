@@ -150,6 +150,23 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to save blocking action name: %w", err)
 	}
 
+	if err = act.installByWMI(std); err != nil {
+		return err
+	}
+
+	err = saveWaitInstallerPrivateData(
+		std.Context(),
+		act.storageActionInstance,
+		std.InstanceData().OperationInstanceID,
+		false, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (act *actionInstallNodeByWMI) installByWMI(std *nodeUtils.NodeActionStandarder) error {
 	// get wmi credit.
 	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetWMICredit(std)
@@ -189,15 +206,6 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) error {
 	// execute install cmd.
 	if err := act.executeInstallCMD(std, client, installerPath); err != nil {
 		return fmt.Errorf("failed to execute install cmd: %w", err)
-	}
-
-	err = saveWaitInstallerPrivateData(
-		std.Context(),
-		act.storageActionInstance,
-		std.InstanceData().OperationInstanceID,
-		false, true)
-	if err != nil {
-		return err
 	}
 
 	return nil
