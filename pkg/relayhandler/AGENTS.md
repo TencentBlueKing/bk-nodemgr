@@ -24,4 +24,4 @@
 |Anti-patterns:Do not leak GSE-native request/response structs to internal callers or make callers construct agentmessage/serverapi clients directly
 |Anti-patterns:Do not bypass messagetracker for ack/processed state or duplicate parallel relay message trackers in callers
 |Anti-patterns:Do not add new proto/front/API fields for relay messaging unless endpoint semantics require them and proto converters/callers are updated together
-|Commands:go1.23.10 test ./pkg/relayhandler
+|Commands:go1.25.12 test ./pkg/relayhandler
