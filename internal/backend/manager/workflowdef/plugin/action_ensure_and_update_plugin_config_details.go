@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -264,7 +263,7 @@ type ContextPreDefinitionConstants struct {
 type ContextNodeInfoStatic struct {
 	BizID         int64    `json:"BizID"`
 	NetworkAreaID int64    `json:"NetworkAreaID"`
-	ZoneID        string   `json:"ZoneID"`
+	ZoneID        int64    `json:"ZoneID"`
 	CityID        string   `json:"CityID"`
 	HostName      string   `json:"HostName"`
 	DeptName      string   `json:"DeptName"`
@@ -329,7 +328,7 @@ func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
 		Static: ContextNodeInfoStatic{
 			BizID:         hostInfo.Static.BizID,
 			NetworkAreaID: hostInfo.Static.NetworkAreaID,
-			ZoneID:        strconv.FormatInt(hostInfo.Static.ZoneID, 10),
+			ZoneID:        hostInfo.Static.ZoneID,
 			CityID:        hostInfo.Static.CityID,
 			HostName:      hostInfo.Static.HostName,
 			DeptName:      hostInfo.Static.DeptName,
