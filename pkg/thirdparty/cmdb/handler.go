@@ -412,7 +412,8 @@ func (h *Handler) CreateNetworkArea(nCtx contextx.IContext, networkAreaName stri
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
-	resp, err := h.cli.createCloudArea(nCtx, req)
+	cmdbCtx := contextx.From(nCtx, contextx.WithBKUsername(h.cli.config.VirtualUser))
+	resp, err := h.cli.createCloudArea(cmdbCtx, req)
 	if err != nil {
 		return nil, err
 	}
