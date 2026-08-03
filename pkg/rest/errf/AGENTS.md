@@ -29,16 +29,16 @@ Run from repository root unless noted.
 
 ```bash
 # all Go tests
-go1.23.10 test ./...
+go1.25.12 test ./...
 
 # errf package tests
-go1.23.10 test ./pkg/rest/errf -v
+go1.25.12 test ./pkg/rest/errf -v
 
 # single test function in errf (important)
-go1.23.10 test ./pkg/rest/errf -run '^TestErrUnwrap_UpgradeToPermissionDeniedWhenPermissionErrorExists$' -v
+go1.25.12 test ./pkg/rest/errf -run '^TestErrUnwrap_UpgradeToPermissionDeniedWhenPermissionErrorExists$' -v
 
 # rest server tests related to permission response behavior
-go1.23.10 test ./pkg/rest/server -run '^TestAbortWithJSONPermDenied' -v
+go1.25.12 test ./pkg/rest/server -run '^TestAbortWithJSONPermDenied' -v
 
 # project lint
 make lint
@@ -120,7 +120,7 @@ When adding a new code, update all of:
 
 Before finishing errf changes:
 1. New code present in `code.go`, `error.go`, `http_status.go`.
-2. `go1.23.10 test ./pkg/rest/errf -v` passes.
+2. `go1.25.12 test ./pkg/rest/errf -v` passes.
 3. Related server tests (permission/error response path) pass.
 4. `make lint` passes for changed Go files.
 5. No business-specific rule leaked into shared package.

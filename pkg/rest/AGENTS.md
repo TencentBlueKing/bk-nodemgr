@@ -29,22 +29,22 @@ make pre && make all
 make lint
 
 # Run ALL Go tests
-go1.23.10 test ./...
+go1.25.12 test ./...
 
 # Run tests for this package only
-go1.23.10 test ./pkg/rest/...
+go1.25.12 test ./pkg/rest/...
 
 # Run a single test by name
-go1.23.10 test ./pkg/rest/... -run TestFunctionName -v
+go1.25.12 test ./pkg/rest/... -run TestFunctionName -v
 
 # Run tests with race detector
-go1.23.10 test -race ./pkg/rest/...
+go1.25.12 test -race ./pkg/rest/...
 
 # Frontend (unrelated to this pkg, for reference)
 cd front && pnpm install && pnpm dev
 ```
 
-> **Note**: Go toolchain is pinned to `go1.23.10`. Always use this version.
+> **Note**: Go toolchain is pinned to `go1.25.12`. Always use this version.
 > There are currently no test files in `pkg/rest/`. When adding tests, place them alongside source as `*_test.go`.
 
 ## CODE STYLE
