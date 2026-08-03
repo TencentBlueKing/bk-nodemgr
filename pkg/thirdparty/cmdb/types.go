@@ -209,9 +209,9 @@ const (
 // IsFailed check the response is ok.
 func (resp *BaseBroker[T]) IsFailed() error {
 	switch {
-	case resp.Result == true && resp.Code == codeOK:
+	case resp.Result && resp.Code == codeOK:
 		return nil
-	case (resp.Result == false && resp.Code == codeNoPermission) || resp.Permission != nil:
+	case (!resp.Result && resp.Code == codeNoPermission) || resp.Permission != nil:
 		return fmt.Errorf("no permission, please check your permission, permission(%v)", resp.Permission)
 	default:
 		return fmt.Errorf("result(%v), code(%d) , msg(%s)", resp.Result, resp.Code, resp.Message)

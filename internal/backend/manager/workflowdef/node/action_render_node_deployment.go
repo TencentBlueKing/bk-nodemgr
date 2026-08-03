@@ -158,16 +158,16 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			return err
 		}
 
-		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
-		nodeConf.ConfigTemplate = rlsAgent.ReleaseAdditionInfoAgent.ConfigTemplate
+		nodeConf.PreSetting = rlsAgent.ConfigEnviron
+		nodeConf.ConfigTemplate = rlsAgent.ConfigTemplate
 	case types.ReleaseTypeProxy:
 		rlsProxy, err := act.getReleaseProxyForRender(std)
 		if err != nil {
 			return err
 		}
 
-		nodeConf.PreSetting = rlsProxy.ReleaseAdditionInfoProxy.ConfigEnviron
-		nodeConf.ConfigTemplate = rlsProxy.ReleaseAdditionInfoProxy.ConfigTemplate
+		nodeConf.PreSetting = rlsProxy.ConfigEnviron
+		nodeConf.ConfigTemplate = rlsProxy.ConfigTemplate
 	default:
 		return fmt.Errorf("unsupported release type: %s", releaseType)
 	}
