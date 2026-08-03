@@ -27,9 +27,15 @@ type ISyncUnassignedAgentNetworkUnitHandler interface {
 	SyncUnassignedAgentNetworkUnit(nCtx contextx.IContext, bizIDs []int64) (*types.NodeAgentAssignUnitResult, error)
 }
 
+// IInitTenantHandler initializes a tenant through backend admin.
+type IInitTenantHandler interface {
+	InitTenant(nCtx contextx.IContext, tenantID string) error
+}
+
 var (
 	_ IHandler                               = &Handler{}
 	_ ISyncUnassignedAgentNetworkUnitHandler = &Handler{}
+	_ IInitTenantHandler                     = &Handler{}
 )
 
 // Handler implements IHandler for backend admin operations.
@@ -68,4 +74,9 @@ func (h *Handler) SyncUnassignedAgentNetworkUnit(
 ) (*types.NodeAgentAssignUnitResult, error) {
 
 	return h.cli.syncUnassignedAgentNetworkUnit(nCtx, bizIDs)
+}
+
+// InitTenant initializes a tenant through backend admin.
+func (h *Handler) InitTenant(nCtx contextx.IContext, tenantID string) error {
+	return h.cli.initTenant(nCtx, tenantID)
 }

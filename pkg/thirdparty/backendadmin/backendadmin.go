@@ -36,6 +36,7 @@ type cli struct {
 	getNetworkUnitSegmentRulesFn     func(contextx.IContext) (types.NetworkUnitSegmentRuleConfig, error)
 	upsertNetworkUnitSegmentRulesFn  func(contextx.IContext, types.NetworkUnitSegmentRuleConfig) error
 	syncUnassignedAgentNetworkUnitFn func(contextx.IContext, []int64) (*types.NodeAgentAssignUnitResult, error)
+	initTenantFn                     func(contextx.IContext, string) error
 }
 
 func newClient(c *client.Capability, conf *Config) (*cli, error) {
