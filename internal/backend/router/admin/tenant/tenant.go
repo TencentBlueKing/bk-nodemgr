@@ -8,40 +8,28 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package admin ...
-package admin
+// Package tenant defines the admin tenant APIs.
+package tenant
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/globalsettings"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/tenant"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin/workflow"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
 	rg *gin.RouterGroup
 }
 
-// newHandler ...
 func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
-		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/admin"),
+		rg: rg.Group("/tenant"),
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+// Load loads admin tenant handlers.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	// enable middlewares.
-	h.rg.Use(middlewares...)
-
-	workflow.Load(h.rg, capability)
-	globalsettings.Load(h.rg, capability)
-	node.Load(h.rg, capability)
-	tenant.Load(h.rg, capability)
+	h.rg.POST("/init", restserver.Handler(h.Init))
 }
