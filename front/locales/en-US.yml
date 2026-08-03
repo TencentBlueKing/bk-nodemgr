@@ -299,6 +299,13 @@ platform:
         partial_failed: Partial Failed
     log:
       executionLog: Execution Log
+      level:
+        label: Log Level
+        info: Info
+        warn: Warn
+        error: Error
+        debug: Debug
+      noLogForFilter: No logs matching current filter
       executionLogOf: 'Execution Log of {inner} {type}'
       searchNode: Select IP, Status
       searchPlugin: Select IP, Plugin, Status

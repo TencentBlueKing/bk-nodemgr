@@ -219,7 +219,41 @@
             class="sticky top-0 z-10 h-[50px]
               flex flex-shrink-0 justify-between items-center px-[16px] bg-[#202024] text-[#C4C6CC]"
           >
-            <div>{{ $t('platform.nodeMan.log.executionLog') }}</div>
+            <div class="flex items-center">
+              <span>{{ $t('platform.nodeMan.log.executionLog') }}</span>
+              <Dropdown trigger="click" :distance="4" class="ml-[20px]">
+                <div
+                  class="flex items-center rounded-[2px] border border-[#3a3a3e] px-[16px] h-[32px] cursor-pointer text-[#E1ECFF] text-[14px] select-none"
+                  style="background: #2c2c30;"
+                >
+                  <span>{{ $t('platform.nodeMan.log.level.label') }} ({{ selectedLogLevels.length }}/{{ logLevelOptions.length }})</span>
+                  <i class="nodeman-icon nc-arrow-down ml-[6px] text-[10px]"></i>
+                </div>
+                <template #content>
+                  <div
+                    class="rounded-[2px] border border-[#3a3a3e] py-[6px] px-[14px] text-[14px] log-level-dropdown"
+                    style="background: #2c2c30; min-width: 120px;"
+                  >
+                    <Checkbox.Group v-model="selectedLogLevels">
+                      <div
+                        v-for="opt in logLevelOptions"
+                        :key="opt.value"
+                        class="py-[5px] mr-[20px]"
+                      >
+                        <Checkbox
+                          :label="opt.value"
+                          :class="{
+                            'warn-level': opt.value === 'WARN',
+                            'error-level': opt.value === 'ERROR',
+                            'debug-level': opt.value === 'DEBUG',
+                          }"
+                        >{{ opt.label }}</Checkbox>
+                      </div>
+                    </Checkbox.Group>
+                  </div>
+                </template>
+              </Dropdown>
+            </div>
             <div class="flex">
               <Dropdown
                 :popover-options="{
@@ -254,8 +288,13 @@
             </div>
           </div>
           <div class="bg-[#313238] flex-1 flex  overflow-y-auto log-content">
-            <div class="flex-1 text-[#a8acb8]" v-if="allLogs">
-              <div v-for="logItem in allLogs" :key="logItem.key" :class="logItem.key">
+            <!-- 当前筛选下无日志时展示空状态 -->
+            <div v-if="!visibleLogs || visibleLogs.length === 0" class="flex-1 flex items-center justify-center text-[#979BA5] text-[14px]">
+              {{ $t('platform.nodeMan.log.noLogForFilter') }}
+            </div>
+            <!-- 筛选后的日志列表 -->
+            <div class="flex-1 text-[#a8acb8]" v-if="visibleLogs && visibleLogs.length > 0">
+              <div v-for="logItem in visibleLogs" :key="logItem.key" :class="logItem.key">
                 <div
                   v-for="(item, index) in logItem.logs"
                   :key="index"
@@ -299,7 +338,7 @@
   <guide v-model:is-show="isGuideShow" :data="guideData" />
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, InfoBox, Message, SearchSelect } from 'bkui-vue';
+import { Button, Checkbox, Dropdown, InfoBox, Message, SearchSelect } from 'bkui-vue';
 import {
   AngleUpFill,
   Close,
@@ -429,6 +468,19 @@ const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
 const logs = ref<{ text: string; text_zh?: string; text_en?: string; level: string; time: string }[]>([]);
 const allLogs = ref<any[]>([]);
+const selectedLogLevels = ref<string[]>(['INFO', 'WARN', 'ERROR']);
+const logLevelOptions = computed(() => [
+  { value: 'INFO', label: t('platform.nodeMan.log.level.info') },
+  { value: 'WARN', label: t('platform.nodeMan.log.level.warn') },
+  { value: 'ERROR', label: t('platform.nodeMan.log.level.error') },
+  { value: 'DEBUG', label: t('platform.nodeMan.log.level.debug') },
+]);
+const visibleLogs = computed(() => allLogs.value
+  .map(logItem => ({
+    ...logItem,
+    logs: logItem.logs.filter((item: any) => selectedLogLevels.value.includes(String(item.level || '').toUpperCase())),
+  }))
+  .filter(logItem => logItem.logs.length > 0));
 const operInstList = ref<{ id: string; name: string; sort_names: string[] }[]>([]);
 const logData = ref<{
   total: number;
@@ -1010,11 +1062,7 @@ async function getLog() {
   });
   logData.value.total = Object.keys(operInstLogs).length;
 
-  // 额外执行日志：仅判断是否存在且含有 ERROR（用于日志区域展示），不再插入步骤标签
-  const hasExtraLogs = res.extra_execution_logs?.logs?.length > 0;
-  const hasExtraError = hasExtraLogs
-    && res.extra_execution_logs.logs.some((log: any) => log.level === 'ERROR');
-
+  // 额外执行日志和步骤日志统一保留，日志等级筛选只负责展示层过滤
   tableData.value = list;
 
   let currentKey;
@@ -1049,8 +1097,8 @@ async function getLog() {
   const operateRunning = ['running', 'launched', 'init'].includes(currentOperate.value?.state);
   isInterval.value = hasRunning || operateRunning;
 
-  // 构建 allLogs：仅在额外日志包含 ERROR 时才加入日志区域展示
-  const extraLogs = hasExtraError
+  // 构建 allLogs，等级过滤由 visibleLogs 计算属性负责
+  const extraLogs = res.extra_execution_logs?.logs?.length
     ? [{ key: 'extra_execution_logs', logs: res.extra_execution_logs.logs }]
     : [];
   allLogs.value = [
@@ -1203,5 +1251,19 @@ onMounted(async () => {
     background: #3b3c42;
     box-shadow: none;
   }
+}
+
+/* 日志等级下拉：与日志中实际颜色一致 */
+.log-level-dropdown :deep(.bk-checkbox-label) {
+  color: #fff; /* INFO 白色 */
+}
+.warn-level :deep(.bk-checkbox-label) {
+  color: #FF9C01; /* WARN 橙色 */
+}
+.error-level :deep(.bk-checkbox-label) {
+  color: #EA3636; /* ERROR 红色 */
+}
+.debug-level :deep(.bk-checkbox-label) {
+  color: #808A94; /* DEBUG 灰色 */
 }
 </style>

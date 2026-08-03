@@ -299,6 +299,13 @@ platform:
         partial_failed: 部分失败
     log:
       executionLog: 执行日志
+      level:
+        label: 日志等级
+        info: 信息
+        warn: 警告
+        error: 错误
+        debug: 调试
+      noLogForFilter: 当前筛选条件下暂无日志
       executionLogOf: '{inner} {type} 的执行日志'
       searchNode: 请选择 IP、执行状态
       searchPlugin: 请选择 IP、插件名、执行状态
