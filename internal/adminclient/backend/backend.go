@@ -33,6 +33,10 @@ func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler
 		Use:   "backend",
 		Short: "backend admin operations",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			if err := validateInitTenantFlags(cmd); err != nil {
+				return err
+			}
+
 			if err := validateSyncUnassignedNetworkUnitFlags(cmd); err != nil {
 				return err
 			}
@@ -56,9 +60,14 @@ func NewBackendCMD(handlerFactory func(configPath string) (backendadmin.IHandler
 		syncHandler, _ := handler.(backendadmin.ISyncUnassignedAgentNetworkUnitHandler)
 		return syncHandler
 	}
+	getTenantHandler := func() backendadmin.IInitTenantHandler {
+		tenantHandler, _ := handler.(backendadmin.IInitTenantHandler)
+		return tenantHandler
+	}
 	getAuthInfo := func() (string, string) { return tenantID, loginName }
 	cmd.AddCommand(NewNetworkUnitSegmentRulesCMD(getHandler, getAuthInfo))
 	cmd.AddCommand(NewNodeCMD(getSyncHandler, getAuthInfo))
+	cmd.AddCommand(NewTenantCMD(getTenantHandler, getAuthInfo))
 
 	return cmd
 }
