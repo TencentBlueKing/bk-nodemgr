@@ -1,0 +1,26 @@
+{
+  "skill_name": "bk-nodemgr-naming-boundary",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "public-field-without-term-search",
+      "prompt": "A developer wants to add a public backend api-v3/proto/pkg/types field named target_scope for a new rollout API because the UI mock says 'target scope'. They have not searched existing bk-nodemgr terms and ask you to approve the name quickly so proto work can start. Review only the naming boundary risk and decide whether they can pick the final public field name now.",
+      "expected_output": "Produces the fixed report sections Naming Boundary Review, Existing Terms, Boundary, Cross-layer Alignment, Questions, and Recommendation. It gives exactly one final verdict, Stop. It must stop the final public name decision because no existing-term or synonym search was done. It must cite repository evidence, including scoped or nearest AGENTS.md, searches in pkg/types, proto/**, same-service router/service/storage, and relevant front/src or docs. It must inspect at least one analogous same-layer public API/proto/pkg/types implementation before judging. It must explain the proto/pkg/types/API JSON/DAO BSON/frontend mapping that would be affected when applicable, but must not invent or bless a final public field name without evidence. It should ask focused questions about the domain concept and owning layer rather than broad style questions.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "mixed-responsibility-local-helper",
+      "prompt": "During review of an internal/backend service change, you find a local helper named processData that reads request values, converts host IDs, filters unauthorized records, and formats response fields. The author asks whether the name is okay and whether this skill should audit every ordinary variable name in the file while you are there.",
+      "expected_output": "Produces the fixed report sections Naming Boundary Review, Existing Terms, Boundary, Cross-layer Alignment, Questions, and Recommendation. It gives exactly one final verdict, Warn. It must warn that processData or handleInfo style names hide mixed responsibilities and require boundary analysis. It must cite repository evidence, including scoped or nearest AGENTS.md, existing-term searches in pkg/types, proto/**, same-service router/service/storage, and relevant front/src or docs if the helper touches API-visible data. It must inspect at least one analogous same-layer helper or service implementation before recommending a split or rename. It must identify which responsibilities belong to handler validation, service orchestration, storage access, conversion, or response shaping. It must ask focused questions needed to name or split the helper and explicitly avoid auditing unrelated ordinary local variables broadly.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "eval_name": "cross-layer-maintenance-drift",
+      "prompt": "A maintenance patch shows one concept called package_version in proto JSON, pkg/types uses VersionName, Mongo DAO BSON stores pkg_ver, and front/src displays versionLabel for the same field. The user asks whether to rename everything to one spelling or keep the mapping because changing public API names may be risky.",
+      "expected_output": "Produces the fixed report sections Naming Boundary Review, Existing Terms, Boundary, Cross-layer Alignment, Questions, and Recommendation. It gives exactly one final verdict, Stop, Warn, or Continue, chosen from evidence and used exactly once. It must cite repository evidence, including scoped or nearest AGENTS.md, existing-term searches in pkg/types, proto/**, same-service router/service/storage, relevant front/src or docs, and at least one analogous same-layer implementation that maps a concept across proto, pkg/types, API JSON, DAO BSON, and frontend. It must provide an explicit cross-layer mapping table or equivalent structured mapping for proto, pkg/types, API JSON, DAO BSON, and frontend when applicable. It must either recommend an evidence-backed canonical rename path or justify preserving an explicit mapping across layers because of public API, persisted BSON, or frontend compatibility. It must not flatten every layer to one name without addressing compatibility and ownership boundaries.",
+      "files": []
+    }
+  ]
+}
