@@ -525,7 +525,7 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 		logger.G.Sys().
 			WithErr(err).
 			With("trigger-id", trigCtl.GetTriggerID()).
-			Warn("failed to init once empty operation")
+			Debug("failed to init once empty operation")
 	}
 
 	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
@@ -566,7 +566,7 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 			logger.G.Sys().
 				WithErr(err).
 				With("trigger-id", trigCtl.GetTriggerID()).
-				Warn("failed to init ordered empty operation")
+				Debug("failed to init ordered empty operation")
 		}
 
 		instanceList, err = trigCtl.ListOperationInstances(nCtx, types.Page{Limit: idleNum}, operation.StateInit)
