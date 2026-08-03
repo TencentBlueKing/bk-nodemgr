@@ -1,6 +1,6 @@
 #!/bin/sh
 # Ops helper: auto-discover MongoDB config and connect via mongo shell.
-# Usage: mongo.sh [-c config] [-h] [login|status]
+# Usage: mongo.sh [-c config] [-h] [login|status|remove-legacy-host-zone-id]
 
 set -eu
 
@@ -13,14 +13,15 @@ DEFAULT_MONGO_PORT="27017"
 
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [-c config_file] [-h] [login|status]
+Usage: $(basename "$0") [-c config_file] [-h] [login|status|remove-legacy-host-zone-id]
 
 Auto-discover MongoDB configuration from ${CONF_DIR}/*_conf.yaml and
 connect via the mongo shell.
 
 Commands:
-  login    Start an interactive mongo shell session (default)
-  status   Check MongoDB server status and exit
+  login                       Start an interactive mongo shell session (default)
+  status                      Check MongoDB server status and exit
+  remove-legacy-host-zone-id  Remove legacy string data.static.zone_id from one host tenant collection
 
 Options:
   -c CONFIG  Specify config file path (default: auto-discover)
@@ -31,6 +32,7 @@ Examples:
   $(basename "$0") login
   $(basename "$0") status
   $(basename "$0") -c /bk-nodemgr/etc/backend_conf.yaml login
+  $(basename "$0") -c /bk-nodemgr/etc/backend_conf.yaml remove-legacy-host-zone-id --tenant-id default
 EOF
 }
 
@@ -41,6 +43,73 @@ ensure_port() {
         *:*) echo "$host" ;;
         *)   echo "${host}:${DEFAULT_MONGO_PORT}" ;;
     esac
+}
+
+validate_tenant_id() {
+    local tenant_id="$1"
+    if ! printf '%s' "$tenant_id" | grep -Eq '^[a-z][a-z0-9-]{1,30}[a-z0-9]$'; then
+        echo "Error: invalid tenant id '${tenant_id}'" >&2
+        echo "Tenant ID must match: ^[a-z][a-z0-9-]{1,30}[a-z0-9]$" >&2
+        exit 1
+    fi
+}
+
+remove_legacy_host_zone_id() {
+    local tenant_id=""
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --tenant-id)
+                shift
+                tenant_id="${1:-}"
+                [ -z "$tenant_id" ] && { echo "Error: --tenant-id requires a value" >&2; exit 1; }
+                shift
+                ;;
+            *)
+                echo "Error: unknown remove-legacy-host-zone-id option '$1'" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    if [ -z "$tenant_id" ]; then
+        echo "Error: remove-legacy-host-zone-id requires --tenant-id" >&2
+        exit 1
+    fi
+    validate_tenant_id "$tenant_id"
+
+    local collection="host_${tenant_id}"
+    echo "Removing legacy string zone_id from MongoDB collection: ${collection}" >&2
+
+    # shellcheck disable=SC2086
+    mongo "$CONN_URI" $TLS_ARGS --quiet --eval "
+        var collectionName = '${collection}';
+        var names = db.getCollectionNames();
+        if (names.indexOf(collectionName) === -1) {
+            print('Error: collection not found: ' + collectionName);
+            quit(2);
+        }
+
+        var collection = db.getCollection(collectionName);
+        var legacyFilter = { 'data.static.zone_id': { \$type: 'string' } };
+        var before = collection.countDocuments(legacyFilter);
+        print('Legacy string zone_id documents before cleanup: ' + before);
+
+        var result = collection.updateMany(
+            legacyFilter,
+            { \$unset: { 'data.static.zone_id': '' } }
+        );
+        var matchedCount = result.matchedCount === undefined ? result.nMatched : result.matchedCount;
+        var modifiedCount = result.modifiedCount === undefined ? result.nModified : result.modifiedCount;
+        print('Matched documents: ' + matchedCount);
+        print('Modified documents: ' + modifiedCount);
+
+        var after = collection.countDocuments(legacyFilter);
+        print('Legacy string zone_id documents after cleanup: ' + after);
+        if (after !== 0) {
+            quit(2);
+        }
+    "
 }
 
 # --- Parse script options ---
@@ -62,7 +131,12 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-COMMAND="${1:-login}"
+if [ $# -gt 0 ]; then
+    COMMAND="$1"
+    shift
+else
+    COMMAND="login"
+fi
 
 # --- Discover or validate config file ---
 if [ -z "$CONFIG_FILE" ]; then
@@ -158,9 +232,12 @@ case "$COMMAND" in
             try { var rs = rs.status(); print('ReplicaSet: ' + rs.set + ' (members: ' + rs.members.length + ')'); } catch(e) { print('ReplicaSet: N/A (standalone)'); }
         "
         ;;
+    remove-legacy-host-zone-id)
+        remove_legacy_host_zone_id "$@"
+        ;;
     *)
         echo "Error: unknown command '${COMMAND}'" >&2
-        echo "Available commands: login, status" >&2
+        echo "Available commands: login, status, remove-legacy-host-zone-id" >&2
         exit 1
         ;;
 esac
