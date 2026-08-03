@@ -340,7 +340,7 @@ type HostStatic struct {
 	BizID         int64
 	Topo          []*HostTopo
 	NetworkAreaID int64
-	ZoneID        string
+	ZoneID        int64
 	CityID        string
 
 	// host information.

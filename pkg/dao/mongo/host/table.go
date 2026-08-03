@@ -43,6 +43,7 @@ type HostStatic struct {
 	Arch          string     `json:"arch" bson:"arch"`
 	Addressing    string     `json:"addressing" bson:"addressing"`
 	ZoneID        string     `json:"zone_id" bson:"zone_id"`
+	ZoneIDInt64   *int64     `json:"zone_id_int64,omitempty" bson:"zone_id_int64,omitempty"`
 	CityID        string     `json:"city_id" bson:"city_id"`
 	CPUNum        float64    `json:"cpu_num" bson:"cpu_num"`
 	MemCap        float64    `json:"mem_cap" bson:"mem_cap"`
@@ -53,6 +54,23 @@ type HostStatic struct {
 	SyncedOpsOutBandProtocol string `json:"synced_ops_out_band_protocol" bson:"synced_ops_out_band_protocol"`
 	SyncedOpsBMCIP           string `json:"synced_ops_bmc_ip" bson:"synced_ops_bmc_ip"`
 	SyncedOpsBMCPort         int64  `json:"synced_ops_bmc_port" bson:"synced_ops_bmc_port"`
+}
+
+func (s *HostStatic) zoneID() int64 {
+	if s.ZoneIDInt64 != nil {
+		return *s.ZoneIDInt64
+	}
+
+	if s.ZoneID == "" {
+		return 0
+	}
+
+	zoneID, err := strconv.ParseInt(s.ZoneID, 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return zoneID
 }
 
 // HostTopo represents a host topo relation in CMDB.

@@ -13,6 +13,7 @@ package host
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -637,6 +638,7 @@ func (h *handler) UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host
 func convertHostFromTypes(host *types.Host) *Host {
 	static := &HostStatic{}
 	if host.Static != nil {
+		zoneID := host.Static.ZoneID
 		static = &HostStatic{
 			BizID:                    host.Static.BizID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
@@ -652,7 +654,8 @@ func convertHostFromTypes(host *types.Host) *Host {
 			OSTypeCCID:               host.Static.OSTypeCCID,
 			Arch:                     host.Static.Arch,
 			Addressing:               string(host.Static.Addressing),
-			ZoneID:                   host.Static.ZoneID,
+			ZoneID:                   strconv.FormatInt(zoneID, 10),
+			ZoneIDInt64:              &zoneID,
 			CityID:                   host.Static.CityID,
 			CPUNum:                   host.Static.CPUNum,
 			MemCap:                   host.Static.MemCap,
@@ -737,7 +740,7 @@ func convertHostToTypes(host *Host) *types.Host {
 		static = &types.HostStatic{
 			BizID:                    host.Static.BizID,
 			NetworkAreaID:            host.Static.NetworkAreaID,
-			ZoneID:                   host.Static.ZoneID,
+			ZoneID:                   host.Static.zoneID(),
 			CityID:                   host.Static.CityID,
 			HostName:                 host.Static.HostName,
 			DeptName:                 host.Static.DeptName,
@@ -962,7 +965,8 @@ func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) 
 		updates[FieldKeyStaticNetworkAreaID] = host.Static.NetworkAreaID
 	}
 	if fields.ZoneID {
-		updates[FieldKeyStaticZoneID] = host.Static.ZoneID
+		updates[FieldKeyStaticZoneID] = strconv.FormatInt(host.Static.ZoneID, 10)
+		updates[FieldKeyStaticZoneIDInt64] = host.Static.ZoneID
 	}
 	if fields.CityID {
 		updates[FieldKeyStaticCityID] = host.Static.CityID

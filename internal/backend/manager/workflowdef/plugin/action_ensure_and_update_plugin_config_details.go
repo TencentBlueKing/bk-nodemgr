@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -328,7 +329,7 @@ func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
 		Static: ContextNodeInfoStatic{
 			BizID:         hostInfo.Static.BizID,
 			NetworkAreaID: hostInfo.Static.NetworkAreaID,
-			ZoneID:        hostInfo.Static.ZoneID,
+			ZoneID:        strconv.FormatInt(hostInfo.Static.ZoneID, 10),
 			CityID:        hostInfo.Static.CityID,
 			HostName:      hostInfo.Static.HostName,
 			DeptName:      hostInfo.Static.DeptName,
