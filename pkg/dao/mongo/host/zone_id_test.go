@@ -11,13 +11,12 @@
 package host
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func TestConvertHostFromTypesWritesNumericAndLegacyZoneID(t *testing.T) {
+func TestConvertHostFromTypesWritesNumericZoneID(t *testing.T) {
 	host := convertHostFromTypes(&types.Host{
 		HostID:   10001,
 		TenantID: "tenant-a",
@@ -26,23 +25,15 @@ func TestConvertHostFromTypesWritesNumericAndLegacyZoneID(t *testing.T) {
 		},
 	})
 
-	if host.Static.ZoneID != "42" {
-		t.Fatalf("legacy ZoneID = %q, want 42", host.Static.ZoneID)
-	}
-	if host.Static.ZoneIDInt64 == nil {
-		t.Fatal("ZoneIDInt64 is nil")
-	}
-	if *host.Static.ZoneIDInt64 != 42 {
-		t.Fatalf("ZoneIDInt64 = %d, want 42", *host.Static.ZoneIDInt64)
+	if host.Static.ZoneID != 42 {
+		t.Fatalf("ZoneID = %d, want 42", host.Static.ZoneID)
 	}
 }
 
-func TestConvertHostToTypesReadsNumericZoneIDBeforeLegacy(t *testing.T) {
-	numericZoneID := int64(42)
+func TestConvertHostToTypesReadsNumericZoneID(t *testing.T) {
 	host := convertHostToTypes(&Host{
 		Static: &HostStatic{
-			ZoneID:      "24",
-			ZoneIDInt64: &numericZoneID,
+			ZoneID: 42,
 		},
 	})
 
@@ -51,27 +42,12 @@ func TestConvertHostToTypesReadsNumericZoneIDBeforeLegacy(t *testing.T) {
 	}
 }
 
-func TestConvertHostToTypesReadsLegacyZoneID(t *testing.T) {
-	host := convertHostToTypes(&Host{
-		Static: &HostStatic{
-			ZoneID: "42",
-		},
-	})
-
-	if host.Static.ZoneID != 42 {
-		t.Fatalf("ZoneID = %d, want 42", host.Static.ZoneID)
-	}
-}
-
-func TestGenerateHostStaticUpdatesWritesNumericAndLegacyZoneID(t *testing.T) {
+func TestGenerateHostStaticUpdatesWritesNumericZoneID(t *testing.T) {
 	updates := generateHostStaticUpdates(types.HostStaticFields{ZoneID: true}, &types.Host{
 		Static: &types.HostStatic{ZoneID: 42},
 	})
 
-	if updates[FieldKeyStaticZoneID] != strconv.FormatInt(42, 10) {
-		t.Fatalf("legacy ZoneID update = %v, want 42", updates[FieldKeyStaticZoneID])
-	}
-	if updates[FieldKeyStaticZoneIDInt64] != int64(42) {
-		t.Fatalf("numeric ZoneID update = %v, want 42", updates[FieldKeyStaticZoneIDInt64])
+	if updates[FieldKeyStaticZoneID] != int64(42) {
+		t.Fatalf("ZoneID update = %v, want 42", updates[FieldKeyStaticZoneID])
 	}
 }

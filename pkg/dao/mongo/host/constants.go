@@ -46,9 +46,6 @@ const (
 	// FieldKeyStaticZoneID the static zone id field key.
 	FieldKeyStaticZoneID = "data.static.zone_id"
 
-	// FieldKeyStaticZoneIDInt64 the static numeric zone id field key.
-	FieldKeyStaticZoneIDInt64 = "data.static.zone_id_int64"
-
 	// FieldKeyStaticCityID the static city id field key.
 	FieldKeyStaticCityID = "data.static.city_id"
 
