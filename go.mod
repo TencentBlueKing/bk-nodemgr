@@ -8,7 +8,7 @@ require (
 	github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1
 	github.com/TencentBlueKing/iam-go-sdk v1.0.1
 	github.com/bits-and-blooms/bitset v1.20.0
-	github.com/docker/docker v28.2.2+incompatible
+	github.com/docker/docker v28.5.2+incompatible
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/golang-jwt/jwt/v5 v5.2.3
