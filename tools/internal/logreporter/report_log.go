@@ -193,7 +193,7 @@ func bulkReportLogsMultiEndpoint(ctx context.Context, retrier retrier.Retrier, r
 
 	var lastErr error
 	for i, reportURL := range reportURLs {
-		logger.Infof(node.StepGeneral, "attempting to report logs to server, index(%d/%d), url(%s)", i+1, len(reportURLs), reportURL)
+		logger.Debugf(node.StepGeneral, "attempting to report logs to server, index(%d/%d), url(%s)", i+1, len(reportURLs), reportURL)
 		err := bulkReportLogs(ctx, retrier, reportURL, req)
 		if err == nil {
 			return nil
