@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -13,51 +15,16 @@ package cmdb
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/joho/godotenv"
 )
 
 // testClient ...
 func testCCClient(t *testing.T) *cli {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Helper()
 
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	clientCap := &restclient.Capability{
-		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
-		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
-		MetricOpts:           restclient.MetricOption{},
-	}
-
-	apigwClientConfig, err := LoadAuthHeader()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	h, err := newClient(clientCap, &Config{
-		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		APIGWAppConfig:  apigwClientConfig,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return h
+	return newIntegrationClient(t, newIntegrationTarget(t))
 }
 
 // Test_cmdb_listBizHosts ...
