@@ -1264,7 +1264,7 @@ paths:
   /api/v3/topo/host/distinct:
     post:
       operationId: Topo_HostDistinct
-      description: HostDistinct provides host distincting.
+      description: "查询主机字段去重结果，支持按主机条件进行过滤。"
       tags:
         - Topo
       responses:
@@ -1543,7 +1543,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query distinct host field values with host condition filters."
   /api/v3/topo/host/get_host_distribution_by_networkarea_id:
     post:
       operationId: Topo_GetHostDistributionByNetworkAreaID
@@ -2392,7 +2392,7 @@ paths:
   /api/v3/topo/host/scenario/select_host_id:
     post:
       operationId: Topo_HostSelectHostID
-      description: HostSelectHostID provides host id selecting.
+      description: "按条件批量选择主机 ID。"
       tags:
         - Topo
       responses:
@@ -2708,11 +2708,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Select host IDs in batches by host conditions."
   /api/v3/topo/host/scenario/select_inner_ip:
     post:
       operationId: Topo_HostSelectInnerIP
-      description: HostSelectInnerIP provides host inner ip selecting.
+      description: "按条件批量选择主机内网 IPv4 地址。"
       tags:
         - Topo
       responses:
@@ -3027,11 +3027,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Select host inner IPv4 addresses in batches by host conditions."
   /api/v3/topo/host/scenario/select_inner_ipv6:
     post:
       operationId: Topo_HostSelectInnerIPV6
-      description: HostSelectInnerIPV6 provides host inner ipv6 selecting.
+      description: "按条件批量选择主机内网 IPv6 地址。"
       tags:
         - Topo
       responses:
@@ -3346,13 +3346,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Select host inner IPv6 addresses in batches by host conditions."
   /api/v3/topo/host/scenario/select_networkarea_id_and_inner_ip:
     post:
       operationId: Topo_HostSelectNetWorkareaIDAndInnerIP
-      description: |-
-        HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip
-        selecting.
+      description: "按条件批量选择主机管控区域 ID 与内网 IPv4 地址。"
       tags:
         - Topo
       responses:
@@ -3667,13 +3665,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Select host network area IDs and inner IPv4 addresses in batches by host conditions."
   /api/v3/topo/host/scenario/select_networkarea_id_and_inner_ipv6:
     post:
       operationId: Topo_HostSelectNetWorkareaIDAndInnerIPV6
-      description: |-
-        HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner
-        ipv6 selecting.
+      description: "按条件批量选择主机管控区域 ID 与内网 IPv6 地址。"
       tags:
         - Topo
       responses:
@@ -3988,11 +3984,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Select host network area IDs and inner IPv6 addresses in batches by host conditions."
   /api/v3/topo/networkarea/create:
     post:
       operationId: Topo_NetworkAreaCreate
-      description: NetworkAreaCreate provides creating a new network-area.
+      description: "创建管控区域，并同步写入本地拓扑数据。"
       tags:
         - Topo
       responses:
@@ -4132,11 +4128,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Create a network area and synchronize it into local topology data."
   /api/v3/topo/networkarea/delete:
     post:
       operationId: Topo_NetworkAreaDelete
-      description: NetworkAreaDelete provides deleting an existing network-area by id.
+      description: "根据管控区域 ID 删除管控区域。"
       tags:
         - Topo
       responses:
@@ -4275,7 +4271,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete a network area by network area ID."
   /api/v3/topo/networkarea/get:
     post:
       operationId: Topo_NetworkAreaGet
@@ -4615,7 +4611,7 @@ paths:
   /api/v3/topo/networkarea/update:
     post:
       operationId: Topo_NetworkAreaUpdate
-      description: NetworkAreaUpdate provides updating an existing network-area by id.
+      description: "根据管控区域 ID 更新管控区域名称与云区域标识。"
       tags:
         - Topo
       responses:
@@ -4758,11 +4754,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Update a network area name and cloud vendor by network area ID."
   /api/v3/topo/networkunit/create:
     post:
       operationId: Topo_NetworkUnitCreate
-      description: NetworkUnitCreate provides creating a new network-unit.
+      description: "创建管控单元，并配置关联接入点、链路与部署配置。"
       tags:
         - Topo
       responses:
@@ -5035,11 +5031,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Create a network unit with access points, links, and deployment configuration."
   /api/v3/topo/networkunit/delete:
     post:
       operationId: Topo_NetworkUnitDelete
-      description: NetworkUnitDelete provides deleting an existing network-unit by id.
+      description: "根据管控单元 ID 删除管控单元。"
       tags:
         - Topo
       responses:
@@ -5178,11 +5174,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Delete a network unit by network unit ID."
   /api/v3/topo/networkunit/get:
     post:
       operationId: Topo_NetworkUnitGet
-      description: NetworkUnitGet provides getting an existing network-unit by id.
+      description: "根据管控单元 ID 查询管控单元详情。"
       tags:
         - Topo
       responses:
@@ -5463,11 +5459,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Get network unit details by network unit ID."
   /api/v3/topo/networkunit/list:
     post:
       operationId: Topo_NetworkUnitList
-      description: NetworkUnitList provides network-unit listing.
+      description: "查询管控单元列表，支持分页和条件过滤。"
       tags:
         - Topo
       responses:
@@ -5758,11 +5754,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "List network units with pagination and condition filters."
   /api/v3/topo/networkunit/update:
     post:
       operationId: Topo_NetworkUnitUpdate
-      description: NetworkUnitUpdate provides updating an existing network-unit by id.
+      description: "更新管控单元基础信息、接入点、链路与部署配置。"
       tags:
         - Topo
       responses:
@@ -6060,7 +6056,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Update network unit base information, access points, links, and deployment configuration."
   /api/v3/process/distinct:
     post:
       operationId: Process_ProcessDistinct
@@ -7007,9 +7003,7 @@ paths:
   /api/v3/plugin/apply_subconfig:
     post:
       operationId: Plugin_ApplyPluginSubConfig
-      description: |-
-        ApplyPluginSubConfig apply sub-configuration for a plugin on specified
-        hosts.
+      description: "批量为指定主机下发插件子配置，并支持传入自定义配置渲染上下文。"
       tags:
         - Plugin
       responses:
@@ -7166,11 +7160,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch apply plugin sub-configurations to specified hosts, with optional custom render context."
   /api/v3/plugin/install:
     post:
       operationId: Plugin_InstallPlugin
-      description: InstallPlugin installs a plugin on specified hosts.
+      description: "批量为指定主机安装插件，并可按需指定子配置文件和自定义渲染上下文。"
       tags:
         - Plugin
       responses:
@@ -7349,11 +7343,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch install plugins on specified hosts, with optional sub-config selection and custom render context."
   /api/v3/plugin/list:
     post:
       operationId: Plugin_ListPlugins
-      description: ListPlugins lists plugins based on the given conditions.
+      description: "查询插件列表，支持分页、仅统计总数，以及按精确或模糊条件过滤。"
       tags:
         - Plugin
       responses:
@@ -7541,11 +7535,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Query the plugin list with pagination, count-only mode, and exact or fuzzy filters."
   /api/v3/plugin/set_memo:
     post:
       operationId: Plugin_SetPluginMemo
-      description: SetPluginMemo sets the memo for a plugin.
+      description: "设置指定插件的备注信息。"
       tags:
         - Plugin
       responses:
@@ -7673,11 +7667,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Set the memo for a specified plugin."
   /api/v3/plugin/upgrade:
     post:
       operationId: Plugin_UpgradePlugin
-      description: UpgradePlugin upgrades a plugin on specified hosts.
+      description: "批量升级指定主机上的插件，并可指定目标版本、子配置文件和自定义渲染上下文。"
       tags:
         - Plugin
       responses:
@@ -7828,7 +7822,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch upgrade plugins on specified hosts, with target version, optional sub-config selection, and custom render context."
   /api/v3/plugin/workflow/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowDistinct
@@ -21764,7 +21758,7 @@ paths:
   /api/v3/node/agent/upgrade_check:
     post:
       operationId: NodeAgent_NodeAgentUpgradeCheck
-      description: NodeAgentUpgradeCheck provides node agent upgrade check.
+      description: "批量检查 Agent 是否满足升级条件。"
       tags:
         - NodeAgent
       responses:
@@ -21957,11 +21951,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch-check whether Agents can be upgraded."
   /api/v3/node/proxy/upgrade_check:
     post:
       operationId: NodeProxy_NodeProxyUpgradeCheck
-      description: NodeProxyUpgradeCheck provides node proxy upgrade check.
+      description: "批量检查 Proxy 是否满足升级条件。"
       tags:
         - NodeProxy
       responses:
@@ -22154,7 +22148,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch-check whether Proxies can be upgraded."
   /api/v3/node/workflow/operation/offline/info:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallInfoGet
@@ -22469,7 +22463,7 @@ paths:
   /api/v3/plugin/uninstall:
     post:
       operationId: Plugin_UninstallPlugin
-      description: UninstallPlugin uninstalls a plugin on specified hosts.
+      description: "批量卸载指定主机上的插件。"
       tags:
         - Plugin
       responses:
@@ -22611,7 +22605,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch uninstall plugins from specified hosts."
   /api/v3/package/release/plugin/get_config_variables:
     post:
       operationId: Package_GetConfigVariablesReleasePlugin
@@ -23165,9 +23159,7 @@ paths:
   /api/v3/topo/networkunit/get_networkunit_distribution_by_networkarea_id:
     post:
       operationId: Topo_GetNetworkUnitDistributionByNetworkAreaID
-      description: |-
-        GetNetworkUnitDistributionByNetworkAreaID provides getting networkunit
-        distribution by networkarea id.
+      description: "按管控区域 ID 统计管控单元分布。"
       tags:
         - Topo
       responses:
@@ -23325,7 +23317,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Count network unit distribution by network area ID."
   /api/v3/topo/accesspoint/list/brief:
     post:
       operationId: Topo_AccessPointListBrief
@@ -23997,9 +23989,7 @@ paths:
   /api/v3/topo/networkunit/recommend_by_network_segment:
     post:
       operationId: Topo_RecommendNetworkUnitByNetworkSegment
-      description: |-
-        RecommendNetworkUnitByNetworkSegment provides recommend networkunit by
-        network segment.
+      description: "根据主机网络段推荐可用管控单元。"
       tags:
         - Topo
       responses:
@@ -24149,7 +24139,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Recommend available network units by host network segment."
   /api/v3/package/release/agent/list/brief:
     post:
       operationId: Package_ListReleaseAgentBrief
@@ -24948,7 +24938,7 @@ paths:
   /api/v3/plugin/restart:
     post:
       operationId: Plugin_RestartPlugin
-      description: RestartPlugin restarts the plugin process on specified hosts.
+      description: "批量重启指定主机上的插件进程。"
       tags:
         - Plugin
       responses:
@@ -25090,11 +25080,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch restart plugin processes on specified hosts."
   /api/v3/plugin/stop:
     post:
       operationId: Plugin_StopPlugin
-      description: StopPlugin stops the plugin process on specified hosts.
+      description: "批量停止指定主机上的插件进程。"
       tags:
         - Plugin
       responses:
@@ -25236,7 +25226,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch stop plugin processes on specified hosts."
   /api/v3/plugin/migrate_from_v2:
     post:
       operationId: Plugin_MigratePluginFromV2
@@ -25605,7 +25595,7 @@ paths:
   /api/v3/node/agent/update_ops_fields:
     post:
       operationId: NodeAgent_NodeAgentUpdateOpsFields
-      description: NodeAgentUpdateOpsFields batch-updates out-of-band (ops) fields for hosts.
+      description: "批量更新 Agent 主机的带外管理字段，并同步到 CMDB。"
       tags:
         - NodeAgent
       responses:
@@ -25758,13 +25748,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch-update out-of-band management fields for Agent hosts and synchronize them to CMDB."
   /api/v3/node/proxy/update_ops_fields:
     post:
       operationId: NodeProxy_NodeProxyUpdateOpsFields
-      description: |-
-        NodeProxyUpdateOpsFields batch-updates out-of-band (ops) fields for proxy
-        hosts.
+      description: "批量更新 Proxy 主机的带外管理字段，并同步到 CMDB。"
       tags:
         - NodeProxy
       responses:
@@ -25918,11 +25906,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Batch-update out-of-band management fields for Proxy hosts and synchronize them to CMDB."
   /api/v3/sync/cmdb/constants:
     post:
       operationId: Sync_SyncCmdbConstants
-      description: SyncCmdbConstants provides syncing cmdb constants.
+      description: "触发同步 CMDB 常量数据。"
       tags:
         - Sync
       responses:
@@ -26056,11 +26044,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of CMDB constants."
   /api/v3/sync/cmdb/host:
     post:
       operationId: Sync_SyncCmdbHost
-      description: SyncCmdbHost provides syncing cmdb host.
+      description: "触发同步 CMDB 业务与主机数据。"
       tags:
         - Sync
       responses:
@@ -26188,11 +26176,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of CMDB business and host data."
   /api/v3/sync/cmdb/networkarea:
     post:
       operationId: Sync_SyncCmdbNetworkArea
-      description: SyncCmdbNetworkArea provides syncing cmdb networkarea.
+      description: "触发同步 CMDB 管控区域数据。"
       tags:
         - Sync
       responses:
@@ -26326,11 +26314,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of CMDB network area data."
   /api/v3/sync/gse/agent/correct_agent_id:
     post:
       operationId: Sync_SyncCorrectAgentID
-      description: ''
+      description: "触发修正 GSE Agent ID。"
       tags:
         - Sync
       responses:
@@ -26466,11 +26454,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger correction of GSE Agent IDs."
   /api/v3/sync/gse/agent/info:
     post:
       operationId: Sync_SyncAgentInfo
-      description: ''
+      description: "触发同步指定主机的 GSE Agent 信息。"
       tags:
         - Sync
       responses:
@@ -26604,11 +26592,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of GSE Agent information for specified hosts."
   /api/v3/sync/gse/agent/info/alive:
     post:
       operationId: Sync_SyncAliveHostAgentInfo
-      description: ''
+      description: "触发同步存活主机的 GSE Agent 信息。"
       tags:
         - Sync
       responses:
@@ -26742,11 +26730,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of GSE Agent information for alive hosts."
   /api/v3/sync/gse/agent/state:
     post:
       operationId: Sync_SyncAgentState
-      description: ''
+      description: "触发同步指定主机的 GSE Agent 状态。"
       tags:
         - Sync
       responses:
@@ -26880,11 +26868,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of GSE Agent state for specified hosts."
   /api/v3/sync/gse/agent/state/all:
     post:
       operationId: Sync_SyncAllAgentState
-      description: ''
+      description: "触发同步全部主机的 GSE Agent 状态。"
       tags:
         - Sync
       responses:
@@ -27018,11 +27006,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of GSE Agent state for all hosts."
   /api/v3/sync/gse/plugin/process/info:
     post:
       operationId: Sync_SyncAlivePluginProcessInfo
-      description: ''
+      description: "触发同步指定主机的存活插件进程信息。"
       tags:
         - Sync
       responses:
@@ -27158,11 +27146,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of alive plugin process information for specified hosts."
   /api/v3/sync/gse/plugin/process/info/all:
     post:
       operationId: Sync_SyncAllAlivePluginProcessInfo
-      description: ''
+      description: "触发同步全部存活插件进程信息。"
       tags:
         - Sync
       responses:
@@ -27294,4 +27282,4 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: "Trigger synchronization of all alive plugin process information."
