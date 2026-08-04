@@ -175,7 +175,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	}
 
 	// try to reuse the agentID.
-	hosts, count, err := act.storageHost.ListHost(std.Context(), types.Page{
+	hosts, _, err := act.storageHost.ListHost(std.Context(), types.Page{
 		Offset: 0,
 		Limit:  1,
 	}, &types.HostCondition{
@@ -191,7 +191,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	// not match host, can't reuse.
 	// maybe: host don't exist, or host 's network area changed.
-	if count == 0 {
+	if len(hosts) == 0 {
 		std.InstanceData().Log().
 			Zh("未匹配到主机, 无法复用 agent-id").
 			En("not match host, can't reuse agent-id").
