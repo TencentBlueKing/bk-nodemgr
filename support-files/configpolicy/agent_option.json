@@ -45,6 +45,23 @@
             },
             {
                 "enabled": false,
+                "id": "logger_path",
+                "name_en": "Log path",
+                "name_zh": "日志存储路径",
+                "remark_en": "The path where the agent logs are stored.",
+                "remark_zh": "日志存储的路径.",
+                "key": "agent.logger.path",
+                "type": 0,
+                "value_string": "",
+                "value_int": 0,
+                "value_bool": false,
+                "value_string_select": [],
+                "value_int_select": [],
+                "value_group_fixed": {},
+                "value_group_assigned": {}
+            },
+            {
+                "enabled": false,
                 "id": "cpu_percent_limit",
                 "name_en": "CPU usage limit",
                 "name_zh": "CPU使用限制",
