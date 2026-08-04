@@ -37,7 +37,7 @@ POST /api/v3/node/agent/install
 | install_pre_ordered_plugins | bool          | 否  | 是否安装预设插件，默认true                                  |
 | renew_gse_task              | bool          | 否  | 是否重新生成 GSE .task runtime 文件，默认false表示保留已有.task文件 |
 | renew_gse_proc              | bool          | 否  | 是否重新生成 GSE .proc runtime 文件，默认false表示保留已有.proc文件 |
-| install_method              | string        | 否  | Agent 安装方式，合法值：空字符串、ssh、wmi；空字符串表示按 OS 自动选择安装逻辑  |
+| install_method              | string        | 否  | Agent 安装方式，合法值：空字符串、ssh、wmi；空字符串表示按 OS 自动选择安装逻辑，当前 Windows 自动选择 SSH |
 
 **参数说明**：
 
@@ -50,8 +50,8 @@ POST /api/v3/node/agent/install
     - `keyfile`：使用密钥文件登录，需要提供`login_key_file`
 - `os_type`：操作系统类型，常用值包括`linux`、`windows`、`darwin`等
 - `install_method`：Agent 安装方式，作用于单台主机。
-    - 空字符串：按 OS 自动选择安装逻辑。
-    - `ssh`：指定 SSH 安装。Linux/Darwin/unknown 支持，Windows 当前不支持。
+    - 空字符串：按 OS 自动选择安装逻辑。当前 Linux/Darwin/unknown 自动选择 SSH，Windows 自动选择 SSH。
+    - `ssh`：指定 SSH 安装。Linux/Darwin/Windows/unknown 支持。
     - `wmi`：指定 WMI 安装。仅 Windows 支持，Linux/Darwin/unknown 不支持。
 
 #### target_version[n]
