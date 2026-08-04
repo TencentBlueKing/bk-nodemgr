@@ -11,7 +11,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout base config
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Label PR
         uses: actions/labeler@v5
