@@ -35,6 +35,8 @@ if [ -z "$TARGET_VERSION" ]; then
   exit 5
 fi
 
+TARGET_VERSION_NO_V="${TARGET_VERSION#v}"
+
 PRIMARY_FILES=(
   "apigw/definition.yaml"
   "apigw/resources.yaml"
@@ -229,16 +231,16 @@ if has_changed_file "install/helm/mock-server/values.yaml" || [ "$MODE" = "compl
   check_equals "mock-server values.yaml image.tag" "$MOCK_IMAGE_TAG" "$TARGET_VERSION"
 fi
 
-if [ "$MODE" = "complete-release" ] && [ "$APIGW_METADATA_CHANGED" = true ]; then
+if [ "$MODE" = "complete-release" ]; then
   APIGW_VERSION=$(read_apigw_release_value "$APIGW_DEFINITION_PATH" "version")
   APIGW_COMMENT=$(read_apigw_release_value "$APIGW_DEFINITION_PATH" "comment")
   VALUES_APIGW_VERSION=$(read_values_apigw_release_value "install/helm/bk-nodemgr/values.yaml" "version")
   VALUES_APIGW_COMMENT=$(read_values_apigw_release_value "install/helm/bk-nodemgr/values.yaml" "comment")
 
-  check_equals "API Gateway release.version consistency" "$VALUES_APIGW_VERSION" "$APIGW_VERSION"
-  check_equals "API Gateway release.comment consistency" "$VALUES_APIGW_COMMENT" "$APIGW_COMMENT"
-elif [ "$MODE" = "complete-release" ]; then
-  echo -e "${YELLOW}Skipped API Gateway release metadata check because metadata was not changed${NC}"
+  check_equals "apigw/definition.yaml release.version" "$APIGW_VERSION" "$TARGET_VERSION_NO_V"
+  check_equals "apigw/definition.yaml release.comment" "$APIGW_COMMENT" "$TARGET_VERSION_NO_V"
+  check_equals "bk-nodemgr values.yaml apigwSync.config.release.version" "$VALUES_APIGW_VERSION" "$TARGET_VERSION_NO_V"
+  check_equals "bk-nodemgr values.yaml apigwSync.config.release.comment" "$VALUES_APIGW_COMMENT" "$TARGET_VERSION_NO_V"
 fi
 
 if [ $ERRORS -gt 0 ]; then
@@ -323,7 +325,7 @@ if [ "$MODE" = "complete-release" ]; then
   if has_changed_file "$APIGW_RESOURCES_PATH"; then
     if [ "$APIGW_METADATA_CHANGED" != true ]; then
       echo -e "${RED}Gateway resource sync check failed: $APIGW_RESOURCES_PATH changed but API Gateway release metadata did not${NC}"
-      echo "Update $APIGW_DEFINITION_PATH release.* and install/helm/bk-nodemgr/values.yaml apigwSync.config.release.* for the resource-changing app version."
+      echo "Update $APIGW_DEFINITION_PATH release.* and install/helm/bk-nodemgr/values.yaml apigwSync.config.release.* to ${TARGET_VERSION_NO_V}."
       exit 6
     fi
     echo -e "${GREEN}Gateway resource sync check passed in current diff${NC}"
