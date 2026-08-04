@@ -19,13 +19,14 @@ import (
 
 // PluginWorkflow represents a plugin workflow.
 type PluginWorkflow struct {
-	TenantID   string
-	WorkflowID string
-	TriggerID  string
-	Type       PluginWorkflowType
-	HostIDs    []int64
-	BizIDs     []int64
-	Operator   string
+	TenantID        string
+	WorkflowID      string
+	TriggerID       string
+	Type            PluginWorkflowType
+	HostIDs         []int64
+	BizIDs          []int64
+	Operator        string
+	DeployPolicyIDs []int64
 
 	OperateTime time.Time
 	FinishTime  time.Time
