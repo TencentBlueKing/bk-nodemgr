@@ -11,6 +11,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/errdefs"
 )
@@ -21,6 +22,13 @@ const (
 	DockerNetworkBridge = "bridge"
 	DockerNetworkHost   = "host"
 )
+
+type dockerHostContainerConfig struct {
+	Image      string
+	Env        map[string]string
+	Entrypoint []string
+	Cmd        []string
+}
 
 func dockerNetwork(t testing.TB, values map[string]string) string {
 	t.Helper()
@@ -42,6 +50,12 @@ func dockerNetwork(t testing.TB, values map[string]string) string {
 func startDockerHostContainer(t testing.TB, imageName string, env map[string]string) {
 	t.Helper()
 
+	startDockerHostContainerWithConfig(t, dockerHostContainerConfig{Image: imageName, Env: env})
+}
+
+func startDockerHostContainerWithConfig(t testing.TB, cfg dockerHostContainerConfig) {
+	t.Helper()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
@@ -50,36 +64,57 @@ func startDockerHostContainer(t testing.TB, imageName string, env map[string]str
 		t.Fatalf("create Docker client: %v", err)
 	}
 
-	if err := ensureDockerImage(ctx, dockerClient, imageName); err != nil {
-		_ = dockerClient.Close()
-		t.Fatalf("ensure Docker image %s: %v", imageName, err)
+	if err := ensureDockerImage(ctx, dockerClient, cfg.Image); err != nil {
+		closeDockerClient(t, dockerClient)
+		t.Fatalf("ensure Docker image %s: %v", cfg.Image, err)
 	}
 
 	created, err := dockerClient.ContainerCreate(
 		ctx,
-		&container.Config{Image: imageName, Env: dockerContainerEnv(env)},
+		&container.Config{
+			Image:      cfg.Image,
+			Env:        dockerContainerEnv(cfg.Env),
+			Entrypoint: strslice.StrSlice(cfg.Entrypoint),
+			Cmd:        strslice.StrSlice(cfg.Cmd),
+		},
 		&container.HostConfig{NetworkMode: container.NetworkMode(DockerNetworkHost)},
 		nil,
 		nil,
 		"",
 	)
 	if err != nil {
-		_ = dockerClient.Close()
-		t.Fatalf("create Docker host-network container %s: %v", imageName, err)
+		closeDockerClient(t, dockerClient)
+		t.Fatalf("create Docker host-network container %s: %v", cfg.Image, err)
 	}
 
 	if err := dockerClient.ContainerStart(ctx, created.ID, container.StartOptions{}); err != nil {
-		_ = dockerClient.ContainerRemove(context.Background(), created.ID, container.RemoveOptions{Force: true})
-		_ = dockerClient.Close()
-		t.Fatalf("start Docker host-network container %s: %v", imageName, err)
+		cleanupDockerHostContainer(t, dockerClient, created.ID)
+		t.Fatalf("start Docker host-network container %s: %v", cfg.Image, err)
 	}
 
 	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		_ = dockerClient.ContainerRemove(ctx, created.ID, container.RemoveOptions{Force: true})
-		_ = dockerClient.Close()
+		cleanupDockerHostContainer(t, dockerClient, created.ID)
 	})
+}
+
+func cleanupDockerHostContainer(t testing.TB, dockerClient *client.Client, containerID string) {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := dockerClient.ContainerRemove(ctx, containerID, container.RemoveOptions{Force: true}); err != nil && !errdefs.IsNotFound(err) {
+		t.Errorf("remove Docker host-network container %s: %v", containerID, err)
+	}
+	closeDockerClient(t, dockerClient)
+}
+
+func closeDockerClient(t testing.TB, dockerClient *client.Client) {
+	t.Helper()
+
+	if err := dockerClient.Close(); err != nil {
+		t.Errorf("close Docker client: %v", err)
+	}
 }
 
 func dockerContainerEnv(env map[string]string) []string {

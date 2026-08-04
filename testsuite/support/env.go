@@ -34,6 +34,14 @@ const (
 	EnvRedisPasswordKey = "NODEMGR_TEST_REDIS_PASSWORD"
 	EnvRedisDBKey       = "NODEMGR_TEST_REDIS_DB"
 
+	EnvCMDBImageKey           = "NODEMGR_TEST_CMDB_IMAGE"
+	EnvCMDBEndpointKey        = "NODEMGR_TEST_CMDB_ENDPOINT"
+	EnvCMDBHostIPKey          = "NODEMGR_TEST_CMDB_HOST_IP"
+	EnvCMDBSupplierAccountKey = "NODEMGR_TEST_CMDB_SUPPLIER_ACCOUNT"
+	EnvCMDBVirtualUserKey     = "NODEMGR_TEST_CMDB_VIRTUAL_USER"
+	EnvCMDBAppCodeKey         = "NODEMGR_TEST_CMDB_APP_CODE"
+	EnvCMDBTenantIDKey        = "NODEMGR_TEST_CMDB_TENANT_ID"
+
 	integrationEnvPath = "testsuite/integration.env"
 )
 
@@ -51,6 +59,14 @@ type redisEnvConfig struct {
 	Username string
 	Password string
 	DB       int
+}
+
+type cmdbTargetConfig struct {
+	Endpoint        string
+	SupplierAccount string
+	VirtualUser     string
+	AppCode         string
+	TenantID        string
 }
 
 func readEnvFile(t testing.TB) (map[string]string, bool) {
@@ -97,6 +113,18 @@ func redisEnvFromValues(t testing.TB, values map[string]string) redisEnvConfig {
 		Username: configValue(values, EnvRedisUsernameKey),
 		Password: configValue(values, EnvRedisPasswordKey),
 		DB:       redisDB,
+	}
+}
+
+func cmdbEnvFromValues(t testing.TB, values map[string]string) cmdbTargetConfig {
+	t.Helper()
+
+	return cmdbTargetConfig{
+		Endpoint:        requiredConfigValue(t, values, EnvCMDBEndpointKey),
+		SupplierAccount: requiredConfigValue(t, values, EnvCMDBSupplierAccountKey),
+		VirtualUser:     requiredConfigValue(t, values, EnvCMDBVirtualUserKey),
+		AppCode:         configValue(values, EnvCMDBAppCodeKey),
+		TenantID:        cmdbTenantID(values),
 	}
 }
 
