@@ -63,7 +63,7 @@ func (h *handler) DetectInfoByWindowsSSH(nCtx contextx.IContext, payload []byte)
 		types.LoginMode(event.LoginMode),
 	)
 	if err != nil {
-		errMsg = "failed to create windows ssh client"
+		errMsg = fmt.Sprintf("failed to create windows ssh client: %v", err)
 		logger.G.Biz(nCtx).WithErr(err).With("ip", event.IP, "port", event.Port, "user", event.User).Error(errMsg)
 
 		return
