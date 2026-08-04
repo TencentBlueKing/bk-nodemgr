@@ -40,6 +40,6 @@ func LogInitialTargetInfo(step logger.Step) {
 			value = unknownValue
 		}
 
-		logger.Infof(step, fieldLogFormat, field.key, value)
+		logger.Debugf(step, fieldLogFormat, field.key, value)
 	}
 }

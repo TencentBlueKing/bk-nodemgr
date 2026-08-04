@@ -55,14 +55,14 @@ func TestLogInitialTargetInfoLogsFixedFields(t *testing.T) {
 
 	expectedLogs := []string{
 		expectedStartLine(),
-		expectedFieldInfoLine("goos", "linux"),
-		expectedFieldInfoLine("goarch", "amd64"),
-		expectedFieldInfoLine("hostname", "bk-node"),
-		expectedFieldInfoLine("current_time", "2026-07-08T10:11:12+08:00"),
-		expectedFieldInfoLine("timezone", "CST"),
-		expectedFieldInfoLine("timezone_offset", "+08:00"),
-		expectedFieldInfoLine("system_version", "BlueKing Linux"),
-		expectedFieldInfoLine("kernel_version", "6.6.0"),
+		expectedFieldDebugLine("goos", "linux"),
+		expectedFieldDebugLine("goarch", "amd64"),
+		expectedFieldDebugLine("hostname", "bk-node"),
+		expectedFieldDebugLine("current_time", "2026-07-08T10:11:12+08:00"),
+		expectedFieldDebugLine("timezone", "CST"),
+		expectedFieldDebugLine("timezone_offset", "+08:00"),
+		expectedFieldDebugLine("system_version", "BlueKing Linux"),
+		expectedFieldDebugLine("kernel_version", "6.6.0"),
 	}
 	assertEqualStrings(t, expectedLogs, logs)
 }
@@ -76,13 +76,13 @@ func TestLogInitialTargetInfoUsesUnknownWithoutWarningForEmptyValue(t *testing.T
 
 	expectedLogs := []string{
 		expectedStartLine(),
-		expectedFieldInfoLine("system_version", "unknown"),
+		expectedFieldDebugLine("system_version", "unknown"),
 	}
 	assertEqualStrings(t, expectedLogs, logs)
 	assertNoWarnLog(t, logs)
 }
 
-func TestLogInitialTargetInfoWarnsBeforeUnknownInfoOnFailure(t *testing.T) {
+func TestLogInitialTargetInfoWarnsBeforeUnknownDebugOnFailure(t *testing.T) {
 	collectErr := errors.New("collector failed")
 	setTargetInfoFields(t, []targetInfoField{
 		newTestField("system_version", "", collectErr),
@@ -94,8 +94,8 @@ func TestLogInitialTargetInfoWarnsBeforeUnknownInfoOnFailure(t *testing.T) {
 	expectedLogs := []string{
 		expectedStartLine(),
 		expectedFieldWarnLine("system_version", collectErr),
-		expectedFieldInfoLine("system_version", "unknown"),
-		expectedFieldInfoLine("kernel_version", "6.6.0"),
+		expectedFieldDebugLine("system_version", "unknown"),
+		expectedFieldDebugLine("kernel_version", "6.6.0"),
 	}
 	assertEqualStrings(t, expectedLogs, logs)
 }
@@ -122,11 +122,11 @@ func TestLogInitialTargetInfoDoesNotPanicWhenCollectorsFail(t *testing.T) {
 	assertEqualStrings(t, []string{expectedStartLine()}, logs[:1])
 	for i, field := range fields {
 		warnIndex := 1 + i*2
-		infoIndex := warnIndex + 1
+		debugIndex := warnIndex + 1
 		assertEqualStrings(t, []string{
 			expectedFieldWarnLine(field.key, collectErr),
-			expectedFieldInfoLine(field.key, "unknown"),
-		}, logs[warnIndex:infoIndex+1])
+			expectedFieldDebugLine(field.key, "unknown"),
+		}, logs[warnIndex:debugIndex+1])
 	}
 }
 
@@ -185,7 +185,7 @@ func captureInitialTargetInfoLogs(t *testing.T) []string {
 	log.SetOutput(&buf)
 	log.SetFlags(0)
 	log.SetPrefix("")
-	if err := logger.SetLevel(logger.LevelInfo); err != nil {
+	if err := logger.SetLevel(logger.LevelDebug); err != nil {
 		t.Fatalf("set logger level: %v", err)
 	}
 	t.Cleanup(func() {
@@ -230,8 +230,8 @@ func expectedStartLine() string {
 	return expectedLogLine("INFO", "installer initial target machine information:")
 }
 
-func expectedFieldInfoLine(key string, value string) string {
-	return expectedLogLine("INFO", fmt.Sprintf("target machine info: %s=%s", key, value))
+func expectedFieldDebugLine(key string, value string) string {
+	return expectedLogLine("DEBUG", fmt.Sprintf("target machine info: %s=%s", key, value))
 }
 
 func expectedFieldWarnLine(key string, err error) string {
