@@ -339,30 +339,32 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 // convertPluginWorkflowToTypes convert plugin workflow to types.
 func convertPluginWorkflowToTypes(data *Data) *types.PluginWorkflow {
 	return &types.PluginWorkflow{
-		TenantID:    data.TenantID,
-		WorkflowID:  data.WorkflowID,
-		TriggerID:   data.TriggerID,
-		Type:        types.PluginWorkflowType(data.Type),
-		HostIDs:     data.HostIDs,
-		BizIDs:      data.BizIDs,
-		Operator:    data.Operator,
-		OperateTime: data.OperateTime,
-		FinishTime:  data.FinishTime,
-		Status:      types.PluginWorkflowStatus(data.Status),
+		TenantID:        data.TenantID,
+		WorkflowID:      data.WorkflowID,
+		TriggerID:       data.TriggerID,
+		Type:            types.PluginWorkflowType(data.Type),
+		HostIDs:         data.HostIDs,
+		BizIDs:          data.BizIDs,
+		Operator:        data.Operator,
+		DeployPolicyIDs: data.DeployPolicyIDs,
+		OperateTime:     data.OperateTime,
+		FinishTime:      data.FinishTime,
+		Status:          types.PluginWorkflowStatus(data.Status),
 	}
 }
 
 // convertPluginWorkflowFromTypes convert plugin workflow from types.
 func convertPluginWorkflowFromTypes(workflow *types.PluginWorkflow) *Data {
 	return &Data{
-		TenantID:    workflow.TenantID,
-		WorkflowID:  workflow.WorkflowID,
-		TriggerID:   workflow.TriggerID,
-		Type:        string(workflow.Type),
-		HostIDs:     workflow.HostIDs,
-		BizIDs:      workflow.BizIDs,
-		Operator:    workflow.Operator,
-		OperateTime: workflow.OperateTime,
-		Status:      string(workflow.Status),
+		TenantID:        workflow.TenantID,
+		WorkflowID:      workflow.WorkflowID,
+		TriggerID:       workflow.TriggerID,
+		Type:            string(workflow.Type),
+		HostIDs:         workflow.HostIDs,
+		BizIDs:          workflow.BizIDs,
+		Operator:        workflow.Operator,
+		DeployPolicyIDs: workflow.DeployPolicyIDs,
+		OperateTime:     workflow.OperateTime,
+		Status:          string(workflow.Status),
 	}
 }

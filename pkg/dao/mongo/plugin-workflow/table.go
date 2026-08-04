@@ -26,16 +26,17 @@ var _ base.IData = &Data{}
 // Data represents the table of plugin workflow.
 // Token should be the unique key.
 type Data struct {
-	TenantID    string    `json:"tenant_id" bson:"tenant_id"`
-	WorkflowID  string    `json:"workflow_id" bson:"workflow_id"`
-	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
-	Type        string    `json:"type" bson:"type"`
-	HostIDs     []int64   `json:"host_ids" bson:"host_ids"`
-	BizIDs      []int64   `json:"biz_ids" bson:"biz_ids"`
-	Operator    string    `json:"operator" bson:"operator"`
-	OperateTime time.Time `json:"operate_time" bson:"operate_time"`
-	FinishTime  time.Time `json:"finish_time" bson:"finish_time"`
-	Status      string    `json:"status" bson:"status"`
+	TenantID        string    `json:"tenant_id" bson:"tenant_id"`
+	WorkflowID      string    `json:"workflow_id" bson:"workflow_id"`
+	TriggerID       string    `json:"trigger_id" bson:"trigger_id"`
+	Type            string    `json:"type" bson:"type"`
+	HostIDs         []int64   `json:"host_ids" bson:"host_ids"`
+	BizIDs          []int64   `json:"biz_ids" bson:"biz_ids"`
+	Operator        string    `json:"operator" bson:"operator"`
+	DeployPolicyIDs []int64   `json:"deploy_policy_ids" bson:"deploy_policy_ids"`
+	OperateTime     time.Time `json:"operate_time" bson:"operate_time"`
+	FinishTime      time.Time `json:"finish_time" bson:"finish_time"`
+	Status          string    `json:"status" bson:"status"`
 }
 
 // UniqueFields unique fields of the table.
