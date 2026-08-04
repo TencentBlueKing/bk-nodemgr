@@ -143,7 +143,7 @@ func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL
 			return
 		}
 
-		logger.Infof(plugin.StepDownloadFiles,
+		logger.Debugf(plugin.StepDownloadFiles,
 			"file downloading. file(%s), progress(%d/%d)", savedPath, current, total)
 
 		lastProgress = current
