@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -13,85 +15,18 @@ package cmdb
 
 import (
 	"context"
-	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/joho/godotenv"
 )
-
-// LoadAuthHeader load auth header from environment variables.
-func LoadAuthHeader() (apigwclient.AppConfig, error) {
-	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
-	header := make(map[string]string, 0)
-	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
-		return apigwclient.AppConfig{}, err
-	}
-
-	apigwAPPConfig := apigwclient.NewAppConfig(
-		[]string{os.Getenv("BK_APIGW_ENDPOINT")},
-		header["bk_app_code"],
-		header["bk_app_secret"])
-
-	return apigwAPPConfig, nil
-}
 
 // testClient ...
 func testClient(t *testing.T) IHandler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Helper()
 
-	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	clientCap := &restclient.Capability{
-		Name:                 "cmdb",
-		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
-		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
-		MetricOpts:           restclient.MetricOption{},
-		TraceSvc: func() tracing.IService {
-
-			traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-				ServiceName: "cmdb",
-				SampleRate:  0,
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			return traceSvc
-		}(),
-	}
-
-	apigwClientConfig, err := LoadAuthHeader()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	h, err := New(clientCap, &Config{
-		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
-		APIGWAppConfig:  apigwClientConfig,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return h
+	return newIntegrationHandler(t, newIntegrationTarget(t))
 }
 
 // Test_handler_ListBizHosts ...
