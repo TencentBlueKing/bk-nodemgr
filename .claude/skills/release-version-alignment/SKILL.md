@@ -9,7 +9,7 @@ Use this skill when preparing a new bk-nodemgr version release or verifying that
 
 This skill handles two scenarios:
 
-1. **Primary (complete release PR)**: prepare a new version release by aligning Helm versions, versioned changelog files, API Gateway resources/metadata only when resources changed, and PR metadata.
+1. **Primary (complete release PR)**: prepare a new version release by aligning Helm versions, API Gateway release metadata, versioned changelog files, API Gateway resources only when resources changed, and PR metadata.
 2. **Secondary (Helm-only follow-up)**: verify or fix missing Helm release-alignment fields for an already identified version.
 
 ## When to Use
@@ -53,13 +53,13 @@ Do not use this skill for tag surgery, CI/CD debugging, unrelated Helm configura
 
 3. **Only touch release-alignment fields.**
    - `Chart.yaml`: `version`, `appVersion`
-   - `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`; `apigwSync.config.release.version` and `apigwSync.config.release.comment` only when `apigw/resources.yaml` changes
+   - `install/helm/bk-nodemgr/values.yaml`: `image.tag`, `apiManagerImage.tag`; for complete release PRs, `apigwSync.config.release.version` and `apigwSync.config.release.comment`
    - `install/helm/mock-server/values.yaml`: `image.tag`
-   - `apigw/definition.yaml`: `release.version`, `release.comment` only when `apigw/resources.yaml` changes
+   - for complete release PRs, `apigw/definition.yaml`: `release.version`, `release.comment`
    - `support-files/changelog/{en,zh}/`: add the target version file only
 
-4. **Treat API Gateway release metadata as resource-sync metadata, not app-release metadata.**
-   Do not update `apigw/definition.yaml release.*` or `apigwSync.config.release.*` when `apigw/resources.yaml` does not change. When API Gateway resources do change, `release.version` uses the API Gateway release number, such as `2.14.1`, and `release.comment` uses the app version whose API Gateway resource contract is being released. In a multi-version release window, use the version at the resource-changing point in the window, not blindly the final target app version.
+4. **Separate API Gateway release metadata from API Gateway resource sync.**
+   For complete release PRs, always align `apigw/definition.yaml release.version/comment` and `apigwSync.config.release.version/comment` to the target system version without the leading `v`. For example, target `v3.0.1-alpha.65` means all four API Gateway metadata values are `3.0.1-alpha.65`. `apigw/resources.yaml` remains conditional and changes only when gateway-visible API resources changed.
 
 5. **Do not carry unrelated history into the PR.**
    If the current branch contains unrelated commits against the target `master` branch, create a clean branch and carry only the release-alignment changes.
@@ -71,7 +71,7 @@ Do not use this skill for tag surgery, CI/CD debugging, unrelated Helm configura
    Only use `closes #...` when the user explicitly wants the issue auto-closed after merge.
 
 8. **Stop when the target version or scope is unclear.**
-   If you cannot quickly confirm the release commit, target version, API Gateway release version when needed, or expected file set, stop and ask instead of inventing a bump.
+   If you cannot quickly confirm the release commit, target version, or expected file set, stop and ask instead of inventing a bump.
 
 9. **Do not turn this into tag surgery.**
    If the request shifts to tag timing, remote tag movement, or release landing uncertainty, read `references/tag-workflow.md` and treat it as a different task.
@@ -111,7 +111,7 @@ Extract only the facts you need:
 - whether the task is complete release PR or Helm-only follow-up
 - which files were updated
 - which fields changed: `version`, `appVersion`, `image.tag`, `apiManagerImage.tag`, `apigwSync.config.release.*`, `apigw/definition.yaml release.*`
-- for complete release PRs with `apigw/resources.yaml` changes, the API Gateway release version, such as `2.14.1`, and the app version represented by that resource change
+- for complete release PRs, confirm whether gateway-visible API resources changed; API Gateway release metadata still aligns to the target system version without `v`
 
 If you cannot extract the target version, mode, or expected field set from evidence, stop and ask the user.
 
@@ -129,7 +129,7 @@ If you cannot extract the target version, mode, or expected field set from evide
 Conditional API Gateway files:
 
 - Include `apigw/resources.yaml` only when gateway-visible swagger/proto/resource evidence requires a resource sync.
-- Include `apigw/definition.yaml` only together with `apigw/resources.yaml` metadata changes.
+- Include `apigw/definition.yaml` in complete release PRs to align release metadata, even when `apigw/resources.yaml` does not change.
 
 Primary release field expectations:
 
@@ -138,7 +138,7 @@ Primary release field expectations:
 - `mock-server/Chart.yaml`: `version`, `appVersion`
 - `mock-server/values.yaml`: `image.tag`
 - changelog files: heading `## [Version: <target version>] - YYYY-MM-DD`
-- API Gateway resource sync only: `apigw/definition.yaml release.version/comment` and `bk-nodemgr/values.yaml apigwSync.config.release.version/comment`
+- API Gateway metadata: `apigw/definition.yaml release.version/comment` and `bk-nodemgr/values.yaml apigwSync.config.release.version/comment` all equal `<target version without v>`
 
 **Secondary Helm-only follow-up allowed files:**
 
@@ -230,12 +230,11 @@ The verifier checks:
    Confirm every touched release field matches the appropriate version:
    - app version fields equal `X.Y.Z-alpha.N` or `vX.Y.Z-alpha.N`
    - `apiManagerImage.tag` is checked when present in the diff or when validating complete release alignment
-   - API Gateway `release.version` fields match each other only when APIGW release metadata is touched
-   - API Gateway `release.comment` fields match each other and refer to the app version associated with the resource change; this may be an intermediate version in the release window, not the final target version
+   - for complete release PRs, API Gateway `release.version` and `release.comment` fields in `apigw/definition.yaml` and `apigwSync.config.release.*` all equal the target system version without the leading `v`
 
 3. **Diff sanity check**
 
-   Expected: Helm diffs only change version/appVersion/tag lines, plus API Gateway release metadata lines only when `apigw/resources.yaml` also changes, with no template, dependency, or runtime setting changes.
+   Expected: Helm diffs only change version/appVersion/tag lines plus complete-release API Gateway metadata lines, with no template, dependency, or runtime setting changes.
 
 4. **Changelog check**
 
@@ -289,13 +288,18 @@ If Step 6 Check 4 fails for a complete release PR:
 3. Wait for user confirmation of the generated changelog.
 4. Resume from Step 6 and re-run verification.
 
-### Step 8 - API Gateway resource sync
+### Step 8 - API Gateway metadata and resource sync
 
-For complete release PRs, include API Gateway release metadata and resource sync only when evidence requires an `apigw/resources.yaml` update:
+For complete release PRs, always align API Gateway release metadata to the system release version without the leading `v`:
+
+- `apigw/definition.yaml`: update `release.version` and `release.comment`
+- `install/helm/bk-nodemgr/values.yaml`: update `apigwSync.config.release.version` and `apigwSync.config.release.comment`
+
+For example, target `v3.0.1-alpha.65` means these four metadata fields are all `3.0.1-alpha.65`.
+
+Keep API Gateway resource sync separate:
 
 - `apigw/resources.yaml`: update gateway-visible resource contracts when swagger/proto evidence requires it
-- `apigw/definition.yaml`: update `release.version` and `release.comment` together with `apigw/resources.yaml`
-- `install/helm/bk-nodemgr/values.yaml`: update `apigwSync.config.release.version` and `apigwSync.config.release.comment` together with `apigw/resources.yaml`
 
 If Step 6 Check 5 detects swagger changes that require `apigw/resources.yaml` updates:
 
@@ -312,10 +316,10 @@ If Step 6 Check 5 detects swagger changes that require `apigw/resources.yaml` up
 Important:
 
 - Not all swagger changes need to be synced to API Gateway.
-- If `apigw/resources.yaml` does not change, keep existing API Gateway release metadata unchanged even in a complete release PR.
-- If `apigw/resources.yaml` changes, derive `release.comment` from the app version where the resource change entered the release window, not automatically from the final target version.
+- If `apigw/resources.yaml` does not change, still align API Gateway release metadata to the target system version in complete release PRs.
+- If `apigw/resources.yaml` changes, update resources and keep API Gateway release metadata aligned to the final target system version.
 - Users may need to adjust descriptions, permissions, or routing policies.
-- If no gateway-visible swagger changes were detected, skip `apigw/resources.yaml` edits.
+- If no gateway-visible swagger changes were detected, skip only `apigw/resources.yaml` edits.
 
 ### Step 9 - Create the PR
 

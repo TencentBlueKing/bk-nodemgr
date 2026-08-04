@@ -25,7 +25,7 @@ Expected touched files:
 Conditional API Gateway files:
 
 - `apigw/resources.yaml` only when gateway-visible resources changed.
-- `apigw/definition.yaml` only when `apigw/resources.yaml` changed and release metadata must be advanced.
+- `apigw/definition.yaml` in complete release PRs to align release metadata.
 
 Expected fields:
 
@@ -34,9 +34,9 @@ Expected fields:
 - `install/helm/mock-server/Chart.yaml`: `version`, `appVersion`
 - `install/helm/mock-server/values.yaml`: `image.tag`
 - changelog heading: `## [Version: vX.Y.Z-alpha.N] - YYYY-MM-DD`
-- API Gateway resource sync only: `apigw/definition.yaml release.version/comment` and `install/helm/bk-nodemgr/values.yaml apigwSync.config.release.version/comment`
+- API Gateway metadata: `apigw/definition.yaml release.version/comment` and `install/helm/bk-nodemgr/values.yaml apigwSync.config.release.version/comment`
 
-Important: `release.version` in API Gateway files is an API Gateway release number such as `2.14.1`; `release.comment` carries the app version string whose `apigw/resources.yaml` contract is being released. If the release window ends at `v3.0.1-alpha.41` but the resource change was already released as `v3.0.1-alpha.40`, keep or use the `alpha.40` metadata instead of blindly bumping to `alpha.41`.
+Important: complete release PRs always align API Gateway metadata to the target system version without the leading `v`. For target `v3.0.1-alpha.65`, set all four API Gateway metadata fields to `3.0.1-alpha.65`. `apigw/resources.yaml` remains conditional and changes only when gateway-visible resources changed.
 
 Complete-release PR title example:
 
@@ -156,7 +156,7 @@ closes #1502
 | Current branch has unrelated commits relative to `origin/master` | Create a clean branch from `origin/master` |
 | Helm-only follow-up only needs `apiManagerImage.tag` | Touch only that field |
 | Complete release needs localized changelog | Use `support-files/changelog/{en,zh}/vX.Y.Z-alpha.N_YYYY-MM-DD.md` |
-| Complete release has no `apigw/resources.yaml` change | Do not touch API Gateway release metadata |
-| `apigw/resources.yaml` changed in the release window | Update API Gateway release metadata for the resource-changing app version |
+| Complete release has no `apigw/resources.yaml` change | Align API Gateway metadata to `vX.Y.Z-alpha.N` without `v`; do not touch resources |
+| `apigw/resources.yaml` changed in the release window | Update resources and align API Gateway metadata to `vX.Y.Z-alpha.N` without `v` |
 | User says do not close the issue | Use `refs #...` |
 | User says merge should auto-close the issue | Use `closes #...` |
