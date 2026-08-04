@@ -39,15 +39,16 @@ func (mgr *Manager) LaunchInstallPlugin(
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
-		TenantID:    nCtx.TenantID(),
-		WorkflowID:  workflowID,
-		TriggerID:   triggerCtl.GetTriggerID(),
-		Type:        param.Type,
-		HostIDs:     param.HostIDs,
-		BizIDs:      param.BizIDs,
-		Operator:    param.Operator,
-		OperateTime: time.Now(),
-		Status:      types.PluginWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}
@@ -135,15 +136,16 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
-		TenantID:    nCtx.TenantID(),
-		WorkflowID:  workflowID,
-		TriggerID:   triggerCtl.GetTriggerID(),
-		Type:        param.Type,
-		HostIDs:     param.HostIDs,
-		BizIDs:      param.BizIDs,
-		Operator:    param.Operator,
-		OperateTime: time.Now(),
-		Status:      types.PluginWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}
@@ -224,15 +226,16 @@ func (mgr *Manager) LaunchUninstallPlugin(nCtx contextx.IContext, param types.Un
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
-		TenantID:    nCtx.TenantID(),
-		WorkflowID:  workflowID,
-		TriggerID:   triggerCtl.GetTriggerID(),
-		Type:        param.Type,
-		HostIDs:     param.HostIDs,
-		BizIDs:      param.BizIDs,
-		Operator:    param.Operator,
-		OperateTime: time.Now(),
-		Status:      types.PluginWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}
@@ -313,15 +316,16 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
-		TenantID:    nCtx.TenantID(),
-		WorkflowID:  workflowID,
-		TriggerID:   triggerCtl.GetTriggerID(),
-		Type:        param.Type,
-		HostIDs:     param.HostIDs,
-		BizIDs:      param.BizIDs,
-		Operator:    param.Operator,
-		OperateTime: time.Now(),
-		Status:      types.PluginWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		HostIDs:         param.HostIDs,
+		BizIDs:          param.BizIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.PluginWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}

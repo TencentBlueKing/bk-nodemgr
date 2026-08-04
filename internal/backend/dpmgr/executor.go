@@ -13,6 +13,7 @@ package dpmgr
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
@@ -157,6 +158,20 @@ func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*Change
 	return nil
 }
 
+func collectDeployPolicyIDs(tasks []*ChangeTask) []int64 {
+	policyIDMap := make(map[int64]struct{})
+	for _, task := range tasks {
+		policyIDMap[task.DeployPolicyID] = struct{}{}
+	}
+
+	policyIDs := conv.MapKeyToSlice(policyIDMap)
+	sort.Slice(policyIDs, func(i, j int) bool {
+		return policyIDs[i] < policyIDs[j]
+	})
+
+	return policyIDs
+}
+
 func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
@@ -200,6 +215,7 @@ func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          bizIDs,
 		Operator:        access.GetVirtualUser(),
+		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
@@ -255,6 +271,7 @@ func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IConte
 		Type:            types.NodeWorkflowTypeUninstallAgent,
 		BizIDs:          bizIDs,
 		Operator:        access.GetVirtualUser(),
+		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
@@ -310,6 +327,7 @@ func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          bizIDs,
 		Operator:        access.GetVirtualUser(),
+		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
@@ -356,6 +374,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
@@ -393,6 +412,7 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
@@ -434,6 +454,7 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
@@ -477,6 +498,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
@@ -544,6 +566,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
@@ -588,6 +611,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
@@ -626,6 +650,7 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
+		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {

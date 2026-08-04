@@ -37,17 +37,18 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.Instal
 	workflowID := identifier.GenWorkflowID()
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
-		TenantID:       nCtx.TenantID(),
-		WorkflowID:     workflowID,
-		TriggerID:      triggerCtl.GetTriggerID(),
-		Type:           param.Type,
-		BizIDs:         param.BizIDs,
-		NodeRoles:      nodeRoles,
-		NetworkAreaIDs: areaIDs,
-		NetworkUnitIDs: unitIDs,
-		Operator:       param.Operator,
-		OperateTime:    time.Now(),
-		Status:         types.NodeWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		BizIDs:          param.BizIDs,
+		NodeRoles:       nodeRoles,
+		NetworkAreaIDs:  areaIDs,
+		NetworkUnitIDs:  unitIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.NodeWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}
@@ -420,17 +421,18 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 	workflowID := identifier.GenWorkflowID()
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
-		TenantID:       nCtx.TenantID(),
-		WorkflowID:     workflowID,
-		TriggerID:      triggerCtl.GetTriggerID(),
-		Type:           param.Type,
-		BizIDs:         param.BizIDs,
-		NodeRoles:      nodeRoles,
-		NetworkAreaIDs: areaIDs,
-		NetworkUnitIDs: unitIDs,
-		Operator:       param.Operator,
-		OperateTime:    time.Now(),
-		Status:         types.NodeWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		BizIDs:          param.BizIDs,
+		NodeRoles:       nodeRoles,
+		NetworkAreaIDs:  areaIDs,
+		NetworkUnitIDs:  unitIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.NodeWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}
@@ -689,17 +691,18 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 	workflowID := identifier.GenWorkflowID()
 	areaIDs, unitIDs, nodeRoles := collectDeploymentIDs(param.NodeDeployments)
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
-		TenantID:       nCtx.TenantID(),
-		WorkflowID:     workflowID,
-		TriggerID:      triggerCtl.GetTriggerID(),
-		Type:           param.Type,
-		BizIDs:         param.BizIDs,
-		NodeRoles:      nodeRoles,
-		NetworkAreaIDs: areaIDs,
-		NetworkUnitIDs: unitIDs,
-		Operator:       param.Operator,
-		OperateTime:    time.Now(),
-		Status:         types.NodeWorkflowStatusRunning,
+		TenantID:        nCtx.TenantID(),
+		WorkflowID:      workflowID,
+		TriggerID:       triggerCtl.GetTriggerID(),
+		Type:            param.Type,
+		BizIDs:          param.BizIDs,
+		NodeRoles:       nodeRoles,
+		NetworkAreaIDs:  areaIDs,
+		NetworkUnitIDs:  unitIDs,
+		Operator:        param.Operator,
+		DeployPolicyIDs: param.DeployPolicyIDs,
+		OperateTime:     time.Now(),
+		Status:          types.NodeWorkflowStatusRunning,
 	}); err != nil {
 		return "", err
 	}
