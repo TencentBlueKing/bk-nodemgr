@@ -311,34 +311,36 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 // convertNodeWorkflowToTypes convert node workflow to types.
 func convertNodeWorkflowToTypes(data *Data) *types.NodeWorkflow {
 	return &types.NodeWorkflow{
-		TenantID:       data.TenantID,
-		WorkflowID:     data.WorkflowID,
-		TriggerID:      data.TriggerID,
-		Type:           types.NodeWorkflowType(data.Type),
-		BizIDs:         data.BizIDs,
-		NetworkAreaIDs: data.NetworkAreaIDs,
-		NetworkUnitIDs: data.NetworkUnitIDs,
-		NodeRoles:      types.StringListToNodeRoleList(data.NodeRoles),
-		Operator:       data.Operator,
-		OperateTime:    data.OperateTime,
-		FinishTime:     data.FinishTime,
-		Status:         types.NodeWorkflowStatus(data.Status),
+		TenantID:        data.TenantID,
+		WorkflowID:      data.WorkflowID,
+		TriggerID:       data.TriggerID,
+		Type:            types.NodeWorkflowType(data.Type),
+		BizIDs:          data.BizIDs,
+		NetworkAreaIDs:  data.NetworkAreaIDs,
+		NetworkUnitIDs:  data.NetworkUnitIDs,
+		NodeRoles:       types.StringListToNodeRoleList(data.NodeRoles),
+		Operator:        data.Operator,
+		DeployPolicyIDs: data.DeployPolicyIDs,
+		OperateTime:     data.OperateTime,
+		FinishTime:      data.FinishTime,
+		Status:          types.NodeWorkflowStatus(data.Status),
 	}
 }
 
 // convertNodeWorkflowFromTypes convert node workflow from types.
 func convertNodeWorkflowFromTypes(workflow *types.NodeWorkflow) *Data {
 	return &Data{
-		TenantID:       workflow.TenantID,
-		WorkflowID:     workflow.WorkflowID,
-		TriggerID:      workflow.TriggerID,
-		Type:           string(workflow.Type),
-		BizIDs:         workflow.BizIDs,
-		NetworkAreaIDs: workflow.NetworkAreaIDs,
-		NetworkUnitIDs: workflow.NetworkUnitIDs,
-		NodeRoles:      types.NodeRoleListToStringList(workflow.NodeRoles),
-		Operator:       workflow.Operator,
-		OperateTime:    workflow.OperateTime,
-		Status:         string(workflow.Status),
+		TenantID:        workflow.TenantID,
+		WorkflowID:      workflow.WorkflowID,
+		TriggerID:       workflow.TriggerID,
+		Type:            string(workflow.Type),
+		BizIDs:          workflow.BizIDs,
+		NetworkAreaIDs:  workflow.NetworkAreaIDs,
+		NetworkUnitIDs:  workflow.NetworkUnitIDs,
+		NodeRoles:       types.NodeRoleListToStringList(workflow.NodeRoles),
+		Operator:        workflow.Operator,
+		DeployPolicyIDs: workflow.DeployPolicyIDs,
+		OperateTime:     workflow.OperateTime,
+		Status:          string(workflow.Status),
 	}
 }
