@@ -85,19 +85,18 @@
         "target version unclear",
         "reference commit unclear",
         "mode unclear",
-        "API Gateway release version unclear for complete release",
         "file scope exceeds mode-specific target files",
         "request mixes version alignment with unrelated changes"
       ]
     },
-    "api_gateway_version_rule": "apigw release.version and apigwSync.config.release.version are API Gateway release numbers; release.comment carries the app version string"
+    "api_gateway_version_rule": "For complete release PRs, apigw release.version/comment and apigwSync.config.release.version/comment equal the target system version without the leading v; apigw/resources.yaml remains conditional on gateway-visible resource changes"
   },
   "verification": {
     "script": "scripts/verify-alignment.sh",
     "checks": [
       "file scope: complete release files or Helm-only allowed subset",
       "version alignment: all touched version/appVersion/image.tag/apiManagerImage.tag fields match target",
-      "API Gateway metadata: release.version values match each other and release.comment values match target app version",
+      "API Gateway metadata: complete releases require definition and values release.version/comment to equal the target version without v",
       "diff sanity: no template, dependency, or runtime setting changes",
       "changelog: complete release has both support-files/changelog/en and support-files/changelog/zh target version files",
       "gateway resource sync: gateway-visible backend swagger changes require apigw/resources.yaml in the same version window"

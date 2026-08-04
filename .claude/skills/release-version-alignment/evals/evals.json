@@ -148,10 +148,10 @@
         "reason": "cannot proceed without clear target version"
       },
       {
-        "scenario": "API Gateway release.version 不是 app version",
-        "input": "complete release evidence shows apigw/definition.yaml release.version 2.14.1 and release.comment v3.0.1-alpha.40",
-        "expected_action": "verify release.version as API Gateway release number and release.comment as target app version",
-        "reason": "d41ee72 shows API Gateway release.version is not the app version string"
+        "scenario": "API Gateway metadata 使用系统版本",
+        "input": "complete release target is v3.0.1-alpha.66 and release-window evidence has no apigw/resources.yaml change",
+        "expected_action": "still update and verify apigw/definition.yaml release.version/comment plus install/helm/bk-nodemgr/values.yaml apigwSync.config.release.version/comment all equal 3.0.1-alpha.66",
+        "reason": "API Gateway release metadata follows the target system version without the leading v, independently from apigw/resources.yaml sync"
       },
       {
         "scenario": "验证发现 localized changelog 缺失",
