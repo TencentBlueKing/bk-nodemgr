@@ -358,8 +358,8 @@ const handleDeleteWorkarea = (bk_networkarea_id: number) => {
   InfoBox({
     title: t('topoManager.workArea.delete.title', { x: workareaData.bk_networkarea_name || '' }),
     cancelText: t('action.cancel'),
-    onConfirm() {
-      workareaStore.handleDeleteWorkarea(bk_networkarea_id);
+    async onConfirm() {
+      await workareaStore.handleDeleteWorkarea(bk_networkarea_id);
       workareaStore.handleFetchWorkareaList();
     },
   });
