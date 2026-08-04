@@ -23,6 +23,7 @@ type InstallNodeParam struct {
 	Type            NodeWorkflowType
 	BizIDs          []int64
 	Operator        string
+	DeployPolicyIDs []int64
 	NodeDeployments []*NodeDeployment
 }
 
@@ -31,6 +32,7 @@ type UpgradeNodeParam struct {
 	Type            NodeWorkflowType
 	BizIDs          []int64
 	Operator        string
+	DeployPolicyIDs []int64
 	NodeDeployments []*NodeDeployment
 }
 
@@ -55,6 +57,7 @@ type UninstallNodeParam struct {
 	Type            NodeWorkflowType
 	BizIDs          []int64
 	Operator        string
+	DeployPolicyIDs []int64
 	NodeDeployments []*NodeDeployment
 }
 
@@ -95,6 +98,7 @@ type InstallPluginParam struct {
 	HostIDs           []int64
 	BizIDs            []int64
 	Operator          string
+	DeployPolicyIDs   []int64
 	PluginDeployments []*PluginDeployment
 }
 
@@ -104,6 +108,7 @@ type UpgradePluginParam struct {
 	HostIDs           []int64
 	BizIDs            []int64
 	Operator          string
+	DeployPolicyIDs   []int64
 	PluginDeployments []*PluginDeployment
 }
 
@@ -113,6 +118,7 @@ type UninstallPluginParam struct {
 	HostIDs           []int64
 	BizIDs            []int64
 	Operator          string
+	DeployPolicyIDs   []int64
 	PluginDeployments []*PluginDeployment
 }
 
@@ -149,6 +155,7 @@ type ApplyPluginSubConfigParam struct {
 	HostIDs           []int64
 	BizIDs            []int64
 	Operator          string
+	DeployPolicyIDs   []int64
 	PluginDeployments []*PluginDeployment
 }
 
