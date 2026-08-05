@@ -60,9 +60,9 @@ var currentLevel atomic.Int32 // nolint: gochecknoglobals
 // installer.LogFieldSeparator and installer.LogFieldCount in pkg/installer/constant.go.
 const logFormat = "| %-5s | %-15s | %s"
 
-// init default log level.
+// The installer interacts directly with the target system, so keep debug diagnostics by default.
 func init() { // nolint: gochecknoinits
-	currentLevel.Store(int32(LevelInfo))
+	currentLevel.Store(int32(LevelDebug))
 }
 
 // SetLevel changes the current logging level
