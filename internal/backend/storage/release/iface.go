@@ -63,6 +63,12 @@ type IProxy interface {
 
 	// CancelAsDefaultReleaseProxy cancels the proxy release as default.
 	CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// VisibleReleaseProxy makes the proxy release visible to the frontend.
+	VisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// UnvisibleReleaseProxy hides the proxy release from the frontend.
+	UnvisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
 }
 
 // IAgent define the agent interface.
@@ -98,6 +104,12 @@ type IAgent interface {
 
 	// CancelAsDefaultReleaseAgent cancels the agent release as default.
 	CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// VisibleReleaseAgent makes the agent release visible to the frontend.
+	VisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// UnvisibleReleaseAgent hides the agent release from the frontend.
+	UnvisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
 }
 
 // IPlugin define the plugin interface.
@@ -126,6 +138,12 @@ type IPlugin interface {
 
 	// CancelAsDefaultReleasePlugin cancels the plugin release as default.
 	CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// VisibleReleasePlugin makes the plugin release visible to the frontend.
+	VisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// UnvisibleReleasePlugin hides the plugin release from the frontend.
+	UnvisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
 
 	// ExistReleasePlugin exist plugin release.
 	ExistReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (bool, error)

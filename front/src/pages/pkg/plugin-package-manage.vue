@@ -235,20 +235,20 @@
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  :confirm-text="$t('pluginPackage.disable')"
-                  @confirm="handleDisabled(row)"
+                  :confirm-text="row.is_visible ? $t('pluginPackage.disableAndUnvisible') : $t('pluginPackage.disable')"
+                  @confirm="row.is_visible ? handleDisableAndUnvisible(row) : handleDisabled(row)"
                 >
                   <Button
                     class="mr-[8px]"
                     theme="primary"
                     text
-                    v-show="row.enabled"
+                    v-if="row.enabled"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.name)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
                     @mousemove="manageMouseMove($event, hasManageAuth)"
                     @mouseleave="manageMouseLeave()"
-                  >{{ $t('pluginPackage.disable') }}</Button>
+                  >{{ row.is_visible ? $t('pluginPackage.disableAndUnvisible') : $t('pluginPackage.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
@@ -267,11 +267,24 @@
                   text
                   v-if="!row.enabled"
                   :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleEnabled(row) : manageAuthClick($event, row.name)"
+                  @click="hasManageAuth ? handleEnableAndVisible(row) : manageAuthClick($event, row.name)"
                   @mouseenter="manageMouseEnter($event, hasManageAuth)"
                   @mousemove="manageMouseMove($event, hasManageAuth)"
                   @mouseleave="manageMouseLeave()"
-                >{{ $t('pluginPackage.enable') }}</Button>
+                >{{ $t('pluginPackage.enableAndVisible') }}</Button>
+                <Button
+                  class="mr-[8px]"
+                  theme="primary"
+                  text
+                  v-if="row.enabled"
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  @click="hasManageAuth
+                    ? (row.is_visible ? handleUnvisible(row) : handleVisible(row))
+                    : manageAuthClick($event, row.name)"
+                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  @mouseleave="manageMouseLeave()"
+                >{{ row.is_visible ? $t('pluginPackage.unvisible') : $t('pluginPackage.visible') }}</Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
@@ -779,8 +792,20 @@ const handleDisabled = async (row: Release) => {
   await PackageService.DisableReleasePlugin(getParams(row));
   await getPackages();
 };
-const handleEnabled = async (row: Release) => {
-  await PackageService.EnableReleasePlugin(getParams(row));
+const handleEnableAndVisible = async (row: Release) => {
+  await PackageService.EnableAndVisibleReleasePlugin(getParams(row));
+  await getPackages();
+};
+const handleDisableAndUnvisible = async (row: Release) => {
+  await PackageService.DisableAndUnvisibleReleasePlugin(getParams(row));
+  await getPackages();
+};
+const handleVisible = async (row: Release) => {
+  await PackageService.VisibleReleasePlugin(getParams(row));
+  await getPackages();
+};
+const handleUnvisible = async (row: Release) => {
+  await PackageService.UnvisibleReleasePlugin(getParams(row));
   await getPackages();
 };
 const handleDelete = async (row: Release) => {

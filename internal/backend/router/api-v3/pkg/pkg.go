@@ -80,6 +80,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/agent/disable", restserver.Handler(h.DisableReleaseAgent))
 	h.rg.POST("/release/agent/set_as_default", restserver.Handler(h.SetAsDefaultReleaseAgent))
 	h.rg.POST("/release/agent/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseAgent))
+	h.rg.POST("/release/agent/visible", restserver.Handler(h.VisibleReleaseAgent))
+	h.rg.POST("/release/agent/unvisible", restserver.Handler(h.UnvisibleReleaseAgent))
 	h.rg.POST("/release/agent/delete", restserver.Handler(h.DeleteReleaseAgent))
 
 	// release proxy.
@@ -91,6 +93,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/proxy/disable", restserver.Handler(h.DisableReleaseProxy))
 	h.rg.POST("/release/proxy/set_as_default", restserver.Handler(h.SetAsDefaultReleaseProxy))
 	h.rg.POST("/release/proxy/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseProxy))
+	h.rg.POST("/release/proxy/visible", restserver.Handler(h.VisibleReleaseProxy))
+	h.rg.POST("/release/proxy/unvisible", restserver.Handler(h.UnvisibleReleaseProxy))
 	h.rg.POST("/release/proxy/delete", restserver.Handler(h.DeleteReleaseProxy))
 
 	// release plugin.
@@ -100,6 +104,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/plugin/disable", restserver.Handler(h.DisableReleasePlugin))
 	h.rg.POST("/release/plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
 	h.rg.POST("/release/plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
+	h.rg.POST("/release/plugin/visible", restserver.Handler(h.VisibleReleasePlugin))
+	h.rg.POST("/release/plugin/unvisible", restserver.Handler(h.UnvisibleReleasePlugin))
 	h.rg.POST("/release/plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
 	h.rg.POST("/release/plugin/get_config_variables", restserver.Handler(h.GetConfigVariablesReleasePlugin))
 

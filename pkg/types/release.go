@@ -146,6 +146,7 @@ type Release struct {
 	FileName     string
 	MD5          string
 	Enabled      bool
+	IsVisible    bool
 	AsDefault    bool
 	UpdatedAt    time.Time
 	Operator     string

@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -12,253 +14,190 @@ package release
 
 import (
 	"context"
-	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
+)
+
+const (
+	releaseVersionBeta1 = "v2.1.6-beta.1"
+	releaseVersionBeta2 = "v2.1.6-beta.2"
 )
 
 func testClient(t *testing.T) IHandler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
+	t.Helper()
+
+	_, db := support.RequireMongoDatabase(t)
+	return New(db)
+}
+
+func testContext() contextx.IContext {
+	return contextx.New(context.Background())
+}
+
+func prepareData(t *testing.T, nCtx contextx.IContext) IHandler {
+	t.Helper()
+
+	client := testClient(t)
+	if err := client.UpsertMany(nCtx, types.ReleaseTypeAgent, releaseFixtures()...); err != nil {
+		t.Fatalf("failed to prepare releases: %v", err)
 	}
 
-	nCtx := context.Background()
-	mongoClient, err := mongo.Connect(
-		nCtx,
-		&options.ClientOptions{
-			Hosts: []string{
-				os.Getenv("MONGO_ADDRESS"),
+	return client
+}
+
+func releaseFixtures() []*types.Release {
+	return []*types.Release{
+		{
+			Name:       "agent-linux-amd64",
+			Generation: types.Generation2,
+			Type:       types.ReleaseTypeAgent,
+			Version:    releaseVersionBeta1,
+			Platform: platfmt.Platform{
+				OS:   criteria.OSLinux,
+				Arch: criteria.CPUArchAmd64,
 			},
-			Auth: &options.Credential{
-				Username:      os.Getenv("MONGO_USER"),
-				Password:      os.Getenv("MONGO_PASSWORD"),
-				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
-				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
-			},
+			Labels:   []string{"test"},
+			FileName: "v2.1.6-beta.1-linux-amd64.tgz",
 		},
-	)
-	if err != nil {
-		t.Fatal(err)
+		{
+			Name:       "agent-linux-arm64",
+			Generation: types.Generation2,
+			Type:       types.ReleaseTypeAgent,
+			Version:    releaseVersionBeta1,
+			Platform: platfmt.Platform{
+				OS:   criteria.OSLinux,
+				Arch: criteria.CPUArchArm64,
+			},
+			Labels:   []string{"test"},
+			FileName: "v2.1.6-beta.1-linux-arm64.tgz",
+		},
+		{
+			Name:       "agent-windows-amd64",
+			Generation: types.Generation2,
+			Type:       types.ReleaseTypeAgent,
+			Version:    releaseVersionBeta2,
+			Platform: platfmt.Platform{
+				OS:   criteria.OSWindows,
+				Arch: criteria.CPUArchAmd64,
+			},
+			Labels:   []string{"test"},
+			FileName: "v2.1.6-beta.2-windows-amd64.tgz",
+		},
 	}
-
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // Test_UpsertMany tests the upsert many.
 func Test_UpsertMany(t *testing.T) {
+	nCtx := testContext()
 	client := testClient(t)
 
-	type args struct {
-		releases []*types.Release
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				releases: []*types.Release{
-					{
-						Generation: types.Generation2,
-						Type:       types.ReleaseTypeAgent,
-						Version:    "v2.1.6-beta.1",
-						Platform: platfmt.Platform{
-							OS:   criteria.OSLinux,
-							Arch: criteria.CPUArchAmd64,
-						},
-						Labels:      []string{"test"},
-						ChangeLogEN: "test",
-						ChangeLogZH: "test",
-						FileName:    "v2.1.6-beta.1-linux-amd64.tgz",
-						LocalDir:    "agent/",
-						UpstreamDir: "agent/",
-					},
-					{
-						Generation: types.Generation2,
-						Type:       types.ReleaseTypeAgent,
-						Version:    "v2.1.6-beta.1",
-						Platform: platfmt.Platform{
-							OS:   criteria.OSLinux,
-							Arch: criteria.CPUArchArm64,
-						},
-						Labels:      []string{"test"},
-						ChangeLogEN: "test",
-						ChangeLogZH: "test",
-						FileName:    "v2.1.6-beta.1-linux-arm64.tgz",
-						LocalDir:    "agent/",
-						UpstreamDir: "agent/",
-					},
-					{
-						Generation: types.Generation2,
-						Type:       types.ReleaseTypeAgent,
-						Version:    "v2.1.6-beta.2",
-						Platform: platfmt.Platform{
-							OS:   criteria.OSWindows,
-							Arch: criteria.CPUArchArm64,
-						},
-						Labels:      []string{"test"},
-						ChangeLogEN: "test",
-						ChangeLogZH: "test",
-						FileName:    "v2.1.6-beta.2-windows-amd64.tgz",
-						LocalDir:    "agent/",
-						UpstreamDir: "agent/",
-					},
-				},
-			},
-			wantErr: false,
-		},
+	if err := client.UpsertMany(nCtx, types.ReleaseTypeAgent, releaseFixtures()...); err != nil {
+		t.Fatalf("UpsertMany() error = %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := client.UpsertMany(context.Background(), "", tt.args.releases...); (err != nil) != tt.wantErr {
-				t.Errorf("UpsertMany() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+	total, err := client.Count(nCtx, types.ReleaseTypeAgent)
+	if err != nil {
+		t.Fatalf("Count() error = %v", err)
+	}
+
+	if total != 3 {
+		t.Fatalf("Count() total = %d, want %d", total, 3)
 	}
 }
 
-// Test_Get tests the Get.
 func Test_Get(t *testing.T) {
-	client := testClient(t)
+	nCtx := testContext()
+	client := prepareData(t, nCtx)
 
-	type args struct {
-		generation  types.Generation
-		releaseType types.ReleaseType
-		version     string
-		platform    platfmt.Platform
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				generation:  types.Generation2,
-				releaseType: types.ReleaseTypeAgent,
-				version:     "v2.1.6-beta.1",
-				platform: platfmt.Platform{
-					OS:   criteria.OSLinux,
-					Arch: criteria.CPUArchAmd64,
-				},
-			},
-			wantErr: false,
-		},
+	got, err := client.Get(
+		nCtx,
+		types.ReleaseTypeAgent,
+		WithGeneration(types.Generation2),
+		WithVersion(releaseVersionBeta1),
+		WithPlatform(platfmt.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}),
+	)
+	if err != nil {
+		t.Fatalf("Get() error = %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			release, err := client.Get(context.Background(), tt.args.releaseType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+	if got == nil {
+		t.Fatal("Get() got nil release")
+	}
 
-			t.Logf("got release: %v", release)
-		})
+	if got.FileName != "v2.1.6-beta.1-linux-amd64.tgz" {
+		t.Fatalf("Get() fileName = %q, want %q", got.FileName, "v2.1.6-beta.1-linux-amd64.tgz")
 	}
 }
 
-// Test_List tests the List.
 func Test_List(t *testing.T) {
-	client := testClient(t)
+	nCtx := testContext()
+	client := prepareData(t, nCtx)
 
-	type args struct {
-		page types.Page
-		opts []OptFn
-	}
-	tests := []struct {
-		name      string
-		args      args
-		wantNum   int64
-		wantTotal int64
-		wantErr   bool
-	}{
-		{
-			name: "filter by version",
-			args: args{
-				page: types.Page{Offset: 0, Limit: 10},
-				opts: []OptFn{
-					WithVersion("v2.1.6-beta.1"),
-				},
-			},
-			wantNum:   2,
-			wantTotal: 2,
-			wantErr:   false,
-		},
+	releases, total, err := client.List(
+		nCtx,
+		types.ReleaseTypeAgent,
+		types.Page{Offset: 0, Limit: 10},
+		WithVersion(releaseVersionBeta1),
+	)
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			releases, total, err := client.List(context.Background(), "", tt.args.page, tt.args.opts...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+	if len(releases) != 2 {
+		t.Fatalf("List() gotNum = %d, want %d", len(releases), 2)
+	}
 
-			if len(releases) != int(tt.wantNum) {
-				t.Errorf("List() gotNum = %v, want %v", len(releases), tt.wantNum)
-				return
-			}
-
-			if total != tt.wantTotal {
-				t.Errorf("List() gotTotal = %v, want %v", total, tt.wantTotal)
-				return
-			}
-
-			for _, r := range releases {
-				t.Logf("got release: %v", r)
-			}
-		})
+	if total != 2 {
+		t.Fatalf("List() total = %d, want %d", total, 2)
 	}
 }
 
-// Test_Delete tests the Delete.
 func Test_Delete(t *testing.T) {
-	client := testClient(t)
+	nCtx := testContext()
+	client := prepareData(t, nCtx)
 
-	type args struct {
-		generation  types.Generation
-		releaseType types.ReleaseType
-		version     string
-		platform    platfmt.Platform
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "delete by version",
-			args: args{
-				generation:  types.Generation2,
-				releaseType: types.ReleaseTypeAgent,
-				version:     "v2.1.6-beta.1",
-				platform: platfmt.Platform{
-					OS:   criteria.OSLinux,
-					Arch: criteria.CPUArchAmd64,
-				},
-			},
-			wantErr: false,
-		},
+	if err := client.Delete(nCtx, types.ReleaseTypeAgent, WithVersion(releaseVersionBeta1)); err != nil {
+		t.Fatalf("Delete() error = %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := client.Delete(context.Background(), tt.args.releaseType); (err != nil) != tt.wantErr {
-				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+	total, err := client.Count(nCtx, types.ReleaseTypeAgent)
+	if err != nil {
+		t.Fatalf("Count() error = %v", err)
+	}
+
+	if total != 1 {
+		t.Fatalf("Count() total = %d, want %d", total, 1)
+	}
+}
+
+func Test_SetVisible(t *testing.T) {
+	nCtx := testContext()
+	client := prepareData(t, nCtx)
+
+	if err := client.SetVisible(nCtx, types.ReleaseTypeAgent, true, WithVersion(releaseVersionBeta1)); err != nil {
+		t.Fatalf("SetVisible() error = %v", err)
+	}
+
+	visibleCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsVisible(true))
+	if err != nil {
+		t.Fatalf("Count() visible error = %v", err)
+	}
+
+	if visibleCount != 2 {
+		t.Fatalf("Count() visible total = %d, want %d", visibleCount, 2)
+	}
+
+	hiddenCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsVisible(false))
+	if err != nil {
+		t.Fatalf("Count() hidden error = %v", err)
+	}
+
+	if hiddenCount != 1 {
+		t.Fatalf("Count() hidden total = %d, want %d", hiddenCount, 1)
 	}
 }

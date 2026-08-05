@@ -234,6 +234,7 @@ message Release {
   optional string md5 = 11;
   optional uint64 updated_at = 12;
   optional string operator = 13;
+  optional bool is_visible = 14;
 }
 
 message ReleaseAgent {
@@ -249,6 +250,7 @@ message ReleaseAgentBrief {
   optional string version = 4;
   optional bool enabled = 5;
   optional bool as_default = 6;
+  optional bool is_visible = 7;
 }
 
 message ReleaseProxy {
@@ -268,6 +270,7 @@ message ReleaseProxyBrief {
   optional bool as_default = 6;
   optional string change_log_en = 7;
   optional string change_log_zh = 8;
+  optional bool is_visible = 9;
 }
 
 // ReleasePlugin describes the release plugin.
@@ -282,6 +285,7 @@ message ReleasePluginBrief {
   optional string version = 4;
   optional bool enabled = 5;
   optional bool as_default = 6;
+  optional bool is_visible = 7;
 }
 
 // ReleaseCert describes the release cert.

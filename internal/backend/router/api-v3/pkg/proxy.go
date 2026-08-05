@@ -381,6 +381,73 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 	return resp.GetData(), nil
 }
 
+// VisibleReleaseProxy makes a proxy release visible to the frontend.
+func (h *handler) VisibleReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseProxyVisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to make proxy release visible, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// check permission.
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to make proxy release visible, permission denied")
+		return nil, err
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
+	version := req.GetVersion()
+	key := types.ReleaseProxyKey{
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+
+	if err := h.daoReleaseProxy.VisibleReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to make proxy release visible")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("key", key).Info("made proxy release visible")
+
+	resp := new(protoBackend.PackageReleaseProxyVisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// UnvisibleReleaseProxy hides a proxy release from the frontend.
+func (h *handler) UnvisibleReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseProxyUnvisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to hide proxy release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeProxy))
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to hide proxy release, permission denied")
+		return nil, err
+	}
+
+	key := types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoBackend.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+	if err := h.daoReleaseProxy.UnvisibleReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to hide proxy release")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("key", key).Info("hid proxy release")
+
+	resp := new(protoBackend.PackageReleaseProxyUnvisibleResp)
+
+	return resp.GetData(), nil
+}
+
 // DeleteReleaseProxy deletes proxy release.
 func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseProxyDeleteReq)

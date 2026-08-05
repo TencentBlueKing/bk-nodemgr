@@ -39,6 +39,7 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 			Version:   exactCond.GetVersion(),
 			AsDefault: exactCond.GetAsDefault(),
 			Enabled:   exactCond.GetEnabled(),
+			IsVisible: exactCond.GetIsVisible(),
 			Name:      exactCond.GetName(),
 			FileName:  exactCond.GetFileName(),
 		}
@@ -62,6 +63,7 @@ func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditio
 		Version:   exactCond.GetVersion(),
 		AsDefault: exactCond.GetAsDefault(),
 		Enabled:   exactCond.GetEnabled(),
+		IsVisible: exactCond.GetIsVisible(),
 	}
 }
 
@@ -81,6 +83,7 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 		exactCond.Version = conditions.ExactInclude.Version
 		exactCond.AsDefault = conditions.ExactInclude.AsDefault
 		exactCond.Enabled = conditions.ExactInclude.Enabled
+		exactCond.IsVisible = conditions.ExactInclude.IsVisible
 		exactCond.Name = conditions.ExactInclude.Name
 		exactCond.FileName = conditions.ExactInclude.FileName
 	}
@@ -103,6 +106,7 @@ func newEmptyRelease() *Release {
 		FileName:    new(string),
 		Labels:      make([]string, 0),
 		Enabled:     new(bool),
+		IsVisible:   new(bool),
 		AsDefault:   new(bool),
 		Md5:         new(string),
 		UpdatedAt:   new(uint64),
@@ -191,6 +195,7 @@ func (x *PackageReleaseAgentListResp) ConvertReleasesFromTypes(total int64, rele
 		*item.Release.FileName = release.FileName
 		item.Release.Labels = release.Labels
 		*item.Release.Enabled = release.Enabled
+		*item.Release.IsVisible = release.IsVisible
 		*item.Release.AsDefault = release.AsDefault
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
@@ -231,6 +236,7 @@ func (x *PackageReleaseAgentListResp) ConvertReleasesToTypes() (int64, []*types.
 				FileName:  item.GetRelease().GetFileName(),
 				MD5:       item.GetRelease().GetMd5(),
 				Enabled:   item.GetRelease().GetEnabled(),
+				IsVisible: item.GetRelease().GetIsVisible(),
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
@@ -313,6 +319,7 @@ func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrie
 	data.CpuArch = new(string)
 	data.Version = new(string)
 	data.Enabled = new(bool)
+	data.IsVisible = new(bool)
 	data.AsDefault = new(bool)
 
 	*data.Generation = int64(release.Generation)
@@ -320,6 +327,7 @@ func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrie
 	*data.CpuArch = string(release.Platform.Arch)
 	*data.Version = release.Version
 	*data.Enabled = release.Enabled
+	*data.IsVisible = release.IsVisible
 	*data.AsDefault = release.AsDefault
 
 	return data
@@ -334,6 +342,7 @@ func convertReleaseAgentBriefToTypes(brief *ReleaseAgentBrief) *types.Release {
 		},
 		Version:   brief.GetVersion(),
 		Enabled:   brief.GetEnabled(),
+		IsVisible: brief.GetIsVisible(),
 		AsDefault: brief.GetAsDefault(),
 	}
 }
@@ -345,6 +354,7 @@ func convertReleaseProxyBriefFromTypes(release *types.Release, changeLogEN, chan
 	data.CpuArch = new(string)
 	data.Version = new(string)
 	data.Enabled = new(bool)
+	data.IsVisible = new(bool)
 	data.AsDefault = new(bool)
 	data.ChangeLogEn = new(string)
 	data.ChangeLogZh = new(string)
@@ -354,6 +364,7 @@ func convertReleaseProxyBriefFromTypes(release *types.Release, changeLogEN, chan
 	*data.CpuArch = string(release.Platform.Arch)
 	*data.Version = release.Version
 	*data.Enabled = release.Enabled
+	*data.IsVisible = release.IsVisible
 	*data.AsDefault = release.AsDefault
 	*data.ChangeLogEn = changeLogEN
 	*data.ChangeLogZh = changeLogZH
@@ -368,6 +379,7 @@ func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBr
 	data.CpuArch = new(string)
 	data.Version = new(string)
 	data.Enabled = new(bool)
+	data.IsVisible = new(bool)
 	data.AsDefault = new(bool)
 
 	*data.Generation = int64(release.Generation)
@@ -375,6 +387,7 @@ func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBr
 	*data.CpuArch = string(release.Platform.Arch)
 	*data.Version = release.Version
 	*data.Enabled = release.Enabled
+	*data.IsVisible = release.IsVisible
 	*data.AsDefault = release.AsDefault
 
 	return data
@@ -475,6 +488,18 @@ func (x *PackageReleaseAgentDisableReq) GetIdentifier() (types.Generation, platf
 		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
+
+// Validate check body.
+func (x *PackageReleaseAgentVisibleReq) Validate() error { return nil }
+
+// AutoConvert auto convert.
+func (x *PackageReleaseAgentVisibleReq) AutoConvert() {}
+
+// Validate check body.
+func (x *PackageReleaseAgentUnvisibleReq) Validate() error { return nil }
+
+// AutoConvert auto convert.
+func (x *PackageReleaseAgentUnvisibleReq) AutoConvert() {}
 
 // Validate check body.
 func (x *PackageReleaseAgentSetAsDefaultReq) Validate() error {
@@ -641,6 +666,7 @@ func (x *PackageReleaseProxyListResp) ConvertReleasesFromTypes(total int64, rele
 		*item.Release.FileName = release.FileName
 		item.Release.Labels = release.Labels
 		*item.Release.Enabled = release.Enabled
+		*item.Release.IsVisible = release.IsVisible
 		*item.Release.AsDefault = release.AsDefault
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
@@ -681,6 +707,7 @@ func (x *PackageReleaseProxyListResp) ConvertReleasesToTypes() (int64, []*types.
 				FileName:  item.GetRelease().GetFileName(),
 				MD5:       item.GetRelease().GetMd5(),
 				Enabled:   item.GetRelease().GetEnabled(),
+				IsVisible: item.GetRelease().GetIsVisible(),
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
@@ -768,6 +795,7 @@ func (x *PackageReleaseProxyListBriefResp) ConvertReleasesToTypes() (int64, []*t
 				},
 				Version:   item.GetVersion(),
 				Enabled:   item.GetEnabled(),
+				IsVisible: item.GetIsVisible(),
 				AsDefault: item.GetAsDefault(),
 			},
 			ReleaseAdditionInfoProxy: types.ReleaseAdditionInfoProxy{
@@ -881,6 +909,18 @@ func (x *PackageReleaseProxyDisableReq) GetIdentifier() (types.Generation, platf
 		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
+
+// Validate check body.
+func (x *PackageReleaseProxyVisibleReq) Validate() error { return nil }
+
+// AutoConvert auto convert.
+func (x *PackageReleaseProxyVisibleReq) AutoConvert() {}
+
+// Validate check body.
+func (x *PackageReleaseProxyUnvisibleReq) Validate() error { return nil }
+
+// AutoConvert auto convert.
+func (x *PackageReleaseProxyUnvisibleReq) AutoConvert() {}
 
 // Validate check body.
 func (x *PackageReleaseProxyDisableResp) Validate() error {

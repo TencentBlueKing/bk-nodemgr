@@ -39,6 +39,8 @@ const (
 	metricOperationDisableReleaseAgent              = "disable_release_agent"
 	metricOperationSetAsDefaultReleaseAgent         = "set_as_default_release_agent"
 	metricOperationCancelAsDefaultReleaseAgent      = "cancel_as_default_release_agent"
+	metricOperationVisibleReleaseAgent              = "visible_release_agent"
+	metricOperationUnvisibleReleaseAgent            = "unvisible_release_agent"
 	metricOperationListReleaseProxy                 = "list_release_proxy"
 	metricOperationCountReleaseProxy                = "count_release_proxy"
 	metricOperationGetReleaseProxy                  = "get_release_proxy"
@@ -49,6 +51,8 @@ const (
 	metricOperationDisableReleaseProxy              = "disable_release_proxy"
 	metricOperationSetAsDefaultReleaseProxy         = "set_as_default_release_proxy"
 	metricOperationCancelAsDefaultReleaseProxy      = "cancel_as_default_release_proxy"
+	metricOperationVisibleReleaseProxy              = "visible_release_proxy"
+	metricOperationUnvisibleReleaseProxy            = "unvisible_release_proxy"
 	metricOperationListReleasePlugin                = "list_release_plugin"
 	metricOperationCountReleasePlugin               = "count_release_plugin"
 	metricOperationGetReleasePlugin                 = "get_release_plugin"
@@ -57,6 +61,8 @@ const (
 	metricOperationDisableReleasePlugin             = "disable_release_plugin"
 	metricOperationSetAsDefaultReleasePlugin        = "set_as_default_release_plugin"
 	metricOperationCancelAsDefaultReleasePlugin     = "cancel_as_default_release_plugin"
+	metricOperationVisibleReleasePlugin             = "visible_release_plugin"
+	metricOperationUnvisibleReleasePlugin           = "unvisible_release_plugin"
 	metricOperationExistReleasePlugin               = "exist_release_plugin"
 	metricOperationGetReleasePluginDefaultVersion   = "get_release_plugin_default_version"
 	metricOperationListReleaseCert                  = "list_release_cert"
@@ -220,8 +226,7 @@ func (s *Storage) DistinctReleaseAgent(nCtx contextx.IContext, fields types.Rele
 // DeleteReleaseAgent deletes agent release.
 func (s *Storage) DeleteReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	return s.WrapFn(nCtx, metricOperationDeleteReleaseAgent, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.deleteRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
+		err := s.deleteRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release agent")
 
@@ -235,8 +240,7 @@ func (s *Storage) DeleteReleaseAgent(nCtx contextx.IContext, key types.ReleaseAg
 // SetReleaseAgentLabelsMany sets many agent release labels.
 func (s *Storage) SetReleaseAgentLabelsMany(nCtx contextx.IContext, labels []string, conditions ...*types.ReleaseCondition) error {
 	return s.WrapFn(nCtx, metricOperationSetReleaseAgentLabelsMany, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.setReleaseLabelsMany(nCtx, types.ReleaseTypeAgent, labels, conditions...)
+		err := s.setReleaseLabelsMany(nCtx, types.ReleaseTypeAgent, labels, conditions...)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to set many release agent labels")
 
@@ -250,8 +254,7 @@ func (s *Storage) SetReleaseAgentLabelsMany(nCtx contextx.IContext, labels []str
 // EnableReleaseAgent enables agent release active.
 func (s *Storage) EnableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	return s.WrapFn(nCtx, metricOperationEnableReleaseAgent, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.enableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
+		err := s.enableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to enable release agent")
 
@@ -265,8 +268,7 @@ func (s *Storage) EnableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAg
 // DisableReleaseAgent disables agent release disactive.
 func (s *Storage) DisableReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	return s.WrapFn(nCtx, metricOperationDisableReleaseAgent, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.disableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
+		err := s.disableRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to disable release agent")
 
@@ -280,8 +282,7 @@ func (s *Storage) DisableReleaseAgent(nCtx contextx.IContext, key types.ReleaseA
 // SetAsDefaultReleaseAgent sets the agent release as default.
 func (s *Storage) SetAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleaseAgent, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.setAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
+		err := s.setAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to set release agent as default")
 
@@ -295,8 +296,7 @@ func (s *Storage) SetAsDefaultReleaseAgent(nCtx contextx.IContext, key types.Rel
 // CancelAsDefaultReleaseAgent cancels the agent release as default.
 func (s *Storage) CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleaseAgent, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
+		err := s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to cancel release agent as default")
 
@@ -304,6 +304,22 @@ func (s *Storage) CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.
 		}
 
 		return nil
+	})
+}
+
+// VisibleReleaseAgent makes the agent release visible to the frontend.
+func (s *Storage) VisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
+	return s.setAgentReleaseVisible(nCtx, key, true, metricOperationVisibleReleaseAgent)
+}
+
+// UnvisibleReleaseAgent hides the agent release from the frontend.
+func (s *Storage) UnvisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
+	return s.setAgentReleaseVisible(nCtx, key, false, metricOperationUnvisibleReleaseAgent)
+}
+
+func (s *Storage) setAgentReleaseVisible(nCtx contextx.IContext, key types.ReleaseAgentKey, isVisible bool, operation string) error {
+	return s.WrapFn(nCtx, operation, func(nCtx contextx.IContext) error {
+		return s.setReleaseVisible(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent, isVisible)
 	})
 }
 
@@ -395,8 +411,7 @@ func (s *Storage) DistinctReleaseProxy(nCtx contextx.IContext, fields types.Rele
 // DeleteReleaseProxy deletes proxy release.
 func (s *Storage) DeleteReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	return s.WrapFn(nCtx, metricOperationDeleteReleaseProxy, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.deleteRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
+		err := s.deleteRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to delete release proxy")
 
@@ -410,8 +425,7 @@ func (s *Storage) DeleteReleaseProxy(nCtx contextx.IContext, key types.ReleasePr
 // SetReleaseProxyLabelsMany sets many proxy releases labels.
 func (s *Storage) SetReleaseProxyLabelsMany(nCtx contextx.IContext, labels []string, conditions ...*types.ReleaseCondition) error {
 	return s.WrapFn(nCtx, metricOperationSetReleaseProxyLabelsMany, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.setReleaseLabelsMany(nCtx, types.ReleaseTypeProxy, labels, conditions...)
+		err := s.setReleaseLabelsMany(nCtx, types.ReleaseTypeProxy, labels, conditions...)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to set many release proxy labels")
 
@@ -425,8 +439,7 @@ func (s *Storage) SetReleaseProxyLabelsMany(nCtx contextx.IContext, labels []str
 // EnableReleaseProxy enables proxy release active.
 func (s *Storage) EnableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	return s.WrapFn(nCtx, metricOperationEnableReleaseProxy, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.enableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
+		err := s.enableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to enable release proxy")
 
@@ -440,8 +453,7 @@ func (s *Storage) EnableReleaseProxy(nCtx contextx.IContext, key types.ReleasePr
 // DisableReleaseProxy disables proxy release disactive.
 func (s *Storage) DisableReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	return s.WrapFn(nCtx, metricOperationDisableReleaseProxy, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.disableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
+		err := s.disableRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to disable release proxy")
 
@@ -455,8 +467,7 @@ func (s *Storage) DisableReleaseProxy(nCtx contextx.IContext, key types.ReleaseP
 // SetAsDefaultReleaseProxy sets the proxy release as default.
 func (s *Storage) SetAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleaseProxy, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.setAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
+		err := s.setAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to set release proxy as default")
 
@@ -470,8 +481,7 @@ func (s *Storage) SetAsDefaultReleaseProxy(nCtx contextx.IContext, key types.Rel
 // CancelAsDefaultReleaseProxy cancels the proxy release as default.
 func (s *Storage) CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleaseProxy, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
+		err := s.cancelAsDefaultRelease(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy)
 		if err != nil {
 			logger.G.Sys().WithErr(err).With("key", key).Error("failed to cancel release proxy as default")
 
@@ -479,6 +489,22 @@ func (s *Storage) CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.
 		}
 
 		return nil
+	})
+}
+
+// VisibleReleaseProxy makes the proxy release visible to the frontend.
+func (s *Storage) VisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
+	return s.setProxyReleaseVisible(nCtx, key, true, metricOperationVisibleReleaseProxy)
+}
+
+// UnvisibleReleaseProxy hides the proxy release from the frontend.
+func (s *Storage) UnvisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
+	return s.setProxyReleaseVisible(nCtx, key, false, metricOperationUnvisibleReleaseProxy)
+}
+
+func (s *Storage) setProxyReleaseVisible(nCtx contextx.IContext, key types.ReleaseProxyKey, isVisible bool, operation string) error {
+	return s.WrapFn(nCtx, operation, func(nCtx contextx.IContext) error {
+		return s.setReleaseVisible(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy, isVisible)
 	})
 }
 
@@ -532,50 +558,51 @@ func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePlug
 // DeleteReleasePlugin deletes plugin release.
 func (s *Storage) DeleteReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationDeleteReleasePlugin, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.deleteRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-		return err
+		return s.deleteRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
 	})
 }
 
 // EnableReleasePlugin enables plugin release active.
 func (s *Storage) EnableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationEnableReleasePlugin, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.enableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-		return err
+		return s.enableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
 	})
 }
 
 // DisableReleasePlugin disables plugin release disactive.
 func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationDisableReleasePlugin, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.disableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-		return err
+		return s.disableRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
 	})
 }
 
 // SetAsDefaultReleasePlugin sets the plugin release as default.
 func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleasePlugin, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.setAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-
-		return err
+		return s.setAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
 	})
 }
 
 // CancelAsDefaultReleasePlugin cancels the plugin release as default.
 func (s *Storage) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleasePlugin, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.cancelAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+		return s.cancelAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
+	})
+}
 
-		return err
+// VisibleReleasePlugin makes the plugin release visible to the frontend.
+func (s *Storage) VisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.setPluginReleaseVisible(nCtx, key, true, metricOperationVisibleReleasePlugin)
+}
+
+// UnvisibleReleasePlugin hides the plugin release from the frontend.
+func (s *Storage) UnvisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	return s.setPluginReleaseVisible(nCtx, key, false, metricOperationUnvisibleReleasePlugin)
+}
+
+func (s *Storage) setPluginReleaseVisible(nCtx contextx.IContext, key types.ReleasePluginKey, isVisible bool, operation string) error {
+	return s.WrapFn(nCtx, operation, func(nCtx contextx.IContext) error {
+		return s.setReleaseVisible(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name, isVisible)
 	})
 }
 
@@ -915,8 +942,7 @@ func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page, cond
 // CreateManyPackageEvent creates multiple package events.
 func (s *Storage) CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error {
 	return s.WrapFn(nCtx, metricOperationCreateManyPackageEvent, func(nCtx contextx.IContext) error {
-		var err error
-		err = s.createManyPackageEvent(nCtx, events...)
+		err := s.createManyPackageEvent(nCtx, events...)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to create many package event")
 

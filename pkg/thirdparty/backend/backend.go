@@ -2259,6 +2259,53 @@ func (c *cli) cancelAsDefaultReleaseAgent(ctx contextx.IContext, req *protoBacke
 	return nil
 }
 
+func (c *cli) visibleReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentVisibleReq) error {
+	resp := new(protoBackend.PackageReleaseAgentVisibleResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/visible").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("make agent release visible failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) unvisibleReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentUnvisibleReq) error {
+	resp := new(protoBackend.PackageReleaseAgentUnvisibleResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/unvisible").
+		WithContext(ctx).WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("hide agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
 func (c *cli) deleteReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseAgentDeleteResp)
 	header := c.getHeader(ctx)
@@ -2499,6 +2546,54 @@ func (c *cli) cancelAsDefaultReleaseProxy(ctx contextx.IContext, req *protoBacke
 	return nil
 }
 
+func (c *cli) visibleReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyVisibleReq) error {
+	resp := new(protoBackend.PackageReleaseProxyVisibleResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/proxy/visible").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("make proxy release visible failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) unvisibleReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyUnvisibleReq) error {
+	resp := new(protoBackend.PackageReleaseProxyUnvisibleResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/proxy/unvisible").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("hide proxy release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
 func (c *cli) deleteReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseProxyDeleteResp)
 	header := c.getHeader(ctx)
@@ -2674,6 +2769,54 @@ func (c *cli) cancelAsDefaultReleasePlugin(ctx contextx.IContext, req *protoBack
 
 	if code := resp.GetCode(); code != CodeOK {
 		return fmt.Errorf("cancel release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) visibleReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginVisibleReq) error {
+	resp := new(protoBackend.PackageReleasePluginVisibleResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin/visible").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("make plugin release visible failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) unvisibleReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginUnvisibleReq) error {
+	resp := new(protoBackend.PackageReleasePluginUnvisibleResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin/unvisible").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("hide plugin release failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 

@@ -290,20 +290,20 @@
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  :confirm-text="t('agentProxyPkg.disable')"
-                  @confirm="handleDisabled(row)"
+                  :confirm-text="row.is_visible ? t('agentProxyPkg.disableAndUnvisible') : t('agentProxyPkg.disable')"
+                  @confirm="row.is_visible ? handleDisableAndUnvisible(row) : handleDisabled(row)"
                 >
                   <Button
                     theme="primary"
                     class="mr-[8px]"
                     text
-                    v-show="row.enabled"
+                    v-if="row.enabled"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
                     @mousemove="manageMouseMove($event, hasManageAuth)"
                     @mouseleave="manageMouseLeave()"
-                  >{{ t('agentProxyPkg.disable') }}</Button>
+                  >{{ row.is_visible ? t('agentProxyPkg.disableAndUnvisible') : t('agentProxyPkg.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
@@ -324,11 +324,24 @@
                   text
                   v-if="!row.enabled"
                   :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleEnabled(row) : manageAuthClick($event, row.release_type)"
+                  @click="hasManageAuth ? handleEnableAndVisible(row) : manageAuthClick($event, row.release_type)"
                   @mouseenter="manageMouseEnter($event, hasManageAuth)"
                   @mousemove="manageMouseMove($event, hasManageAuth)"
                   @mouseleave="manageMouseLeave()"
-                >{{ t('agentProxyPkg.enable') }}</Button>
+                >{{ t('agentProxyPkg.enableAndVisible') }}</Button>
+                <Button
+                  theme="primary"
+                  class="mr-[8px]"
+                  text
+                  v-if="row.enabled"
+                  :class="{ 'unAuthorized': !hasManageAuth }"
+                  @click="hasManageAuth
+                    ? (row.is_visible ? handleUnvisible(row) : handleVisible(row))
+                    : manageAuthClick($event, row.release_type)"
+                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
+                  @mousemove="manageMouseMove($event, hasManageAuth)"
+                  @mouseleave="manageMouseLeave()"
+                >{{ row.is_visible ? t('agentProxyPkg.unvisible') : t('agentProxyPkg.visible') }}</Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
@@ -988,8 +1001,20 @@ const handleDisabled = async (row: Release) => {
   await handleOperation(row, getServiceMethod('DisableRelease'));
 };
 
-const handleEnabled = async (row: Release) => {
-  await handleOperation(row, getServiceMethod('EnableRelease'));
+const handleEnableAndVisible = async (row: Release) => {
+  await handleOperation(row, getServiceMethod('EnableAndVisibleRelease'));
+};
+
+const handleDisableAndUnvisible = async (row: Release) => {
+  await handleOperation(row, getServiceMethod('DisableAndUnvisibleRelease'));
+};
+
+const handleVisible = async (row: Release) => {
+  await handleOperation(row, getServiceMethod('VisibleRelease'));
+};
+
+const handleUnvisible = async (row: Release) => {
+  await handleOperation(row, getServiceMethod('UnvisibleRelease'));
 };
 
 const handleDelete = async (row: Release) => {

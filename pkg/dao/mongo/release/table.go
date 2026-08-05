@@ -35,6 +35,7 @@ type Release struct {
 	Labels       []string       `json:"labels" bson:"labels"`
 	Enabled      bool           `json:"enabled" bson:"enabled"`
 	AsDefault    bool           `json:"as_default" bson:"as_default"`
+	IsVisible    bool           `json:"is_visible" bson:"is_visible"`
 	FileName     string         `json:"filename" bson:"filename"`
 	MD5          string         `json:"md5" bson:"md5"`
 	UpdatedAt    time.Time      `json:"updated_at" bson:"updated_at"`

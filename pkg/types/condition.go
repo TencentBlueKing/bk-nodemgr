@@ -632,6 +632,7 @@ type ReleaseExactFields struct {
 	Version    []string
 	AsDefault  []bool
 	Enabled    []bool
+	IsVisible  []bool
 }
 
 // ReleaseFuzzyFields defines the release fuzzy fields.

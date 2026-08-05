@@ -939,6 +939,10 @@ pluginPackage:
   cancelDefault: Cancel Default
   disable: Disable
   enable: Enable
+  enableAndVisible: Enable and Show
+  disableAndUnvisible: Disable and Hide
+  visible: Show
+  unvisible: Hide
   delete: Delete
   enabled: Enabled
   disabled: Disabled
@@ -1071,6 +1075,10 @@ agentProxyPkg:
   cancelDefault: Cancel Default
   disable: Disable
   enable: Enable
+  enableAndVisible: Enable and Show
+  disableAndUnvisible: Disable and Hide
+  visible: Show
+  unvisible: Hide
   delete: Delete
   download: Download
   confirmDisable: Confirm disable this {type} package?

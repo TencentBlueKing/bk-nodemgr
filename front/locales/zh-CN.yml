@@ -942,6 +942,10 @@ pluginPackage:
   cancelDefault: 取消设置默认版本
   disable: 停用
   enable: 启用
+  enableAndVisible: 启用并显示
+  disableAndUnvisible: 停用并隐藏
+  visible: 显示
+  unvisible: 隐藏
   delete: 删除
   enabled: 启用
   disabled: 禁用
@@ -1074,6 +1078,10 @@ agentProxyPkg:
   cancelDefault: 取消设置默认版本
   disable: 停用
   enable: 启用
+  enableAndVisible: 启用并显示
+  disableAndUnvisible: 停用并隐藏
+  visible: 显示
+  unvisible: 隐藏
   delete: 删除
   download: 下载
   confirmDisable: 确认停用该 {type} 包？

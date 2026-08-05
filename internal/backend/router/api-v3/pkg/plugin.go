@@ -428,6 +428,69 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 	return resp.GetData(), nil
 }
 
+// VisibleReleasePlugin makes a plugin release visible to the frontend.
+func (h *handler) VisibleReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginVisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to make plugin release visible, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+
+	// Check permission.
+	resources := authProvider.BuildPackageResources(name)
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to make plugin release visible, permission denied")
+		return nil, err
+	}
+
+	key := types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+	if err := h.daoReleasePlugin.VisibleReleasePlugin(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to make plugin release visible")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("key", key).Info("made plugin release visible")
+
+	resp := new(protoBackend.PackageReleasePluginVisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// UnvisibleReleasePlugin hides a plugin release from the frontend.
+func (h *handler) UnvisibleReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginUnvisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to hide plugin release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	resources := authProvider.BuildPackageResources(name)
+	if err := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to hide plugin release, permission denied")
+		return nil, err
+	}
+
+	key := types.ReleasePluginKey{Name: name, Generation: gen, Platform: plat, Version: version}
+	if err := h.daoReleasePlugin.UnvisibleReleasePlugin(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to hide plugin release")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("key", key).Info("hid plugin release")
+
+	resp := new(protoBackend.PackageReleasePluginUnvisibleResp)
+
+	return resp.GetData(), nil
+}
+
 func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleasePluginDeleteReq)
 	if err := rCtx.BindJSON(req); err != nil {

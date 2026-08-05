@@ -409,6 +409,7 @@ message PackageReleaseExactConditions {
   repeated bool enabled = 4;
   repeated string name = 5;
   repeated string file_name = 6;
+  repeated bool is_visible = 7;
 }
 
 // PackageReleaseDistinctField describes the release distinct field.
@@ -549,6 +550,42 @@ message PackageReleaseAgentDisableReq {
 // PackageReleaseAgentDisableResp describes the HTTP response body when disable
 // agent release.
 message PackageReleaseAgentDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
+message PackageReleaseAgentVisibleReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+message PackageReleaseAgentVisibleResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
+message PackageReleaseAgentUnvisibleReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+message PackageReleaseAgentUnvisibleResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -793,6 +830,42 @@ message PackageReleaseProxyDisableResp {
   Data data = 5;
 }
 
+message PackageReleaseProxyVisibleReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+message PackageReleaseProxyVisibleResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
+message PackageReleaseProxyUnvisibleReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+message PackageReleaseProxyUnvisibleResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
 // PackageReleaseProxySetAsDefaultReq describes the HTTP request body when set
 // default proxy release.
 message PackageReleaseProxySetAsDefaultReq {
@@ -977,6 +1050,42 @@ message PackageReleasePluginDisableReq {
 // PackageReleasePluginDisableResp describes the HTTP response body when disable
 // plugin release.
 message PackageReleasePluginDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
+message PackageReleasePluginVisibleReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+message PackageReleasePluginVisibleResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
+message PackageReleasePluginUnvisibleReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+message PackageReleasePluginUnvisibleResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -1528,6 +1637,38 @@ service Package {
     };
   }
 
+  rpc VisibleReleaseAgent(PackageReleaseAgentVisibleReq)
+      returns (PackageReleaseAgentVisibleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/agent/visible"
+      body : "*"
+    };
+  }
+
+  rpc UnvisibleReleaseAgent(PackageReleaseAgentUnvisibleReq)
+      returns (PackageReleaseAgentUnvisibleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/agent/unvisible"
+      body : "*"
+    };
+  }
+
+  rpc EnableAndVisibleReleaseAgent(PackageReleaseAgentEnableReq)
+      returns (PackageReleaseAgentEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/agent/enable_and_visible"
+      body : "*"
+    };
+  }
+
+  rpc DisableAndUnvisibleReleaseAgent(PackageReleaseAgentDisableReq)
+      returns (PackageReleaseAgentDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/agent/disable_and_unvisible"
+      body : "*"
+    };
+  }
+
   // SetAsDefaultReleaseAgent sets agent release as default.
   rpc SetAsDefaultReleaseAgent(PackageReleaseAgentSetAsDefaultReq)
       returns (PackageReleaseAgentSetAsDefaultResp) {
@@ -1626,6 +1767,38 @@ service Package {
     };
   }
 
+  rpc VisibleReleaseProxy(PackageReleaseProxyVisibleReq)
+      returns (PackageReleaseProxyVisibleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/visible"
+      body : "*"
+    };
+  }
+
+  rpc UnvisibleReleaseProxy(PackageReleaseProxyUnvisibleReq)
+      returns (PackageReleaseProxyUnvisibleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/unvisible"
+      body : "*"
+    };
+  }
+
+  rpc EnableAndVisibleReleaseProxy(PackageReleaseProxyEnableReq)
+      returns (PackageReleaseProxyEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/enable_and_visible"
+      body : "*"
+    };
+  }
+
+  rpc DisableAndUnvisibleReleaseProxy(PackageReleaseProxyDisableReq)
+      returns (PackageReleaseProxyDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/disable_and_unvisible"
+      body : "*"
+    };
+  }
+
   // SetAsDefaultReleaseProxy sets proxy release as default.
   rpc SetAsDefaultReleaseProxy(PackageReleaseProxySetAsDefaultReq)
       returns (PackageReleaseProxySetAsDefaultResp) {
@@ -1702,6 +1875,38 @@ service Package {
       returns (PackageReleasePluginDisableResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/plugin/disable"
+      body : "*"
+    };
+  }
+
+  rpc VisibleReleasePlugin(PackageReleasePluginVisibleReq)
+      returns (PackageReleasePluginVisibleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/visible"
+      body : "*"
+    };
+  }
+
+  rpc UnvisibleReleasePlugin(PackageReleasePluginUnvisibleReq)
+      returns (PackageReleasePluginUnvisibleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/unvisible"
+      body : "*"
+    };
+  }
+
+  rpc EnableAndVisibleReleasePlugin(PackageReleasePluginEnableReq)
+      returns (PackageReleasePluginEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/enable_and_visible"
+      body : "*"
+    };
+  }
+
+  rpc DisableAndUnvisibleReleasePlugin(PackageReleasePluginDisableReq)
+      returns (PackageReleasePluginDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/disable_and_unvisible"
       body : "*"
     };
   }

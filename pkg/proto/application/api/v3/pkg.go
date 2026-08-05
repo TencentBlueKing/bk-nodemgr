@@ -747,6 +747,7 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsFromTypes(total int6
 		*item.Release.FileName = release.FileName
 		item.Release.Labels = release.Labels
 		*item.Release.Enabled = release.Enabled
+		*item.Release.IsVisible = release.IsVisible
 		*item.Release.AsDefault = release.AsDefault
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
@@ -785,6 +786,7 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsToTypes() (int64, []
 				FileName:  item.GetRelease().GetFileName(),
 				MD5:       item.GetRelease().GetMd5(),
 				Enabled:   item.GetRelease().GetEnabled(),
+				IsVisible: item.GetRelease().GetIsVisible(),
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
@@ -868,6 +870,7 @@ func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsToTypes() (int6
 				},
 				Version:   item.GetVersion(),
 				Enabled:   item.GetEnabled(),
+				IsVisible: item.GetIsVisible(),
 				AsDefault: item.GetAsDefault(),
 			},
 		}
@@ -927,6 +930,38 @@ func (x *PackageReleasePluginDisableReq) SetIdentifer(name string, gen types.Gen
 	x.Generation = int64(gen)
 	x.Platform = ConvertPlatformFromTypes(plat)
 	x.Version = ver
+}
+
+// Validate check body.
+func (x *PackageReleasePluginVisibleReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginVisibleReq) AutoConvert() {}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginVisibleReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// Validate check body.
+func (x *PackageReleasePluginUnvisibleReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginUnvisibleReq) AutoConvert() {}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginUnvisibleReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
 }
 
 // Validate check body.

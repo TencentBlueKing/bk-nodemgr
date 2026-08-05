@@ -35,6 +35,9 @@ const (
 	// FieldKeyAsDefault defines the field key of as default.
 	FieldKeyAsDefault = "data.as_default"
 
+	// FieldKeyIsVisible defines the field key of frontend visibility.
+	FieldKeyIsVisible = "data.is_visible"
+
 	// FieldKeyFileName defines the field key of as filename.
 	FieldKeyFileName = "data.filename"
 

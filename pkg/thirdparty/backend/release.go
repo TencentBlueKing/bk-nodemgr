@@ -34,6 +34,7 @@ type IHandlerRelease interface {
 }
 
 // IHandlerReleaseAgent defines the backend Handler for release agent.
+// nolint: interfacebloat
 type IHandlerReleaseAgent interface {
 	// ListReleaseAgentBrief lists agent release briefs by page and conditions.
 	ListReleaseAgentBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
@@ -96,6 +97,18 @@ type IHandlerReleaseAgent interface {
 	// @return the error.
 	CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
 
+	// VisibleReleaseAgent makes an agent release visible to the frontend.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release agent key.
+	// @return the error.
+	VisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
+	// UnvisibleReleaseAgent hides an agent release from the frontend.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release agent key.
+	// @return the error.
+	UnvisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error
+
 	// DeleteReleaseAgent deletes agent release.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param key the release agent key.
@@ -104,6 +117,7 @@ type IHandlerReleaseAgent interface {
 }
 
 // IHandlerReleaseProxy defines the backend Handler for release proxy.
+// nolint: interfacebloat
 type IHandlerReleaseProxy interface {
 	// ListReleaseProxyBrief lists proxy release briefs by page and conditions.
 	ListReleaseProxyBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
@@ -166,6 +180,18 @@ type IHandlerReleaseProxy interface {
 	// @return the error.
 	CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
 
+	// VisibleReleaseProxy makes a proxy release visible to the frontend.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release proxy key.
+	// @return the error.
+	VisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// UnvisibleReleaseProxy hides a proxy release from the frontend.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release proxy key.
+	// @return the error.
+	UnvisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error
+
 	// DeleteReleaseProxy deletes proxy release.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param key the release proxy key.
@@ -174,6 +200,7 @@ type IHandlerReleaseProxy interface {
 }
 
 // IHandlerReleasePlugin defines the backend Handler for release plugin.
+// nolint: interfacebloat
 type IHandlerReleasePlugin interface {
 	// ListReleasePluginBrief lists plugin release briefs by page and conditions.
 	ListReleasePluginBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
@@ -218,6 +245,18 @@ type IHandlerReleasePlugin interface {
 	// @param key the release plugin key.
 	// @return the error.
 	CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// VisibleReleasePlugin makes a plugin release visible to the frontend.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release plugin key.
+	// @return the error.
+	VisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
+
+	// UnvisibleReleasePlugin hides a plugin release from the frontend.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param key the release plugin key.
+	// @return the error.
+	UnvisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error
 
 	// DeleteReleasePlugin deletes plugin release.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -454,6 +493,28 @@ func (h *Handler) CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.
 	return h.cli.cancelAsDefaultReleaseAgent(nCtx, req)
 }
 
+// VisibleReleaseAgent makes an agent release visible to the frontend.
+func (h *Handler) VisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
+	req := &protoBackend.PackageReleaseAgentVisibleReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.visibleReleaseAgent(nCtx, req)
+}
+
+// UnvisibleReleaseAgent hides an agent release from the frontend.
+func (h *Handler) UnvisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
+	req := &protoBackend.PackageReleaseAgentUnvisibleReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.unvisibleReleaseAgent(nCtx, req)
+}
+
 // DeleteReleaseAgent deletes agent release.
 func (h *Handler) DeleteReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
 	req := &protoBackend.PackageReleaseAgentDeleteReq{
@@ -641,6 +702,28 @@ func (h *Handler) CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.
 	return h.cli.cancelAsDefaultReleaseProxy(nCtx, req)
 }
 
+// VisibleReleaseProxy makes a proxy release visible to the frontend.
+func (h *Handler) VisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
+	req := &protoBackend.PackageReleaseProxyVisibleReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.visibleReleaseProxy(nCtx, req)
+}
+
+// UnvisibleReleaseProxy hides a proxy release from the frontend.
+func (h *Handler) UnvisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
+	req := &protoBackend.PackageReleaseProxyUnvisibleReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.unvisibleReleaseProxy(nCtx, req)
+}
+
 // DeleteReleaseProxy deletes proxy release.
 func (h *Handler) DeleteReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
 	req := &protoBackend.PackageReleaseProxyDeleteReq{
@@ -777,6 +860,22 @@ func (h *Handler) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.cancelAsDefaultReleasePlugin(nCtx, req)
+}
+
+// VisibleReleasePlugin makes a plugin release visible to the frontend.
+func (h *Handler) VisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	req := &protoBackend.PackageReleasePluginVisibleReq{}
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
+
+	return h.cli.visibleReleasePlugin(nCtx, req)
+}
+
+// UnvisibleReleasePlugin hides a plugin release from the frontend.
+func (h *Handler) UnvisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
+	req := &protoBackend.PackageReleasePluginUnvisibleReq{}
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
+	
+	return h.cli.unvisibleReleasePlugin(nCtx, req)
 }
 
 // DeleteReleasePlugin deletes plugin release.

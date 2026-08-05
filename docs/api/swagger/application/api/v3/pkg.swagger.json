@@ -492,6 +492,39 @@
         ]
       }
     },
+    "/api/v3/package/release/agent/disable_and_unvisible": {
+      "post": {
+        "operationId": "Package_DisableAndUnvisibleReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseAgentDisableReq describes the HTTP request body when disable\nagent release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/agent/distinct": {
       "post": {
         "summary": "DistinctReleaseAgent distincts agent releases.",
@@ -564,6 +597,39 @@
       "post": {
         "summary": "EnableReleaseAgent enables agent release.",
         "operationId": "Package_EnableReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseAgentEnableReq describes the HTTP request body when enable\nagent release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/agent/enable_and_visible": {
+      "post": {
+        "operationId": "Package_EnableAndVisibleReleaseAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -722,6 +788,70 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseAgentSetLabelsManyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/agent/unvisible": {
+      "post": {
+        "operationId": "Package_UnvisibleReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentUnvisibleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentUnvisibleReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/agent/visible": {
+      "post": {
+        "operationId": "Package_VisibleReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentVisibleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentVisibleReq"
             }
           }
         ],
@@ -1036,6 +1166,39 @@
         ]
       }
     },
+    "/api/v3/package/release/plugin/disable_and_unvisible": {
+      "post": {
+        "operationId": "Package_DisableAndUnvisibleReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginDisableReq describes the HTTP request body when disable\nplugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/plugin/download": {
       "post": {
         "summary": "DownloadReleasePlugin download release plugin package.",
@@ -1074,6 +1237,39 @@
       "post": {
         "summary": "EnableReleasePlugin enables plugin release.",
         "operationId": "Package_EnableReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginEnableReq describes the HTTP request body when enable\nplugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/plugin/enable_and_visible": {
+      "post": {
+        "operationId": "Package_EnableAndVisibleReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1232,6 +1428,70 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleasePluginSetAsDefaultReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/plugin/unvisible": {
+      "post": {
+        "operationId": "Package_UnvisibleReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginUnvisibleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginUnvisibleReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/plugin/visible": {
+      "post": {
+        "operationId": "Package_VisibleReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginVisibleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginVisibleReq"
             }
           }
         ],
@@ -1478,6 +1738,39 @@
         ]
       }
     },
+    "/api/v3/package/release/proxy/disable_and_unvisible": {
+      "post": {
+        "operationId": "Package_DisableAndUnvisibleReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyDisableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseProxyDisableReq describes the HTTP request body when disable\nproxy release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyDisableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/proxy/distinct": {
       "post": {
         "summary": "DistinctReleaseProxy distincts proxy releases.",
@@ -1550,6 +1843,39 @@
       "post": {
         "summary": "EnableReleaseProxy enables proxy release.",
         "operationId": "Package_EnableReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyEnableResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseProxyEnableReq describes the HTTP request body when enable\nproxy release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyEnableReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/proxy/enable_and_visible": {
+      "post": {
+        "operationId": "Package_EnableAndVisibleReleaseProxy",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1708,6 +2034,70 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseProxySetLabelsManyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/proxy/unvisible": {
+      "post": {
+        "operationId": "Package_UnvisibleReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyUnvisibleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyUnvisibleReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/proxy/visible": {
+      "post": {
+        "operationId": "Package_VisibleReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyVisibleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyVisibleReq"
             }
           }
         ],
@@ -2217,7 +2607,7 @@
           "type": "string"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -2233,7 +2623,7 @@
           "type": "string"
         },
         "operate_time": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "operator": {
@@ -2329,7 +2719,7 @@
         "generation": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         },
@@ -2426,7 +2816,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -2736,7 +3126,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -2796,7 +3186,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "platform": {
@@ -2838,7 +3228,7 @@
         "counts": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -2848,7 +3238,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -2895,7 +3285,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -2942,7 +3332,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "exact_include_conditions": {
@@ -2983,7 +3373,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "platform": {
@@ -2999,7 +3389,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -3049,7 +3439,7 @@
           "$ref": "#/definitions/v3Page"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "only_count": {
@@ -3090,7 +3480,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3109,7 +3499,7 @@
           "$ref": "#/definitions/v3Page"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "only_count": {
@@ -3150,7 +3540,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3166,7 +3556,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -3213,7 +3603,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "exact_include_conditions": {
@@ -3256,11 +3646,101 @@
     "v3PackageReleaseAgentSetLabelsManyRespData": {
       "type": "object"
     },
+    "v3PackageReleaseAgentUnvisibleReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageReleaseAgentUnvisibleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseAgentUnvisibleRespData"
+        }
+      }
+    },
+    "v3PackageReleaseAgentUnvisibleRespData": {
+      "type": "object"
+    },
+    "v3PackageReleaseAgentVisibleReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageReleaseAgentVisibleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseAgentVisibleRespData"
+        }
+      }
+    },
+    "v3PackageReleaseAgentVisibleRespData": {
+      "type": "object"
+    },
     "v3PackageReleaseBinToolDeleteReq": {
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3298,7 +3778,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3308,7 +3788,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3343,7 +3823,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3359,7 +3839,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3397,7 +3877,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3407,7 +3887,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3442,7 +3922,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3523,6 +4003,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "is_visible": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
         }
       },
       "description": "PackageReleaseExactConditions describes release exact conditions."
@@ -3531,7 +4017,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3572,7 +4058,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3585,7 +4071,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },
@@ -3620,7 +4106,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3636,7 +4122,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3683,7 +4169,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3730,7 +4216,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3792,7 +4278,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3839,7 +4325,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -3901,7 +4387,7 @@
           "$ref": "#/definitions/v3Page"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "only_count": {
@@ -3942,7 +4428,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -3961,7 +4447,7 @@
           "$ref": "#/definitions/v3Page"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "only_count": {
@@ -4002,7 +4488,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -4018,7 +4504,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "name": {
@@ -4061,11 +4547,101 @@
     "v3PackageReleasePluginSetAsDefaultRespData": {
       "type": "object"
     },
+    "v3PackageReleasePluginUnvisibleReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageReleasePluginUnvisibleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginUnvisibleRespData"
+        }
+      }
+    },
+    "v3PackageReleasePluginUnvisibleRespData": {
+      "type": "object"
+    },
+    "v3PackageReleasePluginVisibleReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageReleasePluginVisibleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginVisibleRespData"
+        }
+      }
+    },
+    "v3PackageReleasePluginVisibleRespData": {
+      "type": "object"
+    },
     "v3PackageReleaseProxyCancelAsDefaultReq": {
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -4125,7 +4701,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "platform": {
@@ -4167,7 +4743,7 @@
         "counts": {
           "type": "array",
           "items": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           }
         }
@@ -4177,7 +4753,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -4224,7 +4800,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -4271,7 +4847,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "exact_include_conditions": {
@@ -4312,7 +4888,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "platform": {
@@ -4328,7 +4904,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -4378,7 +4954,7 @@
           "$ref": "#/definitions/v3Page"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "only_count": {
@@ -4419,7 +4995,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -4438,7 +5014,7 @@
           "$ref": "#/definitions/v3Page"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "only_count": {
@@ -4479,7 +5055,7 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "items": {
@@ -4495,7 +5071,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -4542,7 +5118,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "exact_include_conditions": {
@@ -4585,11 +5161,101 @@
     "v3PackageReleaseProxySetLabelsManyRespData": {
       "type": "object"
     },
+    "v3PackageReleaseProxyUnvisibleReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageReleaseProxyUnvisibleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseProxyUnvisibleRespData"
+        }
+      }
+    },
+    "v3PackageReleaseProxyUnvisibleRespData": {
+      "type": "object"
+    },
+    "v3PackageReleaseProxyVisibleReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "string",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageReleaseProxyVisibleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseProxyVisibleRespData"
+        }
+      }
+    },
+    "v3PackageReleaseProxyVisibleRespData": {
+      "type": "object"
+    },
     "v3PackageUploadOriginAgentReq": {
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "overwrite": {
@@ -4639,7 +5305,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -4667,7 +5333,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "overwrite": {
@@ -4717,7 +5383,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -4789,7 +5455,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -4853,7 +5519,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -4936,7 +5602,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -5000,7 +5666,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -5089,7 +5755,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -5129,7 +5795,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "overwrite": {
@@ -5179,7 +5845,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -5207,7 +5873,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "overwrite": {
@@ -5257,7 +5923,7 @@
           "type": "string"
         },
         "size": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "md5": {
@@ -5359,7 +6025,7 @@
           "type": "string"
         },
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "release_type": {
@@ -5398,6 +6064,9 @@
         },
         "operator": {
           "type": "string"
+        },
+        "is_visible": {
+          "type": "boolean"
         }
       },
       "description": "Release describes the release."
@@ -5420,7 +6089,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "os_type": {
@@ -5436,6 +6105,9 @@
           "type": "boolean"
         },
         "as_default": {
+          "type": "boolean"
+        },
+        "is_visible": {
           "type": "boolean"
         }
       }
@@ -5480,7 +6152,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "os_type": {
@@ -5496,6 +6168,9 @@
           "type": "boolean"
         },
         "as_default": {
+          "type": "boolean"
+        },
+        "is_visible": {
           "type": "boolean"
         }
       },
@@ -5519,7 +6194,7 @@
       "type": "object",
       "properties": {
         "generation": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "os_type": {
@@ -5542,6 +6217,9 @@
         },
         "change_log_zh": {
           "type": "string"
+        },
+        "is_visible": {
+          "type": "boolean"
         }
       },
       "description": "ReleaseProxyBrief describes the brief release proxy (only core fields for\nlist display)."
@@ -5567,11 +6245,11 @@
       "type": "object",
       "properties": {
         "start_timestamp_sec": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         },
         "end_timestamp_sec": {
-          "type": "integer",
+          "type": "string",
           "format": "int64"
         }
       },

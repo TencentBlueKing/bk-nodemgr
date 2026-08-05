@@ -60,6 +60,11 @@ func WithEnabled(enabled ...bool) OptFn {
 	return base.WithValues(FieldKeyEnabled, enabled...)
 }
 
+// WithIsVisible provides filtering by frontend visibility.
+func WithIsVisible(isVisible ...bool) OptFn {
+	return base.WithValues(FieldKeyIsVisible, isVisible...)
+}
+
 // WithFileName provides filtering by file name.
 func WithFileName(filename ...string) OptFn {
 	return base.WithValues(FieldKeyFileName, filename...)

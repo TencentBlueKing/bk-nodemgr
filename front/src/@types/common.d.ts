@@ -232,6 +232,7 @@ interface Release {
   md5: string;
   updated_at: number;
   operator: string;
+  is_visible: boolean;
 }
 
 interface ReleaseAgent {
@@ -247,6 +248,7 @@ interface ReleaseAgentBrief {
   version: string;
   enabled: boolean;
   as_default: boolean;
+  is_visible: boolean;
 }
 
 interface ReleaseProxy {
@@ -266,6 +268,7 @@ interface ReleaseProxyBrief {
   as_default: boolean;
   change_log_en: string;
   change_log_zh: string;
+  is_visible: boolean;
 }
 
 // ReleasePlugin describes the release plugin.
@@ -282,6 +285,7 @@ interface ReleasePluginBrief {
   version: string;
   enabled: boolean;
   as_default: boolean;
+  is_visible: boolean;
 }
 
 // ReleaseCert describes the release cert.

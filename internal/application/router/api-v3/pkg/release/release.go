@@ -147,6 +147,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/agent/set_labels_many", restserver.Handler(h.SetReleaseAgentLabelsMany))
 	h.rg.POST("/agent/enable", restserver.Handler(h.EnableReleaseAgent))
 	h.rg.POST("/agent/disable", restserver.Handler(h.DisableReleaseAgent))
+	h.rg.POST("/agent/visible", restserver.Handler(h.VisibleReleaseAgent))
+	h.rg.POST("/agent/unvisible", restserver.Handler(h.UnvisibleReleaseAgent))
+	h.rg.POST("/agent/enable_and_visible", restserver.Handler(h.EnableAndVisibleReleaseAgent))
+	h.rg.POST("/agent/disable_and_unvisible", restserver.Handler(h.DisableAndUnvisibleReleaseAgent))
 	h.rg.POST("/agent/set_as_default", restserver.Handler(h.SetAsDefaultReleaseAgent))
 	h.rg.POST("/agent/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseAgent))
 	h.rg.POST("/agent/delete", restserver.Handler(h.DeleteReleaseAgent))
@@ -160,6 +164,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/proxy/set_labels_many", restserver.Handler(h.SetReleaseProxyLabelsMany))
 	h.rg.POST("/proxy/enable", restserver.Handler(h.EnableReleaseProxy))
 	h.rg.POST("/proxy/disable", restserver.Handler(h.DisableReleaseProxy))
+	h.rg.POST("/proxy/visible", restserver.Handler(h.VisibleReleaseProxy))
+	h.rg.POST("/proxy/unvisible", restserver.Handler(h.UnvisibleReleaseProxy))
+	h.rg.POST("/proxy/enable_and_visible", restserver.Handler(h.EnableAndVisibleReleaseProxy))
+	h.rg.POST("/proxy/disable_and_unvisible", restserver.Handler(h.DisableAndUnvisibleReleaseProxy))
 	h.rg.POST("/proxy/set_as_default", restserver.Handler(h.SetAsDefaultReleaseProxy))
 	h.rg.POST("/proxy/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseProxy))
 	h.rg.POST("/proxy/delete", restserver.Handler(h.DeleteReleaseProxy))
@@ -171,6 +179,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/plugin/list/brief", restserver.Handler(h.ListReleasePluginBrief))
 	h.rg.POST("/plugin/enable", restserver.Handler(h.EnableReleasePlugin))
 	h.rg.POST("/plugin/disable", restserver.Handler(h.DisableReleasePlugin))
+	h.rg.POST("/plugin/visible", restserver.Handler(h.VisibleReleasePlugin))
+	h.rg.POST("/plugin/unvisible", restserver.Handler(h.UnvisibleReleasePlugin))
+	h.rg.POST("/plugin/enable_and_visible", restserver.Handler(h.EnableAndVisibleReleasePlugin))
+	h.rg.POST("/plugin/disable_and_unvisible", restserver.Handler(h.DisableAndUnvisibleReleasePlugin))
 	h.rg.POST("/plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
 	h.rg.POST("/plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
 	h.rg.POST("/plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
@@ -378,6 +390,78 @@ func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, er
 	resp := new(protoApplication.PackageReleaseAgentDisableResp)
 
 	return resp.GetData(), nil
+}
+
+// VisibleReleaseAgent makes an agent release visible to the frontend.
+func (h *handler) VisibleReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentVisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseAgentKey(req)
+	if err := h.backendHandler.VisibleReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to make agent release visible")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("make agent release visible")
+
+	resp := new(protoApplication.PackageReleaseAgentVisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// UnvisibleReleaseAgent hides an agent release from the frontend.
+func (h *handler) UnvisibleReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentUnvisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseAgentKey(req)
+	if err := h.backendHandler.UnvisibleReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to hide agent release")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("hide agent release")
+
+	resp := new(protoApplication.PackageReleaseAgentUnvisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// EnableAndVisibleReleaseAgent enables an agent release and makes it visible.
+func (h *handler) EnableAndVisibleReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentEnableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseAgentKey(req)
+	if err := h.backendHandler.EnableReleaseAgent(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	if err := h.backendHandler.VisibleReleaseAgent(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return new(protoApplication.PackageReleaseAgentEnableResp).GetData(), nil
+}
+
+// DisableAndUnvisibleReleaseAgent disables an agent release and hides it.
+func (h *handler) DisableAndUnvisibleReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentDisableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseAgentKey(req)
+	if err := h.backendHandler.DisableReleaseAgent(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	if err := h.backendHandler.UnvisibleReleaseAgent(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return new(protoApplication.PackageReleaseAgentDisableResp).GetData(), nil
 }
 
 // SetAsDefaultReleaseAgent sets agent release as default.
@@ -723,6 +807,78 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	return resp.GetData(), nil
 }
 
+// VisibleReleaseProxy makes a proxy release visible to the frontend.
+func (h *handler) VisibleReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyVisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseProxyKey(req)
+	if err := h.backendHandler.VisibleReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to make proxy release visible")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("make proxy release visible")
+
+	resp := new(protoApplication.PackageReleaseProxyVisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// UnvisibleReleaseProxy hides a proxy release from the frontend.
+func (h *handler) UnvisibleReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyUnvisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseProxyKey(req)
+	if err := h.backendHandler.UnvisibleReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to hide proxy release")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("hide proxy release")
+
+	resp := new(protoApplication.PackageReleaseProxyUnvisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// EnableAndVisibleReleaseProxy enables a proxy release and makes it visible.
+func (h *handler) EnableAndVisibleReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyEnableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseProxyKey(req)
+	if err := h.backendHandler.EnableReleaseProxy(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	if err := h.backendHandler.VisibleReleaseProxy(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return new(protoApplication.PackageReleaseProxyEnableResp).GetData(), nil
+}
+
+// DisableAndUnvisibleReleaseProxy disables a proxy release and hides it.
+func (h *handler) DisableAndUnvisibleReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyDisableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	key := buildReleaseProxyKey(req)
+	if err := h.backendHandler.DisableReleaseProxy(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	if err := h.backendHandler.UnvisibleReleaseProxy(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return new(protoApplication.PackageReleaseProxyDisableResp).GetData(), nil
+}
+
 // SetAsDefaultReleaseProxy sets proxy release as default.
 func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseProxySetAsDefaultReq)
@@ -1014,6 +1170,82 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 	resp := new(protoApplication.PackageReleasePluginDisableResp)
 
 	return resp.GetData(), nil
+}
+
+// VisibleReleasePlugin makes a plugin release visible to the frontend.
+func (h *handler) VisibleReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginVisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	name, gen, plat, version := req.GetIdentifier()
+	key := types.ReleasePluginKey{Name: name, Generation: gen, Platform: plat, Version: version}
+	if err := h.backendHandler.VisibleReleasePlugin(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to make plugin release visible")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("make plugin release visible")
+
+	resp := new(protoApplication.PackageReleasePluginVisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// UnvisibleReleasePlugin hides a plugin release from the frontend.
+func (h *handler) UnvisibleReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginUnvisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	name, gen, plat, version := req.GetIdentifier()
+	key := types.ReleasePluginKey{Name: name, Generation: gen, Platform: plat, Version: version}
+	if err := h.backendHandler.UnvisibleReleasePlugin(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to hide plugin release")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("hide plugin release")
+
+	resp := new(protoApplication.PackageReleasePluginUnvisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// EnableAndVisibleReleasePlugin enables a plugin release and makes it visible.
+func (h *handler) EnableAndVisibleReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginEnableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	name, gen, plat, version := req.GetIdentifier()
+	key := types.ReleasePluginKey{Name: name, Generation: gen, Platform: plat, Version: version}
+	if err := h.backendHandler.EnableReleasePlugin(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	if err := h.backendHandler.VisibleReleasePlugin(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return new(protoApplication.PackageReleasePluginEnableResp).GetData(), nil
+}
+
+// DisableAndUnvisibleReleasePlugin disables a plugin release and hides it.
+func (h *handler) DisableAndUnvisibleReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginDisableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	name, gen, plat, version := req.GetIdentifier()
+	key := types.ReleasePluginKey{Name: name, Generation: gen, Platform: plat, Version: version}
+	if err := h.backendHandler.DisableReleasePlugin(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	if err := h.backendHandler.UnvisibleReleasePlugin(rCtx, key); err != nil {
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	return new(protoApplication.PackageReleasePluginDisableResp).GetData(), nil
 }
 
 // SetAsDefaultReleasePlugin set default release plugin.

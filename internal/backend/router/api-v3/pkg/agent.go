@@ -367,6 +367,71 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 	return resp.GetData(), nil
 }
 
+// VisibleReleaseAgent makes an agent release visible to the frontend.
+func (h *handler) VisibleReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseAgentVisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to make agent release visible, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// Permission check: ActionPackageManage
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	plat := protoBackend.ConvertPlatformToTypes(req.GetPlatform())
+	version := req.GetVersion()
+	key := types.ReleaseAgentKey{
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+
+	if err := h.daoReleaseAgent.VisibleReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to make agent release visible")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("key", key).Info("made agent release visible")
+
+	resp := new(protoBackend.PackageReleaseAgentVisibleResp)
+
+	return resp.GetData(), nil
+}
+
+// UnvisibleReleaseAgent hides an agent release from the frontend.
+func (h *handler) UnvisibleReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseAgentUnvisibleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to hide agent release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	resources := authProvider.BuildPackageResources(string(types.ReleaseTypeAgent))
+	if authErr := h.authorizer.Check(rCtx, auth.ActionPackageManage, resources); authErr != nil {
+		return nil, authErr
+	}
+
+	key := types.ReleaseAgentKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoBackend.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+	if err := h.daoReleaseAgent.UnvisibleReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("key", key).Error("failed to hide agent release")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("key", key).Info("hid agent release")
+
+	resp := new(protoBackend.PackageReleaseAgentUnvisibleResp)
+
+	return resp.GetData(), nil
+}
+
 // DeleteReleaseAgent deletes agent release.
 func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseAgentDeleteReq)
