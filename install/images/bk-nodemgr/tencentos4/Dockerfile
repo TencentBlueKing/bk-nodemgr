@@ -1,15 +1,10 @@
 FROM node:20-alpine AS frontend-builder
 
-ARG MODE=production
-
 WORKDIR /app
 RUN corepack enable
 
-COPY front/.npmrc front/package.json front/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-
 COPY front/ .
-RUN pnpm build --mode ${MODE}
+RUN pnpm i && pnpm build
 
 FROM tencentos/tencentos4-minimal
 
