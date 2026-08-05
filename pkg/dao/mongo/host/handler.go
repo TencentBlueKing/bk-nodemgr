@@ -932,7 +932,8 @@ func (h *handler) UpdateStaticFields(nCtx contextx.IContext, fields types.HostSt
 			return base.ErrInvalidItemInParamList()
 		}
 
-		updates := generateHostStaticUpdates(fields, host)
+		dbHost := convertHostFromTypes(host)
+		updates := generateHostStaticUpdates(fields, dbHost)
 		docs = append(docs, &base.DocumentFieldUpdate{
 			Filter: bson.D{{Key: FieldKeyHostID, Value: host.HostID}},
 			Fields: updates,
@@ -949,7 +950,7 @@ func (h *handler) UpdateStaticFields(nCtx contextx.IContext, fields types.HostSt
 }
 
 // nolint: gocognit, gocyclo, cyclop
-func generateHostStaticUpdates(fields types.HostStaticFields, host *types.Host) map[string]any {
+func generateHostStaticUpdates(fields types.HostStaticFields, host *Host) map[string]any {
 	updates := make(map[string]any)
 
 	if fields.BizID {

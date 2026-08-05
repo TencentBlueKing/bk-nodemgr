@@ -43,8 +43,8 @@ func TestConvertHostToTypesReadsNumericZoneID(t *testing.T) {
 }
 
 func TestGenerateHostStaticUpdatesWritesNumericZoneID(t *testing.T) {
-	updates := generateHostStaticUpdates(types.HostStaticFields{ZoneID: true}, &types.Host{
-		Static: &types.HostStatic{ZoneID: 42},
+	updates := generateHostStaticUpdates(types.HostStaticFields{ZoneID: true}, &Host{
+		Static: &HostStatic{ZoneID: 42},
 	})
 
 	if updates[FieldKeyStaticZoneID] != int64(42) {

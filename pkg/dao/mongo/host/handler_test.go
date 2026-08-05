@@ -373,6 +373,96 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 	}
 }
 
+// Test_handler_UpdateStaticFields tests partial host static field updates.
+func Test_handler_UpdateStaticFields(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
+
+	h := prepareData(t, nCtx)
+
+	static := &types.HostStatic{
+		BizID:         1001,
+		Topo:          []*types.HostTopo{{SetID: 2001, ModuleID: 3001}},
+		NetworkAreaID: 4001,
+		ZoneID:        5001,
+		CityID:        "city-5001",
+		HostName:      "updated-hostname",
+		DeptName:      "updated-dept",
+		InnerIPList:   []string{"10.0.0.1", "10.0.0.2"},
+		InnerIPV6List: []string{"fe80::1"},
+		OuterIPList:   []string{"172.16.0.1"},
+		OuterIPV6List: []string{"2001:db8::1"},
+		Operator:      "operator-a",
+		Mac:           "00:11:22:33:44:55",
+		OSTypeCCID:    "linux-ccid",
+		OSType:        "linux",
+		Arch:          "x86_64",
+		Addressing:    types.AddressingStatic,
+		CPUNum:        8,
+		MemCap:        16,
+
+		SyncedAgentID:            "agent-5001",
+		SyncedOpsConsoleHostID:   6001,
+		SyncedOpsOutBandType:     "bmc",
+		SyncedOpsOutBandProtocol: "ipmi",
+		SyncedOpsBMCIP:           "192.168.0.10",
+		SyncedOpsBMCPort:         623,
+	}
+
+	fields := types.HostStaticFields{
+		BizID:                    true,
+		Topo:                     true,
+		NetworkAreaID:            true,
+		ZoneID:                   true,
+		CityID:                   true,
+		HostName:                 true,
+		DeptName:                 true,
+		InnerIPList:              true,
+		InnerIPV6List:            true,
+		OuterIPList:              true,
+		OuterIPV6List:            true,
+		Operator:                 true,
+		Mac:                      true,
+		OSTypeCCID:               true,
+		OSType:                   true,
+		Arch:                     true,
+		Addressing:               true,
+		CPUNum:                   true,
+		MemCap:                   true,
+		SyncedAgentID:            true,
+		SyncedOpsConsoleHostID:   true,
+		SyncedOpsOutBandType:     true,
+		SyncedOpsOutBandProtocol: true,
+		SyncedOpsBMCIP:           true,
+		SyncedOpsBMCPort:         true,
+	}
+
+	if err := h.UpdateStaticFields(
+		nCtx,
+		fields,
+		&types.Host{
+			HostID: 90001,
+			Static: static,
+		},
+	); err != nil {
+		t.Fatalf("UpdateStaticFields() error = %v", err)
+	}
+
+	hosts, total, err := h.List(nCtx, types.Page{Offset: 0, Limit: 1}, WithHostID(90001))
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if total != 1 {
+		t.Fatalf("List() total = %d, want 1", total)
+	}
+	if len(hosts) != 1 {
+		t.Fatalf("List() got %d hosts, want 1", len(hosts))
+	}
+
+	if !reflect.DeepEqual(static, hosts[0].Static) {
+		t.Errorf("Static = %#v, want %#v", hosts[0].Static, static)
+	}
+}
+
 // Test_handler_UpdateDynamicMany tests update host dynamics.
 func Test_handler_UpdateDynamicMany(t *testing.T) {
 	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
