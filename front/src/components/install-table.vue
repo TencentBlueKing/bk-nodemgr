@@ -1596,7 +1596,7 @@ const autoFillDefaults = () => {
 
 watch(() => tableData.value?.length, () => {
   autoFillDefaults();
-});
+}, { immediate: true });
 
 onMounted(async () => {
   // 必须在 VxeTable 注册全局 mousedown 之前注册，保证捕获阶段先执行
