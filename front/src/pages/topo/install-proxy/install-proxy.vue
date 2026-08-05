@@ -412,7 +412,7 @@ import SelectItemGroup from './components/select-item-group.vue';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
-import { encryptionTool } from '@/common/crypto';
+import { encryptV1, encryptV2, initPublicKey } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
@@ -788,15 +788,15 @@ const handleConfirm = async () => {
     };
     // Deep clone to avoid mutating original form.info — preserve credit on API failure
     const clonedInfo = cloneDeep(form.info);
-    clonedInfo.forEach((item: any) => {
+    for (const item of clonedInfo) {
       // 获取对应的 key (login_password 或 login_key_file)
       const targetKey = modeMap[item.login_mode];
 
       if (item.credit) {
         // 密码用 V1 加密，密钥用 V2 加密
         const encryptedValue = item.login_mode === 'keyfile'
-          ? encryptionTool.encryptV2Sync(item.credit)
-          : encryptionTool.encryptV1Sync(item.credit);
+          ? encryptV2(item.credit)
+          : encryptV1(item.credit);
 
         // 如果加密成功，使用密文；否则使用空字符串
         item[targetKey] = encryptedValue !== false ? encryptedValue : '';
@@ -810,7 +810,7 @@ const handleConfirm = async () => {
         }
       });
       delete item.credit;
-    });
+    }
     if (isTargetShow.value) {
       form.target_version = systemData.value
         .filter((item: any) => !!item.version)
@@ -921,8 +921,8 @@ const authStore = useAuthStore();
 const handleUpload = (data: any) => {
   excelImportData.value = data?.info || [];
 };
-onMounted(() => {
-  encryptionTool.initPublicKey();
+onMounted(async () => {
+  await initPublicKey();
   // 预加载 proxy_operate 权限（biz 级别），供 BizSelect 过滤业务列表
   authStore.fetchAuthorized([{ action: 'proxy_operate', resource_type: 'biz' }]);
 });
@@ -1021,7 +1021,7 @@ watch(
     }
   },
 );
-onMounted(() => {
-  encryptionTool.initPublicKey();
+onMounted(async () => {
+  await initPublicKey();
 });
 </script>

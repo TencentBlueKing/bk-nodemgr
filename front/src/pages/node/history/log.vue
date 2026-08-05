@@ -1021,6 +1021,9 @@ const getInstance = async () => {
 const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
 const needRefreshOperateList = ref(false);
+// 记录上一次轮询的 hasRunning 状态，仅在 running→非running 边界触发一次
+// operationList 刷新，避免任务已失败/超时/终止后仍每轮重复请求。
+let prevHasRunning = false;
 async function getLog() {
   if (!curOperInstId.value) return;
   hasErrorOrTimeout.value = false;
@@ -1079,18 +1082,17 @@ async function getLog() {
       currentKey = key;
     }
   }
-  // 当步骤状态可能转变时（从有 running 变为无 running，或出现失败/超时/终止），
+  // 当步骤状态从 running 变为非 running（含 failed/timeout/terminated/success）时，
   // 刷新操作列表获取最新整体状态，确保左侧 IP 列表和重试按钮及时更新。
-  // 使用 needRefreshOperateList 标记避免步骤间隙时每轮轮询都重复请求：
-  // hasRunning 从 true 变 false 时触发一次刷新，刷新后标记重置；
-  // 后续若仍为 false 且整体还在跑，不再重复刷新
-  if (!hasRunning && !needRefreshOperateList.value) {
-    needRefreshOperateList.value = true;
-  }
+  // 通过 prevHasRunning 记录上一次状态，避免任务已失败/超时/终止后仍每轮重复请求
+  // operationList 接口。
   if (hasRunning) {
     needRefreshOperateList.value = false;
+  } else if (prevHasRunning) {
+    needRefreshOperateList.value = true;
   }
-  if (needRefreshOperateList.value || hasErrorOrTimeout.value) {
+  prevHasRunning = hasRunning;
+  if (needRefreshOperateList.value) {
     await getOperateList();
     needRefreshOperateList.value = false;
   }

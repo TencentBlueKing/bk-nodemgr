@@ -771,7 +771,7 @@
 
         <VxeColumn
           field="credit"
-          :min-width="170"
+          :min-width="200"
           :visible="settings.checked.includes('credit')"
           :edit-render="{ name: 'VxeInput' }"
         >
@@ -815,6 +815,7 @@
                 :limit="1"
                 theme="button"
                 :before-upload="(val) => handleBeforeUpload(val, row)"
+                :custom-request="() => {}"
                 @change="clearError(rowIndex, 'credit')"
               />
               <Input

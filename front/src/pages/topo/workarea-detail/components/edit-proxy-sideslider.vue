@@ -288,7 +288,7 @@ import { useI18n } from 'vue-i18n';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { VALIDATE_REGEX } from '@/common/const';
-import { encryptionTool } from '@/common/crypto';
+import { encryptV1, encryptV2, initPublicKey } from '@/common/crypto';
 import { getDefaultLoginMode, resolveLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 
 interface IValidate {
@@ -423,8 +423,8 @@ const handleSave = async () => {
       keyfile: 'login_key_file',
     };
     const encryptedValue = formData.login_mode === 'keyfile'
-      ? encryptionTool.encryptV2Sync(formData.credit)
-      : encryptionTool.encryptV1Sync(formData.credit);
+      ? encryptV2(formData.credit)
+      : encryptV1(formData.credit);
     formData[modeMap[formData.login_mode]] = encryptedValue !== false ? encryptedValue : '';
   }
   formData.proxy_tags = [];
@@ -484,7 +484,7 @@ watch(() => isShow.value, () => {
     formData.relay_callback_port = '';
   }
 });
-onMounted(() => {
-  encryptionTool.initPublicKey();
+onMounted(async () => {
+  await initPublicKey();
 });
 </script>

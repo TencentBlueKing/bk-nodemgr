@@ -294,7 +294,7 @@ import Preview from './preview.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
-import { encryptionTool } from '@/common/crypto';
+import { encryptV1, encryptV2, initPublicKey } from '@/common/crypto';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { getDefaultLoginMode, scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
@@ -537,8 +537,8 @@ const handlePreview = async () => {
       if (item.credit) {
         // 密码用 V1 加密，密钥用 V2 加密
         const encryptedValue = item.login_mode === 'keyfile'
-          ? encryptionTool.encryptV2Sync(item.credit)
-          : encryptionTool.encryptV1Sync(item.credit);
+          ? encryptV2(item.credit)
+          : encryptV1(item.credit);
 
         // 如果加密成功，使用密文；否则使用空字符串
         item[targetKey] = encryptedValue !== false ? encryptedValue : '';
@@ -646,7 +646,7 @@ watch(
   },
 );
 onMounted(async () => {
-  encryptionTool.initPublicKey();
+  await initPublicKey();
   await getVersions();
   if (footerRef.value) {
     window.addEventListener('resize', debouncedCheck);
