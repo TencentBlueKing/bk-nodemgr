@@ -1158,6 +1158,51 @@ func (x *PackageReleasePluginListBriefReq) ConvertExactIncludeConditionsToTypes(
 	return convertReleaseExactConditionsToTypes(x.GetExactIncludeConditions())
 }
 
+// ConvertExactIncludeConditionsToTypes converts plugin distinct conditions.
+func (x *PackageReleasePluginDistinctReq) ConvertExactIncludeConditionsToTypes() *types.ReleaseExactFields {
+	if x == nil || x.ExactIncludeConditions == nil {
+		return &types.ReleaseExactFields{}
+	}
+	return convertReleaseExactConditionsToTypes(x.GetExactIncludeConditions())
+}
+
+// Validate checks the plugin distinct request.
+func (x *PackageReleasePluginDistinctReq) Validate() error {
+	return types.Generation(x.GetGeneration()).Validate()
+}
+
+// AutoConvert auto converts the plugin distinct request.
+func (x *PackageReleasePluginDistinctReq) AutoConvert() {}
+
+// ConvertConditionsFromTypes converts plugin distinct conditions from types.
+func (x *PackageReleasePluginDistinctReq) ConvertConditionsFromTypes(condition *types.ReleaseCondition) error {
+	exact, err := convertReleaseConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+	x.ExactIncludeConditions = exact
+	return nil
+}
+
+// ConvertResultFromTypes converts the plugin distinct result from types.
+func (x *PackageReleasePluginDistinctResp) ConvertResultFromTypes(result *types.ReleaseDistinctResult) {
+	if result == nil {
+		return
+	}
+	x.Data = &PackageReleaseDistinctData{OsType: formatRespSlice(result.OSType), CpuArch: formatRespSlice(result.CPUArch)}
+}
+
+// ConvertResultToTypes converts the plugin distinct response to types.
+func (x *PackageReleasePluginDistinctResp) ConvertResultToTypes() *types.ReleaseDistinctResult {
+	if x.GetData() == nil {
+		return &types.ReleaseDistinctResult{}
+	}
+
+	data := x.GetData()
+
+	return &types.ReleaseDistinctResult{OSType: data.GetOsType(), CPUArch: data.GetCpuArch()}
+}
+
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *PackageReleasePluginListBriefReq) ConvertConditionsFromTypes(condition *types.ReleaseCondition) error {
 	exactCond, err := convertReleaseConditionsFromTypes(condition)

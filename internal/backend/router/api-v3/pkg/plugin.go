@@ -143,6 +143,37 @@ func (h *handler) ListReleasePluginBrief(rCtx restserver.IContext) (interface{},
 	return resp.GetData(), nil
 }
 
+// DistinctReleasePlugin distinct plugin releases.
+func (h *handler) DistinctReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	condition := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+	distinctField := types.ReleaseDistinctField{
+		OSType:  req.GetDistinctField().GetOsType(),
+		CPUArch: req.GetDistinctField().GetCpuArch(),
+	}
+
+	result, err := h.daoReleasePlugin.DistinctReleasePlugin(rCtx, distinctField, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin release")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleasePluginDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
 // EnableReleasePlugin enable plugin.
 func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleasePluginEnableReq)

@@ -100,6 +100,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	// release plugin.
 	h.rg.POST("/release/plugin/list", restserver.Handler(h.ListReleasePlugin))
 	h.rg.POST("/release/plugin/list/brief", restserver.Handler(h.ListReleasePluginBrief))
+	h.rg.POST("/release/plugin/distinct", restserver.Handler(h.DistinctReleasePlugin))
 	h.rg.POST("/release/plugin/enable", restserver.Handler(h.EnableReleasePlugin))
 	h.rg.POST("/release/plugin/disable", restserver.Handler(h.DisableReleasePlugin))
 	h.rg.POST("/release/plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))

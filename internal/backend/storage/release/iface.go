@@ -121,6 +121,10 @@ type IPlugin interface {
 	// CountReleasePlugin counts plugin release by conditions.
 	CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
 
+	// DistinctReleasePlugin gets plugin releases distinct.
+	DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
+
 	// GetReleasePlugin gets plugin release.
 	GetReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) (*types.ReleasePlugin, error)
 

@@ -55,6 +55,7 @@ const (
 	metricOperationUnvisibleReleaseProxy            = "unvisible_release_proxy"
 	metricOperationListReleasePlugin                = "list_release_plugin"
 	metricOperationCountReleasePlugin               = "count_release_plugin"
+	metricOperationDistinctReleasePlugin            = "distinct_release_plugin"
 	metricOperationGetReleasePlugin                 = "get_release_plugin"
 	metricOperationDeleteReleasePlugin              = "delete_release_plugin"
 	metricOperationEnableReleasePlugin              = "enable_release_plugin"
@@ -540,6 +541,28 @@ func (s *Storage) CountReleasePlugin(nCtx contextx.IContext, conditions ...*type
 	})
 
 	return num, err
+}
+
+// DistinctReleasePlugin gets plugin releases distinct.
+func (s *Storage) DistinctReleasePlugin(nCtx contextx.IContext, fields types.ReleaseDistinctField, conditions ...*types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	var (
+		result *types.ReleaseDistinctResult
+	)
+
+	err := s.WrapFn(nCtx, metricOperationDistinctReleasePlugin, func(nCtx contextx.IContext) error {
+		var err error
+		if result, err = s.distinctRelease(nCtx, types.ReleaseTypePlugin, fields, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to distinct release plugin")
+
+			return fmt.Errorf("failed to distinct release plugin: %w", err)
+		}
+
+		return nil
+	})
+
+	return result, err
 }
 
 // GetReleasePlugin gets plugin release.

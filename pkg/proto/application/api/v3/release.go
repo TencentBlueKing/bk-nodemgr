@@ -435,6 +435,31 @@ func (x *PackageReleaseAgentDistinctResp) ConvertResultFromTypes(result *types.R
 }
 
 // Validate check body.
+func (x *PackageReleasePluginDistinctReq) Validate() error {
+	return types.Generation(x.GetGeneration()).Validate()
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginDistinctReq) AutoConvert() {}
+
+// ConvertDistinctFieldToTypes convert distinct field to types.
+func (x *PackageReleasePluginDistinctReq) ConvertDistinctFieldToTypes() types.ReleaseDistinctField {
+	return types.ReleaseDistinctField{OSType: x.GetDistinctField().GetOsType(), CPUArch: x.GetDistinctField().GetCpuArch()}
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PackageReleasePluginDistinctReq) ConvertConditionsToTypes() *types.ReleaseCondition {
+	return convertReleaseConditionsToTypes(x.GetExactIncludeConditions())
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PackageReleasePluginDistinctResp) ConvertResultFromTypes(result *types.ReleaseDistinctResult) {
+	if result != nil {
+		x.Data = &PackageReleaseDistinctData{OsType: result.OSType, CpuArch: result.CPUArch}
+	}
+}
+
+// Validate check body.
 func (x *PackageReleaseAgentSetLabelsManyReq) Validate() error {
 	return nil
 }

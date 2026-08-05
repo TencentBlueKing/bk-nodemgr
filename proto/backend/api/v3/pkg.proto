@@ -101,6 +101,25 @@ message PackageReleaseAgentDistinctResp {
   PackageReleaseDistinctData data = 5;
 }
 
+// PackageReleasePluginDistinctReq describes the HTTP request body when distinct
+// plugin release.
+message PackageReleasePluginDistinctReq {
+  int64 generation = 1;
+  PackageReleaseExactConditions exact_include_conditions = 2;
+  PackageReleaseDistinctField distinct_field = 3;
+}
+
+// PackageReleasePluginDistinctResp describes the HTTP response body when
+// distinct plugin release.
+message PackageReleasePluginDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+  PackageReleaseDistinctData data = 5;
+}
+
 // PackageReleaseAgentSetLabelsManyReq describes the HTTP request body when set
 // many labels to agent release.
 message PackageReleaseAgentSetLabelsManyReq {
@@ -977,6 +996,15 @@ service Package {
       returns (PackageReleaseAgentDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/agent/distinct"
+      body : "*"
+    };
+  }
+
+  // DistinctReleasePlugin distincts plugin releases.
+  rpc DistinctReleasePlugin(PackageReleasePluginDistinctReq)
+      returns (PackageReleasePluginDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/distinct"
       body : "*"
     };
   }

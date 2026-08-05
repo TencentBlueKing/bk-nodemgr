@@ -222,6 +222,15 @@ type IHandlerReleasePlugin interface {
 	// @return the plugin release count with filter and error.
 	CountReleasePlugin(nCtx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error)
 
+	// DistinctReleasePlugin distincts plugin releases by conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param gen the generation info.
+	// @param distinctField the distinct field.
+	// @param condition the filter conditions.
+	// @return the plugin release distinct result and error.
+	DistinctReleasePlugin(nCtx contextx.IContext, gen types.Generation, distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
+
 	// EnableReleasePlugin enables plugin release.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param key the release plugin key.
@@ -775,6 +784,30 @@ func (h *Handler) ListReleasePlugin(nCtx contextx.IContext, gen types.Generation
 	return result.Items, total, nil
 }
 
+// DistinctReleasePlugin distincts plugin releases by conditions.
+func (h *Handler) DistinctReleasePlugin(
+	nCtx contextx.IContext, gen types.Generation, distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (
+	*types.ReleaseDistinctResult, error) {
+
+	req := &protoBackend.PackageReleasePluginDistinctReq{
+		Generation: int64(gen),
+		DistinctField: &protoBackend.PackageReleaseDistinctField{
+			OsType:  distinctField.OSType,
+			CpuArch: distinctField.CPUArch,
+		},
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.distinctReleasePlugin(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes(), nil
+}
+
 // ListReleasePluginBrief lists plugin release briefs by page and conditions.
 func (h *Handler) ListReleasePluginBrief(nCtx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
 	[]*types.ReleasePlugin, int64, error) {
@@ -874,7 +907,7 @@ func (h *Handler) VisibleReleasePlugin(nCtx contextx.IContext, key types.Release
 func (h *Handler) UnvisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	req := &protoBackend.PackageReleasePluginUnvisibleReq{}
 	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
-	
+
 	return h.cli.unvisibleReleasePlugin(nCtx, req)
 }
 

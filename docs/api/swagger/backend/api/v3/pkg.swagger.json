@@ -728,6 +728,40 @@
         ]
       }
     },
+    "/api/v3/package/release/plugin/distinct": {
+      "post": {
+        "summary": "DistinctReleasePlugin distincts plugin releases.",
+        "operationId": "Package_DistinctReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginDistinctReq describes the HTTP request body when distinct\nplugin release.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/plugin/enable": {
       "post": {
         "summary": "EnableReleasePlugin enables plugin release.",
@@ -2856,6 +2890,47 @@
     },
     "v3PackageReleasePluginDisableRespData": {
       "type": "object"
+    },
+    "v3PackageReleasePluginDistinctReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        },
+        "distinct_field": {
+          "$ref": "#/definitions/v3PackageReleaseDistinctField"
+        }
+      },
+      "description": "PackageReleasePluginDistinctReq describes the HTTP request body when distinct\nplugin release."
+    },
+    "v3PackageReleasePluginDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseDistinctData"
+        }
+      },
+      "description": "PackageReleasePluginDistinctResp describes the HTTP response body when\ndistinct plugin release."
     },
     "v3PackageReleasePluginEnableReq": {
       "type": "object",

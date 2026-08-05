@@ -177,6 +177,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	// release plugin.
 	h.rg.POST("/plugin/list", restserver.Handler(h.ListReleasePlugin))
 	h.rg.POST("/plugin/list/brief", restserver.Handler(h.ListReleasePluginBrief))
+	h.rg.POST("/plugin/distinct", restserver.Handler(h.DistinctReleasePlugin))
 	h.rg.POST("/plugin/enable", restserver.Handler(h.EnableReleasePlugin))
 	h.rg.POST("/plugin/disable", restserver.Handler(h.DisableReleasePlugin))
 	h.rg.POST("/plugin/visible", restserver.Handler(h.VisibleReleasePlugin))
@@ -699,6 +700,30 @@ func (h *handler) ListReleaseProxyBrief(rCtx restserver.IContext) (interface{}, 
 
 	resp := new(protoApplication.PackageReleaseProxyListBriefResp)
 	resp.ConvertReleasesFromTypes(num, releases)
+
+	return resp.GetData(), nil
+}
+
+// DistinctReleasePlugin distincts plugin releases by conditions.
+func (h *handler) DistinctReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct release plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	distinctField := req.ConvertDistinctFieldToTypes()
+	condition := req.ConvertConditionsToTypes()
+
+	result, err := h.backendHandler.DistinctReleasePlugin(rCtx, gen, distinctField, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct release plugin")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleasePluginDistinctResp)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

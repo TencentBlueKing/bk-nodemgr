@@ -2136,6 +2136,33 @@ func (c *cli) distinctReleaseAgent(ctx contextx.IContext, req *protoBackend.Pack
 	return resp, nil
 }
 
+func (c *cli) distinctReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginDistinctReq) (
+	*protoBackend.PackageReleasePluginDistinctResp, error) {
+
+	resp := new(protoBackend.PackageReleasePluginDistinctResp)
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin/distinct").
+		WithContext(ctx).
+		WithHeaders(c.getHeader(ctx)).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.GetCode() != CodeOK {
+		return nil, buildBackendResponseError("distinct plugin release", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct plugin release failed, get empty data")
+	}
+
+	return resp, nil
+}
+
 func (c *cli) setReleaseAgentLabelsMany(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentSetLabelsManyReq) error {
 	resp := new(protoBackend.PackageReleaseAgentSetLabelsManyResp)
 
