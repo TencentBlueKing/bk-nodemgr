@@ -162,6 +162,8 @@ linters:
           alias: topoStg
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/operinstdata
           alias: operinstdataStorage
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow
+          alias: packageworkflow
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node
           alias: nodeStg
         - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin

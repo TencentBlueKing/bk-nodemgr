@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
+	packageworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow"
 	scheduledworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/stopoperinst"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
@@ -43,57 +44,58 @@ const (
 	taskTimeout       = 20 * time.Second
 	syncOperationTask = "sync stopping operation inst"
 
-	metricOperationCreateTrigger                                     = "create_trigger"
-	metricOperationUpdateTrigger                                     = "update_trigger"
-	metricOperationSwitchTriggerAlive                                = "switch_trigger_alive"
-	metricOperationGetTrigger                                        = "get_trigger"
-	metricOperationListAliveTrigger                                  = "list_alive_trigger"
-	metricOperationListTrigger                                       = "list_trigger"
-	metricOperationDeleteTriggers                                    = "delete_triggers"
-	metricOperationExistTrigger                                      = "exist_trigger"
-	metricOperationListScheduledWorkflow                             = "list_scheduled_workflow"
-	metricOperationCountScheduledWorkflow                            = "count_scheduled_workflow"
-	metricOperationGetScheduledWorkflow                              = "get_scheduled_workflow"
-	metricOperationCreateScheduledWorkflow                           = "create_scheduled_workflow"
-	metricOperationUpdateScheduledWorkflowTriggerID                  = "update_scheduled_workflow_trigger_id"
-	metricOperationUpdateScheduledWorkflowPrivateData                = "update_scheduled_workflow_private_data"
-	metricOperationSwitchScheduledWorkflow                           = "switch_scheduled_workflow"
-	metricOperationGetOperation                                      = "get_operation"
-	metricOperationUpsertOperation                                   = "upsert_operation"
-	metricOperationListOperation                                     = "list_operation"
-	metricOperationCountOperation                                    = "count_operation"
-	metricOperationDistinctOperation                                 = "distinct_operation"
-	metricOperationListOperationByOperationID                        = "list_operation_by_operation_id"
-	metricOperationListOperationIDByParentOperationID            = "list_operation_id_by_parent_operation_id"
-	metricOperationListOperationIDByParentOperInstID             = "list_operation_id_by_parent_oper_inst_id"
-	metricOperationListNeedInstantiateOperationByTriggerID           = "list_need_instantiate_operation_by_trigger_id"
-	metricOperationExistNeedInstantiateOperationByTriggerID          = "exist_need_instantiate_operation_by_trigger_id"
-	metricOperationDeleteOperationsByTriggerID                       = "delete_operations_by_trigger_id"
-	metricOperationPullOperationInstanceIDsFromOperation             = "pull_operation_instance_ids_from_operation"
-	metricOperationUpdateOperationLatestInstBriefData                = "update_operation_latest_inst_brief_data"
-	metricOperationUpdateOperInstActionStatus                        = "update_oper_inst_action_status"
-	metricOperationGetActionInstanceData                             = "get_action_instance_data"
-	metricOperationGetActionInstanceLifecycle                        = "get_action_instance_lifecycle"
-	metricOperationGetActionInstancePrivateData                      = "get_action_instance_private_data"
-	metricOperationUpdateActionInstanceLifecycle                     = "update_action_instance_lifecycle"
-	metricOperationPushActionInstanceMessage                         = "push_action_instance_message"
-	metricOperationGetOperationInstanceFullData                      = "get_operation_instance_full_data"
-	metricOperationGetOperationInstanceBriefData                     = "get_operation_instance_brief_data"
-	metricOperationListOperationInstanceBriefDataWithoutActionInst   = "list_operation_instance_brief_data_without_action_inst_by_condition"
-	metricOperationCountOperationInstance                            = "count_operation_instance"
-	metricOperationExistOperationInstance                            = "exist_operation_instance"
-	metricOperationListOperationInstanceBriefByOperationID           = "list_operation_instance_brief_without_action_inst_by_operation_id"
-	metricOperationListOperationInstanceBriefByTriggerID             = "list_operation_instance_brief_without_action_inst_by_trigger_id"
-	metricOperationGetLatestOperationInstanceStatusDistribution      = "get_latest_operation_instance_status_distribution_by_trigger_id"
-	metricOperationUpsertOperationInstanceData                       = "upsert_operation_instance_data"
-	metricOperationUpdateOperationInstanceLifecycle                  = "update_operation_instance_lifecycle"
-	metricOperationUpdateOperationLatestActionInstBriefData          = "update_operation_latest_action_inst_brief_data"
-	metricOperationUpdateOperationInstanceExtraExecutionMessages     = "update_operation_instance_extra_execution_messages"
-	metricOperationUpsertOperInstStop                                = "upsert_oper_inst_stop"
-	metricOperationUpdateActionInstanceContent                       = "update_action_instance_content"
-	metricOperationUpsertActionInstancePrivateData                   = "upsert_action_instance_private_data"
-	metricOperationDeleteOperationInstances                          = "delete_operation_instances"
-	metricOperationDeleteOperationInstancesByTriggerID               = "delete_operation_instances_by_trigger_id"
+	metricOperationCreateTrigger                                   = "create_trigger"
+	metricOperationUpdateTrigger                                   = "update_trigger"
+	metricOperationSwitchTriggerAlive                              = "switch_trigger_alive"
+	metricOperationGetTrigger                                      = "get_trigger"
+	metricOperationListAliveTrigger                                = "list_alive_trigger"
+	metricOperationListTrigger                                     = "list_trigger"
+	metricOperationDeleteTriggers                                  = "delete_triggers"
+	metricOperationExistTrigger                                    = "exist_trigger"
+	metricOperationListScheduledWorkflow                           = "list_scheduled_workflow"
+	metricOperationCountScheduledWorkflow                          = "count_scheduled_workflow"
+	metricOperationGetScheduledWorkflow                            = "get_scheduled_workflow"
+	metricOperationCreateScheduledWorkflow                         = "create_scheduled_workflow"
+	metricOperationUpdateScheduledWorkflowTriggerID                = "update_scheduled_workflow_trigger_id"
+	metricOperationUpdateScheduledWorkflowPrivateData              = "update_scheduled_workflow_private_data"
+	metricOperationSwitchScheduledWorkflow                         = "switch_scheduled_workflow"
+	metricOperationGetOperation                                    = "get_operation"
+	metricOperationUpsertOperation                                 = "upsert_operation"
+	metricOperationListOperation                                   = "list_operation"
+	metricOperationCountOperation                                  = "count_operation"
+	metricOperationDistinctOperation                               = "distinct_operation"
+	metricOperationListOperationByOperationID                      = "list_operation_by_operation_id"
+	metricOperationListOperationIDByParentOperationID              = "list_operation_id_by_parent_operation_id"
+	metricOperationListOperationIDByParentOperInstID               = "list_operation_id_by_parent_oper_inst_id"
+	metricOperationListNeedInstantiateOperationByTriggerID         = "list_need_instantiate_operation_by_trigger_id"
+	metricOperationExistNeedInstantiateOperationByTriggerID        = "exist_need_instantiate_operation_by_trigger_id"
+	metricOperationDeleteOperationsByTriggerID                     = "delete_operations_by_trigger_id"
+	metricOperationPullOperationInstanceIDsFromOperation           = "pull_operation_instance_ids_from_operation"
+	metricOperationUpdateOperationLatestInstBriefData              = "update_operation_latest_inst_brief_data"
+	metricOperationUpdateOperInstActionStatus                      = "update_oper_inst_action_status"
+	metricOperationGetActionInstanceData                           = "get_action_instance_data"
+	metricOperationGetActionInstanceLifecycle                      = "get_action_instance_lifecycle"
+	metricOperationGetActionInstancePrivateData                    = "get_action_instance_private_data"
+	metricOperationUpdateActionInstanceLifecycle                   = "update_action_instance_lifecycle"
+	metricOperationPushActionInstanceMessage                       = "push_action_instance_message"
+	metricOperationGetOperationInstanceFullData                    = "get_operation_instance_full_data"
+	metricOperationGetOperationInstanceBriefData                   = "get_operation_instance_brief_data"
+	metricOperationListOperationInstanceBriefDataWithoutActionInst = "list_operation_instance_brief_data_without_action_inst_by_condition"
+	metricOperationCountOperationInstance                          = "count_operation_instance"
+	metricOperationExistOperationInstance                          = "exist_operation_instance"
+	metricOperationListOperationInstanceBriefByOperationID         = "list_operation_instance_brief_without_action_inst_by_operation_id"
+	metricOperationListOperationInstanceBriefByTriggerID           = "list_operation_instance_brief_without_action_inst_by_trigger_id"
+	metricOperationGetLatestOperationInstanceStatusDistribution    = "get_latest_operation_instance_status_distribution_by_trigger_id"
+	metricOperationUpsertOperationInstanceData                     = "upsert_operation_instance_data"
+	metricOperationUpdateOperationInstanceLifecycle                = "update_operation_instance_lifecycle"
+	metricOperationUpdateOperationLatestActionInstBriefData        = "update_operation_latest_action_inst_brief_data"
+	metricOperationUpdateOperationInstanceExtraExecutionMessages   = "update_operation_instance_extra_execution_messages"
+	metricOperationUpsertOperInstStop                              = "upsert_oper_inst_stop"
+	metricOperationUpdateActionInstanceContent                     = "update_action_instance_content"
+	metricOperationUpsertActionInstancePrivateData                 = "upsert_action_instance_private_data"
+	metricOperationDeleteOperationInstances                        = "delete_operation_instances"
+	metricOperationDeleteOperationInstancesByTriggerID             = "delete_operation_instances_by_trigger_id"
+	metricOperationCreatePackageWorkflow                           = "create_package_workflow"
 )
 
 // NewStorage creates a new workflow storage.
@@ -126,9 +128,10 @@ type Storage struct {
 
 	daoTrigger           daoTrigger.IHandler
 	daoOperation         operation.IHandler
-	daoScheduledWorkflow scheduledworkflow.IHandler
 	daoOperInstData      operinstdata.IHandler
 	daoStopOperInst      stopoperinst.IHandler
+	daoScheduledWorkflow scheduledworkflow.IHandler
+	daoPackageWorkflow   packageworkflow.IHandler
 
 	// stop event subscriptions
 	stopEventSubsMap      map[string]*StopEventSubscription
@@ -138,6 +141,9 @@ type Storage struct {
 	stopOperInstsMutex sync.RWMutex
 
 	sg singleflight.Group
+
+	monitoredPackageWorkflows      map[string]*types.PackageWorkflow
+	monitoredPackageWorkflowsMutex sync.RWMutex
 }
 
 func (s *Storage) initDao() error {
@@ -146,14 +152,23 @@ func (s *Storage) initDao() error {
 	s.daoScheduledWorkflow = scheduledworkflow.New(s.Database)
 	s.daoOperInstData = operinstdata.New(s.Database)
 	s.daoStopOperInst = stopoperinst.New(s.Database)
+	s.daoPackageWorkflow = packageworkflow.New(s.Database)
 
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
 	s.stopOperInsts = make(map[string]struct{})
+
+	s.monitoredPackageWorkflows = make(map[string]*types.PackageWorkflow)
 
 	if err := s.registerStopOperInstTask(); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
 
 		return fmt.Errorf("failed to register scheduler: %w", err)
+	}
+
+	if err := s.registerPackageWorkflowScheduler(); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to register package workflow scheduler")
+
+		return fmt.Errorf("failed to register package workflow scheduler: %w", err)
 	}
 
 	return nil
@@ -162,6 +177,14 @@ func (s *Storage) initDao() error {
 func (s *Storage) check() error {
 	if s.daoTrigger == nil {
 		return errors.New("trigger dao is nil")
+	}
+
+	if s.daoScheduledWorkflow == nil {
+		return errors.New("dao scheduled workflow is nil")
+	}
+
+	if s.daoPackageWorkflow == nil {
+		return errors.New("dao package workflow is nil")
 	}
 
 	return nil
@@ -1147,6 +1170,19 @@ func (s *Storage) DeleteOperationInstancesByTriggerID(ctx contextx.IContext, tri
 			logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to delete operation instances by trigger ID")
 
 			return fmt.Errorf("failed to delete operation instances by trigger ID, trigger-ids(%v): %w", triggerID, err)
+		}
+
+		return nil
+	})
+}
+
+// CreatePackageWorkflow creates a package workflow record.
+func (s *Storage) CreatePackageWorkflow(nCtx contextx.IContext, workflow *types.PackageWorkflow) error {
+	return s.WrapFn(nCtx, metricOperationCreatePackageWorkflow, func(nCtx contextx.IContext) error {
+		if err := s.createPackageWorkflow(nCtx, workflow); err != nil {
+			logger.G.Sys().WithErr(err).With("workflow-id", workflow.WorkflowID).Error("failed to create package workflow")
+
+			return fmt.Errorf("failed to create package workflow, workflow-id(%s): %w", workflow.WorkflowID, err)
 		}
 
 		return nil

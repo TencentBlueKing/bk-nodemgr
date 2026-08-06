@@ -26,9 +26,7 @@ type IStorage interface {
 	workflow.IStorageOperationInstance
 
 	IStorageScheduledWorkflow
-
-	IDomainNodeInstall
-	IDomainPlugin
+	IStoragePackageWorkflow
 }
 
 // IStorageScheduledWorkflow defines the interface of scheduled workflow storage.
@@ -56,10 +54,7 @@ type IStorageScheduledWorkflow interface {
 	SwitchScheduleWorkflow(nCtx contextx.IContext, workflowID string, enable bool) error
 }
 
-// IDomainNodeInstall defines the interface for domain node installation related operations.
-type IDomainNodeInstall interface {
-}
-
-// IDomainPlugin defines the interface for domain plugin related operations.
-type IDomainPlugin interface {
+// IStoragePackageWorkflow defines the interface of package workflow storage.
+type IStoragePackageWorkflow interface {
+	CreatePackageWorkflow(nCtx contextx.IContext, workflow *types.PackageWorkflow) error
 }
