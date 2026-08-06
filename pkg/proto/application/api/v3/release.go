@@ -415,6 +415,8 @@ func (x *PackageReleaseAgentDistinctReq) ConvertDistinctFieldToTypes() types.Rel
 	return types.ReleaseDistinctField{
 		OSType:  field.GetOsType(),
 		CPUArch: field.GetCpuArch(),
+		Name:    field.GetName(),
+		Version: field.GetVersion(),
 	}
 }
 
@@ -431,6 +433,8 @@ func (x *PackageReleaseAgentDistinctResp) ConvertResultFromTypes(result *types.R
 	x.Data = &PackageReleaseDistinctData{
 		OsType:  result.OSType,
 		CpuArch: result.CPUArch,
+		Name:    result.Name,
+		Version: result.Version,
 	}
 }
 
@@ -444,7 +448,12 @@ func (x *PackageReleasePluginDistinctReq) AutoConvert() {}
 
 // ConvertDistinctFieldToTypes convert distinct field to types.
 func (x *PackageReleasePluginDistinctReq) ConvertDistinctFieldToTypes() types.ReleaseDistinctField {
-	return types.ReleaseDistinctField{OSType: x.GetDistinctField().GetOsType(), CPUArch: x.GetDistinctField().GetCpuArch()}
+	return types.ReleaseDistinctField{
+		OSType:  x.GetDistinctField().GetOsType(),
+		CPUArch: x.GetDistinctField().GetCpuArch(),
+		Name:    x.GetDistinctField().GetName(),
+		Version: x.GetDistinctField().GetVersion(),
+	}
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -455,7 +464,12 @@ func (x *PackageReleasePluginDistinctReq) ConvertConditionsToTypes() *types.Rele
 // ConvertResultFromTypes convert result from types.
 func (x *PackageReleasePluginDistinctResp) ConvertResultFromTypes(result *types.ReleaseDistinctResult) {
 	if result != nil {
-		x.Data = &PackageReleaseDistinctData{OsType: result.OSType, CpuArch: result.CPUArch}
+		x.Data = &PackageReleaseDistinctData{
+			OsType:  result.OSType,
+			CpuArch: result.CPUArch,
+			Name:    result.Name,
+			Version: result.Version,
+		}
 	}
 }
 
@@ -852,6 +866,8 @@ func (x *PackageReleaseProxyDistinctReq) ConvertDistinctFieldToTypes() types.Rel
 	return types.ReleaseDistinctField{
 		OSType:  field.GetOsType(),
 		CPUArch: field.GetCpuArch(),
+		Name:    field.GetName(),
+		Version: field.GetVersion(),
 	}
 }
 
@@ -868,6 +884,8 @@ func (x *PackageReleaseProxyDistinctResp) ConvertResultFromTypes(result *types.R
 	x.Data = &PackageReleaseDistinctData{
 		OsType:  result.OSType,
 		CpuArch: result.CPUArch,
+		Name:    result.Name,
+		Version: result.Version,
 	}
 }
 

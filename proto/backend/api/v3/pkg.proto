@@ -22,12 +22,16 @@ message PackageReleaseExactConditions {
 message PackageReleaseDistinctField {
   bool os_type = 1;
   bool cpu_arch = 2;
+  bool name = 3;
+  bool version = 4;
 }
 
 // PackageReleaseDistinctData describes the release distinct data.
 message PackageReleaseDistinctData {
   repeated string os_type = 1;
   repeated string cpu_arch = 2;
+  repeated string name = 3;
+  repeated string version = 4;
 }
 
 // PackageReleaseAgentListReq describes the HTTP request body when list agent

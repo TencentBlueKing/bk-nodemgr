@@ -76,6 +76,9 @@ type IDistinctor interface {
 
 	// DistinctName distincts release names.
 	DistinctName(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
+
+	// DistinctVersion distincts release versions.
+	DistinctVersion(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
 }
 
 var _ IHandler = &Handler{}
@@ -335,6 +338,20 @@ func (h *Handler) DistinctName(nCtx contextx.IContext, releaseType types.Release
 	}
 
 	return h.releaseTypeDao(releaseType).DistinctString(nCtx, FieldKeyName, filter, nil)
+}
+
+// DistinctVersion distincts release versions.
+func (h *Handler) DistinctVersion(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType).DistinctString(nCtx, FieldKeyVersion, filter, nil)
 }
 
 func convertReleaseToTypes(release *Release) *types.Release {

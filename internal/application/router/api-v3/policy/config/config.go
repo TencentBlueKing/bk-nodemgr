@@ -170,18 +170,22 @@ func (h *handler) ListConfigPolicyPlatform(rCtx restserver.IContext) (interface{
 	}
 
 	gen := types.Generation(req.GetGeneration())
+	distinctField := types.ReleaseDistinctField{
+		OSType:  true,
+		CPUArch: true,
+	}
 
 	var result *types.ReleaseDistinctResult
 	switch releaseType {
 	case types.ReleaseTypeAgent:
-		result, err = h.backendHandler.DistinctReleaseAgent(rCtx, gen, types.ReleaseDistinctFieldAllSet(), req.ConvertConditionsToTypes())
+		result, err = h.backendHandler.DistinctReleaseAgent(rCtx, gen, distinctField, req.ConvertConditionsToTypes())
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to distinct release")
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
 		}
 
 	case types.ReleaseTypeProxy:
-		result, err = h.backendHandler.DistinctReleaseProxy(rCtx, gen, types.ReleaseDistinctFieldAllSet(), req.ConvertConditionsToTypes())
+		result, err = h.backendHandler.DistinctReleaseProxy(rCtx, gen, distinctField, req.ConvertConditionsToTypes())
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to distinct release")
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)

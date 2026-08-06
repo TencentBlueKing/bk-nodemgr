@@ -160,6 +160,8 @@ func (h *handler) DistinctReleasePlugin(rCtx restserver.IContext) (interface{}, 
 	distinctField := types.ReleaseDistinctField{
 		OSType:  req.GetDistinctField().GetOsType(),
 		CPUArch: req.GetDistinctField().GetCpuArch(),
+		Name:    req.GetDistinctField().GetName(),
+		Version: req.GetDistinctField().GetVersion(),
 	}
 
 	result, err := h.daoReleasePlugin.DistinctReleasePlugin(rCtx, distinctField, condition)

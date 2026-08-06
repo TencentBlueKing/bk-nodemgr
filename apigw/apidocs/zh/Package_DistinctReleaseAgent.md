@@ -2,7 +2,7 @@
 
 - 该接口提供版本：v3.0.1-alpha.18+。
 - 该接口所需权限：无。
-- 该接口功能描述：获取 Agent 安装包可选的操作系统类型和 CPU 架构的去重列表。
+- 该接口功能描述：获取 Agent 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。
 
 ### URL
 
@@ -40,17 +40,21 @@ POST /api/v3/package/release/agent/distinct
 |---------|----------|------|------|
 | os_type | bool | 否 | 是否对操作系统类型去重，默认 false |
 | cpu_arch | bool | 否 | 是否对 CPU 架构去重，默认 false |
+| name | bool | 否 | 是否对安装包名称去重，默认 false |
+| version | bool | 否 | 是否对版本号去重，默认 false |
 
 ### 调用示例
 
-获取代次为 2 的 Agent 安装包所有可用操作系统类型和 CPU 架构。
+获取代次为 2 的 Agent 安装包所有可用操作系统类型、CPU 架构、安装包名称和版本号。
 
 ```json
 {
   "generation": 2,
   "distinct_field": {
     "os_type": true,
-    "cpu_arch": true
+    "cpu_arch": true,
+    "name": true,
+    "version": true
   }
 }
 ```
@@ -64,7 +68,9 @@ POST /api/v3/package/release/agent/distinct
   "request_id": "req-1234567890",
   "data": {
     "os_type": ["linux", "windows"],
-    "cpu_arch": ["amd64", "arm64"]
+    "cpu_arch": ["amd64", "arm64"],
+    "name": ["gse_agent"],
+    "version": ["1.0.0", "1.1.0"]
   }
 }
 ```
@@ -84,3 +90,5 @@ POST /api/v3/package/release/agent/distinct
 |---------|----------|------|
 | os_type | string array | 去重后的操作系统类型列表（由匹配数据生成） |
 | cpu_arch | string array | 去重后的 CPU 架构列表（由匹配数据生成） |
+| name | string array | 去重后的安装包名称列表（由匹配数据生成） |
+| version | string array | 去重后的版本号列表（由匹配数据生成） |

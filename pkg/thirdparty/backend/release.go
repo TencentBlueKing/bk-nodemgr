@@ -431,6 +431,8 @@ func (h *Handler) DistinctReleaseAgent(
 		DistinctField: &protoBackend.PackageReleaseDistinctField{
 			OsType:  distinctField.OSType,
 			CpuArch: distinctField.CPUArch,
+			Name:    distinctField.Name,
+			Version: distinctField.Version,
 		},
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -640,6 +642,8 @@ func (h *Handler) DistinctReleaseProxy(
 		DistinctField: &protoBackend.PackageReleaseDistinctField{
 			OsType:  distinctField.OSType,
 			CpuArch: distinctField.CPUArch,
+			Name:    distinctField.Name,
+			Version: distinctField.Version,
 		},
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
@@ -794,6 +798,8 @@ func (h *Handler) DistinctReleasePlugin(
 		DistinctField: &protoBackend.PackageReleaseDistinctField{
 			OsType:  distinctField.OSType,
 			CpuArch: distinctField.CPUArch,
+			Name:    distinctField.Name,
+			Version: distinctField.Version,
 		},
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {

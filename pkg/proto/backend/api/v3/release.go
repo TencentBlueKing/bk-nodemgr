@@ -437,6 +437,8 @@ func (x *PackageReleaseAgentDistinctResp) ConvertResultFromTypes(result *types.R
 	x.Data = &PackageReleaseDistinctData{
 		OsType:  formatRespSlice(result.OSType),
 		CpuArch: formatRespSlice(result.CPUArch),
+		Name:    formatRespSlice(result.Name),
+		Version: formatRespSlice(result.Version),
 	}
 }
 
@@ -451,6 +453,8 @@ func (x *PackageReleaseAgentDistinctResp) ConvertResultToTypes() *types.ReleaseD
 	return &types.ReleaseDistinctResult{
 		OSType:  data.GetOsType(),
 		CPUArch: data.GetCpuArch(),
+		Name:    data.GetName(),
+		Version: data.GetVersion(),
 	}
 }
 
@@ -849,6 +853,8 @@ func (x *PackageReleaseProxyDistinctResp) ConvertResultFromTypes(result *types.R
 	x.Data = &PackageReleaseDistinctData{
 		OsType:  formatRespSlice(result.OSType),
 		CpuArch: formatRespSlice(result.CPUArch),
+		Name:    formatRespSlice(result.Name),
+		Version: formatRespSlice(result.Version),
 	}
 }
 
@@ -863,6 +869,8 @@ func (x *PackageReleaseProxyDistinctResp) ConvertResultToTypes() *types.ReleaseD
 	return &types.ReleaseDistinctResult{
 		OSType:  data.GetOsType(),
 		CPUArch: data.GetCpuArch(),
+		Name:    data.GetName(),
+		Version: data.GetVersion(),
 	}
 }
 
@@ -1189,7 +1197,12 @@ func (x *PackageReleasePluginDistinctResp) ConvertResultFromTypes(result *types.
 	if result == nil {
 		return
 	}
-	x.Data = &PackageReleaseDistinctData{OsType: formatRespSlice(result.OSType), CpuArch: formatRespSlice(result.CPUArch)}
+	x.Data = &PackageReleaseDistinctData{
+		OsType:  formatRespSlice(result.OSType),
+		CpuArch: formatRespSlice(result.CPUArch),
+		Name:    formatRespSlice(result.Name),
+		Version: formatRespSlice(result.Version),
+	}
 }
 
 // ConvertResultToTypes converts the plugin distinct response to types.
@@ -1200,7 +1213,12 @@ func (x *PackageReleasePluginDistinctResp) ConvertResultToTypes() *types.Release
 
 	data := x.GetData()
 
-	return &types.ReleaseDistinctResult{OSType: data.GetOsType(), CPUArch: data.GetCpuArch()}
+	return &types.ReleaseDistinctResult{
+		OSType:  data.GetOsType(),
+		CPUArch: data.GetCpuArch(),
+		Name:    data.GetName(),
+		Version: data.GetVersion(),
+	}
 }
 
 // ConvertConditionsFromTypes convert conditions from types.

@@ -76,6 +76,22 @@ func (s *Storage) distinctRelease(
 			return err
 		})
 	}
+	if distinctField.Name {
+		gp.Go(func() error {
+			var err error
+			data.Name, err = s.daoRelease.DistinctName(nCtx, releaseType, opts...)
+
+			return err
+		})
+	}
+	if distinctField.Version {
+		gp.Go(func() error {
+			var err error
+			data.Version, err = s.daoRelease.DistinctVersion(nCtx, releaseType, opts...)
+
+			return err
+		})
+	}
 	if err = gp.Wait(); err != nil {
 		return nil, err
 	}

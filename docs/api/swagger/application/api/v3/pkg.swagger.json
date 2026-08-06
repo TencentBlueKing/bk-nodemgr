@@ -3982,6 +3982,18 @@
           "items": {
             "type": "string"
           }
+        },
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "PackageReleaseDistinctData describes the release distinct data."
@@ -3993,6 +4005,12 @@
           "type": "boolean"
         },
         "cpu_arch": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "boolean"
+        },
+        "version": {
           "type": "boolean"
         }
       },

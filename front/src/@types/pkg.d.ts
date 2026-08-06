@@ -443,12 +443,16 @@ export interface PackageReleaseExactConditions {
 export interface PackageReleaseDistinctField {
   os_type: boolean;
   cpu_arch: boolean;
+  name: boolean;
+  version: boolean;
 }
 
 // PackageReleaseDistinctData describes the release distinct data.
 export interface PackageReleaseDistinctData {
   os_type: string[];
   cpu_arch: string[];
+  name: string[];
+  version: string[];
 }
 
 // PackageReleaseAgentListReq describes the HTTP request body when list agent

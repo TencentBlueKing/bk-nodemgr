@@ -2,7 +2,7 @@
 
 - API Version: v3.0.1-alpha.18+.
 - Required Permission: None.
-- Function: Get distinct lists of available OS types and CPU architectures for agent release packages.
+- Function: Get distinct lists of available OS types, CPU architectures, package names, and versions for agent release packages.
 
 ### URL
 
@@ -40,17 +40,21 @@ POST /api/v3/package/release/agent/distinct
 |---------------|----------------|----------|-------------|
 | os_type | bool | No | Whether to deduplicate OS types, default false |
 | cpu_arch | bool | No | Whether to deduplicate CPU architectures, default false |
+| name | bool | No | Whether to deduplicate package names, default false |
+| version | bool | No | Whether to deduplicate versions, default false |
 
 ### Request Example
 
-Get all available OS types and CPU architectures for generation 2 agent packages.
+Get all available OS types, CPU architectures, package names, and versions for generation 2 agent packages.
 
 ```json
 {
   "generation": 2,
   "distinct_field": {
     "os_type": true,
-    "cpu_arch": true
+    "cpu_arch": true,
+    "name": true,
+    "version": true
   }
 }
 ```
@@ -64,7 +68,9 @@ Get all available OS types and CPU architectures for generation 2 agent packages
   "request_id": "req-1234567890",
   "data": {
     "os_type": ["linux", "windows"],
-    "cpu_arch": ["amd64", "arm64"]
+    "cpu_arch": ["amd64", "arm64"],
+    "name": ["gse_agent"],
+    "version": ["1.0.0", "1.1.0"]
   }
 }
 ```
@@ -84,3 +90,5 @@ Get all available OS types and CPU architectures for generation 2 agent packages
 |---------------|----------------|-------------|
 | os_type | string array | Deduplicated OS type list derived from matching data |
 | cpu_arch | string array | Deduplicated CPU architecture list derived from matching data |
+| name | string array | Deduplicated package name list derived from matching data |
+| version | string array | Deduplicated version list derived from matching data |

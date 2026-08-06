@@ -10242,7 +10242,7 @@ paths:
   /api/v3/package/release/agent/distinct:
     post:
       operationId: Package_DistinctReleaseAgent
-      description: "获取 Agent 安装包可选的操作系统类型和 CPU 架构的去重列表。"
+      description: "获取 Agent 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。"
       tags:
         - Package
       responses:
@@ -10263,6 +10263,14 @@ paths:
                         items:
                           type: string
                       cpu_arch:
+                        type: array
+                        items:
+                          type: string
+                      name:
+                        type: array
+                        items:
+                          type: string
+                      version:
                         type: array
                         items:
                           type: string
@@ -10370,6 +10378,10 @@ paths:
                     os_type:
                       type: boolean
                     cpu_arch:
+                      type: boolean
+                    name:
+                      type: boolean
+                    version:
                       type: boolean
                   description: PackageReleaseDistinctField describes the release distinct field.
                 exact_include_conditions:
@@ -13550,7 +13562,7 @@ paths:
   /api/v3/package/release/proxy/distinct:
     post:
       operationId: Package_DistinctReleaseProxy
-      description: "获取 Proxy 安装包可选的操作系统类型和 CPU 架构的去重列表。"
+      description: "获取 Proxy 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。"
       tags:
         - Package
       responses:
@@ -13571,6 +13583,14 @@ paths:
                         items:
                           type: string
                       cpu_arch:
+                        type: array
+                        items:
+                          type: string
+                      name:
+                        type: array
+                        items:
+                          type: string
+                      version:
                         type: array
                         items:
                           type: string
@@ -13678,6 +13698,10 @@ paths:
                     os_type:
                       type: boolean
                     cpu_arch:
+                      type: boolean
+                    name:
+                      type: boolean
+                    version:
                       type: boolean
                   description: PackageReleaseDistinctField describes the release distinct field.
                 exact_include_conditions:
