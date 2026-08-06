@@ -37,7 +37,29 @@
         <Form.FormItem :label="t('agentStrategy.form.remark')" property="remark">
           <Input type="textarea" v-model="formData.remark" show-word-limit :maxlength="100" :disabled="isViewMode"></Input>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.form.scope')" property="scopes">
+        <Form.FormItem property="scopes">
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ t('agentStrategy.form.scope') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('agentStrategy.form.scopeTip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <div
             v-for="(item, index) in formData.scopes"
             :key="index"
@@ -108,7 +130,29 @@
             <span class="text-[14px]">{{ $t('agentStrategy.form.addScope') }}</span>
           </div>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.preview.selectIP')" property="IP">
+        <Form.FormItem property="IP">
+          <template #label>
+            <Popover
+              theme="light"
+              trigger="hover"
+              placement="right"
+              :arrow="true"
+              :max-width="300"
+              :offset="8"
+              :popover-delay="[0, 100]"
+              :component-event-delay="0"
+            >
+              <span
+                class="cursor-default"
+                style="border-bottom: 1px dashed #c4c6cc"
+              >{{ t('agentStrategy.form.extraIP') }}</span>
+              <template #content>
+                <div class="text-[12px] leading-[20px]">
+                  <p>{{ t('agentStrategy.form.extraIPTip') }}</p>
+                </div>
+              </template>
+            </Popover>
+          </template>
           <!-- 添加IP按钮 -->
           <!--eslint-disable-next-line max-len -->
           <div v-if="!isViewMode" class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer mb-[10px]" @click="handleAddIP">
@@ -227,7 +271,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
+import { Button, Form, InfoBox, Input, Popover, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
 import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
