@@ -71,8 +71,7 @@ type column struct {
 }
 
 // NOCC: golint/fnsize(template column definitions belong together).
-//
-//nolint:funlen
+// nolint: funlen, fnsize, gocognit, gocyclo, cyclop, maintidx
 func getColumns() []column {
 	return []column{
 		{

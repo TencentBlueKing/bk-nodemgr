@@ -423,6 +423,7 @@ func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) Validate() error {
 func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) AutoConvert() {
 }
 
+// ConvertItemsToTypes converts recommendation items from proto to types.
 func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) ConvertItemsToTypes() []*types.NetworkUnitSegmentRecommendationItem {
 	items := x.GetItems()
 	result := make([]*types.NetworkUnitSegmentRecommendationItem, len(items))
@@ -436,6 +437,7 @@ func (x *TopoRecommendNetworkUnitByNetworkSegmentReq) ConvertItemsToTypes() []*t
 	return result
 }
 
+// ConvertResultsFromTypes converts recommendation results from types to proto.
 func (x *TopoRecommendNetworkUnitByNetworkSegmentResp) ConvertResultsFromTypes(
 	results []*types.NetworkUnitSegmentRecommendationResult,
 ) {
