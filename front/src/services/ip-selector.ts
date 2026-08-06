@@ -588,9 +588,9 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
 
   const fuzzy: Record<string, string[]> = {};
   if (searchContent) {
-    fuzzy.bk_host_innerip = [searchContent];
+    exact.bk_host_innerip = [searchContent];
     fuzzy.bk_host_name = [searchContent];
-    fuzzy.bk_host_innerip_v6 = [searchContent];
+    exact.bk_host_innerip_v6 = [searchContent];
   }
 
   try {
@@ -833,8 +833,8 @@ export const fetchHostCheck = async (params: any): Promise<any> => {
   const fuzzy: any = {};
 
   if (keywordIds.length) exact.bk_host_id = keywordIds;
-  if (allIpv4.length) fuzzy.bk_host_innerip = allIpv4;
-  if (allIpv6.length) fuzzy.bk_host_innerip_v6 = allIpv6;
+  if (allIpv4.length) exact.bk_host_innerip = allIpv4;
+  if (allIpv6.length) exact.bk_host_innerip_v6 = allIpv6;
   if (keywordNames.length) fuzzy.bk_host_name = keywordNames;
 
   // 没有任何查询条件则直接返回

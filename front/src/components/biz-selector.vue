@@ -7,10 +7,13 @@
       {{ shrinkText }}
     </div>
     <!-- 策略管理：单选业务 -->
-    <Select
+    <div
       v-if="isSingle"
       v-show="expanded"
+      v-bk-tooltips="{ content: selectedBizName, placement: 'top', disabled: !selectedBizName }"
       class="mx-[12px]"
+    >
+      <Select
       v-model="singleBusiness"
       :filter-option="filterOption"
       :show-selected-icon="false"
@@ -62,11 +65,15 @@
         </div>
       </Select.Option>
     </Select>
+    </div>
     <!-- 其他模块：多选业务 -->
-    <Select
+    <div
       v-else
       v-show="expanded"
+      v-bk-tooltips="{ content: selectedBizName, placement: 'top', disabled: !selectedBizName }"
       class="mx-[12px]"
+    >
+      <Select
       v-model="multiBusiness"
       :filter-option="filterOption"
       :show-selected-icon="false"
@@ -121,6 +128,7 @@
         </div>
       </Select.Option>
     </Select>
+    </div>
     <!-- 锁图标由 use-auth-lock hook 通过 DOM 管理，无需 Teleport -->
   </div>
 </template>
@@ -330,6 +338,21 @@ const handleTextMouseenter = (e: MouseEvent, id: number) => {
   const el = e.target as HTMLElement;
   textOverflowMap[id] = el.scrollWidth > el.clientWidth;
 };
+
+// ===== Select 选中值 tooltip =====
+const selectedBizName = computed(() => {
+  if (isSingle.value) {
+    if (!singleBusiness.value) return '';
+    const biz = businessList.value.find(b => b.bk_biz_id === singleBusiness.value);
+    return biz ? `[${biz.bk_biz_id}] ${biz.bk_biz_name}` : '';
+  }
+  if (!multiBusiness.value.length) return '';
+  return multiBusiness.value
+    .map(id => businessList.value.find(b => b.bk_biz_id === id))
+    .filter(Boolean)
+    .map(b => `[${b!.bk_biz_id}] ${b!.bk_biz_name}`)
+    .join(' ; ');
+});
 
 // ===== 收起状态显示文案 =====
 const shrinkText = computed(() => {
