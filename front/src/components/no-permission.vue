@@ -29,8 +29,8 @@ import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
 
 const props = withDefaults(defineProps<{
-  /** 展示类型：action=无操作权限(带申请按钮)，biz=无业务权限(带提示文字) */
-  type?: 'action' | 'biz';
+  /** 展示类型：action=无操作权限(带申请按钮)，biz=无业务权限(带提示文字)，plugin=无插件包权限 */
+  type?: 'action' | 'biz' | 'plugin';
   authItems?: PageAuthItem[];
   /** biz 资源的业务范围（biz 级权限时使用） */
   bizScope?: string | number | Array<string | number>;
@@ -46,13 +46,17 @@ const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 const loading = ref(false);
 
-const title = computed(() => props.type === 'biz'
-  ? t('components.permission.noBizPermission')
-  : t('components.permission.noPermission'));
+const title = computed(() => {
+  if (props.type === 'biz') return t('components.permission.noBizPermission');
+  if (props.type === 'plugin') return t('components.permission.noPluginPermission');
+  return t('components.permission.noPermission');
+});
 
-const description = computed(() => props.type === 'biz'
-  ? t('components.permission.noBizPermissionTip')
-  : '');
+const description = computed(() => {
+  if (props.type === 'biz') return t('components.permission.noBizPermissionTip');
+  if (props.type === 'plugin') return t('components.permission.noPluginPermissionTip');
+  return '';
+});
 
 async function handleApply() {
   if (!props.authItems?.length) return;

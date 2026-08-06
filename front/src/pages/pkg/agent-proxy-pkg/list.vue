@@ -257,7 +257,7 @@
             field="action"
             :title="t('agentProxyPkg.action')"
             fixed="right"
-            :width="180"
+            :width="200"
           >
             <template #default="{ row }">
               <div class="flex">
@@ -297,7 +297,7 @@
                     theme="primary"
                     class="mr-[8px]"
                     text
-                    v-if="row.enabled"
+                    v-show="row.enabled"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.release_type)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"

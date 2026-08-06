@@ -1104,6 +1104,8 @@ components:
     noPermission: 没有权限访问或操作此资源
     noBizPermission: 暂无任何业务访问权限
     noBizPermissionTip: 请在左上角业务列表中选择对应业务点击申请
+    noPluginPermission: 暂无任何插件包访问权限
+    noPluginPermissionTip: 请在左侧插件包名列表中点击对应包名申请权限
     missingAction: "缺少权限：{action}"
     system: 系统
     requiredPermissions: 需要申请的权限

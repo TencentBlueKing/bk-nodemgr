@@ -72,7 +72,7 @@
           field="action"
           :title="t('certBintool.action')"
           fixed="right"
-          :min-width="120"
+          :width="140"
         >
           <template #default="{ row }">
             <div class="flex items-center">

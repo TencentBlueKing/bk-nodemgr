@@ -81,12 +81,19 @@
                   'flex justify-between items-center h-[36px] cursor-pointer px-[16px]',
                   {
                     'bg-[#E1ECFF] text-[#3A84FF]': option.optionalSet.has(item.id),
+                    'unAuthorized': option.id === 'name' && !isNameAuthorized(item.id),
                   },
                 ]"
-                @click="selectDimensionOptional(item.id, option.id as PkgQuickType, 'click')"
+                @click="option.id === 'name' && !isNameAuthorized(item.id)
+                  ? sidebarNameClick($event, item.id)
+                  : selectDimensionOptional(item.id, option.id as PkgQuickType, 'click')"
+                @mouseenter="(e) => option.id === 'name' && sidebarNameMouseEnter(e, item.id)"
+                @mousemove="(e) => option.id === 'name' && sidebarNameMouseMove(e, item.id)"
+                @mouseleave="() => option.id === 'name' && sidebarNameMouseLeave()"
               >
                 <div>
                   <i v-if="item.id.includes('darwin')" class="nodeman-icon nc-macos mr-[5px]"></i>
+                  <i v-else-if="option.id === 'name'" class="nodeman-icon nc-plug-circle mr-[5px]"></i>
                   <i v-else :class="`nodeman-icon nc-${item.id.split('_')[0]} mr-[5px]`"></i>
                   <span class="text-[12px]">{{ `${item.name}` }}</span>
                 </div>
@@ -103,7 +110,13 @@
           </template>
         </div>
       </div>
+      <NoPermission
+        v-if="allPluginsUnauthorized"
+        type="plugin"
+        class="flex-1"
+      />
       <Loading
+        v-else
         :title="$t('agentStrategy.loading')"
         :loading="loading"
         class="flex-1 overflow-auto"
@@ -202,7 +215,7 @@
             field="action"
             :title="$t('pluginPackage.action')"
             fixed="right"
-            :min-width="180"
+            :width="200"
           >
             <template #default="{ row }">
               <div class="flex items-center">
@@ -242,7 +255,7 @@
                     class="mr-[8px]"
                     theme="primary"
                     text
-                    v-if="row.enabled"
+                    v-show="row.enabled"
                     :class="{ 'unAuthorized': !hasManageAuth }"
                     @click="!hasManageAuth && manageAuthClick($event, row.name)"
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
@@ -346,6 +359,7 @@ import type { VxeTablePropTypes } from 'vxe-table';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import NoPermission from '@/components/no-permission.vue';
 import PkgUploadSideslider from './agent-proxy-pkg/pkg-upload-sideslider.vue';
 
 import type { Release } from '@/@types/common.d';
@@ -355,6 +369,7 @@ import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions, formatTimestamp } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
+import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 type PkgQuickType = 'os_cpu_arch' | 'name';
 type PkgType = 'gse_agent' | 'gse_proxy';
@@ -383,6 +398,19 @@ type PkgOrderType = 'version' | '-version';
 const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
+const authStore = useAuthStore();
+
+// 侧边栏快捷筛选：插件名（来自 DistinctReleasePlugin）+ 当前 hover 名称
+const distinctPluginNames = ref<string[]>([]);
+const hoveredPluginName = ref<string>();
+
+// 判断当前用户对某个插件包名是否有 package_manage 权限
+const isNameAuthorized = (name: string) => authStore.hasAuthorizedResource('package_manage', name);
+// 获取当前用户有权限的插件包名（在 distinctPluginNames 中过滤）
+const getAuthorizedPluginNames = () => distinctPluginNames.value.filter(name => isNameAuthorized(name));
+// 是否全部插件都无权限（用于切换 NoPermission 占位页）
+const allPluginsUnauthorized = computed(() => distinctPluginNames.value.length > 0
+  && getAuthorizedPluginNames().length === 0);
 
 // Package permissions
 const manageResourceId = ref<string>();
@@ -395,6 +423,35 @@ const { hasAuth: hasManageAuth, handleMouseEnter: manageMouseEnter, handleMouseM
 const manageAuthClick = (e: MouseEvent, releaseName?: string) => {
   manageResourceId.value = releaseName;
   _manageAuthClick(e);
+};
+
+// 侧边栏用独立的 useAuthLock 实例（package_view），与表格行内 package_manage 区分开
+// 理由：侧边栏点击是为"查看"该插件包列表申请权限，行内按钮才是"管理"操作
+const sidebarViewResourceId = ref<string>();
+const { handleMouseEnter: viewMouseEnter, handleMouseMove: viewMouseMove, handleMouseLeave: viewMouseLeave, handleAuthClick: _viewAuthClick } = useAuthLock(
+  'package_view', () => sidebarViewResourceId.value, { resourceType: 'package' },
+);
+const sidebarViewAuthClick = (e: MouseEvent, name: string) => {
+  sidebarViewResourceId.value = name;
+  _viewAuthClick(e);
+};
+
+// 侧边栏无权限插件名：hover 锁图标 + 点击申请权限
+const sidebarNameMouseEnter = (e: MouseEvent, name: string) => {
+  hoveredPluginName.value = name;
+  viewMouseEnter(e, isNameAuthorized(name));
+};
+const sidebarNameMouseMove = (e: MouseEvent, name: string) => {
+  hoveredPluginName.value = name;
+  viewMouseMove(e, isNameAuthorized(name));
+};
+const sidebarNameMouseLeave = () => {
+  hoveredPluginName.value = undefined;
+  viewMouseLeave();
+};
+const sidebarNameClick = (e: MouseEvent, name: string) => {
+  hoveredPluginName.value = name;
+  sidebarViewAuthClick(e, name);
 };
 const downloadLabelWidth = computed(() => mainStore.curLanguage === 'zh-CN' ? 60 : 100);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0) - (missingDefaultCombinations.value.length > 0 ? 56 : 0));
@@ -460,20 +517,20 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
 });
 const dimensionList = ref([
   {
-    id: 'os_cpu_arch',
-    name: t('pluginPackage.osArch'),
-    multiple: true,
-    expand: true,
-    optionalSet: new Set(['all']),
-    children: computed(() => getUniqueChildren('os_cpu_arch')),
-  },
-  {
     id: 'name',
     name: t('pluginPackage.packageName'),
     multiple: true,
     expand: true,
     optionalSet: new Set(['all']),
     children: computed(() => getUniqueChildren('name')),
+  },
+  {
+    id: 'os_cpu_arch',
+    name: t('pluginPackage.osArch'),
+    multiple: true,
+    expand: true,
+    optionalSet: new Set(['all']),
+    children: computed(() => getUniqueChildren('os_cpu_arch')),
   },
 ]);
 
@@ -548,6 +605,20 @@ function countByProp(data: Release[], prop: string) {
   }, {});
 }
 function getUniqueChildren(prop: string) {
+  // 插件名维度优先使用 DistinctReleasePlugin 接口返回的全量列表（而非仅 originPackageList），
+  // 保证即便后端只返回当前页数据（limit=500）也不会漏掉侧边栏的快捷筛选项
+  if (prop === 'name') {
+    return distinctPluginNames.value.map((value: string) => {
+      const count = countByProp(originPackageList.value, 'name')[value] || 0;
+      return {
+        id: value,
+        name: value,
+        value,
+        text: value,
+        count,
+      };
+    });
+  }
   const res = Array.from(new Set(originPackageList.value
     .map((item: any) => item[prop])
     .filter((item: any) => String(item))));
@@ -754,11 +825,22 @@ const handleUpload = () => {
   isShow.value = true;
 };
 
+const getDistinctPluginNames = async () => {
+  const res = await PackageService.DistinctReleasePlugin({
+    generation: PACKAGE_GENERATION,
+    distinct_field: { name: true },
+  }).catch(() => null);
+  distinctPluginNames.value = (res as any)?.data?.name || [];
+};
+
 const getPackages = async () => {
   loading.value = true;
+  // 仅查询有权限的插件包名对应的数据
+  const authorizedNames = getAuthorizedPluginNames();
   const res = await PackageService.ListReleasePlugin({
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
+    exact_include_conditions: { name: authorizedNames },
   }).catch(() => ({
     total: 0,
     items: [],
@@ -771,6 +853,7 @@ const getPackages = async () => {
   packageList.value = items;
   loading.value = false;
 };
+
 const getParams = (row: Release) => ({
   generation: row.generation,
   name: row.name,
@@ -841,9 +924,20 @@ watch(
     filterOptionSource.version.checked = [];
     filterOptionSource.operator.checked = [];
     filterOptionSource.enabled.checked = [];
+    await getDistinctPluginNames();
     await getPackages();
   },
   { immediate: true },
+);
+
+// 权限加载完成 / 授权项变化时重新拉取数据，确保只查有权限的插件名
+watch(
+  () => authStore.authorizedMap['package_manage']?.resourceIds,
+  async () => {
+    if (distinctPluginNames.value.length > 0) {
+      await getPackages();
+    }
+  },
 );
 watch(() => route.query, () => {
   if (route.query.name) {

@@ -455,6 +455,25 @@ export interface PackageReleaseDistinctData {
   version: string[];
 }
 
+// PackageReleasePluginDistinctReq describes the request for distinct plugin
+// releases.
+export interface PackageReleasePluginDistinctReq {
+  generation: number;
+  exact_include_conditions: PackageReleaseExactConditions;
+  distinct_field: PackageReleaseDistinctField;
+}
+
+// PackageReleasePluginDistinctResp describes the response for distinct plugin
+// releases.
+export interface PackageReleasePluginDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PackageReleaseDistinctData;
+}
+
 // PackageReleaseAgentListReq describes the HTTP request body when list agent
 // release.
 export interface PackageReleaseAgentListReq {

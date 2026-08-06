@@ -48,6 +48,11 @@ const hasCurrentAuth = computed(() => {
   if (!action) return true; // 无需鉴权的子路由直接放行
   // authorized 尚未加载 → 先放行，避免闪烁
   if (!authStore.authorizedMap[action]) return true;
+
+  // 插件包管理路由级不限制（资源 id 实际是插件名，不是固定 "plugin"）
+  // 由子页 plugin-package-manage.vue 基于 package_manage 资源（插件名）判断全无权限占位
+  if (currentRouteName.value === 'pluginPackageMng') return true;
+
   return authStore.hasAuthorizedResource(action, currentResourceId.value);
 });
 </script>
