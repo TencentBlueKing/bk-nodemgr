@@ -52,7 +52,11 @@
             ></Select.Option>
           </Select>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.form.scope')" property="scopes">
+        <Form.FormItem
+          :label="t('agentStrategy.form.scope')"
+          :description="t('agentStrategy.form.scopeTip')"
+          property="scopes"
+        >
           <div
             v-for="(item, index) in formData.scopes"
             :key="index"
@@ -122,7 +126,11 @@
             <span class="text-[14px]">{{ $t('agentStrategy.form.addScope') }}</span>
           </div>
         </Form.FormItem>
-        <Form.FormItem :label="t('agentStrategy.preview.selectIP')" property="IP">
+        <Form.FormItem
+          :label="t('agentStrategy.preview.selectIP')"
+          :description="t('agentStrategy.preview.selectIPTip')"
+          property="IP"
+        >
           <div v-if="!isViewMode" class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer mb-[10px]" @click="handleAddIP">
             <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
             <span class="text-[14px]">{{ t('agentStrategy.form.addHost') }}</span>
@@ -339,31 +347,27 @@ const mapRawToRow = (host: any): ISelectedHost => {
 const fetchHostData = async () => {
   const ids = allSelectedHostIds.value;
   if (!ids.length) { tableHosts.value = []; ipPagination.count = 0; formData.selectedHosts = []; return; }
-  const { cached, missIds } = IpSelectorService.getCachedHosts(ids);
-  let allRows = cached.map(mapCachedToRow);
-  ipPagination.count = ids.length;
-  if (missIds.length > 0) {
-    try {
-      const CHUNK_SIZE = 500;
-      const fetchedItems: any[] = [];
-      for (let i = 0; i < missIds.length; i += CHUNK_SIZE) {
-        const chunkIds = missIds.slice(i, i + CHUNK_SIZE);
-        const res = await TopoService.HostList({
-          page: { limit: CHUNK_SIZE, offset: 0 },
-          only_count: false,
-          exact_include_conditions: { bk_host_id: chunkIds, bk_biz_id: [formData.bk_biz_id] },
-        });
-        fetchedItems.push(...(res.items || []).map(mapRawToRow));
-      }
-      const rowMap = new Map<number, ISelectedHost>();
-      allRows.forEach(row => rowMap.set(row.bk_host_id, row));
-      fetchedItems.forEach(row => rowMap.set(row.bk_host_id, row));
-      allRows = ids.map(id => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
-    } catch { /* fallback to cache */ }
-  }
+  // 只对当前页缓存未命中的 ID 发起请求，避免一次拉全量导致超时
   const offset = (ipPagination.current - 1) * ipPagination.limit;
-  tableHosts.value = allRows.slice(offset, offset + ipPagination.limit);
-  ipPagination.count = allRows.length;
+  const pageIds = ids.slice(offset, offset + ipPagination.limit);
+  const { cached: pageCached, missIds: pageMiss } = IpSelectorService.getCachedHosts(pageIds);
+  let pageRows = pageCached.map(mapCachedToRow);
+  if (pageMiss.length > 0) {
+    try {
+      const res = await TopoService.HostList({
+        page: { limit: pageMiss.length, offset: 0 },
+        only_count: false,
+        exact_include_conditions: { bk_host_id: pageMiss, bk_biz_id: [formData.bk_biz_id] },
+      });
+      const mapped = (res.items || []).map(mapRawToRow);
+      const rowMap = new Map<number, ISelectedHost>();
+      pageRows.forEach(row => rowMap.set(row.bk_host_id, row));
+      mapped.forEach(row => rowMap.set(row.bk_host_id, row));
+      pageRows = pageIds.map(id => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
+    } catch { /* 当前页部分失败时只展示缓存中的数据 */ }
+  }
+  tableHosts.value = pageRows;
+  ipPagination.count = ids.length;
   formData.selectedHosts = tableHosts.value;
 };
 

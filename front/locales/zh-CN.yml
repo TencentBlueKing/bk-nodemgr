@@ -840,6 +840,8 @@ agentStrategy:
     remark: 备注
     pluginName: 插件名称
     scope: 范围
+    scopeIps: "额外IP：{ips}等{count}个IP"
+    scopeIpsEmpty: "额外IP：0个"
     operator: 修改人
     updateTime: 修改时间
     status: 状态
@@ -856,7 +858,7 @@ agentStrategy:
     disable: 停用
     delete: 删除
     confirmDelete: 确认删除该配置策略？
-    deleteTarget: 删除目标：{name}
+    deleteTarget: "删除目标：{name}"
     deleteTip: 删除后不可恢复，请谨慎操作！
     deleteDisabledTip: 启用中的配置不可删除
   filter:
@@ -902,7 +904,8 @@ agentStrategy:
     sortConfig: 策略排序
     previewStrategy: 策略匹配
     previewConfig: 预览配置
-    selectIP: 选择作用IP
+    selectIP: 额外作用IP
+    selectIPTip: 在作用范围基础上，额外作用的独立IP
     previewMatchStrategy: 预览匹配策略
     matchedPolicy: 匹配策略
     configDetail: 配置详情

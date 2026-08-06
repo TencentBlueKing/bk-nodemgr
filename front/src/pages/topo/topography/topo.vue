@@ -16,7 +16,7 @@
     <div v-else :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
       <!-- 下拉选择器 -->
       <Select
-        class="w-[240px] fixed top-[128px] left-[80px] z-[2]"
+        class="w-[240px] fixed top-[128px] left-[280px] z-[2]"
         v-model="regionList"
         :clearable="false"
         all-option-id="all"

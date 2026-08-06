@@ -154,8 +154,8 @@ const Service = {
 const IpSelector = createFactory({
   // 组件版本
   version: '1.0.0',
-  // 需要支持的面板：静态拓扑 + 动态拓扑 + 手动输入
-  panelList: ['staticTopo', 'dynamicTopo', 'manualInput'],
+  // 需要支持的面板：静态拓扑 + 手动输入（动态拓扑暂不支持）
+  panelList: ['staticTopo', 'manualInput'],
   // 面板选项的值是否唯一
   unqiuePanelValue: false,
   // 字段命名风格

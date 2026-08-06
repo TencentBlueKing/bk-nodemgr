@@ -105,33 +105,37 @@
           :min-width="120"
         >
           <template #default="{ row }">
-            <Popover theme="light" trigger="hover">
-              <Button text theme="primary">{{ row.scopes?.length }}</Button>
-              <template #content>
-                <Table :data="row.scopes" :min-width="600">
-                  <TableColumn field="bk_networkarea_id" :title="$t('taskDetail.table.workarea')" :min-width="120">
-                    <template #default="{ row: scopesRow }">
-                      {{ networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id)?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
-                    </template>
-                  </TableColumn>
-                  <TableColumn field="bk_networkunit_id" :title="$t('taskDetail.table.workUnit')" :min-width="120">
-                    <template #default="{ row: scopesRow }">
-                      {{ networkUnitList?.find(item => item.bk_networkunit_id === scopesRow.bk_networkunit_id)?.bk_networkunit_name || $t('agentStrategy.table.unlimited') }}
-                    </template>
-                  </TableColumn>
-                  <TableColumn field="os_type" :title="$t('agentStrategy.table.os')">
-                    <template #default="{ row: scopesRow }">
-                      {{ scopesRow.os_type || $t('agentStrategy.table.unlimited') }}
-                    </template>
-                  </TableColumn>
-                  <TableColumn field="cpu_arch" :title="$t('agentStrategy.table.arch')" :min-width="120">
-                    <template #default="{ row: scopesRow }">
-                      {{ scopesRow.cpu_arch || $t('agentStrategy.table.unlimited') }}
-                    </template>
-                  </TableColumn>
-                </Table>
-              </template>
-            </Popover>
+            <div>
+              <Popover theme="light" trigger="hover">
+                <Button text theme="primary">{{ row.scopes?.length }}</Button>
+                <template #content>
+                  <div class="text-[#313238] text-[14px] mb-[8px]">{{ renderExtraIps(row) }}</div>
+                  <Table :data="row.scopes" :min-width="600">
+                    <TableColumn field="bk_networkarea_id" :title="$t('taskDetail.table.workarea')" :min-width="120">
+                      <template #default="{ row: scopesRow }">
+                        {{ networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id)?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
+                      </template>
+                    </TableColumn>
+                    <TableColumn field="bk_networkunit_id" :title="$t('taskDetail.table.workUnit')" :min-width="120">
+                      <template #default="{ row: scopesRow }">
+                        {{ networkUnitList?.find(item => item.bk_networkunit_id === scopesRow.bk_networkunit_id)?.bk_networkunit_name || $t('agentStrategy.table.unlimited') }}
+                      </template>
+                    </TableColumn>
+                    <TableColumn field="os_type" :title="$t('agentStrategy.table.os')">
+                      <template #default="{ row: scopesRow }">
+                        {{ scopesRow.os_type || $t('agentStrategy.table.unlimited') }}
+                      </template>
+                    </TableColumn>
+                    <TableColumn field="cpu_arch" :title="$t('agentStrategy.table.arch')" :min-width="120">
+                      <template #default="{ row: scopesRow }">
+                        {{ scopesRow.cpu_arch || $t('agentStrategy.table.unlimited') }}
+                      </template>
+                    </TableColumn>
+                  </Table>
+                </template>
+              </Popover>
+              <div class="text-[12px] text-[#979BA5] mt-[2px]">{{ renderExtraIps(row) }}</div>
+            </div>
           </template>
         </TableColumn>
         <TableColumn
@@ -343,9 +347,10 @@ const handleSave = async () => { await getConfigPolicyList(); };
 
 const networkAreaList = ref<NetworkArea[]>([]);
 const getNetworkAreaList = async (data: { bk_networkarea_id: number }[]) => {
+  const ids = data.map((item: any) => item.bk_networkarea_id);
   const res = await TopoService.NetworkAreaList({
-    page: { limit: 0 },
-    exact_include_conditions: { bk_networkarea_id: data.map((item: any) => item.bk_networkarea_id) },
+    page: { limit: Math.min(ids.length, 1000), offset: 0 },
+    exact_include_conditions: { bk_networkarea_id: ids },
   }).catch(() => ({ total: 0, items: [] }));
   networkAreaList.value = res.items;
 };
@@ -356,6 +361,32 @@ const getNetworkUnitList = async (data: { bk_networkunit_id: number }[]) => {
     exact_include_conditions: { bk_networkunit_id: data.map((item: any) => item.bk_networkunit_id) },
   }).catch(() => ({ total: 0, items: [] }));
   networkUnitList.value = res.items;
+};
+
+// 主机 ID → 主机详情映射，用于列表"范围"列展示额外 IP 文案
+const hostMap = reactive<Record<number, { bk_host_innerip?: string }>>({});
+const getHostList = async (ids: number[]) => {
+  const res = await TopoService.HostList({
+    page: { limit: Math.min(ids.length, 1000), offset: 0 },
+    exact_include_conditions: { bk_host_id: ids },
+  }).catch(() => null);
+  if (res?.items) {
+    res.items.forEach((h: any) => {
+      hostMap[h.bk_host_id] = { bk_host_innerip: h.info?.bk_host_innerip_list?.[0] || '' };
+    });
+  }
+};
+
+const renderExtraIps = (row: any) => {
+  const ids: number[] = row.target_host_ids || [];
+  if (!ids.length) return t('agentStrategy.table.scopeIpsEmpty');
+  const ips = ids.map(id => hostMap[id]?.bk_host_innerip).filter(Boolean);
+  if (!ips.length) return t('agentStrategy.table.scopeIpsEmpty');
+  // 只展示第一个 IP 作为代表，文案为"xxx等N个IP"
+  return t('agentStrategy.table.scopeIps', {
+    ips: ips[0],
+    count: ips.length,
+  });
 };
 
 const fuzzyKeys = new Set(['configpolicy_name', 'operator']);
@@ -383,6 +414,11 @@ const getConfigPolicyList = async () => {
   const allScopes = res.items.flatMap(item => item.scopes || []);
   if (allScopes.length > 0) {
     await Promise.all([getNetworkAreaList(allScopes), getNetworkUnitList(allScopes)]);
+  }
+  // 收集所有 target_host_ids 一次性查询，填充 hostMap 供列表 cell 显示额外 IP
+  const allTargetHostIds = [...new Set(res.items.flatMap((item: any) => item.target_host_ids || []))];
+  if (allTargetHostIds.length > 0) {
+    await getHostList(allTargetHostIds);
   }
   tableData.value = res.items.map((item: any) => ({
     ...item,

@@ -989,6 +989,14 @@ const list = computed(() => [
         id: 'ipv6',
         name: t('taskDetail.search.ipv6'),
       },
+      {
+        id: 'workarea+ipv4',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
+      },
+      {
+        id: 'workarea+ipv6',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
+      },
     ],
   },
   {
@@ -1002,6 +1010,14 @@ const list = computed(() => [
       {
         id: 'ipv6',
         name: t('taskDetail.search.ipv6'),
+      },
+      {
+        id: 'workarea+ipv4',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
+      },
+      {
+        id: 'workarea+ipv6',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
       },
     ],
   },
@@ -1017,6 +1033,14 @@ const list = computed(() => [
         id: 'ipv6',
         name: t('taskDetail.search.ipv6'),
       },
+      {
+        id: 'workarea+ipv4',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
+      },
+      {
+        id: 'workarea+ipv6',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
+      },
     ],
   },
   {
@@ -1030,6 +1054,14 @@ const list = computed(() => [
       {
         id: 'ipv6',
         name: t('taskDetail.search.ipv6'),
+      },
+      {
+        id: 'workarea+ipv4',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv4`,
+      },
+      {
+        id: 'workarea+ipv6',
+        name: `${t('topoManager.workArea.copy.workarea')}+IPv6`,
       },
     ],
   },

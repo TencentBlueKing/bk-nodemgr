@@ -449,46 +449,38 @@ const fetchHostData = async () => {
     return;
   }
 
-  // 1. 先从缓存取
-  const { cached, missIds } = IpSelectorService.getCachedHosts(ids);
-  let allRows = cached.map(mapCachedToRow);
-  ipPagination.count = ids.length;
+  // 1. 先按当前页分片，只对当前页缓存未命中的 ID 发起后端请求（避免一次拉全量导致超时）
+  const offset = (ipPagination.current - 1) * ipPagination.limit;
+  const pageIds = ids.slice(offset, offset + ipPagination.limit);
+  const { cached: pageCached, missIds: pageMiss } = IpSelectorService.getCachedHosts(pageIds);
+  let pageRows = pageCached.map(mapCachedToRow);
 
-  // 2. 缓存未命中的 ID，调后端补齐
-  if (missIds.length > 0) {
+  if (pageMiss.length > 0) {
     try {
-      const CHUNK_SIZE = 500;
-      const fetchedItems: any[] = [];
-
-      for (let i = 0; i < missIds.length; i += CHUNK_SIZE) {
-        const chunkIds = missIds.slice(i, i + CHUNK_SIZE);
-        const res = await TopoService.HostList({
-          page: { limit: CHUNK_SIZE, offset: 0 },
-          only_count: false,
-          exact_include_conditions: {
-            bk_host_id: chunkIds,
-            bk_biz_id: [formData.bk_biz_id],
-            node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'],
-          },
-        });
-        const mapped = (res.items || []).map(mapRawToRow);
-        fetchedItems.push(...mapped);
-      }
-
-      // 合并缓存 + 后端数据，按原始 ids 顺序保持稳定
+      const res = await TopoService.HostList({
+        page: { limit: pageMiss.length, offset: 0 },
+        only_count: false,
+        exact_include_conditions: {
+          bk_host_id: pageMiss,
+          bk_biz_id: [formData.bk_biz_id],
+          node_role: props.configpolicyType === 'config_policy_agent' ? ['agent', 'blank'] : ['proxy'],
+        },
+      });
+      const mapped = (res.items || []).map(mapRawToRow);
+      // 按 pageIds 顺序合并缓存 + 后端
       const rowMap = new Map<number, ISelectedHost>();
-      allRows.forEach(row => rowMap.set(row.bk_host_id, row));
-      fetchedItems.forEach(row => rowMap.set(row.bk_host_id, row));
-      allRows = ids.map(id => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
+      pageRows.forEach(row => rowMap.set(row.bk_host_id, row));
+      mapped.forEach(row => rowMap.set(row.bk_host_id, row));
+      pageRows = pageIds.map(id => rowMap.get(id)).filter(Boolean) as ISelectedHost[];
     } catch {
-      // API 失败时只展示缓存中的数据
+      // 当前页部分失败时只展示缓存中的数据
     }
   }
 
-  // 3. 分页截取当前页
-  const offset = (ipPagination.current - 1) * ipPagination.limit;
-  tableHosts.value = allRows.slice(offset, offset + ipPagination.limit);
-  ipPagination.count = allRows.length;
+  // 2. 显示当前页数据
+  tableHosts.value = pageRows;
+  // 总数：缓存命中 + 已加载数
+  ipPagination.count = ids.length;
   formData.selectedHosts = tableHosts.value;
 };
 

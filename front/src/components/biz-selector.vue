@@ -43,7 +43,11 @@
           <div
             class="w-full flex items-center biz-select-option overflow-hidden"
             :class="{ 'unauthorized-biz-row': !item.authorized }"
-            :title="item.title"
+            v-bk-tooltips="{
+              content: t('components.permission.noPermission'),
+              placement: 'top',
+              disabled: item.authorized,
+            }"
             @click="handleOptionClick($event, item.id)"
             :data-biz-id="item.id"
           >
@@ -173,11 +177,20 @@ const businessList = ref<Business[]>([]);
 
 // ===== 收藏（同步初始化，避免硬刷新时收藏图标闪烁丢失）=====
 const collectList = ref<number[]>([]);
-(() => {
+
+// 从 localStorage 解析收藏列表并确保类型为 number[]（兼容历史 string[] 数据）
+const parseCollectList = (raw: string): number[] => {
   try {
-    const raw = localStorage.getItem('collect');
-    if (raw) collectList.value = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => Number(item)).filter(item => Number.isFinite(item));
+    }
   } catch { /* ignore */ }
+  return [];
+};
+(() => {
+  const raw = localStorage.getItem('collect');
+  if (raw) collectList.value = parseCollectList(raw);
 })();
 
 // ===== 多选业务 =====
@@ -566,7 +579,7 @@ const init = () => {
   // 1. 恢复收藏列表
   const collectsJson = localStorage.getItem('collect');
   if (collectsJson) {
-    collectList.value = JSON.parse(collectsJson);
+    collectList.value = parseCollectList(collectsJson);
   }
 
   // 2. 多选业务已在 multiBusiness 声明时从 localStorage 恢复，此处仅同步 store（兜底）

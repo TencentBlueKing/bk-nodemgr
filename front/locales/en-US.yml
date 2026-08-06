@@ -840,6 +840,8 @@ agentStrategy:
     remark: Remark
     pluginName: Plugin Name
     scope: Scope
+    scopeIps: "Extra IPs: {ips} and {count} more"
+    scopeIpsEmpty: "Extra IPs: 0"
     operator: Operator
     updateTime: Updated At
     status: Status
@@ -899,7 +901,8 @@ agentStrategy:
     sortConfig: Strategy Sort
     previewStrategy: Strategy Match
     previewConfig: Preview Config
-    selectIP: Select Target IP
+    selectIP: Extra Target IP
+    selectIPTip: Independent IPs on top of the configured scope
     previewMatchStrategy: Preview Matched Strategy
     matchedPolicy: Matched Policy
     configDetail: Config Detail
