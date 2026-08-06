@@ -867,7 +867,10 @@ agentStrategy:
     business: 业务
     enabled: 是否启用
     remark: 备注
-    scope: 作用范围
+    scope: 配置作用范围
+    scopeTip: 该策略在当前业务下的作用范围，多个范围取并集
+    extraIP: 额外作用 IP
+    extraIPTip: 在作用范围基础上，额外作用的独立 IP
     config: 配置
     selectBusiness: 选择业务
     unlimited: 不限

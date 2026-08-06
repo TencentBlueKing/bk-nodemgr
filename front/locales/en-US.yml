@@ -867,7 +867,10 @@ agentStrategy:
     business: Business
     enabled: Enabled
     remark: Remark
-    scope: Scope
+    scope: Configuration Scope
+    scopeTip: The scope where this policy applies in the current business. Multiple scopes are combined.
+    extraIP: Additional Target IPs
+    extraIPTip: Independent IPs to which the policy applies in addition to the configured scope.
     config: Config
     selectBusiness: Select Business
     unlimited: Unlimited
