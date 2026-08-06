@@ -6,128 +6,64 @@
     >
       {{ shrinkText }}
     </div>
-    <!-- 策略管理：单选业务 -->
     <div
-      v-if="isSingle"
       v-show="expanded"
       v-bk-tooltips="{ content: selectedBizName, placement: 'top', disabled: !selectedBizName }"
       class="mx-[12px]"
     >
       <Select
-      v-model="singleBusiness"
-      :filter-option="filterOption"
-      :show-selected-icon="false"
-      :clearable="false"
-      filterable
-      :placeholder="hasNoAuthorizedBiz() ? undefined : t('platform.nodeMan.allBusiness')"
-      :popover-options="{ boundary: 'document.body', width: '235px' }"
-      @toggle="handleToggle"
-    >
-      <Select.Option
-        v-for="item in businessList"
-        :key="item.bk_biz_id"
-        :name="item.bk_biz_name"
-        :id="item.bk_biz_id"
-        v-bk-tooltips="{
-          content: isBizAuthorized(item.bk_biz_id)
-            ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
-            : t('components.permission.noPermission'),
-          disabled: isBizAuthorized(item.bk_biz_id) && !textOverflowMap[item.bk_biz_id],
-          boundary: 'parent',
-          placement: 'right',
-          offset: 10
+        ref="selectRef"
+        v-model="selectValue"
+        :filter-option="filterOption"
+        show-selected-icon
+        selected-style="check"
+        :multiple="!isSingle"
+        :clearable="!isSingle"
+        filterable
+        :list="businessOptions"
+        id-key="id"
+        display-key="name"
+        enable-virtual-render
+        :scroll-height="360"
+        :min-height="360"
+        :popover-min-width="280"
+        :show-select-all="!isSingle"
+        :placeholder="hasNoAuthorizedBiz() ? undefined : t('platform.nodeMan.allBusiness')"
+        :popover-options="{
+          boundary: 'document.body',
+          width: '280px',
+          maxWidth: '280px',
+          maxHeight: '400px',
+          extCls: 'nm-biz-select-popover'
         }"
+        @toggle="handleToggle"
+        @search-change="handleMultiSearchChange"
       >
-        <div
-          class="w-full flex items-center biz-select-option overflow-hidden"
-          :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
-          @click="handleOptionClick($event, item.bk_biz_id)"
-          :data-biz-id="item.bk_biz_id"
-        >
-          <Button
-            class="mr-[8px] w-[18px] shrink-0"
-            text
-            @click.native.stop="handleCollect(item.bk_biz_id)">
-            <i
-              class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-              v-if="collectList.includes(item.bk_biz_id)">
-            </i>
-            <i
-              class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
-              v-else>
-            </i>
-          </Button>
+        <template #optionRender="{ item }">
           <div
-            class="truncate"
-            @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
-            [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+            class="w-full flex items-center biz-select-option overflow-hidden"
+            :class="{ 'unauthorized-biz-row': !item.authorized }"
+            :title="item.title"
+            @click="handleOptionClick($event, item.id)"
+            :data-biz-id="item.id"
+          >
+            <Button
+              class="mr-[8px] w-[18px] shrink-0"
+              text
+              @click.stop="handleCollect(item.id)">
+              <i
+                class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+                v-if="item.collected">
+              </i>
+              <i
+                class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
+                v-else>
+              </i>
+            </Button>
+            <div class="truncate">[{{ item.id }}] {{ item.name }}</div>
           </div>
-        </div>
-      </Select.Option>
-    </Select>
-    </div>
-    <!-- 其他模块：多选业务 -->
-    <div
-      v-else
-      v-show="expanded"
-      v-bk-tooltips="{ content: selectedBizName, placement: 'top', disabled: !selectedBizName }"
-      class="mx-[12px]"
-    >
-      <Select
-      v-model="multiBusiness"
-      :filter-option="filterOption"
-      :show-selected-icon="false"
-      multiple
-      filterable
-      showSelectAll
-      :placeholder="hasNoAuthorizedBiz() ? undefined : t('platform.nodeMan.allBusiness')"
-      :popover-options="{ boundary: 'document.body', width: '235px' }"
-      @change="handleMultiChange"
-      @toggle="handleToggle"
-      @search-change="handleMultiSearchChange"
-    >
-      <Select.Option
-        v-for="item in businessList"
-        :key="item.bk_biz_id"
-        :name="item.bk_biz_name"
-        :id="item.bk_biz_id"
-        v-bk-tooltips="{
-          content: isBizAuthorized(item.bk_biz_id)
-            ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
-            : t('components.permission.noPermission'),
-          disabled: isBizAuthorized(item.bk_biz_id) && !textOverflowMap[item.bk_biz_id],
-          boundary: 'parent',
-          placement: 'right',
-          offset: 10
-        }"
-      >
-        <div
-          class="w-full flex items-center biz-select-option overflow-hidden"
-          :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
-          @click="handleOptionClick($event, item.bk_biz_id)"
-          :data-biz-id="item.bk_biz_id"
-        >
-          <Button
-            class="mr-[8px] w-[18px] shrink-0"
-            text
-            @click.native.stop="handleCollect(item.bk_biz_id)">
-            <i
-              class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-              v-if="collectList.includes(item.bk_biz_id)">
-            </i>
-            <i
-              class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
-              v-else>
-            </i>
-          </Button>
-          <div
-            class="truncate"
-            @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
-            [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-          </div>
-        </div>
-      </Select.Option>
-    </Select>
+        </template>
+      </Select>
     </div>
     <!-- 锁图标由 use-auth-lock hook 通过 DOM 管理，无需 Teleport -->
   </div>
@@ -135,7 +71,7 @@
 
 <script setup lang="ts">
 import { Button, Select } from 'bkui-vue';
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -144,15 +80,20 @@ import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 import { usePermissionStore } from '@/stores/permission';
 
-const { t } = useI18n();
-const route = useRoute();
-const mainStore = useMainStore();
-const authStore = useAuthStore();
-
 defineProps<{
   /** 左侧菜单是否展开 */
   expanded: boolean;
 }>();
+
+const { t } = useI18n();
+const route = useRoute();
+const mainStore = useMainStore();
+const authStore = useAuthStore();
+const selectRef = ref<{
+  virtualRenderRef?: {
+    scrollTo: (x: number, y: number) => void;
+  };
+} | null>(null);
 
 // ===== 可见性与模式 =====
 const NO_BIZ_SELECTOR_MAIN_MENUS = ['topoManager', 'pkgManager'];
@@ -259,6 +200,19 @@ const singleBusiness = ref<number | ''>('');
 const isPopoverOpen = ref(false);
 const multiSearchKeyword = ref('');
 
+const selectValue = computed<number | '' | number[]>({
+  get() {
+    return isSingle.value ? singleBusiness.value : multiBusiness.value;
+  },
+  set: (value) => {
+    if (isSingle.value) {
+      singleBusiness.value = value as number | '';
+      return;
+    }
+    multiBusiness.value = Array.isArray(value) ? value.map(Number) : [];
+  },
+});
+
 const hasExplicitlyClearedMultiBusiness = () => {
   const bizIdsJson = localStorage.getItem('bk_biz_id');
   if (!bizIdsJson) return false;
@@ -332,23 +286,16 @@ const {
   () => mainStore.selectedBusinessId[0],
 );
 
-// ===== 文字溢出检测 =====
-const textOverflowMap = reactive<Record<number, boolean>>({});
-const handleTextMouseenter = (e: MouseEvent, id: number) => {
-  const el = e.target as HTMLElement;
-  textOverflowMap[id] = el.scrollWidth > el.clientWidth;
-};
-
 // ===== Select 选中值 tooltip =====
 const selectedBizName = computed(() => {
   if (isSingle.value) {
     if (!singleBusiness.value) return '';
-    const biz = businessList.value.find(b => b.bk_biz_id === singleBusiness.value);
+    const biz = mainStore.businessList.find(b => b.bk_biz_id === singleBusiness.value);
     return biz ? `[${biz.bk_biz_id}] ${biz.bk_biz_name}` : '';
   }
   if (!multiBusiness.value.length) return '';
   return multiBusiness.value
-    .map(id => businessList.value.find(b => b.bk_biz_id === id))
+    .map(id => mainStore.businessList.find(b => b.bk_biz_id === id))
     .filter(Boolean)
     .map(b => `[${b!.bk_biz_id}] ${b!.bk_biz_name}`)
     .join(' ; ');
@@ -383,23 +330,28 @@ function hasNoAuthorizedBiz(): boolean {
 
 // ===== 排序逻辑（拷贝后排序，不影响 store 原数组）=====
 const sortBusinessList = () => {
+  const authorizedIds = authStore.getAuthorizedBizIds(BIZ_ACCESS_ACTION);
+  const authorizedSet = authorizedIds === null ? null : new Set(authorizedIds);
+  const collectedSet = new Set(collectList.value);
+  const selectedIds = isSingle.value && singleBusiness.value !== ''
+    ? [singleBusiness.value]
+    : multiBusiness.value;
+  const selectedSet = new Set(selectedIds);
   businessList.value = [...filteredBusinessList.value].sort((a: Business, b: Business) => {
     // 优先级1: 有权限的排在前面
-    const aAuthorized = isBizAuthorized(a.bk_biz_id);
-    const bAuthorized = isBizAuthorized(b.bk_biz_id);
+    const aAuthorized = authorizedSet === null || !authStore.authorizedLoaded
+      || authorizedSet.has(String(a.bk_biz_id));
+    const bAuthorized = authorizedSet === null || !authStore.authorizedLoaded
+      || authorizedSet.has(String(b.bk_biz_id));
     if (aAuthorized && !bAuthorized) return -1;
     if (!aAuthorized && bAuthorized) return 1;
 
-    const aIsCollected = collectList.value.includes(a.bk_biz_id);
-    const bIsCollected = collectList.value.includes(b.bk_biz_id);
+    const aIsCollected = collectedSet.has(a.bk_biz_id);
+    const bIsCollected = collectedSet.has(b.bk_biz_id);
 
     // 策略单选模式按 singleBusiness 判断选中，多选模式按 multiBusiness 判断选中
-    const aIsSelected = isSingle.value
-      ? a.bk_biz_id === singleBusiness.value
-      : multiBusiness.value.includes(a.bk_biz_id);
-    const bIsSelected = isSingle.value
-      ? b.bk_biz_id === singleBusiness.value
-      : multiBusiness.value.includes(b.bk_biz_id);
+    const aIsSelected = selectedSet.has(a.bk_biz_id);
+    const bIsSelected = selectedSet.has(b.bk_biz_id);
 
     // 优先级2: 选中状态（选中的排在前面）
     if (aIsSelected && !bIsSelected) return -1;
@@ -411,6 +363,22 @@ const sortBusinessList = () => {
     return a.bk_biz_id - b.bk_biz_id;
   });
 };
+
+const businessOptions = computed(() => {
+  const collectedSet = new Set(collectList.value);
+  return businessList.value.map((item) => {
+    const authorized = isBizAuthorized(item.bk_biz_id);
+    return {
+      id: item.bk_biz_id,
+      name: item.bk_biz_name,
+      title: authorized
+        ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
+        : t('components.permission.noPermission'),
+      authorized,
+      collected: collectedSet.has(item.bk_biz_id),
+    };
+  });
+});
 
 // ===== 业务列表数据就绪后立即排序填充 options，确保 Select 的 tag 能正确渲染 =====
 // 这是解决刷新后业务选择器不显示已选业务的关键：即使 multiBusiness 从 localStorage 恢复了 [12]，
@@ -427,17 +395,25 @@ watch(filteredBusinessList, (list) => {
   }
 }, { immediate: true });
 
-// ===== 下拉展开时排序 =====
-const handleToggle = (isOpen: boolean) => {
-  isPopoverOpen.value = isOpen;
-  // 不在此处排序：sortBusinessList 开销 O(n log n)，业务量大时每次展开都会卡
-  // 排序由 watch 在依赖（数据/选中/收藏）变化时自动触发
+// ===== 下拉展开状态 =====
+const resetVirtualListScroll = () => {
+  selectRef.value?.virtualRenderRef?.scrollTo(0, 0);
+
+  const virtualList = document.querySelector(
+    '.nm-biz-select-popover .bk-virtual-render',
+  ) as HTMLElement | null;
+  virtualList?.scrollTo({ left: 0, top: 0 });
 };
 
-// 当选择或收藏变化时重新排序（下拉已打开时需即时反映排序变化）
-watch([singleBusiness, multiBusiness, collectList], () => {
-  sortBusinessList();
-}, { deep: true });
+const handleToggle = (isOpen: boolean) => {
+  isPopoverOpen.value = isOpen;
+  if (isOpen) {
+    sortBusinessList();
+    window.setTimeout(resetVirtualListScroll, 20);
+  }
+};
+
+// 选中和收藏变化延迟到下次打开下拉框再排序
 
 // ===== 收藏操作 =====
 const handleCollect = (val: number) => {
@@ -477,11 +453,6 @@ const handleApplyPermission = async (bizId: number) => {
   }
 };
 
-// ===== 多选业务变更 =====
-const handleMultiChange = (val: number[]) => {
-  syncMultiBusiness(val);
-};
-
 const handleMultiSearchChange = (val: string) => {
   multiSearchKeyword.value = val;
 };
@@ -495,10 +466,10 @@ const handleEnterSelectFilteredBusiness = (event: KeyboardEvent) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const matchedBizIds = businessList.value
-    .filter(item => isBizAuthorized(item.bk_biz_id))
-    .filter(item => filterOption(keyword, { id: item.bk_biz_id, name: item.bk_biz_name }))
-    .map(item => item.bk_biz_id);
+  const matchedBizIds = businessOptions.value
+    .filter(item => item.authorized)
+    .filter(item => filterOption(keyword, { id: item.id, name: item.name }))
+    .map(item => item.id);
   if (matchedBizIds.length === 0) return;
 
   const nextBizIds = Array.from(new Set([...multiBusiness.value, ...matchedBizIds]));
@@ -508,7 +479,7 @@ const handleEnterSelectFilteredBusiness = (event: KeyboardEvent) => {
 // ===== 自定义搜索方法 =====
 const filterOption = (input: any, options: { id: number; name: string }) => {
   const inputStr = String(input).trim();
-  if (!inputStr) return false;
+  if (!inputStr) return true;
 
   const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
   if (keywords.length === 0) return false;
@@ -717,5 +688,22 @@ defineExpose({ init });
 /* 非 scoped：置灰样式需穿透 Select Option popover */
 .unauthorized-biz-row {
   color: #c4c6cc !important;
+}
+
+.nm-biz-select-popover {
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+}
+
+.nm-biz-select-popover .bk-select-content-wrapper,
+.nm-biz-select-popover .bk-select-content,
+.nm-biz-select-popover .bk-select-dropdown {
+  width: 100% !important;
+}
+
+.nm-biz-select-popover .bk-select-dropdown {
+  min-height: 360px !important;
+  max-height: 360px !important;
 }
 </style>

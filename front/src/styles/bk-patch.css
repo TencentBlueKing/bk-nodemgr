@@ -2,6 +2,11 @@
   padding: 0 !important;
 }
 
+/* Keep the application navigation expanded and remove the collapse control. */
+.bk-navigation-wrapper .navigation-nav .nav-slider-footer {
+  display: none !important;
+}
+
 .bk-navigation {
   .nav-slider {
     background-color: #fff !important;

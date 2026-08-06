@@ -4,8 +4,8 @@
     <Navigation
       class="flex-1"
       navigation-type="top-bottom"
+      default-open
       :need-menu="!!subMenuData?.length"
-      @toggle="handleNavToggle"
     >
       <template #side-header>
         <img
@@ -138,7 +138,7 @@
         </FlexRow>
       </template>
       <template #menu>
-        <BizSelector ref="bizSelectorRef" :expanded="navToggle" />
+        <BizSelector ref="bizSelectorRef" :expanded="true" />
         <Menu :active-key="String(currentActive)">
           <Menu.Group
             v-for="item in subMenuData"
@@ -248,7 +248,6 @@ const { navData, subMenuData } = useMenu();
 // 蓝鲸平台相关配置hook
 const { platformConfig, getPlatformInfo } = usePlatform();
 const appName = computed(() => platformConfig.i18n.productName);
-const navToggle = ref(false);
 const currentMainMenu = computed(() => (route.meta.mainMenu || (route.query.mainMenu as string)));
 
 // 跳转首页
@@ -332,11 +331,6 @@ function handleChangeSubMenu(item: Omit<NavItem, 'group'>) {
     params: item.params,
   });
 }
-
-// 切换左侧菜单的展开收起
-const handleNavToggle = (value: boolean) => {
-  navToggle.value = value;
-};
 
 // 业务选择器
 const bizSelectorRef = ref<InstanceType<typeof BizSelector>>();

@@ -1,69 +1,61 @@
 <template>
   <Select
+    ref="selectRef"
     :class="selectClass"
     v-model="innerValue"
     auto-focus
     filterable
+    :list="businessOptions"
+    id-key="id"
+    display-key="name"
+    enable-virtual-render
+    :scroll-height="360"
+    :min-height="360"
+    :popover-min-width="280"
     :filter-option="filterOption"
-    :show-selected-icon="false"
+    show-selected-icon
+    selected-style="check"
     :multiple="mode === 'multiple'"
     :clearable="mode === 'multiple'"
     :placeholder="placeholder"
-    :popover-options="popoverOptions"
+    :popover-options="resolvedPopoverOptions"
     @toggle="handleToggle"
     @change="mode === 'multiple' && emit('change', innerValue)"
     @search-change="handleSearchChange"
   >
-    <Select.Option
-      v-for="item in sortedBusinessList"
-      :key="item.bk_biz_id"
-      :name="item.bk_biz_name"
-      :id="item.bk_biz_id"
-      v-bk-tooltips="{
-        content: isBizAuthorized(item.bk_biz_id)
-          ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
-          : noPermissionText,
-        disabled: isBizAuthorized(item.bk_biz_id) && !textOverflowMap[item.bk_biz_id],
-        boundary: 'parent',
-        placement: 'right',
-        offset: 10
-      }"
-    >
+    <template #optionRender="{ item }">
       <div
         class="w-full flex items-center biz-select-option overflow-hidden"
-        :class="{ 'unauthorized-biz-row': !isBizAuthorized(item.bk_biz_id) }"
-        @click="handleOptionClick($event, item.bk_biz_id)"
-        @mouseenter="handleOptionMouseEnter($event, item.bk_biz_id)"
-        @mousemove="handleOptionMouseMove($event, item.bk_biz_id)"
+        :class="{ 'unauthorized-biz-row': !item.authorized }"
+        :title="item.title"
+        @click="handleOptionClick($event, item.id)"
+        @mouseenter="handleOptionMouseEnter($event, item.id)"
+        @mousemove="handleOptionMouseMove($event, item.id)"
         @mouseleave="handleOptionMouseLeave()"
       >
         <Button
           class="mr-[8px] w-[18px] shrink-0"
           text
-          @click.native.stop="handleCollect(item.bk_biz_id)"
+          @click.stop="handleCollect(item.id)"
         >
           <i
             class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-            v-if="collectList.includes(item.bk_biz_id)">
+            v-if="item.collected">
           </i>
           <i
             class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
             v-else>
           </i>
         </Button>
-        <div
-          class="truncate"
-          @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
-          [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-        </div>
+        <div class="truncate">[{{ item.id }}] {{ item.name }}</div>
       </div>
-    </Select.Option>
+    </template>
   </Select>
 </template>
 
 <script setup lang="ts">
 import { Button, Select } from 'bkui-vue';
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import useAuthLock from '@/composables/use-auth-lock';
@@ -104,10 +96,23 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const mainStore = useMainStore();
 const permissionStore = usePermissionStore();
+const selectRef = ref<{
+  virtualRenderRef?: {
+    scrollTo: (x: number, y: number) => void;
+  };
+} | null>(null);
 
-const noPermissionText = t('components.permission.noPermission');
 const isPopoverOpen = ref(false);
 const searchKeyword = ref('');
+const displayedBusinessList = ref<Business[]>([]);
+
+const resolvedPopoverOptions = computed(() => ({
+  width: 280,
+  maxWidth: 280,
+  maxHeight: 400,
+  extCls: 'nm-biz-select-popover',
+  ...props.popoverOptions,
+}));
 
 // ===== v-model =====
 const innerValue = computed({
@@ -149,19 +154,27 @@ const isBizAuthorized = (bizId: number): boolean => {
 };
 
 // ===== 排序逻辑 =====
-const sortedBusinessList = computed(() => {
+const sortBusinessList = () => {
   const list = [...businessList.value];
-  return list.sort((a, b) => {
+  const bizAccessIds = authStore.getAuthorizedBizIds(BIZ_ACCESS_ACTION);
+  const bizAccessSet = bizAccessIds === null ? null : new Set(bizAccessIds);
+  const actionIds = props.action
+    ? authStore.getAuthorizedBizIds(props.action)
+    : null;
+  const actionSet = actionIds === null ? null : new Set(actionIds || []);
+  const collectedSet = new Set(collectList.value);
+  const selectedSet = new Set(selectedBizIds.value);
+  list.sort((a, b) => {
     // 有权限的排前面（biz_access 已加载时才生效）
-    const aAuth = isBizAuthorized(a.bk_biz_id);
-    const bAuth = isBizAuthorized(b.bk_biz_id);
+    const aAuth = isAuthorizedWithSets(a.bk_biz_id, bizAccessSet, actionSet);
+    const bAuth = isAuthorizedWithSets(b.bk_biz_id, bizAccessSet, actionSet);
     if (aAuth && !bAuth) return -1;
     if (!aAuth && bAuth) return 1;
 
-    const aIsCollected = collectList.value.includes(a.bk_biz_id);
-    const bIsCollected = collectList.value.includes(b.bk_biz_id);
-    const aIsSelected = selectedBizIds.value.includes(a.bk_biz_id);
-    const bIsSelected = selectedBizIds.value.includes(b.bk_biz_id);
+    const aIsCollected = collectedSet.has(a.bk_biz_id);
+    const bIsCollected = collectedSet.has(b.bk_biz_id);
+    const aIsSelected = selectedSet.has(a.bk_biz_id);
+    const bIsSelected = selectedSet.has(b.bk_biz_id);
 
     if (aIsSelected && !bIsSelected) return -1;
     if (!aIsSelected && bIsSelected) return 1;
@@ -169,12 +182,41 @@ const sortedBusinessList = computed(() => {
     if (!aIsCollected && bIsCollected) return 1;
     return a.bk_biz_id - b.bk_biz_id;
   });
+  displayedBusinessList.value = list;
+};
+
+const businessOptions = computed(() => {
+  const collectedSet = new Set(collectList.value);
+  return displayedBusinessList.value.map((item) => {
+    const authorized = isBizAuthorized(item.bk_biz_id);
+    return {
+      id: item.bk_biz_id,
+      name: item.bk_biz_name,
+      title: authorized
+        ? `[${item.bk_biz_id}] ${item.bk_biz_name}`
+        : t('components.permission.noPermission'),
+      authorized,
+      collected: collectedSet.has(item.bk_biz_id),
+    };
+  });
 });
+
+watch(businessList, sortBusinessList, { immediate: true });
+
+function isAuthorizedWithSets(
+  bizId: number,
+  bizAccessSet: Set<string> | null,
+  actionSet: Set<string> | null,
+): boolean {
+  if (!authStore.authorizedLoaded) return true;
+  if (bizAccessSet !== null && !bizAccessSet.has(String(bizId))) return false;
+  return actionSet === null || actionSet.has(String(bizId));
+}
 
 // ===== 搜索过滤 =====
 const filterOption = (input: any, options: { id: number; name: string }) => {
   const inputStr = String(input).trim();
-  if (!inputStr) return false;
+  if (!inputStr) return true;
   const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
   if (keywords.length === 0) return false;
   const nameMatch = keywords.some((keyword) => {
@@ -198,10 +240,10 @@ const handleEnterSelectFilteredBusiness = (event: KeyboardEvent) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const matchedBizIds = sortedBusinessList.value
-    .filter(item => isBizAuthorized(item.bk_biz_id))
-    .filter(item => filterOption(keyword, { id: item.bk_biz_id, name: item.bk_biz_name }))
-    .map(item => item.bk_biz_id);
+  const matchedBizIds = businessOptions.value
+    .filter(item => item.authorized)
+    .filter(item => filterOption(keyword, { id: item.id, name: item.name }))
+    .map(item => item.id);
   if (matchedBizIds.length === 0) return;
 
   const selectedIds = Array.isArray(innerValue.value) ? innerValue.value : [];
@@ -213,10 +255,22 @@ const handleEnterSelectFilteredBusiness = (event: KeyboardEvent) => {
   innerValue.value = nextIds;
 };
 
-// ===== 下拉展开时排序 =====
+// ===== 下拉展开状态 =====
+const resetVirtualListScroll = () => {
+  selectRef.value?.virtualRenderRef?.scrollTo(0, 0);
+
+  const virtualList = document.querySelector(
+    '.nm-biz-select-popover .bk-virtual-render',
+  ) as HTMLElement | null;
+  virtualList?.scrollTo({ left: 0, top: 0 });
+};
+
 const handleToggle = (isOpen: boolean) => {
   isPopoverOpen.value = isOpen;
-  return sortedBusinessList.value;
+  if (isOpen) {
+    sortBusinessList();
+    window.setTimeout(resetVirtualListScroll, 20);
+  }
 };
 
 // ===== 收藏操作 =====
@@ -227,13 +281,6 @@ const handleCollect = (val: number) => {
     collectList.value.push(val);
   }
   localStorage.setItem('collect', JSON.stringify(collectList.value));
-};
-
-// ===== 文字溢出检测 =====
-const textOverflowMap = reactive<Record<number, boolean>>({});
-const handleTextMouseenter = (e: MouseEvent, id: number) => {
-  const el = e.target as HTMLElement;
-  textOverflowMap[id] = el.scrollWidth > el.clientWidth;
 };
 
 // ===== hover 无权限锁图标 =====
@@ -317,5 +364,22 @@ onMounted(() => {
 /* 非 scoped：置灰样式需穿透 Select Option popover */
 .unauthorized-biz-row {
   color: #c4c6cc !important;
+}
+
+.nm-biz-select-popover {
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+}
+
+.nm-biz-select-popover .bk-select-content-wrapper,
+.nm-biz-select-popover .bk-select-content,
+.nm-biz-select-popover .bk-select-dropdown {
+  width: 100% !important;
+}
+
+.nm-biz-select-popover .bk-select-dropdown {
+  min-height: 360px !important;
+  max-height: 360px !important;
 }
 </style>
