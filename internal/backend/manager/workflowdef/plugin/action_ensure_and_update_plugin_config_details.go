@@ -540,12 +540,17 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 	}
 
+	endpoint := std.DeployInfo().BaseRuntime.DataIPC
+	if std.DeployInfo().Process.Platform.OS == criteria.OSWindows {
+		endpoint = fmt.Sprintf("127.0.0.1:%s", endpoint)
+	}
+
 	pluginPath := map[string]any{
 		keyLogPath:       std.DeployInfo().BaseRuntime.LogDir,
 		keyDataPath:      std.DeployInfo().BaseRuntime.DataDir,
 		keyPidPath:       std.DeployInfo().BaseRuntime.RunDir,
 		keySetupPath:     std.DeployInfo().BaseRuntime.PluginHomeDir,
-		keyEndpoint:      std.DeployInfo().BaseRuntime.DataIPC,
+		keyEndpoint:      endpoint,
 		keyHostID:        std.DeployInfo().BaseRuntime.HostIDPath,
 		keySubConfigPath: std.DeployInfo().BaseRuntime.SubConfigDir,
 	}
