@@ -12,8 +12,11 @@
 package tenant
 
 import (
+	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
 // Mode tenant mode.
@@ -62,14 +65,24 @@ func GetMode() Mode {
 const (
 	// SingleModeTenantID tenant id for single mode.
 	SingleModeTenantID = "default"
+
+	// SystemTenantID tenant id for system in multiple mode.
+	SystemTenantID = "system"
 )
 
+// ITenantIDProvider tenant id provider.
+type ITenantIDProvider interface {
+	ListTenantIDs(nCtx contextx.IContext) ([]string, error)
+}
+
 // ITenantIDStorage tenant id storage.
+// Deprecated: use ITenantIDProvider instead.
 type ITenantIDStorage interface {
 	GetAllTenantIDs() []string
 }
 
 var _ ITenantIDStorage = &singleModeTenantIDStorage{}
+var _ ITenantIDProvider = &singleModeTenantIDStorage{}
 
 type singleModeTenantIDStorage struct {
 }
@@ -81,15 +94,51 @@ func (stg *singleModeTenantIDStorage) GetAllTenantIDs() []string {
 	}
 }
 
+// ListTenantIDs lists all tenant ids.
+func (stg *singleModeTenantIDStorage) ListTenantIDs(_ contextx.IContext) ([]string, error) {
+	return []string{
+		SingleModeTenantID,
+	}, nil
+}
+
 // nolint: gochecknoglobals
 var tenantStorage = struct {
-	storage ITenantIDStorage
+	provider ITenantIDProvider
 	sync.Once
 }{
-	storage: new(singleModeTenantIDStorage),
+	provider: new(singleModeTenantIDStorage),
+}
+
+// SetTenantIDProvider sets the tenant id provider only once.
+func SetTenantIDProvider(provider ITenantIDProvider) error {
+	if provider == nil {
+		return errors.New("tenant id provider is nil")
+	}
+
+	set := false
+	tenantStorage.Once.Do(func() {
+		tenantStorage.provider = provider
+		set = true
+	})
+	if !set {
+		return errors.New("tenant id provider is already set")
+	}
+
+	return nil
+}
+
+// ListTenantIDs lists all tenant ids.
+func ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	return tenantStorage.provider.ListTenantIDs(nCtx)
 }
 
 // GetAllTenantIDs get all tenant ids.
+// Deprecated: use ListTenantIDs instead.
 func GetAllTenantIDs() []string {
-	return tenantStorage.storage.GetAllTenantIDs()
+	tenantIDs, err := ListTenantIDs(contextx.Background())
+	if err != nil {
+		return nil
+	}
+
+	return tenantIDs
 }
