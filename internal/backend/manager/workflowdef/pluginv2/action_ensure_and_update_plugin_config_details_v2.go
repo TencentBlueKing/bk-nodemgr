@@ -13,6 +13,7 @@ package pluginv2
 import (
 	"errors"
 	"fmt"
+	"net"
 	"path/filepath"
 	"strings"
 	"time"
@@ -540,10 +541,12 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateJinja2SystemConfi
 		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", std.DeployInfo().BaseRuntime.SubConfigDir, err)
 	}
 
-	endpoint := std.DeployInfo().BaseRuntime.DataIPC
-	if std.DeployInfo().Process.Platform.OS == criteria.OSWindows {
-		endpoint = fmt.Sprintf("127.0.0.1:%s", endpoint)
-	}
+	endpoint := renderPluginEndpoint(
+		std.DeployInfo().Process.Platform.OS,
+		std.DeployInfo().BaseRuntime.DataIPC,
+		hostInfo.Static.InnerIPList,
+		hostInfo.Static.InnerIPV6List,
+	)
 
 	pluginPath := map[string]any{
 		keyLogPath:       std.DeployInfo().BaseRuntime.LogDir,
@@ -576,6 +579,19 @@ func (act *actionEnsureAndUpdatePluginConfigDetailsV2) generateJinja2SystemConfi
 		keyTarget:       cmdbInstance,
 		keyControlInfo:  controlInfo,
 	}, nil
+}
+
+func renderPluginEndpoint(osType criteria.OSType, dataIPC string, innerIPs, innerIPv6s []string) string {
+	if osType != criteria.OSWindows {
+		return dataIPC
+	}
+
+	host := "127.0.0.1"
+	if len(innerIPs) == 0 && len(innerIPv6s) > 0 {
+		host = "::1"
+	}
+
+	return net.JoinHostPort(host, dataIPC)
 }
 
 func getBlacklistKeys() map[string]struct{} {
