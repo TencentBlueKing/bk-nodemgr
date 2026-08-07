@@ -17,7 +17,11 @@ For detailed installation and deployment instructions, please refer to:
 
 ## BlueKing Community
 
+Join project discussions and contributions through GitHub Issues, Pull Requests, and the BlueKing community. Before contributing, read the [contribution guide](.github/CONTRIBUTING_en.md) and [code of conduct](.github/CODE_OF_CONDUCT_en.md).
+
 ## Contributing
+
+Read the [contribution guide](.github/CONTRIBUTING_en.md) for issue, pull request, development, and verification rules. Follow the [code of conduct](.github/CODE_OF_CONDUCT_en.md) when participating in project community spaces.
 
 ## License
 BlueKing Node Manager is licensed under MIT. For details, see [LICENSE](https://github.com/TencentBlueKing/bk-nodemgr/blob/master/LICENSE)
