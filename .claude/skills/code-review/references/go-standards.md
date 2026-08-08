@@ -37,31 +37,34 @@
 
 ## 错误处理规范
 
-**标准模式：** 使用 `fmt.Errorf("...: %w", err)` 包装错误
+**项目 owner**: `bk-nodemgr-error-handling`。Code review 中的错误创建、传播、包装、REST 映射、log-or-return 责任边界和 `err == nil` 迁移都以该 skill 为准。
 
-### 示例
+### 标准模式
 
 ```go
-// ✅ 正确：包装错误并提供上下文
+// ✅ 正确：错误路径显式，内部层保留错误链
 if err := someFunc(); err != nil {
     return fmt.Errorf("failed to do something: %w", err)
 }
-
-// ❌ 错误：直接返回错误，丢失上下文
-if err := someFunc(); err != nil {
-    return err
-}
-
-// ❌ 错误：忽略错误
-_ = someFunc()
 ```
+
+Router/API 边界使用 `resterrf.ErrWrap(code, err)` 映射统一 REST 错误码；日志边界使用 `logger.G.*().WithErr(err).Error("stable message")`，不要再把同一个 `err` 格式化进 message。
+
+### 绝对禁令
+
+- 禁止在新增或修改的 Go 代码中出现 `err == nil`。历史存量是 migration debt，不是可复制先例。
+- 禁止用 `isNilErr(err)`、`ok := err == nil`、重命名变量、`nolint` 或 helper 马甲绕过。
+- 禁止 `fmt.Errorf("...: %v", err)` / `fmt.Errorf("...: %s", err)` 丢失错误链。
+- 禁止同一条 error chain 在多个层级重复 `ERROR` 日志。
 
 ### 检查要点
 
-- 所有错误都应该被检查
-- 使用 `%w` 动词包装底层错误
-- 提供有意义的上下文信息
-- 错误消息使用小写字母开头（除非是专有名词）
+- 所有错误都应被处理、明确忽略或带上下文传播。
+- 内部包装使用 `%w`，错误检查使用 `errors.Is` / `errors.As`。
+- 当前层只添加当前层上下文，不重复包装 REST code。
+- API handler 使用 `resterrf.ErrWrap` 做 transport mapping。
+- Lower layer 优先返回 wrapped error，由有处理责任的边界决定是否记录日志。
+- 遇到 `err == nil` 命中时，先按 `bk-nodemgr-error-handling` 的 migration catalog 分类，再迁移，不能机械替换。
 
 ## 日志记录规范
 

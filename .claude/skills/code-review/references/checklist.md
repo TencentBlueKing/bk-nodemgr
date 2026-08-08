@@ -45,11 +45,36 @@ AGENTS.md 是项目铁律。以下检查项在步骤 2（Design 审查）和步�
 这些检查确保代码符合项目规范和最佳实践。
 
 ### 2.1 错误处理规范
+- [ ] **加载项目 owner skill**：错误创建、传播、包装、REST 映射、log-or-return、`err == nil` 迁移以 `bk-nodemgr-error-handling` 为准
+  - 验证方式：审查涉及 `err`、`fmt.Errorf`、`resterrf.ErrWrap`、`WithErr`、`errors.Is/As`、panic/recover 时，先对照该 skill
+  - 参考规范：`references/go-standards.md#错误处理规范`、`.claude/skills/bk-nodemgr-error-handling/SKILL.md`
+
+- [ ] **禁止 `err == nil`**：新增或修改的 Go 代码不得出现 `err == nil`
+  - 验证方式：`rg -n "err\s*==\s*nil" --glob '*.go'`
+  - diff 新增/修改命中：阻塞性问题，必须改
+  - 历史存量命中：记录为 migration debt，不因普通 PR 自动扩大范围
+  - 禁止绕过：`isNilErr(err)`、`ok := err == nil`、重命名变量、`nolint`、helper 马甲
+  - 审查要求：先按 migration catalog 判断语义，再迁移；禁止机械替换
+
 - [ ] **错误包装使用 `%w` 格式**：所有错误链使用 `fmt.Errorf("...: %w", err)`
   - 验证方式：Grep 搜索 `fmt.Errorf` 确认使用 `%w` 而非 `%v` 或 `%s`
   - 错误示例：`fmt.Errorf("failed: %v", err)` ❌
   - 正确示例：`fmt.Errorf("failed to create: %w", err)` ✅
-  - 参考规范：`references/go-standards.md#错误处理规范`
+
+- [ ] **链式错误检查安全**：wrapped/joined error 使用 `errors.Is` / `errors.As`
+  - 错误示例：`if err == ErrNotFound` ❌
+  - 正确示例：`if errors.Is(err, ErrNotFound)` ✅
+
+- [ ] **REST 边界映射稳定**：API handler 使用 `resterrf.ErrWrap(code, err)`，内部层只加 `%w` 上下文
+  - 验证方式：对比同 router group 的 handler，确认错误码语义一致
+  - 错误示例：内部 service 重复 `ErrWrap` 或 handler 直接返回 raw error ❌
+
+- [ ] **单一处理责任**：同一条 error chain 不应在多个层级重复 `ERROR` 日志
+  - 验证方式：检查 lower layer 是否只 wrap+return，边界层是否才 `WithErr(err).Error(...)`
+  - 错误示例：DAO、service、handler 连续 log 同一错误 ❌
+
+- [ ] **panic/recover 边界合理**：业务请求路径不使用 panic/recover 表达预期失败
+  - 正确方式：返回 error，由 REST 或系统边界统一映射/记录
 
 ### 2.2 日志规范（框架 + 格式 + 数量）
 
@@ -207,7 +232,7 @@ AGENTS.md 是项目铁律。以下检查项在步骤 2（Design 审查）和步�
 
 ### 4.1 Assertion 有效性
 - [ ] **Assertion 有效性**：测试中的断言是否真正验证了被测行为？
-  - 警惕"空断言"：仅检查 `err == nil` 而不验证返回值的实际内容
+  - 禁止手写 `err == nil` 断言：使用 `require.NoError` / `assert.NoError` / `require.Error` / `assert.Error` 或项目现有断言风格，并继续验证返回值核心契约
   - 警惕过于宽泛的断言：如 `assert.NotNil(result)` 而未检查 result 的具体字段
   - 验证方式：对每个测试函数，检查其断言是否覆盖了被测函数的核心契约
 
