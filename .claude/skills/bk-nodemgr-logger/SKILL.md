@@ -11,6 +11,8 @@ description: Use when writing, reviewing, or refactoring Go logging in bk-nodemg
 
 核心原则：先判断日志属于 `Business` 还是 `System`，再决定 context、字段、级别和打印位置。调用方不要再造平行日志体系；`pkg/logger` 已负责文件轮转、标准输出、结构化字段、context values、`err`、`cost`、`trace-id`、`span-id`。
 
+本 skill 负责如何记录日志；`bk-nodemgr-error-handling` 负责错误传播、log-or-return 责任边界、REST 错误映射和 `err == nil` 禁令。
+
 ## When to Use
 
 使用本 skill，当任务涉及：
@@ -26,6 +28,7 @@ description: Use when writing, reviewing, or refactoring Go logging in bk-nodemg
 
 - CLI 启动早期、`logger.Init` 之前必须写到 stdout/stderr 的用户提示或 fatal startup error。参考 `cmd/*` 现有 `fmt.Printf`。
 - `pkg/logger` 内部文件管理失败路径。该包内部不能递归使用自身 logger，部分 `fmt.Printf` 是为了避免 deadlock。
+- 错误传播、`fmt.Errorf("...: %w", err)`、`resterrf.ErrWrap`、log-or-return 责任边界、`err == nil` 迁移。那类任务使用 `bk-nodemgr-error-handling`。
 - 非 bk-nodemgr 项目的通用 Go logging 设计。那类任务优先使用 Go observability / slog 相关 skill。
 
 ## Quick Reference
@@ -112,7 +115,7 @@ logger.Init(config) -> logger.G -> Sys()/Biz(ctx) -> Ctx/With/WithErr/WithDurati
 - 正常路径只在关键业务节点打 `Info`，例如 launched workflow、updated host、started service。
 - 循环体内不要每次迭代打 `Info`/`Error`，除非是低频且每条都代表独立用户可追踪事件。
 - Debug 阶段临时日志提交前删除，或确认只保留 `Debug` 且不会泄露敏感字段。
-- 错误日志只在有处理责任的边界打印。底层函数若只是返回错误，应优先 `fmt.Errorf("...: %w", err)`，由上层统一记录。
+- 错误日志只在有处理责任的边界打印。底层函数若只是返回错误，应优先 `fmt.Errorf("...: %w", err)`，由上层统一记录；完整错误传播与 log-or-return 规则由 `bk-nodemgr-error-handling` 拥有。
 
 ## Boundaries: Init, Shutdown, Adapters
 
@@ -223,7 +226,7 @@ go test ./pkg/scheduler/...
 
 ## Cross-References
 
-- Use `golang-error-handling` for error wrapping and single handling rule.
+- Use `bk-nodemgr-error-handling` for error wrapping, REST mapping, log-or-return responsibility, and `err == nil` migration.
 - Use `golang-observability` only for general observability concepts; in bk-nodemgr logging implementation, this skill supersedes generic `slog` migration advice.
 - Use `code-review` when the task is a broader PR or commit review.
 - Use `api-scaffold` when adding new API handler scaffolding; this skill refines the logging portion.

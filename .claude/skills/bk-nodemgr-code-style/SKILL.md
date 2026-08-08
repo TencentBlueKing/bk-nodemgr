@@ -25,6 +25,7 @@ Use this skill when a Go task in bk-nodemgr asks about:
 
 Do not use this skill as the only guide when a narrower project skill owns the surface:
 
+- Error handling semantics, wrapping, REST mapping, log-or-return responsibility, or `err == nil` migration: use `bk-nodemgr-error-handling` too.
 - Logging API choices: use `bk-nodemgr-logger` too.
 - `pkg/runtime/conv` helpers or conversion contracts: use `bk-nodemgr-conv` too.
 - `pkg/contextx` and tenant/user/message propagation: use `bk-nodemgr-contextx` too.
@@ -41,7 +42,7 @@ Read these before inventing style rules:
 
 - `AGENTS.md`: repository-wide layering, simplicity, surgical changes, scoped instruction priority, and no speculative abstractions.
 - `.golangci.yml`: project lint thresholds such as `funlen.lines: 120`, `gocyclo.min-complexity: 20`, `gocognit.min-complexity: 20`, `godot`, `lll`, `revive`, and `cyclop`.
-- `.claude/skills/bk-nodemgr-{how-to,logger,conv,contextx,gopool,retrier}/SKILL.md`: existing project Go skill style and cross-reference model.
+- `.claude/skills/bk-nodemgr-{how-to,error-handling,logger,conv,contextx,gopool,retrier}/SKILL.md`: existing project Go skill style and cross-reference model.
 - `.claude/skills/code-review/references/go-standards.md`: current review quick reference for conversions, errors, logging, comments, API, and proto.
 
 Representative code anchors:
@@ -61,7 +62,7 @@ Representative code anchors:
 | Handler flow | `BindJSON` / validate -> auth -> convert -> service/storage -> response | Keep business derivation out of transport when possible |
 | Service/storage flow | Small domain helpers and guard clauses | Avoid inline DB/proto details in orchestration code |
 | Proto conversion | `ConvertXToTypes` / `ConvertXFromTypes`, explicit nil/default handling | Do not leak proto structs into business logic |
-| Error handling | `fmt.Errorf("context: %w", err)` inside layers; `resterrf.ErrWrap` at transport boundary | Preserve original error chain or map to fixed REST error class |
+| Error handling | Use `bk-nodemgr-error-handling` for wrapping, REST mapping, log-or-return responsibility, and `err == nil` migration | Preserve happy-path linearity with `if err != nil` guards |
 | Logging | `logger.G.Biz(rCtx)` for request/business flow, structured fields, `WithErr` for errors | Load `bk-nodemgr-logger` for logging-specific choices |
 | Initialization | Explicit `make` / `new` / struct literals for values that cross boundaries | Avoid nil slice/map/object semantics leaking to callers |
 | Control flow | Early return, `continue` for skip cases, small private helpers | Avoid 3+ nesting levels and rightward drift; use `golang-non-arrow-control-flow` for deep nested-flow judgment |
@@ -177,7 +178,7 @@ Nil can be correct only when it has a stable contract in that package. If caller
 - Compare against 2-3 analogous files in the same service/layer before making a style judgment.
 - For changed Go files, run `gofmt`/project formatting through the repo's normal tool path and check diagnostics.
 - Run the narrowest adjacent test or build surface that exercises the changed layer.
-- If a style decision crosses into logging, conversion, context, gopool, or retrier behavior, load the narrower bk-nodemgr skill and follow it first.
+- If a style decision crosses into error handling, logging, conversion, context, gopool, or retrier behavior, load the narrower bk-nodemgr skill and follow it first.
 
 ## Eval Prompts
 
@@ -194,6 +195,7 @@ Good with-skill answers should cite project anchors, layer ownership, and concre
 
 - `bk-nodemgr-how-to`: project-first Go skill routing.
 - `code-review`: finding-oriented Go review and project review report style.
+- `bk-nodemgr-error-handling`: project Go error semantics, wrapping, REST mapping, log-or-return responsibility, and `err == nil` migration.
 - `bk-nodemgr-logger`: logger API, Biz/Sys log choice, fields, levels, and message shape.
 - `bk-nodemgr-conv`: `pkg/runtime/conv` and conversion helper contracts.
 - `bk-nodemgr-contextx`: project context propagation and value-preserving cancellation/deadline behavior.
