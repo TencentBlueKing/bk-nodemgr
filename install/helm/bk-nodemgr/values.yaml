@@ -1536,6 +1536,7 @@ file:
     ## defines the bkrepo related settings.
     repo:
       endpoint: ""
+      ## Keep projectID as the raw BKRepo project. In tenantMode=multiple, requests use tenant system and project system.<projectID>, for example blueking becomes system.blueking.
       projectID: ""
       repoName: ""
       accessKey: ""

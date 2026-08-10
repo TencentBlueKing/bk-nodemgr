@@ -75,6 +75,7 @@ downloadServer:
 # repo defines the bkrepo related settings.
 repo:
   endpoint: "__BK_NODEMGR_REPO_ENDPOINT__"
+  # Keep projectID as the raw BKRepo project. In tenantMode=multiple, requests use tenant system and project system.<projectID>, for example blueking becomes system.blueking.
   projectID: "__BK_NODEMGR_REPO_PROJECT_ID__"
   repoName: "__BK_NODEMGR_REPO_REPO_NAME__"
   accessKey: "__BK_NODEMGR_REPO_ACCESS_KEY__"
