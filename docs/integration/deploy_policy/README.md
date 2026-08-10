@@ -108,15 +108,27 @@ create 响应包含 `data.deploy_policy_id`。把它保存为策略 identity，�
 
 ### 6. 观察最终产物
 
+当前实现按以下公式生成插件目录：
+
+```text
+<plugin_home> = <base_deploy_dir>/<deploy_env>/plugin/<plugin_group>/<plugin_name>
+```
+
+Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节点的 plugin deployment 配置，可被 Network Unit 的 custom deploy config 覆盖；`<deploy_env>` 来自当前部署环境。
+
 机器侧可见效果取决于 spec mode：
 
-| Mode | 期望的最终效果 |
-| --- | --- |
-| `specify_plugin` | 目标拥有指定名称和版本的插件 |
-| `specify_plugin_pkg` | 目标拥有基于指定插件包和版本生成的插件实例 |
-| `specify_plugin_sub_config` | 配置意图被保存到策略中；当前 `deploy_policy` 执行流程不会把它物化到机器侧 |
+| Mode | `plugin_group` | `plugin_name` | 机器侧产物 |
+| --- | --- | --- | --- |
+| `specify_plugin` | 插件注册信息中的 group | 请求中的 `plugin_name` | package 内容解压到 `<plugin_home>/`；配置目录为 `<plugin_home>/etc/`；PID 文件为 `<plugin_home>/run/<plugin_pkg_name>.pid` |
+| `specify_plugin_pkg` | `<deploy_policy_id>` | `<plugin_pkg_name>_<deploy_policy_id>_<module_id>` | package 内容解压到 `<base_deploy_dir>/<deploy_env>/plugin/<deploy_policy_id>/<plugin_name>/`；配置与 PID 文件位于该目录下 |
+| `specify_plugin_sub_config` | - | 请求中的 `plugin_name` | 当前 `deploy_policy` execute analyzer 不支持该 spec，不会生成机器侧配置文件 |
 
-本文不定义机器文件路径、reload 行为、health-check 命令或时序保证，因为这些都不是 deploy-policy Swagger contract 的一部分。
+两个 supported mode 的 package archive 都直接解压到对应 `<plugin_home>/`。archive 内部相对路径会被保留；主配置文件路径由插件包的 `config_template.file_path` 和 `config_template.name` 决定：
+
+```text
+<plugin_home>/<config_template.file_path>/<config_template.name>
+```
 
 ### 7. 重复或修订声明
 
