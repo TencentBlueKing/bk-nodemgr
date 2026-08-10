@@ -929,7 +929,7 @@ agentStrategy:
 pluginPackage:
   title: 插件包管理
   upload: 包上传
-  searchPlaceholder: 请选择 插件包名、版本号、操作系统、架构、上传用户、状态、默认版本
+  searchPlaceholder: 请选择 插件包名、版本号、操作系统、架构、上传用户、状态、可见状态、默认版本
   quickFilter: 快捷筛选
   all: 全部
   osArch: 操作系统/架构
@@ -941,6 +941,7 @@ pluginPackage:
   uploader: 上传用户
   uploadTime: 上传时间
   status: 状态
+  hiddenStatus: 可见状态
   defaultVersion: 默认版本
   action: 操作
   download: 下载
@@ -948,10 +949,8 @@ pluginPackage:
   cancelDefault: 取消设置默认版本
   disable: 停用
   enable: 启用
-  enableAndVisible: 启用并显示
-  disableAndUnvisible: 停用并隐藏
   visible: 显示
-  unvisible: 隐藏
+  hidden: 隐藏
   delete: 删除
   enabled: 启用
   disabled: 禁用
@@ -1084,10 +1083,6 @@ agentProxyPkg:
   cancelDefault: 取消设置默认版本
   disable: 停用
   enable: 启用
-  enableAndVisible: 启用并显示
-  disableAndUnvisible: 停用并隐藏
-  visible: 显示
-  unvisible: 隐藏
   delete: 删除
   download: 下载
   confirmDisable: 确认停用该 {type} 包？

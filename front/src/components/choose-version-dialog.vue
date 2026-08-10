@@ -284,6 +284,7 @@ const getVersions = async () => {
       generation: PACKAGE_GENERATION,
       exact_include_conditions: {
         enabled: [true],
+        is_hidden: [false],
         ...(props.pluginName ? { name: [props.pluginName] } : {}),
       },
     }).catch(() => ({

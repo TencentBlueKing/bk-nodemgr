@@ -39,8 +39,6 @@ const (
 	metricOperationDisableReleaseAgent              = "disable_release_agent"
 	metricOperationSetAsDefaultReleaseAgent         = "set_as_default_release_agent"
 	metricOperationCancelAsDefaultReleaseAgent      = "cancel_as_default_release_agent"
-	metricOperationVisibleReleaseAgent              = "visible_release_agent"
-	metricOperationUnvisibleReleaseAgent            = "unvisible_release_agent"
 	metricOperationListReleaseProxy                 = "list_release_proxy"
 	metricOperationCountReleaseProxy                = "count_release_proxy"
 	metricOperationGetReleaseProxy                  = "get_release_proxy"
@@ -51,8 +49,6 @@ const (
 	metricOperationDisableReleaseProxy              = "disable_release_proxy"
 	metricOperationSetAsDefaultReleaseProxy         = "set_as_default_release_proxy"
 	metricOperationCancelAsDefaultReleaseProxy      = "cancel_as_default_release_proxy"
-	metricOperationVisibleReleaseProxy              = "visible_release_proxy"
-	metricOperationUnvisibleReleaseProxy            = "unvisible_release_proxy"
 	metricOperationListReleasePlugin                = "list_release_plugin"
 	metricOperationCountReleasePlugin               = "count_release_plugin"
 	metricOperationDistinctReleasePlugin            = "distinct_release_plugin"
@@ -60,10 +56,9 @@ const (
 	metricOperationDeleteReleasePlugin              = "delete_release_plugin"
 	metricOperationEnableReleasePlugin              = "enable_release_plugin"
 	metricOperationDisableReleasePlugin             = "disable_release_plugin"
+	metricOperationSetHiddenReleasePlugin           = "set_hidden_release_plugin"
 	metricOperationSetAsDefaultReleasePlugin        = "set_as_default_release_plugin"
 	metricOperationCancelAsDefaultReleasePlugin     = "cancel_as_default_release_plugin"
-	metricOperationVisibleReleasePlugin             = "visible_release_plugin"
-	metricOperationUnvisibleReleasePlugin           = "unvisible_release_plugin"
 	metricOperationExistReleasePlugin               = "exist_release_plugin"
 	metricOperationGetReleasePluginDefaultVersion   = "get_release_plugin_default_version"
 	metricOperationListReleaseCert                  = "list_release_cert"
@@ -308,22 +303,6 @@ func (s *Storage) CancelAsDefaultReleaseAgent(nCtx contextx.IContext, key types.
 	})
 }
 
-// VisibleReleaseAgent makes the agent release visible to the frontend.
-func (s *Storage) VisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	return s.setAgentReleaseVisible(nCtx, key, true, metricOperationVisibleReleaseAgent)
-}
-
-// UnvisibleReleaseAgent hides the agent release from the frontend.
-func (s *Storage) UnvisibleReleaseAgent(nCtx contextx.IContext, key types.ReleaseAgentKey) error {
-	return s.setAgentReleaseVisible(nCtx, key, false, metricOperationUnvisibleReleaseAgent)
-}
-
-func (s *Storage) setAgentReleaseVisible(nCtx contextx.IContext, key types.ReleaseAgentKey, isVisible bool, operation string) error {
-	return s.WrapFn(nCtx, operation, func(nCtx contextx.IContext) error {
-		return s.setReleaseVisible(nCtx, types.ReleaseTypeAgent, key.Generation, key.Platform, key.Version, types.ReleaseNameAgent, isVisible)
-	})
-}
-
 // ==================== IProxy Methods ====================
 
 // ListReleaseProxy lists proxy releases by page and conditions.
@@ -493,22 +472,6 @@ func (s *Storage) CancelAsDefaultReleaseProxy(nCtx contextx.IContext, key types.
 	})
 }
 
-// VisibleReleaseProxy makes the proxy release visible to the frontend.
-func (s *Storage) VisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	return s.setProxyReleaseVisible(nCtx, key, true, metricOperationVisibleReleaseProxy)
-}
-
-// UnvisibleReleaseProxy hides the proxy release from the frontend.
-func (s *Storage) UnvisibleReleaseProxy(nCtx contextx.IContext, key types.ReleaseProxyKey) error {
-	return s.setProxyReleaseVisible(nCtx, key, false, metricOperationUnvisibleReleaseProxy)
-}
-
-func (s *Storage) setProxyReleaseVisible(nCtx contextx.IContext, key types.ReleaseProxyKey, isVisible bool, operation string) error {
-	return s.WrapFn(nCtx, operation, func(nCtx contextx.IContext) error {
-		return s.setReleaseVisible(nCtx, types.ReleaseTypeProxy, key.Generation, key.Platform, key.Version, types.ReleaseNameProxy, isVisible)
-	})
-}
-
 // ==================== IPlugin Methods ====================
 
 // ListReleasePlugin lists plugin releases by page and conditions.
@@ -599,6 +562,13 @@ func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, key types.Release
 	})
 }
 
+// SetHiddenReleasePlugin sets the plugin release hidden state.
+func (s *Storage) SetHiddenReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey, isHidden bool) error {
+	return s.WrapFn(nCtx, metricOperationSetHiddenReleasePlugin, func(nCtx contextx.IContext) error {
+		return s.setReleaseHidden(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name, isHidden)
+	})
+}
+
 // SetAsDefaultReleasePlugin sets the plugin release as default.
 func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationSetAsDefaultReleasePlugin, func(nCtx contextx.IContext) error {
@@ -610,22 +580,6 @@ func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, key types.Re
 func (s *Storage) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
 	return s.WrapFn(nCtx, metricOperationCancelAsDefaultReleasePlugin, func(nCtx contextx.IContext) error {
 		return s.cancelAsDefaultRelease(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name)
-	})
-}
-
-// VisibleReleasePlugin makes the plugin release visible to the frontend.
-func (s *Storage) VisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
-	return s.setPluginReleaseVisible(nCtx, key, true, metricOperationVisibleReleasePlugin)
-}
-
-// UnvisibleReleasePlugin hides the plugin release from the frontend.
-func (s *Storage) UnvisibleReleasePlugin(nCtx contextx.IContext, key types.ReleasePluginKey) error {
-	return s.setPluginReleaseVisible(nCtx, key, false, metricOperationUnvisibleReleasePlugin)
-}
-
-func (s *Storage) setPluginReleaseVisible(nCtx contextx.IContext, key types.ReleasePluginKey, isVisible bool, operation string) error {
-	return s.WrapFn(nCtx, operation, func(nCtx contextx.IContext) error {
-		return s.setReleaseVisible(nCtx, types.ReleaseTypePlugin, key.Generation, key.Platform, key.Version, key.Name, isVisible)
 	})
 }
 

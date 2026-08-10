@@ -424,72 +424,6 @@
         ]
       }
     },
-    "/api/v3/package/release/agent/unvisible": {
-      "post": {
-        "summary": "UnvisibleReleaseAgent hides an agent release from the frontend.",
-        "operationId": "Package_UnvisibleReleaseAgent",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseAgentUnvisibleResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseAgentUnvisibleReq"
-            }
-          }
-        ],
-        "tags": [
-          "Package"
-        ]
-      }
-    },
-    "/api/v3/package/release/agent/visible": {
-      "post": {
-        "summary": "VisibleReleaseAgent makes an agent release visible to the frontend.",
-        "operationId": "Package_VisibleReleaseAgent",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseAgentVisibleResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseAgentVisibleReq"
-            }
-          }
-        ],
-        "tags": [
-          "Package"
-        ]
-      }
-    },
     "/api/v3/package/release/bintool/delete": {
       "post": {
         "summary": "DeleteReleaseBinTool deletes bintool release.",
@@ -932,15 +866,15 @@
         ]
       }
     },
-    "/api/v3/package/release/plugin/unvisible": {
+    "/api/v3/package/release/plugin/set_hidden": {
       "post": {
-        "summary": "UnvisibleReleasePlugin hides a plugin release from the frontend.",
-        "operationId": "Package_UnvisibleReleasePlugin",
+        "summary": "SetHiddenReleasePlugin sets plugin release hidden state.",
+        "operationId": "Package_SetHiddenReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PackageReleasePluginUnvisibleResp"
+              "$ref": "#/definitions/v3PackageReleasePluginSetHiddenResp"
             }
           },
           "default": {
@@ -953,43 +887,11 @@
         "parameters": [
           {
             "name": "body",
+            "description": "PackageReleasePluginSetHiddenReq describes the HTTP request body when set\nplugin release hidden state.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PackageReleasePluginUnvisibleReq"
-            }
-          }
-        ],
-        "tags": [
-          "Package"
-        ]
-      }
-    },
-    "/api/v3/package/release/plugin/visible": {
-      "post": {
-        "summary": "VisibleReleasePlugin makes a plugin release visible to the frontend.",
-        "operationId": "Package_VisibleReleasePlugin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleasePluginVisibleResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleasePluginVisibleReq"
+              "$ref": "#/definitions/v3PackageReleasePluginSetHiddenReq"
             }
           }
         ],
@@ -1364,72 +1266,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseProxySetLabelsManyReq"
-            }
-          }
-        ],
-        "tags": [
-          "Package"
-        ]
-      }
-    },
-    "/api/v3/package/release/proxy/unvisible": {
-      "post": {
-        "summary": "UnvisibleReleaseProxy hides a proxy release from the frontend.",
-        "operationId": "Package_UnvisibleReleaseProxy",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseProxyUnvisibleResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseProxyUnvisibleReq"
-            }
-          }
-        ],
-        "tags": [
-          "Package"
-        ]
-      }
-    },
-    "/api/v3/package/release/proxy/visible": {
-      "post": {
-        "summary": "VisibleReleaseProxy makes a proxy release visible to the frontend.",
-        "operationId": "Package_VisibleReleaseProxy",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseProxyVisibleResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PackageReleaseProxyVisibleReq"
             }
           }
         ],
@@ -2311,96 +2147,6 @@
     "v3PackageReleaseAgentSetLabelsManyRespData": {
       "type": "object"
     },
-    "v3PackageReleaseAgentUnvisibleReq": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "release_type": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
-    "v3PackageReleaseAgentUnvisibleResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PackageReleaseAgentUnvisibleRespData"
-        }
-      }
-    },
-    "v3PackageReleaseAgentUnvisibleRespData": {
-      "type": "object"
-    },
-    "v3PackageReleaseAgentVisibleReq": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "release_type": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
-    "v3PackageReleaseAgentVisibleResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PackageReleaseAgentVisibleRespData"
-        }
-      }
-    },
-    "v3PackageReleaseAgentVisibleRespData": {
-      "type": "object"
-    },
     "v3PackageReleaseBinToolDeleteReq": {
       "type": "object",
       "properties": {
@@ -2667,7 +2413,7 @@
             "type": "string"
           }
         },
-        "is_visible": {
+        "is_hidden": {
           "type": "array",
           "items": {
             "type": "boolean"
@@ -3223,7 +2969,7 @@
     "v3PackageReleasePluginSetAsDefaultRespData": {
       "type": "object"
     },
-    "v3PackageReleasePluginUnvisibleReq": {
+    "v3PackageReleasePluginSetHiddenReq": {
       "type": "object",
       "properties": {
         "generation": {
@@ -3238,10 +2984,14 @@
         },
         "version": {
           "type": "string"
+        },
+        "is_hidden": {
+          "type": "boolean"
         }
-      }
+      },
+      "description": "PackageReleasePluginSetHiddenReq describes the HTTP request body when set\nplugin release hidden state."
     },
-    "v3PackageReleasePluginUnvisibleResp": {
+    "v3PackageReleasePluginSetHiddenResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -3261,56 +3011,12 @@
           "$ref": "#/definitions/v3Permission"
         },
         "data": {
-          "$ref": "#/definitions/v3PackageReleasePluginUnvisibleRespData"
+          "$ref": "#/definitions/v3PackageReleasePluginSetHiddenRespData"
         }
-      }
+      },
+      "description": "PackageReleasePluginSetHiddenResp describes the HTTP response body when set\nplugin release hidden state."
     },
-    "v3PackageReleasePluginUnvisibleRespData": {
-      "type": "object"
-    },
-    "v3PackageReleasePluginVisibleReq": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
-    "v3PackageReleasePluginVisibleResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PackageReleasePluginVisibleRespData"
-        }
-      }
-    },
-    "v3PackageReleasePluginVisibleRespData": {
+    "v3PackageReleasePluginSetHiddenRespData": {
       "type": "object"
     },
     "v3PackageReleaseProxyCancelAsDefaultReq": {
@@ -3756,96 +3462,6 @@
     "v3PackageReleaseProxySetLabelsManyRespData": {
       "type": "object"
     },
-    "v3PackageReleaseProxyUnvisibleReq": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "release_type": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
-    "v3PackageReleaseProxyUnvisibleResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PackageReleaseProxyUnvisibleRespData"
-        }
-      }
-    },
-    "v3PackageReleaseProxyUnvisibleRespData": {
-      "type": "object"
-    },
-    "v3PackageReleaseProxyVisibleReq": {
-      "type": "object",
-      "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "release_type": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
-    "v3PackageReleaseProxyVisibleResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PackageReleaseProxyVisibleRespData"
-        }
-      }
-    },
-    "v3PackageReleaseProxyVisibleRespData": {
-      "type": "object"
-    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -3964,7 +3580,7 @@
         "operator": {
           "type": "string"
         },
-        "is_visible": {
+        "is_hidden": {
           "type": "boolean"
         }
       },
@@ -4013,7 +3629,7 @@
         "change_log_zh": {
           "type": "string"
         },
-        "is_visible": {
+        "is_hidden": {
           "type": "boolean"
         }
       },
@@ -4077,7 +3693,7 @@
         "as_default": {
           "type": "boolean"
         },
-        "is_visible": {
+        "is_hidden": {
           "type": "boolean"
         }
       },
@@ -4126,7 +3742,7 @@
         "change_log_zh": {
           "type": "string"
         },
-        "is_visible": {
+        "is_hidden": {
           "type": "boolean"
         }
       },

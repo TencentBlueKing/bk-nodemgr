@@ -290,8 +290,8 @@
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  :confirm-text="row.is_visible ? t('agentProxyPkg.disableAndUnvisible') : t('agentProxyPkg.disable')"
-                  @confirm="row.is_visible ? handleDisableAndUnvisible(row) : handleDisabled(row)"
+                  :confirm-text="t('agentProxyPkg.disable')"
+                  @confirm="handleDisabled(row)"
                 >
                   <Button
                     theme="primary"
@@ -303,7 +303,7 @@
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
                     @mousemove="manageMouseMove($event, hasManageAuth)"
                     @mouseleave="manageMouseLeave()"
-                  >{{ row.is_visible ? t('agentProxyPkg.disableAndUnvisible') : t('agentProxyPkg.disable') }}</Button>
+                  >{{ t('agentProxyPkg.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
@@ -324,24 +324,11 @@
                   text
                   v-if="!row.enabled"
                   :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleEnableAndVisible(row) : manageAuthClick($event, row.release_type)"
+                  @click="hasManageAuth ? handleEnable(row) : manageAuthClick($event, row.release_type)"
                   @mouseenter="manageMouseEnter($event, hasManageAuth)"
                   @mousemove="manageMouseMove($event, hasManageAuth)"
                   @mouseleave="manageMouseLeave()"
-                >{{ t('agentProxyPkg.enableAndVisible') }}</Button>
-                <Button
-                  theme="primary"
-                  class="mr-[8px]"
-                  text
-                  v-if="row.enabled"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth
-                    ? (row.is_visible ? handleUnvisible(row) : handleVisible(row))
-                    : manageAuthClick($event, row.release_type)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
-                  @mouseleave="manageMouseLeave()"
-                >{{ row.is_visible ? t('agentProxyPkg.unvisible') : t('agentProxyPkg.visible') }}</Button>
+                >{{ t('agentProxyPkg.enable') }}</Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
@@ -392,8 +379,8 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-import { Alert, Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
-import { AngleDown, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
+import { Alert, Button, Loading, PopConfirm, SearchSelect, Select, Tag } from 'bkui-vue';
+import { AngleDown, AngleRight, TextAll } from 'bkui-vue/lib/icon';
 import { debounce, isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -417,18 +404,6 @@ import { usePackageStore } from '@/stores/package';
 type PkgQuickType = 'os_cpu_arch' | 'version';
 type PkgType = 'gse_agent' | 'gse_proxy';
 type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
-interface ISearchSelect {
-  id: string;
-  name: string;
-  children: {
-    id: string;
-    name: string;
-    count: number;
-    icon?: string;
-    tips?: boolean;
-    isAll?: boolean;
-  }[];
-}
 interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
   checked: string[];
@@ -600,6 +575,13 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
 });
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const booleanFilterFields = new Set(['enabled', 'as_default']);
+const normalizeSearchValue = (field: string, value: unknown) => {
+  if (booleanFilterFields.has(field) && typeof value === 'string') {
+    return value === 'true';
+  }
+  return value;
+};
 function countByProp(data: Release[], prop: string) {
   return data.reduce((acc, item) => {
     const key = item[prop];
@@ -668,16 +650,16 @@ const searchSelectData = computed(() => [
     id: 'enabled',
     name: t('agentProxyPkg.status'),
     children: [
-      { id: true, name: t('agentProxyPkg.enabled') },
-      { id: false, name: t('agentProxyPkg.disabled') },
+      { id: 'true', name: t('agentProxyPkg.enabled') },
+      { id: 'false', name: t('agentProxyPkg.disabled') },
     ],
   },
   {
     id: 'as_default',
     name: t('agentProxyPkg.defaultVersion'),
     children: [
-      { id: true, name: t('agentProxyPkg.yes') },
-      { id: false, name: t('agentProxyPkg.no') },
+      { id: 'true', name: t('agentProxyPkg.yes') },
+      { id: 'false', name: t('agentProxyPkg.no') },
     ],
   },
 ]);
@@ -714,17 +696,21 @@ const handleFilter = ({
       id: field,
       name: t(field),
       values: checked.map((item: any) => {
+        const normalizedItem = normalizeSearchValue(field, item);
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? t('agentProxyPkg.enabled') : t('agentProxyPkg.disabled');
+            name = normalizedItem ? t('agentProxyPkg.enabled') : t('agentProxyPkg.disabled');
+            break;
+          case 'as_default':
+            name = normalizedItem ? t('agentProxyPkg.yes') : t('agentProxyPkg.no');
             break;
           default:
             name = item;
             break;
         }
         return {
-          id: item,
+          id: booleanFilterFields.has(field) ? String(normalizedItem) : item,
           name,
         };
       }),
@@ -919,9 +905,9 @@ const getPackages = async () => {
 
   try {
     // 并行执行API调用
-    const [listApi, countApi] = currentType.value === 'agent'
-      ? [PackageService.ListReleaseAgent, PackageService.CountDeployedReleasedAgent]
-      : [PackageService.ListReleaseProxy, PackageService.CountDeployedReleasedProxy];
+    const listApi = currentType.value === 'agent'
+      ? PackageService.ListReleaseAgent
+      : PackageService.ListReleaseProxy;
 
     // 先获取列表数据
     const listData = await listApi({
@@ -1001,20 +987,8 @@ const handleDisabled = async (row: Release) => {
   await handleOperation(row, getServiceMethod('DisableRelease'));
 };
 
-const handleEnableAndVisible = async (row: Release) => {
-  await handleOperation(row, getServiceMethod('EnableAndVisibleRelease'));
-};
-
-const handleDisableAndUnvisible = async (row: Release) => {
-  await handleOperation(row, getServiceMethod('DisableAndUnvisibleRelease'));
-};
-
-const handleVisible = async (row: Release) => {
-  await handleOperation(row, getServiceMethod('VisibleRelease'));
-};
-
-const handleUnvisible = async (row: Release) => {
-  await handleOperation(row, getServiceMethod('UnvisibleRelease'));
+const handleEnable = async (row: Release) => {
+  await handleOperation(row, getServiceMethod('EnableRelease'));
 };
 
 const handleDelete = async (row: Release) => {
@@ -1051,7 +1025,7 @@ watch(
   () => {
     packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
       const { id: searchField, values } = searchItem;
-      const searchIds = values?.map((value: {id: string}) => value.id);
+      const searchIds = values?.map((value: {id: string}) => normalizeSearchValue(searchField, value.id));
       if (isArray(row[searchField])) {
         return !!row[searchField].find((el: string) => searchIds.includes(el));
       }

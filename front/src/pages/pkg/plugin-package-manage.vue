@@ -201,6 +201,17 @@
             </template>
           </TableColumn>
           <TableColumn
+            field="is_hidden"
+            :title="$t('pluginPackage.hiddenStatus')"
+            :min-width="120"
+            :filter="filterOptionSource.is_hidden"
+          >
+            <template #default="{ row }">
+              <Tag v-if="row.is_hidden" theme="warning">{{ $t('pluginPackage.hidden') }}</Tag>
+              <Tag v-else theme="success">{{ $t('pluginPackage.visible') }}</Tag>
+            </template>
+          </TableColumn>
+          <TableColumn
             field="as_default"
             :title="$t('pluginPackage.defaultVersion')"
             :min-width="120"
@@ -248,8 +259,8 @@
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  :confirm-text="row.is_visible ? $t('pluginPackage.disableAndUnvisible') : $t('pluginPackage.disable')"
-                  @confirm="row.is_visible ? handleDisableAndUnvisible(row) : handleDisabled(row)"
+                  :confirm-text="$t('pluginPackage.disable')"
+                  @confirm="handleDisabled(row)"
                 >
                   <Button
                     class="mr-[8px]"
@@ -261,7 +272,7 @@
                     @mouseenter="manageMouseEnter($event, hasManageAuth)"
                     @mousemove="manageMouseMove($event, hasManageAuth)"
                     @mouseleave="manageMouseLeave()"
-                  >{{ row.is_visible ? $t('pluginPackage.disableAndUnvisible') : $t('pluginPackage.disable') }}</Button>
+                  >{{ $t('pluginPackage.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
@@ -280,24 +291,11 @@
                   text
                   v-if="!row.enabled"
                   :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth ? handleEnableAndVisible(row) : manageAuthClick($event, row.name)"
+                  @click="hasManageAuth ? handleEnable(row) : manageAuthClick($event, row.name)"
                   @mouseenter="manageMouseEnter($event, hasManageAuth)"
                   @mousemove="manageMouseMove($event, hasManageAuth)"
                   @mouseleave="manageMouseLeave()"
-                >{{ $t('pluginPackage.enableAndVisible') }}</Button>
-                <Button
-                  class="mr-[8px]"
-                  theme="primary"
-                  text
-                  v-if="row.enabled"
-                  :class="{ 'unAuthorized': !hasManageAuth }"
-                  @click="hasManageAuth
-                    ? (row.is_visible ? handleUnvisible(row) : handleVisible(row))
-                    : manageAuthClick($event, row.name)"
-                  @mouseenter="manageMouseEnter($event, hasManageAuth)"
-                  @mousemove="manageMouseMove($event, hasManageAuth)"
-                  @mouseleave="manageMouseLeave()"
-                >{{ row.is_visible ? $t('pluginPackage.unvisible') : $t('pluginPackage.visible') }}</Button>
+                >{{ $t('pluginPackage.enable') }}</Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
@@ -348,13 +346,13 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-import { Alert, Button, Dropdown, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
-import { AngleDown, AngleDownLine, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
+import { Alert, Button, Loading, PopConfirm, SearchSelect, Tag } from 'bkui-vue';
+import { AngleDown, AngleRight, TextAll } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import type { ComputedRef } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import type { VxeTablePropTypes } from 'vxe-table';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -372,28 +370,13 @@ import useTableSetting from '@/composables/use-table-setting';
 import { useAuthStore } from '@/stores/auth';
 import { useMainStore } from '@/stores/main';
 type PkgQuickType = 'os_cpu_arch' | 'name';
-type PkgType = 'gse_agent' | 'gse_proxy';
-type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
-interface ISearchSelect {
-  id: string;
-  name: string;
-  children: {
-    id: string;
-    name: string;
-    count: number;
-    icon?: string;
-    tips?: boolean;
-    isAll?: boolean;
-  }[];
-}
+type filterProp = 'version' | 'labels' | 'operator' | 'enabled' | 'is_hidden';
 interface IFilterOption {
   list: ComputedRef<{ value: string | boolean, text: string;  }[]> | { value: string | boolean, text: string;  }[];
   checked: string[];
   filterScope: string;
   match?: string,
 }
-// 排序类型
-type PkgOrderType = 'version' | '-version';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -471,25 +454,6 @@ const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
 const originPackageList = ref<Release[]>([]);
-const state = reactive<{
-  isLoading: boolean;
-  panels: { name: PkgType; label: string }[];
-  active: PkgType;
-  dimension: PkgQuickType;
-  uploadShow: boolean;
-  ordering: PkgOrderType | '';
-}>({
-  isLoading: true,
-  panels: [
-    { name: 'gse_agent', label: 'Agent' },
-    { name: 'gse_proxy', label: 'Proxy' },
-  ],
-  active: 'gse_agent',
-  // 维度
-  dimension: 'os_cpu_arch',
-  uploadShow: false,
-  ordering: '',
-});
 // 分页
 const {
   pagination,
@@ -534,12 +498,6 @@ const dimensionList = ref([
   },
 ]);
 
-// 展示包上传类型下拉菜单
-const isUploadTypeShow = ref(false);
-const handleShowUploadType = () => {
-  isUploadTypeShow.value = !isUploadTypeShow.value;
-};
-
 const handleExpand = (option: any) => {
   option.expand = !option.osExpand;
 };
@@ -582,6 +540,14 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
     checked: [],
     filterScope: 'all',
   },
+  is_hidden: {
+    list: computed(() => [
+      { value: false, text: t('pluginPackage.visible') },
+      { value: true, text: t('pluginPackage.hidden') },
+    ]),
+    checked: [],
+    filterScope: 'all',
+  },
   as_default: {
     list: computed(() => [
       { value: true, text: t('pluginPackage.yes') },
@@ -593,6 +559,13 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
 });
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const booleanFilterFields = new Set(['enabled', 'is_hidden', 'as_default']);
+const normalizeSearchValue = (field: string, value: unknown) => {
+  if (booleanFilterFields.has(field) && typeof value === 'string') {
+    return value === 'true';
+  }
+  return value;
+};
 function countByProp(data: Release[], prop: string) {
   return data.reduce((acc, item) => {
     const key = item[prop];
@@ -675,16 +648,24 @@ const searchSelectData = computed(() => [
     id: 'enabled',
     name: t('pluginPackage.status'),
     children: [
-      { id: true, name: t('pluginPackage.enabled') },
-      { id: false, name: t('pluginPackage.disabled') },
+      { id: 'true', name: t('pluginPackage.enabled') },
+      { id: 'false', name: t('pluginPackage.disabled') },
+    ],
+  },
+  {
+    id: 'is_hidden',
+    name: t('pluginPackage.hiddenStatus'),
+    children: [
+      { id: 'false', name: t('pluginPackage.visible') },
+      { id: 'true', name: t('pluginPackage.hidden') },
     ],
   },
   {
     id: 'as_default',
     name: t('pluginPackage.defaultVersion'),
     children: [
-      { id: true, name: t('pluginPackage.yes') },
-      { id: false, name: t('pluginPackage.no') },
+      { id: 'true', name: t('pluginPackage.yes') },
+      { id: 'false', name: t('pluginPackage.no') },
     ],
   },
 ]);
@@ -699,6 +680,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'operator',
     'updated_at',
     'enabled',
+    'is_hidden',
     'as_default',
     'action',
     'download',
@@ -716,21 +698,29 @@ const handleFilter = ({
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
+    const filterName = searchSelectData.value.find((item: {id: string}) => item.id === field)?.name ?? t(field);
     searchSelectValue.value.push({
       id: field,
-      name: t(field),
+      name: filterName,
       values: checked.map((item: any) => {
+        const normalizedItem = normalizeSearchValue(field, item);
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? t('pluginPackage.enabled') : t('pluginPackage.disabled');
+            name = normalizedItem ? t('pluginPackage.enabled') : t('pluginPackage.disabled');
+            break;
+          case 'is_hidden':
+            name = normalizedItem ? t('pluginPackage.hidden') : t('pluginPackage.visible');
+            break;
+          case 'as_default':
+            name = normalizedItem ? t('pluginPackage.yes') : t('pluginPackage.no');
             break;
           default:
             name = item;
             break;
         }
         return {
-          id: item,
+          id: booleanFilterFields.has(field) ? String(normalizedItem) : item,
           name,
         };
       }),
@@ -875,20 +865,8 @@ const handleDisabled = async (row: Release) => {
   await PackageService.DisableReleasePlugin(getParams(row));
   await getPackages();
 };
-const handleEnableAndVisible = async (row: Release) => {
-  await PackageService.EnableAndVisibleReleasePlugin(getParams(row));
-  await getPackages();
-};
-const handleDisableAndUnvisible = async (row: Release) => {
-  await PackageService.DisableAndUnvisibleReleasePlugin(getParams(row));
-  await getPackages();
-};
-const handleVisible = async (row: Release) => {
-  await PackageService.VisibleReleasePlugin(getParams(row));
-  await getPackages();
-};
-const handleUnvisible = async (row: Release) => {
-  await PackageService.UnvisibleReleasePlugin(getParams(row));
+const handleEnable = async (row: Release) => {
+  await PackageService.EnableReleasePlugin(getParams(row));
   await getPackages();
 };
 const handleDelete = async (row: Release) => {
@@ -908,7 +886,7 @@ watch(
     packageList.value = originPackageList.value
       .filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
         const { id: searchField, values } = searchItem;
-        const searchIds = values?.map((value: {id: string}) => value.id);
+        const searchIds = values?.map((value: {id: string}) => normalizeSearchValue(searchField, value.id));
         if (isArray(row[searchField])) {
           return !!row[searchField].find((el: string) => searchIds.includes(el));
         }
@@ -957,7 +935,8 @@ watch(() => searchSelectValue.value, (data) => {
   });
   data.forEach((item) => {
     if (filterOptionSource[item.id as filterProp]) {
-      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
+      filterOptionSource[item.id as filterProp].checked = item.values
+        .map((value: any) => normalizeSearchValue(item.id, value.id)) as string[];
     }
   });
 }, { immediate: true, deep: true });

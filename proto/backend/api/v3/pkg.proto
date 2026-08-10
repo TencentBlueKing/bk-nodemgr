@@ -15,7 +15,7 @@ message PackageReleaseExactConditions {
   repeated bool enabled = 4;
   repeated string name = 5;
   repeated string file_name = 6;
-  repeated bool is_visible = 7;
+  repeated bool is_hidden = 7;
 }
 
 // PackageReleaseDistinctField describes the release distinct field.
@@ -233,42 +233,6 @@ message PackageReleaseAgentCancelAsDefaultResp {
   Data data = 5;
 }
 
-message PackageReleaseAgentVisibleReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-message PackageReleaseAgentVisibleResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {}
-  Data data = 5;
-}
-
-message PackageReleaseAgentUnvisibleReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-message PackageReleaseAgentUnvisibleResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {}
-  Data data = 5;
-}
-
 // PackageReleaseAgentDeleteReq describes the HTTP request body when delete
 // agent release.
 message PackageReleaseAgentDeleteReq {
@@ -471,42 +435,6 @@ message PackageReleaseProxyCancelAsDefaultResp {
   Data data = 5;
 }
 
-message PackageReleaseProxyVisibleReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-message PackageReleaseProxyVisibleResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {}
-  Data data = 5;
-}
-
-message PackageReleaseProxyUnvisibleReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-message PackageReleaseProxyUnvisibleResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {}
-  Data data = 5;
-}
-
 // PackageReleaseProxyDeleteReq describes the HTTP request body when delete
 // proxy release.
 message PackageReleaseProxyDeleteReq {
@@ -625,6 +553,29 @@ message PackageReleasePluginDisableResp {
   Data data = 5;
 }
 
+// PackageReleasePluginSetHiddenReq describes the HTTP request body when set
+// plugin release hidden state.
+message PackageReleasePluginSetHiddenReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+  bool is_hidden = 5;
+}
+
+// PackageReleasePluginSetHiddenResp describes the HTTP response body when set
+// plugin release hidden state.
+message PackageReleasePluginSetHiddenResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {}
+  Data data = 5;
+}
+
 // PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
 // default plugin release.
 message PackageReleasePluginSetAsDefaultReq {
@@ -659,42 +610,6 @@ message PackageReleasePluginCancelAsDefaultReq {
 // PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
 // cancel default plugin release.
 message PackageReleasePluginCancelAsDefaultResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {}
-  Data data = 5;
-}
-
-message PackageReleasePluginVisibleReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-message PackageReleasePluginVisibleResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {}
-  Data data = 5;
-}
-
-message PackageReleasePluginUnvisibleReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-message PackageReleasePluginUnvisibleResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -1058,24 +973,6 @@ service Package {
     };
   }
 
-  // VisibleReleaseAgent makes an agent release visible to the frontend.
-  rpc VisibleReleaseAgent(PackageReleaseAgentVisibleReq)
-      returns (PackageReleaseAgentVisibleResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release/agent/visible"
-      body : "*"
-    };
-  }
-
-  // UnvisibleReleaseAgent hides an agent release from the frontend.
-  rpc UnvisibleReleaseAgent(PackageReleaseAgentUnvisibleReq)
-      returns (PackageReleaseAgentUnvisibleResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release/agent/unvisible"
-      body : "*"
-    };
-  }
-
   // DeleteReleaseAgent deletes agent release.
   rpc DeleteReleaseAgent(PackageReleaseAgentDeleteReq)
       returns (PackageReleaseAgentDeleteResp) {
@@ -1157,24 +1054,6 @@ service Package {
     };
   }
 
-  // VisibleReleaseProxy makes a proxy release visible to the frontend.
-  rpc VisibleReleaseProxy(PackageReleaseProxyVisibleReq)
-      returns (PackageReleaseProxyVisibleResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release/proxy/visible"
-      body : "*"
-    };
-  }
-
-  // UnvisibleReleaseProxy hides a proxy release from the frontend.
-  rpc UnvisibleReleaseProxy(PackageReleaseProxyUnvisibleReq)
-      returns (PackageReleaseProxyUnvisibleResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release/proxy/unvisible"
-      body : "*"
-    };
-  }
-
   // DeleteReleaseProxy deletes proxy release.
   rpc DeleteReleaseProxy(PackageReleaseProxyDeleteReq)
       returns (PackageReleaseProxyDeleteResp) {
@@ -1220,6 +1099,15 @@ service Package {
     };
   }
 
+  // SetHiddenReleasePlugin sets plugin release hidden state.
+  rpc SetHiddenReleasePlugin(PackageReleasePluginSetHiddenReq)
+      returns (PackageReleasePluginSetHiddenResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/set_hidden"
+      body : "*"
+    };
+  }
+
   // SetAsDefaultReleasePlugin sets plugin release as default.
   rpc SetAsDefaultReleasePlugin(PackageReleasePluginSetAsDefaultReq)
       returns (PackageReleasePluginSetAsDefaultResp) {
@@ -1234,24 +1122,6 @@ service Package {
       returns (PackageReleasePluginCancelAsDefaultResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/plugin/cancel_as_default"
-      body : "*"
-    };
-  }
-
-  // VisibleReleasePlugin makes a plugin release visible to the frontend.
-  rpc VisibleReleasePlugin(PackageReleasePluginVisibleReq)
-      returns (PackageReleasePluginVisibleResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release/plugin/visible"
-      body : "*"
-    };
-  }
-
-  // UnvisibleReleasePlugin hides a plugin release from the frontend.
-  rpc UnvisibleReleasePlugin(PackageReleasePluginUnvisibleReq)
-      returns (PackageReleasePluginUnvisibleResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release/plugin/unvisible"
       body : "*"
     };
   }

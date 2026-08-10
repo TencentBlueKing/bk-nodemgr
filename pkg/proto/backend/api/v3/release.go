@@ -44,7 +44,7 @@ func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditio
 		Version:   exactCond.GetVersion(),
 		AsDefault: exactCond.GetAsDefault(),
 		Enabled:   exactCond.GetEnabled(),
-		IsVisible: exactCond.GetIsVisible(),
+		IsHidden:  exactCond.GetIsHidden(),
 		Name:      exactCond.GetName(),
 		FileName:  exactCond.GetFileName(),
 	}
@@ -66,7 +66,7 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 		exactCond.Version = conditions.ExactInclude.Version
 		exactCond.AsDefault = conditions.ExactInclude.AsDefault
 		exactCond.Enabled = conditions.ExactInclude.Enabled
-		exactCond.IsVisible = conditions.ExactInclude.IsVisible
+		exactCond.IsHidden = conditions.ExactInclude.IsHidden
 		exactCond.Name = conditions.ExactInclude.Name
 		exactCond.FileName = conditions.ExactInclude.FileName
 	}
@@ -89,7 +89,7 @@ func newEmptyRelease() *Release {
 		FileName:    new(string),
 		Labels:      make([]string, 0),
 		Enabled:     new(bool),
-		IsVisible:   new(bool),
+		IsHidden:    new(bool),
 		AsDefault:   new(bool),
 		Md5:         new(string),
 		UpdatedAt:   new(uint64),
@@ -182,7 +182,7 @@ func (x *PackageReleaseAgentListResp) ConvertReleasesFromTypes(total int64, rele
 		*item.Release.FileName = release.FileName
 		item.Release.Labels = release.Labels
 		*item.Release.Enabled = release.Enabled
-		*item.Release.IsVisible = release.IsVisible
+		*item.Release.IsHidden = release.IsHidden
 		*item.Release.AsDefault = release.AsDefault
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
@@ -223,7 +223,7 @@ func (x *PackageReleaseAgentListResp) ConvertReleasesToTypes() (int64, []*types.
 				FileName:  item.GetRelease().GetFileName(),
 				MD5:       item.GetRelease().GetMd5(),
 				Enabled:   item.GetRelease().GetEnabled(),
-				IsVisible: item.GetRelease().GetIsVisible(),
+				IsHidden:  item.GetRelease().GetIsHidden(),
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
@@ -324,7 +324,7 @@ func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrie
 	data.CpuArch = new(string)
 	data.Version = new(string)
 	data.Enabled = new(bool)
-	data.IsVisible = new(bool)
+	data.IsHidden = new(bool)
 	data.AsDefault = new(bool)
 
 	*data.Generation = int64(release.Generation)
@@ -332,7 +332,7 @@ func convertReleaseAgentBriefFromTypes(release *types.Release) *ReleaseAgentBrie
 	*data.CpuArch = string(release.Platform.Arch)
 	*data.Version = release.Version
 	*data.Enabled = release.Enabled
-	*data.IsVisible = release.IsVisible
+	*data.IsHidden = release.IsHidden
 	*data.AsDefault = release.AsDefault
 
 	return data
@@ -347,7 +347,7 @@ func convertReleaseAgentBriefToTypes(brief *ReleaseAgentBrief) *types.Release {
 		},
 		Version:   brief.GetVersion(),
 		Enabled:   brief.GetEnabled(),
-		IsVisible: brief.GetIsVisible(),
+		IsHidden:  brief.GetIsHidden(),
 		AsDefault: brief.GetAsDefault(),
 	}
 }
@@ -359,7 +359,7 @@ func convertReleaseProxyBriefFromTypes(release *types.Release, changeLogEN, chan
 	data.CpuArch = new(string)
 	data.Version = new(string)
 	data.Enabled = new(bool)
-	data.IsVisible = new(bool)
+	data.IsHidden = new(bool)
 	data.AsDefault = new(bool)
 	data.ChangeLogEn = new(string)
 	data.ChangeLogZh = new(string)
@@ -369,7 +369,7 @@ func convertReleaseProxyBriefFromTypes(release *types.Release, changeLogEN, chan
 	*data.CpuArch = string(release.Platform.Arch)
 	*data.Version = release.Version
 	*data.Enabled = release.Enabled
-	*data.IsVisible = release.IsVisible
+	*data.IsHidden = release.IsHidden
 	*data.AsDefault = release.AsDefault
 	*data.ChangeLogEn = changeLogEN
 	*data.ChangeLogZh = changeLogZH
@@ -384,7 +384,7 @@ func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBr
 	data.CpuArch = new(string)
 	data.Version = new(string)
 	data.Enabled = new(bool)
-	data.IsVisible = new(bool)
+	data.IsHidden = new(bool)
 	data.AsDefault = new(bool)
 
 	*data.Generation = int64(release.Generation)
@@ -392,7 +392,7 @@ func convertReleasePluginBriefFromTypes(release *types.Release) *ReleasePluginBr
 	*data.CpuArch = string(release.Platform.Arch)
 	*data.Version = release.Version
 	*data.Enabled = release.Enabled
-	*data.IsVisible = release.IsVisible
+	*data.IsHidden = release.IsHidden
 	*data.AsDefault = release.AsDefault
 
 	return data
@@ -553,40 +553,6 @@ func (x *PackageReleaseAgentCancelAsDefaultReq) AutoConvert() {
 }
 
 // Validate check body.
-func (x *PackageReleaseAgentVisibleReq) Validate() error {
-	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
-		return err
-	}
-
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageReleaseAgentVisibleReq) AutoConvert() {
-}
-
-// Validate check body.
-func (x *PackageReleaseAgentUnvisibleReq) Validate() error {
-	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
-		return err
-	}
-
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageReleaseAgentUnvisibleReq) AutoConvert() {
-}
-
-// Validate check body.
 func (x *PackageReleaseAgentDeleteReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
 		return err
@@ -664,7 +630,7 @@ func (x *PackageReleaseProxyListResp) ConvertReleasesFromTypes(total int64, rele
 		*item.Release.FileName = release.FileName
 		item.Release.Labels = release.Labels
 		*item.Release.Enabled = release.Enabled
-		*item.Release.IsVisible = release.IsVisible
+		*item.Release.IsHidden = release.IsHidden
 		*item.Release.AsDefault = release.AsDefault
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
@@ -705,7 +671,7 @@ func (x *PackageReleaseProxyListResp) ConvertReleasesToTypes() (int64, []*types.
 				FileName:  item.GetRelease().GetFileName(),
 				MD5:       item.GetRelease().GetMd5(),
 				Enabled:   item.GetRelease().GetEnabled(),
-				IsVisible: item.GetRelease().GetIsVisible(),
+				IsHidden:  item.GetRelease().GetIsHidden(),
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
@@ -800,7 +766,7 @@ func (x *PackageReleaseProxyListBriefResp) ConvertReleasesToTypes() (int64, []*t
 				},
 				Version:   item.GetVersion(),
 				Enabled:   item.GetEnabled(),
-				IsVisible: item.GetIsVisible(),
+				IsHidden:  item.GetIsHidden(),
 				AsDefault: item.GetAsDefault(),
 			},
 			ReleaseAdditionInfoProxy: types.ReleaseAdditionInfoProxy{
@@ -969,40 +935,6 @@ func (x *PackageReleaseProxyCancelAsDefaultReq) AutoConvert() {
 }
 
 // Validate check body.
-func (x *PackageReleaseProxyVisibleReq) Validate() error {
-	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
-		return err
-	}
-
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageReleaseProxyVisibleReq) AutoConvert() {
-}
-
-// Validate check body.
-func (x *PackageReleaseProxyUnvisibleReq) Validate() error {
-	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
-		return err
-	}
-
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageReleaseProxyUnvisibleReq) AutoConvert() {
-}
-
-// Validate check body.
 func (x *PackageReleaseProxyDeleteReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
 		return err
@@ -1080,7 +1012,7 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsFromTypes(total int6
 		*item.Release.FileName = release.FileName
 		item.Release.Labels = release.Labels
 		*item.Release.Enabled = release.Enabled
-		*item.Release.IsVisible = release.IsVisible
+		*item.Release.IsHidden = release.IsHidden
 		*item.Release.AsDefault = release.AsDefault
 		*item.Release.Md5 = release.MD5
 		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
@@ -1119,7 +1051,7 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsToTypes() (int64, []
 				FileName:  item.GetRelease().GetFileName(),
 				MD5:       item.GetRelease().GetMd5(),
 				Enabled:   item.GetRelease().GetEnabled(),
-				IsVisible: item.GetRelease().GetIsVisible(),
+				IsHidden:  item.GetRelease().GetIsHidden(),
 				AsDefault: item.GetRelease().GetAsDefault(),
 				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
 				Operator:  item.GetRelease().GetOperator(),
@@ -1265,7 +1197,7 @@ func (x *PackageReleasePluginListBriefResp) ConvertReleasePluginsToTypes() (int6
 				},
 				Version:   item.GetVersion(),
 				Enabled:   item.GetEnabled(),
-				IsVisible: item.GetIsVisible(),
+				IsHidden:  item.GetIsHidden(),
 				AsDefault: item.GetAsDefault(),
 			},
 		}
@@ -1328,6 +1260,32 @@ func (x *PackageReleasePluginDisableReq) SetIdentifer(name string, gen types.Gen
 }
 
 // Validate check body.
+func (x *PackageReleasePluginSetHiddenReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginSetHiddenReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginSetHiddenReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// SetIdentifer set identifier.
+func (x *PackageReleasePluginSetHiddenReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
+	x.Name = name
+	x.Generation = int64(gen)
+	x.Platform = ConvertPlatformFromTypes(plat)
+	x.Version = ver
+}
+
+// Validate check body.
 func (x *PackageReleasePluginSetAsDefaultReq) Validate() error {
 	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
 		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
@@ -1373,58 +1331,6 @@ func (x *PackageReleasePluginCancelAsDefaultReq) GetIdentifier() (string, types.
 
 // SetIdentifer set identifier.
 func (x *PackageReleasePluginCancelAsDefaultReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
-	x.Name = name
-	x.Generation = int64(gen)
-	x.Platform = ConvertPlatformFromTypes(plat)
-	x.Version = ver
-}
-
-// Validate check body.
-func (x *PackageReleasePluginVisibleReq) Validate() error {
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageReleasePluginVisibleReq) AutoConvert() {
-}
-
-// GetIdentifier get identifier.
-func (x *PackageReleasePluginVisibleReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
-	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
-}
-
-// SetIdentifer set identifier.
-func (x *PackageReleasePluginVisibleReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
-	x.Name = name
-	x.Generation = int64(gen)
-	x.Platform = ConvertPlatformFromTypes(plat)
-	x.Version = ver
-}
-
-// Validate check body.
-func (x *PackageReleasePluginUnvisibleReq) Validate() error {
-	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
-		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageReleasePluginUnvisibleReq) AutoConvert() {
-}
-
-// GetIdentifier get identifier.
-func (x *PackageReleasePluginUnvisibleReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
-	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
-}
-
-// SetIdentifer set identifier.
-func (x *PackageReleasePluginUnvisibleReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
 	x.Name = name
 	x.Generation = int64(gen)
 	x.Platform = ConvertPlatformFromTypes(plat)

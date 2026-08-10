@@ -950,7 +950,7 @@ const loadDefaultPluginVersions = async () => {
     page: { limit: 500, offset: 0 },
     generation: PACKAGE_GENERATION,
     only_count: false,
-    exact_include_conditions: { name: pluginNames },
+    exact_include_conditions: { name: pluginNames, is_hidden: [false] },
   }).catch(() => ({ total: 0, items: [] }));
 
   const map = new Map<string, string>();
@@ -1214,4 +1214,3 @@ watch(
   }
 }
 </style>
-

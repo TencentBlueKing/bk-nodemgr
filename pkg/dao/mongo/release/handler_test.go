@@ -87,6 +87,7 @@ func releaseFixtures() []*types.Release {
 			},
 			Labels:   []string{"test"},
 			FileName: "v2.1.6-beta.2-windows-amd64.tgz",
+			IsHidden: true,
 		},
 	}
 }
@@ -175,29 +176,25 @@ func Test_Delete(t *testing.T) {
 	}
 }
 
-func Test_SetVisible(t *testing.T) {
+func Test_WithIsHidden(t *testing.T) {
 	nCtx := testContext()
 	client := prepareData(t, nCtx)
 
-	if err := client.SetVisible(nCtx, types.ReleaseTypeAgent, true, WithVersion(releaseVersionBeta1)); err != nil {
-		t.Fatalf("SetVisible() error = %v", err)
-	}
-
-	visibleCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsVisible(true))
-	if err != nil {
-		t.Fatalf("Count() visible error = %v", err)
-	}
-
-	if visibleCount != 2 {
-		t.Fatalf("Count() visible total = %d, want %d", visibleCount, 2)
-	}
-
-	hiddenCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsVisible(false))
+	hiddenCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsHidden(true))
 	if err != nil {
 		t.Fatalf("Count() hidden error = %v", err)
 	}
 
 	if hiddenCount != 1 {
 		t.Fatalf("Count() hidden total = %d, want %d", hiddenCount, 1)
+	}
+
+	visibleCount, err := client.Count(nCtx, types.ReleaseTypeAgent, WithIsHidden(false))
+	if err != nil {
+		t.Fatalf("Count() visible error = %v", err)
+	}
+
+	if visibleCount != 2 {
+		t.Fatalf("Count() visible total = %d, want %d", visibleCount, 2)
 	}
 }

@@ -926,7 +926,7 @@ agentStrategy:
 pluginPackage:
   title: Plugin Packages
   upload: Upload Package
-  searchPlaceholder: Select Package Name, Version, OS, Arch, User, Status, Default
+  searchPlaceholder: Select Package Name, Version, OS, Arch, User, Status, Visibility, Default
   quickFilter: Quick Filter
   all: All
   osArch: OS / Arch
@@ -938,6 +938,7 @@ pluginPackage:
   uploader: User
   uploadTime: Uploaded At
   status: Status
+  hiddenStatus: Visibility
   defaultVersion: Default
   action: Action
   download: Download
@@ -945,10 +946,8 @@ pluginPackage:
   cancelDefault: Cancel Default
   disable: Disable
   enable: Enable
-  enableAndVisible: Enable and Show
-  disableAndUnvisible: Disable and Hide
   visible: Show
-  unvisible: Hide
+  hidden: Hidden
   delete: Delete
   enabled: Enabled
   disabled: Disabled
@@ -1081,10 +1080,6 @@ agentProxyPkg:
   cancelDefault: Cancel Default
   disable: Disable
   enable: Enable
-  enableAndVisible: Enable and Show
-  disableAndUnvisible: Disable and Hide
-  visible: Show
-  unvisible: Hide
   delete: Delete
   download: Download
   confirmDisable: Confirm disable this {type} package?

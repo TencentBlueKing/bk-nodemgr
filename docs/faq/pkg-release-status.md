@@ -1,58 +1,45 @@
 # 包版本状态 FAQ
 
-## 1. `enabled` 和 `is_visible` 分别表示什么？
+## 1. `enabled` 和 `is_hidden` 分别表示什么？
 
 包版本包含两个相互独立的布尔字段：
 
-| 字段         | 作用范围 | 含义 |
-|------------|------|----|
-| `enabled`  | backend 业务流程 | 控制包是否可被安装、重装、升级等流程使用。 |
-| `is_visible` | application 和前端 | 控制包是否在前端作为可见版本展示。 |
+| 字段        | 作用范围           | 含义                                                         |
+| ----------- | ------------------ | ------------------------------------------------------------ |
+| `enabled`   | backend 业务流程   | 控制包是否可被安装、重装、升级等流程使用。                   |
+| `is_hidden` | application 和前端 | 控制插件包是否在前端选择列表中隐藏。默认 `false`，表示可见。 |
 
-backend 执行涉及包版本的业务流程时只判断 `enabled`。`is_visible` 不参与包是否可用的判断，只服务于前端展示。
+backend 执行涉及包版本的业务流程时只判断 `enabled`。`is_hidden` 不参与包是否可用的判断，只服务于 application 展示和插件选择列表筛选。
 
 ## 2. 两个字段的优先级是什么？
 
-`enabled` 的优先级高于 `is_visible`。
+`enabled` 的优先级高于 `is_hidden`。
 
-当 `enabled=false` 时，无论 `is_visible` 是什么值，该包都不能参与安装、重装、升级等 backend 业务流程。
-`is_visible` 只在展示层表达是否显示，不会把一个已停用的包重新变成可用状态。
+当 `enabled=false` 时，无论 `is_hidden` 是什么值，该包都不能参与安装、重装、升级等 backend 业务流程。`is_hidden=false` 只表示该包在展示或选择列表中可见，不会把一个已停用的包重新变成可用状态。
 
-| `enabled` | `is_visible` | backend 是否可用 | 前端展示状态 | 包管理主要操作 |
-|-----------|--------------|----------------|------------|--------------|
-| `false`   | `false`      | 否 | 隐藏 | 启用并显示 |
-| `false`   | `true`       | 否 | 显示，但仍不可用 | 启用并显示 |
-| `true`    | `false`      | 是 | 隐藏 | 停用、显示 |
-| `true`    | `true`       | 是 | 显示 | 停用并隐藏、隐藏 |
-
-前端组合按钮首先判断 `enabled`，只有 `enabled=true` 时才继续根据 `is_visible` 决定显示“显示”还是“隐藏”。
+| `enabled` | `is_hidden` | backend 是否可用 | 前端展示状态     | 包管理主要操作 |
+| --------- | ----------- | ---------------- | ---------------- | -------------- |
+| `false`   | `false`     | 否               | 可见，但仍不可用 | 启用           |
+| `false`   | `true`      | 否               | 隐藏             | 启用           |
+| `true`    | `false`     | 是               | 可见             | 停用           |
+| `true`    | `true`      | 是               | 隐藏             | 停用           |
 
 ## 3. 修改一个字段会自动修改另一个字段吗？
 
-不会。两个字段的单一接口保持独立语义：
+不会。包管理操作只保留 `enable` 和 `disable` 的业务可用性控制：
 
 - `enable` 只把 `enabled` 设置为 `true`
 - `disable` 只把 `enabled` 设置为 `false`
-- `visible` 只把 `is_visible` 设置为 `true`
-- `unvisible` 只把 `is_visible` 设置为 `false`
 
-因此，隐藏包不会导致包停用，停用包也不会自动隐藏。
+隐藏状态通过 `is_hidden` 字段表达，不再提供单独的显示/隐藏接口，也不再提供启用后显示、停用后隐藏的组合接口。
 
-application 额外提供两个组合接口，用于包管理页面的常用操作：
+## 4. 包管理页面如何展示隐藏状态？
 
-- `enable_and_visible`：依次执行 `enable` 和 `visible`
-- `disable_and_unvisible`：依次执行 `disable` 和 `unvisible`
+包管理页面只在插件包表格展示并过滤 `is_hidden`：
 
-组合能力是新增接口，不改变原有 `enable`、`disable`、`visible`、`unvisible` 的单一职责。
+1. 插件包表格展示“可见状态”列，可筛选“显示”或“隐藏”。
+2. Agent / Proxy 包表格不展示隐藏状态列，也不提供隐藏状态筛选。
+3. 插件安装和插件操作中的插件包下拉列表默认查询 `is_hidden=false`，隐藏包不进入可选列表。
+4. 默认版本操作仍以 `enabled` 为前置条件，不由 `is_hidden` 决定。
 
-## 4. 包管理页面如何组合操作按钮？
-
-Agent、Proxy 和插件包使用相同的判断规则：
-
-1. `enabled=false`：提供“启用并显示”。
-2. `enabled=true` 且 `is_visible=true`：提供“停用并隐藏”和“隐藏”。
-3. `enabled=true` 且 `is_visible=false`：提供“停用”和“显示”。
-4. 默认版本操作以 `enabled` 为前置条件，不由 `is_visible` 决定。
-
-这个顺序保证包的业务可用性始终由 `enabled` 决定，同时允许前端独立控制展示状态。
-
+这个规则保证包的业务可用性始终由 `enabled` 决定，同时将前端展示筛选收敛到 `is_hidden=false` 的显式语义。

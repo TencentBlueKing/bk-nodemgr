@@ -436,7 +436,7 @@ export interface PackageReleaseExactConditions {
   enabled: boolean[];
   name: string[];
   file_name: string[];
-  is_visible: boolean[];
+  is_hidden: boolean[];
 }
 
 // PackageReleaseDistinctField describes the release distinct field.
@@ -609,44 +609,6 @@ export interface PackageReleaseAgentDisableResp {
 }
 
 export interface PackageReleaseAgentDisableRespData {
-}
-
-export interface PackageReleaseAgentVisibleReq {
-  generation: number;
-  release_type: string;
-  platform: Platform;
-  version: string;
-}
-
-export interface PackageReleaseAgentVisibleResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleaseAgentVisibleRespData;
-}
-
-export interface PackageReleaseAgentVisibleRespData {
-}
-
-export interface PackageReleaseAgentUnvisibleReq {
-  generation: number;
-  release_type: string;
-  platform: Platform;
-  version: string;
-}
-
-export interface PackageReleaseAgentUnvisibleResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleaseAgentUnvisibleRespData;
-}
-
-export interface PackageReleaseAgentUnvisibleRespData {
 }
 
 // PackageReleaseAgentSetAsDefaultReq describes the HTTP request body when set
@@ -889,44 +851,6 @@ export interface PackageReleaseProxyDisableResp {
 export interface PackageReleaseProxyDisableRespData {
 }
 
-export interface PackageReleaseProxyVisibleReq {
-  generation: number;
-  release_type: string;
-  platform: Platform;
-  version: string;
-}
-
-export interface PackageReleaseProxyVisibleResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleaseProxyVisibleRespData;
-}
-
-export interface PackageReleaseProxyVisibleRespData {
-}
-
-export interface PackageReleaseProxyUnvisibleReq {
-  generation: number;
-  release_type: string;
-  platform: Platform;
-  version: string;
-}
-
-export interface PackageReleaseProxyUnvisibleResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleaseProxyUnvisibleRespData;
-}
-
-export interface PackageReleaseProxyUnvisibleRespData {
-}
-
 // PackageReleaseProxySetAsDefaultReq describes the HTTP request body when set
 // default proxy release.
 export interface PackageReleaseProxySetAsDefaultReq {
@@ -1124,44 +1048,6 @@ export interface PackageReleasePluginDisableResp {
 }
 
 export interface PackageReleasePluginDisableRespData {
-}
-
-export interface PackageReleasePluginVisibleReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-export interface PackageReleasePluginVisibleResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleasePluginVisibleRespData;
-}
-
-export interface PackageReleasePluginVisibleRespData {
-}
-
-export interface PackageReleasePluginUnvisibleReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-export interface PackageReleasePluginUnvisibleResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  permission: Permission;
-  data: PackageReleasePluginUnvisibleRespData;
-}
-
-export interface PackageReleasePluginUnvisibleRespData {
 }
 
 // PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set

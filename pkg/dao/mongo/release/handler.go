@@ -56,11 +56,11 @@ type ISwitcher interface {
 	// SetEnabled sets a release's enabled.
 	SetEnabled(nCtx contextx.IContext, releaseType types.ReleaseType, enabled bool, opts ...OptFn) error
 
+	// SetHidden sets a release's hidden state.
+	SetHidden(nCtx contextx.IContext, releaseType types.ReleaseType, hidden bool, opts ...OptFn) error
+
 	// SetAsDefault sets a release's asDefault.
 	SetAsDefault(nCtx contextx.IContext, releaseType types.ReleaseType, asDefault bool, opts ...OptFn) error
-
-	// SetVisible sets whether a release is visible to the frontend.
-	SetVisible(nCtx contextx.IContext, releaseType types.ReleaseType, isVisible bool, opts ...OptFn) error
 
 	// CancelPlatformDefault cancel a release's all version asDefault by one platform.
 	CancelPlatformDefault(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) error
@@ -213,6 +213,21 @@ func (h *Handler) SetEnabled(nCtx contextx.IContext, releaseType types.ReleaseTy
 	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyEnabled, enabled)
 }
 
+// SetHidden sets a release's hidden state.
+func (h *Handler) SetHidden(nCtx contextx.IContext, releaseType types.ReleaseType, hidden bool, opts ...OptFn) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
+	}
+
+	opts = append(opts, WithType(releaseType))
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyIsHidden, hidden)
+}
+
 // SetAsDefault sets a release as default.
 func (h *Handler) SetAsDefault(nCtx contextx.IContext, releaseType types.ReleaseType, asDefault bool, opts ...OptFn) error {
 	if nCtx == nil {
@@ -226,21 +241,6 @@ func (h *Handler) SetAsDefault(nCtx contextx.IContext, releaseType types.Release
 	}
 
 	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyAsDefault, asDefault)
-}
-
-// SetVisible sets whether a release is visible to the frontend.
-func (h *Handler) SetVisible(nCtx contextx.IContext, releaseType types.ReleaseType, isVisible bool, opts ...OptFn) error {
-	if nCtx == nil {
-		return errors.New("nCtx is nil")
-	}
-
-	opts = append(opts, WithType(releaseType))
-	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
-	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyIsVisible, isVisible)
 }
 
 // CancelPlatformDefault cancel a release's all version asDefault by one platform.
@@ -368,7 +368,7 @@ func convertReleaseToTypes(release *Release) *types.Release {
 		FileName:     release.FileName,
 		MD5:          release.MD5,
 		Enabled:      release.Enabled,
-		IsVisible:    release.IsVisible,
+		IsHidden:     release.IsHidden,
 		AsDefault:    release.AsDefault,
 		UpdatedAt:    release.UpdatedAt,
 		Operator:     release.Operator,
@@ -386,7 +386,7 @@ func convertReleaseFromTypes(release *types.Release) *Release {
 		OSType:       string(release.Platform.OS),
 		Labels:       release.Labels,
 		Enabled:      release.Enabled,
-		IsVisible:    release.IsVisible,
+		IsHidden:     release.IsHidden,
 		AsDefault:    release.AsDefault,
 		FileName:     release.FileName,
 		MD5:          release.MD5,

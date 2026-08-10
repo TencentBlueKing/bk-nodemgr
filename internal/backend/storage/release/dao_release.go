@@ -206,16 +206,17 @@ func (s *Storage) cancelAsDefaultRelease(
 	return nil
 }
 
-func (s *Storage) setReleaseVisible(
-	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string, isVisible bool) error {
+func (s *Storage) setReleaseHidden(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform,
+	version, name string, isHidden bool) error {
 
-	if err := s.daoRelease.SetVisible(nCtx, releaseType, isVisible,
+	if err := s.daoRelease.SetHidden(nCtx, releaseType, isHidden,
 		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
 	); err != nil {
-		return fmt.Errorf("failed to set release visibility: %w", err)
+		return fmt.Errorf("failed to set release hidden: %w", err)
 	}
 
 	return nil
@@ -284,7 +285,7 @@ func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([
 				release.WithVersion(condition.ExactInclude.Version...),
 				release.WithPlatform(condition.ExactInclude.Platform...),
 				release.WithEnabled(condition.ExactInclude.Enabled...),
-				release.WithIsVisible(condition.ExactInclude.IsVisible...),
+				release.WithIsHidden(condition.ExactInclude.IsHidden...),
 				release.WithAsDefault(condition.ExactInclude.AsDefault...))
 		}
 

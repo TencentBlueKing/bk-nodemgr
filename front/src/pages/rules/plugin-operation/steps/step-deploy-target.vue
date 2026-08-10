@@ -441,6 +441,7 @@ const loadSystemArch = async () => {
     generation: PACKAGE_GENERATION,
     exact_include_conditions: {
       enabled: [true],
+      is_hidden: [false],
       ...(pluginName ? { name: [pluginName] } : {}),
     },
   }).catch(() => ({ total: 0, items: [] }));
