@@ -6,6 +6,7 @@
 package workflow
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"time"
@@ -28,7 +29,10 @@ const (
 )
 
 func (s *Storage) registerPackageWorkflowScheduler() error {
-	s.Scheduler = scheduler.NewScheduler()
+	if s.Scheduler == nil {
+		return errors.New("scheduler is not initialized")
+	}
+
 	if err := s.Scheduler.RegisterTask(scheduler.NewTask(
 		"obtain_monitored_package_workflows",
 		5*time.Second,  // nolint:mnd
@@ -138,7 +142,9 @@ func (s *Storage) monitorPackageWorkflowStatus(nCtx contextx.IContext) error {
 	triggerOpers := make(map[string][]*operation.Operation)
 	for _, oper := range operations {
 		triggerOpers[oper.TriggerID] = append(triggerOpers[oper.TriggerID], oper)
-		if oper.LatestInstBriefData == nil || !operation.CheckStateFinished(oper.LatestInstBriefData.Lifecycle.State) {
+		if oper.LatestInstBriefData == nil || oper.LatestInstBriefData.Lifecycle == nil ||
+			!operation.CheckStateFinished(oper.LatestInstBriefData.Lifecycle.State) {
+
 			unfinishedTriggerMap[oper.TriggerID] = struct{}{}
 		}
 	}
@@ -161,7 +167,7 @@ func (s *Storage) monitorPackageWorkflowStatus(nCtx contextx.IContext) error {
 			if err := s.updatePackageWorkflowResult(nCtx, packageWorkflow, types.PackageWorkflowStatusFailed, time.Now()); err != nil {
 				logger.G.Sys().WithErr(err).
 					With("trigger-id", triggerID, "workflow-id", packageWorkflow.WorkflowID).
-					Error("failed to fallback update node workflow status when operation is missing")
+					Error("failed to fallback update package workflow status when operation is missing")
 
 				continue
 			}

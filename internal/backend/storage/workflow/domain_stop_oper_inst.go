@@ -31,6 +31,10 @@ const (
 
 // registerStopOperInstTask registers the stop operation instance task.
 func (s *Storage) registerStopOperInstTask() error {
+	if s.Scheduler == nil {
+		return errors.New("scheduler is not initialized")
+	}
+
 	err := s.Scheduler.RegisterTask(scheduler.NewTask(
 		syncOperationTask,
 		taskInterval,
