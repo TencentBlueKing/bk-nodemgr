@@ -4,6 +4,10 @@
 
 存放 bk-nodemgr 相关的接口文档, 包括 API 设计规范, API Swagger 文档等。
 
+### [integration](integration/deploy_policy/README.md)
+
+面向第三方平台接入开发者的接入指南，当前提供部署策略（deploy_policy）的 API-first 使用流程。
+
 ### [concepts](concepts)
 
 存放 bk-nodemgr 相关的概念文档。
