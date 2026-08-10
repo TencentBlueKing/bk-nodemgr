@@ -2,7 +2,7 @@
 
 This guide is for third-party platform developers who need to create and execute `deploy_policy` through the bk-nodemgr backend API. It explains the integration flow, the input that your platform must send, the immediate API output, and the machine-visible effect that the policy is intended to produce.
 
-For full field schema, use the Swagger reference: [deploy_policy.swagger.json](../../api/swagger/backend/api/v3/deploy_policy.swagger.json). For domain details, see [scope](../../concepts/deploy_policy/scope.md) and [spec](../../concepts/deploy_policy/spec.md).
+Use [deploy_policy.swagger.json](../../api/swagger/backend/api/v3/deploy_policy.swagger.json) for endpoint and response-envelope reference. Mode-specific `param` and `scope` fields are defined in [deploy_policy.proto](../../../proto/backend/api/v3/deploy_policy.proto). For domain details, see [scope](../../concepts/deploy_policy/scope.md) and [spec](../../concepts/deploy_policy/spec.md).
 
 ## Integration outcome
 
@@ -24,14 +24,16 @@ Use the mode documents for curl templates:
 | Ensure a generated plugin instance from a plugin package | [specify_plugin_pkg](specify_plugin_pkg.md)               |
 | Declare configuration for an installed plugin            | [specify_plugin_sub_config](specify_plugin_sub_config.md) |
 
-All modes follow the same API sequence:
+Creating a policy follows the same sequence for all three documented modes:
 
 1. Build `scopes` from your target selection.
 2. Build `specs` from the desired state.
 3. Call `POST /api/v3/deploy_policy/create`.
 4. Save `data.deploy_policy_id` from the create response.
-5. Call `POST /api/v3/deploy_policy/execute` with that `deploy_policy_id`.
-6. Save `data.trigger_id` from the execute response for follow-up through the task-observation capability exposed by your deployment.
+5. For `specify_plugin` or `specify_plugin_pkg`, call `POST /api/v3/deploy_policy/execute` with that `deploy_policy_id`.
+6. Save `data.trigger_id` from the execute response as the execution-task identifier.
+
+The current version does not support executing a policy that contains `specify_plugin_sub_config`. Its mode page documents the accepted declaration and this execution limitation.
 
 ## Integration flow
 
@@ -46,7 +48,7 @@ The public deploy-policy endpoints are:
 | List policies  | `POST /api/v3/deploy_policy/list`    | `data.total`, `data.items`             |
 | Update policy  | `POST /api/v3/deploy_policy/update`  | see Swagger for the response structure |
 
-Authentication headers, tenant selection, and gateway base URL depend on your deployment. Do not hard-code values from examples.
+`BK_NODEMGR_API_BASE` in the curl templates is a caller-supplied API base URL; the deploy-policy contract does not define common gateway or authentication headers.
 
 ### 2. Convert targets into scope
 
@@ -82,7 +84,7 @@ Details and curl: [specify_plugin_pkg](specify_plugin_pkg.md).
 
 Use `specify_plugin_sub_config` only to declare configuration for an already installed plugin. The documented behavior is config-only: it updates plugin configuration file content and does not install or upgrade the plugin version.
 
-The current public contract does not prove that `deploy_policy` execution automatically pushes this config to every target. Treat automatic config push as a version-specific capability that must be confirmed before relying on it.
+The current version accepts this spec in a policy declaration but does not support executing it through `deploy_policy`. Do not use the execute endpoint to push this configuration.
 
 Details and curl: [specify_plugin_sub_config](specify_plugin_sub_config.md).
 
@@ -112,7 +114,7 @@ Machine-visible effects depend on the spec mode:
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `specify_plugin`            | target has the named plugin at the requested version                                                                  |
 | `specify_plugin_pkg`        | target has a generated plugin instance based on the requested package and version                                     |
-| `specify_plugin_sub_config` | installed plugin has the declared configuration content, when config push is supported by the current execution chain |
+| `specify_plugin_sub_config` | configuration intent is stored in the policy; current `deploy_policy` execution does not materialize it on the machine |
 
 This guide does not define machine file paths, reload behavior, health-check commands, or timing guarantees because they are not part of the deploy-policy Swagger contract.
 
@@ -130,13 +132,15 @@ Treat these as integration boundaries:
 - Unsupported `scope` and target combinations are concept problems. Check [scope](../../concepts/deploy_policy/scope.md).
 - Unsupported `spec` semantics are desired-state problems. Check [spec](../../concepts/deploy_policy/spec.md).
 - A successful create or execute response is an immediate API result, not final machine verification.
-- `specify_plugin_sub_config` is config-only and requires an already installed plugin.
+- `specify_plugin_sub_config` is config-only, requires an already installed plugin, and is not executable through the current `deploy_policy` flow.
+- `specify_plugin_pkg_sub_config` appears in the concept document but is absent from the current proto, Swagger, and type contract; do not send it as a spec type.
 
 ## Contract references
 
 - [Scope concept](../../concepts/deploy_policy/scope.md)
 - [Spec concept](../../concepts/deploy_policy/spec.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
+- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)
 - [specify_plugin](specify_plugin.md)
 - [specify_plugin_pkg](specify_plugin_pkg.md)
 - [specify_plugin_sub_config](specify_plugin_sub_config.md)
