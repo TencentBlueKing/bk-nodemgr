@@ -1,96 +1,96 @@
-# deploy_policy integration
+# deploy_policy 接入指南
 
-This guide is for third-party platform developers who need to create and execute `deploy_policy` through the bk-nodemgr backend API. It explains the integration flow, the input that your platform must send, the immediate API output, and the machine-visible effect that the policy is intended to produce.
+本文面向需要通过 bk-nodemgr backend API 创建和执行 `deploy_policy` 的第三方平台开发者，说明接入流程、调用方需要提交的输入、API 即时输出，以及策略期望产生的机器侧可见效果。
 
-Use [deploy_policy.swagger.json](../../api/swagger/backend/api/v3/deploy_policy.swagger.json) for endpoint and response-envelope reference. Mode-specific `param` and `scope` fields are defined in [deploy_policy.proto](../../../proto/backend/api/v3/deploy_policy.proto). For domain details, see [scope](../../concepts/deploy_policy/scope.md) and [spec](../../concepts/deploy_policy/spec.md).
+endpoint 和响应 envelope 以 [deploy_policy.swagger.json](../../api/swagger/backend/api/v3/deploy_policy.swagger.json) 为准；各 mode 的 `param` 与 `scope` 字段以 [deploy_policy.proto](../../../proto/backend/api/v3/deploy_policy.proto) 为准。领域语义见 [scope](../../concepts/deploy_policy/scope.md) 与 [spec](../../concepts/deploy_policy/spec.md)。
 
-## Integration outcome
+## 接入结果
 
-`deploy_policy` describes a desired state for a group of targets. A third-party platform submits:
+`deploy_policy` 用来描述一组目标的 desired state。第三方平台提交：
 
-- `scope`: which machines or service instances are affected.
-- `spec`: what final plugin state those targets should reach.
-- `enabled`: whether the policy can be executed.
+- `scope`：哪些机器或 service instance 受影响。
+- `spec`：这些目标最终应达到的插件状态。
+- `enabled`：该策略是否允许执行。
 
-The API response confirms that the policy was created or that an execution task was launched. It does not, by itself, prove that every target has already reached the desired state.
+API 响应只确认策略已创建，或执行任务已发起；响应本身不证明所有目标已经达到 desired state。
 
-## API-first quickstart
+## API-first 快速接入
 
-Use the mode documents for curl templates:
+curl template 按 mode 拆分：
 
-| Goal                                                     | Read                                                      |
-| -------------------------------------------------------- | --------------------------------------------------------- |
-| Ensure a named plugin and version                        | [specify_plugin](specify_plugin.md)                       |
-| Ensure a generated plugin instance from a plugin package | [specify_plugin_pkg](specify_plugin_pkg.md)               |
-| Declare configuration for an installed plugin            | [specify_plugin_sub_config](specify_plugin_sub_config.md) |
+| 目标 | 阅读 |
+| --- | --- |
+| 确保指定名称和版本的插件存在 | [specify_plugin](specify_plugin.md) |
+| 基于插件包生成并确保插件实例存在 | [specify_plugin_pkg](specify_plugin_pkg.md) |
+| 声明已安装插件的配置内容 | [specify_plugin_sub_config](specify_plugin_sub_config.md) |
 
-Creating a policy follows the same sequence for all three documented modes:
+三个已文档化 mode 的创建流程一致：
 
-1. Build `scopes` from your target selection.
-2. Build `specs` from the desired state.
-3. Call `POST /api/v3/deploy_policy/create`.
-4. Save `data.deploy_policy_id` from the create response.
-5. For `specify_plugin` or `specify_plugin_pkg`, call `POST /api/v3/deploy_policy/execute` with that `deploy_policy_id`.
-6. Save `data.trigger_id` from the execute response as the execution-task identifier.
+1. 根据目标选择构造 `scopes`。
+2. 根据 desired state 构造 `specs`。
+3. 调用 `POST /api/v3/deploy_policy/create`。
+4. 从 create 响应保存 `data.deploy_policy_id`。
+5. 对 `specify_plugin` 或 `specify_plugin_pkg`，用该 `deploy_policy_id` 调用 `POST /api/v3/deploy_policy/execute`。
+6. 从 execute 响应保存 `data.trigger_id`，作为执行任务标识。
 
-The current version has no supported execution workflow for a policy that contains `specify_plugin_sub_config`. The execute API may return a `trigger_id` before the task later fails while processing the unsupported spec. Do not call execute for configuration delivery.
+当前版本没有支持包含 `specify_plugin_sub_config` 策略的执行流程。execute API 可能先返回 `trigger_id`，随后任务在处理 unsupported spec 时失败。不要用 execute 做配置下发。
 
-## Integration flow
+## 接入流程
 
-### 1. Establish API context
+### 1. 确认 API 上下文
 
-The public deploy-policy endpoints are:
+公开的 deploy-policy endpoints：
 
-| Step           | Method and path                      | Immediate output                       |
-| -------------- | ------------------------------------ | -------------------------------------- |
-| Create policy  | `POST /api/v3/deploy_policy/create`  | `data.deploy_policy_id`                |
-| Execute policy | `POST /api/v3/deploy_policy/execute` | `data.trigger_id`                      |
-| List policies  | `POST /api/v3/deploy_policy/list`    | `data.total`, `data.items`             |
-| Update policy  | `POST /api/v3/deploy_policy/update`  | see Swagger for the response structure |
+| 步骤 | Method and path | 即时输出 |
+| --- | --- | --- |
+| 创建策略 | `POST /api/v3/deploy_policy/create` | `data.deploy_policy_id` |
+| 执行策略 | `POST /api/v3/deploy_policy/execute` | `data.trigger_id` |
+| 查询策略 | `POST /api/v3/deploy_policy/list` | `data.total`, `data.items` |
+| 更新策略 | `POST /api/v3/deploy_policy/update` | 响应结构见 Swagger |
 
-`BK_NODEMGR_API_BASE` in the curl templates is a caller-supplied API base URL; the deploy-policy contract does not define common gateway or authentication headers.
+curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部署的 API base URL；deploy-policy contract 不定义统一 gateway 或认证 header。
 
-### 2. Convert targets into scope
+### 2. 把目标转换成 scope
 
-`scope` tells bk-nodemgr how to find target machines or service instances. The supported target result types are documented in [scope](../../concepts/deploy_policy/scope.md):
+`scope` 告诉 bk-nodemgr 如何定位目标机器或 service instance。支持的目标结果类型见 [scope](../../concepts/deploy_policy/scope.md)：
 
-| Scope type         | Can produce host targets | Can produce service_instance targets |
-| ------------------ | ------------------------ | ------------------------------------ |
-| `topo`             | yes                      | yes                                  |
-| `set_template`     | yes                      | yes                                  |
-| `service_template` | yes                      | yes                                  |
-| `instance`         | yes                      | yes                                  |
-| `dynamic_group`    | yes                      | no                                   |
+| Scope type | 可产生 host 目标 | 可产生 service_instance 目标 |
+| --- | --- | --- |
+| `topo` | yes | yes |
+| `set_template` | yes | yes |
+| `service_template` | yes | yes |
+| `instance` | yes | yes |
+| `dynamic_group` | yes | no |
 
-Use `host` granularity when the policy should apply directly to machines. Use `service_instance` granularity when the policy must distinguish module/service-instance placement.
+当策略直接作用于机器时使用 `host` granularity；当策略必须区分模块或 service instance 位置时使用 `service_instance` granularity。
 
-### 3. Declare desired state
+### 3. 声明 desired state
 
-`spec` defines the desired final state for every target selected by `scope`. The public concept document defines `spec` as the expected state that targets should reach.
+`spec` 定义每个 `scope` 选中目标的 desired final state。公开概念文档把 `spec` 定义为目标应达到的期望状态。
 
 #### specify_plugin
 
-Use `specify_plugin` when your platform wants target nodes to have a plugin with a specific name and version. The documented behavior is: if the plugin does not exist, install it; if the version differs, upgrade it.
+当平台希望目标节点拥有指定 `plugin_name` 与 `version` 的插件时，使用 `specify_plugin`。文档化行为是：插件不存在则安装，版本不匹配则升级。
 
-Details and curl: [specify_plugin](specify_plugin.md).
+详情和 curl template：[specify_plugin](specify_plugin.md)。
 
 #### specify_plugin_pkg
 
-Use `specify_plugin_pkg` when your platform provides a plugin package name and version. The documented behavior is: target nodes should have a plugin installed from the specified package and version. The plugin name is generated from the deploy policy ID and module ID.
+当平台提供插件包名称和版本时，使用 `specify_plugin_pkg`。文档化行为是：目标节点应拥有基于指定插件包和版本安装出的插件。插件名称由 deploy policy ID 和 module ID 生成。
 
-Details and curl: [specify_plugin_pkg](specify_plugin_pkg.md).
+详情和 curl template：[specify_plugin_pkg](specify_plugin_pkg.md)。
 
 #### specify_plugin_sub_config
 
-Use `specify_plugin_sub_config` only to declare configuration for an already installed plugin. The documented behavior is config-only: it updates plugin configuration file content and does not install or upgrade the plugin version.
+`specify_plugin_sub_config` 只用于声明已安装插件的配置。文档化行为是 config-only：更新插件配置文件内容，不安装或升级插件版本。
 
-The current version accepts this spec in a policy declaration but has no supported execution workflow for it. The execute API may return a `trigger_id` before the task later fails; do not use that response as evidence of configuration delivery.
+当前版本接受该 spec 写入策略声明，但没有支持它的执行流程。execute API 可能先返回 `trigger_id`，随后任务失败；不要把该响应作为配置已下发的证据。
 
-Details and curl: [specify_plugin_sub_config](specify_plugin_sub_config.md).
+详情和 curl template：[specify_plugin_sub_config](specify_plugin_sub_config.md)。
 
-### 4. Submit the policy
+### 4. 提交策略
 
-`POST /api/v3/deploy_policy/create` accepts:
+`POST /api/v3/deploy_policy/create` 接收：
 
 - `name`
 - `description`
@@ -98,49 +98,49 @@ Details and curl: [specify_plugin_sub_config](specify_plugin_sub_config.md).
 - `specs`
 - `scopes`
 
-The create response contains `data.deploy_policy_id`. Store it as the policy identity for later execution or update.
+create 响应包含 `data.deploy_policy_id`。把它保存为策略 identity，用于后续执行或更新。
 
-### 5. Interpret the immediate output
+### 5. 解读即时输出
 
-`POST /api/v3/deploy_policy/execute` accepts `deploy_policy_id` and returns `data.trigger_id`.
+`POST /api/v3/deploy_policy/execute` 接收 `deploy_policy_id`，返回 `data.trigger_id`。
 
-`trigger_id` means the platform launched an execution task. It is not the same as final plugin health, final process status, or guaranteed machine convergence.
+`trigger_id` 表示平台已发起执行任务。它不等于最终插件健康状态、最终进程状态，也不保证机器已经收敛。
 
-### 6. Observe the eventual artifact
+### 6. 观察最终产物
 
-Machine-visible effects depend on the spec mode:
+机器侧可见效果取决于 spec mode：
 
-| Mode                        | Intended eventual effect                                                                                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `specify_plugin`            | target has the named plugin at the requested version                                                                  |
-| `specify_plugin_pkg`        | target has a generated plugin instance based on the requested package and version                                     |
-| `specify_plugin_sub_config` | configuration intent is stored in the policy; current `deploy_policy` execution does not materialize it on the machine |
+| Mode | 期望的最终效果 |
+| --- | --- |
+| `specify_plugin` | 目标拥有指定名称和版本的插件 |
+| `specify_plugin_pkg` | 目标拥有基于指定插件包和版本生成的插件实例 |
+| `specify_plugin_sub_config` | 配置意图被保存到策略中；当前 `deploy_policy` 执行流程不会把它物化到机器侧 |
 
-This guide does not define machine file paths, reload behavior, health-check commands, or timing guarantees because they are not part of the deploy-policy Swagger contract.
+本文不定义机器文件路径、reload 行为、health-check 命令或时序保证，因为这些都不是 deploy-policy Swagger contract 的一部分。
 
-### 7. Repeat or revise the declaration
+### 7. 重复或修订声明
 
-The concept documentation describes desired final states, not request de-duplication or retry keys. Do not assume a generic idempotency key, retry safety, replacement behavior, or rollback behavior unless your deployment exposes a separate contract for it.
+概念文档描述的是 desired final state，不描述请求去重或 retry key。除非你的部署暴露了单独 contract，否则不要假设通用 idempotency key、retry safety、replacement behavior 或 rollback behavior。
 
-Mode-specific repeat behavior is documented on each mode page only when the existing concept documents support it.
+只有现有概念文档支撑时，mode 页面才说明该 mode 的 repeat behavior。
 
-### 8. Handle failures and limits
+### 8. 处理失败与边界
 
-Treat these as integration boundaries:
+以下内容属于接入边界：
 
-- Invalid request shape or unsupported fields are API contract problems. Check the Swagger reference.
-- Unsupported `scope` and target combinations are concept problems. Check [scope](../../concepts/deploy_policy/scope.md).
-- Unsupported `spec` semantics are desired-state problems. Check [spec](../../concepts/deploy_policy/spec.md).
-- A successful create or execute response is an immediate API result, not final machine verification.
-- `specify_plugin_sub_config` is config-only, requires an already installed plugin, and is not executable through the current `deploy_policy` flow.
-- `specify_plugin_pkg_sub_config` appears in the concept document but is absent from the current proto, Swagger, and type contract; do not send it as a spec type.
+- 请求结构错误或 unsupported fields 是 API contract 问题，检查 Swagger reference。
+- Unsupported `scope` 和目标组合是概念问题，检查 [scope](../../concepts/deploy_policy/scope.md)。
+- Unsupported `spec` 语义是 desired-state 问题，检查 [spec](../../concepts/deploy_policy/spec.md)。
+- create 或 execute 成功响应是即时 API 结果，不是最终机器状态验证。
+- `specify_plugin_sub_config` 是 config-only，要求插件已安装，且当前 `deploy_policy` 流程不可执行。
+- `specify_plugin_pkg_sub_config` 出现在概念文档中，但当前 proto、Swagger 和 type contract 均没有该字段；不要把它作为 spec type 发送。
 
-## Contract references
+## Contract 参考
 
-- [Scope concept](../../concepts/deploy_policy/scope.md)
-- [Spec concept](../../concepts/deploy_policy/spec.md)
+- [Scope 概念](../../concepts/deploy_policy/scope.md)
+- [Spec 概念](../../concepts/deploy_policy/spec.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
-- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)
+- [Proto variant 定义](../../../proto/backend/api/v3/deploy_policy.proto)
 - [specify_plugin](specify_plugin.md)
 - [specify_plugin_pkg](specify_plugin_pkg.md)
 - [specify_plugin_sub_config](specify_plugin_sub_config.md)
