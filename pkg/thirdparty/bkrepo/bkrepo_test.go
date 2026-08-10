@@ -99,8 +99,8 @@ func runClientRequestsRespectTenantMode(t *testing.T, mode tenant.Mode) {
 	effectiveProjectID := testProjectID
 	wantTenantID := ""
 	if mode == tenant.ModeMultiple {
-		effectiveProjectID = "system." + testProjectID
-		wantTenantID = "system"
+		effectiveProjectID = tenant.SystemTenantID + "." + testProjectID
+		wantTenantID = tenant.SystemTenantID
 	}
 
 	requests := []bkrepoRequestExpectation{

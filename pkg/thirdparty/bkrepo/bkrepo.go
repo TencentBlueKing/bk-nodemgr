@@ -67,7 +67,7 @@ func (c *cli) getCommonHeader() http.Header {
 	header := http.Header{}
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
 	if tenant.GetMode() == tenant.ModeMultiple {
-		header.Set(restheader.BKTenantIDKey, bkrepoTenantIDSystem)
+		header.Set(restheader.BKTenantIDKey, tenant.SystemTenantID)
 	}
 
 	header.Set(HeaderKeyAuth, auth{username: c.config.Username, password: c.config.Password}.GetHeader())
@@ -77,7 +77,7 @@ func (c *cli) getCommonHeader() http.Header {
 
 func (c *cli) effectiveProjectID() string {
 	if tenant.GetMode() == tenant.ModeMultiple {
-		return fmt.Sprintf("%s.%s", bkrepoTenantIDSystem, c.config.ProjectID)
+		return fmt.Sprintf("%s.%s", tenant.SystemTenantID, c.config.ProjectID)
 	}
 
 	return c.config.ProjectID

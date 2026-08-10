@@ -13,6 +13,4 @@ package bkrepo
 const (
 	// HeaderKeyAuth is authorization header key for standard apis.
 	HeaderKeyAuth = "Authorization"
-
-	bkrepoTenantIDSystem = "system"
 )
