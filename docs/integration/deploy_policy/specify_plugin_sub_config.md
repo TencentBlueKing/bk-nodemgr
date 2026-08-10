@@ -26,10 +26,14 @@ Each `config_files_detail` item follows the proto-documented shape:
 
 ## Minimal payload and curl template
 
-The example uses `instance` scope with `host` granularity. Set the shell variables first, and append the authentication and tenant headers required by your deployment.
+The example uses `instance` scope with `host` granularity. It requires `curl` and `jq`. Set the deployment-specific API base URL and target identifiers first.
 
 ```bash
-curl -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/create" \
+export BK_NODEMGR_API_BASE="https://bk-nodemgr.example.com"
+export BK_BIZ_ID=2
+export BK_HOST_ID=10001
+
+CREATE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/create" \
   -H "Content-Type: application/json" \
   -d @- <<EOF
   {
@@ -66,15 +70,12 @@ curl -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/create" \
     ]
   }
 EOF
+)"
+
+DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-Create returns `data.deploy_policy_id`. Execute the policy with that ID only after confirming your current bk-nodemgr version supports automatic config push for this mode:
-
-```bash
-curl -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
-  -H "Content-Type: application/json" \
-  -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}"
-```
+Create returns `data.deploy_policy_id`, but the current version does not support executing a policy that contains this spec. Keep the ID for policy lookup or update; do not send it to the execute endpoint for configuration delivery.
 
 ## System interpretation
 
@@ -86,15 +87,11 @@ It does not declare plugin installation, plugin package selection, or plugin ver
 
 Create returns a response whose `data.deploy_policy_id` identifies the created policy.
 
-Execute returns a response whose `data.trigger_id` identifies the launched execution task.
-
-These immediate outputs are not proof that configuration has been pushed to the target, written to the plugin, reloaded, or made active.
+There is no successful execute output for this mode in the current version. Creating the policy does not prove that configuration has been pushed to the target, written to the plugin, reloaded, or made active.
 
 ## Eventual or machine-visible artifact
 
-The intended artifact is installed-plugin configuration content matching `config_files_detail` when the current execution chain supports applying this spec.
-
-The current public contract does not confirm automatic configuration push through `deploy_policy` for this mode. Do not promise or depend on machine-side configuration materialization until your target version exposes that behavior as a supported contract.
+The current `deploy_policy` execution flow does not materialize this declaration as a machine-side configuration artifact.
 
 The deploy-policy contract also does not define file paths, merge-vs-replace behavior, reload behavior, health checks, or timing guarantees.
 
@@ -106,11 +103,10 @@ The public contract does not define whether repeated declarations merge, replace
 
 ## Failure cases and limits
 
-- `plugin_name` is required by the type validation.
-- The current type validation does not require `config_files_detail`, but a file-content declaration needs at least one meaningful item.
+- Request validation requires `plugin_name`.
+- Request validation does not require `config_files_detail`, but a file-content declaration needs at least one meaningful item.
 - The target plugin must already be installed; this mode does not install or upgrade it.
-- Automatic config push through `deploy_policy` must be confirmed for the target bk-nodemgr version.
-- A successful `execute` response only means an execution task was launched, not that configuration is active on the machine.
+- The current version does not support executing this spec through `deploy_policy`.
 
 ## Contract references
 
@@ -118,3 +114,4 @@ The public contract does not define whether repeated declarations merge, replace
 - [Spec concept](../../concepts/deploy_policy/spec.md)
 - [Scope concept](../../concepts/deploy_policy/scope.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
+- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)

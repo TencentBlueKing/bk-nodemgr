@@ -20,10 +20,14 @@ Use `service_instance` scope when your integration needs the generated plugin id
 
 ## Minimal payload and curl template
 
-The example uses `instance` scope with `service_instance` granularity. Set the shell variables first, and append the authentication and tenant headers required by your deployment.
+The example uses `instance` scope with `service_instance` granularity. It requires `curl` and `jq`. Set the deployment-specific API base URL and target identifiers first.
 
 ```bash
-curl -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/create" \
+export BK_NODEMGR_API_BASE="https://bk-nodemgr.example.com"
+export BK_BIZ_ID=2
+export BK_SERVICE_INSTANCE_ID=30001
+
+CREATE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/create" \
   -H "Content-Type: application/json" \
   -d @- <<EOF
   {
@@ -54,14 +58,19 @@ curl -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/create" \
     ]
   }
 EOF
+)"
+
+DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-Create returns `data.deploy_policy_id`. Execute the policy with that ID:
+Execute the policy with the returned ID and capture `data.trigger_id`:
 
 ```bash
-curl -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
+EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
   -H "Content-Type: application/json" \
-  -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}"
+  -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}")"
+
+TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 ```
 
 ## System interpretation
@@ -92,8 +101,8 @@ The public contract does not define an idempotency key, retry window, generated-
 
 ## Failure cases and limits
 
-- `plugin_pkg_name` is required by the type validation.
-- `version` is required by the type validation.
+- Request validation requires `plugin_pkg_name`.
+- Request validation requires `version`.
 - Invalid `scope` prevents target resolution.
 - The generated plugin name is a platform-owned result; callers should not derive or depend on an undocumented formula.
 - A successful `execute` response only means an execution task was launched.
@@ -104,3 +113,4 @@ The public contract does not define an idempotency key, retry window, generated-
 - [Spec concept](../../concepts/deploy_policy/spec.md)
 - [Scope concept](../../concepts/deploy_policy/scope.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
+- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)
