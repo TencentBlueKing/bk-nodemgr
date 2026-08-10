@@ -129,6 +129,8 @@ config:
     pluginSlotToken: ""                     # 插件slot-token
 ```
 
+> BKRepo 多租户说明：`tenantMode=multiple` 时，节点管理访问 BKRepo 固定使用 `system` 租户；`repo.projectID` 仍填写原始项目 ID，例如填写 `blueking` 时实际请求项目为 `system.blueking`，不要在配置中预先填写 `system.` 前缀。
+
 ### Application配置
 
 ```yaml
