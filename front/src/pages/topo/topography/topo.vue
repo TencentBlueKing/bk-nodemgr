@@ -173,16 +173,15 @@ import {
   register,
 } from '@antv/g6';
 
-import AccessPointNode from './graph-plugin/access-point-node';
 import { NodeStatus, NodeType, UnitType } from './graph-plugin/config';
+import AccessPointNode from './graph-plugin/access-point-node';
+import CustomEdge from './graph-plugin/customEdge';
+import HorizontalHierarchyLayout from './graph-plugin/HorizontalHierarchyLayout';
+import NetworkAreaNode from './graph-plugin/net-work-area-node';
+import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 import CustomToolbar from './graph-plugin/custom-toolbar.vue';
 import { textTooltip } from './graph-plugin/text-tooltip';
 import { edgeTooltip } from './graph-plugin/edge-tooltip';
-
-import HorizontalHierarchyLayout from './graph-plugin/HorizontalHierarchyLayout';
-import CustomEdge from './graph-plugin/customEdge';
-import NetworkAreaNode from './graph-plugin/net-work-area-node';
-import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 
 import useMinLengthRef from '@/composables/use-min-length-ref';
 import useAuthLock from '@/composables/use-auth-lock';
@@ -370,7 +369,22 @@ const isLoading = ref(false);
 const workAreaPrefix = 'workArea-';
 const workUnitPrefix = 'workUnit-';
 
-function handleSelectChange() {
+// 加载缺失的 area unit 数据（增量，不重复拉取已加载的）
+const loadMissingAreaUnits = async () => {
+  // 提取数字 area id（包括 0=Default Area）。'all' 是特殊全选标记，跳过。
+  const selectedIds = regionList.value
+    .map(v => (v === 'all' ? NaN : Number(v)))
+    .filter(id => !isNaN(id));
+  const missingIds = selectedIds.filter(id => !topoStore.loadedAreaIds.has(id));
+  if (missingIds.length === 0) return;
+  const authorizedIds = authStore.authorizedLoaded
+    ? authStore.getAuthorizedResourceIds('networkunit_view')
+    : null;  // null：store 内部走 allAuthorized 拉数据，UI 权限仍由 has_unit_auth 独立判断
+  await handleFetchAllWorkUnit(missingIds, authorizedIds).catch(() => {});
+};
+
+async function handleSelectChange() {
+  await loadMissingAreaUnits();
   filterAreaNodes();
 }
 
@@ -1067,16 +1081,41 @@ const generateEdgesFromUnitData = () => {
 
 // 初始化区域数据
 const initAreaData = async () => {
-  // 先获取区域列表（用于下拉）
-  await handleFetchTopoWorkareaList().catch(() => {});
-
-  // 获取有权限的单元 ID 列表，传给 handleFetchAllWorkUnit 以区分接入点接口
-  // null 表示全部有权限（isAny），[] 表示全部无权限
+  // 获取有权限的单元 ID 列表，传给 handleFetchAllWorkUnit 以区分接入点
+  // null → store 内部走 allAuthorized=true，只为"拉取 graph info 时不遗漏任何 unit"，确保数据完整
+  // 不影响 UI 权限判断：渲染时 has_unit_auth 仍由 authStore.hasAuthorizedResource 独立控制
   const authorizedIds = authStore.authorizedLoaded
     ? authStore.getAuthorizedResourceIds('networkunit_view')
-    : [];
+    : null;
 
-  await handleFetchAllWorkUnit([], authorizedIds).catch(() => {});
+  // 判断是否全选（['all']）或选中了具体 area
+  const isAllSelected = regionList.value.length === 1 && regionList.value[0] === 'all';
+  // 提取数字 area id（包括 0=Default Area）。'all' 是特殊全选标记，全选时传空数组给 store 让后端不过滤。
+  const selectedAreaIds = isAllSelected
+    ? []
+    : regionList.value
+      .map(v => (v === 'all' ? NaN : Number(v)))
+      .filter(id => !isNaN(id));
+
+  // 并行：区域列表 + 选中区域的 unit 数据
+  // 首次加载时无论选了什么都调一次（['all'] 走空数组让 store 内部走全量分支）
+  await Promise.all([
+    handleFetchTopoWorkareaList().catch(() => {}),
+    isAllSelected || selectedAreaIds.length > 0
+      ? handleFetchAllWorkUnit(selectedAreaIds, authorizedIds).catch(() => {})
+      : Promise.resolve(),
+  ]);
+
+  // 补齐依赖图中的上游 area（递归，避免链接跨 area 时 AP 找不到对应 area）
+  // areaDependencyMap 是基于已加载 workUnitByArea 推导的，需要补全依赖项才能渲染跨 area 连线
+  const deps = topoStore.areaDependencyMap;
+  const loaded = topoStore.loadedAreaIds;
+  const missingDeps = [...deps.values()]
+    .flat()
+    .filter(id => !loaded.has(id));
+  if (missingDeps.length > 0) {
+    await handleFetchAllWorkUnit(missingDeps, authorizedIds).catch(() => {});
+  }
 
   const defaultArea = topoStore.allWorkareaList.find(item => item.bk_networkarea_id === 0);
   defaultNetWorkarea.value = defaultArea
@@ -1203,13 +1242,15 @@ function filterAreaNodes() {
   handleInitTopo();
 }
 
-// 注册Graph插件
-function handleRegistryCategory() {
+// 模块级防重：G6 register 只在首次 import 时执行，组件重启不会重复注册
+let extensionsRegistered = false;
+if (!extensionsRegistered) {
   register(ExtensionCategory.NODE, NodeType.NET_WORK_AREA, NetworkAreaNode);
   register(ExtensionCategory.NODE, NodeType.NET_WORK_UNIT, NetWorkUnitNode);
   register(ExtensionCategory.NODE, NodeType.ACCESS_POINT, AccessPointNode);
   register(ExtensionCategory.EDGE, 'custom-edge', CustomEdge);
   register(ExtensionCategory.LAYOUT, 'horizontal-hierarchy-layout', HorizontalHierarchyLayout);
+  extensionsRegistered = true;
 }
 
 // 窗口大小变化处理
@@ -1243,8 +1284,6 @@ onMounted(async () => {
     regionList.value = [0];
   }
   try {
-    // 注册插件
-    handleRegistryCategory();
     // 权限检查与数据加载无依赖，并行执行
     await Promise.all([
       checkAreaPermission().catch(() => {}),
