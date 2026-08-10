@@ -1,0 +1,9 @@
+name: bk-nodemgr
+owner: TencentBlueKing
+primary_language: Go
+secondary_languages:
+  - Vue
+  - TypeScript
+  - Go Template
+  - Shell
+  - Python
