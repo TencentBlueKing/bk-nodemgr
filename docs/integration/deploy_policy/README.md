@@ -33,7 +33,7 @@ Creating a policy follows the same sequence for all three documented modes:
 5. For `specify_plugin` or `specify_plugin_pkg`, call `POST /api/v3/deploy_policy/execute` with that `deploy_policy_id`.
 6. Save `data.trigger_id` from the execute response as the execution-task identifier.
 
-The current version does not support executing a policy that contains `specify_plugin_sub_config`. Its mode page documents the accepted declaration and this execution limitation.
+The current version has no supported execution workflow for a policy that contains `specify_plugin_sub_config`. The execute API may return a `trigger_id` before the task later fails while processing the unsupported spec. Do not call execute for configuration delivery.
 
 ## Integration flow
 
@@ -84,7 +84,7 @@ Details and curl: [specify_plugin_pkg](specify_plugin_pkg.md).
 
 Use `specify_plugin_sub_config` only to declare configuration for an already installed plugin. The documented behavior is config-only: it updates plugin configuration file content and does not install or upgrade the plugin version.
 
-The current version accepts this spec in a policy declaration but does not support executing it through `deploy_policy`. Do not use the execute endpoint to push this configuration.
+The current version accepts this spec in a policy declaration but has no supported execution workflow for it. The execute API may return a `trigger_id` before the task later fails; do not use that response as evidence of configuration delivery.
 
 Details and curl: [specify_plugin_sub_config](specify_plugin_sub_config.md).
 

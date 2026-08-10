@@ -87,7 +87,7 @@ It does not declare plugin installation, plugin package selection, or plugin ver
 
 Create returns a response whose `data.deploy_policy_id` identifies the created policy.
 
-There is no successful execute output for this mode in the current version. Creating the policy does not prove that configuration has been pushed to the target, written to the plugin, reloaded, or made active.
+There is no supported execution result for this mode in the current version. If the execute endpoint is called anyway, it may return `data.trigger_id` before the task later fails while processing the unsupported spec. Creating the policy or receiving that ID does not prove that configuration has been pushed to the target, written to the plugin, reloaded, or made active.
 
 ## Eventual or machine-visible artifact
 
