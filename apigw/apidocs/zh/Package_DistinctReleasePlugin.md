@@ -1,6 +1,6 @@
 ### 描述
 
-- 该接口提供版本：v3.0.1-alpha.66+。
+- 该接口提供版本：v3.0.1-alpha.67+。
 - 该接口所需权限：无。
 - 该接口功能描述：获取插件包可选的操作系统类型、CPU 架构、插件包名称和版本号的去重列表。
 
@@ -26,7 +26,7 @@ POST /api/v3/package/release/plugin/distinct
 | enabled    | bool array   | 否   | 是否启用过滤条件                 |
 | name       | string array | 否   | 插件包名称过滤条件               |
 | file_name  | string array | 否   | 插件包文件名过滤条件             |
-| is_visible | bool array   | 否   | 是否在前端可见的过滤条件         |
+| is_hidden  | bool array   | 否   | 是否隐藏过滤条件                 |
 
 #### exact_include_conditions.platform[n]
 

@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.18+.
+- API Version: v3.0.1-alpha.67+.
 - Required Permission: None.
 - Function: Get distinct lists of available OS types, CPU architectures, package names, and versions for proxy release packages.
 
@@ -10,38 +10,39 @@ POST /api/v3/package/release/proxy/distinct
 
 ### Input Parameters
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| generation | int64 | Yes | Package generation (enum values: 2) |
-| exact_include_conditions | object | No | Exact filter conditions |
-| distinct_field | object | No | Specifies which fields to deduplicate |
+| Parameter Name           | Parameter Type | Required | Description                           |
+| ------------------------ | -------------- | -------- | ------------------------------------- |
+| generation               | int64          | Yes      | Package generation (enum values: 2)   |
+| exact_include_conditions | object         | No       | Exact filter conditions               |
+| distinct_field           | object         | No       | Specifies which fields to deduplicate |
 
 #### exact_include_conditions
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| platform | object array | No | Platform filter conditions (os_type + cpu_arch) |
-| version | string array | No | Version filter conditions |
-| as_default | bool array | No | Filter by whether it is the default version |
-| enabled | bool array | No | Filter by whether it is enabled |
-| name | string array | No | Package name filter conditions |
-| file_name | string array | No | Package file name filter conditions |
+| Parameter Name | Parameter Type | Required | Description                                     |
+| -------------- | -------------- | -------- | ----------------------------------------------- |
+| platform       | object array   | No       | Platform filter conditions (os_type + cpu_arch) |
+| version        | string array   | No       | Version filter conditions                       |
+| as_default     | bool array     | No       | Filter by whether it is the default version     |
+| enabled        | bool array     | No       | Filter by whether it is enabled                 |
+| name           | string array   | No       | Package name filter conditions                  |
+| file_name      | string array   | No       | Package file name filter conditions             |
+| is_hidden      | bool array     | No       | Hidden state filter                             |
 
 #### exact_include_conditions.platform[n]
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (forms a supported platform combination with cpu_arch) |
-| cpu_arch | string | Yes | CPU architecture (forms a supported platform combination with os_type) |
+| Parameter Name | Parameter Type | Required | Description                                                                  |
+| -------------- | -------------- | -------- | ---------------------------------------------------------------------------- |
+| os_type        | string         | Yes      | Operating system type (forms a supported platform combination with cpu_arch) |
+| cpu_arch       | string         | Yes      | CPU architecture (forms a supported platform combination with os_type)       |
 
 #### distinct_field
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| os_type | bool | No | Whether to deduplicate OS types, default false |
-| cpu_arch | bool | No | Whether to deduplicate CPU architectures, default false |
-| name | bool | No | Whether to deduplicate package names, default false |
-| version | bool | No | Whether to deduplicate versions, default false |
+| Parameter Name | Parameter Type | Required | Description                                             |
+| -------------- | -------------- | -------- | ------------------------------------------------------- |
+| os_type        | bool           | No       | Whether to deduplicate OS types, default false          |
+| cpu_arch       | bool           | No       | Whether to deduplicate CPU architectures, default false |
+| name           | bool           | No       | Whether to deduplicate package names, default false     |
+| version        | bool           | No       | Whether to deduplicate versions, default false          |
 
 ### Request Example
 
@@ -77,18 +78,18 @@ Get all available OS types, CPU architectures, package names, and versions for g
 
 ### Response Parameters
 
-| Parameter Name | Parameter Type | Description |
-|---------------|----------------|-------------|
-| code | int32 | Status code, 0 means success |
-| message | string | Request message |
-| request_id | string | Request ID |
-| data | object | Response data |
+| Parameter Name | Parameter Type | Description                  |
+| -------------- | -------------- | ---------------------------- |
+| code           | int32          | Status code, 0 means success |
+| message        | string         | Request message              |
+| request_id     | string         | Request ID                   |
+| data           | object         | Response data                |
 
 #### data
 
-| Parameter Name | Parameter Type | Description |
-|---------------|----------------|-------------|
-| os_type | string array | Deduplicated OS type list derived from matching data |
-| cpu_arch | string array | Deduplicated CPU architecture list derived from matching data |
-| name | string array | Deduplicated package name list derived from matching data |
-| version | string array | Deduplicated version list derived from matching data |
+| Parameter Name | Parameter Type | Description                                                   |
+| -------------- | -------------- | ------------------------------------------------------------- |
+| os_type        | string array   | Deduplicated OS type list derived from matching data          |
+| cpu_arch       | string array   | Deduplicated CPU architecture list derived from matching data |
+| name           | string array   | Deduplicated package name list derived from matching data     |
+| version        | string array   | Deduplicated version list derived from matching data          |

@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.14+.
+- API Version: v3.0.1-alpha.67+.
 - Required Permission: package_manage (Manage Package).
 - Function: Set labels in bulk for proxy packages that match the conditions.
 
@@ -10,29 +10,30 @@ POST /api/v3/package/release/proxy/set_labels_many
 
 ### Input Parameters
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| generation | int64 | Yes | Package generation (enum value: 2) |
-| exact_include_conditions | object | Yes | Exact-match conditions |
-| labels | string array | Yes | Labels to set |
+| Parameter Name           | Parameter Type | Required | Description                        |
+| ------------------------ | -------------- | -------- | ---------------------------------- |
+| generation               | int64          | Yes      | Package generation (enum value: 2) |
+| exact_include_conditions | object         | Yes      | Exact-match conditions             |
+| labels                   | string array   | Yes      | Labels to set                      |
 
 #### exact_include_conditions
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| platform | object array | No | Platform list |
-| version | string array | No | Version list |
-| as_default | bool array | No | Whether the package is a default version |
-| enabled | bool array | No | Whether the package is enabled |
-| name | string array | No | Package name list |
-| file_name | string array | No | File name list |
+| Parameter Name | Parameter Type | Required | Description                              |
+| -------------- | -------------- | -------- | ---------------------------------------- |
+| platform       | object array   | No       | Platform list                            |
+| version        | string array   | No       | Version list                             |
+| as_default     | bool array     | No       | Whether the package is a default version |
+| enabled        | bool array     | No       | Whether the package is enabled           |
+| name           | string array   | No       | Package name list                        |
+| file_name      | string array   | No       | File name list                           |
+| is_hidden      | bool array     | No       | Whether the package is hidden            |
 
 #### platform
 
-| Parameter Name | Parameter Type | Required | Description |
-|---------------|----------------|----------|-------------|
-| os_type | string | Yes | Operating system type (enum values: linux, windows, darwin) |
-| cpu_arch | string | Yes | CPU architecture (enum values: 386, arm, arm64, amd64) |
+| Parameter Name | Parameter Type | Required | Description                                                 |
+| -------------- | -------------- | -------- | ----------------------------------------------------------- |
+| os_type        | string         | Yes      | Operating system type (enum values: linux, windows, darwin) |
+| cpu_arch       | string         | Yes      | CPU architecture (enum values: 386, arm, arm64, amd64)      |
 
 ### Request Example
 
@@ -40,7 +41,7 @@ POST /api/v3/package/release/proxy/set_labels_many
 {
   "generation": 2,
   "exact_include_conditions": {
-    "platform": [{"os_type": "linux", "cpu_arch": "amd64"}],
+    "platform": [{ "os_type": "linux", "cpu_arch": "amd64" }],
     "version": ["2.1.6-rc.5"]
   },
   "labels": ["stable"]
@@ -50,14 +51,14 @@ POST /api/v3/package/release/proxy/set_labels_many
 ### Response Example
 
 ```json
-{"code": 0, "message": "ok", "request_id": "req-1234567890", "data": {}}
+{ "code": 0, "message": "ok", "request_id": "req-1234567890", "data": {} }
 ```
 
 ### Response Parameters
 
-| Parameter Name | Parameter Type | Description |
-|---------------|----------------|-------------|
-| code | int32 | Status code, where 0 indicates success |
-| message | string | Request message |
-| request_id | string | Request ID |
-| data | object | Empty object indicating a successful operation |
+| Parameter Name | Parameter Type | Description                                    |
+| -------------- | -------------- | ---------------------------------------------- |
+| code           | int32          | Status code, where 0 indicates success         |
+| message        | string         | Request message                                |
+| request_id     | string         | Request ID                                     |
+| data           | object         | Empty object indicating a successful operation |

@@ -1,6 +1,6 @@
 ### Description
 
-- API Version: v3.0.1-alpha.66+.
+- API Version: v3.0.1-alpha.67+.
 - Required Permission: None.
 - Function: Get distinct lists of available OS types, CPU architectures, plugin package names, and versions for plugin packages.
 
@@ -26,7 +26,7 @@ POST /api/v3/package/release/plugin/distinct
 | enabled        | bool array     | No       | Filter by whether it is enabled                 |
 | name           | string array   | No       | Plugin package name filter conditions           |
 | file_name      | string array   | No       | Plugin package file name filter conditions      |
-| is_visible     | bool array     | No       | Filter by whether it is visible in the frontend |
+| is_hidden      | bool array     | No       | Hidden state filter                             |
 
 #### exact_include_conditions.platform[n]
 
