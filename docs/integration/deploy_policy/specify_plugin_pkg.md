@@ -77,7 +77,13 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 平台会把该 spec 解释为插件包 desired state：每个解析出的目标都应拥有从 `plugin_pkg_name` 生成、版本为 `version` 的插件实例。
 
-概念文档说明插件名称由 deploy policy ID 和 module ID 生成，但未定义第三方平台应自行实现的公开公式。
+当前实现使用以下公式生成插件名称：
+
+```text
+<plugin_name> = <plugin_pkg_name>_<deploy_policy_id>_<module_id>
+```
+
+插件 group 为十进制 `<deploy_policy_id>`。同一个 deploy policy 在不同 module 下会生成不同 `plugin_name`。
 
 ## 即时输出
 
@@ -89,9 +95,28 @@ execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
 
 ## 最终或机器侧可见产物
 
-期望的最终产物是：目标节点上存在基于请求插件包名称和版本生成的插件实例。
+将生成名称和 group 代入 plugin home 公式后，目标目录是：
 
-公开 deploy-policy contract 不定义机器路径、包缓存路径、生成文件名、reload 行为或 health check。
+```text
+<base_deploy_dir>/<deploy_env>/plugin/<deploy_policy_id>/<plugin_pkg_name>_<deploy_policy_id>_<module_id>/
+```
+
+Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节点的 plugin deployment 配置，可被 Network Unit 的 custom deploy config 覆盖；`<deploy_env>` 来自当前部署环境。
+
+执行成功后可以在目标机核对：
+
+| 产物 | 路径 |
+| --- | --- |
+| 插件 package 内容 | `<plugin_home>/`；archive 内部相对路径保持不变 |
+| 配置根目录 | `<plugin_home>/etc/` |
+| 主配置文件 | `<plugin_home>/<config_template.file_path>/<config_template.name>` |
+| 运行目录 | `<plugin_home>/run/` |
+| PID 文件 | `<plugin_home>/run/<plugin_pkg_name>.pid` |
+| 数据目录 | `<plugin_home>/data/` |
+| 默认日志目录（Unix） | `/var/log/<deploy_env>/plugin/` |
+| 默认日志目录（Windows） | `C:\<deploy_env>\logs\plugin\` |
+
+进程名为 `plugin_pkg_name`；Windows 会追加 `.exe`。安装器会把 release package 解压到 `<plugin_home>/`，并把渲染后的配置复制到 `<plugin_home>/etc/`。
 
 ## 重复行为
 
@@ -104,8 +129,9 @@ execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
 - 请求校验要求提供 `plugin_pkg_name`。
 - 请求校验要求提供 `version`。
 - 无效 `scope` 会阻止目标解析。
-- 生成插件名称是平台拥有的结果；调用方不应推导或依赖未文档化公式。
+- 生成 `plugin_name` 需要 `module_id`；因此该 mode 应使用能够产生 `service_instance` target 的 scope。
 - 成功的 `execute` 响应只表示执行任务已发起。
+- 机器侧验收应检查上述生成目录、请求版本和目标进程状态，不能只检查 `trigger_id`。
 
 ## Contract 参考
 

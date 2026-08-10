@@ -77,7 +77,7 @@ TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 
 平台会把该 spec 解释为插件 desired state：`scopes` 选中的每个目标都应拥有 `plugin_name`，且版本为 `version`。
 
-根据概念文档，插件缺失会触发安装，版本不匹配会触发升级。公开 contract 不描述具体包查找、传输、重启或 health-check 步骤。
+根据概念文档，插件缺失会触发安装，版本不匹配会触发升级。当前执行链会按 generation、OS、arch、`plugin_pkg_name` 和 `version` 选择 release package，渲染配置，传输 package，执行安装器并启动目标进程。
 
 ## 即时输出
 
@@ -89,9 +89,28 @@ execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
 
 ## 最终或机器侧可见产物
 
-期望的最终产物是：目标节点拥有指定名称的插件，且版本为请求中的版本。
+当前实现从插件注册信息取得 `plugin_group` 和 `plugin_pkg_name`，再按以下公式生成机器目录：
 
-deploy-policy API contract 不定义公开的机器路径、进程名称、reload 行为或 health-check 命令。除非你的部署暴露了其他文档化 contract，否则不要让接入逻辑依赖这些细节。
+```text
+<plugin_home> = <base_deploy_dir>/<deploy_env>/plugin/<plugin_group>/<plugin_name>
+```
+
+Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节点的 plugin deployment 配置，可被 Network Unit 的 custom deploy config 覆盖；`<deploy_env>` 来自当前部署环境。
+
+执行成功后可以在目标机核对：
+
+| 产物 | 路径 |
+| --- | --- |
+| 插件 package 内容 | `<plugin_home>/`；archive 内部相对路径保持不变 |
+| 配置根目录 | `<plugin_home>/etc/` |
+| 主配置文件 | `<plugin_home>/<config_template.file_path>/<config_template.name>` |
+| 运行目录 | `<plugin_home>/run/` |
+| PID 文件 | `<plugin_home>/run/<plugin_pkg_name>.pid` |
+| 数据目录 | `<plugin_home>/data/` |
+| 默认日志目录（Unix） | `/var/log/<deploy_env>/plugin/` |
+| 默认日志目录（Windows） | `C:\<deploy_env>\logs\plugin\` |
+
+进程名来自 `plugin_pkg_name`；Windows 会追加 `.exe`。安装器会把 release package 解压到 `<plugin_home>/`，并把渲染后的配置复制到 `<plugin_home>/etc/`。
 
 ## 重复行为
 
@@ -105,7 +124,7 @@ deploy-policy API contract 不定义公开的机器路径、进程名称、reloa
 - 请求校验要求提供 `version`。
 - 无效 `scope` 会阻止目标解析。
 - 成功的 `execute` 响应只表示执行任务已发起。
-- 包来源、目标可达性和运行时健康状态不属于 schema-level 响应 contract。
+- 机器侧验收应检查上述目录、请求版本和目标进程状态，不能只检查 `trigger_id`。
 
 ## Contract 参考
 
