@@ -75,27 +75,13 @@ type ITenantIDProvider interface {
 	ListTenantIDs(nCtx contextx.IContext) ([]string, error)
 }
 
-// ITenantIDStorage tenant id storage.
-// Deprecated: use ITenantIDProvider instead.
-type ITenantIDStorage interface {
-	GetAllTenantIDs() []string
-}
+var _ ITenantIDProvider = &singleModeTenantIDProvider{}
 
-var _ ITenantIDStorage = &singleModeTenantIDStorage{}
-var _ ITenantIDProvider = &singleModeTenantIDStorage{}
-
-type singleModeTenantIDStorage struct {
-}
-
-// GetAllTenantIDs get all tenant ids.
-func (stg *singleModeTenantIDStorage) GetAllTenantIDs() []string {
-	return []string{
-		SingleModeTenantID,
-	}
+type singleModeTenantIDProvider struct {
 }
 
 // ListTenantIDs lists all tenant ids.
-func (stg *singleModeTenantIDStorage) ListTenantIDs(_ contextx.IContext) ([]string, error) {
+func (stg *singleModeTenantIDProvider) ListTenantIDs(_ contextx.IContext) ([]string, error) {
 	return []string{
 		SingleModeTenantID,
 	}, nil
@@ -106,7 +92,7 @@ var tenantStorage = struct {
 	provider ITenantIDProvider
 	sync.Once
 }{
-	provider: new(singleModeTenantIDStorage),
+	provider: new(singleModeTenantIDProvider),
 }
 
 // SetTenantIDProvider sets the tenant id provider only once.
@@ -130,15 +116,4 @@ func SetTenantIDProvider(provider ITenantIDProvider) error {
 // ListTenantIDs lists all tenant ids.
 func ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	return tenantStorage.provider.ListTenantIDs(nCtx)
-}
-
-// GetAllTenantIDs get all tenant ids.
-// Deprecated: use ListTenantIDs instead.
-func GetAllTenantIDs() []string {
-	tenantIDs, err := ListTenantIDs(contextx.Background())
-	if err != nil {
-		return nil
-	}
-
-	return tenantIDs
 }

@@ -11,7 +11,6 @@
 package cmdb
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -209,7 +208,12 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(nCtx contextx.IContext) error {
-				tenantIDs := tenant.GetAllTenantIDs()
+
+				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				if err != nil {
+					return fmt.Errorf("failed to list tenant IDs: %w", err)
+				}
+
 				for _, tenantID := range tenantIDs {
 					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 					if err := h.cloudVendorKeeper.update(newCtx); err != nil {
@@ -225,7 +229,11 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(nCtx contextx.IContext) error {
-				tenantIDs := tenant.GetAllTenantIDs()
+
+				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				if err != nil {
+					return fmt.Errorf("failed to list tenant IDs: %w", err)
+				}
 				for _, tenantID := range tenantIDs {
 					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 					if err := h.osTypeKeeper.update(newCtx); err != nil {
@@ -241,7 +249,11 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncInterval,
 			enumResourceSyncTimeout,
 			func(nCtx contextx.IContext) error {
-				tenantIDs := tenant.GetAllTenantIDs()
+
+				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				if err != nil {
+					return fmt.Errorf("failed to list tenant IDs: %w", err)
+				}
 				for _, tenantID := range tenantIDs {
 					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 					if err := h.cpuArchKeeper.update(newCtx); err != nil {
@@ -263,10 +275,13 @@ func (h *Handler) initEnumKeepers() error {
 		}
 	}
 
-	nCtx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
+	nCtx, cancel := contextx.WithTimeout(contextx.Background(), enumResourceSyncTimeout)
 	defer cancel()
 
-	tenantIDs := tenant.GetAllTenantIDs()
+	tenantIDs, err := tenant.ListTenantIDs(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to list tenant IDs: %w", err)
+	}
 	for _, tenantID := range tenantIDs {
 		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 		if err := h.cloudVendorKeeper.update(newCtx); err != nil {

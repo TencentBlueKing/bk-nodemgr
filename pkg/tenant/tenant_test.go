@@ -11,7 +11,6 @@
 package tenant
 
 import (
-	"errors"
 	"sync"
 	"testing"
 
@@ -25,7 +24,7 @@ func (fn tenantIDProviderFn) ListTenantIDs(nCtx contextx.IContext) ([]string, er
 }
 
 func resetTenantIDProvider() {
-	tenantStorage.provider = new(singleModeTenantIDStorage)
+	tenantStorage.provider = new(singleModeTenantIDProvider)
 	tenantStorage.Once = sync.Once{}
 }
 
@@ -84,48 +83,6 @@ func TestSetTenantIDProvider(t *testing.T) {
 			err := SetTenantIDProvider(tt.set)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("SetTenantIDProvider() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestGetAllTenantIDs(t *testing.T) {
-	tests := []struct {
-		name string
-		set  ITenantIDProvider
-		want []string
-	}{
-		{
-			name: "provider returns tenant ids",
-			set: tenantIDProviderFn(func(_ contextx.IContext) ([]string, error) {
-				return []string{SystemTenantID}, nil
-			}),
-			want: []string{SystemTenantID},
-		},
-		{
-			name: "provider returns error",
-			set: tenantIDProviderFn(func(_ contextx.IContext) ([]string, error) {
-				return nil, errors.New("list tenant ids failed")
-			}),
-			want: nil,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			resetTenantIDProvider()
-			if err := SetTenantIDProvider(tt.set); err != nil {
-				t.Fatalf("SetTenantIDProvider() error = %v, want nil", err)
-			}
-
-			got := GetAllTenantIDs()
-			if len(got) != len(tt.want) {
-				t.Fatalf("GetAllTenantIDs() = %v, want %v", got, tt.want)
-			}
-			for idx := range got {
-				if got[idx] != tt.want[idx] {
-					t.Fatalf("GetAllTenantIDs() = %v, want %v", got, tt.want)
-				}
 			}
 		})
 	}

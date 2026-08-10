@@ -76,10 +76,16 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 }
 
 // nolint: gocognit
-func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
+func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) error {
 	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
 
-	tenantIDs := tenant.GetAllTenantIDs()
+	tenantIDs, err := tenant.ListTenantIDs(nCtx)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list tenant IDs")
+
+		return fmt.Errorf("failed to list tenant IDs: %w", err)
+	}
+
 	for _, tenantID := range tenantIDs {
 		for name, f := range mgr.getInitScheduledWorkflowFuncs() {
 			if err := mgr.initScheduleWorkflow(nCtx, tenantID, name, f); err != nil {
@@ -122,6 +128,8 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 			}
 		}
 	}()
+
+	return nil
 }
 
 func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string, workflowName string, initFunc initScheduledWorkflowFunc) error {

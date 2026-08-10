@@ -102,7 +102,9 @@ func (mgr *Manager) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	mgr.startMonitoringScheduledWorkflow(ctx)
+	if err := mgr.startMonitoringScheduledWorkflow(ctx); err != nil {
+		return err
+	}
 
 	mgr.isRunning = true
 
