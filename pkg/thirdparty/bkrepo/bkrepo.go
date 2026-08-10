@@ -19,6 +19,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
@@ -64,10 +66,21 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 func (c *cli) getCommonHeader() http.Header {
 	header := http.Header{}
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
+	if tenant.GetMode() == tenant.ModeMultiple {
+		header.Set(restheader.BKTenantIDKey, bkrepoTenantIDSystem)
+	}
 
 	header.Set(HeaderKeyAuth, auth{username: c.config.Username, password: c.config.Password}.GetHeader())
 
 	return header
+}
+
+func (c *cli) effectiveProjectID() string {
+	if tenant.GetMode() == tenant.ModeMultiple {
+		return fmt.Sprintf("%s.%s", bkrepoTenantIDSystem, c.config.ProjectID)
+	}
+
+	return c.config.ProjectID
 }
 
 // DownloadFile download file from bkrepo.
@@ -77,7 +90,7 @@ func (c *cli) DownloadFile(nCtx contextx.IContext, req *DownloadFileReq) (*Downl
 
 	var err error
 	resp.Data, err = c.client.Get().
-		SubResourcef("generic/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
+		SubResourcef("generic/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
 		WithParam("download", "true").
 		WithContext(nCtx).
 		WithHeaders(header).
@@ -96,7 +109,7 @@ func (c *cli) UploadFile(nCtx contextx.IContext, req *UploadFileReq) (*UploadFil
 	header = req.Info.BindHeader(header)
 
 	err := c.client.Put().
-		SubResourcef("generic/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
+		SubResourcef("generic/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
 		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(req.Reader).
@@ -114,7 +127,7 @@ func (c *cli) QueryNodeInfo(nCtx contextx.IContext, req *QueryNodeInfoReq) (*Que
 	header := c.getCommonHeader()
 
 	err := c.client.Get().
-		SubResourcef("/repository/api/node/detail/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
+		SubResourcef("/repository/api/node/detail/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
 		WithContext(nCtx).
 		WithHeaders(header).
 		EnableLogBody().
@@ -136,7 +149,7 @@ func (c *cli) ListNode(nCtx contextx.IContext, req *ListNodeReq) (*ListNodeResp,
 	header := c.getCommonHeader()
 
 	err := c.client.Get().
-		SubResourcef("/repository/api/node/page/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
+		SubResourcef("/repository/api/node/page/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
 		WithContext(nCtx).
 		WithHeaders(header).
 		WithParams(map[string]string{
@@ -165,7 +178,7 @@ func (c *cli) MkDir(nCtx contextx.IContext, req *MkdirReq) error {
 	header := c.getCommonHeader()
 
 	err := c.client.Post().
-		SubResourcef("/repository/api/node/mkdir/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
+		SubResourcef("/repository/api/node/mkdir/%s/%s/%s", c.effectiveProjectID(), c.config.RepoName, req.Path).
 		WithContext(nCtx).
 		WithHeaders(header).
 		Do().Into(resp)
