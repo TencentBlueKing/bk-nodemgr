@@ -1,26 +1,26 @@
 # specify_plugin
 
-## Purpose and applicability
+## 目的与适用场景
 
-Use `specify_plugin` when a third-party platform wants target nodes to have a plugin with a specific `plugin_name` and `version`.
+当第三方平台希望目标节点拥有指定 `plugin_name` 和 `version` 的插件时，使用 `specify_plugin`。
 
-The existing concept document defines this mode as: ensure the target node has the specified plugin name and version; if the plugin does not exist, install it; if the version does not match, upgrade it.
+现有概念文档对该 mode 的定义是：确保目标节点有指定插件名称和版本；如果插件不存在，则安装；如果版本不匹配，则升级。
 
-## Input
+## 输入
 
-The mode-specific desired-state fields are:
+该 mode 的 desired-state 字段：
 
-| Field                   | Required | Meaning                                     |
-| ----------------------- | -------- | ------------------------------------------- |
-| `plugin_name`           | yes      | Plugin name to ensure on the target node    |
-| `version`               | yes      | Plugin version to ensure                    |
-| `custom_config_context` | no       | Custom values passed as a structured object |
+| Field | Required | 含义 |
+| --- | --- | --- |
+| `plugin_name` | yes | 目标节点上需要确保存在的插件名称 |
+| `version` | yes | 需要确保的插件版本 |
+| `custom_config_context` | no | 以结构化对象传入的自定义值 |
 
-The policy also needs `scopes` so bk-nodemgr can resolve target nodes. See [scope](../../concepts/deploy_policy/scope.md) for supported scope forms.
+策略还需要 `scopes`，以便 bk-nodemgr 解析目标节点。支持的 scope 形式见 [scope](../../concepts/deploy_policy/scope.md)。
 
-## Minimal payload and curl template
+## 最小 payload 和 curl template
 
-The example uses `instance` scope with `host` granularity. It requires `curl` and `jq`. Set the deployment-specific API base URL and target identifiers first.
+示例使用 `instance` scope 和 `host` granularity。需要 `curl` 和 `jq`。先设置当前部署的 API base URL 与目标标识。
 
 ```bash
 export BK_NODEMGR_API_BASE="https://bk-nodemgr.example.com"
@@ -63,7 +63,7 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-Execute the policy with the returned ID and capture `data.trigger_id`:
+使用返回的 ID 执行策略，并提取 `data.trigger_id`：
 
 ```bash
 EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
@@ -73,44 +73,44 @@ EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_polic
 TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 ```
 
-## System interpretation
+## 系统解释
 
-The platform interprets this spec as a desired plugin state: each target selected by `scopes` should have `plugin_name` at `version`.
+平台会把该 spec 解释为插件 desired state：`scopes` 选中的每个目标都应拥有 `plugin_name`，且版本为 `version`。
 
-Per the concept document, a missing plugin leads to installation and a mismatched version leads to upgrade. The public contract does not describe exact package lookup, transfer, restart, or health-check steps.
+根据概念文档，插件缺失会触发安装，版本不匹配会触发升级。公开 contract 不描述具体包查找、传输、重启或 health-check 步骤。
 
-## Immediate output
+## 即时输出
 
-Create returns a response whose `data.deploy_policy_id` identifies the created policy.
+create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-Execute returns a response whose `data.trigger_id` identifies the launched execution task.
+execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
 
-These immediate outputs are not final machine-state proof.
+这些即时输出不是最终机器状态证明。
 
-## Eventual or machine-visible artifact
+## 最终或机器侧可见产物
 
-The intended eventual artifact is a target node with the named plugin at the requested version.
+期望的最终产物是：目标节点拥有指定名称的插件，且版本为请求中的版本。
 
-The deploy-policy API contract does not define public machine paths, process names, reload behavior, or health-check commands. Do not build integration logic that depends on such details unless your deployment exposes another documented contract.
+deploy-policy API contract 不定义公开的机器路径、进程名称、reload 行为或 health-check 命令。除非你的部署暴露了其他文档化 contract，否则不要让接入逻辑依赖这些细节。
 
-## Repeat behavior
+## 重复行为
 
-The documented mode semantics are desired-state based: if the plugin already exists at the requested version, the desired state is already satisfied.
+文档化的 mode 语义基于 desired state：如果插件已经以请求版本存在，则 desired state 已满足。
 
-The public contract does not define an idempotency key, retry window, rollback rule, or timing guarantee for repeated API calls.
+公开 contract 不定义 idempotency key、retry window、rollback rule，也不定义重复 API 调用的时序保证。
 
-## Failure cases and limits
+## 失败情况与限制
 
-- Request validation requires `plugin_name`.
-- Request validation requires `version`.
-- Invalid `scope` prevents target resolution.
-- A successful `execute` response only means an execution task was launched.
-- Package source, target reachability, and runtime health are outside the schema-level response contract.
+- 请求校验要求提供 `plugin_name`。
+- 请求校验要求提供 `version`。
+- 无效 `scope` 会阻止目标解析。
+- 成功的 `execute` 响应只表示执行任务已发起。
+- 包来源、目标可达性和运行时健康状态不属于 schema-level 响应 contract。
 
-## Contract references
+## Contract 参考
 
-- [Integration overview](README.md)
-- [Spec concept](../../concepts/deploy_policy/spec.md)
-- [Scope concept](../../concepts/deploy_policy/scope.md)
+- [接入总览](README.md)
+- [Spec 概念](../../concepts/deploy_policy/spec.md)
+- [Scope 概念](../../concepts/deploy_policy/scope.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
-- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)
+- [Proto variant 定义](../../../proto/backend/api/v3/deploy_policy.proto)

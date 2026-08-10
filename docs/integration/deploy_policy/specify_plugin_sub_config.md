@@ -1,32 +1,32 @@
 # specify_plugin_sub_config
 
-## Purpose and applicability
+## 目的与适用场景
 
-Use `specify_plugin_sub_config` when a third-party platform wants to declare configuration for a plugin that is already installed.
+当第三方平台希望声明已安装插件的配置时，使用 `specify_plugin_sub_config`。
 
-The existing concept document defines this mode as: update installed plugin configuration file content. It only updates configuration and does not install or upgrade the plugin version.
+现有概念文档对该 mode 的定义是：更新已安装插件的配置文件内容。它只更新配置，不安装或升级插件版本。
 
-## Input
+## 输入
 
-The mode-specific desired-state fields are:
+该 mode 的 desired-state 字段：
 
-| Field                   | Required | Meaning                                                                      |
-| ----------------------- | -------- | ---------------------------------------------------------------------------- |
-| `plugin_name`           | yes      | Installed plugin whose configuration is being declared                       |
-| `config_files_detail`   | no       | Configuration file details to update; provide it when declaring file content |
-| `custom_config_context` | no       | Custom values passed as a structured object                                  |
+| Field | Required | 含义 |
+| --- | --- | --- |
+| `plugin_name` | yes | 被声明配置的已安装插件 |
+| `config_files_detail` | no | 要更新的配置文件详情；声明文件内容时提供 |
+| `custom_config_context` | no | 以结构化对象传入的自定义值 |
 
-Each `config_files_detail` item follows the proto-documented shape:
+每个 `config_files_detail` item 遵循 proto 文档化结构：
 
-| Field            | Meaning                                     |
-| ---------------- | ------------------------------------------- |
-| `name`           | Configuration file name                     |
-| `content`        | Configuration file content                  |
-| `is_main_config` | Whether this item is the main configuration |
+| Field | 含义 |
+| --- | --- |
+| `name` | 配置文件名称 |
+| `content` | 配置文件内容 |
+| `is_main_config` | 该项是否为主配置 |
 
-## Minimal payload and curl template
+## 最小 payload 和 curl template
 
-The example uses `instance` scope with `host` granularity. It requires `curl` and `jq`. Set the deployment-specific API base URL and target identifiers first.
+示例使用 `instance` scope 和 `host` granularity。需要 `curl` 和 `jq`。先设置当前部署的 API base URL 与目标标识。
 
 ```bash
 export BK_NODEMGR_API_BASE="https://bk-nodemgr.example.com"
@@ -75,43 +75,43 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-Create returns `data.deploy_policy_id`, but the current version does not support executing a policy that contains this spec. Keep the ID for policy lookup or update; do not send it to the execute endpoint for configuration delivery.
+create 返回 `data.deploy_policy_id`，但当前版本不支持执行包含该 spec 的策略。保留该 ID 可用于策略查询或更新；不要把它发送到 execute endpoint 用于配置下发。
 
-## System interpretation
+## 系统解释
 
-The platform interprets this spec as configuration-only desired state for `plugin_name`.
+平台会把该 spec 解释为 `plugin_name` 的 config-only desired state。
 
-It does not declare plugin installation, plugin package selection, or plugin version upgrade. Use `specify_plugin` or another documented plugin installation flow before using this mode when the plugin may not exist.
+它不声明插件安装、插件包选择或插件版本升级。如果插件可能不存在，应先使用 `specify_plugin` 或其他文档化插件安装流程。
 
-## Immediate output
+## 即时输出
 
-Create returns a response whose `data.deploy_policy_id` identifies the created policy.
+create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-There is no supported execution result for this mode in the current version. If the execute endpoint is called anyway, it may return `data.trigger_id` before the task later fails while processing the unsupported spec. Creating the policy or receiving that ID does not prove that configuration has been pushed to the target, written to the plugin, reloaded, or made active.
+当前版本没有该 mode 的 supported execution result。如果仍然调用 execute endpoint，它可能先返回 `data.trigger_id`，随后任务在处理 unsupported spec 时失败。创建策略或收到该 ID，都不证明配置已下发到目标、写入插件、完成 reload 或生效。
 
-## Eventual or machine-visible artifact
+## 最终或机器侧可见产物
 
-The current `deploy_policy` execution flow does not materialize this declaration as a machine-side configuration artifact.
+当前 `deploy_policy` 执行流程不会把该声明物化为机器侧配置产物。
 
-The deploy-policy contract also does not define file paths, merge-vs-replace behavior, reload behavior, health checks, or timing guarantees.
+deploy-policy contract 也不定义文件路径、merge-vs-replace 行为、reload 行为、health check 或时序保证。
 
-## Repeat behavior
+## 重复行为
 
-The concept document only defines this mode as configuration update for an installed plugin.
+概念文档只定义该 mode 为已安装插件的配置更新。
 
-The public contract does not define whether repeated declarations merge, replace, patch, no-op, retry safely, or roll back configuration.
+公开 contract 不定义重复声明会 merge、replace、patch、no-op，是否 retry safe，或是否 rollback 配置。
 
-## Failure cases and limits
+## 失败情况与限制
 
-- Request validation requires `plugin_name`.
-- Request validation does not require `config_files_detail`, but a file-content declaration needs at least one meaningful item.
-- The target plugin must already be installed; this mode does not install or upgrade it.
-- The current version does not support executing this spec through `deploy_policy`.
+- 请求校验要求提供 `plugin_name`。
+- 请求校验不要求 `config_files_detail`，但声明文件内容时至少需要一个有意义的 item。
+- 目标插件必须已安装；该 mode 不安装或升级插件。
+- 当前版本不支持通过 `deploy_policy` 执行该 spec。
 
-## Contract references
+## Contract 参考
 
-- [Integration overview](README.md)
-- [Spec concept](../../concepts/deploy_policy/spec.md)
-- [Scope concept](../../concepts/deploy_policy/scope.md)
+- [接入总览](README.md)
+- [Spec 概念](../../concepts/deploy_policy/spec.md)
+- [Scope 概念](../../concepts/deploy_policy/scope.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
-- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)
+- [Proto variant 定义](../../../proto/backend/api/v3/deploy_policy.proto)

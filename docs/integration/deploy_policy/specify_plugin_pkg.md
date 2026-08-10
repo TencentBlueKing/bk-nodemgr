@@ -1,26 +1,26 @@
 # specify_plugin_pkg
 
-## Purpose and applicability
+## 目的与适用场景
 
-Use `specify_plugin_pkg` when a third-party platform wants target nodes to have a plugin installed from a specified plugin package and version.
+当第三方平台希望目标节点拥有基于指定插件包和版本安装出的插件时，使用 `specify_plugin_pkg`。
 
-The existing concept document defines this mode as: ensure the target node has a plugin from the specified plugin package name and version. The plugin name is generated from the deploy policy ID and module ID. If the plugin does not exist, install it; if the version does not match, upgrade it.
+现有概念文档对该 mode 的定义是：确保目标节点有来自指定插件包名称和版本的插件。插件名称由 deploy policy ID 和 module ID 生成。如果插件不存在，则安装；如果版本不匹配，则升级。
 
-## Input
+## 输入
 
-The mode-specific desired-state fields are:
+该 mode 的 desired-state 字段：
 
-| Field                   | Required | Meaning                                     |
-| ----------------------- | -------- | ------------------------------------------- |
-| `plugin_pkg_name`       | yes      | Plugin package name to use as the source    |
-| `version`               | yes      | Plugin package version to ensure            |
-| `custom_config_context` | no       | Custom values passed as a structured object |
+| Field | Required | 含义 |
+| --- | --- | --- |
+| `plugin_pkg_name` | yes | 作为安装来源的插件包名称 |
+| `version` | yes | 需要确保的插件包版本 |
+| `custom_config_context` | no | 以结构化对象传入的自定义值 |
 
-Use `service_instance` scope when your integration needs the generated plugin identity to reflect service/module placement. The concept document states that generated plugin names depend on deploy policy ID and module ID.
+当你的接入需要生成的插件 identity 体现 service/module 位置时，使用 `service_instance` scope。概念文档说明生成插件名称依赖 deploy policy ID 和 module ID。
 
-## Minimal payload and curl template
+## 最小 payload 和 curl template
 
-The example uses `instance` scope with `service_instance` granularity. It requires `curl` and `jq`. Set the deployment-specific API base URL and target identifiers first.
+示例使用 `instance` scope 和 `service_instance` granularity。需要 `curl` 和 `jq`。先设置当前部署的 API base URL 与目标标识。
 
 ```bash
 export BK_NODEMGR_API_BASE="https://bk-nodemgr.example.com"
@@ -63,7 +63,7 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-Execute the policy with the returned ID and capture `data.trigger_id`:
+使用返回的 ID 执行策略，并提取 `data.trigger_id`：
 
 ```bash
 EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
@@ -73,44 +73,44 @@ EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_polic
 TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
 ```
 
-## System interpretation
+## 系统解释
 
-The platform interprets this spec as a desired plugin-package state: each resolved target should have a plugin instance generated from `plugin_pkg_name` at `version`.
+平台会把该 spec 解释为插件包 desired state：每个解析出的目标都应拥有从 `plugin_pkg_name` 生成、版本为 `version` 的插件实例。
 
-The concept document says the plugin name is generated from deploy policy ID and module ID. It does not define a public formula that third-party platforms should reimplement.
+概念文档说明插件名称由 deploy policy ID 和 module ID 生成，但未定义第三方平台应自行实现的公开公式。
 
-## Immediate output
+## 即时输出
 
-Create returns a response whose `data.deploy_policy_id` identifies the created policy.
+create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-Execute returns a response whose `data.trigger_id` identifies the launched execution task.
+execute 返回 `data.trigger_id`，用于标识已发起的执行任务。
 
-These immediate outputs are not final proof that the generated plugin instance is already present on every target.
+这些即时输出不是生成插件实例已经存在于每个目标上的最终证明。
 
-## Eventual or machine-visible artifact
+## 最终或机器侧可见产物
 
-The intended eventual artifact is a generated plugin instance on the target node, based on the requested plugin package name and version.
+期望的最终产物是：目标节点上存在基于请求插件包名称和版本生成的插件实例。
 
-The public deploy-policy contract does not define machine paths, package cache paths, generated file names, reload behavior, or health checks.
+公开 deploy-policy contract 不定义机器路径、包缓存路径、生成文件名、reload 行为或 health check。
 
-## Repeat behavior
+## 重复行为
 
-The documented mode semantics are desired-state based: if the generated plugin instance already exists at the requested package version, the desired state is already satisfied.
+文档化的 mode 语义基于 desired state：如果生成插件实例已经以请求的插件包版本存在，则 desired state 已满足。
 
-The public contract does not define an idempotency key, retry window, generated-name stability across future versions, rollback rule, or timing guarantee for repeated API calls.
+公开 contract 不定义 idempotency key、retry window、未来版本中的生成名称稳定性、rollback rule，也不定义重复 API 调用的时序保证。
 
-## Failure cases and limits
+## 失败情况与限制
 
-- Request validation requires `plugin_pkg_name`.
-- Request validation requires `version`.
-- Invalid `scope` prevents target resolution.
-- The generated plugin name is a platform-owned result; callers should not derive or depend on an undocumented formula.
-- A successful `execute` response only means an execution task was launched.
+- 请求校验要求提供 `plugin_pkg_name`。
+- 请求校验要求提供 `version`。
+- 无效 `scope` 会阻止目标解析。
+- 生成插件名称是平台拥有的结果；调用方不应推导或依赖未文档化公式。
+- 成功的 `execute` 响应只表示执行任务已发起。
 
-## Contract references
+## Contract 参考
 
-- [Integration overview](README.md)
-- [Spec concept](../../concepts/deploy_policy/spec.md)
-- [Scope concept](../../concepts/deploy_policy/scope.md)
+- [接入总览](README.md)
+- [Spec 概念](../../concepts/deploy_policy/spec.md)
+- [Scope 概念](../../concepts/deploy_policy/scope.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/deploy_policy.swagger.json)
-- [Proto variant definitions](../../../proto/backend/api/v3/deploy_policy.proto)
+- [Proto variant 定义](../../../proto/backend/api/v3/deploy_policy.proto)
