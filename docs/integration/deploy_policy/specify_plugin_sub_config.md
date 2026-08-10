@@ -22,7 +22,7 @@
 | --- | --- |
 | `name` | 配置文件名称 |
 | `content` | 配置文件内容 |
-| `is_main_config` | 该项是否为主配置 |
+| `is_main_config` | 该项是否为主配置；该 mode 使用 `false` 声明 sub config |
 
 ## 最小 payload 和 curl template
 
@@ -59,7 +59,7 @@ CREATE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy
             {
               "name": "example.conf",
               "content": "key=value",
-              "is_main_config": true
+              "is_main_config": false
             }
           ],
           "custom_config_context": {
@@ -75,7 +75,15 @@ EOF
 DEPLOY_POLICY_ID="$(printf '%s' "${CREATE_RESPONSE}" | jq -r '.data.deploy_policy_id')"
 ```
 
-create 返回 `data.deploy_policy_id`，但当前版本不支持执行包含该 spec 的策略。保留该 ID 可用于策略查询或更新；不要把它发送到 execute endpoint 用于配置下发。
+使用返回的 ID 执行策略，并提取 `data.trigger_id`：
+
+```bash
+EXECUTE_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/deploy_policy/execute" \
+  -H "Content-Type: application/json" \
+  -d "{\"deploy_policy_id\": ${DEPLOY_POLICY_ID}}")"
+
+TRIGGER_ID="$(printf '%s' "${EXECUTE_RESPONSE}" | jq -r '.data.trigger_id')"
+```
 
 ## 系统解释
 
@@ -87,13 +95,31 @@ create 返回 `data.deploy_policy_id`，但当前版本不支持执行包含该 
 
 create 返回 `data.deploy_policy_id`，用于标识已创建策略。
 
-当前版本没有该 mode 的 supported execution result。如果仍然调用 execute endpoint，它可能先返回 `data.trigger_id`，随后任务在处理 unsupported spec 时失败。创建策略或收到该 ID，都不证明配置已下发到目标、写入插件、完成 reload 或生效。
+execute 返回 `data.trigger_id`，用于标识已发起的配置收敛任务。
+
+`trigger_id` 不证明配置文件已经写入、插件已经 reload 或最终状态已经收敛。机器侧验收应检查目标配置文件及插件状态。
 
 ## 最终或机器侧可见产物
 
-当前 `deploy_policy` 执行流程不会把该声明物化为机器侧配置产物。
+目标插件的目录公式为：
 
-deploy-policy contract 也不定义文件路径、merge-vs-replace 行为、reload 行为、health check 或时序保证。
+```text
+<plugin_home> = <base_deploy_dir>/<deploy_env>/plugin/<plugin_group>/<plugin_name>
+```
+
+对于 `config_files_detail` 中 `is_main_config=false` 的每个 item，系统保证最终存在对应配置文件：
+
+```text
+<plugin_home>/etc/<plugin_name>/<name>
+```
+
+本页示例最终生成：
+
+```text
+<plugin_home>/etc/example_plugin/example.conf
+```
+
+Windows 使用 `\` 作为路径分隔符。配置文件写入后，系统 reload 目标插件，使声明的 config 生效。
 
 ## 重复行为
 
@@ -106,7 +132,8 @@ deploy-policy contract 也不定义文件路径、merge-vs-replace 行为、relo
 - 请求校验要求提供 `plugin_name`。
 - 请求校验不要求 `config_files_detail`，但声明文件内容时至少需要一个有意义的 item。
 - 目标插件必须已安装；该 mode 不安装或升级插件。
-- 当前版本不支持通过 `deploy_policy` 执行该 spec。
+- 该 mode 只处理 `is_main_config=false` 的 sub config；主配置应由插件安装或其他配置流程管理。
+- 成功的 `execute` 响应只表示配置收敛任务已发起。
 
 ## Contract 参考
 

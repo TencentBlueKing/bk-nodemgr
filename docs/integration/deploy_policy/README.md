@@ -30,10 +30,8 @@ curl template 按 mode 拆分：
 2. 根据 desired state 构造 `specs`。
 3. 调用 `POST /api/v3/deploy_policy/create`。
 4. 从 create 响应保存 `data.deploy_policy_id`。
-5. 对 `specify_plugin` 或 `specify_plugin_pkg`，用该 `deploy_policy_id` 调用 `POST /api/v3/deploy_policy/execute`。
+5. 用该 `deploy_policy_id` 调用 `POST /api/v3/deploy_policy/execute`，让目标收敛到声明的插件或配置状态。
 6. 从 execute 响应保存 `data.trigger_id`，作为执行任务标识。
-
-当前版本没有支持包含 `specify_plugin_sub_config` 策略的执行流程。execute API 可能先返回 `trigger_id`，随后任务在处理 unsupported spec 时失败。不要用 execute 做配置下发。
 
 ## 接入流程
 
@@ -84,7 +82,7 @@ curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部�
 
 `specify_plugin_sub_config` 只用于声明已安装插件的配置。文档化行为是 config-only：更新插件配置文件内容，不安装或升级插件版本。
 
-当前版本接受该 spec 写入策略声明，但没有支持它的执行流程。execute API 可能先返回 `trigger_id`，随后任务失败；不要把该响应作为配置已下发的证据。
+执行策略后，系统会渲染并下发声明的非主配置文件，使目标插件最终拥有对应 config。目标插件必须已经安装。
 
 详情和 curl template：[specify_plugin_sub_config](specify_plugin_sub_config.md)。
 
@@ -122,9 +120,9 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 | --- | --- | --- | --- |
 | `specify_plugin` | 插件注册信息中的 group | 请求中的 `plugin_name` | package 内容解压到 `<plugin_home>/`；配置目录为 `<plugin_home>/etc/`；PID 文件为 `<plugin_home>/run/<plugin_pkg_name>.pid` |
 | `specify_plugin_pkg` | `<deploy_policy_id>` | `<plugin_pkg_name>_<deploy_policy_id>_<module_id>` | package 内容解压到 `<base_deploy_dir>/<deploy_env>/plugin/<deploy_policy_id>/<plugin_name>/`；配置与 PID 文件位于该目录下 |
-| `specify_plugin_sub_config` | - | 请求中的 `plugin_name` | 当前 `deploy_policy` execute analyzer 不支持该 spec，不会生成机器侧配置文件 |
+| `specify_plugin_sub_config` | 已安装插件的 group | 请求中的 `plugin_name` | `is_main_config=false` 的文件写入 `<plugin_home>/etc/<plugin_name>/<name>`，随后 reload 插件 |
 
-两个 supported mode 的 package archive 都直接解压到对应 `<plugin_home>/`。archive 内部相对路径会被保留；主配置文件路径由插件包的 `config_template.file_path` 和 `config_template.name` 决定：
+两个安装类 mode 的 package archive 都直接解压到对应 `<plugin_home>/`。archive 内部相对路径会被保留；主配置文件路径由插件包的 `config_template.file_path` 和 `config_template.name` 决定：
 
 ```text
 <plugin_home>/<config_template.file_path>/<config_template.name>
@@ -144,7 +142,7 @@ Windows 使用 `\` 作为路径分隔符。`<base_deploy_dir>` 来自目标节�
 - Unsupported `scope` 和目标组合是概念问题，检查 [scope](../../concepts/deploy_policy/scope.md)。
 - Unsupported `spec` 语义是 desired-state 问题，检查 [spec](../../concepts/deploy_policy/spec.md)。
 - create 或 execute 成功响应是即时 API 结果，不是最终机器状态验证。
-- `specify_plugin_sub_config` 是 config-only，要求插件已安装，且当前 `deploy_policy` 流程不可执行。
+- `specify_plugin_sub_config` 是 config-only，要求插件已安装；它只保证声明的非主配置文件存在，不安装或升级插件。
 - `specify_plugin_pkg_sub_config` 出现在概念文档中，但当前 proto、Swagger 和 type contract 均没有该字段；不要把它作为 spec type 发送。
 
 ## Contract 参考
