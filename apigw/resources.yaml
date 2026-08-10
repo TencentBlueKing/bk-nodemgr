@@ -9,7 +9,7 @@ paths:
   /api/v3/topo/accesspoint/list:
     post:
       operationId: Topo_AccessPointList
-      description: "查询接入点列表，支持分页与按管控区域 ID、接入点 ID 进行精确过滤。"
+      description: 查询接入点列表，支持分页与按管控区域 ID、接入点 ID 进行精确过滤。
       tags:
         - Topo
       responses:
@@ -202,11 +202,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the access point list with pagination and exact filtering by network area ID and access point ID."
+        descriptionEn: Query the access point list with pagination and exact filtering by network area ID and access point ID.
   /api/v3/topo/business/list:
     post:
       operationId: Topo_BusinessList
-      description: "查询业务列表，支持分页与按业务 ID、业务名称进行过滤。"
+      description: 查询业务列表，支持分页与按业务 ID、业务名称进行过滤。
       tags:
         - Topo
       responses:
@@ -382,11 +382,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the business list with pagination and filtering by business ID and business name."
+        descriptionEn: Query the business list with pagination and filtering by business ID and business name.
   /api/v3/topo/constant/get:
     post:
       operationId: Topo_ConstantGet
-      description: "按需获取拓扑相关常量值，目前支持云厂商列表和操作系统类型列表。"
+      description: 按需获取拓扑相关常量值，目前支持云厂商列表和操作系统类型列表。
       tags:
         - Topo
       responses:
@@ -531,11 +531,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Retrieve topology-related constant values on demand. The API currently supports the cloud vendor list and the OS type list."
+        descriptionEn: Retrieve topology-related constant values on demand. The API currently supports the cloud vendor list and the OS type list.
   /api/v3/topo/event/distinct:
     post:
       operationId: Topo_EventDistinct
-      description: "按过滤条件查询拓扑事件中的去重字段值，返回事件类型、管控区域 ID、管控单元 ID、接入点 ID 和操作人候选集合。"
+      description: 按过滤条件查询拓扑事件中的去重字段值，返回事件类型、管控区域 ID、管控单元 ID、接入点 ID 和操作人候选集合。
       tags:
         - Topo
       responses:
@@ -740,11 +740,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query distinct field values from topology events under filter conditions, and return candidate sets for event type, network area ID, network unit ID, access point ID, and operator."
+        descriptionEn: Query distinct field values from topology events under filter conditions, and return candidate sets for event type, network area ID, network unit ID, access point ID, and operator.
   /api/v3/topo/event/list:
     post:
       operationId: Topo_EventList
-      description: "查询拓扑变更事件列表，支持分页、按对象 ID 或操作人精确过滤、按对象名称模糊过滤，以及按操作时间范围过滤。"
+      description: 查询拓扑变更事件列表，支持分页、按对象 ID 或操作人精确过滤、按对象名称模糊过滤，以及按操作时间范围过滤。
       tags:
         - Topo
       responses:
@@ -971,11 +971,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query topology event records with pagination, exact filtering by object IDs or operator, fuzzy filtering by object names, and filtering by operation time range."
+        descriptionEn: Query topology event records with pagination, exact filtering by object IDs or operator, fuzzy filtering by object names, and filtering by operation time range.
   /api/v3/topo/graph_node/get:
     post:
       operationId: Topo_TopoGraphNodeGetReq
-      description: "获取拓扑图节点信息，返回指定管控单元的 Agent 和 Proxy 统计数据及健康状态。"
+      description: 获取拓扑图节点信息，返回指定管控单元的 Agent 和 Proxy 统计数据及健康状态。
       tags:
         - Topo
       responses:
@@ -1260,11 +1260,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Retrieve topology graph node information, returning Agent and Proxy statistics and health status for specified network units."
+        descriptionEn: Retrieve topology graph node information, returning Agent and Proxy statistics and health status for specified network units.
   /api/v3/topo/host/distinct:
     post:
       operationId: Topo_HostDistinct
-      description: "查询主机字段去重结果，支持按主机条件进行过滤。"
+      description: 查询主机字段去重结果，支持按主机条件进行过滤。
       tags:
         - Topo
       responses:
@@ -1468,6 +1468,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -1483,14 +1487,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -1543,11 +1543,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query distinct host field values with host condition filters."
+        descriptionEn: Query distinct host field values with host condition filters.
   /api/v3/topo/host/get_host_distribution_by_networkarea_id:
     post:
       operationId: Topo_GetHostDistributionByNetworkAreaID
-      description: "根据主机筛选条件，统计各管控区域下的主机数量分布。"
+      description: 根据主机筛选条件，统计各管控区域下的主机数量分布。
       tags:
         - Topo
       responses:
@@ -1710,6 +1710,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -1725,15 +1729,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -1785,11 +1784,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Count the host distribution for each network area based on host filtering conditions."
+        descriptionEn: Count the host distribution for each network area based on host filtering conditions.
   /api/v3/topo/host/get_host_distribution_by_node_role:
     post:
       operationId: Topo_GetHostDistributionByNodeRole
-      description: "根据主机筛选条件统计各节点角色对应的主机数量分布。"
+      description: 根据主机筛选条件统计各节点角色对应的主机数量分布。
       tags:
         - Topo
       responses:
@@ -1952,6 +1951,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -1967,15 +1970,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -2027,11 +2025,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Count the host distribution for each node role based on host filter conditions."
+        descriptionEn: Count the host distribution for each node role based on host filter conditions.
   /api/v3/topo/host/list:
     post:
       operationId: Topo_HostList
-      description: "查询主机列表，支持分页、按主机/节点属性过滤，并按最近更新时间倒序返回结果。"
+      description: 查询主机列表，支持分页、按主机/节点属性过滤，并按最近更新时间倒序返回结果。
       tags:
         - Topo
       responses:
@@ -2313,6 +2311,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -2328,15 +2330,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -2388,11 +2385,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the host list with pagination and filtering by host and node attributes, and return results in descending order by the latest update time."
+        descriptionEn: Query the host list with pagination and filtering by host and node attributes, and return results in descending order by the latest update time.
   /api/v3/topo/host/scenario/select_host_id:
     post:
       operationId: Topo_HostSelectHostID
-      description: "按条件批量选择主机 ID。"
+      description: 按条件批量选择主机 ID。
       tags:
         - Topo
       responses:
@@ -2558,6 +2555,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -2573,15 +2574,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 exact_include_conditions:
                   type: object
                   properties:
@@ -2633,6 +2629,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -2648,15 +2648,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -2708,11 +2703,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Select host IDs in batches by host conditions."
+        descriptionEn: Select host IDs in batches by host conditions.
   /api/v3/topo/host/scenario/select_inner_ip:
     post:
       operationId: Topo_HostSelectInnerIP
-      description: "按条件批量选择主机内网 IPv4 地址。"
+      description: 按条件批量选择主机内网 IPv4 地址。
       tags:
         - Topo
       responses:
@@ -2877,6 +2872,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -2892,15 +2891,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 exact_include_conditions:
                   type: object
                   properties:
@@ -2952,6 +2946,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -2967,15 +2965,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -3027,11 +3020,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Select host inner IPv4 addresses in batches by host conditions."
+        descriptionEn: Select host inner IPv4 addresses in batches by host conditions.
   /api/v3/topo/host/scenario/select_inner_ipv6:
     post:
       operationId: Topo_HostSelectInnerIPV6
-      description: "按条件批量选择主机内网 IPv6 地址。"
+      description: 按条件批量选择主机内网 IPv6 地址。
       tags:
         - Topo
       responses:
@@ -3196,6 +3189,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -3211,15 +3208,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 exact_include_conditions:
                   type: object
                   properties:
@@ -3271,6 +3263,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -3286,15 +3282,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -3346,11 +3337,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Select host inner IPv6 addresses in batches by host conditions."
+        descriptionEn: Select host inner IPv6 addresses in batches by host conditions.
   /api/v3/topo/host/scenario/select_networkarea_id_and_inner_ip:
     post:
       operationId: Topo_HostSelectNetWorkareaIDAndInnerIP
-      description: "按条件批量选择主机管控区域 ID 与内网 IPv4 地址。"
+      description: 按条件批量选择主机管控区域 ID 与内网 IPv4 地址。
       tags:
         - Topo
       responses:
@@ -3515,6 +3506,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -3530,15 +3525,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 exact_include_conditions:
                   type: object
                   properties:
@@ -3590,6 +3580,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -3605,15 +3599,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -3665,11 +3654,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Select host network area IDs and inner IPv4 addresses in batches by host conditions."
+        descriptionEn: Select host network area IDs and inner IPv4 addresses in batches by host conditions.
   /api/v3/topo/host/scenario/select_networkarea_id_and_inner_ipv6:
     post:
       operationId: Topo_HostSelectNetWorkareaIDAndInnerIPV6
-      description: "按条件批量选择主机管控区域 ID 与内网 IPv6 地址。"
+      description: 按条件批量选择主机管控区域 ID 与内网 IPv6 地址。
       tags:
         - Topo
       responses:
@@ -3834,6 +3823,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -3849,15 +3842,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 exact_include_conditions:
                   type: object
                   properties:
@@ -3909,6 +3897,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -3924,15 +3916,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
-                  description: TopoHostExactConditions describes host exact conditions.
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                 fuzzy_include_conditions:
                   type: object
                   properties:
@@ -3984,11 +3971,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Select host network area IDs and inner IPv6 addresses in batches by host conditions."
+        descriptionEn: Select host network area IDs and inner IPv6 addresses in batches by host conditions.
   /api/v3/topo/networkarea/create:
     post:
       operationId: Topo_NetworkAreaCreate
-      description: "创建管控区域，并同步写入本地拓扑数据。"
+      description: 创建管控区域，并同步写入本地拓扑数据。
       tags:
         - Topo
       responses:
@@ -4128,11 +4115,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Create a network area and synchronize it into local topology data."
+        descriptionEn: Create a network area and synchronize it into local topology data.
   /api/v3/topo/networkarea/delete:
     post:
       operationId: Topo_NetworkAreaDelete
-      description: "根据管控区域 ID 删除管控区域。"
+      description: 根据管控区域 ID 删除管控区域。
       tags:
         - Topo
       responses:
@@ -4271,11 +4258,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete a network area by network area ID."
+        descriptionEn: Delete a network area by network area ID.
   /api/v3/topo/networkarea/get:
     post:
       operationId: Topo_NetworkAreaGet
-      description: "根据管控区域 ID 查询单个管控区域详情。"
+      description: 根据管控区域 ID 查询单个管控区域详情。
       tags:
         - Topo
       responses:
@@ -4421,11 +4408,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query a single network area by network area ID."
+        descriptionEn: Query a single network area by network area ID.
   /api/v3/topo/networkarea/list:
     post:
       operationId: Topo_NetworkAreaList
-      description: "查询管控区域列表，支持分页与按管控区域 ID、名称、云区域进行过滤。"
+      description: 查询管控区域列表，支持分页与按管控区域 ID、名称、云区域进行过滤。
       tags:
         - Topo
       responses:
@@ -4607,11 +4594,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the network area list with pagination and filtering by network area ID, name, and cloud vendor."
+        descriptionEn: Query the network area list with pagination and filtering by network area ID, name, and cloud vendor.
   /api/v3/topo/networkarea/update:
     post:
       operationId: Topo_NetworkAreaUpdate
-      description: "根据管控区域 ID 更新管控区域名称与云区域标识。"
+      description: 根据管控区域 ID 更新管控区域名称与云区域标识。
       tags:
         - Topo
       responses:
@@ -4754,11 +4741,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Update a network area name and cloud vendor by network area ID."
+        descriptionEn: Update a network area name and cloud vendor by network area ID.
   /api/v3/topo/networkunit/create:
     post:
       operationId: Topo_NetworkUnitCreate
-      description: "创建管控单元，并配置关联接入点、链路与部署配置。"
+      description: 创建管控单元，并配置关联接入点、链路与部署配置。
       tags:
         - Topo
       responses:
@@ -5031,11 +5018,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Create a network unit with access points, links, and deployment configuration."
+        descriptionEn: Create a network unit with access points, links, and deployment configuration.
   /api/v3/topo/networkunit/delete:
     post:
       operationId: Topo_NetworkUnitDelete
-      description: "根据管控单元 ID 删除管控单元。"
+      description: 根据管控单元 ID 删除管控单元。
       tags:
         - Topo
       responses:
@@ -5174,11 +5161,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete a network unit by network unit ID."
+        descriptionEn: Delete a network unit by network unit ID.
   /api/v3/topo/networkunit/get:
     post:
       operationId: Topo_NetworkUnitGet
-      description: "根据管控单元 ID 查询管控单元详情。"
+      description: 根据管控单元 ID 查询管控单元详情。
       tags:
         - Topo
       responses:
@@ -5459,11 +5446,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get network unit details by network unit ID."
+        descriptionEn: Get network unit details by network unit ID.
   /api/v3/topo/networkunit/list:
     post:
       operationId: Topo_NetworkUnitList
-      description: "查询管控单元列表，支持分页和条件过滤。"
+      description: 查询管控单元列表，支持分页和条件过滤。
       tags:
         - Topo
       responses:
@@ -5754,11 +5741,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List network units with pagination and condition filters."
+        descriptionEn: List network units with pagination and condition filters.
   /api/v3/topo/networkunit/update:
     post:
       operationId: Topo_NetworkUnitUpdate
-      description: "更新管控单元基础信息、接入点、链路与部署配置。"
+      description: 更新管控单元基础信息、接入点、链路与部署配置。
       tags:
         - Topo
       responses:
@@ -6056,11 +6043,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Update network unit base information, access points, links, and deployment configuration."
+        descriptionEn: Update network unit base information, access points, links, and deployment configuration.
   /api/v3/process/distinct:
     post:
       operationId: Process_ProcessDistinct
-      description: "按过滤条件获取指定进程字段的去重候选值。"
+      description: 按过滤条件获取指定进程字段的去重候选值。
       tags:
         - Process
       responses:
@@ -6294,11 +6281,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get distinct candidate values for selected process fields under the specified filter conditions."
+        descriptionEn: Get distinct candidate values for selected process fields under the specified filter conditions.
   /api/v3/process/get_distribution_by_host_id:
     post:
       operationId: Process_GetProcessDistributionByHostID
-      description: "按过滤条件统计每台主机上的进程数量。"
+      description: 按过滤条件统计每台主机上的进程数量。
       tags:
         - Process
       responses:
@@ -6488,11 +6475,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Count processes on each host under the specified filter conditions."
+        descriptionEn: Count processes on each host under the specified filter conditions.
   /api/v3/process/get_distribution_by_plugin_name:
     post:
       operationId: Process_GetProcessDistributionByPluginName
-      description: "按过滤条件统计各插件名称对应的进程数量。"
+      description: 按过滤条件统计各插件名称对应的进程数量。
       tags:
         - Process
       responses:
@@ -6688,11 +6675,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Count processes for each plugin name under the specified filter conditions."
+        descriptionEn: Count processes for each plugin name under the specified filter conditions.
   /api/v3/process/list:
     post:
       operationId: Process_ListProcesses
-      description: "分页查询进程列表，支持仅统计总数，以及按精确或模糊条件过滤。"
+      description: 分页查询进程列表，支持仅统计总数，以及按精确或模糊条件过滤。
       tags:
         - Process
       responses:
@@ -6999,11 +6986,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the process list with pagination, count-only mode, and exact or fuzzy filters."
+        descriptionEn: Query the process list with pagination, count-only mode, and exact or fuzzy filters.
   /api/v3/plugin/apply_subconfig:
     post:
       operationId: Plugin_ApplyPluginSubConfig
-      description: "批量为指定主机下发插件子配置，并支持传入自定义配置渲染上下文。"
+      description: 批量为指定主机下发插件子配置，并支持传入自定义配置渲染上下文。
       tags:
         - Plugin
       responses:
@@ -7160,11 +7147,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch apply plugin sub-configurations to specified hosts, with optional custom render context."
+        descriptionEn: Batch apply plugin sub-configurations to specified hosts, with optional custom render context.
   /api/v3/plugin/install:
     post:
       operationId: Plugin_InstallPlugin
-      description: "批量为指定主机安装插件，并可按需指定子配置文件和自定义渲染上下文。"
+      description: 批量为指定主机安装插件，并可按需指定子配置文件和自定义渲染上下文。
       tags:
         - Plugin
       responses:
@@ -7343,11 +7330,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch install plugins on specified hosts, with optional sub-config selection and custom render context."
+        descriptionEn: Batch install plugins on specified hosts, with optional sub-config selection and custom render context.
   /api/v3/plugin/list:
     post:
       operationId: Plugin_ListPlugins
-      description: "查询插件列表，支持分页、仅统计总数，以及按精确或模糊条件过滤。"
+      description: 查询插件列表，支持分页、仅统计总数，以及按精确或模糊条件过滤。
       tags:
         - Plugin
       responses:
@@ -7535,11 +7522,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the plugin list with pagination, count-only mode, and exact or fuzzy filters."
+        descriptionEn: Query the plugin list with pagination, count-only mode, and exact or fuzzy filters.
   /api/v3/plugin/set_memo:
     post:
       operationId: Plugin_SetPluginMemo
-      description: "设置指定插件的备注信息。"
+      description: 设置指定插件的备注信息。
       tags:
         - Plugin
       responses:
@@ -7667,11 +7654,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Set the memo for a specified plugin."
+        descriptionEn: Set the memo for a specified plugin.
   /api/v3/plugin/upgrade:
     post:
       operationId: Plugin_UpgradePlugin
-      description: "批量升级指定主机上的插件，并可指定目标版本、子配置文件和自定义渲染上下文。"
+      description: 批量升级指定主机上的插件，并可指定目标版本、子配置文件和自定义渲染上下文。
       tags:
         - Plugin
       responses:
@@ -7822,11 +7809,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch upgrade plugins on specified hosts, with target version, optional sub-config selection, and custom render context."
+        descriptionEn: Batch upgrade plugins on specified hosts, with target version, optional sub-config selection, and custom render context.
   /api/v3/plugin/workflow/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowDistinct
-      description: "按过滤条件获取插件任务流的类型、主机 ID、操作人和状态去重候选值。"
+      description: 按过滤条件获取插件任务流的类型、主机 ID、操作人和状态去重候选值。
       tags:
         - PluginWorkflow
       responses:
@@ -8015,11 +8002,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get distinct plugin workflow type, host ID, operator, and status candidates under the specified filters."
+        descriptionEn: Get distinct plugin workflow type, host ID, operator, and status candidates under the specified filters.
   /api/v3/plugin/workflow/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowList
-      description: "查询插件任务流列表，支持分页、精确条件过滤和操作时间范围过滤。"
+      description: 查询插件任务流列表，支持分页、精确条件过滤和操作时间范围过滤。
       tags:
         - PluginWorkflow
       responses:
@@ -8250,11 +8237,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query plugin workflows with pagination, exact filters, and an operation time range."
+        descriptionEn: Query plugin workflows with pagination, exact filters, and an operation time range.
   /api/v3/plugin/workflow/operation/instance/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
-      description: "根据操作 ID 列表查询插件任务流操作实例，支持仅返回总数。"
+      description: 根据操作 ID 列表查询插件任务流操作实例，支持仅返回总数。
       tags:
         - PluginWorkflow
       responses:
@@ -8446,11 +8433,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query plugin workflow operation instances by operation ID list, with support for count-only mode."
+        descriptionEn: Query plugin workflow operation instances by operation ID list, with support for count-only mode.
   /api/v3/plugin/workflow/operation/instance/log/get:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceLogGet
-      description: "根据操作实例 ID 获取插件任务流操作实例日志，包括各 action 的生命周期、日志内容、子任务流引用及实例级额外执行日志。"
+      description: 根据操作实例 ID 获取插件任务流操作实例日志，包括各 action 的生命周期、日志内容、子任务流引用及实例级额外执行日志。
       tags:
         - PluginWorkflow
       responses:
@@ -8665,11 +8652,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get plugin workflow operation instance logs by operation instance ID, including per-action lifecycle, log messages, sub-workflow references, and extra execution logs at the instance level."
+        descriptionEn: Get plugin workflow operation instance logs by operation instance ID, including per-action lifecycle, log messages, sub-workflow references, and extra execution logs at the instance level.
   /api/v3/plugin/workflow/operation/instance/status_distribution/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList
-      description: "按触发器 ID 查询插件任务流最新操作实例的状态分布。"
+      description: 按触发器 ID 查询插件任务流最新操作实例的状态分布。
       tags:
         - PluginWorkflow
       responses:
@@ -8821,11 +8808,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the status distribution of the latest plugin workflow operation instances by trigger ID."
+        descriptionEn: Query the status distribution of the latest plugin workflow operation instances by trigger ID.
   /api/v3/plugin/workflow/operation/list:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationList
-      description: "查询指定插件任务流下的操作列表，支持分页、精确条件过滤和仅返回总数。"
+      description: 查询指定插件任务流下的操作列表，支持分页、精确条件过滤和仅返回总数。
       tags:
         - PluginWorkflow
       responses:
@@ -9078,11 +9065,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query operations under a specified plugin workflow, with pagination, exact filters, and count-only mode."
+        descriptionEn: Query operations under a specified plugin workflow, with pagination, exact filters, and count-only mode.
   /api/v3/plugin/workflow/operation/retry:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationRetry
-      description: "重试指定插件任务流中的操作，支持全部重试或按操作 ID 部分重试。"
+      description: 重试指定插件任务流中的操作，支持全部重试或按操作 ID 部分重试。
       tags:
         - PluginWorkflow
       responses:
@@ -9216,11 +9203,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Retry operations in a plugin workflow, either all eligible operations or selected operation IDs."
+        descriptionEn: Retry operations in a plugin workflow, either all eligible operations or selected operation IDs.
   /api/v3/plugin/workflow/operation/terminate:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationTerminate
-      description: "终止指定插件任务流中一个或多个操作的最新执行实例。"
+      description: 终止指定插件任务流中一个或多个操作的最新执行实例。
       tags:
         - PluginWorkflow
       responses:
@@ -9354,11 +9341,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Terminate the latest execution instance of one or more operations in a plugin workflow."
+        descriptionEn: Terminate the latest execution instance of one or more operations in a plugin workflow.
   /api/v3/package/event/distinct:
     post:
       operationId: Package_PackageEventDistinct
-      description: "查询资源包操作事件各字段的去重值。"
+      description: 查询资源包操作事件各字段的去重值。
       tags:
         - Package
       responses:
@@ -9561,11 +9548,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query distinct values of package operation event fields."
+        descriptionEn: Query distinct values of package operation event fields.
   /api/v3/package/event/list:
     post:
       operationId: Package_PackageEventList
-      description: "分页查询资源包操作事件。"
+      description: 分页查询资源包操作事件。
       tags:
         - Package
       responses:
@@ -9785,11 +9772,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query package operation events with pagination."
+        descriptionEn: Query package operation events with pagination.
   /api/v3/package/release/agent/cancel_as_default:
     post:
       operationId: Package_CancelAsDefaultReleaseAgent
-      description: "取消指定 Agent 安装包版本的默认状态。"
+      description: 取消指定 Agent 安装包版本的默认状态。
       tags:
         - Package
       responses:
@@ -9936,11 +9923,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Cancel the default status of the specified agent package version."
+        descriptionEn: Cancel the default status of the specified agent package version.
   /api/v3/package/release/agent/delete:
     post:
       operationId: Package_DeleteReleaseAgent
-      description: "删除指定的 Agent 安装包版本。"
+      description: 删除指定的 Agent 安装包版本。
       tags:
         - Package
       responses:
@@ -10087,11 +10074,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete the specified agent package version."
+        descriptionEn: Delete the specified agent package version.
   /api/v3/package/release/agent/disable:
     post:
       operationId: Package_DisableReleaseAgent
-      description: "禁用指定的 Agent 安装包版本。"
+      description: 禁用指定的 Agent 安装包版本。
       tags:
         - Package
       responses:
@@ -10238,11 +10225,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Disable the specified agent package version."
+        descriptionEn: Disable the specified agent package version.
   /api/v3/package/release/agent/distinct:
     post:
       operationId: Package_DistinctReleaseAgent
-      description: "获取 Agent 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。"
+      description: 获取 Agent 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。
       tags:
         - Package
       responses:
@@ -10258,19 +10245,19 @@ paths:
                   data:
                     type: object
                     properties:
-                      os_type:
-                        type: array
-                        items:
-                          type: string
-                      cpu_arch:
-                        type: array
-                        items:
-                          type: string
                       name:
                         type: array
                         items:
                           type: string
+                      os_type:
+                        type: array
+                        items:
+                          type: string
                       version:
+                        type: array
+                        items:
+                          type: string
+                      cpu_arch:
                         type: array
                         items:
                           type: string
@@ -10375,13 +10362,13 @@ paths:
                 distinct_field:
                   type: object
                   properties:
-                    os_type:
-                      type: boolean
-                    cpu_arch:
-                      type: boolean
                     name:
                       type: boolean
+                    os_type:
+                      type: boolean
                     version:
+                      type: boolean
+                    cpu_arch:
                       type: boolean
                   description: PackageReleaseDistinctField describes the release distinct field.
                 exact_include_conditions:
@@ -10441,11 +10428,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get distinct lists of available OS types and CPU architectures for agent release packages."
+        descriptionEn: Get distinct lists of available OS types and CPU architectures for agent release packages.
   /api/v3/package/release/agent/enable:
     post:
       operationId: Package_EnableReleaseAgent
-      description: "启用指定的 Agent 安装包版本。"
+      description: 启用指定的 Agent 安装包版本。
       tags:
         - Package
       responses:
@@ -10592,11 +10579,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Enable the specified agent package version."
+        descriptionEn: Enable the specified agent package version.
   /api/v3/package/release/agent/list:
     post:
       operationId: Package_ListReleaseAgent
-      description: "查询 Agent 安装包列表，支持分页和条件过滤。"
+      description: 查询 Agent 安装包列表，支持分页和条件过滤。
       tags:
         - Package
       responses:
@@ -10825,11 +10812,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List agent release packages with support for pagination and condition filtering."
+        descriptionEn: List agent release packages with support for pagination and condition filtering.
   /api/v3/package/release/agent/set_as_default:
     post:
       operationId: Package_SetAsDefaultReleaseAgent
-      description: "将指定的 Agent 安装包版本设为默认版本。"
+      description: 将指定的 Agent 安装包版本设为默认版本。
       tags:
         - Package
       responses:
@@ -10976,11 +10963,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Set the specified agent package version as the default version."
+        descriptionEn: Set the specified agent package version as the default version.
   /api/v3/package/release/agent/set_labels_many:
     post:
       operationId: Package_SetReleaseAgentLabelsMany
-      description: "批量设置符合条件的 Agent 安装包标签。"
+      description: 批量设置符合条件的 Agent 安装包标签。
       tags:
         - Package
       responses:
@@ -11153,11 +11140,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Set labels in bulk for agent packages that match the conditions."
+        descriptionEn: Set labels in bulk for agent packages that match the conditions.
   /api/v3/package/release/bintool/delete:
     post:
       operationId: Package_DeleteReleaseBinTool
-      description: "删除指定代次的二进制工具安装包。"
+      description: 删除指定代次的二进制工具安装包。
       tags:
         - Package
       responses:
@@ -11292,11 +11279,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete the binary tool package for the specified generation."
+        descriptionEn: Delete the binary tool package for the specified generation.
   /api/v3/package/release/bintool/list:
     post:
       operationId: Package_ListReleaseBinTool
-      description: "查询工具包（BinTool）安装包列表。"
+      description: 查询工具包（BinTool）安装包列表。
       tags:
         - Package
       responses:
@@ -11475,11 +11462,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List binary tool (BinTool) release packages."
+        descriptionEn: List binary tool (BinTool) release packages.
   /api/v3/package/release/cert/delete:
     post:
       operationId: Package_DeleteReleaseCert
-      description: "删除指定代次的证书安装包。"
+      description: 删除指定代次的证书安装包。
       tags:
         - Package
       responses:
@@ -11614,11 +11601,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete the certificate package for the specified generation."
+        descriptionEn: Delete the certificate package for the specified generation.
   /api/v3/package/release/cert/list:
     post:
       operationId: Package_ListReleaseCert
-      description: "查询证书安装包列表。"
+      description: 查询证书安装包列表。
       tags:
         - Package
       responses:
@@ -11797,11 +11784,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List certificate release packages."
+        descriptionEn: List certificate release packages.
   /api/v3/package/release/plugin/cancel_as_default:
     post:
       operationId: Package_CancelAsDefaultReleasePlugin
-      description: "取消指定插件安装包版本的默认状态。"
+      description: 取消指定插件安装包版本的默认状态。
       tags:
         - Package
       responses:
@@ -11948,11 +11935,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Cancel the default status of the specified plugin package version."
+        descriptionEn: Cancel the default status of the specified plugin package version.
   /api/v3/package/release/plugin/delete:
     post:
       operationId: Package_DeleteReleasePlugin
-      description: "删除指定的插件安装包版本。"
+      description: 删除指定的插件安装包版本。
       tags:
         - Package
       responses:
@@ -12099,11 +12086,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete the specified plugin package version."
+        descriptionEn: Delete the specified plugin package version.
   /api/v3/package/release/plugin/disable:
     post:
       operationId: Package_DisableReleasePlugin
-      description: "禁用指定的插件安装包版本。"
+      description: 禁用指定的插件安装包版本。
       tags:
         - Package
       responses:
@@ -12250,11 +12237,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Disable the specified plugin package version."
+        descriptionEn: Disable the specified plugin package version.
   /api/v3/package/release/plugin/enable:
     post:
       operationId: Package_EnableReleasePlugin
-      description: "启用指定的插件安装包版本。"
+      description: 启用指定的插件安装包版本。
       tags:
         - Package
       responses:
@@ -12401,11 +12388,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Enable the specified plugin package version."
+        descriptionEn: Enable the specified plugin package version.
   /api/v3/package/release/plugin/list:
     post:
       operationId: Package_ListReleasePlugin
-      description: "查询插件安装包列表，支持分页和条件过滤。接口仅返回当前用户有权限查看的插件安装包。"
+      description: 查询插件安装包列表，支持分页和条件过滤。接口仅返回当前用户有权限查看的插件安装包。
       tags:
         - Package
       responses:
@@ -12630,11 +12617,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List plugin release packages with support for pagination and condition filtering. Only packages authorized for the current user are returned."
+        descriptionEn: List plugin release packages with support for pagination and condition filtering. Only packages authorized for the current user are returned.
   /api/v3/package/release/plugin/set_as_default:
     post:
       operationId: Package_SetAsDefaultReleasePlugin
-      description: "将指定的插件安装包版本设为默认版本。"
+      description: 将指定的插件安装包版本设为默认版本。
       tags:
         - Package
       responses:
@@ -12781,11 +12768,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Set the specified plugin package version as the default version."
+        descriptionEn: Set the specified plugin package version as the default version.
   /api/v3/package/release/plugin_bintool/delete:
     post:
       operationId: Package_DeleteReleasePluginBinTool
-      description: "删除指定插件和代次的插件二进制工具安装包。"
+      description: 删除指定插件和代次的插件二进制工具安装包。
       tags:
         - Package
       responses:
@@ -12922,11 +12909,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete the plugin binary tool package for the specified plugin and generation."
+        descriptionEn: Delete the plugin binary tool package for the specified plugin and generation.
   /api/v3/package/release/plugin_bintool/list:
     post:
       operationId: Package_ListReleasePluginBinTool
-      description: "查询插件工具包（PluginBinTool）安装包列表，接口仅返回当前用户有权限查看的插件工具包。"
+      description: 查询插件工具包（PluginBinTool）安装包列表，接口仅返回当前用户有权限查看的插件工具包。
       tags:
         - Package
       responses:
@@ -13105,11 +13092,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List plugin binary tool (PluginBinTool) release packages. Only packages authorized for the current user are returned."
+        descriptionEn: List plugin binary tool (PluginBinTool) release packages. Only packages authorized for the current user are returned.
   /api/v3/package/release/proxy/cancel_as_default:
     post:
       operationId: Package_CancelAsDefaultReleaseProxy
-      description: "取消指定 Proxy 安装包版本的默认状态。"
+      description: 取消指定 Proxy 安装包版本的默认状态。
       tags:
         - Package
       responses:
@@ -13256,11 +13243,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Cancel the default status of the specified proxy package version."
+        descriptionEn: Cancel the default status of the specified proxy package version.
   /api/v3/package/release/proxy/delete:
     post:
       operationId: Package_DeleteReleaseProxy
-      description: "删除指定的 Proxy 安装包版本。"
+      description: 删除指定的 Proxy 安装包版本。
       tags:
         - Package
       responses:
@@ -13407,11 +13394,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete the specified proxy package version."
+        descriptionEn: Delete the specified proxy package version.
   /api/v3/package/release/proxy/disable:
     post:
       operationId: Package_DisableReleaseProxy
-      description: "禁用指定的 Proxy 安装包版本。"
+      description: 禁用指定的 Proxy 安装包版本。
       tags:
         - Package
       responses:
@@ -13558,11 +13545,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Disable the specified proxy package version."
+        descriptionEn: Disable the specified proxy package version.
   /api/v3/package/release/proxy/distinct:
     post:
       operationId: Package_DistinctReleaseProxy
-      description: "获取 Proxy 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。"
+      description: 获取 Proxy 安装包可选的操作系统类型、CPU 架构、安装包名称和版本号的去重列表。
       tags:
         - Package
       responses:
@@ -13578,19 +13565,19 @@ paths:
                   data:
                     type: object
                     properties:
-                      os_type:
-                        type: array
-                        items:
-                          type: string
-                      cpu_arch:
-                        type: array
-                        items:
-                          type: string
                       name:
                         type: array
                         items:
                           type: string
+                      os_type:
+                        type: array
+                        items:
+                          type: string
                       version:
+                        type: array
+                        items:
+                          type: string
+                      cpu_arch:
                         type: array
                         items:
                           type: string
@@ -13695,13 +13682,13 @@ paths:
                 distinct_field:
                   type: object
                   properties:
-                    os_type:
-                      type: boolean
-                    cpu_arch:
-                      type: boolean
                     name:
                       type: boolean
+                    os_type:
+                      type: boolean
                     version:
+                      type: boolean
+                    cpu_arch:
                       type: boolean
                   description: PackageReleaseDistinctField describes the release distinct field.
                 exact_include_conditions:
@@ -13761,11 +13748,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get distinct lists of available OS types and CPU architectures for proxy release packages."
+        descriptionEn: Get distinct lists of available OS types and CPU architectures for proxy release packages.
   /api/v3/package/release/proxy/enable:
     post:
       operationId: Package_EnableReleaseProxy
-      description: "启用指定的 Proxy 安装包版本。"
+      description: 启用指定的 Proxy 安装包版本。
       tags:
         - Package
       responses:
@@ -13912,11 +13899,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Enable the specified proxy package version."
+        descriptionEn: Enable the specified proxy package version.
   /api/v3/package/release/proxy/list:
     post:
       operationId: Package_ListReleaseProxy
-      description: "查询 Proxy 安装包列表，支持分页和条件过滤。"
+      description: 查询 Proxy 安装包列表，支持分页和条件过滤。
       tags:
         - Package
       responses:
@@ -14145,11 +14132,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "List proxy release packages with support for pagination and condition filtering."
+        descriptionEn: List proxy release packages with support for pagination and condition filtering.
   /api/v3/package/release/proxy/set_as_default:
     post:
       operationId: Package_SetAsDefaultReleaseProxy
-      description: "将指定的 Proxy 安装包版本设为默认版本。"
+      description: 将指定的 Proxy 安装包版本设为默认版本。
       tags:
         - Package
       responses:
@@ -14296,11 +14283,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Set the specified proxy package version as the default version."
+        descriptionEn: Set the specified proxy package version as the default version.
   /api/v3/package/release/proxy/set_labels_many:
     post:
       operationId: Package_SetReleaseProxyLabelsMany
-      description: "批量设置符合条件的 Proxy 安装包标签。"
+      description: 批量设置符合条件的 Proxy 安装包标签。
       tags:
         - Package
       responses:
@@ -14473,11 +14460,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Set labels in bulk for proxy packages that match the conditions."
+        descriptionEn: Set labels in bulk for proxy packages that match the conditions.
   /api/v3/node/workflow/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowDistinct
-      description: "按过滤条件获取节点任务流的去重字段候选值，返回任务流类型、业务 ID、操作人和任务流状态。"
+      description: 按过滤条件获取节点任务流的去重字段候选值，返回任务流类型、业务 ID、操作人和任务流状态。
       tags:
         - NodeWorkflow
       responses:
@@ -14665,11 +14652,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get distinct candidate values of node workflow fields under filter conditions, including workflow type, business ID, operator, and workflow status."
+        descriptionEn: Get distinct candidate values of node workflow fields under filter conditions, including workflow type, business ID, operator, and workflow status.
   /api/v3/node/workflow/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowList
-      description: "查询节点任务流列表，支持分页、按精确条件过滤和按操作时间范围过滤。"
+      description: 查询节点任务流列表，支持分页、按精确条件过滤和按操作时间范围过滤。
       tags:
         - NodeWorkflow
       responses:
@@ -14908,11 +14895,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query node workflow list, with pagination, exact filtering, and operation time range filtering support."
+        descriptionEn: Query node workflow list, with pagination, exact filtering, and operation time range filtering support.
   /api/v3/node/workflow/operation/instance/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
-      description: "按操作 ID 或操作实例 ID 查询节点任务流操作实例列表，支持仅返回总数。"
+      description: 按操作 ID 或操作实例 ID 查询节点任务流操作实例列表，支持仅返回总数。
       tags:
         - NodeWorkflow
       responses:
@@ -15108,11 +15095,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query node workflow operation instances by operation IDs or operation instance IDs, with support for count-only mode."
+        descriptionEn: Query node workflow operation instances by operation IDs or operation instance IDs, with support for count-only mode.
   /api/v3/node/workflow/operation/instance/log/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
-      description: "根据操作实例 ID 获取节点任务操作实例日志，返回每个 action 的生命周期与日志内容，以及实例级额外执行日志。"
+      description: 根据操作实例 ID 获取节点任务操作实例日志，返回每个 action 的生命周期与日志内容，以及实例级额外执行日志。
       tags:
         - NodeWorkflow
       responses:
@@ -15327,11 +15314,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get node workflow operation instance logs by operation instance ID, including per-action lifecycle and log messages, and extra execution logs at instance level."
+        descriptionEn: Get node workflow operation instance logs by operation instance ID, including per-action lifecycle and log messages, and extra execution logs at instance level.
   /api/v3/node/workflow/operation/instance/status_distribution/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList
-      description: "按触发 ID 查询操作实例状态分布。"
+      description: 按触发 ID 查询操作实例状态分布。
       tags:
         - NodeWorkflow
       responses:
@@ -15483,11 +15470,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query operation instance status distribution by trigger IDs."
+        descriptionEn: Query operation instance status distribution by trigger IDs.
   /api/v3/node/workflow/operation/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationList
-      description: "查询指定节点任务流下的操作列表，支持分页、按节点部署维度精确过滤、按操作状态过滤。"
+      description: 查询指定节点任务流下的操作列表，支持分页、按节点部署维度精确过滤、按操作状态过滤。
       tags:
         - NodeWorkflow
       responses:
@@ -15747,11 +15734,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query operation list under a specific node workflow, with pagination, exact filters on deployment dimensions, and operation state filters."
+        descriptionEn: Query operation list under a specific node workflow, with pagination, exact filters on deployment dimensions, and operation state filters.
   /api/v3/node/workflow/operation/manual/info/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationManualInfoGet
-      description: "获取指定操作的手动处理信息，包括网络策略和手动执行命令。"
+      description: 获取指定操作的手动处理信息，包括网络策略和手动执行命令。
       tags:
         - NodeWorkflow
       responses:
@@ -15951,11 +15938,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get manual handling information for a specified operation, including network policies and manual commands."
+        descriptionEn: Get manual handling information for a specified operation, including network policies and manual commands.
   /api/v3/node/workflow/operation/retry:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
-      description: "对指定节点任务流中的操作执行重试，支持全量重试或按操作 ID 部分重试。"
+      description: 对指定节点任务流中的操作执行重试，支持全量重试或按操作 ID 部分重试。
       tags:
         - NodeWorkflow
       responses:
@@ -16089,11 +16076,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Retry operations in a specified node workflow, supporting full retry or partial retry by operation IDs."
+        descriptionEn: Retry operations in a specified node workflow, supporting full retry or partial retry by operation IDs.
   /api/v3/node/workflow/operation/terminate:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationTerminate
-      description: "终止指定节点任务流中一个或多个操作的最后一次执行实例。"
+      description: 终止指定节点任务流中一个或多个操作的最后一次执行实例。
       tags:
         - NodeWorkflow
       responses:
@@ -16225,11 +16212,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Terminate the last execution instance of one or more operations in a specified node workflow."
+        descriptionEn: Terminate the last execution instance of one or more operations in a specified node workflow.
   /api/v3/node/proxy/install:
     post:
       operationId: NodeProxy_NodeProxyInstall
-      description: "批量安装节点Proxy。支持手动安装和离线安装模式。"
+      description: 批量安装节点Proxy。支持手动安装和离线安装模式。
       tags:
         - NodeProxy
       responses:
@@ -16449,11 +16436,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch install node Proxy. Supports manual and offline installation modes."
+        descriptionEn: Batch install node Proxy. Supports manual and offline installation modes.
   /api/v3/node/proxy/reconfig:
     post:
       operationId: NodeProxy_NodeProxyReconfig
-      description: "批量重新配置节点Proxy。"
+      description: 批量重新配置节点Proxy。
       tags:
         - NodeProxy
       responses:
@@ -16595,11 +16582,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch reconfigure node Proxy."
+        descriptionEn: Batch reconfigure node Proxy.
   /api/v3/node/proxy/restart:
     post:
       operationId: NodeProxy_NodeProxyRestart
-      description: "批量重启节点Proxy。"
+      description: 批量重启节点Proxy。
       tags:
         - NodeProxy
       responses:
@@ -16741,11 +16728,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch restart node Proxy."
+        descriptionEn: Batch restart node Proxy.
   /api/v3/node/proxy/uninstall:
     post:
       operationId: NodeProxy_NodeProxyUninstall
-      description: "批量卸载节点Proxy。"
+      description: 批量卸载节点Proxy。
       tags:
         - NodeProxy
       responses:
@@ -16882,11 +16869,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch uninstall node Proxy."
+        descriptionEn: Batch uninstall node Proxy.
   /api/v3/node/proxy/update:
     post:
       operationId: NodeProxy_NodeProxyUpdate
-      description: "批量更新节点Proxy的动态配置信息，包括登录信息、网络地址、标签等。此操作为元数据更新，不触发远程操作。"
+      description: 批量更新节点Proxy的动态配置信息，包括登录信息、网络地址、标签等。此操作为元数据更新，不触发远程操作。
       tags:
         - NodeProxy
       responses:
@@ -17053,11 +17040,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch update dynamic configuration of node Proxy, including login info, network addresses, and tags. This is a metadata-only update and does not trigger remote operations."
+        descriptionEn: Batch update dynamic configuration of node Proxy, including login info, network addresses, and tags. This is a metadata-only update and does not trigger remote operations.
   /api/v3/node/proxy/upgrade:
     post:
       operationId: NodeProxy_NodeProxyUpgrade
-      description: "批量升级节点Proxy到指定版本。"
+      description: 批量升级节点Proxy到指定版本。
       tags:
         - NodeProxy
       responses:
@@ -17206,11 +17193,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch upgrade node Proxy to the specified version."
+        descriptionEn: Batch upgrade node Proxy to the specified version.
   /api/v3/node/agent/install:
     post:
       operationId: NodeAgent_NodeAgentInstall
-      description: "批量安装节点Agent，支持指定目标版本和手动安装模式。"
+      description: 批量安装节点Agent，支持指定目标版本和手动安装模式。
       tags:
         - NodeAgent
       responses:
@@ -17400,11 +17387,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch install node agents with support for specifying target versions and manual installation mode."
+        descriptionEn: Batch install node agents with support for specifying target versions and manual installation mode.
   /api/v3/node/agent/install_check:
     post:
       operationId: NodeAgent_NodeAgentInstallCheck
-      description: "批量检查主机是否满足Agent安装条件，包括网络单元可用性、IP冲突检测、主机属性一致性校验等。"
+      description: 批量检查主机是否满足Agent安装条件，包括网络单元可用性、IP冲突检测、主机属性一致性校验等。
       tags:
         - NodeAgent
       responses:
@@ -17599,11 +17586,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch check whether hosts meet agent installation requirements, including network unit availability, IP conflict detection, and host attribute consistency validation."
+        descriptionEn: Batch check whether hosts meet agent installation requirements, including network unit availability, IP conflict detection, and host attribute consistency validation.
   /api/v3/node/agent/reconfig:
     post:
       operationId: NodeAgent_NodeAgentReconfig
-      description: "批量重新配置节点Agent，重新下发配置并重启Agent使其生效。"
+      description: 批量重新配置节点Agent，重新下发配置并重启Agent使其生效。
       tags:
         - NodeAgent
       responses:
@@ -17745,11 +17732,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch reconfigure node agents by re-delivering configuration and restarting the agents to apply changes."
+        descriptionEn: Batch reconfigure node agents by re-delivering configuration and restarting the agents to apply changes.
   /api/v3/node/agent/restart:
     post:
       operationId: NodeAgent_NodeAgentRestart
-      description: "批量重启节点Agent，支持强制重启和优雅重启超时配置。"
+      description: 批量重启节点Agent，支持强制重启和优雅重启超时配置。
       tags:
         - NodeAgent
       responses:
@@ -17891,11 +17878,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch restart node agents with support for forced restart and graceful restart timeout configuration."
+        descriptionEn: Batch restart node agents with support for forced restart and graceful restart timeout configuration.
   /api/v3/node/agent/uninstall:
     post:
       operationId: NodeAgent_NodeAgentUninstall
-      description: "批量卸载节点Agent。"
+      description: 批量卸载节点Agent。
       tags:
         - NodeAgent
       responses:
@@ -18032,11 +18019,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch uninstall node agents."
+        descriptionEn: Batch uninstall node agents.
   /api/v3/node/agent/upgrade:
     post:
       operationId: NodeAgent_NodeAgentUpgrade
-      description: "批量升级节点Agent到指定版本，支持强制重启和优雅重启超时配置。"
+      description: 批量升级节点Agent到指定版本，支持强制重启和优雅重启超时配置。
       tags:
         - NodeAgent
       responses:
@@ -18185,11 +18172,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch upgrade node agents to a specified version, with support for forced restart and graceful restart timeout configuration."
+        descriptionEn: Batch upgrade node agents to a specified version, with support for forced restart and graceful restart timeout configuration.
   /api/v3/deploy_policy/create:
     post:
       operationId: DeployPolicySvc_Create
-      description: "创建部署策略。"
+      description: 创建部署策略。
       tags:
         - DeployPolicySvc
       responses:
@@ -18332,11 +18319,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Create a deploy policy."
+        descriptionEn: Create a deploy policy.
   /api/v3/deploy_policy/execute:
     post:
       operationId: DeployPolicySvc_Execute
-      description: "执行部署策略。"
+      description: 执行部署策略。
       tags:
         - DeployPolicySvc
       responses:
@@ -18453,11 +18440,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Execute a deploy policy."
+        descriptionEn: Execute a deploy policy.
   /api/v3/deploy_policy/list:
     post:
       operationId: DeployPolicySvc_List
-      description: "查询部署策略列表，支持分页和条件过滤。"
+      description: 查询部署策略列表，支持分页和条件过滤。
       tags:
         - DeployPolicySvc
       responses:
@@ -18716,11 +18703,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query deploy policy list with pagination and filtering support."
+        descriptionEn: Query deploy policy list with pagination and filtering support.
   /api/v3/deploy_policy/update:
     post:
       operationId: DeployPolicySvc_Update
-      description: "更新部署策略。"
+      description: 更新部署策略。
       tags:
         - DeployPolicySvc
       responses:
@@ -18893,11 +18880,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Update a deploy policy."
+        descriptionEn: Update a deploy policy.
   /api/v3/policy/config/create:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyCreate
-      description: "创建新的配置策略。"
+      description: 创建新的配置策略。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19057,11 +19044,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Create a new config policy."
+        descriptionEn: Create a new config policy.
   /api/v3/policy/config/delete:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDelete
-      description: "批量删除配置策略。"
+      description: 批量删除配置策略。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19177,11 +19164,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Delete config policies in batch."
+        descriptionEn: Delete config policies in batch.
   /api/v3/policy/config/disable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDisable
-      description: "批量禁用配置策略。"
+      description: 批量禁用配置策略。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19297,11 +19284,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Disable config policies in batch."
+        descriptionEn: Disable config policies in batch.
   /api/v3/policy/config/enable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEnable
-      description: "批量启用配置策略。"
+      description: 批量启用配置策略。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19417,11 +19404,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Enable config policies in batch."
+        descriptionEn: Enable config policies in batch.
   /api/v3/policy/config/event/distinct:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEventDistinct
-      description: "按过滤条件查询配置策略事件的去重字段集合。"
+      description: 按过滤条件查询配置策略事件的去重字段集合。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19613,11 +19600,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query distinct field sets of config policy events by filtering conditions."
+        descriptionEn: Query distinct field sets of config policy events by filtering conditions.
   /api/v3/policy/config/event/list:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEventList
-      description: "查询配置策略事件列表，支持分页、条件过滤和操作时间范围过滤。"
+      description: 查询配置策略事件列表，支持分页、条件过滤和操作时间范围过滤。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -19821,11 +19808,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query config policy event list, with pagination, conditional filtering, and operation time range filtering support."
+        descriptionEn: Query config policy event list, with pagination, conditional filtering, and operation time range filtering support.
   /api/v3/policy/config/get:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyGet
-      description: "按配置策略 ID 查询单个配置策略详情。"
+      description: 按配置策略 ID 查询单个配置策略详情。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -20002,11 +19989,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query details of a single config policy by config policy ID."
+        descriptionEn: Query details of a single config policy by config policy ID.
   /api/v3/policy/config/list:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyList
-      description: "查询配置策略列表，支持分页、精确过滤和模糊过滤。"
+      description: 查询配置策略列表，支持分页、精确过滤和模糊过滤。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -20234,11 +20221,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the config policy list, with pagination, exact filtering, and fuzzy filtering support."
+        descriptionEn: Query the config policy list, with pagination, exact filtering, and fuzzy filtering support.
   /api/v3/policy/config/update:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyUpdate
-      description: "更新指定配置策略。"
+      description: 更新指定配置策略。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -20406,11 +20393,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Update the specified config policy."
+        descriptionEn: Update the specified config policy.
   /api/v3/cipher/rsa/get_public_key:
     post:
       operationId: Cipher_GetRSAPublicKey
-      description: "获取默认 RSA4096 公钥，用于对敏感信息进行加密。"
+      description: 获取默认 RSA4096 公钥，用于对敏感信息进行加密。
       tags:
         - Cipher
       responses:
@@ -20523,11 +20510,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get the default RSA4096 public key used to encrypt sensitive data."
+        descriptionEn: Get the default RSA4096 public key used to encrypt sensitive data.
   /api/v3/node/workflow/operation/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationDistinct
-      description: "按任务流 ID 查询节点任务流下 operation 最新实例状态（state）的去重结果。"
+      description: 按任务流 ID 查询节点任务流下 operation 最新实例状态（state）的去重结果。
       tags:
         - NodeWorkflow
       responses:
@@ -20674,11 +20661,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query distinct values of latest operation instance state for a node workflow by workflow ID."
+        descriptionEn: Query distinct values of latest operation instance state for a node workflow by workflow ID.
   /api/v3/plugin/workflow/operation/distinct:
     post:
       operationId: PluginWorkflow_PluginWorkflowOperationDistinct
-      description: "获取指定插件任务流下操作状态的去重候选值。"
+      description: 获取指定插件任务流下操作状态的去重候选值。
       tags:
         - PluginWorkflow
       responses:
@@ -20825,11 +20812,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get distinct operation state candidates under the specified plugin workflow."
+        descriptionEn: Get distinct operation state candidates under the specified plugin workflow.
   /api/v3/node/proxy/install_check:
     post:
       operationId: NodeProxy_NodeProxyInstallCheck
-      description: "批量检查主机是否可以安装Proxy，并返回每个主机的安装前置状态。"
+      description: 批量检查主机是否可以安装Proxy，并返回每个主机的安装前置状态。
       tags:
         - NodeProxy
       responses:
@@ -21024,11 +21011,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch check whether hosts can have Proxy installed, returning pre-installation status for each host."
+        descriptionEn: Batch check whether hosts can have Proxy installed, returning pre-installation status for each host.
   /api/v3/auth/verify:
     post:
       operationId: Auth_Verify
-      description: "校验当前用户是否对指定的操作-资源对拥有权限。"
+      description: 校验当前用户是否对指定的操作-资源对拥有权限。
       tags:
         - Auth
       responses:
@@ -21201,11 +21188,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Verify whether the current user has permission for the requested action-resource pairs."
+        descriptionEn: Verify whether the current user has permission for the requested action-resource pairs.
   /api/v3/policy/config/preview:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyPreview
-      description: "按业务、策略类型和主机列表预览配置策略匹配结果与配置合并结果。"
+      description: 按业务、策略类型和主机列表预览配置策略匹配结果与配置合并结果。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -21409,11 +21396,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Preview policy matching results and merged config results by business, policy type, and host list."
+        descriptionEn: Preview policy matching results and merged config results by business, policy type, and host list.
   /api/v3/policy/config/reorder_priorities:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyPriorityReorder
-      description: "按指定顺序重排同一业务和同一策略类型下的已启用策略优先级。"
+      description: 按指定顺序重排同一业务和同一策略类型下的已启用策略优先级。
       tags:
         - ConfigPolicyAPI
       responses:
@@ -21534,11 +21521,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Reorder priorities of enabled policies under the same business and the same policy type in the specified order."
+        descriptionEn: Reorder priorities of enabled policies under the same business and the same policy type in the specified order.
   /api/v3/iam/v3/resource:
     post:
       operationId: IAM_IAMResourceCallback
-      description: "供 BlueKing IAM 回调查询节点管理资源信息，按请求中的资源类型与回调方法分发到对应资源提供方。"
+      description: 供 BlueKing IAM 回调查询节点管理资源信息，按请求中的资源类型与回调方法分发到对应资源提供方。
       tags:
         - IAM
       responses:
@@ -21623,11 +21610,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: false
           resourcePermissionRequired: false
-        descriptionEn: "Provide Node Manager resource data to BlueKing IAM callbacks, dispatching requests by resource type and callback method."
+        descriptionEn: Provide Node Manager resource data to BlueKing IAM callbacks, dispatching requests by resource type and callback method.
   /api/v3/node/agent/assign_unit:
     post:
       operationId: NodeAgent_NodeAgentAssignUnit
-      description: "批量将未分配网络单元的主机分配到指定网络单元（仅修改元数据，不执行远程操作）。"
+      description: 批量将未分配网络单元的主机分配到指定网络单元（仅修改元数据，不执行远程操作）。
       tags:
         - NodeAgent
       responses:
@@ -21778,11 +21765,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch-assign unassigned hosts to a specified network unit (metadata-only, no remote operations)."
+        descriptionEn: Batch-assign unassigned hosts to a specified network unit (metadata-only, no remote operations).
   /api/v3/node/agent/upgrade_check:
     post:
       operationId: NodeAgent_NodeAgentUpgradeCheck
-      description: "批量检查 Agent 是否满足升级条件。"
+      description: 批量检查 Agent 是否满足升级条件。
       tags:
         - NodeAgent
       responses:
@@ -21975,11 +21962,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch-check whether Agents can be upgraded."
+        descriptionEn: Batch-check whether Agents can be upgraded.
   /api/v3/node/proxy/upgrade_check:
     post:
       operationId: NodeProxy_NodeProxyUpgradeCheck
-      description: "批量检查 Proxy 是否满足升级条件。"
+      description: 批量检查 Proxy 是否满足升级条件。
       tags:
         - NodeProxy
       responses:
@@ -22172,11 +22159,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch-check whether Proxies can be upgraded."
+        descriptionEn: Batch-check whether Proxies can be upgraded.
   /api/v3/node/workflow/operation/offline/info:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallInfoGet
-      description: "获取离线安装 Proxy 操作所需的安装脚本、配置、预检查和安装包信息。"
+      description: 获取离线安装 Proxy 操作所需的安装脚本、配置、预检查和安装包信息。
       tags:
         - NodeWorkflow
       responses:
@@ -22345,11 +22332,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get installation script, configs, precheck, and package information for an offline Proxy installation operation."
+        descriptionEn: Get installation script, configs, precheck, and package information for an offline Proxy installation operation.
   /api/v3/node/workflow/operation/offline/result:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationOfflineInstallResultSubmit
-      description: "提交离线安装结果数据，唤醒并继续执行对应的离线安装任务步骤。"
+      description: 提交离线安装结果数据，唤醒并继续执行对应的离线安装任务步骤。
       tags:
         - NodeWorkflow
       responses:
@@ -22483,11 +22470,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Submit offline install result data to resume and continue the corresponding offline install operation step."
+        descriptionEn: Submit offline install result data to resume and continue the corresponding offline install operation step.
   /api/v3/plugin/uninstall:
     post:
       operationId: Plugin_UninstallPlugin
-      description: "批量卸载指定主机上的插件。"
+      description: 批量卸载指定主机上的插件。
       tags:
         - Plugin
       responses:
@@ -22629,11 +22616,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch uninstall plugins from specified hosts."
+        descriptionEn: Batch uninstall plugins from specified hosts.
   /api/v3/package/release/plugin/get_config_variables:
     post:
       operationId: Package_GetConfigVariablesReleasePlugin
-      description: "查询插件配置变量模板，支持按平台分组返回配置模板信息。"
+      description: 查询插件配置变量模板，支持按平台分组返回配置模板信息。
       tags:
         - Package
       responses:
@@ -22806,11 +22793,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query plugin configuration variable templates, supporting grouped return of configuration template information by platform."
+        descriptionEn: Query plugin configuration variable templates, supporting grouped return of configuration template information by platform.
   /api/v3/auth/authorized:
     post:
       operationId: Auth_Authorized
-      description: "查询用户对指定操作-资源类型对的授权资源范围。"
+      description: 查询用户对指定操作-资源类型对的授权资源范围。
       tags:
         - Auth
       responses:
@@ -23003,11 +22990,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the authorized resource scope for the requested action-resource type pairs."
+        descriptionEn: Query the authorized resource scope for the requested action-resource type pairs.
   /api/v3/node/constant/deploy/get:
     post:
       operationId: NodeConstant_NodeConstantDeployGet
-      description: "根据节点代际和操作系统类型，获取节点安装器、Agent 和插件的默认部署配置。"
+      description: 根据节点代际和操作系统类型，获取节点安装器、Agent 和插件的默认部署配置。
       tags:
         - NodeConstant
       responses:
@@ -23179,11 +23166,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Get the default deployment configuration for the installer, node agent, and plugins by node generation and operating system type."
+        descriptionEn: Get the default deployment configuration for the installer, node agent, and plugins by node generation and operating system type.
   /api/v3/topo/networkunit/get_networkunit_distribution_by_networkarea_id:
     post:
       operationId: Topo_GetNetworkUnitDistributionByNetworkAreaID
-      description: "按管控区域 ID 统计管控单元分布。"
+      description: 按管控区域 ID 统计管控单元分布。
       tags:
         - Topo
       responses:
@@ -23341,11 +23328,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Count network unit distribution by network area ID."
+        descriptionEn: Count network unit distribution by network area ID.
   /api/v3/topo/accesspoint/list/brief:
     post:
       operationId: Topo_AccessPointListBrief
-      description: "查询接入点简要列表，支持按管控区域 ID、接入点 ID 进行精确过滤；`brief` 响应仅返回接入点基础标识信息，不返回 `endpoints` 等敏感地址配置。"
+      description: 查询接入点简要列表，支持按管控区域 ID、接入点 ID 进行精确过滤；`brief` 响应仅返回接入点基础标识信息，不返回 `endpoints` 等敏感地址配置。
       tags:
         - Topo
       responses:
@@ -23522,11 +23509,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the access point brief list with exact filtering by network area ID and access point ID. The `brief` response returns only the basic access point identity fields and does not expose sensitive endpoint configuration such as `endpoints`."
+        descriptionEn: Query the access point brief list with exact filtering by network area ID and access point ID. The `brief` response returns only the basic access point identity fields and does not expose sensitive endpoint configuration such as `endpoints`.
   /api/v3/topo/host/get_host_distribution_by_node_version:
     post:
       operationId: Topo_GetHostDistributionByNodeVersion
-      description: "根据主机筛选条件统计各节点版本对应的主机数量分布。"
+      description: 根据主机筛选条件统计各节点版本对应的主机数量分布。
       tags:
         - Topo
       responses:
@@ -23689,6 +23676,10 @@ paths:
                       type: array
                       items:
                         type: string
+                    bk_host_innerip:
+                      type: array
+                      items:
+                        type: string
                     node_generation:
                       type: array
                       items:
@@ -23704,14 +23695,10 @@ paths:
                       items:
                         type: integer
                         format: int64
-                bk_host_innerip:
-                  type: array
-                  items:
-                    type: string
-                bk_host_innerip_v6:
-                  type: array
-                  items:
-                    type: string
+                    bk_host_innerip_v6:
+                      type: array
+                      items:
+                        type: string
                   description: TopoHostExactConditions describes host exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -23764,11 +23751,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Retrieve host count distribution grouped by node version based on host filtering conditions."
+        descriptionEn: Retrieve host count distribution grouped by node version based on host filtering conditions.
   /api/v3/topo/networkunit/list/brief:
     post:
       operationId: Topo_NetworkUnitListBrief
-      description: "查询管控单元简要列表，支持分页与按管控单元 ID、管控区域 ID、是否直连、代际进行精确过滤；`brief` 返回不会暴露 `direct_endpoints` 与 `custom_deploy_config` 等敏感字段。"
+      description: 查询管控单元简要列表，支持分页与按管控单元 ID、管控区域 ID、是否直连、代际进行精确过滤；`brief` 返回不会暴露 `direct_endpoints` 与 `custom_deploy_config` 等敏感字段。
       tags:
         - Topo
       responses:
@@ -24009,11 +23996,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the network unit brief list with pagination and exact filtering by network unit ID, network area ID, direct-connect flag, and generation. The `brief` response does not expose sensitive fields such as `direct_endpoints` and `custom_deploy_config`."
+        descriptionEn: Query the network unit brief list with pagination and exact filtering by network unit ID, network area ID, direct-connect flag, and generation. The `brief` response does not expose sensitive fields such as `direct_endpoints` and `custom_deploy_config`.
   /api/v3/topo/networkunit/recommend_by_network_segment:
     post:
       operationId: Topo_RecommendNetworkUnitByNetworkSegment
-      description: "根据主机网络段推荐可用管控单元。"
+      description: 根据主机网络段推荐可用管控单元。
       tags:
         - Topo
       responses:
@@ -24163,11 +24150,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Recommend available network units by host network segment."
+        descriptionEn: Recommend available network units by host network segment.
   /api/v3/package/release/agent/list/brief:
     post:
       operationId: Package_ListReleaseAgentBrief
-      description: "查询 Agent 安装包精简列表，仅返回核心字段，支持分页和条件过滤。"
+      description: 查询 Agent 安装包精简列表，仅返回核心字段，支持分页和条件过滤。
       tags:
         - Package
       responses:
@@ -24201,6 +24188,8 @@ paths:
                             generation:
                               type: integer
                               format: int64
+                            is_visible:
+                              type: boolean
                             change_log_en:
                               type: string
                             change_log_zh:
@@ -24353,6 +24342,10 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_visible:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleaseAgentListBriefReq describes the HTTP request body when list
@@ -24362,7 +24355,7 @@ paths:
           PackageReleaseAgentListBriefReq describes the HTTP request body when list
           agent release brief.
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -24377,11 +24370,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query Agent package brief list with only core fields, supports pagination and filtering."
+        descriptionEn: Query Agent package brief list with only core fields, supports pagination and filtering.
   /api/v3/package/release/plugin/list/brief:
     post:
       operationId: Package_ListReleasePluginBrief
-      description: "查询 Plugin 安装包精简列表，仅返回核心字段，支持分页和条件过滤。"
+      description: 查询 Plugin 安装包精简列表，仅返回核心字段，支持分页和条件过滤。
       tags:
         - Package
       responses:
@@ -24415,6 +24408,8 @@ paths:
                             generation:
                               type: integer
                               format: int64
+                            is_visible:
+                              type: boolean
                           description: |-
                             ReleasePluginBrief describes the brief release plugin (only core fields for
                             list display).
@@ -24563,6 +24558,10 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_visible:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleasePluginListBriefReq describes the HTTP request body when list
@@ -24572,7 +24571,7 @@ paths:
           PackageReleasePluginListBriefReq describes the HTTP request body when list
           plugin release brief.
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -24587,11 +24586,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query Plugin package brief list with only core fields, supports pagination and filtering."
+        descriptionEn: Query Plugin package brief list with only core fields, supports pagination and filtering.
   /api/v3/package/release/proxy/list/brief:
     post:
       operationId: Package_ListReleaseProxyBrief
-      description: "查询 Proxy 安装包精简列表，返回核心字段及变更日志，支持分页和条件过滤。"
+      description: 查询 Proxy 安装包精简列表，返回核心字段及变更日志，支持分页和条件过滤。
       tags:
         - Package
       responses:
@@ -24625,6 +24624,8 @@ paths:
                             generation:
                               type: integer
                               format: int64
+                            is_visible:
+                              type: boolean
                             change_log_en:
                               type: string
                             change_log_zh:
@@ -24777,6 +24778,10 @@ paths:
                       type: array
                       items:
                         type: boolean
+                    is_visible:
+                      type: array
+                      items:
+                        type: boolean
                   description: PackageReleaseExactConditions describes release exact conditions.
               description: |-
                 PackageReleaseProxyListBriefReq describes the HTTP request body when list
@@ -24786,7 +24791,7 @@ paths:
           PackageReleaseProxyListBriefReq describes the HTTP request body when list
           proxy release brief.
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -24801,11 +24806,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query Proxy package brief list with core fields including changelogs, supports pagination and filtering."
+        descriptionEn: Query Proxy package brief list with core fields including changelogs, supports pagination and filtering.
   /api/v3/node/proxy/assign_unit:
     post:
       operationId: NodeProxy_NodeProxyAssignUnit
-      description: "批量将未分配管控单元的运行中 Proxy 主机分配到指定管控单元，并启动分配工作流。"
+      description: 批量将未分配管控单元的运行中 Proxy 主机分配到指定管控单元，并启动分配工作流。
       tags:
         - NodeProxy
       responses:
@@ -24958,11 +24963,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch-assign running, unassigned Proxy hosts to a specified network unit and launch an assignment workflow."
+        descriptionEn: Batch-assign running, unassigned Proxy hosts to a specified network unit and launch an assignment workflow.
   /api/v3/plugin/restart:
     post:
       operationId: Plugin_RestartPlugin
-      description: "批量重启指定主机上的插件进程。"
+      description: 批量重启指定主机上的插件进程。
       tags:
         - Plugin
       responses:
@@ -25104,11 +25109,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch restart plugin processes on specified hosts."
+        descriptionEn: Batch restart plugin processes on specified hosts.
   /api/v3/plugin/stop:
     post:
       operationId: Plugin_StopPlugin
-      description: "批量停止指定主机上的插件进程。"
+      description: 批量停止指定主机上的插件进程。
       tags:
         - Plugin
       responses:
@@ -25250,11 +25255,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch stop plugin processes on specified hosts."
+        descriptionEn: Batch stop plugin processes on specified hosts.
   /api/v3/plugin/migrate_from_v2:
     post:
       operationId: Plugin_MigratePluginFromV2
-      description: "批量将指定主机上的插件进程从 v2 迁移到当前插件工作流。"
+      description: 批量将指定主机上的插件进程从 v2 迁移到当前插件工作流。
       tags:
         - Plugin
       responses:
@@ -25396,11 +25401,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch migrate plugin processes from v2 to the current plugin workflow on specified hosts."
+        descriptionEn: Batch migrate plugin processes from v2 to the current plugin workflow on specified hosts.
   /api/v3/topo/business/host_count/get:
     post:
       operationId: Topo_BusinessHostCountGet
-      description: "根据业务 ID 列表，统计每个业务下的主机数量。"
+      description: 根据业务 ID 列表，统计每个业务下的主机数量。
       tags:
         - Topo
       responses:
@@ -25550,11 +25555,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Count hosts for each specified business ID."
+        descriptionEn: Count hosts for each specified business ID.
   /api/v3/topo/business/inst_topo/get:
     post:
       operationId: Topo_BusinessInstTopoGet
-      description: "根据业务 ID 查询业务实例拓扑，并返回各拓扑节点聚合后的主机数量。"
+      description: 根据业务 ID 查询业务实例拓扑，并返回各拓扑节点聚合后的主机数量。
       tags:
         - Topo
       responses:
@@ -25615,11 +25620,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Query the business instance topology by business ID, with aggregated host counts for topology nodes."
+        descriptionEn: Query the business instance topology by business ID, with aggregated host counts for topology nodes.
   /api/v3/node/agent/update_ops_fields:
     post:
       operationId: NodeAgent_NodeAgentUpdateOpsFields
-      description: "批量更新 Agent 主机的带外管理字段，并同步到 CMDB。"
+      description: 批量更新 Agent 主机的带外管理字段，并同步到 CMDB。
       tags:
         - NodeAgent
       responses:
@@ -25772,11 +25777,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch-update out-of-band management fields for Agent hosts and synchronize them to CMDB."
+        descriptionEn: Batch-update out-of-band management fields for Agent hosts and synchronize them to CMDB.
   /api/v3/node/proxy/update_ops_fields:
     post:
       operationId: NodeProxy_NodeProxyUpdateOpsFields
-      description: "批量更新 Proxy 主机的带外管理字段，并同步到 CMDB。"
+      description: 批量更新 Proxy 主机的带外管理字段，并同步到 CMDB。
       tags:
         - NodeProxy
       responses:
@@ -25930,11 +25935,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Batch-update out-of-band management fields for Proxy hosts and synchronize them to CMDB."
+        descriptionEn: Batch-update out-of-band management fields for Proxy hosts and synchronize them to CMDB.
   /api/v3/sync/cmdb/constants:
     post:
       operationId: Sync_SyncCmdbConstants
-      description: "触发同步 CMDB 常量数据。"
+      description: 触发同步 CMDB 常量数据。
       tags:
         - Sync
       responses:
@@ -26068,11 +26073,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of CMDB constants."
+        descriptionEn: Trigger synchronization of CMDB constants.
   /api/v3/sync/cmdb/host:
     post:
       operationId: Sync_SyncCmdbHost
-      description: "触发同步 CMDB 业务与主机数据。"
+      description: 触发同步 CMDB 业务与主机数据。
       tags:
         - Sync
       responses:
@@ -26200,11 +26205,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of CMDB business and host data."
+        descriptionEn: Trigger synchronization of CMDB business and host data.
   /api/v3/sync/cmdb/networkarea:
     post:
       operationId: Sync_SyncCmdbNetworkArea
-      description: "触发同步 CMDB 管控区域数据。"
+      description: 触发同步 CMDB 管控区域数据。
       tags:
         - Sync
       responses:
@@ -26338,11 +26343,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of CMDB network area data."
+        descriptionEn: Trigger synchronization of CMDB network area data.
   /api/v3/sync/gse/agent/correct_agent_id:
     post:
       operationId: Sync_SyncCorrectAgentID
-      description: "触发修正 GSE Agent ID。"
+      description: 触发修正 GSE Agent ID。
       tags:
         - Sync
       responses:
@@ -26478,11 +26483,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger correction of GSE Agent IDs."
+        descriptionEn: Trigger correction of GSE Agent IDs.
   /api/v3/sync/gse/agent/info:
     post:
       operationId: Sync_SyncAgentInfo
-      description: "触发同步指定主机的 GSE Agent 信息。"
+      description: 触发同步指定主机的 GSE Agent 信息。
       tags:
         - Sync
       responses:
@@ -26616,11 +26621,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of GSE Agent information for specified hosts."
+        descriptionEn: Trigger synchronization of GSE Agent information for specified hosts.
   /api/v3/sync/gse/agent/info/alive:
     post:
       operationId: Sync_SyncAliveHostAgentInfo
-      description: "触发同步存活主机的 GSE Agent 信息。"
+      description: 触发同步存活主机的 GSE Agent 信息。
       tags:
         - Sync
       responses:
@@ -26754,11 +26759,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of GSE Agent information for alive hosts."
+        descriptionEn: Trigger synchronization of GSE Agent information for alive hosts.
   /api/v3/sync/gse/agent/state:
     post:
       operationId: Sync_SyncAgentState
-      description: "触发同步指定主机的 GSE Agent 状态。"
+      description: 触发同步指定主机的 GSE Agent 状态。
       tags:
         - Sync
       responses:
@@ -26892,11 +26897,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of GSE Agent state for specified hosts."
+        descriptionEn: Trigger synchronization of GSE Agent state for specified hosts.
   /api/v3/sync/gse/agent/state/all:
     post:
       operationId: Sync_SyncAllAgentState
-      description: "触发同步全部主机的 GSE Agent 状态。"
+      description: 触发同步全部主机的 GSE Agent 状态。
       tags:
         - Sync
       responses:
@@ -27030,11 +27035,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of GSE Agent state for all hosts."
+        descriptionEn: Trigger synchronization of GSE Agent state for all hosts.
   /api/v3/sync/gse/plugin/process/info:
     post:
       operationId: Sync_SyncAlivePluginProcessInfo
-      description: "触发同步指定主机的存活插件进程信息。"
+      description: 触发同步指定主机的存活插件进程信息。
       tags:
         - Sync
       responses:
@@ -27170,11 +27175,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of alive plugin process information for specified hosts."
+        descriptionEn: Trigger synchronization of alive plugin process information for specified hosts.
   /api/v3/sync/gse/plugin/process/info/all:
     post:
       operationId: Sync_SyncAllAlivePluginProcessInfo
-      description: "触发同步全部存活插件进程信息。"
+      description: 触发同步全部存活插件进程信息。
       tags:
         - Sync
       responses:
@@ -27306,4 +27311,1214 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: "Trigger synchronization of all alive plugin process information."
+        descriptionEn: Trigger synchronization of all alive plugin process information.
+  /api/v3/package/import:
+    post:
+      operationId: Package_PackageImport
+      description: PackageImport provides package importing.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      plugin_name:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  PackageImportResp describes the HTTP response body when import package in
+                  package service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                md5:
+                  type: string
+                file_name:
+                  type: string
+                download_url:
+                  type: string
+              description: |-
+                PackageImportReq describes the HTTP request body when import package in
+                package service.
+        required: true
+        description: |-
+          PackageImportReq describes the HTTP request body when import package in
+          package service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/import
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/agent/unvisible:
+    post:
+      operationId: Package_UnvisibleReleaseAgent
+      description: UnvisibleReleaseAgent hides an agent release from the frontend.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/agent/unvisible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/agent/visible:
+    post:
+      operationId: Package_VisibleReleaseAgent
+      description: VisibleReleaseAgent makes an agent release visible to the frontend.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/agent/visible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/plugin/distinct:
+    post:
+      operationId: Package_DistinctReleasePlugin
+      description: DistinctReleasePlugin distincts plugin releases.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: array
+                        items:
+                          type: string
+                      os_type:
+                        type: array
+                        items:
+                          type: string
+                      version:
+                        type: array
+                        items:
+                          type: string
+                      cpu_arch:
+                        type: array
+                        items:
+                          type: string
+                    description: PackageReleaseDistinctData describes the release distinct data.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  PackageReleasePluginDistinctResp describes the HTTP response body when
+                  distinct plugin release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                generation:
+                  type: integer
+                  format: int64
+                distinct_field:
+                  type: object
+                  properties:
+                    name:
+                      type: boolean
+                    os_type:
+                      type: boolean
+                    version:
+                      type: boolean
+                    cpu_arch:
+                      type: boolean
+                  description: PackageReleaseDistinctField describes the release distinct field.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    name:
+                      type: array
+                      items:
+                        type: string
+                    enabled:
+                      type: array
+                      items:
+                        type: boolean
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    platform:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          os_type:
+                            type: string
+                          cpu_arch:
+                            type: string
+                        description: Platform describes the platform informations.
+                    file_name:
+                      type: array
+                      items:
+                        type: string
+                    as_default:
+                      type: array
+                      items:
+                        type: boolean
+                    is_visible:
+                      type: array
+                      items:
+                        type: boolean
+                  description: PackageReleaseExactConditions describes release exact conditions.
+              description: |-
+                PackageReleasePluginDistinctReq describes the HTTP request body when distinct
+                plugin release.
+        required: true
+        description: |-
+          PackageReleasePluginDistinctReq describes the HTTP request body when distinct
+          plugin release.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/plugin/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/plugin/unvisible:
+    post:
+      operationId: Package_UnvisibleReleasePlugin
+      description: UnvisibleReleasePlugin hides a plugin release from the frontend.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/plugin/unvisible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/plugin/visible:
+    post:
+      operationId: Package_VisibleReleasePlugin
+      description: VisibleReleasePlugin makes a plugin release visible to the frontend.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/plugin/visible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/proxy/unvisible:
+    post:
+      operationId: Package_UnvisibleReleaseProxy
+      description: UnvisibleReleaseProxy hides a proxy release from the frontend.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/proxy/unvisible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release/proxy/visible:
+    post:
+      operationId: Package_VisibleReleaseProxy
+      description: VisibleReleaseProxy makes a proxy release visible to the frontend.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                platform:
+                  type: object
+                  properties:
+                    os_type:
+                      type: string
+                    cpu_arch:
+                      type: string
+                  description: Platform describes the platform informations.
+                generation:
+                  type: integer
+                  format: int64
+                release_type:
+                  type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release/proxy/visible
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
