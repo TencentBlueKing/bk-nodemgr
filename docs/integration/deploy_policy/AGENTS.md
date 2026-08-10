@@ -10,6 +10,6 @@
 |Conventions:mode page sections={Purpose and applicability,Input,Minimal payload and curl template,System interpretation,Immediate output,Eventual or machine-visible artifact,Repeat behavior,Failure cases and limits,Contract references}
 |Conventions:each executable mode page must include a curl template|initialize shell variables|extract returned IDs when reused|do not invent auth/tenant headers|do not include secrets/real identifiers
 |Conventions:separate API accepted/created IDs from eventual machine-visible effects|mark public-contract gaps as 待确认 or not specified
-|specify_plugin_sub_config:config-only for an already installed plugin|does not install/upgrade plugin|current deploy_policy execute does not support this mode|no execute curl
+|specify_plugin_sub_config:config-only for an already installed plugin|does not install/upgrade plugin|execute converges declared non-main config files|include execute curl|separate trigger-id from final config effect
 |Unsupported mode:specify_plugin_pkg_sub_config appears in concept docs but is absent from current proto/swagger/types|document as unavailable
 |Anti-patterns:no full Swagger duplication|no internal call chains|no undocumented operation/status endpoint|no invented machine paths/reload/health/idempotency/retry/timing guarantees
