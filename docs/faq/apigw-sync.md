@@ -27,8 +27,6 @@ apigwSync:
       value: "<bk_app_secret>"
     - name: BK_API_URL_TMPL
       value: "http://bkapi.example.com/api/{api_name}"
-    - name: BK_APP_TENANT_ID
-      value: "default"
     - name: RELEASE_STAGES
       value: "stage"
     - name: NO_PUB
@@ -85,9 +83,10 @@ apigwSync:
 
 `stages[].backends[].config.hosts[].host` 只写协议、域名或 IP，不包含 Path，例如 `https://bk-nodemgr.example.com`。
 
-`BK_APP_TENANT_ID` 会被 `apigw-manager` 转成请求头 `X-Bk-Tenant-Id`。如果同步日志出现
-`1640302 Cross tenant forbidden`，先确认同步镜像基于支持多租户的 `apigw-manager` 版本，再检查该变量是否按租户模式设置：
-单租户为 `default`，多租户为 `system`。
+Helm 会根据 `backend.config.tenantMode` 自动注入 `BK_APP_TENANT_ID`：`single` 对应 `default`，`multiple` 对应
+`system`，不要在 `apigwSync.extraEnvVars` 中重复配置。docker-compose 通过 `BK_NODEMGR_APP_TENANT_ID` 设置该值。
+`apigw-manager` 会把它转换成请求头 `X-Bk-Tenant-Id`。如果同步日志出现 `1640302 Cross tenant forbidden`，先确认同步镜像
+基于支持多租户的 `apigw-manager` 版本，再检查该变量是否按租户模式设置。
 
 > notice: 一个环境的 `BK_API_URL_TMPL` 可以通过我们注册到 bk-apigw 后生成的 API 地址来获取。比如我们生成的 API 地址是
 `https://bk-nodemgr.apigw.example.com/api/v1/nodemgr/nodes`，那么 BK_API_URL_TMPL 就是 `https://bk-nodemgr.apigw.example.com/api/{api_name}`。
