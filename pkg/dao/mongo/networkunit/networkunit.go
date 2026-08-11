@@ -23,15 +23,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database) *dao {
-	tableName := TableName()
+func newDao(tenantID string, client *mongo.Database) *dao {
+	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
 		tableName: tableName,
 		counter:   counter.New(client),
 	}
 
-	d.IOrm = base.NewOrm[*NetworkUnit, NetworkUnit](d)
+	d.IOrm = base.NewOrm[*NetworkUnit](d)
 
 	return d
 }
@@ -67,7 +67,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 func (d *dao) create(nCtx contextx.IContext, networkUnit *NetworkUnit) (int64, error) {
-	newSequence, err := d.counter.Generate(nCtx, TableName())
+	newSequence, err := d.counter.Generate(nCtx, tableNamePrefix)
 	if err != nil {
 		return 0, err
 	}
@@ -88,8 +88,8 @@ func (d *dao) create(nCtx contextx.IContext, networkUnit *NetworkUnit) (int64, e
 	return newSequence, nil
 }
 
-func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkUnitIDs ...int64) error {
-	models := buildDeleteManyParams(tenantID, networkUnitIDs...)
+func (d *dao) deleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) error {
+	models := buildDeleteManyParams(networkUnitIDs...)
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -103,24 +103,10 @@ func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkUnitIDs
 	return nil
 }
 
-// tenantFilter additional tenant filter.
-// global networkarea is a special networkarea, it belongs to system tenant, but it can be seen by all tenants.
-// this scene is also ensured in CMDB.
-// a query from a tenant, should be filtered in its own tenant, and plus the global networkarea.
-func tenantFilter(tenantID string) bson.E {
-	return bson.E{
-		Key: "$or",
-		Value: bson.A{
-			bson.D{{Key: FieldKeyTenantID, Value: tenantID}},
-			bson.D{{Key: FieldKeyNetworkAreaID, Value: base.GlobalNetworkAreaID}},
-		}}
-}
-
 // buildDeleteManyParams build delete many params.
-func buildDeleteManyParams(tenantID string, networkUnitIDs ...int64) []mongo.WriteModel {
+func buildDeleteManyParams(networkUnitIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: FieldKeyNetworkUnitID, Value: bson.D{{Key: "$in", Value: networkUnitIDs}}},
-		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
+		bson.E{Key: FieldKeyNetworkUnitID, Value: bson.D{{Key: "$in", Value: networkUnitIDs}}}}
 
 	update := base.BuildDeleteParam()
 
@@ -138,8 +124,15 @@ func (d *dao) getNetworkUnitDistributionByNetworkAreaID(nCtx contextx.IContext, 
 	}
 
 	pipeline = append(pipeline,
-		bson.D{{Key: "$group", Value: bson.D{{Key: "_id", Value: "$" + FieldKeyNetworkAreaID}, {Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}}}}},
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
+		bson.D{
+			{Key: "$group", Value: bson.D{
+				{Key: "_id", Value: "$" + FieldKeyNetworkAreaID},
+				{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+			}},
+		},
+		bson.D{
+			{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}},
+		},
 	)
 
 	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)

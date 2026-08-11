@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
  * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
@@ -11,550 +13,167 @@
 package networkunit
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"sync"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/joho/godotenv"
+	"github.com/TencentBlueKing/bk-nodemgr/testsuite/support"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// testClient ...
-func testClient(t *testing.T) IHandler {
-	err := godotenv.Load(".env")
-	if err != nil {
-		t.Fatal(err)
-	}
+const expectedTableNamePrefix = "networkunit"
 
-	nCtx := context.Background()
-	mongoClient, err := mongo.Connect(
-		nCtx,
-		&options.ClientOptions{
-			Hosts: []string{
-				os.Getenv("MONGO_ADDRESS"),
-			},
-			Auth: &options.Credential{
-				Username:      os.Getenv("MONGO_USER"),
-				Password:      os.Getenv("MONGO_PASSWORD"),
-				AuthSource:    os.Getenv("MONGO_AUTH_SOURCE"),
-				AuthMechanism: os.Getenv("MONGO_AUTH_MECHANISM"),
-			},
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
+func testHandler(t *testing.T) (*mongo.Database, IHandler) {
+	t.Helper()
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
+	_, db := support.RequireMongoDatabase(t)
+	return db, New(db)
 }
 
-var once = sync.Once{}
-var preparedNetworkUnitIDs []int64
-var preparedGlobalNetworkUnitID int64
+func testContext(t *testing.T, tenantID string) contextx.IContext {
+	t.Helper()
 
-// prepareData for all tests.
-func prepareData(t *testing.T, nCtx contextx.IContext) {
-	once.Do(func() {
-		tenantID := nCtx.TenantID()
+	return contextx.New(t.Context(), contextx.WithTenantID(tenantID))
+}
 
-		// pre insert.
-		h := testClient(t)
+func tenantCollectionName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", expectedTableNamePrefix, tenantID)
+}
 
-		systemCtx := contextx.New(context.Background(), contextx.WithTenantID("system_tenant"))
-		tests := []struct {
-			nCtx        contextx.IContext
-			networkUnit *types.NetworkUnit
-			isGlobal    bool
-		}{
-			{
-				nCtx: nCtx,
-				networkUnit: &types.NetworkUnit{
-					TenantID:      tenantID,
-					NetworkAreaID: base.GlobalNetworkAreaID,
-					Name:          "test-name-1",
-					AccessPoints:  []int64{2},
-					Links: types.Links{
-						Cluster: &types.Link{
-							AccessPointID: 1,
-						},
-						File: &types.Link{
-							AccessPointID: 1,
-						},
-						Data: &types.Link{
-							AccessPointID: 1,
-						},
-					},
-				},
-				isGlobal: false,
-			},
-			{
-				nCtx: nCtx,
-				networkUnit: &types.NetworkUnit{
-					TenantID:      tenantID,
-					NetworkAreaID: 1,
-					Name:          "test-name-2",
-					AccessPoints:  []int64{3, 4, 5},
-					Links: types.Links{
-						Cluster: &types.Link{
-							AccessPointID: 1,
-						},
-					},
-				},
-				isGlobal: false,
-			},
-			{
-				nCtx: systemCtx,
-				networkUnit: &types.NetworkUnit{
-					TenantID:      "system_tenant",
-					NetworkAreaID: base.GlobalNetworkAreaID,
-					Name:          "test-name-system",
-					AccessPoints:  []int64{6, 7, 8},
-					Links: types.Links{
-						Cluster: &types.Link{
-							AccessPointID: 1,
-						},
-					},
-				},
-				isGlobal: true,
-			},
-		}
+func networkUnitFixture(tenantID string, networkAreaID int64, name string) *types.NetworkUnit {
+	return &types.NetworkUnit{
+		TenantID:      tenantID,
+		NetworkAreaID: networkAreaID,
+		Name:          name,
+		AccessPoints:  []int64{networkAreaID + 10},
+	}
+}
 
-		preparedNetworkUnitIDs = make([]int64, 0)
-		for _, tt := range tests {
-			networkunitID, err := h.Create(tt.nCtx, tt.networkUnit)
-			if err != nil {
-				t.Errorf("prepareData() error = %v", err)
-			}
+func countTenantDocuments(t *testing.T, db *mongo.Database, tenantID string) int64 {
+	t.Helper()
 
-			preparedNetworkUnitIDs = append(preparedNetworkUnitIDs, networkunitID)
+	num, err := db.Collection(tenantCollectionName(tenantID)).CountDocuments(t.Context(), bson.D{})
+	require.NoError(t, err)
 
-			if tt.isGlobal {
-				preparedGlobalNetworkUnitID = networkunitID
-			}
-		}
+	return num
+}
+
+func countAliveTenantDocuments(t *testing.T, db *mongo.Database, tenantID string) int64 {
+	t.Helper()
+
+	num, err := db.Collection(tenantCollectionName(tenantID)).CountDocuments(t.Context(), bson.D{
+		{Key: base.FieldKeyIsDeleted, Value: false},
 	})
+	require.NoError(t, err)
+
+	return num
 }
 
-// Test_handler_Get get network unit.
-func Test_handler_Get(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+func TestHandler_RoutesTenantCollectionsAndPreservesReadIsolation(t *testing.T) {
+	db, h := testHandler(t)
+	tenantACtx := testContext(t, "tenant_a")
+	tenantBCtx := testContext(t, "tenant_b")
 
-	prepareData(t, nCtx)
+	tenantAUnit := networkUnitFixture("tenant_a", 100, "tenant-a-unit")
+	tenantBUnit := networkUnitFixture("tenant_b", 200, "tenant-b-unit")
 
-	tests := []struct {
-		name    string
-		id      int64
-		wantErr bool
-	}{
-		{
-			name:    "invalid id",
-			id:      -1,
-			wantErr: true,
-		},
-		{
-			name:    "not exist",
-			id:      10000000,
-			wantErr: true,
-		},
-	}
-	for idx, id := range preparedNetworkUnitIDs {
-		tests = append(tests, struct {
-			name    string
-			id      int64
-			wantErr bool
-		}{
-			name:    fmt.Sprintf("exist-%d", idx),
-			id:      id,
-			wantErr: false,
-		})
-	}
+	tenantAID, err := h.Create(tenantACtx, tenantAUnit)
+	require.NoError(t, err)
+	tenantBID, err := h.Create(tenantBCtx, tenantBUnit)
+	require.NoError(t, err)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.Get(nCtx, tt.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+	assert.NotEqual(t, tenantAID, tenantBID)
+	assert.NotEqual(t, tenantCollectionName("tenant_a"), tenantCollectionName("tenant_b"))
+	assert.Equal(t, int64(1), countTenantDocuments(t, db, "tenant_a"))
+	assert.Equal(t, int64(1), countTenantDocuments(t, db, "tenant_b"))
 
-			t.Logf("Get() got = %v", got)
-		})
-	}
+	tenantARecords, tenantATotal, err := h.List(tenantACtx, types.Page{})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), tenantATotal)
+	require.Len(t, tenantARecords, 1)
+	assert.Equal(t, "tenant_a", tenantARecords[0].TenantID)
+	assert.Equal(t, tenantAID, tenantARecords[0].ID)
+
+	tenantBRecords, tenantBTotal, err := h.List(tenantBCtx, types.Page{})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), tenantBTotal)
+	require.Len(t, tenantBRecords, 1)
+	assert.Equal(t, "tenant_b", tenantBRecords[0].TenantID)
+	assert.Equal(t, tenantBID, tenantBRecords[0].ID)
+
+	tenantARecord, err := h.Get(tenantACtx, tenantAID)
+	require.NoError(t, err)
+	assert.Equal(t, "tenant_a", tenantARecord.TenantID)
+
+	_, err = h.Get(tenantACtx, tenantBID)
+	require.Error(t, err)
 }
 
-// Test_handler_Count count network unit.
-func Test_handler_Count(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+func TestHandler_MutationsAndAggregationStayTenantScoped(t *testing.T) {
+	db, h := testHandler(t)
+	tenantACtx := testContext(t, "tenant_a")
+	tenantBCtx := testContext(t, "tenant_b")
 
-	prepareData(t, nCtx)
+	tenantAFirst := networkUnitFixture("tenant_a", 300, "tenant-a-first")
+	tenantASecond := networkUnitFixture("tenant_a", 300, "tenant-a-second")
+	tenantBUnit := networkUnitFixture("tenant_b", 300, "tenant-b-unit")
 
-	tests := []struct {
-		name      string
-		optFn     []OptFn
-		wantTotal int64
-		wantErr   bool
-	}{
-		{
-			name:      "normal",
-			optFn:     nil,
-			wantTotal: -1,
-			wantErr:   false,
-		},
-		{
-			name:      "filter by networkarea id",
-			optFn:     []OptFn{WithNetworkAreaID(base.GlobalNetworkAreaID)},
-			wantTotal: -1,
-			wantErr:   false,
-		},
-		{
-			name:      "filter by networkunit id",
-			optFn:     []OptFn{WithNetworkUnitID(preparedNetworkUnitIDs...)},
-			wantTotal: int64(len(preparedNetworkUnitIDs)),
-			wantErr:   false,
-		},
-	}
+	tenantAFirstID, err := h.Create(tenantACtx, tenantAFirst)
+	require.NoError(t, err)
+	tenantASecondID, err := h.Create(tenantACtx, tenantASecond)
+	require.NoError(t, err)
+	tenantBID, err := h.Create(tenantBCtx, tenantBUnit)
+	require.NoError(t, err)
+	assert.NotEqual(t, tenantAFirstID, tenantASecondID)
+	assert.NotEqual(t, tenantAFirstID, tenantBID)
+	assert.NotEqual(t, tenantASecondID, tenantBID)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.Count(nCtx, tt.optFn...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+	err = h.UpdateMany(tenantACtx, types.NetworkUnitUpdateFields{Name: true}, &types.NetworkUnit{
+		TenantID: "tenant_a",
+		ID:       tenantAFirstID,
+		Name:     "tenant-a-updated",
+	})
+	require.NoError(t, err)
 
-			if tt.wantTotal > 0 && got != tt.wantTotal {
-				t.Errorf("Count() got = %d, wantTotal %d", got, tt.wantTotal)
-				return
-			}
-			t.Logf("Count() got = %d", got)
-		})
-	}
+	tenantAUpdated, err := h.Get(tenantACtx, tenantAFirstID)
+	require.NoError(t, err)
+	assert.Equal(t, "tenant-a-updated", tenantAUpdated.Name)
+
+	tenantBRecord, err := h.Get(tenantBCtx, tenantBID)
+	require.NoError(t, err)
+	assert.Equal(t, "tenant_b", tenantBRecord.TenantID)
+	assert.Equal(t, "tenant-b-unit", tenantBRecord.Name)
+
+	tenantADistribution, err := h.GetNetworkUnitDistributionByNetworkAreaID(tenantACtx)
+	require.NoError(t, err)
+	assert.Equal(t, map[int64]int64{300: 2}, tenantADistribution)
+
+	tenantBDistribution, err := h.GetNetworkUnitDistributionByNetworkAreaID(tenantBCtx)
+	require.NoError(t, err)
+	assert.Equal(t, map[int64]int64{300: 1}, tenantBDistribution)
+
+	err = h.DeleteMany(tenantACtx, tenantASecondID)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), countAliveTenantDocuments(t, db, "tenant_a"))
+	assert.Equal(t, int64(1), countAliveTenantDocuments(t, db, "tenant_b"))
+
+	_, err = h.Get(tenantACtx, tenantASecondID)
+	require.Error(t, err)
+
+	tenantBRecord, err = h.Get(tenantBCtx, tenantBID)
+	require.NoError(t, err)
+	assert.Equal(t, "tenant_b", tenantBRecord.TenantID)
 }
 
-// Test_handler_List list network unit.
-func Test_handler_List(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+func TestHandler_CreateRejectsCrossTenantData(t *testing.T) {
+	_, h := testHandler(t)
+	tenantACtx := testContext(t, "tenant_a")
 
-	prepareData(t, nCtx)
-
-	tests := []struct {
-		name      string
-		page      types.Page
-		optFn     []OptFn
-		wantTotal int64
-		wantNum   int64
-		wantErr   bool
-	}{
-		{
-			name: "normal",
-			page: types.Page{
-				Offset: 0,
-				Limit:  0,
-			},
-			optFn:     nil,
-			wantTotal: -1,
-			wantNum:   -1,
-			wantErr:   false,
-		},
-		{
-			name: "filter by networkarea id",
-			page: types.Page{
-				Offset: 0,
-				Limit:  1,
-			},
-			optFn:     []OptFn{WithNetworkAreaID(base.GlobalNetworkAreaID)},
-			wantTotal: -1,
-			wantNum:   1,
-			wantErr:   false,
-		},
-		{
-			name: "filter by networkunit id",
-			page: types.Page{
-				Offset: 1,
-				Limit:  1,
-			},
-			optFn:     []OptFn{WithNetworkUnitID(preparedNetworkUnitIDs...)},
-			wantTotal: int64(len(preparedNetworkUnitIDs)),
-			wantNum:   1,
-			wantErr:   false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			if tt.wantTotal > 0 && tt.wantTotal != total {
-				t.Errorf("List() total = %d, wantTotal %d", total, tt.wantTotal)
-				return
-			}
-			t.Logf("List() total = %d", total)
-
-			if tt.wantNum > 0 && tt.wantNum != int64(len(got)) {
-				t.Errorf("List() num = %d, wantNum %d", len(got), tt.wantNum)
-				return
-			}
-			t.Logf("List() num = %d", len(got))
-
-			for _, v := range got {
-				t.Logf("List() got = %v", v)
-			}
-		})
-	}
-}
-
-// Test_handler_Create creates networkunit.
-func Test_handler_Create(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
-
-	type args struct {
-		nCtx        contextx.IContext
-		networkUnit *types.NetworkUnit
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "nil nCtx",
-			args: args{
-				nCtx:        nil,
-				networkUnit: nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "nil networkunit",
-			args: args{
-				nCtx:        nCtx,
-				networkUnit: nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "forbid cross tenant",
-			args: args{
-				nCtx: nCtx,
-				networkUnit: &types.NetworkUnit{
-					TenantID: "test-other",
-					Name:     "new-name-90001",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "normal",
-			args: args{
-				nCtx: nCtx,
-				networkUnit: &types.NetworkUnit{
-					TenantID: "test",
-					Name:     "new-name-90002",
-				},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			id, err := h.Create(tt.args.nCtx, tt.args.networkUnit)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err == nil && id < 0 {
-				t.Errorf("Create() return invalid networkunit id: %d", id)
-			}
-		})
-	}
-}
-
-// Test_handler_UpdateMany updates many networkunits.
-func Test_handler_UpdateMany(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
-
-	type args struct {
-		nCtx         contextx.IContext
-		networkUnits []*types.NetworkUnit
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "nil nCtx",
-			args: args{
-				nCtx:         nil,
-				networkUnits: nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "nil networkunits",
-			args: args{
-				nCtx:         nCtx,
-				networkUnits: nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "empty networkunits",
-			args: args{
-				nCtx:         nCtx,
-				networkUnits: []*types.NetworkUnit{},
-			},
-			wantErr: true,
-		},
-		{
-			name: "forbid cross tenant",
-			args: args{
-				nCtx: nCtx,
-				networkUnits: []*types.NetworkUnit{
-					{
-						TenantID:      "system_tenant",
-						ID:            preparedGlobalNetworkUnitID,
-						NetworkAreaID: base.GlobalNetworkAreaID,
-						Name:          "new-name-90001",
-					}},
-			},
-			wantErr: true,
-		},
-		{
-			name: "normal",
-			args: args{
-				nCtx: nCtx,
-				networkUnits: []*types.NetworkUnit{
-					{
-						TenantID:      "test",
-						ID:            preparedNetworkUnitIDs[0],
-						NetworkAreaID: base.GlobalNetworkAreaID,
-						Name:          "new-name-90002",
-					},
-				},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			err := h.UpdateMany(tt.args.nCtx, types.NewNetworkUnitUpdateFields(), tt.args.networkUnits...)
-			if err != nil {
-				t.Logf("UpdateMany() error = %v", err)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UpdateMany() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-// Test_handler_DeleteMany deletes many networkunits.
-func Test_handler_DeleteMany(t *testing.T) {
-	tenant.SetMode(tenant.ModeMultiple)
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
-
-	prepareData(t, nCtx)
-
-	type args struct {
-		nCtx           contextx.IContext
-		networkUnitIDs []int64
-	}
-
-	tests := []struct {
-		name            string
-		args            args
-		wantErr         bool
-		ensureExists    []int64
-		ensureNotExists []int64
-	}{
-		{
-			name: "nil nCtx",
-			args: args{
-				nCtx:           nil,
-				networkUnitIDs: nil,
-			},
-			wantErr:         true,
-			ensureExists:    nil,
-			ensureNotExists: nil,
-		},
-		{
-			name: "empty ids",
-			args: args{
-				nCtx:           nCtx,
-				networkUnitIDs: []int64{},
-			},
-			wantErr:         true,
-			ensureExists:    nil,
-			ensureNotExists: nil,
-		},
-		{
-			name: "forbid cross tenant",
-			args: args{
-				nCtx:           nCtx,
-				networkUnitIDs: []int64{preparedGlobalNetworkUnitID},
-			},
-			wantErr:         false,
-			ensureExists:    []int64{preparedGlobalNetworkUnitID},
-			ensureNotExists: nil,
-		},
-		{
-			name: "normal",
-			args: args{
-				nCtx:           nCtx,
-				networkUnitIDs: []int64{preparedNetworkUnitIDs[0]},
-			},
-			wantErr:         false,
-			ensureExists:    nil,
-			ensureNotExists: []int64{preparedNetworkUnitIDs[0]},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			err := h.DeleteMany(tt.args.nCtx, tt.args.networkUnitIDs...)
-			if err != nil {
-				t.Logf("DeleteMany() error = %v", err)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			for _, networkUnitID := range tt.ensureExists {
-				if _, err := h.Get(tt.args.nCtx, networkUnitID); err != nil {
-					t.Errorf("DeleteMany() ensureExists %d, error = %v", networkUnitID, err)
-				}
-			}
-
-			for _, networkUnitID := range tt.ensureNotExists {
-				if _, err := h.Get(tt.args.nCtx, networkUnitID); err == nil {
-					t.Errorf("DeleteMany() ensureNotExists %d, error = %v", networkUnitID, err)
-				}
-			}
-		})
-	}
+	_, err := h.Create(tenantACtx, networkUnitFixture("tenant_b", 400, "tenant-b-unit"))
+	require.Error(t, err)
 }

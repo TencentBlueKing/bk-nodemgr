@@ -17,9 +17,11 @@ import (
 )
 
 // TableName networkunit table name.
-func TableName() string {
-	return "networkunit"
+func TableName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", tableNamePrefix, tenantID)
 }
+
+const tableNamePrefix = "networkunit"
 
 var _ base.IData = &NetworkUnit{}
 
