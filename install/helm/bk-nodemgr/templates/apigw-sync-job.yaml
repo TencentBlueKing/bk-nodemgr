@@ -68,6 +68,8 @@ spec:
           args:
             - bin/sync-apigateway.sh
           env:
+            - name: BK_APP_TENANT_ID
+              value: {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
           {{- toYaml .Values.apigwSync.extraEnvVars | nindent 12 }}
           resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
       volumes:
