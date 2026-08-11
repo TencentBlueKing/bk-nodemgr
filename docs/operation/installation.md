@@ -11,6 +11,10 @@
 ### Etcd
 主要用于服务发现，最低版本`>=3.0`，建议使用`>=3.5.6`
 
+## 权限申请
+
+安装前需要为 `bk-nodemgr` 申请第三方 APIGateway 权限，详见 [第三方 APIGateway 权限申请](installation/thirdparty_apigateway_permission.md)。
+
 ## Helm部署
 
 ### Backend配置
