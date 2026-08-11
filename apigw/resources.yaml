@@ -21766,6 +21766,166 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Batch-assign unassigned hosts to a specified network unit (metadata-only, no remote operations).
+  /api/v3/node/agent/assign_unit_multi:
+    post:
+      operationId: NodeAgent_NodeAgentAssignUnitMulti
+      description: 批量将多组未分配网络单元的 Agent 主机分别分配到对应网络单元（仅修改元数据，不执行远程操作）。
+      tags:
+        - NodeAgent
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      failed_count:
+                        type: integer
+                        format: int64
+                      success_count:
+                        type: integer
+                        format: int64
+                      failed_reasons:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  NodeAgentAssignUnitResp describes the response for batch-assigning
+                  a network unit.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_host_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+              description: |-
+                NodeAgentAssignUnitMultiReq describes the request body for batch-assigning
+                multiple network units to agent hosts.
+        required: true
+        description: |-
+          NodeAgentAssignUnitMultiReq describes the request body for batch-assigning
+          multiple network units to agent hosts.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/agent/assign_unit_multi
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Batch-assign multiple groups of unassigned Agent hosts to corresponding network units (metadata-only, no remote operations).
   /api/v3/node/agent/upgrade_check:
     post:
       operationId: NodeAgent_NodeAgentUpgradeCheck
@@ -24964,6 +25124,168 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: Batch-assign running, unassigned Proxy hosts to a specified network unit and launch an assignment workflow.
+  /api/v3/node/proxy/assign_unit_multi:
+    post:
+      operationId: NodeProxy_NodeProxyAssignUnitMulti
+      description: 批量将多组未分配管控单元的运行中 Proxy 主机分别分配到对应管控单元，并启动分配工作流。
+      tags:
+        - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                      failed_count:
+                        type: integer
+                        format: int64
+                      success_count:
+                        type: integer
+                        format: int64
+                      failed_reasons:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  permission:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      actions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            related_resource_types:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  type:
+                                    type: string
+                                  instances:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        id:
+                                          type: string
+                                        name:
+                                          type: string
+                                        type:
+                                          type: string
+                                        type_name:
+                                          type: string
+                                  system_id:
+                                    type: string
+                                  type_name:
+                                    type: string
+                                  system_name:
+                                    type: string
+                      apply_url:
+                        type: string
+                      system_name:
+                        type: string
+                  request_id:
+                    type: string
+                description: |-
+                  NodeProxyAssignUnitResp describes the response for batch-assigning
+                  a network unit to proxy hosts.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_host_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      bk_networkunit_id:
+                        type: integer
+                        format: int64
+              description: |-
+                NodeProxyAssignUnitMultiReq describes the request body for batch-assigning
+                multiple network units to proxy hosts.
+        required: true
+        description: |-
+          NodeProxyAssignUnitMultiReq describes the request body for batch-assigning
+          multiple network units to proxy hosts.
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/assign_unit_multi
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Batch-assign multiple groups of running, unassigned Proxy hosts to corresponding network units and launch an assignment workflow.
   /api/v3/plugin/restart:
     post:
       operationId: Plugin_RestartPlugin
