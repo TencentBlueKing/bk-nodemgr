@@ -9,3 +9,7 @@
 ### [installation](installation.md)
 
 安装部署手册，包括依赖要求、Helm部署配置、各服务模块的配置说明等。
+
+### [troubleshooting](troubleshooting/README.md)
+
+疑难问题和复杂故障的现象、根因、确认方法与处理原则。
