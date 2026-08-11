@@ -302,13 +302,14 @@ type ProcessAgentGroup struct {
 
 // ProcessConfig process configuration.
 type ProcessConfig struct {
-	Name         string
-	ProcessName  string
-	HostID       int64
-	IsMainConfig bool
-	Content      string
-	MD5          string
-	FilePath     string
+	Name                string
+	ProcessName         string
+	HostID              int64
+	IsMainConfig        bool
+	Content             string
+	MD5                 string
+	FilePath            string
+	CustomConfigContext map[string]any
 }
 
 // ProcessUniqueKey process unique key.

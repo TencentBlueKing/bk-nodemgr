@@ -134,13 +134,14 @@ func (act *actionOverwritePluginConfigForCompatibility) Do(ctx *action.InstanceC
 	configs := make([]*types.ProcessConfig, 0, len(pluginConf.ConfigFilesDetail))
 	for _, detail := range pluginConf.ConfigFilesDetail {
 		configs = append(configs, &types.ProcessConfig{
-			Name:         detail.Name,
-			ProcessName:  std.DeployInfo().Process.PluginName,
-			HostID:       std.DeployInfo().Process.HostID,
-			IsMainConfig: detail.IsMainConfig,
-			Content:      detail.Content,
-			MD5:          crypter.MD5Sum(detail.Content),
-			FilePath:     detail.FilePath,
+			Name:                detail.Name,
+			ProcessName:         std.DeployInfo().Process.PluginName,
+			HostID:              std.DeployInfo().Process.HostID,
+			IsMainConfig:        detail.IsMainConfig,
+			Content:             detail.Content,
+			MD5:                 crypter.MD5Sum(detail.Content),
+			FilePath:            detail.FilePath,
+			CustomConfigContext: pluginConf.CustomConfigContext,
 		})
 	}
 	if err = act.daoProcessConfig.UpsertProcessConfigs(std.Context(), configs...); err != nil {

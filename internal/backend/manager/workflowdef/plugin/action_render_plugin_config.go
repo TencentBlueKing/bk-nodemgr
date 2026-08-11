@@ -125,13 +125,14 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 
 	configs := conv.SliceToSlice(pluginConf.ConfigFilesDetail, func(detail *types.PluginConfigDetail) *types.ProcessConfig {
 		return &types.ProcessConfig{
-			Name:         detail.Name,
-			ProcessName:  std.DeployInfo().Process.PluginName,
-			HostID:       std.DeployInfo().Process.HostID,
-			IsMainConfig: detail.IsMainConfig,
-			Content:      detail.Content,
-			MD5:          crypter.MD5Sum(detail.Content),
-			FilePath:     detail.FilePath,
+			Name:                detail.Name,
+			ProcessName:         std.DeployInfo().Process.PluginName,
+			HostID:              std.DeployInfo().Process.HostID,
+			IsMainConfig:        detail.IsMainConfig,
+			Content:             detail.Content,
+			MD5:                 crypter.MD5Sum(detail.Content),
+			FilePath:            detail.FilePath,
+			CustomConfigContext: pluginConf.CustomConfigContext,
 		}
 	})
 

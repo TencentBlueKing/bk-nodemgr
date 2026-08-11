@@ -26,13 +26,14 @@ var _ base.IData = &ProcessConfig{}
 
 // ProcessConfig represents the table of process configuration.
 type ProcessConfig struct {
-	Name         string `json:"name" bson:"name"`
-	ProcessName  string `json:"process_name" bson:"process_name"`
-	HostID       int64  `json:"host_id" bson:"host_id"`
-	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
-	Content      string `json:"content" bson:"content"`
-	MD5          string `json:"md5" bson:"md5"`
-	FilePath     string `json:"file_path" bson:"file_path"`
+	Name                string         `json:"name" bson:"name"`
+	ProcessName         string         `json:"process_name" bson:"process_name"`
+	HostID              int64          `json:"host_id" bson:"host_id"`
+	IsMainConfig        bool           `json:"is_main_config" bson:"is_main_config"`
+	Content             string         `json:"content" bson:"content"`
+	MD5                 string         `json:"md5" bson:"md5"`
+	FilePath            string         `json:"file_path" bson:"file_path"`
+	CustomConfigContext map[string]any `json:"custom_config_context" bson:"custom_config_context"`
 }
 
 // UniqueFields unique fields of the table.
