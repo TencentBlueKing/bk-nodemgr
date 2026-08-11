@@ -68,5 +68,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/restart", restserver.Handler(h.AgentRestart))
 	h.rg.POST("/uninstall", restserver.Handler(h.AgentUninstall))
 	h.rg.POST("/assign_unit", restserver.Handler(h.AgentAssignUnit))
+	h.rg.POST("/assign_unit_multi", restserver.Handler(h.AgentAssignUnitMulti))
 	h.rg.POST("/update_ops_fields", restserver.Handler(h.AgentUpdateOpsFields))
 }

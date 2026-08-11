@@ -255,6 +255,11 @@ type NodeAgentAssignUnitParam struct {
 	NetworkUnitID int64
 }
 
+// NodeAgentAssignUnitMultiParam describes multiple agent network unit assignments.
+type NodeAgentAssignUnitMultiParam struct {
+	Items []*NodeAgentAssignUnitParam
+}
+
 // NodeAgentAssignUnitResult describes the node agent assign unit result.
 type NodeAgentAssignUnitResult struct {
 	SuccessCount  int64

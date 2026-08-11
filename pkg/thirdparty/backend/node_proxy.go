@@ -85,6 +85,9 @@ type IHandlerNodeProxy interface {
 	// @param param the assign unit param.
 	// @return the assign unit result and error.
 	AssignUnitProxy(nCtx contextx.IContext, param *types.NodeProxyAssignUnitParam) (*types.NodeProxyAssignUnitResult, error)
+
+	// AssignUnitProxyMulti batch-assigns multiple network units to proxy hosts.
+	AssignUnitProxyMulti(nCtx contextx.IContext, param *types.NodeProxyAssignUnitMultiParam) (*types.NodeProxyAssignUnitResult, error)
 }
 
 // InstallProxy install node proxy.
@@ -227,6 +230,27 @@ func (h *Handler) AssignUnitProxy(nCtx contextx.IContext, param *types.NodeProxy
 
 	data := resp.GetData()
 
+	return &types.NodeProxyAssignUnitResult{
+		SuccessCount:  data.GetSuccessCount(),
+		FailedCount:   data.GetFailedCount(),
+		FailedReasons: data.GetFailedReasons(),
+		WorkflowID:    data.GetWorkflowId(),
+	}, nil
+}
+
+// AssignUnitProxyMulti batch-assigns multiple network units to proxy hosts.
+func (h *Handler) AssignUnitProxyMulti(nCtx contextx.IContext, param *types.NodeProxyAssignUnitMultiParam) (
+	*types.NodeProxyAssignUnitResult, error) {
+
+	req := new(protoBackend.NodeProxyAssignUnitMultiReq)
+	req.ConvertParamFromTypes(param)
+
+	resp, err := h.cli.assignUnitNodeProxyMulti(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to assign multiple units to proxy: %w", err)
+	}
+
+	data := resp.GetData()
 	return &types.NodeProxyAssignUnitResult{
 		SuccessCount:  data.GetSuccessCount(),
 		FailedCount:   data.GetFailedCount(),

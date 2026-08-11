@@ -1607,6 +1607,33 @@ func (c *cli) assignUnitNodeAgent(ctx contextx.IContext, req *protoBackend.NodeA
 	return resp, nil
 }
 
+func (c *cli) assignUnitNodeAgentMulti(ctx contextx.IContext, req *protoBackend.NodeAgentAssignUnitMultiReq,
+) (*protoBackend.NodeAgentAssignUnitResp, error) {
+
+	resp := new(protoBackend.NodeAgentAssignUnitResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/agent/assign_unit_multi").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("assign multiple units to node agent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("assign multiple units to node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+	return resp, nil
+}
+
 func (c *cli) assignUnitNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyAssignUnitReq,
 ) (*protoBackend.NodeProxyAssignUnitResp, error) {
 
@@ -1636,6 +1663,33 @@ func (c *cli) assignUnitNodeProxy(ctx contextx.IContext, req *protoBackend.NodeP
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
+	return resp, nil
+}
+
+func (c *cli) assignUnitNodeProxyMulti(ctx contextx.IContext, req *protoBackend.NodeProxyAssignUnitMultiReq,
+) (*protoBackend.NodeProxyAssignUnitResp, error) {
+
+	resp := new(protoBackend.NodeProxyAssignUnitResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/proxy/assign_unit_multi").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("assign multiple units to node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("assign multiple units to node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
 	return resp, nil
 }
 

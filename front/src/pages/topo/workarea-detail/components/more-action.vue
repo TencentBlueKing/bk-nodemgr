@@ -166,13 +166,6 @@ const getItemDisabled = (item: { value: string }): { disabled: boolean; tooltip:
           tooltip: t('platform.nodeMan.proxyStatus.assignUnitDisabledAssigned'),
         };
       }
-      const areaIds = new Set(data.map((h: any) => h.bk_networkarea_id));
-      if (areaIds.size > 1) {
-        return {
-          disabled: true,
-          tooltip: t('platform.nodeMan.proxyStatus.assignUnitDisabledMultiArea'),
-        };
-      }
     }
 
     if (item.value === 'upgrade' || item.value === 'restart' || item.value === 'unload') {

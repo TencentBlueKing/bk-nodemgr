@@ -307,6 +307,16 @@ message NodeProxyAssignUnitResp {
   Data data = 1;
 }
 
+// NodeProxyAssignUnitMultiReq describes the request body for batch-assigning
+// multiple network units to proxy hosts.
+message NodeProxyAssignUnitMultiReq {
+  message Item {
+    repeated int64 bk_host_id = 1;
+    int64 bk_networkunit_id = 2;
+  }
+  repeated Item items = 1;
+}
+
 // UploadProxyInstallTemplateReq is the request for upload proxy install
 // template file.
 message UploadProxyInstallTemplateReq {}
@@ -424,6 +434,16 @@ service NodeProxy {
       returns (NodeProxyAssignUnitResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/assign_unit"
+      body : "*"
+    };
+  }
+
+  // NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy
+  // hosts.
+  rpc NodeProxyAssignUnitMulti(NodeProxyAssignUnitMultiReq)
+      returns (NodeProxyAssignUnitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/assign_unit_multi"
       body : "*"
     };
   }

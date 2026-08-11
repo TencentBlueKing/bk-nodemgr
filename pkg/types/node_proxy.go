@@ -274,6 +274,11 @@ type NodeProxyAssignUnitParam struct {
 	NetworkUnitID int64
 }
 
+// NodeProxyAssignUnitMultiParam describes multiple proxy network unit assignments.
+type NodeProxyAssignUnitMultiParam struct {
+	Items []*NodeProxyAssignUnitParam
+}
+
 // NodeProxyAssignUnitResult describes the node proxy assign unit result.
 type NodeProxyAssignUnitResult struct {
 	SuccessCount  int64

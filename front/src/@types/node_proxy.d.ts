@@ -335,6 +335,17 @@ export interface NodeProxyAssignUnitRespData {
   workflow_id: string;
 }
 
+// NodeProxyAssignUnitMultiReq describes the request body for batch-assigning
+// multiple network units to proxy hosts.
+export interface NodeProxyAssignUnitMultiReq {
+  items: NodeProxyAssignUnitMultiReqItem[];
+}
+
+export interface NodeProxyAssignUnitMultiReqItem {
+  bk_host_id: number[];
+  bk_networkunit_id: number;
+}
+
 // UploadProxyInstallTemplateReq is the request for upload proxy install
 // template file.
 export interface UploadProxyInstallTemplateReq {

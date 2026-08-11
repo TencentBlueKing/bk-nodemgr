@@ -118,26 +118,30 @@ const handleConfirm = async () => {
   let totalSuccess = 0;
   let totalFailed = 0;
   const allFailedReasons: string[] = [];
-  const successHostIds: number[] = [];
+  const submittedHostIds = formData.info.map((row: any) => row.bk_host_id);
 
   try {
-    for (const [unitId, hostIds] of grouped) {
-      const result: NodeAgentAssignUnitRespData = await NodeAgentService.NodeAgentAssignUnit({
-        bk_host_id: hostIds,
-        bk_networkunit_id: unitId,
+    const items = Array.from(grouped, ([unitId, hostIds]) => ({
+      bk_host_id: hostIds,
+      bk_networkunit_id: unitId,
+    }));
+    const result: NodeAgentAssignUnitRespData = await NodeAgentService.NodeAgentAssignUnitMulti({ items });
+    totalSuccess = result.success_count;
+    totalFailed = result.failed_count;
+    if (result.failed_reasons?.length) {
+      allFailedReasons.push(...result.failed_reasons);
+    }
+
+    if (totalSuccess > 0 && (totalFailed > 0 || totalSuccess !== submittedHostIds.length)) {
+      Message({
+        theme: 'warning',
+        message: allFailedReasons.join('; ') || t('platform.nodeMan.agentNodeStatus.assignUnitAllFailed'),
       });
-      totalSuccess += result.success_count;
-      totalFailed += result.failed_count;
-      if (result.failed_reasons?.length) {
-        allFailedReasons.push(...result.failed_reasons);
-      }
-      if (result.success_count > 0) {
-        successHostIds.push(...hostIds);
-      }
+      return;
     }
 
     if (totalSuccess > 0) {
-      assignedHostIds.value = successHostIds;
+      assignedHostIds.value = submittedHostIds;
 
       InfoBox({
         title: t('platform.nodeMan.agentNodeStatus.assignUnitSuccessTitle'),
@@ -313,5 +317,4 @@ onUnmounted(() => {
   }
 });
 </script>
-
 

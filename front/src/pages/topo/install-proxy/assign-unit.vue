@@ -18,54 +18,9 @@
               ref="assignUnitTableRef"
               v-model:data="form.info"
               :max-height="520"
-              :hide-network-unit="true"
+              :auth-action="'networkunit_use_for_proxy'"
             ></assign-unit-table>
           </Loading>
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('components.installTable.networkArea')"
-          label-width="90"
-        >
-          <Input :model-value="networkAreaName" class="w-[488px]" disabled />
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('components.installTable.networkUnit')"
-          label-width="90"
-          required
-        >
-          <Select
-            v-model="form.networkUnitId"
-            class="w-[488px]"
-            filterable
-            :loading="networkUnitLoading"
-            :clearable="true"
-            @change="handleNetworkUnitChange"
-          >
-            <Select.Option
-              v-for="option in networkUnitOptions"
-              :key="option.bk_networkunit_id"
-              :id="String(option.bk_networkunit_id)"
-              :name="`[${option.bk_networkunit_id}] ${option.bk_networkunit_name}`"
-              :disabled="option.is_direct"
-              v-bk-tooltips="{
-                  content: $t('topoManager.installProxy.form.tip'),
-                  disabled: !option.is_direct,
-                  boundary: 'parent',
-                  placement: 'left',
-                }"
-            >
-              <div
-                class="w-[488px] h-[32px] flex items-center -mx-[12px] px-[12px]"
-                :class="{ 'unauthorized-unit-row': !isUnitAuthorized(option.bk_networkunit_id) }"
-                @click="handleUnitOptionClick($event, option.bk_networkunit_id)"
-                @mouseenter="handleUnitOptionMouseEnter($event, option.bk_networkunit_id)"
-                @mousemove="handleUnitOptionMouseMove($event, option.bk_networkunit_id)"
-                @mouseleave="handleUnitOptionMouseLeave()"
-              >
-                [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
-              </div>
-            </Select.Option>
-          </Select>
         </Form.FormItem>
       </Form>
       <div class="flex mt-[32px] ml-[90px]">
@@ -91,27 +46,14 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Form, InfoBox, Input, Loading, Message, Select, Sideslider } from 'bkui-vue';
+import { Button, Form, InfoBox, Loading, Message, Sideslider } from 'bkui-vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import type { Host } from '@/@types/common';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { TopoService } from '@/api/modules/topo';
 import AssignUnitTable from '@/components/assign-unit-table.vue';
-import useUnitAuth from '@/composables/use-unit-auth';
-
-const { t } = useI18n();
-const router = useRouter();
-
-const {
-  isUnitAuthorized,
-  handleOptionMouseEnter: handleUnitOptionMouseEnter,
-  handleOptionMouseMove: handleUnitOptionMouseMove,
-  handleOptionMouseLeave: handleUnitOptionMouseLeave,
-  handleOptionClick: handleUnitOptionClick,
-} = useUnitAuth('networkunit_use_for_proxy');
 
 interface Props {
   isShow: boolean;
@@ -126,12 +68,13 @@ const props = withDefaults(defineProps<Props>(), {
   isCrossPageSelection: false,
   params: () => ({}),
 });
-
 const emit = defineEmits(['update:isShow']);
+const { t } = useI18n();
+const router = useRouter();
 
 const isShow = computed({
   get: () => props.isShow,
-  set: (val) => emit('update:isShow', val),
+  set: val => emit('update:isShow', val),
 });
 
 const loading = ref(false);
@@ -141,51 +84,12 @@ const assignUnitTableRef = ref<InstanceType<typeof AssignUnitTable> | null>(null
 
 const form = reactive({
   info: [] as any[],
-  networkUnitId: '' as string,
 });
-
-// Network unit options for the form-level selector
-const networkUnitList = ref<any[]>([]);
-const networkUnitLoading = ref(false);
-
-const networkUnitOptions = computed(() => {
-  const areaIds = new Set(
-    form.info.map((item: any) => Number(item.bk_networkarea_id)).filter((id: number) => !isNaN(id)),
-  );
-  return networkUnitList.value.filter((unit: any) => areaIds.has(unit.bk_networkarea_id));
-});
-
-const loadNetworkUnits = async () => {
-  const areaIds = form.info.map((item: any) => Number(item.bk_networkarea_id)).filter((id: number) => !isNaN(id));
-  if (areaIds.length === 0) {
-    networkUnitList.value = [];
-    return;
-  }
-  networkUnitLoading.value = true;
-  try {
-    const res = await TopoService.NetworkUnitListBrief({
-      exact_include_conditions: { bk_networkarea_id: areaIds },
-    }).catch(() => ({ total: 0, items: [] }));
-    networkUnitList.value = res.items || [];
-  } finally {
-    networkUnitLoading.value = false;
-  }
-};
-
-const networkAreaName = computed(() => {
-  if (form.info.length === 0) return '';
-  return form.info[0].bk_networkarea_name || '';
-});
-
-const handleNetworkUnitChange = () => {
-  // Clear validation errors when user selects a unit
-};
 
 // Load table data
 watch(() => props.isShow, async (show) => {
   if (!show) return;
 
-  form.networkUnitId = '';
   loading.value = true;
   try {
     if (props.isCrossPageSelection) {
@@ -224,8 +128,6 @@ watch(() => props.isShow, async (show) => {
         ...host,
       }));
     }
-
-    await loadNetworkUnits();
   } catch (error) {
     console.error('Load proxy data error:', error);
     Message({
@@ -263,34 +165,38 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
 
 // Handle confirm
 const handleConfirm = async () => {
-  if (!form.networkUnitId) {
-    Message({ theme: 'warning', message: t('installProxy.pleaseSelectNetworkUnit') });
-    return;
+  const valid = await assignUnitTableRef.value?.tableValidate();
+  if (!valid) return;
+
+  const grouped = new Map<number, number[]>();
+  for (const row of form.info) {
+    const networkUnitID = Number(row.bk_networkunit_id);
+    if (!Number.isInteger(networkUnitID) || networkUnitID < 0) continue;
+    if (!grouped.has(networkUnitID)) grouped.set(networkUnitID, []);
+    grouped.get(networkUnitID)!.push(row.bk_host_id);
   }
+  if (grouped.size === 0) return;
 
-  const hostIds = form.info.map((row: any) => row.bk_host_id);
-  if (hostIds.length === 0) return;
-
-  const unitId = Number(form.networkUnitId);
+  const items = Array.from(grouped, ([networkUnitID, hostIDs]) => ({
+    bk_host_id: hostIDs,
+    bk_networkunit_id: networkUnitID,
+  }));
 
   InfoBox({
     title: t('installProxy.confirmAssignUnit'),
     subTitle: t('installProxy.confirmAssignUnitSubTitle'),
     onConfirm: async () => {
-      await executeAssign(hostIds, unitId);
+      await executeAssign(items);
     },
   });
 };
 
 // Execute assign operation
-const executeAssign = async (hostIds: number[], networkUnitID: number) => {
+const executeAssign = async (items: { bk_host_id: number[]; bk_networkunit_id: number }[]) => {
   submitting.value = true;
 
   try {
-    const result = await NodeProxyService.NodeProxyAssignUnit({
-      bk_host_id: hostIds,
-      bk_networkunit_id: networkUnitID,
-    });
+    const result = await NodeProxyService.NodeProxyAssignUnitMulti({ items });
 
     const successCount = result.success_count || 0;
     const failedCount = result.failed_count || 0;
@@ -298,6 +204,16 @@ const executeAssign = async (hostIds: number[], networkUnitID: number) => {
     if (successCount > 0) {
       isShow.value = false;
       window.dispatchEvent(new Event('proxy-assign-unit-success'));
+
+      if (failedCount > 0) {
+        Message({
+          theme: 'warning',
+          message: result.failed_reasons?.join('; ') || t('installProxy.assignUnitPartialSuccess', {
+            success: successCount,
+            failed: failedCount,
+          }),
+        });
+      }
 
       if (result.workflow_id) {
         router.push({
@@ -309,14 +225,6 @@ const executeAssign = async (hostIds: number[], networkUnitID: number) => {
         Message({
           theme: 'success',
           message: t('installProxy.assignUnitSuccess', { count: successCount }),
-        });
-      } else {
-        Message({
-          theme: 'warning',
-          message: t('installProxy.assignUnitPartialSuccess', {
-            success: successCount,
-            failed: failedCount,
-          }),
         });
       }
     } else {

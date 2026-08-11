@@ -253,6 +253,16 @@ message NodeAgentAssignUnitResp {
   Data data = 5;
 }
 
+// NodeAgentAssignUnitMultiReq describes the request body for batch-assigning
+// multiple network units to agent hosts.
+message NodeAgentAssignUnitMultiReq {
+  message Item {
+    repeated int64 bk_host_id = 1;
+    int64 bk_networkunit_id = 2;
+  }
+  repeated Item items = 1;
+}
+
 // NodeAgentUpdateOpsFieldsReq describes the request body for batch-updating
 // out-of-band (ops) fields on hosts.
 message NodeAgentUpdateOpsFieldsReq { repeated HostOpsInfo hosts = 1; }
@@ -335,6 +345,16 @@ service NodeAgent {
       returns (NodeAgentAssignUnitResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/assign_unit"
+      body : "*"
+    };
+  }
+
+  // NodeAgentAssignUnitMulti batch-assigns multiple network units to agent
+  // hosts.
+  rpc NodeAgentAssignUnitMulti(NodeAgentAssignUnitMultiReq)
+      returns (NodeAgentAssignUnitResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/assign_unit_multi"
       body : "*"
     };
   }

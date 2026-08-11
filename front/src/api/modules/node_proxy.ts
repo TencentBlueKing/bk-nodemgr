@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUpdateOpsFieldsReq, NodeProxyUpdateOpsFieldsResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp, UploadProxyInstallTemplateReq, UploadProxyInstallTemplateResp } from '@/@types/node_proxy';
+import type { NodeProxyAssignUnitMultiReq, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyUpdateOpsFieldsReq, NodeProxyUpdateOpsFieldsResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, UploadProxyInstallTemplateReq, UploadProxyInstallTemplateResp } from '@/@types/node_proxy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -30,6 +30,9 @@ export const NodeProxyService = {
   NodeProxyUpgradeCheck: async <Request = NodeProxyUpgradeCheckReq, ResponseData = NodeProxyUpgradeCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/upgrade_check')(params, config),
   // NodeProxyAssignUnit batch-assigns a network unit to unassigned proxy hosts.
   NodeProxyAssignUnit: async <Request = NodeProxyAssignUnitReq, ResponseData = NodeProxyAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/assign_unit')(params, config),
+  // NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy
+  // hosts.
+  NodeProxyAssignUnitMulti: async <Request = NodeProxyAssignUnitMultiReq, ResponseData = NodeProxyAssignUnitResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/assign_unit_multi')(params, config),
   // UploadProxyInstallTemplate uploads proxy install template.
   UploadProxyInstallTemplate: async <Request = UploadProxyInstallTemplateReq, ResponseData = UploadProxyInstallTemplateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/proxy/install_template/upload')(params, config),
 };

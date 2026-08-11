@@ -41,6 +41,48 @@ func (x *NodeAgentAssignUnitReq) ConvertParamFromTypes(param *types.NodeAgentAss
 	x.BkNetworkunitId = param.NetworkUnitID
 }
 
+// Validate checks that the multi-assignment request body is valid.
+func (x *NodeAgentAssignUnitMultiReq) Validate() error {
+	if len(x.GetItems()) == 0 {
+		return errors.New("items can not be empty")
+	}
+
+	seenHostIDs := make(map[int64]struct{})
+	for _, item := range x.GetItems() {
+		if item == nil {
+			return errors.New("item can not be nil")
+		}
+		if len(item.GetBkHostId()) == 0 {
+			return errors.New("bk_host_id can not be empty")
+		}
+		if item.GetBkNetworkunitId() < 0 {
+			return errors.New("bk_networkunit_id must be greater than or equal to 0")
+		}
+		for _, hostID := range item.GetBkHostId() {
+			if _, ok := seenHostIDs[hostID]; ok {
+				return fmt.Errorf("host-id(%d) appears in multiple items", hostID)
+			}
+			seenHostIDs[hostID] = struct{}{}
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert is a no-op for multi-assignment requests.
+func (x *NodeAgentAssignUnitMultiReq) AutoConvert() {}
+
+// ConvertParamFromTypes converts a multi-assignment parameter.
+func (x *NodeAgentAssignUnitMultiReq) ConvertParamFromTypes(param *types.NodeAgentAssignUnitMultiParam) {
+	x.Items = make([]*NodeAgentAssignUnitMultiReq_Item, len(param.Items))
+	for idx, item := range param.Items {
+		x.Items[idx] = &NodeAgentAssignUnitMultiReq_Item{
+			BkHostId:        item.HostIDs,
+			BkNetworkunitId: item.NetworkUnitID,
+		}
+	}
+}
+
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
 	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *NodeAgentInstallReq_TargetVersion) string {

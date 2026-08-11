@@ -315,3 +315,14 @@ export interface NodeAgentAssignUnitRespData {
   failed_reasons: string[];
 }
 
+// NodeAgentAssignUnitMultiReq describes the request body for batch-assigning
+// multiple network units to agent hosts.
+export interface NodeAgentAssignUnitMultiReq {
+  items: NodeAgentAssignUnitMultiReqItem[];
+}
+
+export interface NodeAgentAssignUnitMultiReqItem {
+  bk_host_id: number[];
+  bk_networkunit_id: number;
+}
+

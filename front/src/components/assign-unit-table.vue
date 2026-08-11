@@ -21,7 +21,11 @@
           <template #default="{ row }">
             <!-- 归属业务始终不可编辑 -->
             <div class="cell-disabled">
-              {{ row.bk_biz_id ? `[${row.bk_biz_id}] ${businessList.find((b: any) => b.bk_biz_id === row.bk_biz_id)?.bk_biz_name || row.bk_biz_id}` : '' }}
+              {{ row.bk_biz_id
+                ? `[${row.bk_biz_id}] ${
+                  businessList.find((b: any) => b.bk_biz_id === row.bk_biz_id)?.bk_biz_name || row.bk_biz_id
+                }`
+                : '' }}
             </div>
           </template>
         </VxeColumn>
@@ -72,8 +76,12 @@
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
               <div :class="{ 'cell-disabled--error': getError(rowIndex, 'bk_networkunit_id') }">
-                <span v-if="getNetworkUnitName(row.bk_networkunit_id)">{{ getNetworkUnitName(row.bk_networkunit_id) }}</span>
-                <span v-else class="cell-placeholder">{{ $t('platform.nodeMan.agentNodeStatus.assignUnitSelectPlaceholder') }}</span>
+                <span v-if="getNetworkUnitName(row.bk_networkunit_id)">
+                  {{ getNetworkUnitName(row.bk_networkunit_id) }}
+                </span>
+                <span v-else class="cell-placeholder">
+                  {{ $t('platform.nodeMan.agentNodeStatus.assignUnitSelectPlaceholder') }}
+                </span>
               </div>
             </ValidateCell>
           </template>
@@ -175,7 +183,7 @@
         <template #default="{ rowIndex }">
           <Button
             text
-            :disabled="tableData?.length <= 1"
+            :disabled="(tableData?.length ?? 0) <= 1"
             @click="handleDelRow(rowIndex)"
           >
             <i class="nodeman-icon nc-minus"></i>
@@ -193,7 +201,7 @@
 <script lang="ts" setup>
 import { Button, InfoBox, Select } from 'bkui-vue';
 import { groupBy } from 'lodash';
-import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
@@ -214,6 +222,7 @@ const props = defineProps({
   maxHeight: { type: Number, default: 640 },
   hideNetworkUnit: { type: Boolean, default: false },
   disableDirect: { type: Boolean, default: true },
+  authAction: { type: String, default: 'networkunit_use_for_agent' },
 });
 const { t } = useI18n();
 const { contentRef } = useFullScreen();
@@ -243,7 +252,7 @@ const {
   handleOptionMouseMove: handleUnitOptionMouseMove,
   handleOptionMouseLeave: handleUnitOptionMouseLeave,
   handleOptionClick: handleUnitOptionClick,
-} = useUnitAuth('networkunit_use_for_agent');
+} = useUnitAuth(props.authAction);
 const businessList = computed(() => mainStore.businessList);
 
 const { getError, setError, clearError, clearAllErrors, shiftErrors } = useTableErrors();
@@ -312,12 +321,23 @@ const getNetworkUnitList = async () => {
     }).catch(() => ({ total: 0, items: [] }));
     networkUnitList.value = res.items;
     networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
+    tableData.value?.forEach((row: any) => {
+      if (row.bk_networkunit_id) return;
+      const options = getNetworkUnitsByAreaId(row.bk_networkarea_id)
+        .filter((unit: any) => !props.disableDirect || !unit.is_direct);
+      if (options.length === 1) {
+        row.bk_networkunit_id = String(options[0].bk_networkunit_id);
+        row.bk_networkunit_name = options[0].bk_networkunit_name;
+      }
+    });
   } finally {
     networkUnitLoading.value = false;
   }
 };
 
-const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => networkUnitGroupMap.value[Number(bkNetworkAreaId)] || [];
+const getNetworkUnitsByAreaId = (bkNetworkAreaId: number | string) => (
+  networkUnitGroupMap.value[Number(bkNetworkAreaId)] || []
+);
 const getNetworkUnitName = (networkUnitId: string | number) => networkUnitList.value.find((u: any) => String(u.bk_networkunit_id) === String(networkUnitId))?.bk_networkunit_name || '';
 
 const isSameNetworkArea = computed(() => {

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/compatibility"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -98,24 +97,9 @@ func (h *handler) AssignProxyUnit(rCtx restserver.IContext) (interface{}, error)
 
 	nodeDeployments := make([]*types.NodeDeployment, 0, len(hosts))
 	for _, host := range hosts {
-		deployHostDynamic := host.Dynamic
-		deployHostDynamic.NetworkUnitID = networkUnit.ID
-		deployHostDynamic.ProxyTags = types.AllProxyTag()
-
-		nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
-			Host: types.Host{
-				TenantID: rCtx.TenantID(),
-				HostID:   host.HostID,
-				Static:   host.Static,
-				Dynamic:  deployHostDynamic,
-			},
-		})
-		nodeDeployment.Info.InstallOptions.InstallPreOrderedPlugins = true
-		nodeDeployment.Info.InstallOptions.EnableCompatibilityMode = compatibility.DecideCompatibilityMode(
-			compatibilityPolicy, rCtx.TenantID(), host.Static.BizID, "bkmonitorbeat",
-		)
-
-		nodeDeployments = append(nodeDeployments, nodeDeployment)
+		nodeDeployments = append(nodeDeployments, buildAssignProxyDeployment(
+			rCtx, host, networkUnit.ID, compatibilityPolicy,
+		))
 	}
 
 	workflowID, err := h.nodeMgrIface.LaunchAssignProxyUnit(rCtx, types.AssignProxyUnitParam{
@@ -223,18 +207,9 @@ func validateProxyAssignUnitPreconditions(hosts []*types.Host, targetUnit *types
 
 	var firstAreaID int64
 	firstAreaIDSet := false
-
 	for _, host := range hosts {
-		if host.Dynamic.NodeRole != types.NodeRoleProxy {
-			return fmt.Errorf("node role is not proxy. host-id(%d), node-role(%s)", host.HostID, host.Dynamic.NodeRole)
-		}
-
-		if host.Dynamic.NodeStatus != types.NodeStatusRunning {
-			return fmt.Errorf("host-id(%d) is not online, status(%s)", host.HostID, host.Dynamic.NodeStatus)
-		}
-
-		if host.Dynamic.NetworkUnitID >= 0 {
-			return fmt.Errorf("host-id(%d) already assigned to networkunit-id(%d)", host.HostID, host.Dynamic.NetworkUnitID)
+		if err := validateProxyAssignUnitHost(host, targetUnit); err != nil {
+			return err
 		}
 
 		if !firstAreaIDSet {

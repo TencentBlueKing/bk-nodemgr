@@ -78,6 +78,9 @@ type IHandlerNodeAgent interface {
 	// @param param the assign unit param.
 	// @return the assign unit result and error.
 	AssignUnitAgent(nCtx contextx.IContext, param *types.NodeAgentAssignUnitParam) (*types.NodeAgentAssignUnitResult, error)
+
+	// AssignUnitAgentMulti batch-assigns multiple network units to hosts.
+	AssignUnitAgentMulti(nCtx contextx.IContext, param *types.NodeAgentAssignUnitMultiParam) (*types.NodeAgentAssignUnitResult, error)
 }
 
 // InstallAgent node agent.
@@ -211,6 +214,26 @@ func (h *Handler) AssignUnitAgent(nCtx contextx.IContext, param *types.NodeAgent
 
 	data := resp.GetData()
 
+	return &types.NodeAgentAssignUnitResult{
+		SuccessCount:  data.GetSuccessCount(),
+		FailedCount:   data.GetFailedCount(),
+		FailedReasons: data.GetFailedReasons(),
+	}, nil
+}
+
+// AssignUnitAgentMulti batch-assigns multiple network units to hosts.
+func (h *Handler) AssignUnitAgentMulti(nCtx contextx.IContext, param *types.NodeAgentAssignUnitMultiParam) (
+	*types.NodeAgentAssignUnitResult, error) {
+
+	req := new(protoBackend.NodeAgentAssignUnitMultiReq)
+	req.ConvertParamFromTypes(param)
+
+	resp, err := h.cli.assignUnitNodeAgentMulti(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to assign multiple units to agent: %w", err)
+	}
+
+	data := resp.GetData()
 	return &types.NodeAgentAssignUnitResult{
 		SuccessCount:  data.GetSuccessCount(),
 		FailedCount:   data.GetFailedCount(),
