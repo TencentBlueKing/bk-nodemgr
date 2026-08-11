@@ -39,5 +39,6 @@ func (h *handler) AssignUnitMulti(rCtx restserver.IContext) (interface{}, error)
 
 	resp := new(protoApplication.NodeProxyAssignUnitResp)
 	resp.ConvertResult(result)
+
 	return resp.GetData(), nil
 }

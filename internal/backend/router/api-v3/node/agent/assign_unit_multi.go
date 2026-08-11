@@ -55,6 +55,7 @@ func (h *handler) AgentAssignUnitMulti(rCtx restserver.IContext) (any, error) {
 		if _, ok := networkUnits[networkUnitID]; !ok {
 			err := fmt.Errorf("networkunit with id %d not found", networkUnitID)
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to assign multiple units, network unit not found")
+
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 	}
@@ -91,6 +92,7 @@ func (h *handler) AgentAssignUnitMulti(rCtx restserver.IContext) (any, error) {
 			result.FailedReasons = append(result.FailedReasons, fmt.Sprintf(
 				"failed to assign networkunit-id(%d): %v", networkUnit.ID, err,
 			))
+
 			continue
 		}
 		mergeAgentAssignUnitResult(result, assignResult)
@@ -103,6 +105,7 @@ func (h *handler) AgentAssignUnitMulti(rCtx restserver.IContext) (any, error) {
 			FailedReasons: result.FailedReasons,
 		},
 	}
+
 	return resp.GetData(), nil
 }
 
@@ -116,6 +119,7 @@ func uniqueInt64s(values []int64) []int64 {
 		seen[value] = struct{}{}
 		result = append(result, value)
 	}
+
 	return result
 }
 

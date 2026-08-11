@@ -251,6 +251,7 @@ func (h *Handler) AssignUnitProxyMulti(nCtx contextx.IContext, param *types.Node
 	}
 
 	data := resp.GetData()
+
 	return &types.NodeProxyAssignUnitResult{
 		SuccessCount:  data.GetSuccessCount(),
 		FailedCount:   data.GetFailedCount(),

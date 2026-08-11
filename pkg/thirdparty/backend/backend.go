@@ -1631,6 +1631,7 @@ func (c *cli) assignUnitNodeAgentMulti(ctx contextx.IContext, req *protoBackend.
 		return nil, fmt.Errorf("assign multiple units to node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
+
 	return resp, nil
 }
 
@@ -1690,6 +1691,7 @@ func (c *cli) assignUnitNodeProxyMulti(ctx contextx.IContext, req *protoBackend.
 		return nil, fmt.Errorf("assign multiple units to node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
+
 	return resp, nil
 }
 

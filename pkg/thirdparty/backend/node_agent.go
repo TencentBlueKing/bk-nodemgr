@@ -234,6 +234,7 @@ func (h *Handler) AssignUnitAgentMulti(nCtx contextx.IContext, param *types.Node
 	}
 
 	data := resp.GetData()
+
 	return &types.NodeAgentAssignUnitResult{
 		SuccessCount:  data.GetSuccessCount(),
 		FailedCount:   data.GetFailedCount(),
