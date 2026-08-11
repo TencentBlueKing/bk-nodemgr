@@ -27,6 +27,8 @@ apigwSync:
       value: "<bk_app_secret>"
     - name: BK_API_URL_TMPL
       value: "http://bkapi.example.com/api/{api_name}"
+    - name: BK_APP_TENANT_ID
+      value: "default"
     - name: RELEASE_STAGES
       value: "stage"
     - name: NO_PUB
@@ -66,21 +68,26 @@ apigwSync:
 
 ## 2. 每个配置项分别影响什么？
 
-| 配置项                                       | 作用                                                         |
-|-------------------------------------------|------------------------------------------------------------|
-| `apiManagerImage.registry/repository/tag` | 指定同步 Job 使用的 `bk-nodemgr-apigw-sync` 镜像。                   |
-| `apigwSync.enabled`                       | 是否创建 APIGateway 同步 Job。                                    |
-| `BK_APIGW_NAME`                           | 提供给 `apigw-manager` 的网关名配置；当前脚本命令显式使用 `bk-nodemgr`，建议保持一致。 |
-| `BK_APP_CODE` / `BK_APP_SECRET`           | 调用 `bk-apigateway` 管理接口所需的应用身份。                            |
-| `BK_API_URL_TMPL`                         | 网关管理 API 地址模板，必须保留 `{api_name}` 占位符。                       |
-| `RELEASE_STAGES`                          | 创建版本后发布到哪个环境，应与 `apigwSync.config.stages[].name` 对齐。       |
-| `NO_PUB`                                  | 是否额外执行一次只生成版本不发布的命令。                                       |
-| `apigwSync.config.release`                | 渲染到 `definition.yaml` 的版本信息。                               |
-| `apigwSync.config.apigateway`             | 渲染到 `definition.yaml` 的网关基础信息和维护人。                         |
-| `apigwSync.config.stages`                 | 渲染到 `definition.yaml` 的网关环境和后端回源地址。                        |
-| `apigwSync.config.grant_permissions`      | 渲染到 `definition.yaml` 的主动授权配置。                             |
+| 配置项                                    | 作用                                                                                      |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `apiManagerImage.registry/repository/tag` | 指定同步 Job 使用的 `bk-nodemgr-apigw-sync` 镜像。                                        |
+| `apigwSync.enabled`                       | 是否创建 APIGateway 同步 Job。                                                            |
+| `BK_APIGW_NAME`                           | 提供给 `apigw-manager` 的网关名配置；当前脚本命令显式使用 `bk-nodemgr`，建议保持一致。    |
+| `BK_APP_CODE` / `BK_APP_SECRET`           | 调用 `bk-apigateway` 管理接口所需的应用身份。                                             |
+| `BK_APP_TENANT_ID`                        | 调用 `bk-apigateway` 管理接口时透传的应用租户 ID；单租户传 `default`，多租户传 `system`。 |
+| `BK_API_URL_TMPL`                         | 网关管理 API 地址模板，必须保留 `{api_name}` 占位符。                                     |
+| `RELEASE_STAGES`                          | 创建版本后发布到哪个环境，应与 `apigwSync.config.stages[].name` 对齐。                    |
+| `NO_PUB`                                  | 是否额外执行一次只生成版本不发布的命令。                                                  |
+| `apigwSync.config.release`                | 渲染到 `definition.yaml` 的版本信息。                                                     |
+| `apigwSync.config.apigateway`             | 渲染到 `definition.yaml` 的网关基础信息和维护人。                                         |
+| `apigwSync.config.stages`                 | 渲染到 `definition.yaml` 的网关环境和后端回源地址。                                       |
+| `apigwSync.config.grant_permissions`      | 渲染到 `definition.yaml` 的主动授权配置。                                                 |
 
 `stages[].backends[].config.hosts[].host` 只写协议、域名或 IP，不包含 Path，例如 `https://bk-nodemgr.example.com`。
+
+`BK_APP_TENANT_ID` 会被 `apigw-manager` 转成请求头 `X-Bk-Tenant-Id`。如果同步日志出现
+`1640302 Cross tenant forbidden`，先确认同步镜像基于支持多租户的 `apigw-manager` 版本，再检查该变量是否按租户模式设置：
+单租户为 `default`，多租户为 `system`。
 
 > notice: 一个环境的 `BK_API_URL_TMPL` 可以通过我们注册到 bk-apigw 后生成的 API 地址来获取。比如我们生成的 API 地址是
 `https://bk-nodemgr.apigw.example.com/api/v1/nodemgr/nodes`，那么 BK_API_URL_TMPL 就是 `https://bk-nodemgr.apigw.example.com/api/{api_name}`。
