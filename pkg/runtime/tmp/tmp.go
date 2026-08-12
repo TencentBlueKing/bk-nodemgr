@@ -14,23 +14,34 @@ package tmp
 import (
 	"fmt"
 	"os"
+	"sync"
 )
 
 var (
 	// nolint: gochecknoglobals
 	prefixName = "tmpdir"
+
+	// nolint: gochecknoglobals
+	prefixNameMu sync.Mutex
 )
 
 // SetPrefixName sets the prefix name.
 func SetPrefixName(name string) {
+	prefixNameMu.Lock()
+	defer prefixNameMu.Unlock()
+
 	prefixName = name
 }
 
-// Clean cleans the file and removes it from the filesystem.
+// Clean removes the runtime temporary root directory from the filesystem.
 func Clean() error {
-	tmpDir, err := GetTmpDir()
-	if err != nil {
-		return fmt.Errorf("failed to get tmp dir: %w", err)
+	tmpDirInstance.mu.Lock()
+	tmpDir := tmpDirInstance.dir
+	resetTmpDir()
+	tmpDirInstance.mu.Unlock()
+
+	if tmpDir == "" {
+		return nil
 	}
 
 	if err := os.RemoveAll(tmpDir); err != nil {
@@ -38,4 +49,20 @@ func Clean() error {
 	}
 
 	return nil
+}
+
+func currentPrefixName() string {
+	prefixNameMu.Lock()
+	defer prefixNameMu.Unlock()
+
+	return prefixName
+}
+
+func createRootTmpDir() (string, error) {
+	tmpDir, err := os.MkdirTemp(os.TempDir(), currentPrefixName()+"_*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create tmp dir: %w", err)
+	}
+
+	return tmpDir, nil
 }

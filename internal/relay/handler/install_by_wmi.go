@@ -102,7 +102,7 @@ func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
 		return
 	}
 	defer func() {
-		if err := tmp.Clean(); err != nil {
+		if err := tmpInstallBat.CleanUp(); err != nil {
 			logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to clean temp file")
 		}
 	}()

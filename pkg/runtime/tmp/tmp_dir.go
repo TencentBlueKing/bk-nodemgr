@@ -14,33 +14,33 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 // tmpDirInstance is the instance of tmpDir.
 // nolint: gochecknoglobals
 var tmpDirInstance struct {
+	mu   sync.Mutex
 	once sync.Once
 	dir  string
+	err  error
 }
 
 // GetTmpDir returns the system's temporary directory path.
 func GetTmpDir() (string, error) {
-	tmpDirInstance.dir = filepath.Join(
-		os.TempDir(),
-		prefixName+"_"+time.Now().Format("20060102150405")+"_"+strings.ReplaceAll(uuid.New().String(), "-", ""))
+	tmpDirInstance.mu.Lock()
+	defer tmpDirInstance.mu.Unlock()
+
+	tmpDirInstance.once.Do(func() {
+		tmpDirInstance.dir, tmpDirInstance.err = createRootTmpDir()
+	})
+	if tmpDirInstance.err != nil {
+		return "", tmpDirInstance.err
+	}
 
 	dirInfo, err := os.Stat(tmpDirInstance.dir)
-	if err != nil && os.IsNotExist(err) {
-		if err := os.MkdirAll(tmpDirInstance.dir, 0700); err != nil { // nolint:mnd,gomnd
-			return "", fmt.Errorf("failed to create tmp dir: %w", err)
-		}
-
-		return tmpDirInstance.dir, nil
+	if err != nil {
+		return "", fmt.Errorf("failed to stat tmp dir: %w", err)
 	}
 
 	if !dirInfo.IsDir() {
@@ -48,4 +48,24 @@ func GetTmpDir() (string, error) {
 	}
 
 	return tmpDirInstance.dir, nil
+}
+
+func resetTmpDir() {
+	tmpDirInstance.once = sync.Once{}
+	tmpDirInstance.dir = ""
+	tmpDirInstance.err = nil
+}
+
+func newTempDir(name string) (string, error) {
+	tmpDir, err := GetTmpDir()
+	if err != nil {
+		return "", err
+	}
+
+	dir, err := os.MkdirTemp(tmpDir, filepath.Base(name)+"-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create tmp sub dir: %w", err)
+	}
+
+	return dir, nil
 }

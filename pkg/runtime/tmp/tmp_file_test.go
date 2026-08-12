@@ -12,6 +12,8 @@ package tmp
 
 import (
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -89,10 +91,102 @@ func Test(t *testing.T) {
 			}
 
 			t.Logf("tmp file path: %s", file.Path())
+			if err := file.CleanUp(); err != nil {
+				t.Errorf("clean tmp file failed: %s", err)
+			}
 		})
 	}
 
 	if err := Clean(); err != nil {
-		t.Errorf("clean tmp file failed: %s", err)
+		t.Errorf("clean tmp dir failed: %s", err)
+	}
+}
+
+func TestGetTmpDirReturnsStableRoot(t *testing.T) {
+	if err := Clean(); err != nil {
+		t.Fatalf("clean tmp dir failed: %s", err)
+	}
+	t.Cleanup(func() {
+		_ = Clean()
+	})
+
+	firstDir, err := GetTmpDir()
+	if err != nil {
+		t.Fatalf("get first tmp dir failed: %s", err)
+	}
+
+	secondDir, err := GetTmpDir()
+	if err != nil {
+		t.Fatalf("get second tmp dir failed: %s", err)
+	}
+
+	if firstDir != secondDir {
+		t.Fatalf("tmp dir changed, first(%s), second(%s)", firstDir, secondDir)
+	}
+
+	if _, err := os.Stat(firstDir); err != nil {
+		t.Fatalf("stat tmp dir failed: %s", err)
+	}
+
+	if err := Clean(); err != nil {
+		t.Fatalf("clean tmp dir failed: %s", err)
+	}
+
+	if _, err := os.Stat(firstDir); !os.IsNotExist(err) {
+		t.Fatalf("tmp dir still exists after clean, dir(%s), err(%v)", firstDir, err)
+	}
+
+	thirdDir, err := GetTmpDir()
+	if err != nil {
+		t.Fatalf("get third tmp dir failed: %s", err)
+	}
+
+	if thirdDir == firstDir {
+		t.Fatalf("tmp dir was not reset after clean, dir(%s)", thirdDir)
+	}
+}
+
+func TestNewTempFileWithSpecialNameUsesIsolatedDir(t *testing.T) {
+	if err := Clean(); err != nil {
+		t.Fatalf("clean tmp dir failed: %s", err)
+	}
+	t.Cleanup(func() {
+		_ = Clean()
+	})
+
+	firstFile, err := NewTempFileWithSpecialName(io.NopCloser(strings.NewReader("first")), "fixed.conf")
+	if err != nil {
+		t.Fatalf("create first temp file failed: %s", err)
+	}
+
+	secondFile, err := NewTempFileWithSpecialName(io.NopCloser(strings.NewReader("second")), "fixed.conf")
+	if err != nil {
+		t.Fatalf("create second temp file failed: %s", err)
+	}
+
+	if firstFile.Path() == secondFile.Path() {
+		t.Fatalf("temp file paths should differ, path(%s)", firstFile.Path())
+	}
+
+	firstDir := filepath.Dir(firstFile.Path())
+	secondDir := filepath.Dir(secondFile.Path())
+	if firstDir == secondDir {
+		t.Fatalf("temp file dirs should differ, dir(%s)", firstDir)
+	}
+
+	if err := firstFile.CleanUp(); err != nil {
+		t.Fatalf("clean first temp file failed: %s", err)
+	}
+
+	if _, err := os.Stat(firstDir); !os.IsNotExist(err) {
+		t.Fatalf("first temp dir still exists, dir(%s), err(%v)", firstDir, err)
+	}
+
+	if err := secondFile.CleanUp(); err != nil {
+		t.Fatalf("clean second temp file failed: %s", err)
+	}
+
+	if _, err := os.Stat(secondDir); !os.IsNotExist(err) {
+		t.Fatalf("second temp dir still exists, dir(%s), err(%v)", secondDir, err)
 	}
 }

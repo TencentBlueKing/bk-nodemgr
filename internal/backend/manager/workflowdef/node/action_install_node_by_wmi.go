@@ -347,7 +347,7 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to create temp bat file for wmi execution: %w", err)
 	}
 	defer func() {
-		if err := tmp.Clean(); err != nil {
+		if err := tmpInstallBat.CleanUp(); err != nil {
 			std.InstanceData().Log().
 				Zh("清理临时文件失败: %v", err).
 				En("failed to clean temp file: %v", err).
