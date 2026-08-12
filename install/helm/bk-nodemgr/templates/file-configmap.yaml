@@ -47,7 +47,7 @@ data:
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:
-        - {{ template "bk-nodemgr.fullname" . }}-etcd-headless:2379
+        - {{ include "bk-nodemgr.etcd.fullname" . }}-headless:{{ include "bk-nodemgr.etcd.clientPort" . }}
       {{- else }}
       endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
       username: {{ .Values.externalEtcd.username }}

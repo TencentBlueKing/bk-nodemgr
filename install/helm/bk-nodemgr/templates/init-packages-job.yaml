@@ -21,8 +21,8 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 spec:
-  backoffLimit: 3
-  parallelism: 1
+  backoffLimit: {{ .Values.initPackages.backoffLimit }}
+  parallelism: {{ .Values.initPackages.parallelism }}
   {{- if .Values.initPackages.ttlSecondsAfterFinished }}
   ttlSecondsAfterFinished: {{ .Values.initPackages.ttlSecondsAfterFinished }}
   {{- end }}
@@ -98,7 +98,7 @@ spec:
               PACKAGES_DIR="/bk-nodemgr/file/packages"
               PACKAGES_SCRIPT_DIR="/bk-nodemgr/support-files/initpackage"
               FILE_HOST="{{ template "bk-nodemgr.fullname" . }}-file"
-              FILE_HEALTH_URL="http://${FILE_HOST}:{{ .Values.file.config.infoServer.port }}/healthz"
+              FILE_HEALTH_URL="http://${FILE_HOST}:{{ .Values.file.config.infoServer.port }}{{ .Values.readinessProbe.path }}"
               export FILE_HEALTH_URL
               JWT_KEY="{{ .Values.backend.config.file.jwtClientConfig.symmetricKey }}"
               JWT_EXPIRE_TIME="{{ .Values.backend.config.file.jwtClientConfig.tokenExpirationHour | default 24 }}"

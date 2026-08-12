@@ -17,9 +17,9 @@ metadata:
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 spec:
-  ttlSecondsAfterFinished: 60
-  backoffLimit: 3
-  parallelism: 1
+  ttlSecondsAfterFinished: {{ .Values.iamV3.syncJob.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.iamV3.syncJob.backoffLimit }}
+  parallelism: {{ .Values.iamV3.syncJob.parallelism }}
   template:
     metadata:
       labels:

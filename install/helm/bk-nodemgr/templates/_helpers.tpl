@@ -48,8 +48,22 @@ Return the proper bk-nodemgr replica count
 {{- if gt (float64 .root.replicaCount) 1.0 }}
 {{- .root.replicaCount -}}
 {{- else -}}
-{{- .module.replicaCount -}}
+{{- default .root.replicaCount .module.replicaCount -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Return the proper etcd dependency full name.
+*/}}
+{{- define "bk-nodemgr.etcd.fullname" -}}
+{{- include "common.names.dependency.fullname" (dict "chartName" "etcd" "chartValues" .Values.etcd "context" $) -}}
+{{- end -}}
+
+{{/*
+Return the proper etcd client port.
+*/}}
+{{- define "bk-nodemgr.etcd.clientPort" -}}
+{{- coalesce .Values.etcd.service.ports.client .Values.etcd.service.port -}}
 {{- end -}}
 
 {{/*

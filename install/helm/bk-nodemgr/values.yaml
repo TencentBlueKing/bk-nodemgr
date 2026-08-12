@@ -1641,6 +1641,9 @@ file:
 ## Nodemgr apigw-sync
 apigwSync:
   enabled: false
+  ttlSecondsAfterFinished: 60
+  backoffLimit: 10
+  parallelism: 1
   extraEnvVars:
     - name: BK_APIGW_NAME
       value: "bk-nodemgr"
@@ -1699,6 +1702,8 @@ initPackages:
   installOnly: true
   # Auto-clean completed Job after N seconds; set empty to disable.
   ttlSecondsAfterFinished: 86400
+  backoffLimit: 3
+  parallelism: 1
   # bk_username and login_name are needed by generate jwt token
   bkUsername: ""
   loginName: ""
@@ -1730,6 +1735,10 @@ initPackages:
 
 iamV3:
   enabled: false
+  syncJob:
+    ttlSecondsAfterFinished: 60
+    backoffLimit: 3
+    parallelism: 1
   system:
     id: "bk-nodemgr"
     name: "节点管理"
