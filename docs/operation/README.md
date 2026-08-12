@@ -13,7 +13,3 @@
 ### [troubleshooting](troubleshooting/README.md)
 
 疑难问题和复杂故障的现象、根因、确认方法与处理原则。
-
-### [NetworkUnit tenant collection migration](networkunit_tenant_collection_migration.md)
-
-将共享 `networkunit` MongoDB collection 迁移为按租户 collection 的操作手册。

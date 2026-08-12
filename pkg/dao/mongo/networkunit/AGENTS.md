@@ -32,4 +32,4 @@
 |Anti-patterns:do not pass proto structs or transport-layer request types into DAO code|convert at proto/storage boundaries and use `pkg/types`
 |Anti-patterns:do not describe `handler.UpdateMany` as full-document upsert|for handler callers it is field-scoped partial update controlled by `NetworkUnitUpdateFields`
 |Anti-patterns:do not add cross-table queries, cross-db transactions, or async behavior; each operation stays within one tenant collection and synchronous
-|Related:shared patterns=pkg/dao/mongo/base/AGENTS.md|tenant DAO refs=pkg/dao/mongo/{business,cipher,configpolicy,topoevent}|migration runbook=docs/operation/networkunit_tenant_collection_migration.md
+|Related:shared patterns=pkg/dao/mongo/base/AGENTS.md|tenant DAO refs=pkg/dao/mongo/{business,cipher,configpolicy,topoevent}
