@@ -423,7 +423,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 
 func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.UserManager.APIGatewayClient)
-	apiGwClientCapability, err := newAPIGwClientCapability(clientNameUserManager, &svc.conf.GSE.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(clientNameUserManager, &svc.conf.UserManager.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
 	}
@@ -644,10 +644,10 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				Password:      svc.conf.MongoDB.Password,
 				PasswordSet:   true,
 			},
-			ReplicaSet:      replicaSet,
-			Hosts:           svc.conf.MongoDB.Hosts,
-			TLSConfig:       tlsConfig,
-			ReadPreference:  readpref.Primary(),
+			ReplicaSet:     replicaSet,
+			Hosts:          svc.conf.MongoDB.Hosts,
+			TLSConfig:      tlsConfig,
+			ReadPreference: readpref.Primary(),
 			// All reads go to the primary (ReadPreference=primary), so w:1 writes are
 			// immediately readable. The majority replication ack (~190ms/command) is
 			// unnecessary for retried sync operations that are reconciled by the next cycle.
