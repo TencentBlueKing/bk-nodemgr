@@ -63,7 +63,7 @@
     </div>
 
     <!-- 底部操作按钮 -->
-    <div class="footer fixed bottom-0 left-0 right-0 h-[48px] bg-[#fff] border-t border-[#DCDEE5] flex items-center pl-[84px] pr-[24px] z-[100]">
+    <div class="footer fixed bottom-0 left-[260px] right-0 h-[48px] bg-[#fff] border-t border-[#DCDEE5] flex items-center pl-[24px] pr-[24px] z-[100]">
       <!-- 有权限：正常提交按钮 -->
       <Button
         v-if="currentStep === stepList.length - 1 && hasPluginOperateAuth"
