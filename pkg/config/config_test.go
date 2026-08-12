@@ -468,3 +468,98 @@ func TestRedis_Validate_InvalidType(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid redis type")
 }
+
+func TestDownloader_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  Downloader
+		wantErr bool
+	}{
+		{
+			name:    "empty white list",
+			config:  Downloader{},
+			wantErr: false,
+		},
+		{
+			name:    "valid white list",
+			config:  Downloader{WhiteList: []WhiteListEntry{{HostName: "github.com"}}},
+			wantErr: false,
+		},
+		{
+			name:    "invalid white list",
+			config:  Downloader{WhiteList: []WhiteListEntry{{}}},
+			wantErr: true,
+		},
+		{
+			name:    "valid block ports",
+			config:  Downloader{BlockPorts: []int{80, 443}},
+			wantErr: false,
+		},
+		{
+			name:    "invalid block port negative",
+			config:  Downloader{BlockPorts: []int{-1}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid block port too large",
+			config:  Downloader{BlockPorts: []int{70000}},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.Validate()
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestWhiteListEntry_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  WhiteListEntry
+		wantErr bool
+	}{
+		{
+			name:    "valid host without tls",
+			config:  WhiteListEntry{HostName: "github.com"},
+			wantErr: false,
+		},
+		{
+			name:    "reject ca-only one-way tls",
+			config:  WhiteListEntry{HostName: "github.com", TLS: TLSConfig{CAFile: "/etc/ssl/ca.crt"}},
+			wantErr: true,
+		},
+		{
+			name:    "empty host name",
+			config:  WhiteListEntry{},
+			wantErr: true,
+		},
+		{
+			name:    "invalid tls combination",
+			config:  WhiteListEntry{HostName: "github.com", TLS: TLSConfig{KeyFile: "/etc/ssl/key.pem"}},
+			wantErr: true,
+		},
+		{
+			name:    "valid two-way tls",
+			config:  WhiteListEntry{HostName: "github.com", TLS: TLSConfig{CAFile: "/etc/ssl/ca.crt", CertFile: "/etc/ssl/cert.pem", KeyFile: "/etc/ssl/key.pem"}},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.config.Validate()
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
