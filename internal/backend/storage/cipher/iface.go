@@ -21,6 +21,12 @@ import (
 type IStorage interface {
 	basestorage.Interface
 
+	IDaoStorage
+	IDomainStorage
+}
+
+// IDaoStorage defines single-table (cipher collection) data access interfaces.
+type IDaoStorage interface {
 	// GetCipher gets asymmetric encryption by name and key type.
 	GetCipher(nCtx contextx.IContext, name string, keyType types.CipherKeyType) (*types.Cipher, error)
 
@@ -29,4 +35,10 @@ type IStorage interface {
 
 	// CreateCipher creates asymmetric encryption records.
 	CreateCipher(nCtx contextx.IContext, encryption ...*types.Cipher) error
+}
+
+// IDomainStorage defines business domain interfaces for cipher storage.
+type IDomainStorage interface {
+	// EnsureDefaultCipher ensures the default RSA cipher.
+	EnsureDefaultCipher(nCtx contextx.IContext) error
 }

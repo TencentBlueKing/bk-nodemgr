@@ -27,9 +27,10 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "cipher"
 
-	metricOperationGetCipher    = "get_cipher"
-	metricOperationCreateCipher = "create_cipher"
-	metricOperationExistCipher  = "exist_cipher"
+	metricOperationGetCipher           = "get_cipher"
+	metricOperationEnsureDefaultCipher = "ensure_default_cipher"
+	metricOperationCreateCipher        = "create_cipher"
+	metricOperationExistCipher         = "exist_cipher"
 )
 
 // NewStorage creates a new workflow storage.
@@ -91,9 +92,7 @@ func (s *Storage) GetCipher(nCtx contextx.IContext, name string, keyType types.C
 }
 
 // ExistCipher checks if cipher exists by name and key-type.
-func (s *Storage) ExistCipher(nCtx contextx.IContext, name string, keyType types.CipherKeyType) (
-	bool, error) {
-
+func (s *Storage) ExistCipher(nCtx contextx.IContext, name string, keyType types.CipherKeyType) (bool, error) {
 	var exist bool
 
 	err := s.WrapFn(nCtx, metricOperationExistCipher, func(contextx.IContext) error {
@@ -109,9 +108,13 @@ func (s *Storage) ExistCipher(nCtx contextx.IContext, name string, keyType types
 // CreateCipher creates cipher.
 func (s *Storage) CreateCipher(nCtx contextx.IContext, encryption ...*types.Cipher) error {
 	return s.WrapFn(nCtx, metricOperationCreateCipher, func(contextx.IContext) error {
-		var err error
-		err = s.createCipher(nCtx, encryption...)
+		return s.createCipher(nCtx, encryption...)
+	})
+}
 
-		return err
+// EnsureDefaultCipher ensures the default RSA cipher.
+func (s *Storage) EnsureDefaultCipher(nCtx contextx.IContext) error {
+	return s.WrapFn(nCtx, metricOperationEnsureDefaultCipher, func(ctx contextx.IContext) error {
+		return s.ensureDefaultCipher(ctx)
 	})
 }

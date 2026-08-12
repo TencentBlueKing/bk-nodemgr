@@ -251,6 +251,10 @@ func (h *handler) generateInstallNodeDeployments(
 }
 
 func (h *handler) initRSACrypter(nCtx contextx.IContext) (crypter.Crypter, error) {
+	if err := h.storageCipher.EnsureDefaultCipher(nCtx); err != nil {
+		return nil, fmt.Errorf("failed to ensure default cipher: %w", err)
+	}
+
 	cipher, err := h.storageCipher.GetCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cipher: %w", err)

@@ -50,6 +50,12 @@ func (h *handler) GetRSAPublicKey(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	if err := h.daoCipher.EnsureDefaultCipher(rCtx); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to ensure default cipher")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
 	cipher, err := h.daoCipher.GetCipher(rCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to get public key from storage")

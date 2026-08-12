@@ -1304,7 +1304,7 @@ func (svc *Service) initialCipher() error {
 			return err
 		}
 
-		conv.SliceToSlice(allTenant, func(tenantInfo *types.Tenant) string {
+		tenantIDs = conv.SliceToSlice(allTenant, func(tenantInfo *types.Tenant) string {
 			return tenantInfo.ID
 		})
 	default:
@@ -1313,40 +1313,8 @@ func (svc *Service) initialCipher() error {
 
 	for _, tenantID := range tenantIDs {
 		nCtx := contextx.From(svc.ctx, contextx.WithTenantID(tenantID))
-		exist, err := svc.Cap.StorageCipher.ExistCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to get rsa public key, failed to check cipher existence")
-			return err
-		}
-
-		if exist {
-			return nil
-		}
-
-		priv, pub, err := crypter.GenerateRSAKeyPairPEM(crypter.RSAKeySize4096)
-		if err != nil {
-			return err
-		}
-
-		if err := svc.Cap.StorageCipher.CreateCipher(nCtx, &types.Cipher{
-			Name:        types.DefaultCipherName,
-			KeyType:     types.CipherKeyTypeRSA4096,
-			Description: types.DefaultCipherDescription,
-			PrivateKey:  priv,
-			PublicKey:   pub,
-		}); err != nil {
-			exist, err := svc.Cap.StorageCipher.ExistCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
-			if err != nil {
-				logger.G.Sys().WithErr(err).Error("failed to get rsa public key, failed to check cipher existence")
-				return err
-			}
-
-			if exist {
-				return nil
-			}
-
-			logger.G.Sys().WithErr(err).Error("failed to create rsa cipher")
-
+		if err := svc.Cap.StorageCipher.EnsureDefaultCipher(nCtx); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to ensure rsa cipher")
 			return err
 		}
 	}
