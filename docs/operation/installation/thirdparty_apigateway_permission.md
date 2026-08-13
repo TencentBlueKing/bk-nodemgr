@@ -27,8 +27,10 @@
 | 权限项                                  | 权限说明                                                 | 权限级别 | 申请期限 |
 | --------------------------------------- | -------------------------------------------------------- | -------- | -------- |
 | `add_host_to_business_idle`             | 添加主机到业务空闲机                                     | 普通     | 永久     |
+| `add_host_to_resource_pool`             | 添加主机到资源池                                         | 普通     | 永久     |
 | `batch_update_host`                     | 批量更新主机属性                                         | 普通     | 永久     |
 | `bind_host_agent`                       | 将agent绑定到主机上                                      | 普通     | 永久     |
+| `create_biz_custom_field`               | 创建业务自定义模型属性                                   | 普通     | 永久     |
 | `create_cloud_area`                     | 创建管控区域                                             | 普通     | 永久     |
 | `create_dynamic_group`                  | 创建动态分组                                             | 普通     | 永久     |
 | `delete_cloud_area`                     | 删除管控区域                                             | 普通     | 永久     |
