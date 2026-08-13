@@ -1,55 +1,29 @@
-# ETCD DISCOVER KNOWLEDGE BASE
-
-## OVERVIEW
-
-`pkg/discover/etcddiscover` implements the etcd-backed `discover.Provider` for service registration and discovery.
-It owns etcd client setup, TLS wiring, lease keepalive, watch/list synchronization, and local instance cache refresh.
-It also bridges etcd client internal logs into the project's unified `pkg/logger` pipeline.
-
-Responsibilities:
-- Create and manage the etcd client from `config.Etcd`.
-- Register, update, deregister, list, and watch service instances stored in etcd.
-- Maintain lease metadata (`etcd-lease-id`) required for update and revoke flows.
-- Convert etcd client logs into structured bk-nodemgr logs.
-
-Not responsible for:
-- Defining service-specific registration payload semantics beyond `discover.Instance`.
-- Business routing or caller-side endpoint selection policy.
-- Exposing raw etcd client types to upper-layer business code.
-
-## WHERE TO LOOK
-
-| File | Purpose |
-|------|---------|
-| `etcd.go` | `ProviderEtcd` implementation: client init, TLS setup, watch/list loop, register/update/deregister, endpoint queries, logger bridge |
-| `README.md` | Short package intent and boundary notes |
-| `etcd_test.go` | Registration/discovery behavior tests; validates CRUD, query, select, and lease-backed update flows |
-| `etcd_logger_test.go` | Logger integration tests for `newEtcdClientConfig`, `mapEtcdLogLevel`, and `etcdLoggerCore` |
-
-### Key runtime pieces in `etcd.go`
-
-| Symbol / Area | Description |
-|---------------|-------------|
-| `ProviderEtcd` | Main provider state: etcd client, local service cache, watch targets, runtime context |
-| `NewProviderEtcd()` | Builds the provider from `config.Etcd` plus optional watch/list options |
-| `Start()` / `Stop()` | Provider lifecycle; client bootstrap and background loops |
-| `Register()` / `Update()` / `Deregister()` | Lease-based instance mutation lifecycle |
-| `watch()` / `list()` / `keepListing()` | Read-path synchronization from etcd into local cache |
-| `newEtcdClientConfig()` / `etcdLoggerCore` | Inject unified logger into the etcd client |
-
-## CONVENTIONS
-
-- Keep **all etcd-specific concerns inside this package**: client creation, TLS translation, lease handling, watch semantics, and etcd log adaptation should not leak into callers.
-- Treat `discover.Instance` as the boundary type. Callers provide and consume `discover.Instance` / `discover.Endpoint`; they should not depend on `clientv3` details.
-- Preserve `metaKeyLeaseID` on successful register/update flows. `Update()` and `Deregister()` rely on this metadata to reuse or revoke the correct lease.
-- Use structured logging via `pkg/logger` only. etcd internal logs must flow through `newEtcdClientConfig()` and `etcdLoggerCore`, not a separate logger stack.
-- Keep local cache refresh behavior consistent: query APIs (`GetAllService`, `GetAllEndpoint`, `GetEndpoint`, `SelectEndpoints`) read from provider-managed state populated by `watch()` / `list()`.
-- Tests in `etcd_test.go` are environment-dependent integration-style tests. They expect `.env` with `ETCD_ENDPOINT` and a reachable etcd instance.
-
-## ANTI-PATTERNS
-
-- Do not move etcd client options, TLS wiring, or log mapping into service code or unrelated shared packages.
-- Do not bypass lease management by writing directly to etcd without updating `etcd-lease-id` metadata on the in-memory instance.
-- Do not hardcode endpoints, credentials, or TLS behavior outside `config.Etcd` and `initTLS()`.
-- Do not return or store raw etcd responses in higher layers; convert them into `discover.Instance` / `discover.Endpoint` first.
-- Do not add service-specific interpretation of instance metadata in this package; such policy belongs to callers.
+|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning
+|Required Tools:serena (semantic code ops)|context7 (3rd-party docs)|sequential-thinking (decisions)
+|Language Policy:Chinese for Q&A|English for code/docs/tech discussions
+|Compression Rule:Follow references/AGENTS-compression-guide.md (pipe-index format, concise, no prose/code blocks)
+|Scope:pkg/discover/etcddiscover
+|Overview:etcd-backed `discover.Provider` for registration, discovery, lease keepalive, watch/list cache sync, TLS, and etcd-log bridging
+|Boundary:owns all etcd-specific client/TLS/lease/watch/cache/log adaptation|callers own service-specific `discover.Instance` payload production and consumption
+|Structure:pkg/discover/etcddiscover:{README.md,etcd.go,etcd_test.go,etcd_logger_test.go,AGENTS.md}
+|Where to look:package intent/boundary:README.md:etcd discovery purpose and “all etcd logic stays here” rule
+|Where to look:provider implementation:etcd.go:`ProviderEtcd`,`NewProviderEtcd`,`WithWatch`,`WithDiscoverPathPrefix`,`Start`,`Stop`
+|Where to look:registration lifecycle:etcd.go:`Register`→`register`→lease `Grant`→`Put` with lease→`KeepAlive`→local cache|`Update`/`Deregister` require `metaKeyLeaseID`
+|Where to look:read sync path:etcd.go:`startWatching`/`watch` event sync + `keepListing`/`list` periodic full sync→`cacheInstances`→query APIs
+|Where to look:query APIs:etcd.go:`GetAllService`,`GetAllEndpoint`,`GetEndpoint`,`SelectEndpoints`:read provider-managed cache and delegate endpoint selection to `discover.SelectEndpoints`
+|Where to look:etcd client config/logging:etcd.go:`initTLS`,`newEtcdClientConfig`,`etcdLoggerCore`,`mapEtcdLogLevel`,`etcdEntryKeyValues`
+|Where to look:behavior tests:etcd_test.go:integration-style provider CRUD/query/select/shutdown tests require `.env` with `ETCD_ENDPOINT`
+|Where to look:logger tests:etcd_logger_test.go:etcd zap core mapping, deterministic key-value extraction, config logger injection
+|Conventions:implement parent `pkg/discover` contracts exactly; public surface remains `discover.Instance`/`discover.Endpoint`/`discover.ServiceName`/`discover.EndpointName`
+|Conventions:keep etcd raw types private to this package except internal `clientv3` use; never leak `clientv3` responses through `Provider`
+|Conventions:preserve `metaKeyLeaseID` whenever replacing registered instances; lease id is required for update put-with-lease and revoke flows
+|Conventions:use `config.Etcd` + `initTLS()` for endpoints/auth/TLS; keep defaults local (`defaultEtcdPrefix`,`defaultEtcdDialTimeout`,`defaultEtcdLeaseTTLSec`,`defaultListTickTime`)
+|Conventions:watch/list cache is the read model; query methods should not perform ad-hoc etcd reads outside the provider sync path
+|Conventions:use `pkg/logger` for project logs; etcd internal zap logs must route through `newEtcdClientConfig()`/`etcdLoggerCore`
+|Conventions:shutdown order matters: deregister local instances before cancel because `Deregister` uses `provider.ctx` to revoke leases
+|Anti-patterns:do not add service-specific routing, weighting, health, or metadata policy here; callers own payload semantics beyond `discover.Instance`
+|Anti-patterns:do not hardcode endpoints/credentials/TLS paths outside `config.Etcd`; do not bypass `initTLS()` for TLS setup
+|Anti-patterns:do not write directly to etcd without updating in-memory `localInstances` and preserving lease metadata
+|Anti-patterns:do not duplicate root `pkg/discover` selector/error/model logic; extend root contracts first when behavior is generic
+|Dependencies:internal project:{pkg/config,pkg/discover,pkg/logger,pkg/runtime/conv,pkg/runtime/ssl}|external:{go.etcd.io/etcd/client/v3,go.uber.org/zap}
+|Commands:targeted tests need reachable etcd + `.env`:`go test ./pkg/discover/etcddiscover`|logger-only tests can be filtered with `-run 'Test.*Logger|TestEtcdEntry|TestMapEtcd'`
