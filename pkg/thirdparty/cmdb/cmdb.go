@@ -387,35 +387,6 @@ func (c *cli) findModuleBatch(ctx contextx.IContext, req *FindModuleBatchReq) (*
 	return resp.Data, nil
 }
 
-// searchObject search object.
-// nolint: unused
-func (c *cli) searchObject(ctx contextx.IContext, req *SearchObjectReq) (
-	*SearchObjectResp, error) {
-
-	resp := new(BaseBroker[*SearchObjectResp])
-	header, err := c.getHeader(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Post().
-		SubResourcef("/find/object").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("search object failed: %v", err)
-	}
-
-	return resp.Data, nil
-}
-
 // searchObjectAttribute search object attribute.
 func (c *cli) searchObjectAttribute(ctx contextx.IContext, req *SearchObjectAttributeReq) (
 	*SearchObjectAttributeResp, error) {
