@@ -15,8 +15,13 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
-// Downloader downloads remote content and exposes it to callers.
-type Downloader interface {
+// IHandler is the handler of downloader.
+type IHandler interface {
+	IDownloader
+}
+
+// IDownloader defines the interface of downloader.
+type IDownloader interface {
 	// Download retrieves rawURL, verifies it against opts.Checksum, and returns
 	// the verified file. The file is backed by a temporary file; close the
 	// reader returned by Content to remove it.

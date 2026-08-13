@@ -83,7 +83,7 @@ type client struct {
 // New builds a downloader for remote package artifacts with the configured host policies.
 // Each request builds a rest client for its origin. Redirects are rejected so
 // the trust boundary stays on the initially validated URL.
-func New(conf config.Downloader) (Downloader, error) {
+func New(conf config.Downloader) (IDownloader, error) {
 	allowHosts := make(map[string]struct{})
 	for _, entry := range conf.AllowHosts {
 		allowHosts[normalizeHost(entry)] = struct{}{}
@@ -131,7 +131,7 @@ var (
 	ErrDownloadTooLarge = errors.New("download too large")
 )
 
-var _ Downloader = (*client)(nil)
+var _ IDownloader = (*client)(nil)
 
 // Download retrieves rawURL, buffers the content into a temporary file,
 // verifies it against opts.Checksum, and returns the verified file. Closing
