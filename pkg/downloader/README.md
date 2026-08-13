@@ -59,7 +59,7 @@ if err != nil {
 }
 ```
 
-`AllowHosts` 为空时不限制 host；非空时只允许精确匹配的 hostname。匹配前会 trim、lowercase，并去掉末尾 `.`；不支持 wildcard，也不会自动允许子域名。`BlockHosts` 命中时始终拒绝。
+`AllowHosts` 为空时表示 allowlist 不限制 host，即允许所有 host 进入后续策略；`AllowHosts` 非空时只允许精确匹配的 hostname。`BlockHosts` 的优先级高于 `AllowHosts`：只要命中 blocklist 就始终拒绝。因此即使 `AllowHosts` 为空表示“全开”，也可以通过 `BlockHosts` 拦截某一个 host。匹配前会 trim、lowercase，并去掉末尾 `.`；不支持 wildcard，也不会自动允许子域名。
 
 ### 下载并读取文件
 
@@ -107,7 +107,7 @@ type Installer struct {
 2. URL 必须是 absolute URL，不能包含 credentials，不能使用 opaque URL。
 3. fragment 会被移除，不参与请求。
 4. IPv6 地址必须使用 `[]` 包裹；带 zone 的 IPv6 不作为支持目标。
-5. 配置了 `AllowHosts` 时，下载 host 必须命中 allowlist；配置了 `BlockHosts` 时，命中 blocklist 的 host 会被拒绝。
+5. host 策略先判断 `BlockHosts`，命中 blocklist 直接拒绝；未命中时再判断 `AllowHosts`。`AllowHosts` 为空表示 allowlist 全开，不限制 host，但仍会受 `BlockHosts` 约束；`AllowHosts` 非空时，下载 host 必须命中 allowlist。
 6. `BlockPorts` 同时作用于显式端口和默认端口：`http` 默认 `80`，`https` 默认 `443`。
 7. HTTP redirect 始终被拒绝，避免请求在校验后跳出初始 trust boundary。
 8. URL escaped path 是否被原样发送由 `pkg/rest/client` 的 URL 构造能力决定；该能力不在 downloader 包内局部修复。
