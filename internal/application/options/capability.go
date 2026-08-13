@@ -44,7 +44,7 @@ type Capability struct {
 	StorageConfigPolicyTemplate cptemplate.IStorage
 
 	// Discover provides discover handler.
-	DiscoverProvider discover.Provider
+	DiscoverProvider discover.IProvider
 
 	// FrontSetting front setting
 	FrontSetting frontsetting.IFrontSetting

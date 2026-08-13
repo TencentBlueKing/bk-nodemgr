@@ -37,7 +37,7 @@ const (
 
 type handler struct {
 	rg             *gin.RouterGroup
-	provider       discover.Provider
+	provider       discover.IProvider
 	proxyMessanger relayhandler.IServerMessager
 }
 

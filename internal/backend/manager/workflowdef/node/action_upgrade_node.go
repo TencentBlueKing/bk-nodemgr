@@ -59,7 +59,7 @@ type actionUpgradeNode struct {
 	storageHost           topoStg.IStorageHost
 	storageNetworkUnit    topoStg.IStorageNetworkUnit
 	gseHandler            gse.IHandler
-	provider              discover.Provider
+	provider              discover.IProvider
 	storageActionInstance workflow.IStorageActionInstance
 }
 

@@ -123,7 +123,7 @@ type Capability struct {
 	FileCache filecache.IFileCache
 
 	// Discover provides discover handler.
-	DiscoverProvider discover.Provider
+	DiscoverProvider discover.IProvider
 
 	// ProxyMessager provides the proxy messager.
 	ProxyMessager relayhandler.IServerMessager

@@ -68,7 +68,7 @@ type actionUninstallNodeBase struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
-	provider              discover.Provider
+	provider              discover.IProvider
 	storageActionInstance workflow.IStorageActionInstance
 }
 

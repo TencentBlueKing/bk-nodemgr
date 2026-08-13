@@ -51,7 +51,7 @@ type actionGenManualBootstrapCommand struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
-	provider              discover.Provider
+	provider              discover.IProvider
 }
 
 // Name returns the name of the action.

@@ -42,7 +42,7 @@ type Capability struct {
 	StorageConfigPolicy configpolicy.IStorage
 
 	// discover provider.
-	DiscoverProvider discover.Provider
+	DiscoverProvider discover.IProvider
 }
 
 const procNameSpaceNodeMan = "nodeman"

@@ -785,11 +785,11 @@ func TestProviderDefault_Register(t *testing.T) {
 	}
 }
 
-// TestProviderDefault_Stop test stop.
-func TestProviderDefault_Stop(t *testing.T) {
+// TestProviderDefault_GracefulShutdown test graceful shutdown.
+func TestProviderDefault_GracefulShutdown(t *testing.T) {
 	p := testProviderDefault(t)
-	if err := p.Stop(); err != nil {
-		t.Errorf("stop failed: %v", err)
+	if err := p.GracefulShutdown(); err != nil {
+		t.Errorf("graceful shutdown failed: %v", err)
 	}
 }
 
