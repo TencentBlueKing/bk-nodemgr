@@ -70,16 +70,18 @@ $ helm install bk-nodemgr bk/bk-nodemgr
 
 **外置MongoDB配置**
 
-| 参数                           | 类型   | 默认值          | 描述                                            |
-| ------------------------------ | ------ | --------------- | ----------------------------------------------- |
-| externalMongodb.replicaSetName | string | rs0             | 外置mongodb服务replica set名称                  |
-| externalMongodb.hosts          | string | 空              | 外置mongodb服务地址,eg:ip:port,ip:port          |
-| externalMongodb.username       | string | nodemgr         | 外置mongodb服务用户名                           |
-| externalMongodb.password       | string | defaultpassword | 外置mongodb服务密码                             |
-| externalMongodb.database       | string | nodemgr         | 外置mongodb服务DB名称                           |
-| externalMongodb.tls.ca         | string | 空              | 外置mongodb服务的客户端证书CA内容(base64编码)   |
-| externalMongodb.tls.cert       | string | 空              | 外置mongodb服务的客户端证书Cert内容(base64编码) |
-| externalMongodb.tls.key        | string | 空              | 外置mongodb服务的客户端证书Key内容(base64编码)  |
+| 参数                           | 类型   | 默认值          | 描述                                                     |
+| ------------------------------ | ------ | --------------- | -------------------------------------------------------- |
+| externalMongodb.replicaSetName | string | rs0             | 外置mongodb服务replica set名称                           |
+| externalMongodb.hosts          | array  | 空              | 外置mongodb服务地址列表；mongodb.enabled=false时必须配置 |
+| externalMongodb.username       | string | nodemgr         | 外置mongodb服务用户名                                    |
+| externalMongodb.password       | string | defaultpassword | 外置mongodb服务密码                                      |
+| externalMongodb.database       | string | nodemgr         | 外置mongodb服务DB名称                                    |
+| externalMongodb.authSource     | string | admin           | 外置mongodb服务认证数据库                                |
+| externalMongodb.authMechanism  | string | SCRAM-SHA-256   | 外置mongodb服务认证机制                                  |
+| externalMongodb.tls.ca         | string | 空              | 外置mongodb服务的客户端证书CA内容(base64编码)            |
+| externalMongodb.tls.cert       | string | 空              | 外置mongodb服务的客户端证书Cert内容(base64编码)          |
+| externalMongodb.tls.key        | string | 空              | 外置mongodb服务的客户端证书Key内容(base64编码)           |
 
 ### 滚动升级
 

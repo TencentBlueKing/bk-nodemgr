@@ -547,13 +547,14 @@ mongodb:
     ##
     size: 10Gi
 
-## If the Mongodb included in the chart is disabled, bk-nodemgr will use below
-## parameters to connect to an external mongodb.
+## If the MongoDB included in the chart is disabled, bk-nodemgr will use below
+## parameters to connect to an external MongoDB. Set externalMongodb.hosts
+## explicitly when mongodb.enabled=false.
 externalMongodb:
   ## @param replicaSetName Name of the replica set
   ##
   replicaSetName: "rs0"
-  ## @param externalMongodb.hosts MongoDB&reg; service host list, eg:ip:port
+  ## @param externalMongodb.hosts MongoDB&reg; service host list, eg: host1:27017, host2:27017
   ##
   hosts:
     - ""
@@ -562,7 +563,11 @@ externalMongodb:
   username: "nodemgr"
   password: "defaultpassword"
   database: "nodemgr"
+  ## @param externalMongodb.authSource MongoDB&reg; authentication database
+  ##
   authSource: "admin"
+  ## @param externalMongodb.authMechanism MongoDB&reg; authentication mechanism
+  ##
   authMechanism: "SCRAM-SHA-256"
   ## external mongodb service tls
   tls:
