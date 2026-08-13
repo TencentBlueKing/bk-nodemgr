@@ -124,7 +124,7 @@ var (
 	ErrDownloadTooLarge = errors.New("download too large")
 )
 
-var _ IDownloader = (*client)(nil)
+var _ IHandler = (*client)(nil)
 
 // Download retrieves rawURL, buffers the content into a temporary file,
 // verifies it against opts.Checksum, and returns the verified file. Closing
