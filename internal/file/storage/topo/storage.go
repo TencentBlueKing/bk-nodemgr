@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -40,9 +39,6 @@ type IStorage interface {
 const (
 	// StorageName defines the storage name.
 	StorageName = "topo"
-
-	// globalNetworkAreaID defines the global network area id.
-	globalNetworkAreaID = base.GlobalNetworkAreaID
 )
 
 // NewStorage creates a new release storage.
@@ -99,19 +95,19 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, i
 	if ipv4 != "" {
 		hosts, _, err := s.daoHost.List(nCtx,
 			types.UnlimitedPage(),
-			host.WithStaticNetworkAreaID(globalNetworkAreaID),
+			host.WithStaticNetworkAreaID(types.DefaultNetworkAreaID),
 			host.WithStaticInnerIPList(ipv4))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list hosts by ipv4(%s), networkarea(%d): %w",
-				ipv4, globalNetworkAreaID, err)
+				ipv4, types.DefaultNetworkAreaID, err)
 		}
 
 		if len(hosts) == 0 {
-			return nil, fmt.Errorf("host not found. ipv4(%s), networkarea(%d)", ipv4, globalNetworkAreaID)
+			return nil, fmt.Errorf("host not found. ipv4(%s), networkarea(%d)", ipv4, types.DefaultNetworkAreaID)
 		}
 
 		if len(hosts) > 1 {
-			return nil, fmt.Errorf("host not unique. ipv4(%s), networkarea(%d)", ipv4, globalNetworkAreaID)
+			return nil, fmt.Errorf("host not unique. ipv4(%s), networkarea(%d)", ipv4, types.DefaultNetworkAreaID)
 		}
 
 		return hosts[0], nil
@@ -120,19 +116,19 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, i
 	if ipv6 != "" {
 		hosts, _, err := s.daoHost.List(nCtx,
 			types.UnlimitedPage(),
-			host.WithStaticNetworkAreaID(globalNetworkAreaID),
+			host.WithStaticNetworkAreaID(types.DefaultNetworkAreaID),
 			host.WithStaticInnerIPV6List(ipv6))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list hosts by ipv6(%s), networkarea(%d): %w",
-				ipv6, globalNetworkAreaID, err)
+				ipv6, types.DefaultNetworkAreaID, err)
 		}
 
 		if len(hosts) == 0 {
-			return nil, fmt.Errorf("host not found. ipv6(%s), networkarea(%d)", ipv6, globalNetworkAreaID)
+			return nil, fmt.Errorf("host not found. ipv6(%s), networkarea(%d)", ipv6, types.DefaultNetworkAreaID)
 		}
 
 		if len(hosts) > 1 {
-			return nil, fmt.Errorf("host not unique. ipv6(%s), networkarea(%d)", ipv6, globalNetworkAreaID)
+			return nil, fmt.Errorf("host not unique. ipv6(%s), networkarea(%d)", ipv6, types.DefaultNetworkAreaID)
 		}
 
 		return hosts[0], nil

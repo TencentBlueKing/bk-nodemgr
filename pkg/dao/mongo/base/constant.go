@@ -11,13 +11,6 @@
 package base
 
 const (
-	// GlobalNetworkAreaID defines the main area of network.
-	// it belongs to system tenant in multi-tenant mode.
-	// and can be detected and linked by all tenants.
-	GlobalNetworkAreaID = 0
-)
-
-const (
 	// FieldKeyCreatedAt defines the key of create time.
 	FieldKeyCreatedAt = "basic.created_at"
 

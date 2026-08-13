@@ -42,7 +42,7 @@ type NetworkArea struct {
 	CloudVendor     string
 }
 
-// DefaultNetworkAreaID is the default network area.
+// DefaultNetworkAreaID is the tenant-local default direct network area.
 const DefaultNetworkAreaID = 0
 
 // NetworkUnit represents a basic unit for proxy management.

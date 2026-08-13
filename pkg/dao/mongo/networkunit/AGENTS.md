@@ -18,6 +18,7 @@
 |Conventions:collection model=`TableName(tenantID)`→`networkunit_<tenantID>`|handler owns `sync.Map` DAO cache|only `tenantDao` may create/cache tenant DAOs and ensure indexes
 |Conventions:read paths require `nCtx.CheckTenantID()` then select `tenantDao(nCtx.TenantID())` and apply `base.AliveFilter()` + package `OptFn`|do not add record-level `tenantFilter`
 |Conventions:create path writes through current tenant DAO but uses fixed counter namespace `networkunit` so `NetworkUnitID` stays globally unique|validate tenant match, non-empty name, and non-negative `NetworkAreaID` before insert
+|Conventions:`types.DefaultNetworkAreaID`/`data.networkarea_id=0` means tenant-local default/direct network area|do not treat id 0 as cross-tenant or system-tenant visible
 |Conventions:update contract is field-mask driven by `types.NetworkUnitUpdateFields`|`handler.UpdateMany` only updates enabled fields from `generateNetworkUnitUpdates`
 |Conventions:update implementation uses `dao.UpdateOneFieldBulk` for partial `$set` updates selected by the field mask
 |Conventions:delete path is soft delete via `base.BuildDeleteParam()`|tenant collection routing is the isolation boundary
@@ -28,7 +29,7 @@
 |Tests:pkg/dao/mongo/networkunit/handler_test.go uses `//go:build integration` + `testsuite/support.RequireMongoDatabase`|fixtures are per-test|covers physical collection routing, tenant isolation, global counter IDs, CRUD, aggregation
 |Anti-patterns:do not add business orchestration, policy checks, or cross-entity joins here|complex topology logic belongs in `internal/backend/storage/topo`
 |Anti-patterns:do not bypass `IHandler` to query tenant collections directly|collection routing, ID allocation, conversion helpers, and soft-delete semantics must stay centralized
-|Anti-patterns:do not reintroduce shared-collection `tenantFilter`, tenant-local counter keys, or runtime dual-read/dual-write compatibility
+|Anti-patterns:do not reintroduce shared-collection `tenantFilter`, tenant-local counter keys, cross-tenant id 0 visibility, or runtime dual-read/dual-write compatibility
 |Anti-patterns:do not pass proto structs or transport-layer request types into DAO code|convert at proto/storage boundaries and use `pkg/types`
 |Anti-patterns:do not describe `handler.UpdateMany` as full-document upsert|for handler callers it is field-scoped partial update controlled by `NetworkUnitUpdateFields`
 |Anti-patterns:do not add cross-table queries, cross-db transactions, or async behavior; each operation stays within one tenant collection and synchronous

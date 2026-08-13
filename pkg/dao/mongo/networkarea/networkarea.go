@@ -19,9 +19,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(client *mongo.Database) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
+	tableName := TableName(tenantID)
 	d := &dao{
-		client: client.Collection(TableName()),
+		client:    client.Collection(tableName),
+		tableName: tableName,
 	}
 
 	d.IOrm = base.NewOrm[*NetworkArea, NetworkArea](d)
@@ -30,7 +32,8 @@ func newDao(client *mongo.Database) *dao {
 }
 
 type dao struct {
-	client *mongo.Collection
+	client    *mongo.Collection
+	tableName string
 	base.IOrm[*NetworkArea, NetworkArea]
 }
 
@@ -41,7 +44,7 @@ func (d *dao) GetClient() *mongo.Collection {
 
 // GetTableName get the dao's table name.
 func (d *dao) GetTableName() string {
-	return TableName()
+	return d.tableName
 }
 
 // GetIndexes get the dao's indexes.
@@ -51,8 +54,8 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) upsertMany(nCtx contextx.IContext, tenantID string, networkAreas []*NetworkArea) error {
-	models := buildUpsertManyParams(tenantID, networkAreas)
+func (d *dao) upsertMany(nCtx contextx.IContext, networkAreas []*NetworkArea) error {
+	models := buildUpsertManyParams(networkAreas)
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -70,8 +73,8 @@ func (d *dao) upsertMany(nCtx contextx.IContext, tenantID string, networkAreas [
 	return nil
 }
 
-func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, networkAreas []*NetworkArea) error {
-	models := buildUpdateManyParams(tenantID, networkAreas)
+func (d *dao) updateMany(nCtx contextx.IContext, networkAreas []*NetworkArea) error {
+	models := buildUpdateManyParams(networkAreas)
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -85,8 +88,8 @@ func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, networkAreas [
 	return nil
 }
 
-func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkAreaIDs ...int64) error {
-	models := buildDeleteManyParams(tenantID, networkAreaIDs...)
+func (d *dao) deleteMany(nCtx contextx.IContext, networkAreaIDs ...int64) error {
+	models := buildDeleteManyParams(networkAreaIDs...)
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -100,26 +103,13 @@ func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkAreaIDs
 	return nil
 }
 
-// tenantFilter additional tenant filter.
-// all tenants can filter global networkarea in query methods.
-// and the networkareas in their own tenant.
-func tenantFilter(tenantID string) bson.E {
-	return bson.E{
-		Key: "$or",
-		Value: bson.A{
-			bson.D{{Key: FieldKeyTenantID, Value: tenantID}},
-			bson.D{{Key: FieldKeyNetworkAreaID, Value: base.GlobalNetworkAreaID}},
-		}}
-}
-
 // buildUpsertManyParams build upsert many params.
-func buildUpsertManyParams(tenantID string, networkAreas []*NetworkArea) []mongo.WriteModel {
+func buildUpsertManyParams(networkAreas []*NetworkArea) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 
 	for _, networkarea := range networkAreas {
 		filter := bson.D{
 			bson.E{Key: FieldKeyNetworkAreaID, Value: networkarea.NetworkAreaID},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID},
 		}
 
 		update := base.BuildUpsertParam(networkarea)
@@ -131,13 +121,12 @@ func buildUpsertManyParams(tenantID string, networkAreas []*NetworkArea) []mongo
 }
 
 // buildUpdateManyParams build update many params.
-func buildUpdateManyParams(tenantID string, networkAreas []*NetworkArea) []mongo.WriteModel {
+func buildUpdateManyParams(networkAreas []*NetworkArea) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 
 	for _, networkarea := range networkAreas {
 		filter := append(base.AliveFilter(),
-			bson.E{Key: FieldKeyNetworkAreaID, Value: networkarea.NetworkAreaID},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID})
+			bson.E{Key: FieldKeyNetworkAreaID, Value: networkarea.NetworkAreaID})
 
 		update := base.BuildUpsertParam(networkarea)
 
@@ -148,10 +137,9 @@ func buildUpdateManyParams(tenantID string, networkAreas []*NetworkArea) []mongo
 }
 
 // buildDeleteManyParams build delete many params.
-func buildDeleteManyParams(tenantID string, networkAreaIDs ...int64) []mongo.WriteModel {
+func buildDeleteManyParams(networkAreaIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: FieldKeyNetworkAreaID, Value: bson.D{{Key: "$in", Value: networkAreaIDs}}},
-		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
+		bson.E{Key: FieldKeyNetworkAreaID, Value: bson.D{{Key: "$in", Value: networkAreaIDs}}}}
 
 	update := base.BuildDeleteParam()
 

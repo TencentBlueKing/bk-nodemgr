@@ -119,9 +119,9 @@ func TestHandler_MutationsAndAggregationStayTenantScoped(t *testing.T) {
 	tenantACtx := testContext(t, "tenant_a")
 	tenantBCtx := testContext(t, "tenant_b")
 
-	tenantAFirst := networkUnitFixture("tenant_a", 300, "tenant-a-first")
-	tenantASecond := networkUnitFixture("tenant_a", 300, "tenant-a-second")
-	tenantBUnit := networkUnitFixture("tenant_b", 300, "tenant-b-unit")
+	tenantAFirst := networkUnitFixture("tenant_a", types.DefaultNetworkAreaID, "tenant-a-first")
+	tenantASecond := networkUnitFixture("tenant_a", types.DefaultNetworkAreaID, "tenant-a-second")
+	tenantBUnit := networkUnitFixture("tenant_b", types.DefaultNetworkAreaID, "tenant-b-unit")
 
 	tenantAFirstID, err := h.Create(tenantACtx, tenantAFirst)
 	require.NoError(t, err)
@@ -151,11 +151,11 @@ func TestHandler_MutationsAndAggregationStayTenantScoped(t *testing.T) {
 
 	tenantADistribution, err := h.GetNetworkUnitDistributionByNetworkAreaID(tenantACtx)
 	require.NoError(t, err)
-	assert.Equal(t, map[int64]int64{300: 2}, tenantADistribution)
+	assert.Equal(t, map[int64]int64{types.DefaultNetworkAreaID: 2}, tenantADistribution)
 
 	tenantBDistribution, err := h.GetNetworkUnitDistributionByNetworkAreaID(tenantBCtx)
 	require.NoError(t, err)
-	assert.Equal(t, map[int64]int64{300: 1}, tenantBDistribution)
+	assert.Equal(t, map[int64]int64{types.DefaultNetworkAreaID: 1}, tenantBDistribution)
 
 	err = h.DeleteMany(tenantACtx, tenantASecondID)
 	require.NoError(t, err)

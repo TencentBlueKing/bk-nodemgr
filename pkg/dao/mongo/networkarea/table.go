@@ -11,21 +11,24 @@
 package networkarea
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
 // TableName networkarea table name.
-func TableName() string {
-	return "networkarea"
+func TableName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", tableNamePrefix, tenantID)
 }
+
+const tableNamePrefix = "networkarea"
 
 var _ base.IData = &NetworkArea{}
 
 // NetworkArea represent network area table.
 // NetworkAreaID should be the unique key.
-// NetworkAreaID is global unique among all tenants.
+// NetworkAreaID is unique within a tenant collection.
 type NetworkArea struct {
 	TenantID        string `json:"tenant_id" bson:"tenant_id"`
 	NetworkAreaID   int64  `json:"networkarea_id" bson:"networkarea_id"`
