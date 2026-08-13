@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/downloader"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
@@ -99,6 +100,9 @@ type IManager interface {
 	// return upload result, download result and error.
 	QueryTransfer(nCtx contextx.IContext, taskID string) (
 		*types.SimpleTransferResult, *types.SimpleTransferResult, error)
+
+	// DownloadRemoteFile downloads, verifies, and caches a remote file.
+	DownloadRemoteFile(nCtx contextx.IContext, filename, downloadURL, expectedMD5 string) (fileiface.File, error)
 }
 
 // New returns a new file manager.
@@ -320,6 +324,13 @@ func WithGSEHandler(gseHander gse.IHandler) OptionFn {
 	}
 }
 
+// WithDownloader sets the downloader used to fetch remote packages.
+func WithDownloader(dl downloader.IHandler) OptionFn {
+	return func(manager *Manager) {
+		manager.downloader = dl
+	}
+}
+
 var _ IManager = &Manager{}
 
 // Manager provides the file manager.
@@ -367,6 +378,9 @@ type Manager struct {
 
 	// gse handler.
 	gseHandler gse.IHandler
+
+	// downloader fetches remote packages with the configured security boundary.
+	downloader downloader.IHandler
 
 	// storages.
 	storageUpload  upload.IStorage
@@ -469,6 +483,10 @@ func (m *Manager) Start(ctx context.Context) error {
 
 	if m.gseHandler == nil {
 		return errors.New("invalid gse handler")
+	}
+
+	if m.downloader == nil {
+		return errors.New("invalid downloader")
 	}
 
 	// start temp file GC if configured. Disabled when either knob is non-positive.

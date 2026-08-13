@@ -223,6 +223,7 @@ type FileService struct {
 	AdminServer        HTTPServer           `yaml:"adminServer" usage:"admin server config of file service"`
 	BasicServer        HTTPServer           `yaml:"basicServer" usage:"basic server config of file service"`
 	DownloadServer     HTTPServer           `yaml:"downloadServer" usage:"download server config of file service"`
+	Downloader         Downloader           `yaml:"downloader" usage:"remote package downloader config with host allow/block lists"`
 	WorkspaceFileGroup FileGroup            `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
 	FileCache          FileServiceFileCache `yaml:"fileCache" usage:"local file cache config of file service"`
 	TempFile           FileServiceTempFile  `yaml:"tempFile" usage:"temp file cleanup config of file service"`
@@ -305,6 +306,10 @@ func (svc *FileService) Validate() error {
 
 	if err := svc.Tracing.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
+	if err := svc.Downloader.Validate(); err != nil {
+		return fmt.Errorf("failed to validate downloader config: %w", err)
 	}
 
 	return nil

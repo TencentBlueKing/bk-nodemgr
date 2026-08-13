@@ -46,6 +46,13 @@ message DownloadPluginBinToolReq {
   string name = 2;
 }
 
+// DownloadRemoteFileReq is the request for downloading a remote file.
+message DownloadRemoteFileReq {
+  string filename = 1;
+  string download_url = 2;
+  string md5 = 3;
+}
+
 // FileChunk describes the file chunk data.
 message FileChunk { bytes content = 1; }
 
@@ -104,6 +111,14 @@ service Download {
       returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/download/plugin_bintool"
+      body : "*"
+    };
+  }
+
+  // DownloadRemoteFile provides downloading a verified remote file.
+  rpc DownloadRemoteFile(DownloadRemoteFileReq) returns (stream FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/download/remote_file"
       body : "*"
     };
   }

@@ -43,3 +43,13 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/bintool", restserver.FileHandler(h.BinTool))
 	h.rg.POST("/plugin_bintool", restserver.FileHandler(h.PluginBinTool))
 }
+
+// LoadRemoteFile registers the remote file download route.
+// It downloads an arbitrary verified remote URL, so it must only be mounted
+// on an authenticated entry (LoadBasicAPIs), never inside Load which is
+// shared by the unauthenticated download server.
+func LoadRemoteFile(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
+
+	h.rg.POST("/remote_file", restserver.FileHandler(h.Remote))
+}

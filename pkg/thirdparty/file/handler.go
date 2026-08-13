@@ -181,6 +181,9 @@ type IPkgDownloadHandler interface {
 
 	// DownloadInstaller download installer.
 	DownloadInstaller(nCtx contextx.IContext, osType criteria.OSType, cpuArch criteria.CPUArch) (*restserver.StreamResponse, error)
+
+	// DownloadRemoteFile downloads a verified remote file.
+	DownloadRemoteFile(nCtx contextx.IContext, filename, downloadURL, expectedMD5 string) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -526,6 +529,21 @@ func (h *handler) DownloadInstaller(nCtx contextx.IContext, osType criteria.OSTy
 	}
 
 	return resp, nil
+}
+
+// DownloadRemoteFile downloads a verified remote file.
+func (h *handler) DownloadRemoteFile(nCtx contextx.IContext, filename, downloadURL, expectedMD5 string) (*restserver.StreamResponse, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	params := &protoFile.DownloadRemoteFileReq{
+		Filename:    filename,
+		DownloadUrl: downloadURL,
+		Md5:         expectedMD5,
+	}
+
+	return h.cli.downloadRemoteFile(nCtx, nCtx.TenantID(), params)
 }
 
 // PublishReleaseProxy publish release proxy.

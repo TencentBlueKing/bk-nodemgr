@@ -12,6 +12,9 @@ package v3
 
 import (
 	"errors"
+	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // Validate check request body.
@@ -148,3 +151,23 @@ func (x *DownloadPluginBinToolReq) Validate() error {
 // AutoConvert auto convert.
 func (x *DownloadPluginBinToolReq) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *DownloadRemoteFileReq) Validate() error {
+	if conv.IsEmpty(x.Filename) {
+		return errors.New("filename is required")
+	}
+
+	if conv.IsEmpty(strings.TrimSpace(x.GetDownloadUrl())) {
+		return errors.New("download_url is required")
+	}
+
+	if conv.IsEmpty(x.GetMd5()) {
+		return errors.New("md5 is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DownloadRemoteFileReq) AutoConvert() {}

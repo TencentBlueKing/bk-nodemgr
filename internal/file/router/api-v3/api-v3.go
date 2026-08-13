@@ -42,6 +42,7 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	h.rg.Use(middlewares...)
 
 	download.Load(h.rg, capability)
+	download.LoadRemoteFile(h.rg, capability)
 	info.Load(h.rg, capability)
 	publish.Load(h.rg, capability)
 	transfer.Load(h.rg, capability)

@@ -34,6 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/downloader"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -400,6 +401,11 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		return fmt.Errorf("failed to init file cache: %w", err)
 	}
 
+	dl, err := downloader.New(svc.conf.Downloader)
+	if err != nil {
+		return fmt.Errorf("failed to init downloader: %w", err)
+	}
+
 	svc.Cap.Manager = manager.New(
 		manager.WithUpstreamOriginAgentFileGroup(upstreamOriginAgentFG),
 		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
@@ -413,8 +419,8 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
 		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
 		manager.WithTempFileGroup(tempFG),
-		manager.WithTempFileExpiration(time.Duration(svc.conf.TempFile.ExpirationHours) * time.Hour),
-		manager.WithTempFileGCInterval(time.Duration(svc.conf.TempFile.GCIntervalHours) * time.Hour),
+		manager.WithTempFileExpiration(time.Duration(svc.conf.TempFile.ExpirationHours)*time.Hour),
+		manager.WithTempFileGCInterval(time.Duration(svc.conf.TempFile.GCIntervalHours)*time.Hour),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithFileCache(fc),
 		manager.WithStorageUpload(svc.Cap.StorageUpload),
@@ -425,6 +431,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithAdvertiseIPV6(svc.conf.BasicServer.AdvertiseIPV6),
 		manager.WithMount(svc.conf.MountHostDir, svc.conf.WorkspaceFileGroup.FullPath),
 		manager.WithGSEHandler(svc.Cap.GSEHandler),
+		manager.WithDownloader(dl),
 		manager.WithUpstreamOriginPluginV2FileGroup(upstreamOriginPluginV2),
 		manager.WithUpstreamOriginExternalPluginV2FileGroup(upstreamOriginExternalPluginV2),
 		manager.WithUpstreamOriginPluginV3FileGroup(upstreamOriginPluginV3),

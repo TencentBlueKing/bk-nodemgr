@@ -72,6 +72,16 @@ downloadServer:
   traceServiceName: "file-server-download"
   traceSampleRate: 0
 
+# downloader defines the remote package downloader settings.
+# allowHosts allows exact hostnames/literal IPs to download from;
+# an empty allowHosts allows all hosts subject to blockHosts denial.
+downloader:
+  allowHosts: []
+  blockHosts: []
+  maxBytes: 1073741824
+  traceServiceName: "file-server-downloader"
+  traceSampleRate: 0
+
 # repo defines the bkrepo related settings.
 repo:
   endpoint: "__BK_NODEMGR_REPO_ENDPOINT__"
