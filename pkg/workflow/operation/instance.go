@@ -102,6 +102,11 @@ func (life *Lifecycle) IsTerminated() bool {
 	return life.State == StateTerminated
 }
 
+// IsFailed checks if the lifecycle is failed.
+func (life *Lifecycle) IsFailed() bool {
+	return life.State == StateFailed || life.State == StateTimeout
+}
+
 // Launch lauch the action instance lifecycle.
 func (life *Lifecycle) Launch() {
 	life.State = StateLaunched
