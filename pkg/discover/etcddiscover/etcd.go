@@ -42,6 +42,8 @@ const (
 	etcdEntryBaseKeyValueCapacity = 8
 )
 
+var _ discover.IProvider = &ProviderEtcd{}
+
 // ProviderEtcd implements discover.IProvider.
 type ProviderEtcd struct {
 	config *config.Etcd
@@ -287,9 +289,34 @@ func (provider *ProviderEtcd) SelectEndpoints(
 	return discover.SelectEndpoints(endpoints, count, selector)
 }
 
-// Register registers a service instance.
+// Register registers service instances.
+func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instances ...discover.Instance) error {
+	for _, instance := range instances {
+		if serviceName == "" {
+			return fmt.Errorf(
+				"failed to register instance, instance(%v): %w",
+				instance,
+				discover.ErrInvalidServiceName(),
+			)
+		}
+
+		if err := instance.Validate(); err != nil {
+			return fmt.Errorf("failed to register instance, instance(%v): %w", instance, err)
+		}
+	}
+
+	for _, instance := range instances {
+		if err := provider.register(serviceName, instance); err != nil {
+			return fmt.Errorf("failed to register instance, instance(%v): %w", instance, err)
+		}
+	}
+
+	return nil
+}
+
+// register registers a service instance.
 // nolint: gocognit
-func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {
+func (provider *ProviderEtcd) register(serviceName discover.ServiceName, instance discover.Instance) error {
 	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("registering service")
 
 	if serviceName == "" {

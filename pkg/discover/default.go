@@ -18,6 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
+var _ IProvider = &ProviderDefault{}
+
 // ProviderDefault this defines the default service discovery provider.
 type ProviderDefault struct {
 	mutex    sync.RWMutex

@@ -232,8 +232,8 @@ type Discover interface {
 
 // Registry this defines the interface of service registry.
 type Registry interface {
-	// Register registers a service instance.
-	Register(serviceName ServiceName, instance Instance) error
+	// Register registers service instances.
+	Register(serviceName ServiceName, instances ...Instance) error
 
 	// Update updates a service instance.
 	Update(serviceName ServiceName, instance Instance) error
