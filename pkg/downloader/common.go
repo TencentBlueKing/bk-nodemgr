@@ -17,9 +17,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 )
 
 func normalizeHost(host string) string {
@@ -46,7 +43,7 @@ func validateDownloadFilename(filename string) (string, error) {
 // parseDownloadURL validates rawURL and returns a normalized URL for the request.
 // Fragments are removed, the scheme is lowercased, and credentials, bare IPv6,
 // IPv6 zones, and invalid ports are rejected.
-func validateDownloadURL(rawURL string, allowHosts map[string]config.WhiteListEntry, blockHosts map[string]struct{}, blockPorts map[int]struct{}) (
+func validateDownloadURL(rawURL string, allowHosts map[string]struct{}, blockHosts map[string]struct{}, blockPorts map[int]struct{}) (
 	*url.URL, error) {
 
 	parsedURL, err := url.Parse(rawURL)
@@ -55,8 +52,16 @@ func validateDownloadURL(rawURL string, allowHosts map[string]config.WhiteListEn
 	}
 
 	parsedURL.Scheme = strings.ToLower(parsedURL.Scheme)
-	if parsedURL.Scheme != httpDownloaderScheme && parsedURL.Scheme != httpsDownloaderScheme {
-		return nil, errors.New("URL scheme must be HTTP or HTTPS")
+	port := parsedURL.Port()
+	if port == "" {
+		switch parsedURL.Scheme {
+		case httpDownloaderScheme:
+			port = "80"
+		case httpsDownloaderScheme:
+			port = "443"
+		default:
+			return nil, fmt.Errorf("URL scheme must be http or https, unsupported scheme: %s", parsedURL.Scheme)
+		}
 	}
 
 	if parsedURL.User != nil {
@@ -78,6 +83,9 @@ func validateDownloadURL(rawURL string, allowHosts map[string]config.WhiteListEn
 	if hostname == "" {
 		return nil, errors.New("URL hostname is required")
 	}
+	if strings.Contains(hostname, "%") {
+		return nil, errors.New("URL IPv6 zones are not allowed")
+	}
 
 	if err := allowDownloadHost(hostname, allowHosts); err != nil {
 		return nil, err
@@ -87,14 +95,14 @@ func validateDownloadURL(rawURL string, allowHosts map[string]config.WhiteListEn
 		return nil, err
 	}
 
-	if err := rejectBlockedPort(parsedURL.Scheme, parsedURL.Port(), blockPorts); err != nil {
+	if err := rejectBlockedPort(port, blockPorts); err != nil {
 		return nil, err
 	}
 
 	return parsedURL, nil
 }
 
-func allowDownloadHost(hostname string, allowHosts map[string]config.WhiteListEntry) error {
+func allowDownloadHost(hostname string, allowHosts map[string]struct{}) error {
 	if len(allowHosts) == 0 {
 		return nil
 	}
@@ -104,7 +112,7 @@ func allowDownloadHost(hostname string, allowHosts map[string]config.WhiteListEn
 	}
 
 	if _, ok := allowHosts[hostname]; !ok {
-		return errors.New("URL hostname is not in the download whitelist")
+		return errors.New("URL hostname is not in the download allowlist")
 	}
 
 	return nil
@@ -126,20 +134,9 @@ func rejectBlockedHost(hostname string, blockHosts map[string]struct{}) error {
 	return nil
 }
 
-func rejectBlockedPort(scheme string, port string, blockPorts map[int]struct{}) error {
+func rejectBlockedPort(port string, blockPorts map[int]struct{}) error {
 	if len(blockPorts) == 0 {
 		return nil
-	}
-
-	if port == "" {
-		switch scheme {
-		case httpDownloaderScheme:
-			port = "80"
-		case httpsDownloaderScheme:
-			port = "443"
-		default:
-			return fmt.Errorf("unsupported scheme: %s", scheme)
-		}
 	}
 
 	portInt, err := strconv.Atoi(port)
@@ -152,26 +149,6 @@ func rejectBlockedPort(scheme string, port string, blockPorts map[int]struct{}) 
 	}
 
 	return nil
-}
-
-func tlsConfigForHost(hostname string, allowHosts map[string]config.WhiteListEntry) (*ssl.TLSConfig, error) {
-	if len(allowHosts) == 0 {
-		return &ssl.TLSConfig{}, nil
-	}
-
-	entry, ok := allowHosts[hostname]
-	if !ok {
-		return nil, fmt.Errorf("failed to find white list entry for host %s", hostname)
-	}
-
-	return &ssl.TLSConfig{
-		InsecureSkipVerify: entry.TLS.InsecureSkipVerify,
-		VerifyClient:       entry.TLS.VerifyClient,
-		CertFile:           entry.TLS.CertFile,
-		KeyFile:            entry.TLS.KeyFile,
-		CAFile:             entry.TLS.CAFile,
-		Password:           entry.TLS.Password,
-	}, nil
 }
 
 // wrapError wraps cause with errType and a descriptive stage so callers can

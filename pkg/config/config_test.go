@@ -476,18 +476,23 @@ func TestDownloader_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "empty white list",
+			name:    "empty allow hosts",
 			config:  Downloader{},
 			wantErr: false,
 		},
 		{
-			name:    "valid white list",
-			config:  Downloader{WhiteList: []WhiteListEntry{{HostName: "github.com"}}},
+			name:    "valid allow hosts",
+			config:  Downloader{AllowHosts: []string{"github.com"}},
 			wantErr: false,
 		},
 		{
-			name:    "invalid white list",
-			config:  Downloader{WhiteList: []WhiteListEntry{{}}},
+			name:    "invalid allow hosts",
+			config:  Downloader{AllowHosts: []string{""}},
+			wantErr: true,
+		},
+		{
+			name:    "invalid block hosts",
+			config:  Downloader{BlockHosts: []string{" "}},
 			wantErr: true,
 		},
 		{
@@ -504,51 +509,6 @@ func TestDownloader_Validate(t *testing.T) {
 			name:    "invalid block port too large",
 			config:  Downloader{BlockPorts: []int{70000}},
 			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.config.Validate()
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestWhiteListEntry_Validate(t *testing.T) {
-	tests := []struct {
-		name    string
-		config  WhiteListEntry
-		wantErr bool
-	}{
-		{
-			name:    "valid host without tls",
-			config:  WhiteListEntry{HostName: "github.com"},
-			wantErr: false,
-		},
-		{
-			name:    "reject ca-only one-way tls",
-			config:  WhiteListEntry{HostName: "github.com", TLS: TLSConfig{CAFile: "/etc/ssl/ca.crt"}},
-			wantErr: true,
-		},
-		{
-			name:    "empty host name",
-			config:  WhiteListEntry{},
-			wantErr: true,
-		},
-		{
-			name:    "invalid tls combination",
-			config:  WhiteListEntry{HostName: "github.com", TLS: TLSConfig{KeyFile: "/etc/ssl/key.pem"}},
-			wantErr: true,
-		},
-		{
-			name:    "valid two-way tls",
-			config:  WhiteListEntry{HostName: "github.com", TLS: TLSConfig{CAFile: "/etc/ssl/ca.crt", CertFile: "/etc/ssl/cert.pem", KeyFile: "/etc/ssl/key.pem"}},
-			wantErr: false,
 		},
 	}
 

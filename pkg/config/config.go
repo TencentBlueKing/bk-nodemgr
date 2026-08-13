@@ -919,58 +919,31 @@ type IAMV3 struct {
 
 // Downloader defines the shared remote package downloader configuration.
 type Downloader struct {
-	// WhiteList defines allowed hosts for remote package downloads.
-	// Hostnames are matched exactly (after lowercasing); wildcards and subdomains
-	// are not supported.
-	WhiteList    []WhiteListEntry `yaml:"whiteList" usage:"download host white list, exact hostname match, no wildcard or subdomain"`
-	BlockList    []string         `yaml:"blockList" usage:"download host block list"`
-	BlockPorts   []int            `yaml:"blockPorts" usage:"download host block ports"`
-	MaxBytes     int64            `yaml:"maxBytes" usage:"max bytes of download file, default is 1 GiB"`
+	AllowHosts   []string `yaml:"allowHosts" usage:"download host allow list, exact hostname match, no wildcard or subdomain"`
+	BlockHosts   []string `yaml:"blockHosts" usage:"download host block list"`
+	BlockPorts   []int    `yaml:"blockPorts" usage:"download host block ports"`
+	MaxBytes     int64    `yaml:"maxBytes" usage:"max bytes of download file, default is 1 GiB"`
 	TraceService `yaml:",inline"`
 }
 
-// Validate validates the config.
+// Validate validates the downloader configuration.
 func (conf Downloader) Validate() error {
-	for _, whiteList := range conf.WhiteList {
-		if err := whiteList.Validate(); err != nil {
-			return fmt.Errorf("failed to validate download white list config: %w", err)
+	for _, host := range conf.AllowHosts {
+		if strings.TrimSpace(host) == "" {
+			return errors.New("allow host must not be empty")
+		}
+	}
+
+	for _, host := range conf.BlockHosts {
+		if strings.TrimSpace(host) == "" {
+			return errors.New("block host must not be empty")
 		}
 	}
 
 	for _, port := range conf.BlockPorts {
-		if port < 0 || port > 65535 {
-			return fmt.Errorf("block port %d is out of range 0-65535", port)
+		if port <= 0 || port > 65535 {
+			return fmt.Errorf("block port must be between 1 and 65535, port(%d)", port)
 		}
-	}
-
-	return nil
-}
-
-// WhiteListEntry defines an allowed host for remote package downloads together
-// with the TLS client settings used for HTTPS downloads to that host.
-type WhiteListEntry struct {
-	// HostName is the hostname or IP allowed for remote package downloads.
-	HostName string `yaml:"hostName" usage:"hostname or ip of download whitelist"`
-	// TLS defines the client TLS settings used for HTTPS downloads to this host.
-	TLS TLSConfig `yaml:"tls" usage:"tls config of the download host"`
-}
-
-// Validate validates the config.
-func (conf WhiteListEntry) Validate() error {
-	if strings.TrimSpace(conf.HostName) == "" {
-		return errors.New("hostName of download white list is empty")
-	}
-
-	if err := conf.TLS.Validate(); err != nil {
-		return fmt.Errorf("failed to validate tls config of download white list %s: %w", conf.HostName, err)
-	}
-
-	// restclient.NewHTTPClient only loads the CA when CertFile, KeyFile and
-	// CAFile are all set, so a CA-only (one-way auth) entry would be silently
-	// ignored. Reject it here to keep the declared config and the runtime
-	// behavior consistent.
-	if conf.TLS.CAFile != "" && (conf.TLS.CertFile == "" || conf.TLS.KeyFile == "") {
-		return fmt.Errorf("tls config of download white list %s must provide cert file and key file together with ca file", conf.HostName)
 	}
 
 	return nil

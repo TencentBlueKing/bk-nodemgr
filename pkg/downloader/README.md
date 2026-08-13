@@ -10,8 +10,8 @@
 
 此包负责：
 
-- 基于 `config.Downloader` 构造下载器，包括 `WhiteList`、`BlockList`、`BlockPorts`、`MaxBytes` 和 tracing 配置。
-- 校验下载 URL：仅允许 absolute `http` / `https` URL，并按 host、port 和 TLS 配置执行策略。
+- 基于 `config.Downloader` 构造下载器，包括 `AllowHosts`、`BlockHosts`、`BlockPorts`、`MaxBytes` 和 tracing 配置。
+- 校验下载 URL：仅允许 absolute `http` / `https` URL，并按 host、port 执行策略。
 - 校验下载文件名：`DownloadOptions.Filename` 只能是 basename，不能包含路径、绝对路径、`.`、`..` 或 NUL。
 - 通过 `pkg/rest/client` 拉取远程 stream，并拒绝 HTTP redirect。
 - 将响应体写入临时文件，校验文件大小和 MD5，再返回 `fileiface.File`。
@@ -23,6 +23,7 @@
 - 持久化保存下载结果；需要复用文件时应在调用方组合 `pkg/filecache` 等缓存能力。
 - 调用方目标路径管理；本包不会把远程内容直接写入业务指定目录。
 - checksum 的真实性保证；当前 MD5 只用于制品完整性兼容校验，不等价于安全认证。
+- `pkg/rest/client` 的 URL escaped path 保真能力；如果需要修复 `%2F` 等 escaped path 的请求语义，应在 rest client 层统一支持。
 
 ## 核心流程
 
@@ -31,14 +32,13 @@ flowchart TD
     A[New(config.Downloader)] --> B[Download(ctx, rawURL, opts)]
     B --> C[validate filename]
     C --> D[validate URL policy]
-    D --> E[build TLS config for host]
-    E --> F[GET raw stream]
-    F --> G[write to temporary file]
-    G --> H[check max bytes]
-    H --> I[verify MD5]
-    I --> J[return fileiface.File]
-    J --> K[caller reads Content]
-    K --> L[reader.Close cleans temporary file]
+    D --> E[GET raw stream]
+    E --> F[write to temporary file]
+    F --> G[check max bytes]
+    G --> H[verify MD5]
+    H --> I[return fileiface.File]
+    I --> J[caller reads Content]
+    J --> K[reader.Close cleans temporary file]
 ```
 
 ## 使用方式
@@ -47,14 +47,8 @@ flowchart TD
 
 ```go
 dl, err := downloader.New(config.Downloader{
-    WhiteList: []config.WhiteListEntry{
-        {
-            HostName: "repo.example.com",
-            TLS: config.TLSConfig{
-                CAFile: "/etc/bk-nodemgr/repo-ca.pem",
-            },
-        },
-    },
+    AllowHosts:       []string{"repo.example.com"},
+    BlockHosts:       []string{"metadata.google.internal"},
     BlockPorts:       []int{22, 2375},
     MaxBytes:         512 << 20,
     TraceServiceName: "downloader",
@@ -65,7 +59,7 @@ if err != nil {
 }
 ```
 
-`WhiteList` 为空时不限制 host；非空时只允许精确匹配的 hostname。匹配前会 trim、lowercase，并去掉末尾 `.`；不支持 wildcard，也不会自动允许子域名。
+`AllowHosts` 为空时不限制 host；非空时只允许精确匹配的 hostname。匹配前会 trim、lowercase，并去掉末尾 `.`；不支持 wildcard，也不会自动允许子域名。`BlockHosts` 命中时始终拒绝。
 
 ### 下载并读取文件
 
@@ -107,16 +101,16 @@ type Installer struct {
 5. 调用方必须关闭 `Content()` 返回的 `io.ReadCloser`。该 `Close()` 会关闭文件句柄，并触发一次临时文件和临时目录清理。
 6. 不要把返回文件当作长期文件引用；需要持久化或缓存时，应由调用方读取 reader 后写入自己的受控存储。
 
-## URL 与 TLS 策略
+## URL 策略
 
 1. 只支持 `http` 和 `https`。
 2. URL 必须是 absolute URL，不能包含 credentials，不能使用 opaque URL。
 3. fragment 会被移除，不参与请求。
 4. IPv6 地址必须使用 `[]` 包裹；带 zone 的 IPv6 不作为支持目标。
-5. 配置了 `WhiteList` 时，下载 host 必须命中白名单；配置了 `BlockList` 时，命中黑名单的 host 会被拒绝。
+5. 配置了 `AllowHosts` 时，下载 host 必须命中 allowlist；配置了 `BlockHosts` 时，命中 blocklist 的 host 会被拒绝。
 6. `BlockPorts` 同时作用于显式端口和默认端口：`http` 默认 `80`，`https` 默认 `443`。
-7. `https` 请求使用白名单 entry 中的 TLS 配置；空白名单场景使用空 TLS 配置。
-8. HTTP redirect 始终被拒绝，避免请求在校验后跳出初始 trust boundary。
+7. HTTP redirect 始终被拒绝，避免请求在校验后跳出初始 trust boundary。
+8. URL escaped path 是否被原样发送由 `pkg/rest/client` 的 URL 构造能力决定；该能力不在 downloader 包内局部修复。
 
 ## Checksum 与大小限制
 
@@ -130,7 +124,7 @@ type Installer struct {
 
 此包提供三个 sentinel errors，调用方应使用 `errors.Is` 判断：
 
-- `ErrDownloadFailed`：URL、TLS、HTTP 请求、临时文件、checksum 算法等通用下载失败。
+- `ErrDownloadFailed`：URL、HTTP 请求、临时文件、checksum 算法等通用下载失败。
 - `ErrDownloadTooLarge`：响应声明或实际落盘文件超过 `MaxBytes`。
 - `ErrChecksumMismatch`：下载内容 MD5 与期望值不一致。
 

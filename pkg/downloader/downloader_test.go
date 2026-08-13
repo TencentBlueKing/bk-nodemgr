@@ -13,6 +13,7 @@ package downloader
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -71,4 +72,19 @@ func TestValidateDownloadFilename(t *testing.T) {
 	if filename != "agent.tar.gz" {
 		t.Fatalf("filename = %q, want agent.tar.gz", filename)
 	}
+}
+
+func TestValidateDownloadURLRejectsIPv6Zone(t *testing.T) {
+	t.Parallel()
+
+	_, err := validateDownloadURL("https://[fe80::1%25eth0]/agent.tgz", nil, nil, nil)
+	if err != nil {
+		if !strings.Contains(err.Error(), "IPv6 zones") {
+			t.Fatalf("validateDownloadURL error = %v, want IPv6 zone error", err)
+		}
+
+		return
+	}
+
+	t.Fatal("validateDownloadURL returned nil error for IPv6 zone")
 }

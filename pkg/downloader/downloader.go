@@ -28,7 +28,6 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
@@ -74,7 +73,7 @@ type DownloadOptions struct {
 }
 
 type client struct {
-	allowHosts map[string]config.WhiteListEntry
+	allowHosts map[string]struct{}
 	blockHosts map[string]struct{}
 	blockPorts map[int]struct{}
 	maxBytes   int64
@@ -82,19 +81,16 @@ type client struct {
 }
 
 // New builds a downloader for remote package artifacts with the configured host policies.
-// Each request builds a rest client for its origin with the allowlist TLS settings
-// of its hostname. Redirects are rejected so the trust boundary stays on the initially validated URL.
-// Certificate loading is delegated to pkg/runtime/ssl through restclient.NewHTTPClient.
+// Each request builds a rest client for its origin. Redirects are rejected so
+// the trust boundary stays on the initially validated URL.
 func New(conf config.Downloader) (Downloader, error) {
-	allowHosts, err := conv.SliceToMap(conf.WhiteList, func(entry config.WhiteListEntry) string {
-		return normalizeHost(entry.HostName)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to normalize white list: %w", err)
+	allowHosts := make(map[string]struct{})
+	for _, entry := range conf.AllowHosts {
+		allowHosts[normalizeHost(entry)] = struct{}{}
 	}
 
 	blockHosts := make(map[string]struct{})
-	for _, entry := range conf.BlockList {
+	for _, entry := range conf.BlockHosts {
 		blockHosts[normalizeHost(entry)] = struct{}{}
 	}
 
@@ -155,11 +151,7 @@ func (cli *client) Download(nCtx contextx.IContext, rawURL string, opts Download
 		return nil, wrapError(ErrDownloadFailed, "validate URL", err)
 	}
 
-	tlsConfig, err := tlsConfigForHost(parsedURL.Hostname(), cli.allowHosts)
-	if err != nil {
-		return nil, wrapError(ErrDownloadFailed, "get tls config", err)
-	}
-	response, err := cli.fetch(nCtx, parsedURL, tlsConfig)
+	response, err := cli.fetch(nCtx, parsedURL)
 	if err != nil {
 		return nil, wrapError(ErrDownloadFailed, "fetch content", err)
 	}
@@ -172,8 +164,8 @@ func (cli *client) Download(nCtx contextx.IContext, rawURL string, opts Download
 	return file, nil
 }
 
-func (cli *client) fetch(nCtx contextx.IContext, targetURL *url.URL, tlsConfig *ssl.TLSConfig) (*restserver.StreamResponse, error) {
-	httpClient, err := restclient.NewHTTPClient(tlsConfig)
+func (cli *client) fetch(nCtx contextx.IContext, targetURL *url.URL) (*restserver.StreamResponse, error) {
+	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{InsecureSkipVerify: true})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http client for download host %s: %w", targetURL.Hostname(), err)
 	}
