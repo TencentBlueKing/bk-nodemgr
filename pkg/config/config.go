@@ -921,7 +921,6 @@ type IAMV3 struct {
 type Downloader struct {
 	AllowHosts   []string `yaml:"allowHosts" usage:"download host allow list, exact hostname match, no wildcard or subdomain"`
 	BlockHosts   []string `yaml:"blockHosts" usage:"download host block list"`
-	BlockPorts   []int    `yaml:"blockPorts" usage:"download host block ports"`
 	MaxBytes     int64    `yaml:"maxBytes" usage:"max bytes of download file, default is 1 GiB"`
 	TraceService `yaml:",inline"`
 }
@@ -937,12 +936,6 @@ func (conf Downloader) Validate() error {
 	for _, host := range conf.BlockHosts {
 		if strings.TrimSpace(host) == "" {
 			return errors.New("block host must not be empty")
-		}
-	}
-
-	for _, port := range conf.BlockPorts {
-		if port <= 0 || port > 65535 {
-			return fmt.Errorf("block port must be between 1 and 65535, port(%d)", port)
 		}
 	}
 

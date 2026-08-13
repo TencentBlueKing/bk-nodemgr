@@ -13,7 +13,7 @@
 |Dependencies:uses pkg/config.Downloader|pkg/contextx.IContext|pkg/filex/iface.File|pkg/filex/local|pkg/rest/client RawStream|pkg/runtime/tmp|pkg/runtime/ssl|pkg/tracing|pkg/logger
 |Conventions:inject via Downloader interface; do not depend on concrete *client outside package
 |Conventions:DownloadOptions.Filename must be a basename only; never accept path, slash, backslash, absolute path, dot, dotdot, or NUL
-|Conventions:URL policy allows only http/https absolute URLs; rejects credentials, fragments, opaque URLs, bare IPv6, IPv6 zones, invalid/blocked ports, blocklisted hosts, and non-allowlisted hosts when allowHosts exists
+|Conventions:URL policy allows only http/https absolute URLs; rejects credentials, fragments, opaque URLs, bare IPv6, IPv6 zones, invalid ports, blocklisted hosts, and non-allowlisted hosts when allowHosts exists
 |Conventions:allowHosts matching is exact after trim+lowercase+trailing-dot removal; no wildcard or implicit subdomain matching
 |Conventions:redirects are rejected; trust boundary stays on initially validated URL
 |Conventions:Checksum currently supports MD5 only; unsupported/zero algorithm must fail instead of skipping verification

@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -40,10 +39,10 @@ func validateDownloadFilename(filename string) (string, error) {
 	return filename, nil
 }
 
-// parseDownloadURL validates rawURL and returns a normalized URL for the request.
+// validateDownloadURL validates rawURL and returns a normalized URL for the request.
 // Fragments are removed, the scheme is lowercased, and credentials, bare IPv6,
 // IPv6 zones, and invalid ports are rejected.
-func validateDownloadURL(rawURL string, allowHosts map[string]struct{}, blockHosts map[string]struct{}, blockPorts map[int]struct{}) (
+func validateDownloadURL(rawURL string, allowHosts map[string]struct{}, blockHosts map[string]struct{}) (
 	*url.URL, error) {
 
 	parsedURL, err := url.Parse(rawURL)
@@ -52,16 +51,10 @@ func validateDownloadURL(rawURL string, allowHosts map[string]struct{}, blockHos
 	}
 
 	parsedURL.Scheme = strings.ToLower(parsedURL.Scheme)
-	port := parsedURL.Port()
-	if port == "" {
-		switch parsedURL.Scheme {
-		case httpDownloaderScheme:
-			port = "80"
-		case httpsDownloaderScheme:
-			port = "443"
-		default:
-			return nil, fmt.Errorf("URL scheme must be http or https, unsupported scheme: %s", parsedURL.Scheme)
-		}
+	switch parsedURL.Scheme {
+	case httpDownloaderScheme, httpsDownloaderScheme:
+	default:
+		return nil, fmt.Errorf("URL scheme must be http or https, unsupported scheme: %s", parsedURL.Scheme)
 	}
 
 	if parsedURL.User != nil {
@@ -95,10 +88,6 @@ func validateDownloadURL(rawURL string, allowHosts map[string]struct{}, blockHos
 		return nil, err
 	}
 
-	if err := rejectBlockedPort(port, blockPorts); err != nil {
-		return nil, err
-	}
-
 	return parsedURL, nil
 }
 
@@ -129,23 +118,6 @@ func rejectBlockedHost(hostname string, blockHosts map[string]struct{}) error {
 
 	if _, ok := blockHosts[hostname]; ok {
 		return errors.New("URL hostname is in the download block list")
-	}
-
-	return nil
-}
-
-func rejectBlockedPort(port string, blockPorts map[int]struct{}) error {
-	if len(blockPorts) == 0 {
-		return nil
-	}
-
-	portInt, err := strconv.Atoi(port)
-	if err != nil {
-		return err
-	}
-
-	if _, ok := blockPorts[portInt]; ok {
-		return errors.New("URL port is in the download block ports")
 	}
 
 	return nil

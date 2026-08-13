@@ -3,15 +3,15 @@
 ## 设计意图
 
 1. 提供统一的远程制品下载入口，让调用方通过 `Downloader` 接口获取已校验的 `fileiface.File`。
-2. 将下载安全边界集中在一个包内：URL 白名单/黑名单、端口黑名单、文件名校验、跳转拒绝、大小限制和 checksum 校验都在下载链路内完成。
+2. 将下载安全边界集中在一个包内：URL 白名单/黑名单、文件名校验、跳转拒绝、大小限制和 checksum 校验都在下载链路内完成。
 3. 将远程响应转换为临时本地文件，调用方只处理 `fileiface.File` 和 `io.ReadCloser`，不直接管理下载目录或中间文件路径。
 
 ## 功能边界
 
 此包负责：
 
-- 基于 `config.Downloader` 构造下载器，包括 `AllowHosts`、`BlockHosts`、`BlockPorts`、`MaxBytes` 和 tracing 配置。
-- 校验下载 URL：仅允许 absolute `http` / `https` URL，并按 host、port 执行策略。
+- 基于 `config.Downloader` 构造下载器，包括 `AllowHosts`、`BlockHosts`、`MaxBytes` 和 tracing 配置。
+- 校验下载 URL：仅允许 absolute `http` / `https` URL，并按 host 执行策略。
 - 校验下载文件名：`DownloadOptions.Filename` 只能是 basename，不能包含路径、绝对路径、`.`、`..` 或 NUL。
 - 通过 `pkg/rest/client` 拉取远程 stream，并拒绝 HTTP redirect。
 - 将响应体写入临时文件，校验文件大小和 MD5，再返回 `fileiface.File`。
@@ -49,7 +49,6 @@ flowchart TD
 dl, err := downloader.New(config.Downloader{
     AllowHosts:       []string{"repo.example.com"},
     BlockHosts:       []string{"metadata.google.internal"},
-    BlockPorts:       []int{22, 2375},
     MaxBytes:         512 << 20,
     TraceServiceName: "downloader",
     TraceSampleRate:  1,
@@ -108,9 +107,8 @@ type Installer struct {
 3. fragment 会被移除，不参与请求。
 4. IPv6 地址必须使用 `[]` 包裹；带 zone 的 IPv6 不作为支持目标。
 5. host 策略先判断 `BlockHosts`，命中 blocklist 直接拒绝；未命中时再判断 `AllowHosts`。`AllowHosts` 为空表示 allowlist 全开，不限制 host，但仍会受 `BlockHosts` 约束；`AllowHosts` 非空时，下载 host 必须命中 allowlist。
-6. `BlockPorts` 同时作用于显式端口和默认端口：`http` 默认 `80`，`https` 默认 `443`。
-7. HTTP redirect 始终被拒绝，避免请求在校验后跳出初始 trust boundary。
-8. URL escaped path 是否被原样发送由 `pkg/rest/client` 的 URL 构造能力决定；该能力不在 downloader 包内局部修复。
+6. HTTP redirect 始终被拒绝，避免请求在校验后跳出初始 trust boundary。
+7. URL escaped path 是否被原样发送由 `pkg/rest/client` 的 URL 构造能力决定；该能力不在 downloader 包内局部修复。
 
 ## Checksum 与大小限制
 

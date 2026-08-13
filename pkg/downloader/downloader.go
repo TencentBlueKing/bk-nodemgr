@@ -75,7 +75,6 @@ type DownloadOptions struct {
 type client struct {
 	allowHosts map[string]struct{}
 	blockHosts map[string]struct{}
-	blockPorts map[int]struct{}
 	maxBytes   int64
 	traceSvc   tracing.IService
 }
@@ -92,11 +91,6 @@ func New(conf config.Downloader) (IDownloader, error) {
 	blockHosts := make(map[string]struct{})
 	for _, entry := range conf.BlockHosts {
 		blockHosts[normalizeHost(entry)] = struct{}{}
-	}
-
-	blockPorts := make(map[int]struct{})
-	for _, port := range conf.BlockPorts {
-		blockPorts[port] = struct{}{}
 	}
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
@@ -116,7 +110,6 @@ func New(conf config.Downloader) (IDownloader, error) {
 	return &client{
 		allowHosts: allowHosts,
 		blockHosts: blockHosts,
-		blockPorts: blockPorts,
 		maxBytes:   maxBytes,
 		traceSvc:   traceSvc,
 	}, nil
@@ -146,7 +139,7 @@ func (cli *client) Download(nCtx contextx.IContext, rawURL string, opts Download
 		return nil, fmt.Errorf("%w: %w", ErrDownloadFailed, err)
 	}
 
-	parsedURL, err := validateDownloadURL(rawURL, cli.allowHosts, cli.blockHosts, cli.blockPorts)
+	parsedURL, err := validateDownloadURL(rawURL, cli.allowHosts, cli.blockHosts)
 	if err != nil {
 		return nil, wrapError(ErrDownloadFailed, "validate URL", err)
 	}

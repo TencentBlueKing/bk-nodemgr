@@ -77,7 +77,7 @@ func TestValidateDownloadFilename(t *testing.T) {
 func TestValidateDownloadURLRejectsIPv6Zone(t *testing.T) {
 	t.Parallel()
 
-	_, err := validateDownloadURL("https://[fe80::1%25eth0]/agent.tgz", nil, nil, nil)
+	_, err := validateDownloadURL("https://[fe80::1%25eth0]/agent.tgz", nil, nil)
 	if err != nil {
 		if !strings.Contains(err.Error(), "IPv6 zones") {
 			t.Fatalf("validateDownloadURL error = %v, want IPv6 zone error", err)

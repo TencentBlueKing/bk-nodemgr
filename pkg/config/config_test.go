@@ -495,21 +495,6 @@ func TestDownloader_Validate(t *testing.T) {
 			config:  Downloader{BlockHosts: []string{" "}},
 			wantErr: true,
 		},
-		{
-			name:    "valid block ports",
-			config:  Downloader{BlockPorts: []int{80, 443}},
-			wantErr: false,
-		},
-		{
-			name:    "invalid block port negative",
-			config:  Downloader{BlockPorts: []int{-1}},
-			wantErr: true,
-		},
-		{
-			name:    "invalid block port too large",
-			config:  Downloader{BlockPorts: []int{70000}},
-			wantErr: true,
-		},
 	}
 
 	for _, tt := range tests {
