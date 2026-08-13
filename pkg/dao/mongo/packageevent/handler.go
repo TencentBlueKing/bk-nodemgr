@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -219,7 +220,19 @@ func (h *Handler) DistinctOsType(nCtx contextx.IContext, opts ...OptFn) ([]crite
 		return nil, fmt.Errorf("failed to distinct os type: %w", err)
 	}
 
-	return criteria.StringListToOSTypeList(result)
+	osList, err := conv.SliceToSliceWithError[string, criteria.OSType](result, func(s string) (criteria.OSType, error) {
+		osType := criteria.OSType(s)
+		if err := osType.Validate(); err != nil {
+			return "", err
+		}
+
+		return osType, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct os type: %w", err)
+	}
+
+	return osList, nil
 }
 
 // DistinctCPUArch distincts cpu archs.
@@ -229,7 +242,19 @@ func (h *Handler) DistinctCPUArch(nCtx contextx.IContext, opts ...OptFn) ([]crit
 		return nil, fmt.Errorf("failed to distinct cpu arch: %w", err)
 	}
 
-	return criteria.StringListToCPUArchList(result)
+	archList, err := conv.SliceToSliceWithError[string, criteria.CPUArch](result, func(s string) (criteria.CPUArch, error) {
+		arch := criteria.CPUArch(s)
+		if err := arch.Validate(); err != nil {
+			return "", err
+		}
+
+		return arch, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct cpu arch: %w", err)
+	}
+
+	return archList, nil
 }
 
 // DistinctOperator returns distinct values of operator field.

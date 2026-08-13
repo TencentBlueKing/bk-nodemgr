@@ -42,6 +42,7 @@ func (s *Storage) countPakcageEvent(nCtx contextx.IContext, conditions ...*types
 func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
 	[]*types.PackageEvent, int64, error,
 ) {
+
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
@@ -80,6 +81,7 @@ func (s *Storage) distinctPackageEvent(
 	nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
 	data *types.PackageEventDistinctResult, err error,
 ) {
+
 	opts := convertPackageEventConditionsToOptions(conditions...)
 
 	data = new(types.PackageEventDistinctResult)
