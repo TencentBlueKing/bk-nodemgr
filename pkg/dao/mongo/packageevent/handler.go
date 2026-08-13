@@ -12,6 +12,7 @@ package packageevent
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -61,24 +62,30 @@ var _ IHandler = &Handler{}
 // Handler this is a Handler to operate process table.
 type Handler struct {
 	client *mongo.Database
-
-	dao *dao
+	daoMap sync.Map
 }
 
 // New create a new package event handler.
 func New(client *mongo.Database) *Handler {
 	return &Handler{
 		client: client,
-		dao:    newDao(client),
+		daoMap: sync.Map{},
 	}
 }
 
-func (h *Handler) getDao() *dao {
-	if err := h.dao.EnsureIndexes(); err != nil {
-		logger.G.Sys().WithErr(err).Warn("failed to ensure package event indexes")
+func (h *Handler) tenantDao(tenantID string) *dao {
+	if d, ok := h.daoMap.Load(tenantID); ok {
+		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	return h.dao
+	newDaoClient := newDao(tenantID, h.client)
+	if err := newDaoClient.EnsureIndexes(); err != nil {
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure package event indexes")
+	}
+
+	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
+
+	return d.(*dao) // nolint: forcetypeassert
 }
 
 // List list package events by page and conditions.
@@ -86,20 +93,25 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	num, err := h.getDao().Count(nCtx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count package events: %w", err)
 	}
 
 	findOpt := base.ParsePage(page)
 
-	events, err := h.getDao().List(nCtx, filter, findOpt)
+	events, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list package events: %w", err)
 	}
@@ -117,13 +129,18 @@ func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 	if nCtx == nil {
 		return 0, base.ErrInvalidContext()
 	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return 0, err
+	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	num, err := h.getDao().Count(nCtx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count package events: %w", err)
 	}
@@ -136,6 +153,11 @@ func (h *Handler) CreateMany(nCtx contextx.IContext, events ...*types.PackageEve
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(events) == 0 {
 		return base.ErrEmptyParamData()
@@ -148,16 +170,22 @@ func (h *Handler) CreateMany(nCtx contextx.IContext, events ...*types.PackageEve
 		}
 
 		data[idx] = convertPackageEventFromTypes(event)
+		if data[idx].TenantID == "" {
+			data[idx].TenantID = tenantID
+		}
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+			return fmt.Errorf("failed to create package event: %w", err)
+		}
 
 		// generate sequence
-		sequence, err := h.dao.counter.Generate(nCtx, TableName())
+		sequence, err := h.tenantDao(tenantID).counter.Generate(nCtx, tableNamePrefix)
 		if err != nil {
 			return fmt.Errorf("failed to generate sequence: %w", err)
 		}
 		data[idx].EventID = sequence
 	}
 
-	if err := h.getDao().CreateMany(nCtx, data); err != nil {
+	if err := h.tenantDao(tenantID).CreateMany(nCtx, data); err != nil {
 		return fmt.Errorf("failed to create package events: %w", err)
 	}
 
@@ -218,13 +246,18 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	result, err := h.getDao().DistinctString(nCtx, key, filter, nil)
+	result, err := h.tenantDao(tenantID).DistinctString(nCtx, key, filter, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to distinct string: %w", err)
 	}
@@ -234,6 +267,7 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 
 func convertPackageEventToTypes(event *PackageEvent) *types.PackageEvent {
 	return &types.PackageEvent{
+		TenantID:    event.TenantID,
 		Name:        event.Name,
 		EventType:   types.PackageEventType(event.EventType),
 		Generation:  types.Generation(event.Generation),
@@ -248,6 +282,7 @@ func convertPackageEventToTypes(event *PackageEvent) *types.PackageEvent {
 
 func convertPackageEventFromTypes(event *types.PackageEvent) *PackageEvent {
 	return &PackageEvent{
+		TenantID:    event.TenantID,
 		Name:        event.Name,
 		EventType:   string(event.EventType),
 		Generation:  int64(event.Generation),

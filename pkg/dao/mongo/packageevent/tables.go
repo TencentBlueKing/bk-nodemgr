@@ -17,17 +17,18 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
-const tableName = "packageevent"
+const tableNamePrefix = "packageevent"
 
 // TableName package event table name.
-func TableName() string {
-	return tableName
+func TableName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", tableNamePrefix, tenantID)
 }
 
 var _ base.IData = &PackageEvent{}
 
 // PackageEvent represents package event table.
 type PackageEvent struct {
+	TenantID    string    `json:"tenant_id" bson:"tenant_id"`
 	Name        string    `json:"name" bson:"name"`
 	EventID     int64     `json:"event_id" bson:"event_id"`
 	EventType   string    `json:"event_type" bson:"event_type"`

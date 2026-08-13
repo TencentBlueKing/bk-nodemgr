@@ -40,8 +40,8 @@ func (s *Storage) countPakcageEvent(nCtx contextx.IContext, conditions ...*types
 
 // listPackageEvent lists package events.
 func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
-	[]*types.PackageEvent, int64, error) {
-
+	[]*types.PackageEvent, int64, error,
+) {
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
@@ -49,7 +49,8 @@ func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page, cond
 	opts := convertPackageEventConditionsToOptions(conditions...)
 
 	page.Sort = types.WithSortFields(page.Sort,
-		types.WithFieldDesc(daoPackageEvent.FieldKeyOperateTime))
+		types.WithFieldDesc(daoPackageEvent.FieldKeyOperateTime),
+		types.WithFieldDesc(daoPackageEvent.FieldKeyEventID))
 
 	events, num, err := s.daoPackageEvent.List(nCtx, page, opts...)
 	if err != nil {
@@ -77,8 +78,8 @@ func (s *Storage) createManyPackageEvent(nCtx contextx.IContext, events ...*type
 
 func (s *Storage) distinctPackageEvent(
 	nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
-	data *types.PackageEventDistinctResult, err error) {
-
+	data *types.PackageEventDistinctResult, err error,
+) {
 	opts := convertPackageEventConditionsToOptions(conditions...)
 
 	data = new(types.PackageEventDistinctResult)

@@ -14,11 +14,13 @@ package packageevent
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database) *dao {
-	tableName := TableName()
+func newDao(tenantID string, client *mongo.Database) *dao {
+	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
 		tableName: tableName,
@@ -50,7 +52,15 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	var indexes []mongo.IndexModel
-
-	return indexes
+	return []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: FieldKeyOperateTime, Value: -1},
+				{Key: FieldKeyEventID, Value: -1},
+			},
+			Options: options.Index().SetPartialFilterExpression(bson.D{
+				{Key: base.FieldKeyIsDeleted, Value: false},
+			}),
+		},
+	}
 }

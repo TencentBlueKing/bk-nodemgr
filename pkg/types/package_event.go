@@ -77,6 +77,7 @@ func StringListToPackageEventTypeList(stringList []string) []PackageEventType {
 
 // PackageEvent represents the event of package.
 type PackageEvent struct {
+	TenantID    string
 	Name        string
 	EventType   PackageEventType
 	Generation  Generation
