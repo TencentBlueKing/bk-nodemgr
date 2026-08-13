@@ -69,7 +69,7 @@ type actionInstallNodeByWMI struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageNetworkUnit    topoStg.IStorageNetworkUnit
-	provider              discover.Provider
+	provider              discover.IProvider
 	passwordVault         creditvault.IHostPasswordVault
 	storageActionInstance workflow.IStorageActionInstance
 }

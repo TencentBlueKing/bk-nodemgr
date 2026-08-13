@@ -61,7 +61,7 @@ type Capability struct {
 	StorageTenant       tenant.IStorage
 
 	// discover provider.
-	DiscoverProvider discover.Provider
+	DiscoverProvider discover.IProvider
 
 	// cache
 	Cache cache.ICache

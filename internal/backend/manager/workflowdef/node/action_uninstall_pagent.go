@@ -58,7 +58,7 @@ type actionUninstallPagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
 	storageNetworkUnit    topoStg.IStorageNetworkUnit
-	provider              discover.Provider
+	provider              discover.IProvider
 	gseHandler            gse.IHandler
 	storageActionInstance workflow.IStorageActionInstance
 }

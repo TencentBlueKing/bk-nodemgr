@@ -69,7 +69,7 @@ type actionInstallPagentByWindowsSSH struct {
 	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
 	storageNetworkUnit    topoStg.IStorageNetworkUnit
-	provider              discover.Provider
+	provider              discover.IProvider
 	passwordVault         creditvault.IHostPasswordVault
 
 	proxyMessager relayhandler.IServerMessager

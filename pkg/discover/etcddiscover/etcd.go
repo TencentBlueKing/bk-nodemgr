@@ -42,7 +42,7 @@ const (
 	etcdEntryBaseKeyValueCapacity = 8
 )
 
-// ProviderEtcd implements discover.Provider.
+// ProviderEtcd implements discover.IProvider.
 type ProviderEtcd struct {
 	config *config.Etcd
 
@@ -240,8 +240,8 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the provider, stop all activities.
-func (provider *ProviderEtcd) Stop() error {
+// GracefulShutdown gracefully shuts down the provider, stop all activities.
+func (provider *ProviderEtcd) GracefulShutdown() error {
 	if provider.cancel != nil {
 		provider.cancel()
 	}

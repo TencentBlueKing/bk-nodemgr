@@ -162,7 +162,7 @@ func (p *ProviderDefault) Start(_ context.Context) error {
 	return nil
 }
 
-// Stop stops the provider.
-func (p *ProviderDefault) Stop() error {
+// GracefulShutdown gracefully shuts down the provider.
+func (p *ProviderDefault) GracefulShutdown() error {
 	return nil
 }

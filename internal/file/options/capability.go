@@ -31,7 +31,7 @@ type Capability struct {
 	MongoClient *mongo.Client
 
 	// Discover provides discover handler.
-	DiscoverProvider discover.Provider
+	DiscoverProvider discover.IProvider
 
 	// BKRepo provides bkrepo handler.
 	BKRepo bkrepo.IHandler

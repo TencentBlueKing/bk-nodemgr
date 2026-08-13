@@ -76,7 +76,7 @@ type actionInstallNodeByWindowsSSH struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageHost           topoStg.IStorageHost
-	provider              discover.Provider
+	provider              discover.IProvider
 	passwordVault         creditvault.IHostPasswordVault
 	storageActionInstance workflow.IStorageActionInstance
 }
