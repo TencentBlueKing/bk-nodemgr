@@ -30,14 +30,14 @@ func (h *handler) Remote(rCtx restserver.IContext) (*restserver.FileResponse, er
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download remote file")
 
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	content, err := file.Content(rCtx)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to open remote file content")
 
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	// The FileHandler closes content after the response is written; it must not be closed here.

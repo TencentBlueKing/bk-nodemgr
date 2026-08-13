@@ -24,7 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/downloader"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 )
 
 // remoteFileDownloadTimeout bounds the whole remote package download.
@@ -78,9 +77,7 @@ func (m *Manager) DownloadRemoteFile(nCtx contextx.IContext, filename, downloadU
 
 	file, _, err := m.fileCache.GetOrFetch(nCtx, remoteFilename, expectedMD5, fetchFn)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to fetch remote file into cache")
-
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch remote file into cache: %w", err)
 	}
 
 	return file, nil
