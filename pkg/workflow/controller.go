@@ -639,7 +639,7 @@ func (ctl *controller) generateOperationInstance(nCtx contextx.IContext) (*opera
 		return nil, err
 	}
 
-	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, inst.InstanceBriefData.Metadata.OperationInstanceID)
+	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, inst.Metadata.OperationInstanceID)
 	if len(ctl.oper.InstanceIDs) > operation.MaxInstanceNum {
 		ctl.oper.InstanceIDs = ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-operation.MaxInstanceNum:]
 	}
@@ -687,7 +687,7 @@ func (ctl *controller) generateRetryOperationInstance(nCtx contextx.IContext) (*
 		return nil, err
 	}
 
-	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, retryInstance.InstanceBriefData.Metadata.OperationInstanceID)
+	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, retryInstance.Metadata.OperationInstanceID)
 	if len(ctl.oper.InstanceIDs) > operation.MaxInstanceNum {
 		ctl.oper.InstanceIDs = ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-operation.MaxInstanceNum:]
 	}
