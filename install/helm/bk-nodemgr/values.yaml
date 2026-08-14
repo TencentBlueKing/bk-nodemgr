@@ -1543,7 +1543,7 @@ file:
     ## Example:
     ##   allowHosts:
     ##     - github.com
-    ##     - 1.2.3.4
+    ##     - 127.0.0.1
     ## An empty allowHosts allows all hosts subject to blockHosts denial.
     downloader:
       allowHosts: []
