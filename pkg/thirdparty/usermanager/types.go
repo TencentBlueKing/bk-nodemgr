@@ -72,9 +72,6 @@ func (resp *BaseBroker[T]) IsFailed() error {
 	}
 }
 
-type listTenantReq struct {
-}
-
 type listTenantResp = []tenant
 
 type tenantStatus string

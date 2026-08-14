@@ -59,19 +59,17 @@ func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 }
 
 // listTenant list tenant.
-func (c *cli) listTenant(nCtx contextx.IContext, req *listTenantReq) (listTenantResp, error) {
+func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 	resp := new(BaseBroker[listTenantResp])
 	header, err := c.getHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = c.client.Post().
+	err = c.client.Get().
 		SubResourcef("/open/tenants/").
 		WithContext(nCtx).
 		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err

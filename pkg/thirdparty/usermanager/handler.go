@@ -64,8 +64,7 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 
 // ListALLTenants implement IHandler.
 func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
-	req := &listTenantReq{}
-	resp, err := h.cli.listTenant(nCtx, req)
+	resp, err := h.cli.listTenant(nCtx)
 	if err != nil {
 		return nil, err
 	}
