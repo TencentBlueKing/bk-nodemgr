@@ -12,15 +12,23 @@ package topo
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+var (
+	errDefaultNetworkAreaNotSupported = errors.New("default networkarea is not supported")
+	errDefaultNetworkAreaNotFound     = errors.New("networkarea is not found")
+	errDefaultNetworkAreaNotEmpty     = errors.New("networkarea is not empty")
 )
 
 // CreateNetworkUnit creates a new network-unit.
@@ -77,6 +85,227 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	resp.ConvertNetworkUnitFromTypes(networkUnitID)
 
 	return resp.GetData(), nil
+}
+
+// CreateDefaultNetworkUnits creates empty non-direct network units in
+// multiple empty network areas.
+func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoNetworkUnitCreateDefaultMultiReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error(
+			"failed to create default networkunits, failed to decode request body",
+		)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	param := req.ConvertToTypes()
+	if authErr := h.authorizer.Check(
+		rCtx,
+		auth.ActionNetworkUnitCreate,
+		nil,
+	); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error(
+			"failed to create default networkunits, permission denied",
+		)
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	if authErr := h.authorizer.Check(
+		rCtx,
+		auth.ActionNetworkUnitView,
+		authRouter.BuildNetworkUnitResources(param.Upstream.NetworkUnitID),
+	); authErr != nil {
+		logger.G.Biz(rCtx).WithErr(authErr).Error(
+			"failed to create default networkunits, upstream networkunit permission denied",
+		)
+		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
+	}
+
+	if err := h.validateDefaultNetworkUnitUpstream(rCtx, param.Upstream); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error(
+			"failed to create default networkunits, invalid upstream",
+		)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result := &types.NetworkUnitCreateDefaultMultiResult{
+		Items: make([]*types.NetworkUnitCreateDefaultMultiResultItem, 0, len(param.NetworkAreaIDs)),
+	}
+	for _, networkAreaID := range param.NetworkAreaIDs {
+		item := h.createDefaultNetworkUnit(rCtx, param, networkAreaID)
+		result.Items = append(result.Items, item)
+		if item.Success {
+			result.SuccessCount++
+			continue
+		}
+
+		result.FailedCount++
+	}
+
+	resp := new(protoBackend.TopoNetworkUnitCreateDefaultMultiResp)
+	resp.ConvertFromTypes(result)
+
+	logger.G.Biz(rCtx).
+		With("success-count", result.SuccessCount).
+		With("failed-count", result.FailedCount).
+		Info("created default networkunits")
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) validateDefaultNetworkUnitUpstream(
+	rCtx restserver.IContext, upstream types.Link,
+) error {
+	upstreamNetworkUnit, err := h.storage.GetNetworkUnit(rCtx, upstream.NetworkUnitID)
+	if err != nil {
+		if errors.Is(err, base.ErrRecordNoFound()) {
+			return fmt.Errorf("upstream networkunit-id(%d) not found", upstream.NetworkUnitID)
+		}
+
+		return fmt.Errorf("failed to get upstream networkunit(%d): %w", upstream.NetworkUnitID, err)
+	}
+
+	if upstreamNetworkUnit == nil {
+		return fmt.Errorf("upstream networkunit-id(%d) not found", upstream.NetworkUnitID)
+	}
+
+	if upstreamNetworkUnit.NetworkAreaID != upstream.NetworkAreaID {
+		return fmt.Errorf(
+			"upstream networkarea not matched, networkarea-id(%d), networkunit-id(%d)",
+			upstream.NetworkAreaID,
+			upstream.NetworkUnitID,
+		)
+	}
+
+	for _, accessPointID := range upstreamNetworkUnit.AccessPoints {
+		if accessPointID == upstream.AccessPointID {
+			return nil
+		}
+	}
+
+	return fmt.Errorf(
+		"upstream accesspoint not found, networkunit-id(%d), accesspoint-id(%d)",
+		upstream.NetworkUnitID,
+		upstream.AccessPointID,
+	)
+}
+
+func (h *handler) createDefaultNetworkUnit(
+	rCtx restserver.IContext,
+	param types.NetworkUnitCreateDefaultMultiParam,
+	networkAreaID int64,
+) *types.NetworkUnitCreateDefaultMultiResultItem {
+	result := &types.NetworkUnitCreateDefaultMultiResultItem{
+		NetworkAreaID: networkAreaID,
+	}
+
+	networkUnitID, err := h.createDefaultNetworkUnitInArea(rCtx, param, networkAreaID)
+	if err != nil {
+		result.ErrorCode, result.Message = defaultNetworkUnitCreateError(networkAreaID, err)
+		logger.G.Biz(rCtx).WithErr(err).
+			With("networkarea-id", networkAreaID).
+			Error("failed to create default networkunit")
+
+		return result
+	}
+
+	result.Success = true
+	result.NetworkUnitID = networkUnitID
+	result.Message = "network unit created"
+
+	return result
+}
+
+// createDefaultNetworkUnitInArea checks the target network area is empty and
+// then creates one default non-direct network unit inside it.
+func (h *handler) createDefaultNetworkUnitInArea(
+	rCtx restserver.IContext,
+	param types.NetworkUnitCreateDefaultMultiParam,
+	networkAreaID int64,
+) (int64, error) {
+	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
+	if err != nil {
+		if errors.Is(err, base.ErrRecordNoFound()) {
+			return 0, errDefaultNetworkAreaNotFound
+		}
+
+		return 0, fmt.Errorf("failed to get networkarea: %w", err)
+	}
+	if networkArea == nil {
+		return 0, errDefaultNetworkAreaNotFound
+	}
+	// defensive guard: the request Validate already rejects bk_networkarea_id <= 0,
+	// while DefaultNetworkAreaID is 0, so this branch is unreachable in practice.
+	if networkAreaID == types.DefaultNetworkAreaID {
+		return 0, errDefaultNetworkAreaNotSupported
+	}
+
+	_, count, err := h.storage.ListNetworkUnit(
+		rCtx,
+		types.SingleItemPage(),
+		&types.NetworkUnitCondition{
+			ExactInclude: &types.NetworkUnitExactFields{
+				NetworkAreaID: []int64{networkAreaID},
+			},
+		},
+	)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count networkunits: %w", err)
+	}
+	if count > 0 {
+		return 0, errDefaultNetworkAreaNotEmpty
+	}
+
+	networkUnit := &types.NetworkUnit{
+		TenantID:      rCtx.TenantID(),
+		NetworkAreaID: networkAreaID,
+		Name:          param.Name,
+		IsDirect:      false,
+		Links:         defaultNetworkUnitLinks(param.Upstream),
+		Generation:    types.Generation2,
+	}
+	networkUnitID, accessPointResult, err := h.storage.CreateNetworkUnit(rCtx, networkUnit)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create networkunit: %w", err)
+	}
+
+	h.recordNetworkUnitCreateEvents(
+		rCtx,
+		networkArea,
+		networkUnitID,
+		param.Name,
+		accessPointResult.Created,
+	)
+
+	return networkUnitID, nil
+}
+
+func defaultNetworkUnitLinks(upstream types.Link) types.Links {
+	cluster := upstream
+	file := upstream
+	data := upstream
+
+	return types.Links{
+		Cluster: &cluster,
+		File:    &file,
+		Data:    &data,
+	}
+}
+
+func defaultNetworkUnitCreateError(networkAreaID int64, err error) (string, string) {
+	switch {
+	case errors.Is(err, errDefaultNetworkAreaNotSupported):
+		return "default_networkarea_not_supported", "default networkarea is not supported"
+	case errors.Is(err, errDefaultNetworkAreaNotFound):
+		return "networkarea_not_found", fmt.Sprintf("networkarea-id(%d) not found", networkAreaID)
+	case errors.Is(err, errDefaultNetworkAreaNotEmpty):
+		return "networkarea_not_empty", fmt.Sprintf("networkarea-id(%d) is not empty", networkAreaID)
+	default:
+		return "networkunit_create_failed", fmt.Sprintf(
+			"failed to create network unit under networkarea-id(%d)",
+			networkAreaID,
+		)
+	}
 }
 
 // UpdateNetworkUnit updates networkunit.

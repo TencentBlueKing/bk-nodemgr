@@ -686,6 +686,34 @@ func (c *cli) createNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 	return resp, nil
 }
 
+func (c *cli) createDefaultNetworkUnits(
+	ctx contextx.IContext,
+	req *protoBackend.TopoNetworkUnitCreateDefaultMultiReq,
+) (*protoBackend.TopoNetworkUnitCreateDefaultMultiResp, error) {
+	resp := new(protoBackend.TopoNetworkUnitCreateDefaultMultiResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/networkunit/create_default_multi").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError(
+			"create default networkunits", resp, resp.GetError(),
+		)
+	}
+
+	return resp, nil
+}
+
 func (c *cli) updateNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitUpdateReq,
 ) (*protoBackend.TopoNetworkUnitUpdateResp, error) {
 

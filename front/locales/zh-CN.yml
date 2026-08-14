@@ -441,6 +441,32 @@ topoManager:
       workUnitsCount: 管控单元数量
       proxyCount: Proxy 数量
       agentCount: Agent 数量
+    batchCreate:
+      batchOperate: 批量
+      createDefaultUnit: 创建默认管控单元
+      nonEmptySelection: 含有管控单元不为空的管控区域
+      statisticsUnavailable: 管控单元数量尚未加载完成
+      title: 批量创建默认管控单元
+      selected: 已选择 {count} 个管控区域
+      selectedAreas: 将在以下 {count} 个空管控区域中创建管控单元
+      clearSelection: 清空选择
+      limitReached: 一次最多选择 100 个管控区域
+      description: 将创建非直连空管控单元，不配置下游接入点和自定义部署配置。
+      resultSummary: 创建完成：成功 {success} 个，失败 {failed} 个
+      success: 创建成功
+      failed: 创建失败
+      createdUnit: 管控单元 ID：{id}
+      retry: 重试失败项
+      allSuccess: 默认管控单元批量创建成功
+      defaultAreaDisabled: 默认管控区域不支持批量初始化
+      createPermissionDisabled: 没有该管控区域的管控单元创建权限
+      filterEmpty: 空管控区域
+      filterNonEmpty: 非空管控区域
+      errors:
+        default_networkarea_not_supported: 默认管控区域不支持批量初始化
+        networkarea_not_found: 管控区域不存在
+        networkarea_not_empty: 当前管控区域已有管控单元
+        networkunit_create_failed: 管控单元创建失败，请稍后重试
     vendor:
       AWS: 亚马逊云
       Tencent: 腾讯云

@@ -68,6 +68,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/networkunit/recommend_by_network_segment", restserver.Handler(h.RecommendNetworkUnitByNetworkSegment))
 	h.rg.POST("/networkunit/get", restserver.Handler(h.GetNetworkUnit))
 	h.rg.POST("/networkunit/create", restserver.Handler(h.CreateNetworkUnit))
+	h.rg.POST("/networkunit/create_default_multi", restserver.Handler(h.CreateDefaultNetworkUnits))
 	h.rg.POST("/networkunit/update", restserver.Handler(h.UpdateNetworkUnit))
 	h.rg.POST("/networkunit/delete", restserver.Handler(h.DeleteNetworkUnit))
 

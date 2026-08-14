@@ -63,6 +63,29 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 	return resp.GetData(), nil
 }
 
+// CreateDefaultNetworkUnits creates empty non-direct network units in
+// multiple empty network areas.
+func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoNetworkUnitCreateDefaultMultiReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error(
+			"failed to create default networkunits, failed to decode request body",
+		)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.backendHandler.CreateDefaultNetworkUnits(rCtx, req.ConvertToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to create default networkunits")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoNetworkUnitCreateDefaultMultiResp)
+	resp.ConvertFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
 // UpdateNetworkUnit updates networkunit.
 func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkUnitUpdateReq)

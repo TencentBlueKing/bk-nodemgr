@@ -75,6 +75,32 @@ type NetworkUnit struct {
 	CustomDeployConfig map[criteria.OSType]CustomDeployConfig
 }
 
+// NetworkUnitCreateDefaultMultiParam describes a batch request for creating
+// empty non-direct network units in multiple network areas.
+type NetworkUnitCreateDefaultMultiParam struct {
+	NetworkAreaIDs []int64
+	Name           string
+	Upstream       Link
+}
+
+// NetworkUnitCreateDefaultMultiResult describes the result of a batch create
+// operation.
+type NetworkUnitCreateDefaultMultiResult struct {
+	SuccessCount int64
+	FailedCount  int64
+	Items        []*NetworkUnitCreateDefaultMultiResultItem
+}
+
+// NetworkUnitCreateDefaultMultiResultItem describes one target network area
+// in a batch create operation.
+type NetworkUnitCreateDefaultMultiResultItem struct {
+	NetworkAreaID int64
+	NetworkUnitID int64
+	Success       bool
+	ErrorCode     string
+	Message       string
+}
+
 // TopoNameMapping represents id to name mapping.
 type TopoNameMapping struct {
 	NetworkArea map[int64]string

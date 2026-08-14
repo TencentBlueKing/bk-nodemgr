@@ -69,3 +69,18 @@ func BuildNetworkUnitResources(networkUnitIDs ...int64) []types.AuthResource {
 
 	return resources
 }
+
+// BuildNetworkAreaResources constructs types.AuthResource slice for network
+// area IDs.
+func BuildNetworkAreaResources(networkAreaIDs ...int64) []types.AuthResource {
+	resources := make([]types.AuthResource, 0, len(networkAreaIDs))
+	for _, id := range networkAreaIDs {
+		resources = append(resources, types.AuthResource{
+			SystemID: types.SystemIDNodeMgr,
+			Type:     types.AuthResourceTypeNetworkArea,
+			ID:       fmt.Sprintf("%d", id),
+		})
+	}
+
+	return resources
+}

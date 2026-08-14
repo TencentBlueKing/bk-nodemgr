@@ -964,6 +964,16 @@ service Topo {
     };
   }
 
+  // NetworkUnitCreateDefaultMulti creates empty non-direct network units in
+  // multiple empty network areas.
+  rpc NetworkUnitCreateDefaultMulti(TopoNetworkUnitCreateDefaultMultiReq)
+      returns (TopoNetworkUnitCreateDefaultMultiResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/networkunit/create_default_multi"
+      body : "*"
+    };
+  }
+
   // NetworkUnitGet provides getting an existing network-unit by id.
   rpc NetworkUnitGet(TopoNetworkUnitGetReq) returns (TopoNetworkUnitGetResp) {
     option (google.api.http) = {
@@ -1168,4 +1178,39 @@ service Topo {
       body : "*"
     };
   }
+}
+
+// TopoNetworkUnitCreateDefaultMultiReq describes the request body when
+// creating empty non-direct network units in multiple network areas.
+message TopoNetworkUnitCreateDefaultMultiReq {
+  repeated int64 bk_networkarea_id = 1;
+  string bk_networkunit_name = 2;
+  Link upstream = 3;
+}
+
+// TopoNetworkUnitCreateDefaultMultiRespResult describes one target network
+// area in a batch create response.
+message TopoNetworkUnitCreateDefaultMultiRespResult {
+  int64 bk_networkarea_id = 1;
+  bool success = 2;
+  optional int64 bk_networkunit_id = 3;
+  string error_code = 4;
+  string message = 5;
+}
+
+// TopoNetworkUnitCreateDefaultMultiResp describes the result of creating
+// empty non-direct network units in multiple network areas.
+message TopoNetworkUnitCreateDefaultMultiResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 success_count = 1;
+    int64 failed_count = 2;
+    repeated TopoNetworkUnitCreateDefaultMultiRespResult items = 3;
+  }
+  Data data = 5;
 }

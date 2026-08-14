@@ -127,6 +127,13 @@ type IHandlerNetworkUnit interface {
 	// @return the network-unit id and error.
 	CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (int64, error)
 
+	// CreateDefaultNetworkUnits creates empty non-direct network units in
+	// multiple empty network areas.
+	CreateDefaultNetworkUnits(
+		nCtx contextx.IContext,
+		param types.NetworkUnitCreateDefaultMultiParam,
+	) (*types.NetworkUnitCreateDefaultMultiResult, error)
+
 	// UpdateNetworkUnit update network unit within specified tenant in contextx.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param networkUnit the network unit to update.
@@ -459,6 +466,23 @@ func (h *Handler) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.N
 	}
 
 	return resp.GetData().GetBkNetworkunitId(), nil
+}
+
+// CreateDefaultNetworkUnits creates empty non-direct network units in
+// multiple empty network areas.
+func (h *Handler) CreateDefaultNetworkUnits(
+	nCtx contextx.IContext,
+	param types.NetworkUnitCreateDefaultMultiParam,
+) (*types.NetworkUnitCreateDefaultMultiResult, error) {
+	req := new(protoBackend.TopoNetworkUnitCreateDefaultMultiReq)
+	req.ConvertFromTypes(param)
+
+	resp, err := h.cli.createDefaultNetworkUnits(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertToTypes(), nil
 }
 
 // UpdateNetworkUnit updates an existing networkunit.

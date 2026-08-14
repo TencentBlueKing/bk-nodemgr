@@ -93,6 +93,133 @@ func (x *TopoNetworkUnitCreateResp) ConvertNetworkUnitFromTypes(networkUnitID in
 	x.Data = data
 }
 
+// Validate validates a batch request for creating default network units.
+func (x *TopoNetworkUnitCreateDefaultMultiReq) Validate() error {
+	if len(x.GetBkNetworkareaId()) == 0 {
+		return errors.New("bk_networkarea_id is required")
+	}
+
+	if len(x.GetBkNetworkareaId()) > 100 {
+		return errors.New("bk_networkarea_id supports at most 100 items")
+	}
+
+	seen := make(map[int64]struct{}, len(x.GetBkNetworkareaId()))
+	for _, networkAreaID := range x.GetBkNetworkareaId() {
+		if networkAreaID <= 0 {
+			return fmt.Errorf("bk_networkarea_id(%d) is invalid", networkAreaID)
+		}
+		if _, ok := seen[networkAreaID]; ok {
+			return fmt.Errorf("bk_networkarea_id(%d) is duplicated", networkAreaID)
+		}
+		seen[networkAreaID] = struct{}{}
+	}
+
+	if x.GetBkNetworkunitName() == "" {
+		return errors.New("bk_networkunit_name is required")
+	}
+
+	if x.GetUpstream() == nil {
+		return errors.New("upstream is required")
+	}
+	if x.GetUpstream().GetBkNetworkareaId() < 0 ||
+		x.GetUpstream().GetBkNetworkunitId() < 0 ||
+		x.GetUpstream().GetAccesspointId() < 0 {
+		return errors.New("upstream is invalid")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoNetworkUnitCreateDefaultMultiReq) AutoConvert() {
+}
+
+// ConvertToTypes converts a batch request to the domain parameter.
+func (x *TopoNetworkUnitCreateDefaultMultiReq) ConvertToTypes() types.NetworkUnitCreateDefaultMultiParam {
+	param := types.NetworkUnitCreateDefaultMultiParam{
+		NetworkAreaIDs: x.GetBkNetworkareaId(),
+		Name:           x.GetBkNetworkunitName(),
+	}
+	if upstream := convertLinkToTypes(x.GetUpstream()); upstream != nil {
+		param.Upstream = *upstream
+	}
+
+	return param
+}
+
+// ConvertFromTypes converts the domain parameter to a batch request.
+func (x *TopoNetworkUnitCreateDefaultMultiReq) ConvertFromTypes(
+	param types.NetworkUnitCreateDefaultMultiParam,
+) {
+	x.BkNetworkareaId = param.NetworkAreaIDs
+	x.BkNetworkunitName = param.Name
+	x.Upstream = convertLinkFromTypes(&param.Upstream)
+}
+
+// ConvertFromTypes converts a batch result to the response payload.
+func (x *TopoNetworkUnitCreateDefaultMultiResp) ConvertFromTypes(
+	result *types.NetworkUnitCreateDefaultMultiResult,
+) {
+	if result == nil {
+		x.Data = &TopoNetworkUnitCreateDefaultMultiResp_Data{}
+		return
+	}
+
+	items := make([]*TopoNetworkUnitCreateDefaultMultiRespResult, len(result.Items))
+	for idx, item := range result.Items {
+		if item == nil {
+			continue
+		}
+
+		responseItem := &TopoNetworkUnitCreateDefaultMultiRespResult{
+			BkNetworkareaId: item.NetworkAreaID,
+			Success:         item.Success,
+			ErrorCode:       item.ErrorCode,
+			Message:         item.Message,
+		}
+		if item.Success {
+			responseItem.BkNetworkunitId = new(int64)
+			*responseItem.BkNetworkunitId = item.NetworkUnitID
+		}
+		items[idx] = responseItem
+	}
+
+	x.Data = &TopoNetworkUnitCreateDefaultMultiResp_Data{
+		SuccessCount: result.SuccessCount,
+		FailedCount:  result.FailedCount,
+		Items:        items,
+	}
+}
+
+// ConvertToTypes converts the response payload to the domain result.
+func (x *TopoNetworkUnitCreateDefaultMultiResp) ConvertToTypes() *types.NetworkUnitCreateDefaultMultiResult {
+	data := x.GetData()
+	if data == nil {
+		return &types.NetworkUnitCreateDefaultMultiResult{}
+	}
+
+	items := make([]*types.NetworkUnitCreateDefaultMultiResultItem, len(data.GetItems()))
+	for idx, item := range data.GetItems() {
+		if item == nil {
+			continue
+		}
+
+		items[idx] = &types.NetworkUnitCreateDefaultMultiResultItem{
+			NetworkAreaID: item.GetBkNetworkareaId(),
+			NetworkUnitID: item.GetBkNetworkunitId(),
+			Success:       item.GetSuccess(),
+			ErrorCode:     item.GetErrorCode(),
+			Message:       item.GetMessage(),
+		}
+	}
+
+	return &types.NetworkUnitCreateDefaultMultiResult{
+		SuccessCount: data.GetSuccessCount(),
+		FailedCount:  data.GetFailedCount(),
+		Items:        items,
+	}
+}
+
 // Validate check body.
 func (x *TopoNetworkUnitUpdateReq) Validate() error {
 	if x.GetFields() == nil {

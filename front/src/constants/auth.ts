@@ -1,5 +1,5 @@
-import type { PermissionData } from '@/stores/permission';
 import type { AuthorizedItem } from '@/@types/auth';
+import type { PermissionData } from '@/stores/permission';
 
 export interface PageAuthItem {
   id: string;
@@ -218,6 +218,7 @@ export const PAGE_AUTHORIZED_ITEMS: Record<string, AuthorizedItem[]> = {
     { action: 'networkarea_create', resource_type: 'networkarea' },
     { action: 'networkarea_edit', resource_type: 'networkarea' },
     { action: 'networkarea_delete', resource_type: 'networkarea' },
+    { action: 'networkunit_create', resource_type: 'networkunit' },
   ],
   workareaDetail: [
     { action: 'networkunit_create', resource_type: 'networkunit' },

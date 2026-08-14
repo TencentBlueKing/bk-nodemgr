@@ -833,3 +833,38 @@ export interface TopoConstantGetRespData {
   os_type: string[];
 }
 
+// TopoNetworkUnitCreateDefaultMultiReq describes the request body when
+// creating empty non-direct network units in multiple network areas.
+export interface TopoNetworkUnitCreateDefaultMultiReq {
+  bk_networkarea_id: number[];
+  bk_networkunit_name: string;
+  upstream: Link;
+}
+
+// TopoNetworkUnitCreateDefaultMultiRespResult describes one target network
+// area in a batch create response.
+export interface TopoNetworkUnitCreateDefaultMultiRespResult {
+  bk_networkarea_id: number;
+  success: boolean;
+  bk_networkunit_id?: number;
+  error_code: string;
+  message: string;
+}
+
+// TopoNetworkUnitCreateDefaultMultiResp describes the result of creating
+// empty non-direct network units in multiple network areas.
+export interface TopoNetworkUnitCreateDefaultMultiResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: TopoNetworkUnitCreateDefaultMultiRespData;
+}
+
+export interface TopoNetworkUnitCreateDefaultMultiRespData {
+  success_count: number;
+  failed_count: number;
+  items: TopoNetworkUnitCreateDefaultMultiRespResult[];
+}
+

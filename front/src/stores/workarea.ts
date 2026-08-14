@@ -1,7 +1,6 @@
 import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
 import { reactive, ref, watch } from 'vue';
-import usePage from '@/composables/use-page';
 
 import type {
   TopoEventListReq,
@@ -11,6 +10,7 @@ import type {
   TopoNetworkAreaUpdateReq,
 } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
+import usePage from '@/composables/use-page';
 import { useAuthStore } from '@/stores/auth';
 
 export type INetWorkArea = NetworkArea & TopoNetworkAreaStatisticsRespStatisticsInfo;
@@ -38,7 +38,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
   interface IncludeConditions {
     bk_networkarea_id: number[]; // 管控区域ID
     bk_networkarea_name: string[]; // 管控区域
-    cloud_vendor: number[]; // 云服务商
+    cloud_vendor: string[]; // 云服务商
   }
 
   // 可搜索字段
@@ -95,54 +95,55 @@ export const useWorkareaStore = defineStore('workarea', () => {
     }
   };
 
+  const waitForNetworkAreaViewAuth = async () => {
+    const authStore = useAuthStore();
+    if (authStore.authorizedLoaded && authStore.authorizedMap.networkarea_view) return;
+
+    await new Promise<void>((resolve) => {
+      const unwatch = watch(
+        () => [authStore.authorizedLoaded, !!authStore.authorizedMap.networkarea_view],
+        ([loaded, actionReady]) => {
+          if (loaded && actionReady) {
+            unwatch();
+            resolve();
+          }
+        },
+        { immediate: true },
+      );
+    });
+  };
+
+  const updateWorkareaStatistics = async (networkAreaIDs: number[]) => {
+    if (networkAreaIDs.length === 0) return;
+
+    await waitForNetworkAreaViewAuth();
+    const authStore = useAuthStore();
+    const authorizedIDs = networkAreaIDs.filter(id => authStore.hasAuthorizedResource('networkarea_view', id));
+    if (authorizedIDs.length === 0) return;
+
+    const countData = await handleFetchWorkareaInfoCount(authorizedIDs).catch(() => []);
+    const lookup = keyBy(countData, 'bk_networkarea_id');
+    workareaList.value = workareaList.value.map((item) => {
+      const statistics = lookup[item.bk_networkarea_id];
+      return statistics ? { ...item, ...statistics } : item;
+    });
+  };
+
   // 获取当前页的统计信息（不重新请求管控区域数据）
   const handleFetchCurrentPageStatistics = async () => {
     if (workareaList.value.length === 0) return;
 
-    const authStore = useAuthStore();
-
-    // 等待 authorized 数据加载完成（不仅是 authorizedLoaded=true，
-    // 还需确保 networkarea_view action 已写入 authorizedMap，
-    // 否则 hasAuthorizedResource 会全部返回 false 导致不调接口）
-    if (!authStore.authorizedLoaded || !authStore.hasAuthorizedResource('networkarea_view')) {
-      await new Promise<void>((resolve) => {
-        const unwatch = watch(
-          () => [authStore.authorizedLoaded, authStore.hasAuthorizedResource('networkarea_view')],
-          ([loaded, actionReady]) => {
-            if (loaded && actionReady) {
-              unwatch();
-              resolve();
-            }
-          },
-          { immediate: true },
-        );
-      });
-    }
-
-    // 获取当前页的数据（分页切片）
     const startIndex = (frontPageConf.current - 1) * frontPageConf.limit;
     const endIndex = startIndex + frontPageConf.limit;
-    const currentPageData = workareaList.value.slice(startIndex, endIndex);
-    // 只请求有权限的区域的统计信息
-    const currentPageWorkareaIds = currentPageData
-      .map(item => item.bk_networkarea_id)
-      .filter(id => authStore.hasAuthorizedResource('networkarea_view', id));
+    const currentPageWorkareaIds = workareaList.value
+      .slice(startIndex, endIndex)
+      .map(item => item.bk_networkarea_id);
+    await updateWorkareaStatistics(currentPageWorkareaIds);
+  };
 
-    if (currentPageWorkareaIds.length > 0) {
-      const countData = await handleFetchWorkareaInfoCount(currentPageWorkareaIds).catch(() => []);
-      const lookup = keyBy(countData, 'bk_networkarea_id');
-
-      // 只更新当前页的数据（触发响应式更新）
-      workareaList.value = workareaList.value.map(item => {
-        if (currentPageWorkareaIds.includes(item.bk_networkarea_id)) {
-          return {
-            ...item,
-            ...lookup[item.bk_networkarea_id],
-          };
-        }
-        return item;
-      });
-    }
+  // 获取全部管控区域统计信息，用于基于统计值的前端筛选
+  const handleFetchAllWorkareaStatistics = async () => {
+    await updateWorkareaStatistics(workareaList.value.map(item => item.bk_networkarea_id));
   };
 
   // 分页操作
@@ -347,6 +348,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
     handleFetchRecordList,
     handleFetchVendorAndOs,
     handleFetchCurrentPageStatistics,
+    handleFetchAllWorkareaStatistics,
     syncFavoriteWorkareaList,
   };
 });

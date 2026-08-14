@@ -441,6 +441,32 @@ topoManager:
       workUnitsCount: Network Units
       proxyCount: Proxies
       agentCount: Agents
+    batchCreate:
+      batchOperate: Batch
+      createDefaultUnit: Create Default Network Unit
+      nonEmptySelection: Contains network areas with non-empty network units
+      statisticsUnavailable: Network unit counts have not finished loading
+      title: Batch Create Default Network Units
+      selected: '{count} network areas selected'
+      selectedAreas: 'Network units will be created in the following {count} empty network areas'
+      clearSelection: Clear Selection
+      limitReached: At most 100 network areas can be selected at a time
+      description: Empty non-direct network units will be created without downstream access points or custom deploy config.
+      resultSummary: 'Completed: {success} succeeded, {failed} failed'
+      success: Created
+      failed: Failed
+      createdUnit: 'Network Unit ID: {id}'
+      retry: Retry Failed Items
+      allSuccess: Default network units created successfully
+      defaultAreaDisabled: The default network area cannot be initialized in batch
+      createPermissionDisabled: You do not have permission to create a network unit in this network area
+      filterEmpty: Empty network area
+      filterNonEmpty: Non-empty network area
+      errors:
+        default_networkarea_not_supported: The default network area cannot be initialized in batch
+        networkarea_not_found: The network area does not exist
+        networkarea_not_empty: This network area already contains a network unit
+        networkunit_create_failed: Failed to create the network unit, please retry later
     vendor:
       AWS: AWS
       Tencent: Tencent Cloud

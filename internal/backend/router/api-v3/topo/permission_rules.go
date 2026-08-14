@@ -12,7 +12,6 @@ package topo
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
 	authRouter "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/auth"
@@ -30,18 +29,9 @@ func buildBizResources(bizIDs []int64) []types.AuthResource {
 	return authRouter.BuildBizResources(bizIDs...)
 }
 
-// buildNetworkAreaResources constructs IAM resource descriptors for the given network area IDs.
+// buildNetworkAreaResources is deprecated. Use auth.BuildNetworkAreaResources instead.
 func buildNetworkAreaResources(ids ...int64) []types.AuthResource {
-	resources := make([]types.AuthResource, 0, len(ids))
-	for _, id := range ids {
-		resources = append(resources, types.AuthResource{
-			SystemID: types.SystemIDNodeMgr,
-			Type:     types.AuthResourceTypeNetworkArea,
-			ID:       fmt.Sprintf("%d", id),
-		})
-	}
-
-	return resources
+	return authRouter.BuildNetworkAreaResources(ids...)
 }
 
 // buildNetworkUnitResources is deprecated. Use auth.BuildNetworkUnitResources instead.

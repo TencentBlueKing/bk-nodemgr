@@ -14,6 +14,42 @@
       @page-value-change="pageValueChange"
       @setting-change="handleSettingChange"
       @column-filter="handleColumnFilter">
+      <template #prepend>
+        <div
+          v-if="props.selectedIds.length"
+          class="flex items-center justify-between h-[32px] bg-[#EBECF0] px-[12px] text-[12px]"
+        >
+          <span>
+            {{ $t('topoManager.workArea.batchCreate.selected', { count: props.selectedIds.length }) }}
+          </span>
+          <Button text theme="primary" @click="emit('clear-selection')">
+            {{ $t('topoManager.workArea.batchCreate.clearSelection') }}
+          </Button>
+        </div>
+      </template>
+      <TableColumn width="60" fixed="left">
+        <template #header>
+          <Checkbox
+            :model-value="isCurrentPageAllChecked"
+            :indeterminate="isCurrentPageIndeterminate"
+            @change="handlePageSelection"
+          />
+        </template>
+        <template #default="{ row }">
+          <Checkbox
+            :model-value="selectedIdSet.has(row.bk_networkarea_id)"
+            :disabled="!isRowSelectable(row) && !selectedIdSet.has(row.bk_networkarea_id)"
+            :title="isRowSelectable(row)
+              ? undefined
+              : $t(
+                row.bk_networkarea_id === 0
+                  ? 'topoManager.workArea.batchCreate.defaultAreaDisabled'
+                  : 'topoManager.workArea.batchCreate.createPermissionDisabled',
+              )"
+            @change="(checked: boolean) => handleRowSelection(row, checked)"
+          />
+        </template>
+      </TableColumn>
       <TableColumn
         :label="$t('topoManager.workArea.table.workareaName')"
         field="bk_networkarea_name"
@@ -90,6 +126,7 @@
         :label="$t('topoManager.workArea.table.workUnitsCount')"
         field="networkunit_count"
         show-overflow="tooltip"
+        :filter="unitCountFilter"
         :min-width="240">
         <template #default="{ row }">
           <span>
@@ -136,7 +173,9 @@
               text
               class="mr-[12px]"
               :class="{ 'unAuthorized': !isRowEditAuth(row.bk_networkarea_id) }"
-              @click="isRowEditAuth(row.bk_networkarea_id) ? handleEditWorkarea(row) : handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_edit')"
+              @click="isRowEditAuth(row.bk_networkarea_id)
+                ? handleEditWorkarea(row)
+                : handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_edit')"
               @mouseenter="editMouseEnter($event, isRowEditAuth(row.bk_networkarea_id))"
               @mousemove="editMouseMove($event, isRowEditAuth(row.bk_networkarea_id))"
               @mouseleave="editMouseLeave()"
@@ -147,7 +186,9 @@
               theme="primary"
               text
               :class="{ 'unAuthorized': !isRowDeleteAuth(row.bk_networkarea_id) }"
-              @click="isRowDeleteAuth(row.bk_networkarea_id) ? handleDeleteWorkarea(row.bk_networkarea_id) : handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_delete')"
+              @click="isRowDeleteAuth(row.bk_networkarea_id)
+                ? handleDeleteWorkarea(row.bk_networkarea_id)
+                : handleAreaAuthClick($event, row.bk_networkarea_id, 'networkarea_delete')"
               @mouseenter="deleteMouseEnter($event, isRowDeleteAuth(row.bk_networkarea_id))"
               @mousemove="deleteMouseMove($event, isRowDeleteAuth(row.bk_networkarea_id))"
               @mouseleave="deleteMouseLeave()"
@@ -162,7 +203,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, InfoBox, Loading } from 'bkui-vue';
+import { Button, Checkbox, InfoBox, Loading } from 'bkui-vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -171,9 +212,9 @@ import { Table, TableColumn } from '@blueking/table';
 
 import { vendorMap } from '../vendorMap';
 
+import useAuthLock from '@/composables/use-auth-lock';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
-import useAuthLock from '@/composables/use-auth-lock';
 import { useAuthStore } from '@/stores/auth';
 import { usePermissionStore } from '@/stores/permission';
 import type { INetWorkArea } from '@/stores/workarea';
@@ -182,10 +223,11 @@ import { useWorkareaStore } from '@/stores/workarea';
 interface IProps {
   list: INetWorkArea[],
   vendorList: string[],
+  selectedIds: number[],
 }
 const props = defineProps<IProps>();
 
-const emit = defineEmits(['edit', 'filter']);
+const emit = defineEmits(['edit', 'filter', 'selection-change', 'clear-selection']);
 
 const tableData = ref(props.list);
 const { t } = useI18n();
@@ -195,18 +237,45 @@ const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 const sortConfig = ref({ multiple: true });
 
+const selectedIdSet = computed(() => new Set(props.selectedIds));
+const currentPageRows = computed(() => {
+  const start = (workareaStore.frontPageConf.current - 1) * workareaStore.frontPageConf.limit;
+  return tableData.value.slice(start, start + workareaStore.frontPageConf.limit);
+});
+const selectableRows = computed(() => currentPageRows.value.filter(row => isRowSelectable(row)));
+const selectedRows = computed(() => selectableRows.value.filter(row => selectedIdSet.value.has(row.bk_networkarea_id)));
+const isCurrentPageAllChecked = computed(() => (
+  selectableRows.value.length > 0 && selectedRows.value.length === selectableRows.value.length
+));
+const isCurrentPageIndeterminate = computed(() => (
+  selectedRows.value.length > 0 && selectedRows.value.length < selectableRows.value.length
+));
+
+function isRowSelectable(row: INetWorkArea): boolean {
+  if (row.bk_networkarea_id === 0) return false;
+  if (!authStore.hasAuthorizedResource('networkunit_create')) return false;
+  return true;
+}
+
+function handleRowSelection(row: INetWorkArea, checked: boolean) {
+  if (!isRowSelectable(row) && !selectedIdSet.value.has(row.bk_networkarea_id)) return;
+  emit('selection-change', { row, checked });
+}
+
+function handlePageSelection(checked: boolean) {
+  selectableRows.value.forEach(row => emit('selection-change', { row, checked }));
+}
+
+watch(() => props.list, (list) => {
+  tableData.value = list;
+}, { deep: true });
+
 // networkarea_view hover lock for name column
-const { handleMouseEnter: viewMouseEnter, handleMouseMove: viewMouseMove, handleMouseLeave: viewMouseLeave } = useAuthLock(
-  'networkarea_view', () => undefined, { resourceType: 'networkarea' },
-);
+const { handleMouseEnter: viewMouseEnter, handleMouseMove: viewMouseMove, handleMouseLeave: viewMouseLeave } = useAuthLock('networkarea_view', () => undefined, { resourceType: 'networkarea' });
 
 // networkarea_edit / networkarea_delete permissions (hover lock)
-const { handleMouseEnter: editMouseEnter, handleMouseMove: editMouseMove, handleMouseLeave: editMouseLeave } = useAuthLock(
-  'networkarea_edit', () => undefined, { resourceType: 'networkarea' },
-);
-const { handleMouseEnter: deleteMouseEnter, handleMouseMove: deleteMouseMove, handleMouseLeave: deleteMouseLeave } = useAuthLock(
-  'networkarea_delete', () => undefined, { resourceType: 'networkarea' },
-);
+const { handleMouseEnter: editMouseEnter, handleMouseMove: editMouseMove, handleMouseLeave: editMouseLeave } = useAuthLock('networkarea_edit', () => undefined, { resourceType: 'networkarea' });
+const { handleMouseEnter: deleteMouseEnter, handleMouseMove: deleteMouseMove, handleMouseLeave: deleteMouseLeave } = useAuthLock('networkarea_delete', () => undefined, { resourceType: 'networkarea' });
 
 /** 判断某个区域是否有 view 权限 */
 function isAreaAuthorized(areaId: number): boolean {
@@ -236,8 +305,11 @@ async function handleAreaAuthClick(e: MouseEvent, areaId: number, action: string
   }
 }
 
-// 分页 - 使用store中的前端分页配置
-const pagination = computed(() => workareaStore.frontPagination);
+// 分页 - 使用store中的前端分页配置，count 基于当前（可能已被前端筛选的）数据长度
+const pagination = computed(() => ({
+  ...workareaStore.frontPagination,
+  count: tableData.value.length,
+}));
 
 const pageLimitChange = async (limit: number) => {
   workareaStore.frontPageConf.limit = limit;
@@ -278,6 +350,18 @@ const filterOption = reactive<{
 const handleColumnFilter = ({ checked, field }: { checked: string[]; field: string }) => {
   emit('filter', { checked, field });
 };
+
+// 管控单元数量筛选（前端统计值，无法后端查询，前端过滤）
+const unitCountFilter = reactive<{
+  list: { value: string; text: string }[];
+  checked: string[];
+}>({
+  list: [
+    { value: '0', text: t('topoManager.workArea.batchCreate.filterEmpty') },
+    { value: '1', text: t('topoManager.workArea.batchCreate.filterNonEmpty') },
+  ],
+  checked: [],
+});
 
 // 收藏管控区域
 const collectList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
@@ -356,7 +440,7 @@ const handleEditWorkarea = (workareaData: NetworkArea) => {
 const handleDeleteWorkarea = (bk_networkarea_id: number) => {
   const workareaData = props.list.find(item => item.bk_networkarea_id === bk_networkarea_id);
   InfoBox({
-    title: t('topoManager.workArea.delete.title', { x: workareaData.bk_networkarea_name || '' }),
+    title: t('topoManager.workArea.delete.title', { x: workareaData?.bk_networkarea_name || '' }),
     cancelText: t('action.cancel'),
     async onConfirm() {
       await workareaStore.handleDeleteWorkarea(bk_networkarea_id);
