@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/node/proxy/assign_unit_multi": {
+      "post": {
+        "summary": "NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy\nhosts.",
+        "operationId": "NodeProxy_NodeProxyAssignUnitMulti",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyAssignUnitResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyAssignUnitMultiReq describes the request body for batch-assigning\nmultiple network units to proxy hosts.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyAssignUnitMultiReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/install": {
       "post": {
         "summary": "NodeProxyInstall installs node proxy.",
@@ -355,40 +389,6 @@
           "NodeProxy"
         ]
       }
-    },
-    "/api/v3/node/proxy/assign_unit_multi": {
-      "post": {
-        "summary": "NodeProxyAssignUnitMulti batch-assigns multiple network units to proxy\nhosts.",
-        "operationId": "NodeProxy_NodeProxyAssignUnitMulti",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyAssignUnitResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "NodeProxyAssignUnitMultiReq describes the request body for batch-assigning\nmultiple network units to proxy hosts.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeProxyAssignUnitMultiReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeProxy"
-        ]
-      }
     }
   },
   "definitions": {
@@ -400,6 +400,22 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "NodeProxyAssignUnitMultiReqItem": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -493,6 +509,19 @@
         }
       },
       "description": "HostOpsInfo describes the out-of-band (ops) information for a host."
+    },
+    "v3NodeProxyAssignUnitMultiReq": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/NodeProxyAssignUnitMultiReqItem"
+          }
+        }
+      },
+      "description": "NodeProxyAssignUnitMultiReq describes the request body for batch-assigning\nmultiple network units to proxy hosts."
     },
     "v3NodeProxyAssignUnitReq": {
       "type": "object",
@@ -1455,35 +1484,6 @@
           "type": "string"
         }
       }
-    },
-    "NodeProxyAssignUnitMultiReqItem": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "int64"
-          }
-        },
-        "bk_networkunit_id": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v3NodeProxyAssignUnitMultiReq": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/NodeProxyAssignUnitMultiReqItem"
-          }
-        }
-      },
-      "description": "NodeProxyAssignUnitMultiReq describes the request body for batch-assigning\nmultiple network units to proxy hosts."
     }
   }
 }
