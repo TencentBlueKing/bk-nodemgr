@@ -69,16 +69,13 @@ func typeAccessPointFixture(tenantID string, accessPointID int64, name string) *
 func insertAccessPointDocuments(t *testing.T, db *mongo.Database, accessPoints ...*AccessPoint) {
 	t.Helper()
 
-	docs := make([]interface{}, 0, len(accessPoints))
 	for _, accessPoint := range accessPoints {
-		docs = append(docs, &TableAccessPoint{
+		_, err := db.Collection(TableName(accessPoint.TenantID)).InsertOne(t.Context(), &TableAccessPoint{
 			BasicInfo: base.BasicInfo{},
 			Data:      accessPoint,
 		})
+		require.NoError(t, err)
 	}
-
-	_, err := db.Collection(TableName()).InsertMany(t.Context(), docs)
-	require.NoError(t, err)
 }
 
 func accessPointIDs(accessPoints []*types.AccessPoint) []int64 {
@@ -93,8 +90,7 @@ func accessPointIDs(accessPoints []*types.AccessPoint) []int64 {
 func countAliveDocuments(t *testing.T, db *mongo.Database, tenantID string) int64 {
 	t.Helper()
 
-	num, err := db.Collection(TableName()).CountDocuments(t.Context(), bson.D{
-		{Key: FieldKeyTenantID, Value: tenantID},
+	num, err := db.Collection(TableName(tenantID)).CountDocuments(t.Context(), bson.D{
 		{Key: base.FieldKeyIsDeleted, Value: false},
 	})
 	require.NoError(t, err)
@@ -176,5 +172,29 @@ func TestHandler_CreateRejectsCrossTenantAccessPoint(t *testing.T) {
 	tenantACtx := testContext(t, "tenant_a")
 
 	_, err := h.Create(tenantACtx, typeAccessPointFixture("tenant_b", 0, "tenant-b-default"))
+	require.Error(t, err)
+}
+
+func TestHandler_CreateRoutesToTenantCollectionAndUsesGlobalCounter(t *testing.T) {
+	db, h := testHandler(t)
+	tenantACtx := testContext(t, "tenant_a")
+	tenantBCtx := testContext(t, "tenant_b")
+
+	tenantAID, err := h.Create(tenantACtx, typeAccessPointFixture("tenant_a", 0, "tenant-a-created"))
+	require.NoError(t, err)
+
+	tenantBID, err := h.Create(tenantBCtx, typeAccessPointFixture("tenant_b", 0, "tenant-b-created"))
+	require.NoError(t, err)
+	require.NotEqual(t, tenantAID, tenantBID)
+
+	assert.Equal(t, int64(1), countAliveDocuments(t, db, "tenant_a"))
+	assert.Equal(t, int64(1), countAliveDocuments(t, db, "tenant_b"))
+
+	tenantARecord, err := h.Get(tenantACtx, tenantAID)
+	require.NoError(t, err)
+	assert.Equal(t, "tenant_a", tenantARecord.TenantID)
+	assert.Equal(t, "tenant-a-created", tenantARecord.Name)
+
+	_, err = h.Get(tenantBCtx, tenantAID)
 	require.Error(t, err)
 }

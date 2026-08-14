@@ -11,20 +11,24 @@
 package accesspoint
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
 // TableName accesspoint table name.
-func TableName() string {
-	return "accesspoint"
+func TableName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", tableNamePrefix, tenantID)
 }
+
+const tableNamePrefix = "accesspoint"
 
 var _ base.IData = &AccessPoint{}
 
 // AccessPoint represents access point table.
 // AccessPointID should be the unique key.
+// AccessPointID is generated from a global counter and remains unique across tenant collections.
 type AccessPoint struct {
 	TenantID        string `json:"tenant_id" bson:"tenant_id"`
 	AccessPointID   int64  `json:"accesspoint_id" bson:"accesspoint_id"`

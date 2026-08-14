@@ -22,10 +22,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(client *mongo.Database) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
+	tableName := TableName(tenantID)
 	d := &dao{
-		client:  client.Collection(TableName()),
-		counter: counter.New(client)}
+		client:    client.Collection(tableName),
+		tableName: tableName,
+		counter:   counter.New(client)}
 
 	d.IOrm = base.NewOrm[*AccessPoint, AccessPoint](d)
 
@@ -33,7 +35,8 @@ func newDao(client *mongo.Database) *dao {
 }
 
 type dao struct {
-	client *mongo.Collection
+	client    *mongo.Collection
+	tableName string
 
 	counter counter.Handler
 	base.IOrm[*AccessPoint, AccessPoint]
@@ -46,7 +49,7 @@ func (d *dao) GetClient() *mongo.Collection {
 
 // GetTableName get the dao's table name.
 func (d *dao) GetTableName() string {
-	return TableName()
+	return d.tableName
 }
 
 // nolint:contextcheck
@@ -58,7 +61,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 func (d *dao) create(nCtx contextx.IContext, accessPoint *AccessPoint) (int64, error) {
-	newSequence, err := d.counter.Generate(nCtx, TableName())
+	newSequence, err := d.counter.Generate(nCtx, tableNamePrefix)
 	if err != nil {
 		return 0, err
 	}
@@ -78,7 +81,7 @@ func (d *dao) create(nCtx contextx.IContext, accessPoint *AccessPoint) (int64, e
 func (d *dao) createMany(nCtx contextx.IContext, accessPoints []*AccessPoint) ([]int64, error) {
 	sequences := make([]int64, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
-		newSequences, err := d.counter.Generate(nCtx, TableName())
+		newSequences, err := d.counter.Generate(nCtx, tableNamePrefix)
 		if err != nil {
 			return nil, err
 		}
@@ -106,8 +109,8 @@ func (d *dao) createMany(nCtx contextx.IContext, accessPoints []*AccessPoint) ([
 	return sequences, nil
 }
 
-func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, accessPoints []*AccessPoint) error {
-	models := buildUpdateManyParams(tenantID, accessPoints)
+func (d *dao) updateMany(nCtx contextx.IContext, accessPoints []*AccessPoint) error {
+	models := buildUpdateManyParams(accessPoints)
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -121,8 +124,8 @@ func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, accessPoints [
 	return nil
 }
 
-func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, accessPointIDs ...int64) error {
-	models := buildDeleteManyParams(tenantID, accessPointIDs...)
+func (d *dao) deleteMany(nCtx contextx.IContext, accessPointIDs ...int64) error {
+	models := buildDeleteManyParams(accessPointIDs...)
 
 	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
@@ -137,13 +140,12 @@ func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, accessPointIDs
 }
 
 // buildUpdateManyParams build update many params.
-func buildUpdateManyParams(tenantID string, accessPoints []*AccessPoint) []mongo.WriteModel {
+func buildUpdateManyParams(accessPoints []*AccessPoint) []mongo.WriteModel {
 	models := make([]mongo.WriteModel, 0)
 
 	for _, accessPoint := range accessPoints {
 		filter := append(base.AliveFilter(),
-			bson.E{Key: FieldKeyAccessPointID, Value: accessPoint.AccessPointID},
-			bson.E{Key: FieldKeyTenantID, Value: tenantID})
+			bson.E{Key: FieldKeyAccessPointID, Value: accessPoint.AccessPointID})
 
 		update := base.BuildUpsertParam(accessPoint)
 
@@ -154,16 +156,11 @@ func buildUpdateManyParams(tenantID string, accessPoints []*AccessPoint) []mongo
 }
 
 // buildDeleteManyParams build delete many params.
-func buildDeleteManyParams(tenantID string, accessPointIDs ...int64) []mongo.WriteModel {
+func buildDeleteManyParams(accessPointIDs ...int64) []mongo.WriteModel {
 	filter := bson.D{
-		bson.E{Key: FieldKeyAccessPointID, Value: bson.D{{Key: "$in", Value: accessPointIDs}}},
-		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
+		bson.E{Key: FieldKeyAccessPointID, Value: bson.D{{Key: "$in", Value: accessPointIDs}}}}
 
 	update := base.BuildDeleteParam()
 
 	return []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update).SetUpsert(false)}
-}
-
-func tenantFilter(tenantID string) bson.E {
-	return bson.E{Key: FieldKeyTenantID, Value: tenantID}
 }
