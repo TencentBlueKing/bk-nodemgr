@@ -690,6 +690,7 @@ func (c *cli) createDefaultNetworkUnits(
 	ctx contextx.IContext,
 	req *protoBackend.TopoNetworkUnitCreateDefaultMultiReq,
 ) (*protoBackend.TopoNetworkUnitCreateDefaultMultiResp, error) {
+
 	resp := new(protoBackend.TopoNetworkUnitCreateDefaultMultiResp)
 	header := c.getHeader(ctx)
 

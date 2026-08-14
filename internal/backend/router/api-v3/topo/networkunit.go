@@ -95,6 +95,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to create default networkunits, failed to decode request body",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -107,6 +108,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 		logger.G.Biz(rCtx).WithErr(authErr).Error(
 			"failed to create default networkunits, permission denied",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
@@ -118,6 +120,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 		logger.G.Biz(rCtx).WithErr(authErr).Error(
 			"failed to create default networkunits, upstream networkunit permission denied",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.PermissionDenied, authErr)
 	}
 
@@ -125,6 +128,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to create default networkunits, invalid upstream",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -156,6 +160,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 func (h *handler) validateDefaultNetworkUnitUpstream(
 	rCtx restserver.IContext, upstream types.Link,
 ) error {
+
 	upstreamNetworkUnit, err := h.storage.GetNetworkUnit(rCtx, upstream.NetworkUnitID)
 	if err != nil {
 		if errors.Is(err, base.ErrRecordNoFound()) {
@@ -195,6 +200,7 @@ func (h *handler) createDefaultNetworkUnit(
 	param types.NetworkUnitCreateDefaultMultiParam,
 	networkAreaID int64,
 ) *types.NetworkUnitCreateDefaultMultiResultItem {
+
 	result := &types.NetworkUnitCreateDefaultMultiResultItem{
 		NetworkAreaID: networkAreaID,
 	}
@@ -223,6 +229,7 @@ func (h *handler) createDefaultNetworkUnitInArea(
 	param types.NetworkUnitCreateDefaultMultiParam,
 	networkAreaID int64,
 ) (int64, error) {
+
 	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
 	if err != nil {
 		if errors.Is(err, base.ErrRecordNoFound()) {

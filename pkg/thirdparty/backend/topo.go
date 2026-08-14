@@ -474,6 +474,7 @@ func (h *Handler) CreateDefaultNetworkUnits(
 	nCtx contextx.IContext,
 	param types.NetworkUnitCreateDefaultMultiParam,
 ) (*types.NetworkUnitCreateDefaultMultiResult, error) {
+
 	req := new(protoBackend.TopoNetworkUnitCreateDefaultMultiReq)
 	req.ConvertFromTypes(param)
 

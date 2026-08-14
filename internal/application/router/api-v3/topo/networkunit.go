@@ -71,6 +71,7 @@ func (h *handler) CreateDefaultNetworkUnits(rCtx restserver.IContext) (interface
 		logger.G.Biz(rCtx).WithErr(err).Error(
 			"failed to create default networkunits, failed to decode request body",
 		)
+
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
