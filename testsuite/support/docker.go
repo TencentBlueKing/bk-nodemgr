@@ -9,11 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/strslice"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/errdefs"
+	"github.com/containerd/errdefs"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -69,25 +67,21 @@ func startDockerHostContainerWithConfig(t testing.TB, cfg dockerHostContainerCon
 		t.Fatalf("ensure Docker image %s: %v", cfg.Image, err)
 	}
 
-	created, err := dockerClient.ContainerCreate(
-		ctx,
-		&container.Config{
+	created, err := dockerClient.ContainerCreate(ctx, client.ContainerCreateOptions{
+		Config: &container.Config{
 			Image:      cfg.Image,
 			Env:        dockerContainerEnv(cfg.Env),
-			Entrypoint: strslice.StrSlice(cfg.Entrypoint),
-			Cmd:        strslice.StrSlice(cfg.Cmd),
+			Entrypoint: cfg.Entrypoint,
+			Cmd:        cfg.Cmd,
 		},
-		&container.HostConfig{NetworkMode: container.NetworkMode(DockerNetworkHost)},
-		nil,
-		nil,
-		"",
-	)
+		HostConfig: &container.HostConfig{NetworkMode: container.NetworkMode(DockerNetworkHost)},
+	})
 	if err != nil {
 		closeDockerClient(t, dockerClient)
 		t.Fatalf("create Docker host-network container %s: %v", cfg.Image, err)
 	}
 
-	if err := dockerClient.ContainerStart(ctx, created.ID, container.StartOptions{}); err != nil {
+	if _, err := dockerClient.ContainerStart(ctx, created.ID, client.ContainerStartOptions{}); err != nil {
 		cleanupDockerHostContainer(t, dockerClient, created.ID)
 		t.Fatalf("start Docker host-network container %s: %v", cfg.Image, err)
 	}
@@ -103,7 +97,7 @@ func cleanupDockerHostContainer(t testing.TB, dockerClient *client.Client, conta
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := dockerClient.ContainerRemove(ctx, containerID, container.RemoveOptions{Force: true}); err != nil && !errdefs.IsNotFound(err) {
+	if _, err := dockerClient.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{Force: true}); err != nil && !errdefs.IsNotFound(err) {
 		t.Errorf("remove Docker host-network container %s: %v", containerID, err)
 	}
 	closeDockerClient(t, dockerClient)
@@ -144,7 +138,7 @@ func ensureDockerImage(ctx context.Context, dockerClient *client.Client, imageNa
 		return err
 	}
 
-	reader, err := dockerClient.ImagePull(ctx, imageName, image.PullOptions{})
+	reader, err := dockerClient.ImagePull(ctx, imageName, client.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
