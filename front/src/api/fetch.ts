@@ -54,6 +54,10 @@ interceptors.response.use(async (response: Response, config: Config) => {
           overview: showMessageData,
           suggestion: '',
           type: 'key-value',
+          details: {
+            code: res.status ?? res.code,
+            'Traceid': response.headers.get('Traceid'),
+          },
         },
       });
       return Promise.reject(resData);
@@ -74,6 +78,7 @@ interceptors.response.use(async (response: Response, config: Config) => {
         code: res.code,
         message: res.error?.details?.[0]?.message ?? showMessageData,
         url: response.url,
+        'Traceid': response.headers.get('Traceid'),
       },
     };
     Message({
