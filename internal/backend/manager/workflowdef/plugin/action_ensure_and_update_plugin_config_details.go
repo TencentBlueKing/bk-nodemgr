@@ -182,6 +182,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 		if tpl.IsMainConfig && mainTemplate == nil {
 			mainTemplate = &types.PluginConfigDetail{
 				Name:         tpl.Name,
+				TemplateName: tpl.Name,
 				Content:      tpl.SourceContent,
 				IsMainConfig: tpl.IsMainConfig,
 				FilePath:     splitPathAndCombineByOS(tpl.FilePath, pluginRelease.Platform.OS),
@@ -190,15 +191,17 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 	}
 
 	for idx, detail := range pluginConf.ConfigFilesDetail {
-		tpl, ok := templateMap[detail.Name]
+		tpl, ok := templateMap[detail.TemplateName]
 		if !ok {
-			std.InstanceData().Log().Zh("未匹配到模板, config-file-name(%s), plugin-name(%s)", detail.Name, pluginRelease.Name).
-				En("no matched template, config-file-name(%s), plugin-name(%s)", detail.Name, pluginRelease.Name).
+			std.InstanceData().Log().Zh("未匹配到模板, template-name(%s), plugin-name(%s)", detail.TemplateName, pluginRelease.Name).
+				En("no matched template, template-name(%s), plugin-name(%s)", detail.TemplateName, pluginRelease.Name).
 				Error()
 
-			return fmt.Errorf("no matched template for config detail, name(%s)", detail.Name)
+			return fmt.Errorf("no matched template for config detail, template-name(%s)", detail.TemplateName)
 		}
 
+		pluginConf.ConfigFilesDetail[idx].Name = tpl.Name
+		pluginConf.ConfigFilesDetail[idx].TemplateName = tpl.Name
 		pluginConf.ConfigFilesDetail[idx].Content = tpl.SourceContent
 		pluginConf.ConfigFilesDetail[idx].IsMainConfig = tpl.IsMainConfig
 		pluginConf.ConfigFilesDetail[idx].FilePath = splitPathAndCombineByOS(tpl.FilePath, pluginRelease.Platform.OS)

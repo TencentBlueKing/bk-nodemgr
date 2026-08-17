@@ -173,6 +173,7 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 		if condition.ExactInclude != nil {
 			opts = append(opts,
 				daoProcessConfig.WithName(condition.ExactInclude.Name...),
+				daoProcessConfig.WithTemplateName(condition.ExactInclude.TemplateName...),
 				daoProcessConfig.WithProcessName(condition.ExactInclude.ProcessName...),
 				daoProcessConfig.WithHostID(condition.ExactInclude.HostID...),
 				daoProcessConfig.WithIsMainConfig(condition.ExactInclude.IsMainConfig...),
@@ -186,6 +187,7 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 		if condition.ExactExclude != nil {
 			opts = append(opts,
 				daoProcessConfig.WithoutName(condition.ExactExclude.Name...),
+				daoProcessConfig.WithoutTemplateName(condition.ExactExclude.TemplateName...),
 				daoProcessConfig.WithoutProcessName(condition.ExactExclude.ProcessName...),
 				daoProcessConfig.WithoutHostID(condition.ExactExclude.HostID...),
 			)

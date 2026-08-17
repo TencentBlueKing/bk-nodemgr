@@ -54,6 +54,9 @@ type PluginConfigDetail struct {
 	// Name is the config file name.
 	Name string
 
+	// TemplateName is the original plugin template config name.
+	TemplateName string
+
 	// Content is the config file content.
 	Content string
 
@@ -180,7 +183,9 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 			CustomConfigContext: param.CustomConfigContext,
 		}
 		for _, item := range param.ConfigName {
-			conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{Name: item})
+			conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{
+				TemplateName: item,
+			})
 		}
 
 		deploymentInfo := &PluginDeploymentInfo{

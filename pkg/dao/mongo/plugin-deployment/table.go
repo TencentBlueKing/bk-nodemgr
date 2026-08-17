@@ -150,6 +150,7 @@ type PluginConf struct {
 // configDetail defines the plugin config detail.
 type configDetail struct {
 	Name         string `json:"name" bson:"name"`
+	TemplateName string `json:"template_name" bson:"template_name"`
 	Content      string `json:"content" bson:"content"`
 	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
 	FilePath     string `json:"file_path" bson:"file_path"`

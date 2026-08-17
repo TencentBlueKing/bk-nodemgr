@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -27,16 +28,33 @@ func Test_convProcessConfigCustomConfigContext(t *testing.T) {
 
 	config := convProcessConfigFromTypes(&types.ProcessConfig{
 		Name:                "test-process-config-name",
+		TemplateName:        "test-template-name",
 		ProcessName:         "test-process-name",
 		HostID:              2,
 		CustomConfigContext: want,
 	})
+	if config.TemplateName != "test-template-name" {
+		t.Fatalf("convProcessConfigFromTypes() TemplateName = %q, want %q", config.TemplateName, "test-template-name")
+	}
 	if !reflect.DeepEqual(config.CustomConfigContext, want) {
 		t.Fatalf("convProcessConfigFromTypes() CustomConfigContext = %v, want %v", config.CustomConfigContext, want)
 	}
 
 	got := convProcessConfigToTypes(config)
+	if got.TemplateName != "test-template-name" {
+		t.Fatalf("convProcessConfigToTypes() TemplateName = %q, want %q", got.TemplateName, "test-template-name")
+	}
 	if !reflect.DeepEqual(got.CustomConfigContext, want) {
 		t.Fatalf("convProcessConfigToTypes() CustomConfigContext = %v, want %v", got.CustomConfigContext, want)
+	}
+}
+
+func TestWithTemplateName(t *testing.T) {
+	filter := WithTemplateName("template.conf")(base.AliveFilter())
+	if len(filter) != 2 {
+		t.Fatalf("WithTemplateName() filter len = %d, want %d", len(filter), 2)
+	}
+	if filter[1].Key != FieldKeyTemplateName {
+		t.Fatalf("WithTemplateName() key = %q, want %q", filter[1].Key, FieldKeyTemplateName)
 	}
 }

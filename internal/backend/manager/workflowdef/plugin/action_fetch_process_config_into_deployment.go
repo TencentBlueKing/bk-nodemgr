@@ -135,6 +135,7 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 	configDetails := conv.SliceToSlice(processConfigs, func(processConfig *types.ProcessConfig) *types.PluginConfigDetail {
 		return &types.PluginConfigDetail{
 			Name:         processConfig.Name,
+			TemplateName: processConfig.TemplateName,
 			Content:      processConfig.Content,
 			IsMainConfig: processConfig.IsMainConfig,
 			FilePath:     processConfig.FilePath,

@@ -220,6 +220,7 @@ func convProcessConfigToTypes(config *ProcessConfig) *types.ProcessConfig {
 
 	return &types.ProcessConfig{
 		Name:                config.Name,
+		TemplateName:        config.TemplateName,
 		ProcessName:         config.ProcessName,
 		HostID:              config.HostID,
 		IsMainConfig:        config.IsMainConfig,
@@ -238,6 +239,7 @@ func convProcessConfigFromTypes(config *types.ProcessConfig) *ProcessConfig {
 
 	return &ProcessConfig{
 		Name:                config.Name,
+		TemplateName:        config.TemplateName,
 		ProcessName:         config.ProcessName,
 		HostID:              config.HostID,
 		IsMainConfig:        config.IsMainConfig,

@@ -29,6 +29,16 @@ func WithoutName(names ...string) OptFn {
 	return base.WithoutValues(FieldKeyName, names...)
 }
 
+// WithTemplateName filters by template name.
+func WithTemplateName(templateNames ...string) OptFn {
+	return base.WithValues(FieldKeyTemplateName, templateNames...)
+}
+
+// WithoutTemplateName filters by no contains template name.
+func WithoutTemplateName(templateNames ...string) OptFn {
+	return base.WithoutValues(FieldKeyTemplateName, templateNames...)
+}
+
 // WithProcessName filters by process name.
 func WithProcessName(processNames ...string) OptFn {
 	return base.WithValues(FieldKeyProcessName, processNames...)

@@ -767,6 +767,7 @@ type ProcessCondition struct {
 // support includes and excludes.
 type ProcessConfigExactFields struct {
 	Name         []string
+	TemplateName []string
 	ProcessName  []string
 	HostID       []int64
 	IsMainConfig []bool

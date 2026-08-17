@@ -14,6 +14,9 @@ const (
 	// FieldKeyName process config field name.
 	FieldKeyName = "data.name"
 
+	// FieldKeyTemplateName process config field template name.
+	FieldKeyTemplateName = "data.template_name"
+
 	// FieldKeyProcessName process config field process name.
 	FieldKeyProcessName = "data.process_name"
 

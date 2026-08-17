@@ -303,6 +303,7 @@ type ProcessAgentGroup struct {
 // ProcessConfig process configuration.
 type ProcessConfig struct {
 	Name                string
+	TemplateName        string
 	ProcessName         string
 	HostID              int64
 	IsMainConfig        bool

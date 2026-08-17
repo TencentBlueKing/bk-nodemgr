@@ -135,6 +135,7 @@ func (act *actionOverwritePluginConfigForCompatibility) Do(ctx *action.InstanceC
 	for _, detail := range pluginConf.ConfigFilesDetail {
 		configs = append(configs, &types.ProcessConfig{
 			Name:                detail.Name,
+			TemplateName:        detail.TemplateName,
 			ProcessName:         std.DeployInfo().Process.PluginName,
 			HostID:              std.DeployInfo().Process.HostID,
 			IsMainConfig:        detail.IsMainConfig,

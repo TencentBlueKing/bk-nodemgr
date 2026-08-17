@@ -560,6 +560,7 @@ func convertPluginConfigDetailsFromTypes(details ...*types.PluginConfigDetail) [
 
 		configDetails = append(configDetails, configDetail{
 			Name:         detail.Name,
+			TemplateName: detail.TemplateName,
 			Content:      detail.Content,
 			IsMainConfig: detail.IsMainConfig,
 			FilePath:     detail.FilePath,
@@ -574,6 +575,7 @@ func convertPluginConfigDetailsToTypes(details ...configDetail) []*types.PluginC
 	for _, detail := range details {
 		configDetails = append(configDetails, &types.PluginConfigDetail{
 			Name:         detail.Name,
+			TemplateName: detail.TemplateName,
 			Content:      detail.Content,
 			IsMainConfig: detail.IsMainConfig,
 			FilePath:     detail.FilePath,

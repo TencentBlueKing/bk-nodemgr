@@ -280,3 +280,27 @@ func TestHandler_UpdateInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestConvertPluginConfigDetailsTemplateName(t *testing.T) {
+	configDetails := convertPluginConfigDetailsFromTypes(&types.PluginConfigDetail{
+		Name:         "test-config-name",
+		TemplateName: "test-template-name",
+		Content:      "test-content",
+		IsMainConfig: true,
+		FilePath:     "etc/test.conf",
+	})
+	if len(configDetails) != 1 {
+		t.Fatalf("convertPluginConfigDetailsFromTypes() length = %d, want %d", len(configDetails), 1)
+	}
+	if configDetails[0].TemplateName != "test-template-name" {
+		t.Fatalf("convertPluginConfigDetailsFromTypes() TemplateName = %q, want %q", configDetails[0].TemplateName, "test-template-name")
+	}
+
+	got := convertPluginConfigDetailsToTypes(configDetails...)
+	if len(got) != 1 {
+		t.Fatalf("convertPluginConfigDetailsToTypes() length = %d, want %d", len(got), 1)
+	}
+	if got[0].TemplateName != "test-template-name" {
+		t.Fatalf("convertPluginConfigDetailsToTypes() TemplateName = %q, want %q", got[0].TemplateName, "test-template-name")
+	}
+}
