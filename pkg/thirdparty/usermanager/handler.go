@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	tenantpkg "github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -64,7 +65,9 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 
 // ListALLTenants implement IHandler.
 func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
-	resp, err := h.cli.listTenant(nCtx)
+	// Tenant listing is a platform-level bk-user call; hold the system tenant to avoid caller-tenant permission denial.
+	systemTenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantpkg.SystemTenantID))
+	resp, err := h.cli.listTenant(systemTenantCtx)
 	if err != nil {
 		return nil, err
 	}
