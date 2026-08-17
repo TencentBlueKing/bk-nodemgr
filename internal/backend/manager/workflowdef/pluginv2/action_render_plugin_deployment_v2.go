@@ -122,9 +122,9 @@ func (act *actionRenderPluginDeploymentV2) Do(ctx *action.InstanceContext) error
 		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	version := std.DeployInfo().Process.Info.Version
+	version := std.DeployInfo().InstallOptions.Version
 	if version == "" {
-		version = std.DeployInfo().InstallOptions.Version
+		version = std.DeployInfo().Process.Info.Version
 	}
 
 	// setting process by plugin.
