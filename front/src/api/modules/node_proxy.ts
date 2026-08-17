@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeProxyAssignUnitMultiReq, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyUpdateOpsFieldsReq, NodeProxyUpdateOpsFieldsResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, UploadProxyInstallTemplateReq, UploadProxyInstallTemplateResp } from '@/@types/node_proxy';
+import type { NodeProxyInstallReq, NodeProxyInstallResp, NodeProxyUpgradeReq, NodeProxyUpgradeResp, NodeProxyRestartReq, NodeProxyRestartResp, NodeProxyReconfigReq, NodeProxyReconfigResp, NodeProxyUpdateReq, NodeProxyUpdateResp, NodeProxyUpdateOpsFieldsReq, NodeProxyUpdateOpsFieldsResp, NodeProxyUninstallReq, NodeProxyUninstallResp, NodeProxyInstallCheckReq, NodeProxyInstallCheckResp, NodeProxyUpgradeCheckReq, NodeProxyUpgradeCheckResp, NodeProxyAssignUnitReq, NodeProxyAssignUnitResp, NodeProxyAssignUnitMultiReq, UploadProxyInstallTemplateReq, UploadProxyInstallTemplateResp } from '@/@types/node_proxy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

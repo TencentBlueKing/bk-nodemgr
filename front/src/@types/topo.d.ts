@@ -846,7 +846,7 @@ export interface TopoNetworkUnitCreateDefaultMultiReq {
 export interface TopoNetworkUnitCreateDefaultMultiRespResult {
   bk_networkarea_id: number;
   success: boolean;
-  bk_networkunit_id?: number;
+  bk_networkunit_id: number;
   error_code: string;
   message: string;
 }

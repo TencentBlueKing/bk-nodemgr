@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeAgentAssignUnitMultiReq, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentUpdateOpsFieldsReq, NodeAgentUpdateOpsFieldsResp, NodeAgentUpgradeCheckReq, NodeAgentUpgradeCheckResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, UploadAgentInstallTemplateReq, UploadAgentInstallTemplateResp } from '@/@types/node_agent';
+import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentUpgradeReq, NodeAgentUpgradeResp, NodeAgentRestartReq, NodeAgentRestartResp, NodeAgentReconfigReq, NodeAgentReconfigResp, NodeAgentUninstallReq, NodeAgentUninstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, NodeAgentUpgradeCheckReq, NodeAgentUpgradeCheckResp, UploadAgentInstallTemplateReq, UploadAgentInstallTemplateResp, NodeAgentAssignUnitReq, NodeAgentAssignUnitResp, NodeAgentAssignUnitMultiReq, NodeAgentUpdateOpsFieldsReq, NodeAgentUpdateOpsFieldsResp } from '@/@types/node_agent';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({

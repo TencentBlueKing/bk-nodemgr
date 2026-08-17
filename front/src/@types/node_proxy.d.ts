@@ -338,7 +338,7 @@ export interface NodeProxyAssignUnitRespData {
 // NodeProxyAssignUnitMultiReq describes the request body for batch-assigning
 // multiple network units to proxy hosts.
 export interface NodeProxyAssignUnitMultiReq {
-  items: NodeProxyAssignUnitMultiReqItem[];
+  items: Item[];
 }
 
 export interface NodeProxyAssignUnitMultiReqItem {

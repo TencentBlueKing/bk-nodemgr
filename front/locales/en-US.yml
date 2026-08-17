@@ -927,7 +927,7 @@ agentStrategy:
     sortConfig: Strategy Sort
     previewStrategy: Strategy Match
     previewConfig: Preview Config
-    selectIP: Extra Target IP
+    selectIP: Preview Target
     selectIPTip: Independent IPs on top of the configured scope
     previewMatchStrategy: Preview Matched Strategy
     matchedPolicy: Matched Policy

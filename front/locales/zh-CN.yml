@@ -930,7 +930,7 @@ agentStrategy:
     sortConfig: 策略排序
     previewStrategy: 策略匹配
     previewConfig: 预览配置
-    selectIP: 额外作用IP
+    selectIP: 预览目标
     selectIPTip: 在作用范围基础上，额外作用的独立IP
     previewMatchStrategy: 预览匹配策略
     matchedPolicy: 匹配策略
