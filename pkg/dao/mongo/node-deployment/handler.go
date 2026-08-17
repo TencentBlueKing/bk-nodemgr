@@ -63,7 +63,11 @@ func (h *Handler) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*
 	filter = WithToken(token)(filter)
 	data, err := h.dao.Get(nCtx, filter, FieldKeyInfo)
 	if err != nil {
-		return nil, base.ErrRecordNoFound()
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, base.ErrRecordNoFound()
+		}
+
+		return nil, err
 	}
 
 	return convertDeploymentInfoToTypes(data.Info)
@@ -312,7 +316,11 @@ func (h *Handler) GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string
 	filter = WithToken(token)(filter)
 	data, err := h.dao.Get(nCtx, filter, FieldKeyNodeConf)
 	if err != nil {
-		return nil, base.ErrRecordNoFound()
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, base.ErrRecordNoFound()
+		}
+
+		return nil, err
 	}
 
 	return convertNodeConfToTypes(data.NodeConf)
