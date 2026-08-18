@@ -12,6 +12,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -83,6 +84,8 @@ type Request struct {
 	subPath string
 	// sub path format args
 	subPathArgs []interface{}
+	subPathSet  bool
+	targetURL   *url.URL
 
 	// request timeout value
 	timeout time.Duration
@@ -159,8 +162,53 @@ func (r *Request) WithTimeout(d time.Duration) *Request {
 	return r
 }
 
+// WithURL sets the complete target URL for this request.
+// It bypasses endpoint discovery, client baseURL, and SubResourcef path joining,
+// while preserving client transport, tracing, metrics, retry, masking, timeout,
+// headers, context, and body handling.
+func (r *Request) WithURL(u *url.URL) *Request {
+	if r.err != nil {
+		return r
+	}
+
+	if r.subPathSet {
+		r.err = errors.New("target URL cannot be used with sub resource")
+		return r
+	}
+
+	if u == nil {
+		r.err = errors.New("target URL is nil")
+		return r
+	}
+
+	if u.Scheme == "" {
+		r.err = errors.New("target URL scheme is empty")
+		return r
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		r.err = fmt.Errorf("unsupported target URL scheme %s", u.Scheme)
+		return r
+	}
+
+	if u.Host == "" {
+		r.err = errors.New("target URL host is empty")
+		return r
+	}
+
+	targetURL := *u
+	r.targetURL = &targetURL
+
+	return r
+}
+
 // SubResourcef add subPath and subPath's args to request.
 func (r *Request) SubResourcef(subPath string, args ...interface{}) *Request {
+	if r.targetURL != nil {
+		r.err = errors.New("target URL cannot be used with sub resource")
+		return r
+	}
+
 	r.subPathArgs = args
 
 	return r.subResource(subPath)
@@ -168,8 +216,14 @@ func (r *Request) SubResourcef(subPath string, args ...interface{}) *Request {
 
 // subResource add subPath to request.
 func (r *Request) subResource(subPath string) *Request {
+	if r.targetURL != nil {
+		r.err = errors.New("target URL cannot be used with sub resource")
+		return r
+	}
+
 	subPath = strings.TrimLeft(subPath, "/")
 	r.subPath = subPath
+	r.subPathSet = true
 
 	return r
 }
@@ -278,6 +332,40 @@ func (r *Request) fullURL(endpoint string) *url.URL {
 	finalURL.RawQuery = query.Encode()
 
 	return finalURL
+}
+
+func (r *Request) fullTargetURL() *url.URL {
+	finalURL := *r.targetURL
+	query := finalURL.Query()
+	for key, values := range r.params {
+		for _, value := range values {
+			query.Add(key, value)
+		}
+	}
+
+	if r.timeout != 0 {
+		query.Set("timeout", r.timeout.String())
+	}
+
+	finalURL.RawQuery = query.Encode()
+
+	return &finalURL
+}
+
+func (r *Request) requestPath() string {
+	if r.targetURL != nil {
+		return r.targetURL.EscapedPath()
+	}
+
+	return fmt.Sprintf(r.subPath, r.subPathArgs...)
+}
+
+func (r *Request) requestBaseURL() string {
+	if r.targetURL != nil {
+		return r.targetURL.Scheme + "://" + r.targetURL.Host
+	}
+
+	return r.baseURL
 }
 
 // checkToleranceLatency check request toleranceLatency.
@@ -439,29 +527,12 @@ func (r *Request) Do() (result *Result) {
 		httpClient = http.DefaultClient
 	}
 
-	endpoints, err := r.capability.Discover.GetEndpoints()
-	if err != nil {
-		return &Result{
-			Err: err,
-		}
-	}
-
-	// tracing
-	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
-	traceCtx, span := tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, fmt.Sprintf(r.subPath, r.subPathArgs...)),
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(
-			attribute.String(attributeHTTPRequestBaseURL, r.baseURL),
-			attribute.String(attributeHTTPRequestBoby, r.maskRequestBody()),
-			attribute.String(attributeHTTPRequestHeader, r.maskHeader(r.headers)),
-		),
-	)
+	traceCtx, span := r.startTrace()
 	defer func() {
 		span.SetAttributes(
 			attribute.Int(attributeHTTPResponseStatusCode, result.StatusCode),
 		)
 
-		// Set span status based on HTTP status code
 		if result.StatusCode >= http.StatusBadRequest {
 			span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", result.StatusCode))
 		} else {
@@ -471,6 +542,17 @@ func (r *Request) Do() (result *Result) {
 		span.End()
 	}()
 
+	if r.targetURL != nil {
+		return r.doWithTargetURL(httpClient, traceCtx)
+	}
+
+	endpoints, err := r.capability.Discover.GetEndpoints()
+	if err != nil {
+		return &Result{
+			Err: err,
+		}
+	}
+
 	for try := 0; try < r.client.maxRetryCycle; try++ {
 		for index, endpoint := range endpoints {
 			fullURL := r.fullURL(endpoint).String()
@@ -479,15 +561,49 @@ func (r *Request) Do() (result *Result) {
 				return &Result{Err: err}
 			}
 
-			// inject trace context.
 			req = req.WithContext(traceCtx)
 			r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
 
 			var isComplete bool
-			result, isComplete = r.doWithEndpoint(httpClient, req, try+index)
+			result, isComplete = r.doWithEndpoint(httpClient, req, try+index, r.subPath)
 			if isComplete {
 				return result
 			}
+		}
+	}
+
+	return &Result{
+		Err: errors.New("request unexpected error"),
+	}
+}
+
+func (r *Request) startTrace() (context.Context, trace.Span) {
+	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
+	return tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, r.requestPath()),
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String(attributeHTTPRequestBaseURL, r.requestBaseURL()),
+			attribute.String(attributeHTTPRequestBoby, r.maskRequestBody()),
+			attribute.String(attributeHTTPRequestHeader, r.maskHeader(r.headers)),
+		),
+	)
+}
+
+func (r *Request) doWithTargetURL(httpClient HTTPClient, traceCtx context.Context) *Result {
+	requestPath := r.requestPath()
+	for try := 0; try < r.client.maxRetryCycle; try++ {
+		fullURL := r.fullTargetURL().String()
+		req, err := r.getRequest(fullURL)
+		if err != nil {
+			return &Result{Err: err}
+		}
+
+		req = req.WithContext(traceCtx)
+		r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
+
+		result, isComplete := r.doWithEndpoint(httpClient, req, try, requestPath)
+		if isComplete {
+			return result
 		}
 	}
 
@@ -500,7 +616,7 @@ func (r *Request) Do() (result *Result) {
 const retryDelay = 20 * time.Millisecond
 
 // doWithEndpoint http request do with specific host.
-func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries int) (*Result, bool) {
+func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries int, requestPath string) (*Result, bool) {
 	if retries > 0 {
 		r.tryThrottle(req.URL.String())
 	}
@@ -527,7 +643,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries i
 	}
 
 	// collect request metrics.
-	r.client.metrics.HandleClientMetrics(req, resp, r.subPath, start)
+	r.client.metrics.HandleClientMetrics(req, resp, requestPath, start)
 
 	// record latency if needed
 	r.checkToleranceLatency(&start, req.URL.String())
