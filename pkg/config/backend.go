@@ -118,6 +118,10 @@ const (
 	defaultBackendUserManagerTraceServiceName = "backend-client-usermanager"
 	defaultBackendIEGTJJTraceServiceName      = "backend-client-iegtjj"
 	defaultBackendIAMV3TraceServiceName       = "backend-client-iam-v3"
+	defaultBackendMonitorTraceServiceName     = "backend-client-monitor"
+
+	defaultBackendAgentBaseAlarmEventDataID = 1000
+	defaultBackendTaskProcEventDataID       = 1100008
 )
 
 // BackendService the config of backend service.
@@ -129,6 +133,8 @@ type BackendService struct {
 	GSE                GSE              `yaml:"gse" usage:"gse config of backend service"`
 	UserManager        UserManager      `yaml:"userManager" usage:"user manager config of backend service"`
 	IAMV3              IAMV3            `yaml:"iamV3" usage:"IAM v3 gateway config"`
+	Monitor            Monitor          `yaml:"monitor" usage:"monitor gateway config"`
+	NodeEventDataID    NodeEventDataID  `yaml:"nodeEventDataID" usage:"node event data-id config"`
 	Workflow           Workflow         `yaml:"workflow" usage:"workflow config of backend service"`
 	InfoServer         HTTPServer       `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer       `yaml:"adminServer" usage:"admin server config of backend service"`
@@ -209,6 +215,19 @@ func NewBackendService() *BackendService {
 				TraceService: TraceService{
 					TraceServiceName: defaultBackendIAMV3TraceServiceName,
 				},
+			},
+		},
+		Monitor: Monitor{
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendMonitorTraceServiceName,
+				},
+			},
+		},
+		NodeEventDataID: NodeEventDataID{
+			Default: NodeEventDataIDConf{
+				AgentBaseAlarmEventDataID: defaultBackendAgentBaseAlarmEventDataID,
+				TaskProcEventDataID:       defaultBackendTaskProcEventDataID,
 			},
 		},
 		Workflow: Workflow{
@@ -453,6 +472,14 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate IAM v3 config: %w", err)
 	}
 
+	if err := svc.Monitor.Validate(); err != nil {
+		return fmt.Errorf("failed to validate monitor config: %w", err)
+	}
+
+	if err := svc.NodeEventDataID.Validate(); err != nil {
+		return fmt.Errorf("failed to validate node event data-id config: %w", err)
+	}
+
 	if svc.EncryptKey == "" {
 		return fmt.Errorf("failed to validate encrypt key config: encrypt key is empty")
 	}
@@ -473,6 +500,58 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.Profiling.Validate(); err != nil {
 		return fmt.Errorf("failed to validate profiling config: %w", err)
+	}
+
+	return nil
+}
+
+// Monitor defines the monitor gateway configuration.
+type Monitor struct {
+	Enabled          bool `yaml:"enabled" usage:"enable monitor event data-id integration"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of monitor"`
+}
+
+// Validate validates the monitor config.
+func (conf Monitor) Validate() error {
+	if !conf.Enabled {
+		return nil
+	}
+
+	if err := conf.APIGatewayClient.Validate(); err != nil {
+		return fmt.Errorf("failed to validate monitor api gateway config: %w", err)
+	}
+
+	return nil
+}
+
+// NodeEventDataID defines node event data-id configuration.
+type NodeEventDataID struct {
+	Default NodeEventDataIDConf `yaml:"default" usage:"global default node event data-id config"`
+}
+
+// Validate validates the node event data-id config.
+func (conf NodeEventDataID) Validate() error {
+	if err := conf.Default.Validate(); err != nil {
+		return fmt.Errorf("failed to validate default node event data-id config: %w", err)
+	}
+
+	return nil
+}
+
+// NodeEventDataIDConf defines a pair of node event data IDs.
+type NodeEventDataIDConf struct {
+	AgentBaseAlarmEventDataID int64 `yaml:"agentBaseAlarmEventDataID" usage:"agent base alarm event data-id"`
+	TaskProcEventDataID       int64 `yaml:"taskProcEventDataID" usage:"task process event data-id"`
+}
+
+// Validate validates the node event data-id pair.
+func (conf NodeEventDataIDConf) Validate() error {
+	if conf.AgentBaseAlarmEventDataID <= 0 {
+		return fmt.Errorf("agentBaseAlarmEventDataID must be positive, got %d", conf.AgentBaseAlarmEventDataID)
+	}
+
+	if conf.TaskProcEventDataID <= 0 {
+		return fmt.Errorf("taskProcEventDataID must be positive, got %d", conf.TaskProcEventDataID)
 	}
 
 	return nil

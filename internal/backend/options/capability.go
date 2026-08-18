@@ -24,6 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth/provider"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -48,6 +49,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/redis/go-redis/v9"
@@ -86,6 +88,9 @@ type Capability struct {
 	// StorageGlobalSettings global settings storage.
 	StorageGlobalSettings globalsettingsStorage.IStorage
 
+	// StorageBizEventDataIDConf business event data-id config storage.
+	StorageBizEventDataIDConf bizeventdataidconf.IStorage
+
 	// StorageCredit credit storage.
 	StorageCredit credit.IStorage
 
@@ -115,6 +120,9 @@ type Capability struct {
 
 	// IAMV3Handler the IAM v3 handler.
 	IAMV3Handler iamv3.IHandler
+
+	// MonitorHandler the monitor handler.
+	MonitorHandler monitor.IHandler
 
 	// Authorizer is the IAM authorization handler for permission checks.
 	Authorizer auth.IAuthorizer
@@ -178,6 +186,10 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 	}
 
 	if err := capability.StorageGlobalSettings.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.StorageBizEventDataIDConf.Start(ctx); err != nil {
 		return err
 	}
 

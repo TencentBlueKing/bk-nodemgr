@@ -23,6 +23,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
@@ -35,6 +36,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -44,6 +46,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 )
@@ -55,6 +58,7 @@ type Config struct {
 	GSEHandler         gse.IHandler
 	FileHandler        file.IHandler
 	UserManagerHandler usermanager.IHandler
+	MonitorHandler     monitor.IHandler
 
 	// discover provider.
 	Provider discover.IProvider
@@ -69,16 +73,20 @@ type Config struct {
 	LockerFactory locker.MutexFactory
 
 	// storages.
-	StorageTopo         topoStg.IStorage
-	StorageRelease      release.IStorage
-	StorageNode         nodeStg.IStorage
-	StorageWorkflow     workflow.IStorage
-	StoragePackage      pkgStg.IStorage
-	StoragePlugin       pluginStg.IStorage
-	StorageHostCredit   credit.IStorageHostCredit
-	StorageConfigPolicy configpolicy.IStorage
-	StorageTenant       tenant.IStorage
-	StorageDeployPolicy deploypolicy.IStorage
+	StorageTopo               topoStg.IStorage
+	StorageRelease            release.IStorage
+	StorageNode               nodeStg.IStorage
+	StorageWorkflow           workflow.IStorage
+	StoragePackage            pkgStg.IStorage
+	StoragePlugin             pluginStg.IStorage
+	StorageHostCredit         credit.IStorageHostCredit
+	StorageConfigPolicy       configpolicy.IStorage
+	StorageTenant             tenant.IStorage
+	StorageDeployPolicy       deploypolicy.IStorage
+	StorageBizEventDataIDConf bizeventdataidconf.IStorage
+
+	// node event data-id default config.
+	NodeEventDataIDConf deployconstant.NodeEventDataIDConf
 
 	// credit vault.
 	HostPasswordVault creditvault.IHostPasswordVault

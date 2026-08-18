@@ -27,6 +27,7 @@ import (
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -38,6 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -50,11 +52,14 @@ const (
 // NewActionRenderNodeDeployment get a new action.
 func NewActionRenderNodeDeployment(capability *Capability) action.Definition {
 	return &actionRenderNodeDeployment{
-		storageNodeDeployment: capability.StorageNode,
-		storageHost:           capability.StorageTopo,
-		storageDomainGse:      capability.StorageTopo,
-		storageRelease:        capability.StorageRelease,
-		storageConfigPolicy:   capability.StorageConfigPolicy,
+		storageNodeDeployment:      capability.StorageNode,
+		storageHost:                capability.StorageTopo,
+		storageDomainGse:           capability.StorageTopo,
+		storageRelease:             capability.StorageRelease,
+		storageConfigPolicy:        capability.StorageConfigPolicy,
+		storageBizEventDataIDConf:  capability.StorageBizEventDataIDConf,
+		monitorHandler:             capability.MonitorHandler,
+		defaultNodeEventDataIDConf: capability.NodeEventDataIDConf,
 	}
 }
 
@@ -64,11 +69,14 @@ type ActParamRenderNodeDeployment struct {
 }
 
 type actionRenderNodeDeployment struct {
-	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	storageHost           topoStg.IStorageHost
-	storageDomainGse      topoStg.IStorageDomainGse
-	storageRelease        release.IStorage
-	storageConfigPolicy   configpolicy.IStorage
+	storageNodeDeployment      nodeStg.IDaoNodeDeployment
+	storageHost                topoStg.IStorageHost
+	storageDomainGse           topoStg.IStorageDomainGse
+	storageRelease             release.IStorage
+	storageConfigPolicy        configpolicy.IStorage
+	storageBizEventDataIDConf  bizeventdataidconf.IStorage
+	monitorHandler             monitor.IHandler
+	defaultNodeEventDataIDConf deployconstant.NodeEventDataIDConf
 }
 
 // Name returns the name of the action.
@@ -645,16 +653,7 @@ func (act *actionRenderNodeDeployment) renderLogicSettingRuntime(std *nodeUtils.
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = std.DeployInfo().BaseRuntime.PluginIPC
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = std.DeployInfo().BaseRuntime.DataIPC
 
-	deployInfo := std.DeployInfo()
-	nodeDeployConf, err := deployconstant.GetNodeDeployConf(
-		deployInfo.Host.Dynamic.NodeGeneration,
-		deployInfo.Host.Dynamic.NodeOsType,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get node deploy conf: %w", err)
-	}
-
-	eventDataIDConf, err := nodeDeployConf.GetEventDataIDConf(std.Context().TenantID())
+	eventDataIDConf, err := act.resolveNodeEventDataIDConf(std.Context(), std.DeployInfo())
 	if err != nil {
 		return fmt.Errorf("failed to get event data-id deploy conf: %w", err)
 	}

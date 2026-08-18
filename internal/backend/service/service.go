@@ -37,6 +37,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
 	backendapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -80,6 +81,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -102,6 +104,7 @@ const (
 	clientNameIEGTJJ      = "iegtjj"
 	clientNameFile        = "file"
 	clientNameIAM         = "iam-v3"
+	clientNameMonitor     = "monitor"
 
 	mongoMaxPoolSize     = uint64(500)
 	mongoMinPoolSize     = uint64(5)
@@ -306,6 +309,12 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.IAMV3Handler, err = svc.newIAMV3Handler()
 	if err != nil {
 		return fmt.Errorf("failed to create IAM v3 handler: %w", err)
+	}
+
+	// initial monitor handler.
+	svc.Cap.MonitorHandler, err = svc.newMonitorHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create monitor handler: %w", err)
 	}
 
 	// initial credit vault.
@@ -549,6 +558,30 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	return iamHandler, nil
 }
 
+func (svc *Service) newMonitorHandler() (monitor.IHandler, error) {
+	if !svc.conf.Monitor.Enabled {
+		return monitor.NewNoOpHandler(), nil
+	}
+
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.Monitor.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(
+		clientNameMonitor,
+		&svc.conf.Monitor.APIGatewayClient,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for monitor: %w", err)
+	}
+
+	monitorHandler, err := monitor.New(apiGwClientCapability, &monitor.Config{
+		VirtualUserConfig: virtualUserConfig,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return monitorHandler, nil
+}
+
 func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
 	if !svc.conf.CreditVault.HostCreditVault.Enable {
 		return creditvault.New(creditvault.WithHostPasswordVault(&creditvault.DisabledHostPasswordVault{})), nil
@@ -761,6 +794,20 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create global settings storage: %w", err)
 	}
 
+	svc.Cap.StorageBizEventDataIDConf, err = bizeventdataidconf.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create biz event data-id conf storage: %w", err)
+	}
+
+	svc.Cap.StorageTenant, err = tenantStg.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create tenant storage: %w", err)
+	}
+
 	svc.Cap.StorageCipher, err = cipherStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
@@ -860,27 +907,33 @@ func (svc *Service) initialManager() error {
 	}
 
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
-		CmdbHandler:         svc.Cap.CmdbHandler,
-		GSEHandler:          svc.Cap.GSEHandler,
-		FileHandler:         svc.Cap.FileHandler,
-		UserManagerHandler:  svc.Cap.UserManagerHandler,
-		Provider:            svc.Cap.DiscoverProvider,
-		InstallerFileGroup:  svc.Cap.InstallerFileGroup,
-		FileCache:           svc.Cap.FileCache,
-		LockerFactory:       svc.Cap.LockerFactory,
-		StorageTopo:         svc.Cap.StorageTopo,
-		StorageRelease:      svc.Cap.StorageRelease,
-		StorageNode:         svc.Cap.StorageNode,
-		StorageWorkflow:     svc.Cap.StorageWorkflow,
-		StoragePackage:      svc.Cap.StoragePackage,
-		StoragePlugin:       svc.Cap.StoragePlugin,
-		StorageHostCredit:   svc.Cap.StorageCredit,
-		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,
-		StorageTenant:       svc.Cap.StorageTenant,
-		StorageDeployPolicy: svc.Cap.StorageDeployPolicy,
-		HostPasswordVault:   svc.Cap.CreditVault,
-		ProxyMessager:       svc.Cap.ProxyMessager,
-		Cache:               rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
+		CmdbHandler:               svc.Cap.CmdbHandler,
+		GSEHandler:                svc.Cap.GSEHandler,
+		FileHandler:               svc.Cap.FileHandler,
+		UserManagerHandler:        svc.Cap.UserManagerHandler,
+		MonitorHandler:            svc.Cap.MonitorHandler,
+		Provider:                  svc.Cap.DiscoverProvider,
+		InstallerFileGroup:        svc.Cap.InstallerFileGroup,
+		FileCache:                 svc.Cap.FileCache,
+		LockerFactory:             svc.Cap.LockerFactory,
+		StorageTopo:               svc.Cap.StorageTopo,
+		StorageRelease:            svc.Cap.StorageRelease,
+		StorageNode:               svc.Cap.StorageNode,
+		StorageWorkflow:           svc.Cap.StorageWorkflow,
+		StoragePackage:            svc.Cap.StoragePackage,
+		StoragePlugin:             svc.Cap.StoragePlugin,
+		StorageHostCredit:         svc.Cap.StorageCredit,
+		StorageConfigPolicy:       svc.Cap.StorageConfigPolicy,
+		StorageTenant:             svc.Cap.StorageTenant,
+		StorageDeployPolicy:       svc.Cap.StorageDeployPolicy,
+		StorageBizEventDataIDConf: svc.Cap.StorageBizEventDataIDConf,
+		NodeEventDataIDConf: deployconstant.NodeEventDataIDConf{
+			AgentBaseAlarmEventDataID: svc.conf.NodeEventDataID.Default.AgentBaseAlarmEventDataID,
+			TaskProcEventDataID:       svc.conf.NodeEventDataID.Default.TaskProcEventDataID,
+		},
+		HostPasswordVault: svc.Cap.CreditVault,
+		ProxyMessager:     svc.Cap.ProxyMessager,
+		Cache:             rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum:             svc.conf.Workflow.WorkerNum,
 			GracefulShutdownTimeout: time.Duration(svc.conf.Workflow.GracefulShutdownTimeoutSeconds) * time.Second,

@@ -21,6 +21,7 @@ package node
 
 import (
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/bizeventdataidconf"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -29,6 +30,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filecache"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -37,23 +39,29 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/monitor"
 )
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// thridparty handler.
-	CMDBHandler cmdb.IHandler
-	GSEHandler  gse.IHandler
-	FileHandler file.IHandler
+	CMDBHandler    cmdb.IHandler
+	GSEHandler     gse.IHandler
+	FileHandler    file.IHandler
+	MonitorHandler monitor.IHandler
 
 	// stroage.
-	StorageTopo         topoStg.IStorage
-	StorageRelease      release.IStorage
-	StorageNode         nodeStg.IStorage
-	StoragePlugin       pluginStg.IStorage
-	StorageWorkflow     workflowStg.IStorage
-	StorageHostCredit   credit.IStorageHostCredit
-	StorageConfigPolicy configpolicy.IStorage
+	StorageTopo               topoStg.IStorage
+	StorageRelease            release.IStorage
+	StorageNode               nodeStg.IStorage
+	StoragePlugin             pluginStg.IStorage
+	StorageWorkflow           workflowStg.IStorage
+	StorageHostCredit         credit.IStorageHostCredit
+	StorageConfigPolicy       configpolicy.IStorage
+	StorageBizEventDataIDConf bizeventdataidconf.IStorage
+
+	// node event data-id default config.
+	NodeEventDataIDConf deployconstant.NodeEventDataIDConf
 
 	// discover provider.
 	DiscoverProvider discover.IProvider

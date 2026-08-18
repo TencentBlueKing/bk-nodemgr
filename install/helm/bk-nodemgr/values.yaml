@@ -1301,6 +1301,31 @@ backend:
         # the password to decrypt the certificate.
         password: ""
 
+    ## defines the Monitor API gateway settings used to get or create Agent event data IDs.
+    monitor:
+      enabled: false
+      endpoints:
+        - "https://example.com"
+      appCode: ""
+      appSecret: ""
+      user: ""
+      authMode: "un"
+      accessToken: ""
+      traceServiceName: "backend-client-monitor"
+      traceSampleRate: 0
+      tls:
+        insecureSkipVerify: false
+        certFile: ""
+        keyFile: ""
+        caFile: ""
+        password: ""
+
+    ## defines the global fallback event data IDs for node configuration rendering.
+    nodeEventDataID:
+      default:
+        agentBaseAlarmEventDataID: 1000
+        taskProcEventDataID: 1100008
+
     creditVault:
       hostCreditVault:
         enable: false
