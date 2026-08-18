@@ -78,6 +78,9 @@ func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 	if err := resp.IsFailed(); err != nil {
 		return nil, fmt.Errorf("failed to list tenant: %v", err)
 	}
+	if resp.Data == nil {
+		return nil, fmt.Errorf("failed to list tenant: missing tenant data")
+	}
 
-	return resp.Data, nil
+	return *resp.Data, nil
 }

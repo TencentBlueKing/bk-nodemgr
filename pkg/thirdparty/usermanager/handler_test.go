@@ -55,7 +55,7 @@ func TestHandlerMultiTenantListALLTenantsUsesSystemTenant(t *testing.T) {
 		assert.Equal(t, tenantpkg.SystemTenantID, req.Header.Get(restheader.BKTenantIDKey))
 
 		rw.Header().Set("Content-Type", "application/json")
-		_, _ = rw.Write([]byte(`{"result":true,"code":0,"message":"OK","data":[{"id":"tenant-a","name":"Tenant A","status":"enabled"}]}`))
+		_, _ = rw.Write([]byte(`{"data":[{"id":"tenant-a","name":"Tenant A","status":"enabled"}]}`))
 	}))
 	defer server.Close()
 
@@ -66,6 +66,21 @@ func TestHandlerMultiTenantListALLTenantsUsesSystemTenant(t *testing.T) {
 	require.Len(t, tenants, 1)
 	assert.Equal(t, "tenant-a", tenants[0].ID)
 	assert.True(t, tenants[0].Enabled)
+}
+
+func TestHandlerMultiTenantListALLTenantsReturnsAPIGWError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"code":1640301,"message":"App has no permission to the resource [reason=\"no permission, bk_app_code=bk-nodemgr\"]","data":null,"result":false,"code_name":"APP_NO_PERMISSION"}`))
+	}))
+	defer server.Close()
+
+	h := newHTTPTestHandler(t, server.URL)
+	_, err := h.ListALLTenants(contextx.New(context.Background(), contextx.WithTenantID("caller-tenant")))
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to list tenant: result(false), code(1640301)")
+	assert.Contains(t, err.Error(), "App has no permission")
 }
 
 func newHTTPTestHandler(t *testing.T, endpoint string) *HandlerMultiTenant {

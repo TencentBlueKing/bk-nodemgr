@@ -45,8 +45,8 @@ type Permission struct {
 
 // RespCommon describe the common part of response data.
 type RespCommon struct {
-	Result     bool        `json:"result"`
-	Code       int         `json:"code"`
+	Result     *bool       `json:"result"`
+	Code       *int        `json:"code"`
 	Message    string      `json:"message"`
 	Permission *Permission `json:"permission"`
 }
@@ -54,7 +54,7 @@ type RespCommon struct {
 // BaseBroker describe the base broker.
 type BaseBroker[T any] struct {
 	RespCommon
-	Data T `json:"data"`
+	Data *T `json:"data"`
 }
 
 const (
@@ -64,11 +64,25 @@ const (
 
 // IsFailed check the response is ok.
 func (resp *BaseBroker[T]) IsFailed() error {
+	if resp.Result == nil && resp.Code == nil {
+		return nil
+	}
+
+	result := false
+	if resp.Result != nil {
+		result = *resp.Result
+	}
+
+	code := CodeOK
+	if resp.Code != nil {
+		code = *resp.Code
+	}
+
 	switch {
-	case resp.Result == true && resp.Code == CodeOK:
+	case result && code == CodeOK:
 		return nil
 	default:
-		return fmt.Errorf("result(%v), code(%d) , msg(%s)", resp.Result, resp.Code, resp.Message)
+		return fmt.Errorf("result(%v), code(%d) , msg(%s)", result, code, resp.Message)
 	}
 }
 
