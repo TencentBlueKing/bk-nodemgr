@@ -197,14 +197,16 @@ func convertInfoFromTypes(info *types.PackageDeploymentInfo) (*Info, error) {
 	}
 
 	return &Info{
-		Name:          info.Name,
-		MD5:           info.MD5,
-		DownloadURL:   info.DownloadURL,
-		UploadID:      info.UploadID,
-		PluginName:    info.PluginName,
-		PluginPkgName: info.PluginPkgName,
-		Version:       info.Version,
-		Platforms:     convertPlatformsFromTypes(info.Platforms),
+		UploadID: info.UploadID,
+		ImportPluginPkgOptions: importPluginPkgOptions{
+			FileSourceType: string(info.ImportPluginPkgOptions.FileSourceType),
+			FileSource:     info.ImportPluginPkgOptions.FileSource,
+			MD5:            info.ImportPluginPkgOptions.MD5,
+			PluginPkgName:  info.ImportPluginPkgOptions.PluginPkgName,
+			PluginName:     info.ImportPluginPkgOptions.PluginName,
+			Version:        info.ImportPluginPkgOptions.Version,
+			Platforms:      convertPlatformsFromTypes(info.ImportPluginPkgOptions.Platforms),
+		},
 	}, nil
 }
 
@@ -214,14 +216,16 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 	}
 
 	return &types.PackageDeploymentInfo{
-		Name:          info.Name,
-		MD5:           info.MD5,
-		DownloadURL:   info.DownloadURL,
-		UploadID:      info.UploadID,
-		PluginName:    info.PluginName,
-		PluginPkgName: info.PluginPkgName,
-		Version:       info.Version,
-		Platforms:     convertPlatformsToTypes(info.Platforms),
+		UploadID: info.UploadID,
+		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
+			FileSourceType: types.FileSourceType(info.ImportPluginPkgOptions.FileSourceType),
+			FileSource:     info.ImportPluginPkgOptions.FileSource,
+			MD5:            info.ImportPluginPkgOptions.MD5,
+			PluginPkgName:  info.ImportPluginPkgOptions.PluginPkgName,
+			PluginName:     info.ImportPluginPkgOptions.PluginName,
+			Version:        info.ImportPluginPkgOptions.Version,
+			Platforms:      convertPlatformsToTypes(info.ImportPluginPkgOptions.Platforms),
+		},
 	}, nil
 }
 

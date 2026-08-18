@@ -24,18 +24,3 @@ func WithToken(token ...string) OptFn {
 func WithUploadID(uploadIDs ...string) OptFn {
 	return base.WithValues(FieldKeyInfoUploadID, uploadIDs...)
 }
-
-// WithPluginName set plugin name.
-func WithPluginName(names ...string) OptFn {
-	return base.WithValues(FieldKeyInfoPluginName, names...)
-}
-
-// WithPluginPkgName set plugin package name.
-func WithPluginPkgName(names ...string) OptFn {
-	return base.WithValues(FieldKeyInfoPluginPkgName, names...)
-}
-
-// WithVersion set package version.
-func WithVersion(versions ...string) OptFn {
-	return base.WithValues(FieldKeyInfoVersion, versions...)
-}

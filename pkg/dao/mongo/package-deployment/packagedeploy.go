@@ -46,9 +46,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 		{
 			Keys: bson.D{{Key: FieldKeyInfoUploadID, Value: 1}},
 		},
-		{
-			Keys: bson.D{{Key: FieldKeyInfoPluginPkgName, Value: 1}},
-		},
 	}
 
 	return indexes

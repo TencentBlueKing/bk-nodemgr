@@ -42,15 +42,17 @@ func testPackageDeployment() *types.PackageDeployment {
 	return &types.PackageDeployment{
 		Token: token,
 		Info: &types.PackageDeploymentInfo{
-			Name:          "gse_plugin-1.0.0.tgz",
-			MD5:           "4d96767dd3f2c09e19101d0da9ce251f",
-			DownloadURL:   "https://example.com/packages/gse_plugin-1.0.0.tgz",
-			UploadID:      uuid.NewString(),
-			PluginName:    "gse_plugin",
-			PluginPkgName: "gse_plugin.tgz",
-			Version:       "1.0.0",
-			Platforms: []platfmt.Platform{
-				platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64),
+			UploadID: uuid.NewString(),
+			ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
+				FileSourceType: types.FileSourceTypeDownload,
+				FileSource:     "https://example.com/packages/gse_plugin-1.0.0.tgz",
+				MD5:            "4d96767dd3f2c09e19101d0da9ce251f",
+				PluginName:     "gse_plugin",
+				PluginPkgName:  "gse_plugin.tgz",
+				Version:        "1.0.0",
+				Platforms: []platfmt.Platform{
+					platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64),
+				},
 			},
 		},
 	}
@@ -78,12 +80,12 @@ func TestHandler_ListPackageDeployment(t *testing.T) {
 	nCtx := testContext()
 	pluginDeployment := testPackageDeployment()
 	agentDeployment := testPackageDeployment()
-	agentDeployment.Info.Name = "gse_agent-2.0.0.tgz"
 	agentDeployment.Info.UploadID = uuid.NewString()
-	agentDeployment.Info.PluginName = "gse_agent"
-	agentDeployment.Info.PluginPkgName = "gse_agent.tgz"
-	agentDeployment.Info.Version = "2.0.0"
-	agentDeployment.Info.Platforms = []platfmt.Platform{
+	agentDeployment.Info.ImportPluginPkgOptions.FileSource = "https://example.com/packages/gse_agent-2.0.0.tgz"
+	agentDeployment.Info.ImportPluginPkgOptions.PluginName = "gse_agent"
+	agentDeployment.Info.ImportPluginPkgOptions.PluginPkgName = "gse_agent.tgz"
+	agentDeployment.Info.ImportPluginPkgOptions.Version = "2.0.0"
+	agentDeployment.Info.ImportPluginPkgOptions.Platforms = []platfmt.Platform{
 		platfmt.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64),
 	}
 
@@ -110,21 +112,6 @@ func TestHandler_ListPackageDeployment(t *testing.T) {
 		{
 			name:      "by upload ID",
 			opts:      []OptFn{WithUploadID(agentDeployment.Info.UploadID)},
-			wantTotal: 1,
-		},
-		{
-			name:      "by plugin name",
-			opts:      []OptFn{WithPluginName(agentDeployment.Info.PluginName)},
-			wantTotal: 1,
-		},
-		{
-			name:      "by plugin package name",
-			opts:      []OptFn{WithPluginPkgName(pluginDeployment.Info.PluginPkgName)},
-			wantTotal: 1,
-		},
-		{
-			name:      "by version",
-			opts:      []OptFn{WithVersion(agentDeployment.Info.Version)},
 			wantTotal: 1,
 		},
 	}
@@ -155,15 +142,17 @@ func TestHandler_UpdatePackageDeploymentInfo(t *testing.T) {
 	}
 
 	want := &types.PackageDeploymentInfo{
-		Name:          "gse_plugin-1.1.0.tgz",
-		MD5:           "482f46fa4999054774412e3a8f9dfca0",
-		DownloadURL:   "https://example.com/packages/gse_plugin-1.1.0.tgz",
-		UploadID:      uuid.NewString(),
-		PluginName:    "gse_plugin",
-		PluginPkgName: "gse_plugin.tgz",
-		Version:       "1.1.0",
-		Platforms: []platfmt.Platform{
-			platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64),
+		UploadID: uuid.NewString(),
+		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
+			FileSourceType: types.FileSourceTypeDownload,
+			FileSource:     "https://example.com/packages/gse_plugin-1.1.0.tgz",
+			MD5:            "482f46fa4999054774412e3a8f9dfca0",
+			PluginName:     "gse_plugin",
+			PluginPkgName:  "gse_plugin.tgz",
+			Version:        "1.1.0",
+			Platforms: []platfmt.Platform{
+				platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64),
+			},
 		},
 	}
 
@@ -185,28 +174,10 @@ func assertPackageDeploymentInfoEqual(t *testing.T, got, want *types.PackageDepl
 	if got == nil {
 		t.Fatal("got nil package deployment info")
 	}
-	if got.Name != want.Name {
-		t.Fatalf("Name = %s, want %s", got.Name, want.Name)
-	}
-	if got.MD5 != want.MD5 {
-		t.Fatalf("MD5 = %s, want %s", got.MD5, want.MD5)
-	}
-	if got.DownloadURL != want.DownloadURL {
-		t.Fatalf("DownloadURL = %s, want %s", got.DownloadURL, want.DownloadURL)
-	}
 	if got.UploadID != want.UploadID {
 		t.Fatalf("UploadID = %s, want %s", got.UploadID, want.UploadID)
 	}
-	if got.PluginName != want.PluginName {
-		t.Fatalf("PluginName = %s, want %s", got.PluginName, want.PluginName)
-	}
-	if got.PluginPkgName != want.PluginPkgName {
-		t.Fatalf("PluginPkgName = %s, want %s", got.PluginPkgName, want.PluginPkgName)
-	}
-	if got.Version != want.Version {
-		t.Fatalf("Version = %s, want %s", got.Version, want.Version)
-	}
-	if !reflect.DeepEqual(got.Platforms, want.Platforms) {
-		t.Fatalf("Platforms = %#v, want %#v", got.Platforms, want.Platforms)
+	if !reflect.DeepEqual(got.ImportPluginPkgOptions, want.ImportPluginPkgOptions) {
+		t.Fatalf("ImportPluginPkgOptions = %#v, want %#v", got.ImportPluginPkgOptions, want.ImportPluginPkgOptions)
 	}
 }

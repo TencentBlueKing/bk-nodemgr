@@ -27,14 +27,18 @@ type Data struct {
 
 // Info represents package deployment detail in database.
 type Info struct {
-	Name          string     `json:"name" bson:"name"`
-	MD5           string     `json:"md5" bson:"md5"`
-	DownloadURL   string     `json:"download_url" bson:"download_url"`
-	UploadID      string     `json:"upload_id" bson:"upload_id"`
-	PluginName    string     `json:"plugin_name" bson:"plugin_name"`
-	PluginPkgName string     `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
-	Version       string     `json:"version" bson:"version"`
-	Platforms     []platform `json:"platforms" bson:"platforms"`
+	UploadID               string                 `json:"upload_id" bson:"upload_id"`
+	ImportPluginPkgOptions importPluginPkgOptions `json:"import_plugin_pkg_options" bson:"import_plugin_pkg_options"`
+}
+
+type importPluginPkgOptions struct {
+	FileSourceType string     `json:"file_source_type" bson:"file_source_type"`
+	FileSource     string     `json:"file_source" bson:"file_source"`
+	MD5            string     `json:"md5" bson:"md5"`
+	PluginPkgName  string     `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
+	PluginName     string     `json:"plugin_name" bson:"plugin_name"`
+	Version        string     `json:"version" bson:"version"`
+	Platforms      []platform `json:"platforms" bson:"platforms"`
 }
 
 type platform struct {

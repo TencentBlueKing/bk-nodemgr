@@ -10,8 +10,14 @@
 
 package types
 
-import (
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+import platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+
+// FileSourceType represents the type of file source.
+type FileSourceType string
+
+const (
+	// FileSourceTypeDownload represents the file source is download.
+	FileSourceTypeDownload FileSourceType = "download"
 )
 
 // PackageDeployment represents a package deployment record.
@@ -22,12 +28,17 @@ type PackageDeployment struct {
 
 // PackageDeploymentInfo represents the info of a package deployment.
 type PackageDeploymentInfo struct {
-	Name          string
-	MD5           string
-	DownloadURL   string
-	UploadID      string
-	PluginName    string
-	PluginPkgName string
-	Version       string
-	Platforms     []platfmt.Platform
+	UploadID               string
+	ImportPluginPkgOptions PackageImportPluginPkgOptions
+}
+
+// PackageImportPluginPkgOptions represents the options of importing a plugin package.
+type PackageImportPluginPkgOptions struct {
+	FileSourceType FileSourceType
+	FileSource     string
+	MD5            string
+	PluginPkgName  string
+	PluginName     string
+	Version        string
+	Platforms      []platfmt.Platform
 }

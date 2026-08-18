@@ -19,13 +19,4 @@ const (
 
 	// FieldKeyInfoUploadID the info upload id field key.
 	FieldKeyInfoUploadID = "data.info.upload_id"
-
-	// FieldKeyInfoPluginName the info plugin name field key.
-	FieldKeyInfoPluginName = "data.info.plugin_name"
-
-	// FieldKeyInfoPluginPkgName the info plugin pkg name field key.
-	FieldKeyInfoPluginPkgName = "data.info.plugin_pkg_name"
-
-	// FieldKeyInfoVersion the info version field key.
-	FieldKeyInfoVersion = "data.info.version"
 )
