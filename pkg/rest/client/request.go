@@ -528,14 +528,13 @@ func (r *Request) Do() (result *Result) {
 	}
 
 	if r.targetURL != nil {
-		traceCtx, span := r.startTrace()
-		defer func() {
-			finishTrace(span, result)
-		}()
-
-		return r.doWithTargetURL(httpClient, traceCtx)
+		return r.doWithTargetURL(httpClient)
 	}
 
+	return r.doWithDiscoveredEndpoints(httpClient)
+}
+
+func (r *Request) doWithDiscoveredEndpoints(httpClient HTTPClient) (result *Result) {
 	endpoints, err := r.capability.Discover.GetEndpoints()
 	if err != nil {
 		return &Result{
@@ -598,7 +597,12 @@ func finishTrace(span trace.Span, result *Result) {
 	span.End()
 }
 
-func (r *Request) doWithTargetURL(httpClient HTTPClient, traceCtx context.Context) *Result {
+func (r *Request) doWithTargetURL(httpClient HTTPClient) (result *Result) {
+	traceCtx, span := r.startTrace()
+	defer func() {
+		finishTrace(span, result)
+	}()
+
 	requestPath := r.requestPath()
 	for try := 0; try < r.client.maxRetryCycle; try++ {
 		fullURL := r.fullTargetURL().String()
