@@ -10,15 +10,20 @@
 
 package types
 
-import platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+import (
+	"strings"
 
-// FileSourceType represents the type of file source.
-type FileSourceType string
-
-const (
-	// FileSourceTypeDownload represents the file source is download.
-	FileSourceTypeDownload FileSourceType = "download"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/google/uuid"
 )
+
+// NewPackageDeployment creates a new package deployment.
+func NewPackageDeployment(info *PackageDeploymentInfo) *PackageDeployment {
+	return &PackageDeployment{
+		Token: strings.ReplaceAll(uuid.New().String(), "-", ""),
+		Info:  info,
+	}
+}
 
 // PackageDeployment represents a package deployment record.
 type PackageDeployment struct {
@@ -31,6 +36,14 @@ type PackageDeploymentInfo struct {
 	UploadID               string
 	ImportPluginPkgOptions PackageImportPluginPkgOptions
 }
+
+// FileSourceType represents the type of file source.
+type FileSourceType string
+
+const (
+	// FileSourceTypeDownload represents the file source is download.
+	FileSourceTypeDownload FileSourceType = "download"
+)
 
 // PackageImportPluginPkgOptions represents the options of importing a plugin package.
 type PackageImportPluginPkgOptions struct {
