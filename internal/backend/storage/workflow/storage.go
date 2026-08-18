@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
-	packageworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow"
 	scheduledworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/stopoperinst"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
@@ -95,7 +94,6 @@ const (
 	metricOperationUpsertActionInstancePrivateData                 = "upsert_action_instance_private_data"
 	metricOperationDeleteOperationInstances                        = "delete_operation_instances"
 	metricOperationDeleteOperationInstancesByTriggerID             = "delete_operation_instances_by_trigger_id"
-	metricOperationCreatePackageWorkflow                           = "create_package_workflow"
 )
 
 // NewStorage creates a new workflow storage.
@@ -131,7 +129,6 @@ type Storage struct {
 	daoOperInstData      operinstdata.IHandler
 	daoStopOperInst      stopoperinst.IHandler
 	daoScheduledWorkflow scheduledworkflow.IHandler
-	daoPackageWorkflow   packageworkflow.IHandler
 
 	// stop event subscriptions
 	stopEventSubsMap      map[string]*StopEventSubscription
@@ -141,9 +138,6 @@ type Storage struct {
 	stopOperInstsMutex sync.RWMutex
 
 	sg singleflight.Group
-
-	monitoredPackageWorkflows      map[string]*types.PackageWorkflow
-	monitoredPackageWorkflowsMutex sync.RWMutex
 }
 
 func (s *Storage) initDao() error {
@@ -152,23 +146,14 @@ func (s *Storage) initDao() error {
 	s.daoScheduledWorkflow = scheduledworkflow.New(s.Database)
 	s.daoOperInstData = operinstdata.New(s.Database)
 	s.daoStopOperInst = stopoperinst.New(s.Database)
-	s.daoPackageWorkflow = packageworkflow.New(s.Database)
 
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
 	s.stopOperInsts = make(map[string]struct{})
-
-	s.monitoredPackageWorkflows = make(map[string]*types.PackageWorkflow)
 
 	if err := s.registerStopOperInstTask(); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
 
 		return fmt.Errorf("failed to register scheduler: %w", err)
-	}
-
-	if err := s.registerPackageWorkflowScheduler(); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to register package workflow scheduler")
-
-		return fmt.Errorf("failed to register package workflow scheduler: %w", err)
 	}
 
 	return nil
@@ -181,10 +166,6 @@ func (s *Storage) check() error {
 
 	if s.daoScheduledWorkflow == nil {
 		return errors.New("dao scheduled workflow is nil")
-	}
-
-	if s.daoPackageWorkflow == nil {
-		return errors.New("dao package workflow is nil")
 	}
 
 	return nil
@@ -1170,19 +1151,6 @@ func (s *Storage) DeleteOperationInstancesByTriggerID(ctx contextx.IContext, tri
 			logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to delete operation instances by trigger ID")
 
 			return fmt.Errorf("failed to delete operation instances by trigger ID, trigger-ids(%v): %w", triggerID, err)
-		}
-
-		return nil
-	})
-}
-
-// CreatePackageWorkflow creates a package workflow record.
-func (s *Storage) CreatePackageWorkflow(nCtx contextx.IContext, workflow *types.PackageWorkflow) error {
-	return s.WrapFn(nCtx, metricOperationCreatePackageWorkflow, func(nCtx contextx.IContext) error {
-		if err := s.createPackageWorkflow(nCtx, workflow); err != nil {
-			logger.G.Sys().WithErr(err).With("workflow-id", workflow.WorkflowID).Error("failed to create package workflow")
-
-			return fmt.Errorf("failed to create package workflow, workflow-id(%s): %w", workflow.WorkflowID, err)
 		}
 
 		return nil

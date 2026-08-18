@@ -26,7 +26,6 @@ type IStorage interface {
 	workflow.IStorageOperationInstance
 
 	IStorageScheduledWorkflow
-	IStoragePackageWorkflow
 }
 
 // IStorageScheduledWorkflow defines the interface of scheduled workflow storage.
@@ -52,9 +51,4 @@ type IStorageScheduledWorkflow interface {
 
 	// SwitchScheduleWorkflow enables or disables a scheduled workflow.
 	SwitchScheduleWorkflow(nCtx contextx.IContext, workflowID string, enable bool) error
-}
-
-// IStoragePackageWorkflow defines the interface of package workflow storage.
-type IStoragePackageWorkflow interface {
-	CreatePackageWorkflow(nCtx contextx.IContext, workflow *types.PackageWorkflow) error
 }

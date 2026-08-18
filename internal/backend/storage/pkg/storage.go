@@ -1,18 +1,26 @@
-// Tencent is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
-// Copyright (C) 2017 Tencent. All rights reserved.
-// Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at http://opensource.org/licenses/MIT
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 
-package workflow
+package pkg
 
 import (
 	"errors"
 	"fmt"
 	"maps"
+	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoOperation "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
+	packagedeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment"
 	packageworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -21,12 +29,75 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
+	// StorageName defines the storage name.
+	StorageName = "pkg"
+
 	packageWorkflowRecentMonitoredTime       = 5 * time.Minute
 	packageWorkflowMissingOperationGraceTime = 1 * time.Minute
+
+	metricOperationCreatePackageWorkflow    = "create_package_workflow"
+	metricOperationGetPackageWorkflow       = "get_package_workflow"
+	metricOperationCreatePackageDeployment  = "create_pkg_deployment"
+	metricOperationListPackageDeployment    = "list_pkg_deployment"
+	metricOperationGetPackageDeploymentInfo = "get_pkg_deployment_info"
+	metricOperationUpdatePackageDeployment  = "update_pkg_deployment_info"
 )
+
+// NewStorage creates a new package storage.
+func NewStorage(client *mongo.Client, database string) (IStorage, error) {
+	if client == nil {
+		return nil, errors.New("mongo client is nil")
+	}
+
+	s := &Storage{
+		Storage: basestorage.Storage{
+			Name:      StorageName,
+			Database:  client.Database(database),
+			Scheduler: scheduler.NewScheduler(),
+		},
+	}
+	if err := basestorage.InitStorage(&s.Storage,
+		basestorage.WithStartFunc(s.initDao),
+		basestorage.WithCheckFunc(s.check)); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
+		return nil, err
+	}
+
+	return s, nil
+}
+
+// Storage implements IStorage.
+type Storage struct {
+	basestorage.Storage
+
+	daoPackageWorkflow   packageworkflow.IHandler
+	daoPackageDeployment packagedeployment.IHandler
+	daoOperation         daoOperation.IHandler
+
+	// key is triggerID, value is the package workflow that needs to be monitored.
+	monitoredPackageWorkflows      map[string]*types.PackageWorkflow
+	monitoredPackageWorkflowsMutex sync.RWMutex
+}
+
+func (s *Storage) initDao() error {
+	s.daoPackageWorkflow = packageworkflow.New(s.Database)
+	s.daoPackageDeployment = packagedeployment.New(s.Database)
+	s.daoOperation = daoOperation.New(s.Database)
+	s.monitoredPackageWorkflows = make(map[string]*types.PackageWorkflow)
+
+	if err := s.registerPackageWorkflowScheduler(); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to register package workflow scheduler")
+
+		return fmt.Errorf("failed to register package workflow scheduler: %w", err)
+	}
+
+	return nil
+}
 
 func (s *Storage) registerPackageWorkflowScheduler() error {
 	if s.Scheduler == nil {
@@ -54,6 +125,7 @@ func (s *Storage) registerPackageWorkflowScheduler() error {
 	return nil
 }
 
+// obtainMonitoredPackageWorkflows obtains the list of package workflows that need to be monitored.
 func (s *Storage) obtainMonitoredPackageWorkflows(nCtx contextx.IContext) error {
 	tenantIDs, err := tenant.ListTenantIDs(nCtx)
 	if err != nil {
@@ -124,7 +196,7 @@ func (s *Storage) obtainMonitoredPackageWorkflows(nCtx contextx.IContext) error 
 
 // nolint: gocognit
 func (s *Storage) monitorPackageWorkflowStatus(nCtx contextx.IContext) error {
-	// Phase 1: RLock → deep copy snapshot → RUnlock
+	// Phase 1: RLock -> deep copy snapshot -> RUnlock
 	s.monitoredPackageWorkflowsMutex.RLock()
 	if len(s.monitoredPackageWorkflows) == 0 {
 		s.monitoredPackageWorkflowsMutex.RUnlock()
@@ -203,7 +275,7 @@ func (s *Storage) monitorPackageWorkflowStatus(nCtx contextx.IContext) error {
 		triggersToDelete = append(triggersToDelete, triggerID)
 	}
 
-	// Phase 3: Lock → batch delete → Unlock (only if needed)
+	// Phase 3: Lock -> batch delete -> Unlock (only if needed)
 	if len(triggersToDelete) > 0 {
 		s.monitoredPackageWorkflowsMutex.Lock()
 		for _, triggerID := range triggersToDelete {
@@ -272,4 +344,99 @@ func calPackageWorkflowStatusAndTime(opers []*operation.Operation) (types.Packag
 	default:
 		return types.PackageWorkflowStatusPartialFailed, latestEndTime, zeroEndTime
 	}
+}
+
+func (s *Storage) check() error {
+	if s.daoPackageWorkflow == nil {
+		return errors.New("dao package workflow is nil")
+	}
+
+	if s.daoPackageDeployment == nil {
+		return errors.New("dao package deployment is nil")
+	}
+
+	if s.daoOperation == nil {
+		return errors.New("dao operation is nil")
+	}
+
+	return nil
+}
+
+// CreatePackageWorkflow creates a package workflow record.
+func (s *Storage) CreatePackageWorkflow(nCtx contextx.IContext, workflow *types.PackageWorkflow) error {
+	workflowID := ""
+	if workflow != nil {
+		workflowID = workflow.WorkflowID
+	}
+
+	return s.WrapFn(nCtx, metricOperationCreatePackageWorkflow, func(nCtx contextx.IContext) error {
+		if err := s.createPackageWorkflow(nCtx, workflow); err != nil {
+			logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to create package workflow")
+
+			return fmt.Errorf("failed to create package workflow, workflow-id(%s): %w", workflowID, err)
+		}
+
+		return nil
+	})
+}
+
+// GetPackageWorkflow gets a package workflow by workflow ID.
+func (s *Storage) GetPackageWorkflow(nCtx contextx.IContext, workflowID string) (*types.PackageWorkflow, error) {
+	var workflow *types.PackageWorkflow
+	err := s.WrapFn(nCtx, metricOperationGetPackageWorkflow, func(nCtx contextx.IContext) error {
+		var err error
+		workflow, err = s.getPackageWorkflow(nCtx, workflowID)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to get package workflow")
+
+			return fmt.Errorf("failed to get package workflow, workflow-id(%s): %w", workflowID, err)
+		}
+
+		return nil
+	})
+
+	return workflow, err
+}
+
+// CreatePackageDeployment creates a package deployment record.
+func (s *Storage) CreatePackageDeployment(nCtx contextx.IContext, deployment *types.PackageDeployment) error {
+	return s.WrapFn(nCtx, metricOperationCreatePackageDeployment, func(nCtx contextx.IContext) error {
+		return s.createPackageDeployment(nCtx, deployment)
+	})
+}
+
+// ListPackageDeployment lists package deployment records.
+func (s *Storage) ListPackageDeployment(nCtx contextx.IContext, page types.Page, opts ...packagedeployment.OptFn) (
+	[]*types.PackageDeployment, int64, error) {
+
+	var deployments []*types.PackageDeployment
+	var count int64
+	err := s.WrapFn(nCtx, metricOperationListPackageDeployment, func(nCtx contextx.IContext) error {
+		var err error
+		deployments, count, err = s.listPackageDeployment(nCtx, page, opts...)
+
+		return err
+	})
+
+	return deployments, count, err
+}
+
+// GetPackageDeploymentInfo gets package deployment info by token.
+func (s *Storage) GetPackageDeploymentInfo(nCtx contextx.IContext, token string) (*types.PackageDeploymentInfo, error) {
+	var info *types.PackageDeploymentInfo
+	err := s.WrapFn(nCtx, metricOperationGetPackageDeploymentInfo, func(nCtx contextx.IContext) error {
+		var err error
+		info, err = s.getPackageDeploymentInfo(nCtx, token)
+
+		return err
+	})
+
+	return info, err
+}
+
+// UpdatePackageDeploymentInfo updates package deployment info by token.
+func (s *Storage) UpdatePackageDeploymentInfo(nCtx contextx.IContext, token string, info *types.PackageDeploymentInfo) error {
+	return s.WrapFn(nCtx, metricOperationUpdatePackageDeployment, func(nCtx contextx.IContext) error {
+		return s.updatePackageDeploymentInfo(nCtx, token, info)
+	})
 }

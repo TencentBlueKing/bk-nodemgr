@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
@@ -697,6 +698,13 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create workflow storage: %w", err)
 	}
 
+	svc.Cap.StoragePackage, err = pkgStg.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create pkg storage: %w", err)
+	}
+
 	svc.Cap.StorageRelease, err = release.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database)
@@ -804,6 +812,7 @@ func (svc *Service) initialManager() error {
 		StorageRelease:      svc.Cap.StorageRelease,
 		StorageNode:         svc.Cap.StorageNode,
 		StorageWorkflow:     svc.Cap.StorageWorkflow,
+		StoragePackage:      svc.Cap.StoragePackage,
 		StoragePlugin:       svc.Cap.StoragePlugin,
 		StorageHostCredit:   svc.Cap.StorageCredit,
 		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,

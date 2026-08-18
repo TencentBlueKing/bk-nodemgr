@@ -310,6 +310,10 @@ linters:
           alias: daoProcessV2
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-v2-config
           alias: daoProcessV2Config
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg
+          alias: pkgStg
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment
+          alias: packagedeployment
       no-unaliased: false
       no-extra-aliases: true
     interfacebloat:
