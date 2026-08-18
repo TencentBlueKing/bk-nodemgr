@@ -2,6 +2,8 @@
 
 安装前需要为 `bk-nodemgr` 申请以下第三方系统权限。以下权限均按普通权限、永久期限申请。
 
+`BKRepo` 不走 `APIGateway`，不在本权限申请表范围内；其资源使用清单见 [BKRepo 资源使用说明](thirdparty_bkrepo_resource.md)。
+
 ## bk-gse
 
 | 权限项                                      | 权限说明                                                                                                      | 权限级别 | 申请期限 |
