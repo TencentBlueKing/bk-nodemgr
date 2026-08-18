@@ -332,14 +332,17 @@ function platformToKey(platform: string): string {
 
 /** 处理单个平台的配置变量数据，生成 schema 并初始化表单值 */
 function applyConfigToItem(item: FormItem, configVars: any[]): void {
-  // 收集该 platform 下所有配置模板的 name（用于提交时传 config_name）
-  const names = configVars.map((cv: any) => cv.name).filter(Boolean);
+  // 只保留 is_main_config 为 true 的配置模板
+  const mainConfigs = configVars.filter((cv: any) => cv.is_main_config);
+
+  // 收集 main config 的 name（用于提交时传 config_name）
+  const names = mainConfigs.map((cv: any) => cv.name).filter(Boolean);
   if (names.length > 0) {
     configNamesMap.value[item.platform] = names;
   }
 
-  if (configVars && configVars.length > 0) {
-    const mainConfig = configVars.find((cv: any) => cv.is_main_config) || configVars[0];
+  if (mainConfigs.length > 0) {
+    const mainConfig = mainConfigs[0];
     const schema = convertToSchema(mainConfig.variables || {});
     if (schema) {
       item.schema = schema;
