@@ -12,13 +12,68 @@ package downloader
 
 import (
 	"context"
+	"crypto/md5"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
+
+func TestDownloadPreservesEscapedPath(t *testing.T) {
+	t.Parallel()
+
+	content := []byte("agent package")
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if req.URL.RequestURI() != "/download/a%2Fb" {
+			http.Error(rw, "unexpected request URI", http.StatusBadRequest)
+			return
+		}
+
+		_, _ = rw.Write(content)
+	}))
+	defer server.Close()
+
+	downloader, err := New(config.Downloader{
+		TraceService: config.TraceService{TraceServiceName: "downloader-test"},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	nCtx := contextx.New(context.Background())
+	file, err := downloader.Download(nCtx, server.URL+"/download/a%2Fb", DownloadOptions{
+		Filename: "agent.tgz",
+		Checksum: Checksum{
+			Algorithm: ChecksumAlgorithmMD5,
+			Value:     fmt.Sprintf("%x", md5.Sum(content)),
+		},
+	})
+	if err != nil {
+		t.Fatalf("Download: %v", err)
+	}
+
+	reader, err := file.Content(nCtx)
+	if err != nil {
+		t.Fatalf("Content: %v", err)
+	}
+	defer func() {
+		_ = reader.Close()
+	}()
+
+	got, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	if string(got) != string(content) {
+		t.Fatalf("content = %q, want %q", string(got), string(content))
+	}
+}
 
 func TestDownloadRejectsUnsafeFilename(t *testing.T) {
 	t.Parallel()

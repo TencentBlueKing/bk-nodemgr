@@ -55,7 +55,7 @@ type requestTestDiscovery struct {
 func (d *requestTestDiscovery) GetEndpoints() ([]string, error) {
 	d.calls.Add(1)
 
-	return nil, fmt.Errorf("discovery should not be called")
+	return nil, fmt.Errorf("discovery endpoint unavailable")
 }
 
 func TestMaskURLPreservesQueryByDefault(t *testing.T) {
@@ -99,6 +99,23 @@ func TestMaskURLMasksConfiguredQuery(t *testing.T) {
 	if query.Get("token") != "*****" {
 		t.Fatalf("expected configured short token to be fully masked, got %q", query.Get("token"))
 	}
+}
+
+func TestRequest_DoReturnsDiscoveryErrorBeforeTracing(t *testing.T) {
+	discovery := new(requestTestDiscovery)
+	client, err := NewClient(&Capability{
+		Name:                 "rest-client-request-test",
+		Discover:             discovery,
+		ToleranceLatencyTime: ToleranceLatencyTimeDefault,
+		MetricOpts:           MetricOption{},
+	}, "/api/v1")
+	require.NoError(t, err)
+
+	result := client.Get().WithContext(contextx.Background()).SubResourcef("items").Do()
+
+	require.Error(t, result.Err)
+	assert.Contains(t, result.Err.Error(), "discovery endpoint unavailable")
+	assert.Equal(t, int64(1), discovery.calls.Load())
 }
 
 func TestRequest_WithURL(t *testing.T) {

@@ -182,8 +182,7 @@ func (cli *client) fetch(nCtx contextx.IContext, targetURL *url.URL) (*restserve
 	}
 
 	result := restClient.Get().
-		SubResourcef(targetURL.Path).
-		WithParamsFromURL(targetURL).
+		WithURL(targetURL).
 		WithContext(nCtx).
 		Do()
 	reader, err := result.RawStream()

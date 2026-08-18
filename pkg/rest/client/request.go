@@ -527,22 +527,12 @@ func (r *Request) Do() (result *Result) {
 		httpClient = http.DefaultClient
 	}
 
-	traceCtx, span := r.startTrace()
-	defer func() {
-		span.SetAttributes(
-			attribute.Int(attributeHTTPResponseStatusCode, result.StatusCode),
-		)
-
-		if result.StatusCode >= http.StatusBadRequest {
-			span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", result.StatusCode))
-		} else {
-			span.SetStatus(codes.Ok, "")
-		}
-
-		span.End()
-	}()
-
 	if r.targetURL != nil {
+		traceCtx, span := r.startTrace()
+		defer func() {
+			finishTrace(span, result)
+		}()
+
 		return r.doWithTargetURL(httpClient, traceCtx)
 	}
 
@@ -552,6 +542,11 @@ func (r *Request) Do() (result *Result) {
 			Err: err,
 		}
 	}
+
+	traceCtx, span := r.startTrace()
+	defer func() {
+		finishTrace(span, result)
+	}()
 
 	for try := 0; try < r.client.maxRetryCycle; try++ {
 		for index, endpoint := range endpoints {
@@ -587,6 +582,20 @@ func (r *Request) startTrace() (context.Context, trace.Span) {
 			attribute.String(attributeHTTPRequestHeader, r.maskHeader(r.headers)),
 		),
 	)
+}
+
+func finishTrace(span trace.Span, result *Result) {
+	span.SetAttributes(
+		attribute.Int(attributeHTTPResponseStatusCode, result.StatusCode),
+	)
+
+	if result.StatusCode >= http.StatusBadRequest {
+		span.SetStatus(codes.Error, fmt.Sprintf("HTTP %d", result.StatusCode))
+	} else {
+		span.SetStatus(codes.Ok, "")
+	}
+
+	span.End()
 }
 
 func (r *Request) doWithTargetURL(httpClient HTTPClient, traceCtx context.Context) *Result {
