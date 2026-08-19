@@ -158,6 +158,7 @@ type PluginV2Control struct {
 	StopCmd    string `yaml:"stop"`
 	RestartCmd string `yaml:"restart"`
 	ReloadCmd  string `yaml:"reload"`
+	DebugCmd   string `yaml:"debug"`
 	VersionCmd string `yaml:"version"`
 	HealthCmd  string `yaml:"health"`
 	KillCmd    string `yaml:"kill"`
@@ -324,6 +325,7 @@ func buildPluginV2PkgController(plat platfmt.Platform, pluginProject *PluginV2Pr
 		StopCmd:    tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.StopCmd)...),
 		RestartCmd: tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.RestartCmd)...),
 		ReloadCmd:  tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.ReloadCmd)...),
+		DebugCmd:   tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.DebugCmd)...),
 		KillCmd:    tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.KillCmd)...),
 		VersionCmd: tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.VersionCmd)...),
 		HealthCmd:  tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.HealthCmd)...),

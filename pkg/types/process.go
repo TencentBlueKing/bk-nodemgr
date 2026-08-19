@@ -212,6 +212,7 @@ type ProcessController struct {
 	StopCmd    string
 	RestartCmd string
 	ReloadCmd  string
+	DebugCmd   string
 	KillCmd    string
 	VersionCmd string
 	HealthCmd  string

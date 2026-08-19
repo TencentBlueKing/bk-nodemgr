@@ -93,4 +93,5 @@ control:
   stop: "./stop.sh bk-nodemgr-relay"
   restart: "./restart.sh bk-nodemgr-relay"
   reload: "./reload.sh bk-nodemgr-relay"
+  debug: "./debug.sh bk-nodemgr-relay"
   version: "./bk-nodemgr-relay -v"

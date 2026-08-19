@@ -304,3 +304,29 @@ func TestConvertPluginConfigDetailsTemplateName(t *testing.T) {
 		t.Fatalf("convertPluginConfigDetailsToTypes() TemplateName = %q, want %q", got[0].TemplateName, "test-template-name")
 	}
 }
+
+func TestConvertPluginDeploymentInfoKeepsDebugCmd(t *testing.T) {
+	info := &types.PluginDeploymentInfo{
+		Process: types.Process{
+			Controller: types.ProcessController{
+				DebugCmd: "debug.sh",
+			},
+		},
+	}
+
+	data, err := convertPluginDeploymentInfoFromTypes(info)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() error = %v", err)
+	}
+	if data.Process.Controller.DebugCmd != "debug.sh" {
+		t.Fatalf("convertPluginDeploymentInfoFromTypes() DebugCmd = %q, want %q", data.Process.Controller.DebugCmd, "debug.sh")
+	}
+
+	got, err := convertPluginDeploymentInfoToTypes(data)
+	if err != nil {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() error = %v", err)
+	}
+	if got.Process.Controller.DebugCmd != "debug.sh" {
+		t.Fatalf("convertPluginDeploymentInfoToTypes() DebugCmd = %q, want %q", got.Process.Controller.DebugCmd, "debug.sh")
+	}
+}

@@ -66,6 +66,7 @@ type processController struct {
 	StopCmd    string `json:"stop_cmd" bson:"stop_cmd"`
 	RestartCmd string `json:"restart_cmd" bson:"restart_cmd"`
 	ReloadCmd  string `json:"reload_cmd" bson:"reload_cmd"`
+	DebugCmd   string `json:"debug_cmd" bson:"debug_cmd"`
 	KillCmd    string `json:"kill_cmd" bson:"kill_cmd"`
 	VersionCmd string `json:"version_cmd" bson:"version_cmd"`
 	HealthCmd  string `json:"health_cmd" bson:"health_cmd"`

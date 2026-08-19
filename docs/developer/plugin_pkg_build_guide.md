@@ -246,6 +246,7 @@ control:
   stop: "./stop.sh bk-nodemgr-relay"
   restart: "./restart.sh bk-nodemgr-relay"
   reload: "./reload.sh bk-nodemgr-relay"
+  debug: "./debug.sh bk-nodemgr-relay"
   version: "./bk-nodemgr-relay -v"
 ```
 
@@ -267,11 +268,12 @@ control:
     - descriptionEn：变量英文描述信息
     - properties: 该变量的子配置，仅支持type为 object 和 array 配置，结构与variables一致，array的子配置仅允许存在一个，用于描述数组元素的类型，即数组内元素均为同一类型
 
-- control：插件控制信息，描述插件的启动、停止、重启、热加载和版本查询命令。
+- control：插件控制信息，描述插件的启动、停止、重启、热加载、调试启动和版本查询命令。
   - start：插件启动命令
   - stop：插件停止命令
   - restart：插件重启命令
   - reload：插件热加载命令
+  - debug：插件调试启动命令，可选；命令按插件包内 `bin` 目录下的相对路径解析，适合直接前台运行插件进程，供后台调试编排使用
   - version：插件版本查询命令
   - health：插件健康检查命令
   - kill： 插件强制停止命令

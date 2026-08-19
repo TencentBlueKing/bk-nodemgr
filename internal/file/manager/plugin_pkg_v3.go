@@ -161,6 +161,7 @@ type PluginV3Control struct {
 	StopCmd    string `yaml:"stop"`
 	RestartCmd string `yaml:"restart"`
 	ReloadCmd  string `yaml:"reload"`
+	DebugCmd   string `yaml:"debug"`
 	VersionCmd string `yaml:"version"`
 	HealthCmd  string `yaml:"health"`
 	KillCmd    string `yaml:"kill"`
@@ -318,6 +319,7 @@ func buildPluginV3PkgController(plat platfmt.Platform, pluginDefinition *PluginV
 		StopCmd:    tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.StopCmd)...),
 		RestartCmd: tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.RestartCmd)...),
 		ReloadCmd:  tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.ReloadCmd)...),
+		DebugCmd:   tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.DebugCmd)...),
 		KillCmd:    tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.KillCmd)...),
 		VersionCmd: tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.VersionCmd)...),
 		HealthCmd:  tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.HealthCmd)...),
