@@ -60,6 +60,9 @@ const (
 	// PluginWorkflowTypeApplyPluginSubConfig is the operation type for apply plugin sub config.
 	PluginWorkflowTypeApplyPluginSubConfig = "apply_plugin_subconfig"
 
+	// PluginWorkflowTypeStart is the operation type for start plugin.
+	PluginWorkflowTypeStart PluginWorkflowType = "start_plugin"
+
 	// PluginWorkflowTypeRestart is the operation type for restart plugin.
 	PluginWorkflowTypeRestart PluginWorkflowType = "restart_plugin"
 
@@ -90,6 +93,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeUninstall,
 		PluginWorkflowTypeReconfig,
 		PluginWorkflowTypeApplyPluginSubConfig,
+		PluginWorkflowTypeStart,
 		PluginWorkflowTypeRestart,
 		PluginWorkflowTypeMigrateV2,
 		PluginWorkflowTypeStop,

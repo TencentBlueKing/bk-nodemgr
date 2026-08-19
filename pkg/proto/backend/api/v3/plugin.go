@@ -648,6 +648,69 @@ func (x *PluginSetMemoReq) Validate() error {
 func (x *PluginSetMemoReq) AutoConvert() {}
 
 // Validate check body.
+func (x *PluginStartReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginStartReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginStartReq) ConvertParamFromTypes(startParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(startParam, func(param *types.PluginDeploymentParam) *PluginStartReq_StartInfo {
+		item := &PluginStartReq_StartInfo{}
+		item.BkHostId = param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginStartReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginStartReq_StartInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// ConvertParamToTypesWithHostTopoMapping converts param to types with host topology mapping.
+func (x *PluginStartReq) ConvertParamToTypesWithHostTopoMapping(hostTopoMapping map[int64]types.HostTopoRelation) []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginStartReq_StartInfo) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+			BizID:      hostTopoMapping[plugin.GetBkHostId()].BizID,
+		}
+	})
+}
+
+// GetHostIDs returns host ids.
+func (x *PluginStartReq) GetHostIDs() []int64 {
+	return conv.SliceToSlice(x.GetPlugin(), func(item *PluginStartReq_StartInfo) int64 {
+		return item.GetBkHostId()
+	})
+}
+
+// Validate check body.
 func (x *PluginRestartReq) Validate() error {
 	plugins := x.GetPlugin()
 	if len(plugins) == 0 {

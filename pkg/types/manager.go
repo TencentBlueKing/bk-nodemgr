@@ -130,6 +130,15 @@ type UninstallPluginParam struct {
 	PluginDeployments []*PluginDeployment
 }
 
+// StartProcessParam define the param of LaunchStartProcess.
+type StartProcessParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	PluginDeployments []*PluginDeployment
+}
+
 // RestartProcessParam define the param of LaunchRestartProcess.
 type RestartProcessParam struct {
 	Type              PluginWorkflowType

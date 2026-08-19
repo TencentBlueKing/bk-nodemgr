@@ -180,6 +180,28 @@ message PluginRestartReq {
   repeated RestartInfo plugin = 1;
 }
 
+// PluginStartReq describes the plugin start request.
+message PluginStartReq {
+  message StartInfo {
+    int64 bk_host_id = 1;
+    string plugin_name = 2;
+  }
+
+  repeated StartInfo plugin = 1;
+}
+
+// PluginStartResp describes the plugin start response.
+message PluginStartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // PluginRestartResp describes the plugin restart response.
 message PluginRestartResp {
   int32 code = 1;
@@ -323,6 +345,14 @@ service Plugin {
   rpc SetPluginMemo(PluginSetMemoReq) returns (PluginSetMemoResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/set_memo"
+      body : "*"
+    };
+  }
+
+  // StartPlugin starts the plugin process on specified hosts.
+  rpc StartPlugin(PluginStartReq) returns (PluginStartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/start"
       body : "*"
     };
   }

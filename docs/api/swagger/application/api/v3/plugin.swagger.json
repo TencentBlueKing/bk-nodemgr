@@ -220,6 +220,40 @@
         ]
       }
     },
+    "/api/v3/plugin/start": {
+      "post": {
+        "summary": "StartPlugin starts the plugin process on specified hosts.",
+        "operationId": "PluginAPI_StartPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginStartResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginStartReq describes the plugin start request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginStartReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginAPI"
+        ]
+      }
+    },
     "/api/v3/plugin/stop": {
       "post": {
         "summary": "StopPlugin stops the plugin process on specified hosts.",
@@ -409,6 +443,18 @@
       }
     },
     "PluginRestartReqRestartInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        }
+      }
+    },
+    "PluginStartReqStartInfo": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -919,6 +965,52 @@
         }
       },
       "description": "PluginSetMemoResp describes the plugin set memo response."
+    },
+    "v3PluginStartReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginStartReqStartInfo"
+          }
+        }
+      },
+      "description": "PluginStartReq describes the plugin start request."
+    },
+    "v3PluginStartResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginStartRespData"
+        }
+      },
+      "description": "PluginStartResp describes the plugin start response."
+    },
+    "v3PluginStartRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
     },
     "v3PluginStopReq": {
       "type": "object",

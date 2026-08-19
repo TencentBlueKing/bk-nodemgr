@@ -84,6 +84,9 @@ type iPluginManagerPlugin interface {
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 	LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
 
+	// LaunchStartProcess launch a task to start process. returns the workflow-id.
+	LaunchStartProcess(nCtx contextx.IContext, param types.StartProcessParam) (string, error)
+
 	// LaunchRestartProcess launch a task to restart process. returns the workflow-id.
 	LaunchRestartProcess(nCtx contextx.IContext, param types.RestartProcessParam) (string, error)
 

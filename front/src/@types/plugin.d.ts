@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 // PluginInstallReq describes the plugin install request.
 export interface PluginInstallReq {
-  plugin: PluginInstallReqInstallInfo[];
+  plugin: InstallInfo[];
 }
 
 export interface PluginInstallReqDeploymentSpec {
@@ -15,7 +15,7 @@ export interface PluginInstallReqInstallInfo {
   version: string;
   config_template_name: string[];
   custom_config_context: Record<string, any>;
-  custom_spec: PluginInstallReqDeploymentSpec;
+  custom_spec: DeploymentSpec;
 }
 
 // PluginInstallResp describes the plugin install response.
@@ -34,7 +34,7 @@ export interface PluginInstallRespData {
 
 // PluginUpgradeReq describes the plugin upgrade request.
 export interface PluginUpgradeReq {
-  plugin: PluginUpgradeReqUpgradeInfo[];
+  plugin: UpgradeInfo[];
 }
 
 export interface PluginUpgradeReqUpgradeInfo {
@@ -61,7 +61,7 @@ export interface PluginUpgradeRespData {
 
 // PluginUninstallReq describes the plugin uninstall request.
 export interface PluginUninstallReq {
-  plugin: PluginUninstallReqUninstallInfo[];
+  plugin: UninstallInfo[];
 }
 
 export interface PluginUninstallReqUninstallInfo {
@@ -86,7 +86,7 @@ export interface PluginUninstallRespData {
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 export interface PluginApplySubConfigReq {
-  plugin: PluginApplySubConfigReqApplySubConfigInfo[];
+  plugin: ApplySubConfigInfo[];
 }
 
 export interface PluginApplySubConfigReqApplySubConfigInfo {
@@ -178,7 +178,7 @@ export interface PluginListPermittedOperationResp {
 }
 
 export interface PluginListPermittedOperationRespData {
-  operations: DataOperation[];
+  operations: Operation[];
 }
 
 export interface DataOperation {
@@ -188,12 +188,36 @@ export interface DataOperation {
 
 // PluginRestartReq describes the plugin restart request.
 export interface PluginRestartReq {
-  plugin: PluginRestartReqRestartInfo[];
+  plugin: RestartInfo[];
 }
 
 export interface PluginRestartReqRestartInfo {
   bk_host_id: number;
   plugin_name: string;
+}
+
+// PluginStartReq describes the plugin start request.
+export interface PluginStartReq {
+  plugin: StartInfo[];
+}
+
+export interface PluginStartReqStartInfo {
+  bk_host_id: number;
+  plugin_name: string;
+}
+
+// PluginStartResp describes the plugin start response.
+export interface PluginStartResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  permission: Permission;
+  data: PluginStartRespData;
+}
+
+export interface PluginStartRespData {
+  workflow_id: string;
 }
 
 // PluginRestartResp describes the plugin restart response.
@@ -212,7 +236,7 @@ export interface PluginRestartRespData {
 
 // PluginStopReq describes the plugin stop request.
 export interface PluginStopReq {
-  plugin: PluginStopReqStopInfo[];
+  plugin: StopInfo[];
 }
 
 export interface PluginStopReqStopInfo {

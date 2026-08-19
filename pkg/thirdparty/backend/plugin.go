@@ -70,6 +70,12 @@ type IHandlerPlugin interface {
 	// @return the error.
 	SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error
 
+	// StartPlugin start plugin.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param startParam the start param.
+	// @return the starting workflow-ids and error.
+	StartPlugin(nCtx contextx.IContext, startParam ...*types.PluginDeploymentParam) (string, error)
+
 	// RestartPlugin restart plugin.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param restartParam the restart param.
@@ -183,6 +189,19 @@ func (h *Handler) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo 
 	}
 
 	return nil
+}
+
+// StartPlugin start plugin.
+func (h *Handler) StartPlugin(nCtx contextx.IContext, startParam ...*types.PluginDeploymentParam) (string, error) {
+	req := new(protoBackend.PluginStartReq)
+	req.ConvertParamFromTypes(startParam...)
+
+	resp, err := h.cli.startPlugin(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
 }
 
 // RestartPlugin restart plugin.

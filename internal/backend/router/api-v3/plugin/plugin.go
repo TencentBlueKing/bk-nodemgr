@@ -73,6 +73,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
 	h.rg.POST("/set_memo", restserver.Handler(h.SetMemo))
 
+	h.rg.POST("/start", restserver.Handler(h.Start))
 	h.rg.POST("/restart", restserver.Handler(h.Restart))
 	h.rg.POST("/migrate_from_v2", restserver.Handler(h.MigrateFromV2))
 	h.rg.POST("/stop", restserver.Handler(h.Stop))

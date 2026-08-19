@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PluginInstallReq, PluginInstallResp, PluginUpgradeReq, PluginUpgradeResp, PluginUninstallReq, PluginUninstallResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp, PluginSetMemoReq, PluginSetMemoResp, PluginListPermittedOperationReq, PluginListPermittedOperationResp, PluginRestartReq, PluginRestartResp, PluginStopReq, PluginStopResp } from '@/@types/plugin';
+import type { PluginInstallReq, PluginInstallResp, PluginUpgradeReq, PluginUpgradeResp, PluginUninstallReq, PluginUninstallResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp, PluginSetMemoReq, PluginSetMemoResp, PluginListPermittedOperationReq, PluginListPermittedOperationResp, PluginStartReq, PluginStartResp, PluginRestartReq, PluginRestartResp, PluginStopReq, PluginStopResp } from '@/@types/plugin';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -15,7 +15,7 @@ export const PluginAPIService = {
   UpgradePlugin: async <Request = PluginUpgradeReq, ResponseData = PluginUpgradeResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/upgrade')(params, config),
   // UninstallPlugin uninstalls a plugin on specified hosts.
   UninstallPlugin: async <Request = PluginUninstallReq, ResponseData = PluginUninstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/uninstall')(params, config),
-  // ApplyPluginSubConfig apply sub-configuration for a plugin on specified
+  // ApplyPluginSubConfig applies sub-configuration for a plugin on specified
   // hosts.
   ApplyPluginSubConfig: async <Request = PluginApplySubConfigReq, ResponseData = PluginApplySubConfigResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/apply_subconfig')(params, config),
   // ListPlugins lists plugins based on the given conditions.
@@ -25,6 +25,8 @@ export const PluginAPIService = {
   // ListPluginPermittedOperation lists the plugin operations that the user has
   // permission to perform.
   ListPluginPermittedOperation: async <Request = PluginListPermittedOperationReq, ResponseData = PluginListPermittedOperationResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/list_permitted_operations')(params, config),
+  // StartPlugin starts the plugin process on specified hosts.
+  StartPlugin: async <Request = PluginStartReq, ResponseData = PluginStartResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/start')(params, config),
   // RestartPlugin restarts the plugin process on specified hosts.
   RestartPlugin: async <Request = PluginRestartReq, ResponseData = PluginRestartResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/restart')(params, config),
   // StopPlugin stops the plugin process on specified hosts.

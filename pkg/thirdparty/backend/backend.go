@@ -3545,6 +3545,35 @@ func (c *cli) setPluginMemo(ctx contextx.IContext, req *protoBackend.PluginSetMe
 	return nil
 }
 
+func (c *cli) startPlugin(ctx contextx.IContext, req *protoBackend.PluginStartReq) (*protoBackend.PluginStartResp, error) {
+	resp := new(protoBackend.PluginStartResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/start").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("start plugin", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("start plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) restartPlugin(ctx contextx.IContext, req *protoBackend.PluginRestartReq) (*protoBackend.PluginRestartResp, error) {
 	resp := new(protoBackend.PluginRestartResp)
 	header := c.getHeader(ctx)
