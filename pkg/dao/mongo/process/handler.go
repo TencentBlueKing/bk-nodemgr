@@ -663,6 +663,9 @@ func convertProcessToTypes(data *Process) *types.Process {
 			OpTimeoutSecs:  data.MonitorPolicy.OpTimeoutSecs,
 		},
 	}
+	if data.Info.LastSyncAt != nil {
+		process.Info.LastSyncAt = *data.Info.LastSyncAt
+	}
 
 	return process
 }
@@ -705,13 +708,19 @@ func convProcessFromTypes(process *types.Process) *Process {
 }
 
 func convProcessInfoFromTypes(info types.ProcessInfo) processInfo {
-	return processInfo{
+	processInfo := processInfo{
 		Pid:         info.Pid,
 		Version:     info.Version,
 		AgentID:     info.AgentID,
 		Trusteeship: info.AutoStart,
 		Status:      string(info.Status),
 	}
+	if !info.LastSyncAt.IsZero() {
+		lastSyncAt := info.LastSyncAt
+		processInfo.LastSyncAt = &lastSyncAt
+	}
+
+	return processInfo
 }
 
 func convProcessIdentityFromTypes(identity types.ProcessIdentity) processIdentity {

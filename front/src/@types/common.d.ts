@@ -137,6 +137,7 @@ interface HostState {
   bk_agent_id: string;
   node_generation: number;
   proxy_tags: string[];
+  last_sync_at: number;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -400,6 +401,7 @@ interface ProcessInfo {
   agent_id: string;
   auto_start: boolean;
   status: string;
+  last_sync_at: number;
 }
 
 // ProcessIdentity describes the process identity.

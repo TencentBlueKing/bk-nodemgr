@@ -73,32 +73,33 @@ type HostTopo struct {
 // HostDynamic represents a host dynamic information.
 // nolint: revive
 type HostDynamic struct {
-	NodeRole                 string   `json:"node_role" bson:"node_role"`
-	NodeStatus               string   `json:"node_status" bson:"node_status"`
-	NodeVersion              string   `json:"node_version" bson:"node_version"`
-	NodeGeneration           int64    `json:"node_generation" bson:"node_generation"`
-	NodeCPUArch              string   `json:"node_cpu_arch" bson:"node_cpu_arch"`
-	NodeOsType               string   `json:"node_os_type" bson:"node_os_type"`
-	AgentID                  string   `json:"agent_id" bson:"agent_id"`
-	NetworkUnitID            int64    `json:"networkunit_id" bson:"networkunit_id"`
-	ProxyAccessDisabled      bool     `json:"proxy_access_disabled" bson:"proxy_access_disabled"`
-	ProxyTags                []string `json:"proxy_tags" bson:"proxy_tags"`
-	ProxyInstallOriginUnitID int64    `json:"proxy_install_origin_unit_id" bson:"proxy_install_origin_unit_id"`
-	ProxyClusterPort         int64    `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
-	ProxyDataPort            int64    `json:"proxy_data_port" bson:"proxy_data_port"`
-	ProxyFilePort            int64    `json:"proxy_file_port" bson:"proxy_file_port"`
-	LoginIP                  string   `json:"login_ip" bson:"login_ip"`
-	LoginPort                int64    `json:"login_port" bson:"login_port"`
-	LoginUser                string   `json:"login_user" bson:"login_user"`
-	LoginMode                string   `json:"login_mode" bson:"login_mode"`
-	LoginCreditID            string   `json:"login_credit_id" bson:"login_credit_id"`
-	ExportIP                 string   `json:"export_ip" bson:"export_ip"`
-	ExportIPV6               string   `json:"export_ipv6" bson:"export_ipv6"`
-	AdvertiseIP              string   `json:"advertise_ip" bson:"advertise_ip"`
-	AdvertiseIPV6            string   `json:"advertise_ipv6" bson:"advertise_ipv6"`
-	RelayDownloadPort        int64    `json:"relay_download_port" bson:"relay_download_port"`
-	RelayCallbackPort        int64    `json:"relay_callback_port" bson:"relay_callback_port"`
-	ConnCycleTime            string   `json:"conn_cycle_time" bson:"conn_cycle_time"`
+	NodeRole                 string     `json:"node_role" bson:"node_role"`
+	NodeStatus               string     `json:"node_status" bson:"node_status"`
+	NodeVersion              string     `json:"node_version" bson:"node_version"`
+	NodeGeneration           int64      `json:"node_generation" bson:"node_generation"`
+	NodeCPUArch              string     `json:"node_cpu_arch" bson:"node_cpu_arch"`
+	NodeOsType               string     `json:"node_os_type" bson:"node_os_type"`
+	AgentID                  string     `json:"agent_id" bson:"agent_id"`
+	NetworkUnitID            int64      `json:"networkunit_id" bson:"networkunit_id"`
+	ProxyAccessDisabled      bool       `json:"proxy_access_disabled" bson:"proxy_access_disabled"`
+	ProxyTags                []string   `json:"proxy_tags" bson:"proxy_tags"`
+	ProxyInstallOriginUnitID int64      `json:"proxy_install_origin_unit_id" bson:"proxy_install_origin_unit_id"`
+	ProxyClusterPort         int64      `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
+	ProxyDataPort            int64      `json:"proxy_data_port" bson:"proxy_data_port"`
+	ProxyFilePort            int64      `json:"proxy_file_port" bson:"proxy_file_port"`
+	LoginIP                  string     `json:"login_ip" bson:"login_ip"`
+	LoginPort                int64      `json:"login_port" bson:"login_port"`
+	LoginUser                string     `json:"login_user" bson:"login_user"`
+	LoginMode                string     `json:"login_mode" bson:"login_mode"`
+	LoginCreditID            string     `json:"login_credit_id" bson:"login_credit_id"`
+	ExportIP                 string     `json:"export_ip" bson:"export_ip"`
+	ExportIPV6               string     `json:"export_ipv6" bson:"export_ipv6"`
+	AdvertiseIP              string     `json:"advertise_ip" bson:"advertise_ip"`
+	AdvertiseIPV6            string     `json:"advertise_ipv6" bson:"advertise_ipv6"`
+	RelayDownloadPort        int64      `json:"relay_download_port" bson:"relay_download_port"`
+	RelayCallbackPort        int64      `json:"relay_callback_port" bson:"relay_callback_port"`
+	ConnCycleTime            string     `json:"conn_cycle_time" bson:"conn_cycle_time"`
+	LastSyncAt               *time.Time `json:"last_sync_at,omitempty" bson:"last_sync_at,omitempty"`
 
 	// Ops fields related to out-of-band management.
 	OpsConsoleHostID   int64  `json:"ops_console_host_id" bson:"ops_console_host_id"`

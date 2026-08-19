@@ -3258,10 +3258,10 @@ var file_node_agent_proto_goTypes = []any{
 	(*NodeAgentAssignUnitResp_Data)(nil),      // 38: v3.NodeAgentAssignUnitResp.Data
 	(*NodeAgentAssignUnitMultiReq_Item)(nil),  // 39: v3.NodeAgentAssignUnitMultiReq.Item
 	(*NodeAgentUpdateOpsFieldsResp_Data)(nil), // 40: v3.NodeAgentUpdateOpsFieldsResp.Data
-	(*Error)(nil),                             // 41: v3.Error
-	(*Permission)(nil),                        // 42: v3.Permission
-	(*TargetVersion)(nil),                     // 43: v3.TargetVersion
-	(*HostOpsInfo)(nil),                       // 44: v3.HostOpsInfo
+	(*Error)(nil),         // 41: v3.Error
+	(*Permission)(nil),    // 42: v3.Permission
+	(*TargetVersion)(nil), // 43: v3.TargetVersion
+	(*HostOpsInfo)(nil),   // 44: v3.HostOpsInfo
 }
 var file_node_agent_proto_depIdxs = []int32{
 	23, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host

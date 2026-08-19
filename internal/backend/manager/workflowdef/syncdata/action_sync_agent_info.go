@@ -134,6 +134,7 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 	}
 
 	upsertHosts := make([]*types.Host, 0, len(param.Hosts))
+	lastSyncAt := time.Now()
 	for _, host := range param.Hosts {
 		agentInfo, ok := agentInfos[host.AgentID]
 		if !ok {
@@ -150,6 +151,7 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 				NodeCPUArch:    agentInfo.Arch,
 				NodeOsType:     agentInfo.OSType,
 				ConnCycleTime:  agentInfo.ConnCycleTime,
+				LastSyncAt:     lastSyncAt,
 			},
 		})
 	}
@@ -169,6 +171,7 @@ func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 			NodeCPUArch:    true,
 			NodeOsType:     true,
 			ConnCycleTime:  true,
+			LastSyncAt:     true,
 		}, hosts...)
 	})
 	if err != nil {

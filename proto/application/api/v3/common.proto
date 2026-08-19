@@ -139,6 +139,7 @@ message HostState {
   optional string bk_agent_id = 4;
   optional int64 node_generation = 5;
   repeated string proxy_tags = 6;
+  optional int64 last_sync_at = 7;
 }
 
 // HostInfo describes the host info informations. Usually contains static
@@ -394,6 +395,7 @@ message ProcessInfo {
   optional string agent_id = 3;
   optional bool auto_start = 4;
   optional string status = 5;
+  optional int64 last_sync_at = 6;
 }
 
 // ProcessIdentity describes the process identity.

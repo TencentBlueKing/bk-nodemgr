@@ -200,6 +200,9 @@ const (
 	// FieldKeyDynamicConnCycleTime the dynamic conn cycle time field key.
 	FieldKeyDynamicConnCycleTime = "data.dynamic.conn_cycle_time"
 
+	// FieldKeyDynamicLastSyncAt the dynamic last sync at field key.
+	FieldKeyDynamicLastSyncAt = "data.dynamic.last_sync_at"
+
 	// FieldKeyDynamicOpsConsoleHostID the dynamic ops console host id field key.
 	FieldKeyDynamicOpsConsoleHostID = "data.dynamic.ops_console_host_id"
 

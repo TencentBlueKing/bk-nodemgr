@@ -20,6 +20,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
@@ -66,6 +67,8 @@ type ProcessInfo struct {
 	AgentID   string
 	AutoStart bool
 	Status    ProcessStatus
+	// LastSyncAt represents the last time process info was synced from GSE.
+	LastSyncAt time.Time
 }
 
 // ProcessIdentity defines the identity of process.

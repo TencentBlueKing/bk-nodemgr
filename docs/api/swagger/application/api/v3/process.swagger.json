@@ -655,6 +655,10 @@
         },
         "status": {
           "type": "string"
+        },
+        "last_sync_at": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "ProcessInfo describes the process information."

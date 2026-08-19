@@ -722,6 +722,10 @@ func convertHostFromTypes(host *types.Host) *Host {
 			OpsBMCIP:                 host.Dynamic.OpsBMCIP,
 			OpsBMCPort:               host.Dynamic.OpsBMCPort,
 		}
+		if !host.Dynamic.LastSyncAt.IsZero() {
+			lastSyncAt := host.Dynamic.LastSyncAt
+			dynamic.LastSyncAt = &lastSyncAt
+		}
 	}
 
 	result := &Host{
@@ -818,6 +822,9 @@ func convertHostToTypes(host *Host) *types.Host {
 			OpsOutBandProtocol:       host.Dynamic.OpsOutBandProtocol,
 			OpsBMCIP:                 host.Dynamic.OpsBMCIP,
 			OpsBMCPort:               host.Dynamic.OpsBMCPort,
+		}
+		if host.Dynamic.LastSyncAt != nil {
+			dynamic.LastSyncAt = *host.Dynamic.LastSyncAt
 		}
 	}
 
@@ -1155,6 +1162,9 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 
 	if fields.ConnCycleTime {
 		updates[FieldKeyDynamicConnCycleTime] = host.Dynamic.ConnCycleTime
+	}
+	if fields.LastSyncAt {
+		updates[FieldKeyDynamicLastSyncAt] = host.Dynamic.LastSyncAt
 	}
 
 	if fields.OpsConsoleHostID {

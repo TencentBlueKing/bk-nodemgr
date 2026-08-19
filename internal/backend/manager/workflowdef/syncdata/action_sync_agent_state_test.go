@@ -20,6 +20,7 @@ package syncdata
 
 import (
 	"testing"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -50,7 +51,7 @@ func TestShouldSyncAgentStateHost(t *testing.T) {
 			expected:            true,
 		},
 		{
-			name: "complete equal snapshot skips sync",
+			name: "complete equal snapshot only touches sync time",
 			host: &HostIDAgentID{
 				CurrentNodeRole:       &nodeRole,
 				CurrentNodeStatus:     &nodeStatus,
@@ -61,7 +62,7 @@ func TestShouldSyncAgentStateHost(t *testing.T) {
 			expected:            false,
 		},
 		{
-			name: "complete changed snapshot syncs",
+			name: "complete changed snapshot syncs state",
 			host: &HostIDAgentID{
 				CurrentNodeRole:       &nodeRole,
 				CurrentNodeStatus:     &nodeStatus,
@@ -72,7 +73,7 @@ func TestShouldSyncAgentStateHost(t *testing.T) {
 			expected:            true,
 		},
 		{
-			name: "incomplete snapshot preserves legacy sync",
+			name: "incomplete snapshot preserves state sync",
 			host: &HostIDAgentID{
 				CurrentNodeRole:       &nodeRole,
 				CurrentNodeStatus:     &nodeStatus,
@@ -95,6 +96,40 @@ func TestShouldSyncAgentStateHost(t *testing.T) {
 
 func ptr[T any](value T) *T {
 	return &value
+}
+
+func TestNewHostWithAgentState(t *testing.T) {
+	nodeRole := types.NodeRoleAgent
+	nodeStatus := types.NodeStatusRunning
+	nodeVersion := "2.0.1"
+	nodeGeneration := types.Generation2
+	lastSyncAt := time.Date(2026, 8, 19, 12, 0, 0, 0, time.Local)
+	agentState := &types.AgentState{
+		NodeRole:       nodeRole,
+		NodeStatus:     nodeStatus,
+		Version:        nodeVersion,
+		NodeGeneration: nodeGeneration,
+	}
+
+	host := newHostWithAgentState(100, agentState, lastSyncAt)
+	if host.HostID != 100 {
+		t.Fatalf("HostID = %d, want 100", host.HostID)
+	}
+	if host.Dynamic.NodeRole != nodeRole {
+		t.Fatalf("NodeRole = %s, want %s", host.Dynamic.NodeRole, nodeRole)
+	}
+	if host.Dynamic.NodeStatus != nodeStatus {
+		t.Fatalf("NodeStatus = %s, want %s", host.Dynamic.NodeStatus, nodeStatus)
+	}
+	if host.Dynamic.NodeVersion != nodeVersion {
+		t.Fatalf("NodeVersion = %s, want %s", host.Dynamic.NodeVersion, nodeVersion)
+	}
+	if host.Dynamic.NodeGeneration != nodeGeneration {
+		t.Fatalf("NodeGeneration = %d, want %d", host.Dynamic.NodeGeneration, nodeGeneration)
+	}
+	if !host.Dynamic.LastSyncAt.Equal(lastSyncAt) {
+		t.Fatalf("LastSyncAt = %s, want %s", host.Dynamic.LastSyncAt, lastSyncAt)
+	}
 }
 
 func TestHostIDAgentIDWorkflowPayloadCompatibility(t *testing.T) {

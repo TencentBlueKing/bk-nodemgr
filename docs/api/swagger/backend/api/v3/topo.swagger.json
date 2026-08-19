@@ -1552,6 +1552,10 @@
           "items": {
             "type": "string"
           }
+        },
+        "last_sync_at": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "HostState describes the host state informations. Usually contains\nagent-related things."

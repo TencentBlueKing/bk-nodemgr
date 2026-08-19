@@ -186,11 +186,13 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 	if err != nil {
 		return nil, err
 	}
+	lastSyncAt := time.Now()
 
 	underControlledProcInfos := make([]*types.ProcessInfoDelta, 0)
 	for pluginName, infos := range procInfos {
 		for idx := range infos {
 			processInfo := infos[idx]
+			processInfo.LastSyncAt = lastSyncAt
 			hostID := agentIDHostIDMap[processInfo.AgentID]
 			processInfoDelta := &types.ProcessInfoDelta{
 				HostID:      hostID,
@@ -218,11 +220,12 @@ func (act *actionSyncAlivePluginProcessInfo) checkAliveProcess(nCtx contextx.ICo
 			HostID:     proc.HostID,
 			PluginName: proc.PluginName,
 			ProcessInfo: types.ProcessInfo{
-				Pid:       0,
-				Version:   "",
-				AgentID:   hostIDAgentIDMap[proc.HostID],
-				AutoStart: false,
-				Status:    types.ProcessStatusUnknown,
+				Pid:        0,
+				Version:    "",
+				AgentID:    hostIDAgentIDMap[proc.HostID],
+				AutoStart:  false,
+				Status:     types.ProcessStatusUnknown,
+				LastSyncAt: lastSyncAt,
 			},
 		}
 

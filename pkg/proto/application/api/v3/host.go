@@ -19,6 +19,8 @@
 package v3
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -96,6 +98,7 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.State.NodeGeneration = int64(host.Dynamic.NodeGeneration)
 		*item.State.BkAgentId = host.Dynamic.AgentID
 		item.State.ProxyTags = types.ProxyTagListToStringList(host.Dynamic.ProxyTags)
+		*item.State.LastSyncAt = timeToUnixMilli(host.Dynamic.LastSyncAt)
 
 		items[idx] = item
 	}
@@ -162,6 +165,9 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			AdvertiseIPV6:     info.GetAdvertiseIpV6(),
 			RelayCallbackPort: info.GetRelayCallbackPort(),
 			RelayDownloadPort: info.GetRelayDownloadPort(),
+		}
+		if state.LastSyncAt != nil && state.GetLastSyncAt() != 0 {
+			host.Dynamic.LastSyncAt = time.UnixMilli(state.GetLastSyncAt())
 		}
 
 		result[idx] = host
@@ -281,6 +287,7 @@ func newEmptyHost() *Host {
 			NodeGeneration: new(int64),
 			BkAgentId:      new(string),
 			ProxyTags:      make([]string, 0),
+			LastSyncAt:     new(int64),
 		},
 	}
 }

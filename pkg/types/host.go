@@ -162,6 +162,8 @@ type HostDynamic struct {
 
 	// ConnCycleTime represents the connection cycle time of the agent reported by GSE.
 	ConnCycleTime string
+	// LastSyncAt represents the last time host state was synced from GSE.
+	LastSyncAt time.Time
 
 	// Ops represents the fields related to ops console and outband management.
 	OpsConsoleHostID   int64
@@ -246,6 +248,7 @@ type HostDynamicFields struct {
 	RelayCallbackPort bool
 
 	ConnCycleTime bool
+	LastSyncAt    bool
 
 	// Ops fields related to out-of-band management.
 	OpsConsoleHostID   bool
