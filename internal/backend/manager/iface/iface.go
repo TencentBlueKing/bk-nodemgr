@@ -136,3 +136,9 @@ type IDeployPolicyManager interface {
 	// LaunchExecuteDeployPolicy launch a task to execute deploy policy. returns the trigger-id.
 	LaunchExecuteDeployPolicy(ctx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error)
 }
+
+// IPackageManager defines package workflow manager methods.
+type IPackageManager interface {
+	// LaunchPackageImportPluginV3Pkg launches package import plugin v3 pkg workflow.
+	LaunchPackageImportPluginV3Pkg(ctx contextx.IContext, param types.PackageImportParam) (string, error)
+}

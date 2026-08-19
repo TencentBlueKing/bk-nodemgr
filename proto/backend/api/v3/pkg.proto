@@ -868,28 +868,6 @@ message PackageEventDistinctResp {
   Data data = 5;
 }
 
-// PackageImportReq describes the HTTP request body when import package in
-// package service.
-message PackageImportReq {
-  string file_name = 1;
-  string download_url = 2;
-  string md5 = 3;
-}
-
-// PackageImportResp describes the HTTP response body when import package in
-// package service.
-message PackageImportResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data { string plugin_name = 1; }
-
-  Data data = 5;
-}
-
 // Package defines the package service.
 service Package {
   // ListReleaseAgent lists agent releases.
@@ -1211,14 +1189,6 @@ service Package {
       returns (PackageEventDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/package/event/distinct"
-      body : "*"
-    };
-  }
-
-  // PackageImport provides package importing.
-  rpc PackageImport(PackageImportReq) returns (PackageImportResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/import"
       body : "*"
     };
   }

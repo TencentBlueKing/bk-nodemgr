@@ -8,27 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package packageworkflow
+// Package pkg defines workflow actions for package management.
+package pkg
 
-const (
-	// FieldKeyWorkflowID represents the workflow ID field.
-	FieldKeyWorkflowID = "data.workflow_id"
-
-	// FieldKeyTriggerID represents the trigger ID field.
-	FieldKeyTriggerID = "data.trigger_id"
-
-	// FieldKeyStatus represents the status field.
-	FieldKeyStatus = "data.status"
-
-	// FieldKeyType represents the type field.
-	FieldKeyType = "data.type"
-
-	// FieldKeyOperator represents the operator field.
-	FieldKeyOperator = "data.operator"
-
-	// FieldKeyOperateTime represents the operate time field.
-	FieldKeyOperateTime = "data.operate_time"
-
-	// FieldKeyFinishTime represents the finish time field.
-	FieldKeyFinishTime = "data.finish_time"
+import (
+	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 )
+
+// Capability contains dependencies required by package actions.
+type Capability struct {
+	FileHandler    file.IHandler
+	StorageRelease release.IStorage
+	StoragePackage pkgStg.IStorage
+}

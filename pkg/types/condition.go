@@ -922,3 +922,32 @@ type DeployPolicyFuzzyFields struct {
 	DeployPolicyName []string
 	Operator         []string
 }
+
+// ===============================================================================
+// PackageDeployment Related Conditions
+// ===============================================================================
+
+// PackageDeploymentExactFields defines the package deployment exact fields.
+type PackageDeploymentExactFields struct {
+	Token    []string
+	UploadID []string
+}
+
+// PackageDeploymentFuzzyFields defines the package deployment fuzzy fields.
+type PackageDeploymentFuzzyFields struct {
+}
+
+// PackageDeploymentCondition defines the package deployment condition.
+type PackageDeploymentCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PackageDeploymentExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PackageDeploymentFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PackageDeploymentExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PackageDeploymentFuzzyFields
+}

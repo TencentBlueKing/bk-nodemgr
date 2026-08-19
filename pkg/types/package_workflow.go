@@ -21,7 +21,6 @@ type PackageWorkflow struct {
 	WorkflowID  string
 	TriggerID   string
 	Type        PackageWorkflowType
-	FileName    string
 	Operator    string
 	OperateTime time.Time
 	FinishTime  time.Time
@@ -81,13 +80,4 @@ func GetFinishedPackageWorkflowStatus() []PackageWorkflowStatus {
 		PackageWorkflowStatusFailed,
 		PackageWorkflowStatusPartialFailed,
 	}
-}
-
-// PackageImportParam defines the input for launching a package import workflow.
-type PackageImportParam struct {
-	TenantID    string
-	FileName    string
-	DownloadURL string
-	MD5         string
-	Operator    string
 }

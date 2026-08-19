@@ -31,14 +31,52 @@ func (s *Storage) createPackageDeployment(nCtx contextx.IContext, deployment *ty
 	return s.daoPackageDeployment.CreatePackageDeployment(nCtx, deployment)
 }
 
-func (s *Storage) listPackageDeployment(nCtx contextx.IContext, page types.Page, opts ...packagedeployment.OptFn) (
+func (s *Storage) listPackageDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageDeploymentCondition) (
 	[]*types.PackageDeployment, int64, error) {
 
 	if nCtx == nil {
 		return nil, 0, basestorage.ErrNilContent()
 	}
 
+	opts, err := convertPackageDeploymentConditionToOptions(conditions)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	return s.daoPackageDeployment.ListPackageDeployment(nCtx, page, opts...)
+}
+
+// convertPackageDeploymentConditionToOptions converts package deployment condition to dao options.
+func convertPackageDeploymentConditionToOptions(conditions []*types.PackageDeploymentCondition) (
+	[]packagedeployment.OptFn, error) {
+
+	opts := make([]packagedeployment.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				packagedeployment.WithToken(condition.ExactInclude.Token...),
+				packagedeployment.WithUploadID(condition.ExactInclude.UploadID...),
+			)
+		}
+
+		if condition.FuzzyInclude != nil {
+			return nil, errors.New("fuzzy include is not supported")
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }
 
 func (s *Storage) getPackageDeploymentInfo(nCtx contextx.IContext, token string) (*types.PackageDeploymentInfo, error) {

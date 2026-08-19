@@ -154,7 +154,7 @@ func (x *DownloadPluginBinToolReq) AutoConvert() {
 
 // Validate check request body.
 func (x *DownloadRemoteFileReq) Validate() error {
-	if conv.IsEmpty(x.Filename) {
+	if conv.IsEmpty(x.GetFilename()) {
 		return errors.New("filename is required")
 	}
 

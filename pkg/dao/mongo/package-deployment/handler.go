@@ -112,7 +112,7 @@ func (h *Handler) GetPackageDeploymentInfo(nCtx contextx.IContext, token string)
 	}
 
 	if token == "" {
-		return nil, base.ErrInvalidID()
+		return nil, base.ErrEmptyParamData()
 	}
 
 	filter := base.AliveFilter()
@@ -120,10 +120,6 @@ func (h *Handler) GetPackageDeploymentInfo(nCtx contextx.IContext, token string)
 
 	data, err := h.dao.Get(nCtx, filter, FieldKeyInfo)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, base.ErrRecordNoFound()
-		}
-
 		return nil, err
 	}
 
@@ -137,7 +133,7 @@ func (h *Handler) UpdatePackageDeploymentInfo(nCtx contextx.IContext, token stri
 	}
 
 	if token == "" {
-		return base.ErrInvalidID()
+		return base.ErrEmptyParamData()
 	}
 
 	if info == nil {
@@ -161,7 +157,7 @@ func convertPackageDeploymentFromTypes(deployment *types.PackageDeployment) (*Da
 	}
 
 	if deployment.Token == "" {
-		return nil, base.ErrInvalidID()
+		return nil, base.ErrEmptyParamData()
 	}
 
 	info, err := convertInfoFromTypes(deployment.Info)
@@ -197,15 +193,16 @@ func convertInfoFromTypes(info *types.PackageDeploymentInfo) (*Info, error) {
 	}
 
 	return &Info{
-		UploadID: info.UploadID,
+		Name:       info.Name,
+		Version:    info.Version,
+		Platforms:  convertPlatformsFromTypes(info.Platforms),
+		Generation: int64(info.Generation),
+		UploadID:   info.UploadID,
 		ImportPluginPkgOptions: importPluginPkgOptions{
 			FileSourceType: string(info.ImportPluginPkgOptions.FileSourceType),
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
+			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
-			PluginPkgName:  info.ImportPluginPkgOptions.PluginPkgName,
-			PluginName:     info.ImportPluginPkgOptions.PluginName,
-			Version:        info.ImportPluginPkgOptions.Version,
-			Platforms:      convertPlatformsFromTypes(info.ImportPluginPkgOptions.Platforms),
 		},
 	}, nil
 }
@@ -216,15 +213,16 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 	}
 
 	return &types.PackageDeploymentInfo{
-		UploadID: info.UploadID,
+		Name:       info.Name,
+		Version:    info.Version,
+		Platforms:  convertPlatformsToTypes(info.Platforms),
+		Generation: types.Generation(info.Generation),
+		UploadID:   info.UploadID,
 		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
 			FileSourceType: types.FileSourceType(info.ImportPluginPkgOptions.FileSourceType),
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
+			FileName:       info.ImportPluginPkgOptions.FileName,
 			MD5:            info.ImportPluginPkgOptions.MD5,
-			PluginPkgName:  info.ImportPluginPkgOptions.PluginPkgName,
-			PluginName:     info.ImportPluginPkgOptions.PluginName,
-			Version:        info.ImportPluginPkgOptions.Version,
-			Platforms:      convertPlatformsToTypes(info.ImportPluginPkgOptions.Platforms),
 		},
 	}, nil
 }

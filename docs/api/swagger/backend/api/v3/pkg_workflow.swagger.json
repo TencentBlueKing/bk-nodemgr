@@ -1,0 +1,426 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "pkg_workflow.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PackageWorkflow"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/package/workflow/import/v3/plugin": {
+      "post": {
+        "summary": "PackageImport provides package importing.",
+        "operationId": "PackageWorkflow_PackageImport",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportPluginV3PkgResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageImportReq describes the HTTP request body when import package in\npackage service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportPluginV3PkgReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageWorkflow"
+        ]
+      }
+    },
+    "/api/v3/package/workflow/import_result": {
+      "post": {
+        "summary": "PackageImportResult provides the package import result.",
+        "operationId": "PackageWorkflow_PackageImportResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportResultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageImportResultReq describes the package import result request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportResultReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageWorkflow"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "WorkflowActionMessageMessage": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "level": {
+          "type": "string"
+        },
+        "text_zh": {
+          "type": "string",
+          "title": "Chinese log content"
+        },
+        "text_en": {
+          "type": "string",
+          "title": "English log content"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageImportPluginV3PkgReq": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "download_url": {
+          "type": "string"
+        },
+        "md5": {
+          "type": "string"
+        }
+      },
+      "description": "PackageImportReq describes the HTTP request body when import package in\npackage service."
+    },
+    "v3PackageImportPluginV3PkgResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageImportPluginV3PkgRespData"
+        }
+      },
+      "description": "PackageImportResp describes the HTTP response body when import package in\npackage service."
+    },
+    "v3PackageImportPluginV3PkgRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageImportResultReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackageImportResultReq describes the package import result request."
+    },
+    "v3PackageImportResultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageImportResultRespData"
+        }
+      },
+      "description": "PackageImportResultResp describes the package import result response."
+    },
+    "v3PackageImportResultRespData": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "oper_inst_logs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        },
+        "extra_execution_logs": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        },
+        "is_finish": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3SubWorkflowRef": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_domain": {
+          "type": "string"
+        }
+      },
+      "description": "SubWorkflowRef describes a child workflow reference surfaced in action logs."
+    },
+    "v3WorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        },
+        "display_name_zh": {
+          "type": "string",
+          "title": "Chinese display name"
+        },
+        "display_name_en": {
+          "type": "string",
+          "title": "English display name"
+        },
+        "sub_workflow_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SubWorkflowRef"
+          }
+        }
+      },
+      "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/WorkflowActionMessageMessage"
+          }
+        }
+      },
+      "description": "WorkflowActionMessage describes the workflow action message logs."
+    },
+    "v3WorkflowLifeCycle": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowLifeCycle describes the workflow life cycle."
+    }
+  }
+}

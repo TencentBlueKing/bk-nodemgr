@@ -84,40 +84,6 @@
         ]
       }
     },
-    "/api/v3/package/import": {
-      "post": {
-        "summary": "PackageImport provides package importing.",
-        "operationId": "Package_PackageImport",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PackageImportResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "PackageImportReq describes the HTTP request body when import package in\npackage service.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PackageImportReq"
-            }
-          }
-        ],
-        "tags": [
-          "Package"
-        ]
-      }
-    },
     "/api/v3/package/release/agent/cancel_as_default": {
       "post": {
         "summary": "CancelAsDefaultReleaseAgent cancels agent release as default.",
@@ -1653,54 +1619,6 @@
             "type": "object",
             "$ref": "#/definitions/v3PackageEvent"
           }
-        }
-      }
-    },
-    "v3PackageImportReq": {
-      "type": "object",
-      "properties": {
-        "file_name": {
-          "type": "string"
-        },
-        "download_url": {
-          "type": "string"
-        },
-        "md5": {
-          "type": "string"
-        }
-      },
-      "description": "PackageImportReq describes the HTTP request body when import package in\npackage service."
-    },
-    "v3PackageImportResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "permission": {
-          "$ref": "#/definitions/v3Permission"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PackageImportRespData"
-        }
-      },
-      "description": "PackageImportResp describes the HTTP response body when import package in\npackage service."
-    },
-    "v3PackageImportRespData": {
-      "type": "object",
-      "properties": {
-        "plugin_name": {
-          "type": "string"
         }
       }
     },

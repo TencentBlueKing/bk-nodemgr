@@ -37,6 +37,7 @@ type IManager interface {
 	managerIface.INodeManager
 	managerIface.IPluginManager
 	managerIface.IDeployPolicyManager
+	managerIface.IPackageManager
 }
 
 // NewManager creates a new Manager.
@@ -52,15 +53,15 @@ func NewManager(conf Config) (*Manager, error) {
 
 	var err error
 	mgr.workflowMgr, err = workflow.NewManager(
-		mgr.conf.WorkflowConfig.WorkNodeNum,
+		mgr.conf.WorkNodeNum,
 		workflow.WithStorageTrigger(conf.StorageWorkflow),
 		workflow.WithStorageOperation(conf.StorageWorkflow),
 		workflow.WithStorageOperationInstance(conf.StorageWorkflow),
 		workflow.WithStorageActionInstance(conf.StorageWorkflow),
 		workflow.WithLocker(conf.LockerFactory),
-		workflow.WithRedis(mgr.conf.WorkflowConfig.Redis),
+		workflow.WithRedis(mgr.conf.Redis),
 		workflow.WithTraceService(mgr.conf.TraceService),
-		workflow.WithGracefulShutdownTimeout(mgr.conf.WorkflowConfig.GracefulShutdownTimeout),
+		workflow.WithGracefulShutdownTimeout(mgr.conf.GracefulShutdownTimeout),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create workflow manager: %w", err)

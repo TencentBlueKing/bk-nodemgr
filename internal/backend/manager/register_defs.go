@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pluginv2"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
@@ -39,6 +40,10 @@ func (mgr *Manager) registerDefinitions() error {
 		return fmt.Errorf("failed to register def plugin v2: %w", err)
 	}
 
+	if err := mgr.registerDefPackage(); err != nil {
+		return fmt.Errorf("failed to register def package import: %w", err)
+	}
+
 	if err := mgr.registerDefSchedule(); err != nil {
 		return fmt.Errorf("failed to register def schedule: %w", err)
 	}
@@ -48,6 +53,21 @@ func (mgr *Manager) registerDefinitions() error {
 	}
 
 	return nil
+}
+
+func (mgr *Manager) registerDefPackage() error {
+	capability := &pkg.Capability{
+		FileHandler:    mgr.conf.FileHandler,
+		StorageRelease: mgr.conf.StorageRelease,
+		StoragePackage: mgr.conf.StoragePackage,
+	}
+
+	return mgr.workflowMgr.RegisterActions(
+		pkg.NewActionPackageImportPluginV3PkgFetchAndUpload(capability),
+		pkg.NewActionPackagePublishPluginV3Pkg(capability),
+		pkg.NewActionPackageReleasePluginEnable(capability),
+		pkg.NewActionPackageReleasePluginHidden(capability),
+	)
 }
 
 // registerDefNode registers the definitions for node.

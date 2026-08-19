@@ -181,3 +181,14 @@ type ExecuteDeployPolicyParam struct {
 	DeployPolicyIDs []int64
 	Operator        string
 }
+
+// ===============================================================================
+// Package Manager Params
+// ===============================================================================
+
+// PackageImportParam defines the input for launching a package import workflow.
+type PackageImportParam struct {
+	Type               PackageWorkflowType
+	Operator           string
+	PackageDeployments []*PackageDeployment
+}

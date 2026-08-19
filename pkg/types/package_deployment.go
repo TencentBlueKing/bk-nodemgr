@@ -33,7 +33,16 @@ type PackageDeployment struct {
 
 // PackageDeploymentInfo represents the info of a package deployment.
 type PackageDeploymentInfo struct {
-	UploadID               string
+	// Package useful fields
+	Name       string
+	Version    string
+	Platforms  []platfmt.Platform
+	Generation Generation
+
+	// UploadID if go into upload action, this field will be filled.
+	UploadID string
+
+	// ImportPluginPkgOptions provides the options for importing a plugin package.
 	ImportPluginPkgOptions PackageImportPluginPkgOptions
 }
 
@@ -49,9 +58,6 @@ const (
 type PackageImportPluginPkgOptions struct {
 	FileSourceType FileSourceType
 	FileSource     string
+	FileName       string
 	MD5            string
-	PluginPkgName  string
-	PluginName     string
-	Version        string
-	Platforms      []platfmt.Platform
 }

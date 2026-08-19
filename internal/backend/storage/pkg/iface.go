@@ -14,7 +14,6 @@ package pkg
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	packagedeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -41,7 +40,8 @@ type IStoragePackageDeployment interface {
 	CreatePackageDeployment(nCtx contextx.IContext, deployment *types.PackageDeployment) error
 
 	// ListPackageDeployment lists package deployment records.
-	ListPackageDeployment(nCtx contextx.IContext, page types.Page, opts ...packagedeployment.OptFn) ([]*types.PackageDeployment, int64, error)
+	ListPackageDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageDeploymentCondition) (
+		[]*types.PackageDeployment, int64, error)
 
 	// GetPackageDeploymentInfo gets package deployment info by token.
 	GetPackageDeploymentInfo(nCtx contextx.IContext, token string) (*types.PackageDeploymentInfo, error)

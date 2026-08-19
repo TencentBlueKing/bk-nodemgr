@@ -29,7 +29,6 @@ type Data struct {
 	WorkflowID  string    `json:"workflow_id" bson:"workflow_id"`
 	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
 	Type        string    `json:"type" bson:"type"`
-	FileName    string    `json:"file_name" bson:"file_name"`
 	Operator    string    `json:"operator" bson:"operator"`
 	OperateTime time.Time `json:"operate_time" bson:"operate_time"`
 	FinishTime  time.Time `json:"finish_time" bson:"finish_time"`

@@ -314,6 +314,8 @@ linters:
           alias: pkgStg
         - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/package-deployment
           alias: packagedeployment
+        - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils
+          alias: pkgUtils
       no-unaliased: false
       no-extra-aliases: true
     interfacebloat:

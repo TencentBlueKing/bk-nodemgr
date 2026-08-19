@@ -41,7 +41,6 @@ func testPackageWorkflow(nCtx contextx.IContext) *types.PackageWorkflow {
 		WorkflowID:  uuid.NewString(),
 		TriggerID:   uuid.NewString(),
 		Type:        types.PackageWorkflowTypeImport,
-		FileName:    "gse_plugin-1.0.0.tgz",
 		Operator:    "admin",
 		OperateTime: time.Date(2026, 8, 5, 10, 0, 0, 0, time.UTC),
 		Status:      types.PackageWorkflowStatusRunning,
@@ -78,7 +77,6 @@ func TestHandler_CountAndList(t *testing.T) {
 	nCtx := testContext()
 	runningWorkflow := testPackageWorkflow(nCtx)
 	successWorkflow := testPackageWorkflow(nCtx)
-	successWorkflow.FileName = "gse_agent-2.0.0.tgz"
 	successWorkflow.Operator = "system"
 	successWorkflow.Status = types.PackageWorkflowStatusSuccess
 
@@ -198,9 +196,6 @@ func assertPackageWorkflowEqual(t *testing.T, got, want *types.PackageWorkflow) 
 	}
 	if got.Type != want.Type {
 		t.Fatalf("Type = %s, want %s", got.Type, want.Type)
-	}
-	if got.FileName != want.FileName {
-		t.Fatalf("FileName = %s, want %s", got.FileName, want.FileName)
 	}
 	if got.Operator != want.Operator {
 		t.Fatalf("Operator = %s, want %s", got.Operator, want.Operator)

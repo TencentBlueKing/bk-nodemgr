@@ -13,10 +13,13 @@ package pkg
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/auth"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
@@ -38,6 +41,9 @@ type handler struct {
 	daoReleaseBinTool       release.IBinTool
 	daoReleasePluginBinTool release.IPluginBinTool
 	daoPlugin               plugin.IDaoPlugin
+	daoPackageWorkflow      pkgStg.IStoragePackageWorkflow
+	daoWorkflow             workflow.IStorage
+	pkgMgrIface             managerIface.IPackageManager
 
 	daoTenant  tenant.IStorage
 	authorizer auth.IAuthorizer
@@ -62,6 +68,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoReleaseBinTool:       capability.StorageRelease,
 		daoReleasePluginBinTool: capability.StorageRelease,
 		daoPlugin:               capability.StoragePlugin,
+		daoPackageWorkflow:      capability.StoragePackage,
+		daoWorkflow:             capability.StorageWorkflow,
+		pkgMgrIface:             capability.Manager,
 		daoTenant:               capability.StorageTenant,
 		authorizer:              capability.Authorizer,
 	}
@@ -120,4 +129,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	// event
 	h.rg.POST("/event/list", restserver.Handler(h.ListPackageEvent))
 	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctPackageEvent))
+
+	// workflow
+	h.rg.POST("/workflow/import/v3/plugin", restserver.Handler(h.PackagePluginV3Import))
+	h.rg.POST("/workflow/import_result", restserver.Handler(h.PackageImportResult))
 }

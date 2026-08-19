@@ -10,7 +10,7 @@
 |Where to look:public API+types conversion+partial info access:handler.go:{IHandler,Handler,New,CreatePackageDeployment,ListPackageDeployment,GetPackageDeploymentInfo,UpdatePackageDeploymentInfo,convertPackageDeploymentFromTypes,convertPackageDeploymentToTypes,convertInfoFromTypes,convertInfoToTypes,convertPlatformsFromTypes,convertPlatformsToTypes}
 |Where to look:dao+base.IOrm+indexes:packagedeploy.go:{newDao,dao,GetClient,GetTableName,GetIndexes}
 |Where to look:collection name+document contract+unique key:table.go:{TableName,Data,UniqueFields,UniqueKey,Table}
-|Where to look:BSON field keys+filters:{constant.go,options.go}:{FieldKeyToken,FieldKeyInfo,FieldKeyInfoUploadID,FieldKeyInfoPluginName,FieldKeyInfoPluginPkgName,FieldKeyInfoVersion,WithToken,WithUploadID,WithPluginName,WithPluginPkgName,WithVersion}
+|Where to look:BSON field keys+filters:{constant.go,options.go}:{FieldKeyToken,FieldKeyInfo,FieldKeyInfoUploadID,WithToken,WithUploadID}
 |Where to look:domain type:pkg/types/package_deployment.go:{PackageDeployment,PackageDeploymentInfo}
 |Where to look:upstream storage orchestration:internal/backend/storage/pkg:{storage.go,dao_pkg_deployment.go,iface.go}
 |Where to look:peer refs:pkg/dao/mongo/{node-deployment,package-workflow}/AGENTS.md|shared Mongo rules:pkg/dao/mongo/base/AGENTS.md
@@ -19,9 +19,9 @@
 |Conventions:public boundary accepts/returns pkg/types.PackageDeployment / types.PackageDeploymentInfo|Mongo Data structs, BSON paths, and base.IOrm details stay package-private
 |Conventions:handler validates nil nCtx/nil deployment/nil info and empty token via base sentinel errors|no package-local error sentinels
 |Conventions:read filters=base.AliveFilter()→apply OptFn chain|List computes total with Count then applies base.ParsePage(page)
-|Conventions:Info field alignment=table.go Info fields (Name,MD5,DownloadURL,UploadID,PluginName,PluginPkgName,Version,Platforms) map 1:1 to types.PackageDeploymentInfo|platform conversion via closest package-private helpers
+|Conventions:Info field alignment=table.go Info fields (Name,Version,Platforms,Generation,UploadID,ImportPluginPkgOptions{FileSourceType,FileSource,FileName,MD5}) map 1:1 to types.PackageDeploymentInfo|platform conversion via closest package-private helpers
 |Conventions:Mongo field paths must align with table.go BSON tags|reuse FieldKey constants for new filters/indexes instead of duplicating strings
-|Conventions:new indexes use mongo.IndexModel in dao.GetIndexes() and must match actual query filters|current explicit indexes=FieldKeyInfoUploadID,FieldKeyInfoPluginPkgName
+|Conventions:new indexes use mongo.IndexModel in dao.GetIndexes() and must match actual query filters|current explicit indexes=FieldKeyInfoUploadID
 |Conventions:exported Go symbols require English godoc comments|errors preserve base sentinel semantics and wrapping
 |Anti-patterns:no package import/workflow orchestration, status aggregation, scheduler logic, proto/HTTP structs, or upload/download validation in this DAO
 |Anti-patterns:no TTL/expire_at reintroduction unless collection contract changes explicitly|no cross-tenant collection access or cross-collection joins

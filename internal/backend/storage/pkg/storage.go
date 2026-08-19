@@ -401,21 +401,32 @@ func (s *Storage) GetPackageWorkflow(nCtx contextx.IContext, workflowID string) 
 // CreatePackageDeployment creates a package deployment record.
 func (s *Storage) CreatePackageDeployment(nCtx contextx.IContext, deployment *types.PackageDeployment) error {
 	return s.WrapFn(nCtx, metricOperationCreatePackageDeployment, func(nCtx contextx.IContext) error {
-		return s.createPackageDeployment(nCtx, deployment)
+		if err := s.createPackageDeployment(nCtx, deployment); err != nil {
+			logger.G.Sys().WithErr(err).With("token", deployment.Token).Error("failed to create package deployment")
+
+			return err
+		}
+
+		return nil
 	})
 }
 
 // ListPackageDeployment lists package deployment records.
-func (s *Storage) ListPackageDeployment(nCtx contextx.IContext, page types.Page, opts ...packagedeployment.OptFn) (
+func (s *Storage) ListPackageDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageDeploymentCondition) (
 	[]*types.PackageDeployment, int64, error) {
 
 	var deployments []*types.PackageDeployment
 	var count int64
 	err := s.WrapFn(nCtx, metricOperationListPackageDeployment, func(nCtx contextx.IContext) error {
 		var err error
-		deployments, count, err = s.listPackageDeployment(nCtx, page, opts...)
+		deployments, count, err = s.listPackageDeployment(nCtx, page, conditions...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list package deployments")
 
-		return err
+			return err
+		}
+
+		return nil
 	})
 
 	return deployments, count, err
@@ -427,8 +438,13 @@ func (s *Storage) GetPackageDeploymentInfo(nCtx contextx.IContext, token string)
 	err := s.WrapFn(nCtx, metricOperationGetPackageDeploymentInfo, func(nCtx contextx.IContext) error {
 		var err error
 		info, err = s.getPackageDeploymentInfo(nCtx, token)
+		if err != nil {
+			logger.G.Sys().WithErr(err).With("token", token).Error("failed to get package deployment info")
 
-		return err
+			return err
+		}
+
+		return nil
 	})
 
 	return info, err
@@ -437,6 +453,12 @@ func (s *Storage) GetPackageDeploymentInfo(nCtx contextx.IContext, token string)
 // UpdatePackageDeploymentInfo updates package deployment info by token.
 func (s *Storage) UpdatePackageDeploymentInfo(nCtx contextx.IContext, token string, info *types.PackageDeploymentInfo) error {
 	return s.WrapFn(nCtx, metricOperationUpdatePackageDeployment, func(nCtx contextx.IContext) error {
-		return s.updatePackageDeploymentInfo(nCtx, token, info)
+		if err := s.updatePackageDeploymentInfo(nCtx, token, info); err != nil {
+			logger.G.Sys().WithErr(err).With("token", token).Error("failed to update package deployment info")
+
+			return err
+		}
+
+		return nil
 	})
 }
