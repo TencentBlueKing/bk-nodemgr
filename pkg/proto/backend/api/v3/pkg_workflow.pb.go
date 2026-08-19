@@ -22,8 +22,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// PackageImportReq describes the HTTP request body when import package in
-// package service.
+// PackageImportPluginV3PkgReq describes the HTTP request body when import
+// plugin package in package service.
 type PackageImportPluginV3PkgReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filename      string                 `protobuf:"bytes,1,opt,name=filename,proto3" json:"filename"`
@@ -84,8 +84,8 @@ func (x *PackageImportPluginV3PkgReq) GetMd5() string {
 	return ""
 }
 
-// PackageImportResp describes the HTTP response body when import package in
-// package service.
+// PackageImportPluginV3PkgResp describes the HTTP response body when import
+// plugin package in package service.
 type PackageImportPluginV3PkgResp struct {
 	state         protoimpl.MessageState             `protogen:"open.v1"`
 	Code          int32                              `protobuf:"varint,1,opt,name=code,proto3" json:"code"`

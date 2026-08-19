@@ -86,9 +86,9 @@ func (act *actionPackageImportPluginV3PkgFetchAndUpload) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
-func (act *actionPackageImportPluginV3PkgFetchAndUpload) Do(ctx *action.InstanceContext) error {
+func (act *actionPackageImportPluginV3PkgFetchAndUpload) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionPackageImportPluginV3PkgFetchAndUpload)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
@@ -148,10 +148,12 @@ func (act *actionPackageImportPluginV3PkgFetchAndUpload) Do(ctx *action.Instance
 
 	// Persist the upload result into the package deployment record.
 	info := std.DeployInfo()
-	info.UploadID = detail.UploadID
-	info.Name = detail.PluginPkgName
-	info.Version = detail.Version
-	info.Platforms = detail.Platforms
+	info.Upload = types.PackageDeploymentUploadInfo{
+		UploadID:  detail.UploadID,
+		Name:      detail.PluginPkgName,
+		Version:   detail.Version,
+		Platforms: detail.Platforms,
+	}
 
 	logger.G.Sys().Ctx(nCtx).With("upload-id", detail.UploadID, "plugin-name", detail.PluginPkgName).Info("uploaded origin plugin package")
 

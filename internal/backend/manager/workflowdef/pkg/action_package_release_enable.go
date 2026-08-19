@@ -85,9 +85,10 @@ func (act *actionPackageReleasePluginEnable) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
-func (act *actionPackageReleasePluginEnable) Do(ctx *action.InstanceContext) error {
+func (act *actionPackageReleasePluginEnable) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamImportPackageReleasePluginEnable)
-	if err := conv.MapToStruct(ctx.Data.Content, param); err != nil {
+	err = conv.MapToStruct(ctx.Data.Content, param)
+	if err != nil {
 		return err
 	}
 
@@ -95,47 +96,52 @@ func (act *actionPackageReleasePluginEnable) Do(ctx *action.InstanceContext) err
 	if err := std.Initialize(ctx, param.PackageActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	nCtx := std.Context()
 	info := std.DeployInfo()
-	if info.Name == "" {
-		return errors.New("plugin name is empty")
-	}
-	if info.Version == "" {
-		return errors.New("plugin version is empty")
-	}
-	if len(info.Platforms) == 0 {
-		return errors.New("plugin platforms is empty")
+	if len(info.Release) == 0 {
+		return errors.New("plugin releases is empty")
 	}
 
-	for _, platform := range info.Platforms {
-		if !platform.Validate() {
-			return fmt.Errorf("invalid plugin platform: %s", platform.String())
+	for _, release := range info.Release {
+		if release.Name == "" {
+			return errors.New("plugin name is empty")
+		}
+		if release.Version == "" {
+			return errors.New("plugin version is empty")
+		}
+		if !release.Platform.Validate() {
+			return fmt.Errorf("invalid plugin platform: %s", release.Platform.String())
 		}
 
 		std.InstanceData().Log().
-			Zh("启用插件资源包, 插件包: %s, 版本: %s, 平台: %s", info.Name, info.Version, platform.String()).
-			En("enable plugin package, plugin-name: %s, version: %s, platform: %s", info.Name, info.Version, platform.String()).
+			Zh("启用插件资源包, 插件包: %s, 版本: %s, 平台: %s", release.Name, release.Version, release.Platform.String()).
+			En("enable plugin package, plugin-name: %s, version: %s, platform: %s", release.Name, release.Version, release.Platform.String()).
 			Info()
 
 		key := types.ReleasePluginKey{
-			Generation: info.Generation,
-			Platform:   platform,
-			Version:    info.Version,
-			Name:       info.Name,
+			Generation: release.Generation,
+			Platform:   release.Platform,
+			Version:    release.Version,
+			Name:       release.Name,
 		}
 		if err := act.storageRelease.EnableReleasePlugin(nCtx, key); err != nil {
-			logger.G.Sys().Ctx(nCtx).WithErr(err).With("plugin-name", info.Name).Error("failed to enable release plugin package")
+			logger.G.Sys().Ctx(nCtx).WithErr(err).With("plugin-name", release.Name).Error("failed to enable release plugin package")
 
 			return fmt.Errorf("failed to enable release plugin package: %w", err)
 		}
 		std.InstanceData().Log().
-			Zh("启用安装包成功，插件包: %s，版本: %s，平台: %s", info.Name, info.Version, platform.String()).
-			En("enable package succeed, plugin-name: %s, version: %s, platform: %s", info.Name, info.Version, platform.String()).
+			Zh("启用安装包成功，插件包: %s，版本: %s，平台: %s", release.Name, release.Version, release.Platform.String()).
+			En("enable package succeed, plugin-name: %s, version: %s, platform: %s", release.Name, release.Version, release.Platform.String()).
 			Info()
 	}
 
-	logger.G.Sys().Ctx(nCtx).With("plugin-name", info.Name, "version", info.Version).Info("enabled release plugin package")
+	logger.G.Sys().Ctx(nCtx).With("count", len(info.Release)).Info("enabled release plugin package")
 
 	return nil
 }

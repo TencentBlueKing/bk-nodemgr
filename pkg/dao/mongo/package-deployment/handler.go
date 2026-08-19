@@ -193,11 +193,8 @@ func convertInfoFromTypes(info *types.PackageDeploymentInfo) (*Info, error) {
 	}
 
 	return &Info{
-		Name:       info.Name,
-		Version:    info.Version,
-		Platforms:  convertPlatformsFromTypes(info.Platforms),
-		Generation: int64(info.Generation),
-		UploadID:   info.UploadID,
+		Release: convertReleasesFromTypes(info.Release),
+		Upload:  convertUploadInfoFromTypes(info.Upload),
 		ImportPluginPkgOptions: importPluginPkgOptions{
 			FileSourceType: string(info.ImportPluginPkgOptions.FileSourceType),
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
@@ -213,11 +210,8 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 	}
 
 	return &types.PackageDeploymentInfo{
-		Name:       info.Name,
-		Version:    info.Version,
-		Platforms:  convertPlatformsToTypes(info.Platforms),
-		Generation: types.Generation(info.Generation),
-		UploadID:   info.UploadID,
+		Release: convertReleasesToTypes(info.Release),
+		Upload:  convertUploadInfoToTypes(info.Upload),
 		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
 			FileSourceType: types.FileSourceType(info.ImportPluginPkgOptions.FileSourceType),
 			FileSource:     info.ImportPluginPkgOptions.FileSource,
@@ -227,7 +221,89 @@ func convertInfoToTypes(info *Info) (*types.PackageDeploymentInfo, error) {
 	}, nil
 }
 
+func convertUploadInfoFromTypes(upload types.PackageDeploymentUploadInfo) uploadInfo {
+	return uploadInfo{
+		UploadID:  upload.UploadID,
+		Name:      upload.Name,
+		Version:   upload.Version,
+		Platforms: convertPlatformsFromTypes(upload.Platforms),
+	}
+}
+
+func convertUploadInfoToTypes(upload uploadInfo) types.PackageDeploymentUploadInfo {
+	return types.PackageDeploymentUploadInfo{
+		UploadID:  upload.UploadID,
+		Name:      upload.Name,
+		Version:   upload.Version,
+		Platforms: convertPlatformsToTypes(upload.Platforms),
+	}
+}
+
+func convertReleasesFromTypes(releases []types.Release) []release {
+	if releases == nil {
+		return nil
+	}
+
+	data := make([]release, len(releases))
+	for idx, value := range releases {
+		data[idx] = release{
+			Name:         value.Name,
+			Generation:   int64(value.Generation),
+			Type:         string(value.Type),
+			Version:      value.Version,
+			CPUArch:      string(value.Platform.Arch),
+			OSType:       string(value.Platform.OS),
+			Labels:       value.Labels,
+			FileName:     value.FileName,
+			MD5:          value.MD5,
+			Enabled:      value.Enabled,
+			IsHidden:     value.IsHidden,
+			AsDefault:    value.AsDefault,
+			UpdatedAt:    value.UpdatedAt,
+			Operator:     value.Operator,
+			AdditionInfo: value.AdditionInfo,
+		}
+	}
+
+	return data
+}
+
+func convertReleasesToTypes(releases []release) []types.Release {
+	if releases == nil {
+		return nil
+	}
+
+	data := make([]types.Release, len(releases))
+	for idx, value := range releases {
+		data[idx] = types.Release{
+			Name:       value.Name,
+			Generation: types.Generation(value.Generation),
+			Type:       types.ReleaseType(value.Type),
+			Version:    value.Version,
+			Platform: platfmt.Platform{
+				OS:   criteria.OSType(value.OSType),
+				Arch: criteria.CPUArch(value.CPUArch),
+			},
+			Labels:       value.Labels,
+			FileName:     value.FileName,
+			MD5:          value.MD5,
+			Enabled:      value.Enabled,
+			IsHidden:     value.IsHidden,
+			AsDefault:    value.AsDefault,
+			UpdatedAt:    value.UpdatedAt,
+			Operator:     value.Operator,
+			AdditionInfo: value.AdditionInfo,
+		}
+	}
+
+	return data
+}
+
 func convertPlatformsFromTypes(platforms []platfmt.Platform) []platform {
+	if platforms == nil {
+		return nil
+	}
+
 	data := make([]platform, len(platforms))
 	for idx, value := range platforms {
 		data[idx] = platform{
@@ -240,6 +316,10 @@ func convertPlatformsFromTypes(platforms []platfmt.Platform) []platform {
 }
 
 func convertPlatformsToTypes(platforms []platform) []platfmt.Platform {
+	if platforms == nil {
+		return nil
+	}
+
 	data := make([]platfmt.Platform, len(platforms))
 	for idx, value := range platforms {
 		data[idx] = platfmt.Platform{

@@ -18,5 +18,5 @@ const (
 	FieldKeyInfo = "data.info"
 
 	// FieldKeyInfoUploadID the info upload id field key.
-	FieldKeyInfoUploadID = "data.info.upload_id"
+	FieldKeyInfoUploadID = "data.info.upload.upload_id"
 )

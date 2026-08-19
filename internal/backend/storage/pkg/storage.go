@@ -400,6 +400,10 @@ func (s *Storage) GetPackageWorkflow(nCtx contextx.IContext, workflowID string) 
 
 // CreatePackageDeployment creates a package deployment record.
 func (s *Storage) CreatePackageDeployment(nCtx contextx.IContext, deployment *types.PackageDeployment) error {
+	if deployment == nil {
+		return errors.New("package deployment is nil")
+	}
+
 	return s.WrapFn(nCtx, metricOperationCreatePackageDeployment, func(nCtx contextx.IContext) error {
 		if err := s.createPackageDeployment(nCtx, deployment); err != nil {
 			logger.G.Sys().WithErr(err).With("token", deployment.Token).Error("failed to create package deployment")

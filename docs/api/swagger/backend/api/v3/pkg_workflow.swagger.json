@@ -37,7 +37,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageImportReq describes the HTTP request body when import package in\npackage service.",
+            "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import plugin package in\npackage service.",
             "in": "body",
             "required": true,
             "schema": {
@@ -194,7 +194,7 @@
           "type": "string"
         }
       },
-      "description": "PackageImportReq describes the HTTP request body when import package in\npackage service."
+      "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import plugin package in\npackage service."
     },
     "v3PackageImportPluginV3PkgResp": {
       "type": "object",
@@ -219,7 +219,7 @@
           "$ref": "#/definitions/v3PackageImportPluginV3PkgRespData"
         }
       },
-      "description": "PackageImportResp describes the HTTP response body when import package in\npackage service."
+      "description": "PackageImportPluginV3PkgResp describes the HTTP response body when import plugin package in\npackage service."
     },
     "v3PackageImportPluginV3PkgRespData": {
       "type": "object",

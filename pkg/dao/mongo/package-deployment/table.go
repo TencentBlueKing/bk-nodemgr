@@ -11,6 +11,8 @@
 package packagedeployment
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
@@ -27,13 +29,8 @@ type Data struct {
 
 // Info represents package deployment detail in database.
 type Info struct {
-	Name       string     `json:"name" bson:"name"`
-	Version    string     `json:"version" bson:"version"`
-	Platforms  []platform `json:"platforms" bson:"platforms"`
-	Generation int64      `json:"generation" bson:"generation"`
-
-	UploadID string `json:"upload_id" bson:"upload_id"`
-
+	Release                []release              `json:"release" bson:"release"`
+	Upload                 uploadInfo             `json:"upload" bson:"upload"`
 	ImportPluginPkgOptions importPluginPkgOptions `json:"import_plugin_pkg_options" bson:"import_plugin_pkg_options"`
 }
 
@@ -44,9 +41,34 @@ type importPluginPkgOptions struct {
 	MD5            string `json:"md5" bson:"md5"`
 }
 
+type uploadInfo struct {
+	UploadID  string     `json:"upload_id" bson:"upload_id"`
+	Name      string     `json:"name" bson:"name"`
+	Version   string     `json:"version" bson:"version"`
+	Platforms []platform `json:"platforms" bson:"platforms"`
+}
+
 type platform struct {
 	OS   string `json:"os" bson:"os"`
 	Arch string `json:"arch" bson:"arch"`
+}
+
+type release struct {
+	Name         string         `json:"name" bson:"name"`
+	Generation   int64          `json:"generation" bson:"generation"`
+	Type         string         `json:"type" bson:"type"`
+	Version      string         `json:"version" bson:"version"`
+	CPUArch      string         `json:"cpu_arch" bson:"cpu_arch"`
+	OSType       string         `json:"os_type" bson:"os_type"`
+	Labels       []string       `json:"labels" bson:"labels"`
+	FileName     string         `json:"filename" bson:"filename"`
+	MD5          string         `json:"md5" bson:"md5"`
+	Enabled      bool           `json:"enabled" bson:"enabled"`
+	IsHidden     bool           `json:"is_hidden" bson:"is_hidden"`
+	AsDefault    bool           `json:"as_default" bson:"as_default"`
+	UpdatedAt    time.Time      `json:"updated_at" bson:"updated_at"`
+	Operator     string         `json:"operator" bson:"operator"`
+	AdditionInfo map[string]any `json:"addition_info" bson:"addition_info"`
 }
 
 // UniqueFields returns unique fields of the table.

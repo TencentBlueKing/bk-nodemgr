@@ -7,16 +7,16 @@ import "workflow.proto";
 
 import "google/api/annotations.proto";
 
-// PackageImportReq describes the HTTP request body when import package in
-// package service.
+// PackageImportPluginV3PkgReq describes the HTTP request body when import
+// plugin package in package service.
 message PackageImportPluginV3PkgReq {
   string filename = 1;
   string download_url = 2;
   string md5 = 3;
 }
 
-// PackageImportResp describes the HTTP response body when import package in
-// package service.
+// PackageImportPluginV3PkgResp describes the HTTP response body when import
+// plugin package in package service.
 message PackageImportPluginV3PkgResp {
   int32 code = 1;
   string message = 2;

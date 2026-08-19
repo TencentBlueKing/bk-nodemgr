@@ -19,7 +19,7 @@
 |Conventions:public boundary accepts/returns pkg/types.PackageDeployment / types.PackageDeploymentInfo|Mongo Data structs, BSON paths, and base.IOrm details stay package-private
 |Conventions:handler validates nil nCtx/nil deployment/nil info and empty token via base sentinel errors|no package-local error sentinels
 |Conventions:read filters=base.AliveFilter()→apply OptFn chain|List computes total with Count then applies base.ParsePage(page)
-|Conventions:Info field alignment=table.go Info fields (Name,Version,Platforms,Generation,UploadID,ImportPluginPkgOptions{FileSourceType,FileSource,FileName,MD5}) map 1:1 to types.PackageDeploymentInfo|platform conversion via closest package-private helpers
+|Conventions:Info field alignment=table.go Info fields (ImportPluginPkgOptions{FileSourceType,FileSource,FileName,MD5},Upload{UploadID,Name,Version,Platforms},Release) map 1:1 to types.PackageDeploymentInfo|platform conversion via closest package-private helpers
 |Conventions:Mongo field paths must align with table.go BSON tags|reuse FieldKey constants for new filters/indexes instead of duplicating strings
 |Conventions:new indexes use mongo.IndexModel in dao.GetIndexes() and must match actual query filters|current explicit indexes=FieldKeyInfoUploadID
 |Conventions:exported Go symbols require English godoc comments|errors preserve base sentinel semantics and wrapping

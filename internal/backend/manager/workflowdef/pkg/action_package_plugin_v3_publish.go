@@ -18,7 +18,6 @@ import (
 	pkgUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/pkg/utils"
 	pkgStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -89,9 +88,9 @@ func (act *actionPackagePublishPluginV3Pkg) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
-func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) error {
+func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamImportPackagePublish)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
@@ -108,26 +107,27 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) erro
 
 	nCtx := std.Context()
 	info := std.DeployInfo()
-	if info.UploadID == "" {
-		return errors.New("upload id is empty")
+	uploadInfo := info.Upload
+	if err := uploadInfo.Validate(); err != nil {
+		return fmt.Errorf("validate upload info failed: %w", err)
 	}
 
 	std.InstanceData().Log().
-		Zh("发布插件V3安装包, 上传ID: %s", info.UploadID).
-		En("publish plugin v3 package, upload-id: %s", info.UploadID).
+		Zh("发布插件V3安装包, 上传ID: %s", uploadInfo.UploadID).
+		En("publish plugin v3 package, upload-id: %s", uploadInfo.UploadID).
 		Info()
 
-	if err := act.fileHandler.PublishReleasePluginV3(nCtx, info.UploadID); err != nil {
-		logger.G.Sys().Ctx(nCtx).WithErr(err).With("upload-id", info.UploadID).Error("failed to publish release plugin v3 package")
+	if err := act.fileHandler.PublishReleasePluginV3(nCtx, uploadInfo.UploadID); err != nil {
+		logger.G.Sys().Ctx(nCtx).WithErr(err).With("upload-id", uploadInfo.UploadID).Error("failed to publish release plugin v3 package")
 
 		return fmt.Errorf("failed to publish release plugin package: %w", err)
 	}
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Platform: info.Platforms,
-			Name:     []string{info.Name},
-			Version:  []string{info.Version},
+			Platform: uploadInfo.Platforms,
+			Name:     []string{uploadInfo.Name},
+			Version:  []string{uploadInfo.Version},
 		},
 	}
 	pkgs, _, err := act.storageRelease.ListReleasePlugin(nCtx, types.UnlimitedPage(), cond)
@@ -137,39 +137,40 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) erro
 
 	if len(pkgs) == 0 {
 		std.InstanceData().Log().
-			Zh("找不到已发布的插件包，请检查插件包名称或版本是否正确, 插件包名称: %s, 版本: %s", info.Name, info.Version).
+			Zh("找不到已发布的插件包，请检查插件包名称或版本是否正确, 插件包名称: %s, 版本: %s", uploadInfo.Name, uploadInfo.Version).
 			En("no plugin package found, please check the plugin package name or version is correct, plugin package name: %s, version: %s",
-				info.Name, info.Version).
+				uploadInfo.Name, uploadInfo.Version).
 			Error()
 
-		return nil
+		return fmt.Errorf("no plugin package found, please check the plugin package name or version is correct, plugin package name: %s, version: %s",
+			uploadInfo.Name, uploadInfo.Version)
 	}
 
-	if len(pkgs) != len(info.Platforms) {
+	if len(pkgs) != len(uploadInfo.Platforms) {
 		std.InstanceData().Log().
-			Zh("已发布的插件包内系统架构与上传的包内数量不匹配, 已发布的系统架构数: %d，原始包内系统架构数: %d", len(pkgs), len(info.Platforms)).
+			Zh("已发布的插件包内系统架构与上传的包内数量不匹配, 已发布的系统架构数: %d，原始包内系统架构数: %d",
+				len(pkgs), len(uploadInfo.Platforms)).
 			En("published package os/arch count not match, published os/arch count: %d, original package os/arch count: %d",
-				len(pkgs), len(info.Platforms)).
+				len(pkgs), len(uploadInfo.Platforms)).
 			Warn()
 	}
 
-	info.Platforms = conv.SliceToSlice(pkgs, func(pkg *types.ReleasePlugin) platfmt.Platform {
-		return pkg.Platform
+	info.Release = conv.SliceToSlice(pkgs, func(pkg *types.ReleasePlugin) types.Release {
+		return pkg.Release
 	})
-	info.Generation = pkgs[0].Generation
 
-	for _, platform := range info.Platforms {
+	for _, release := range info.Release {
 		std.InstanceData().Log().
-			Zh("已发布插件V3安装包, 平台: %s", platform.String()).
-			En("published plugin v3 package, platform: %s", platform.String()).
+			Zh("已发布插件V3安装包, 平台: %s", release.Platform.String()).
+			En("published plugin v3 package, platform: %s", release.Platform.String()).
 			Info()
 	}
 
-	logger.G.Sys().Ctx(nCtx).With("upload-id", info.UploadID, "plugin-name", info.Name).Info("published release plugin v3 package")
+	logger.G.Sys().Ctx(nCtx).With("upload-id", uploadInfo.UploadID, "plugin-name", uploadInfo.Name).Info("published release plugin v3 package")
 
 	std.InstanceData().Log().
-		Zh("发布安装包成功，上传ID: %s，插件包: %s，版本: %s", info.UploadID, info.Name, info.Version).
-		En("published package succeed, upload-id: %s, plugin-name: %s, version: %s", info.UploadID, info.Name, info.Version).
+		Zh("发布安装包成功，上传ID: %s，插件包: %s，版本: %s", uploadInfo.UploadID, uploadInfo.Name, uploadInfo.Version).
+		En("published package succeed, upload-id: %s, plugin-name: %s, version: %s", uploadInfo.UploadID, uploadInfo.Name, uploadInfo.Version).
 		Info()
 
 	return nil

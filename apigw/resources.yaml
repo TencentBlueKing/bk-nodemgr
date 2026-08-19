@@ -27840,7 +27840,7 @@ paths:
                   request_id:
                     type: string
                 description: |-
-                  PackageImportResp describes the HTTP response body when import package in
+                  PackageImportPluginV3PkgResp describes the HTTP response body when import plugin
                   package service.
           description: A successful response.
         default:
@@ -27876,11 +27876,11 @@ paths:
                 download_url:
                   type: string
               description: |-
-                PackageImportReq describes the HTTP request body when import package in
+                PackageImportPluginV3PkgReq describes the HTTP request body when import plugin
                 package service.
         required: true
         description: |-
-          PackageImportReq describes the HTTP request body when import package in
+          PackageImportPluginV3PkgReq describes the HTTP request body when import plugin
           package service.
       x-bk-apigateway-resource:
         isPublic: false

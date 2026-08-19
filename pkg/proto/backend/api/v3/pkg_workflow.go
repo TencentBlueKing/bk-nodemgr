@@ -12,7 +12,6 @@ package v3
 
 import (
 	"errors"
-	"fmt"
 	"slices"
 	"strings"
 
@@ -45,7 +44,7 @@ func (x *PackageImportPluginV3PkgReq) AutoConvert() {
 // Validate checks the request body.
 func (x *PackageImportResultReq) Validate() error {
 	if conv.IsEmpty(x.GetWorkflowId()) {
-		return fmt.Errorf("workflow_id is required")
+		return errors.New("workflow_id is required")
 	}
 
 	return nil

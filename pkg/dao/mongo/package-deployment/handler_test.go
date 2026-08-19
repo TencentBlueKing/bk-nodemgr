@@ -39,21 +39,37 @@ func testContext() contextx.IContext {
 
 func testPackageDeployment() *types.PackageDeployment {
 	token := uuid.NewString()
+	platform := platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+	uploadID := uuid.NewString()
 	return &types.PackageDeployment{
 		Token: token,
 		Info: &types.PackageDeploymentInfo{
-			Name:    "gse_plugin",
-			Version: "1.0.0",
-			Platforms: []platfmt.Platform{
-				platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64),
-			},
-			Generation: types.Generation2,
-			UploadID:   uuid.NewString(),
 			ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
 				FileSourceType: types.FileSourceTypeDownload,
 				FileSource:     "https://example.com/packages/gse_plugin-1.0.0.tgz",
 				FileName:       "gse_plugin-1.0.0.tgz",
 				MD5:            "4d96767dd3f2c09e19101d0da9ce251f",
+			},
+			Upload: types.PackageDeploymentUploadInfo{
+				UploadID:  uploadID,
+				Name:      "gse_plugin",
+				Version:   "1.0.0",
+				Platforms: []platfmt.Platform{platform},
+			},
+			Release: []types.Release{
+				{
+					Name:         "gse_plugin",
+					Generation:   types.Generation2,
+					Type:         types.ReleaseTypePlugin,
+					Version:      "1.0.0",
+					Platform:     platform,
+					Labels:       []string{"plugin"},
+					FileName:     "gse_plugin-1.0.0.tgz",
+					MD5:          "4d96767dd3f2c09e19101d0da9ce251f",
+					Enabled:      true,
+					Operator:     "admin",
+					AdditionInfo: map[string]any{"description": "test plugin"},
+				},
 			},
 		},
 	}
@@ -81,13 +97,14 @@ func TestHandler_ListPackageDeployment(t *testing.T) {
 	nCtx := testContext()
 	pluginDeployment := testPackageDeployment()
 	agentDeployment := testPackageDeployment()
-	agentDeployment.Info.UploadID = uuid.NewString()
-	agentDeployment.Info.Name = "gse_agent"
-	agentDeployment.Info.Generation = types.Generation2
-	agentDeployment.Info.Version = "2.0.0"
-	agentDeployment.Info.Platforms = []platfmt.Platform{
-		platfmt.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64),
-	}
+	agentPlatform := platfmt.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
+	agentDeployment.Info.Upload.UploadID = uuid.NewString()
+	agentDeployment.Info.Upload.Name = "gse_agent"
+	agentDeployment.Info.Upload.Version = "2.0.0"
+	agentDeployment.Info.Upload.Platforms = []platfmt.Platform{agentPlatform}
+	agentDeployment.Info.Release[0].Name = "gse_agent"
+	agentDeployment.Info.Release[0].Version = "2.0.0"
+	agentDeployment.Info.Release[0].Platform = agentPlatform
 	agentDeployment.Info.ImportPluginPkgOptions.FileSource = "https://example.com/packages/gse_agent-2.0.0.tgz"
 
 	for _, deployment := range []*types.PackageDeployment{pluginDeployment, agentDeployment} {
@@ -115,9 +132,9 @@ func TestHandler_ListPackageDeployment(t *testing.T) {
 		},
 		{
 			name:         "by upload ID",
-			opts:         []OptFn{WithUploadID(agentDeployment.Info.UploadID)},
+			opts:         []OptFn{WithUploadID(agentDeployment.Info.Upload.UploadID)},
 			wantTotal:    1,
-			wantUploadID: agentDeployment.Info.UploadID,
+			wantUploadID: agentDeployment.Info.Upload.UploadID,
 		},
 	}
 
@@ -139,7 +156,7 @@ func TestHandler_ListPackageDeployment(t *testing.T) {
 				}
 			}
 			if tt.wantUploadID != "" {
-				if got[0].Info == nil || got[0].Info.UploadID != tt.wantUploadID {
+				if got[0].Info == nil || got[0].Info.Upload.UploadID != tt.wantUploadID {
 					t.Fatalf("ListPackageDeployment() upload id = %v, want %s", got[0].Info, tt.wantUploadID)
 				}
 			}
@@ -156,19 +173,32 @@ func TestHandler_UpdatePackageDeploymentInfo(t *testing.T) {
 		t.Fatalf("CreatePackageDeployment() error = %v", err)
 	}
 
+	platform := platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
 	want := &types.PackageDeploymentInfo{
-		Name:    "gse_plugin",
-		Version: "1.1.0",
-		Platforms: []platfmt.Platform{
-			platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64),
-		},
-		Generation: types.Generation2,
-		UploadID:   uuid.NewString(),
 		ImportPluginPkgOptions: types.PackageImportPluginPkgOptions{
 			FileSourceType: types.FileSourceTypeDownload,
 			FileSource:     "https://example.com/packages/gse_plugin-1.1.0.tgz",
 			FileName:       "gse_plugin-1.1.0.tgz",
 			MD5:            "482f46fa4999054774412e3a8f9dfca0",
+		},
+		Upload: types.PackageDeploymentUploadInfo{
+			UploadID:  uuid.NewString(),
+			Name:      "gse_plugin",
+			Version:   "1.1.0",
+			Platforms: []platfmt.Platform{platform},
+		},
+		Release: []types.Release{
+			{
+				Name:       "gse_plugin",
+				Generation: types.Generation2,
+				Type:       types.ReleaseTypePlugin,
+				Version:    "1.1.0",
+				Platform:   platform,
+				FileName:   "gse_plugin-1.1.0.tgz",
+				MD5:        "482f46fa4999054774412e3a8f9dfca0",
+				Enabled:    true,
+				Operator:   "admin",
+			},
 		},
 	}
 
