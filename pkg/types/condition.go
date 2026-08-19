@@ -770,6 +770,7 @@ type ProcessConfigExactFields struct {
 	TemplateName []string
 	ProcessName  []string
 	HostID       []int64
+	Set          []string
 	IsMainConfig []bool
 }
 

@@ -306,6 +306,7 @@ type ProcessConfig struct {
 	TemplateName        string
 	ProcessName         string
 	HostID              int64
+	Set                 string
 	IsMainConfig        bool
 	Content             string
 	MD5                 string

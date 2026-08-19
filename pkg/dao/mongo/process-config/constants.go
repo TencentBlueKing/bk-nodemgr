@@ -23,6 +23,9 @@ const (
 	// FieldKeyHostID process config field host id.
 	FieldKeyHostID = "data.host_id"
 
+	// FieldKeySet process config field set.
+	FieldKeySet = "data.set"
+
 	// FieldKeyContent process config field content.
 	FieldKeyContent = "data.content"
 

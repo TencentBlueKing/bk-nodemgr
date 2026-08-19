@@ -176,6 +176,7 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 				daoProcessConfig.WithTemplateName(condition.ExactInclude.TemplateName...),
 				daoProcessConfig.WithProcessName(condition.ExactInclude.ProcessName...),
 				daoProcessConfig.WithHostID(condition.ExactInclude.HostID...),
+				daoProcessConfig.WithSet(condition.ExactInclude.Set...),
 				daoProcessConfig.WithIsMainConfig(condition.ExactInclude.IsMainConfig...),
 			)
 		}
@@ -190,6 +191,7 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 				daoProcessConfig.WithoutTemplateName(condition.ExactExclude.TemplateName...),
 				daoProcessConfig.WithoutProcessName(condition.ExactExclude.ProcessName...),
 				daoProcessConfig.WithoutHostID(condition.ExactExclude.HostID...),
+				daoProcessConfig.WithoutSet(condition.ExactExclude.Set...),
 			)
 		}
 

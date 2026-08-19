@@ -37,6 +37,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) IHandler {
 			ProcessName:  "test-process-name-1",
 			HostID:       2,
 			Name:         "test-process-config-name-1",
+			Set:          "deploy_policy",
 			IsMainConfig: true,
 			Content:      "test-content-1",
 			MD5:          "test-md5-1",
@@ -45,6 +46,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) IHandler {
 			ProcessName:  "test-process-name-2",
 			HostID:       2,
 			Name:         "test-process-config-name-2",
+			Set:          "manual",
 			IsMainConfig: false,
 			Content:      "test-content-2",
 			MD5:          "test-md5-2",
@@ -245,7 +247,8 @@ func compareProcessConfig(a, b *types.ProcessConfig) bool {
 	}
 
 	return a.Name == b.Name &&
-		a.ProcessName == b.ProcessName
+		a.ProcessName == b.ProcessName &&
+		a.Set == b.Set
 }
 
 func Test_handler_List(t *testing.T) {
@@ -324,6 +327,28 @@ func Test_handler_List(t *testing.T) {
 				},
 			},
 			wantLen: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with set filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithSet("deploy_policy"),
+				},
+			},
+			wantLen: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config without set filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithoutSet("deploy_policy"),
+				},
+			},
+			wantLen: 2,
 			wantErr: false,
 		},
 	}

@@ -30,6 +30,7 @@ type ProcessConfig struct {
 	TemplateName        string         `json:"template_name" bson:"template_name"`
 	ProcessName         string         `json:"process_name" bson:"process_name"`
 	HostID              int64          `json:"host_id" bson:"host_id"`
+	Set                 string         `json:"set" bson:"set"`
 	IsMainConfig        bool           `json:"is_main_config" bson:"is_main_config"`
 	Content             string         `json:"content" bson:"content"`
 	MD5                 string         `json:"md5" bson:"md5"`

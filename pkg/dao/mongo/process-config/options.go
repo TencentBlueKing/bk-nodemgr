@@ -59,6 +59,16 @@ func WithoutHostID(hostIDs ...int64) OptFn {
 	return base.WithoutValues(FieldKeyHostID, hostIDs...)
 }
 
+// WithSet filters by set.
+func WithSet(sets ...string) OptFn {
+	return base.WithValues(FieldKeySet, sets...)
+}
+
+// WithoutSet filters by no contains set.
+func WithoutSet(sets ...string) OptFn {
+	return base.WithoutValues(FieldKeySet, sets...)
+}
+
 // WithIsMainConfig filters by is main config.
 func WithIsMainConfig(isMainConfigs ...bool) OptFn {
 	return base.WithValues(FieldKeyIsMainConfig, isMainConfigs...)

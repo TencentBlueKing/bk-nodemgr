@@ -31,10 +31,14 @@ func Test_convProcessConfigCustomConfigContext(t *testing.T) {
 		TemplateName:        "test-template-name",
 		ProcessName:         "test-process-name",
 		HostID:              2,
+		Set:                 "deploy_policy",
 		CustomConfigContext: want,
 	})
 	if config.TemplateName != "test-template-name" {
 		t.Fatalf("convProcessConfigFromTypes() TemplateName = %q, want %q", config.TemplateName, "test-template-name")
+	}
+	if config.Set != "deploy_policy" {
+		t.Fatalf("convProcessConfigFromTypes() Set = %v, want %v", config.Set, "deploy_policy")
 	}
 	if !reflect.DeepEqual(config.CustomConfigContext, want) {
 		t.Fatalf("convProcessConfigFromTypes() CustomConfigContext = %v, want %v", config.CustomConfigContext, want)
@@ -43,6 +47,9 @@ func Test_convProcessConfigCustomConfigContext(t *testing.T) {
 	got := convProcessConfigToTypes(config)
 	if got.TemplateName != "test-template-name" {
 		t.Fatalf("convProcessConfigToTypes() TemplateName = %q, want %q", got.TemplateName, "test-template-name")
+	}
+	if got.Set != "deploy_policy" {
+		t.Fatalf("convProcessConfigToTypes() Set = %v, want %v", got.Set, "deploy_policy")
 	}
 	if !reflect.DeepEqual(got.CustomConfigContext, want) {
 		t.Fatalf("convProcessConfigToTypes() CustomConfigContext = %v, want %v", got.CustomConfigContext, want)
