@@ -537,6 +537,7 @@ func convertPluginDeploymentPluginConfToTypes(conf *PluginConf) *types.PluginDep
 	}
 
 	pluginConf := &types.PluginDeploymentPluginConf{
+		Set:                 conf.Set,
 		TemplateRenderer:    types.TemplateRendererType(conf.TemplateRenderer),
 		ConfigFilesDetail:   convertPluginConfigDetailsToTypes(conf.ConfigFilesDetail...),
 		SystemConfigContext: conf.SystemConfigContext,
@@ -552,6 +553,7 @@ func convertPluginDeploymentPluginConfFromTypes(conf *types.PluginDeploymentPlug
 	}
 
 	pluginConf := &PluginConf{
+		Set:                 conf.Set,
 		TemplateRenderer:    string(conf.TemplateRenderer),
 		ConfigFilesDetail:   convertPluginConfigDetailsFromTypes(conf.ConfigFilesDetail...),
 		SystemConfigContext: conf.SystemConfigContext,

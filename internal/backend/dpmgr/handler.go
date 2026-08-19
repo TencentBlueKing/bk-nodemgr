@@ -67,8 +67,9 @@ func NewHandler(conf *Config) *Handler {
 	conflictResolver := NewConflictResolver()
 
 	analyzer := NewAnalyzer(&AnalyzerConfig{
-		DaoProcess: conf.DaoProcess,
-		DaoHost:    conf.DaoHost,
+		DaoProcess:       conf.DaoProcess,
+		DaoProcessConfig: conf.DaoProcessConfig,
+		DaoHost:          conf.DaoHost,
 	})
 	executor := NewExecutor(&ExecutorConfig{
 		NodeManager:   conf.NodeManager,

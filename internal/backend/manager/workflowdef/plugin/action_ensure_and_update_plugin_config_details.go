@@ -208,7 +208,12 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) fillConfigDetails(std *plug
 			return fmt.Errorf("no matched template for config detail, template-name(%s)", detail.TemplateName)
 		}
 
-		pluginConf.ConfigFilesDetail[idx].Name = tpl.Name
+		name := detail.Name
+		if name == "" {
+			name = tpl.Name
+		}
+
+		pluginConf.ConfigFilesDetail[idx].Name = name
 		pluginConf.ConfigFilesDetail[idx].TemplateName = tpl.Name
 		pluginConf.ConfigFilesDetail[idx].Content = tpl.SourceContent
 		pluginConf.ConfigFilesDetail[idx].IsMainConfig = tpl.IsMainConfig

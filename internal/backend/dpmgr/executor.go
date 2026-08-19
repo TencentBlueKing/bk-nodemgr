@@ -529,6 +529,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 				PluginName: param.PluginName,
 			},
 		}, &types.PluginDeploymentPluginConf{
+			Set:                 genDeployPolicyProcessConfigSet(task.DeployPolicyID),
 			ConfigFilesDetail:   param.ConfigFilesDetail,
 			CustomConfigContext: param.CustomConfigContext,
 		})
@@ -555,7 +556,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 }
 
 func (executor *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IContext, _ []*ChangeTask) error {
-	// TODO: implement me.
+	// TODO: remove remote subconfig files and reload plugin process before deleting ProcessConfig records.
 	return errors.New("not implemented")
 }
 

@@ -215,6 +215,8 @@ func (discover *PolicyDiscovery) discoverEnabledPoliciesBySpec(nCtx contextx.ICo
 	case types.DeploySpecTypeSpecifyPluginPkg:
 		// spec specify plugin pkg no need to discover other policies, it's a leaf node
 		return []*types.DeployPolicy{}, nil
+	case types.DeploySpecTypeSpecifyPluginSubConfig:
+		return []*types.DeployPolicy{}, nil
 	case types.DeploySpecTypeSpecifyProxy:
 		// TODO: implement specify proxy
 		return nil, fmt.Errorf("specify proxy not supported yet")

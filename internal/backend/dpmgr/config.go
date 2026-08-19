@@ -29,6 +29,7 @@ import (
 // Config defines the config of dstrategy.
 type Config struct {
 	DaoProcess            plugin.IDaoProcess
+	DaoProcessConfig      plugin.IDaoProcessConfig
 	DaoPlugin             plugin.IDaoPlugin
 	DaoHost               topo.IStorageHost
 	DomainDeployPolicyMgr deploypolicy.IDomainDeployPolicyMgr

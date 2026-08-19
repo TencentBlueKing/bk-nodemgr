@@ -44,6 +44,9 @@ func NewPluginDeployment(info *PluginDeploymentInfo, conf *PluginDeploymentPlugi
 
 // PluginDeploymentPluginConf defines the plugin config.
 type PluginDeploymentPluginConf struct {
+	// Set is the management set of plugin process configs.
+	Set string
+
 	// TemplateRenderer is the template renderer for plugin process.
 	TemplateRenderer TemplateRendererType
 

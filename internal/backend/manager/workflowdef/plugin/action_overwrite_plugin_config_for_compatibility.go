@@ -146,6 +146,7 @@ func (act *actionOverwritePluginConfigForCompatibility) Do(ctx *action.InstanceC
 			TemplateName:        detail.TemplateName,
 			ProcessName:         std.DeployInfo().Process.PluginName,
 			HostID:              std.DeployInfo().Process.HostID,
+			Set:                 pluginConf.Set,
 			IsMainConfig:        detail.IsMainConfig,
 			Content:             detail.Content,
 			MD5:                 crypter.MD5Sum(detail.Content),

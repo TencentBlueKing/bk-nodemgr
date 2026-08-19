@@ -18,7 +18,11 @@
 
 package dpmgr
 
-import "fmt"
+import (
+	"fmt"
+	"path"
+	"strings"
+)
 
 func genPluginNameForSpecifyPluginPkg(pluginPkgName string, deployPolicyID int64, moduleID int64) string {
 	return fmt.Sprintf("%s_%d_%d", pluginPkgName, deployPolicyID, moduleID)
@@ -26,6 +30,17 @@ func genPluginNameForSpecifyPluginPkg(pluginPkgName string, deployPolicyID int64
 
 func genProcessUniqueID(hostID int64, pluginName string) string {
 	return fmt.Sprintf("%d_%s", hostID, pluginName)
+}
+
+func genDeployPolicySubConfigName(configName string, deployPolicyID int64) string {
+	ext := path.Ext(configName)
+	baseName := strings.TrimSuffix(configName, ext)
+
+	return fmt.Sprintf("%s_deploy_%d%s", baseName, deployPolicyID, ext)
+}
+
+func genDeployPolicyProcessConfigSet(deployPolicyID int64) string {
+	return fmt.Sprintf(processConfigSetDeployPolicyFormat, deployPolicyID)
 }
 
 // DSU disjoint set Union.

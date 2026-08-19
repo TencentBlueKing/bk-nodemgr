@@ -221,6 +221,7 @@ func (mgr *Manager) registerDefSyncData() error {
 func (mgr *Manager) registerDefDeployPolicy() error {
 	dpMgr := dpmgr.NewHandler(&dpmgr.Config{
 		DaoProcess:            mgr.conf.StoragePlugin,
+		DaoProcessConfig:      mgr.conf.StoragePlugin,
 		DaoPlugin:             mgr.conf.StoragePlugin,
 		DaoHost:               mgr.conf.StorageTopo,
 		DomainDeployPolicyMgr: mgr.conf.StorageDeployPolicy,

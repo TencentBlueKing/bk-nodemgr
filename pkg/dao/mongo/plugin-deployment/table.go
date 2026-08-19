@@ -150,6 +150,7 @@ type transferOptions struct {
 
 // PluginConf defines the plugin config.
 type PluginConf struct {
+	Set                 string         `json:"set" bson:"set"`
 	TemplateRenderer    string         `json:"template_renderer" bson:"template_renderer"`
 	ConfigFilesDetail   []configDetail `json:"config_files_detail" bson:"config_files_detail"`
 	SystemConfigContext map[string]any `json:"system_config_context" bson:"system_config_context"`

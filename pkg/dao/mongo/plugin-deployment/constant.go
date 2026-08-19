@@ -28,6 +28,9 @@ const (
 	// FieldKeyPluginConf the plugin conf field key.
 	FieldKeyPluginConf = "data.plugin_config"
 
+	// FieldKeyPluginConfSet the plugin_config.set field key.
+	FieldKeyPluginConfSet = "data.plugin_config.set"
+
 	// FieldKeyPluginConfConfigFilesDetail the plugin_config.config_files_detail field key.
 	FieldKeyPluginConfConfigFilesDetail = "data.plugin_config.config_files_detail"
 

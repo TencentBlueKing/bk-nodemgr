@@ -20,6 +20,8 @@ package dpmgr
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
+const processConfigSetDeployPolicyFormat = "deploy_policy_%d"
+
 // DeployUnit define the deploy unit.
 type DeployUnit struct {
 	DeployPolicyID int64

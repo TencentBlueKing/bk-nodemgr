@@ -209,6 +209,12 @@ func (spec *DeploySpec) UniqueID() (string, error) {
 
 		// notice: pkg plugin has their own unique conflict group, so we use uuid to generate unique id.
 		return uuid.NewString(), nil
+	case DeploySpecTypeSpecifyPluginSubConfig:
+		if spec.paramSpecifyPluginSubConfig == nil {
+			return "", fmt.Errorf("param_specify_plugin_sub_config is nil")
+		}
+
+		return spec.paramSpecifyPluginSubConfig.PluginName, nil
 	default:
 		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.specType)
 	}
