@@ -21,14 +21,14 @@ POST /api/v3/plugin/install
 | bk_host_id            | int64        | 否  | 目标主机ID；未传时默认按 -1 处理                  |
 | plugin_name           | string       | 是  | 插件名称                                 |
 | version               | string       | 是  | 待安装插件版本                              |
-| config_name           | string array | 否  | 需要下发的子配置文件名称列表；取值来自对应插件版本发布包中的配置模板名称 |
+| config_template_name  | string array | 否  | 需要下发的子配置文件名称列表；取值来自对应插件版本发布包中的配置模板名称 |
 | custom_config_context | object       | 否  | 自定义配置渲染上下文；为自由结构对象，但禁止使用系统保留顶层键      |
 
 **参数说明**：
 
 - `plugin`：至少需要传入一个待安装对象，否则请求会校验失败。
 - `bk_host_id`：当未传时，服务端会补为 `-1`；若传入负数会校验失败。
-- `config_name`：不是固定枚举，实际可用值取决于目标插件版本发布包中的配置模板名称；未传时默认处理主配置文件。
+- `config_template_name`：不是固定枚举，实际可用值取决于目标插件版本发布包中的配置模板名称；未传时默认处理主配置文件。
 - `custom_config_context`：可传入模板渲染所需的自定义变量。禁止使用保留顶层键，包括 `PluginInfo`、`NodeInfo`、
   `PreDefinitionConstants`、`CustomContext`、`plugin_path`、`nodeman`、`cmdb_instance`、`target`、`control_info`。
 
@@ -43,7 +43,7 @@ POST /api/v3/plugin/install
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
       "version": "2.4.0",
-      "config_name": [
+      "config_template_name": [
         "bkmonitoragent.conf"
       ],
       "custom_config_context": {

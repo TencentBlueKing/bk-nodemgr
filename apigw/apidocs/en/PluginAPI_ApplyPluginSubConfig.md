@@ -20,13 +20,13 @@ POST /api/v3/plugin/apply_subconfig
 |---------------|----------------|----------|-------------|
 | bk_host_id | int64 | No | Target host ID; defaults to -1 when omitted, but must be a positive integer in practice |
 | plugin_name | string | Yes | Plugin name |
-| config_name | string array | No | Sub-configuration file names to apply; values come from config template names in the plugin release package |
+| config_template_name | string array | No | Sub-configuration file names to apply; values come from config template names in the plugin release package |
 | custom_config_context | object | No | Custom configuration render context; free-form object with reserved top-level keys forbidden |
 
 **Parameter Notes**:
 - `plugin`: At least one item must be provided, otherwise request validation fails.
 - `bk_host_id`: Although optional in proto, omitting it causes the server to auto-fill `-1`, which then fails validation. In practice, provide a valid host ID.
-- `config_name`: The current implementation does not force this field to be non-empty. When omitted, the system falls back to default behavior based on plugin configuration details.
+- `config_template_name`: The current implementation does not force this field to be non-empty. When omitted, the system falls back to default behavior based on plugin configuration details.
 - `custom_config_context`: Custom variables for template rendering. Reserved top-level keys are forbidden, including `PluginInfo`, `NodeInfo`, `PreDefinitionConstants`, `CustomContext`, `plugin_path`, `nodeman`, `cmdb_instance`, `target`, and `control_info`.
 
 ### Request Example
@@ -39,7 +39,7 @@ Apply sub-configurations for `bk-monitor-agent` on a target host with custom ren
     {
       "bk_host_id": 1001,
       "plugin_name": "bk-monitor-agent",
-      "config_name": [
+      "config_template_name": [
         "bkmonitoragent.conf",
         "env.yaml"
       ],
