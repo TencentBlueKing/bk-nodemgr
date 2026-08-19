@@ -15,7 +15,7 @@
 |Where to look:frontend features:front/src:API naming follows backend proto naming
 |Where to look:integration tests:test/{cases,mock-server}:router-level API tests and support mocks
 |Conventions:toolchain=go1.25.12|lint=.golangci.yml strict baseline|public Go functions/types require English comments
-|Conventions:license header=every new .go file carries the standard header copied verbatim from internal/adminclient/backend/backend.go (after any //go:build lines)|ban:{refreshing headers on glog-derived pkg/logger files (keep BCS header),generated *.pb.go,pkg/runtime/winpath (stdlib-derived)}
+|Conventions:license header=every new .go file carries the standard header copied verbatim from docs/developer/license_header.md (after any //go:build lines)|exceptions listed there:{glog-derived pkg/logger files,generated *.pb.go,pkg/runtime/winpath}
 |Conventions:before coding read relevant module + at least one analogous implementation in same service/layer
 |Conventions:MVP development=first pass through existing service path with narrow API contract (no mock data; only minimal hardcode for small fixed values while entire router→service→storage/converter chain runs)→second pass add core business logic→third pass add boundary/error handling/optimization|avoid new proto/front fields, shared pkg abstractions, background workers, or release knobs until current endpoint semantics require them|each commit independently verifiable and rollback-safe
 |Conventions:reference-first=before any new feature/refactor, must find 2-3 similar implementations as pattern reference|focus on: interface signatures, data flow, error handling|goal: maintain consistency, avoid reinventing
