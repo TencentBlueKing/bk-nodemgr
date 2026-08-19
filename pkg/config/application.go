@@ -132,6 +132,7 @@ type ApplicationService struct {
 	BasicServer        HTTPServer         `yaml:"basicServer" usage:"basic server config of application service"`
 	Log                Log                `yaml:"log" usage:"log config of application service"`
 	Tracing            Tracing            `yaml:"tracing" usage:"tracing config of file service"`
+	Profiling          Profiling          `yaml:"profiling" usage:"profiling config of application service"`
 	ConfigPolicyOption ConfigPolicyOption `yaml:"configPolicyOption" usage:"config policy option file settings"`
 	IAMV3              IAMV3              `yaml:"iamV3" usage:"IAM v3 gateway config"`
 }
@@ -344,6 +345,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Tracing.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
+	if err := svc.Profiling.Validate(); err != nil {
+		return fmt.Errorf("failed to validate profiling config: %w", err)
 	}
 
 	if strings.TrimSpace(svc.ConfigPolicyOption.FilePath) == "" {

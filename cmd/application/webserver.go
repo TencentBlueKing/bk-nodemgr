@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/service"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/profiling"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
@@ -78,17 +79,36 @@ func NewWebServerCMD() *cobra.Command {
 				AlsoToStdErr: conf.Log.AlsoToStdErr,
 			})
 
+			stopProfiler, err := profiling.Start(conf.Profiling, profiling.Defaults{
+				ApplicationName: "bk-nodemgr-application",
+				Tags:            map[string]string{"service": "application"},
+			})
+			if err != nil {
+				fmt.Printf("failed to start profiling: %v\n", err)
+				os.Exit(1)
+			}
+
 			svc, err := service.NewService(conf)
 			if err != nil {
+				if err := stopProfiler(); err != nil {
+					fmt.Printf("failed to stop profiling: %v\n", err)
+				}
 				fmt.Printf("failed to create service: %v\n", err)
 				os.Exit(1)
 			}
 
-			go watchShutdown(svc)
+			go watchShutdown(svc, stopProfiler)
 
 			if err := svc.Start(); err != nil {
+				if err := stopProfiler(); err != nil {
+					fmt.Printf("failed to stop profiling: %v\n", err)
+				}
 				fmt.Printf("failed to start service: %v\n", err)
 				os.Exit(1)
+			}
+
+			if err := stopProfiler(); err != nil {
+				fmt.Printf("failed to stop profiling: %v\n", err)
 			}
 		},
 	}
@@ -101,7 +121,7 @@ func NewWebServerCMD() *cobra.Command {
 }
 
 // watchShutdown listens signal and calls service.GracefulShutdown.
-func watchShutdown(svc *service.Service) {
+func watchShutdown(svc *service.Service, stopProfiler profiling.StopFunc) {
 	// listening signal
 	signalC := make(chan os.Signal, 1)
 	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
@@ -111,8 +131,15 @@ func watchShutdown(svc *service.Service) {
 	logger.G.Flush()
 
 	if err := svc.GracefulShutdown(); err != nil {
+		if err := stopProfiler(); err != nil {
+			fmt.Printf("failed to stop profiling: %v\n", err)
+		}
 		fmt.Printf("failed to graceful shutdown service: %v\n", err)
 		os.Exit(1)
+	}
+
+	if err := stopProfiler(); err != nil {
+		fmt.Printf("failed to stop profiling: %v\n", err)
 	}
 
 	fmt.Printf("received signal(%s), going to exit server\n", receivedSignal.String())

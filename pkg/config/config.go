@@ -888,6 +888,37 @@ func (name PluginName) Validate() error {
 	}
 }
 
+// Profiling defines process-level continuous profiling config.
+type Profiling struct {
+	Enabled           bool              `yaml:"enabled" usage:"enable continuous profiling"`
+	ApplicationName   string            `yaml:"applicationName" usage:"profiling application name"`
+	ServerAddress     string            `yaml:"serverAddress" usage:"profiling server address"`
+	BasicAuthUser     string            `yaml:"basicAuthUser" usage:"profiling basic auth user"`
+	BasicAuthPassword string            `yaml:"basicAuthPassword" usage:"profiling basic auth password"`
+	TenantID          string            `yaml:"tenantID" usage:"profiling tenant ID"`
+	Tags              map[string]string `yaml:"tags" usage:"static profiling tags"`
+	ProfileTypes      []string          `yaml:"profileTypes" usage:"profiling profile types"`
+}
+
+// Validate validates the profiling config.
+func (conf Profiling) Validate() error {
+	if !conf.Enabled {
+		return nil
+	}
+
+	if strings.TrimSpace(conf.ServerAddress) == "" {
+		return errors.New("serverAddress is empty")
+	}
+
+	for _, profileType := range conf.ProfileTypes {
+		if strings.TrimSpace(profileType) == "" {
+			return errors.New("profileTypes contains empty profile type")
+		}
+	}
+
+	return nil
+}
+
 // TraceService defines the trace service.
 type TraceService struct {
 	// TraceServiceName is the trace service name.

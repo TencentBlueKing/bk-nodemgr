@@ -74,8 +74,9 @@ type RelayService struct {
 
 	RelayWorkspaceFileGroup FileGroup `yaml:"relayWorkspaceFileGroup" usage:"relay workspace file group config of relay service"`
 
-	Tracing Tracing `yaml:"tracing" usage:"tracing config of relay service"`
-	Log     Log     `yaml:"log" usage:"log config of relay service"`
+	Tracing   Tracing   `yaml:"tracing" usage:"tracing config of relay service"`
+	Profiling Profiling `yaml:"profiling" usage:"profiling config of relay service"`
+	Log       Log       `yaml:"log" usage:"log config of relay service"`
 }
 
 // NewRelayService generates a new RelayService with default value.
@@ -200,6 +201,10 @@ func (svc *RelayService) Validate() error {
 
 	if err := svc.Tracing.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
+	if err := svc.Profiling.Validate(); err != nil {
+		return fmt.Errorf("failed to validate profiling config: %w", err)
 	}
 
 	return nil

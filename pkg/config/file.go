@@ -232,6 +232,7 @@ type FileService struct {
 	MongoDB            MongoDB              `yaml:"mongodb" usage:"mongodb config of file service"`
 	Log                Log                  `yaml:"log" usage:"log config of file service"`
 	Tracing            Tracing              `yaml:"tracing" usage:"tracing config of file service"`
+	Profiling          Profiling            `yaml:"profiling" usage:"profiling config of file service"`
 }
 
 // LoadFromFile loads config from file.
@@ -306,6 +307,10 @@ func (svc *FileService) Validate() error {
 
 	if err := svc.Tracing.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
+	if err := svc.Profiling.Validate(); err != nil {
+		return fmt.Errorf("failed to validate profiling config: %w", err)
 	}
 
 	if err := svc.Downloader.Validate(); err != nil {

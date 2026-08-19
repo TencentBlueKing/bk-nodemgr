@@ -141,6 +141,7 @@ type BackendService struct {
 	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
 	Access             Access           `yaml:"access" usage:"access config of backend service"`
 	Tracing            Tracing          `yaml:"tracing" usage:"tracing config of backend service"`
+	Profiling          Profiling        `yaml:"profiling" usage:"profiling config of backend service"`
 }
 
 // BackendFileCache configures the local artifact file cache used by backend SSH install flows.
@@ -462,6 +463,10 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.Tracing.Validate(); err != nil {
 		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
+	if err := svc.Profiling.Validate(); err != nil {
+		return fmt.Errorf("failed to validate profiling config: %w", err)
 	}
 
 	return nil
