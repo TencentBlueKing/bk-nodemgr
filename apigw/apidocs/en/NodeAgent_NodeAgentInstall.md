@@ -37,7 +37,7 @@ POST /api/v3/node/agent/install
 | install_pre_ordered_plugins | bool           | No       | Whether to install pre-ordered plugins, default is true                                                       |
 | renew_gse_task              | bool           | No       | Whether to regenerate the GSE .task runtime file; default false preserves the existing .task file             |
 | renew_gse_proc              | bool           | No       | Whether to regenerate the GSE .proc runtime file; default false preserves the existing .proc file             |
-| install_method              | string         | No       | Agent install method. Legal values: empty string, ssh, wmi. Empty string means OS-based auto selection; Windows currently auto-selects SSH |
+| install_method              | string         | No       | Agent install method. Legal values: empty string, ssh, wmi. Empty string means OS-based auto selection; direct Windows Agent installation uses the Windows auto install workflow |
 
 **Parameter Notes**:
 
@@ -50,9 +50,9 @@ POST /api/v3/node/agent/install
     - `keyfile`: Use key file login, requires `login_key_file`
 - `os_type`: Operating system type, common values include `linux`, `windows`, `darwin`, etc.
 - `install_method`: Agent install method for each host.
-    - Empty string: use OS-based auto selection. Linux/Darwin/unknown currently auto-select SSH, and Windows currently auto-selects SSH.
-    - `ssh`: use SSH installation. Linux/Darwin/Windows/unknown are supported.
-    - `wmi`: use WMI installation. Only Windows is supported; Linux/Darwin/unknown are not supported.
+    - Empty string: use OS-based auto selection. Linux/Darwin/unknown currently auto-select SSH. Direct Windows Agent installation uses the Windows auto install workflow: try Windows SSH first, and fall back to WMI if SSH preparation fails before the installer starts.
+    - `ssh`: use SSH installation. Linux/Darwin/Windows/unknown are supported; Windows uses SSH only.
+    - `wmi`: use WMI installation. Only Windows is supported; Linux/Darwin/unknown are not supported. Windows uses WMI only.
 
 #### target_version[n]
 
