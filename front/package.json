@@ -5,6 +5,7 @@
     "build": "vite build",
     "dev": "vite --mode development",
     "lint": "eslint .",
+    "postinstall": "node scripts/patch-bk-table.cjs",
     "preview": "vite preview",
     "server": "http-server ./dist -p 5000",
     "test:e2e": "cypress open",
