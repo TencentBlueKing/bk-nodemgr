@@ -175,7 +175,7 @@ const loadingAll = ref(false);
 const formRefMap = ref<Map<number, any>>(new Map());
 /** 每个平台的表单初始值（用于恢复默认） */
 const initialFormValues = ref<Record<string, Record<string, any>>>({});
-/** 每个平台的配置模板名称列表（platform → config_name[]） */
+/** 每个平台的配置模板名称列表（platform → config_template_name[]） */
 const configNamesMap = ref<Record<string, string[]>>({});
 
 /**
@@ -335,7 +335,7 @@ function applyConfigToItem(item: FormItem, configVars: any[]): void {
   // 只保留 is_main_config 为 true 的配置模板
   const mainConfigs = configVars.filter((cv: any) => cv.is_main_config);
 
-  // 收集 main config 的 name（用于提交时传 config_name）
+  // 收集 main config 的 name（用于提交时传 config_template_name）
   const names = mainConfigs.map((cv: any) => cv.name).filter(Boolean);
   if (names.length > 0) {
     configNamesMap.value[item.platform] = names;

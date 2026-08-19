@@ -115,7 +115,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { PluginAPIService } from '@/api/modules/plugin';
-import type { PluginInstallOperateInfo, PluginOperateFullInfo } from '@/@types/plugin';
+import type { PluginInstallReqInstallInfo, PluginUpgradeReqUpgradeInfo } from '@/@types/plugin';
 
 import StepDeployTarget from './steps/step-deploy-target.vue';
 import StepExecPreview from './steps/step-exec-preview.vue';
@@ -286,7 +286,7 @@ const handleSubmit = async () => {
       return allPlatformKeys[0] || '';
     };
 
-    // 构造插件参数：每个 host 带上对应 platform 的 version、config_name 和 custom_config_context
+    // 构造插件参数：每个 host 带上对应 platform 的 version、config_template_name 和 custom_config_context
     const pluginName = formData.pluginName?.trim() || currentPluginName.value;
     const buildBasePluginInfo = (host: any) => {
       const hostOsType = host.os_type || '';
@@ -296,13 +296,13 @@ const handleSubmit = async () => {
         bk_host_id: host.bk_host_id || host.host_id,
         plugin_name: pluginName,
         version: versionMap[matchedPlatform] || formData.selectedVersion || '',
-        config_name: configNamesMap[matchedPlatform] || [],
+        config_template_name: configNamesMap[matchedPlatform] || [],
         custom_config_context: paramConfig[matchedPlatform] || {},
       };
     };
 
-    const installPayload: PluginInstallOperateInfo[] = hosts.map(host => buildBasePluginInfo(host));
-    const upgradePayload: PluginOperateFullInfo[] = hosts.map(host => buildBasePluginInfo(host));
+    const installPayload: PluginInstallReqInstallInfo[] = hosts.map(host => buildBasePluginInfo(host));
+    const upgradePayload: PluginUpgradeReqUpgradeInfo[] = hosts.map(host => buildBasePluginInfo(host));
 
     let res: { workflow_id: string };
     // 根据操作类型调用不同 API

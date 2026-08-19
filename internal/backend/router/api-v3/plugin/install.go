@@ -40,7 +40,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginInstallOperateInfo ) string {
+	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginInstallReq_InstallInfo) string {
 		return item.GetPluginName()
 	})
 	if authErr := h.authorizedPluginOperate(rCtx, pluginName...); authErr != nil {

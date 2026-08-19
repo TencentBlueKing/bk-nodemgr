@@ -35,7 +35,7 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginOperateFullInfo) string {
+	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginUpgradeReq_UpgradeInfo) string {
 		return item.GetPluginName()
 	})
 	if authErr := h.authorizedPluginOperate(rCtx, pluginName...); authErr != nil {

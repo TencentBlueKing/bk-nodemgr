@@ -35,7 +35,7 @@ func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginOperateBasicInfo) string {
+	pluginName := conv.SliceToSlice(req.GetPlugin(), func(item *protoBackend.PluginUninstallReq_UninstallInfo) string {
 		return item.GetPluginName()
 	})
 	if authErr := h.authorizedPluginOperate(rCtx, pluginName...); authErr != nil {

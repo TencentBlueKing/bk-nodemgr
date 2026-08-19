@@ -150,7 +150,7 @@ type PluginDeploymentParam struct {
 	BizID                   int64
 	PluginName              string
 	Version                 string
-	ConfigName              []string
+	ConfigTemplateName      []string
 	CustomConfigContext     map[string]any
 	IsOffline               bool
 	EnableCompatibilityMode bool
@@ -187,10 +187,10 @@ func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeployme
 		}
 
 		conf := &PluginDeploymentPluginConf{
-			ConfigFilesDetail:   make([]*PluginConfigDetail, 0, len(param.ConfigName)),
+			ConfigFilesDetail:   make([]*PluginConfigDetail, 0, len(param.ConfigTemplateName)),
 			CustomConfigContext: param.CustomConfigContext,
 		}
-		for _, item := range param.ConfigName {
+		for _, item := range param.ConfigTemplateName {
 			conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{
 				TemplateName: item,
 			})

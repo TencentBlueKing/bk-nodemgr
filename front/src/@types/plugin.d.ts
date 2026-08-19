@@ -1,42 +1,21 @@
 // gen-api.js 自动生成，请勿手动修改
-// PluginOperateFullInfo describes the full information of a plugin operation,
-// which includes the plugin's basic information, version, configuration, and
-// deployment overrides.
-export interface PluginOperateFullInfo {
-  bk_host_id: number;
-  plugin_name: string;
-  version: string;
-  config_name: string[];
-  custom_config_context: Record<string, any>;
+// PluginInstallReq describes the plugin install request.
+export interface PluginInstallReq {
+  plugin: PluginInstallReqInstallInfo[];
 }
 
-// PluginOperateBasicInfo describes the basic information of a plugin operation,
-// which includes the plugin's host ID and name.
-export interface PluginOperateBasicInfo {
-  bk_host_id: number;
-  plugin_name: string;
-}
-
-// PluginDeploymentSpec describes the specification for plugin deployment.
-export interface PluginDeploymentSpec {
+export interface PluginInstallReqDeploymentSpec {
   resource: ProcessResource;
   monitor_policy: ProcessMonitorPolicy;
 }
 
-// PluginInstallOperateInfo describes the information required for installing a
-// plugin,
-export interface PluginInstallOperateInfo {
+export interface PluginInstallReqInstallInfo {
   bk_host_id: number;
   plugin_name: string;
   version: string;
-  config_name: string[];
+  config_template_name: string[];
   custom_config_context: Record<string, any>;
-  custom_spec: PluginDeploymentSpec;
-}
-
-// PluginInstallReq describes the plugin install request.
-export interface PluginInstallReq {
-  plugin: PluginInstallOperateInfo[];
+  custom_spec: PluginInstallReqDeploymentSpec;
 }
 
 // PluginInstallResp describes the plugin install response.
@@ -55,7 +34,15 @@ export interface PluginInstallRespData {
 
 // PluginUpgradeReq describes the plugin upgrade request.
 export interface PluginUpgradeReq {
-  plugin: PluginOperateFullInfo[];
+  plugin: PluginUpgradeReqUpgradeInfo[];
+}
+
+export interface PluginUpgradeReqUpgradeInfo {
+  bk_host_id: number;
+  plugin_name: string;
+  version: string;
+  config_template_name: string[];
+  custom_config_context: Record<string, any>;
 }
 
 // PluginUpgradeResp describes the plugin upgrade response.
@@ -74,7 +61,12 @@ export interface PluginUpgradeRespData {
 
 // PluginUninstallReq describes the plugin uninstall request.
 export interface PluginUninstallReq {
-  plugin: PluginOperateBasicInfo[];
+  plugin: PluginUninstallReqUninstallInfo[];
+}
+
+export interface PluginUninstallReqUninstallInfo {
+  bk_host_id: number;
+  plugin_name: string;
 }
 
 // PluginUninstallResp describes the plugin uninstall response.
@@ -94,7 +86,14 @@ export interface PluginUninstallRespData {
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 export interface PluginApplySubConfigReq {
-  plugin: PluginOperateFullInfo[];
+  plugin: PluginApplySubConfigReqApplySubConfigInfo[];
+}
+
+export interface PluginApplySubConfigReqApplySubConfigInfo {
+  bk_host_id: number;
+  plugin_name: string;
+  config_template_name: string[];
+  custom_config_context: Record<string, any>;
 }
 
 // PluginApplySubConfigResp describes the plugin apply sub-configuration
@@ -179,7 +178,7 @@ export interface PluginListPermittedOperationResp {
 }
 
 export interface PluginListPermittedOperationRespData {
-  operations: Operation[];
+  operations: DataOperation[];
 }
 
 export interface DataOperation {
@@ -189,7 +188,12 @@ export interface DataOperation {
 
 // PluginRestartReq describes the plugin restart request.
 export interface PluginRestartReq {
-  plugin: PluginOperateBasicInfo[];
+  plugin: PluginRestartReqRestartInfo[];
+}
+
+export interface PluginRestartReqRestartInfo {
+  bk_host_id: number;
+  plugin_name: string;
 }
 
 // PluginRestartResp describes the plugin restart response.
@@ -208,7 +212,12 @@ export interface PluginRestartRespData {
 
 // PluginStopReq describes the plugin stop request.
 export interface PluginStopReq {
-  plugin: PluginOperateBasicInfo[];
+  plugin: PluginStopReqStopInfo[];
+}
+
+export interface PluginStopReqStopInfo {
+  bk_host_id: number;
+  plugin_name: string;
 }
 
 // PluginStopResp describes the plugin stop response.
