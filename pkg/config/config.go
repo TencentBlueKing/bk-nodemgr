@@ -906,8 +906,12 @@ func (conf Profiling) Validate() error {
 		return nil
 	}
 
-	if strings.TrimSpace(conf.ServerAddress) == "" {
+	serverAddress := strings.TrimSpace(conf.ServerAddress)
+	if serverAddress == "" {
 		return errors.New("serverAddress is empty")
+	}
+	if !strings.HasPrefix(serverAddress, "http://") && !strings.HasPrefix(serverAddress, "https://") {
+		return errors.New("serverAddress must start with http:// or https://")
 	}
 
 	for _, profileType := range conf.ProfileTypes {

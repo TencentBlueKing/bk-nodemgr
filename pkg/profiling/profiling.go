@@ -14,12 +14,14 @@ package profiling
 import (
 	"fmt"
 	"maps"
+	"slices"
 	"strings"
 	"sync"
 
 	pyroscope "github.com/grafana/pyroscope-go"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 )
 
 var defaultProfileTypes = []pyroscope.ProfileType{
@@ -76,6 +78,7 @@ func Start(conf config.Profiling, defaults Defaults) (StopFunc, error) {
 	if err != nil {
 		return nil, err
 	}
+	tags := buildTags(defaults.Tags, conf.Tags)
 
 	profiler, err := pyroscope.Start(pyroscope.Config{
 		ApplicationName:   applicationName,
@@ -83,12 +86,20 @@ func Start(conf config.Profiling, defaults Defaults) (StopFunc, error) {
 		BasicAuthUser:     conf.BasicAuthUser,
 		BasicAuthPassword: conf.BasicAuthPassword,
 		TenantID:          conf.TenantID,
-		Tags:              buildTags(defaults.Tags, conf.Tags),
+		Tags:              tags,
 		ProfileTypes:      configuredProfileTypes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to start pyroscope profiler: %w", err)
 	}
+	logger.G.Sys().With(
+		"application-name", applicationName,
+		"server-address", serverAddress,
+		"profile-types", profileTypeNames(configuredProfileTypes),
+		"tags", tagKeys(tags),
+		"basic-auth-enabled", strings.TrimSpace(conf.BasicAuthUser) != "" || strings.TrimSpace(conf.BasicAuthPassword) != "",
+		"tenant-id-set", strings.TrimSpace(conf.TenantID) != "",
+	).Info("started profiling")
 
 	var once sync.Once
 	var stopErr error
@@ -115,6 +126,25 @@ func buildProfileTypes(confTypes []string) ([]pyroscope.ProfileType, error) {
 	}
 
 	return builtTypes, nil
+}
+
+func profileTypeNames(types []pyroscope.ProfileType) []string {
+	names := make([]string, 0, len(types))
+	for _, profileType := range types {
+		names = append(names, string(profileType))
+	}
+
+	return names
+}
+
+func tagKeys(tags map[string]string) []string {
+	keys := make([]string, 0, len(tags))
+	for key := range tags {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	return keys
 }
 
 func buildTags(defaultTags map[string]string, confTags map[string]string) map[string]string {
