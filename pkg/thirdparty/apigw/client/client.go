@@ -37,8 +37,13 @@ type Client struct {
 
 // NewClient new apigw client.
 // this application will use the special user config to request.
-func NewClient(c *restclient.Capability, baseURL string, config UserConfig) (*Client, error) {
-	restClient, err := restclient.NewClient(c, baseURL, restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, AuthHeaderMasker))
+func NewClient(c *restclient.Capability, baseURL string, config UserConfig, opts ...restclient.Opt) (*Client, error) {
+	restOpts := []restclient.Opt{
+		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, AuthHeaderMasker),
+	}
+	restOpts = append(restOpts, opts...)
+
+	restClient, err := restclient.NewClient(c, baseURL, restOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client: %v", err)
 	}
