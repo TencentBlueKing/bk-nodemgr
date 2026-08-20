@@ -28,6 +28,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 )
 
@@ -50,7 +51,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 
 	client.client, err = apigwclient.NewClient(
 		c,
-		"/",
+		"/login/api/v3",
 		conf.APIGWUserConfig,
 		restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken),
 	)
@@ -134,12 +135,17 @@ func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
 	req *GetUserInfoByBKTokenMultipleTenantModeReq,
 ) (*GetUserInfoByBKTokenMultipleTenantModeResp, error) {
 
+	// This is a special logic: the API gateway is required to take a tenant ID, but this API does not differentiate tenants.
+	apigwHeader := http.Header{}
+	apigwHeader.Set(apigwheader.BKGWTenantIDKey, tenant.SystemTenantID)
+
 	resp := new(BKTokenMultipleTenantModeBroker)
 	err := c.client.Get().
-		SubResourcef("/login/api/v3/open/bk-tokens/userinfo/").
+		SubResourcef("/open/bk-tokens/userinfo/").
 		WithContext(nCtx).
+		WithHeaders(apigwHeader).
 		WithParam(CookieKeyBKToken, req.BKToken).
-		Body(req).
+		Body(req).EnableLogBody().EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
