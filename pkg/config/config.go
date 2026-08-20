@@ -763,6 +763,9 @@ type BKLogin struct {
 	// LoginURL defines the login url of bklogin.
 	LoginURL string `yaml:"loginURL" usage:"login url of bklogin"`
 
+	// Endpoints is a seed list of host:port addresses of api gateway nodes.
+	Endpoints []string `yaml:"endpoints" usage:"endpoints of bklogin backend api"`
+
 	// AuthType defines the auth type of bklogin, support 'bk_token' and 'bk_ticket'.
 	AuthType LoginAuthType `yaml:"authType" usage:"auth type of bklogin, support 'bk_token' and 'bk_ticket'"`
 
@@ -776,6 +779,10 @@ type BKLogin struct {
 func (bklogin *BKLogin) Validate() error {
 	if bklogin.LoginURL == "" {
 		return errors.New("login url of bkLogin is empty")
+	}
+
+	if len(bklogin.Endpoints) == 0 {
+		return errors.New("endpoints of bkLogin is empty")
 	}
 
 	if err := bklogin.TLS.Validate(); err != nil {

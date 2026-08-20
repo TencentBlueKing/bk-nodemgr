@@ -140,6 +140,8 @@ notice:
 bkSaaS:
   bkLogin:
     loginURL: __BK_NODEMGR_APPLICATION_LOGIN_URL__
+    endpoints:
+      - __BK_NODEMGR_APPLICATION_BKLOGIN_ENDPOINT__
     authType: __BK_NODEMGR_APPLICATION_AUTH_TYPE__
     # trace service name for BK login client
     traceServiceName: "application-client-bklogin"

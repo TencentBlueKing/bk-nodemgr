@@ -21,6 +21,7 @@ package bklogin
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -99,4 +100,23 @@ func TestHandlerVerify(t *testing.T) {
 	default:
 		require.Failf(t, "unsupported tenant mode", "mode=%s", mode)
 	}
+}
+
+func TestHandlerVerifyUsesClientEndpointAndKeepsLoginURL(t *testing.T) {
+	backendCalled := false
+	backendSrv := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		backendCalled = true
+		require.Equal(t, "/user/get_info/", req.URL.Path)
+
+		_, err := rw.Write([]byte(`{"ret":0,"msg":"ok","data":{"username":"ticket_user"}}`))
+		require.NoError(t, err)
+	}))
+	t.Cleanup(backendSrv.Close)
+
+	h := newTestHandlerWithEndpoint(t, CookieKeyBKTicket, backendSrv.URL)
+	require.Equal(t, "https://bklogin.example.com/login", h.GetLoginURL())
+
+	_, _, _, err := h.Verify(contextx.New(context.Background()), "ticket-value")
+	require.NoError(t, err)
+	require.True(t, backendCalled)
 }

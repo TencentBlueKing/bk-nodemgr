@@ -624,7 +624,7 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 	clientCap := &restclient.Capability{
 		Name:                 clientNameBKLogin,
 		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery(clientNameBKLogin, []string{conf.LoginURL}),
+		Discover:             restdiscovery.NewDiscovery(clientNameBKLogin, conf.Endpoints),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
 		TraceSvc:             traceSvc,

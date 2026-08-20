@@ -880,6 +880,8 @@ application:
     bkSaaS:
       bkLogin:
         loginURL: ""
+        # endpoints is a seed list of host:port addresses of bklogin backend API nodes.
+        endpoints: []
         authType: "bk_token"
         # trace service name for BK login client
         traceServiceName: "application-client-bklogin"

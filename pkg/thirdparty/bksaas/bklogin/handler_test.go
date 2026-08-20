@@ -65,6 +65,12 @@ func newTestHandler(t *testing.T, authType string, h http.HandlerFunc) *Handler 
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
 
+	return newTestHandlerWithEndpoint(t, authType, srv.URL)
+}
+
+func newTestHandlerWithEndpoint(t *testing.T, authType string, endpoint string) *Handler {
+	t.Helper()
+
 	conf := &Config{
 		LoginURL: "https://bklogin.example.com/login",
 		AuthType: authType,
@@ -73,7 +79,7 @@ func newTestHandler(t *testing.T, authType string, h http.HandlerFunc) *Handler 
 	clientCap := &restclient.Capability{
 		Name:                 "bklogin",
 		HTTPClient:           &http.Client{Timeout: 2 * time.Second},
-		Discover:             restdiscovery.NewDiscovery("bklogin", []string{srv.URL}),
+		Discover:             restdiscovery.NewDiscovery("bklogin", []string{endpoint}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
 		TraceSvc:             testTraceService{},

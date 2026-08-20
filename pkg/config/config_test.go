@@ -170,6 +170,17 @@ func TestGSEDeployCustom_ValidateEventDataIDs(t *testing.T) {
 	}
 }
 
+func TestBKLogin_ValidateRequiresBackendEndpoints(t *testing.T) {
+	conf := BKLogin{
+		LoginURL: "https://login.example.com",
+		AuthType: LoginAuthTypeBKToken,
+	}
+
+	err := conf.Validate()
+
+	require.ErrorContains(t, err, "endpoints of bkLogin is empty")
+}
+
 func TestRedisType_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
