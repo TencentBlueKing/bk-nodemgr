@@ -20,8 +20,11 @@ package bklogin
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -29,10 +32,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 )
+
+const testTenantModeEnv = "BKLOGIN_TEST_TENANT_MODE"
 
 type testTraceService struct{}
 
@@ -73,113 +80,167 @@ func newTestHandler(t *testing.T, authType string, h http.HandlerFunc) *Handler 
 	}
 
 	hh, err := New(clientCap, conf)
-	if err != nil {
-		t.Fatalf("failed to create bklogin handler: %v", err)
-	}
+	require.NoError(t, err)
 
 	handler, ok := hh.(*Handler)
-	if !ok {
-		t.Fatalf("unexpected handler type: %T", hh)
-	}
+	require.True(t, ok, "unexpected handler type: %T", hh)
 
 	return handler
 }
 
+func runTenantModeTest(t *testing.T, testName string, mode tenant.Mode) {
+	t.Helper()
+
+	executable, err := os.Executable()
+	require.NoError(t, err)
+
+	cmd := exec.Command(executable, "-test.run=^"+testName+"$", "-test.v")
+	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=%s", testTenantModeEnv, mode))
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(output))
+}
+
+func configuredTenantMode(t *testing.T) (tenant.Mode, bool) {
+	t.Helper()
+
+	mode := tenant.Mode(os.Getenv(testTenantModeEnv))
+	if mode == "" {
+		return "", false
+	}
+
+	require.NoError(t, mode.Validate())
+	tenant.SetMode(mode)
+
+	return mode, true
+}
+
 func TestHandlerGetWebUserInfo(t *testing.T) {
+	mode, ok := configuredTenantMode(t)
+	if !ok {
+		for _, mode := range []tenant.Mode{tenant.ModeSingle, tenant.ModeMultiple} {
+			t.Run(string(mode), func(t *testing.T) {
+				runTenantModeTest(t, "TestHandlerGetWebUserInfo", mode)
+			})
+		}
+		return
+	}
+
 	nCtx := contextx.New(context.Background())
 
-	t.Run("bk_ticket_success", func(t *testing.T) {
-		h := newTestHandler(t, CookieKeyBKTicket, func(rw http.ResponseWriter, req *http.Request) {
-			if req.URL.Path != "/user/get_info/" {
-				t.Fatalf("unexpected request path: %s", req.URL.Path)
+	switch mode {
+	case tenant.ModeSingle:
+		t.Run("bk_ticket_success", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKTicket, func(rw http.ResponseWriter, req *http.Request) {
+				if req.URL.Path != "/user/get_info/" {
+					t.Fatalf("unexpected request path: %s", req.URL.Path)
+				}
+
+				_, _ = rw.Write([]byte(`{"ret":0,"msg":"ok","data":{"username":"ticket_user","avatar_url":"https://avatar"}}`))
+			})
+
+			info, err := h.GetWebUserInfo(nCtx, "ticket-value")
+			if err != nil {
+				t.Fatalf("GetWebUserInfo() error = %v", err)
+			}
+			if info.LoginName != "ticket_user" {
+				t.Fatalf("GetWebUserInfo() username = %s, want %s", info.LoginName, "ticket_user")
+			}
+		})
+
+		t.Run("bk_token_single_success", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
+				if req.URL.Path != "/accounts/get_user/" {
+					t.Fatalf("unexpected request path: %s", req.URL.Path)
+				}
+
+				_, _ = rw.Write([]byte(`{"result":true,"code":"00","message":"ok","data":{"username":"token_user"}}`))
+			})
+
+			info, err := h.GetWebUserInfo(nCtx, "token-value")
+			if err != nil {
+				t.Fatalf("GetWebUserInfo() error = %v", err)
+			}
+			if info.LoginName != "token_user" {
+				t.Fatalf("GetWebUserInfo() username = %s, want %s", info.LoginName, "token_user")
+			}
+		})
+
+		t.Run("upstream_failed", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKTicket, func(rw http.ResponseWriter, _ *http.Request) {
+				_, _ = rw.Write([]byte(`{"ret":1,"msg":"invalid","data":{}}`))
+			})
+
+			_, err := h.GetWebUserInfo(nCtx, "ticket-value")
+			require.Error(t, err)
+			if !strings.Contains(err.Error(), "failed to get web user info by bk_ticket") {
+				t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "failed to get web user info by bk_ticket")
+			}
+		})
+
+		t.Run("missing_username", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
+				_, _ = rw.Write([]byte(`{"result":true,"code":"00","message":"ok","data":{}}`))
+			})
+
+			_, err := h.GetWebUserInfo(nCtx, "token-value")
+			require.Error(t, err)
+			if !strings.Contains(err.Error(), "username is empty") {
+				t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "username is empty")
+			}
+		})
+
+		t.Run("unsupported_auth_type", func(t *testing.T) {
+			h := &Handler{
+				conf: &Config{
+					LoginURL: "https://bklogin.example.com/login",
+					AuthType: "unknown",
+				},
 			}
 
-			_, _ = rw.Write([]byte(`{"ret":0,"msg":"ok","data":{"username":"ticket_user","avatar_url":"https://avatar"}}`))
-		})
-
-		info, err := h.GetWebUserInfo(nCtx, "ticket-value")
-		if err != nil {
-			t.Fatalf("GetWebUserInfo() error = %v", err)
-		}
-		if info.LoginName != "ticket_user" {
-			t.Fatalf("GetWebUserInfo() username = %s, want %s", info.LoginName, "ticket_user")
-		}
-	})
-
-	t.Run("bk_token_success", func(t *testing.T) {
-		h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
-			if req.URL.Path != "/accounts/get_user/" {
-				t.Fatalf("unexpected request path: %s", req.URL.Path)
+			_, err := h.GetWebUserInfo(nCtx, "token-value")
+			require.Error(t, err)
+			if !strings.Contains(err.Error(), "unsupported auth type") {
+				t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "unsupported auth type")
 			}
-
-			_, _ = rw.Write([]byte(`{"ret":0,"msg":"ok","data":{"username":"token_user"}}`))
 		})
 
-		info, err := h.GetWebUserInfo(nCtx, "token-value")
-		if err != nil {
-			t.Fatalf("GetWebUserInfo() error = %v", err)
-		}
-		if info.LoginName != "token_user" {
-			t.Fatalf("GetWebUserInfo() username = %s, want %s", info.LoginName, "token_user")
-		}
-	})
+		t.Run("invalid_context", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
+				_, _ = rw.Write([]byte(`{"result":true,"code":"00","message":"ok","data":{"username":"token_user"}}`))
+			})
 
-	t.Run("upstream_failed", func(t *testing.T) {
-		h := newTestHandler(t, CookieKeyBKTicket, func(rw http.ResponseWriter, _ *http.Request) {
-			_, _ = rw.Write([]byte(`{"ret":1,"msg":"invalid","data":{}}`))
+			_, err := h.GetWebUserInfo(nil, "token-value")
+			require.Error(t, err)
+			if !strings.Contains(err.Error(), "invalid context") {
+				t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "invalid context")
+			}
 		})
+	case tenant.ModeMultiple:
+		t.Run("bk_token_multiple_success", func(t *testing.T) {
+			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
+				require.Equal(t, "/login/api/v3/open/bk-tokens/userinfo/", req.URL.Path)
+				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
 
-		_, err := h.GetWebUserInfo(nCtx, "ticket-value")
-		if err == nil {
-			t.Fatal("GetWebUserInfo() expected error, got nil")
-		}
-		if !strings.Contains(err.Error(), "failed to get web user info by bk_ticket") {
-			t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "failed to get web user info by bk_ticket")
-		}
-	})
+				_, err := rw.Write([]byte(`{
+					"data": {
+						"bk_username": "nteuuhzxlh0jcanw",
+						"tenant_id": "system",
+						"login_name": "admin",
+						"display_name": "admin",
+						"language": "zh-cn",
+						"time_zone": "Asia/Shanghai"
+					}
+				}`))
+				require.NoError(t, err)
+			})
 
-	t.Run("missing_username", func(t *testing.T) {
-		h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
-			_, _ = rw.Write([]byte(`{"ret":0,"msg":"ok","data":{}}`))
+			info, err := h.GetWebUserInfo(nCtx, "token-value")
+			require.NoError(t, err)
+			require.Equal(t, "nteuuhzxlh0jcanw", info.BKUsername)
+			require.Equal(t, "admin", info.LoginName)
+			require.Equal(t, "Asia/Shanghai", info.TimeZone)
 		})
-
-		_, err := h.GetWebUserInfo(nCtx, "token-value")
-		if err == nil {
-			t.Fatal("GetWebUserInfo() expected error, got nil")
-		}
-		if !strings.Contains(err.Error(), "username is empty") {
-			t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "username is empty")
-		}
-	})
-
-	t.Run("unsupported_auth_type", func(t *testing.T) {
-		h := &Handler{
-			conf: &Config{
-				LoginURL: "https://bklogin.example.com/login",
-				AuthType: "unknown",
-			},
-		}
-
-		_, err := h.GetWebUserInfo(nCtx, "token-value")
-		if err == nil {
-			t.Fatal("GetWebUserInfo() expected error, got nil")
-		}
-		if !strings.Contains(err.Error(), "unsupported auth type") {
-			t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "unsupported auth type")
-		}
-	})
-
-	t.Run("invalid_context", func(t *testing.T) {
-		h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, _ *http.Request) {
-			_, _ = rw.Write([]byte(`{"ret":0,"msg":"ok","data":{"username":"token_user"}}`))
-		})
-
-		_, err := h.GetWebUserInfo(nil, "token-value")
-		if err == nil {
-			t.Fatal("GetWebUserInfo() expected error, got nil")
-		}
-		if !strings.Contains(err.Error(), "invalid context") {
-			t.Fatalf("GetWebUserInfo() error = %v, want contain %q", err, "invalid context")
-		}
-	})
+	default:
+		require.Failf(t, "unsupported tenant mode", "mode=%s", mode)
+	}
 }

@@ -632,7 +632,10 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 
 	bkloginHandler, err := bksaasbklogin.New(
 		clientCap,
-		&bksaasbklogin.Config{LoginURL: conf.LoginURL, AuthType: conf.AuthType.String()},
+		&bksaasbklogin.Config{
+			LoginURL: conf.LoginURL,
+			AuthType: conf.AuthType.String(),
+		},
 	)
 	if err != nil {
 		return nil, err

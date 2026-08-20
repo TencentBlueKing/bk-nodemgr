@@ -84,11 +84,12 @@ func (c *cli) getUserInfoByBKTicket(
 	return resp.Data, nil
 }
 
-// getUserInfoByBKToken get user info by bk_token.
-func (c *cli) getUserInfoByBKToken(
-	nCtx contextx.IContext, req *GetUserInfoByBKTokenReq) (*GetUserInfoByBKTokenResp, error) {
+func (c *cli) getUserInfoByBKTokenSingleTenantMode(
+	nCtx contextx.IContext,
+	req *GetUserInfoByBKTokenSingleTenantModeReq,
+) (*GetUserInfoByBKTokenSingleTenantModeResp, error) {
 
-	resp := new(BKTokenBroker[*GetUserInfoByBKTokenResp])
+	resp := new(BKTokenSingleTenantModeBroker[*GetUserInfoByBKTokenSingleTenantModeResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
 		return nil, err
@@ -97,6 +98,35 @@ func (c *cli) getUserInfoByBKToken(
 	err = c.client.Get().
 		// add '/' after subpath to prevent redirection during requests.
 		SubResourcef("/accounts/get_user/").
+		WithContext(nCtx).
+		WithHeaders(header).
+		WithParam(CookieKeyBKToken, req.BKToken).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("failed to get user info by bk_token: %w", err)
+	}
+
+	return resp.Data, nil
+}
+
+func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
+	nCtx contextx.IContext,
+	req *GetUserInfoByBKTokenMultipleTenantModeReq,
+) (*GetUserInfoByBKTokenMultipleTenantModeResp, error) {
+
+	resp := new(BKTokenMultipleTenantModeBroker)
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Get().
+		SubResourcef("/login/api/v3/open/bk-tokens/userinfo/").
 		WithContext(nCtx).
 		WithHeaders(header).
 		WithParam(CookieKeyBKToken, req.BKToken).

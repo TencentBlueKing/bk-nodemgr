@@ -41,9 +41,9 @@ func (resp *BKTicketBroker[T]) IsFailed() error {
 	return nil
 }
 
-// BKTokenBroker is the response envelope for bk_token-based APIs (e.g. /accounts/get_user/).
+// BKTokenSingleTenantModeBroker is the response envelope for bk_token single-tenant APIs (e.g. /accounts/get_user/).
 // Success is indicated by result=true and code=0; error detail is in code and message.
-type BKTokenBroker[T any] struct {
+type BKTokenSingleTenantModeBroker[T any] struct {
 	Result  bool   `json:"result"`
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -53,12 +53,37 @@ type BKTokenBroker[T any] struct {
 const bkTokenSuccess = "00"
 
 // IsFailed check the response is ok.
-func (resp *BKTokenBroker[T]) IsFailed() error {
+func (resp *BKTokenSingleTenantModeBroker[T]) IsFailed() error {
 	if resp.Result && resp.Code == bkTokenSuccess {
 		return nil
 	}
 
 	return fmt.Errorf("bklogin returned failure: code=%s, message=%s", resp.Code, resp.Message)
+}
+
+// BKTokenMultipleTenantModeBroker is the response envelope for bk_token multi-tenant APIs.
+type BKTokenMultipleTenantModeBroker struct {
+	Data  *GetUserInfoByBKTokenMultipleTenantModeResp `json:"data"`
+	Error *BKTokenMultipleTenantModeError             `json:"error"`
+}
+
+// BKTokenMultipleTenantModeError is the error payload returned by bk_token multi-tenant APIs.
+type BKTokenMultipleTenantModeError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// IsFailed check the response is ok.
+func (resp *BKTokenMultipleTenantModeBroker) IsFailed() error {
+	if resp.Data != nil {
+		return nil
+	}
+
+	if resp.Error != nil {
+		return fmt.Errorf("bklogin returned failure: code=%s, message=%s", resp.Error.Code, resp.Error.Message)
+	}
+
+	return fmt.Errorf("bklogin returned failure: data is empty")
 }
 
 // GetUserInfoByBKTicketReq describe the get user info bk_ticket request.
@@ -71,12 +96,27 @@ type GetUserInfoByBKTicketResp struct {
 	Username string `json:"username"`
 }
 
-// GetUserInfoByBKTokenReq describe the get user info by bk_token request.
-type GetUserInfoByBKTokenReq struct {
+// GetUserInfoByBKTokenSingleTenantModeReq describe the get user info by bk_token single-tenant request.
+type GetUserInfoByBKTokenSingleTenantModeReq struct {
 	BKToken string `json:"-"`
 }
 
-// GetUserInfoByBKTokenResp describe the get user info by bk_token response.
-type GetUserInfoByBKTokenResp struct {
+// GetUserInfoByBKTokenSingleTenantModeResp describe the get user info by bk_token single-tenant response.
+type GetUserInfoByBKTokenSingleTenantModeResp struct {
 	Username string `json:"username"`
+}
+
+// GetUserInfoByBKTokenMultipleTenantModeReq describe the get user info by bk_token multi-tenant request.
+type GetUserInfoByBKTokenMultipleTenantModeReq struct {
+	BKToken string `json:"-"`
+}
+
+// GetUserInfoByBKTokenMultipleTenantModeResp describe the get user info by bk_token multi-tenant response.
+type GetUserInfoByBKTokenMultipleTenantModeResp struct {
+	BKUsername  string `json:"bk_username"`
+	TenantID    string `json:"tenant_id"`
+	LoginName   string `json:"login_name"`
+	DisplayName string `json:"display_name"`
+	Language    string `json:"language"`
+	TimeZone    string `json:"time_zone"`
 }
