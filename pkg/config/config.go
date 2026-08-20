@@ -904,6 +904,7 @@ type Profiling struct {
 	BasicAuthUser     string            `yaml:"basicAuthUser" usage:"profiling basic auth user"`
 	BasicAuthPassword string            `yaml:"basicAuthPassword" usage:"profiling basic auth password"`
 	TenantID          string            `yaml:"tenantID" usage:"profiling tenant ID"`
+	Headers           map[string]string `yaml:"headers" usage:"profiling headers"`
 	Tags              map[string]string `yaml:"tags" usage:"static profiling tags"`
 	ProfileTypes      []string          `yaml:"profileTypes" usage:"profiling profile types"`
 }

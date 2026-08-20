@@ -94,6 +94,7 @@ func Start(conf config.Profiling, defaults Defaults) (StopFunc, error) {
 		BasicAuthUser:     conf.BasicAuthUser,
 		BasicAuthPassword: conf.BasicAuthPassword,
 		TenantID:          conf.TenantID,
+		HTTPHeaders:       conf.Headers,
 		Tags:              tags,
 		ProfileTypes:      configuredProfileTypes,
 	})
