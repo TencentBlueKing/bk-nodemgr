@@ -157,6 +157,11 @@ config:
       loginURL: "https://login.example.com" # 蓝鲸登录URL
       endpoints: # 蓝鲸登录后端接口调用地址
         - "https://example.com/prod"
+      appCode: bk-nodemgr # APIGW app-code，多租户模式必填
+      appSecret: xxxxxx # APIGW app-secret，多租户模式必填
+      user: admin # APIGW 用户认证用户，多租户 un 模式必填
+      authMode: "un" # APIGW 认证模式，支持 un 或 at
+      accessToken: "" # APIGW access-token，at 模式必填
       authType: bk_ticket # 登陆验证方式
 
   # 依赖配置

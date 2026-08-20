@@ -638,6 +638,12 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 		&bksaasbklogin.Config{
 			LoginURL: conf.LoginURL,
 			AuthType: conf.AuthType.String(),
+			APIGWUserConfig: apigwclient.UserConfig{
+				AppConfig:   newAPIGWAppConfig(&conf.APIGatewayClient),
+				AuthMode:    apigwclient.AuthMode(conf.AuthMode),
+				BKUsername:  conf.User,
+				AccessToken: conf.AccessToken,
+			},
 		},
 	)
 	if err != nil {

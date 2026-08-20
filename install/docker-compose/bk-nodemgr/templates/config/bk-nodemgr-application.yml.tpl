@@ -142,6 +142,11 @@ bkSaaS:
     loginURL: __BK_NODEMGR_APPLICATION_LOGIN_URL__
     endpoints:
       - __BK_NODEMGR_APPLICATION_BKLOGIN_ENDPOINT__
+    appCode: __BK_NODEMGR_APPCODE__
+    appSecret: __BK_NODEMGR_APPSECRET__
+    user: __BK_NODEMGR_VIRTUAL_USER__
+    authMode: "un"
+    accessToken: ""
     authType: __BK_NODEMGR_APPLICATION_AUTH_TYPE__
     # trace service name for BK login client
     traceServiceName: "application-client-bklogin"

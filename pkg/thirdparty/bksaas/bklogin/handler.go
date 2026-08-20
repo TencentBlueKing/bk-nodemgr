@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -61,8 +62,9 @@ func (h *Handler) GetAuthType() string {
 
 // Config the config of bkoa.
 type Config struct {
-	LoginURL string
-	AuthType string
+	LoginURL        string
+	AuthType        string
+	APIGWUserConfig apigwclient.UserConfig
 }
 
 // Validate validates the config.
@@ -78,6 +80,12 @@ func (conf *Config) Validate() error {
 		return fmt.Errorf("failed to validate bklogin config: unsupported auth type: %s", conf.AuthType)
 	}
 
+	if tenant.GetMode() == tenant.ModeMultiple && conf.AuthType == CookieKeyBKToken {
+		if err := conf.APIGWUserConfig.Validate(); err != nil {
+			return fmt.Errorf("failed to validate bklogin api-gateway config: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -86,12 +94,11 @@ type OptionFn func(*Handler)
 
 // New initialize a new cmdb Handler.
 func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
-	cli, err := newClient(c)
-	if err != nil {
+	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
 
-	err = conf.Validate()
+	cli, err := newClient(c, conf)
 	if err != nil {
 		return nil, err
 	}

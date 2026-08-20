@@ -26,6 +26,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 )
 
@@ -35,15 +37,28 @@ type cli struct {
 }
 
 // newClient initialize a new bkoa client.
-func newClient(c *restclient.Capability) (*cli, error) {
+func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 	restCli, err := restclient.NewClient(c, "/", restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken))
 	if err != nil {
 		return nil, err
 	}
 
-	return &cli{
-		client: restCli,
-	}, nil
+	client := &cli{client: restCli}
+	if tenant.GetMode() != tenant.ModeMultiple || conf.AuthType != CookieKeyBKToken {
+		return client, nil
+	}
+
+	client.client, err = apigwclient.NewClient(
+		c,
+		"/",
+		conf.APIGWUserConfig,
+		restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 // getCommonHeader get cmdb common header.
@@ -120,15 +135,9 @@ func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
 ) (*GetUserInfoByBKTokenMultipleTenantModeResp, error) {
 
 	resp := new(BKTokenMultipleTenantModeBroker)
-	header, err := c.getCommonHeader()
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.client.Get().
+	err := c.client.Get().
 		SubResourcef("/login/api/v3/open/bk-tokens/userinfo/").
 		WithContext(nCtx).
-		WithHeaders(header).
 		WithParam(CookieKeyBKToken, req.BKToken).
 		Body(req).
 		Do().Into(resp)

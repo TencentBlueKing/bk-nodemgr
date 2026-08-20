@@ -152,8 +152,10 @@ func NewApplicationService() *ApplicationService {
 		TenantMode: defaultApplicationTenantMode,
 		BKSaas: BKSaas{
 			BKLogin: BKLogin{
-				TraceService: TraceService{
-					TraceServiceName: defaultApplicationBKLoginTraceServiceName,
+				APIGatewayClient: APIGatewayClient{
+					TraceService: TraceService{
+						TraceServiceName: defaultApplicationBKLoginTraceServiceName,
+					},
 				},
 			},
 		},
@@ -303,8 +305,8 @@ func (svc *ApplicationService) Validate() error {
 		return fmt.Errorf("failed to validate tenant mode config: %w", err)
 	}
 
-	if err := svc.BKSaas.Validate(); err != nil {
-		return fmt.Errorf("failed to validate bksaas config: %w", err)
+	if err := svc.validateBKLogin(); err != nil {
+		return err
 	}
 
 	if err := svc.BKPaas.Validate(); err != nil {
@@ -361,6 +363,38 @@ func (svc *ApplicationService) Validate() error {
 
 	if strings.TrimSpace(svc.ConfigPolicyOption.FilePath) == "" {
 		return errors.New("configPolicyOption.filePath is empty")
+	}
+
+	return nil
+}
+
+func (svc *ApplicationService) validateBKLogin() error {
+	if err := svc.BKSaas.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bksaas config: %w", err)
+	}
+
+	if svc.TenantMode != tenant.ModeMultiple || svc.BKSaas.BKLogin.AuthType != LoginAuthTypeBKToken {
+		return nil
+	}
+
+	if err := svc.BKSaas.BKLogin.APIGatewayClient.Validate(); err != nil {
+		return fmt.Errorf("failed to validate bklogin api-gateway config: %w", err)
+	}
+
+	switch svc.BKSaas.BKLogin.AuthMode {
+	case "un":
+		if svc.BKSaas.BKLogin.User == "" {
+			return errors.New("failed to validate bklogin api-gateway config: user is empty in un auth mode")
+		}
+	case "at":
+		if svc.BKSaas.BKLogin.AccessToken == "" {
+			return errors.New("failed to validate bklogin api-gateway config: access token is empty in at auth mode")
+		}
+	default:
+		return fmt.Errorf(
+			"failed to validate bklogin api-gateway config: unsupported auth mode: %s",
+			svc.BKSaas.BKLogin.AuthMode,
+		)
 	}
 
 	return nil

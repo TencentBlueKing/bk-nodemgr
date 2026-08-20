@@ -26,6 +26,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,6 +65,11 @@ func TestHandlerVerify(t *testing.T) {
 			h := newTestHandler(t, CookieKeyBKToken, func(rw http.ResponseWriter, req *http.Request) {
 				require.Equal(t, "/login/api/v3/open/bk-tokens/userinfo/", req.URL.Path)
 				require.Equal(t, "token-value", req.URL.Query().Get(CookieKeyBKToken))
+				require.JSONEq(t, `{
+						"bk_app_code": "bk-nodemgr",
+						"bk_app_secret": "app-secret",
+						"bk_username": "admin"
+					}`, req.Header.Get(apigwheader.BKGWAuthKey))
 
 				_, err := rw.Write([]byte(`{
 					"data": {

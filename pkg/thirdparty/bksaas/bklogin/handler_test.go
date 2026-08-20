@@ -33,6 +33,7 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -74,6 +75,11 @@ func newTestHandlerWithEndpoint(t *testing.T, authType string, endpoint string) 
 	conf := &Config{
 		LoginURL: "https://bklogin.example.com/login",
 		AuthType: authType,
+		APIGWUserConfig: apigwclient.UserConfig{
+			AppConfig:  apigwclient.NewAppConfig([]string{endpoint}, "bk-nodemgr", "app-secret"),
+			AuthMode:   apigwclient.AuthModeUn,
+			BKUsername: "admin",
+		},
 	}
 
 	clientCap := &restclient.Capability{
