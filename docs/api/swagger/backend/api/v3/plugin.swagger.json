@@ -152,6 +152,40 @@
         ]
       }
     },
+    "/api/v3/plugin/query_debug": {
+      "post": {
+        "summary": "QueryDebugPlugin queries the aggregated debug workflow record.",
+        "operationId": "Plugin_QueryDebugPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginQueryDebugResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginQueryDebugReq describes the plugin debug query request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginQueryDebugReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/restart": {
       "post": {
         "summary": "RestartPlugin restarts the plugin process on specified hosts.",
@@ -220,6 +254,40 @@
         ]
       }
     },
+    "/api/v3/plugin/start_debug": {
+      "post": {
+        "summary": "StartDebugPlugin starts a one-shot plugin debug workflow.",
+        "operationId": "Plugin_StartDebugPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginStartDebugResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginStartDebugReq describes the plugin debug start request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginStartDebugReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/stop": {
       "post": {
         "summary": "StopPlugin stops the plugin process on specified hosts.",
@@ -246,6 +314,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PluginStopReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
+    "/api/v3/plugin/stop_debug": {
+      "post": {
+        "summary": "StopDebugPlugin requests a running plugin debug workflow to stop.",
+        "operationId": "Plugin_StopDebugPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginStopDebugResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginStopDebugReq describes the plugin debug stop request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginStopDebugReq"
             }
           }
         ],
@@ -474,6 +576,27 @@
         }
       }
     },
+    "PluginQueryDebugRespOperationResult": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "last_instance_id": {
+          "type": "string"
+        },
+        "oper_inst_logs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        },
+        "extra_execution_logs": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        }
+      },
+      "description": "OperationResult describes the execution result of one operation in the\nplugin debug workflow."
+    },
     "PluginRestartReqRestartInfo": {
       "type": "object",
       "properties": {
@@ -483,6 +606,29 @@
         },
         "plugin_name": {
           "type": "string"
+        }
+      }
+    },
+    "PluginStartDebugReqDebugInfo": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "$ref": "#/definitions/v3ScopeInstance"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "config_template_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_config_context": {
+          "type": "object"
         }
       }
     },
@@ -531,6 +677,26 @@
         },
         "custom_config_context": {
           "type": "object"
+        }
+      }
+    },
+    "WorkflowActionMessageMessage": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "level": {
+          "type": "string"
+        },
+        "text_zh": {
+          "type": "string",
+          "title": "Chinese log content"
+        },
+        "text_en": {
+          "type": "string",
+          "title": "English log content"
         }
       }
     },
@@ -838,6 +1004,58 @@
         }
       }
     },
+    "v3PluginQueryDebugReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "PluginQueryDebugReq describes the plugin debug query request."
+    },
+    "v3PluginQueryDebugResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginQueryDebugRespData"
+        }
+      },
+      "description": "PluginQueryDebugResp describes the plugin debug query response."
+    },
+    "v3PluginQueryDebugRespData": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "is_finish": {
+          "type": "boolean"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginQueryDebugRespOperationResult"
+          }
+        }
+      }
+    },
     "v3PluginRestartReq": {
       "type": "object",
       "properties": {
@@ -917,6 +1135,85 @@
         }
       },
       "description": "PluginSetMemoResp describes the plugin set memo response."
+    },
+    "v3PluginStartDebugReq": {
+      "type": "object",
+      "properties": {
+        "debug_info": {
+          "$ref": "#/definitions/PluginStartDebugReqDebugInfo"
+        }
+      },
+      "description": "PluginStartDebugReq describes the plugin debug start request."
+    },
+    "v3PluginStartDebugResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginStartDebugRespData"
+        }
+      },
+      "description": "PluginStartDebugResp describes the plugin debug start response."
+    },
+    "v3PluginStartDebugRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PluginStopDebugReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "PluginStopDebugReq describes the plugin debug stop request."
+    },
+    "v3PluginStopDebugResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginStopDebugRespData"
+        }
+      },
+      "description": "PluginStopDebugResp describes the plugin debug stop response."
+    },
+    "v3PluginStopDebugRespData": {
+      "type": "object"
     },
     "v3PluginStopReq": {
       "type": "object",
@@ -1131,6 +1428,110 @@
           "type": "string"
         }
       }
+    },
+    "v3ScopeInstance": {
+      "type": "object",
+      "properties": {
+        "granularity": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "filter": {
+          "$ref": "#/definitions/v3TargetFilter"
+        },
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "ScopeInstance describes the scope when type is \"instance\".\nThis message defines the structure for scope when type is \"instance\".\nIt serves as documentation to help users understand the scope structure."
+    },
+    "v3SubWorkflowRef": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_domain": {
+          "type": "string"
+        }
+      },
+      "description": "SubWorkflowRef describes a child workflow reference surfaced in action logs."
+    },
+    "v3TargetFilter": {
+      "type": "object",
+      "description": "TargetFilter describes the target filter of deploy policy."
+    },
+    "v3WorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        },
+        "display_name_zh": {
+          "type": "string",
+          "title": "Chinese display name"
+        },
+        "display_name_en": {
+          "type": "string",
+          "title": "English display name"
+        },
+        "sub_workflow_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3SubWorkflowRef"
+          }
+        }
+      },
+      "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/WorkflowActionMessageMessage"
+          }
+        }
+      },
+      "description": "WorkflowActionMessage describes the workflow action message logs."
+    },
+    "v3WorkflowLifeCycle": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowLifeCycle describes the workflow life cycle."
     }
   }
 }

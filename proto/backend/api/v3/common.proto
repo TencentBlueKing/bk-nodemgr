@@ -2,6 +2,8 @@ syntax = "proto3";
 package v3;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
 
+import "google/protobuf/struct.proto";
+
 // Page describes the generaic conditions when paging query.
 message Page {
   int32 offset = 1;
@@ -467,4 +469,77 @@ message ProcessMonitorPolicy {
   optional int64 start_check_seconds = 2;
   optional int64 stop_check_seconds = 3;
   optional int64 operate_timeout_seconds = 4;
+}
+
+// TargetFilter describes the target filter of deploy policy.
+message TargetFilter {}
+
+// ScopeServiceTemplate describes the scope when type is "service_template".
+// This message defines the structure for scope when type is "service_template".
+// It serves as documentation to help users understand the scope structure.
+message ScopeServiceTemplate {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated int64 service_template_ids = 4;
+  repeated int64 module_ids = 5;
+}
+
+// ScopeSetTemplate describes the scope when type is "set_template".
+// This message defines the structure for scope when type is "set_template".
+// It serves as documentation to help users understand the scope structure.
+message ScopeSetTemplate {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated int64 set_template_ids = 4;
+  repeated int64 set_ids = 5;
+}
+
+// ScopeInstance describes the scope when type is "instance".
+// This message defines the structure for scope when type is "instance".
+// It serves as documentation to help users understand the scope structure.
+message ScopeInstance {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated int64 instance_ids = 4;
+}
+
+// ScopeTopo describes the scope when type is "topo".
+// This message defines the structure for scope when type is "topo".
+// It serves as documentation to help users understand the scope structure.
+message ScopeTopo {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+
+  message ScopeTopoNode {
+    string topo_obj_id = 1;
+    int64 topo_inst_id = 2;
+  }
+  repeated ScopeTopoNode paths = 4;
+}
+
+// ScopeDynamicGroup describes the scope when type is "dynamic_group".
+// This message defines the structure for scope when type is "dynamic_group".
+// It serves as documentation to help users understand the scope structure.
+message ScopeDynamicGroup {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated string dynamic_group_ids = 4;
+}
+
+// Scope describes the scope of deploy policy.
+message Scope {
+  string type = 1;
+  // scope is a google.protobuf.Struct that contains the details for the scope.
+  // The structure of scope depends on the type field:
+  // - For "service_template": see ScopeServiceTemplate
+  // - For "set_template": see ScopeSetTemplate
+  // - For "instance": see ScopeInstance
+  // - For "topo": see ScopeTopo
+  // - For "dynamic_group": see ScopeDynamicGroup
+  google.protobuf.Struct scope = 2;
 }

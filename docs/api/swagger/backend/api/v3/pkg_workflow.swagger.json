@@ -37,7 +37,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import plugin package in\npackage service.",
+            "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import\nplugin package in package service.",
             "in": "body",
             "required": true,
             "schema": {
@@ -96,6 +96,27 @@
           "type": "string"
         }
       }
+    },
+    "PackageImportResultRespOperationResult": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "last_instance_id": {
+          "type": "string"
+        },
+        "oper_inst_logs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        },
+        "extra_execution_logs": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        }
+      },
+      "description": "OperationResult describes the execution result of one operation in the\npackage import workflow."
     },
     "WorkflowActionMessageMessage": {
       "type": "object",
@@ -194,7 +215,7 @@
           "type": "string"
         }
       },
-      "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import plugin package in\npackage service."
+      "description": "PackageImportPluginV3PkgReq describes the HTTP request body when import\nplugin package in package service."
     },
     "v3PackageImportPluginV3PkgResp": {
       "type": "object",
@@ -219,7 +240,7 @@
           "$ref": "#/definitions/v3PackageImportPluginV3PkgRespData"
         }
       },
-      "description": "PackageImportPluginV3PkgResp describes the HTTP response body when import plugin package in\npackage service."
+      "description": "PackageImportPluginV3PkgResp describes the HTTP response body when import\nplugin package in package service."
     },
     "v3PackageImportPluginV3PkgRespData": {
       "type": "object",
@@ -269,17 +290,15 @@
         "status": {
           "type": "string"
         },
-        "oper_inst_logs": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/v3WorkflowActionData"
-          }
-        },
-        "extra_execution_logs": {
-          "$ref": "#/definitions/v3WorkflowActionMessage"
-        },
         "is_finish": {
           "type": "boolean"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PackageImportResultRespOperationResult"
+          }
         }
       }
     },
