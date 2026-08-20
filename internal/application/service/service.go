@@ -51,6 +51,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
@@ -112,6 +113,8 @@ type Service struct {
 
 // NewService creates a new application service.
 func NewService(conf *config.ApplicationService) (*Service, error) {
+	tenant.SetMode(conf.TenantMode)
+
 	svc := &Service{
 		conf:     conf,
 		Cap:      &options.Capability{},
