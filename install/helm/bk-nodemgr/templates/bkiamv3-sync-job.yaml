@@ -119,7 +119,8 @@ spec:
                 -t "${IAM_ENDPOINT}" \
                 -d "${OUTPUT_DIR}" \
                 -a "{{ .Values.backend.config.iamV3.appCode }}" \
-                -s "{{ .Values.backend.config.iamV3.appSecret }}"
+                -s "{{ .Values.backend.config.iamV3.appSecret }}" \
+                --bk_tenant_id {{ ternary "default" "system" (eq .Values.backend.config.tenantMode "single") | quote }}
               
               echo "=========================================="
               echo "IAM v3 model sync completed successfully!"
