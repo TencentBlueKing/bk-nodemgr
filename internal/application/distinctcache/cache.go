@@ -156,7 +156,12 @@ func (cache *Cache) syncHost(nCtx contextx.IContext, tenants []*types.Tenant) {
 func (cache *Cache) syncHostTenant(
 	nCtx contextx.IContext, tenantID string, agentCond, proxyCond *types.HostCondition) {
 
-	tCtx := buildTenantCtx(nCtx, tenantID)
+	tCtx, err := buildTenantCtx(nCtx, tenantID)
+	if err != nil {
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Error("failed to build tenant context")
+
+		return
+	}
 
 	agentResult, err := cache.backendHandler.DistinctHost(tCtx, agentCond)
 	if err != nil {
@@ -239,7 +244,12 @@ func (cache *Cache) syncProcess(nCtx contextx.IContext, tenants []*types.Tenant)
 }
 
 func (cache *Cache) syncProcessTenant(nCtx contextx.IContext, tenantID string) {
-	tCtx := buildTenantCtx(nCtx, tenantID)
+	tCtx, err := buildTenantCtx(nCtx, tenantID)
+	if err != nil {
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Error("failed to build tenant context")
+
+		return
+	}
 
 	// Step 1: discover plugin names that have running processes.
 	nameSelector := types.ProcessDistinctSelector{PluginName: true}
@@ -312,9 +322,14 @@ func (cache *Cache) GetProcess(tenantID, pluginName string) *types.ProcessDistin
 // virtual user. The backend apigw auth rejects requests whose bk_username is
 // empty ("username is required"); the syncer has no request-scoped user, so it
 // runs as "bk-nodemgr" (same convention used by backend scheduled workflows).
-func buildTenantCtx(nCtx contextx.IContext, tenantID string) contextx.IContext {
+func buildTenantCtx(nCtx contextx.IContext, tenantID string) (contextx.IContext, error) {
+	bkUsername, err := access.GetVirtualUserBKUsername(contextx.From(nCtx, contextx.WithTenantID(tenantID)))
+	if err != nil {
+		return nil, err
+	}
+
 	return contextx.From(nCtx,
 		contextx.WithTenantID(tenantID),
-		contextx.WithBKUsername(access.GetVirtualUser()),
-	)
+		contextx.WithBKUsername(bkUsername),
+	), nil
 }

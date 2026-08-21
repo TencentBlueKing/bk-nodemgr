@@ -91,7 +91,10 @@ type IObjectAttribute interface {
 // EnsureBizOpsCustomFields ensures the ops (out-of-band) custom fields exist in CMDB for the given business.
 // It queries existing attributes for the business and only creates missing ones.
 func (h *Handler) EnsureBizOpsCustomFields(nCtx contextx.IContext, bizID int64) error {
-	cmdbCtx := h.contextWithVirtualUser(nCtx)
+	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
+	if err != nil {
+		return err
+	}
 	resp, err := h.cli.searchObjectAttribute(cmdbCtx, &SearchObjectAttributeReq{
 		BKBizID: bizID,
 		BKObjID: TopoNodeObjIDHost,

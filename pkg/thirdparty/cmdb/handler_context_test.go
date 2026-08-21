@@ -46,7 +46,10 @@ func TestHandlerContextWithVirtualUser(t *testing.T) {
 	)
 	h := &Handler{cli: &cli{config: &Config{VirtualUser: virtualUser}}}
 
-	cmdbCtx := h.contextWithVirtualUser(nCtx)
+	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if cmdbCtx.BKUsername() != virtualUser {
 		t.Fatalf("BKUsername() = %q, want %q", cmdbCtx.BKUsername(), virtualUser)

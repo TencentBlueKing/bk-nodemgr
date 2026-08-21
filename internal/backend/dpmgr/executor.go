@@ -63,6 +63,15 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 	}
 }
 
+func getVirtualUserBKUsername(nCtx contextx.IContext) (string, error) {
+	username, err := access.GetVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get virtual user bk username: %w", err)
+	}
+
+	return username, nil
+}
+
 // Execute execute the change tasks.
 // nolint: gocognit,gocyclo,cyclop
 func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) error {
@@ -181,6 +190,11 @@ func collectDeployPolicyIDs(tasks []*ChangeTask) []int64 {
 }
 
 func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action agent install: %w", err)
+	}
+
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -222,7 +236,7 @@ func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext
 	workflowID, err := executor.nodeManager.LaunchInstallNode(nCtx, types.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          bizIDs,
-		Operator:        access.GetVirtualUser(),
+		Operator:        operator,
 		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
@@ -237,6 +251,11 @@ func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext
 }
 
 func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action agent uninstall: %w", err)
+	}
+
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -278,7 +297,7 @@ func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IConte
 	workflowID, err := executor.nodeManager.LaunchUninstallNode(nCtx, types.UninstallNodeParam{
 		Type:            types.NodeWorkflowTypeUninstallAgent,
 		BizIDs:          bizIDs,
-		Operator:        access.GetVirtualUser(),
+		Operator:        operator,
 		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
@@ -293,6 +312,11 @@ func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IConte
 }
 
 func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action agent upgrade: %w", err)
+	}
+
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -334,7 +358,7 @@ func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext
 	workflowID, err := executor.nodeManager.LaunchUpgradeNode(nCtx, types.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          bizIDs,
-		Operator:        access.GetVirtualUser(),
+		Operator:        operator,
 		DeployPolicyIDs: collectDeployPolicyIDs(tasks),
 		NodeDeployments: nodeDeployments,
 	})
@@ -353,6 +377,11 @@ func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext
 // ===============================================================================
 
 func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin install: %w", err)
+	}
+
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -381,7 +410,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
@@ -396,6 +425,11 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 }
 
 func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
+	}
+
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -419,7 +453,7 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
@@ -433,6 +467,11 @@ func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.ICont
 }
 
 func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
+	}
+
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -461,7 +500,7 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
@@ -479,6 +518,11 @@ func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContex
 // ===============================================================================
 
 func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin apply sub config: %w", err)
+	}
+
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -505,7 +549,7 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 	workflowID, err := executor.pluginManager.LaunchApplyPluginSubConfig(nCtx, types.ApplyPluginSubConfigParam{
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
@@ -529,6 +573,11 @@ func (executor *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IC
 // ===============================================================================
 
 func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
+	}
+
 	// 1. convert tasks to plugins.
 	plugins := make([]*types.Plugin, len(tasks))
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
@@ -573,7 +622,7 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
@@ -588,6 +637,11 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 }
 
 func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
+	}
+
 	// 1. convert tasks to plugins.
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
@@ -618,7 +672,7 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
 		Type:              types.PluginWorkflowTypeUpgrade,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})
@@ -632,6 +686,11 @@ func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.ICon
 }
 
 func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	operator, err := getVirtualUserBKUsername(nCtx)
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
+	}
+
 	// 1. convert tasks to plugins.
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
@@ -657,7 +716,7 @@ func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IC
 	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
 		Type:              types.PluginWorkflowTypeUninstall,
 		HostIDs:           hostIDs,
-		Operator:          access.GetVirtualUser(),
+		Operator:          operator,
 		DeployPolicyIDs:   collectDeployPolicyIDs(tasks),
 		PluginDeployments: pluginDeployments,
 	})

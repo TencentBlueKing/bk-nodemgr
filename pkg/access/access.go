@@ -21,6 +21,8 @@ package access
 
 import (
 	"sync"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
 const (
@@ -32,6 +34,53 @@ var virtualUser = struct {
 	user string
 }{
 	user: defaultVirtualUser,
+}
+
+// IVirtualUserResolver resolves a virtual user login name to the tenant-scoped bk username.
+type IVirtualUserResolver interface {
+	// GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
+	GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error)
+}
+
+var virtualUserResolver = struct {
+	sync.RWMutex
+	resolver IVirtualUserResolver
+}{
+	resolver: NewIdentityVirtualUserResolver(),
+}
+
+// NewIdentityVirtualUserResolver creates a resolver that keeps login name as bk username.
+func NewIdentityVirtualUserResolver() IVirtualUserResolver {
+	return identityVirtualUserResolver{}
+}
+
+type identityVirtualUserResolver struct{}
+
+// GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
+func (identityVirtualUserResolver) GetBKUsernameByLoginName(_ contextx.IContext, loginName string) (string, error) {
+	return loginName, nil
+}
+
+// SetVirtualUserResolver sets the virtual user resolver.
+func SetVirtualUserResolver(resolver IVirtualUserResolver) {
+	virtualUserResolver.Lock()
+	defer virtualUserResolver.Unlock()
+
+	virtualUserResolver.resolver = resolver
+}
+
+// GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
+func GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error) {
+	virtualUserResolver.RLock()
+	resolver := virtualUserResolver.resolver
+	virtualUserResolver.RUnlock()
+
+	return resolver.GetBKUsernameByLoginName(ctx, loginName)
+}
+
+// GetVirtualUserBKUsername gets the tenant-scoped bk username for the system virtual user.
+func GetVirtualUserBKUsername(ctx contextx.IContext) (string, error) {
+	return GetBKUsernameByLoginName(ctx, GetVirtualUser())
 }
 
 // GetVirtualUser gets the system user.

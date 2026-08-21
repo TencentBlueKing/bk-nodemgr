@@ -297,13 +297,18 @@ func (mgr *Manager) trySyncingScheduledWorkflow(nCtx contextx.IContext, sw *type
 }
 
 func (mgr *Manager) initScheduledWorkflow(nCtx contextx.IContext, tenantID, workflowName, interval string) error {
+	operator, err := getScheduledWorkflowOperator(nCtx, tenantID)
+	if err != nil {
+		return fmt.Errorf("failed to initialize scheduled workflow: %w", err)
+	}
+
 	sw := &types.ScheduledWorkflow{
 		WorkflowID:   identifier.GenWorkflowID(),
 		TenantID:     tenantID,
 		Enabled:      true,
 		WorkflowName: workflowName,
 		Interval:     interval,
-		Operator:     access.GetVirtualUser(),
+		Operator:     operator,
 		OperateTime:  time.Now(),
 	}
 
@@ -369,13 +374,37 @@ func (mgr *Manager) initSWSyncTenant(nCtx contextx.IContext, tenantID string) er
 	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncTenant, scheduler.Every10m)
 }
 
+func getScheduledWorkflowOperator(nCtx contextx.IContext, tenantID string) (string, error) {
+	operatorCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
+	operator, err := access.GetVirtualUserBKUsername(operatorCtx)
+	if err != nil {
+		return "", fmt.Errorf("failed to get virtual user bk username: %w", err)
+	}
+
+	return operator, nil
+}
+
+func buildScheduleActionStandardParam(nCtx contextx.IContext, sw *types.ScheduledWorkflow) (utils.ScheduleActionStandardParam, error) {
+	operator, err := getScheduledWorkflowOperator(nCtx, sw.TenantID)
+	if err != nil {
+		return utils.ScheduleActionStandardParam{}, err
+	}
+
+	return utils.ScheduleActionStandardParam{
+		WorkflowID: sw.WorkflowID,
+		TenantID:   sw.TenantID,
+		Operator:   operator,
+	}, nil
+}
+
 func (mgr *Manager) syncSWSyncTenant(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync tenant: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncTenant(schedule.OperParamSyncTenant{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 
@@ -384,12 +413,13 @@ func (mgr *Manager) initSWSyncBizAndHost(nCtx contextx.IContext, tenantID string
 }
 
 func (mgr *Manager) syncSWSyncBizAndHost(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync biz and host: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncBizAndHost(schedule.OperParamSyncBizAndHost{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 
@@ -398,12 +428,13 @@ func (mgr *Manager) initSWSyncNetworkArea(nCtx contextx.IContext, tenantID strin
 }
 
 func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync network area: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncNetworkArea(schedule.OperParamSyncNetworkArea{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 
@@ -412,13 +443,14 @@ func (mgr *Manager) initSWSyncAgentState(nCtx contextx.IContext, tenantID string
 }
 
 func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync agent state: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAgentState(schedule.OperParamSyncAgentState{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
-		CompareCurrentState: true,
+		ScheduleActionStandardParam: standardParam,
+		CompareCurrentState:         true,
 	}))
 }
 
@@ -427,12 +459,13 @@ func (mgr *Manager) initSWSyncAliveAgentInfo(nCtx contextx.IContext, tenantID st
 }
 
 func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync alive agent info: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAliveAgentInfo(schedule.OperParamSyncAliveAgentInfo{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 
@@ -441,12 +474,13 @@ func (mgr *Manager) initSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, ten
 }
 
 func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(nCtx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow sync alive plugin process info: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAlivePluginProcessInfo(schedule.OperParamSyncAlivePluginProcessInfo{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 
@@ -455,12 +489,13 @@ func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext, tena
 }
 
 func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(ctx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow watch and apply cmdb resource: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(ctx, sw, schedule.NewOperWatchAndApplyCMDBResource(schedule.OperParamWatchAndApplyCMDBResource{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 
@@ -469,12 +504,13 @@ func (mgr *Manager) initSWExecuteDeployPolicy(nCtx contextx.IContext, tenantID s
 }
 
 func (mgr *Manager) syncSWExecuteDeployPolicy(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	standardParam, err := buildScheduleActionStandardParam(ctx, sw)
+	if err != nil {
+		return fmt.Errorf("failed to sync scheduled workflow execute deploy policy: %w", err)
+	}
+
 	return mgr.syncScheduledWorkflow(ctx, sw, schedule.NewOperExecuteDeployPolicy(schedule.OperParamExecuteDeployPolicy{
-		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
-			WorkflowID: sw.WorkflowID,
-			TenantID:   sw.TenantID,
-			Operator:   access.GetVirtualUser(),
-		},
+		ScheduleActionStandardParam: standardParam,
 	}))
 }
 

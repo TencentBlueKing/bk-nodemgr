@@ -177,6 +177,7 @@ func (svc *Service) initialStaticsConfigs() error {
 
 	// initial access virtual user.
 	access.SetVirtualUser(svc.conf.Access.VirtualUser)
+	access.SetVirtualUserResolver(access.NewIdentityVirtualUserResolver())
 
 	// initial gse deploy conf.
 	for idx := range svc.conf.GSEDeployConfs {

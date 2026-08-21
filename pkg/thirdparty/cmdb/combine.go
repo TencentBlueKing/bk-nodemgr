@@ -36,7 +36,7 @@ const (
 	combinedGap = 1 * time.Second
 )
 
-func (h *Handler) getCombinedHandler(nCtx contextx.IContext) *combinedHandler {
+func (h *Handler) getCombinedHandler(nCtx contextx.IContext) (*combinedHandler, error) {
 	tenantID := nCtx.TenantID()
 
 	h.combinedHandlerGroupMu.RLock()
@@ -44,7 +44,12 @@ func (h *Handler) getCombinedHandler(nCtx contextx.IContext) *combinedHandler {
 	h.combinedHandlerGroupMu.RUnlock()
 
 	if ok {
-		return handler
+		return handler, nil
+	}
+
+	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
+	if err != nil {
+		return nil, err
 	}
 
 	h.combinedHandlerGroupMu.Lock()
@@ -52,20 +57,20 @@ func (h *Handler) getCombinedHandler(nCtx contextx.IContext) *combinedHandler {
 
 	handler, ok = h.combinedHandlerGroup[tenantID]
 	if ok {
-		return handler
+		return handler, nil
 	}
 
 	// create new handler.
 	handler = &combinedHandler{
 		tenantID: tenantID,
-		username: h.cli.config.VirtualUser,
+		username: cmdbCtx.BKUsername(),
 		cli:      h.cli,
 	}
 	handler.init()
 
 	h.combinedHandlerGroup[tenantID] = handler
 
-	return handler
+	return handler, nil
 }
 
 type combinedHandler struct {
