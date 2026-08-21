@@ -68,7 +68,11 @@
           field="create_time"
           :title="$t('pluginOperation.table.createTime')"
           :min-width="180"
-        />
+        >
+          <template #default="{ row }">
+            {{ formatTimeByTimezone(row.create_time) }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="status"
           :title="$t('pluginOperation.table.status')"
@@ -109,6 +113,7 @@ import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import { formatTimeByTimezone } from '@/common/util';
 import { useMainStore } from '@/stores/main';
 
 const { t } = useI18n();

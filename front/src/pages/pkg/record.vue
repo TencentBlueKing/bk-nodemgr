@@ -123,7 +123,6 @@ import {
   DatePicker,
   SearchSelect,
 } from 'bkui-vue';
-import dayjs from 'dayjs';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -133,7 +132,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import type { PackageEventDistinctRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
-import { compareVersions  } from '@/common/util';
+import { compareVersions, formatTimeByTimezone } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -242,7 +241,7 @@ const pickSuccess = async () => {
   await getTaskList();
 };
 
-const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
+const timeFormatter = (val: string | number, format = 'YYYY-MM-DD HH:mm:ss') => (val ? formatTimeByTimezone(val, format) : '--');
 
 
 // 表格

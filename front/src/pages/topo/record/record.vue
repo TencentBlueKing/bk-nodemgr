@@ -75,7 +75,7 @@
           show-overflow="tooltip"
           sortable>
           <template #default="{ row }">
-            {{ filterTimeFormat(row.operate_time) || '--' }}
+            {{ formatTimestamp(row.operate_time) || '--' }}
           </template>
         </TableColumn>
       </Table>
@@ -92,7 +92,7 @@ import { useI18n } from 'vue-i18n';
 import { Table, TableColumn } from '@blueking/table';
 
 import type { TopoEventExactConditions, TopoEventFuzzyConditions } from '@/@types/topo';
-import { filterTimeFormat, getTimeStamp } from '@/common/util';
+import { formatTimestamp, getTimeStamp } from '@/common/util';
 import NoPermission from '@/components/no-permission.vue';
 import { getModuleAuthorizedItems } from '@/constants/auth';
 import type { PageAuthItem } from '@/constants/auth';

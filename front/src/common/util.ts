@@ -1,19 +1,33 @@
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 /**
- *  @param {number}  timezone -12 - 12
+ * 将后端 UTC 时间按目标时区格式化显示
+ * @param date 后端 UTC 时间（RFC3339 字符串或秒/毫秒时间戳）
+ * @param fmt 输出格式
+ * @param timezone 目标 IANA 时区名（如 "Asia/Shanghai"），默认取用户配置 USER_TIMEZONE
  */
-export function formatTimeByTimezone(date: string, timezone?: number, fmt = 'YYYY-mm-dd HH:MM:SS') {
-  let formatTime = '--';
-  if (date) {
-    try {
-      const currentTimezone = new Date().getTimezoneOffset() / -60;
-      const offsetTimezone = timezone || timezone === 0 ? currentTimezone - timezone : 0;
-      const timeString = new Date(date).getTime();
-      formatTime = filterTimeFormat(new Date(timeString - (offsetTimezone * 60 * 60 * 1000)), fmt);
-    } catch (err) {}
+export function formatTimeByTimezone(date: string | number, fmt = 'YYYY-MM-DD HH:mm:ss', timezone?: string) {
+  if (!date) return '--';
+  const tz = timezone || window.PROJECT_CONFIG.USER_TIMEZONE;
+  try {
+    let target;
+    if (typeof date === 'number') {
+      // 数字时间戳：区分秒级(10位) / 毫秒级(13位)
+      const isSecondLevel = date.toString().length === 10;
+      target = isSecondLevel ? dayjs.unix(date) : dayjs(date);
+    } else {
+      // 字符串：按 UTC 解析（后端返回 UTC 时间）
+      target = dayjs.utc(date);
+    }
+    return tz ? target.tz(tz).format(fmt) : target.format(fmt);
+  } catch (err) {
+    return '--';
   }
-  return formatTime;
 }
 // 格式化时间戳 dateFormat(date, "YYYY-mm-dd HH:MM:SS")
 export function filterTimeFormat(date: string | Date, fmt = 'YYYY-mm-dd HH:MM:SS'): string {
@@ -46,7 +60,8 @@ export function getTimeStamp(date: string | Date) {
 // 秒级时间戳转时间格式
 export function formatTimestamp(
   timestamp: number,
-  format = "YYYY-MM-DD HH:mm:ss"
+  format = "YYYY-MM-DD HH:mm:ss",
+  timezone?: string,
 ) {
   if (!timestamp) return '';
   // 将时间戳转换为字符串以检查其长度
@@ -56,8 +71,11 @@ export function formatTimestamp(
   const isSecondLevel = timestampString.length === 10;
   const date = isSecondLevel ? dayjs.unix(timestamp) : dayjs(timestamp);
 
-  // 格式化日期时间为 "YYYY-MM-DD HH:mm:ss" 格式
-  return date.format(format);
+  // 按目标时区格式化（默认取用户配置 USER_TIMEZONE，未配置时回退本地时区）
+  const tz = timezone || window.PROJECT_CONFIG.USER_TIMEZONE;
+  const targetDate = tz ? date.tz(tz) : date;
+
+  return targetDate.format(format);
 }
 
 // 首字母大写

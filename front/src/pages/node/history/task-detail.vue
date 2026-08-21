@@ -354,7 +354,6 @@ import {
   Spinner,
   Success,
 } from 'bkui-vue/lib/icon';
-import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 import {
   computed,
@@ -375,6 +374,7 @@ import { isOfflineGuideStep } from './offline-package';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import { TopoService } from '@/api/modules/topo';
+import { formatTimeByTimezone } from '@/common/util';
 import useInterval from '@/composables/use-interval';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -567,7 +567,7 @@ const formatCostTime = (duration: number) => {
 const timeFormatter = (
   val: number | string | undefined,
   format = 'YYYY-MM-DD HH:mm:ss',
-) => (val ? dayjs(val).format(format) : '--');
+) => (val ? formatTimeByTimezone(val, format) : '--');
 
 // 精确返回到历史列表页面，保留筛选条件
 const handleBackToHistory = () => {

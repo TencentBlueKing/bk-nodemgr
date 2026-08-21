@@ -188,7 +188,6 @@ import {
   Tab,
 } from 'bkui-vue';
 import { Spinner } from 'bkui-vue/lib/icon';
-import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -199,6 +198,7 @@ import { Table, TableColumn } from '@blueking/table';
 import type { NodeWorkflowDistinctRespData, NodeWorkflowInfo } from '@/@types/node_workflow';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
+import { formatTimeByTimezone } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -503,7 +503,7 @@ const pickSuccess = async (val: string[]) => {
 // 隐藏自动部署任务
 const hideAutoTask = ref(false);
 
-const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
+const timeFormatter = (val: string | number, format = 'YYYY-MM-DD HH:mm:ss') => (val ? formatTimeByTimezone(val, format) : '--');
 
 // 补零规则：非0且小于10时补零，0则直接显示0
 const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());

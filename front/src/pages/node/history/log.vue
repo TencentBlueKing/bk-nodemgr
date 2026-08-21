@@ -346,7 +346,6 @@ import {
   RightShape,
   Spinner,
 } from 'bkui-vue/lib/icon';
-import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -361,6 +360,7 @@ import { isOfflineGuideStep, STEP_KEY_WAIT_OFFLINE_MANUAL_INSTALL } from './offl
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
+import { formatTimeByTimezone } from '@/common/util';
 import useInterval from '@/composables/use-interval';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -563,22 +563,7 @@ const typeMap = computed(() => ({
 const timeFormatter = (
   val: number | string | undefined,
   format = 'YYYY-MM-DD HH:mm:ss',
-) => {
-  if (typeof val === 'number') {
-    // 判断时间戳位数：10位为秒级，13位为毫秒级
-    const timestampStr = val.toString();
-    if (timestampStr.length === 10) {
-      // 秒级时间戳，使用 dayjs.unix()
-      return dayjs.unix(val).format(format);
-    } if (timestampStr.length === 13) {
-      // 毫秒级时间戳，使用 dayjs()
-      return dayjs(val).format(format);
-    }
-    // 其他长度的数字，默认按毫秒处理
-    return dayjs(val).format(format);
-  }
-  return val ? dayjs(val).format(format) : '--';
-};
+) => (val ? formatTimeByTimezone(val, format) : '--');
 
 const formatTimeToMS = (duration: number) => {
   const seconds = Math.floor(duration / 1000);

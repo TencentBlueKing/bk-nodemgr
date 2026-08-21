@@ -128,11 +128,11 @@ import {
   Spinner,
   Success,
 } from 'bkui-vue/lib/icon';
-import dayjs from 'dayjs';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import { formatTimeByTimezone } from '@/common/util';
 import SlideDetail from '@/components/slide-detail.vue';
 import useInterval from '@/composables/use-interval';
 import { useMainStore } from '@/stores/main';
@@ -187,13 +187,7 @@ const isExecutionLogWarn = (item: any) => !isExecutionLogError(item) && (item.le
 const timeFormatter = (
   val: number | string | undefined,
   format = 'YYYY-MM-DD HH:mm:ss',
-) => {
-  if (typeof val === 'number') {
-    // 使用 dayjs.unix() 直接解析秒级时间戳
-    return dayjs.unix(val).format(format);
-  }
-  return val ? dayjs(val).format(format) : '--';
-};
+) => (val ? formatTimeByTimezone(val, format) : '--');
 const handleClick = async (item: {
   name: string;
   id: string;
