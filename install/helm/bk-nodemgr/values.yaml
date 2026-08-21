@@ -1722,9 +1722,11 @@ apigwSync:
                       tokens: 100
     grant_permissions:
       - bk_app_code: "bk-nodemgr"
-        grant_dimension: "resource"
-        resource_names:
-          - "resource_name_1"
+        grant_dimension: "gateway"
+#     - bk_app_code: "bk-demo"
+#       grant_dimension: "resource"
+#       resource_names:
+#         - "resource_name_1"
 
 initPackages:
   enabled: false
