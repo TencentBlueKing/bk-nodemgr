@@ -192,6 +192,17 @@ const parseCloudInput = (input: string) => {
 /** 去除 IPv6 方括号 */
 const normalizeIpValue = (value: string) => value.replace(/^\[(.*)\]$/, '$1');
 
+/**
+ * 与后端 pkg/runtime/criteria/os_type.go 同步的 OS 名称枚举
+ * 用于 IP 选择器搜索时区分「OS 名称」和「主机名」
+ * 注意：host/list 接口的 fuzzy_include_conditions 不支持 os_type，OS 名称必须走 exact
+ */
+const OS_TYPE_NAMES = new Set([
+  'aix', 'aix6', 'aix7', 'android', 'darwin', 'dragonfly', 'freebsd',
+  'hurd', 'illumos', 'ios', 'js', 'linux', 'netbsd', 'openbsd', 'plan9',
+  'solaris', 'wasip1', 'windows', 'zos', 'unknown',
+]);
+
 /** 将后端状态值映射为 IP 选择器 alive 值 (0=离线, 1=在线) */
 const mapAgentAlive = (status: any): number => {
   if (typeof status === 'number') return status;
@@ -588,9 +599,21 @@ export const fetchHostsByNodes = async (query: any): Promise<any> => {
 
   const fuzzy: Record<string, string[]> = {};
   if (searchContent) {
-    exact.bk_host_innerip = [searchContent];
-    fuzzy.bk_host_name = [searchContent];
-    exact.bk_host_innerip_v6 = [searchContent];
+    const keyword = searchContent.trim();
+    const lower = keyword.toLowerCase();
+    // 根据输入类型映射到 host/list 接口对应字段：
+    // IPv4 → fuzzy.bk_host_innerip，IPv6 → fuzzy.bk_host_innerip_v6
+    // OS 名称 → exact.os_type（host/list 的 fuzzy 不支持 os_type）
+    // 其余 → fuzzy.bk_host_name
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(keyword)) {
+      fuzzy.bk_host_innerip = [keyword];
+    } else if (keyword.includes(':')) {
+      fuzzy.bk_host_innerip_v6 = [keyword];
+    } else if (OS_TYPE_NAMES.has(lower)) {
+      exact.os_type = [lower];
+    } else {
+      fuzzy.bk_host_name = [keyword];
+    }
   }
 
   try {
