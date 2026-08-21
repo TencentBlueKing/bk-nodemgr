@@ -19,6 +19,7 @@
 package manager
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -668,6 +669,153 @@ func (mgr *Manager) getProcessStopOperationDef(deploy *types.PluginDeployment, o
 			Operator: operator,
 		},
 	})
+}
+
+// LaunchStartDebugPlugin launches a task to debug one prepared plugin deployment. returns the workflow-id.
+func (mgr *Manager) LaunchStartDebugPlugin(nCtx contextx.IContext, param types.StartDebugPluginParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+
+		gp.Go(func() error {
+			return mgr.createStartDebugProcessOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch start debug plugin. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createStartDebugProcessOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
+
+	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getProcessStartDebugOperationDef(deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to launch start debug process task.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("plugin-token", deploy.Token).
+		Info("launched start debug process task.")
+
+	return nil
+}
+
+func (mgr *Manager) getProcessStartDebugOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+	return plugin.NewOperDebugPlugin(plugin.OperParamDebugPlugin{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
+}
+
+// LaunchStopDebugPlugin stores a stop signal for a debug workflow.
+func (mgr *Manager) LaunchStopDebugPlugin(nCtx contextx.IContext, param types.StopDebugPluginParam) error {
+	workflow, err := mgr.conf.StoragePlugin.GetPluginWorkflow(nCtx, param.WorkflowID)
+	if err != nil {
+		return fmt.Errorf("failed to get debug workflow: %w", err)
+	}
+
+	if workflow.Type != types.PluginWorkflowTypeDebug {
+		return fmt.Errorf("workflow is not a debug workflow")
+	}
+
+	if workflow.Status.IsFinished() {
+		return errors.New("workflow is already finished")
+	}
+
+	operations, _, err := mgr.conf.StorageWorkflow.ListOperation(
+		nCtx,
+		types.UnlimitedPage(),
+		&types.OperationCondition{ExactInclude: &types.OperationExactFields{TriggerID: []string{workflow.TriggerID}}},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to list debug operation: %w", err)
+	}
+
+	if len(operations) == 0 {
+		return fmt.Errorf("debug workflow requires at least one operation")
+	}
+
+	gp := gopool.NewPool()
+	for _, item := range operations {
+		oper := item
+		gp.Go(func() error {
+			operInstID := oper.GetLastInstanceID()
+			if operInstID == "" {
+				return fmt.Errorf("no operation instance found, operation-id(%s)", oper.OperationID)
+			}
+
+			if err := mgr.conf.StorageWorkflow.UpsertActionInstancePrivateData(
+				nCtx,
+				operInstID,
+				plugin.ActionNameRunDebugPlugin,
+				map[string]any{types.PDKeyDebugStopSignal: true},
+			); err != nil {
+				return fmt.Errorf("failed to store debug stop signal, operation-instance-id(%s): %w", operInstID, err)
+			}
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("workflow-id", param.WorkflowID).Info("stored plugin debug stop signal")
+
+	return nil
 }
 
 // LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.

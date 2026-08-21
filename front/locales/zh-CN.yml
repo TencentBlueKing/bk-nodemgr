@@ -282,6 +282,7 @@ platform:
         uninstall_proxy: Proxy 卸载
         assign_proxy_unit: Proxy 分配管控单元
         install_plugin: 插件安装
+        debug_plugin: 插件调试
         ensure_plugin_v2: 确保 V2 插件
         stop_plugin_v2: 停止 V2 插件
         upgrade_plugin: 插件升级

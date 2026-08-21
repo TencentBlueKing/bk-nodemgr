@@ -29,6 +29,7 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,11 +37,13 @@ type handler struct {
 	rg                    *gin.RouterGroup
 	daoNodeWorkflow       nodeStg.IDaoNodeWorkflow
 	daoPlugin             pluginStg.IDaoPlugin
+	daoPluginWorkflow     pluginStg.IDaoPluginWorkflow
 	daoHost               topoStg.IStorageHost
 	storageGlobalSettings globalsettingsStorage.IStorage
 	domainPlugin          pluginStg.IDomainPlugin
 	pluginMgrIface        managerIface.IPluginManager
 	authorizer            auth.IAuthorizer
+	cmdbHandler           cmdb.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -49,11 +52,13 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:                    rg.Group("/plugin"),
 		daoNodeWorkflow:       capability.StorageNode,
 		daoPlugin:             capability.StoragePlugin,
+		daoPluginWorkflow:     capability.StoragePlugin,
 		daoHost:               capability.StorageTopo,
 		storageGlobalSettings: capability.StorageGlobalSettings,
 		domainPlugin:          capability.StoragePlugin,
 		pluginMgrIface:        capability.Manager,
 		authorizer:            capability.Authorizer,
+		cmdbHandler:           capability.CmdbHandler,
 	}
 }
 
@@ -71,6 +76,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/restart", restserver.Handler(h.Restart))
 	h.rg.POST("/migrate_from_v2", restserver.Handler(h.MigrateFromV2))
 	h.rg.POST("/stop", restserver.Handler(h.Stop))
+
+	h.rg.POST("/start_debug", restserver.Handler(h.StartDebug))
+	h.rg.POST("/stop_debug", restserver.Handler(h.StopDebug))
 
 	workflow.Load(h.rg, capability)
 }

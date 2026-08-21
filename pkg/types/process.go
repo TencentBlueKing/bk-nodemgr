@@ -234,12 +234,6 @@ func (controller ProcessController) Validate() error {
 	if controller.StopCmd == "" {
 		return fmt.Errorf("stop cmd is empty")
 	}
-	if controller.RestartCmd == "" {
-		return fmt.Errorf("restart cmd is empty")
-	}
-	if controller.ReloadCmd == "" {
-		return fmt.Errorf("reload cmd is empty")
-	}
 
 	return nil
 }

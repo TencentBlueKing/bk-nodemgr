@@ -285,6 +285,9 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionFetchProcessSubConfigIntoDeployment(pluginCap),
 		plugin.NewActionInjectPluginCustomDeployConfig(pluginCap),
 		plugin.NewActionStopPluginV2Process(pluginCap),
+		plugin.NewActionPrepareDebugProcess(pluginCap),
+		plugin.NewActionRunDebugPlugin(pluginCap),
+		plugin.NewActionCleanDebugPlugin(pluginCap),
 	); err != nil {
 		return err
 	}

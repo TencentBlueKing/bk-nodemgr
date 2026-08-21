@@ -29,12 +29,15 @@ const (
 
 	// PluginDebugActionStop means to stop plugin debug.
 	PluginDebugActionStop PluginDebugAction = "stop"
+
+	// PluginDebugActionClean means to remove the debug plugin directory.
+	PluginDebugActionClean PluginDebugAction = "clean"
 )
 
 // Validate validates the debug action type.
 func (p PluginDebugAction) Validate() error {
 	switch p {
-	case PluginDebugActionStart, PluginDebugActionStop:
+	case PluginDebugActionStart, PluginDebugActionStop, PluginDebugActionClean:
 		return nil
 	default:
 		return fmt.Errorf("invalid plugin debug action, action: %s", string(p))

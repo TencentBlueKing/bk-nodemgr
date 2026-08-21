@@ -27,6 +27,65 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+// Validate checks the debug request body.
+func (x *PluginStartDebugReq) Validate() error {
+	if x.GetDebugInfo() == nil {
+		return errors.New("debug_info can not be empty")
+	}
+
+	return x.GetDebugInfo().Validate()
+}
+
+// AutoConvert auto converts the debug request.
+func (x *PluginStartDebugReq) AutoConvert() {}
+
+// Validate checks the debug information.
+func (x *PluginStartDebugReq_DebugInfo) Validate() error {
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the debug information.
+func (x *PluginStartDebugReq_DebugInfo) AutoConvert() {}
+
+// ConvertScopeToTypes converts the debug scope to domain types.
+func (x *PluginStartDebugReq_DebugInfo) ConvertScopeToTypes() (*types.ScopeInstance, error) {
+	scope := x.GetScope()
+	if scope == nil {
+		return nil, errors.New("scope can not be empty")
+	}
+
+	result := &types.ScopeInstance{
+		Granularity: types.TargetGranularity(scope.GetGranularity()),
+		BizID:       scope.GetBkBizId(),
+		InstanceIDs: scope.GetInstanceIds(),
+	}
+	if err := result.Validate(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// Validate checks the stop debug request body.
+func (x *PluginStopDebugReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the stop debug request.
+func (x *PluginStopDebugReq) AutoConvert() {}
+
 // Validate check body.
 func (x *PluginListReq) Validate() error {
 	return nil

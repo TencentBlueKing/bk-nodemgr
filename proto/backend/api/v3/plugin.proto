@@ -254,34 +254,6 @@ message PluginStopDebugResp {
   Data data = 5;
 }
 
-// PluginQueryDebugReq describes the plugin debug query request.
-message PluginQueryDebugReq { string workflow_id = 1; }
-
-// PluginQueryDebugResp describes the plugin debug query response.
-message PluginQueryDebugResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-  Permission permission = 6;
-
-  message Data {
-    string status = 1;
-    bool is_finish = 4;
-    repeated OperationResult operations = 5;
-  }
-
-  // OperationResult describes the execution result of one operation in the
-  // plugin debug workflow.
-  message OperationResult {
-    string operation_id = 1;
-    string last_instance_id = 2;
-    map<string, WorkflowActionData> oper_inst_logs = 3;
-    WorkflowActionMessage extra_execution_logs = 4;
-  }
-  Data data = 5;
-}
-
 // PluginMigrateFromV2Req describes the plugin migrate from v2 request.
 message PluginMigrateFromV2Req {
   message MigrateFromV2Info {
@@ -383,14 +355,6 @@ service Plugin {
   rpc StopDebugPlugin(PluginStopDebugReq) returns (PluginStopDebugResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/stop_debug"
-      body : "*"
-    };
-  }
-
-  // QueryDebugPlugin queries the aggregated debug workflow record.
-  rpc QueryDebugPlugin(PluginQueryDebugReq) returns (PluginQueryDebugResp) {
-    option (google.api.http) = {
-      post : "/api/v3/plugin/query_debug"
       body : "*"
     };
   }

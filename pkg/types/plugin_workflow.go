@@ -66,6 +66,9 @@ const (
 	// PluginWorkflowTypeStop is the operation type for stop plugin.
 	PluginWorkflowTypeStop PluginWorkflowType = "stop_plugin"
 
+	// PluginWorkflowTypeDebug is the operation type for debug plugin.
+	PluginWorkflowTypeDebug PluginWorkflowType = "debug_plugin"
+
 	// PluginWorkflowTypeStopV2 is the operation type for stop plugin v2.
 	PluginWorkflowTypeStopV2 PluginWorkflowType = "stop_plugin_v2"
 
@@ -90,6 +93,7 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 		PluginWorkflowTypeRestart,
 		PluginWorkflowTypeMigrateV2,
 		PluginWorkflowTypeStop,
+		PluginWorkflowTypeDebug,
 		PluginWorkflowTypeStopV2:
 		return nil
 	default:
@@ -145,6 +149,13 @@ func (pluginWorkflowStatus PluginWorkflowStatus) Validate() error {
 	default:
 		return fmt.Errorf("invalid plugin workflow status: %s", pluginWorkflowStatus)
 	}
+}
+
+// IsFinished reports whether the plugin workflow reached a terminal status.
+func (pluginWorkflowStatus PluginWorkflowStatus) IsFinished() bool {
+	return pluginWorkflowStatus == PluginWorkflowStatusSuccess ||
+		pluginWorkflowStatus == PluginWorkflowStatusFailed ||
+		pluginWorkflowStatus == PluginWorkflowStatusPartialFailed
 }
 
 // PluginWorkflowStatusListToStringList convert plugin workflow status list to string list.

@@ -78,6 +78,9 @@ const (
 
 	// PDKeyRestartCommandIssueTimeSec is the time when restart command was issued.
 	PDKeyRestartCommandIssueTimeSec = "restart_command_issued_time_sec"
+
+	// PDKeyDebugStopSignal is the stop signal for the debug wait action.
+	PDKeyDebugStopSignal = "debug_stop_signal"
 )
 
 // PDDetectInfo is report detect info.

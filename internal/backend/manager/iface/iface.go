@@ -92,6 +92,12 @@ type iPluginManagerPlugin interface {
 
 	// LaunchStopProcess launch a task to stop process. returns the workflow-id.
 	LaunchStopProcess(nCtx contextx.IContext, param types.StopProcessParam) (string, error)
+
+	// LaunchStartDebugPlugin launches a task to debug one prepared plugin deployment.
+	LaunchStartDebugPlugin(nCtx contextx.IContext, param types.StartDebugPluginParam) (string, error)
+
+	// LaunchStopDebugPlugin stores a stop signal for a debug plugin workflow.
+	LaunchStopDebugPlugin(nCtx contextx.IContext, param types.StopDebugPluginParam) error
 }
 
 // iPluginManagerPluginV2 defines the PluginManager sub interface for v2.

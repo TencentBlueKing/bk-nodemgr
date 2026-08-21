@@ -212,6 +212,7 @@ interface FilterOption {
 type taskType =
   | 'install_agent'
   | 'install_plugin'
+  | 'debug_plugin'
   | 'ensure_plugin_v2'
   | 'stop_plugin_v2'
   | 'upgrade_agent'
@@ -460,6 +461,9 @@ const typeMap = computed(() => ({
   },
   install_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
+  },
+  debug_plugin: {
+    text: t('platform.nodeMan.taskHistory.taskType.debug_plugin'),
   },
   ensure_plugin_v2: {
     text: t('platform.nodeMan.taskHistory.taskType.ensure_plugin_v2'),

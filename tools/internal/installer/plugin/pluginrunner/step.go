@@ -77,6 +77,11 @@ func (step *Step) Run(ctx context.Context) error {
 			logger.Errorf(plugin.StepDebugPlugin, "failed to stop debug plugin command: %v", err)
 			return fmt.Errorf("failed to stop debug plugin command: %w", err)
 		}
+	case types.PluginDebugActionClean:
+		if err := step.args.PluginHandler.FS().Purge(ctx); err != nil {
+			logger.Errorf(plugin.StepDebugPlugin, "failed to clean debug plugin directory: %v", err)
+			return fmt.Errorf("failed to clean debug plugin directory: %w", err)
+		}
 	default:
 		return fmt.Errorf("unsupported debug action: %s", step.args.DebugAction)
 	}

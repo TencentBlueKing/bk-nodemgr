@@ -35,6 +35,9 @@ const (
 
 	// pluginCmdFullUninstall defines the installer cmd.
 	pluginCmdFullUninstall = "plugin full-uninstall"
+
+	// pluginCmdFullDebug defines the debug installer cmd.
+	pluginCmdFullDebug = "plugin full-debug"
 )
 
 // pluginFlagName defines the plugin flag name.
@@ -83,6 +86,22 @@ const (
 
 	// pluginFlagPluginPkgName plugin flag name defines the plugin package name.
 	pluginFlagPluginPkgName pluginFlagName = "plugin_pkg_name"
+
+	// pluginFlagRunCmd plugin flag name defines the debug run command.
+	pluginFlagRunCmd pluginFlagName = "run_cmd"
+
+	// pluginFlagPidDir plugin flag name defines the debug pid dir.
+	pluginFlagPidDir pluginFlagName = "pid_dir"
+
+	// pluginFlagDebugAction plugin flag name defines the debug action.
+	pluginFlagDebugAction pluginFlagName = "debug_action"
+
+	// pluginFlagSkipCallback plugin flag name disables callback reporting.
+	// SYNC: tools/cmd/installer/plugin/flag.SkipCallback.
+	pluginFlagSkipCallback pluginFlagName = "skip_callback"
+
+	// pluginFlagLogToStd plugin flag name defines whether logs are also written to stdout.
+	pluginFlagLogToStd pluginFlagName = "log_to_std"
 )
 
 // PluginCommonParams defines the common params of installer.
@@ -483,4 +502,106 @@ func (params *PluginUninstallParams) ToWindowsScript() (string, string, error) {
 	scriptContent := fmt.Sprintf("%s", cmdStr)
 
 	return scriptName, scriptContent, nil
+}
+
+// PluginDebugParams defines the debug params.
+type PluginDebugParams struct {
+	PluginCommonParams
+
+	PluginGroup string
+	PluginName  string
+
+	DeployToken string
+	OperInstID  string
+
+	DebugAction string
+	RunCmd      string
+	PidDir      string
+}
+
+// Validate validates the debug params.
+func (params *PluginDebugParams) Validate() error {
+	if err := params.PluginCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if params.PluginGroup == "" {
+		return fmt.Errorf("plugin group is empty")
+	}
+
+	if params.PluginName == "" {
+		return fmt.Errorf("plugin name is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
+	if params.DebugAction == "" {
+		return fmt.Errorf("debug action is empty")
+	}
+
+	return nil
+}
+
+func (params *PluginDebugParams) buildArgs(quote func(string) string) []string {
+	args := []string{
+		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, quote(params.BaseDeployDir)),
+		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, quote(params.BaseWorkDir)),
+		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, quote(params.PluginGroup)),
+		fmt.Sprintf("--%s %s", pluginFlagPluginName, quote(params.PluginName)),
+		fmt.Sprintf("--%s %s", pluginFlagDeployEnv, quote(params.DeployEnv)),
+		fmt.Sprintf("--%s %s", pluginFlagDeployToken, quote(params.DeployToken)),
+		fmt.Sprintf("--%s %s", pluginFlagOperInstID, quote(params.OperInstID)),
+	}
+	args = append(args, fmt.Sprintf("--%s %s", pluginFlagDebugAction, quote(params.DebugAction)))
+	args = append(args, fmt.Sprintf("--%s", pluginFlagSkipCallback))
+	args = append(args, fmt.Sprintf("--%s", pluginFlagLogToStd))
+	if params.RunCmd != "" {
+		args = append(args, fmt.Sprintf("--%s %s", pluginFlagRunCmd, quote(params.RunCmd)))
+	}
+	if params.PidDir != "" {
+		args = append(args, fmt.Sprintf("--%s %s", pluginFlagPidDir, quote(params.PidDir)))
+	}
+
+	return args
+}
+
+// ToUnixScript converts the debug params to a unix script.
+func (params *PluginDebugParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs(shellSingleQuote)
+	installerFilePath := filepath.Join(params.InstallWorkDir, params.InstallerFileName)
+	cmdStr := fmt.Sprintf("%s %s %s", shellSingleQuote(installerFilePath), pluginCmdFullDebug, strings.Join(args, " "))
+	scriptName := fmt.Sprintf("plugin_debug_%s_%s_%s.sh", params.PluginGroup, params.PluginName, params.DebugAction)
+
+	return scriptName, cmdStr, nil
+}
+
+// ToWindowsScript converts the debug params to a windows script.
+func (params *PluginDebugParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs(powerShellSingleQuote)
+	installerFilePath := winpath.Join(params.InstallWorkDir, params.InstallerFileName)
+	cmdStr := fmt.Sprintf("%s %s %s", powerShellSingleQuote(installerFilePath), pluginCmdFullDebug, strings.Join(args, " "))
+	scriptName := fmt.Sprintf("plugin_debug_%s_%s_%s.bat", params.PluginGroup, params.PluginName, params.DebugAction)
+
+	return scriptName, cmdStr, nil
+}
+
+func shellSingleQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+}
+
+func powerShellSingleQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 }

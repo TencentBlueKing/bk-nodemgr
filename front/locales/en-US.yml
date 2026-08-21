@@ -282,6 +282,7 @@ platform:
         uninstall_proxy: Proxy Uninstallation
         assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
+        debug_plugin: Plugin Debugging
         ensure_plugin_v2: Ensure V2 Plugin
         stop_plugin_v2: Stop V2 Plugin
         upgrade_plugin: Plugin Upgrade

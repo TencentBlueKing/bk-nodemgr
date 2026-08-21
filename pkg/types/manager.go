@@ -157,6 +157,20 @@ type StopProcessParam struct {
 	PluginDeployments []*PluginDeployment
 }
 
+// StartDebugPluginParam define the param of LaunchDebugPlugin.
+type StartDebugPluginParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	BizIDs            []int64
+	Operator          string
+	PluginDeployments []*PluginDeployment
+}
+
+// StopDebugPluginParam defines the param of StopDebugPlugin.
+type StopDebugPluginParam struct {
+	WorkflowID string
+}
+
 // ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
 type ApplyPluginSubConfigParam struct {
 	Type              PluginWorkflowType
