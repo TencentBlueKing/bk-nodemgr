@@ -20,6 +20,10 @@ package usermanager
 
 import "fmt"
 
+const (
+	lookupFieldLoginName = "login_name"
+)
+
 // PermissionActionsRelatedResourceTypesInstance describe the instance of permission actions.
 type PermissionActionsRelatedResourceTypesInstance struct {
 	Type     string `json:"type"`
@@ -95,6 +99,15 @@ func (resp *BaseBroker[T]) IsFailed() error {
 }
 
 type listTenantResp = []tenant
+
+type batchLookupVirtualUserResp = []virtualUser
+
+type virtualUser struct {
+	BKUsername  string `json:"bk_username"`
+	LoginName   string `json:"login_name"`
+	FullName    string `json:"full_name"`
+	DisplayName string `json:"display_name"`
+}
 
 type tenantStatus string
 

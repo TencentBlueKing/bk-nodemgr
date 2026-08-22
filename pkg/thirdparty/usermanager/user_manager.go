@@ -20,6 +20,7 @@
 package usermanager
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -88,6 +89,36 @@ func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 	}
 	if resp.Data == nil {
 		return nil, fmt.Errorf("failed to list tenant: missing tenant data")
+	}
+
+	return *resp.Data, nil
+}
+
+func (c *cli) batchLookupVirtualUser(nCtx contextx.IContext, loginName string) (batchLookupVirtualUserResp, error) {
+	resp := new(BaseBroker[batchLookupVirtualUserResp])
+	header, err := c.getHeader(nCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Get().
+		SubResourcef("/open/tenant/virtual-users/-/lookup/").
+		WithContext(nCtx).
+		WithHeaders(header).
+		WithParams(map[string]string{
+			"lookups":      loginName,
+			"lookup_field": lookupFieldLoginName,
+		}).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("failed to batch lookup virtual user: %w", err)
+	}
+	if resp.Data == nil {
+		return nil, errors.New("failed to batch lookup virtual user: missing virtual user data")
 	}
 
 	return *resp.Data, nil

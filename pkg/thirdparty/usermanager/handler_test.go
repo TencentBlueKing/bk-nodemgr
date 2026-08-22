@@ -91,6 +91,112 @@ func TestHandlerMultiTenantListALLTenantsReturnsAPIGWError(t *testing.T) {
 	assert.Contains(t, err.Error(), "App has no permission")
 }
 
+func TestHandlerMultiTenantGetBKUsernameByLoginName(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		require.Equal(t, http.MethodGet, req.Method)
+		require.Equal(t, "/api/v3/open/tenant/virtual-users/-/lookup/", req.URL.Path)
+		assert.Equal(t, "tenant-a", req.Header.Get(restheader.BKTenantIDKey))
+		assert.Equal(t, "bk-nodemgr", req.URL.Query().Get("lookups"))
+		assert.Equal(t, lookupFieldLoginName, req.URL.Query().Get("lookup_field"))
+
+		rw.Header().Set("Content-Type", "application/json")
+		_, _ = rw.Write([]byte(`{"data":[{"bk_username":"bk-nodemgr@tenant-a","login_name":"bk-nodemgr"}]}`))
+	}))
+	defer server.Close()
+
+	h := newHTTPTestHandler(t, server.URL)
+	bkUsername, err := h.GetBKUsernameByLoginName(
+		contextx.New(context.Background(), contextx.WithTenantID("tenant-a")), "bk-nodemgr")
+
+	require.NoError(t, err)
+	assert.Equal(t, "bk-nodemgr@tenant-a", bkUsername)
+}
+
+func TestHandlerMultiTenantGetBKUsernameByLoginNameValidation(t *testing.T) {
+	h := &HandlerMultiTenant{}
+
+	_, err := h.GetBKUsernameByLoginName(nil, "bk-nodemgr")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "context is nil")
+
+	_, err = h.GetBKUsernameByLoginName(contextx.New(context.Background()), "bk-nodemgr")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "tenant-id not found")
+
+	_, err = h.GetBKUsernameByLoginName(contextx.New(context.Background(), contextx.WithTenantID("tenant-a")), "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "login name is empty")
+}
+
+func TestHandlerSingleGetBKUsernameByLoginName(t *testing.T) {
+	h := &HandlerSingle{}
+
+	bkUsername, err := h.GetBKUsernameByLoginName(contextx.New(context.Background()), "bk-nodemgr")
+	require.NoError(t, err)
+	assert.Equal(t, "bk-nodemgr", bkUsername)
+
+	_, err = h.GetBKUsernameByLoginName(contextx.New(context.Background()), "")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "login name is empty")
+}
+
+func TestExtractBKUsernameByLoginName(t *testing.T) {
+	tests := []struct {
+		name         string
+		loginName    string
+		virtualUsers []virtualUser
+		want         string
+		wantErr      string
+	}{
+		{
+			name:      "found exact login name",
+			loginName: "bk-nodemgr",
+			virtualUsers: []virtualUser{
+				{BKUsername: "other@tenant-a", LoginName: "other"},
+				{BKUsername: "bk-nodemgr@tenant-a", LoginName: "bk-nodemgr"},
+			},
+			want: "bk-nodemgr@tenant-a",
+		},
+		{
+			name:         "not found",
+			loginName:    "bk-nodemgr",
+			virtualUsers: []virtualUser{},
+			wantErr:      "virtual user not found",
+		},
+		{
+			name:      "empty bk username",
+			loginName: "bk-nodemgr",
+			virtualUsers: []virtualUser{
+				{LoginName: "bk-nodemgr"},
+			},
+			wantErr: "virtual user bk username is empty",
+		},
+		{
+			name:      "duplicate login name",
+			loginName: "bk-nodemgr",
+			virtualUsers: []virtualUser{
+				{BKUsername: "bk-nodemgr@tenant-a", LoginName: "bk-nodemgr"},
+				{BKUsername: "bk-nodemgr-2@tenant-a", LoginName: "bk-nodemgr"},
+			},
+			wantErr: "multiple virtual users found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := extractBKUsernameByLoginName(tt.loginName, tt.virtualUsers)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func newHTTPTestHandler(t *testing.T, endpoint string) *HandlerMultiTenant {
 	t.Helper()
 
