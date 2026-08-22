@@ -98,9 +98,9 @@ func (act *actionVerifyPluginAvailability) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error {
+func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamVerifyPluginAvailability)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
@@ -144,22 +144,22 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	if !pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
+	if !pluginPkg.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
 		std.InstanceData().Log().
 			Zh("插件包启动节点类型与主机节点角色不匹配,"+
 				"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
 				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole).
+				pluginPkg.LaunchNodeType, host.Dynamic.NodeRole).
 			En("plugin pkg launch node type not match host node role, "+
 				"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
 				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole).
+				pluginPkg.LaunchNodeType, host.Dynamic.NodeRole).
 			Error()
 
 		return fmt.Errorf("plugin pkg launch node type not match host node role, "+
 			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
 			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole)
+			pluginPkg.LaunchNodeType, host.Dynamic.NodeRole)
 	}
 
 	if !pluginPkg.Enabled {
@@ -178,11 +178,11 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 		Zh("插件包验证成功,"+
 			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s)",
 			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType).
+			pluginPkg.LaunchNodeType).
 		En("plugin pkg verify succeed, "+
 			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s)",
 			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType).
+			pluginPkg.LaunchNodeType).
 		Info()
 
 	std.DeployInfo().Process.PluginName = plugin.Name

@@ -127,9 +127,9 @@ func (act *actionInstallProxyBySSH) DelayFn(_ int) func() {
 }
 
 // Do installs proxy by SSH-only mode for cross-unit installs or relay-assisted SSH for same-unit indirect installs.
-func (act *actionInstallProxyBySSH) Do(ctx *action.InstanceContext) error {
+func (act *actionInstallProxyBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallProxyBySSH)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

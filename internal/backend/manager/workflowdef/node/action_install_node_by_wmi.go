@@ -135,9 +135,9 @@ const installBatName = "install.bat"
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) error {
+func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallAgentByWMI)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

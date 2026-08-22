@@ -133,9 +133,9 @@ func (act *actionInstallPagentBySSH) DelayFn(_ int) func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
+func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallPagentBySSH)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

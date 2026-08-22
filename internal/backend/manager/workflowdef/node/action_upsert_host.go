@@ -109,9 +109,9 @@ func (act *actionUpsertHostToCMDB) DelayFn(_ int) func() {
 // Do this func define what the action will do.
 // nolint: funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
+func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamUpsertHostToCMDB)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

@@ -100,9 +100,9 @@ func (act *actionFinishIfPluginProcessV2NotAlive) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionFinishIfPluginProcessV2NotAlive) Do(ctx *action.InstanceContext) error {
+func (act *actionFinishIfPluginProcessV2NotAlive) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamFinishIfPluginProcessV2NotAlive)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

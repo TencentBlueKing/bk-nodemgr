@@ -95,9 +95,9 @@ func (act *actionCheckPluginProcessAlive) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error {
+func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamCheckPluginProcessAlive)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

@@ -108,9 +108,9 @@ func (act *actionAssignProxyInfo) DelayFn(_ int) func() {
 }
 
 // Do executes the action.
-func (act *actionAssignProxyInfo) Do(ctx *action.InstanceContext) error {
+func (act *actionAssignProxyInfo) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamAssignProxyInfo)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

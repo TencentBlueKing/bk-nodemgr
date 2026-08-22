@@ -96,9 +96,9 @@ func (act *actionStopProcessV2) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) error {
+func (act *actionStopProcessV2) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamStopProcessV2)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

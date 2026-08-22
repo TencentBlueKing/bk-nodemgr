@@ -114,9 +114,9 @@ func (act *actionInstallPlugin) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
+func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamInstallPlugin)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

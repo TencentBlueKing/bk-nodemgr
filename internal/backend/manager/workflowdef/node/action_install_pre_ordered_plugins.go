@@ -130,9 +130,9 @@ func (act *actionInstallPreOrderedPlugins) DelayFn(_ int) func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error {
+func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) (err error) {
 	param := new(InstallPreOrderedPluginsParams)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

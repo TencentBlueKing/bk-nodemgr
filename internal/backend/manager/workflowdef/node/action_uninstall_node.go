@@ -143,7 +143,7 @@ func (act *actionUninstallNodeBase) DelayFn(_ int) func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
+func (act *actionUninstallNode) Do(ctx *action.InstanceContext) (err error) {
 	std, err := act.initializeStandarder(ctx)
 	if err != nil {
 		return err
@@ -182,7 +182,7 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 }
 
 // Do this func define what the action will do.
-func (act *actionUninstallNodeSkipReport) Do(ctx *action.InstanceContext) error {
+func (act *actionUninstallNodeSkipReport) Do(ctx *action.InstanceContext) (err error) {
 	std, err := act.initializeStandarder(ctx)
 	if err != nil {
 		return err

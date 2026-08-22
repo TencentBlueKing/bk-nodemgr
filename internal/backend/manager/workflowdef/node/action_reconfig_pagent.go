@@ -116,9 +116,9 @@ func (act *actionReconfigPagent) DelayFn(_ int) func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) error {
+func (act *actionReconfigPagent) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActionParamReconfigPagent)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

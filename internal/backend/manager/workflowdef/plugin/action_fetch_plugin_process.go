@@ -92,9 +92,9 @@ func (act *actionFetchPluginProcess) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
+func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamFetchPluginProcess)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

@@ -106,9 +106,9 @@ func (act *actionRenderPluginDeployment) DelayFn(_ int) func() {
 
 // Do this func define what the action will do.
 // nolint: funlen,gocognit
-func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
+func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamRenderPluginDeployment)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

@@ -117,9 +117,9 @@ func (act *actionStopPluginV2Process) DisplayNameEn() string {
 }
 
 // Do this func define what the action will do.
-func (act *actionStopPluginV2Process) Do(ctx *action.InstanceContext) error {
+func (act *actionStopPluginV2Process) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamStopPluginV2Process)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

@@ -138,9 +138,9 @@ func (act *actionEnsurePkgToRelay) DelayFn(_ int) func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) error {
+func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamEnsurePkgToRelay)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

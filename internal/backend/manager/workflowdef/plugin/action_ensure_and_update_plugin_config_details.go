@@ -104,9 +104,9 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceContext) error {
+func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamEnsureAndUpdatePluginConfigDetails)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}

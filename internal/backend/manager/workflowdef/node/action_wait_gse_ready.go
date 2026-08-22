@@ -114,9 +114,9 @@ func (act *actionWaitGseReady) DelayFn(_ int) func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
+func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamWaitGseReady)
-	err := conv.MapToStruct(ctx.Data.Content, param)
+	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
