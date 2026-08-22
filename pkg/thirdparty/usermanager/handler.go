@@ -118,7 +118,32 @@ func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, log
 		return "", fmt.Errorf("failed to get bk username by login name: %w", err)
 	}
 
-	return extractBKUsernameByLoginName(loginName, virtualUsers)
+	var (
+		bkUsername string
+		matched    bool
+	)
+	for _, item := range virtualUsers {
+		if item.LoginName != loginName {
+			continue
+		}
+
+		if matched {
+			return "", fmt.Errorf("multiple virtual users found, login-name(%s)", loginName)
+		}
+
+		matched = true
+		bkUsername = item.BKUsername
+	}
+
+	if !matched {
+		return "", fmt.Errorf("virtual user not found, login-name(%s)", loginName)
+	}
+
+	if bkUsername == "" {
+		return "", fmt.Errorf("virtual user bk username is empty, login-name(%s)", loginName)
+	}
+
+	return bkUsername, nil
 }
 
 // HandlerSingle handler of user manager.
@@ -177,27 +202,4 @@ func (h HandlerSingle) GetBKUsernameByLoginName(_ contextx.IContext, loginName s
 	}
 
 	return loginName, nil
-}
-
-func extractBKUsernameByLoginName(loginName string, virtualUsers []virtualUser) (string, error) {
-	matchedVirtualUsers := make([]virtualUser, 0, len(virtualUsers))
-	for _, item := range virtualUsers {
-		if item.LoginName == loginName {
-			matchedVirtualUsers = append(matchedVirtualUsers, item)
-		}
-	}
-
-	switch len(matchedVirtualUsers) {
-	case 0:
-		return "", fmt.Errorf("virtual user not found, login-name(%s)", loginName)
-	case 1:
-		bkUsername := matchedVirtualUsers[0].BKUsername
-		if bkUsername == "" {
-			return "", fmt.Errorf("virtual user bk username is empty, login-name(%s)", loginName)
-		}
-
-		return bkUsername, nil
-	default:
-		return "", fmt.Errorf("multiple virtual users found, login-name(%s)", loginName)
-	}
 }

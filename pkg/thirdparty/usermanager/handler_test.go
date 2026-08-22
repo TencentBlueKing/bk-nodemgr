@@ -140,51 +140,48 @@ func TestHandlerSingleGetBKUsernameByLoginName(t *testing.T) {
 	assert.Contains(t, err.Error(), "login name is empty")
 }
 
-func TestExtractBKUsernameByLoginName(t *testing.T) {
+func TestHandlerMultiTenantGetBKUsernameByLoginNameResponseHandling(t *testing.T) {
 	tests := []struct {
-		name         string
-		loginName    string
-		virtualUsers []virtualUser
-		want         string
-		wantErr      string
+		name    string
+		body    string
+		want    string
+		wantErr string
 	}{
 		{
-			name:      "found exact login name",
-			loginName: "bk-nodemgr",
-			virtualUsers: []virtualUser{
-				{BKUsername: "other@tenant-a", LoginName: "other"},
-				{BKUsername: "bk-nodemgr@tenant-a", LoginName: "bk-nodemgr"},
-			},
+			name: "found exact login name",
+			body: `{"data":[{"bk_username":"other@tenant-a","login_name":"other"},` +
+				`{"bk_username":"bk-nodemgr@tenant-a","login_name":"bk-nodemgr"}]}`,
 			want: "bk-nodemgr@tenant-a",
 		},
 		{
-			name:         "not found",
-			loginName:    "bk-nodemgr",
-			virtualUsers: []virtualUser{},
-			wantErr:      "virtual user not found",
+			name:    "not found",
+			body:    `{"data":[]}`,
+			wantErr: "virtual user not found",
 		},
 		{
-			name:      "empty bk username",
-			loginName: "bk-nodemgr",
-			virtualUsers: []virtualUser{
-				{LoginName: "bk-nodemgr"},
-			},
+			name:    "empty bk username",
+			body:    `{"data":[{"login_name":"bk-nodemgr"}]}`,
 			wantErr: "virtual user bk username is empty",
 		},
 		{
-			name:      "duplicate login name",
-			loginName: "bk-nodemgr",
-			virtualUsers: []virtualUser{
-				{BKUsername: "bk-nodemgr@tenant-a", LoginName: "bk-nodemgr"},
-				{BKUsername: "bk-nodemgr-2@tenant-a", LoginName: "bk-nodemgr"},
-			},
+			name: "duplicate login name",
+			body: `{"data":[{"bk_username":"bk-nodemgr@tenant-a","login_name":"bk-nodemgr"},` +
+				`{"bk_username":"bk-nodemgr-2@tenant-a","login_name":"bk-nodemgr"}]}`,
 			wantErr: "multiple virtual users found",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := extractBKUsernameByLoginName(tt.loginName, tt.virtualUsers)
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				rw.Header().Set("Content-Type", "application/json")
+				_, _ = rw.Write([]byte(tt.body))
+			}))
+			defer server.Close()
+
+			h := newHTTPTestHandler(t, server.URL)
+			got, err := h.GetBKUsernameByLoginName(
+				contextx.New(context.Background(), contextx.WithTenantID("tenant-a")), "bk-nodemgr")
 			if tt.wantErr != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)
