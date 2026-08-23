@@ -258,6 +258,23 @@ func (x *PluginUninstallReq_UninstallInfo) AutoConvert() {}
 
 // Validate check body.
 // nolint: protogetter
+func (x *PluginStartReq_StartInfo) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be negative")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginStartReq_StartInfo) AutoConvert() {}
+
+// Validate check body.
+// nolint: protogetter
 func (x *PluginRestartReq_RestartInfo) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id can not be negative")
