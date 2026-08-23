@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -33,6 +34,7 @@ import (
 // IHandler handler interface.
 type IHandler interface {
 	access.IVirtualUserResolver
+	tenant.ITenantIDProvider
 
 	ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
 }
@@ -101,6 +103,18 @@ func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Ten
 	return tenants, nil
 }
 
+// ListTenantIDs implements tenant.ITenantIDProvider.
+func (h HandlerMultiTenant) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	tenants, err := h.ListALLTenants(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all tenants: %w", err)
+	}
+
+	return conv.SliceToSlice(tenants, func(tenantInfo *types.Tenant) string {
+		return tenantInfo.ID
+	}), nil
+}
+
 // GetBKUsernameByLoginName gets the tenant-scoped bk_username by login_name.
 //
 //nolint:varnamelen // h is the conventional handler receiver name.
@@ -159,9 +173,6 @@ var _ IHandler = &HandlerSingle{}
 type OptionFnSingle func(*HandlerSingle)
 
 const (
-	// singleModeTenantID default tenant id.
-	singleModeTenantID = "default"
-
 	// singleModeTenantName default tenant name.
 	singleModeTenantName = "default"
 )
@@ -188,13 +199,18 @@ func NewHandlerSingle(c *restclient.Capability, conf *Config, opts ...OptionFnSi
 func (h HandlerSingle) ListALLTenants(_ contextx.IContext) ([]*types.Tenant, error) {
 	tenants := []*types.Tenant{
 		{
-			ID:      singleModeTenantID,
+			ID:      tenant.SingleModeTenantID,
 			Name:    singleModeTenantName,
 			Enabled: true,
 		},
 	}
 
 	return tenants, nil
+}
+
+// ListTenantIDs implements tenant.ITenantIDProvider.
+func (h HandlerSingle) ListTenantIDs(_ contextx.IContext) ([]string, error) {
+	return []string{tenant.SingleModeTenantID}, nil
 }
 
 // GetBKUsernameByLoginName returns loginName as bk_username in single tenant mode.

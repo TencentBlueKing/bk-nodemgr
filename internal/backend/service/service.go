@@ -137,23 +137,6 @@ type Service struct {
 	authIdentityValidMap map[config.AuthIdentity]struct{}
 }
 
-var _ tenant.ITenantIDProvider = userManagerTenantIDProvider{}
-
-type userManagerTenantIDProvider struct {
-	handler usermanager.IHandler
-}
-
-func (provider userManagerTenantIDProvider) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
-	tenants, err := provider.handler.ListALLTenants(nCtx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list all tenants: %w", err)
-	}
-
-	return conv.SliceToSlice(tenants, func(tenantInfo *types.Tenant) string {
-		return tenantInfo.ID
-	}), nil
-}
-
 // NewService creates a new backend service.
 // nolint: funlen,gocognit,gocyclo,cyclop,maintidx
 // NOCC: golint/fnsize(func design is not suitable for splitting).
@@ -297,7 +280,7 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create user manager handler: %w", err)
 	}
 	access.SetVirtualUserResolver(svc.Cap.UserManagerHandler)
-	if err := tenant.SetTenantIDProvider(userManagerTenantIDProvider{handler: svc.Cap.UserManagerHandler}); err != nil {
+	if err := tenant.SetTenantIDProvider(svc.Cap.UserManagerHandler); err != nil {
 		return fmt.Errorf("failed to set tenant id provider: %w", err)
 	}
 
