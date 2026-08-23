@@ -486,6 +486,7 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 					Operator:  nCtx.BKUsername(),
 				},
 				ReleaseAdditionInfoPlugin: types.ReleaseAdditionInfoPlugin{
+					OriginUploadID:       up.UploadID,
 					TemplateRendererType: types.TemplateRendererTypeJinja2,
 					LaunchNodeType:       types.LaunchNodeType(strings.ToLower(detail.LaunchNode)),
 					ConfigTemplates:      detail.ConfigTemplates[pkg.platform.String()],

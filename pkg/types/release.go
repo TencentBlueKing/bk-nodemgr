@@ -250,6 +250,7 @@ type ReleasePluginKey struct {
 
 // ReleaseAdditionInfoPlugin defines the addition info of release plugin.
 type ReleaseAdditionInfoPlugin struct {
+	OriginUploadID       string `json:"origin_upload_id,omitempty"`
 	TemplateRendererType TemplateRendererType
 	LaunchNodeType       LaunchNodeType
 	ConfigTemplates      []PluginPkgConfigTemplate
