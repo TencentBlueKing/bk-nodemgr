@@ -137,6 +137,23 @@ type Service struct {
 	authIdentityValidMap map[config.AuthIdentity]struct{}
 }
 
+var _ tenant.ITenantIDProvider = userManagerTenantIDProvider{}
+
+type userManagerTenantIDProvider struct {
+	handler usermanager.IHandler
+}
+
+func (provider userManagerTenantIDProvider) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	tenants, err := provider.handler.ListALLTenants(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all tenants: %w", err)
+	}
+
+	return conv.SliceToSlice(tenants, func(tenantInfo *types.Tenant) string {
+		return tenantInfo.ID
+	}), nil
+}
+
 // NewService creates a new backend service.
 // nolint: funlen,gocognit,gocyclo,cyclop,maintidx
 // NOCC: golint/fnsize(func design is not suitable for splitting).
@@ -274,6 +291,16 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create AES crypter: %w", err)
 	}
 
+	// initial user manager handler.
+	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create user manager handler: %w", err)
+	}
+	access.SetVirtualUserResolver(svc.Cap.UserManagerHandler)
+	if err := tenant.SetTenantIDProvider(userManagerTenantIDProvider{handler: svc.Cap.UserManagerHandler}); err != nil {
+		return fmt.Errorf("failed to set tenant id provider: %w", err)
+	}
+
 	// initial cmdb handler.
 	svc.Cap.CmdbHandler, err = svc.newCMDBHandler()
 	if err != nil {
@@ -291,13 +318,6 @@ func (svc *Service) initialCapability() error {
 	if err != nil {
 		return fmt.Errorf("failed to create file handler: %w", err)
 	}
-
-	// initial user manager handler.
-	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
-	if err != nil {
-		return fmt.Errorf("failed to create user manager handler: %w", err)
-	}
-	access.SetVirtualUserResolver(svc.Cap.UserManagerHandler)
 
 	// initial IAM v3 handler.
 	svc.Cap.IAMV3Handler, err = svc.newIAMV3Handler()
