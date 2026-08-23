@@ -25,7 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	tenantpkg "github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -78,7 +78,7 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 // ListALLTenants implement IHandler.
 func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
 	// Tenant listing is a platform-level bk-user call; hold the system tenant to avoid caller-tenant permission denial.
-	systemTenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantpkg.SystemTenantID))
+	systemTenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID))
 	resp, err := h.cli.listTenant(systemTenantCtx)
 	if err != nil {
 		return nil, err
@@ -102,6 +102,8 @@ func (h HandlerMultiTenant) ListALLTenants(nCtx contextx.IContext) ([]*types.Ten
 }
 
 // GetBKUsernameByLoginName gets the tenant-scoped bk_username by login_name.
+//
+//nolint:varnamelen // h is the conventional handler receiver name.
 func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, loginName string) (string, error) {
 	if nCtx == nil {
 		return "", errors.New("context is nil")

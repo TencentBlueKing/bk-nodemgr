@@ -35,7 +35,7 @@ import (
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	tenantpkg "github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
 type testTraceService struct{}
@@ -60,7 +60,7 @@ func TestHandlerMultiTenantListALLTenantsUsesSystemTenant(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		require.Equal(t, http.MethodGet, req.Method)
 		require.Equal(t, "/api/v3/open/tenants/", req.URL.Path)
-		assert.Equal(t, tenantpkg.SystemTenantID, req.Header.Get(restheader.BKTenantIDKey))
+		assert.Equal(t, tenant.SystemTenantID, req.Header.Get(restheader.BKTenantIDKey))
 
 		rw.Header().Set("Content-Type", "application/json")
 		_, _ = rw.Write([]byte(`{"data":[{"id":"tenant-a","name":"Tenant A","status":"enabled"}]}`))

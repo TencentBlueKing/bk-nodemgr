@@ -98,7 +98,7 @@ func (resp *BaseBroker[T]) IsFailed() error {
 	}
 }
 
-type listTenantResp = []tenant
+type listTenantResp = []userManagerTenant
 
 type batchLookupVirtualUserResp = []virtualUser
 
@@ -128,7 +128,7 @@ func (status tenantStatus) Bool() (bool, error) {
 	}
 }
 
-type tenant struct {
+type userManagerTenant struct {
 	ID     string       `json:"id"`
 	Name   string       `json:"name"`
 	Status tenantStatus `json:"status"`
