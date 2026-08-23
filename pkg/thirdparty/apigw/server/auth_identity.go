@@ -81,9 +81,13 @@ func (identity *BKGWJWTAuthIdentityAppState) Verify(r restserver.IRequest) error
 	}
 
 	loginName := claims.User.UserName
-	bkUsername, err := resolveBKUsername(ctx, tenantID, loginName)
+	nCtx := contextx.New(ctx,
+		contextx.WithTenantID(tenantID),
+		contextx.WithLoginName(loginName),
+	)
+	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, loginName)
 	if err != nil {
-		return fmt.Errorf("failed to verify user authentication: %w", err)
+		return fmt.Errorf("failed to verify user authentication: failed to get bk username by login name: %w", err)
 	}
 
 	r.Data().SetLoginName(loginName)
@@ -135,27 +139,17 @@ func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IContext) e
 	}
 
 	loginName := claims.User.UserName
-	bkUsername, err := resolveBKUsername(rCtx, tenantID, loginName)
+	nCtx := contextx.New(rCtx,
+		contextx.WithTenantID(tenantID),
+		contextx.WithLoginName(loginName),
+	)
+	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, loginName)
 	if err != nil {
-		return fmt.Errorf("failed to verify user authentication: %w", err)
+		return fmt.Errorf("failed to verify user authentication: failed to get bk username by login name: %w", err)
 	}
 
 	rCtx.Data().SetLoginName(loginName)
 	rCtx.Data().SetBKUsername(bkUsername)
 
 	return nil
-}
-
-func resolveBKUsername(ctx context.Context, tenantID string, loginName string) (string, error) {
-	nCtx := contextx.New(ctx,
-		contextx.WithTenantID(tenantID),
-		contextx.WithLoginName(loginName),
-	)
-
-	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, loginName)
-	if err != nil {
-		return "", fmt.Errorf("failed to get bk username by login name: %w", err)
-	}
-
-	return bkUsername, nil
 }
