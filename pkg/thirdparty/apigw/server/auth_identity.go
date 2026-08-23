@@ -19,10 +19,13 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
@@ -68,13 +71,27 @@ func (identity *BKGWJWTAuthIdentityAppState) Verify(r restserver.IRequest) error
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	if claims.Validate() != nil {
+	if err := claims.Validate(); err != nil {
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	r.Data().SetLoginName(claims.User.UserName)
-	// TODO: 等待多租户版本上线后，需要修改 r.BKUsername 的赋值
-	r.Data().SetBKUsername(claims.User.UserName)
+	ctx := context.Background()
+	if req := r.GetRequest(); req != nil {
+		ctx = req.Context()
+	}
+
+	loginName := claims.User.UserName
+	nCtx := contextx.New(ctx,
+		contextx.WithTenantID(tenantID),
+		contextx.WithLoginName(loginName),
+	)
+	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, loginName)
+	if err != nil {
+		return fmt.Errorf("failed to verify user authentication: failed to get bk username by login name: %w", err)
+	}
+
+	r.Data().SetLoginName(loginName)
+	r.Data().SetBKUsername(bkUsername)
 
 	return nil
 }
@@ -117,13 +134,22 @@ func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IContext) e
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	if claims.Validate() != nil {
+	if err := claims.Validate(); err != nil {
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	rCtx.Data().SetLoginName(claims.User.UserName)
-	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
-	rCtx.Data().SetBKUsername(claims.User.UserName)
+	loginName := claims.User.UserName
+	nCtx := contextx.New(rCtx,
+		contextx.WithTenantID(tenantID),
+		contextx.WithLoginName(loginName),
+	)
+	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, loginName)
+	if err != nil {
+		return fmt.Errorf("failed to verify user authentication: failed to get bk username by login name: %w", err)
+	}
+
+	rCtx.Data().SetLoginName(loginName)
+	rCtx.Data().SetBKUsername(bkUsername)
 
 	return nil
 }

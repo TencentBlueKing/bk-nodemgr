@@ -297,6 +297,7 @@ func (svc *Service) initialCapability() error {
 	if err != nil {
 		return fmt.Errorf("failed to create user manager handler: %w", err)
 	}
+	access.SetVirtualUserResolver(svc.Cap.UserManagerHandler)
 
 	// initial IAM v3 handler.
 	svc.Cap.IAMV3Handler, err = svc.newIAMV3Handler()
