@@ -9,5 +9,6 @@
 
 ## 子文档
 
-- [插件调试（Plugin Debug）使用手册](debug_plugin.md)
 - [V2/V3 兼容与迁移](v2_v3_compatibility_and_migration.md)
+
+> 插件调试（Plugin Debug）使用手册已迁移到 [docs/integration/debug_plugin](../integration/debug_plugin/README.md)，本文档不再维护调试相关章节。
