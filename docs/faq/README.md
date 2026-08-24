@@ -11,3 +11,7 @@ Server 与部署配置的常见问题，包括监听地址、协议栈选择，�
 ## [包版本状态](pkg-release-status.md)
 
 说明包版本 `enabled` 与 `is_hidden` 的职责边界、优先级、状态组合，以及包管理页面对应的展示和筛选规则。
+
+## [Config Policy 配置](config_policy.md)
+
+通过 Config Policy 修改 Agent / Proxy 日志存储路径的说明，涵盖 `logger_path`、`all_logger_path` 选项的模板位置、路径格式与生效预期。
