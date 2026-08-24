@@ -147,7 +147,12 @@ data:
 
     gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
 
-    access: {{ .Values.backend.config.access | toYaml | nindent 6 }}
+    access:
+      {{- if hasKey (.Values.backend.config.access | default dict) "virtualUser" }}
+      virtualUser: {{ .Values.backend.config.access.virtualUser | quote }}
+      {{- else }}
+      virtualUser: {{ ternary "admin" "bk_admin" (eq .Values.backend.config.tenantMode "single") | quote }}
+      {{- end }}
 
     tracing:
       {{- omit .Values.backend.config.tracing "instanceID" | toYaml | nindent 6 }}
