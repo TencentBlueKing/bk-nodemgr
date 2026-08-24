@@ -46,19 +46,7 @@ var virtualUserResolver = struct {
 	sync.RWMutex
 	resolver IVirtualUserResolver
 }{
-	resolver: NewIdentityVirtualUserResolver(),
-}
-
-// NewIdentityVirtualUserResolver creates a resolver that keeps login name as bk username.
-func NewIdentityVirtualUserResolver() IVirtualUserResolver {
-	return identityVirtualUserResolver{}
-}
-
-type identityVirtualUserResolver struct{}
-
-// GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
-func (identityVirtualUserResolver) GetBKUsernameByLoginName(_ contextx.IContext, loginName string) (string, error) {
-	return loginName, nil
+	resolver: NewNoopVirtualUserResolver(),
 }
 
 // SetVirtualUserResolver sets the virtual user resolver.
