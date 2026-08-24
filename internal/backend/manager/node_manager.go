@@ -224,7 +224,8 @@ func (mgr *Manager) createInstallNodeOper(
 	if err != nil {
 		logger.G.Biz(nCtx).
 			WithErr(err).
-			With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("token", deploy.Token).
 			Error("failed to launch install node task")
 
 		return err
@@ -477,7 +478,8 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.Upgrad
 			if err != nil {
 				logger.G.Biz(nCtx).
 					WithErr(err).
-					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("token", deploy.Token).
 					Error("failed to launch upgrade node, failed to create operation")
 
 				return err
@@ -590,7 +592,8 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.Recon
 			if err != nil {
 				logger.G.Biz(nCtx).
 					WithErr(err).
-					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("token", deploy.Token).
 					Error("failed to launch reconfig node, failed to create operation")
 
 				return err
@@ -669,7 +672,8 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.Restar
 			if err != nil {
 				logger.G.Biz(nCtx).
 					WithErr(err).
-					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("token", deploy.Token).
 					Error("failed to launch restart node, failed to create operation")
 
 				return err
@@ -746,7 +750,8 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.Unin
 			if err != nil {
 				logger.G.Biz(nCtx).
 					WithErr(err).
-					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("token", deploy.Token).
 					Error("failed to launch uninstall node, failed to create operation")
 
 				return err
@@ -828,7 +833,8 @@ func (mgr *Manager) LaunchAssignProxyUnit(nCtx contextx.IContext, param types.As
 			if err != nil {
 				logger.G.Biz(nCtx).
 					WithErr(err).
-					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("token", deploy.Token).
 					Error("failed to launch assign proxy unit, failed to create operation")
 
 				return err

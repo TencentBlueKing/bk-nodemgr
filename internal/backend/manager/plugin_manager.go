@@ -106,7 +106,6 @@ func (mgr *Manager) createInstallPluginOper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch install plugin task.")
 
@@ -200,7 +199,6 @@ func (mgr *Manager) createUpgradePluginOper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch upgrade plugin task.")
 
@@ -290,7 +288,6 @@ func (mgr *Manager) createUninstallPluginOper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch uninstall plugin task.")
 
@@ -368,7 +365,6 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 			if err != nil {
 				logger.G.Biz(nCtx).WithErr(err).
 					With("trigger-id", triggerCtl.GetTriggerID()).
-					With("operation-id", operCtl.GetOperationID()).
 					With("plugin-token", deploy.Token).
 					Error("failed to launch install plugin task.")
 
@@ -459,7 +455,6 @@ func (mgr *Manager) createStartProcessOper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch start process task.")
 
@@ -548,7 +543,6 @@ func (mgr *Manager) createRestartProcessOper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch restart process task.")
 
@@ -641,7 +635,6 @@ func (mgr *Manager) createMigrateFromV2Oper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch migrate plugin process from v2 task.")
 
@@ -734,7 +727,6 @@ func (mgr *Manager) createStopProcessOper(
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).
 			With("trigger-id", triggerCtl.GetTriggerID()).
-			With("operation-id", operCtl.GetOperationID()).
 			With("plugin-token", deploy.Token).
 			Error("failed to launch stop process task.")
 
