@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
 
 // Config the config of gse.
@@ -66,11 +67,11 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 	}, nil
 }
 
-// getCommonHeader get gse common header.
-func (c *cli) getCommonHeader() (http.Header, error) {
+// getHeader get gse common header.
+// nolint: unparam
+func (c *cli) getCommonHeader(ctx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
-
-	// TODO: 接入租户信息
+	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
 
 	return header, nil
 }
@@ -78,7 +79,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 // listAgentInfo list agent info.
 func (c *cli) listAgentInfo(nCtx contextx.IContext, req *ListAgentInfoReq) (ListAgentInfoResp, error) {
 	resp := new(BaseBroker[ListAgentInfoResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +104,7 @@ func (c *cli) listAgentInfo(nCtx contextx.IContext, req *ListAgentInfoReq) (List
 // listAgentState list agent state.
 func (c *cli) listAgentState(nCtx contextx.IContext, req *ListAgentStateReq) (ListAgentStateResp, error) {
 	resp := new(BaseBroker[ListAgentStateResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +129,7 @@ func (c *cli) listAgentState(nCtx contextx.IContext, req *ListAgentStateReq) (Li
 // asyncExecuteScript async execute script.
 func (c *cli) asyncExecuteScript(nCtx contextx.IContext, req *AsyncExecuteScriptReq) (*AsyncExecuteScriptResp, error) {
 	resp := new(BaseBroker[*AsyncExecuteScriptResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +156,7 @@ func (c *cli) getExecuteScriptResult(nCtx contextx.IContext, req *GetExecuteScri
 	*GetExecuteScriptResultResp, error) {
 
 	resp := new(BaseBroker[*GetExecuteScriptResultResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +183,7 @@ func (c *cli) asyncTerminateExecuteScript(nCtx contextx.IContext, req *AsyncTerm
 	*AsyncTerminateExecuteScriptResp, error) {
 
 	resp := new(BaseBroker[*AsyncTerminateExecuteScriptResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +208,7 @@ func (c *cli) asyncTerminateExecuteScript(nCtx contextx.IContext, req *AsyncTerm
 // asyncPushFile async push file.
 func (c *cli) asyncPushFile(nCtx contextx.IContext, req *AsyncPushFileReq) (*AsyncPushFileResp, error) {
 	resp := new(BaseBroker[*AsyncPushFileResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +233,7 @@ func (c *cli) asyncPushFile(nCtx contextx.IContext, req *AsyncPushFileReq) (*Asy
 // asyncTransferFile async transfer file.
 func (c *cli) asyncTransferFile(nCtx contextx.IContext, req *AsyncTransferFileReq) (*AsyncTransferFileResp, error) {
 	resp := new(BaseBroker[*AsyncTransferFileResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +260,7 @@ func (c *cli) getTransferFileResult(nCtx contextx.IContext, req *GetTransferFile
 	*GetTransferFileResultResp, error) {
 
 	resp := new(BaseBroker[*GetTransferFileResultResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +287,7 @@ func (c *cli) asyncTerminateTransferFile(nCtx contextx.IContext, req *AsyncTermi
 	*AsyncTerminateTransferFileResp, error) {
 
 	resp := new(BaseBroker[*AsyncTerminateTransferFileResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +311,7 @@ func (c *cli) asyncTerminateTransferFile(nCtx contextx.IContext, req *AsyncTermi
 
 func (c *cli) operateAgent(nCtx contextx.IContext, req *OperateAgentReq) (*OperateAgentResp, error) {
 	resp := new(BaseBroker[*OperateAgentResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}

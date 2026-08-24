@@ -26,7 +26,7 @@ import (
 
 func (c *cli) getProcOperateResultV2(nCtx contextx.IContext, req *getProcOperateResultV2Req) (getProcOperateResultV2Resp, error) {
 	resp := new(BaseBroker[getProcOperateResultV2Resp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *cli) getProcOperateResultV2(nCtx contextx.IContext, req *getProcOperate
 
 func (c *cli) operateProcV2(nCtx contextx.IContext, req *operateProcV2Req) (*operateProcV2Resp, error) {
 	resp := new(BaseBroker[*operateProcV2Resp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *cli) operateProcV2(nCtx contextx.IContext, req *operateProcV2Req) (*ope
 // operateProcMulti operates multiple processes.
 func (c *cli) operateProcMulti(nCtx contextx.IContext, req *operateProcMultiReq) (*operateProcMultiResp, error) {
 	resp := new(BaseBroker[*operateProcMultiResp])
-	header, err := c.getCommonHeader()
+	header, err := c.getCommonHeader(nCtx)
 	if err != nil {
 		return nil, err
 	}
