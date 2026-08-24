@@ -74,6 +74,9 @@ const (
 	// SingleModeTenantID tenant id for single mode.
 	SingleModeTenantID = "default"
 
+	// SingleModeTenantName tenant name for single mode.
+	SingleModeTenantName = "default"
+
 	// SystemTenantID tenant id for system in multiple mode.
 	SystemTenantID = "system"
 )
@@ -83,13 +86,13 @@ type ITenantIDProvider interface {
 	ListTenantIDs(nCtx contextx.IContext) ([]string, error)
 }
 
-var _ ITenantIDProvider = &singleModeTenantIDProvider{}
+var _ ITenantIDProvider = &noopTenantIDProvider{}
 
-type singleModeTenantIDProvider struct {
+type noopTenantIDProvider struct {
 }
 
 // ListTenantIDs lists all tenant ids.
-func (stg *singleModeTenantIDProvider) ListTenantIDs(_ contextx.IContext) ([]string, error) {
+func (stg *noopTenantIDProvider) ListTenantIDs(_ contextx.IContext) ([]string, error) {
 	return []string{
 		SingleModeTenantID,
 	}, nil
@@ -100,7 +103,7 @@ var tenantStorage = struct {
 	provider ITenantIDProvider
 	sync.Once
 }{
-	provider: new(singleModeTenantIDProvider),
+	provider: new(noopTenantIDProvider),
 }
 
 // SetTenantIDProvider sets the tenant id provider only once.

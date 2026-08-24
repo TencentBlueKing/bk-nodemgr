@@ -32,7 +32,7 @@ func (fn tenantIDProviderFn) ListTenantIDs(nCtx contextx.IContext) ([]string, er
 }
 
 func resetTenantIDProvider() {
-	tenantStorage.provider = new(singleModeTenantIDProvider)
+	tenantStorage.provider = new(noopTenantIDProvider)
 	tenantStorage.Once = sync.Once{}
 }
 

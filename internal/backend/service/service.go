@@ -463,6 +463,10 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		}
 	}
 
+	if err := tenant.SetTenantIDProvider(usermgrHandler); err != nil {
+		return nil, fmt.Errorf("failed to set tenant id provider: %w", err)
+	}
+
 	access.SetVirtualUserResolver(usermgrHandler)
 
 	return usermgrHandler, nil

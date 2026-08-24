@@ -32,6 +32,7 @@ import (
 
 // IHandler handler interface.
 type IHandler interface {
+	tenant.ITenantIDProvider
 	access.IVirtualUserResolver
 
 	ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
@@ -73,6 +74,31 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 	}
 
 	return handler, nil
+}
+
+func (h HandlerMultiTenant) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	// Tenant listing is a platform-level bk-user call; hold the system tenant to avoid caller-tenant permission denial.
+	systemTenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID))
+	resp, err := h.cli.listTenant(systemTenantCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	tenantIDs := make([]string, len(resp))
+	for idx, item := range resp {
+		enabled, err := item.Status.Bool()
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert status to bool: %w", err)
+		}
+
+		if !enabled {
+			continue
+		}
+
+		tenantIDs[idx] = item.ID
+	}
+
+	return tenantIDs, nil
 }
 
 // ListALLTenants implement IHandler.
@@ -153,18 +179,14 @@ type HandlerSingle struct {
 	cli *cli
 }
 
+func (h HandlerSingle) ListTenantIDs(_ contextx.IContext) ([]string, error) {
+	return []string{tenant.SingleModeTenantID}, nil
+}
+
 var _ IHandler = &HandlerSingle{}
 
 // OptionFnSingle ...
 type OptionFnSingle func(*HandlerSingle)
-
-const (
-	// singleModeTenantID default tenant id.
-	singleModeTenantID = "default"
-
-	// singleModeTenantName default tenant name.
-	singleModeTenantName = "default"
-)
 
 // NewHandlerSingle initialize a new user manager Handler.
 func NewHandlerSingle(c *restclient.Capability, conf *Config, opts ...OptionFnSingle) (*HandlerSingle, error) {
@@ -188,8 +210,8 @@ func NewHandlerSingle(c *restclient.Capability, conf *Config, opts ...OptionFnSi
 func (h HandlerSingle) ListALLTenants(_ contextx.IContext) ([]*types.Tenant, error) {
 	tenants := []*types.Tenant{
 		{
-			ID:      singleModeTenantID,
-			Name:    singleModeTenantName,
+			ID:      tenant.SingleModeTenantID,
+			Name:    tenant.SingleModeTenantName,
 			Enabled: true,
 		},
 	}
