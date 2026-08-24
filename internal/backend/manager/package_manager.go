@@ -105,3 +105,165 @@ func (mgr *Manager) getPackageImportPluginV3(nCtx contextx.IContext, deploy *typ
 		Operator: operator,
 	})
 }
+
+// LaunchPackageImportPluginV2Pkg launches the package import plugin v2 pkg workflow.
+func (mgr *Manager) LaunchPackageImportPluginV2Pkg(nCtx contextx.IContext, param types.PackageImportParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePackage.CreatePackageWorkflow(nCtx, &types.PackageWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PackageWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pkgDeploy := range param.PackageDeployments {
+		deploy := pkgDeploy
+
+		gp.Go(func() error {
+			return mgr.createPackageImportPluginV2PkgOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch import plugin v2 package task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createPackageImportPluginV2PkgOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PackageDeployment) error {
+
+	if err := mgr.conf.StoragePackage.CreatePackageDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("trigger-id", triggerCtl.GetTriggerID(), "package-token", deploy.Token).
+			Error("failed to create package deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPackageImportPluginV2(nCtx, deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("package-token", deploy.Token).
+			Error("failed to create package import plugin v2 package operation.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("package-token", deploy.Token).
+		Info("launched import plugin v2 package task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPackageImportPluginV2(nCtx contextx.IContext, deploy *types.PackageDeployment, operator string) operation.Definition {
+	return pkg.NewOperPackagePluginV2Import(pkg.OperParamPackagePluginV2Import{
+		TenantID: nCtx.TenantID(),
+		Token:    deploy.Token,
+		Operator: operator,
+	})
+}
+
+// LaunchPackageImportExternalPluginV2Pkg launches the package import external plugin v2 pkg workflow.
+func (mgr *Manager) LaunchPackageImportExternalPluginV2Pkg(nCtx contextx.IContext, param types.PackageImportParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePackage.CreatePackageWorkflow(nCtx, &types.PackageWorkflow{
+		TenantID:    nCtx.TenantID(),
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PackageWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pkgDeploy := range param.PackageDeployments {
+		deploy := pkgDeploy
+
+		gp.Go(func() error {
+			return mgr.createPackageImportExternalPluginV2PkgOper(nCtx, param.Operator, triggerCtl, deploy)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch import external plugin v2 package task. err: %w", err)
+	}
+
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+func (mgr *Manager) createPackageImportExternalPluginV2PkgOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PackageDeployment) error {
+
+	if err := mgr.conf.StoragePackage.CreatePackageDeployment(nCtx, deploy); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("trigger-id", triggerCtl.GetTriggerID(), "package-token", deploy.Token).
+			Error("failed to create package deployment.")
+
+		return err
+	}
+
+	operationDef := mgr.getPackageImportExternalPluginV2(nCtx, deploy, operator)
+
+	operationParam := operationDef.DefaultParameters()
+
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("package-token", deploy.Token).
+			Error("failed to create package import external plugin v2 package operation.")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID()).
+		With("operation-id", operCtl.GetOperationID()).
+		With("package-token", deploy.Token).
+		Info("launched import external plugin v2 package task.")
+
+	return nil
+}
+
+func (mgr *Manager) getPackageImportExternalPluginV2(nCtx contextx.IContext, deploy *types.PackageDeployment, operator string) operation.Definition {
+	return pkg.NewOperPackageExternalPluginV2Import(pkg.OperParamPackageExternalPluginV2Import{
+		TenantID: nCtx.TenantID(),
+		Token:    deploy.Token,
+		Operator: operator,
+	})
+}

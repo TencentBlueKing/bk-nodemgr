@@ -241,5 +241,5 @@ apigw-docs: | pre
 
 lint: | pre
 	@$(ECHO) "Linting..."
-	@$(CD) $(ROOT_DIR) && GOGC=40 $(if $(strip $(GOMEMLIMIT)),GOMEMLIMIT=$(GOMEMLIMIT),) golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR) --timeout $(GOLANGCI_LINT_TIMEOUT)
+	@$(CD) $(ROOT_DIR) && GOGC=40 $(if $(strip $(GOMEMLIMIT)),GOMEMLIMIT=$(GOMEMLIMIT),) GOTOOLCHAIN=$(GO) golangci-lint run --config $(ROOT_DIR)/.golangci.yml --path-prefix $(ROOT_DIR) --timeout $(GOLANGCI_LINT_TIMEOUT)
 	@$(ECHO) "Linting completed"

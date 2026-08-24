@@ -29,6 +29,50 @@ message PackageImportPluginV3PkgResp {
   Data data = 5;
 }
 
+// PackageImportPluginV2PkgReq describes the HTTP request body when import
+// plugin v2 package in package service.
+message PackageImportPluginV2PkgReq {
+  string filename = 1;
+  string download_url = 2;
+  string md5 = 3;
+}
+
+// PackageImportPluginV2PkgResp describes the HTTP response body when import
+// plugin v2 package in package service.
+message PackageImportPluginV2PkgResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+
+  Data data = 5;
+}
+
+// PackageImportExternalPluginV2PkgReq describes the HTTP request body when
+// import external plugin v2 package in package service.
+message PackageImportExternalPluginV2PkgReq {
+  string filename = 1;
+  string download_url = 2;
+  string md5 = 3;
+}
+
+// PackageImportExternalPluginV2PkgResp describes the HTTP response body when
+// import external plugin v2 package in package service.
+message PackageImportExternalPluginV2PkgResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string workflow_id = 1; }
+
+  Data data = 5;
+}
+
 // PackageImportResultReq describes the package import result request.
 message PackageImportResultReq { string workflow_id = 1; }
 
@@ -65,6 +109,25 @@ service PackageWorkflow {
       returns (PackageImportPluginV3PkgResp) {
     option (google.api.http) = {
       post : "/api/v3/package/workflow/import/v3/plugin"
+      body : "*"
+    };
+  }
+
+  // PackagePluginV2Import provides package plugin v2 importing.
+  rpc PackagePluginV2Import(PackageImportPluginV2PkgReq)
+      returns (PackageImportPluginV2PkgResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/workflow/import/v2/plugin"
+      body : "*"
+    };
+  }
+
+  // PackageExternalPluginV2Import provides package external plugin v2
+  // importing.
+  rpc PackageExternalPluginV2Import(PackageImportExternalPluginV2PkgReq)
+      returns (PackageImportExternalPluginV2PkgResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/workflow/import/v2/external_plugin"
       body : "*"
     };
   }

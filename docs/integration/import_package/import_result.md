@@ -2,23 +2,31 @@
 
 ## 目的与适用场景
 
-当第三方平台希望读取一次 `import_v3_plugin` 的 workflow 执行结果时，使用 `import_result`。
+当第三方平台希望读取一次 `import_v3_plugin` / `import_v2_plugin` / `import_v2_external_plugin` 的 workflow 执行结果时，使用 `import_result`。
 
 `import_package` 不带 host scope（与 `install` / `upgrade` 不同），因此通用 `plugin/workflow/*` 列表查询无法直接命中；本接口为 import workflow 单独提供结果读取入口，并通过 `data.operations[]` 提供各 operation 的源信息（`operation_id` / `last_instance_id` / `oper_inst_logs` / `extra_execution_logs`）。
+
+> import 变体与 `data.operations[].operation_id` 的对应关系：
+
+| 触发导入的端点              | 对应 operation_id                   |
+| --------------------------- | ----------------------------------- |
+| `import_v3_plugin`          | `package_plugin_v3_import`          |
+| `import_v2_plugin`          | `package_plugin_v2_import`          |
+| `import_v2_external_plugin` | `package_external_plugin_v2_import` |
 
 ## 输入
 
 请求字段以 [pkg_workflow.proto `PackageImportResultReq`](../../../proto/backend/api/v3/pkg_workflow.proto) 为准：
 
-| 字段          | Required | 含义                                         |
-| ------------- | -------- | -------------------------------------------- |
-| `workflow_id` | yes      | `import_v3_plugin` 返回的 `data.workflow_id` |
+| 字段          | Required | 含义                                                                                                |
+| ------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `workflow_id` | yes      | `import_v3_plugin` / `import_v2_plugin` / `import_v2_external_plugin` 任一返回的 `data.workflow_id` |
 
 ## 最小 payload 和 curl template
 
 ```bash
 export BK_NODEMGR_API_BASE="https://bk-nodemgr.example.com"
-export WORKFLOW_ID="${WORKFLOW_ID}"  # 来自 import_v3_plugin 响应
+export WORKFLOW_ID="${WORKFLOW_ID}"  # 来自 import 响应（任一变体）
 
 RESULT_RESPONSE="$(curl -sS -X POST "${BK_NODEMGR_API_BASE}/api/v3/package/workflow/import_result" \
   -H "Content-Type: application/json" \
@@ -48,6 +56,14 @@ FIRST_OPERATION_ID="$(printf '%s' "${RESULT_RESPONSE}" | jq -r '.data.operations
 | `extra_execution_logs` | 额外的 `WorkflowActionMessage`，存放主流程之外的执行日志                                                                                                        |
 
 operation / action / log 字段语义以 [workflow.proto](../../../proto/backend/api/v3/workflow.proto) 为准。
+
+按 import 变体区分，operation 内部的 `action_name` 集合如下：
+
+| 触发导入的端点              | operation_id                        | action_name 集合                                                                                                                                                        |
+| --------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `import_v3_plugin`          | `package_plugin_v3_import`          | `package_import_plugin_v3_pkg_fetch_and_upload` / `package_publish_plugin_v3_pkg` / `package_release_plugin_enable` / `package_release_plugin_hidden`                   |
+| `import_v2_plugin`          | `package_plugin_v2_import`          | `package_import_plugin_v2_pkg_fetch_and_upload` / `package_publish_plugin_v2_pkg` / `package_release_plugin_enable` / `package_release_plugin_hidden`                   |
+| `import_v2_external_plugin` | `package_external_plugin_v2_import` | `package_import_external_plugin_v2_pkg_fetch_and_upload` / `package_publish_external_plugin_v2_pkg` / `package_release_plugin_enable` / `package_release_plugin_hidden` |
 
 ## 即时输出
 
@@ -102,7 +118,9 @@ operation / action / log 字段语义以 [workflow.proto](../../../proto/backend
 ## Contract 参考
 
 - [接入总览](README.md)
-- [触发导入](import_v3_plugin.md)
+- [触发 v3 插件包导入](import_v3_plugin.md)
+- [触发 v2 插件包导入](import_v2_plugin.md)
+- [触发 v2 外部插件包导入](import_v2_external_plugin.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/pkg_workflow.swagger.json)
 - [Proto variant 定义](../../../proto/backend/api/v3/pkg_workflow.proto)
 - [Workflow 类型定义](../../../proto/backend/api/v3/workflow.proto)

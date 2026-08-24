@@ -140,5 +140,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// workflow
 	h.rg.POST("/workflow/import/v3/plugin", restserver.Handler(h.PackagePluginV3Import))
+	h.rg.POST("/workflow/import/v2/plugin", restserver.Handler(h.PackagePluginV2Import))
+	h.rg.POST("/workflow/import/v2/external_plugin", restserver.Handler(h.PackageExternalPluginV2Import))
 	h.rg.POST("/workflow/import_result", restserver.Handler(h.PackageImportResult))
 }

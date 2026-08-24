@@ -41,6 +41,48 @@ func (x *PackageImportPluginV3PkgReq) Validate() error {
 func (x *PackageImportPluginV3PkgReq) AutoConvert() {
 }
 
+// Validate checks the plugin v2 package import request body.
+func (x *PackageImportPluginV2PkgReq) Validate() error {
+	if conv.IsEmpty(x.GetFilename()) {
+		return errors.New("filename is required")
+	}
+
+	if conv.IsEmpty(strings.TrimSpace(x.GetDownloadUrl())) {
+		return errors.New("download_url is required")
+	}
+
+	if conv.IsEmpty(x.GetMd5()) {
+		return errors.New("md5 is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the plugin v2 package import request.
+func (x *PackageImportPluginV2PkgReq) AutoConvert() {
+}
+
+// Validate checks the external plugin v2 package import request body.
+func (x *PackageImportExternalPluginV2PkgReq) Validate() error {
+	if conv.IsEmpty(x.GetFilename()) {
+		return errors.New("filename is required")
+	}
+
+	if conv.IsEmpty(strings.TrimSpace(x.GetDownloadUrl())) {
+		return errors.New("download_url is required")
+	}
+
+	if conv.IsEmpty(x.GetMd5()) {
+		return errors.New("md5 is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto converts the external plugin v2 package import request.
+func (x *PackageImportExternalPluginV2PkgReq) AutoConvert() {
+}
+
 // Validate checks the request body.
 func (x *PackageImportResultReq) Validate() error {
 	if conv.IsEmpty(x.GetWorkflowId()) {

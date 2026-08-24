@@ -16,6 +16,74 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/package/workflow/import/v2/external_plugin": {
+      "post": {
+        "summary": "PackageExternalPluginV2Import provides package external plugin v2\nimporting.",
+        "operationId": "PackageWorkflow_PackageExternalPluginV2Import",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportExternalPluginV2PkgResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageImportExternalPluginV2PkgReq describes the HTTP request body when\nimport external plugin v2 package in package service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportExternalPluginV2PkgReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageWorkflow"
+        ]
+      }
+    },
+    "/api/v3/package/workflow/import/v2/plugin": {
+      "post": {
+        "summary": "PackagePluginV2Import provides package plugin v2 importing.",
+        "operationId": "PackageWorkflow_PackagePluginV2Import",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportPluginV2PkgResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageImportPluginV2PkgReq describes the HTTP request body when import\nplugin v2 package in package service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageImportPluginV2PkgReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageWorkflow"
+        ]
+      }
+    },
     "/api/v3/package/workflow/import/v3/plugin": {
       "post": {
         "summary": "PackageImport provides package importing.",
@@ -199,6 +267,102 @@
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
           }
+        }
+      }
+    },
+    "v3PackageImportExternalPluginV2PkgReq": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "download_url": {
+          "type": "string"
+        },
+        "md5": {
+          "type": "string"
+        }
+      },
+      "description": "PackageImportExternalPluginV2PkgReq describes the HTTP request body when\nimport external plugin v2 package in package service."
+    },
+    "v3PackageImportExternalPluginV2PkgResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageImportExternalPluginV2PkgRespData"
+        }
+      },
+      "description": "PackageImportExternalPluginV2PkgResp describes the HTTP response body when\nimport external plugin v2 package in package service."
+    },
+    "v3PackageImportExternalPluginV2PkgRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageImportPluginV2PkgReq": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "download_url": {
+          "type": "string"
+        },
+        "md5": {
+          "type": "string"
+        }
+      },
+      "description": "PackageImportPluginV2PkgReq describes the HTTP request body when import\nplugin v2 package in package service."
+    },
+    "v3PackageImportPluginV2PkgResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageImportPluginV2PkgRespData"
+        }
+      },
+      "description": "PackageImportPluginV2PkgResp describes the HTTP response body when import\nplugin v2 package in package service."
+    },
+    "v3PackageImportPluginV2PkgRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
         }
       }
     },

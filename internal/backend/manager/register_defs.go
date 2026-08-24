@@ -73,6 +73,10 @@ func (mgr *Manager) registerDefPackage() error {
 	return mgr.workflowMgr.RegisterActions(
 		pkg.NewActionPackageImportPluginV3PkgFetchAndUpload(capability),
 		pkg.NewActionPackagePublishPluginV3Pkg(capability),
+		pkg.NewActionPackageImportPluginV2PkgFetchAndUpload(capability),
+		pkg.NewActionPackageImportExternalPluginV2PkgFetchAndUpload(capability),
+		pkg.NewActionPackagePublishPluginV2Pkg(capability),
+		pkg.NewActionPackagePublishExternalPluginV2Pkg(capability),
 		pkg.NewActionPackageReleasePluginEnable(capability),
 		pkg.NewActionPackageReleasePluginHidden(capability),
 	)

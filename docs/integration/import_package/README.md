@@ -1,12 +1,20 @@
 # import_package 接入指南
 
-本文面向需要通过 bk-nodemgr backend API 导入 v3 插件包到 package 服务的第三方平台开发者，说明接入流程、调用方需要提交的输入、API 即时输出，以及导入期望产生的可观察效果。
+本文面向需要通过 bk-nodemgr backend API 导入插件包到 package 服务的第三方平台开发者，说明接入流程、调用方需要提交的输入、API 即时输出，以及导入期望产生的可观察效果。
 
-`import_v3_plugin` 与 `import_result` 的请求与响应 envelope 以 [pkg_workflow.swagger.json](../../api/swagger/backend/api/v3/pkg_workflow.swagger.json) 为准；字段以 [pkg_workflow.proto](../../../proto/backend/api/v3/pkg_workflow.proto) 为准。operation / action / log 类型见 [workflow.proto](../../../proto/backend/api/v3/workflow.proto)。领域术语见 [glossary](../../concepts/glossary.md) 与 [plugin/README](../../concepts/plugin/README.md)。
+`import_*` 与 `import_result` 的请求与响应 envelope 以 [pkg_workflow.swagger.json](../../api/swagger/backend/api/v3/pkg_workflow.swagger.json) 为准；字段以 [pkg_workflow.proto](../../../proto/backend/api/v3/pkg_workflow.proto) 为准。operation / action / log 类型见 [workflow.proto](../../../proto/backend/api/v3/workflow.proto)。领域术语见 [glossary](../../concepts/glossary.md) 与 [plugin/README](../../concepts/plugin/README.md)。
 
 ## 接入结果
 
-`import_package` 在 bk-nodemgr package 服务中注册一个由外部下载链接指向的 v3 插件包。第三方平台提交：
+`import_package` 在 bk-nodemgr package 服务中注册一个由外部下载链接指向的插件包。`import_package` 当前提供 3 个变体，分别对应不同的插件包类型：
+
+| 变体                        | 插件包类型    | 适用场景                 |
+| --------------------------- | ------------- | ------------------------ |
+| `import_v3_plugin`          | v3 插件包     | 通用 v3 插件包导入       |
+| `import_v2_plugin`          | v2 插件包     | 官方 v2 插件包导入       |
+| `import_v2_external_plugin` | v2 外部插件包 | 第三方 v2 外部插件包导入 |
+
+三个变体的请求字段一致：
 
 - `filename`：插件包文件名。
 - `download_url`：插件包可下载 URL。
@@ -20,15 +28,17 @@ API 响应只确认导入 workflow 已创建；响应本身不证明插件包已
 
 curl template 按动作拆分：
 
-| 动作                       | 阅读                                    |
-| -------------------------- | --------------------------------------- |
-| 触发一次导入               | [import_v3_plugin](import_v3_plugin.md) |
-| 读取导入 workflow 执行结果 | [import_result](import_result.md)       |
+| 动作                       | 阅读                                                      |
+| -------------------------- | --------------------------------------------------------- |
+| 触发一次 v3 插件包导入     | [import_v3_plugin](import_v3_plugin.md)                   |
+| 触发一次 v2 插件包导入     | [import_v2_plugin](import_v2_plugin.md)                   |
+| 触发一次 v2 外部插件包导入 | [import_v2_external_plugin](import_v2_external_plugin.md) |
+| 读取导入 workflow 执行结果 | [import_result](import_result.md)                         |
 
 完整集成流程：
 
-1. 准备好要导入的 v3 插件包的可下载 URL 与 MD5。
-2. 调用 `POST /api/v3/package/workflow/import/v3/plugin`，提交 `filename` / `download_url` / `md5`。
+1. 准备好要导入的插件包的可下载 URL 与 MD5。
+2. 选择对应的 import 变体（`import_v3_plugin` / `import_v2_plugin` / `import_v2_external_plugin`）调用 `POST /api/v3/package/workflow/import/{variant}`，提交 `filename` / `download_url` / `md5`。
 3. 从 import 响应保存 `data.workflow_id`，作为本次导入的标识。
 4. 调用 `POST /api/v3/package/workflow/import_result`，按 `workflow_id` 读取 workflow 状态与每 operation 的源信息。
 5. 根据 `import_result` 的 `data.status` 与 `data.is_finish` 判定导入是否完成；按 `data.operations[]` 的 `oper_inst_logs` 定位具体 action 日志。
@@ -39,10 +49,12 @@ curl template 按动作拆分：
 
 公开的 import_package endpoints：
 
-| 步骤         | Method and path                                  | 即时输出                                               |
-| ------------ | ------------------------------------------------ | ------------------------------------------------------ |
-| 触发导入     | `POST /api/v3/package/workflow/import/v3/plugin` | `data.workflow_id`                                     |
-| 读取导入结果 | `POST /api/v3/package/workflow/import_result`    | `data.status` / `data.is_finish` / `data.operations[]` |
+| 步骤                   | Method and path                                           | 即时输出                                               |
+| ---------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
+| 触发 v3 插件包导入     | `POST /api/v3/package/workflow/import/v3/plugin`          | `data.workflow_id`                                     |
+| 触发 v2 插件包导入     | `POST /api/v3/package/workflow/import/v2/plugin`          | `data.workflow_id`                                     |
+| 触发 v2 外部插件包导入 | `POST /api/v3/package/workflow/import/v2/external_plugin` | `data.workflow_id`                                     |
+| 读取导入结果           | `POST /api/v3/package/workflow/import_result`             | `data.status` / `data.is_finish` / `data.operations[]` |
 
 curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部署的 API base URL；import_package contract 不定义统一 gateway 或认证 header。
 
@@ -60,11 +72,17 @@ curl template 中的 `BK_NODEMGR_API_BASE` 由调用方提供，表示当前部�
 
 ### 3. 触发导入
 
-调用 `POST /api/v3/package/workflow/import/v3/plugin`，提交上述三个字段。
+按插件包类型选择对应端点：
+
+| 插件包类型    | 端点                                                      | 详情                                                      |
+| ------------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| v3 插件包     | `POST /api/v3/package/workflow/import/v3/plugin`          | [import_v3_plugin](import_v3_plugin.md)                   |
+| v2 插件包     | `POST /api/v3/package/workflow/import/v2/plugin`          | [import_v2_plugin](import_v2_plugin.md)                   |
+| v2 外部插件包 | `POST /api/v3/package/workflow/import/v2/external_plugin` | [import_v2_external_plugin](import_v2_external_plugin.md) |
+
+提交 `filename` / `download_url` / `md5` 三个字段。
 
 import 响应包含 `data.workflow_id`。把它保存为本次导入的 identity，用于后续 `import_result` 读取。
-
-详情和 curl template：[import_v3_plugin](import_v3_plugin.md)。
 
 ### 4. 读取导入结果
 
@@ -76,11 +94,19 @@ import 响应包含 `data.workflow_id`。把它保存为本次导入的 identity
 
 `operations[]` 的字段即为 "operation 源信息"：第三方平台可以凭 `operation_id` 串联到具体执行，按 `action_name` 读取 action 日志与生命周期。
 
+`data.operations[].operation_id` 与 import 变体的对应关系：
+
+| 触发导入的端点              | 对应 operation_id                   |
+| --------------------------- | ----------------------------------- |
+| `import_v3_plugin`          | `package_plugin_v3_import`          |
+| `import_v2_plugin`          | `package_plugin_v2_import`          |
+| `import_v2_external_plugin` | `package_external_plugin_v2_import` |
+
 详情和 curl template：[import_result](import_result.md)。
 
 ### 5. 解读即时输出
 
-`POST /api/v3/package/workflow/import/v3/plugin` 返回 `data.workflow_id`，表示平台已接受导入请求。
+任一 import 变端点（`import_v3_plugin` / `import_v2_plugin` / `import_v2_external_plugin`）返回 `data.workflow_id`，表示平台已接受导入请求。
 
 `workflow_id` 不证明插件包已经下载、已经校验、已经写入 release 记录。
 
@@ -111,13 +137,15 @@ import 响应包含 `data.workflow_id`。把它保存为本次导入的 identity
 以下内容属于接入边界：
 
 - 请求结构错误或 unsupported fields 是 API contract 问题，检查 [pkg_workflow.swagger.json](../../api/swagger/backend/api/v3/pkg_workflow.swagger.json)。
-- `import_v3_plugin` 成功响应是即时 API 结果，不是最终注册成功的证明。
+- 任一 import 变体的成功响应都是即时 API 结果，不是最终注册成功的证明。
 - `import_result` 的 `data.is_finish = true` 表示 workflow 进入终态，不单独证明 release 列表已命中。
 - 公开 contract 不定义通用 idempotency key、retry window、polling cadence、rollback behavior。
 
 ## Contract 参考
 
 - [import_v3_plugin](import_v3_plugin.md)
+- [import_v2_plugin](import_v2_plugin.md)
+- [import_v2_external_plugin](import_v2_external_plugin.md)
 - [import_result](import_result.md)
 - [Swagger contract](../../api/swagger/backend/api/v3/pkg_workflow.swagger.json)
 - [Proto variant 定义](../../../proto/backend/api/v3/pkg_workflow.proto)
