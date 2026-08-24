@@ -1354,7 +1354,8 @@ backend:
 
     # defines the access settings.
     access:
-      virtualUser: "admin"
+      # virtualUser overrides the default system user; when omitted, single mode uses admin and multiple mode uses bk_admin.
+      # virtualUser: ""
 
     ## defines the log related settings.
     log:
