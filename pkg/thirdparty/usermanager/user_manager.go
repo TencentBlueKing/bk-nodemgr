@@ -79,6 +79,8 @@ func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 		SubResourcef("/open/tenants/").
 		WithContext(nCtx).
 		WithHeaders(header).
+		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
@@ -109,6 +111,8 @@ func (c *cli) batchLookupVirtualUser(nCtx contextx.IContext, loginName string) (
 			"lookups":      loginName,
 			"lookup_field": lookupFieldLoginName,
 		}).
+		EnableLogBody().
+		EnableLogResponse().
 		Do().Into(resp)
 	if err != nil {
 		return nil, err
