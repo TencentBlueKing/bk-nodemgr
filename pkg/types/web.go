@@ -24,4 +24,5 @@ type WebUserInfo struct {
 	LoginName  string
 	Email      string
 	TimeZone   string
+	TenantID   string
 }

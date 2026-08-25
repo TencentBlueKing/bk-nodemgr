@@ -27,8 +27,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
@@ -65,23 +63,11 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 
 // Index return the index page.
 func (h *handler) Index(ctx *gin.Context) {
-	// Get tenant ID
-	var tenantID string
-	if tenant.GetMode() == tenant.ModeSingle {
-		tenantID = tenant.SingleModeTenantID
-	} else {
-		// Multiple tenant mode: get tenant ID from request header
-		tenantID = header.BKTenantIDGetter(ctx.Request)
-		if tenantID == "" {
-			// Use default value if tenant ID is not found in header
-			tenantID = tenant.SingleModeTenantID
-		}
-	}
-
 	// Get login name from bklogin API for display purposes only.
 	// This is not used for actual authentication logic.
 	// Returns empty string if auth cookie is missing or GetWebUserInfo call fails.
 	var (
+		tenantID     = ""
 		bkUsername   = ""
 		loginName    = ""
 		userTimeZone = ""
@@ -102,6 +88,7 @@ func (h *handler) Index(ctx *gin.Context) {
 			userTimeZone = info.TimeZone
 			userEmail = info.Email
 			bkUsername = info.BKUsername
+			tenantID = info.TenantID
 		}
 	}
 

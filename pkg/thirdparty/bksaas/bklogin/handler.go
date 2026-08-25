@@ -185,6 +185,15 @@ func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*types.W
 		}
 		info.BKUsername = resp.Username
 		info.LoginName = resp.Username
+		tenantMode := tenant.GetMode()
+		switch tenantMode {
+		case tenant.ModeSingle:
+			info.TenantID = tenant.SingleModeTenantID
+		case tenant.ModeMultiple:
+			info.TenantID = tenant.SystemTenantID
+		default:
+			return nil, fmt.Errorf("failed to get web user info: unsupported tenant mode: %s", tenantMode)
+		}
 	case CookieKeyBKToken:
 		tenantMode := tenant.GetMode()
 		switch tenantMode {
@@ -196,6 +205,7 @@ func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*types.W
 			}
 			info.BKUsername = resp.Username
 			info.LoginName = resp.Username
+			info.TenantID = tenant.SingleModeTenantID
 		case tenant.ModeMultiple:
 			req := &GetUserInfoByBKTokenMultipleTenantModeReq{BKToken: token}
 			resp, err := h.cli.getUserInfoByBKTokenMultipleTenantMode(nCtx, req)
@@ -205,6 +215,7 @@ func (h *Handler) GetWebUserInfo(nCtx contextx.IContext, token string) (*types.W
 			info.BKUsername = resp.BKUsername
 			info.LoginName = resp.LoginName
 			info.TimeZone = resp.TimeZone
+			info.TenantID = resp.TenantID
 		default:
 			return nil, fmt.Errorf("failed to get web user info: unsupported tenant mode: %s", tenantMode)
 		}
