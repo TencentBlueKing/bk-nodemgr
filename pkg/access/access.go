@@ -37,14 +37,9 @@ var virtualUser = struct {
 	user: defaultVirtualUser,
 }
 
-// GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
-func GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error) {
-	return tenant.GetBKUsernameByLoginName(ctx, loginName)
-}
-
 // GetVirtualUserBKUsername gets the tenant-scoped bk username for the system virtual user.
 func GetVirtualUserBKUsername(ctx contextx.IContext) (string, error) {
-	return GetBKUsernameByLoginName(ctx, GetVirtualUser())
+	return tenant.GetBKUsernameByLoginName(ctx, GetVirtualUser())
 }
 
 // GetVirtualUser gets the system user.

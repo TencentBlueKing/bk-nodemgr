@@ -69,6 +69,8 @@ func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// notice: this api is special, it only need the app config.
 	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.AppConfig.GetAuthHeader())
 
 	err = c.client.Get().
@@ -98,6 +100,8 @@ func (c *cli) batchLookupVirtualUser(nCtx contextx.IContext, loginName string) (
 	if err != nil {
 		return nil, err
 	}
+
+	// notice: this api is special, it only need the app config.
 	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.AppConfig.GetAuthHeader())
 
 	err = c.client.Get().

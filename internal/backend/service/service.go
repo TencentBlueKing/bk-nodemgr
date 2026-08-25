@@ -251,6 +251,12 @@ func (svc *Service) initialCapability() error {
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
+	// initial user manager handler.
+	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create user manager handler: %w", err)
+	}
+
 	// initial local installer file group.
 	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(svc.conf.InstallerFileGroup.FullPath)
 	if err != nil {
@@ -289,12 +295,6 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.FileHandler, err = svc.newFileHandler()
 	if err != nil {
 		return fmt.Errorf("failed to create file handler: %w", err)
-	}
-
-	// initial user manager handler.
-	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
-	if err != nil {
-		return fmt.Errorf("failed to create user manager handler: %w", err)
 	}
 
 	// initial IAM v3 handler.

@@ -73,17 +73,17 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 
 // getHeader get backend common header.
 // nolint: unparam
-func (c *cli) getHeader(ctx contextx.IContext) http.Header {
+func (c *cli) getHeader(nCtx contextx.IContext) http.Header {
 	header := http.Header{}
-	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
+	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
 
 	// backend apigw open the user auth.
 	userConfig := apigwclient.UserConfig{
 		AppConfig: c.config.APIGWAppConfig,
-		LoginName: ctx.LoginName(),
+		LoginName: nCtx.LoginName(),
 	}
-	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader(ctx))
+	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader(nCtx))
 
 	return header
 }
