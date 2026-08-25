@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
@@ -33,7 +32,7 @@ import (
 // IHandler handler interface.
 type IHandler interface {
 	tenant.ITenantIDProvider
-	access.IVirtualUserResolver
+	tenant.ITenantUserResolver
 
 	ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
 }

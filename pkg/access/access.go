@@ -23,6 +23,7 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
 const (
@@ -36,34 +37,9 @@ var virtualUser = struct {
 	user: defaultVirtualUser,
 }
 
-// IVirtualUserResolver resolves a virtual user login name to the tenant-scoped bk username.
-type IVirtualUserResolver interface {
-	// GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
-	GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error)
-}
-
-var virtualUserResolver = struct {
-	sync.RWMutex
-	resolver IVirtualUserResolver
-}{
-	resolver: NewNoopVirtualUserResolver(),
-}
-
-// SetVirtualUserResolver sets the virtual user resolver.
-func SetVirtualUserResolver(resolver IVirtualUserResolver) {
-	virtualUserResolver.Lock()
-	defer virtualUserResolver.Unlock()
-
-	virtualUserResolver.resolver = resolver
-}
-
 // GetBKUsernameByLoginName gets the tenant-scoped bk username by virtual user login name.
 func GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error) {
-	virtualUserResolver.RLock()
-	resolver := virtualUserResolver.resolver
-	virtualUserResolver.RUnlock()
-
-	return resolver.GetBKUsernameByLoginName(ctx, loginName)
+	return tenant.GetBKUsernameByLoginName(ctx, loginName)
 }
 
 // GetVirtualUserBKUsername gets the tenant-scoped bk username for the system virtual user.
