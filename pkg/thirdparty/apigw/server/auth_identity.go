@@ -72,8 +72,8 @@ func (identity *BKGWJWTAuthIdentityAppState) Verify(r restserver.IRequest) error
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	r.Data().SetLoginName(claims.User.UserName)
-	// TODO: 等待多租户版本上线后，需要修改 r.BKUsername 的赋值
+	// notice: apigw only can return the bk_username,
+	// if need the login name, need to use exchange login name from user manager by bk_username.
 	r.Data().SetBKUsername(claims.User.UserName)
 
 	return nil
@@ -121,8 +121,8 @@ func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IContext) e
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	rCtx.Data().SetLoginName(claims.User.UserName)
-	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
+	// notice: apigw only can return the bk_username,
+	// if need the login name, need to use exchange login name from user manager by bk_username.
 	rCtx.Data().SetBKUsername(claims.User.UserName)
 
 	return nil
