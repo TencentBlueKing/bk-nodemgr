@@ -25,9 +25,7 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
@@ -40,8 +38,7 @@ type cli struct {
 
 // newClient initialize a new user manager client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/api/v3",
-		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, apigwclient.AuthHeaderMasker))
+	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.APIGWUserConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +57,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 // nolint: unparam
 func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader())
+	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
 
 	return header, nil
 }
@@ -74,6 +69,7 @@ func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 	if err != nil {
 		return nil, err
 	}
+	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.AppConfig.GetAuthHeader())
 
 	err = c.client.Get().
 		SubResourcef("/open/tenants/").
@@ -102,6 +98,7 @@ func (c *cli) batchLookupVirtualUser(nCtx contextx.IContext, loginName string) (
 	if err != nil {
 		return nil, err
 	}
+	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.AppConfig.GetAuthHeader())
 
 	err = c.client.Get().
 		SubResourcef("/open/tenant/virtual-users/-/lookup/").

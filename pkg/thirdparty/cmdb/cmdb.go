@@ -97,10 +97,10 @@ func (c *cli) getHeader(ctx contextx.IContext) (http.Header, error) {
 
 	// backend apigw open the user auth.
 	userConfig := apigwclient.UserConfig{
-		AppConfig:  c.config.APIGWAppConfig,
-		BKUsername: ctx.BKUsername(),
+		AppConfig: c.config.APIGWAppConfig,
+		LoginName: ctx.LoginName(),
 	}
-	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader())
+	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader(ctx))
 
 	return header, nil
 }

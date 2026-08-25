@@ -686,7 +686,7 @@ func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 	return apigwclient.UserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
-		BKUsername:  conf.User,
+		LoginName:   conf.User,
 		AccessToken: conf.AccessToken,
 	}
 }

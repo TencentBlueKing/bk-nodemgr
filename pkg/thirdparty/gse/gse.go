@@ -69,9 +69,10 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 
 // getHeader get gse common header.
 // nolint: unparam
-func (c *cli) getCommonHeader(ctx contextx.IContext) (http.Header, error) {
+func (c *cli) getCommonHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
-	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
+	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
+	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
 
 	return header, nil
 }

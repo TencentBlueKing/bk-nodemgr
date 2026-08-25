@@ -35,6 +35,7 @@ import (
 // cli client for bkoa.
 type cli struct {
 	client restclient.IClient
+	config *Config
 }
 
 // newClient initialize a new bkoa client.
@@ -44,7 +45,10 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 		return nil, err
 	}
 
-	client := &cli{client: restCli}
+	client := &cli{
+		client: restCli,
+		config: conf,
+	}
 	if tenant.GetMode() != tenant.ModeMultiple || conf.AuthType != CookieKeyBKToken {
 		return client, nil
 	}
@@ -138,6 +142,7 @@ func (c *cli) getUserInfoByBKTokenMultipleTenantMode(
 	// This is a special logic: the API gateway is required to take a tenant ID, but this API does not differentiate tenants.
 	apigwHeader := http.Header{}
 	apigwHeader.Set(apigwheader.BKGWTenantIDKey, tenant.SystemTenantID)
+	apigwHeader.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
 
 	resp := new(BKTokenMultipleTenantModeBroker)
 	err := c.client.Get().

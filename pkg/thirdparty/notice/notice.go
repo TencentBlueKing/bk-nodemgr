@@ -24,9 +24,7 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
@@ -58,15 +56,8 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 // getHeader get notice common header.
 func (c *cli) getHeader(nCtx contextx.IContext) http.Header {
 	header := http.Header{}
-	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
-
-	// backend apigw open the user auth.
-	userConfig := apigwclient.UserConfig{
-		AppConfig:  c.config.APIGWUserConfig.AppConfig,
-		BKUsername: nCtx.BKUsername(),
-	}
-	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader())
+	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
+	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
 
 	return header
 }

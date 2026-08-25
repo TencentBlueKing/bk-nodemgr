@@ -49,8 +49,8 @@ func LoadAuthHeader() (apigwclient.UserConfig, error) {
 			[]string{os.Getenv("BK_APIGW_ENDPOINT")},
 			header["bk_app_code"],
 			header["bk_app_secret"]),
-		BKUsername: header["bk_username"],
-		AuthMode:   apigwclient.AuthModeUn,
+		LoginName: header["bk_username"],
+		AuthMode:  apigwclient.AuthModeUn,
 	}
 
 	return apigwClientConfig, nil

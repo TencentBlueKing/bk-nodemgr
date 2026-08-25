@@ -519,7 +519,7 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	apiGwUserConfig := apigwclient.UserConfig{
 		AppConfig:   apiGwAppConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.IAMV3.AuthMode),
-		BKUsername:  svc.conf.IAMV3.User,
+		LoginName:   svc.conf.IAMV3.User,
 		AccessToken: svc.conf.IAMV3.AccessToken,
 	}
 
@@ -1184,7 +1184,7 @@ func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 	return apigwclient.UserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
-		BKUsername:  conf.User,
+		LoginName:   conf.User,
 		AccessToken: conf.AccessToken,
 	}
 }

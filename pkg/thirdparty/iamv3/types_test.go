@@ -31,8 +31,8 @@ func TestConfig_Validate(t *testing.T) {
 			"test-app",
 			"test-secret",
 		),
-		AuthMode:   apigwclient.AuthModeUn,
-		BKUsername: "admin",
+		AuthMode:  apigwclient.AuthModeUn,
+		LoginName: "admin",
 	}
 
 	tests := []struct {
@@ -76,8 +76,8 @@ func TestConfig_Validate(t *testing.T) {
 						"", // empty app code
 						"test-secret",
 					),
-					AuthMode:   apigwclient.AuthModeUn,
-					BKUsername: "admin",
+					AuthMode:  apigwclient.AuthModeUn,
+					LoginName: "admin",
 				},
 				SystemID:     "bk_nodemgr",
 				CallbackPath: "/api/v3/iam/callback",

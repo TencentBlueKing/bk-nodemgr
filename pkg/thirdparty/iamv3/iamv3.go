@@ -24,8 +24,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 	"github.com/TencentBlueKing/iam-go-sdk/expression"
 )
 
@@ -65,7 +65,8 @@ func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 	header := http.Header{}
 	// Use non-canonical header name as required by IAM API
 	header[HeaderKeyIAMVersion] = []string{HeaderValueIAMVersion}
-	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
+	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
+	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(ctx))
 
 	return header
 }

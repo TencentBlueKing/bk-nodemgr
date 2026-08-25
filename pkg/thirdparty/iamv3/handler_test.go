@@ -71,8 +71,8 @@ func TestNew(t *testing.T) {
 			"test-app",
 			"test-secret",
 		),
-		AuthMode:   apigwclient.AuthModeUn,
-		BKUsername: "admin",
+		AuthMode:  apigwclient.AuthModeUn,
+		LoginName: "admin",
 	}
 
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
@@ -137,8 +137,8 @@ func TestNew(t *testing.T) {
 						"", // empty app code
 						"test-secret",
 					),
-					AuthMode:   apigwclient.AuthModeUn,
-					BKUsername: "admin",
+					AuthMode:  apigwclient.AuthModeUn,
+					LoginName: "admin",
 				},
 				SystemID:     "bk_nodemgr",
 				CallbackPath: "/api/v3/iam/callback",
@@ -308,9 +308,9 @@ func newTestIAMHandler(t *testing.T, endpoint string) *Handler {
 
 	handler, err := New(capability, &Config{
 		APIGWUserConfig: apigwclient.UserConfig{
-			AppConfig:  apigwclient.NewAppConfig([]string{endpoint}, "test-app", "test-secret"),
-			AuthMode:   apigwclient.AuthModeUn,
-			BKUsername: "admin",
+			AppConfig: apigwclient.NewAppConfig([]string{endpoint}, "test-app", "test-secret"),
+			AuthMode:  apigwclient.AuthModeUn,
+			LoginName: "admin",
 		},
 		SystemID:     "bk_nodemgr",
 		CallbackPath: "/api/v3/iam/callback",

@@ -24,6 +24,9 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
 // AppConfig defines the api gateway related app info.
@@ -51,6 +54,11 @@ func (conf *AppConfig) GetAppCode() string {
 	return conf.appCode
 }
 
+// GetAuthHeader get api gateway app auth header.
+func (conf *AppConfig) GetAuthHeader() string {
+	return fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\"}", conf.appCode, conf.appSecret)
+}
+
 // Validate api gateway runtime.
 func (conf *AppConfig) Validate() error {
 	if len(conf.endpoints) == 0 {
@@ -74,8 +82,8 @@ type UserConfig struct {
 	AppConfig
 	// AuthMode is the BlueKing api authentication mode.
 	AuthMode AuthMode
-	// BKUsername is the BlueKing BKUsername of nodeman to request api gateway.
-	BKUsername string
+	// LoginName is the BlueKing login name of nodeman to request api gateway.
+	LoginName string
 	// AccessToken is the BlueKing access token of nodeman to request api gateway.
 	AccessToken string
 }
@@ -102,7 +110,7 @@ func (conf *UserConfig) Validate() error {
 			return errors.New("failed to validated user config: api gateway access token is not set")
 		}
 	case AuthModeUn:
-		if len(conf.BKUsername) == 0 {
+		if len(conf.LoginName) == 0 {
 			return errors.New("failed to validated user config: api gateway user is not set")
 		}
 	default:
@@ -128,18 +136,20 @@ func (conf *UserConfig) Validate() error {
 // # 使用 access_token
 // # Use access_token
 // X-Bkapi-Authorization: {"access_token": "z"}.
-func (conf *UserConfig) GetAuthHeader() string {
+func (conf *UserConfig) GetAuthHeader(nCtx contextx.IContext) string {
+	bkUsername, _ := tenant.GetBKUsernameByLoginName(nCtx, conf.LoginName)
+
 	var auth string
 	switch conf.AuthMode {
 	case AuthModeAt:
 		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken)
 	case AuthModeUn:
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, conf.BKUsername)
+			conf.appCode, conf.appSecret, bkUsername)
 	default:
 		// default use un mode.
 		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, conf.BKUsername)
+			conf.appCode, conf.appSecret, bkUsername)
 	}
 
 	return auth

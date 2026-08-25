@@ -260,7 +260,7 @@ func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
 	apiGwUserConfig := apigwclient.UserConfig{
 		AppConfig:   apiGwAppConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.Notice.AuthMode),
-		BKUsername:  svc.conf.Notice.User,
+		LoginName:   svc.conf.Notice.User,
 		AccessToken: svc.conf.Notice.AccessToken,
 	}
 
@@ -641,7 +641,7 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 			APIGWUserConfig: apigwclient.UserConfig{
 				AppConfig:   newAPIGWAppConfig(&conf.APIGatewayClient),
 				AuthMode:    apigwclient.AuthMode(conf.AuthMode),
-				BKUsername:  conf.User,
+				LoginName:   conf.User,
 				AccessToken: conf.AccessToken,
 			},
 		},
