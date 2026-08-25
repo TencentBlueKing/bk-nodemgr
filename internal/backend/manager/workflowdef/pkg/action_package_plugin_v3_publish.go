@@ -125,9 +125,9 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Platform: uploadInfo.Platforms,
-			Name:     []string{uploadInfo.Name},
-			Version:  []string{uploadInfo.Version},
+			Generation: []types.Generation{types.Generation2},
+			Name:       []string{uploadInfo.Name},
+			Version:    []string{uploadInfo.Version},
 		},
 	}
 	pkgs, _, err := act.storageRelease.ListReleasePlugin(nCtx, types.UnlimitedPage(), cond)
@@ -146,13 +146,13 @@ func (act *actionPackagePublishPluginV3Pkg) Do(ctx *action.InstanceContext) (err
 			uploadInfo.Name, uploadInfo.Version)
 	}
 
-	if len(pkgs) != len(uploadInfo.Platforms) {
+	if err := pkgUtils.ComparePlatforms(uploadInfo.Platforms, pkgs); err != nil {
 		std.InstanceData().Log().
-			Zh("已发布的插件包内系统架构与上传的包内数量不匹配, 已发布的系统架构数: %d，原始包内系统架构数: %d",
-				len(pkgs), len(uploadInfo.Platforms)).
-			En("published package os/arch count not match, published os/arch count: %d, original package os/arch count: %d",
-				len(pkgs), len(uploadInfo.Platforms)).
-			Warn()
+			Zh("已发布的V3插件包平台集合与上传包的预期平台集合不匹配: %s", err).
+			En("published v3 package platform set does not match the uploaded package: %s", err).
+			Error()
+
+		return err
 	}
 
 	info.Release = conv.SliceToSlice(pkgs, func(pkg *types.ReleasePlugin) types.Release {
