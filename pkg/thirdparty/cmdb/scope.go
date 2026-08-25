@@ -58,12 +58,6 @@ func (h *Handler) GetTargetByScopeSetTemplate(nCtx contextx.IContext, scope *typ
 		return nil, fmt.Errorf("failed to get target, nCtx is nil")
 	}
 
-	virtualUserCtx, resolveErr := h.contextWithVirtualUser(nCtx)
-	if resolveErr != nil {
-		return nil, resolveErr
-	}
-	nCtx = virtualUserCtx
-
 	if scope == nil {
 		return nil, fmt.Errorf("failed to get target, scope is nil")
 	}
@@ -158,12 +152,6 @@ func (h *Handler) GetTargetByScopeServiceTemplate(nCtx contextx.IContext, scope 
 		return nil, fmt.Errorf("failed to get target by scope service template, nCtx is nil")
 	}
 
-	virtualUserCtx, resolveErr := h.contextWithVirtualUser(nCtx)
-	if resolveErr != nil {
-		return nil, resolveErr
-	}
-	nCtx = virtualUserCtx
-
 	if scope == nil {
 		return nil, fmt.Errorf("failed to get target by scope service template, scope is nil")
 	}
@@ -257,12 +245,6 @@ func (h *Handler) GetTargetByScopeInstance(nCtx contextx.IContext, scope *types.
 	if nCtx == nil {
 		return nil, fmt.Errorf("failed to get target by scope instance, nCtx is nil")
 	}
-
-	virtualUserCtx, resolveErr := h.contextWithVirtualUser(nCtx)
-	if resolveErr != nil {
-		return nil, resolveErr
-	}
-	nCtx = virtualUserCtx
 
 	if scope == nil {
 		return nil, fmt.Errorf("failed to get target by scope instance, scope is nil")
@@ -362,12 +344,6 @@ func (h *Handler) GetTargetByScopeTopo(nCtx contextx.IContext, scope *types.Scop
 	if nCtx == nil {
 		return nil, fmt.Errorf("failed to get target by scope topo, nCtx is nil")
 	}
-
-	virtualUserCtx, resolveErr := h.contextWithVirtualUser(nCtx)
-	if resolveErr != nil {
-		return nil, resolveErr
-	}
-	nCtx = virtualUserCtx
 
 	if scope == nil {
 		return nil, fmt.Errorf("failed to get target by scope topo, scope is nil")
@@ -522,12 +498,6 @@ func (h *Handler) GetTargetByScopeDynamicGroup(nCtx contextx.IContext, scope *ty
 	if nCtx == nil {
 		return nil, fmt.Errorf("failed to get target by scope dynamic group, nCtx is nil")
 	}
-
-	virtualUserCtx, resolveErr := h.contextWithVirtualUser(nCtx)
-	if resolveErr != nil {
-		return nil, resolveErr
-	}
-	nCtx = virtualUserCtx
 
 	if scope == nil {
 		return nil, fmt.Errorf("failed to get target by scope dynamic group, scope is nil")

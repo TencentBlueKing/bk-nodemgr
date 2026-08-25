@@ -25,40 +25,36 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
-func TestHandlerContextWithVirtualUser(t *testing.T) {
+func TestContextWithTenantIDPreservesCallerIdentity(t *testing.T) {
 	const (
-		tenantID    = "tenant-1"
-		callerUser  = "caller"
-		virtualUser = "bk-nodemgr"
-		loginName   = "caller-login"
-		messageID   = "message-1"
-		valueKey    = "request-source"
-		value       = "unit-test"
+		sourceTenantID = "tenant-1"
+		targetTenantID = "tenant-2"
+		bkUsername     = "caller-tenant-user"
+		loginName      = "caller-login"
+		messageID      = "message-1"
+		valueKey       = "request-source"
+		value          = "unit-test"
 	)
 
 	parentCtx, cancel := context.WithCancel(context.Background())
 	nCtx := contextx.New(parentCtx,
-		contextx.WithTenantID(tenantID),
-		contextx.WithBKUsername(callerUser),
+		contextx.WithTenantID(sourceTenantID),
+		contextx.WithBKUsername(bkUsername),
 		contextx.WithLoginName(loginName),
 		contextx.WithMessageID(messageID),
 		contextx.WithValues(map[string]any{valueKey: value}),
 	)
-	h := &Handler{cli: &cli{config: &Config{VirtualUser: virtualUser}}}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	cmdbCtx := contextx.From(nCtx, contextx.WithTenantID(targetTenantID))
 
-	if cmdbCtx.BKUsername() != virtualUser {
-		t.Fatalf("BKUsername() = %q, want %q", cmdbCtx.BKUsername(), virtualUser)
+	if cmdbCtx.TenantID() != targetTenantID {
+		t.Fatalf("TenantID() = %q, want %q", cmdbCtx.TenantID(), targetTenantID)
 	}
-	if nCtx.BKUsername() != callerUser {
-		t.Fatalf("source BKUsername() = %q, want %q", nCtx.BKUsername(), callerUser)
+	if nCtx.TenantID() != sourceTenantID {
+		t.Fatalf("source TenantID() = %q, want %q", nCtx.TenantID(), sourceTenantID)
 	}
-	if cmdbCtx.TenantID() != tenantID {
-		t.Fatalf("TenantID() = %q, want %q", cmdbCtx.TenantID(), tenantID)
+	if cmdbCtx.BKUsername() != bkUsername {
+		t.Fatalf("BKUsername() = %q, want %q", cmdbCtx.BKUsername(), bkUsername)
 	}
 	if cmdbCtx.LoginName() != loginName {
 		t.Fatalf("LoginName() = %q, want %q", cmdbCtx.LoginName(), loginName)

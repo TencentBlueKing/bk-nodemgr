@@ -356,6 +356,12 @@ func (svc *Service) initialCapability() error {
 
 func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 	apiGWAPPConfig := newAPIGWAppConfig(&svc.conf.CMDB.APIGatewayClient)
+	apiGwUserConfig := apigwclient.UserConfig{
+		AppConfig:   apiGWAPPConfig,
+		AuthMode:    apigwclient.AuthMode(svc.conf.CMDB.AuthMode),
+		LoginName:   svc.conf.CMDB.User,
+		AccessToken: svc.conf.CMDB.AccessToken,
+	}
 	apiGwClientCapability, err := newAPIGwClientCapability(clientNameCMDB, &svc.conf.CMDB.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for cmdb: %w", err)
@@ -365,8 +371,7 @@ func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 		apiGwClientCapability,
 		&cmdb.Config{
 			SupplierAccount: svc.conf.CMDB.SupplierAccount,
-			VirtualUser:     access.GetVirtualUser(),
-			APIGWAppConfig:  apiGWAPPConfig,
+			APIGWUserConfig: apiGwUserConfig,
 		},
 	)
 	if err != nil {

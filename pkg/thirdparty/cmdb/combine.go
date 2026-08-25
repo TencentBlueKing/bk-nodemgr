@@ -47,11 +47,6 @@ func (h *Handler) getCombinedHandler(nCtx contextx.IContext) (*combinedHandler, 
 		return handler, nil
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-
 	h.combinedHandlerGroupMu.Lock()
 	defer h.combinedHandlerGroupMu.Unlock()
 
@@ -63,7 +58,7 @@ func (h *Handler) getCombinedHandler(nCtx contextx.IContext) (*combinedHandler, 
 	// create new handler.
 	handler = &combinedHandler{
 		tenantID: tenantID,
-		username: cmdbCtx.BKUsername(),
+		username: nCtx.BKUsername(),
 		cli:      h.cli,
 	}
 	handler.init()

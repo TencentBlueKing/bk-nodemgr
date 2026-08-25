@@ -25,7 +25,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/batchexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -224,11 +223,7 @@ func (h *Handler) initEnumKeepers() error {
 				}
 
 				for _, tenantID := range tenantIDs {
-					newCtx, err := h.contextWithTenantVirtualUser(nCtx, tenantID)
-					if err != nil {
-						return err
-					}
-
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 					if err := h.cloudVendorKeeper.update(newCtx); err != nil {
 						return err
 					}
@@ -248,11 +243,7 @@ func (h *Handler) initEnumKeepers() error {
 					return fmt.Errorf("failed to list tenant IDs: %w", err)
 				}
 				for _, tenantID := range tenantIDs {
-					newCtx, err := h.contextWithTenantVirtualUser(nCtx, tenantID)
-					if err != nil {
-						return err
-					}
-
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 					if err := h.osTypeKeeper.update(newCtx); err != nil {
 						return err
 					}
@@ -272,11 +263,7 @@ func (h *Handler) initEnumKeepers() error {
 					return fmt.Errorf("failed to list tenant IDs: %w", err)
 				}
 				for _, tenantID := range tenantIDs {
-					newCtx, err := h.contextWithTenantVirtualUser(nCtx, tenantID)
-					if err != nil {
-						return err
-					}
-
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 					if err := h.cpuArchKeeper.update(newCtx); err != nil {
 						return err
 					}
@@ -304,11 +291,7 @@ func (h *Handler) initEnumKeepers() error {
 		return fmt.Errorf("failed to list tenant IDs: %w", err)
 	}
 	for _, tenantID := range tenantIDs {
-		newCtx, err := h.contextWithTenantVirtualUser(nCtx, tenantID)
-		if err != nil {
-			return err
-		}
-
+		newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 		if err := h.cloudVendorKeeper.update(newCtx); err != nil {
 			logger.G.Sys().WithErr(err).Warn("failed to sync cloud vendor")
 		}
@@ -326,20 +309,6 @@ func (h *Handler) initEnumKeepers() error {
 	return nil
 }
 
-func (h *Handler) contextWithTenantVirtualUser(nCtx contextx.IContext, tenantID string) (contextx.IContext, error) {
-	return h.contextWithVirtualUser(contextx.From(nCtx, contextx.WithTenantID(tenantID)))
-}
-
-func (h *Handler) contextWithVirtualUser(nCtx contextx.IContext) (contextx.IContext, error) {
-	bkUsername, err := access.GetBKUsernameByLoginName(nCtx, h.cli.config.VirtualUser)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get virtual user bk username: %w", err)
-	}
-
-	return contextx.From(nCtx, contextx.WithBKUsername(bkUsername)), nil
-}
-
-// SearchBusiness search business.
 func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Business, error) {
 	req := &SearchBusinessReq{
 		Page: Page{
@@ -350,11 +319,7 @@ func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*ty
 		Fields: nil,
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.searchBusiness(cmdbCtx, req)
+	resp, err := h.cli.searchBusiness(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -374,11 +339,8 @@ func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*ty
 // GetBizBriefCacheTopo gets the business brief cache topology.
 func (h *Handler) GetBizBriefCacheTopo(nCtx contextx.IContext, bizID int64) ([]*types.TopoNodeInfo, error) {
 	req := &GetBizBriefCacheTopoReq{BKBizID: bizID}
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.getBizBriefCacheTopo(cmdbCtx, req)
+
+	resp, err := h.cli.getBizBriefCacheTopo(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -451,11 +413,7 @@ func (h *Handler) SearchNetworkArea(nCtx contextx.IContext, page types.Page) ([]
 		},
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.searchCloudArea(cmdbCtx, req)
+	resp, err := h.cli.searchCloudArea(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -477,11 +435,7 @@ func (h *Handler) CreateNetworkArea(nCtx contextx.IContext, networkAreaName stri
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.createCloudArea(cmdbCtx, req)
+	resp, err := h.cli.createCloudArea(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -506,11 +460,7 @@ func (h *Handler) UpdateNetworkArea(
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return err
-	}
-	if err := h.cli.updateCloudArea(cmdbCtx, req); err != nil {
+	if err := h.cli.updateCloudArea(nCtx, req); err != nil {
 		return err
 	}
 
@@ -523,11 +473,7 @@ func (h *Handler) DeleteNetworkArea(nCtx contextx.IContext, id int64) error {
 		BKCloudID: id,
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return err
-	}
-	if err := h.cli.deleteCloudArea(cmdbCtx, req); err != nil {
+	if err := h.cli.deleteCloudArea(nCtx, req); err != nil {
 		return err
 	}
 
@@ -544,11 +490,7 @@ func (h *Handler) UpdateHostNetworkAreaField(
 		BKHostIDs: hostIDs,
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return err
-	}
-	if err := h.cli.updateHostCloudAreaField(cmdbCtx, req); err != nil {
+	if err := h.cli.updateHostCloudAreaField(nCtx, req); err != nil {
 		return err
 	}
 
@@ -582,11 +524,7 @@ func (h *Handler) UpdateHostOpsFields(nCtx contextx.IContext, hosts ...*types.Ho
 
 	req := &BatchUpdateHostReq{Update: updates}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return err
-	}
-	return h.cli.batchUpdateHost(cmdbCtx, req)
+	return h.cli.batchUpdateHost(nCtx, req)
 }
 
 // GetCloudVendors get cloud vendors.
@@ -763,11 +701,7 @@ func (h *Handler) SearchDynamicGroup(nCtx contextx.IContext, bizID int64, page t
 		},
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.searchDynamicGroup(cmdbCtx, req)
+	resp, err := h.cli.searchDynamicGroup(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -798,11 +732,7 @@ func (h *Handler) ListServiceTemplate(nCtx contextx.IContext, bizID int64, page 
 		},
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.listServiceTemplate(cmdbCtx, req)
+	resp, err := h.cli.listServiceTemplate(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -913,11 +843,7 @@ func (h *Handler) WatchHostResourceEvent(nCtx contextx.IContext, cursor string) 
 		BKFields:   ccHostFields(),
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.resourceWatch(cmdbCtx, req)
+	resp, err := h.cli.resourceWatch(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -947,11 +873,7 @@ func (h *Handler) WatchHostRelationResourceEvent(nCtx contextx.IContext, cursor 
 		BKResource: string(types.ResourceTypeHostRelation),
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.resourceWatch(cmdbCtx, req)
+	resp, err := h.cli.resourceWatch(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1034,10 +956,6 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 	}
 
 	tenantID := nCtx.TenantID()
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
@@ -1059,7 +977,7 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 		return hosts, nil
 	}
 
-	result, err := executor.Execute(cmdbCtx, page, fn)
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, fmt.Errorf("execute page executor failed: %v", err)
 	}
@@ -1079,10 +997,6 @@ func (h *Handler) ListBizHostTopoRelations(nCtx contextx.IContext, bizID int64, 
 	}
 
 	tenantID := nCtx.TenantID()
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
@@ -1108,7 +1022,7 @@ func (h *Handler) ListBizHostTopoRelations(nCtx contextx.IContext, bizID int64, 
 		return hosts, nil
 	}
 
-	result, err := executor.Execute(cmdbCtx, page, fn)
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, fmt.Errorf("execute page executor failed: %w", err)
 	}
@@ -1124,11 +1038,7 @@ func (h *Handler) ListHostsWithoutBusiness(nCtx contextx.IContext, page types.Pa
 		Page:   newHostQueryPage(page),
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.listHostsWithoutBusiness(cmdbCtx, req)
+	resp, err := h.cli.listHostsWithoutBusiness(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1151,10 +1061,7 @@ func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page,
 
 	bizIDs := convHostStaticExactConditionToBizIDs(cond)
 	filter := convHostStaticExactConditionToFilter(cond)
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
+
 	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
 
 	hosts := make([]*types.Host, 0)
@@ -1166,7 +1073,7 @@ func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page,
 				return h.listHostWithBiz(nCtx, p, bizID, filter)
 			}
 
-			result, err := executor.Execute(cmdbCtx, page, fn)
+			result, err := executor.Execute(nCtx, page, fn)
 			if err != nil {
 				return nil, fmt.Errorf("execute page executor failed: %v", err)
 			}
@@ -1178,7 +1085,7 @@ func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page,
 			return h.listHostWithoutBiz(nCtx, p, filter)
 		}
 
-		result, err := executor.Execute(cmdbCtx, page, fn)
+		result, err := executor.Execute(nCtx, page, fn)
 		if err != nil {
 			return nil, fmt.Errorf("execute page executor failed: %v", err)
 		}
@@ -1186,7 +1093,7 @@ func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page,
 		hosts = append(hosts, result.Items...)
 	}
 
-	if err := h.fillHostTopoRelations(cmdbCtx, hosts); err != nil {
+	if err := h.fillHostTopoRelations(nCtx, hosts); err != nil {
 		return nil, fmt.Errorf("fill host topo relations failed: %w", err)
 	}
 
@@ -1206,11 +1113,7 @@ func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID in
 		req.HostPropertyFilter = nil
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.listBizHosts(cmdbCtx, req)
+	resp, err := h.cli.listBizHosts(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1463,11 +1366,7 @@ func (h *Handler) CheckBizHostByIP(nCtx contextx.IContext, bizID int64, cloudID 
 		Value:    cloudID,
 	})
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return false, err
-	}
-	resp, err := h.cli.listBizHosts(cmdbCtx, req)
+	resp, err := h.cli.listBizHosts(nCtx, req)
 	if err != nil {
 		return false, err
 	}
@@ -1486,11 +1385,7 @@ func (h *Handler) ListResourcePoolHosts(nCtx contextx.IContext, page types.Page)
 		Page:   newHostQueryPage(page),
 	}
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := h.cli.listResourcePoolHosts(cmdbCtx, req)
+	resp, err := h.cli.listResourcePoolHosts(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -1507,10 +1402,6 @@ func (h *Handler) ListResourcePoolHosts(nCtx contextx.IContext, page types.Page)
 func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page, serviceTemplateIDs []int64, modleIDs []int64) (
 	[]*types.Host, error) {
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		req := &FindHostByServiceTemplateReq{
 			BKBizID:              bizID,
@@ -1534,7 +1425,7 @@ func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64,
 	}
 
 	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
-	result, err := pExecutor.Execute(cmdbCtx, page, fn)
+	result, err := pExecutor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, err
 	}
@@ -1546,10 +1437,6 @@ func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64,
 func (h *Handler) FindHostBySetTemplate(nCtx contextx.IContext, bizID int64, page types.Page, setTemplateIDs []int64, setIDs []int64) (
 	[]*types.Host, error) {
 
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		req := &FindHostBySetTemplateReq{
 			BKBizID:          bizID,
@@ -1573,7 +1460,7 @@ func (h *Handler) FindHostBySetTemplate(nCtx contextx.IContext, bizID int64, pag
 	}
 
 	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
-	result, err := pExecutor.Execute(cmdbCtx, page, fn)
+	result, err := pExecutor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, err
 	}
@@ -1592,10 +1479,7 @@ func (h *Handler) FindHostByDynamicGroup(nCtx contextx.IContext, bizID int64, dy
 	}
 
 	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
+
 	hosts := make([]*types.Host, 0)
 	for idx := range dynamicGroupIDs {
 		dynamicGroupID := dynamicGroupIDs[idx]
@@ -1603,7 +1487,7 @@ func (h *Handler) FindHostByDynamicGroup(nCtx contextx.IContext, bizID int64, dy
 			return h.executeHostDynamicGroup(nCtx, bizID, dynamicGroupID, p)
 		}
 
-		result, err := pExecutor.Execute(cmdbCtx, page, fn)
+		result, err := pExecutor.Execute(nCtx, page, fn)
 		if err != nil {
 			return nil, err
 		}
@@ -1655,10 +1539,7 @@ func (h *Handler) FindSetByDynamicGroup(nCtx contextx.IContext, bizID int64, dyn
 	}
 
 	pExecutor := pageexecutor.NewPageExecutor[*SetInfo](CCPageSizeLimit, ccQueryTimeout)
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
+
 	sets := make([]*SetInfo, 0)
 	for idx := range dynamicGroupIDs {
 		dynamicGroupID := dynamicGroupIDs[idx]
@@ -1666,7 +1547,7 @@ func (h *Handler) FindSetByDynamicGroup(nCtx contextx.IContext, bizID int64, dyn
 			return h.executeSetDynamicGroup(nCtx, bizID, dynamicGroupID, p)
 		}
 
-		result, err := pExecutor.Execute(cmdbCtx, page, fn)
+		result, err := pExecutor.Execute(nCtx, page, fn)
 		if err != nil {
 			return nil, err
 		}
@@ -1742,10 +1623,6 @@ func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes 
 
 	finalhost := make([]*types.Host, 0)
 	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
-	cmdbCtx, err := h.contextWithVirtualUser(nCtx)
-	if err != nil {
-		return nil, err
-	}
 
 	if len(bizTopoNodes) > 0 {
 		for idx := range bizTopoNodes {
@@ -1759,7 +1636,7 @@ func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes 
 				return h.findHostByTopoNodeBiz(nCtx, instID, p)
 			}
 
-			result, err := pExecutor.Execute(cmdbCtx, types.UnlimitedPage(), fn)
+			result, err := pExecutor.Execute(nCtx, types.UnlimitedPage(), fn)
 			if err != nil {
 				return nil, fmt.Errorf("failed to find host by topo node biz: %w", err)
 			}
@@ -1778,7 +1655,7 @@ func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes 
 			},
 		}
 
-		hosts, err := h.FindHostWithCondition(cmdbCtx, types.UnlimitedPage(), cond)
+		hosts, err := h.FindHostWithCondition(nCtx, types.UnlimitedPage(), cond)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find host by topo node host: %w", err)
 		}
@@ -1794,7 +1671,7 @@ func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes 
 				return h.findHostByTopoNodeBelowBiz(nCtx, p, bizID, objID, instID)
 			}
 
-			result, err := pExecutor.Execute(cmdbCtx, types.UnlimitedPage(), fn)
+			result, err := pExecutor.Execute(nCtx, types.UnlimitedPage(), fn)
 			if err != nil {
 				return nil, fmt.Errorf("failed to find host by topo node other: %w", err)
 			}

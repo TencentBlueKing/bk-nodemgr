@@ -46,8 +46,7 @@ const (
 // Config the config of cmdb.
 type Config struct {
 	SupplierAccount string
-	VirtualUser     string
-	APIGWAppConfig  apigwclient.AppConfig
+	APIGWUserConfig apigwclient.UserConfig
 }
 
 // Validate configures the config.
@@ -56,8 +55,8 @@ func (conf *Config) Validate() error {
 		return errors.New("failed to validate cmdb client config: supplier account is empty")
 	}
 
-	if err := conf.APIGWAppConfig.Validate(); err != nil {
-		return fmt.Errorf("failed to validate cmdb client config: %v", err)
+	if err := conf.APIGWUserConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validate cmdb client config: %w", err)
 	}
 
 	return nil
@@ -71,8 +70,7 @@ type cli struct {
 
 // newClient initialize a new cmdb client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/api/v3",
-		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, apigwclient.AuthHeaderMasker))
+	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.APIGWUserConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -89,18 +87,12 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 
 // getHeader get cmdb common header.
 // nolint: unparam
-func (c *cli) getHeader(ctx contextx.IContext) (http.Header, error) {
+func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
-	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
+	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
 	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
-
-	// backend apigw open the user auth.
-	userConfig := apigwclient.UserConfig{
-		AppConfig: c.config.APIGWAppConfig,
-		LoginName: ctx.LoginName(),
-	}
-	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader(ctx))
+	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
 
 	return header, nil
 }

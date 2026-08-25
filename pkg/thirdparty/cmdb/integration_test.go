@@ -81,21 +81,23 @@ func waitForCMDBReady(
 
 	for {
 		err := searchFn(readyCtx)
-		if err == nil {
-			return nil
+		if isCMDBDiscoveryNotReady(err) {
+			timer := time.NewTimer(500 * time.Millisecond)
+			select {
+			case <-readyCtx.Done():
+				timer.Stop()
+
+				return readyCtx.Err()
+			case <-timer.C:
+			}
+
+			continue
 		}
-		if !isCMDBDiscoveryNotReady(err) {
+		if err != nil {
 			return err
 		}
 
-		timer := time.NewTimer(500 * time.Millisecond)
-		select {
-		case <-readyCtx.Done():
-			timer.Stop()
-
-			return readyCtx.Err()
-		case <-timer.C:
-		}
+		return nil
 	}
 }
 
@@ -244,8 +246,11 @@ func newIntegrationConfig(target support.CMDBTarget) *Config {
 
 	return &Config{
 		SupplierAccount: target.SupplierAccount,
-		VirtualUser:     target.VirtualUser,
-		APIGWAppConfig:  appConfig,
+		APIGWUserConfig: apigwclient.UserConfig{
+			AppConfig: appConfig,
+			AuthMode:  apigwclient.AuthModeUn,
+			LoginName: target.VirtualUser,
+		},
 	}
 }
 
