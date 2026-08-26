@@ -25,7 +25,7 @@ import (
 )
 
 func TestConfig_Validate(t *testing.T) {
-	validAPIGWUserConfig := apigwclient.UserConfig{
+	validAPIGWUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{"https://example.com/api/bk-iam/prod"},
 			"test-app",
@@ -70,7 +70,7 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name: "invalid APIGWUserConfig - empty app code",
 			config: Config{
-				APIGWUserConfig: apigwclient.UserConfig{
+				APIGWUserConfig: apigwclient.VirtualUserConfig{
 					AppConfig: apigwclient.NewAppConfig(
 						[]string{"https://example.com/api/bk-iam/prod"},
 						"", // empty app code

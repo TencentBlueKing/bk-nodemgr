@@ -35,14 +35,14 @@ import (
 )
 
 // LoadAuthHeader load auth header from environment variables.
-func LoadAuthHeader() (apigwclient.UserConfig, error) {
+func LoadAuthHeader() (apigwclient.VirtualUserConfig, error) {
 	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
 	header := make(map[string]string)
 	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
-		return apigwclient.UserConfig{}, err
+		return apigwclient.VirtualUserConfig{}, err
 	}
 
-	apigwUserConfig := apigwclient.UserConfig{
+	apigwUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{os.Getenv("BK_APIGW_ENDPOINT")},
 			header["bk_app_code"],

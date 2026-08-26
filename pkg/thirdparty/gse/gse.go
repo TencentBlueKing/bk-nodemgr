@@ -32,7 +32,7 @@ import (
 
 // Config the config of gse.
 type Config struct {
-	APIGWUserConfig apigwclient.UserConfig
+	APIGWUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate the config.

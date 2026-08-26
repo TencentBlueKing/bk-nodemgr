@@ -246,7 +246,7 @@ func newIntegrationConfig(target support.CMDBTarget) *Config {
 
 	return &Config{
 		SupplierAccount: target.SupplierAccount,
-		APIGWUserConfig: apigwclient.UserConfig{
+		APIGWUserConfig: apigwclient.VirtualUserConfig{
 			AppConfig: appConfig,
 			AuthMode:  apigwclient.AuthModeUn,
 			LoginName: target.VirtualUser,

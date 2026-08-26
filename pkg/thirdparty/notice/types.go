@@ -26,7 +26,7 @@ import (
 
 // Config the config of notice.
 type Config struct {
-	APIGWUserConfig apigwclient.UserConfig
+	APIGWUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate configures the config.

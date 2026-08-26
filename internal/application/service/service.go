@@ -309,7 +309,7 @@ func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
 	logger.G.Sys().Info("Initializing notice handler")
 
 	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.Notice.APIGatewayClient)
-	apiGwUserConfig := apigwclient.UserConfig{
+	apiGwUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig:   apiGwAppConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.Notice.AuthMode),
 		LoginName:   svc.conf.Notice.User,
@@ -654,8 +654,8 @@ func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
 	return apigwAppConf
 }
 
-func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
-	return apigwclient.UserConfig{
+func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
+	return apigwclient.VirtualUserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		LoginName:   conf.User,
@@ -699,7 +699,7 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 		&bksaasbklogin.Config{
 			LoginURL: conf.LoginURL,
 			AuthType: conf.AuthType.String(),
-			APIGWUserConfig: apigwclient.UserConfig{
+			APIGWUserConfig: apigwclient.VirtualUserConfig{
 				AppConfig:   newAPIGWAppConfig(&conf.APIGatewayClient),
 				AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 				LoginName:   conf.User,

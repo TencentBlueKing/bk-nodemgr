@@ -64,7 +64,7 @@ func (h *Handler) GetAuthType() string {
 type Config struct {
 	LoginURL        string
 	AuthType        string
-	APIGWUserConfig apigwclient.UserConfig
+	APIGWUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate validates the config.

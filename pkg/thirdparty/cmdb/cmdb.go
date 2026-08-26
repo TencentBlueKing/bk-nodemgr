@@ -46,7 +46,7 @@ const (
 // Config the config of cmdb.
 type Config struct {
 	SupplierAccount string
-	APIGWUserConfig apigwclient.UserConfig
+	APIGWUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate configures the config.

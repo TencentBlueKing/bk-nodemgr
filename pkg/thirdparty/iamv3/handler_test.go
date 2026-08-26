@@ -65,7 +65,7 @@ func (testTraceService) TracerPropagator() propagation.TextMapPropagator {
 }
 
 func TestNew(t *testing.T) {
-	validAPIGWUserConfig := apigwclient.UserConfig{
+	validAPIGWUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{"https://example.com/api/bk-iam/prod"},
 			"test-app",
@@ -131,7 +131,7 @@ func TestNew(t *testing.T) {
 			name: "invalid APIGWUserConfig",
 			cap:  clientCap,
 			config: &Config{
-				APIGWUserConfig: apigwclient.UserConfig{
+				APIGWUserConfig: apigwclient.VirtualUserConfig{
 					AppConfig: apigwclient.NewAppConfig(
 						[]string{"https://example.com/api/bk-iam/prod"},
 						"", // empty app code
@@ -307,7 +307,7 @@ func newTestIAMHandler(t *testing.T, endpoint string) *Handler {
 	}
 
 	handler, err := New(capability, &Config{
-		APIGWUserConfig: apigwclient.UserConfig{
+		APIGWUserConfig: apigwclient.VirtualUserConfig{
 			AppConfig: apigwclient.NewAppConfig([]string{endpoint}, "test-app", "test-secret"),
 			AuthMode:  apigwclient.AuthModeUn,
 			LoginName: "admin",

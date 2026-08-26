@@ -75,7 +75,7 @@ func newTestHandlerWithEndpoint(t *testing.T, authType string, endpoint string) 
 	conf := &Config{
 		LoginURL: "https://bklogin.example.com/login",
 		AuthType: authType,
-		APIGWUserConfig: apigwclient.UserConfig{
+		APIGWUserConfig: apigwclient.VirtualUserConfig{
 			AppConfig: apigwclient.NewAppConfig([]string{endpoint}, "bk-nodemgr", "app-secret"),
 			AuthMode:  apigwclient.AuthModeUn,
 			LoginName: "admin",

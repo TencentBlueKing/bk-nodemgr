@@ -53,7 +53,7 @@ func (resp *BaseBroker[T]) IsFailed() error {
 
 // Config the config of IAM v3.
 type Config struct {
-	APIGWUserConfig apigwclient.UserConfig
+	APIGWUserConfig apigwclient.VirtualUserConfig
 	// SystemID is the system identifier registered in IAM.
 	SystemID string
 	// CallbackPath is the callback path for IAM resource provider.

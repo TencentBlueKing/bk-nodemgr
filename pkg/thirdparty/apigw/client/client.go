@@ -32,12 +32,12 @@ var _ restclient.IClient = &Client{}
 // Client apigw client.
 type Client struct {
 	restClient restclient.IClient
-	config     UserConfig
+	config     VirtualUserConfig
 }
 
 // NewClient new apigw client.
 // this application will use the special user config to request.
-func NewClient(c *restclient.Capability, baseURL string, config UserConfig, opts ...restclient.Opt) (*Client, error) {
+func NewClient(c *restclient.Capability, baseURL string, config VirtualUserConfig, opts ...restclient.Opt) (*Client, error) {
 	restOpts := []restclient.Opt{
 		restclient.WithCustomHeaderMasker(apigwheader.BKGWAuthKey, AuthHeaderMasker),
 	}

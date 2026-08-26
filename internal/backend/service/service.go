@@ -356,7 +356,7 @@ func (svc *Service) initialCapability() error {
 
 func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 	apiGWAPPConfig := newAPIGWAppConfig(&svc.conf.CMDB.APIGatewayClient)
-	apiGwUserConfig := apigwclient.UserConfig{
+	apiGwUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig:   apiGWAPPConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.CMDB.AuthMode),
 		LoginName:   svc.conf.CMDB.User,
@@ -521,7 +521,7 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	}
 
 	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.IAMV3.APIGatewayClient)
-	apiGwUserConfig := apigwclient.UserConfig{
+	apiGwUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig:   apiGwAppConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.IAMV3.AuthMode),
 		LoginName:   svc.conf.IAMV3.User,
@@ -1128,7 +1128,7 @@ func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) re
 
 func newIEGTJJHandler(conf config.IEGTJJ) (iegtjj.IHandler, error) {
 	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
-	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.UserConfig
+	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.VirtualUserConfig
 	apiGwClientCapability, err := newAPIGwClientCapability(clientNameIEGTJJ, &conf.APIGatewayClient)
 	if err != nil {
 		return nil, err
@@ -1185,8 +1185,8 @@ func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
 }
 
 // newAPIGWUserConfig creates a new api-gateway client config.
-func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
-	return apigwclient.UserConfig{
+func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
+	return apigwclient.VirtualUserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		LoginName:   conf.User,

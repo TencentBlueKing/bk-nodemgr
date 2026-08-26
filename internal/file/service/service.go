@@ -682,8 +682,8 @@ func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*rest
 }
 
 // newAPIGWUserConfig creates a new api-gateway client config.
-func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
-	return apigwclient.UserConfig{
+func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
+	return apigwclient.VirtualUserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		LoginName:   conf.User,

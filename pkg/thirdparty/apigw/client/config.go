@@ -59,6 +59,12 @@ func (conf *AppConfig) GetAuthHeader() string {
 	return fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\"}", conf.appCode, conf.appSecret)
 }
 
+// GetAuthHeaderWithBKUsername get api gateway app auth header.
+func (conf *AppConfig) GetAuthHeaderWithBKUsername(bkUsername string) string {
+	return fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}}",
+		conf.appCode, conf.appSecret, bkUsername)
+}
+
 // Validate api gateway runtime.
 func (conf *AppConfig) Validate() error {
 	if len(conf.endpoints) == 0 {
@@ -76,18 +82,6 @@ func (conf *AppConfig) Validate() error {
 	return nil
 }
 
-// UserConfig defines the api gateway related runtime.
-type UserConfig struct {
-	// AppConfig is the api gateway related app info.
-	AppConfig
-	// AuthMode is the BlueKing api authentication mode.
-	AuthMode AuthMode
-	// LoginName is the BlueKing login name of nodeman to request api gateway.
-	LoginName string
-	// AccessToken is the BlueKing access token of nodeman to request api gateway.
-	AccessToken string
-}
-
 // AuthMode is the mode to do api auth verification.
 type AuthMode string
 
@@ -97,63 +91,6 @@ const (
 	// AuthModeUn un auth mode, use username for user authentication.
 	AuthModeUn AuthMode = "un"
 )
-
-// Validate api gateway runtime.
-func (conf *UserConfig) Validate() error {
-	if err := conf.AppConfig.Validate(); err != nil {
-		return fmt.Errorf("failed to validated user config: %w", err)
-	}
-
-	switch conf.AuthMode {
-	case AuthModeAt:
-		if len(conf.AccessToken) == 0 {
-			return errors.New("failed to validated user config: api gateway access token is not set")
-		}
-	case AuthModeUn:
-		if len(conf.LoginName) == 0 {
-			return errors.New("failed to validated user config: api gateway user is not set")
-		}
-	default:
-		return fmt.Errorf("failed to validated user config, env(%s): api gateway not support", conf.AuthMode)
-	}
-
-	return nil
-}
-
-// GetAuthHeader get api gateway auth header.
-// # 调用目标 API 开启: 应用认证+用户认证
-// # Call the target API to enable: application authentication+user authentication required.
-// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_ticket": "z"}
-//
-// # 调用目标 API 开启: 应用认证
-// # Call the target API to enable: application authentication required.
-// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_username": "username"}
-//
-// # 调用目标 API 开启: 用户认证
-// # Call the target API to enable: user authentication required.
-// X-Bkapi-Authorization: {"bk_ticket": "z"}
-//
-// # 使用 access_token
-// # Use access_token
-// X-Bkapi-Authorization: {"access_token": "z"}.
-func (conf *UserConfig) GetAuthHeader(nCtx contextx.IContext) string {
-	bkUsername, _ := tenant.GetBKUsernameByLoginName(nCtx, conf.LoginName)
-
-	var auth string
-	switch conf.AuthMode {
-	case AuthModeAt:
-		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken)
-	case AuthModeUn:
-		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, bkUsername)
-	default:
-		// default use un mode.
-		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
-			conf.appCode, conf.appSecret, bkUsername)
-	}
-
-	return auth
-}
 
 func sentinelFields() []string {
 	return []string{
@@ -195,4 +132,73 @@ func AuthHeaderMasker(value string) string {
 	}
 
 	return result
+}
+
+// VirtualUserConfig defines the api gateway related runtime.
+type VirtualUserConfig struct {
+	// AppConfig is the api gateway related app info.
+	AppConfig
+	// AuthMode is the BlueKing api authentication mode.
+	AuthMode AuthMode
+	// LoginName is the BlueKing login name of nodeman to request api gateway.
+	LoginName string
+	// AccessToken is the BlueKing access token of nodeman to request api gateway.
+	AccessToken string
+}
+
+// Validate api gateway runtime.
+func (conf *VirtualUserConfig) Validate() error {
+	if err := conf.AppConfig.Validate(); err != nil {
+		return fmt.Errorf("failed to validated user config: %w", err)
+	}
+
+	switch conf.AuthMode {
+	case AuthModeAt:
+		if len(conf.AccessToken) == 0 {
+			return errors.New("failed to validated user config: api gateway access token is not set")
+		}
+	case AuthModeUn:
+		if len(conf.LoginName) == 0 {
+			return errors.New("failed to validated user config: api gateway user is not set")
+		}
+	default:
+		return fmt.Errorf("failed to validated user config, env(%s): api gateway not support", conf.AuthMode)
+	}
+
+	return nil
+}
+
+// GetAuthHeader get api gateway auth header.
+// # 调用目标 API 开启: 应用认证+用户认证
+// # Call the target API to enable: application authentication+user authentication required.
+// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_ticket": "z"}
+//
+// # 调用目标 API 开启: 应用认证
+// # Call the target API to enable: application authentication required.
+// X-Bkapi-Authorization: {"bk_app_code": "x", "bk_app_secret": "y", "bk_username": "username"}
+//
+// # 调用目标 API 开启: 用户认证
+// # Call the target API to enable: user authentication required.
+// X-Bkapi-Authorization: {"bk_ticket": "z"}
+//
+// # 使用 access_token
+// # Use access_token
+// X-Bkapi-Authorization: {"access_token": "z"}.
+func (conf *VirtualUserConfig) GetAuthHeader(nCtx contextx.IContext) string {
+	bkUsername, _ := tenant.GetBKUsernameByLoginName(nCtx, conf.LoginName)
+
+	var auth string
+	switch conf.AuthMode {
+	case AuthModeAt:
+		auth = fmt.Sprintf("{\"access_token\":\"%s\"}", conf.AccessToken)
+	case AuthModeUn:
+		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
+			conf.appCode, conf.appSecret, bkUsername)
+	default:
+		// default use un mode.
+		auth = fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
+			conf.appCode, conf.appSecret, bkUsername)
+	}
+
+	return auth
 }
