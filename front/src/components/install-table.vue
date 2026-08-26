@@ -221,9 +221,32 @@
             </ValidateCell>
           </template>
         </VxeColumn>
+        <VxeColumn
+          v-if="isReinstall && releaseType === 'proxy'"
+          field="install_origin"
+          :title="$t('installProxy.installSource')"
+          :min-width="150"
+          :edit-render="{ name: 'VxeInput' }"
+        >
+          <template #default="{ row }">
+            <span v-if="row.install_origin === 'current'">{{ $t('installProxy.currentUnit') }}</span>
+            <span v-else-if="row.install_origin === 'upstream'">{{ $t('installProxy.upstreamUnit') }}</span>
+            <span v-else-if="row.install_origin && String(row.install_origin).startsWith('custom:')">
+              {{ getInstallOriginDisplayName(row.install_origin) }}
+            </span>
+            <span v-else class="cell-placeholder">{{ $t('components.installTable.selectPlaceholder') }}</span>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <Cascader
+              :model-value="parseInstallOriginValue(row.install_origin)"
+              @update:model-value="(val: any) => { handleInstallOriginChange(val, row, rowIndex); }"
+              :list="installOriginList"
+              trigger="click"
+              transfer
+            />
+          </template>
+        </VxeColumn>
       </VxeColgroup>
-
-      <!-- 主机 IP -->
       <VxeColgroup align="center">
         <template #header>
           <span class="mr-[5px]">{{ $t('components.installTable.hostIp') }}</span>
@@ -996,7 +1019,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, InfoBox, Input, Message, Popover, Select, Switcher, Upload } from 'bkui-vue';
+import { Button, Cascader, InfoBox, Input, Message, Popover, Select, Switcher, Upload } from 'bkui-vue';
 import { cloneDeep, debounce, groupBy } from 'lodash';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -1031,6 +1054,7 @@ const props = defineProps({
   releaseType: { type: String, default: 'agent' },
   isReinstall: { type: Boolean, default: false },
   isUpgrade: { type: Boolean, default: false },
+  installOriginList: { type: Array, default: () => [] },
   currentSettings: {
     type: Object,
     default: () => ({
@@ -1565,10 +1589,113 @@ const networkUnitBatchOptions = computed(() => {
   }));
 });
 
-const handleNetworkUnitChange = (val: string, row: any, _rowIndex: number) => {
+// 安装源：行内存储为字符串（'current' | 'upstream' | 'custom:123' | ''），cascader 需要/返回数组
+const parseInstallOriginValue = (val: any): string[] => {
+  if (!val) return [];
+  const s = String(val);
+  if (s === 'current' || s === 'upstream') return [s];
+  if (s.startsWith('custom:')) return ['custom', s.slice(7)];
+  return [];
+};
+const formatInstallOriginValue = (val: any): string => {
+  if (!Array.isArray(val) || val.length === 0) return '';
+  if (val[0] === 'custom' && val.length > 1) return `custom:${val[1]}`;
+  return val[0] || '';
+};
+const getInstallOriginDisplayName = (val: string): string => {
+  if (val.startsWith('custom:')) {
+    const unitId = val.slice(7);
+    const unit = networkUnitList.value.find((u: any) => String(u.bk_networkunit_id) === unitId);
+    return unit ? `${t('installProxy.custom')} [${unit.bk_networkunit_id}] ${unit.bk_networkunit_name}` : t('installProxy.custom');
+  }
+  return val;
+};
+
+// ---- proxy 重装：安装源表内联动（自包含，不依赖父组件） ----
+const unitHasProxyMap = ref<Map<number, boolean>>(new Map());
+const unitUpstreamMap = ref<Map<number, number | undefined>>(new Map());
+
+// 正在重装的主机 id 集合（这些 proxy 不计入"已有 proxy"）
+const getReinstallHostIds = () => new Set(
+  (tableData.value || [])
+    .map((item: any) => item.bk_host_id)
+    .filter((id: any) => id !== '' && id !== null && id !== undefined)
+    .map((id: any) => Number(id)),
+);
+
+const checkUnitHasProxy = async (unitId: number): Promise<boolean> => {
+  if (unitHasProxyMap.value.has(unitId)) return unitHasProxyMap.value.get(unitId) ?? false;
+  let hasProxy = false;
+  try {
+    const res = await TopoService.HostList({
+      page: { offset: 0, limit: 500 },
+      only_count: false,
+      exact_include_conditions: {
+        bk_networkunit_id: [unitId],
+        node_role: ['proxy'],
+        node_status: ['running'],
+      },
+      fuzzy_include_conditions: {},
+    });
+    const reinstallHostIds = getReinstallHostIds();
+    console.log('[debug] checkUnitHasProxy', {
+      unitId,
+      reinstallHostIds: [...reinstallHostIds],
+      total: res?.total,
+      items: (res?.items ?? []).map((i: any) => ({ hostId: i.bk_host_id, unitId: i.info?.bk_networkunit_id, role: i.node_role ?? i.info?.node_role, status: i.node_status ?? i.info?.node_status })),
+    });
+    const filtered = (res.items ?? []).filter((item: any) => !reinstallHostIds.has(Number(item.bk_host_id)));
+    hasProxy = filtered.length > 0;
+    console.log('[debug] checkUnitHasProxy filtered', { unitId, filteredCount: filtered.length, hasProxy });
+  } catch {
+    hasProxy = false;
+  }
+  unitHasProxyMap.value.set(unitId, hasProxy);
+  return hasProxy;
+};
+
+const getUnitUpstream = async (unitId: number): Promise<number | undefined> => {
+  if (unitUpstreamMap.value.has(unitId)) return unitUpstreamMap.value.get(unitId);
+  let upstreamId: number | undefined;
+  try {
+    const detail: any = await TopoService.NetworkUnitGet({ bk_networkunit_id: unitId });
+    upstreamId = detail?.links?.cluster?.bk_networkunit_id;
+  } catch {
+    upstreamId = undefined;
+  }
+  unitUpstreamMap.value.set(unitId, upstreamId);
+  return upstreamId;
+};
+
+const resolveInstallOrigin = async (unitId: number): Promise<string> => {
+  if (!unitId) return '';
+  const hasProxy = await checkUnitHasProxy(unitId);
+  const upstreamId = await getUnitUpstream(unitId);
+  return hasProxy ? 'current' : (upstreamId != null ? 'upstream' : '');
+};
+
+const handleNetworkUnitChange = async (val: string, row: any, rowIndex: number) => {
   if (!val) return;
   const networkUnit = networkUnitList.value.find((unit: any) => String(unit.bk_networkunit_id) === val);
-  if (networkUnit) row.bk_networkunit_name = networkUnit.bk_networkunit_name;
+  const target: any = tableData.value?.[rowIndex] || row;
+  target.bk_networkunit_id = val;
+  if (networkUnit) target.bk_networkunit_name = networkUnit.bk_networkunit_name;
+  // 表内联动：切换单元后按新单元重新计算该行安装源
+  if (props.isReinstall && props.releaseType === 'proxy') {
+    const origin = await resolveInstallOrigin(Number(val));
+    target.install_origin = origin;
+    if (row !== target) row.install_origin = origin;
+  }
+};
+
+// 安装源列编辑：同步回真实数据（row 可能是行编辑克隆对象）
+const handleInstallOriginChange = (val: any, row: any, rowIndex: number) => {
+  const value = formatInstallOriginValue(val);
+  row.install_origin = value;
+  const target: any = tableData.value?.[rowIndex];
+  if (target && target !== row) {
+    target.install_origin = value;
+  }
 };
 
 const settingRef = ref();

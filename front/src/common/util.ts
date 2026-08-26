@@ -6,6 +6,27 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 /**
+ * 校验时区是否为合法 IANA 时区名（如 "Asia/Shanghai"）。
+ * 用于规避 dev 模式下 Go 模板占位符 "{{ .USER_TIMEZONE }}" 原样传到前端、
+ * 或后端未注入时区导致的 dayjs.tz 抛 RangeError 问题。
+ */
+function isValidTimezone(tz?: string): boolean {
+  if (!tz) return false;
+  try {
+    // Intl.DateTimeFormat 对非法时区会抛 RangeError
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 获取用户配置的时区，非法时降级为浏览器本地时区（再不行用 UTC） */
+function resolveTimezone(tz?: string): string | undefined {
+  return isValidTimezone(tz) ? tz : Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
  * 将后端 UTC 时间按目标时区格式化显示
  * @param date 后端 UTC 时间（RFC3339 字符串或秒/毫秒时间戳）
  * @param fmt 输出格式
@@ -13,7 +34,7 @@ dayjs.extend(timezone);
  */
 export function formatTimeByTimezone(date: string | number, fmt = 'YYYY-MM-DD HH:mm:ss', timezone?: string) {
   if (!date) return '--';
-  const tz = timezone || window.PROJECT_CONFIG.USER_TIMEZONE;
+  const tz = resolveTimezone(timezone || window.PROJECT_CONFIG.USER_TIMEZONE);
   try {
     let target;
     if (typeof date === 'number') {
@@ -71,8 +92,8 @@ export function formatTimestamp(
   const isSecondLevel = timestampString.length === 10;
   const date = isSecondLevel ? dayjs.unix(timestamp) : dayjs(timestamp);
 
-  // 按目标时区格式化（默认取用户配置 USER_TIMEZONE，未配置时回退本地时区）
-  const tz = timezone || window.PROJECT_CONFIG.USER_TIMEZONE;
+  // 按目标时区格式化（默认取用户配置 USER_TIMEZONE，非法/未配置时回退本地时区）
+  const tz = resolveTimezone(timezone || window.PROJECT_CONFIG.USER_TIMEZONE);
   const targetDate = tz ? date.tz(tz) : date;
 
   return targetDate.format(format);

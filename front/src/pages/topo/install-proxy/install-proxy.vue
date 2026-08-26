@@ -820,6 +820,14 @@ const handleConfirm = async () => {
           version: item.version,
         }));
     }
+    // 在线模式：既无 proxy 也无上游的单元，安装源无法自动确定，需用户手动选择
+    if (form.method !== 'offline' && form.proxy_install_origin.length === 0) {
+      Message({
+        theme: 'warning',
+        message: t('installProxy.installSourceRequired'),
+      });
+      return;
+    }
     const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
     const proxy_install_origin_unit_id = form.method === 'offline'
       ? getDefaultProxyInstallOriginUnitIdForNewInstall()
@@ -964,6 +972,11 @@ const getVersions = async () => {
 
 watch(() => isShow.value, async () => {
   if (isShow.value) {
+    // 重置上次打开时的安装源相关状态（sideslider 关闭后组件状态被保留）
+    form.proxy_install_origin = [];
+    isTargetShow.value = false;
+    currentUnitHasProxy.value = false;
+
     // getVersions / getNetworkUnitList / handleFetchNetworkUnitDetail 三者互不依赖，并行启动
     // setDefaultInstallOrigin 依赖 getNetworkUnitList（填充 areaUnitlist）和 handleFetchNetworkUnitDetail（设置 currentUnitDetail），串行在后
     const unitId = props.bk_networkunit_id || Number(form.bk_networkunit_id);
@@ -1017,6 +1030,9 @@ watch(
   () => form.bk_networkunit_id,
   async (newVal) => {
     if (newVal) {
+      // 先拉取单元详情获取 links（上游单元信息），再设置安装源默认值
+      const detail = await topoStore.handleFetchNetworkUnitDetail(Number(newVal));
+      currentUnitDetail.value = detail ?? null;
       await setDefaultInstallOrigin();
     }
   },

@@ -12,7 +12,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.method')"
           property=""
-          label-width="90"
+          label-width="110"
           required
         >
           <install-type currentNodeType="proxy" :needTypeList="['setup', 'manual', 'offline']" @change="handleChange"></install-type>
@@ -20,7 +20,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
           property=""
-          label-width="90"
+          label-width="110"
           required
         >
           <Loading :loading="loading">
@@ -31,11 +31,12 @@
               :is-reinstall="true"
               :current-settings="settings"
               :max-height="520"
+              :install-origin-list="installOriginList"
             ></install-table>
           </Loading>
         </Form.FormItem>
         <Form.FormItem
-          label-width="90">
+          label-width="110">
           <Button
             text
             theme="primary"
@@ -52,7 +53,7 @@
           v-if="isTargetShow && form.method !== 'offline'"
           :label="t('installProxy.installSource')"
           property="proxy_install_origin"
-          label-width="90"
+          label-width="110"
           required
         >
           <Cascader
@@ -65,7 +66,7 @@
         <Form.FormItem
           v-if="isTargetShow"
           property="relay_callback_port"
-          label-width="90"
+          label-width="110"
           required
         >
           <template #label>
@@ -95,7 +96,7 @@
         <Form.FormItem
           v-if="isTargetShow"
           property="relay_download_port"
-          label-width="90"
+          label-width="110"
           required
         >
           <template #label>
@@ -122,7 +123,7 @@
           </template>
           <Input class="w-[488px]" v-model="form.relay_download_port" />
         </Form.FormItem>
-        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="90" required v-if="isTargetShow">
+        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="110" required v-if="isTargetShow">
           <div class="w-[488px]">
             <Table :data="systemData" :border="true" :empty-text="t('installProxy.noAvailableVersion')">
               <TableColumn
@@ -295,6 +296,7 @@ const initData = {
   cpu_arch: '',
   relay_download_port: '',
   relay_callback_port: '',
+  install_origin: '',
 };
 const form = reactive({
   method: 'setup', // 安装方式
@@ -370,9 +372,21 @@ const getNetworkUnitList = async () => {
     };
   });
   networkUnitList.value = res.items;
-  res.items.forEach((item) => {
-    networkUnitListMap.set(item.bk_networkunit_id, item.links?.cluster?.bk_networkunit_id);
-  });
+  // 列表 API 不含 links，用 GraphGet 一次性获取拓扑边（单元间上游关系）
+  // 从 links 里按 source_networkunit_id 建立到上游 target_networkunit_id 的映射（channel 含 cluster）
+  const areaIds = [...new Set(res.items.map((item: any) => item.bk_networkarea_id).filter((id: any) => id != null))];
+  try {
+    const graphRes = await TopoService.GraphGet({
+      bk_networkarea_id: areaIds,
+    });
+    (graphRes.links || []).forEach((edge: any) => {
+      if (edge.channel?.includes('cluster') && edge.source_networkunit_id != null) {
+        networkUnitListMap.set(edge.source_networkunit_id, edge.target_networkunit_id);
+      }
+    });
+  } catch (err) {
+    console.error('获取拓扑图边失败:', err);
+  }
 };
 
 // 查询各单元是否有 proxy（一次查询所有去重单元，排除正在重装的 proxy）
@@ -416,23 +430,31 @@ const checkUnitsHasProxy = async (unitIds: number[]) => {
   unitHasProxyMap.value = map;
 };
 
-// 根据单元是否有 proxy 设置安装源默认值（不展开高级选项；离线无安装源 UI，不展开、不写 cascader）
-const setDefaultInstallOrigin = () => {
-  const firstUnitId = Number(form.info[0]?.bk_networkunit_id);
-  if (!firstUnitId) return;
-  if (form.method === 'offline') {
-    return;
+// 更新每行的安装源（用于表格列展示），不自动填写 cascader
+const updateRowInstallOrigins = () => {
+  form.info.forEach((item: any) => {
+    const unitId = Number(item.bk_networkunit_id);
+    if (!unitId) {
+      item.install_origin = '';
+      return;
+    }
+    const hasProxy = unitHasProxyMap.value.get(unitId) ?? false;
+    const upstreamUnitId = networkUnitListMap.get(unitId);
+    const hasUpstream = upstreamUnitId !== null && upstreamUnitId !== undefined;
+    item.install_origin = hasProxy ? 'current' : (hasUpstream ? 'upstream' : '');
+  });
+};
+
+// 补查未查过的单元 proxy 状态，并更新表格中安装源列
+const setDefaultInstallOrigin = async () => {
+  if (form.method === 'offline') return;
+  const unitIds = form.info
+    .map((item: any) => Number(item.bk_networkunit_id))
+    .filter(id => !!id && !unitHasProxyMap.value.has(id));
+  if (unitIds.length > 0) {
+    await checkUnitsHasProxy(unitIds);
   }
-  const hasProxy = unitHasProxyMap.value.get(firstUnitId) ?? false;
-  const upstreamUnitId = networkUnitListMap.get(firstUnitId);
-  const hasUpstream = upstreamUnitId !== null && upstreamUnitId !== undefined;
-  if (hasProxy) {
-    form.proxy_install_origin = ['current'];
-  } else if (hasUpstream) {
-    form.proxy_install_origin = ['upstream'];
-  } else {
-    isTargetShow.value = true;
-  }
+  updateRowInstallOrigins();
 };
 
 // 获取指定单元的默认安装源（不展开时按每行数据单独判断）
@@ -446,7 +468,7 @@ const getDefaultOriginForUnit = (unitId: number): string => {
   if (hasUpstream) {
     return 'upstream';
   }
-  return 'current';
+  return '';
 };
 
 // 安装源
@@ -566,6 +588,19 @@ const handleConfirm = async () => {
     resultArr[2] = (resultArr[2] as boolean[]).every(item => item);
   }
   if (resultArr.every(item => item !== false)) {
+    // 在线模式：校验每行单元的安装源，既无 proxy 也无上游的单元需用户手动选择
+    if (form.method !== 'offline' && form.proxy_install_origin.length === 0) {
+      const invalidUnits = form.info
+        .map((item: any) => Number(item.bk_networkunit_id))
+        .filter(unitId => !!unitId && getDefaultOriginForUnit(unitId) === '');
+      if (invalidUnits.length > 0) {
+        Message({
+          theme: 'warning',
+          message: t('installProxy.installSourceRequired'),
+        });
+        return;
+      }
+    }
     // 表单校验通过后，转换端口值
     const relayDownload = Number(form.relay_download_port);
     const relayCallback = Number(form.relay_callback_port);
@@ -656,23 +691,28 @@ function getinstallOriginUnitId(unit_id: number) {
     }
     return unit_id;
   }
-  // 如果没有展开高级选项（proxy_install_origin 为空），按每行数据的单元自动判断
-  const origin = form.proxy_install_origin.length > 0
-    ? form.proxy_install_origin[0]
-    : getDefaultOriginForUnit(unit_id);
+  // 查找当前行在 form.info 中的索引，取行内 install_origin
+  const row = form.info.find((item: any) => Number(item.bk_networkunit_id) === unit_id);
+  const rowOrigin = row?.install_origin || '';
+  // 优先级：行内 install_origin > 全局 proxy_install_origin > 自动判断
+  let origin: string;
+  if (rowOrigin) {
+    origin = rowOrigin;
+  } else if (form.proxy_install_origin.length > 0) {
+    origin = form.proxy_install_origin[0];
+  } else {
+    origin = getDefaultOriginForUnit(unit_id);
+  }
   let id;
-  switch (origin) {
-    case 'upstream':
-      id = networkUnitListMap.get(unit_id);
-      break;
-    case 'current':
-      id = unit_id;
-      break;
-    case 'custom':
-      id = Number(form.proxy_install_origin[1]);
-      break;
-    default:
-      break;
+  if (origin === 'upstream') {
+    id = networkUnitListMap.get(unit_id);
+  } else if (origin === 'current') {
+    id = unit_id;
+  } else if (origin.startsWith('custom:')) {
+    id = Number(origin.slice(7));
+  } else if (origin === 'custom') {
+    // 全局 cascader 选了 custom 但行内没有，回退到 cascader 第二级
+    id = Number(form.proxy_install_origin[1]);
   }
   return id;
 }
@@ -728,6 +768,12 @@ const loading = ref(false);
 
 watch(() => isShow.value, async () => {
   if (isShow.value && props.data.length) {
+    // 重置上次打开时的安装源相关状态（sideslider 关闭后组件状态被保留）
+    form.proxy_install_origin = [];
+    isTargetShow.value = false;
+    unitHasProxyMap.value = new Map();
+    networkUnitListMap.clear();
+
     loading.value = true;
     try {
       // getVersions 与主链（getNetworkUnitList → 数据准备 → checkUnitsHasProxy → setDefaultInstallOrigin）互不依赖，并行启动
@@ -817,6 +863,7 @@ watch(() => isShow.value, async () => {
     }
   }
 });
+
 onMounted(async () => {
   await initPublicKey();
 });

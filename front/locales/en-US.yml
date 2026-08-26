@@ -1333,6 +1333,7 @@ installProxy:
   validationFailed: Verification failed
   relayPortRequired: Please fill in the relay callback port and relay download port
   portMustBeValidRange: Port must be an integer between 1 and 65535
+  installSourceRequired: Please select an installation source
   goAssign: Go Assign
   assignUnit: Assign Network Unit
   confirmAssignUnit: Confirm Assign Network Unit
