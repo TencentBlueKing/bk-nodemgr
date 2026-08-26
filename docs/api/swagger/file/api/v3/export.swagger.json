@@ -1,0 +1,192 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "export.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Export"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/export/download/origin_plugin_packge": {
+      "get": {
+        "summary": "ExportOriginPluginPackage exported origin plugin package using a temporary\nexport token.",
+        "operationId": "Export_ExportOriginPluginPackage",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3FileChunk"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Export"
+        ]
+      }
+    },
+    "/api/v3/export/prepare/origin_plugin_packge": {
+      "post": {
+        "summary": "ExportPrepareOriginPluginPackage prepares an origin plugin package for\nexporting.",
+        "operationId": "Export_ExportPrepareOriginPluginPackage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ExportPrepareOriginPluginPackageResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ExportPrepareOriginPluginPackageReq describes the request for preparing an\norigin plugin package.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ExportPrepareOriginPluginPackageReq"
+            }
+          }
+        ],
+        "tags": [
+          "Export"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ExportPrepareOriginPluginPackageRespData": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3ExportPrepareOriginPluginPackageReq": {
+      "type": "object",
+      "properties": {
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "plugin_pkg_version": {
+          "type": "string"
+        },
+        "upload_origin_pkg_type": {
+          "type": "string"
+        },
+        "upload_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "ExportPrepareOriginPluginPackageReq describes the request for preparing an\norigin plugin package."
+    },
+    "v3ExportPrepareOriginPluginPackageResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/ExportPrepareOriginPluginPackageRespData"
+        }
+      },
+      "description": "ExportPrepareOriginPluginPackageResp describes the response for preparing an\nplugin package."
+    },
+    "v3FileChunk": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "description": "FileChunk describes the file chunk data."
+    }
+  }
+}

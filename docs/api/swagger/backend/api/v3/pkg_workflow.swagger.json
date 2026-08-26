@@ -16,6 +16,74 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/package/workflow/export/plugin": {
+      "post": {
+        "summary": "PackageExportPlugin provides asynchronous plugin package export.",
+        "operationId": "PackageWorkflow_PackageExportPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageExportPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageExportPluginReq describes the request body when exporting a\nplugin package.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageExportPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageWorkflow"
+        ]
+      }
+    },
+    "/api/v3/package/workflow/export_result": {
+      "post": {
+        "summary": "PackageExportResult provides the plugin package export result.",
+        "operationId": "PackageWorkflow_PackageExportResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageExportResultResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageExportResultReq describes the package export result request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageExportResultReq"
+            }
+          }
+        ],
+        "tags": [
+          "PackageWorkflow"
+        ]
+      }
+    },
     "/api/v3/package/workflow/import/v2/external_plugin": {
       "post": {
         "summary": "PackageExternalPluginV2Import provides package external plugin v2\nimporting.",
@@ -267,6 +335,103 @@
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
           }
+        }
+      }
+    },
+    "v3PackageExportPluginReq": {
+      "type": "object",
+      "properties": {
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "plugin_pkg_version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageExportPluginReq describes the request body when exporting a\nplugin package."
+    },
+    "v3PackageExportPluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageExportPluginRespData"
+        }
+      },
+      "description": "PackageExportPluginResp describes the response when exporting a plugin\npackage."
+    },
+    "v3PackageExportPluginRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PackageExportResultReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackageExportResultReq describes the package export result request."
+    },
+    "v3PackageExportResultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageExportResultRespData"
+        }
+      },
+      "description": "PackageExportResultResp describes the package export result response."
+    },
+    "v3PackageExportResultRespData": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "download_url": {
+          "type": "string"
+        },
+        "download_url_expired_at": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
