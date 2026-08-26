@@ -16,7 +16,7 @@
  * to the current version of the project delivered to anyone in the future.
  */
 
-package tenant
+package access
 
 import (
 	"sync"
@@ -24,21 +24,21 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
-// ITenantUserResolver resolves a login name to the tenant-scoped bk username.
-type ITenantUserResolver interface {
+// ITenantVirtualUserResolver resolves a login name to the tenant-scoped bk username.
+type ITenantVirtualUserResolver interface {
 	// GetBKUsernameByLoginName gets the tenant-scoped bk username by login name.
 	GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error)
 }
 
 var tenantUserResolver = struct {
 	sync.RWMutex
-	resolver ITenantUserResolver
+	resolver ITenantVirtualUserResolver
 }{
-	resolver: NewNoopTenantUserResolver(),
+	resolver: NewNoopTenantVirtualUserResolver(),
 }
 
-// SetTenantUserResolver sets the tenant user resolver.
-func SetTenantUserResolver(resolver ITenantUserResolver) {
+// SetTenantVirtualUserResolver sets the tenant user resolver.
+func SetTenantVirtualUserResolver(resolver ITenantVirtualUserResolver) {
 	tenantUserResolver.Lock()
 	defer tenantUserResolver.Unlock()
 
@@ -54,14 +54,14 @@ func GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, 
 	return resolver.GetBKUsernameByLoginName(ctx, loginName)
 }
 
-// NewNoopTenantUserResolver creates a resolver that keeps login name as bk username.
-func NewNoopTenantUserResolver() ITenantUserResolver {
-	return noopTenantUserResolver{}
+// NewNoopTenantVirtualUserResolver creates a resolver that keeps login name as bk username.
+func NewNoopTenantVirtualUserResolver() ITenantVirtualUserResolver {
+	return noopTenantVirtualUserResolver{}
 }
 
-type noopTenantUserResolver struct{}
+type noopTenantVirtualUserResolver struct{}
 
 // GetBKUsernameByLoginName gets the tenant-scoped bk username by login name.
-func (noopTenantUserResolver) GetBKUsernameByLoginName(_ contextx.IContext, loginName string) (string, error) {
+func (noopTenantVirtualUserResolver) GetBKUsernameByLoginName(_ contextx.IContext, loginName string) (string, error) {
 	return loginName, nil
 }

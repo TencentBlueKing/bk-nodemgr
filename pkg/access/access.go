@@ -23,7 +23,6 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
 const (
@@ -40,7 +39,7 @@ var virtualUser = struct {
 
 // GetVirtualUserBKUsername gets the tenant-scoped bk username for the system virtual user.
 func GetVirtualUserBKUsername(ctx contextx.IContext) (string, error) {
-	return tenant.GetBKUsernameByLoginName(ctx, GetVirtualUser())
+	return GetBKUsernameByLoginName(ctx, GetVirtualUser())
 }
 
 // GetVirtualUser gets the system user.

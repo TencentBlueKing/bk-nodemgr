@@ -296,7 +296,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		return nil, fmt.Errorf("failed to set tenant id provider: %w", err)
 	}
 
-	tenant.SetTenantUserResolver(usermgrHandler)
+	access.SetTenantVirtualUserResolver(usermgrHandler)
 
 	return usermgrHandler, nil
 }

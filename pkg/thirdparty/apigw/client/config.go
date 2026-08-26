@@ -25,8 +25,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 )
 
 // AppConfig defines the api gateway related app info.
@@ -185,7 +185,7 @@ func (conf *VirtualUserConfig) Validate() error {
 // # Use access_token
 // X-Bkapi-Authorization: {"access_token": "z"}.
 func (conf *VirtualUserConfig) GetAuthHeader(nCtx contextx.IContext) string {
-	bkUsername, _ := tenant.GetBKUsernameByLoginName(nCtx, conf.LoginName)
+	bkUsername, _ := access.GetBKUsernameByLoginName(nCtx, conf.LoginName)
 
 	var auth string
 	switch conf.AuthMode {
