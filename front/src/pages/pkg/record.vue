@@ -102,7 +102,11 @@
           :title="t('pkgRecord.operator')"
           min-width="150"
           :filter="filterOptionSource.operator"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            <UserNameDisplay :name="row.operator" />
+          </template>
+        </TableColumn>
         <TableColumn
           field="operate_time"
           :title="t('pkgRecord.operateTime')"
@@ -136,6 +140,7 @@ import { compareVersions, formatTimeByTimezone } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
+import { translateOperatorItems } from '@/common/user-display';
 
 interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
@@ -448,6 +453,8 @@ const getHostDistinct = async () => {
           });
       }
     });
+    // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
+    await translateOperatorItems(filterOptionSource.operator.list);
   }
 };
 const handleFilter = ({

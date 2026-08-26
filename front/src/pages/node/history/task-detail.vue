@@ -25,7 +25,8 @@
         class="leading-[30px] mr-[52px] text-[12px]"
       >
         <div>{{ item.name }}</div>
-        <div>{{ item.value }}</div>
+        <UserNameDisplay v-if="item.prop === 'operator'" :name="item.value" />
+        <div v-else>{{ item.value }}</div>
       </div>
     </div>
     <div class="mt-[24px] mb-[14px] flex justify-between">
@@ -496,6 +497,9 @@ const statusMap = computed(() => ({
     text: t('taskDetail.status.incomplete'),
     icon: 'incomplete',
   },
+}));
+const operatorMap = computed(() => ({
+  'bk-nodemgr': t('platform.nodeMan.taskHistory.operatorType.system'),
 }));
 const typeMap = computed(() => ({
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),

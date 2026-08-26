@@ -396,6 +396,7 @@ import useAuthLock from '@/composables/use-auth-lock';
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions, formatTimestamp  } from '@/common/util';
+import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -1009,12 +1010,14 @@ watch(
     debounceFetchCurrentPageCounts();
   },
 );
-watch(originPackageList, () => {
+watch(originPackageList, async () => {
   filterOptionSource.version.list = getUniqueChildren('version');
   filterOptionSource.os_type.list = getUniqueChildren('os_type');
   filterOptionSource.cpu_arch.list = getUniqueChildren('cpu_arch');
   filterOptionSource.labels.list = getUniqueChildren('labels');
   filterOptionSource.operator.list = getUniqueChildren('operator');
+  // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
+  await translateOperatorItems(filterOptionSource.operator.list);
 }, { immediate: true, deep: true });
 // 前端过滤数据
 watch(

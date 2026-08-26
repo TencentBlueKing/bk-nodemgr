@@ -144,6 +144,7 @@ import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { formatTimestamp } from '@/common/util';
+import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -381,9 +382,11 @@ const handleDelete = async (row: Release) => {
 const handleConfirm = async () => {
   await getPackages();
 };
-watch(originPackageList, () => {
+watch(originPackageList, async () => {
   filterOptionSource.file_name.list = getUniqueChildren('file_name');
   filterOptionSource.operator.list = getUniqueChildren('operator');
+  // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
+  await translateOperatorItems(filterOptionSource.operator.list);
 }, { immediate: true, deep: true });
 // 前端过滤数据
 watch(

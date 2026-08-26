@@ -365,6 +365,7 @@ import useAuthLock from '@/composables/use-auth-lock';
 import { PackageService } from '@/api/modules/pkg';
 import { PACKAGE_GENERATION } from '@/common/const';
 import { compareVersions, formatTimestamp } from '@/common/util';
+import { translateOperatorItems } from '@/common/user-display';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useAuthStore } from '@/stores/auth';
@@ -501,6 +502,17 @@ const dimensionList = ref([
 const handleExpand = (option: any) => {
   option.expand = !option.osExpand;
 };
+// operator 筛选项：先取原始用户名，再用 bk-user-display-name 异步翻译为显示名
+const operatorList = ref<{ id: string; name: string; value: string; text: string; count?: number }[]>([]);
+watch(originPackageList, async () => {
+  const raw = Array.from(new Set(originPackageList.value
+    .map((item: any) => item.operator)
+    .filter((item: any) => item)));
+  const items = raw.map((id) => ({ id, name: id, value: id, text: id }));
+  await translateOperatorItems(items);
+  operatorList.value = items;
+}, { immediate: true });
+
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
   name: {
     list: computed(() => getUniqueChildren('name')),
@@ -578,6 +590,7 @@ function countByProp(data: Release[], prop: string) {
   }, {});
 }
 function getUniqueChildren(prop: string) {
+  if (prop === 'operator') return operatorList.value;
   // 插件名维度优先使用 DistinctReleasePlugin 接口返回的全量列表（而非仅 originPackageList），
   // 保证即便后端只返回当前页数据（limit=500）也不会漏掉侧边栏的快捷筛选项
   if (prop === 'name') {

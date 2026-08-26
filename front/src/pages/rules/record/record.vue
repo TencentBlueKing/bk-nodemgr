@@ -147,6 +147,7 @@ import { formatTimeByTimezone } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
+import { translateOperatorItems } from '@/common/user-display';
 
 interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
@@ -408,6 +409,8 @@ const getHostDistinct = async () => {
           });
       }
     });
+    // 翻译 operator 筛选项显示名
+    await translateOperatorItems(filterOptionSource.operator.list);
   }
 };
 const handleFilter = ({

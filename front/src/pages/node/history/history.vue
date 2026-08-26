@@ -97,7 +97,11 @@
           :title="t('platform.nodeMan.taskHistory.label.operator')"
           :filter="filterOptionSource.operator"
           min-width="150"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            <UserNameDisplay :name="row.operator" />
+          </template>
+        </TableColumn>
         <TableColumn
           field="operate_time"
           :title="t('platform.nodeMan.taskHistory.label.operateTime')"
@@ -203,6 +207,7 @@ import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 import { useRouteSubTitle } from '@/stores/route-sub-title';
+import { translateOperatorItems } from '@/common/user-display';
 
 interface FilterOption {
   list: { text: string; value: string }[];
@@ -880,6 +885,8 @@ const getWorkflowDistinct = async () => {
           });
       }
     });
+    // 翻译 operator 筛选项显示名（复用 bk-user-display-name）
+    await translateOperatorItems(filterOptionSource.operator.list);
   }
 };
 
