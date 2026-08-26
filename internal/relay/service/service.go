@@ -39,12 +39,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
+	serverName = "relay"
+
 	relayInfoSvcName     = "relay-info"
 	relayAdminSvcName    = "relay-admin"
 	relayCallbackSvcName = "relay-callback"
@@ -83,6 +87,10 @@ func NewService(conf *config.RelayService) (*Service, error) {
 
 	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(contextx.Background()))
 
+	if err := svc.initTracing(); err != nil {
+		return nil, fmt.Errorf("failed to init tracing: %w", err)
+	}
+
 	if err := svc.initialCapability(); err != nil {
 		return nil, fmt.Errorf("failed to initialize capability: %w", err)
 	}
@@ -92,6 +100,32 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	}
 
 	return svc, nil
+}
+
+func (svc *Service) initTracing() error {
+	tracingConf := tracing.Config{
+		Exporter: tracing.ExporterConfig{
+			ExporterType: tracing.ExporterType(svc.conf.Tracing.ExporterType),
+		},
+		Environment: system.GetEnv(),
+		Namespace:   serverName,
+		InstanceID:  svc.conf.Tracing.InstanceID,
+		Version:     version.Version().Version,
+	}
+
+	if tracingConf.Exporter.ExporterType == tracing.ExporterTypeOTLP {
+		tracingConf.Exporter.OTLPConfig = &tracing.OTLPConfig{
+			Endpoint: svc.conf.Tracing.OTLPEndpoint,
+			Insecure: svc.conf.Tracing.OTLPInsecure,
+			Headers:  svc.conf.Tracing.OTLPHeaders,
+		}
+	}
+
+	if err := tracing.Init(tracingConf); err != nil {
+		return fmt.Errorf("failed to init tracing: %w", err)
+	}
+
+	return nil
 }
 
 func (svc *Service) initialCapability() error {

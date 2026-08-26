@@ -36,6 +36,11 @@ import (
 
 var _ IHandler = &Handler{}
 
+const (
+	defaultGlobalServiceName = "default"
+	serviceCategoryProcess   = "process"
+)
+
 // Handler manages multiple service svcs.
 type Handler struct {
 	mu       sync.RWMutex
@@ -83,7 +88,39 @@ func (h *Handler) NewService(config ServiceConfig) (IService, error) {
 		return nil, fmt.Errorf("service name is required")
 	}
 
-	// Create resource with service information
+	tracerProvider, err := h.newTracerProvider(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create service tracer instance
+	service := &Service{
+		serviceName:      config.ServiceName,
+		tracerProvider:   tracerProvider,
+		tracerPropagator: newTextMapPropagator(),
+		shutdown:         tracerProvider.Shutdown,
+	}
+
+	// Store in manager
+	h.svcs[config.ServiceName] = service
+
+	return service, nil
+}
+
+func (h *Handler) initGlobalService() (IService, error) {
+	serviceName := h.conf.Namespace
+	if serviceName == "" {
+		serviceName = defaultGlobalServiceName
+	}
+
+	return h.NewService(ServiceConfig{
+		ServiceName:     serviceName,
+		ServiceCategory: serviceCategoryProcess,
+		SampleRate:      1,
+	})
+}
+
+func (h *Handler) newTracerProvider(config ServiceConfig) (*sdkTrace.TracerProvider, error) {
 	res, err := resource.New(contextx.Background(),
 		resource.WithOS(),
 		resource.WithContainer(),
@@ -106,30 +143,18 @@ func (h *Handler) NewService(config ServiceConfig) (IService, error) {
 		return nil, fmt.Errorf("failed to merge resource: %w", err)
 	}
 
-	// Create tracer tracerProvider with sampling
-	tracerProvider := sdkTrace.NewTracerProvider(
+	return sdkTrace.NewTracerProvider(
 		sdkTrace.WithBatcher(h.exporter),
 		sdkTrace.WithResource(res),
-		sdkTrace.WithSampler(sdkTrace.TraceIDRatioBased(config.SampleRate)),
-	)
+		sdkTrace.WithSampler(sdkTrace.ParentBased(sdkTrace.TraceIDRatioBased(config.SampleRate))),
+	), nil
+}
 
-	tracerPropagator := propagation.NewCompositeTextMapPropagator(
+func newTextMapPropagator() propagation.TextMapPropagator {
+	return propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	)
-
-	// Create service tracer instance
-	service := &Service{
-		serviceName:      config.ServiceName,
-		tracerProvider:   tracerProvider,
-		tracerPropagator: tracerPropagator,
-		shutdown:         tracerProvider.Shutdown,
-	}
-
-	// Store in manager
-	h.svcs[config.ServiceName] = service
-
-	return service, nil
 }
 
 // GetService retrieves an existing service tracer.

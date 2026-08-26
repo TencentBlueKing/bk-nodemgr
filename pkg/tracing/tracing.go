@@ -18,7 +18,7 @@
 
 // Package tracing provides OpenTelemetry-based distributed tracing support for multiple services.
 // This package is designed to support multiple services within the same program
-// without using global state and supports multiple exporters (stdout, OTLP, Jaeger).
+// while also registering a process-level OpenTelemetry fallback provider.
 package tracing
 
 import (
@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"go.opentelemetry.io/otel"
 )
 
 // nolint: gochecknoglobals
@@ -38,10 +39,21 @@ var globalHandler struct {
 func Init(conf Config) error {
 	var err error
 	globalHandler.Do(func() {
-		globalHandler.IHandler, err = New(contextx.Background(), conf)
-		if err != nil {
-			err = fmt.Errorf("failed to init tracing globalHandler, err: %w", err)
+		handler, initErr := New(contextx.Background(), conf)
+		if initErr != nil {
+			err = fmt.Errorf("failed to init tracing globalHandler, err: %w", initErr)
+			return
 		}
+
+		globalService, initErr := handler.initGlobalService()
+		if initErr != nil {
+			err = fmt.Errorf("failed to init tracing global service, err: %w", initErr)
+			return
+		}
+
+		otel.SetTextMapPropagator(globalService.TracerPropagator())
+		otel.SetTracerProvider(globalService.TracerProvider())
+		globalHandler.IHandler = handler
 	})
 
 	return err
