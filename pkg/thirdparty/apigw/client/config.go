@@ -61,7 +61,7 @@ func (conf *AppConfig) GetAuthHeader() string {
 
 // GetAuthHeaderWithBKUsername get api gateway app auth header.
 func (conf *AppConfig) GetAuthHeaderWithBKUsername(bkUsername string) string {
-	return fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}}",
+	return fmt.Sprintf("{\"bk_app_code\": \"%s\", \"bk_app_secret\": \"%s\", \"bk_username\":\"%s\"}",
 		conf.appCode, conf.appSecret, bkUsername)
 }
 
