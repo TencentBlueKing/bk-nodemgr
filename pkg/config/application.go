@@ -44,9 +44,10 @@ const (
 	defaultApplicationFrontWindowsWMIPortDefault = 135
 	defaultApplicationFrontUnixSSHPortDefault    = 22
 
-	defaultApplicationBackendTraceServiceName = "application-client-backend"
-	defaultApplicationFileTraceServiceName    = "application-client-file"
-	defaultApplicationNoticeTraceServiceName  = "application-client-notice"
+	defaultApplicationBackendTraceServiceName     = "application-client-backend"
+	defaultApplicationUserManagerTraceServiceName = "application-client-usermanager"
+	defaultApplicationFileTraceServiceName        = "application-client-file"
+	defaultApplicationNoticeTraceServiceName      = "application-client-notice"
 
 	// info server config default values.
 	defaultApplicationInfoBindIP                     = "127.0.0.1"
@@ -131,6 +132,7 @@ type ApplicationService struct {
 	BKPaas             BKPaaS             `yaml:"bkPaaS" usage:"bk paas config of application service"`
 	Front              Front              `yaml:"front" usage:"front config of application service"`
 	Backend            Backend            `yaml:"backend" usage:"backend gateway config"`
+	UserManager        UserManager        `yaml:"userManager" usage:"user manager config of application service"`
 	Notice             Notice             `yaml:"notice" usage:"notice gateway config"`
 	File               File               `yaml:"file" usage:"file config of backend service"`
 	Etcd               Etcd               `yaml:"etcd" usage:"etcd config of application service"`
@@ -179,6 +181,13 @@ func NewApplicationService() *ApplicationService {
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultApplicationBackendTraceServiceName,
+				},
+			},
+		},
+		UserManager: UserManager{
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultApplicationUserManagerTraceServiceName,
 				},
 			},
 		},
@@ -315,6 +324,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Backend.Validate(); err != nil {
 		return fmt.Errorf("failed to validate backend config: %w", err)
+	}
+
+	if err := svc.UserManager.Validate(); err != nil {
+		return fmt.Errorf("failed to validate user manager config: %w", err)
 	}
 
 	if err := svc.Notice.Validate(); err != nil {

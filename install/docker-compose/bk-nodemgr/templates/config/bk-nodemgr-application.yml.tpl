@@ -79,6 +79,18 @@ backend:
   traceServiceName: "application-client-backend"
   traceSampleRate: 0
 
+# user manager settings.
+userManager:
+  endpoints:
+    - "__BK_NODEMGR_USER_MANAGER_ENDPOINT__"
+  appCode: __BK_NODEMGR_APPCODE__
+  appSecret: __BK_NODEMGR_APPSECRET__
+  user: __BK_NODEMGR_VIRTUAL_USER__
+  authMode: "un"
+  accessToken: ""
+  traceServiceName: "application-client-usermanager"
+  traceSampleRate: 0
+
 # log settings.
 log:
   dir: /bk-nodemgr/log/

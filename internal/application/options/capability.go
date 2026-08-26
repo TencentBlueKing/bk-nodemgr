@@ -29,6 +29,7 @@ import (
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/notice"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -41,6 +42,9 @@ type Capability struct {
 
 	// BackendHandler the backend api hanler.
 	BackendHandler backend.IHandler
+
+	// UserManagerHandler the user manager handler.
+	UserManagerHandler usermanager.IHandler
 
 	// FileHandler the file handler.
 	FileHandler file.IHandler
