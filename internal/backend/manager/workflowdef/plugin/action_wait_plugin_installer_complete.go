@@ -197,8 +197,8 @@ func (act *actionWaitPluginInstallerComplete) waitOfflineInstallerStatus(
 	timeout := act.Timeout() + 30*time.Second // nolint: mnd
 
 	std.InstanceData().Log().
-		Zh("开始等待离线安装器状态文件 (超时=%v)", timeout).
-		En("waiting for offline installer status file (timeout=%v)", timeout).
+		Zh("开始等待离线安装器状态文件, 超时: %s", timeout.String()).
+		En("waiting for offline installer status file, timeout: %s", timeout.String()).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(
@@ -211,6 +211,11 @@ func (act *actionWaitPluginInstallerComplete) waitOfflineInstallerStatus(
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute wait status script: %w", err)
 	}
+
+	std.InstanceData().Log().
+		Zh("轮询等待离线安装器状态文件任务执行中, 任务ID: %s", taskID).
+		En("polling for offline installer status file task execution, task-id: %s", taskID).
+		Info()
 
 	// Poll script execution result until finished or timeout
 	pollingInterval := 5 * time.Second // nolint: mnd
@@ -323,7 +328,7 @@ while [ "$i" -lt "$TIMEOUT" ]; do
             # Extract oper_inst_id and status from JSON
             FILE_OPER_INST_ID=$(printf '%%s' "$STATUS_CONTENT" | sed -n 's/.*"oper_inst_id":"\([^"]*\)".*/\1/p')
             STATUS_STATE=$(printf '%%s' "$STATUS_CONTENT" | sed -n 's/.*"status":"\([^"]*\)".*/\1/p')
-            
+
             # Check if oper_inst_id matches current instance
             if [ "$FILE_OPER_INST_ID" = "$OPER_INST_ID" ]; then
                 # Check if status is terminal (success/failed/timeout)
@@ -391,13 +396,13 @@ func (act *actionWaitPluginInstallerComplete) buildOfflineInstallerReadEndpoints
 	}
 
 	return &types.EndpointWithAuth{
-			Endpoint: types.Endpoint{AgentID: agentID},
-			User:     "root",
-		}, &types.EndpointWithRestrict{
-			Endpoint: types.Endpoint{AgentID: agentID},
-			Offset:   0,
-			Limit:    0,
-		}, nil
+		Endpoint: types.Endpoint{AgentID: agentID},
+		User:     "root",
+	}, &types.EndpointWithRestrict{
+		Endpoint: types.Endpoint{AgentID: agentID},
+		Offset:   0,
+		Limit:    0,
+	}, nil
 }
 
 func (act *actionWaitPluginInstallerComplete) waitInstallerField(std *pluginUtils.PluginActionStandarder, key string) (string, error) {

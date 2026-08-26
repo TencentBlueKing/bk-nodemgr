@@ -197,8 +197,8 @@ func (act *actionWaitPluginInstallerCompleteV2) waitOfflineInstallerStatus(
 	timeout := act.Timeout() + 30*time.Second // nolint: mnd
 
 	std.InstanceData().Log().
-		Zh("开始等待离线安装器状态文件 (超时=%v)", timeout).
-		En("waiting for offline installer status file (timeout=%v)", timeout).
+		Zh("开始等待离线安装器状态文件, 超时: %s", timeout.String()).
+		En("waiting for offline installer status file, timeout: %s", timeout.String()).
 		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(
@@ -211,6 +211,11 @@ func (act *actionWaitPluginInstallerCompleteV2) waitOfflineInstallerStatus(
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute wait status script: %w", err)
 	}
+
+	std.InstanceData().Log().
+		Zh("轮询等待离线安装器状态文件任务执行中, 任务ID: %s", taskID).
+		En("polling for offline installer status file task execution, task-id: %s", taskID).
+		Info()
 
 	// Poll script execution result until finished or timeout
 	pollingInterval := 5 * time.Second // nolint: mnd
@@ -391,13 +396,13 @@ func (act *actionWaitPluginInstallerCompleteV2) buildOfflineInstallerReadEndpoin
 	}
 
 	return &types.EndpointWithAuth{
-			Endpoint: types.Endpoint{AgentID: agentID},
-			User:     "root",
-		}, &types.EndpointWithRestrict{
-			Endpoint: types.Endpoint{AgentID: agentID},
-			Offset:   0,
-			Limit:    0,
-		}, nil
+		Endpoint: types.Endpoint{AgentID: agentID},
+		User:     "root",
+	}, &types.EndpointWithRestrict{
+		Endpoint: types.Endpoint{AgentID: agentID},
+		Offset:   0,
+		Limit:    0,
+	}, nil
 }
 
 func (act *actionWaitPluginInstallerCompleteV2) waitInstallerField(std *pluginV2Utils.PluginActionStandarder, key string) (string, error) {
