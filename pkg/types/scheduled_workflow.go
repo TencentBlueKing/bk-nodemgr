@@ -24,7 +24,6 @@ import "time"
 type ScheduledWorkflow struct {
 	WorkflowID   string
 	WorkflowName string
-	TenantID     string
 	TriggerID    string
 	Enabled      bool
 	Interval     string

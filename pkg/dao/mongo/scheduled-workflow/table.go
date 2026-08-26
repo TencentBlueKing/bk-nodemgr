@@ -20,14 +20,17 @@
 package scheduledworkflow
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
+const tableNamePrefix = "scheduled_workflow"
+
 // TableName scheduled workflow table name.
-func TableName() string {
-	return "scheduled_workflow"
+func TableName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", tableNamePrefix, tenantID)
 }
 
 var _ base.IData = &ScheduledWorkflow{}
@@ -37,7 +40,6 @@ var _ base.IData = &ScheduledWorkflow{}
 type ScheduledWorkflow struct {
 	WorkflowID   string         `json:"workflow_id" bson:"workflow_id"`
 	WorkflowName string         `json:"workflow_name" bson:"workflow_name"`
-	TenantID     string         `json:"tenant_id" bson:"tenant_id"`
 	TriggerID    string         `json:"trigger_id" bson:"trigger_id"`
 	Enabled      bool           `json:"enabled" bson:"enabled"`
 	Interval     string         `json:"interval" bson:"interval"`

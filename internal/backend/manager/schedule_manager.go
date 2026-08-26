@@ -54,7 +54,7 @@ const (
 	scheduledWorkflowMonitorTimeGap = 10 * time.Second
 )
 
-type initScheduledWorkflowFunc func(nCtx contextx.IContext, tenantID string) error
+type initScheduledWorkflowFunc func(nCtx contextx.IContext) error
 type syncScheduledWorkflowFunc func(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error
 
 func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWorkflowFunc {
@@ -95,8 +95,9 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 	}
 
 	for _, tenantID := range tenantIDs {
+		tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
 		for name, f := range mgr.getInitScheduledWorkflowFuncs() {
-			if err := mgr.initScheduleWorkflow(nCtx, tenantID, name, f); err != nil {
+			if err := mgr.initScheduleWorkflow(tenantCtx, name, f); err != nil {
 				logger.G.Sys().WithErr(err).With("tenant-id", tenantID, "workflow-name", name).Error("failed to initialize scheduled workflow")
 
 				continue
@@ -116,21 +117,31 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 				return
 
 			case <-ticker.C:
-				sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.UnlimitedPage())
+				tenantIDs, err := tenant.ListTenantIDs(nCtx)
 				if err != nil {
-					logger.G.Sys().WithErr(err).Error("failed to list scheduled workflows")
+					logger.G.Sys().WithErr(err).Error("failed to list tenant IDs")
 
 					continue
 				}
 
-				for _, sw := range sws {
-					if err = mgr.ensureScheduledWorkflow(nCtx, sw); err != nil {
-						logger.G.Sys().
-							WithErr(err).
-							With("workflow-id", sw.WorkflowID, "trigger-id", sw.TriggerID).
-							Error("failed to ensure scheduled workflow")
+				for _, tenantID := range tenantIDs {
+					tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
+					sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(tenantCtx, types.UnlimitedPage())
+					if err != nil {
+						logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Error("failed to list scheduled workflows")
 
 						continue
+					}
+
+					for _, sw := range sws {
+						if err = mgr.ensureScheduledWorkflow(tenantCtx, sw); err != nil {
+							logger.G.Sys().
+								WithErr(err).
+								With("tenant-id", tenantID, "workflow-id", sw.WorkflowID, "trigger-id", sw.TriggerID).
+								Error("failed to ensure scheduled workflow")
+
+							continue
+						}
 					}
 				}
 			}
@@ -140,8 +151,12 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 	return nil
 }
 
-func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string, workflowName string, initFunc initScheduledWorkflowFunc) error {
-	nCtx = contextx.From(nCtx, contextx.WithTenantID(tenantID))
+func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
 
 	locker := mgr.genScheduledWorkflowLocker(tenantID, workflowName)
 	if err := locker.tryLock(nCtx); err != nil {
@@ -165,7 +180,7 @@ func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string
 
 	switch len(sws) {
 	case 0:
-		if err = initFunc(nCtx, tenantID); err != nil {
+		if err = initFunc(nCtx); err != nil {
 			return fmt.Errorf("failed to initialize scheduled workflow: %w", err)
 		}
 
@@ -180,15 +195,18 @@ func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string
 }
 
 func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
-	locker := mgr.genScheduledWorkflowLocker(sw.TenantID, sw.WorkflowName)
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	locker := mgr.genScheduledWorkflowLocker(tenantID, sw.WorkflowName)
 	if err := locker.tryLock(nCtx); err != nil {
 		return nil
 	}
 	defer func() {
 		_ = locker.unlock(nCtx)
 	}()
-
-	nCtx = contextx.From(nCtx, contextx.WithTenantID(sw.TenantID))
 
 	// reload the scheduled workflow after get the lock.
 	var err error
@@ -296,15 +314,19 @@ func (mgr *Manager) trySyncingScheduledWorkflow(nCtx contextx.IContext, sw *type
 	return f(nCtx, sw)
 }
 
-func (mgr *Manager) initScheduledWorkflow(nCtx contextx.IContext, tenantID, workflowName, interval string) error {
-	operator, err := getScheduledWorkflowOperator(nCtx, tenantID)
+func (mgr *Manager) initScheduledWorkflow(nCtx contextx.IContext, workflowName, interval string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	operator, err := getScheduledWorkflowOperator(nCtx)
 	if err != nil {
 		return fmt.Errorf("failed to initialize scheduled workflow: %w", err)
 	}
 
 	sw := &types.ScheduledWorkflow{
 		WorkflowID:   identifier.GenWorkflowID(),
-		TenantID:     tenantID,
 		Enabled:      true,
 		WorkflowName: workflowName,
 		Interval:     interval,
@@ -313,12 +335,12 @@ func (mgr *Manager) initScheduledWorkflow(nCtx contextx.IContext, tenantID, work
 	}
 
 	if err := mgr.conf.StorageWorkflow.CreateScheduledWorkflow(nCtx, sw); err != nil {
-		logger.G.Sys().WithErr(err).With("workflow-name", sw.WorkflowName, "tenant-id", sw.TenantID).Error("failed to create scheduled workflow")
+		logger.G.Sys().WithErr(err).With("workflow-name", sw.WorkflowName, "tenant-id", tenantID).Error("failed to create scheduled workflow")
 
 		return fmt.Errorf("failed to create scheduled workflow: %w", err)
 	}
 
-	logger.G.Sys().With("workflow-name", sw.WorkflowName, "tenant-id", sw.TenantID).Info("created scheduled workflow")
+	logger.G.Sys().With("workflow-name", sw.WorkflowName, "tenant-id", tenantID).Info("created scheduled workflow")
 
 	return nil
 }
@@ -370,13 +392,12 @@ func (mgr *Manager) syncScheduledWorkflow(nCtx contextx.IContext, sw *types.Sche
 	return nil
 }
 
-func (mgr *Manager) initSWSyncTenant(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncTenant, scheduler.Every10m)
+func (mgr *Manager) initSWSyncTenant(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncTenant, scheduler.Every10m)
 }
 
-func getScheduledWorkflowOperator(nCtx contextx.IContext, tenantID string) (string, error) {
-	operatorCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
-	operator, err := access.GetVirtualUserBKUsername(operatorCtx)
+func getScheduledWorkflowOperator(nCtx contextx.IContext) (string, error) {
+	operator, err := access.GetVirtualUserBKUsername(nCtx)
 	if err != nil {
 		return "", fmt.Errorf("failed to get virtual user bk username: %w", err)
 	}
@@ -385,14 +406,19 @@ func getScheduledWorkflowOperator(nCtx contextx.IContext, tenantID string) (stri
 }
 
 func buildScheduleActionStandardParam(nCtx contextx.IContext, sw *types.ScheduledWorkflow) (utils.ScheduleActionStandardParam, error) {
-	operator, err := getScheduledWorkflowOperator(nCtx, sw.TenantID)
+	if err := nCtx.CheckTenantID(); err != nil {
+		return utils.ScheduleActionStandardParam{}, err
+	}
+
+	tenantID := nCtx.TenantID()
+	operator, err := getScheduledWorkflowOperator(nCtx)
 	if err != nil {
 		return utils.ScheduleActionStandardParam{}, err
 	}
 
 	return utils.ScheduleActionStandardParam{
 		WorkflowID: sw.WorkflowID,
-		TenantID:   sw.TenantID,
+		TenantID:   tenantID,
 		Operator:   operator,
 	}, nil
 }
@@ -408,8 +434,8 @@ func (mgr *Manager) syncSWSyncTenant(nCtx contextx.IContext, sw *types.Scheduled
 	}))
 }
 
-func (mgr *Manager) initSWSyncBizAndHost(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncBizAndHost, scheduler.Every30m)
+func (mgr *Manager) initSWSyncBizAndHost(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncBizAndHost, scheduler.Every30m)
 }
 
 func (mgr *Manager) syncSWSyncBizAndHost(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -423,8 +449,8 @@ func (mgr *Manager) syncSWSyncBizAndHost(nCtx contextx.IContext, sw *types.Sched
 	}))
 }
 
-func (mgr *Manager) initSWSyncNetworkArea(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncNetworkArea, scheduler.Every10m)
+func (mgr *Manager) initSWSyncNetworkArea(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncNetworkArea, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -438,8 +464,8 @@ func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.Sche
 	}))
 }
 
-func (mgr *Manager) initSWSyncAgentState(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAgentState, scheduler.Every10m)
+func (mgr *Manager) initSWSyncAgentState(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncAgentState, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -454,8 +480,8 @@ func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.Sched
 	}))
 }
 
-func (mgr *Manager) initSWSyncAliveAgentInfo(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAliveAgentInfo, scheduler.Every30m)
+func (mgr *Manager) initSWSyncAliveAgentInfo(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncAliveAgentInfo, scheduler.Every30m)
 }
 
 func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -469,8 +495,8 @@ func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.S
 	}))
 }
 
-func (mgr *Manager) initSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAlivePluginProcessInfo, scheduler.Every10m)
+func (mgr *Manager) initSWSyncAlivePluginProcessInfo(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowSyncAlivePluginProcessInfo, scheduler.Every10m)
 }
 
 func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -484,8 +510,8 @@ func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw 
 	}))
 }
 
-func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowWatchAndApplyCMDBResource, scheduler.Every10s)
+func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowWatchAndApplyCMDBResource, scheduler.Every10s)
 }
 
 func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -499,8 +525,8 @@ func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *t
 	}))
 }
 
-func (mgr *Manager) initSWExecuteDeployPolicy(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowExecuteDeployPolicy, scheduler.Every1h)
+func (mgr *Manager) initSWExecuteDeployPolicy(nCtx contextx.IContext) error {
+	return mgr.initScheduledWorkflow(nCtx, scheduledWorkflowExecuteDeployPolicy, scheduler.Every1h)
 }
 
 func (mgr *Manager) syncSWExecuteDeployPolicy(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {

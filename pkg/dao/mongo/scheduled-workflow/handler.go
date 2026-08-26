@@ -21,6 +21,7 @@ package scheduledworkflow
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -67,47 +68,64 @@ type IDistinctor interface {
 
 // Handler this is a Handler to operate schedule workflow table.
 type Handler struct {
-	dao *dao
+	client *mongo.Database
+	daoMap sync.Map
 }
 
 // New create a new schedule workflow handler.
 func New(client *mongo.Database) *Handler {
-	h := &Handler{
-		dao: newDao(client),
+	return &Handler{client: client}
+}
+
+func (h *Handler) tenantDao(tenantID string) *dao {
+	value, ok := h.daoMap.Load(tenantID)
+	if ok {
+		return value.(*dao)
 	}
 
-	if err := h.dao.EnsureIndexes(); err != nil {
+	newDaoClient := newDao(h.client, tenantID)
+	if err := newDaoClient.EnsureIndexes(); err != nil {
 		logger.G.Sys().WithErr(err).Warn("failed to ensure scheduled workflow indexes")
 	}
 
-	return h
+	value, _ = h.daoMap.LoadOrStore(tenantID, newDaoClient)
+	return value.(*dao)
 }
 
 // Count counts schedule workflow by opts.
 func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return -1, err
+	}
+
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.dao.Count(nCtx, filter)
+	return h.tenantDao(nCtx.TenantID()).Count(nCtx, filter)
 }
 
 // List lists schedule workflow by page and opts.
 func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ScheduledWorkflow, int64, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
+	}
+
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.Count(nCtx, filter)
+	workflowDao := h.tenantDao(nCtx.TenantID())
+	num, err := workflowDao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.dao.List(nCtx, filter, findOpt)
+	datas, err := workflowDao.List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -122,11 +140,15 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 // Create creates a new schedule workflow.
 func (h *Handler) Create(nCtx contextx.IContext, workflow *types.ScheduledWorkflow) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
 	if workflow == nil {
 		return base.ErrEmptyParamData()
 	}
 
-	if err := h.dao.Create(nCtx, convertScheduledWorkflowFromTypes(workflow)); err != nil {
+	if err := h.tenantDao(nCtx.TenantID()).Create(nCtx, convertScheduledWorkflowFromTypes(workflow)); err != nil {
 		return err
 	}
 
@@ -135,6 +157,10 @@ func (h *Handler) Create(nCtx contextx.IContext, workflow *types.ScheduledWorkfl
 
 // UpdateTriggerID updates schedule workflow's trigger id.
 func (h *Handler) UpdateTriggerID(nCtx contextx.IContext, workflowID, triggerID string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
 	if workflowID == "" {
 		return errors.New("workflow id should not be empty")
 	}
@@ -146,7 +172,7 @@ func (h *Handler) UpdateTriggerID(nCtx contextx.IContext, workflowID, triggerID 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
 
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyTriggerID, triggerID); err != nil {
+	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyTriggerID, triggerID); err != nil {
 		return err
 	}
 
@@ -155,6 +181,10 @@ func (h *Handler) UpdateTriggerID(nCtx contextx.IContext, workflowID, triggerID 
 
 // UpdatePrivateData updates schedule workflow's private data.
 func (h *Handler) UpdatePrivateData(nCtx contextx.IContext, workflowID string, privateData map[string]any) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
 	if workflowID == "" {
 		return errors.New("workflow id should not be empty")
 	}
@@ -166,7 +196,7 @@ func (h *Handler) UpdatePrivateData(nCtx contextx.IContext, workflowID string, p
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
 
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPrivateData, privateData); err != nil {
+	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyPrivateData, privateData); err != nil {
 		return err
 	}
 
@@ -175,13 +205,17 @@ func (h *Handler) UpdatePrivateData(nCtx contextx.IContext, workflowID string, p
 
 // Get gets schedule workflow by id.
 func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.ScheduledWorkflow, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
 	if workflowID == "" {
 		return nil, errors.New("workflow id should not be empty")
 	}
 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
-	data, err := h.dao.Get(nCtx, filter)
+	data, err := h.tenantDao(nCtx.TenantID()).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -191,6 +225,10 @@ func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.Schedul
 
 // Switch enables or disables a scheduled workflow.
 func (h *Handler) Switch(nCtx contextx.IContext, workflowID string, enable bool) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
 	if workflowID == "" {
 		return errors.New("workflow id should not be empty")
 	}
@@ -198,7 +236,7 @@ func (h *Handler) Switch(nCtx contextx.IContext, workflowID string, enable bool)
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
 
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyEnabled, enable); err != nil {
+	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyEnabled, enable); err != nil {
 		return err
 	}
 
@@ -224,12 +262,16 @@ func (h *Handler) DistinctScheduledWorkflowOperator(nCtx contextx.IContext, opts
 
 // distinctString returns distinct values of specified field.
 func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
 	filter := base.AliveFilter()
 	for _, opt := range opts {
 		filter = opt(filter)
 	}
 
-	return h.dao.distinctString(nCtx, key, filter, nil)
+	return h.tenantDao(nCtx.TenantID()).distinctString(nCtx, key, filter, nil)
 }
 
 // convertScheduledWorkflowToTypes convert schedule workflow to types.
@@ -237,7 +279,6 @@ func convertScheduledWorkflowToTypes(data *ScheduledWorkflow) *types.ScheduledWo
 	return &types.ScheduledWorkflow{
 		WorkflowID:   data.WorkflowID,
 		WorkflowName: data.WorkflowName,
-		TenantID:     data.TenantID,
 		TriggerID:    data.TriggerID,
 		Enabled:      data.Enabled,
 		Interval:     data.Interval,
@@ -252,7 +293,6 @@ func convertScheduledWorkflowFromTypes(workflow *types.ScheduledWorkflow) *Sched
 	return &ScheduledWorkflow{
 		WorkflowID:   workflow.WorkflowID,
 		WorkflowName: workflow.WorkflowName,
-		TenantID:     workflow.TenantID,
 		TriggerID:    workflow.TriggerID,
 		Enabled:      workflow.Enabled,
 		Interval:     workflow.Interval,
