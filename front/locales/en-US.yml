@@ -1229,6 +1229,10 @@ components:
     installPreOrderedPluginsTooltip: Automatically install preset plugins during installation
     reRegisterAgentId: Re-register AgentID
     reRegisterAgentIdTooltip: Re-register AgentID during installation
+    installMethod: Install Method
+    installMethodSSH: SSH
+    installMethodWMI: WMI
+    installMethodAuto: Auto
     ipv4ValidMessage: Invalid Private IPv4
     ipv6ValidMessage: Invalid Private IPv6
     osTypeValidMessage: Select OS

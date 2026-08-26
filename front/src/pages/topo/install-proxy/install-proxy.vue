@@ -460,6 +460,7 @@ const initData = {
   data_tunnel: true,
   proxy_tags: [] as string[],
   cpu_arch: '',
+  install_method: 'ssh',
 };
 const form = reactive({
   method: 'setup', // 安装方式
@@ -489,6 +490,7 @@ const settings = reactive({
     { field: 'credit', title: t('installProxy.passwordKey') },
     { field: 'install_pre_ordered_plugins', title: t('components.installTable.installPreOrderedPlugins') },
     { field: 're_register', title: t('components.installTable.reRegisterAgentId') },
+    { field: 'install_method', title: t('components.installTable.installMethod') },
     { field: 'dedicated_installer', title: t('installProxy.installJump') },
     { field: 'cluster_tunnel', title: t('installProxy.agentControl') },
     { field: 'file_tunnel', title: t('installProxy.fileTransfer') },

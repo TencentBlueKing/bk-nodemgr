@@ -159,6 +159,7 @@ const initData = {
   bk_host_id: '',
   re_register: false,
   install_pre_ordered_plugins: true,
+  install_method: 'ssh',
   credit: '',
 };
 const formData = reactive({
@@ -212,6 +213,7 @@ const tableSetting = reactive({
     { title: t('platform.nodeMan.installAgentPage.passwordKey'), field: 'credit' },
     { title: t('components.installTable.installPreOrderedPlugins'), field: 'install_pre_ordered_plugins' },
     { title: t('components.installTable.reRegisterAgentId'), field: 're_register' },
+    { title: t('components.installTable.installMethod'), field: 'install_method' },
   ],
   checked: [
     'bk_biz_id',

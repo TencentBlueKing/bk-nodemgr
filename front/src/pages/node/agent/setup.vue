@@ -319,6 +319,7 @@ const initData = {
   bk_biz_id: '',
   re_register: false,
   install_pre_ordered_plugins: true,
+  install_method: 'ssh',
   credit: '',
 };
 const mainStore = useMainStore();
@@ -349,6 +350,7 @@ const settings = reactive({
     { title: t('components.installTable.passwordKey'), field: 'credit' },
     { title: t('components.installTable.installPreOrderedPlugins'), field: 'install_pre_ordered_plugins' },
     { title: t('components.installTable.reRegisterAgentId'), field: 're_register' },
+    { title: t('components.installTable.installMethod'), field: 'install_method' },
   ],
   checked: [
     'bk_host_innerip',

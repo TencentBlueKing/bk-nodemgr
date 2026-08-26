@@ -1232,6 +1232,10 @@ components:
     installPreOrderedPluginsTooltip: 开启后将在安装过程中自动安装预设插件
     reRegisterAgentId: 重新注册AgentID
     reRegisterAgentIdTooltip: 开启后将在安装过程中重新注册AgentID
+    installMethod: 安装方式
+    installMethodSSH: SSH
+    installMethodWMI: WMI
+    installMethodAuto: 自动
     ipv4ValidMessage: 请输入正确的内网 IPv4
     ipv6ValidMessage: 请输入正确的内网 IPv6
     osTypeValidMessage: 请选择操作系统

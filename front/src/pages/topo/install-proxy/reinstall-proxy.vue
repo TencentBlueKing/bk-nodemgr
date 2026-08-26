@@ -247,6 +247,7 @@ const settings = reactive({
     { field: 'cluster_tunnel', title: t('installProxy.agentControl') },
     { field: 'file_tunnel', title: t('installProxy.fileTransfer') },
     { field: 'data_tunnel', title: t('installProxy.dataReport') },
+    { field: 'install_method', title: t('components.installTable.installMethod') },
   ],
   checked: [
     'bk_biz_id',
@@ -294,6 +295,7 @@ const initData = {
   data_tunnel: true,
   proxy_tags: [] as string[],
   cpu_arch: '',
+  install_method: 'ssh',
   relay_download_port: '',
   relay_callback_port: '',
   install_origin: '',

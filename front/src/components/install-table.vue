@@ -854,6 +854,37 @@
             </ValidateCell>
           </template>
         </VxeColumn>
+
+        <VxeColumn
+          field="install_method"
+          :min-width="120"
+          :visible="settings.checked.includes('install_method')"
+          :edit-render="{ name: 'VxeInput' }"
+        >
+          <template #header>
+            <span>{{ $t('components.installTable.installMethod') }}</span>
+          </template>
+          <template #default="{ row }">
+            <span>{{ installMethodMap[row.install_method] }}</span>
+          </template>
+          <template #edit="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'install_method')">
+              <Select
+                v-model="row.install_method"
+                clearable
+                transfer
+                @change="(val: any) => handleInstallMethodChange(val, row, rowIndex)"
+              >
+                <Select.Option
+                  v-for="option in getInstallMethodOptions(row.os_type)"
+                  :key="option.id"
+                  :id="option.id"
+                  :name="option.name"
+                />
+              </Select>
+            </ValidateCell>
+          </template>
+        </VxeColumn>
       </VxeColgroup>
 
       <!-- 安装设置 -->
@@ -1070,6 +1101,7 @@ const props = defineProps({
         { title: '密码 / 密钥', field: 'credit' },
         { title: '安装预设插件', field: 'install_pre_ordered_plugins' },
         { title: '重新注册AgentID', field: 're_register' },
+        { title: '安装方式', field: 'install_method' },
       ],
       checked: [
         'bk_host_innerip',
@@ -1103,11 +1135,19 @@ const handleDocMouseDown = (e: MouseEvent) => {
   }
 };
 
+// 根据操作系统 + 安装方式计算默认端口（Windows 仅 WMI 用 WMI 端口，SSH/自动用 SSH 端口）
+const getDefaultPort = (osType: string, installMethod: string) => {
+  if (osType === 'windows') {
+    return installMethod === 'wmi'
+      ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
+      : window.PROJECT_CONFIG.WINDOWS_SSH_PORT_DEFAULT;
+  }
+  return window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+};
+
 const handlePortBatchApplyDefault = () => {
   tableData.value?.forEach((item: any, index: number) => {
-    const port = item.os_type === 'windows'
-      ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
-      : window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+    const port = getDefaultPort(item.os_type, item.install_method);
     item.login_port = port;
     handleFieldBlur(index, 'login_port', port);
   });
@@ -1139,6 +1179,29 @@ const initData = {
   file_tunnel: true,
   data_tunnel: true,
   proxy_tags: [],
+  install_method: 'ssh',
+};
+
+// 安装方式展示映射
+const installMethodMap = computed<Record<string, string>>(() => ({
+  ssh: t('components.installTable.installMethodSSH'),
+  wmi: t('components.installTable.installMethodWMI'),
+  auto: t('components.installTable.installMethodAuto'),
+}));
+
+// 根据操作系统返回可选的安装方式（Windows 有 WMI，Linux 没有）
+const getInstallMethodOptions = (osType: string) => {
+  if (osType === 'windows') {
+    return [
+      { id: 'ssh', name: t('components.installTable.installMethodSSH') },
+      { id: 'wmi', name: t('components.installTable.installMethodWMI') },
+      { id: 'auto', name: t('components.installTable.installMethodAuto') },
+    ];
+  }
+  return [
+    { id: 'ssh', name: t('components.installTable.installMethodSSH') },
+    { id: 'auto', name: t('components.installTable.installMethodAuto') },
+  ];
 };
 
 const rules: ValidationRules = {
@@ -1268,6 +1331,20 @@ const handleChangeMode = (val: string, row: any, rowIndex: number) => {
   clearError(rowIndex, 'credit');
 };
 
+const handleInstallMethodChange = (val: string, row: any, rowIndex: number) => {
+  if (!val) return;
+  if (row.os_type === 'windows') {
+    // Windows：WMI 用 WMI 端口，SSH/自动用 SSH 端口
+    row.login_port = val === 'wmi'
+      ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
+      : window.PROJECT_CONFIG.WINDOWS_SSH_PORT_DEFAULT;
+  } else {
+    // Linux：SSH/自动都用 SSH 端口
+    row.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+  }
+  handleFieldBlur(rowIndex, 'login_port', row.login_port);
+};
+
 const handleChangeIPv4 = (val: string, row: any, rowIndex: number) => {
   if (new RegExp(VALIDATE_REGEX.IPV4).test(val)) {
     row.login_ip = val;
@@ -1279,13 +1356,18 @@ const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
   if (val === 'linux') {
     row.login_port = window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
     row.login_user = 'root';
+    // Linux 无 WMI 安装方式，若之前选了 WMI 则重置为 SSH
+    if (row.install_method === 'wmi') {
+      row.install_method = 'ssh';
+    }
     handleFieldBlur(rowIndex, 'login_port', window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT);
     handleFieldBlur(rowIndex, 'login_user', 'root');
   }
   if (val === 'windows') {
-    row.login_port = window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT;
+    const port = getDefaultPort('windows', row.install_method);
+    row.login_port = port;
     row.login_user = 'administrator';
-    handleFieldBlur(rowIndex, 'login_port', window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT);
+    handleFieldBlur(rowIndex, 'login_port', port);
     handleFieldBlur(rowIndex, 'login_user', 'administrator');
   }
 };
@@ -1332,9 +1414,10 @@ const handleBatchEdit = (field: string, value: any) => {
         handleFieldBlur(index, 'login_port', window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT);
         handleFieldBlur(index, 'login_user', 'root');
       } else if (value === 'windows') {
-        item.login_port = window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT;
+        const port = getDefaultPort('windows', item.install_method);
+        item.login_port = port;
         item.login_user = 'administrator';
-        handleFieldBlur(index, 'login_port', window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT);
+        handleFieldBlur(index, 'login_port', port);
         handleFieldBlur(index, 'login_user', 'administrator');
       }
     }
@@ -1711,9 +1794,7 @@ const autoFillDefaults = () => {
         : firstIp(row.bk_host_innerip) || firstIp(row.bk_host_innerip_v6);
     }
     if (row.os_type && (!row.login_port || Number(row.login_port) === 0 || String(row.login_port).includes('{{'))) {
-      const defaultPort = row.os_type === 'windows'
-        ? window.PROJECT_CONFIG.WINDOWS_WMI_PORT_DEFAULT
-        : window.PROJECT_CONFIG.UNIX_SSH_PORT_DEFAULT;
+      const defaultPort = getDefaultPort(row.os_type, row.install_method);
       row.login_port = String(defaultPort).includes('{{') ? '' : defaultPort;
     }
     if (row.os_type && !row.login_user) {
