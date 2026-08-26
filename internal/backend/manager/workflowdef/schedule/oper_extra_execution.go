@@ -66,11 +66,15 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 	if err != nil {
 		return err
 	}
+	execCtx := contextx.From(nCtx,
+		contextx.WithTenantID(param.TenantID),
+		contextx.WithBKUsername(param.Operator),
+	)
 
 	switch instance.Lifecycle.State {
 	case operation.StateLaunched:
-		if err := exec.preprocess(nCtx, instance, param); err != nil {
-			logger.G.Sys().Ctx(nCtx).
+		if err := exec.preprocess(execCtx, instance, param); err != nil {
+			logger.G.Sys().Ctx(execCtx).
 				WithErr(err).
 				With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 				Error("failed to do preprocess for scheduled workflow")
@@ -83,8 +87,8 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 		return nil
 
 	case operation.StateSuccess, operation.StateFailed, operation.StateTimeout, operation.StateTerminated:
-		if err := exec.postprocess(nCtx, instance, param); err != nil {
-			logger.G.Sys().Ctx(nCtx).
+		if err := exec.postprocess(execCtx, instance, param); err != nil {
+			logger.G.Sys().Ctx(execCtx).
 				WithErr(err).
 				With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 				Error("failed to do postprocess for scheduled workflow")
@@ -97,7 +101,7 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 		return nil
 
 	default:
-		logger.G.Sys().Ctx(nCtx).
+		logger.G.Sys().Ctx(execCtx).
 			With("operation", instance.Metadata.OperationDefName, "workflow-id", param.WorkflowID).
 			Error("unexpected operation instance state: %s", instance.Lifecycle.State)
 
