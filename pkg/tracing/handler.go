@@ -146,7 +146,7 @@ func (h *Handler) newTracerProvider(config ServiceConfig) (*sdkTrace.TracerProvi
 	return sdkTrace.NewTracerProvider(
 		sdkTrace.WithBatcher(h.exporter),
 		sdkTrace.WithResource(res),
-		sdkTrace.WithSampler(sdkTrace.ParentBased(sdkTrace.TraceIDRatioBased(config.SampleRate))),
+		sdkTrace.WithSampler(sdkTrace.TraceIDRatioBased(config.SampleRate)),
 	), nil
 }
 
