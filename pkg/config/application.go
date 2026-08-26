@@ -133,6 +133,7 @@ type ApplicationService struct {
 	Front              Front              `yaml:"front" usage:"front config of application service"`
 	Backend            Backend            `yaml:"backend" usage:"backend gateway config"`
 	UserManager        UserManager        `yaml:"userManager" usage:"user manager config of application service"`
+	Access             Access             `yaml:"access" usage:"access config of application service"`
 	Notice             Notice             `yaml:"notice" usage:"notice gateway config"`
 	File               File               `yaml:"file" usage:"file config of backend service"`
 	Etcd               Etcd               `yaml:"etcd" usage:"etcd config of application service"`
@@ -190,6 +191,9 @@ func NewApplicationService() *ApplicationService {
 					TraceServiceName: defaultApplicationUserManagerTraceServiceName,
 				},
 			},
+		},
+		Access: Access{
+			VirtualUser: defaultAccessVirtualUser,
 		},
 		Notice: Notice{
 			Enabled: false, // Disabled by default, must be explicitly enabled
@@ -328,6 +332,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.UserManager.Validate(); err != nil {
 		return fmt.Errorf("failed to validate user manager config: %w", err)
+	}
+
+	if err := svc.Access.Validate(); err != nil {
+		return fmt.Errorf("failed to validate access config: %w", err)
 	}
 
 	if err := svc.Notice.Validate(); err != nil {

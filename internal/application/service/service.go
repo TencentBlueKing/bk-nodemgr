@@ -39,6 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -151,6 +152,7 @@ func (svc *Service) initialStaticsConfigs() error {
 		config.AuthIdentityNone:    {},
 		config.AuthIdentityBKLogin: {},
 	}
+	access.SetVirtualUser(svc.conf.Access.VirtualUser)
 
 	return nil
 }

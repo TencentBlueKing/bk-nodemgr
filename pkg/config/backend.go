@@ -107,8 +107,6 @@ const (
 	defaultGseDeployConfWindowsBaseDeployDir = `c:\`
 	defaultGseDeployConfWindowsBaseWorkDir   = `c:\tmp\bknm\`
 
-	defaultAccessVirtualUser = "bk-nodemgr"
-
 	defaultBackendFileCacheDir             = "/bk-nodemgr/filecache"
 	defaultBackendFileCacheExpirationHours = 72
 	defaultBackendFileCacheGCIntervalHours = 1
@@ -583,20 +581,6 @@ type GSEDeployPluginCustom struct {
 
 // Validate validates the config.
 func (conf GSEDeployPluginCustom) Validate() error {
-	return nil
-}
-
-// Access defines the access configuration for nodemgr system to authenticate.
-type Access struct {
-	VirtualUser string `yaml:"virtualUser" usage:"virtual user of system to authenticate"`
-}
-
-// Validate validates the config.
-func (access *Access) Validate() error {
-	if access.VirtualUser == "" {
-		return fmt.Errorf("virtual user is empty")
-	}
-
 	return nil
 }
 

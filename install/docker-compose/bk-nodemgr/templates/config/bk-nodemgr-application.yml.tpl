@@ -91,6 +91,10 @@ userManager:
   traceServiceName: "application-client-usermanager"
   traceSampleRate: 0
 
+# access settings.
+access:
+  virtualUser: "__BK_NODEMGR_VIRTUAL_USER__"
+
 # log settings.
 log:
   dir: /bk-nodemgr/log/

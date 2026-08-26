@@ -816,6 +816,11 @@ application:
         # the password to decrypt the certificate.
         password: ""
 
+    # defines the access settings.
+    access:
+      # virtualUser overrides the default system user; when omitted, single mode uses admin and multiple mode uses bk_admin.
+      # virtualUser: ""
+
     # defines the notice center (BK API gateway) related settings.
     notice:
       # enabled controls whether the notice feature is enabled.

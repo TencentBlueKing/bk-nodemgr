@@ -33,6 +33,8 @@ func TestApplicationService_LoadFromFileReadsHelmRenderedKeys(t *testing.T) {
 tenantMode: single
 bkPaaS:
   analysisScript: "<script>window.bkAnalytics=true</script>"
+access:
+  virtualUser: "bk-nodemgr-app"
 `)
 	require.NoError(t, os.WriteFile(configPath, configContent, 0o600))
 
@@ -41,6 +43,7 @@ bkPaaS:
 
 	assert.Equal(t, RunModeDebug, svc.RunMode)
 	assert.Equal(t, "<script>window.bkAnalytics=true</script>", svc.BKPaas.AnalysisScript)
+	assert.Equal(t, "bk-nodemgr-app", svc.Access.VirtualUser)
 }
 
 func TestApplicationService_LoadFromFileKeepsLegacyModeKeyCompatible(t *testing.T) {

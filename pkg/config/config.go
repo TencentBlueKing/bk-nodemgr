@@ -732,6 +732,22 @@ func (saas *BKSaas) Validate() error {
 	return nil
 }
 
+const defaultAccessVirtualUser = "bk-nodemgr"
+
+// Access defines the access configuration for nodemgr system to authenticate.
+type Access struct {
+	VirtualUser string `yaml:"virtualUser" usage:"virtual user of system to authenticate"`
+}
+
+// Validate validates the config.
+func (access *Access) Validate() error {
+	if access.VirtualUser == "" {
+		return fmt.Errorf("virtual user is empty")
+	}
+
+	return nil
+}
+
 // LoginAuthType defines the auth type of bklogin.
 type LoginAuthType string
 
