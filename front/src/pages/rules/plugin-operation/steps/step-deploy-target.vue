@@ -44,7 +44,7 @@
         </div>
       </Form.FormItem>
 
-      <!-- 高级选项展开按钮（重启/停止操作不需要版本选择，隐藏高级选项） -->
+      <!-- 高级选项展开按钮（启动/重启/停止操作不需要版本选择，隐藏高级选项） -->
       <Form.FormItem v-if="!isSimpleOperation">
         <Button
           text
@@ -56,7 +56,7 @@
         </Button>
       </Form.FormItem>
 
-      <!-- 版本选择表格（重启/停止操作不需要） -->
+      <!-- 版本选择表格（启动/重启/停止操作不需要） -->
       <Form.FormItem v-if="showAdvanced && !isSimpleOperation" required>
         <template #label>
           <span>{{ $t('pluginOperation.steps.packageVersion') }}</span>
@@ -160,8 +160,8 @@ const formData = defineModel<{
   paramConfig: Record<string, any>;
 }>('formData', { required: true });
 
-// 重启/停止操作不需要版本选择和参数配置
-const isSimpleOperation = computed(() => ['restart', 'stop'].includes(props.operationType || ''));
+// 启动/重启/停止操作不需要版本选择和参数配置
+const isSimpleOperation = computed(() => ['start', 'restart', 'stop'].includes(props.operationType || ''));
 
 const formRef = ref();
 // IP 选择器 key：回填完成后递增，强制组件重建（解决 Vue3 包裹 Vue2 组件 props 不响应的问题）

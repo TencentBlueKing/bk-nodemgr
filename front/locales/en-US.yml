@@ -248,7 +248,7 @@ platform:
       subtitle:
         agent: View task history for Agent installation, upgrade, uninstallation, and other node operations
         proxy: View task history for Proxy installation, upgrade, uninstallation, and other node operations
-        plugin: View task history for plugin installation, upgrade, stop, uninstallation, and related operations
+        plugin: View task history for plugin installation, upgrade, start, stop, uninstallation, and related operations
       shortcut:
         today: Today
         last7Days: Last 7 days
@@ -282,6 +282,7 @@ platform:
         uninstall_proxy: Proxy Uninstallation
         assign_proxy_unit: Assign Proxy Network Unit
         install_plugin: Plugin Installation
+        start_plugin: Plugin Start
         debug_plugin: Plugin Debugging
         ensure_plugin_v2: Ensure V2 Plugin
         stop_plugin_v2: Stop V2 Plugin
@@ -387,6 +388,7 @@ pluginManagement:
       upgrade: Upgrade
       reload: Reload
       uninstall: Uninstall
+      start: Start
       restart: Restart
       stop: Stop
       reinstall: Reinstall
@@ -396,6 +398,10 @@ pluginManagement:
       batchRestartTitle: Confirm Batch Restart Plugins
       restartSubTitle: 'Confirm restart plugin {pluginName}?'
       batchRestartSubTitle: 'Confirm batch restart {pluginNames} and {count} plugins?'
+      startTitle: Confirm Start Plugin
+      batchStartTitle: Confirm Batch Start Plugins
+      startSubTitle: 'Confirm start plugin {pluginName}?'
+      batchStartSubTitle: 'Confirm batch start {pluginNames} and {count} plugins?'
       uninstallTitle: Confirm Uninstall Plugin
       batchUninstallTitle: Confirm Batch Uninstall Plugins
       uninstallSubTitle: 'Confirm uninstall plugin {pluginName}? This action cannot be undone.'
@@ -411,9 +417,11 @@ pluginManagement:
       unrecoverable: ' This action cannot be undone.'
       selectProcessHint: 'Please select plugin processes to {action}'
       actionUninstall: uninstall
+      actionStart: start
       actionRestart: restart
       actionStop: stop
       selectionConfirmUninstall: 'Confirm batch uninstall {detail} ({count} processes in total)? This action cannot be undone.'
+      selectionConfirmStart: 'Confirm batch start {detail} ({count} processes in total)?'
       selectionConfirmRestart: 'Confirm batch restart {detail} ({count} processes in total)?'
       selectionConfirmStop: 'Confirm batch stop {detail} ({count} processes in total)?'
 topoManager:

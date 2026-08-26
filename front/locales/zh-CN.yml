@@ -248,7 +248,7 @@ platform:
       subtitle:
         agent: 查看 Agent 安装、升级、卸载等节点操作任务历史
         proxy: 查看 Proxy 安装、升级、卸载等节点操作任务历史
-        plugin: 查看插件安装、升级、停止、卸载等任务历史
+        plugin: 查看插件安装、升级、启动、停止、卸载等任务历史
       shortcut:
         today: 今天
         last7Days: 近7天
@@ -282,6 +282,7 @@ platform:
         uninstall_proxy: Proxy 卸载
         assign_proxy_unit: Proxy 分配管控单元
         install_plugin: 插件安装
+        start_plugin: 插件启动
         debug_plugin: 插件调试
         ensure_plugin_v2: 确保 V2 插件
         stop_plugin_v2: 停止 V2 插件
@@ -387,6 +388,7 @@ pluginManagement:
       upgrade: 升级
       reload: 重载
       uninstall: 卸载
+      start: 启动
       restart: 重启
       stop: 停止
       reinstall: 重装
@@ -396,6 +398,10 @@ pluginManagement:
       batchRestartTitle: 确认批量重启插件
       restartSubTitle: '确认重启插件 {pluginName}？'
       batchRestartSubTitle: '确认批量重启 {pluginNames} 等 {count} 个插件？'
+      startTitle: 确认启动插件
+      batchStartTitle: 确认批量启动插件
+      startSubTitle: '确认启动插件 {pluginName}？'
+      batchStartSubTitle: '确认批量启动 {pluginNames} 等 {count} 个插件？'
       uninstallTitle: 确认卸载插件
       batchUninstallTitle: 确认批量卸载插件
       uninstallSubTitle: '确认卸载插件 {pluginName}？卸载后不可恢复。'
@@ -411,9 +417,11 @@ pluginManagement:
       unrecoverable: 卸载后不可恢复。
       selectProcessHint: '请勾选需要{action}的插件进程'
       actionUninstall: 卸载
+      actionStart: 启动
       actionRestart: 重启
       actionStop: 停止
       selectionConfirmUninstall: '确认批量卸载 {detail} 等 {count} 个进程？卸载后不可恢复。'
+      selectionConfirmStart: '确认批量启动 {detail} 等 {count} 个进程？'
       selectionConfirmRestart: '确认批量重启 {detail} 等 {count} 个进程？'
       selectionConfirmStop: '确认批量停止 {detail} 等 {count} 个进程？'
 topoManager:

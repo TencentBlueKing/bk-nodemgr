@@ -397,7 +397,7 @@
       </Button>
     </template> -->
   </Sideslider>
-  <!-- 操作确认弹窗（重启/卸载/停止） -->
+  <!-- 操作确认弹窗（启动/重启/卸载/停止） -->
   <operate-dialog
     v-model:is-show="operateDialogIsShow"
     :title="operateDialogData.title"
@@ -538,13 +538,14 @@ const allOperations = [
   { id: 'upgrade', nameKey: 'pluginManagement.plugin.operate.upgrade' },
   { id: 'reload', nameKey: 'pluginManagement.plugin.operate.reload' },
   { id: 'uninstall', nameKey: 'pluginManagement.plugin.operate.uninstall' },
+  { id: 'start', nameKey: 'pluginManagement.plugin.operate.start' },
   { id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' },
   { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' },
 ];
 
 // 批量操作列表 — 根据来源区分：
 // type=plugin（从插件列表进入）：包含升级，排除重装和重载
-// type=node（从 Agent/Proxy 列表进入）：只有卸载、重启、停止
+// type=node（从 Agent/Proxy 列表进入）：只有卸载、启动、重启、停止
 const batchOperateList = computed(() => {
   const excludedOps = props.type === 'plugin'
     ? ['reinstall', 'reload']
@@ -602,6 +603,7 @@ const selectionConfirmFormatter = (selectedRows: any[]) => {
 
   const keyMap: Record<string, string> = {
     uninstall: 'pluginManagement.plugin.operate.selectionConfirmUninstall',
+    start: 'pluginManagement.plugin.operate.selectionConfirmStart',
     restart: 'pluginManagement.plugin.operate.selectionConfirmRestart',
     stop: 'pluginManagement.plugin.operate.selectionConfirmStop',
   };
@@ -658,8 +660,8 @@ const handlePluginOperate = (operateType: string, data: any[], batch = false) =>
         ...(prefillVersions ? { prefillVersions } : {}),
       },
     });
-  } else if (operateType === 'restart' || operateType === 'uninstall' || operateType === 'stop') {
-    // 重启/卸载/停止 → operate-dialog 确认
+  } else if (operateType === 'restart' || operateType === 'uninstall' || operateType === 'start' || operateType === 'stop') {
+    // 重启/卸载/启动/停止 → operate-dialog 确认
     // 浅拷贝数据，避免弹窗内部 checkbox 事件修改主表格的 checked 状态
     pendingOperateData.value = data.map((item: any) => ({ ...item }));
     pendingOperateType.value = operateType;
@@ -686,20 +688,27 @@ const handlePluginOperate = (operateType: string, data: any[], batch = false) =>
       operateDialogData.subTitle = batch
         ? t('pluginManagement.plugin.operate.batchUninstallSubTitle', { pluginNames, count })
         : t('pluginManagement.plugin.operate.uninstallSubTitle', { pluginName });
-    } else {
+    } else if (operateType === 'stop') {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchStopTitle')
         : t('pluginManagement.plugin.operate.stopTitle');
       operateDialogData.subTitle = batch
         ? t('pluginManagement.plugin.operate.batchStopSubTitle', { pluginNames, count })
         : t('pluginManagement.plugin.operate.stopSubTitle', { pluginName });
+    } else {
+      operateDialogData.title = batch
+        ? t('pluginManagement.plugin.operate.batchStartTitle')
+        : t('pluginManagement.plugin.operate.startTitle');
+      operateDialogData.subTitle = batch
+        ? t('pluginManagement.plugin.operate.batchStartSubTitle', { pluginNames, count })
+        : t('pluginManagement.plugin.operate.startSubTitle', { pluginName });
     }
 
     operateDialogIsShow.value = true;
   }
 };
 
-// 操作弹窗确认（重启/卸载/停止）
+// 操作弹窗确认（启动/重启/卸载/停止）
 const handleOperateConfirm = async (extraData: any = {}) => {
   // 优先使用弹窗中勾选的数据，若无则使用全部
   const data = extraData.selection?.length ? extraData.selection : pendingOperateData.value;
@@ -708,6 +717,10 @@ const handleOperateConfirm = async (extraData: any = {}) => {
 
   if (operateType === 'uninstall') {
     res = await PluginAPIService.UninstallPlugin({
+      plugin: data.map((item: any) => ({ bk_host_id: item.bk_host_id, plugin_name: item.plugin_name })),
+    });
+  } else if (operateType === 'start') {
+    res = await PluginAPIService.StartPlugin({
       plugin: data.map((item: any) => ({ bk_host_id: item.bk_host_id, plugin_name: item.plugin_name })),
     });
   } else if (operateType === 'stop') {

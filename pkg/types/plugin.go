@@ -50,6 +50,9 @@ const (
 	// PermittedOperationReconfig reconfig operation.
 	PermittedOperationReconfig PermittedOperation = "reconfig"
 
+	// PermittedOperationStart start operation.
+	PermittedOperationStart PermittedOperation = "start"
+
 	// PermittedOperationRestart restart operation.
 	PermittedOperationRestart PermittedOperation = "restart"
 
@@ -70,6 +73,7 @@ func DefaultGroupPermittedOperations() []PermittedOperation {
 		PermittedOperationInstall,
 		PermittedOperationUpgrade,
 		PermittedOperationReconfig,
+		PermittedOperationStart,
 		PermittedOperationRestart,
 		PermittedOperationStop,
 		PermittedOperationUninstall,
