@@ -133,9 +133,9 @@ func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		originTenants, err = act.daoTenant.ListAllEnabledTenants(nCtx)
+		originTenants, err = act.daoTenant.ListAllTenants(nCtx)
 		if err != nil {
-			return fmt.Errorf("failed to list all enabled tenants from storage: %w", err)
+			return fmt.Errorf("failed to list all tenants from storage: %w", err)
 		}
 
 		originTenantMap, err = conv.SliceToMap(originTenants, func(v *types.Tenant) string {
