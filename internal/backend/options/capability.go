@@ -197,10 +197,6 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	if err := capability.StorageTenant.Start(ctx); err != nil {
-		return err
-	}
-
 	if err := capability.StorageCipher.Start(ctx); err != nil {
 		return err
 	}

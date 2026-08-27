@@ -32,7 +32,6 @@ import (
 
 // IHandler handler interface.
 type IHandler interface {
-	tenant.ITenantIDProvider
 	access.ITenantVirtualUserResolver
 
 	ListALLTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
@@ -74,32 +73,6 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 	}
 
 	return handler, nil
-}
-
-// ListTenantIDs lists enabled tenant IDs from bk-user in multi-tenant mode.
-func (h HandlerMultiTenant) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
-	// Tenant listing is a platform-level bk-user call; hold the system tenant to avoid caller-tenant permission denial.
-	systemTenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID))
-	resp, err := h.cli.listTenant(systemTenantCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	tenantIDs := make([]string, len(resp))
-	for idx, item := range resp {
-		enabled, err := item.Status.Bool()
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert status to bool: %w", err)
-		}
-
-		if !enabled {
-			continue
-		}
-
-		tenantIDs[idx] = item.ID
-	}
-
-	return tenantIDs, nil
 }
 
 // ListALLTenants implement IHandler.
@@ -178,11 +151,6 @@ func (h HandlerMultiTenant) GetBKUsernameByLoginName(nCtx contextx.IContext, log
 // HandlerSingle handler of user manager.
 type HandlerSingle struct {
 	cli *cli
-}
-
-// ListTenantIDs returns the default tenant ID in single-tenant mode.
-func (h HandlerSingle) ListTenantIDs(_ contextx.IContext) ([]string, error) {
-	return []string{tenant.SingleModeTenantID}, nil
 }
 
 var _ IHandler = &HandlerSingle{}

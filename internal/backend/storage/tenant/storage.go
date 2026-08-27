@@ -23,7 +23,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/tenant"
+	tenantDao "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -33,11 +33,13 @@ import (
 const StorageName = "tenant"
 
 const (
+	metricOperationListTenantIDs         = "list_tenant_ids"
 	metricOperationListAllEnabledTenants = "list_all_enabled_tenants"
 	metricOperationListAllTenants        = "list_all_tenants"
 	metricOperationCreateManyTenant      = "create_many_tenant"
 	metricOperationDeleteManyTenant      = "delete_many_tenant"
 	metricOperationUpdateManyTenant      = "update_many_tenant"
+	metricOperationEnsureReservedTenant  = "ensure_reserved_tenant"
 )
 
 // NewStorage creates a new release storage.
@@ -70,13 +72,27 @@ var _ IStorage = &Storage{}
 type Storage struct {
 	basestorage.Storage
 
-	daoTenant tenant.IHandler
+	daoTenant tenantDao.IHandler
 }
 
 func (s *Storage) initDao() error {
-	s.daoTenant = tenant.New(s.Database)
+	s.daoTenant = tenantDao.New(s.Database)
 
 	return nil
+}
+
+// ListTenantIDs lists all enabled tenant IDs.
+func (s *Storage) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	var tenantIDs []string
+
+	err := s.WrapFn(nCtx, metricOperationListTenantIDs, func(ctx contextx.IContext) error {
+		var err error
+		tenantIDs, err = s.listTenantIDs(ctx)
+
+		return err
+	})
+
+	return tenantIDs, err
 }
 
 func (s *Storage) check() error {
@@ -142,5 +158,12 @@ func (s *Storage) UpdateManyTenant(nCtx contextx.IContext, tenantMap map[string]
 		err = s.updateManyTenant(ctx, tenantMap)
 
 		return err
+	})
+}
+
+// EnsureReservedTenant ensures the reserved tenant exists in storage.
+func (s *Storage) EnsureReservedTenant(nCtx contextx.IContext, tenant *types.Tenant) error {
+	return s.WrapFn(nCtx, metricOperationEnsureReservedTenant, func(ctx contextx.IContext) error {
+		return s.ensureReservedTenant(ctx, tenant)
 	})
 }

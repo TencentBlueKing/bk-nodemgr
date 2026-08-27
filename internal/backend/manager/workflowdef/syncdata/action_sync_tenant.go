@@ -27,6 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/diff"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	pkgTenant "github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -182,15 +183,17 @@ func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {
 	}
 
 	if len(deleted) > 0 {
-		deletedTenantIDs := conv.MapKeyToSlice(deleted)
-		if err := act.daoTenant.DeleteManyTenant(nCtx, deletedTenantIDs); err != nil {
-			return fmt.Errorf("failed to delete deleted tenants: %w", err)
-		}
+		deletedTenantIDs := deletableTenantIDs(deleted)
+		if len(deletedTenantIDs) > 0 {
+			if err := act.daoTenant.DeleteManyTenant(nCtx, deletedTenantIDs); err != nil {
+				return fmt.Errorf("failed to delete deleted tenants: %w", err)
+			}
 
-		ctx.Data.Log().
-			Zh("删除租户数量: %d", len(deleted)).
-			En("deleted tenants num: %d", len(deleted)).
-			Info()
+			ctx.Data.Log().
+				Zh("删除租户数量: %d", len(deletedTenantIDs)).
+				En("deleted tenants num: %d", len(deletedTenantIDs)).
+				Info()
+		}
 	}
 
 	if len(changed) > 0 {
@@ -212,3 +215,25 @@ func (act *actionSyncTenant) DisplayNameZh() string { return "同步租户" }
 
 // DisplayNameEn returns the English display name of the action.
 func (act *actionSyncTenant) DisplayNameEn() string { return "Sync Tenant" }
+
+func deletableTenantIDs(deleted map[string]*types.Tenant) []string {
+	tenantIDs := make([]string, 0, len(deleted))
+	for tenantID := range deleted {
+		if isReservedTenantID(tenantID) {
+			continue
+		}
+
+		tenantIDs = append(tenantIDs, tenantID)
+	}
+
+	return tenantIDs
+}
+
+func isReservedTenantID(tenantID string) bool {
+	switch tenantID {
+	case pkgTenant.SingleModeTenantID, pkgTenant.SystemTenantID:
+		return true
+	default:
+		return false
+	}
+}

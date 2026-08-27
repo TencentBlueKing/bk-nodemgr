@@ -39,6 +39,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
+	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -203,6 +204,11 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create mongo client: %w", err)
 	}
 
+	// initial tenant storage before systems that enumerate tenant IDs.
+	if err = svc.initialTenantStorage(); err != nil {
+		return fmt.Errorf("failed to initial tenant storage: %w", err)
+	}
+
 	// initial serveral storages.
 	if err = svc.initialStorages(); err != nil {
 		return fmt.Errorf("failed to initial storages: %w", err)
@@ -290,10 +296,6 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if err := tenant.SetTenantIDProvider(usermgrHandler); err != nil {
-		return nil, fmt.Errorf("failed to set tenant id provider: %w", err)
 	}
 
 	access.SetTenantVirtualUserResolver(usermgrHandler)
@@ -415,6 +417,53 @@ func (svc *Service) initialStorages() error {
 	)
 
 	return nil
+}
+
+func (svc *Service) initialTenantStorage() error {
+	storageTenant, err := tenantStg.NewStorage(svc.Cap.MongoClient, svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create tenant storage: %w", err)
+	}
+
+	if err := storageTenant.Start(svc.ctx); err != nil {
+		return fmt.Errorf("failed to start tenant storage: %w", err)
+	}
+
+	reservedTenant, err := reservedTenant()
+	if err != nil {
+		return err
+	}
+
+	if err := storageTenant.EnsureReservedTenant(svc.ctx, reservedTenant); err != nil {
+		return fmt.Errorf("failed to ensure reserved tenant: %w", err)
+	}
+
+	if err := tenant.SetTenantIDProvider(storageTenant); err != nil {
+		return fmt.Errorf("failed to set tenant id provider: %w", err)
+	}
+
+	svc.Cap.StorageTenant = storageTenant
+
+	return nil
+}
+
+func reservedTenant() (*types.Tenant, error) {
+	switch tenant.GetMode() {
+	case tenant.ModeSingle:
+		return &types.Tenant{
+			ID:      tenant.SingleModeTenantID,
+			Name:    tenant.SingleModeTenantName,
+			Enabled: true,
+		}, nil
+	case tenant.ModeMultiple:
+		return &types.Tenant{
+			ID:      tenant.SystemTenantID,
+			Name:    tenant.SystemTenantID,
+			Enabled: true,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported tenant mode: %s", tenant.GetMode())
+	}
 }
 
 func (svc *Service) registerRestServer() error {

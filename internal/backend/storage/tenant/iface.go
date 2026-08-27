@@ -22,14 +22,23 @@ package tenant
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	pkgTenant "github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IStorage defines tenant storage interface.
 type IStorage interface {
 	basestorage.Interface
+	pkgTenant.ITenantIDProvider
 
 	IDaoTenant
+	IDomainTenant
+}
+
+// IDomainTenant defines tenant domain interface.
+type IDomainTenant interface {
+	// EnsureReservedTenant ensures the reserved tenant exists in storage.
+	EnsureReservedTenant(nCtx contextx.IContext, tenant *types.Tenant) error
 }
 
 // IDaoTenant defines tenant dao interface.

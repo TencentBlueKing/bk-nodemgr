@@ -23,7 +23,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/tenant"
+	tenantDao "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -32,12 +32,30 @@ func (s *Storage) listAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant
 		return nil, base.ErrInvalidContext()
 	}
 
-	tenants, _, err := s.daoTenant.List(nCtx, types.UnlimitedPage(), tenant.WithStatus(true))
+	tenants, _, err := s.daoTenant.List(nCtx, types.UnlimitedPage(), tenantDao.WithStatus(true))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list all enabled tenants: %w", err)
 	}
 
 	return tenants, nil
+}
+
+func (s *Storage) listTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	tenants, err := s.listAllEnabledTenants(nCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	tenantIDs := make([]string, 0, len(tenants))
+	for _, tenant := range tenants {
+		if tenant == nil {
+			continue
+		}
+
+		tenantIDs = append(tenantIDs, tenant.ID)
+	}
+
+	return tenantIDs, nil
 }
 
 func (s *Storage) listAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
@@ -99,6 +117,47 @@ func (s *Storage) updateManyTenant(nCtx contextx.IContext, tenantMap map[string]
 	err := s.daoTenant.UpdateMany(nCtx, tenantMap)
 	if err != nil {
 		return fmt.Errorf("failed to update many tenants: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) ensureReservedTenant(nCtx contextx.IContext, reservedTenant *types.Tenant) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if reservedTenant == nil {
+		return base.ErrInvalidParam(fmt.Errorf("tenant is nil"))
+	}
+
+	if reservedTenant.ID == "" {
+		return base.ErrInvalidParam(fmt.Errorf("tenant id is empty"))
+	}
+
+	tenants, err := s.listAllTenants(nCtx)
+	if err != nil {
+		return err
+	}
+
+	for _, tenant := range tenants {
+		if tenant == nil || tenant.ID != reservedTenant.ID {
+			continue
+		}
+
+		if tenant.Name == reservedTenant.Name && tenant.Enabled == reservedTenant.Enabled {
+			return nil
+		}
+
+		if err := s.updateManyTenant(nCtx, map[string]*types.Tenant{reservedTenant.ID: reservedTenant}); err != nil {
+			return fmt.Errorf("failed to update reserved tenant: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := s.createManyTenant(nCtx, reservedTenant); err != nil {
+		return fmt.Errorf("failed to create reserved tenant: %w", err)
 	}
 
 	return nil
