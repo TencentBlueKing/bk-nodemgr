@@ -39,8 +39,8 @@ type cli struct {
 }
 
 // newClient initialize a new bkoa client.
-func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/", restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken))
+func newClient(capability *restclient.Capability, conf *Config) (*cli, error) {
+	restCli, err := restclient.NewClient(capability, "/", restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken))
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 	}
 
 	client.client, err = apigwclient.NewClient(
-		c,
+		capability,
 		"/login/api/v3",
 		conf.VirtualUserConfig,
 		restclient.WithURLQueryMasker(CookieKeyBKTicket, CookieKeyBKToken),

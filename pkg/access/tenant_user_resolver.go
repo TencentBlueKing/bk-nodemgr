@@ -30,6 +30,7 @@ type ITenantVirtualUserResolver interface {
 	GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error)
 }
 
+// nolint: gochecknoglobals // tenant virtual-user resolver is configured during service initialization.
 var tenantVirtualUserResolver = struct {
 	sync.RWMutex
 	resolver ITenantVirtualUserResolver

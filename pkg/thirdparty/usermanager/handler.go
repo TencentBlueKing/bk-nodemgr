@@ -76,6 +76,7 @@ func NewHandlerMultiTenant(c *restclient.Capability, conf *Config, opts ...Optio
 	return handler, nil
 }
 
+// ListTenantIDs lists enabled tenant IDs from bk-user in multi-tenant mode.
 func (h HandlerMultiTenant) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	// Tenant listing is a platform-level bk-user call; hold the system tenant to avoid caller-tenant permission denial.
 	systemTenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID))
@@ -179,6 +180,7 @@ type HandlerSingle struct {
 	cli *cli
 }
 
+// ListTenantIDs returns the default tenant ID in single-tenant mode.
 func (h HandlerSingle) ListTenantIDs(_ contextx.IContext) ([]string, error) {
 	return []string{tenant.SingleModeTenantID}, nil
 }
