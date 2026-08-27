@@ -18,7 +18,7 @@
   "paths": {
     "/api/v3/package/workflow/export/plugin": {
       "post": {
-        "summary": "PackageExportPlugin provides asynchronous plugin package export.",
+        "summary": "根据已发布的插件包名称与版本，发起异步插件资源包导出工作流（将目标插件包打包为可下载文件），并返回工作流ID。可通过\nPackageExportResult 接口查询导出结果及临时下载地址。",
         "operationId": "PackageWorkflow_PackageExportPlugin",
         "responses": {
           "200": {
@@ -52,7 +52,7 @@
     },
     "/api/v3/package/workflow/export_result": {
       "post": {
-        "summary": "PackageExportResult provides the plugin package export result.",
+        "summary": "根据工作流ID查询插件资源包导出工作流的执行结果。工作流执行成功后会返回临时下载地址及过期时间。",
         "operationId": "PackageWorkflow_PackageExportResult",
         "responses": {
           "200": {
@@ -86,7 +86,7 @@
     },
     "/api/v3/package/workflow/import/v2/external_plugin": {
       "post": {
-        "summary": "PackageExternalPluginV2Import provides package external plugin v2\nimporting.",
+        "summary": "通过下载地址导入外部插件V2资源包（外部插件V2包）。接口会异步执行导入工作流（下载并上传外部插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过\nPackageImportResult 接口查询导入结果。",
         "operationId": "PackageWorkflow_PackageExternalPluginV2Import",
         "responses": {
           "200": {
@@ -120,7 +120,7 @@
     },
     "/api/v3/package/workflow/import/v2/plugin": {
       "post": {
-        "summary": "PackagePluginV2Import provides package plugin v2 importing.",
+        "summary": "通过下载地址导入插件V2资源包（官方插件V2包）。接口会异步执行导入工作流（下载并上传插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过\nPackageImportResult 接口查询导入结果。",
         "operationId": "PackageWorkflow_PackagePluginV2Import",
         "responses": {
           "200": {
@@ -154,7 +154,7 @@
     },
     "/api/v3/package/workflow/import/v3/plugin": {
       "post": {
-        "summary": "PackageImport provides package importing.",
+        "summary": "通过下载地址导入插件V3资源包。接口会异步执行导入工作流（下载并上传插件包、发布资源包、更新资源包可见性），并返回工作流ID，可通过\nPackageImportResult 接口查询导入结果。",
         "operationId": "PackageWorkflow_PackageImport",
         "responses": {
           "200": {
@@ -188,7 +188,7 @@
     },
     "/api/v3/package/workflow/import_result": {
       "post": {
-        "summary": "PackageImportResult provides the package import result.",
+        "summary": "查询插件V3资源包导入工作流的执行结果。通过 PackageImport 接口返回的\nworkflow_id 查询导入进度、状态以及各操作（operation）的执行日志。",
         "operationId": "PackageWorkflow_PackageImportResult",
         "responses": {
           "200": {

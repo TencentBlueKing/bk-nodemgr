@@ -146,7 +146,8 @@ message PackageExportResultResp {
 
 // PackageWorkflow defines the package workflow service.
 service PackageWorkflow {
-  // PackageImport provides package importing.
+  // 通过下载地址导入插件V3资源包。接口会异步执行导入工作流（下载并上传插件包、发布资源包、更新资源包可见性），并返回工作流ID，可通过
+  // PackageImportResult 接口查询导入结果。
   rpc PackageImport(PackageImportPluginV3PkgReq)
       returns (PackageImportPluginV3PkgResp) {
     option (google.api.http) = {
@@ -155,7 +156,8 @@ service PackageWorkflow {
     };
   }
 
-  // PackagePluginV2Import provides package plugin v2 importing.
+  // 通过下载地址导入插件V2资源包（官方插件V2包）。接口会异步执行导入工作流（下载并上传插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过
+  // PackageImportResult 接口查询导入结果。
   rpc PackagePluginV2Import(PackageImportPluginV2PkgReq)
       returns (PackageImportPluginV2PkgResp) {
     option (google.api.http) = {
@@ -164,8 +166,8 @@ service PackageWorkflow {
     };
   }
 
-  // PackageExternalPluginV2Import provides package external plugin v2
-  // importing.
+  // 通过下载地址导入外部插件V2资源包（外部插件V2包）。接口会异步执行导入工作流（下载并上传外部插件V2包、发布资源包、更新资源包可见性），并返回工作流ID，可通过
+  // PackageImportResult 接口查询导入结果。
   rpc PackageExternalPluginV2Import(PackageImportExternalPluginV2PkgReq)
       returns (PackageImportExternalPluginV2PkgResp) {
     option (google.api.http) = {
@@ -174,7 +176,8 @@ service PackageWorkflow {
     };
   }
 
-  // PackageImportResult provides the package import result.
+  // 查询插件V3资源包导入工作流的执行结果。通过 PackageImport 接口返回的
+  // workflow_id 查询导入进度、状态以及各操作（operation）的执行日志。
   rpc PackageImportResult(PackageImportResultReq)
       returns (PackageImportResultResp) {
     option (google.api.http) = {
@@ -183,7 +186,8 @@ service PackageWorkflow {
     };
   }
 
-  // PackageExportPlugin provides asynchronous plugin package export.
+  // 根据已发布的插件包名称与版本，发起异步插件资源包导出工作流（将目标插件包打包为可下载文件），并返回工作流ID。可通过
+  // PackageExportResult 接口查询导出结果及临时下载地址。
   rpc PackageExportPlugin(PackageExportPluginReq)
       returns (PackageExportPluginResp) {
     option (google.api.http) = {
@@ -192,7 +196,7 @@ service PackageWorkflow {
     };
   }
 
-  // PackageExportResult provides the plugin package export result.
+  // 根据工作流ID查询插件资源包导出工作流的执行结果。工作流执行成功后会返回临时下载地址及过期时间。
   rpc PackageExportResult(PackageExportResultReq)
       returns (PackageExportResultResp) {
     option (google.api.http) = {
