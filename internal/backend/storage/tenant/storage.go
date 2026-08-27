@@ -33,7 +33,7 @@ import (
 const StorageName = "tenant"
 
 const (
-	metricOperationListTenantIDs         = "list_tenant_ids"
+	metricOperationListEnabledTenantIDs  = "list_enabled_tenant_ids"
 	metricOperationListAllEnabledTenants = "list_all_enabled_tenants"
 	metricOperationListAllTenants        = "list_all_tenants"
 	metricOperationCreateManyTenant      = "create_many_tenant"
@@ -81,13 +81,13 @@ func (s *Storage) initDao() error {
 	return nil
 }
 
-// ListTenantIDs lists all enabled tenant IDs.
-func (s *Storage) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+// ListEnabledTenantIDs lists all enabled tenant IDs.
+func (s *Storage) ListEnabledTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	var tenantIDs []string
 
-	err := s.WrapFn(nCtx, metricOperationListTenantIDs, func(ctx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationListEnabledTenantIDs, func(ctx contextx.IContext) error {
 		var err error
-		tenantIDs, err = s.listTenantIDs(ctx)
+		tenantIDs, err = s.listEnabledTenantIDs(ctx)
 
 		return err
 	})

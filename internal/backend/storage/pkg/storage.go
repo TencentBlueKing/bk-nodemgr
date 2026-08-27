@@ -135,9 +135,9 @@ func (s *Storage) registerPackageWorkflowScheduler() error {
 
 // obtainMonitoredPackageWorkflows obtains the list of package workflows that need to be monitored.
 func (s *Storage) obtainMonitoredPackageWorkflows(nCtx contextx.IContext) error {
-	tenantIDs, err := tenant.ListTenantIDs(nCtx)
+	tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 	if err != nil {
-		return fmt.Errorf("failed to list tenant IDs: %w", err)
+		return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 	}
 
 	type tenantResult struct {

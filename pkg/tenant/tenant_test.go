@@ -27,7 +27,7 @@ import (
 
 type tenantIDProviderFn func(contextx.IContext) ([]string, error)
 
-func (fn tenantIDProviderFn) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+func (fn tenantIDProviderFn) ListEnabledTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	return fn(nCtx)
 }
 
@@ -36,16 +36,16 @@ func resetTenantIDProvider() {
 	tenantStorage.Once = sync.Once{}
 }
 
-func TestListTenantIDs(t *testing.T) {
+func TestListEnabledTenantIDs(t *testing.T) {
 	resetTenantIDProvider()
 
-	tenantIDs, err := ListTenantIDs(contextx.Background())
+	tenantIDs, err := ListEnabledTenantIDs(contextx.Background())
 	if err != nil {
-		t.Fatalf("ListTenantIDs() error = %v, want nil", err)
+		t.Fatalf("ListEnabledTenantIDs() error = %v, want nil", err)
 	}
 
 	if len(tenantIDs) != 1 || tenantIDs[0] != SingleModeTenantID {
-		t.Fatalf("ListTenantIDs() = %v, want [%s]", tenantIDs, SingleModeTenantID)
+		t.Fatalf("ListEnabledTenantIDs() = %v, want [%s]", tenantIDs, SingleModeTenantID)
 	}
 }
 

@@ -86,7 +86,7 @@ const (
 
 // ITenantIDProvider tenant id provider.
 type ITenantIDProvider interface {
-	ListTenantIDs(nCtx contextx.IContext) ([]string, error)
+	ListEnabledTenantIDs(nCtx contextx.IContext) ([]string, error)
 }
 
 var _ ITenantIDProvider = &noopTenantIDProvider{}
@@ -94,8 +94,8 @@ var _ ITenantIDProvider = &noopTenantIDProvider{}
 type noopTenantIDProvider struct {
 }
 
-// ListTenantIDs lists all tenant ids.
-func (stg *noopTenantIDProvider) ListTenantIDs(_ contextx.IContext) ([]string, error) {
+// ListEnabledTenantIDs lists all enabled tenant ids.
+func (stg *noopTenantIDProvider) ListEnabledTenantIDs(_ contextx.IContext) ([]string, error) {
 	return []string{
 		SingleModeTenantID,
 	}, nil
@@ -127,7 +127,7 @@ func SetTenantIDProvider(provider ITenantIDProvider) error {
 	return nil
 }
 
-// ListTenantIDs lists all tenant ids.
-func ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
-	return tenantStorage.provider.ListTenantIDs(nCtx)
+// ListEnabledTenantIDs lists all enabled tenant ids.
+func ListEnabledTenantIDs(nCtx contextx.IContext) ([]string, error) {
+	return tenantStorage.provider.ListEnabledTenantIDs(nCtx)
 }

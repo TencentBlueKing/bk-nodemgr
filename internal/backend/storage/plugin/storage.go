@@ -200,9 +200,9 @@ func (s *Storage) registerScheduler() error {
 
 // obtainMonitoredWorkflows Obtain a list of workflows that need to be listened to.
 func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
-	tenantIDs, err := tenant.ListTenantIDs(nCtx)
+	tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 	if err != nil {
-		return fmt.Errorf("list tenant ids failed: %w", err)
+		return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 	}
 
 	type tenantResult struct {

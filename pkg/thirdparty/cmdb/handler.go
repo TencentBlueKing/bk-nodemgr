@@ -217,9 +217,9 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncTimeout,
 			func(nCtx contextx.IContext) error {
 
-				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 				if err != nil {
-					return fmt.Errorf("failed to list tenant IDs: %w", err)
+					return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 				}
 
 				for _, tenantID := range tenantIDs {
@@ -238,9 +238,9 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncTimeout,
 			func(nCtx contextx.IContext) error {
 
-				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 				if err != nil {
-					return fmt.Errorf("failed to list tenant IDs: %w", err)
+					return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 				}
 				for _, tenantID := range tenantIDs {
 					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
@@ -258,9 +258,9 @@ func (h *Handler) initEnumKeepers() error {
 			enumResourceSyncTimeout,
 			func(nCtx contextx.IContext) error {
 
-				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 				if err != nil {
-					return fmt.Errorf("failed to list tenant IDs: %w", err)
+					return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 				}
 				for _, tenantID := range tenantIDs {
 					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
@@ -286,9 +286,9 @@ func (h *Handler) initEnumKeepers() error {
 	nCtx, cancel := contextx.WithTimeout(contextx.Background(), enumResourceSyncTimeout)
 	defer cancel()
 
-	tenantIDs, err := tenant.ListTenantIDs(nCtx)
+	tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 	if err != nil {
-		return fmt.Errorf("failed to list tenant IDs: %w", err)
+		return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 	}
 	for _, tenantID := range tenantIDs {
 		newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))

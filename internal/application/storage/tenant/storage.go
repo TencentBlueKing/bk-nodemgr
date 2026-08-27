@@ -37,7 +37,7 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "tenant"
 
-	metricOperationListTenantIDs        = "list_tenant_ids"
+	metricOperationListEnabledTenantIDs = "list_enabled_tenant_ids"
 	metricOperationEnsureReservedTenant = "ensure_reserved_tenant"
 )
 
@@ -97,13 +97,13 @@ func (s *Storage) check() error {
 	return nil
 }
 
-// ListTenantIDs lists all enabled tenant IDs.
-func (s *Storage) ListTenantIDs(nCtx contextx.IContext) ([]string, error) {
+// ListEnabledTenantIDs lists all enabled tenant IDs.
+func (s *Storage) ListEnabledTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	var tenantIDs []string
 
-	err := s.WrapFn(nCtx, metricOperationListTenantIDs, func(ctx contextx.IContext) error {
+	err := s.WrapFn(nCtx, metricOperationListEnabledTenantIDs, func(ctx contextx.IContext) error {
 		var err error
-		tenantIDs, err = s.listTenantIDs(ctx)
+		tenantIDs, err = s.listEnabledTenantIDs(ctx)
 
 		return err
 	})
@@ -118,7 +118,7 @@ func (s *Storage) EnsureReservedTenant(nCtx contextx.IContext, tenant *types.Ten
 	})
 }
 
-func (s *Storage) listTenantIDs(nCtx contextx.IContext) ([]string, error) {
+func (s *Storage) listEnabledTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}

@@ -40,7 +40,7 @@ func (s *Storage) listAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant
 	return tenants, nil
 }
 
-func (s *Storage) listTenantIDs(nCtx contextx.IContext) ([]string, error) {
+func (s *Storage) listEnabledTenantIDs(nCtx contextx.IContext) ([]string, error) {
 	tenants, err := s.listAllEnabledTenants(nCtx)
 	if err != nil {
 		return nil, err

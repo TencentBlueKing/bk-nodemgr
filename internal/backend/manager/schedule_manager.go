@@ -87,11 +87,11 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) error {
 	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
 
-	tenantIDs, err := tenant.ListTenantIDs(nCtx)
+	tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list tenant IDs")
+		logger.G.Sys().WithErr(err).Error("failed to list enabled tenant IDs")
 
-		return fmt.Errorf("failed to list tenant IDs: %w", err)
+		return fmt.Errorf("failed to list enabled tenant IDs: %w", err)
 	}
 
 	for _, tenantID := range tenantIDs {
@@ -117,9 +117,9 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 				return
 
 			case <-ticker.C:
-				tenantIDs, err := tenant.ListTenantIDs(nCtx)
+				tenantIDs, err := tenant.ListEnabledTenantIDs(nCtx)
 				if err != nil {
-					logger.G.Sys().WithErr(err).Error("failed to list tenant IDs")
+					logger.G.Sys().WithErr(err).Error("failed to list enabled tenant IDs")
 
 					continue
 				}

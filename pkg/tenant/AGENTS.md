@@ -7,13 +7,13 @@
 |Boundary:pkg/tenant owns mode constants, tenant ID constants, tenant ID provider interface, and startup provider wiring|pkg/access owns tenant-scoped virtual-user resolver|internal/* owns service orchestration and DB-backed/provider installation|pkg/contextx owns context identity/value propagation
 |Structure:pkg/tenant:{tenant.go,tenant_test.go,README.md,AGENTS.md}
 |Where to look:mode contract:tenant.go:{Mode,ModeSingle,ModeMultiple,SetMode,GetMode,Validate}
-|Where to look:tenant IDs:tenant.go:{SingleModeTenantID,SystemTenantID,ITenantIDProvider,ListTenantIDs,SetTenantIDProvider}
+|Where to look:tenant IDs:tenant.go:{SingleModeTenantID,SystemTenantID,ITenantIDProvider,ListEnabledTenantIDs,SetTenantIDProvider}
 |Where to look:tests:tenant_test.go:default provider, nil provider, duplicate provider install
-|Conventions:callers must use ListTenantIDs(nCtx) instead of hardcoding tenant ID lists or bypassing this package
+|Conventions:callers must use ListEnabledTenantIDs(nCtx) instead of hardcoding enabled tenant ID lists or bypassing this package
 |Conventions:provider contracts use contextx.IContext so DB-backed/external providers can preserve tenant/user/message/cancel semantics
 |Conventions:SetMode and SetTenantIDProvider are startup wiring hooks; both are once-only globals and must not be changed during request handling
 |Conventions:single mode returns SingleModeTenantID only; multiple-mode/system initialization may use SystemTenantID only when endpoint/workflow semantics require it
 |Conventions:error handling follows project guard style: if err != nil early return with %w context at caller-owned boundary
 |Conventions:tests may reset package globals only inside pkg/tenant tests; production code must not reset tenantStorage or tenantMode
 |Anti-patterns:no service-specific tenant DB/query logic in pkg/tenant|no permission/auth policy here|no raw identifier/common helper bypass for tenant IDs|no reintroducing no-error tenant list APIs|no mutable provider swaps after startup|no speculative tenant constants without current workflow/API semantics
-|Verification:go test ./pkg/tenant|if ListTenantIDs signature/semantics change:go test ./internal/backend/storage/plugin ./internal/backend/storage/node ./internal/backend/storage/workflow ./internal/backend/manager ./pkg/thirdparty/cmdb
+|Verification:go test ./pkg/tenant|if ListEnabledTenantIDs signature/semantics change:go test ./internal/backend/storage/plugin ./internal/backend/storage/node ./internal/backend/storage/workflow ./internal/backend/manager ./pkg/thirdparty/cmdb
