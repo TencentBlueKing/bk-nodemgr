@@ -1591,6 +1591,15 @@ file:
       traceServiceName: "file-server-download"
       traceSampleRate: 0
 
+    ## defines the HTTP server and public address settings for exported package downloads.
+    exportServer:
+      address: ""
+      bindIP: "0.0.0.0"
+      bindIPV6: "::1"
+      port: 28204
+      traceServiceName: "file-server-export"
+      traceSampleRate: 0
+
     ## downloader defines the remote package downloader settings.
     ## allowHosts allows exact hostnames/literal IPs to download from.
     ## Example:

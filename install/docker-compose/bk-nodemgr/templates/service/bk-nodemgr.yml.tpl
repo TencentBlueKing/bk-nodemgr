@@ -99,6 +99,7 @@ services:
       - "__BK_NODEMGR_FILE_ADMIN_PORT__:__BK_NODEMGR_FILE_ADMIN_PORT__"
       - "__BK_NODEMGR_FILE_BASIC_PORT__:__BK_NODEMGR_FILE_BASIC_PORT__"
       - "__BK_NODEMGR_FILE_DOWNLOAD_PORT__:__BK_NODEMGR_FILE_DOWNLOAD_PORT__"
+      - "__BK_NODEMGR_FILE_EXPORT_PORT__:__BK_NODEMGR_FILE_EXPORT_PORT__"
     volumes:
       - ./etc/:/bk-nodemgr/etc/
       - ./cert/:/bk-nodemgr/cert/

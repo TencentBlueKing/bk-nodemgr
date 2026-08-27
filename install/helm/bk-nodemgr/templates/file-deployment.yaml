@@ -109,6 +109,8 @@ spec:
               containerPort: {{ .Values.file.config.basicServer.port }}
             - name: download-http
               containerPort: {{ .Values.file.config.downloadServer.port }}
+            - name: export-http
+              containerPort: {{ .Values.file.config.exportServer.port }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
@@ -275,7 +277,7 @@ spec:
       - name: nodemgr-etc
         emptyDir: {}
       - name: nodemgr-workspace
-        hostPath: 
+        hostPath:
           path: {{ .Values.file.config.mountHostDir }}
           type: DirectoryOrCreate
 {{- end }}

@@ -116,6 +116,11 @@ config:
     bindIP: "0.0.0.0"
     port: 28203
     authIdentity: none
+  exportServer: # 导出插件包的HTTP服务及公开下载地址配置
+    address: ""
+    bindIP: "0.0.0.0"
+    port: 28204
+    authIdentity: none
 
   # 服务实例配置
   mountHostDir: "/data/bk-nodemgr-file-mount/" # 母机上的文件缓存目录, 将被挂载到Pod里

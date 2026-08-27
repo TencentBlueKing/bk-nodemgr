@@ -72,6 +72,17 @@ downloadServer:
   traceServiceName: "file-server-download"
   traceSampleRate: 0
 
+# exportServer defines the HTTP server and public address settings for exported package downloads.
+exportServer:
+  address: "__BK_NODEMGR_FILE_EXPORTSERVER_ADDRESS__"
+  bindIP: 0.0.0.0
+  port: __BK_NODEMGR_FILE_EXPORT_PORT__
+
+  # advertiseIP advertise ip for external access.
+  advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+  traceServiceName: "file-server-export"
+  traceSampleRate: 0
+
 # downloader defines the remote package downloader settings.
 # allowHosts allows exact hostnames/literal IPs to download from;
 # an empty allowHosts allows all hosts subject to blockHosts denial.

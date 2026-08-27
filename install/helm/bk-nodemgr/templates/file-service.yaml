@@ -29,4 +29,7 @@ spec:
     - name: download-http
       port: {{ .Values.file.config.downloadServer.port }}
       targetPort: download-http
+    - name: export-http
+      port: {{ .Values.file.config.exportServer.port }}
+      targetPort: export-http
 {{- end }}

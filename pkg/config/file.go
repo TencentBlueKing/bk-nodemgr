@@ -61,6 +61,13 @@ const (
 	defaultFileDownloadTraceServiceName           = "file-server-download"
 	defaultFileDownloadIdentity                   = AuthIdentityNone
 
+	defaultFileExportBindIP                     = "127.0.0.1"
+	defaultFileExportBindIPV6                   = "::1"
+	defaultFileExportPort                       = 28204
+	defaultFileExportGracefulShutdownTimeoutSec = 60
+	defaultFileExportTraceServiceName           = "file-server-export"
+	defaultFileExportIdentity                   = AuthIdentityNone
+
 	defaultFileLogDir        = "/bk-nodemgr/log/"
 	defaultFileLogMaxNum     = 10
 	defaultFileLogMaxSizeMB  = 200
@@ -163,6 +170,21 @@ func NewFileService() *FileService {
 				TraceServiceName: defaultFileDownloadTraceServiceName,
 			},
 		},
+		ExportServer: ExportServer{
+			HTTPServer: HTTPServer{
+				BindIP:                     defaultFileExportBindIP,
+				BindIPV6:                   defaultFileExportBindIPV6,
+				Port:                       defaultFileExportPort,
+				GracefulShutdownTimeoutSec: defaultFileExportGracefulShutdownTimeoutSec,
+				AuthIdentity:               defaultFileExportIdentity,
+				AdvertiseIPV4:              defaultFileAdvertiseIPv4,
+				AdvertiseIPV6:              defaultFileAdvertiseIPv6,
+				JWTServerConfig:            JWTServerConfig{CryptoType: JWTCryptoTypeSymmetric},
+				TraceService: TraceService{
+					TraceServiceName: defaultFileExportTraceServiceName,
+				},
+			},
+		},
 		WorkspaceFileGroup: FileGroup{
 			FullPath: defaultFileWorkspaceGroupFullPath,
 		},
@@ -231,6 +253,7 @@ type FileService struct {
 	AdminServer        HTTPServer           `yaml:"adminServer" usage:"admin server config of file service"`
 	BasicServer        HTTPServer           `yaml:"basicServer" usage:"basic server config of file service"`
 	DownloadServer     HTTPServer           `yaml:"downloadServer" usage:"download server config of file service"`
+	ExportServer       ExportServer         `yaml:"exportServer" usage:"export server config of file service"`
 	Downloader         Downloader           `yaml:"downloader" usage:"remote package downloader config with host allow/block lists"`
 	WorkspaceFileGroup FileGroup            `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
 	FileCache          FileServiceFileCache `yaml:"fileCache" usage:"local file cache config of file service"`
@@ -241,6 +264,12 @@ type FileService struct {
 	Log                Log                  `yaml:"log" usage:"log config of file service"`
 	Tracing            Tracing              `yaml:"tracing" usage:"tracing config of file service"`
 	Profiling          Profiling            `yaml:"profiling" usage:"profiling config of file service"`
+}
+
+// ExportServer configures the HTTP server and public address used by exported package URLs.
+type ExportServer struct {
+	HTTPServer `yaml:",inline"`
+	Address    string `yaml:"address" usage:"public domain of export server"`
 }
 
 // LoadFromFile loads config from file.
@@ -291,6 +320,10 @@ func (svc *FileService) Validate() error {
 
 	if err := svc.DownloadServer.Validate(); err != nil {
 		return fmt.Errorf("failed to validate node service config: %w", err)
+	}
+
+	if err := svc.ExportServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate export server config: %w", err)
 	}
 
 	if err := svc.Log.Validate(); err != nil {
