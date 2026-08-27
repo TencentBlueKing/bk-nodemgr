@@ -64,13 +64,13 @@ func testHandler(t *testing.T) IHandler {
 		}(),
 	}
 
-	apigwUserConfig, err := LoadAuthHeader()
+	virtualUserConfig, err := LoadAuthHeader()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	h, err := New(clientCap, &Config{
-		APIGWUserConfig: apigwUserConfig,
+		VirtualUserConfig: virtualUserConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

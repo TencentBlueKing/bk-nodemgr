@@ -49,7 +49,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 	}
 
 	// Use /api as baseURL, v1/v2 will be handled by specific API methods
-	restCli, err := apigwclient.NewClient(c, "/api", conf.APIGWUserConfig)
+	restCli, err := apigwclient.NewClient(c, "/api", conf.VirtualUserConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 	// Use non-canonical header name as required by IAM API
 	header[HeaderKeyIAMVersion] = []string{HeaderValueIAMVersion}
 	header.Set(apigwheader.BKGWTenantIDKey, ctx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(ctx))
+	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(ctx))
 
 	return header
 }

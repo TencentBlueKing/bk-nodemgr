@@ -356,7 +356,7 @@ func (svc *Service) initialCapability() error {
 
 func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 	apiGWAPPConfig := newAPIGWAppConfig(&svc.conf.CMDB.APIGatewayClient)
-	apiGwUserConfig := apigwclient.VirtualUserConfig{
+	virtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig:   apiGWAPPConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.CMDB.AuthMode),
 		LoginName:   svc.conf.CMDB.User,
@@ -370,8 +370,8 @@ func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 	cmdbHandler, err := cmdb.New(
 		apiGwClientCapability,
 		&cmdb.Config{
-			SupplierAccount: svc.conf.CMDB.SupplierAccount,
-			APIGWUserConfig: apiGwUserConfig,
+			SupplierAccount:   svc.conf.CMDB.SupplierAccount,
+			VirtualUserConfig: virtualUserConfig,
 		},
 	)
 	if err != nil {
@@ -382,7 +382,7 @@ func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 }
 
 func (svc *Service) newGSEHandler() (gse.IHandler, error) {
-	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.GSE.APIGatewayClient)
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.GSE.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(clientNameGSE, &svc.conf.GSE.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
@@ -391,7 +391,7 @@ func (svc *Service) newGSEHandler() (gse.IHandler, error) {
 	gseHandler, err := gse.New(
 		apiGwClientCapability,
 		&gse.Config{
-			APIGWUserConfig: apiGWUserConfig,
+			VirtualUserConfig: virtualUserConfig,
 		},
 	)
 	if err != nil {
@@ -436,7 +436,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 }
 
 func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
-	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.UserManager.APIGatewayClient)
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.UserManager.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(clientNameUserManager, &svc.conf.UserManager.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
@@ -450,7 +450,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		usermgrHandler, err = usermanager.NewHandlerSingle(
 			apiGwClientCapability,
 			&usermanager.Config{
-				APIGWUserConfig: apiGWUserConfig,
+				VirtualUserConfig: virtualUserConfig,
 			},
 		)
 		if err != nil {
@@ -460,7 +460,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		usermgrHandler, err = usermanager.NewHandlerMultiTenant(
 			apiGwClientCapability,
 			&usermanager.Config{
-				APIGWUserConfig: apiGWUserConfig,
+				VirtualUserConfig: virtualUserConfig,
 			},
 		)
 		if err != nil {
@@ -521,7 +521,7 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	}
 
 	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.IAMV3.APIGatewayClient)
-	apiGwUserConfig := apigwclient.VirtualUserConfig{
+	virtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig:   apiGwAppConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.IAMV3.AuthMode),
 		LoginName:   svc.conf.IAMV3.User,
@@ -537,9 +537,9 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	}
 
 	iamHandler, err := iamv3.New(apiGwClientCapability, &iamv3.Config{
-		APIGWUserConfig: apiGwUserConfig,
-		SystemID:        svc.conf.IAMV3.SystemID,
-		CallbackPath:    svc.conf.IAMV3.CallbackPath,
+		VirtualUserConfig: virtualUserConfig,
+		SystemID:          svc.conf.IAMV3.SystemID,
+		CallbackPath:      svc.conf.IAMV3.CallbackPath,
 	})
 	if err != nil {
 		return nil, err
@@ -1184,8 +1184,8 @@ func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
 	return apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret)
 }
 
-// newAPIGWUserConfig creates a new api-gateway client config.
-func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
+// newVirtualUserConfig creates a new api-gateway client config.
+func newVirtualUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
 	return apigwclient.VirtualUserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),

@@ -141,7 +141,7 @@ func (h *Handler) GetCurrentAnnouncements(nCtx contextx.IContext) ([]*types.Anno
 
 	// Build params from config and context
 	params := &getCurrentAnnouncementsParams{
-		Platform: h.cli.config.APIGWUserConfig.GetAppCode(),
+		Platform: h.cli.config.VirtualUserConfig.GetAppCode(),
 	}
 
 	resp, err := h.cli.getCurrentAnnouncements(nCtx, params)

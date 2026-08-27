@@ -42,7 +42,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 	}
 
 	// Use /apigw/v1 as baseURL (consistent with bk-hcm)
-	restCli, err := apigwclient.NewClient(c, "/apigw/v1", conf.APIGWUserConfig)
+	restCli, err := apigwclient.NewClient(c, "/apigw/v1", conf.VirtualUserConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 func (c *cli) getHeader(nCtx contextx.IContext) http.Header {
 	header := http.Header{}
 	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
+	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
 
 	return header
 }

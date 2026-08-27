@@ -14,7 +14,7 @@
 
 - Use scenario-oriented handler interfaces; do not expose raw notice APIs.
 - Centralize error wrapping and retry behavior in handler layer.
-- Keep APIGW auth handling through package config (`Config.APIGWUserConfig`).
+- Keep APIGW auth handling through package config (`Config.VirtualUserConfig`).
 
 ## ANTI-PATTERNS
 

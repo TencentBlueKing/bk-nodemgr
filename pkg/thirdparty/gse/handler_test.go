@@ -44,7 +44,7 @@ func LoadAuthHeader() (apigwclient.VirtualUserConfig, error) {
 		return apigwclient.VirtualUserConfig{}, err
 	}
 
-	apigwClientConfig := apigwclient.VirtualUserConfig{
+	virtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{os.Getenv("BK_APIGW_ENDPOINT")},
 			header["bk_app_code"],
@@ -53,7 +53,7 @@ func LoadAuthHeader() (apigwclient.VirtualUserConfig, error) {
 		AuthMode:  apigwclient.AuthModeUn,
 	}
 
-	return apigwClientConfig, nil
+	return virtualUserConfig, nil
 }
 
 type testContext struct {
@@ -115,13 +115,13 @@ func testClient(t *testing.T) IHandler {
 		MetricOpts:           restclient.MetricOption{},
 	}
 
-	apigwClientConfig, err := LoadAuthHeader()
+	virtualUserConfig, err := LoadAuthHeader()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	h, err := New(clientCap, &Config{
-		APIGWUserConfig: apigwClientConfig,
+		VirtualUserConfig: virtualUserConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -62,9 +62,9 @@ func (h *Handler) GetAuthType() string {
 
 // Config the config of bkoa.
 type Config struct {
-	LoginURL        string
-	AuthType        string
-	APIGWUserConfig apigwclient.VirtualUserConfig
+	LoginURL          string
+	AuthType          string
+	VirtualUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate validates the config.
@@ -81,7 +81,7 @@ func (conf *Config) Validate() error {
 	}
 
 	if tenant.GetMode() == tenant.ModeMultiple && conf.AuthType == CookieKeyBKToken {
-		if err := conf.APIGWUserConfig.Validate(); err != nil {
+		if err := conf.VirtualUserConfig.Validate(); err != nil {
 			return fmt.Errorf("failed to validate bklogin api-gateway config: %w", err)
 		}
 	}

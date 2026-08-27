@@ -25,7 +25,7 @@ import (
 )
 
 func TestConfig_Validate(t *testing.T) {
-	validAPIGWUserConfig := apigwclient.VirtualUserConfig{
+	validVirtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{"https://example.com/api/bk-iam/prod"},
 			"test-app",
@@ -43,34 +43,34 @@ func TestConfig_Validate(t *testing.T) {
 		{
 			name: "valid config",
 			config: Config{
-				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "bk_nodemgr",
-				CallbackPath:    "/api/v3/iam/callback",
+				VirtualUserConfig: validVirtualUserConfig,
+				SystemID:          "bk_nodemgr",
+				CallbackPath:      "/api/v3/iam/callback",
 			},
 			wantErr: false,
 		},
 		{
 			name: "missing system ID",
 			config: Config{
-				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "",
-				CallbackPath:    "/api/v3/iam/callback",
+				VirtualUserConfig: validVirtualUserConfig,
+				SystemID:          "",
+				CallbackPath:      "/api/v3/iam/callback",
 			},
 			wantErr: true,
 		},
 		{
 			name: "missing callback path",
 			config: Config{
-				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "bk_nodemgr",
-				CallbackPath:    "",
+				VirtualUserConfig: validVirtualUserConfig,
+				SystemID:          "bk_nodemgr",
+				CallbackPath:      "",
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid APIGWUserConfig - empty app code",
+			name: "invalid VirtualUserConfig - empty app code",
 			config: Config{
-				APIGWUserConfig: apigwclient.VirtualUserConfig{
+				VirtualUserConfig: apigwclient.VirtualUserConfig{
 					AppConfig: apigwclient.NewAppConfig(
 						[]string{"https://example.com/api/bk-iam/prod"},
 						"", // empty app code

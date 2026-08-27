@@ -183,7 +183,7 @@ func (svc *Service) initialCapability(nCtx contextx.IContext) error {
 }
 
 func (svc *Service) newGSEHandler() (gse.IHandler, error) {
-	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.GSE.APIGatewayClient)
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.GSE.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(clientNameGse, &svc.conf.GSE.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
@@ -192,7 +192,7 @@ func (svc *Service) newGSEHandler() (gse.IHandler, error) {
 	gseHandler, err := gse.New(
 		apiGwClientCapability,
 		&gse.Config{
-			APIGWUserConfig: apiGWUserConfig,
+			VirtualUserConfig: virtualUserConfig,
 		},
 	)
 	if err != nil {
@@ -681,8 +681,8 @@ func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*rest
 	return clientCap, nil
 }
 
-// newAPIGWUserConfig creates a new api-gateway client config.
-func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
+// newVirtualUserConfig creates a new api-gateway client config.
+func newVirtualUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
 	return apigwclient.VirtualUserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),

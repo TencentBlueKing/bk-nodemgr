@@ -42,7 +42,7 @@ var _ IHandler = &HandlerMultiTenant{}
 
 // Config handler config of user manager.
 type Config struct {
-	APIGWUserConfig apigwclient.VirtualUserConfig
+	VirtualUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate validate config.

@@ -38,7 +38,7 @@ type cli struct {
 
 // newClient initialize a new user manager client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.APIGWUserConfig)
+	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.VirtualUserConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (c *cli) listTenant(nCtx contextx.IContext) (listTenantResp, error) {
 	}
 
 	// notice: this api is special, it only need the app config.
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.AppConfig.GetAuthHeader())
+	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.AppConfig.GetAuthHeader())
 
 	err = c.client.Get().
 		SubResourcef("/open/tenants/").
@@ -102,7 +102,7 @@ func (c *cli) batchLookupVirtualUser(nCtx contextx.IContext, loginName string) (
 	}
 
 	// notice: this api is special, it only need the app config.
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.AppConfig.GetAuthHeader())
+	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.AppConfig.GetAuthHeader())
 
 	err = c.client.Get().
 		SubResourcef("/open/tenant/virtual-users/-/lookup/").

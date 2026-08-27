@@ -45,8 +45,8 @@ const (
 
 // Config the config of cmdb.
 type Config struct {
-	SupplierAccount string
-	APIGWUserConfig apigwclient.VirtualUserConfig
+	SupplierAccount   string
+	VirtualUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate configures the config.
@@ -55,7 +55,7 @@ func (conf *Config) Validate() error {
 		return errors.New("failed to validate cmdb client config: supplier account is empty")
 	}
 
-	if err := conf.APIGWUserConfig.Validate(); err != nil {
+	if err := conf.VirtualUserConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate cmdb client config: %w", err)
 	}
 
@@ -70,7 +70,7 @@ type cli struct {
 
 // newClient initialize a new cmdb client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.APIGWUserConfig)
+	restCli, err := apigwclient.NewClient(c, "/api/v3", conf.VirtualUserConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (c *cli) getHeader(nCtx contextx.IContext) (http.Header, error) {
 	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
 	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
+	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
 
 	return header, nil
 }

@@ -9,7 +9,7 @@
 |Where to look:raw bk-user HTTP calls:user_manager.go:cli,listTenant,batchLookupVirtualUser,getHeader; endpoint paths and APIGW headers stay here
 |Where to look:wire payloads:types.go:RespCommon,BaseBroker,listTenantResp,batchLookupVirtualUserResp; third-party response structs stay private
 |Where to look:behavior checks:handler_test.go:httptest coverage for tenant listing, APIGW errors, virtual-user lookup, validation
-|Conventions:IHandler embeds tenant.ITenantUserResolver and exposes ListALLTenants; do not add raw endpoint-shaped methods for callers
+|Conventions:IHandler embeds access.ITenantVirtualUserResolver and exposes ListALLTenants; do not add raw endpoint-shaped methods for callers
 |Conventions:multi-tenant tenant listing uses contextx.From(nCtx, contextx.WithTenantID(tenant.SystemTenantID)) before bk-user /open/tenants/
 |Conventions:virtual-user lookup uses caller tenant from contextx.IContext via X-Bk-Tenant-Id and /open/tenant/virtual-users/-/lookup/?lookups=<loginName>&lookup_field=login_name
 |Conventions:HandlerSingle keeps identity behavior for GetBKUsernameByLoginName and returns the default tenant list only

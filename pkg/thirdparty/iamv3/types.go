@@ -53,7 +53,7 @@ func (resp *BaseBroker[T]) IsFailed() error {
 
 // Config the config of IAM v3.
 type Config struct {
-	APIGWUserConfig apigwclient.VirtualUserConfig
+	VirtualUserConfig apigwclient.VirtualUserConfig
 	// SystemID is the system identifier registered in IAM.
 	SystemID string
 	// CallbackPath is the callback path for IAM resource provider.
@@ -63,7 +63,7 @@ type Config struct {
 
 // Validate validates the config.
 func (conf *Config) Validate() error {
-	if err := conf.APIGWUserConfig.Validate(); err != nil {
+	if err := conf.VirtualUserConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate IAM v3 client config: %w", err)
 	}
 

@@ -42,7 +42,7 @@ func LoadAuthHeader() (apigwclient.VirtualUserConfig, error) {
 		return apigwclient.VirtualUserConfig{}, err
 	}
 
-	apigwUserConfig := apigwclient.VirtualUserConfig{
+	virtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{os.Getenv("BK_APIGW_ENDPOINT")},
 			header["bk_app_code"],
@@ -51,7 +51,7 @@ func LoadAuthHeader() (apigwclient.VirtualUserConfig, error) {
 		LoginName: header["bk_username"],
 	}
 
-	return apigwUserConfig, nil
+	return virtualUserConfig, nil
 }
 
 // testClient initialize a test notice client.
@@ -86,13 +86,13 @@ func testClient(t *testing.T) *cli {
 		}(),
 	}
 
-	apigwUserConfig, err := LoadAuthHeader()
+	virtualUserConfig, err := LoadAuthHeader()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	cli, err := newClient(clientCap, &Config{
-		APIGWUserConfig: apigwUserConfig,
+		VirtualUserConfig: virtualUserConfig,
 	})
 	if err != nil {
 		t.Fatal(err)

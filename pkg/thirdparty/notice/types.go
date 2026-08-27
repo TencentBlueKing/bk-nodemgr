@@ -26,12 +26,12 @@ import (
 
 // Config the config of notice.
 type Config struct {
-	APIGWUserConfig apigwclient.VirtualUserConfig
+	VirtualUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate configures the config.
 func (conf *Config) Validate() error {
-	if err := conf.APIGWUserConfig.Validate(); err != nil {
+	if err := conf.VirtualUserConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate notice client config: %w", err)
 	}
 

@@ -32,12 +32,12 @@ import (
 
 // Config the config of gse.
 type Config struct {
-	APIGWUserConfig apigwclient.VirtualUserConfig
+	VirtualUserConfig apigwclient.VirtualUserConfig
 }
 
 // Validate the config.
 func (conf *Config) Validate() error {
-	if err := conf.APIGWUserConfig.Validate(); err != nil {
+	if err := conf.VirtualUserConfig.Validate(); err != nil {
 		return fmt.Errorf("failed to validate gse config: %v", err)
 	}
 
@@ -56,7 +56,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 		return nil, fmt.Errorf("failed to new gse client: %v", err)
 	}
 
-	restCli, err := apigwclient.NewClient(c, "/api/v2", conf.APIGWUserConfig)
+	restCli, err := apigwclient.NewClient(c, "/api/v2", conf.VirtualUserConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new gse client: %v", err)
 	}
@@ -72,7 +72,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 func (c *cli) getCommonHeader(nCtx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
 	header.Set(apigwheader.BKGWTenantIDKey, nCtx.TenantID())
-	header.Set(apigwheader.BKGWAuthKey, c.config.APIGWUserConfig.GetAuthHeader(nCtx))
+	header.Set(apigwheader.BKGWAuthKey, c.config.VirtualUserConfig.GetAuthHeader(nCtx))
 
 	return header, nil
 }

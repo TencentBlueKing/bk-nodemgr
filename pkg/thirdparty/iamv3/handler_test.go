@@ -65,7 +65,7 @@ func (testTraceService) TracerPropagator() propagation.TextMapPropagator {
 }
 
 func TestNew(t *testing.T) {
-	validAPIGWUserConfig := apigwclient.VirtualUserConfig{
+	validVirtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig: apigwclient.NewAppConfig(
 			[]string{"https://example.com/api/bk-iam/prod"},
 			"test-app",
@@ -101,9 +101,9 @@ func TestNew(t *testing.T) {
 			name: "valid config",
 			cap:  clientCap,
 			config: &Config{
-				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "bk_nodemgr",
-				CallbackPath:    "/api/v3/iam/callback",
+				VirtualUserConfig: validVirtualUserConfig,
+				SystemID:          "bk_nodemgr",
+				CallbackPath:      "/api/v3/iam/callback",
 			},
 			wantErr: false,
 		},
@@ -111,9 +111,9 @@ func TestNew(t *testing.T) {
 			name: "missing system ID",
 			cap:  clientCap,
 			config: &Config{
-				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "",
-				CallbackPath:    "/api/v3/iam/callback",
+				VirtualUserConfig: validVirtualUserConfig,
+				SystemID:          "",
+				CallbackPath:      "/api/v3/iam/callback",
 			},
 			wantErr: true,
 		},
@@ -121,17 +121,17 @@ func TestNew(t *testing.T) {
 			name: "missing callback path",
 			cap:  clientCap,
 			config: &Config{
-				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "bk_nodemgr",
-				CallbackPath:    "",
+				VirtualUserConfig: validVirtualUserConfig,
+				SystemID:          "bk_nodemgr",
+				CallbackPath:      "",
 			},
 			wantErr: true,
 		},
 		{
-			name: "invalid APIGWUserConfig",
+			name: "invalid VirtualUserConfig",
 			cap:  clientCap,
 			config: &Config{
-				APIGWUserConfig: apigwclient.VirtualUserConfig{
+				VirtualUserConfig: apigwclient.VirtualUserConfig{
 					AppConfig: apigwclient.NewAppConfig(
 						[]string{"https://example.com/api/bk-iam/prod"},
 						"", // empty app code
@@ -307,7 +307,7 @@ func newTestIAMHandler(t *testing.T, endpoint string) *Handler {
 	}
 
 	handler, err := New(capability, &Config{
-		APIGWUserConfig: apigwclient.VirtualUserConfig{
+		VirtualUserConfig: apigwclient.VirtualUserConfig{
 			AppConfig: apigwclient.NewAppConfig([]string{endpoint}, "test-app", "test-secret"),
 			AuthMode:  apigwclient.AuthModeUn,
 			LoginName: "admin",

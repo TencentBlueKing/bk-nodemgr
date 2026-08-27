@@ -24,44 +24,44 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
-// ITenantVirtualUserResolver resolves a login name to the tenant-scoped bk username.
+// ITenantVirtualUserResolver resolves a login name to the tenant-scoped virtual-user bk username.
 type ITenantVirtualUserResolver interface {
-	// GetBKUsernameByLoginName gets the tenant-scoped bk username by login name.
+	// GetBKUsernameByLoginName gets the tenant-scoped virtual-user bk username by login name.
 	GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error)
 }
 
-var tenantUserResolver = struct {
+var tenantVirtualUserResolver = struct {
 	sync.RWMutex
 	resolver ITenantVirtualUserResolver
 }{
 	resolver: NewNoopTenantVirtualUserResolver(),
 }
 
-// SetTenantVirtualUserResolver sets the tenant user resolver.
+// SetTenantVirtualUserResolver sets the tenant-scoped virtual-user resolver.
 func SetTenantVirtualUserResolver(resolver ITenantVirtualUserResolver) {
-	tenantUserResolver.Lock()
-	defer tenantUserResolver.Unlock()
+	tenantVirtualUserResolver.Lock()
+	defer tenantVirtualUserResolver.Unlock()
 
-	tenantUserResolver.resolver = resolver
+	tenantVirtualUserResolver.resolver = resolver
 }
 
-// GetBKUsernameByLoginName gets the tenant-scoped bk username by login name.
+// GetBKUsernameByLoginName gets the tenant-scoped virtual-user bk username by login name.
 func GetBKUsernameByLoginName(ctx contextx.IContext, loginName string) (string, error) {
-	tenantUserResolver.RLock()
-	resolver := tenantUserResolver.resolver
-	tenantUserResolver.RUnlock()
+	tenantVirtualUserResolver.RLock()
+	resolver := tenantVirtualUserResolver.resolver
+	tenantVirtualUserResolver.RUnlock()
 
 	return resolver.GetBKUsernameByLoginName(ctx, loginName)
 }
 
-// NewNoopTenantVirtualUserResolver creates a resolver that keeps login name as bk username.
+// NewNoopTenantVirtualUserResolver creates a tenant-scoped virtual-user resolver that keeps login name as bk username.
 func NewNoopTenantVirtualUserResolver() ITenantVirtualUserResolver {
 	return noopTenantVirtualUserResolver{}
 }
 
 type noopTenantVirtualUserResolver struct{}
 
-// GetBKUsernameByLoginName gets the tenant-scoped bk username by login name.
+// GetBKUsernameByLoginName gets the tenant-scoped virtual-user bk username by login name.
 func (noopTenantVirtualUserResolver) GetBKUsernameByLoginName(_ contextx.IContext, loginName string) (string, error) {
 	return loginName, nil
 }

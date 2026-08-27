@@ -260,7 +260,7 @@ func (svc *Service) newBackendHandler() (backend.IHandler, error) {
 }
 
 func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
-	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.UserManager.APIGatewayClient)
+	virtualUserConfig := newVirtualUserConfig(&svc.conf.UserManager.APIGatewayClient)
 	apiGwClientCapability, err := newAPIGwClientCapability(
 		clientNameUserManager,
 		&svc.conf.UserManager.APIGatewayClient,
@@ -274,7 +274,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		usermgrHandler, err = usermanager.NewHandlerSingle(
 			apiGwClientCapability,
 			&usermanager.Config{
-				APIGWUserConfig: apiGWUserConfig,
+				VirtualUserConfig: virtualUserConfig,
 			},
 		)
 		if err != nil {
@@ -284,7 +284,7 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 		usermgrHandler, err = usermanager.NewHandlerMultiTenant(
 			apiGwClientCapability,
 			&usermanager.Config{
-				APIGWUserConfig: apiGWUserConfig,
+				VirtualUserConfig: virtualUserConfig,
 			},
 		)
 		if err != nil {
@@ -309,7 +309,7 @@ func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
 	logger.G.Sys().Info("Initializing notice handler")
 
 	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.Notice.APIGatewayClient)
-	apiGwUserConfig := apigwclient.VirtualUserConfig{
+	virtualUserConfig := apigwclient.VirtualUserConfig{
 		AppConfig:   apiGwAppConfig,
 		AuthMode:    apigwclient.AuthMode(svc.conf.Notice.AuthMode),
 		LoginName:   svc.conf.Notice.User,
@@ -322,7 +322,7 @@ func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
 	}
 
 	noticeHandler, err := notice.New(apiGwClientCapability, &notice.Config{
-		APIGWUserConfig: apiGwUserConfig,
+		VirtualUserConfig: virtualUserConfig,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize notice handler: %w", err)
@@ -654,7 +654,7 @@ func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
 	return apigwAppConf
 }
 
-func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
+func newVirtualUserConfig(conf *config.APIGatewayClient) apigwclient.VirtualUserConfig {
 	return apigwclient.VirtualUserConfig{
 		AppConfig:   apigwclient.NewAppConfig(conf.Endpoints, conf.AppCode, conf.AppSecret),
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
@@ -699,7 +699,7 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 		&bksaasbklogin.Config{
 			LoginURL: conf.LoginURL,
 			AuthType: conf.AuthType.String(),
-			APIGWUserConfig: apigwclient.VirtualUserConfig{
+			VirtualUserConfig: apigwclient.VirtualUserConfig{
 				AppConfig:   newAPIGWAppConfig(&conf.APIGatewayClient),
 				AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 				LoginName:   conf.User,
