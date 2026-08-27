@@ -251,6 +251,17 @@ func (svc *Service) initialCapability() error {
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
+	// initial mongo client.
+	svc.Cap.MongoClient, err = svc.newMongoClient()
+	if err != nil {
+		return fmt.Errorf("failed to create mongo client: %w", err)
+	}
+
+	// initial tenant storage before systems that enumerate tenant IDs.
+	if err = svc.initialTenantStorage(); err != nil {
+		return fmt.Errorf("failed to initial tenant storage: %w", err)
+	}
+
 	// initial user manager handler.
 	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
 	if err != nil {
@@ -307,17 +318,6 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.RedisClient, err = svc.newRedisClient()
 	if err != nil {
 		return fmt.Errorf("failed to create redis client: %w", err)
-	}
-
-	// initial mongo client.
-	svc.Cap.MongoClient, err = svc.newMongoClient()
-	if err != nil {
-		return fmt.Errorf("failed to create mongo client: %w", err)
-	}
-
-	// initial tenant storage before systems that enumerate tenant IDs.
-	if err = svc.initialTenantStorage(); err != nil {
-		return fmt.Errorf("failed to initial tenant storage: %w", err)
 	}
 
 	// initial cmdb handler.
