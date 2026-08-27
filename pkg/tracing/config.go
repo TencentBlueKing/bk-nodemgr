@@ -26,11 +26,12 @@ import (
 
 // Config is the configuration for the tracer manager.
 type Config struct {
-	Exporter    ExporterConfig
-	Environment string
-	Namespace   string
-	InstanceID  string
-	Version     string
+	Exporter      ExporterConfig
+	GlobalService ServiceConfig
+	Environment   string
+	Namespace     string
+	InstanceID    string
+	Version       string
 }
 
 // Validate validates the configuration.
@@ -51,6 +52,10 @@ func DefaultConfig() Config {
 	return Config{
 		Exporter: ExporterConfig{
 			ExporterType: ExporterTypeStdout,
+		},
+		GlobalService: ServiceConfig{
+			ServiceName: "default",
+			SampleRate:  0,
 		},
 		Environment: "dev",
 		Namespace:   "default",

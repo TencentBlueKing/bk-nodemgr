@@ -67,7 +67,8 @@ const (
 
 	defaultRelayWorkspaceGroupFullPath = "/data/plugin-relay"
 
-	defaultRelayTracingExporterType = "stdout"
+	defaultRelayTracingExporterType    = "stdout"
+	defaultRelayGlobalTraceServiceName = "relay"
 )
 
 // RelayService the config of relay service.
@@ -156,6 +157,10 @@ func NewRelayService() *RelayService {
 		},
 		Tracing: Tracing{
 			ExporterType: defaultRelayTracingExporterType,
+			GlobalService: TraceService{
+				TraceServiceName: defaultRelayGlobalTraceServiceName,
+				TraceSampleRate:  0,
+			},
 		},
 	}
 }

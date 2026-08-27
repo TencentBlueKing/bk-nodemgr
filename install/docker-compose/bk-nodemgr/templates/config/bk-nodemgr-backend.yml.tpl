@@ -214,3 +214,6 @@ tracing:
   otlpEndpoint: ""
   otlpInsecure: false
   otlpHeaders: {}
+  globalService:
+    traceServiceName: "backend"
+    traceSampleRate: 0

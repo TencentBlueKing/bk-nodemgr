@@ -84,7 +84,8 @@ const (
 	defaultBackendAdvertiseIPv4 = "127.0.0.1"
 	defaultBackendAdvertiseIPv6 = "::1"
 
-	defaultBackendTracingExporterType = "stdout"
+	defaultBackendTracingExporterType    = "stdout"
+	defaultBackendGlobalTraceServiceName = "backend"
 
 	defaultBackendRedisTraceServiceName = "bk-nodemgr_redis"
 
@@ -348,6 +349,10 @@ func NewBackendService() *BackendService {
 		},
 		Tracing: Tracing{
 			ExporterType: defaultBackendTracingExporterType,
+			GlobalService: TraceService{
+				TraceServiceName: defaultBackendGlobalTraceServiceName,
+				TraceSampleRate:  0,
+			},
 		},
 	}
 }
@@ -602,17 +607,22 @@ func (access *Access) Validate() error {
 
 // Tracing defines the tracing configuration for nodemgr system.
 type Tracing struct {
-	InstanceID   string            `yaml:"instanceID" usage:"instance id of tracing system"`
-	ExporterType string            `yaml:"exporterType" usage:"exporter type of tracing system"`
-	OTLPEndpoint string            `yaml:"otlpEndpoint" usage:"otlp endpoint of tracing system"`
-	OTLPInsecure bool              `yaml:"otlpInsecure" usage:"otlp insecure of tracing system"`
-	OTLPHeaders  map[string]string `yaml:"otlpHeaders" usage:"otlp headers of tracing system"`
+	InstanceID    string            `yaml:"instanceID" usage:"instance id of tracing system"`
+	ExporterType  string            `yaml:"exporterType" usage:"exporter type of tracing system"`
+	OTLPEndpoint  string            `yaml:"otlpEndpoint" usage:"otlp endpoint of tracing system"`
+	OTLPInsecure  bool              `yaml:"otlpInsecure" usage:"otlp insecure of tracing system"`
+	OTLPHeaders   map[string]string `yaml:"otlpHeaders" usage:"otlp headers of tracing system"`
+	GlobalService TraceService      `yaml:"globalService" usage:"global fallback trace service config"`
 }
 
 // Validate validates the config.
 func (conf Tracing) Validate() error {
 	if conf.ExporterType == "" {
 		return fmt.Errorf("exporter type is empty")
+	}
+
+	if err := conf.GlobalService.Validate(); err != nil {
+		return fmt.Errorf("failed to validate global service trace config: %w", err)
 	}
 
 	return nil

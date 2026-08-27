@@ -108,7 +108,10 @@ func (h *Handler) NewService(config ServiceConfig) (IService, error) {
 }
 
 func (h *Handler) initGlobalService() (IService, error) {
-	serviceName := h.conf.Namespace
+	serviceName := h.conf.GlobalService.ServiceName
+	if serviceName == "" {
+		serviceName = h.conf.Namespace
+	}
 	if serviceName == "" {
 		serviceName = defaultGlobalServiceName
 	}
@@ -116,7 +119,7 @@ func (h *Handler) initGlobalService() (IService, error) {
 	return h.NewService(ServiceConfig{
 		ServiceName:     serviceName,
 		ServiceCategory: serviceCategoryProcess,
-		SampleRate:      1,
+		SampleRate:      h.conf.GlobalService.SampleRate,
 	})
 }
 

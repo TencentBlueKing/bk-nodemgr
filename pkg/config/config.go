@@ -942,6 +942,15 @@ type TraceService struct {
 	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate"`
 }
 
+// Validate validates the trace service config.
+func (conf TraceService) Validate() error {
+	if conf.TraceSampleRate < 0 || conf.TraceSampleRate > 1 {
+		return fmt.Errorf("traceSampleRate must be between 0.0 and 1.0")
+	}
+
+	return nil
+}
+
 const (
 	defaultIAMV3SystemID     = "bk_nodemgr"
 	defaultIAMV3CMDBSystemID = "bk_cmdb"

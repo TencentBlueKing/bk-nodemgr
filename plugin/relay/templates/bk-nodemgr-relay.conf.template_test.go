@@ -271,15 +271,17 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 			},
 			validate: func(t *testing.T, result string) {
-				// Verify Tracing configuration is not rendered after reducing exposed fields.
-				if strings.Contains(result, "tracing:") {
-					t.Error("Tracing section should not be present")
+				if !strings.Contains(result, "tracing:") {
+					t.Error("Tracing section should be present")
 				}
 				if strings.Contains(result, "exporterType: otlp") {
 					t.Error("Tracing exporterType should be ignored")
 				}
 				if strings.Contains(result, "otlpEndpoint: http://localhost:4317") {
 					t.Error("Tracing otlpEndpoint should be ignored")
+				}
+				if !strings.Contains(result, "traceServiceName: relay") {
+					t.Error("Tracing globalService traceServiceName should default to relay")
 				}
 			},
 		},
@@ -302,9 +304,11 @@ func TestRelayConfigTemplate_Render(t *testing.T) {
 				},
 			},
 			validate: func(t *testing.T, result string) {
-				// Verify Tracing configuration is not present
-				if strings.Contains(result, "tracing:") {
-					t.Error("Tracing section should not be present when not configured")
+				if !strings.Contains(result, "tracing:") {
+					t.Error("Tracing section should be present when not configured")
+				}
+				if !strings.Contains(result, "traceSampleRate: 0") {
+					t.Error("Tracing globalService traceSampleRate should default to 0")
 				}
 			},
 		},

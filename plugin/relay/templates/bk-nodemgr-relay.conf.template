@@ -73,3 +73,12 @@ log:
   level: {{ .CustomContext.Log.LogLevel | default "INFO" }}
   toStderr: {{ .CustomContext.Log.LogToStderr | default false }}
   alsoToStderr: {{ .CustomContext.Log.LogAlsoToStderr | default false }}
+
+tracing:
+  exporterType: stdout
+  otlpEndpoint: ""
+  otlpInsecure: false
+  otlpHeaders: {}
+  globalService:
+    traceServiceName: relay
+    traceSampleRate: 0

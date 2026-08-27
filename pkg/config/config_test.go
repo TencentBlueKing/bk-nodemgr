@@ -181,6 +181,52 @@ func TestBKLogin_ValidateRequiresBackendEndpoints(t *testing.T) {
 	require.ErrorContains(t, err, "endpoints of bkLogin is empty")
 }
 
+func TestTracing_ValidateTraceSampleRate(t *testing.T) {
+	tests := []struct {
+		name            string
+		traceSampleRate float64
+		wantErr         bool
+	}{
+		{
+			name:            "zero sample rate",
+			traceSampleRate: 0,
+		},
+		{
+			name:            "full sample rate",
+			traceSampleRate: 1,
+		},
+		{
+			name:            "negative sample rate",
+			traceSampleRate: -0.1,
+			wantErr:         true,
+		},
+		{
+			name:            "sample rate greater than one",
+			traceSampleRate: 1.1,
+			wantErr:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conf := Tracing{
+				ExporterType: "stdout",
+				GlobalService: TraceService{
+					TraceSampleRate: tt.traceSampleRate,
+				},
+			}
+
+			err := conf.Validate()
+			if tt.wantErr {
+				assert.ErrorContains(t, err, "failed to validate global service trace config")
+				return
+			}
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
 func TestRedisType_Validate(t *testing.T) {
 	tests := []struct {
 		name    string

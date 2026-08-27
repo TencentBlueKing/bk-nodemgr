@@ -822,6 +822,10 @@ func (svc *Service) initTracing() error {
 		Exporter: tracing.ExporterConfig{
 			ExporterType: tracing.ExporterType(svc.conf.Tracing.ExporterType),
 		},
+		GlobalService: tracing.ServiceConfig{
+			ServiceName: svc.conf.Tracing.GlobalService.TraceServiceName,
+			SampleRate:  svc.conf.Tracing.GlobalService.TraceSampleRate,
+		},
 		Environment: system.GetEnv(),
 		Namespace:   serverName,
 		InstanceID:  svc.conf.Tracing.InstanceID,
