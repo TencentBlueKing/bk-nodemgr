@@ -811,7 +811,7 @@ func reservedTenant() (*types.Tenant, error) {
 	case tenant.ModeMultiple:
 		return &types.Tenant{
 			ID:      tenant.SystemTenantID,
-			Name:    tenant.SystemTenantID,
+			Name:    tenant.SystemTenantName,
 			Enabled: true,
 		}, nil
 	default:

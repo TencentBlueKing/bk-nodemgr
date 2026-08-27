@@ -79,6 +79,9 @@ const (
 
 	// SystemTenantID tenant id for system in multiple mode.
 	SystemTenantID = "system"
+
+	// SystemTenantName tenant name for system in multiple mode.
+	SystemTenantName = "system"
 )
 
 // ITenantIDProvider tenant id provider.
