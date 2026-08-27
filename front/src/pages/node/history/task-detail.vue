@@ -420,6 +420,7 @@ type taskType =
   | 'migrate_plugin_v2'
   | 'reconfig_plugin'
   | 'apply_plugin_subconfig'
+  | 'start_plugin'
   | 'restart_plugin'
   | 'stop_plugin';
 type filterProp = 'state' | 'node_version';
@@ -523,6 +524,7 @@ const typeMap = computed(() => ({
   migrate_plugin_v2: t('platform.nodeMan.taskHistory.taskType.migrate_plugin_v2'),
   reconfig_plugin: t('platform.nodeMan.taskHistory.taskType.reconfig_plugin'),
   apply_plugin_subconfig: t('platform.nodeMan.taskHistory.taskType.apply_plugin_subconfig'),
+  start_plugin: t('platform.nodeMan.taskHistory.taskType.start_plugin'),
   restart_plugin: t('platform.nodeMan.taskHistory.taskType.restart_plugin'),
   stop_plugin: t('platform.nodeMan.taskHistory.taskType.stop_plugin'),
 }));

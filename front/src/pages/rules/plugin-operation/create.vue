@@ -150,6 +150,7 @@ const operationTypeLabel = computed(() => {
     install: t('pluginManagement.plugin.operate.install'),
     upgrade: t('pluginManagement.plugin.operate.upgrade'),
     reload: t('pluginManagement.plugin.operate.reload'),
+    start: t('pluginManagement.plugin.operate.start'),
     restart: t('pluginManagement.plugin.operate.restart'),
     stop: t('pluginManagement.plugin.operate.stop'),
     reinstall: t('pluginManagement.plugin.operate.reinstall'),
@@ -171,7 +172,7 @@ const paramConfigRef = ref<InstanceType<typeof StepParamConfig> | null>(null);
 const contentHeight = computed(() => `${mainStore.windowInnerHeight - 160 - 48 - (mainStore.noticeShow ? 40 : 0)}px`);
 
 // 重启和停止操作不需要参数配置步骤
-const isSimpleOperation = computed(() => ['restart', 'stop'].includes(operationType.value));
+const isSimpleOperation = computed(() => ['start', 'restart', 'stop'].includes(operationType.value));
 // 最后一步的步骤索引（简单操作跳过参数配置，只有2步）
 const lastStepIndex = computed(() => stepList.value.length - 1);
 
@@ -308,6 +309,14 @@ const handleSubmit = async () => {
     // 根据操作类型调用不同 API
     if (operationType.value === 'upgrade') {
       res = await PluginAPIService.UpgradePlugin({ plugin: upgradePayload });
+    } else if (operationType.value === 'start') {
+      // 启动只需 bk_host_id + plugin_name
+      res = await PluginAPIService.StartPlugin({
+        plugin: hosts.map((host: any) => ({
+          bk_host_id: host.bk_host_id || host.host_id,
+          plugin_name: pluginName,
+        })),
+      });
     } else if (operationType.value === 'restart') {
       // 重启只需 bk_host_id + plugin_name
       res = await PluginAPIService.RestartPlugin({

@@ -291,6 +291,7 @@ platform:
         migrate_plugin_v2: V2 Plugin Migration
         reconfig_plugin: Plugin Reconfiguration
         apply_plugin_subconfig: Plugin Apply Sub-Config
+        start_plugin: Plugin Start
         restart_plugin: Plugin Restart
         stop_plugin: Plugin Stop
       statusType:
@@ -387,11 +388,16 @@ pluginManagement:
       upgrade: Upgrade
       reload: Reload
       uninstall: Uninstall
+      start: Start
       restart: Restart
       stop: Stop
       reinstall: Reinstall
       operateDisabled: This operation is not yet available
       operateSuccess: Operation executed successfully
+      startTitle: Confirm Start Plugin
+      batchStartTitle: Confirm Batch Start Plugins
+      startSubTitle: 'Confirm start plugin {pluginName}?'
+      batchStartSubTitle: 'Confirm batch start {pluginNames} and {count} plugins?'
       restartTitle: Confirm Restart Plugin
       batchRestartTitle: Confirm Batch Restart Plugins
       restartSubTitle: 'Confirm restart plugin {pluginName}?'
@@ -411,9 +417,11 @@ pluginManagement:
       unrecoverable: ' This action cannot be undone.'
       selectProcessHint: 'Please select plugin processes to {action}'
       actionUninstall: uninstall
+      actionStart: start
       actionRestart: restart
       actionStop: stop
       selectionConfirmUninstall: 'Confirm batch uninstall {detail} ({count} processes in total)? This action cannot be undone.'
+      selectionConfirmStart: 'Confirm batch start {detail} ({count} processes in total)?'
       selectionConfirmRestart: 'Confirm batch restart {detail} ({count} processes in total)?'
       selectionConfirmStop: 'Confirm batch stop {detail} ({count} processes in total)?'
 topoManager:

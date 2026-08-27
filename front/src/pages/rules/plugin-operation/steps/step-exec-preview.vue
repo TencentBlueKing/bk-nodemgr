@@ -109,6 +109,7 @@ const opTypeLabel = computed(() => {
     install: t('pluginManagement.plugin.operate.install'),
     upgrade: t('pluginManagement.plugin.operate.upgrade'),
     reload: t('pluginManagement.plugin.operate.reload'),
+    start: t('pluginManagement.plugin.operate.start'),
     restart: t('pluginManagement.plugin.operate.restart'),
     stop: t('pluginManagement.plugin.operate.stop'),
     reinstall: t('pluginManagement.plugin.operate.reinstall'),
@@ -117,7 +118,7 @@ const opTypeLabel = computed(() => {
 });
 
 // 重启/停止操作不需要显示目标版本列
-const showTargetVersion = computed(() => !['restart', 'stop'].includes(props.operationType || ''));
+const showTargetVersion = computed(() => !['start', 'restart', 'stop'].includes(props.operationType || ''));
 
 // ===== 管控单元 id→name Map（学习 agent 列表 distinct + brief 模式）=====
 const networkUnitMap = ref(new Map<number, string>());

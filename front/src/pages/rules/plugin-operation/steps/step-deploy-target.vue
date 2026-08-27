@@ -161,7 +161,7 @@ const formData = defineModel<{
 }>('formData', { required: true });
 
 // 重启/停止操作不需要版本选择和参数配置
-const isSimpleOperation = computed(() => ['restart', 'stop'].includes(props.operationType || ''));
+const isSimpleOperation = computed(() => ['start', 'restart', 'stop'].includes(props.operationType || ''));
 
 const formRef = ref();
 // IP 选择器 key：回填完成后递增，强制组件重建（解决 Vue3 包裹 Vue2 组件 props 不响应的问题）

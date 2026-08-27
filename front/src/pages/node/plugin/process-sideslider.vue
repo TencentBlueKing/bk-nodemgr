@@ -538,6 +538,7 @@ const allOperations = [
   { id: 'upgrade', nameKey: 'pluginManagement.plugin.operate.upgrade' },
   { id: 'reload', nameKey: 'pluginManagement.plugin.operate.reload' },
   { id: 'uninstall', nameKey: 'pluginManagement.plugin.operate.uninstall' },
+  { id: 'start', nameKey: 'pluginManagement.plugin.operate.start' },
   { id: 'restart', nameKey: 'pluginManagement.plugin.operate.restart' },
   { id: 'stop', nameKey: 'pluginManagement.plugin.operate.stop' },
 ];
@@ -602,6 +603,7 @@ const selectionConfirmFormatter = (selectedRows: any[]) => {
 
   const keyMap: Record<string, string> = {
     uninstall: 'pluginManagement.plugin.operate.selectionConfirmUninstall',
+    start: 'pluginManagement.plugin.operate.selectionConfirmStart',
     restart: 'pluginManagement.plugin.operate.selectionConfirmRestart',
     stop: 'pluginManagement.plugin.operate.selectionConfirmStop',
   };
@@ -658,8 +660,8 @@ const handlePluginOperate = (operateType: string, data: any[], batch = false) =>
         ...(prefillVersions ? { prefillVersions } : {}),
       },
     });
-  } else if (operateType === 'restart' || operateType === 'uninstall' || operateType === 'stop') {
-    // 重启/卸载/停止 → operate-dialog 确认
+  } else if (operateType === 'start' || operateType === 'restart' || operateType === 'uninstall' || operateType === 'stop') {
+    // 启动/重启/卸载/停止 → operate-dialog 确认
     // 浅拷贝数据，避免弹窗内部 checkbox 事件修改主表格的 checked 状态
     pendingOperateData.value = data.map((item: any) => ({ ...item }));
     pendingOperateType.value = operateType;
@@ -679,6 +681,13 @@ const handlePluginOperate = (operateType: string, data: any[], batch = false) =>
       operateDialogData.subTitle = batch
         ? t('pluginManagement.plugin.operate.batchRestartSubTitle', { pluginNames, count })
         : t('pluginManagement.plugin.operate.restartSubTitle', { pluginName });
+    } else if (operateType === 'start') {
+      operateDialogData.title = batch
+        ? t('pluginManagement.plugin.operate.batchStartTitle')
+        : t('pluginManagement.plugin.operate.startTitle');
+      operateDialogData.subTitle = batch
+        ? t('pluginManagement.plugin.operate.batchStartSubTitle', { pluginNames, count })
+        : t('pluginManagement.plugin.operate.startSubTitle', { pluginName });
     } else if (operateType === 'uninstall') {
       operateDialogData.title = batch
         ? t('pluginManagement.plugin.operate.batchUninstallTitle')
@@ -708,6 +717,10 @@ const handleOperateConfirm = async (extraData: any = {}) => {
 
   if (operateType === 'uninstall') {
     res = await PluginAPIService.UninstallPlugin({
+      plugin: data.map((item: any) => ({ bk_host_id: item.bk_host_id, plugin_name: item.plugin_name })),
+    });
+  } else if (operateType === 'start') {
+    res = await PluginAPIService.StartPlugin({
       plugin: data.map((item: any) => ({ bk_host_id: item.bk_host_id, plugin_name: item.plugin_name })),
     });
   } else if (operateType === 'stop') {

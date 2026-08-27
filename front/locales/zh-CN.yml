@@ -291,6 +291,7 @@ platform:
         migrate_plugin_v2: V2 插件迁移
         reconfig_plugin: 插件重载配置
         apply_plugin_subconfig: 插件应用子配置
+        start_plugin: 插件启动
         restart_plugin: 插件重启
         stop_plugin: 插件停止
       statusType:
@@ -387,11 +388,16 @@ pluginManagement:
       upgrade: 升级
       reload: 重载
       uninstall: 卸载
+      start: 启动
       restart: 重启
       stop: 停止
       reinstall: 重装
       operateDisabled: 该操作暂未开放
       operateSuccess: 操作执行成功
+      startTitle: 确认启动插件
+      batchStartTitle: 确认批量启动插件
+      startSubTitle: '确认启动插件 {pluginName}？'
+      batchStartSubTitle: '确认批量启动 {pluginNames} 等 {count} 个插件？'
       restartTitle: 确认重启插件
       batchRestartTitle: 确认批量重启插件
       restartSubTitle: '确认重启插件 {pluginName}？'
@@ -411,9 +417,11 @@ pluginManagement:
       unrecoverable: 卸载后不可恢复。
       selectProcessHint: '请勾选需要{action}的插件进程'
       actionUninstall: 卸载
+      actionStart: 启动
       actionRestart: 重启
       actionStop: 停止
       selectionConfirmUninstall: '确认批量卸载 {detail} 等 {count} 个进程？卸载后不可恢复。'
+      selectionConfirmStart: '确认批量启动 {detail} 等 {count} 个进程？'
       selectionConfirmRestart: '确认批量重启 {detail} 等 {count} 个进程？'
       selectionConfirmStop: '确认批量停止 {detail} 等 {count} 个进程？'
 topoManager:
