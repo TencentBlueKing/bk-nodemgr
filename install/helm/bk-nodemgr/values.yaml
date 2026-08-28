@@ -710,7 +710,7 @@ application:
     ## mode: release or debug, default is release.
     runMode: "release"
 
-    ## tenant_mode: multi or single, default is single.
+    ## tenant_mode: multiple or single, default is single.
     tenantMode: "single"
 
     ## defines the application server advertise-ip, if not set then will use the pod-ip.
@@ -746,11 +746,11 @@ application:
       # endpoints is a seed list of host:port addresses of apigw nodes.
       endpoints:
         - "https://example.com/api/bk-nodemgr/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api auth verification,
       # it support 'oa' and 'ee' and 'at' mode for now.
@@ -786,11 +786,11 @@ application:
       # endpoints is a seed list of host:port addresses of user manager apigw nodes.
       endpoints:
         - "https://example.com/api/bk-user/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api access verification.
       # 1. oa use bkTicket access.
@@ -798,7 +798,7 @@ application:
       # 3. at use accessToken access.
       # 4. un use no user authentication required.
       authMode: "un"
-      # accessToken is the BlueKing access token of NodeMan to request api gateway.
+      # accessToken is the BlueKing access token of Nodemgr to request api gateway.
       accessToken: ""
       # trace service name for UserManager client.
       traceServiceName: "application-client-usermanager"
@@ -829,11 +829,11 @@ application:
       # endpoints is a seed list of host:port addresses of notice apigw nodes.
       endpoints:
         - "https://example.com/api/bk-notice/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api auth verification.
       # 1. un use username authentication
@@ -922,11 +922,11 @@ application:
         loginURL: ""
         # endpoints is a seed list of host:port addresses of bklogin backend API nodes.
         endpoints: []
-        # appCode is the BlueKing app code of NodeMan to request bklogin gateway.
+        # appCode is the BlueKing app code of Nodemgr to request bklogin gateway.
         appCode: ""
-        # appSecret is the BlueKing app secret of NodeMan to request bklogin gateway.
+        # appSecret is the BlueKing app secret of Nodemgr to request bklogin gateway.
         appSecret: ""
-        # user is the BlueKing user of NodeMan to request bklogin gateway.
+        # user is the BlueKing user of Nodemgr to request bklogin gateway.
         user: ""
         # authMode is the mode to do api auth verification, support 'at' and 'un'.
         authMode: "un"
@@ -961,11 +961,11 @@ application:
       # endpoints is a seed list of host:port addresses of IAM API gateway nodes.
       endpoints:
         - "https://example.com/api/bk-iam/prod"
-      # appCode is the BlueKing app code of NodeMan to request IAM v3 gateway.
+      # appCode is the BlueKing app code of Nodemgr to request IAM v3 gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request IAM v3 gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request IAM v3 gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request IAM v3 gateway.
+      # user is the BlueKing user of Nodemgr to request IAM v3 gateway.
       user: ""
       # authMode is the mode to do api auth verification.
       # it support 'oa' and 'ee' and 'at' and 'un' mode for now.
@@ -974,7 +974,7 @@ application:
       # 3. at use accessToken auth.
       # 4. un use no user authentication required
       authMode: "un"
-      # accessToken is the BlueKing access token of NodeMan to request IAM v3 gateway.
+      # accessToken is the BlueKing access token of Nodemgr to request IAM v3 gateway.
       accessToken: ""
       # systemID is the system identifier registered in IAM v3.
       systemID: "bk_nodemgr"
@@ -1090,7 +1090,7 @@ backend:
     ## mode: release or debug, default is release.
     runMode: "release"
 
-    ## tenant_mode: multi or single, default is single.
+    ## tenant_mode: multiple or single, default is single.
     tenantMode: "single"
 
     ## system: define the related settings of deployment environment.
@@ -1192,11 +1192,11 @@ backend:
       # endpoints is a seed list of host:port addresses of apigw nodes.
       endpoints:
         - "https://example.com/api/bk-cmdb/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api auth verification,
       # it support 'oa' and 'ee' and 'at' mode for now.
@@ -1232,11 +1232,11 @@ backend:
       # endpoints is a seed list of host:port addresses of apigw nodes.
       endpoints:
         - "https://example.com/api/gse/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api auth verification,
       # it support 'oa' and 'ee' and 'at' mode for now.
@@ -1274,11 +1274,11 @@ backend:
       # endpoints is a seed list of host:port addresses of esb nodes.
       endpoints:
         - "https://example.com/api/bk-user/prod"
-        # appCode is the BlueKing app code of NodeMan to request api gateway.
+        # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api access verification,
       # it support 'oa' and 'ee' and 'at' mode for now.
@@ -1338,11 +1338,11 @@ backend:
           # endpoints is a seed list of host:port addresses of apigw nodes.
           endpoints:
             - "https://example.com/api/iegtjj/prod"
-          # appCode is the BlueKing app code of NodeMan to request api gateway.
+          # appCode is the BlueKing app code of Nodemgr to request api gateway.
           appCode: ""
-          # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+          # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
           appSecret: ""
-          # user is the BlueKing user of NodeMan to request api gateway.
+          # user is the BlueKing user of Nodemgr to request api gateway.
           user: ""
           # authMode is the mode to do api auth verification,
           # it support 'oa' and 'ee' and 'at' mode for now.
@@ -1453,11 +1453,11 @@ backend:
       # endpoints is a seed list of host:port addresses of IAM API gateway nodes.
       endpoints:
         - "https://example.com/api/bk-iam/prod"
-      # appCode is the BlueKing app code of NodeMan to request IAM v3 gateway.
+      # appCode is the BlueKing app code of Nodemgr to request IAM v3 gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request IAM v3 gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request IAM v3 gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request IAM v3 gateway.
+      # user is the BlueKing user of Nodemgr to request IAM v3 gateway.
       user: ""
       # authMode is the mode to do api auth verification.
       # it support 'oa' and 'ee' and 'at' and 'un' mode for now.
@@ -1466,7 +1466,7 @@ backend:
       # 3. at use accessToken auth.
       # 4. un use no user authentication required
       authMode: "un"
-      # accessToken is the BlueKing access token of NodeMan to request IAM v3 gateway.
+      # accessToken is the BlueKing access token of Nodemgr to request IAM v3 gateway.
       accessToken: ""
       # systemID is the system identifier registered in IAM v3.
       systemID: "bk_nodemgr"
@@ -1577,7 +1577,7 @@ file:
     ## mode: release or debug, default is release.
     runMode: "release"
 
-    ## tenant_mode: multi or single, default is single.
+    ## tenant_mode: multiple or single, default is single.
     tenantMode: "single"
 
     ## defines the file server advertise-ip, if not set then will use the pod-ip.
@@ -1690,11 +1690,11 @@ file:
       # endpoints is a seed list of host:port addresses of apigw nodes.
       endpoints:
         - "https://example.com/api/gse/prod"
-      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      # appCode is the BlueKing app code of Nodemgr to request api gateway.
       appCode: ""
-      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      # appSecret is the BlueKing app secret of Nodemgr to request api gateway.
       appSecret: ""
-      # user is the BlueKing user of NodeMan to request api gateway.
+      # user is the BlueKing user of Nodemgr to request api gateway.
       user: ""
       # authMode is the mode to do api auth verification,
       # it support 'oa' and 'ee' and 'at' mode for now.
