@@ -41,16 +41,16 @@ func (act *actionRenderNodeDeployment) resolveNodeEventDataIDConf(
 	}
 
 	eventDataIDConf := deployconstant.NodeEventDataIDConf{
-		AgentBaseAlarmEventDataID: act.resolveAgentBaseAlarmEventDataID(bizConf, bizConfFound),
-		TaskProcEventDataID:       act.defaultNodeEventDataIDConf.TaskProcEventDataID,
+		AgentBaseAlarmEventDataID: act.defaultNodeEventDataIDConf.AgentBaseAlarmEventDataID,
+		TaskProcEventDataID:       act.resolveTaskProcEventDataID(bizConf, bizConfFound),
 	}
 
-	if bizConfFound && bizConf.TaskProcEventDataID != nil {
-		eventDataIDConf.TaskProcEventDataID = *bizConf.TaskProcEventDataID
+	if bizConfFound && bizConf.AgentBaseAlarmEventDataID != nil {
+		eventDataIDConf.AgentBaseAlarmEventDataID = *bizConf.AgentBaseAlarmEventDataID
 		return validateNodeEventDataIDConf(eventDataIDConf)
 	}
 
-	taskProcEventDataID, found, err := act.monitorHandler.GetOrCreateAgentEventDataID(nCtx, bkBizID)
+	agentBaseAlarmEventDataID, found, err := act.monitorHandler.GetOrCreateAgentEventDataID(nCtx, bkBizID)
 	if err != nil {
 		return deployconstant.NodeEventDataIDConf{}, fmt.Errorf("failed to get or create agent event data-id: %w", err)
 	}
@@ -58,11 +58,13 @@ func (act *actionRenderNodeDeployment) resolveNodeEventDataIDConf(
 		return validateNodeEventDataIDConf(eventDataIDConf)
 	}
 
-	if err := act.storageBizEventDataIDConf.UpdateBizTaskProcEventDataID(nCtx, bkBizID, taskProcEventDataID); err != nil {
-		return deployconstant.NodeEventDataIDConf{}, fmt.Errorf("failed to write back task process event data-id: %w", err)
+	if err := act.storageBizEventDataIDConf.UpdateBizAgentBaseAlarmEventDataID(
+		nCtx, bkBizID, agentBaseAlarmEventDataID,
+	); err != nil {
+		return deployconstant.NodeEventDataIDConf{}, fmt.Errorf("failed to write back agent base alarm event data-id: %w", err)
 	}
 
-	eventDataIDConf.TaskProcEventDataID = taskProcEventDataID
+	eventDataIDConf.AgentBaseAlarmEventDataID = agentBaseAlarmEventDataID
 
 	return validateNodeEventDataIDConf(eventDataIDConf)
 }
@@ -79,16 +81,16 @@ func resolveDeploymentBizID(deployInfo *types.DeploymentInfo) (int64, error) {
 	return deployInfo.Host.Static.BizID, nil
 }
 
-func (act *actionRenderNodeDeployment) resolveAgentBaseAlarmEventDataID(
+func (act *actionRenderNodeDeployment) resolveTaskProcEventDataID(
 	bizConf types.BizEventDataIDConf,
 	bizConfFound bool,
 ) int64 {
 
-	if bizConfFound && bizConf.AgentBaseAlarmEventDataID != nil {
-		return *bizConf.AgentBaseAlarmEventDataID
+	if bizConfFound && bizConf.TaskProcEventDataID != nil {
+		return *bizConf.TaskProcEventDataID
 	}
 
-	return act.defaultNodeEventDataIDConf.AgentBaseAlarmEventDataID
+	return act.defaultNodeEventDataIDConf.TaskProcEventDataID
 }
 
 func validateNodeEventDataIDConf(

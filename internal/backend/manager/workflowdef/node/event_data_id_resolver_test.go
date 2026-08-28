@@ -51,10 +51,10 @@ func TestActionRenderNodeDeployment_ResolveNodeEventDataIDConf(t *testing.T) {
 			},
 		},
 		{
-			name:          "gets task process data id from monitor and writes it back",
+			name:          "gets agent base alarm data id from monitor and writes it back",
 			deployInfo:    deploymentInfoWithBizID(20),
-			bizConf:       &types.BizEventDataIDConf{BizID: 20, AgentBaseAlarmEventDataID: ptrInt64(4001)},
-			monitorDataID: 4002,
+			bizConf:       &types.BizEventDataIDConf{BizID: 20, TaskProcEventDataID: ptrInt64(4002)},
+			monitorDataID: 4001,
 			monitorFound:  true,
 			expected: deployconstant.NodeEventDataIDConf{
 				AgentBaseAlarmEventDataID: 4001,
@@ -99,7 +99,7 @@ func TestActionRenderNodeDeployment_ResolveNodeEventDataIDConf(t *testing.T) {
 			require.Equal(t, tt.expectedWrite, storage.updateCalled)
 			if tt.expectedWrite {
 				require.Equal(t, tt.deployInfo.Host.Static.BizID, storage.updatedBizID)
-				require.Equal(t, tt.expected.TaskProcEventDataID, storage.updatedEventDataID)
+				require.Equal(t, tt.expected.AgentBaseAlarmEventDataID, storage.updatedEventDataID)
 			}
 		})
 	}
@@ -135,7 +135,7 @@ func (s *fakeEventDataIDConfStorage) GetBizEventDataIDConf(
 	return *s.conf, true, nil
 }
 
-func (s *fakeEventDataIDConfStorage) UpdateBizTaskProcEventDataID(
+func (s *fakeEventDataIDConfStorage) UpdateBizAgentBaseAlarmEventDataID(
 	_ contextx.IContext,
 	bkBizID int64,
 	eventDataID int64,

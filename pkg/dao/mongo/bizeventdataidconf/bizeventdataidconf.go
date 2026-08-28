@@ -54,17 +54,17 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return []mongo.IndexModel{}
 }
 
-func (d *dao) upsertTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
+func (d *dao) upsertAgentBaseAlarmEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
 	nowTime := time.Now()
 	filter := bson.D{{Key: FieldKeyBizID, Value: bkBizID}}
 	update := bson.D{
 		{
 			Key: "$set",
 			Value: bson.M{
-				base.FieldKeyIsDeleted:   false,
-				base.FieldKeyUpdatedAt:   nowTime,
-				FieldKeyBizID:            bkBizID,
-				fieldTaskProcEventDataID: eventDataID,
+				base.FieldKeyIsDeleted:         false,
+				base.FieldKeyUpdatedAt:         nowTime,
+				FieldKeyBizID:                  bkBizID,
+				fieldAgentBaseAlarmEventDataID: eventDataID,
 			},
 		},
 		{

@@ -55,9 +55,9 @@ func (s *Storage) getBizEventDataIDConf(
 	return *conf, true, nil
 }
 
-func (s *Storage) updateBizTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
-	if err := s.daoBizEventDataIDConf.UpdateTaskProcEventDataID(nCtx, bkBizID, eventDataID); err != nil {
-		return fmt.Errorf("failed to update biz task process event data-id: %w", err)
+func (s *Storage) updateBizAgentBaseAlarmEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
+	if err := s.daoBizEventDataIDConf.UpdateAgentBaseAlarmEventDataID(nCtx, bkBizID, eventDataID); err != nil {
+		return fmt.Errorf("failed to update biz agent base alarm event data-id: %w", err)
 	}
 
 	return nil

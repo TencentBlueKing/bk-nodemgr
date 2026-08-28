@@ -26,8 +26,8 @@ type IHandler interface {
 	// Get gets business event data-id config by business ID.
 	Get(nCtx contextx.IContext, bkBizID int64) (*types.BizEventDataIDConf, error)
 
-	// UpdateTaskProcEventDataID updates task process event data-id by business ID.
-	UpdateTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error
+	// UpdateAgentBaseAlarmEventDataID updates agent base alarm event data-id by business ID.
+	UpdateAgentBaseAlarmEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error
 }
 
 // Handler operates business event data-id config table.
@@ -85,8 +85,8 @@ func (h *Handler) Get(nCtx contextx.IContext, bkBizID int64) (*types.BizEventDat
 	return convertBizEventDataIDConfToTypes(data), nil
 }
 
-// UpdateTaskProcEventDataID updates task process event data-id by business ID.
-func (h *Handler) UpdateTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
+// UpdateAgentBaseAlarmEventDataID updates agent base alarm event data-id by business ID.
+func (h *Handler) UpdateAgentBaseAlarmEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -101,10 +101,10 @@ func (h *Handler) UpdateTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eve
 	}
 
 	if eventDataID <= 0 {
-		return fmt.Errorf("taskProcEventDataID must be positive, got %d", eventDataID)
+		return fmt.Errorf("agentBaseAlarmEventDataID must be positive, got %d", eventDataID)
 	}
 
-	if err := h.tenantDao(tenantID).upsertTaskProcEventDataID(nCtx, bkBizID, eventDataID); err != nil {
+	if err := h.tenantDao(tenantID).upsertAgentBaseAlarmEventDataID(nCtx, bkBizID, eventDataID); err != nil {
 		return err
 	}
 

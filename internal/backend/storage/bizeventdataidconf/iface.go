@@ -28,6 +28,6 @@ type IDaoBizEventDataIDConf interface {
 	// GetBizEventDataIDConf gets business event data-id config by business ID.
 	GetBizEventDataIDConf(nCtx contextx.IContext, bkBizID int64) (types.BizEventDataIDConf, bool, error)
 
-	// UpdateBizTaskProcEventDataID updates task process event data-id by business ID.
-	UpdateBizTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error
+	// UpdateBizAgentBaseAlarmEventDataID updates agent base alarm event data-id by business ID.
+	UpdateBizAgentBaseAlarmEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error
 }

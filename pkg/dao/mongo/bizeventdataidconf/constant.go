@@ -14,5 +14,5 @@ const (
 	// FieldKeyBizID defines the key of business ID.
 	FieldKeyBizID = "data.biz_id"
 
-	fieldTaskProcEventDataID = "data.task_proc_event_data_id"
+	fieldAgentBaseAlarmEventDataID = "data.agent_base_alarm_event_data_id"
 )

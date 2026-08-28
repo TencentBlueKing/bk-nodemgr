@@ -24,8 +24,8 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "biz_event_data_id_conf"
 
-	metricOperationGetBizEventDataIDConf        = "get_biz_event_data_id_conf"
-	metricOperationUpdateBizTaskProcEventDataID = "update_biz_task_proc_event_data_id"
+	metricOperationGetBizEventDataIDConf              = "get_biz_event_data_id_conf"
+	metricOperationUpdateBizAgentBaseAlarmEventDataID = "update_biz_agent_base_alarm_event_data_id"
 )
 
 // NewStorage creates a new business event data-id config storage handler.
@@ -78,9 +78,9 @@ func (s *Storage) GetBizEventDataIDConf(
 	return conf, found, err
 }
 
-// UpdateBizTaskProcEventDataID updates task process event data-id by business ID.
-func (s *Storage) UpdateBizTaskProcEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
-	return s.WrapFn(nCtx, metricOperationUpdateBizTaskProcEventDataID, func(ctx contextx.IContext) error {
-		return s.updateBizTaskProcEventDataID(ctx, bkBizID, eventDataID)
+// UpdateBizAgentBaseAlarmEventDataID updates agent base alarm event data-id by business ID.
+func (s *Storage) UpdateBizAgentBaseAlarmEventDataID(nCtx contextx.IContext, bkBizID, eventDataID int64) error {
+	return s.WrapFn(nCtx, metricOperationUpdateBizAgentBaseAlarmEventDataID, func(ctx contextx.IContext) error {
+		return s.updateBizAgentBaseAlarmEventDataID(ctx, bkBizID, eventDataID)
 	})
 }

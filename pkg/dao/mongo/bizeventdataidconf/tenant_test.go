@@ -37,10 +37,10 @@ func TestHandler_Get_rejectsMissingTenant(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestHandler_UpdateTaskProcEventDataID_rejectsMissingTenant(t *testing.T) {
+func TestHandler_UpdateAgentBaseAlarmEventDataID_rejectsMissingTenant(t *testing.T) {
 	h := new(Handler)
 
-	err := h.UpdateTaskProcEventDataID(contextx.New(t.Context()), 1, 1)
+	err := h.UpdateAgentBaseAlarmEventDataID(contextx.New(t.Context()), 1, 1)
 
 	require.Error(t, err)
 }
