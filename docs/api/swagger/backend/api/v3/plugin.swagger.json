@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/plugin/list_config_files": {
+      "post": {
+        "summary": "ListPluginConfigFiles lists plugin config files by host ID and plugin name.",
+        "operationId": "Plugin_ListPluginConfigFiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginListConfigFilesResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginListConfigFilesReq describes the plugin config file list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginListConfigFilesReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
+    },
     "/api/v3/plugin/migrate_from_v2": {
       "post": {
         "summary": "MigratePluginFromV2 migrates plugin process from v2 on specified hosts.",
@@ -496,6 +530,42 @@
         }
       }
     },
+    "PluginListConfigFilesRespConfigFile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "template_name": {
+          "type": "string"
+        },
+        "process_name": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "set": {
+          "type": "string"
+        },
+        "is_main_config": {
+          "type": "boolean"
+        },
+        "content": {
+          "type": "string"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "custom_config_context": {
+          "type": "object"
+        }
+      }
+    },
     "PluginListReqExactConditions": {
       "type": "object",
       "properties": {
@@ -867,6 +937,56 @@
       "properties": {
         "workflow_id": {
           "type": "string"
+        }
+      }
+    },
+    "v3PluginListConfigFilesReq": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        }
+      },
+      "description": "PluginListConfigFilesReq describes the plugin config file list request."
+    },
+    "v3PluginListConfigFilesResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginListConfigFilesRespData"
+        }
+      },
+      "description": "PluginListConfigFilesResp describes the plugin config file list response."
+    },
+    "v3PluginListConfigFilesRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginListConfigFilesRespConfigFile"
+          }
         }
       }
     },

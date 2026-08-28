@@ -39,6 +39,7 @@ type handler struct {
 	daoPlugin             pluginStg.IDaoPlugin
 	daoPluginWorkflow     pluginStg.IDaoPluginWorkflow
 	daoHost               topoStg.IStorageHost
+	daoProcessConfig      pluginStg.IDaoProcessConfig
 	storageGlobalSettings globalsettingsStorage.IStorage
 	domainPlugin          pluginStg.IDomainPlugin
 	pluginMgrIface        managerIface.IPluginManager
@@ -54,6 +55,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		daoPlugin:             capability.StoragePlugin,
 		daoPluginWorkflow:     capability.StoragePlugin,
 		daoHost:               capability.StorageTopo,
+		daoProcessConfig:      capability.StoragePlugin,
 		storageGlobalSettings: capability.StorageGlobalSettings,
 		domainPlugin:          capability.StoragePlugin,
 		pluginMgrIface:        capability.Manager,
@@ -72,6 +74,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
 	h.rg.POST("/set_memo", restserver.Handler(h.SetMemo))
+	h.rg.POST("/list_config_files", restserver.Handler(h.ListConfigFiles))
 
 	h.rg.POST("/start", restserver.Handler(h.Start))
 	h.rg.POST("/restart", restserver.Handler(h.Restart))

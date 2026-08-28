@@ -573,6 +573,78 @@ func (x *PluginUninstallReq) GetHostIDs() []int64 {
 }
 
 // Validate check body.
+func (x *PluginListConfigFilesReq) Validate() error {
+	if x.GetBkHostId() == 0 {
+		return errors.New("bk_host_id can not be empty")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginListConfigFilesReq) AutoConvert() {}
+
+// ConvertConfigFilesFromTypes converts plugin config files from types.
+func (x *PluginListConfigFilesResp) ConvertConfigFilesFromTypes(configFiles []*types.ProcessConfig) error {
+	var err error
+	x.Data = &PluginListConfigFilesResp_Data{}
+	x.Data.Items, err = conv.SliceToSliceWithError(configFiles, func(config *types.ProcessConfig) (*PluginListConfigFilesResp_ConfigFile, error) {
+		item := &PluginListConfigFilesResp_ConfigFile{
+			Name:         config.Name,
+			TemplateName: config.TemplateName,
+			ProcessName:  config.ProcessName,
+			BkHostId:     config.HostID,
+			Set:          config.Set,
+			IsMainConfig: config.IsMainConfig,
+			Content:      config.Content,
+			Md5:          config.MD5,
+			FilePath:     config.FilePath,
+		}
+		if config.CustomConfigContext == nil {
+			return item, nil
+		}
+
+		item.CustomConfigContext, err = structpb.NewStruct(config.CustomConfigContext)
+		if err != nil {
+			return nil, err
+		}
+
+		return item, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ConvertConfigFilesToTypes converts plugin config files to types.
+func (x *PluginListConfigFilesResp) ConvertConfigFilesToTypes() []*types.ProcessConfig {
+	return conv.SliceToSlice(x.GetData().GetItems(), func(item *PluginListConfigFilesResp_ConfigFile) *types.ProcessConfig {
+		config := &types.ProcessConfig{
+			Name:         item.GetName(),
+			TemplateName: item.GetTemplateName(),
+			ProcessName:  item.GetProcessName(),
+			HostID:       item.GetBkHostId(),
+			Set:          item.GetSet(),
+			IsMainConfig: item.GetIsMainConfig(),
+			Content:      item.GetContent(),
+			MD5:          item.GetMd5(),
+			FilePath:     item.GetFilePath(),
+		}
+		if item.GetCustomConfigContext() != nil {
+			config.CustomConfigContext = item.GetCustomConfigContext().AsMap()
+		}
+
+		return config
+	})
+}
+
+// Validate check body.
 func (x *PluginApplySubConfigReq) Validate() error {
 	plugins := x.GetPlugin()
 	if len(plugins) == 0 {

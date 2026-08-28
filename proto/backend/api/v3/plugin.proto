@@ -74,6 +74,37 @@ message PluginUninstallReq {
   repeated UninstallInfo plugin = 1;
 }
 
+// PluginListConfigFilesReq describes the plugin config file list request.
+message PluginListConfigFilesReq {
+  int64 bk_host_id = 1;
+  string plugin_name = 2;
+}
+
+// PluginListConfigFilesResp describes the plugin config file list response.
+message PluginListConfigFilesResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message ConfigFile {
+    string name = 1;
+    string template_name = 2;
+    string process_name = 3;
+    int64 bk_host_id = 4;
+    string set = 5;
+    bool is_main_config = 6;
+    string content = 7;
+    string md5 = 8;
+    string file_path = 9;
+    google.protobuf.Struct custom_config_context = 10;
+  }
+
+  message Data { repeated ConfigFile items = 1; }
+  Data data = 5;
+}
+
 // PluginUninstallResp describes the plugin uninstall response.
 message PluginUninstallResp {
   int32 code = 1;
@@ -319,6 +350,15 @@ service Plugin {
   rpc UninstallPlugin(PluginUninstallReq) returns (PluginUninstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/uninstall"
+      body : "*"
+    };
+  }
+
+  // ListPluginConfigFiles lists plugin config files by host ID and plugin name.
+  rpc ListPluginConfigFiles(PluginListConfigFilesReq)
+      returns (PluginListConfigFilesResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/list_config_files"
       body : "*"
     };
   }
