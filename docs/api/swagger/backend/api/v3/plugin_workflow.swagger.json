@@ -706,6 +706,13 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "deploy_policy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "PluginWorkflowExactConditions describes the exact conditions of plugin\nworkflow list request."
@@ -751,6 +758,13 @@
           "type": "string"
         },
         "bk_biz_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "deploy_policy_ids": {
           "type": "array",
           "items": {
             "type": "integer",

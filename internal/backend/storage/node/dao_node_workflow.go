@@ -234,6 +234,7 @@ func (s *Storage) convertNodeWorkflowConditionsToOptions(
 			daoNodeWorkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 			daoNodeWorkflow.WithBizID(condition.ExactInclude.BizID...),
 			daoNodeWorkflow.WithNodeRole(condition.ExactInclude.NodeRole...),
+			daoNodeWorkflow.WithDeployPolicyID(condition.ExactInclude.DeployPolicyIDs...),
 			daoNodeWorkflow.WithType(condition.ExactInclude.Type...),
 			daoNodeWorkflow.WithOperator(condition.ExactInclude.Operator...),
 			daoNodeWorkflow.WithStatus(condition.ExactInclude.Status...))
@@ -245,6 +246,7 @@ func (s *Storage) convertNodeWorkflowConditionsToOptions(
 				daoNodeWorkflow.WithoutType(condition.ExactExclude.Type...),
 				daoNodeWorkflow.WithoutOperator(condition.ExactExclude.Operator...),
 				daoNodeWorkflow.WithoutStatus(condition.ExactExclude.Status...),
+				daoNodeWorkflow.WithoutDeployPolicyID(condition.ExactExclude.DeployPolicyIDs...),
 				daoNodeWorkflow.WithoutNodeRole(condition.ExactExclude.NodeRole...))
 		}
 	}

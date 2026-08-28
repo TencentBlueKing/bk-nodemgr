@@ -11,6 +11,7 @@ export interface PluginWorkflowInfo {
   finish_time: number;
   status: string;
   bk_biz_id: number[];
+  deploy_policy_ids: number[];
 }
 
 // PluginWorkflowExactConditions describes the exact conditions of plugin
@@ -24,6 +25,7 @@ export interface PluginWorkflowExactConditions {
   bk_host_innerip: string[];
   bk_host_innerip_v6: string[];
   bk_biz_id: number[];
+  deploy_policy_id: number[];
 }
 
 // PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin

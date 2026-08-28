@@ -290,6 +290,7 @@ func (s *Storage) convertPluginWorkflowConditionsToOptions(
 				pluginworkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
 				pluginworkflow.WithHostIDs(condition.ExactInclude.HostID...),
 				pluginworkflow.WithBizIDs(condition.ExactInclude.BizID...),
+				pluginworkflow.WithDeployPolicyID(condition.ExactInclude.DeployPolicyIDs...),
 				pluginworkflow.WithType(condition.ExactInclude.Type...),
 				pluginworkflow.WithOperator(condition.ExactInclude.Operator...),
 				pluginworkflow.WithStatus(condition.ExactInclude.Status...))
@@ -300,6 +301,7 @@ func (s *Storage) convertPluginWorkflowConditionsToOptions(
 				pluginworkflow.WithoutWorkflowID(condition.ExactExclude.WorkflowID...),
 				pluginworkflow.WithoutHostIDs(condition.ExactExclude.HostID...),
 				pluginworkflow.WithoutBizIDs(condition.ExactExclude.BizID...),
+				pluginworkflow.WithoutDeployPolicyID(condition.ExactExclude.DeployPolicyIDs...),
 				pluginworkflow.WithoutType(condition.ExactExclude.Type...),
 				pluginworkflow.WithoutOperator(condition.ExactExclude.Operator...),
 				pluginworkflow.WithoutStatus(condition.ExactExclude.Status...))

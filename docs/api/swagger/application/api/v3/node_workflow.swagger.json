@@ -726,6 +726,13 @@
           "items": {
             "type": "string"
           }
+        },
+        "deploy_policy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request."
@@ -791,6 +798,13 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        },
+        "deploy_policy_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },

@@ -88,6 +88,7 @@ func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowConditi
 			Operator:        condition.ExactInclude.Operator,
 			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
 			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
+			DeployPolicyId:  condition.ExactInclude.DeployPolicyIDs,
 		}
 	}
 
@@ -116,6 +117,7 @@ func (x *PluginWorkflowListResp) ConvertPluginWorkflowsFromTypes(num int64, work
 		*item.TriggerId = workflow.TriggerID
 		item.BkHostId = workflow.HostIDs
 		item.BkBizId = workflow.BizIDs
+		item.DeployPolicyIds = workflow.DeployPolicyIDs
 
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
@@ -135,15 +137,16 @@ func (x *PluginWorkflowListResp) ConvertPluginWorkflowsFromTypes(num int64, work
 // newEmptyPluginWorkflow creates a new empty PluginWorkflowInfo.
 func newEmptyPluginWorkflow() *PluginWorkflowInfo {
 	return &PluginWorkflowInfo{
-		WorkflowId:  new(string),
-		TriggerId:   new(string),
-		Type:        new(string),
-		BkHostId:    make([]int64, 0),
-		BkBizId:     make([]int64, 0),
-		Operator:    new(string),
-		OperateTime: new(int64),
-		FinishTime:  new(int64),
-		Status:      new(string),
+		WorkflowId:      new(string),
+		TriggerId:       new(string),
+		Type:            new(string),
+		BkHostId:        make([]int64, 0),
+		BkBizId:         make([]int64, 0),
+		DeployPolicyIds: make([]int64, 0),
+		Operator:        new(string),
+		OperateTime:     new(int64),
+		FinishTime:      new(int64),
+		Status:          new(string),
 	}
 }
 
@@ -701,14 +704,15 @@ func convertPluginWorkflowConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginWorkflowExactFields{
-			HostID:        exactCond.GetBkHostId(),
-			BizID:         exactCond.GetBkBizId(),
-			Type:          types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
-			Status:        types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
-			WorkflowID:    exactCond.GetWorkflowId(),
-			Operator:      exactCond.GetOperator(),
-			HostInnerIP:   exactCond.GetBkHostInnerip(),
-			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
+			HostID:          exactCond.GetBkHostId(),
+			BizID:           exactCond.GetBkBizId(),
+			Type:            types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
+			Status:          types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID:      exactCond.GetWorkflowId(),
+			Operator:        exactCond.GetOperator(),
+			HostInnerIP:     exactCond.GetBkHostInnerip(),
+			HostInnerIPV6:   exactCond.GetBkHostInneripV6(),
+			DeployPolicyIDs: exactCond.GetDeployPolicyId(),
 		}
 	}
 

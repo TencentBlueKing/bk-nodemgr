@@ -92,6 +92,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		item.BkNetworkareaId = workflow.NetworkAreaIDs
 		item.BkNetworkunitId = workflow.NetworkUnitIDs
 		item.NodeRole = types.NodeRoleListToStringList(workflow.NodeRoles)
+		item.DeployPolicyIds = workflow.DeployPolicyIDs
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
 		*item.TriggerId = workflow.TriggerID
@@ -119,18 +120,19 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsToTypes() ([]*types.NodeWorkf
 
 	for idx, item := range items {
 		workflow := &types.NodeWorkflow{
-			TenantID:       item.GetTenantId(),
-			WorkflowID:     item.GetWorkflowId(),
-			TriggerID:      item.GetTriggerId(),
-			Type:           types.NodeWorkflowType(item.GetType()),
-			Status:         types.NodeWorkflowStatus(item.GetStatus()),
-			BizIDs:         item.GetBkBizId(),
-			NetworkAreaIDs: item.GetBkNetworkareaId(),
-			NetworkUnitIDs: item.GetBkNetworkunitId(),
-			NodeRoles:      types.StringListToNodeRoleList(item.GetNodeRole()),
-			Operator:       item.GetOperator(),
-			OperateTime:    time.UnixMilli(item.GetOperateTime()),
-			FinishTime:     time.UnixMilli(item.GetFinishTime()),
+			TenantID:        item.GetTenantId(),
+			WorkflowID:      item.GetWorkflowId(),
+			TriggerID:       item.GetTriggerId(),
+			Type:            types.NodeWorkflowType(item.GetType()),
+			Status:          types.NodeWorkflowStatus(item.GetStatus()),
+			BizIDs:          item.GetBkBizId(),
+			NetworkAreaIDs:  item.GetBkNetworkareaId(),
+			NetworkUnitIDs:  item.GetBkNetworkunitId(),
+			NodeRoles:       types.StringListToNodeRoleList(item.GetNodeRole()),
+			DeployPolicyIDs: item.GetDeployPolicyIds(),
+			Operator:        item.GetOperator(),
+			OperateTime:     time.UnixMilli(item.GetOperateTime()),
+			FinishTime:      time.UnixMilli(item.GetFinishTime()),
 		}
 
 		result[idx] = workflow
@@ -866,14 +868,15 @@ func convertNodeWorkflowConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.NodeWorkflowExactFields{
-			BizID:         exactCond.GetBkBizId(),
-			Type:          types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
-			Status:        types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
-			WorkflowID:    exactCond.GetWorkflowId(),
-			Operator:      exactCond.GetOperator(),
-			HostInnerIP:   exactCond.GetBkHostInnerip(),
-			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
-			NodeRole:      exactCond.GetNodeRole(),
+			BizID:           exactCond.GetBkBizId(),
+			Type:            types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
+			Status:          types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID:      exactCond.GetWorkflowId(),
+			Operator:        exactCond.GetOperator(),
+			HostInnerIP:     exactCond.GetBkHostInnerip(),
+			HostInnerIPV6:   exactCond.GetBkHostInneripV6(),
+			NodeRole:        exactCond.GetNodeRole(),
+			DeployPolicyIDs: exactCond.GetDeployPolicyId(),
 		}
 	}
 
@@ -924,6 +927,7 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
 			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
 			NodeRole:        condition.ExactInclude.NodeRole,
+			DeployPolicyId:  condition.ExactInclude.DeployPolicyIDs,
 		}
 	}
 
@@ -1022,6 +1026,7 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 		BkBizId:         make([]int64, 0),
 		BkNetworkareaId: make([]int64, 0),
 		BkNetworkunitId: make([]int64, 0),
+		DeployPolicyIds: make([]int64, 0),
 		Operator:        new(string),
 		OperateTime:     new(int64),
 		FinishTime:      new(int64),

@@ -31,6 +31,9 @@ const (
 	// FieldKeyBizID is the key for business ID.
 	FieldKeyBizID = "data.biz_ids"
 
+	// FieldKeyDeployPolicyIDs is the key for deploy policy IDs.
+	FieldKeyDeployPolicyIDs = "data.deploy_policy_ids"
+
 	// FieldKeyNodeRoles is the key for node roles.
 	FieldKeyNodeRoles = "data.node_roles"
 

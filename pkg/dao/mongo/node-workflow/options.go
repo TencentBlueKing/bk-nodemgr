@@ -71,6 +71,16 @@ func WithoutBizID(bizID ...int64) OptFn {
 	return base.WithoutValues(FieldKeyBizID, bizID...)
 }
 
+// WithDeployPolicyID filters by deploy policy ID.
+func WithDeployPolicyID(deployPolicyIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyDeployPolicyIDs, deployPolicyIDs...)
+}
+
+// WithoutDeployPolicyID filters by not contains deploy policy ID.
+func WithoutDeployPolicyID(deployPolicyIDs ...int64) OptFn {
+	return base.WithoutValues(FieldKeyDeployPolicyIDs, deployPolicyIDs...)
+}
+
 // WithOperator filters by operator.
 func WithOperator(operator ...string) OptFn {
 	return base.WithValues(FieldKeyOperator, operator...)

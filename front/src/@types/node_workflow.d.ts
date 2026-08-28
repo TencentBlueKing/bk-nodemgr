@@ -13,6 +13,7 @@ export interface NodeWorkflowInfo {
   status: string;
   bk_biz_name: string[];
   node_role: string[];
+  deploy_policy_ids: number[];
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow
@@ -26,6 +27,7 @@ export interface NodeWorkflowExactConditions {
   bk_host_innerip: string[];
   bk_host_innerip_v6: string[];
   node_role: string[];
+  deploy_policy_id: number[];
 }
 
 // NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow

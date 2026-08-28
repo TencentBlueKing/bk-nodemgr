@@ -37,6 +37,9 @@ const (
 	// FieldKeyBizIDs is the key for biz ID.
 	FieldKeyBizIDs = "data.biz_ids"
 
+	// FieldKeyDeployPolicyIDs is the key for deploy policy IDs.
+	FieldKeyDeployPolicyIDs = "data.deploy_policy_ids"
+
 	// FieldKeyExecuteUser is the key for execute user.
 	FieldKeyExecuteUser = "data.execute_user"
 

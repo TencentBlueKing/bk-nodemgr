@@ -80,6 +80,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		item.BkNetworkareaId = workflow.NetworkAreaIDs
 		item.BkNetworkunitId = workflow.NetworkUnitIDs
 		item.NodeRole = types.NodeRoleListToStringList(workflow.NodeRoles)
+		item.DeployPolicyIds = workflow.DeployPolicyIDs
 
 		*item.Type = string(workflow.Type)
 		*item.Status = string(workflow.Status)
@@ -582,14 +583,15 @@ func convertNodeWorkflowConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.NodeWorkflowExactFields{
-			BizID:         exactCond.GetBkBizId(),
-			Type:          types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
-			Status:        types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
-			WorkflowID:    exactCond.GetWorkflowId(),
-			Operator:      exactCond.GetOperator(),
-			HostInnerIP:   exactCond.GetBkHostInnerip(),
-			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
-			NodeRole:      exactCond.GetNodeRole(),
+			BizID:           exactCond.GetBkBizId(),
+			Type:            types.StringListToNodeWorkflowTypeList(exactCond.GetType()),
+			Status:          types.StringListToNodeWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID:      exactCond.GetWorkflowId(),
+			Operator:        exactCond.GetOperator(),
+			HostInnerIP:     exactCond.GetBkHostInnerip(),
+			HostInnerIPV6:   exactCond.GetBkHostInneripV6(),
+			NodeRole:        exactCond.GetNodeRole(),
+			DeployPolicyIDs: exactCond.GetDeployPolicyId(),
 		}
 	}
 
@@ -624,6 +626,7 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
 			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
 			NodeRole:        condition.ExactInclude.NodeRole,
+			DeployPolicyId:  condition.ExactInclude.DeployPolicyIDs,
 		}
 	}
 
@@ -724,6 +727,7 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 		BkBizId:         make([]int64, 0),
 		BkNetworkareaId: make([]int64, 0),
 		BkNetworkunitId: make([]int64, 0),
+		DeployPolicyIds: make([]int64, 0),
 		Operator:        new(string),
 		OperateTime:     new(int64),
 		FinishTime:      new(int64),
