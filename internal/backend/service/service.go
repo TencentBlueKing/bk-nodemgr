@@ -801,13 +801,6 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create biz event data-id conf storage: %w", err)
 	}
 
-	svc.Cap.StorageTenant, err = tenantStg.NewStorage(
-		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database)
-	if err != nil {
-		return fmt.Errorf("failed to create tenant storage: %w", err)
-	}
-
 	svc.Cap.StorageCipher, err = cipherStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,

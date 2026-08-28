@@ -131,6 +131,36 @@ func (conf *Config) Validate() error {
 	if conf.StorageTopo == nil {
 		return errors.New("topo storage is nil")
 	}
+	if conf.StorageRelease == nil {
+		return errors.New("release storage is nil")
+	}
+	if conf.StorageNode == nil {
+		return errors.New("node storage is nil")
+	}
+	if conf.StorageWorkflow == nil {
+		return errors.New("workflow storage is nil")
+	}
+	if conf.StoragePackage == nil {
+		return errors.New("package storage is nil")
+	}
+	if conf.StoragePlugin == nil {
+		return errors.New("plugin storage is nil")
+	}
+	if conf.StorageHostCredit == nil {
+		return errors.New("host credit storage is nil")
+	}
+	if conf.StorageConfigPolicy == nil {
+		return errors.New("config policy storage is nil")
+	}
+	if conf.StorageTenant == nil {
+		return errors.New("tenant storage is nil")
+	}
+	if conf.StorageDeployPolicy == nil {
+		return errors.New("deploy policy storage is nil")
+	}
+	if conf.StorageBizEventDataIDConf == nil {
+		return errors.New("biz event data-id conf storage is nil")
+	}
 
 	return nil
 }
