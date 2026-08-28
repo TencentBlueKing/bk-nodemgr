@@ -1,0 +1,200 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+
+// DeployPolicyMeta describes the meta of deploy policy.
+message DeployPolicyMeta {
+  string name = 1;
+  string description = 2;
+}
+
+// PluginConfigDetail describes the plugin config detail.
+message PluginConfigDetail {
+  string name = 1;
+  string content = 2;
+  bool is_main_config = 3;
+}
+
+// SpecifyAgentParam describes the specify agent param structure.
+message SpecifyAgentParam { string node_version = 1; }
+
+// SpecifyProxyParam describes the specify proxy param structure.
+message SpecifyProxyParam { string node_version = 1; }
+
+// SpecifyPluginParam describes the specify plugin param structure.
+message SpecifyPluginParam {
+  string plugin_name = 1;
+  string version = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
+// SpecifyPluginPkgParam describes the specify plugin pkg param structure.
+message SpecifyPluginPkgParam {
+  string plugin_pkg_name = 1;
+  string version = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
+// SpecifyPluginSubConfigParam describes the specify plugin sub config param
+// structure.
+message SpecifyPluginSubConfigParam {
+  string plugin_name = 1;
+  repeated PluginConfigDetail config_files_detail = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
+// DeploySpec describes the spec of deploy policy.
+message DeploySpec {
+  string type = 1;
+  google.protobuf.Struct param = 2;
+}
+
+// TargetFilter describes the target filter of deploy policy.
+message TargetFilter {}
+
+// ScopeServiceTemplate describes the scope when type is "service_template".
+message ScopeServiceTemplate {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated int64 service_template_ids = 4;
+  repeated int64 module_ids = 5;
+}
+
+// ScopeSetTemplate describes the scope when type is "set_template".
+message ScopeSetTemplate {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated int64 set_template_ids = 4;
+  repeated int64 set_ids = 5;
+}
+
+// ScopeInstance describes the scope when type is "instance".
+message ScopeInstance {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated int64 instance_ids = 4;
+}
+
+// ScopeTopo describes the scope when type is "topo".
+message ScopeTopo {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+
+  message ScopeTopoNode {
+    string topo_obj_id = 1;
+    int64 topo_inst_id = 2;
+  }
+  repeated ScopeTopoNode paths = 4;
+}
+
+// ScopeDynamicGroup describes the scope when type is "dynamic_group".
+message ScopeDynamicGroup {
+  string granularity = 1;
+  int64 bk_biz_id = 2;
+  TargetFilter filter = 3;
+  repeated string dynamic_group_ids = 4;
+}
+
+// Scope describes the scope of deploy policy.
+message Scope {
+  string type = 1;
+  google.protobuf.Struct scope = 2;
+}
+
+// DeployPolicy describes the deploy policy.
+message DeployPolicy {
+  int64 deploy_policy_id = 1;
+  int64 dsu_id = 2;
+  DeployPolicyMeta meta = 3;
+  repeated DeploySpec specs = 4;
+  repeated Scope scopes = 5;
+  string operator = 6;
+  bool enabled = 7;
+}
+
+// DeployPolicyExactConditions describes exact conditions of deploy policy.
+message DeployPolicyExactConditions {
+  repeated int64 deploy_policy_id = 1;
+  repeated int64 dsu_id = 2;
+  repeated string deploy_policy_name = 3;
+  repeated string operator = 4;
+  repeated bool enabled = 5;
+}
+
+// DeployPolicyFuzzyConditions describes fuzzy conditions of deploy policy.
+message DeployPolicyFuzzyConditions {
+  repeated string deploy_policy_name = 1;
+  repeated string operator = 2;
+}
+
+// DeployPolicyListReq describes HTTP request body when list deploy policy.
+message DeployPolicyListReq {
+  Page page = 1;
+  bool only_count = 2;
+  DeployPolicyExactConditions exact_include_conditions = 3;
+  DeployPolicyFuzzyConditions fuzzy_include_conditions = 4;
+  DeployPolicyExactConditions exact_exclude_conditions = 5;
+  DeployPolicyFuzzyConditions fuzzy_exclude_conditions = 6;
+  TimeRange executed_time_range = 7;
+}
+
+// DeployPolicyListResp describes HTTP response body when list deploy policy.
+message DeployPolicyListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data {
+    int64 total = 1;
+    repeated DeployPolicy items = 2;
+  }
+  Data data = 5;
+}
+
+// DeployPolicyExecuteReq describes HTTP request body when execute deploy
+// policy.
+message DeployPolicyExecuteReq { optional int64 deploy_policy_id = 1; }
+
+// DeployPolicyExecuteResp describes HTTP response body when execute deploy
+// policy.
+message DeployPolicyExecuteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  Permission permission = 6;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// DeployPolicyAPI describes the deploy policy API.
+service DeployPolicyAPI {
+  // ListDeployPolicy lists deploy policy.
+  rpc ListDeployPolicy(DeployPolicyListReq) returns (DeployPolicyListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/list"
+      body : "*"
+    };
+  }
+
+  // ExecuteDeployPolicy executes deploy policy.
+  rpc ExecuteDeployPolicy(DeployPolicyExecuteReq)
+      returns (DeployPolicyExecuteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/execute"
+      body : "*"
+    };
+  }
+}

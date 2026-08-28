@@ -1,0 +1,503 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "deploy_policy.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "DeployPolicyAPI"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/deploy_policy/execute": {
+      "post": {
+        "summary": "ExecuteDeployPolicy executes deploy policy.",
+        "operationId": "DeployPolicyAPI_ExecuteDeployPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyExecuteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyExecuteReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/deploy_policy/list": {
+      "post": {
+        "summary": "ListDeployPolicy lists deploy policy.",
+        "operationId": "DeployPolicyAPI_ListDeployPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DeployPolicyListReq describes HTTP request body when list deploy policy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyListReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicyAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Action": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "related_resource_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3RelatedResourceType"
+          }
+        }
+      }
+    },
+    "v3DeployPolicy": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "dsu_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "meta": {
+          "$ref": "#/definitions/v3DeployPolicyMeta"
+        },
+        "specs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeploySpec"
+          }
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Scope"
+          }
+        },
+        "operator": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "description": "DeployPolicy describes the deploy policy."
+    },
+    "v3DeployPolicyExactConditions": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "dsu_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "deploy_policy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "DeployPolicyExactConditions describes exact conditions of deploy policy."
+    },
+    "v3DeployPolicyExecuteReq": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy."
+    },
+    "v3DeployPolicyExecuteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyExecuteRespData"
+        }
+      },
+      "description": "DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy."
+    },
+    "v3DeployPolicyExecuteRespData": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3DeployPolicyFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "DeployPolicyFuzzyConditions describes fuzzy conditions of deploy policy."
+    },
+    "v3DeployPolicyListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyExactConditions"
+        },
+        "fuzzy_exclude_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyFuzzyConditions"
+        },
+        "executed_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "DeployPolicyListReq describes HTTP request body when list deploy policy."
+    },
+    "v3DeployPolicyListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "permission": {
+          "$ref": "#/definitions/v3Permission"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyListRespData"
+        }
+      },
+      "description": "DeployPolicyListResp describes HTTP response body when list deploy policy."
+    },
+    "v3DeployPolicyListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "string",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeployPolicy"
+          }
+        }
+      }
+    },
+    "v3DeployPolicyMeta": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "description": "DeployPolicyMeta describes the meta of deploy policy."
+    },
+    "v3DeploySpec": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "param": {
+          "type": "object"
+        }
+      },
+      "description": "DeploySpec describes the spec of deploy policy."
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3Permission": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "apply_url": {
+          "type": "string"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Action"
+          }
+        }
+      }
+    },
+    "v3RelatedResourceType": {
+      "type": "object",
+      "properties": {
+        "system_id": {
+          "type": "string"
+        },
+        "system_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ResourceNode"
+          }
+        }
+      }
+    },
+    "v3ResourceNode": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3Scope": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object"
+        }
+      },
+      "description": "Scope describes the scope of deploy policy."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
+    }
+  }
+}

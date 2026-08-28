@@ -75,6 +75,30 @@ func (x *DeployPolicyListReq) ConvertConditionsToTypes() (*types.DeployPolicyCon
 	}, nil
 }
 
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *DeployPolicyListReq) ConvertConditionsFromTypes(condition *types.DeployPolicyCondition) {
+	if condition == nil {
+		return
+	}
+
+	x.ExecutedTimeRange = convertDeployPolicyTimeRangeFromTypes(condition.ExecutedTimeRange)
+	x.ExactIncludeConditions = convertDeployPolicyExactConditionsFromTypes(condition.ExactInclude)
+	x.FuzzyIncludeConditions = convertDeployPolicyFuzzyConditionsFromTypes(condition.FuzzyInclude)
+	x.ExactExcludeConditions = convertDeployPolicyExactConditionsFromTypes(condition.ExactExclude)
+	x.FuzzyExcludeConditions = convertDeployPolicyFuzzyConditionsFromTypes(condition.FuzzyExclude)
+}
+
+func convertDeployPolicyTimeRangeFromTypes(timeRange *types.TimeRange) *TimeRange {
+	if timeRange == nil {
+		return nil
+	}
+
+	return &TimeRange{
+		StartTimestampSec: timeRange.StartTime.Unix(),
+		EndTimestampSec:   timeRange.EndTime.Unix(),
+	}
+}
+
 // convertDeployPolicyExactConditionsToTypes convert deploy policy exact conditions to types.
 func convertDeployPolicyExactConditionsToTypes(exactCond *DeployPolicyExactConditions) *types.DeployPolicyExactFields {
 	if exactCond == nil {
@@ -90,6 +114,20 @@ func convertDeployPolicyExactConditionsToTypes(exactCond *DeployPolicyExactCondi
 	}
 }
 
+func convertDeployPolicyExactConditionsFromTypes(exactCond *types.DeployPolicyExactFields) *DeployPolicyExactConditions {
+	if exactCond == nil {
+		return nil
+	}
+
+	return &DeployPolicyExactConditions{
+		DeployPolicyId:   exactCond.DeployPolicyID,
+		DsuId:            exactCond.DsuID,
+		DeployPolicyName: exactCond.DeployPolicyName,
+		Operator:         exactCond.Operator,
+		Enabled:          exactCond.Enabled,
+	}
+}
+
 // convertDeployPolicyFuzzyConditionsToTypes convert deploy policy fuzzy conditions to types.
 func convertDeployPolicyFuzzyConditionsToTypes(fuzzyCond *DeployPolicyFuzzyConditions) *types.DeployPolicyFuzzyFields {
 	if fuzzyCond == nil {
@@ -99,6 +137,17 @@ func convertDeployPolicyFuzzyConditionsToTypes(fuzzyCond *DeployPolicyFuzzyCondi
 	return &types.DeployPolicyFuzzyFields{
 		DeployPolicyName: fuzzyCond.GetDeployPolicyName(),
 		Operator:         fuzzyCond.GetOperator(),
+	}
+}
+
+func convertDeployPolicyFuzzyConditionsFromTypes(fuzzyCond *types.DeployPolicyFuzzyFields) *DeployPolicyFuzzyConditions {
+	if fuzzyCond == nil {
+		return nil
+	}
+
+	return &DeployPolicyFuzzyConditions{
+		DeployPolicyName: fuzzyCond.DeployPolicyName,
+		Operator:         fuzzyCond.Operator,
 	}
 }
 
@@ -119,6 +168,25 @@ func (x *DeployPolicyListResp) ConvertDeployPoliciesFromTypes(total int64, deplo
 
 func convDeployPoliciesFromTypes(deployPolicies []*types.DeployPolicy) ([]*DeployPolicy, error) {
 	return conv.SliceToSliceWithError[*types.DeployPolicy, *DeployPolicy](deployPolicies, convDeployPolicyFromTypes)
+}
+
+// ConvertDeployPoliciesToTypes convert deploy policies to types.
+func (x *DeployPolicyListResp) ConvertDeployPoliciesToTypes() (int64, []*types.DeployPolicy, error) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil, nil
+	}
+
+	items, err := convDeployPoliciesToTypes(data.GetItems())
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return data.GetTotal(), items, nil
+}
+
+func convDeployPoliciesToTypes(deployPolicies []*DeployPolicy) ([]*types.DeployPolicy, error) {
+	return conv.SliceToSliceWithError[*DeployPolicy, *types.DeployPolicy](deployPolicies, convDeployPolicyToTypes)
 }
 
 func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy) (*DeployPolicy, error) {

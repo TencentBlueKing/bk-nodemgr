@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/auth"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg"
@@ -57,6 +58,7 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	topo.Load(h.rg, capability)
 	node.Load(h.rg, capability)
 	policy.Load(h.rg, capability)
+	deploypolicy.Load(h.rg, capability)
 	pkg.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	process.Load(h.rg, capability)

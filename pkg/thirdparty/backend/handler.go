@@ -33,6 +33,7 @@ type IHandler interface {
 	IHandlerNodeConstant
 	IHandlerRelease
 	IHandlerConfigPolicy
+	IHandlerDeployPolicy
 	IHandlerPlugin
 	IHandlerPluginWorkflow
 	IHandlerProcess

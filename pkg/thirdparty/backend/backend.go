@@ -3017,6 +3017,68 @@ func (c *cli) deleteReleasePluginBinTool(ctx contextx.IContext, req *protoBacken
 // Policy Related Interfaces
 // ===============================================================================
 
+func (c *cli) listDeployPolicy(ctx contextx.IContext, req *protoBackend.DeployPolicyListReq) (
+	*protoBackend.DeployPolicyListResp, error) {
+
+	resp := new(protoBackend.DeployPolicyListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/deploy_policy/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("list deploy policy", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list deploy policy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) executeDeployPolicy(ctx contextx.IContext, req *protoBackend.DeployPolicyExecuteReq) (
+	*protoBackend.DeployPolicyExecuteResp, error) {
+
+	resp := new(protoBackend.DeployPolicyExecuteResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/deploy_policy/execute").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, buildBackendResponseError("execute deploy policy", resp, resp.GetError())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("execute deploy policy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyListReq) (
 	*protoBackend.ConfigPolicyListResp, error) {
 
