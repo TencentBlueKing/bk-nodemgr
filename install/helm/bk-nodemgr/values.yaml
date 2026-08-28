@@ -1391,10 +1391,6 @@ backend:
           pluginIPC: ""
           zoneID: "default"
           cityID: "default"
-          eventDataIDs:
-            - tenantID: "default"
-              agentBaseAlarmEventDataID: 1000
-              taskProcEventDataID: 1100008
         pluginCustom:
           logDir: ""
           hostIDPath: ""
@@ -1412,10 +1408,6 @@ backend:
           pluginIPC: ""
           zoneID: "default"
           cityID: "default"
-          eventDataIDs:
-            - tenantID: "default"
-              agentBaseAlarmEventDataID: 1000
-              taskProcEventDataID: 1100008
         pluginCustom:
           logDir: ""
           hostIDPath: ""

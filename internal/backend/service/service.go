@@ -203,7 +203,6 @@ func (svc *Service) initialStaticsConfigs() error {
 			ProxyFileCacheDir: svc.conf.GSEDeployConfs[idx].Custom.ProxyFileCacheDir,
 			ZoneID:            svc.conf.GSEDeployConfs[idx].Custom.ZoneID,
 			CityID:            svc.conf.GSEDeployConfs[idx].Custom.CityID,
-			EventDataIDConfs:  buildNodeEventDataIDConfs(svc.conf.GSEDeployConfs[idx].Custom.EventDataIDs),
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)
@@ -227,22 +226,6 @@ func (svc *Service) initialStaticsConfigs() error {
 	}
 
 	return nil
-}
-
-func buildNodeEventDataIDConfs(eventDataIDs []config.GSEDeployEventDataID) map[string]deployconstant.NodeEventDataIDConf {
-	if len(eventDataIDs) == 0 {
-		return nil
-	}
-
-	eventDataIDConfs := make(map[string]deployconstant.NodeEventDataIDConf, len(eventDataIDs))
-	for idx := range eventDataIDs {
-		eventDataIDConfs[eventDataIDs[idx].TenantID] = deployconstant.NodeEventDataIDConf{
-			AgentBaseAlarmEventDataID: eventDataIDs[idx].AgentBaseAlarmEventDataID,
-			TaskProcEventDataID:       eventDataIDs[idx].TaskProcEventDataID,
-		}
-	}
-
-	return eventDataIDConfs
 }
 
 // nolint: funlen

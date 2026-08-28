@@ -56,19 +56,12 @@ type NodeDeployConf struct {
 	ProxyFileCacheDir string
 	ZoneID            string
 	CityID            string
-	EventDataIDConfs  map[string]NodeEventDataIDConf
 }
 
 // Validate checks if the deployment configuration is valid.
 func (conf NodeDeployConf) Validate() error {
 	if err := conf.DeployConf.Validate(); err != nil {
 		return fmt.Errorf("invalid deploy conf: %w", err)
-	}
-
-	for tenantID, eventDataIDConf := range conf.EventDataIDConfs {
-		if err := eventDataIDConf.Validate(); err != nil {
-			return fmt.Errorf("invalid event data-id conf for tenantID %s: %w", tenantID, err)
-		}
 	}
 
 	return nil
@@ -213,7 +206,7 @@ func (conf NodeDeployConf) getWindowsDefaultPluginIPCPort() string {
 	return nodeWindowsPluginIPCPort
 }
 
-// NodeEventDataIDConf defines event data-id configuration for a tenant under NodeDeployConf.
+// NodeEventDataIDConf defines event data-id configuration for node rendering.
 type NodeEventDataIDConf struct {
 	AgentBaseAlarmEventDataID int64
 	TaskProcEventDataID       int64
@@ -230,14 +223,4 @@ func (conf NodeEventDataIDConf) Validate() error {
 	}
 
 	return nil
-}
-
-// GetEventDataIDConf returns event data-id configuration for the specified tenant.
-func (conf NodeDeployConf) GetEventDataIDConf(tenantID string) (NodeEventDataIDConf, error) {
-	eventDataIDConf, ok := conf.EventDataIDConfs[tenantID]
-	if !ok {
-		return NodeEventDataIDConf{}, fmt.Errorf("event data-id conf not found for tenant, tenant-id(%s)", tenantID)
-	}
-
-	return eventDataIDConf, nil
 }
